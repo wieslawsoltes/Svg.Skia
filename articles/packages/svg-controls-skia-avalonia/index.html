@@ -153,7 +153,8 @@
 <li>your Avalonia app already uses the Skia-backed rendering path,</li>
 <li>you want <code>Svg</code>, <code>SvgImage</code>, <code>SvgSource</code>, and <code>SvgResource</code> in XAML,</li>
 <li>you need control-coordinate hit testing,</li>
-<li>you want zoom, pan, wireframe, filter toggles, or source reload support,</li>
+<li>you want zoom, pan, wireframe, filter toggles, source reload support, or routed interaction,</li>
+<li>you want host-driven SVG animation playback with optional retained native composition,</li>
 <li>you want direct access to the underlying <code>Svg.Skia.SKSvg</code>.</li>
 </ul>
 <h2 id="main-types">Main types</h2>
@@ -184,6 +185,10 @@
 <tr>
 <td><code>SvgResourceExtension</code></td>
 <td>Brush-producing markup extension for backgrounds and fills</td>
+</tr>
+<tr>
+<td><code>Svg.Skia.SvgInteractionDispatcher</code></td>
+<td>Routed pointer helper exposed through <code>Svg.Interaction</code></td>
 </tr>
 </tbody>
 </table>
@@ -233,9 +238,42 @@ var image = new SvgImage
 <li><code>ZoomToPoint(...)</code></li>
 <li><code>TryGetPicturePoint(...)</code></li>
 <li><code>HitTestElements(...)</code></li>
+<li><code>Interaction</code></li>
+<li><code>AnimationBackend</code></li>
+<li><code>AnimationFrameInterval</code></li>
+<li><code>AnimationPlaybackRate</code></li>
+<li><code>ActualAnimationBackend</code></li>
+<li><code>AnimationBackendFallbackReason</code></li>
 <li><code>SkSvg</code> access</li>
 </ul>
 <p>Those features make this package the better choice for editors, diagram viewers, and interactive inspection tools.</p>
+<h2 id="animation-playback-and-retained-composition">Animation playback and retained composition</h2>
+<p>The Avalonia <code>Svg</code> control now hosts the shared <code>SKSvg</code> animation runtime.</p>
+<p>Available backends are:</p>
+<ul>
+<li><code>Default</code></li>
+<li><code>Manual</code></li>
+<li><code>DispatcherTimer</code></li>
+<li><code>RenderLoop</code></li>
+<li><code>NativeComposition</code></li>
+</ul>
+<p><code>Default</code> prefers <code>NativeComposition</code> when the host compositor and the loaded SVG can support the retained scene. If that path is unavailable, the control reports the resolved backend through <code>ActualAnimationBackend</code> and the reason through <code>AnimationBackendFallbackReason</code>.</p>
+<p>Example:</p>
+<pre><code class="language-xml">&lt;svg:Svg Path=&quot;/Assets/animated.svg&quot;
+         AnimationBackend=&quot;Default&quot;
+         AnimationPlaybackRate=&quot;1&quot;
+         AnimationFrameInterval=&quot;0:0:0.016&quot; /&gt;
+</code></pre>
+<p><code>NativeComposition</code> uses retained compositor child visuals for supported top-level SVG layers while still relying on the shared <code>SKSvg</code> animation runtime for timing and property evaluation.</p>
+<h2 id="routed-interaction">Routed interaction</h2>
+<p>The control exposes one shared <code>SvgInteractionDispatcher</code> instance through <code>Interaction</code>.</p>
+<p>That surface is useful when a host wants:</p>
+<ul>
+<li>routed pointer notifications,</li>
+<li>capture-aware move and release handling,</li>
+<li>cursor hints,</li>
+<li>optional compatibility bridging back into <code>SvgElement</code> mouse events.</li>
+</ul>
 <h2 id="hit-testing-in-avalonia-coordinates">Hit testing in Avalonia coordinates</h2>
 <pre><code class="language-csharp">var point = e.GetPosition(MySvgControl);
 var hits = MySvgControl.HitTestElements(point);
@@ -256,6 +294,7 @@ var hits = MySvgControl.HitTestElements(point);
 <ul>
 <li><a href="/Svg.Skia/articles/xaml/overview">XAML Overview</a></li>
 <li><a href="/Svg.Skia/articles/xaml/svg-control-and-svgimage">Svg Control and SvgImage</a></li>
+<li><a href="/Svg.Skia/articles/guides/interaction-and-animation">Interaction and Animation</a></li>
 <li><a href="/Svg.Skia/articles/xaml/svgresource-and-brushes">SvgResource and Brushes</a></li>
 <li><a href="/Svg.Skia/articles/xaml/styling-and-previewer">Styling and Previewer</a></li>
 </ul>

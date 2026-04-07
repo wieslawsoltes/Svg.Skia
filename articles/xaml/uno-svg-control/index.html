@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Uno Svg Control | Svg.Skia">
-<meta name="twitter:description" content="Uno Svg Control Namespace xmlns:svg=&quot;using:Uno.Svg.Skia&quot; Core control properties The Uno Svg control keeps the control-facing API close to the Avalonia Skia package: SvgSource Path Source Stretch StretchDirection EnableCache Wireframe DisableFilters Zoom PanX PanY Css CurrentCss Reusable resource example &lt;Page.Resources> &lt;svg:SvgSource x:Key=&quot;LogoSource&quot; Path=&quot;/Assets/logo.svg&quot; /> &lt;/Page.Resources> &lt;svg:Svg SvgSource=&quot;{StaticResource LogoSource}&quot; Height=&quot;160&quot; Stretch=&quot;Uniform&quot; />...">
+<meta name="twitter:description" content="Uno Svg Control Namespace xmlns:svg=&quot;using:Uno.Svg.Skia&quot; Core control properties The Uno Svg control keeps the control-facing API close to the Avalonia Skia package: SvgSource Path Source Stretch StretchDirection EnableCache Wireframe DisableFilters Zoom PanX PanY Css CurrentCss AnimationBackend AnimationFrameInterval AnimationPlaybackRate Reusable resource example &lt;Page.Resources> &lt;svg:SvgSource x:Key=&quot;LogoSource&quot; Path=&quot;/Assets/logo.svg&quot; /> &lt;/Page.Resources> &lt;svg:Svg SvgSource=&quot;{StaticResource LogoSource}&quot; Height=&quot;160&quot; Stretch=&quot;Uniform&quot; />...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Uno Svg Control | Svg.Skia">
 <meta property="og:title" content="Uno Svg Control | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Uno Svg Control Namespace xmlns:svg=&quot;using:Uno.Svg.Skia&quot; Core control properties The Uno Svg control keeps the control-facing API close to the Avalonia Skia package: SvgSource Path Source Stretch StretchDirection EnableCache Wireframe DisableFilters Zoom PanX PanY Css CurrentCss Reusable resource example &lt;Page.Resources> &lt;svg:SvgSource x:Key=&quot;LogoSource&quot; Path=&quot;/Assets/logo.svg&quot; /> &lt;/Page.Resources> &lt;svg:Svg SvgSource=&quot;{StaticResource LogoSource}&quot; Height=&quot;160&quot; Stretch=&quot;Uniform&quot; />...">
+<meta property="og:description" content="Uno Svg Control Namespace xmlns:svg=&quot;using:Uno.Svg.Skia&quot; Core control properties The Uno Svg control keeps the control-facing API close to the Avalonia Skia package: SvgSource Path Source Stretch StretchDirection EnableCache Wireframe DisableFilters Zoom PanX PanY Css CurrentCss AnimationBackend AnimationFrameInterval AnimationPlaybackRate Reusable resource example &lt;Page.Resources> &lt;svg:SvgSource x:Key=&quot;LogoSource&quot; Path=&quot;/Assets/logo.svg&quot; /> &lt;/Page.Resources> &lt;svg:Svg SvgSource=&quot;{StaticResource LogoSource}&quot; Height=&quot;160&quot; Stretch=&quot;Uniform&quot; />...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Uno Svg Control | Svg.Skia">
   </head>
@@ -179,6 +179,9 @@
 <li><code>PanY</code></li>
 <li><code>Css</code></li>
 <li><code>CurrentCss</code></li>
+<li><code>AnimationBackend</code></li>
+<li><code>AnimationFrameInterval</code></li>
+<li><code>AnimationPlaybackRate</code></li>
 </ul>
 <h2 id="reusable-resource-example">Reusable resource example</h2>
 <pre><code class="language-xml">&lt;Page.Resources&gt;
@@ -198,11 +201,21 @@
 var hits = MySvg.HitTestElements(point);
 </code></pre>
 <p><code>HitTestElements(...)</code> accepts Uno control coordinates and maps them back into picture coordinates using the current stretch, zoom, and pan state.</p>
+<h2 id="animation-playback">Animation playback</h2>
+<p>The Uno <code>Svg</code> control uses the shared <code>SKSvg</code> animation runtime and exposes the same resolved-backend diagnostics as the Avalonia Skia package:</p>
+<ul>
+<li><code>ActualAnimationBackend</code></li>
+<li><code>AnimationBackendFallbackReason</code></li>
+<li><code>AnimationBackendResolution</code></li>
+<li><code>AnimationBackendCapabilities</code></li>
+</ul>
+<p>Uno currently falls back away from <code>NativeComposition</code>, so the practical playback backends are <code>DispatcherTimer</code>, <code>RenderLoop</code>, or <code>Manual</code>.</p>
 <h2 id="current-v1-limits">Current v1 limits</h2>
 <ul>
 <li>no <code>SvgImage</code></li>
 <li>no brush/resource markup extension equivalent</li>
 <li>no native-renderer fallback</li>
+<li>no retained native-composition playback path</li>
 </ul>
 <p>For those scenarios in Uno, keep the SVG in a reusable <code>SvgSource</code> and render it through one or more <code>Svg</code> controls.</p>
 

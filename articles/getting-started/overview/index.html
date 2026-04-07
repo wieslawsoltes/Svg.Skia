@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Overview | Svg.Skia">
-<meta name="twitter:description" content="Overview Svg.Skia is a repository, not just a single package. The main entry points are: Package or tool Use it when Main output Detailed guide Svg.Skia You want to load SVG or Android VectorDrawable content and render with SkiaSharp. SKPicture, bitmap, pdf, xps, svg Svg.Skia Svg.Model You need the intermediate picture-recording model or SVG-related helper types. ShimSkiaSharp command model Svg.Model Svg.Custom You want the underlying SVG DOM used by the...">
+<meta name="twitter:description" content="Overview Svg.Skia is a repository, not just a single package. The main entry points are: Package or tool Use it when Main output Detailed guide Svg.Skia You want to load SVG or Android VectorDrawable content and render with SkiaSharp. SKPicture, bitmap, pdf, xps, svg, hit testing, animation runtime Svg.Skia Svg.Model You need the intermediate picture-recording model or SVG-related helper types. ShimSkiaSharp command model Svg.Model...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Overview | Svg.Skia">
 <meta property="og:title" content="Overview | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Overview Svg.Skia is a repository, not just a single package. The main entry points are: Package or tool Use it when Main output Detailed guide Svg.Skia You want to load SVG or Android VectorDrawable content and render with SkiaSharp. SKPicture, bitmap, pdf, xps, svg Svg.Skia Svg.Model You need the intermediate picture-recording model or SVG-related helper types. ShimSkiaSharp command model Svg.Model Svg.Custom You want the underlying SVG DOM used by the...">
+<meta property="og:description" content="Overview Svg.Skia is a repository, not just a single package. The main entry points are: Package or tool Use it when Main output Detailed guide Svg.Skia You want to load SVG or Android VectorDrawable content and render with SkiaSharp. SKPicture, bitmap, pdf, xps, svg, hit testing, animation runtime Svg.Skia Svg.Model You need the intermediate picture-recording model or SVG-related helper types. ShimSkiaSharp command model Svg.Model...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Overview | Svg.Skia">
   </head>
@@ -172,7 +172,7 @@
 <tr>
 <td><code>Svg.Skia</code></td>
 <td>You want to load SVG or Android VectorDrawable content and render with SkiaSharp.</td>
-<td><code>SKPicture</code>, bitmap, pdf, xps, svg</td>
+<td><code>SKPicture</code>, bitmap, pdf, xps, svg, hit testing, animation runtime</td>
 <td><a href="/Svg.Skia/articles/packages/svg-skia">Svg.Skia</a></td>
 </tr>
 <tr>
@@ -184,7 +184,7 @@
 <tr>
 <td><code>Svg.Custom</code></td>
 <td>You want the underlying SVG DOM used by the renderer.</td>
-<td><code>SvgDocument</code>, <code>SvgElement</code>, parser APIs</td>
+<td><code>SvgDocument</code>, <code>SvgElement</code>, animation DOM, parser APIs</td>
 <td><a href="/Svg.Skia/articles/packages/svg-custom">Svg.Custom</a></td>
 </tr>
 <tr>
@@ -196,13 +196,13 @@
 <tr>
 <td><code>Svg.Controls.Skia.Uno</code></td>
 <td>You want Uno controls that render through the Skia-backed pipeline.</td>
-<td><code>Svg</code>, <code>SvgSource</code>, hit testing, zoom/pan</td>
+<td><code>Svg</code>, <code>SvgSource</code>, hit testing, zoom/pan, animation playback</td>
 <td><a href="/Svg.Skia/articles/packages/svg-controls-skia-uno">Svg.Controls.Skia.Uno</a></td>
 </tr>
 <tr>
 <td><code>Svg.Controls.Skia.Avalonia</code></td>
 <td>You want Avalonia controls that render through the Skia-backed pipeline.</td>
-<td><code>Svg</code>, <code>SvgImage</code>, <code>SvgSource</code>, <code>SvgResource</code></td>
+<td><code>Svg</code>, <code>SvgImage</code>, <code>SvgSource</code>, <code>SvgResource</code>, animation playback, native composition</td>
 <td><a href="/Svg.Skia/articles/packages/svg-controls-skia-avalonia">Svg.Controls.Skia.Avalonia</a></td>
 </tr>
 <tr>
@@ -253,10 +253,10 @@
 <h3 id="runtime-rendering">Runtime rendering</h3>
 <p>Start with <code>Svg.Skia</code> if your application already uses SkiaSharp or needs direct access to <code>SKPicture</code>.</p>
 <h3 id="avalonia-application">Avalonia application</h3>
-<p>Start with <code>Svg.Controls.Skia.Avalonia</code> when the app is already on Avalonia plus Skia.</p>
+<p>Start with <code>Svg.Controls.Skia.Avalonia</code> when the app is already on Avalonia plus Skia and you want the richest interaction and animation surface, including native-composition playback where supported.</p>
 <p>Choose <code>Svg.Controls.Avalonia</code> when you want the same SVG concepts exposed through the Avalonia drawing stack instead.</p>
 <h3 id="uno-application">Uno application</h3>
-<p>Start with <code>Svg.Controls.Skia.Uno</code> when the app is on Uno Platform and you want direct <code>SKCanvasElement</code> rendering plus async asset loading, hit testing, and viewport controls.</p>
+<p>Start with <code>Svg.Controls.Skia.Uno</code> when the app is on Uno Platform and you want direct <code>SKCanvasElement</code> rendering plus async asset loading, hit testing, viewport controls, and host-driven animation playback.</p>
 <h3 id="embedded-editor">Embedded editor</h3>
 <p>Start with <code>Svg.Editor.Skia.Avalonia</code> when the target is an editable SVG workspace rather than a viewer-only control.</p>
 <p>Move down to the other <code>Svg.Editor.*</code> packages when the host needs only panels, dialogs, SVG mutation services, or low-level interaction helpers.</p>
@@ -267,10 +267,10 @@
 <p>Use <code>Svg.Skia.Converter</code> when you need command-line automation for folders, patterns, or repeated exports.</p>
 <h2 id="what-this-repository-emphasizes">What this repository emphasizes</h2>
 <ul>
-<li>SVG 1.1 subset rendering with SkiaSharp output.</li>
+<li>SVG 1.1 DOM coverage with SkiaSharp output and shared animation playback support.</li>
 <li>Android VectorDrawable import and validation coverage.</li>
-<li>Model-level editing and picture rebuild support.</li>
-<li>Avalonia controls, image sources, and brush helpers.</li>
+<li>Model-level editing, interaction routing, and picture rebuild support.</li>
+<li>Avalonia and Uno controls with host animation backends and resolved-backend diagnostics.</li>
 <li>Verification through unit tests, UI tests, and W3C test-suite assets.</li>
 </ul>
 <p>For extensive package-by-package coverage, continue with <a href="/Svg.Skia/articles/packages">Packages</a>.</p>

@@ -197,9 +197,27 @@ if (document is not null)
 <li>the package identity used by the repo,</li>
 <li>trimming and AOT annotations for supported target frameworks,</li>
 <li>embedded SVG 1.1 DTD resources,</li>
-<li>analyzer and generator integration used by the vendored code path.</li>
+<li>analyzer and generator integration used by the vendored code path,</li>
+<li>repository-local SVG 1.1 animation object-model types,</li>
+<li>typed <code>pointer-events</code> support used by the shared hit-test and interaction layers.</li>
 </ul>
 <p>The rendering behavior still lives above this package, not inside it.</p>
+<h2 id="animation-dom-coverage">Animation DOM coverage</h2>
+<p><code>Svg.Custom</code> now includes the repository's SVG 1.1 animation object-model overlay in the <code>Svg</code> namespace.</p>
+<p>That surface includes:</p>
+<ul>
+<li><code>SvgAnimationElement</code></li>
+<li><code>SvgAnimationAttributeElement</code></li>
+<li><code>SvgAnimationValueElement</code></li>
+<li><code>SvgAnimate</code></li>
+<li><code>SvgSet</code></li>
+<li><code>SvgAnimateMotion</code></li>
+<li><code>SvgAnimateColor</code></li>
+<li><code>SvgAnimateTransform</code></li>
+<li><code>SvgMPath</code></li>
+</ul>
+<p>The DOM layer also adds typed enums and converters for common animation attributes such as <code>attributeType</code>, <code>restart</code>, <code>fill</code>, <code>calcMode</code>, <code>additive</code>, <code>accumulate</code>, and transform <code>type</code>.</p>
+<p>This package does not execute animation by itself. It only parses and stores the DOM. Runtime evaluation lives in <a href="/Svg.Skia/articles/packages/svg-skia">Svg.Skia</a>.</p>
 <h2 id="good-use-cases">Good use cases</h2>
 <ul>
 <li>validating raw SVG input before rendering,</li>
@@ -216,6 +234,7 @@ if (document is not null)
 <h2 id="related-docs">Related docs</h2>
 <ul>
 <li><a href="/Svg.Skia/articles/concepts/source-formats-and-assets">Source Formats and Assets</a></li>
+<li><a href="/Svg.Skia/articles/guides/interaction-and-animation">Interaction and Animation</a></li>
 <li><a href="/Svg.Skia/articles/packages/svg-skia">Svg.Skia</a></li>
 <li><a href="/Svg.Skia/articles/packages/svg-model">Svg.Model</a></li>
 </ul>

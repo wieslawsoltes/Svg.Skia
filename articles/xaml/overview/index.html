@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Overview | Svg.Skia">
-<meta name="twitter:description" content="Overview UI SVG stacks Uno.Svg.Skia This package wraps the Svg.Skia runtime renderer for Uno Platform. Use it when: you want Uno XAML integration through SKCanvasElement, you need SvgSource resources with async asset loading, you want HitTestElements(...), TryGetPicturePoint(...), zoom, pan, wireframe, or filter toggles. Avalonia.Svg.Skia This package wraps the Svg.Skia runtime renderer. Use it when: you already depend on Skia-backed rendering, you want SKSvg...">
+<meta name="twitter:description" content="Overview UI SVG stacks Uno.Svg.Skia This package wraps the Svg.Skia runtime renderer for Uno Platform. Use it when: you want Uno XAML integration through SKCanvasElement, you need SvgSource resources with async asset loading, you want HitTestElements(...), TryGetPicturePoint(...), zoom, pan, wireframe, filter toggles, or animation playback. Avalonia.Svg.Skia This package wraps the Svg.Skia runtime renderer. Use it when: you already depend on Skia-backed rendering, you want...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Overview | Svg.Skia">
 <meta property="og:title" content="Overview | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Overview UI SVG stacks Uno.Svg.Skia This package wraps the Svg.Skia runtime renderer for Uno Platform. Use it when: you want Uno XAML integration through SKCanvasElement, you need SvgSource resources with async asset loading, you want HitTestElements(...), TryGetPicturePoint(...), zoom, pan, wireframe, or filter toggles. Avalonia.Svg.Skia This package wraps the Svg.Skia runtime renderer. Use it when: you already depend on Skia-backed rendering, you want SKSvg...">
+<meta property="og:description" content="Overview UI SVG stacks Uno.Svg.Skia This package wraps the Svg.Skia runtime renderer for Uno Platform. Use it when: you want Uno XAML integration through SKCanvasElement, you need SvgSource resources with async asset loading, you want HitTestElements(...), TryGetPicturePoint(...), zoom, pan, wireframe, filter toggles, or animation playback. Avalonia.Svg.Skia This package wraps the Svg.Skia runtime renderer. Use it when: you already depend on Skia-backed rendering, you want...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Overview | Svg.Skia">
   </head>
@@ -166,14 +166,15 @@
 <ul>
 <li>you want Uno XAML integration through <code>SKCanvasElement</code>,</li>
 <li>you need <code>SvgSource</code> resources with async asset loading,</li>
-<li>you want <code>HitTestElements(...)</code>, <code>TryGetPicturePoint(...)</code>, zoom, pan, wireframe, or filter toggles.</li>
+<li>you want <code>HitTestElements(...)</code>, <code>TryGetPicturePoint(...)</code>, zoom, pan, wireframe, filter toggles, or animation playback.</li>
 </ul>
 <h3 id="avaloniasvgskia"><code>Avalonia.Svg.Skia</code></h3>
 <p>This package wraps the <code>Svg.Skia</code> runtime renderer. Use it when:</p>
 <ul>
 <li>you already depend on Skia-backed rendering,</li>
 <li>you want <code>SKSvg</code> features such as hit testing or explicit model rebuild access,</li>
-<li>you want the Skia-backed <code>SvgSource</code> behavior and reload support.</li>
+<li>you want the Skia-backed <code>SvgSource</code> behavior and reload support,</li>
+<li>you want host-driven animation playback with <code>RenderLoop</code>, <code>DispatcherTimer</code>, or retained <code>NativeComposition</code> when available.</li>
 </ul>
 <h3 id="avaloniasvg"><code>Avalonia.Svg</code></h3>
 <p>This package exposes a similar surface but draws through Avalonia's own drawing context. Use it when:</p>
@@ -183,7 +184,7 @@
 <li>you need a lighter integration around the same source concepts.</li>
 </ul>
 <h2 id="shared-concepts">Shared concepts</h2>
-<p>The Uno and Avalonia Skia-backed packages all provide an <code>Svg</code> control and reusable <code>SvgSource</code>.</p>
+<p>The Uno and Avalonia Skia-backed packages all provide an <code>Svg</code> control, reusable <code>SvgSource</code>, shared hit testing, shared interaction dispatch, and the same animation-backend selection model.</p>
 <p>The Avalonia packages additionally provide <code>SvgImage</code>, markup extensions, and brush helpers.</p>
 <p>The Avalonia packages provide:</p>
 <ul>

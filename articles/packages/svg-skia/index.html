@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Svg.Skia | Svg.Skia">
-<meta name="twitter:description" content="Svg.Skia Svg.Skia is the main runtime rendering package in this repository. It loads SVG content into a SkiaSharp.SKPicture, preserves the intermediate model and drawable tree, and adds export and hit-testing helpers around that workflow. Install dotnet add package Svg.Skia Choose this package when your application already uses SkiaSharp, you need direct access to SkiaSharp.SKPicture, you want runtime export to bitmap, pdf, or xps formats,...">
+<meta name="twitter:description" content="Svg.Skia Svg.Skia is the main runtime rendering package in this repository. It loads SVG content into a SkiaSharp.SKPicture, preserves the intermediate model and drawable tree, and adds export, interaction, hit-testing, and animation helpers around that workflow. Install dotnet add package Svg.Skia Choose this package when your application already uses SkiaSharp, you need direct access to SkiaSharp.SKPicture, you want runtime export to bitmap, pdf, or xps formats,...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Svg.Skia | Svg.Skia">
 <meta property="og:title" content="Svg.Skia | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Svg.Skia Svg.Skia is the main runtime rendering package in this repository. It loads SVG content into a SkiaSharp.SKPicture, preserves the intermediate model and drawable tree, and adds export and hit-testing helpers around that workflow. Install dotnet add package Svg.Skia Choose this package when your application already uses SkiaSharp, you need direct access to SkiaSharp.SKPicture, you want runtime export to bitmap, pdf, or xps formats,...">
+<meta property="og:description" content="Svg.Skia Svg.Skia is the main runtime rendering package in this repository. It loads SVG content into a SkiaSharp.SKPicture, preserves the intermediate model and drawable tree, and adds export, interaction, hit-testing, and animation helpers around that workflow. Install dotnet add package Svg.Skia Choose this package when your application already uses SkiaSharp, you need direct access to SkiaSharp.SKPicture, you want runtime export to bitmap, pdf, or xps formats,...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Svg.Skia | Svg.Skia">
   </head>
@@ -144,7 +144,7 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="svgskia">Svg.Skia</h1>
-<p><code>Svg.Skia</code> is the main runtime rendering package in this repository. It loads SVG content into a <code>SkiaSharp.SKPicture</code>, preserves the intermediate model and drawable tree, and adds export and hit-testing helpers around that workflow.</p>
+<p><code>Svg.Skia</code> is the main runtime rendering package in this repository. It loads SVG content into a <code>SkiaSharp.SKPicture</code>, preserves the intermediate model and drawable tree, and adds export, interaction, hit-testing, and animation helpers around that workflow.</p>
 <h2 id="install">Install</h2>
 <pre><code class="language-bash">dotnet add package Svg.Skia
 </code></pre>
@@ -154,6 +154,7 @@
 <li>you need direct access to <code>SkiaSharp.SKPicture</code>,</li>
 <li>you want runtime export to bitmap, pdf, or xps formats,</li>
 <li>you need hit testing or model rebuild after editing,</li>
+<li>you need shared pointer routing or animation playback outside a UI-specific package,</li>
 <li>you want Android <code>VectorDrawable</code> input support.</li>
 </ul>
 <h2 id="main-types">Main types</h2>
@@ -184,6 +185,14 @@
 <tr>
 <td><code>SkiaSvgAssetLoader</code></td>
 <td><code>Svg.Model</code> asset-loader implementation for images and fonts</td>
+</tr>
+<tr>
+<td><code>SvgInteractionDispatcher</code></td>
+<td>Framework-neutral pointer routing and cursor-resolution helper</td>
+</tr>
+<tr>
+<td><code>SvgAnimationHostBackend</code></td>
+<td>Shared host playback backend enum used by the UI packages</td>
 </tr>
 </tbody>
 </table>
@@ -244,6 +253,42 @@ if (svg.Load(&quot;Assets/icon.svg&quot;) is not null)
 }
 </code></pre>
 <p>Use <code>TryGetPicturePoint</code> or <code>TryGetPictureRect</code> when the pointer coordinates come from a transformed canvas rather than picture space.</p>
+<p>For routed input targets, use <code>HitTestTopmostElement(...)</code> instead of <code>HitTestElements(...)</code>.</p>
+<h2 id="shared-interaction">Shared interaction</h2>
+<p><code>Svg.Skia</code> now includes a shared input-routing surface through <code>SvgInteractionDispatcher</code>.</p>
+<p>Use it when a host wants:</p>
+<ul>
+<li>topmost-target routing instead of broad inspection-only hit testing,</li>
+<li>tunnel, target, and bubble phases,</li>
+<li>pointer capture to the pressed target,</li>
+<li>cursor resolution,</li>
+<li>optional compatibility dispatch back into <code>SvgElement</code> mouse events.</li>
+</ul>
+<p>The dispatcher accepts <code>SvgPointerInput</code> and raises <code>SvgPointerEventArgs</code> through its <code>Dispatched</code> event.</p>
+<h2 id="shared-animation-runtime">Shared animation runtime</h2>
+<p><code>SKSvg</code> now owns the shared animation runtime for the repository.</p>
+<p>The main members are:</p>
+<ul>
+<li><code>HasAnimations</code></li>
+<li><code>AnimationTime</code></li>
+<li><code>SetAnimationTime(...)</code></li>
+<li><code>AdvanceAnimation(...)</code></li>
+<li><code>ResetAnimation()</code></li>
+<li><code>AnimationInvalidated</code></li>
+<li><code>AnimationMinimumRenderInterval</code></li>
+<li><code>HasPendingAnimationFrame</code></li>
+<li><code>FlushPendingAnimationFrame()</code></li>
+<li><code>LastAnimationDirtyTargetCount</code></li>
+</ul>
+<p>The runtime also exposes <code>SupportsNativeComposition</code>, <code>TryCreateNativeCompositionScene(...)</code>, and <code>TryCreateNativeCompositionFrame(...)</code> so host packages can attach retained playback paths without reimplementing SVG timing or property evaluation.</p>
+<h2 id="animation-performance-follow-up">Animation performance follow-up</h2>
+<p>The shared renderer now includes layered redraw support for animation frames and a local benchmark harness under <code>tests/Svg.Skia.Benchmarks</code>.</p>
+<p>That benchmark project compares:</p>
+<ul>
+<li>layered top-level animation updates that reuse cached static content,</li>
+<li>defs-backed animation updates that still require full-document rebuilds,</li>
+<li>the same paths with a draw pass included.</li>
+</ul>
 <h2 id="android-vectordrawable">Android VectorDrawable</h2>
 <p><code>Svg.Skia</code> also handles Android drawable XML directly:</p>
 <pre><code class="language-csharp">using Svg.Skia;
@@ -276,6 +321,7 @@ if (svg.LoadVectorDrawable(&quot;Assets/icon.xml&quot;) is not null)
 <li><a href="/Svg.Skia/articles/guides/loading-svg-and-vectordrawable">Loading SVG and VectorDrawable</a></li>
 <li><a href="/Svg.Skia/articles/guides/exporting-images-pdf-and-xps">Exporting Images, PDF, and XPS</a></li>
 <li><a href="/Svg.Skia/articles/guides/hit-testing-and-model-editing">Hit Testing and Model Editing</a></li>
+<li><a href="/Svg.Skia/articles/guides/interaction-and-animation">Interaction and Animation</a></li>
 <li><a href="/Svg.Skia/articles/advanced/android-vectordrawable-support">Android VectorDrawable Support</a></li>
 </ul>
 
