@@ -179,18 +179,20 @@
 <p>Current API settings:</p>
 <ul>
 <li>configuration: <code>Release</code></li>
-<li>target framework override: <code>netstandard2.0</code></li>
+<li>default target framework override: <code>netstandard2.0</code></li>
+<li>Avalonia 12 project overrides:
+<code>Svg.Controls.Avalonia</code>, <code>Svg.Controls.Skia.Avalonia</code>, <code>Skia.Controls.Avalonia</code>, <code>Svg.Editor.Avalonia</code>, and <code>Svg.Editor.Skia.Avalonia</code> build API metadata with <code>net8.0</code></li>
 <li>output path: <code>/api</code></li>
 </ul>
-<p>The Uno control project uses a per-project override of <code>TargetFramework=net10.0</code> because it does not target <code>netstandard2.0</code>.</p>
-<h2 id="why-netstandard20">Why <code>netstandard2.0</code></h2>
+<h2 id="why-mixed-target-frameworks">Why mixed target frameworks</h2>
 <p>This repository mixes:</p>
 <ul>
 <li>multi-target runtime packages,</li>
 <li>multi-target editor packages,</li>
+<li>a <code>net10.0</code> Uno control package,</li>
 <li><code>netstandard2.0</code>-only generator packages.</li>
 </ul>
-<p>Using <code>netstandard2.0</code> as the documentation build target keeps the API site aligned across the documented assemblies without having to split the API generation into multiple passes.</p>
+<p>The docs build keeps <code>netstandard2.0</code> as the default extraction target for the shared runtime and generator-facing packages, while overriding the Avalonia 12 packages to <code>net8.0</code>. The Uno control project uses a per-project override of <code>TargetFramework=net10.0</code> because it does not target <code>netstandard2.0</code>. That keeps a single API site without forcing the Avalonia or Uno projects back onto frameworks they no longer target.</p>
 <h2 id="svgcodegenskia"><code>Svg.CodeGen.Skia</code></h2>
 <p><code>Svg.CodeGen.Skia</code> is described in the authored docs but is not added as a separate <code>api.dotnet</code> project because <code>Svg.SourceGenerator.Skia</code> links the same codegen types into its assembly, which produces duplicate API UIDs during Lunet generation.</p>
 <h2 id="when-a-new-package-is-added">When a new package is added</h2>

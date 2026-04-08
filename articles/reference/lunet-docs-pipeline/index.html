@@ -177,7 +177,8 @@
 <p>Current settings:</p>
 <ul>
 <li><code>Release</code> configuration</li>
-<li><code>TargetFramework: netstandard2.0</code></li>
+<li>default <code>TargetFramework: netstandard2.0</code></li>
+<li>per-project <code>TargetFramework: net8.0</code> overrides for the Avalonia 12 packages</li>
 <li>output under <code>/api</code></li>
 <li>Avalonia xrefs pointed at <code>https://api-docs.avaloniaui.net/docs</code></li>
 </ul>
@@ -218,7 +219,7 @@
 </code></pre>
 <p>All commands operate in <code>site/</code> and publish to <code>site/.lunet/build/www</code>.</p>
 <h2 id="ci-publishing">CI publishing</h2>
-<p><code>.github/workflows/docs.yml</code> restores the local Lunet tool, builds the site, and deploys <code>site/.lunet/build/www</code> to GitHub Pages on pushes to <code>main</code> or <code>master</code>.</p>
+<p><code>.github/workflows/docs.yml</code> restores the local Lunet tool, builds the site for pull requests and pushes to <code>master</code> or <code>main</code>, and deploys <code>site/.lunet/build/www</code> to GitHub Pages only from the repository's default branch.</p>
 
       </div>
   </div>
