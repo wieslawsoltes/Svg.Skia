@@ -28,8 +28,25 @@ The Skia-backed control also adds:
 - `PanX`
 - `PanY`
 - `ZoomToPoint(...)`
+- `Interaction`
+- `AnimationBackend`
+- `AnimationFrameInterval`
+- `AnimationPlaybackRate`
+- `ActualAnimationBackend`
+- `AnimationBackendFallbackReason`
 
 That makes it a better fit when you need interaction or viewport behavior.
+
+For animated SVG, use the host playback properties directly on the control:
+
+```xml
+<svg:Svg Path="/Assets/animated.svg"
+         AnimationBackend="Default"
+         AnimationPlaybackRate="1"
+         AnimationFrameInterval="0:0:0.016" />
+```
+
+On Avalonia, `Default` prefers the retained `NativeComposition` path when it is supported by both the host and the loaded SVG scene.
 
 ## `SvgImage`
 
@@ -68,3 +85,5 @@ var hits = svgControl.HitTestElements(new Point(x, y));
 ```
 
 That method accepts control coordinates, not picture coordinates.
+
+For routed pointer events and animation playback details, see [Interaction and Animation](../guides/interaction-and-animation).

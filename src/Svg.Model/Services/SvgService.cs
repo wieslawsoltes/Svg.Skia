@@ -9,8 +9,6 @@ using System.Net;
 using System.Text;
 using System.Xml;
 using ShimSkiaSharp;
-using Svg.Model.Drawables;
-using Svg.Model.Drawables.Factories;
 
 namespace Svg.Model.Services;
 
@@ -91,7 +89,20 @@ public static class SvgService
             return default;
         }
 
-        var svgElementById = svgElement.OwnerDocument?.GetElementById(uri.ToString());
+        var uriString = uri.OriginalString;
+        if (uri.IsAbsoluteUri)
+        {
+            if (string.IsNullOrEmpty(uri.Fragment))
+            {
+                return default;
+            }
+        }
+        else if (uriString.IndexOf('#') < 0)
+        {
+            return default;
+        }
+
+        var svgElementById = svgElement.OwnerDocument?.GetElementById(uri);
         if (svgElementById is { })
         {
             return svgElementById as T;
@@ -197,33 +208,9 @@ public static class SvgService
 
     internal static bool HasRequiredFeatures(this SvgElement svgElement)
     {
-        if (!TryGetAttribute(svgElement, "requiredFeatures", out var requiredFeaturesString))
-        {
-            return true;
-        }
-
-        if (string.IsNullOrEmpty(requiredFeaturesString))
-        {
-            return false;
-        }
-
-        var features = requiredFeaturesString.Trim().Split(s_spaceTab, StringSplitOptions.RemoveEmptyEntries);
-        if (features.Length <= 0)
-        {
-            return false;
-        }
-
-        var hasRequiredFeatures = true;
-        foreach (var feature in features)
-        {
-            if (!s_supportedFeatures.Contains(feature))
-            {
-                hasRequiredFeatures = false;
-                break;
-            }
-        }
-
-        return hasRequiredFeatures;
+        // Chrome ignores requiredFeatures, and the W3C PNG baselines for this
+        // slice are stale. Match current browser behavior for rendering parity.
+        return true;
     }
 
     internal static bool HasRequiredExtensions(this SvgElement svgElement)
@@ -275,27 +262,49 @@ public static class SvgService
             return false;
         }
 
-        var hasSystemLanguage = false;
         var systemLanguage = s_systemLanguageOverride ?? CultureInfo.InstalledUICulture;
+        var systemLanguageTag = GetSystemLanguageTag(systemLanguage);
+        if (string.IsNullOrWhiteSpace(systemLanguageTag))
+        {
+            return false;
+        }
 
         foreach (var language in languages)
         {
-            try
+            if (MatchesSystemLanguage(systemLanguageTag, language.Trim()))
             {
-                var languageCultureInfo = CultureInfo.CreateSpecificCulture(language.Trim());
-                if (systemLanguage.Equals(languageCultureInfo)
-                    || systemLanguage.TwoLetterISOLanguageName == languageCultureInfo.TwoLetterISOLanguageName)
-                {
-                    hasSystemLanguage = true;
-                }
-            }
-            catch
-            {
-                // ignored
+                return true;
             }
         }
 
-        return hasSystemLanguage;
+        return false;
+    }
+
+    private static string? GetSystemLanguageTag(CultureInfo culture)
+    {
+        var languageTag = culture.Name;
+        return string.IsNullOrWhiteSpace(languageTag)
+            ? null
+            : languageTag.Replace('_', '-');
+    }
+
+    private static bool MatchesSystemLanguage(string systemLanguageTag, string requestedLanguage)
+    {
+        if (string.IsNullOrWhiteSpace(requestedLanguage))
+        {
+            return false;
+        }
+
+        requestedLanguage = requestedLanguage.Replace('_', '-');
+
+        if (systemLanguageTag.Equals(requestedLanguage, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return systemLanguageTag.Length > requestedLanguage.Length &&
+               systemLanguageTag.StartsWith(requestedLanguage, StringComparison.OrdinalIgnoreCase) &&
+               systemLanguageTag[requestedLanguage.Length] == '-';
     }
 
     internal static bool IsContainerElement(this SvgElement svgElement)
@@ -351,6 +360,11 @@ public static class SvgService
 
     internal static Uri GetImageUri(string uriString, SvgDocument svgOwnerDocument)
     {
+        return GetImageUri(uriString, (SvgElement)svgOwnerDocument);
+    }
+
+    internal static Uri GetImageUri(string uriString, SvgElement svgOwnerElement)
+    {
         // Uri MaxLength is 65519 (https://msdn.microsoft.com/en-us/library/z6c2z492.aspx)
         // if using data URI scheme, very long URI may happen.
         var safeUriString = uriString.Length > 65519 ? uriString.Substring(0, 65519) : uriString;
@@ -364,20 +378,113 @@ public static class SvgService
 
         if (!uri.IsAbsoluteUri)
         {
-            uri = new Uri(svgOwnerDocument.BaseUri, uri);
+            if (TryGetBaseUri(svgOwnerElement, out var baseUri))
+            {
+                uri = new Uri(baseUri, uri);
+            }
         }
 
         return uri;
     }
 
+    private static bool TryGetBaseUri(SvgElement? svgOwnerElement, out Uri baseUri)
+    {
+        baseUri = default!;
+
+        if (svgOwnerElement is null)
+        {
+            return false;
+        }
+
+        var baseUriFragments = new Stack<string>();
+        for (var current = svgOwnerElement; current is not null; current = current.Parent)
+        {
+            if (TryGetXmlBase(current, out var baseUriFragment) &&
+                !string.IsNullOrWhiteSpace(baseUriFragment))
+            {
+                baseUriFragments.Push(baseUriFragment.Trim());
+            }
+        }
+
+        var resolvedBaseUri = svgOwnerElement.OwnerDocument?.BaseUri;
+        while (baseUriFragments.Count > 0)
+        {
+            var nextBaseUri = new Uri(baseUriFragments.Pop(), UriKind.RelativeOrAbsolute);
+            if (!nextBaseUri.IsAbsoluteUri)
+            {
+                if (resolvedBaseUri is null)
+                {
+                    return false;
+                }
+
+                nextBaseUri = new Uri(resolvedBaseUri, nextBaseUri);
+            }
+
+            resolvedBaseUri = nextBaseUri;
+        }
+
+        if (resolvedBaseUri is null)
+        {
+            return false;
+        }
+
+        baseUri = resolvedBaseUri;
+        return true;
+    }
+
+    private static bool TryGetXmlBase(SvgElement element, out string value)
+    {
+        if (element.TryGetAttribute("base", out value))
+        {
+            return true;
+        }
+
+        return element.CustomAttributes.TryGetValue($"{SvgNamespaces.XmlNamespace}:base", out value);
+    }
+
+    internal static Uri GetImageDocumentUri(Uri uri)
+    {
+        if (!uri.IsAbsoluteUri || string.IsNullOrEmpty(uri.Fragment))
+        {
+            return uri;
+        }
+
+        var builder = new UriBuilder(uri)
+        {
+            Fragment = string.Empty
+        };
+
+        return builder.Uri;
+    }
+
+    internal static HashSet<Uri>? ExtendImageReferences(HashSet<Uri>? references, SvgFragment? fragment)
+    {
+        var document = fragment as SvgDocument ?? fragment?.OwnerDocument;
+        var nextReferences = references is null ? null : new HashSet<Uri>(references);
+
+        if (document?.BaseUri is not { } baseUri)
+        {
+            return nextReferences;
+        }
+
+        nextReferences ??= new HashSet<Uri>();
+        nextReferences.Add(GetImageDocumentUri(baseUri));
+        return nextReferences;
+    }
+
     internal static object? GetImage(string uriString, SvgDocument svgOwnerDocument, ISvgAssetLoader assetLoader)
+    {
+        return GetImage(uriString, (SvgElement)svgOwnerDocument, assetLoader);
+    }
+
+    internal static object? GetImage(string uriString, SvgElement svgOwnerElement, ISvgAssetLoader assetLoader)
     {
         try
         {
-            var uri = GetImageUri(uriString, svgOwnerDocument);
+            var uri = GetImageUri(uriString, svgOwnerElement);
             if (uri.IsAbsoluteUri && uri.Scheme == "data")
             {
-                return GetImageFromDataUri(uriString, svgOwnerDocument, assetLoader);
+                return GetImageFromDataUri(uriString, svgOwnerElement, assetLoader);
             }
 
             return GetImageFromWeb(uri, assetLoader);
@@ -426,12 +533,14 @@ public static class SvgService
         return assetLoader.LoadImage(stream);
     }
 
-    internal static object? GetImageFromDataUri(string? uriString, SvgDocument svgOwnerDocument, ISvgAssetLoader assetLoader)
+    internal static object? GetImageFromDataUri(string? uriString, SvgElement svgOwnerElement, ISvgAssetLoader assetLoader)
     {
         if (uriString is null)
         {
             return default;
         }
+
+        var imageBaseUri = GetImageUri(uriString, svgOwnerElement);
 
         var headerStartIndex = 5;
         var headerEndIndex = uriString.IndexOf(",", headerStartIndex, StringComparison.Ordinal);
@@ -486,7 +595,7 @@ public static class SvgService
                     if (isCompressed)
                     {
                         using var bytesStream = new System.IO.MemoryStream(bytes);
-                        return LoadSvgz(bytesStream, svgOwnerDocument.BaseUri);
+                        return LoadSvgz(bytesStream, imageBaseUri);
                     }
                 }
 
@@ -496,7 +605,7 @@ public static class SvgService
 
             var buffer = Encoding.Default.GetBytes(data);
             using var stream = new System.IO.MemoryStream(buffer);
-            return LoadSvg(stream, svgOwnerDocument.BaseUri);
+            return LoadSvg(stream, imageBaseUri);
         }
 
         if (mimeType.StartsWith("image/", StringComparison.Ordinal) ||
@@ -511,7 +620,7 @@ public static class SvgService
                     if (isCompressed)
                     {
                         using var bytesStream = new System.IO.MemoryStream(bytes);
-                        return LoadSvgz(bytesStream, svgOwnerDocument.BaseUri);
+                        return LoadSvgz(bytesStream, svgOwnerElement.OwnerDocument.BaseUri);
                     }
                 }
 
@@ -558,7 +667,7 @@ public static class SvgService
 
         if (svgFragment is SvgDocument)
         {
-            if (svgFragment.ViewBox.Width > 0 && svgFragment.ViewBox.Height > 0)
+            if (percentViewport.IsEmpty && svgFragment.ViewBox.Width > 0 && svgFragment.ViewBox.Height > 0)
             {
                 percentViewport = SKRect.Create(
                     svgFragment.ViewBox.MinX,
@@ -607,58 +716,6 @@ public static class SvgService
         }
 
         return new SKSize((float)Math.Round(w), (float)Math.Round(h));
-    }
-
-    public static SKDrawable? ToDrawable(SvgFragment svgFragment, ISvgAssetLoader assetLoader, HashSet<Uri>? references, out SKRect? bounds, DrawAttributes ignoreAttributes = DrawAttributes.None)
-    {
-        var size = GetDimensions(svgFragment);
-        var fragmentBounds = SKRect.Create(size);
-        var drawable = DrawableFactory.Create(svgFragment, fragmentBounds, null, assetLoader, references, ignoreAttributes);
-        if (drawable is null)
-        {
-            bounds = default;
-            return default;
-        }
-
-        if (fragmentBounds.IsEmpty || fragmentBounds.Width <= 0 || fragmentBounds.Height <= 0)
-        {
-            var drawableBounds = drawable.Bounds;
-
-            var width = fragmentBounds.Width <= 0
-                ? Math.Abs(drawableBounds.Left) + drawableBounds.Width
-                : fragmentBounds.Width;
-
-            var height = fragmentBounds.Height <= 0
-                ? Math.Abs(drawableBounds.Top) + drawableBounds.Height
-                : fragmentBounds.Height;
-
-            fragmentBounds = SKRect.Create(0f, 0f, width, height);
-        }
-
-        drawable.PostProcess(fragmentBounds, SKMatrix.Identity);
-
-        bounds = fragmentBounds;
-        return drawable;
-    }
-
-    public static SKPicture? ToModel(SvgFragment svgFragment, ISvgAssetLoader assetLoader, out SKDrawable? skDrawable, out SKRect? skBounds, DrawAttributes ignoreAttributes = DrawAttributes.None)
-    {
-        var references = new HashSet<Uri>
-        {
-            svgFragment is SvgDocument svgDocument ? svgDocument.BaseUri : svgFragment.OwnerDocument.BaseUri
-        };
-        var drawable = ToDrawable(svgFragment, assetLoader, references, out var bounds, ignoreAttributes);
-        if (drawable is null || bounds is null)
-        {
-            skDrawable = default;
-            skBounds = default;
-            return default;
-        }
-
-        var picture = drawable.Snapshot(bounds.Value);
-        skDrawable = drawable;
-        skBounds = bounds;
-        return picture;
     }
 
     public static SvgDocument? OpenSvg(string path, SvgParameters? parameters = null)

@@ -50,6 +50,27 @@ public class EditingHelpersTests
     }
 
     [Fact]
+    public void FindCommands_TraversesNestedPictures()
+    {
+        var nestedPicture = new SKPicture(
+            SKRect.Create(0, 0, 10, 10),
+            new List<CanvasCommand>
+            {
+                new DrawPathCanvasCommand(CloneTestData.CreatePath(), CloneTestData.CreatePaint())
+            });
+        var picture = new SKPicture(
+            SKRect.Create(0, 0, 10, 10),
+            new List<CanvasCommand>
+            {
+                new DrawPictureCanvasCommand(nestedPicture)
+            });
+
+        var commands = picture.FindCommands<DrawPathCanvasCommand>().ToList();
+
+        Assert.Single(commands);
+    }
+
+    [Fact]
     public void UpdatePaints_InPlace_UpdatesUniquePaints()
     {
         var sharedPaint = CloneTestData.CreatePaint();
@@ -329,6 +350,7 @@ public class EditingHelpersTests
         public void Visit(ClipPathCanvasCommand cmd) => _visited.Add(nameof(ClipPathCanvasCommand));
         public void Visit(ClipRectCanvasCommand cmd) => _visited.Add(nameof(ClipRectCanvasCommand));
         public void Visit(DrawImageCanvasCommand cmd) => _visited.Add(nameof(DrawImageCanvasCommand));
+        public void Visit(DrawPictureCanvasCommand cmd) => _visited.Add(nameof(DrawPictureCanvasCommand));
         public void Visit(DrawPathCanvasCommand cmd) => _visited.Add(nameof(DrawPathCanvasCommand));
         public void Visit(DrawTextBlobCanvasCommand cmd) => _visited.Add(nameof(DrawTextBlobCanvasCommand));
         public void Visit(DrawTextCanvasCommand cmd) => _visited.Add(nameof(DrawTextCanvasCommand));

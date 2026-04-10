@@ -16,6 +16,15 @@ public class SvgSourceTests
     private const string SampleSvg =
         "<svg width=\"10\" height=\"10\"><rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" class=\"accent\" fill=\"red\" /></svg>";
 
+    private const string AnimatedSampleSvg =
+        """
+        <svg width="100" height="20" viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="10" height="10" fill="red">
+            <animate attributeName="x" from="0" to="50" dur="1s" fill="freeze" />
+          </rect>
+        </svg>
+        """;
+
     [Fact]
     public void LoadFromSvg_SetsSvg()
     {
@@ -50,6 +59,24 @@ public class SvgSourceTests
 
         Assert.NotNull(source.Picture);
         Assert.NotSame(original, source.Picture);
+    }
+
+    [Fact]
+    public void AnimatedSource_PictureGetterTracksLiveSkSvgPicture()
+    {
+        var source = SvgSource.LoadFromSvg(AnimatedSampleSvg);
+        var original = source.Picture;
+
+        Assert.NotNull(original);
+        Assert.NotNull(source.Svg);
+
+        source.Svg!.SetAnimationTime(TimeSpan.FromMilliseconds(500));
+
+        var updated = source.Picture;
+
+        Assert.NotNull(updated);
+        Assert.NotSame(original, updated);
+        _ = updated!.CullRect;
     }
 
     [Fact]

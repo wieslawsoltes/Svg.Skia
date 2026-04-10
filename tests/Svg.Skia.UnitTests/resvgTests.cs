@@ -38,11 +38,11 @@ public class resvgTests : SvgUnitTest
         }
     }
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-alignment-baseline-001", 0.022)]
     public void a_alignment_baseline(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-baseline-shift-001", 0.022)]
     [InlineData("a-baseline-shift-002", 0.022)]
     [InlineData("a-baseline-shift-003", 0.022)]
@@ -67,27 +67,27 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-baseline-shift-022", 0.022)]
     public void a_baseline_shift(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-clip-001", 0.022, 3.75f, 3.75f, Skip = "TODO")]
     [InlineData("a-clip-path-001", 0.022)]
     [InlineData("a-clip-rule-001", 0.022)]
     public void a_clip_rule(string name, double errorThreshold, float scaleX = 1.5f, float scaleY = 1.5f) => TestImpl(name, errorThreshold, scaleX, scaleY);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-color-001", 0.022)]
     [InlineData("a-color-002", 0.022)]
     public void a_color(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-color-interpolation-filters-001", 0.022)]
     public void a_color_interpolation_filters(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-direction-001", 0.022)]
     [InlineData("a-direction-002", 0.022)]
     public void a_direction(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-display-001", 0.022)]
     [InlineData("a-display-002", 0.022)]
     [InlineData("a-display-003", 0.022)]
@@ -99,7 +99,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-display-009", 0.022, Skip = "TODO")]
     public void a_display(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-dominant-baseline-001", 0.022, Skip = "TODO")]
     [InlineData("a-enable-background-001", 0.022)]
     [InlineData("a-enable-background-002", 0.022, Skip = "TODO")]
@@ -124,7 +124,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-enable-background-021", 0.022)]
     public void a_enable_background(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-fill-001", 0.022)]
     [InlineData("a-fill-002", 0.022)]
     [InlineData("a-fill-003", 0.022)]
@@ -186,7 +186,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-fill-059", 0.022, Skip = "TODO")]
     public void a_fill(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-fill-opacity-001", 0.022)]
     [InlineData("a-fill-opacity-002", 0.022)]
     [InlineData("a-fill-opacity-003", 0.022)]
@@ -195,12 +195,12 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-fill-opacity-006", 0.022, Skip = "TODO")]
     public void a_fill_opacity(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-fill-rule-001", 0.022)]
     [InlineData("a-fill-rule-002", 0.022)]
     public void a_fill_rule(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-filter-001", 0.025)]
     [InlineData("a-filter-002", 0.022, Skip = "TODO")]
     [InlineData("a-filter-003", 0.022, Skip = "TODO")]
@@ -246,7 +246,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-filter-043", 0.022, Skip = "TODO")]
     public void a_filter(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-flood-color-001", 0.022)]
     [InlineData("a-flood-color-002", 0.022)]
     [InlineData("a-flood-color-003", 0.022)]
@@ -256,15 +256,15 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-flood-color-007", 0.022, Skip = "TODO")]
     public void a_flood_color(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-flood-opacity-001", 0.022)]
     public void a_flood_opacity(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-font-001", 0.022)]
     public void a_font(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-font-family-001", 0.022)]
     [InlineData("a-font-family-002", 0.022)]
     [InlineData("a-font-family-003", 0.022)]
@@ -278,7 +278,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-font-family-011", 0.022)]
     public void a_font_family(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-font-size-001", 0.022, Skip = "TODO")]
     [InlineData("a-font-size-002", 0.022, Skip = "TODO")]
     [InlineData("a-font-size-003", 0.022, Skip = "TODO")]
@@ -301,28 +301,28 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-font-size-020", 0.022, Skip = "TODO")]
     public void a_font_size(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-font-size-adjust-001", 0.022)]
     public void a_font_size_adjust(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-font-stretch-001", 0.022)]
     [InlineData("a-font-stretch-002", 0.022)]
     [InlineData("a-font-stretch-003", 0.022)]
     public void a_font_stretch(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-font-style-001", 0.022)]
     [InlineData("a-font-style-002", 0.022)]
     [InlineData("a-font-style-003", 0.022)]
     public void a_font_style(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-font-variant-001", 0.022)]
     [InlineData("a-font-variant-002", 0.022)]
     public void a_font_variant(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-font-weight-001", 0.022)]
     [InlineData("a-font-weight-002", 0.022)]
     [InlineData("a-font-weight-003", 0.022)]
@@ -337,34 +337,34 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-font-weight-012", 0.022)]
     public void a_font_weight(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-glyph-orientation-horizontal-001", 0.022)]
     public void a_glyph_orientation_horizontal(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-glyph-orientation-vertical-001", 0.022)]
     public void a_glyph_orientation_vertical(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-image-rendering-001", 0.022)]
     [InlineData("a-image-rendering-002", 0.022)]
     [InlineData("a-image-rendering-003", 0.022)]
     public void a_image_rendering(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-isolation-001", 0.022)]
     [InlineData("a-isolation-002", 0.022)]
     public void a_isolation(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-kerning-001", 0.022)]
     public void a_kerning(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-lengthAdjust-001", 0.022)]
     public void a_lengthAdjust(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-letter-spacing-001", 0.022)]
     [InlineData("a-letter-spacing-002", 0.022)]
     [InlineData("a-letter-spacing-003", 0.022)]
@@ -378,20 +378,20 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-letter-spacing-011", 0.022)]
     public void a_letter_spacing(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-marker-end-001", 0.022)]
     [InlineData("a-marker-mid-001", 0.022)]
     public void a_marker_mid(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-marker-start-001", 0.022)]
     public void a_marker_start(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-mask-001", 0.022)]
     public void a_mask(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-mix-blend-mode-001", 0.022)]
     [InlineData("a-mix-blend-mode-002", 0.022)]
     [InlineData("a-mix-blend-mode-003", 0.022)]
@@ -414,7 +414,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-mix-blend-mode-020", 0.022)]
     public void a_mix_blend_mode(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-opacity-001", 0.022)]
     [InlineData("a-opacity-002", 0.022)]
     [InlineData("a-opacity-003", 0.022)]
@@ -426,7 +426,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-opacity-009", 0.022)]
     public void a_opacity(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-overflow-001", 0.022)]
     [InlineData("a-overflow-002", 0.022)]
     [InlineData("a-overflow-003", 0.022)]
@@ -434,7 +434,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-overflow-005", 0.022, Skip = "TODO")]
     public void a_overflow(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-shape-rendering-001", 0.022)]
     [InlineData("a-shape-rendering-002", 0.022)]
     [InlineData("a-shape-rendering-003", 0.022)]
@@ -445,15 +445,15 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-shape-rendering-008", 0.022)]
     public void a_shape_rendering(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-stop-color-001", 0.022)]
     public void a_stop_color(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-stop-opacity-001", 0.022)]
     public void a_stop_opacity(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-stroke-001", 0.022)]
     [InlineData("a-stroke-002", 0.022)]
     [InlineData("a-stroke-003", 0.022)]
@@ -476,7 +476,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-stroke-020", 0.022)]
     public void a_stroke(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-stroke-dasharray-001", 0.022)]
     [InlineData("a-stroke-dasharray-002", 0.022)]
     [InlineData("a-stroke-dasharray-003", 0.022)]
@@ -492,7 +492,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-stroke-dasharray-013", 0.022)]
     public void a_stroke_dasharray(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-stroke-dashoffset-001", 0.022)]
     [InlineData("a-stroke-dashoffset-002", 0.022)]
     [InlineData("a-stroke-dashoffset-003", 0.022)]
@@ -501,7 +501,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-stroke-dashoffset-006", 0.022)]
     public void a_stroke_dashoffset(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-stroke-linecap-001", 0.022)]
     [InlineData("a-stroke-linecap-002", 0.022)]
     [InlineData("a-stroke-linecap-003", 0.022)]
@@ -513,7 +513,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-stroke-linecap-009", 0.022)]
     public void a_stroke_linecap(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-stroke-linejoin-001", 0.022)]
     [InlineData("a-stroke-linejoin-002", 0.022)]
     [InlineData("a-stroke-linejoin-003", 0.022)]
@@ -521,7 +521,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-stroke-linejoin-005", 0.022)]
     public void a_stroke_linejoin(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-stroke-miterlimit-001", 0.022)]
     [InlineData("a-stroke-miterlimit-002", 0.022)]
     [InlineData("a-stroke-miterlimit-003", 0.022)]
@@ -529,7 +529,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-stroke-miterlimit-005", 0.022)]
     public void a_stroke_miterlimit(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-stroke-opacity-001", 0.022)]
     [InlineData("a-stroke-opacity-002", 0.022)]
     [InlineData("a-stroke-opacity-003", 0.022)]
@@ -538,7 +538,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-stroke-opacity-006", 0.022, Skip = "TODO")]
     public void a_stroke_opacity(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-stroke-width-001", 0.022)]
     [InlineData("a-stroke-width-002", 0.022)]
     [InlineData("a-stroke-width-003", 0.022)]
@@ -546,14 +546,14 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-stroke-width-005", 0.022)]
     public void a_stroke_width(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-style-001", 0.022)]
     [InlineData("a-style-002", 0.022)]
     [InlineData("a-style-003", 0.022, Skip = "TODO")]
     [InlineData("a-style-004", 0.022)]
     public void a_style(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-systemLanguage-001", 0.022, Skip = "TODO")]
     [InlineData("a-systemLanguage-002", 0.022, Skip = "TODO")]
     [InlineData("a-systemLanguage-003", 0.022, Skip = "TODO")]
@@ -566,7 +566,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-systemLanguage-010", 0.022, Skip = "TODO")]
     public void a_systemLanguage(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-text-anchor-001", 0.022)]
     [InlineData("a-text-anchor-002", 0.022)]
     [InlineData("a-text-anchor-003", 0.022)]
@@ -582,7 +582,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-text-anchor-013", 0.022)]
     public void a_text_anchor(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-text-decoration-001", 0.022)]
     [InlineData("a-text-decoration-002", 0.022)]
     [InlineData("a-text-decoration-003", 0.022)]
@@ -604,7 +604,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-text-decoration-019", 0.022)]
     public void a_text_decoration(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-textLength-001", 0.022)]
     [InlineData("a-textLength-002", 0.022)]
     [InlineData("a-textLength-003", 0.022)]
@@ -616,7 +616,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-textLength-009", 0.022)]
     public void a_textLength(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-text-rendering-001", 0.022)]
     [InlineData("a-text-rendering-002", 0.022)]
     [InlineData("a-text-rendering-003", 0.022)]
@@ -624,7 +624,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-text-rendering-005", 0.022)]
     public void a_text_rendering(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-transform-001", 0.022)]
     [InlineData("a-transform-002", 0.022)]
     [InlineData("a-transform-003", 0.022)]
@@ -646,11 +646,11 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-transform-019", 0.022)]
     public void a_transform(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-unicode-bidi-001", 0.022)]
     public void a_unicode_bidi(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("a-visibility-001", 0.022)]
     [InlineData("a-visibility-002", 0.022, Skip = "TODO")]
     [InlineData("a-visibility-003", 0.022, Skip = "TODO")]
@@ -660,7 +660,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-visibility-007", 0.022, Skip = "TODO")]
     public void a_visibility(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-word-spacing-001", 0.022)]
     [InlineData("a-word-spacing-002", 0.022)]
     [InlineData("a-word-spacing-003", 0.022)]
@@ -670,7 +670,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-word-spacing-007", 0.022)]
     public void a_word_spacing(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("a-writing-mode-001", 0.022)]
     [InlineData("a-writing-mode-002", 0.022)]
     [InlineData("a-writing-mode-003", 0.022)]
@@ -696,7 +696,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("a-writing-mode-023", 0.022)]
     public void a_writing_mode(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-a-001", 0.022)]
     [InlineData("e-a-002", 0.022, Skip = "TODO")]
     [InlineData("e-a-003", 0.022, Skip = "TODO")]
@@ -704,7 +704,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-a-005", 0.022, Skip = "TODO")]
     public void e_a(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-circle-001", 0.022)]
     [InlineData("e-circle-002", 0.022)]
     [InlineData("e-circle-003", 0.022)]
@@ -713,7 +713,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-circle-006", 0.022)]
     public void e_circle(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-clipPath-001", 0.022)]
     [InlineData("e-clipPath-002", 0.022)]
     [InlineData("e-clipPath-003", 0.022)]
@@ -765,7 +765,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-clipPath-049", 0.022)]
     public void e_clipPath(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-defs-001", 0.022)]
     [InlineData("e-defs-002", 0.022)]
     [InlineData("e-defs-003", 0.022)]
@@ -775,7 +775,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-defs-007", 0.022, Skip = "TODO")]
     public void e_defs(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-ellipse-001", 0.022)]
     [InlineData("e-ellipse-002", 0.022, Skip = "TODO")]
     [InlineData("e-ellipse-003", 0.022, Skip = "TODO")]
@@ -788,7 +788,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-ellipse-010", 0.022)]
     public void e_ellipse(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feBlend-001", 0.022)]
     [InlineData("e-feBlend-002", 0.022)]
     [InlineData("e-feBlend-003", 0.022)]
@@ -801,7 +801,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feBlend-010", 0.022)]
     public void e_feBlend(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feColorMatrix-001", 0.022)]
     [InlineData("e-feColorMatrix-002", 0.022)]
     [InlineData("e-feColorMatrix-003", 0.022)]
@@ -820,7 +820,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feColorMatrix-016", 0.022, Skip = "TODO")]
     public void e_feColorMatrix(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feComponentTransfer-001", 0.022)]
     [InlineData("e-feComponentTransfer-002", 0.022)]
     [InlineData("e-feComponentTransfer-003", 0.022, Skip = "TODO")]
@@ -845,7 +845,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feComponentTransfer-022", 0.022)]
     public void e_feComponentTransfer(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feComposite-001", 0.022)]
     [InlineData("e-feComposite-002", 0.022)]
     [InlineData("e-feComposite-003", 0.022)]
@@ -866,7 +866,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feComposite-018", 0.022)]
     public void e_feComposite(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feConvolveMatrix-001", 0.022)]
     [InlineData("e-feConvolveMatrix-002", 0.022)]
     [InlineData("e-feConvolveMatrix-003", 0.022)]
@@ -894,7 +894,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feConvolveMatrix-025", 0.022)]
     public void e_feConvolveMatrix(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feDiffuseLighting-001", 0.022)]
     [InlineData("e-feDiffuseLighting-002", 0.022, Skip = "TODO")]
     [InlineData("e-feDiffuseLighting-003", 0.022, Skip = "TODO")]
@@ -919,18 +919,18 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feDiffuseLighting-022", 0.022)]
     public void e_feDiffuseLighting(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feDisplacementMap-001", 0.022)]
     public void e_feDisplacementMap(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feDistantLight-001", 0.022)]
     [InlineData("e-feDistantLight-002", 0.022)]
     [InlineData("e-feDistantLight-003", 0.022)]
     [InlineData("e-feDistantLight-004", 0.022)]
     public void e_feDistantLight(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory(Skip = "TODO")]
+    [OSXTheory(Skip = "TODO")]
     [InlineData("e-feDropShadow-001", 0.022)]
     [InlineData("e-feDropShadow-002", 0.022)]
     [InlineData("e-feDropShadow-003", 0.022)]
@@ -940,7 +940,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feDropShadow-007", 0.022)]
     public void e_feDropShadow(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feFlood-001", 0.022)]
     [InlineData("e-feFlood-002", 0.022)]
     [InlineData("e-feFlood-003", 0.022)]
@@ -951,7 +951,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feFlood-008", 0.022, Skip = "TODO")]
     public void e_feFlood(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feGaussianBlur-001", 0.022)]
     [InlineData("e-feGaussianBlur-002", 0.022, Skip = "TODO")]
     [InlineData("e-feGaussianBlur-003", 0.022)]
@@ -967,7 +967,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feGaussianBlur-013", 0.022)]
     public void e_feGaussianBlur(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feImage-001", 0.022)]
     [InlineData("e-feImage-002", 0.022, Skip = "TODO")]
     [InlineData("e-feImage-003", 0.022)]
@@ -994,13 +994,13 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feImage-024", 0.022, Skip = "TODO")]
     public void e_feImage(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feMerge-001", 0.022)]
     [InlineData("e-feMerge-002", 0.022)]
     [InlineData("e-feMerge-003", 0.022, Skip = "TODO")]
     public void e_feMerge(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feMorphology-001", 0.022, Skip = "TODO")]
     [InlineData("e-feMorphology-002", 0.022, Skip = "TODO")]
     [InlineData("e-feMorphology-003", 0.022, Skip = "TODO")]
@@ -1017,7 +1017,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feMorphology-014", 0.022, Skip = "TODO")]
     public void e_feMorphology(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feOffset-001", 0.022)]
     [InlineData("e-feOffset-002", 0.022)]
     [InlineData("e-feOffset-003", 0.022)]
@@ -1028,14 +1028,14 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feOffset-008", 0.022, Skip = "TODO")]
     public void e_feOffset(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-fePointLight-001", 0.022)]
     [InlineData("e-fePointLight-002", 0.022)]
     [InlineData("e-fePointLight-003", 0.022, Skip = "TODO")]
     [InlineData("e-fePointLight-004", 0.022, Skip = "TODO")]
     public void e_fePointLight(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feSpecularLighting-001", 0.022, Skip = "TODO")]
     [InlineData("e-feSpecularLighting-002", 0.022, Skip = "TODO")]
     [InlineData("e-feSpecularLighting-003", 0.022)]
@@ -1046,7 +1046,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feSpecularLighting-008", 0.022, Skip = "TODO")]
     public void e_feSpecularLighting(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feSpotLight-001", 0.022)]
     [InlineData("e-feSpotLight-002", 0.022, Skip = "TODO")]
     [InlineData("e-feSpotLight-003", 0.022)]
@@ -1061,7 +1061,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feSpotLight-012", 0.022, Skip = "TODO")]
     public void e_feSpotLight(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feTile-001", 0.022, Skip = "TODO")]
     [InlineData("e-feTile-002", 0.022, Skip = "TODO")]
     [InlineData("e-feTile-003", 0.022, Skip = "TODO")]
@@ -1071,7 +1071,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feTile-007", 0.022, Skip = "TODO")]
     public void e_feTile(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-feTurbulence-001", 0.022)]
     [InlineData("e-feTurbulence-002", 0.022)]
     [InlineData("e-feTurbulence-003", 0.022)]
@@ -1093,7 +1093,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-feTurbulence-019", 0.022)]
     public void e_feTurbulence(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-filter-001", 0.022)]
     [InlineData("e-filter-002", 0.022, Skip = "TODO")]
     [InlineData("e-filter-003", 0.022)]
@@ -1144,7 +1144,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-filter-048", 0.022)]
     [InlineData("e-filter-049", 0.022)]
     [InlineData("e-filter-050", 0.022)]
-    [InlineData("e-filter-051", 0.022)]
+    [InlineData("e-filter-051", 0.022, Skip = "resvg expects invalid filter links to ignore the element, but Chrome/W3C treat them as null filters and the repo follows Chrome filter semantics.")]
     [InlineData("e-filter-052", 0.022, Skip = "TODO")]
     [InlineData("e-filter-053", 0.022, Skip = "TODO")]
     [InlineData("e-filter-054", 0.022, Skip = "TODO")]
@@ -1161,12 +1161,12 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-filter-065", 0.022, Skip = "TODO")]
     public void e_filter(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-g-001", 0.022)]
     [InlineData("e-g-002", 0.022)]
     public void e_g(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-image-001", 0.022, Skip = "TODO")]
     [InlineData("e-image-002", 0.022, Skip = "TODO")]
     [InlineData("e-image-003", 0.022, Skip = "TODO")]
@@ -1214,7 +1214,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-image-046", 0.022, Skip = "TODO")]
     public void e_image(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-line-001", 0.022)]
     [InlineData("e-line-002", 0.022)]
     [InlineData("e-line-003", 0.022)]
@@ -1226,7 +1226,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-line-009", 0.022)]
     public void e_line(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-linearGradient-001", 0.022)]
     [InlineData("e-linearGradient-002", 0.022)]
     [InlineData("e-linearGradient-003", 0.022)]
@@ -1267,7 +1267,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-linearGradient-038", 0.022, Skip = "TODO")]
     public void e_linearGradient(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-marker-001", 0.022)]
     [InlineData("e-marker-002", 0.022)]
     [InlineData("e-marker-003", 0.022)]
@@ -1330,7 +1330,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-marker-060", 0.022, Skip = "TODO")]
     public void e_marker(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-mask-001", 0.022)]
     [InlineData("e-mask-002", 0.022)]
     [InlineData("e-mask-003", 0.022)]
@@ -1364,7 +1364,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-mask-031", 0.022)]
     public void e_mask(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-path-001", 0.022)]
     [InlineData("e-path-002", 0.022)]
     [InlineData("e-path-003", 0.022)]
@@ -1418,7 +1418,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-path-051", 0.022)]
     public void e_path(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-pattern-001", 0.022)]
     [InlineData("e-pattern-002", 0.022)]
     [InlineData("e-pattern-003", 0.022)]
@@ -1452,7 +1452,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-pattern-031", 0.022)]
     public void e_pattern(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-polygon-001", 0.022)]
     [InlineData("e-polygon-002", 0.022)]
     [InlineData("e-polygon-003", 0.022)]
@@ -1460,7 +1460,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-polygon-005", 0.022)]
     public void e_polygon(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-polyline-001", 0.022)]
     [InlineData("e-polyline-002", 0.022)]
     [InlineData("e-polyline-003", 0.022)]
@@ -1468,7 +1468,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-polyline-005", 0.022)]
     public void e_polyline(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-radialGradient-001", 0.022)]
     [InlineData("e-radialGradient-002", 0.022)]
     [InlineData("e-radialGradient-003", 0.022)]
@@ -1516,7 +1516,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-radialGradient-045", 0.022)]
     public void e_radialGradient(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-rect-001", 0.022)]
     [InlineData("e-rect-002", 0.022)]
     [InlineData("e-rect-003", 0.022)]
@@ -1556,7 +1556,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-rect-037", 0.022)]
     public void e_rect(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-stop-001", 0.022)]
     [InlineData("e-stop-002", 0.022)]
     [InlineData("e-stop-003", 0.022)]
@@ -1591,7 +1591,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-stop-032", 0.022, Skip = "TODO")]
     public void e_stop(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-style-001", 0.022)]
     [InlineData("e-style-002", 0.022)]
     [InlineData("e-style-003", 0.022)]
@@ -1610,7 +1610,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-style-016", 0.022)]
     public void e_style(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-svg-001", 0.022)]
     [InlineData("e-svg-002", 0.022)]
     [InlineData("e-svg-003", 0.022, Skip = "TODO")]
@@ -1652,7 +1652,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-svg-039", 0.022, Skip = "TODO")]
     public void e_svg(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-switch-001", 0.022)]
     [InlineData("e-switch-002", 0.022)]
     [InlineData("e-switch-003", 0.022)]
@@ -1668,7 +1668,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-switch-013", 0.022)]
     public void e_switch(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-symbol-001", 0.022)]
     [InlineData("e-symbol-002", 0.022)]
     [InlineData("e-symbol-003", 0.022)]
@@ -1685,7 +1685,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-symbol-014", 0.022)]
     public void e_symbol(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-text-001", 0.022, Skip = "TODO")]
     [InlineData("e-text-002", 0.022, Skip = "TODO")]
     [InlineData("e-text-003", 0.022, Skip = "TODO")]
@@ -1729,7 +1729,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-text-042", 0.022, Skip = "TODO")]
     public void e_text(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-textPath-001", 0.022, Skip = "TODO")]
     [InlineData("e-textPath-002", 0.022, Skip = "TODO")]
     [InlineData("e-textPath-003", 0.022, Skip = "TODO")]
@@ -1776,7 +1776,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-textPath-044", 0.022, Skip = "TODO")]
     public void e_textPath(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-tref-001", 0.022, Skip = "TODO")]
     [InlineData("e-tref-002", 0.022, Skip = "TODO")]
     [InlineData("e-tref-003", 0.022)]
@@ -1790,7 +1790,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-tref-011", 0.022, Skip = "TODO")]
     public void e_tref(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-tspan-001", 0.022, Skip = "TODO")]
     [InlineData("e-tspan-002", 0.022, Skip = "TODO")]
     [InlineData("e-tspan-003", 0.022, Skip = "TODO")]
@@ -1824,7 +1824,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-tspan-031", 0.022, Skip = "TODO")]
     public void e_tspan(string name, double errorThreshold) => TestImpl(name, errorThreshold);
 
-    [Theory]
+    [OSXTheory]
     [InlineData("e-use-001", 0.022)]
     [InlineData("e-use-002", 0.022)]
     [InlineData("e-use-003", 0.022)]
@@ -1832,7 +1832,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-use-005", 0.022)]
     [InlineData("e-use-006", 0.022)]
     [InlineData("e-use-007", 0.022)]
-    [InlineData("e-use-008", 0.022)]
+    [InlineData("e-use-008", 0.022, Skip = "Chrome renders external use content, but the resvg baseline omits it.")]
     [InlineData("e-use-009", 0.022)]
     [InlineData("e-use-010", 0.022)]
     [InlineData("e-use-011", 0.022)]

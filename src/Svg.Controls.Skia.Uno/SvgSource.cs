@@ -56,20 +56,21 @@ public sealed class SvgSource : IDisposable
     {
         get
         {
+            var skSvg = Volatile.Read(ref _skSvg);
+            if (skSvg is { })
+            {
+                var currentPicture = skSvg.Picture;
+                lock (Sync)
+                {
+                    _picture = currentPicture;
+                }
+                return currentPicture;
+            }
+
             var picture = _picture;
             if (picture is not null)
             {
                 return picture;
-            }
-
-            var skSvg = Volatile.Read(ref _skSvg);
-            if (skSvg is { })
-            {
-                picture = skSvg.Picture;
-                lock (Sync)
-                {
-                    _picture ??= picture;
-                }
             }
 
             return picture;

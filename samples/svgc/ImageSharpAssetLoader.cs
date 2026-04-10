@@ -5,6 +5,8 @@ namespace svgc;
 
 internal class ImageSharpAssetLoader : Svg.Model.ISvgAssetLoader
 {
+    public bool EnableSvgFonts => false;
+
     public ShimSkiaSharp.SKImage LoadImage(Stream stream)
     {
         var data = ShimSkiaSharp.SKImage.FromStream(stream);

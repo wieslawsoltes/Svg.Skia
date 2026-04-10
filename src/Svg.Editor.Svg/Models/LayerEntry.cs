@@ -1,7 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using Svg;
-using Svg.Model.Drawables;
+using Svg.Skia;
 
 namespace Svg.Editor.Svg.Models;
 
@@ -13,7 +13,7 @@ public class LayerEntry
     private bool _visible;
 
     public ObservableCollection<LayerEntry> Sublayers { get; } = new();
-    public DrawableBase? Drawable { get; set; }
+    public SvgSceneNode? SceneNode { get; set; }
 
     public string Name
     {

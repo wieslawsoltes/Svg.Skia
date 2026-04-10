@@ -3,7 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Diagnostics;
 using Avalonia.Markup.Xaml;
+using TestApp.Services;
 using TestApp.ViewModels;
 using TestApp.Views;
 
@@ -20,7 +22,7 @@ public class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        var mainWindowViewModel = new MainWindowViewModel();
+        var mainWindowViewModel = new MainWindowViewModel(new StorageService());
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -78,5 +80,8 @@ public class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+#if DEBUG
+        this.AttachDevTools();
+#endif
     }
 }

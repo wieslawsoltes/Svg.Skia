@@ -1,7 +1,6 @@
 using System;
 using Svg.Editor.Skia;
 using Svg.Editor.Svg.Models;
-using Svg.Model.Drawables;
 using Xunit;
 using SK = SkiaSharp;
 
@@ -27,10 +26,10 @@ public class SvgEditorOverlayRendererTests
             gridSize: 10d,
             layers: Array.Empty<LayerEntry>(),
             selectedLayer: null,
-            selectedDrawables: Array.Empty<DrawableBase>(),
+            selectedVisuals: Array.Empty<SelectionVisualInfo>(),
             getBounds: _ => default,
             polyEditing: false,
-            editPolyDrawable: null,
+            editPolyVisual: null,
             editPolyline: false,
             polyPoints: Array.Empty<ShimSkiaSharp.SKPoint>(),
             polyMatrix: ShimSkiaSharp.SKMatrix.CreateIdentity());

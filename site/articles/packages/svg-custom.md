@@ -59,9 +59,31 @@ The repository wraps the vendored SVG sources with project-level concerns such a
 - the package identity used by the repo,
 - trimming and AOT annotations for supported target frameworks,
 - embedded SVG 1.1 DTD resources,
-- analyzer and generator integration used by the vendored code path.
+- analyzer and generator integration used by the vendored code path,
+- repository-local SVG 1.1 animation object-model types,
+- typed `pointer-events` support used by the shared hit-test and interaction layers.
 
 The rendering behavior still lives above this package, not inside it.
+
+## Animation DOM coverage
+
+`Svg.Custom` now includes the repository's SVG 1.1 animation object-model overlay in the `Svg` namespace.
+
+That surface includes:
+
+- `SvgAnimationElement`
+- `SvgAnimationAttributeElement`
+- `SvgAnimationValueElement`
+- `SvgAnimate`
+- `SvgSet`
+- `SvgAnimateMotion`
+- `SvgAnimateColor`
+- `SvgAnimateTransform`
+- `SvgMPath`
+
+The DOM layer also adds typed enums and converters for common animation attributes such as `attributeType`, `restart`, `fill`, `calcMode`, `additive`, `accumulate`, and transform `type`.
+
+This package does not execute animation by itself. It only parses and stores the DOM. Runtime evaluation lives in [Svg.Skia](svg-skia).
 
 ## Good use cases
 
@@ -79,5 +101,6 @@ The rendering behavior still lives above this package, not inside it.
 ## Related docs
 
 - [Source Formats and Assets](../concepts/source-formats-and-assets)
+- [Interaction and Animation](../guides/interaction-and-animation)
 - [Svg.Skia](svg-skia)
 - [Svg.Model](svg-model)

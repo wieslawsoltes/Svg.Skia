@@ -1,59 +1,53 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using ShimSkiaSharp;
-using SkiaSharp;
-using Svg.Model.Drawables;
-using Svg.Model.Services;
+using Avalonia.Platform.Storage;
+using Avalonia.Threading;
+using Svg;
 using Svg.Skia;
 using TestApp.ViewModels;
+using ShimPoint = ShimSkiaSharp.SKPoint;
+using SkiaPicture = SkiaSharp.SKPicture;
 
 namespace TestApp.Views;
 
 public partial class MainView : UserControl
 {
-    private readonly ObservableCollection<string> _hitResults = new();
-    private SKSvg? _currentSkSvg;
-    private bool _showHitBounds;
-    private SkiaSharp.SKColor _hitBoundsColor = SKColors.Cyan;
-    private readonly IList<ShimSkiaSharp.SKPoint> _hitTestPoints = new List<ShimSkiaSharp.SKPoint>();
-    private readonly IList<ShimSkiaSharp.SKRect> _hitTestRects = new List<ShimSkiaSharp.SKRect>();
+    private readonly DispatcherTimer _animationUiTimer;
+    private readonly AvaloniaSvgViewAdapter _svgViewAdapter;
+    private MainWindowViewModel? _boundViewModel;
 
     public MainView()
     {
         InitializeComponent();
+
+        _svgViewAdapter = new AvaloniaSvgViewAdapter(Svg);
+        _animationUiTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(100), DispatcherPriority.Background, OnAnimationUiTick);
+        _animationUiTimer.Start();
+
         AddHandler(DragDrop.DropEvent, Drop);
         AddHandler(DragDrop.DragOverEvent, DragOver);
-        HitResults.ItemsSource = _hitResults;
-        SubscribeOnDraw();
+
+        DataContextChanged += OnDataContextChanged;
+        DetachedFromVisualTree += (_, _) => _boundViewModel?.SvgView.Detach();
     }
 
-    private void SubscribeOnDraw()
+    private void OnDataContextChanged(object? sender, EventArgs e)
     {
-        if (_currentSkSvg is { })
-        {
-            _currentSkSvg.OnDraw -= SkSvg_OnDraw;
-        }
-
-        _currentSkSvg = Svg.SkSvg;
-
-        if (_currentSkSvg is { })
-        {
-            _currentSkSvg.OnDraw += SkSvg_OnDraw;
-        }
+        _boundViewModel?.SvgView.Detach();
+        _boundViewModel = DataContext as MainWindowViewModel;
+        _boundViewModel?.SvgView.Attach(_svgViewAdapter);
     }
 
     private void DragOver(object? sender, DragEventArgs e)
     {
         e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
 
-        if (!e.Data.Contains(DataFormats.Files))
+        if (!HasFileDrop(e))
         {
             e.DragEffects = DragDropEffects.None;
         }
@@ -61,135 +55,129 @@ public partial class MainView : UserControl
 
     private void Drop(object? sender, DragEventArgs e)
     {
-        if (e.Data.Contains(DataFormats.Files))
+        if (!TryGetDroppedPaths(e, out var paths))
         {
-            var paths = e.Data.GetFileNames();
-            if (paths is { })
-            {
-                if (DataContext is MainWindowViewModel vm)
-                {
-                    try
-                    {
-                        vm.Drop(paths);
-                    }
-                    catch (Exception)
-                    {
-                        // ignored
-                    }
-                }
-            }
+            return;
+        }
+
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.Drop(paths);
         }
     }
 
     private void FileItem_OnDoubleTapped(object? sender, TappedEventArgs e)
     {
-        if (sender is Control control && control.DataContext is FileItemViewModel fileItemViewModel)
+        if (sender is Control { DataContext: FileItemViewModel fileItem })
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Process.Start("explorer", fileItemViewModel.Path);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Process.Start("xdg-open", fileItemViewModel.Path);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Process.Start("open", fileItemViewModel.Path);
-            }
+            fileItem.OpenInExplorerCommand.Execute(null);
         }
-    }
-
-    private void ShowHitBoundsToggle_OnToggled(object? sender, RoutedEventArgs e)
-    {
-        _showHitBounds = ShowHitBoundsToggle.IsChecked == true;
-        SubscribeOnDraw();
-        Svg.InvalidateVisual();
     }
 
     private void Svg_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        var pt = e.GetPosition(Svg);
-
-        _hitResults.Clear();
-
-        if (Svg.SkSvg is { })
+        if (DataContext is MainWindowViewModel vm)
         {
-            _hitTestPoints.Clear();
-
-            if (Svg.TryGetPicturePoint(pt, out var skPoint))
-            {
-                _hitTestPoints.Add(skPoint);
-
-                // foreach (var element in Svg.HitTestElements(pt))
-                // {
-                //     _hitResults.Add(element.ID);
-                // }
-                var element = Svg.HitTestElements(pt).FirstOrDefault();
-                if (element is { })
-                {
-                    _hitResults.Add(element.ID ?? element.GetType().Name);
-                }
-            }
+            var point = e.GetPosition(Svg);
+            vm.SvgView.HandlePointerPressed(point.X, point.Y);
         }
-
-        SubscribeOnDraw();
-        Svg.InvalidateVisual();
     }
 
     private void SelectingItemsControl_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        _hitResults.Clear();
-
-        if (Svg.SkSvg is { })
+        if (DataContext is MainWindowViewModel vm)
         {
-            _hitTestPoints.Clear();
-            _showHitBounds = ShowHitBoundsToggle.IsChecked == true;
-            SubscribeOnDraw();
+            vm.SvgView.NotifySelectionChanged();
         }
-
-        Svg.InvalidateVisual();
     }
 
-    private void SkSvg_OnDraw(object? sender, SKSvgDrawEventArgs e)
+    private void PlayAnimationButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is not SKSvg skSvg || skSvg.Drawable is not DrawableBase drawable)
+        if (DataContext is MainWindowViewModel vm)
         {
-            return;
+            vm.SvgView.PlayAnimation();
+        }
+    }
+
+    private void PauseAnimationButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.SvgView.PauseAnimation();
+        }
+    }
+
+    private void RestartAnimationButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.SvgView.RestartAnimation();
+        }
+    }
+
+    private async void ExportButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            await vm.ExportAsync(Svg.Picture);
+        }
+    }
+
+    private void OnAnimationUiTick(object? sender, EventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.SvgView.Tick();
+        }
+    }
+
+    private sealed class AvaloniaSvgViewAdapter : ITestAppSvgViewAdapter
+    {
+        private readonly Avalonia.Svg.Skia.Svg _svg;
+
+        public AvaloniaSvgViewAdapter(Avalonia.Svg.Skia.Svg svg)
+        {
+            _svg = svg;
         }
 
-        if (!_showHitBounds)
+        public SkiaPicture? Picture => _svg.Picture;
+
+        public SKSvg? SkSvg => _svg.SkSvg;
+
+        public double AnimationPlaybackRate
         {
-            return;
+            get => _svg.AnimationPlaybackRate;
+            set => _svg.AnimationPlaybackRate = value;
         }
 
-        var hits = new HashSet<DrawableBase>();
+        public SvgAnimationHostBackend ActualAnimationBackend => _svg.ActualAnimationBackend;
 
-        foreach (var pt in _hitTestPoints)
-        {
-            foreach (var d in HitTestService.HitTest(drawable, pt))
-            {
-                hits.Add(d);
-            }
-        }
+        public string? AnimationBackendFallbackReason => _svg.AnimationBackendFallbackReason;
 
-        foreach (var r in _hitTestRects)
-        {
-            foreach (var d in HitTestService.HitTest(drawable, r))
-            {
-                hits.Add(d);
-            }
-        }
+        public bool TryGetPicturePoint(double x, double y, out ShimPoint picturePoint)
+            => _svg.TryGetPicturePoint(new Point(x, y), out picturePoint);
 
-        using var paint = new SkiaSharp.SKPaint();
-        paint.IsAntialias = true;
-        paint.Style = SkiaSharp.SKPaintStyle.Stroke;
-        paint.Color = _hitBoundsColor;
+        public IEnumerable<SvgElement> HitTestElements(double x, double y)
+            => _svg.HitTestElements(new Point(x, y));
 
-        foreach (var hit in hits.Take(1))
-        {
-            var rect = skSvg.SkiaModel.ToSKRect(hit.TransformedBounds);
-            e.Canvas.DrawRect(rect, paint);
-        }
+        public void InvalidateView() => _svg.InvalidateVisual();
+    }
+
+    private static bool HasFileDrop(DragEventArgs e)
+        => e.DataTransfer.Items.Any(item => item.Formats.Contains(DataFormat.File));
+
+    private static bool TryGetDroppedPaths(DragEventArgs e, out IReadOnlyList<string> paths)
+    {
+        var items = e.DataTransfer.Items
+            .Where(item => item.Formats.Contains(DataFormat.File))
+            .Select(item => item.TryGetRaw(DataFormat.File))
+            .OfType<IStorageItem>()
+            .Select(item => item.TryGetLocalPath())
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Cast<string>()
+            .ToList();
+
+        paths = items;
+        return items.Count > 0;
     }
 }

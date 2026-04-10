@@ -17,6 +17,10 @@ public class SKSvgSettings
 
     public IList<ITypefaceProvider>? TypefaceProviders { get; set; }
 
+    public SkiaSharp.SKRect? StandaloneViewport { get; set; }
+
+    public bool EnableSvgFonts { get; set; }
+
     public SKSvgSettings()
     {
         AlphaType = SkiaSharp.SKAlphaType.Unpremul;
@@ -32,5 +36,8 @@ public class SKSvgSettings
             new FontManagerTypefaceProvider(),
             new DefaultTypefaceProvider()
         };
+
+        StandaloneViewport = null;
+        EnableSvgFonts = true;
     }
 }

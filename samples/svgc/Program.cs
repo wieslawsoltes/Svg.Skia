@@ -5,6 +5,7 @@ using System.CommandLine.Invocation;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Svg.CodeGen.Skia;
+using Svg.Skia;
 
 namespace svgc;
 
@@ -33,7 +34,7 @@ class Program
         var svgDocument = Svg.Model.Services.SvgService.FromSvg(svg);
         if (svgDocument is { })
         {
-            var picture = Svg.Model.Services.SvgService.ToModel(svgDocument, AssetLoader, out _, out _);
+            var picture = SvgSceneRuntime.CreateModel(svgDocument, AssetLoader);
             if (picture is { } && picture.Commands is { })
             {
                 var text = SkiaCSharpCodeGen.Generate(picture, namespaceName, className);

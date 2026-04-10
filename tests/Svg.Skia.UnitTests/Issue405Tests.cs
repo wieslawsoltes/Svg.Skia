@@ -8,17 +8,13 @@ namespace Svg.Skia.UnitTests;
 
 public class Issue405Tests
 {
-    private readonly SkiaModel _model = new(new SKSvgSettings());
-    private readonly SkiaSvgAssetLoader _assetLoader;
-
-    public Issue405Tests()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SansSerifBold_ResolvesSingleTypefaceSpan(bool enableSvgFonts)
     {
-        _assetLoader = new SkiaSvgAssetLoader(_model);
-    }
-
-    [Fact]
-    public void SansSerifBold_ResolvesSingleTypefaceSpan()
-    {
+        var settings = new SKSvgSettings { EnableSvgFonts = enableSvgFonts };
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(settings));
         var paint = new SKPaint
         {
             Typeface = SKTypeface.FromFamilyName(
@@ -28,7 +24,7 @@ public class Issue405Tests
                 SKFontStyleSlant.Upright)
         };
 
-        var spans = _assetLoader.FindTypefaces("Bold Text 20px", paint);
+        var spans = assetLoader.FindTypefaces("Bold Text 20px", paint);
 
         Assert.Single(spans);
         var span = spans[0];
@@ -37,9 +33,13 @@ public class Issue405Tests
             "Expected resolved typeface to be semi-bold or heavier.");
     }
 
-    [Fact]
-    public void FakeBoldMatchesDesiredWeight()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void FakeBoldMatchesDesiredWeight(bool enableSvgFonts)
     {
+        var settings = new SKSvgSettings { EnableSvgFonts = enableSvgFonts };
+        var model = new SkiaModel(settings);
         var paint = new SKPaint
         {
             Typeface = SKTypeface.FromFamilyName(
@@ -49,14 +49,14 @@ public class Issue405Tests
                 SKFontStyleSlant.Upright)
         };
 
-        using var skPaint = _model.ToSKPaint(paint);
-        Assert.NotNull(skPaint);
+        using var localPaint = model.ToSKPaint(paint);
+        Assert.NotNull(localPaint);
 
         var desiredWeight = (int)SkiaSharp.SKFontStyleWeight.ExtraBlack;
-        var actualWeight = skPaint!.Typeface?.FontWeight ?? 0;
+        var actualWeight = localPaint!.Typeface?.FontWeight ?? 0;
         var shouldFakeBold = actualWeight < desiredWeight;
 
-        Assert.Equal(shouldFakeBold, skPaint.FakeBoldText);
+        Assert.Equal(shouldFakeBold, localPaint.FakeBoldText);
     }
 }
 

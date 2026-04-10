@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Svg.Editor.Svg;
 using Svg.Editor.Svg.Models;
-using Svg.Model.Drawables;
 using Shim = ShimSkiaSharp;
 using SK = SkiaSharp;
 
@@ -35,10 +34,10 @@ public class SvgEditorOverlayRenderer
         double gridSize,
         IEnumerable<LayerEntry> layers,
         LayerEntry? selectedLayer,
-        IList<DrawableBase> selectedDrawables,
-        Func<DrawableBase, BoundsInfo> getBounds,
+        IList<SelectionVisualInfo> selectedVisuals,
+        Func<SelectionVisualInfo, BoundsInfo> getBounds,
         bool polyEditing,
-        DrawableBase? editPolyDrawable,
+        SelectionVisualInfo? editPolyVisual,
         bool editPolyline,
         IList<Shim.SKPoint> polyPoints,
         Shim.SKMatrix polyMatrix)
@@ -54,10 +53,10 @@ public class SvgEditorOverlayRenderer
             gridSize,
             layers,
             selectedLayer,
-            selectedDrawables,
+            selectedVisuals,
             getBounds,
             polyEditing,
-            editPolyDrawable,
+            editPolyVisual,
             editPolyline,
             polyPoints,
             polyMatrix);

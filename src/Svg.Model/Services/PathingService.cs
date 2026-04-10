@@ -89,14 +89,23 @@ internal static class PathingService
                     {
                         if (addPolyPathCommand.Points is { } && addPolyPathCommand.Points.Count > 0)
                         {
-                            foreach (var nexPoint in addPolyPathCommand.Points)
+                            for (var i = 0; i < addPolyPathCommand.Points.Count; i++)
                             {
-                                var point1 = new SKPoint(nexPoint.X, nexPoint.Y);
-                                pathTypes.Add((point1, (byte)PathPointType.Start));
+                                var nextPoint = addPolyPathCommand.Points[i];
+                                var type = i == 0
+                                    ? (byte)PathPointType.Start
+                                    : (byte)PathPointType.Line;
+                                var point1 = new SKPoint(nextPoint.X, nextPoint.Y);
+                                pathTypes.Add((point1, type));
                             }
 
                             var point = addPolyPathCommand.Points[addPolyPathCommand.Points.Count - 1];
                             lastPoint = (point, (byte)PathPointType.Line);
+                            if (addPolyPathCommand.Close)
+                            {
+                                lastPoint = (lastPoint.Point, (byte)(lastPoint.Type | (byte)PathPointType.CloseSubpath));
+                                pathTypes[pathTypes.Count - 1] = lastPoint;
+                            }
                         }
                         break;
                     }
@@ -328,6 +337,11 @@ internal static class PathingService
 
     internal static SKPath? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, SKRect skViewport)
     {
+        if (svgPointCollection.Count < 4)
+        {
+            return null;
+        }
+
         var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
         var skPath = new SKPath
         {

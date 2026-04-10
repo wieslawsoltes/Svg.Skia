@@ -9,6 +9,15 @@ public sealed class DefaultTypefaceProvider : ITypefaceProvider
 {
     public static readonly char[] s_fontFamilyTrim = { '\'' };
 
+    private static bool IsGenericFamilyName(string familyName)
+    {
+        return familyName.Equals("serif", StringComparison.OrdinalIgnoreCase) ||
+               familyName.Equals("sans-serif", StringComparison.OrdinalIgnoreCase) ||
+               familyName.Equals("monospace", StringComparison.OrdinalIgnoreCase) ||
+               familyName.Equals("cursive", StringComparison.OrdinalIgnoreCase) ||
+               familyName.Equals("fantasy", StringComparison.OrdinalIgnoreCase);
+    }
+
     public SkiaSharp.SKTypeface? FromFamilyName(string fontFamily, SkiaSharp.SKFontStyleWeight fontWeight, SkiaSharp.SKFontStyleWidth fontWidth, SkiaSharp.SKFontStyleSlant fontStyle)
     {
         var skTypeface = default(SkiaSharp.SKTypeface);
@@ -22,10 +31,16 @@ public sealed class DefaultTypefaceProvider : ITypefaceProvider
                 skTypeface = SkiaSharp.SKTypeface.FromFamilyName(fontFamilyName, fontWeight, fontWidth, fontStyle);
                 if (skTypeface is { })
                 {
-                    if (!skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.Ordinal)
-                        && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
+                    var requestedExplicitDefault = defaultName.Equals(fontFamilyName, StringComparison.OrdinalIgnoreCase);
+                    var resolvedRequestedFamily = skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.OrdinalIgnoreCase);
+                    var resolvedExplicitDefault = defaultName.Equals(skTypeface.FamilyName, StringComparison.OrdinalIgnoreCase);
+                    var requestedGenericFamily = IsGenericFamilyName(fontFamilyName);
+                    if (!resolvedRequestedFamily &&
+                        !(requestedExplicitDefault && resolvedExplicitDefault) &&
+                        !(requestedGenericFamily && !resolvedExplicitDefault))
                     {
                         skTypeface.Dispose();
+                        skTypeface = null;
                         continue;
                     }
                     break;

@@ -30,7 +30,7 @@
     <File Path="build/Avalonia.Desktop.props" />
     <File Path="build/Avalonia.Diagnostics.props" />
     <File Path="build/Avalonia.props" />
-    <File Path="build/Avalonia.ReactiveUI.props" />
+    <File Path="build/ReactiveUI.Avalonia.props" />
     <File Path="build/Avalonia.Skia.props" />
     <File Path="build/Avalonia.Themes.Fluent.props" />
     <File Path="build/Avalonia.Web.props" />
@@ -66,7 +66,9 @@
     <Project Path="samples/Svg.SourceGenerator.Skia.Sample/Svg.SourceGenerator.Skia.Sample.csproj" />
     <Project Path="samples/svgc/svgc.csproj" />
     <Project Path="samples/SvgToPng/SvgToPng.csproj" />
+    <Project Path="samples/TestApp.Shared/TestApp.Shared.csproj" />
     <Project Path="samples/TestApp/TestApp.csproj" />
+    <Project Path="samples/UnoTestApp/UnoTestApp.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/ShimSkiaSharp/ShimSkiaSharp.csproj" />
@@ -81,11 +83,14 @@
     <Project Path="src/Svg.Controls.Skia.Uno/Svg.Controls.Skia.Uno.csproj" />
     <Project Path="src/Svg.Controls.Skia.Avalonia/Svg.Controls.Skia.Avalonia.csproj" />
     <Project Path="src/Svg.Model/Svg.Model.csproj" />
+    <Project Path="src/Svg.Animation/Svg.Animation.csproj" />
+    <Project Path="src/Svg.SceneGraph/Svg.SceneGraph.csproj" />
     <Project Path="src/Svg.Skia/Svg.Skia.csproj" />
     <Project Path="src/Svg.SourceGenerator.Skia/Svg.SourceGenerator.Skia.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ShimSkiaSharp.UnitTests/ShimSkiaSharp.UnitTests.csproj" />
+    <Project Path="tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj" />
     <Project Path="tests/Svg.Controls.Avalonia.UnitTests/Svg.Controls.Avalonia.UnitTests.csproj" />
     <Project Path="tests/Svg.Controls.Skia.Avalonia.UnitTests/Svg.Controls.Skia.Avalonia.UnitTests.csproj" />
     <Project Path="tests/Svg.Controls.Skia.Uno.UnitTests/Svg.Controls.Skia.Uno.UnitTests.csproj" />

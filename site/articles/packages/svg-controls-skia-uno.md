@@ -17,6 +17,7 @@ dotnet add package Svg.Controls.Skia.Uno
 - your app uses Uno Platform and wants the fastest SVG path through the live Skia canvas,
 - you want an `Svg` control with `Path`, `Source`, `SvgSource`, `Stretch`, `StretchDirection`, `EnableCache`, `Wireframe`, `DisableFilters`, `Zoom`, `PanX`, and `PanY`,
 - you need control-coordinate hit testing through `TryGetPicturePoint(...)` and `HitTestElements(...)`,
+- you want host-driven SVG animation playback backed by the shared `SKSvg` runtime,
 - you want reusable `SvgSource` resources that can be cloned and restyled per control.
 
 ## Main types
@@ -26,6 +27,7 @@ dotnet add package Svg.Controls.Skia.Uno
 | `Uno.Svg.Skia.Svg` | Uno control for direct SVG display on `SKCanvasElement` |
 | `Uno.Svg.Skia.SvgSource` | Reusable, cloneable, reloadable source object |
 | `Uno.Svg.Skia.StretchDirection` | Uno-side equivalent of the Avalonia stretch-direction API |
+| `Svg.Skia.SvgInteractionDispatcher` | Routed pointer helper exposed through `Svg.Interaction` |
 
 ## Basic XAML usage
 
@@ -72,9 +74,32 @@ Use the synchronous loaders for inline SVG strings, `Stream`, and `SvgDocument` 
 - The Uno replacement for those scenarios is `Svg` plus reusable `SvgSource` resources.
 - The package is Skia-renderer-only and does not add a native-renderer fallback.
 
+## Animation playback
+
+The Uno `Svg` control exposes the same host-driven animation surface as the Avalonia Skia package:
+
+- `AnimationBackend`
+- `AnimationFrameInterval`
+- `AnimationPlaybackRate`
+- `ActualAnimationBackend`
+- `AnimationBackendFallbackReason`
+- `AnimationBackendResolution`
+- `AnimationBackendCapabilities`
+
+The control shares the same backend enum:
+
+- `Default`
+- `Manual`
+- `DispatcherTimer`
+- `RenderLoop`
+- `NativeComposition`
+
+Uno currently falls back away from `NativeComposition` because this implementation does not have a working retained child-visual attachment path on the active package surface.
+
 ## Related docs
 
 - [Quickstart: Uno](../getting-started/quickstart-uno)
+- [Interaction and Animation](../guides/interaction-and-animation)
 - [Uno Svg Control](../xaml/uno-svg-control)
 - [Uno Sample Publishing](../advanced/uno-sample-publishing)
 - [Svg.Controls.Skia.Avalonia](svg-controls-skia-avalonia)

@@ -1,4 +1,5 @@
 using Svg.Editor.Skia;
+using Svg.Skia;
 using Xunit;
 using SK = SkiaSharp;
 
@@ -42,5 +43,26 @@ public class SelectionServiceTests
         Assert.Equal(new SK.SKPoint(50, 50), center);
         Assert.Equal(0, topLeft);
         Assert.Equal(8, rotate);
+    }
+
+    [Fact]
+    public void GetBoundsInfo_PrefersRetainedSceneNodeGeometry()
+    {
+        const string svgMarkup = "<svg width=\"64\" height=\"64\"><g transform=\"translate(10,20)\"><rect id=\"target\" x=\"1\" y=\"2\" width=\"10\" height=\"6\" /></g></svg>";
+
+        using var svg = new SKSvg();
+        svg.FromSvg(svgMarkup);
+
+        Assert.True(svg.TryGetRetainedSceneNodeById("target", out var sceneNode));
+        Assert.NotNull(sceneNode);
+
+        var service = new SelectionService();
+        var bounds = service.GetBoundsInfo(sceneNode!, () => 1f);
+
+        Assert.Equal(new SK.SKPoint(11f, 22f), bounds.TL);
+        Assert.Equal(new SK.SKPoint(21f, 22f), bounds.TR);
+        Assert.Equal(new SK.SKPoint(21f, 28f), bounds.BR);
+        Assert.Equal(new SK.SKPoint(11f, 28f), bounds.BL);
+        Assert.Equal(new SK.SKPoint(16f, 25f), bounds.Center);
     }
 }

@@ -10,7 +10,7 @@ public abstract record SKColorFilter : IDeepCloneable<SKColorFilter>
         => new ColorMatrixColorFilter(matrix);
 
     public static SKColorFilter CreateTable(byte[]? tableA, byte[]? tableR, byte[]? tableG, byte[]? tableB)
-        => new TableColorFilter(tableA, tableB, tableG, tableR);
+        => new TableColorFilter(tableA, tableR, tableG, tableB);
 
     public static SKColorFilter CreateBlendMode(SKColor c, SKBlendMode mode)
         => new BlendModeColorFilter(c, mode);

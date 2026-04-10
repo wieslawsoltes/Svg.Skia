@@ -125,12 +125,9 @@ public class MainWindowViewModel
             {
                 var stopwatchToPicture = Stopwatch.StartNew();
 
-                var references = new HashSet<Uri> { item.Document.BaseUri };
-                item.Drawable = SvgService.ToDrawable(item.Document, _assetLoader, references, out var bounds);
-                if (item.Drawable is { } && bounds is { })
+                item.Picture = SvgSceneRuntime.CreateModel(item.Document, _assetLoader);
+                if (item.Picture is { })
                 {
-                    item.Picture = item.Drawable.Snapshot(bounds.Value);
-
                     item.SkiaPicture = _skiaModel.ToSKPicture(item.Picture);
 
                     if (item.Picture?.Commands is { })

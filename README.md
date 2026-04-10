@@ -13,14 +13,36 @@
 [![Github All Releases](https://img.shields.io/github/downloads/wieslawsoltes/svg.skia/total.svg)](https://github.com/wieslawsoltes/svg.skia)
 [![Github Releases](https://img.shields.io/github/downloads/wieslawsoltes/svg.skia/latest/total.svg)](https://github.com/wieslawsoltes/svg.skia)
 
+| Package ID | NuGet | Downloads |
+| --- | --- | --- |
+| `ShimSkiaSharp` | [![NuGet](https://img.shields.io/nuget/v/ShimSkiaSharp.svg)](https://www.nuget.org/packages/ShimSkiaSharp/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/ShimSkiaSharp.svg)](https://www.nuget.org/packages/ShimSkiaSharp/) |
+| `Skia.Controls.Avalonia` | [![NuGet](https://img.shields.io/nuget/v/Skia.Controls.Avalonia.svg)](https://www.nuget.org/packages/Skia.Controls.Avalonia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Skia.Controls.Avalonia.svg)](https://www.nuget.org/packages/Skia.Controls.Avalonia/) |
+| `Svg.Animation` | [![NuGet](https://img.shields.io/nuget/v/Svg.Animation.svg)](https://www.nuget.org/packages/Svg.Animation/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Animation.svg)](https://www.nuget.org/packages/Svg.Animation/) |
+| `Svg.CodeGen.Skia` | [![NuGet](https://img.shields.io/nuget/v/Svg.CodeGen.Skia.svg)](https://www.nuget.org/packages/Svg.CodeGen.Skia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.CodeGen.Skia.svg)](https://www.nuget.org/packages/Svg.CodeGen.Skia/) |
+| `Svg.Controls.Avalonia` | [![NuGet](https://img.shields.io/nuget/v/Svg.Controls.Avalonia.svg)](https://www.nuget.org/packages/Svg.Controls.Avalonia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Controls.Avalonia.svg)](https://www.nuget.org/packages/Svg.Controls.Avalonia/) |
+| `Svg.Controls.Skia.Avalonia` | [![NuGet](https://img.shields.io/nuget/v/Svg.Controls.Skia.Avalonia.svg)](https://www.nuget.org/packages/Svg.Controls.Skia.Avalonia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Controls.Skia.Avalonia.svg)](https://www.nuget.org/packages/Svg.Controls.Skia.Avalonia/) |
+| `Svg.Controls.Skia.Uno` | [![NuGet](https://img.shields.io/nuget/v/Svg.Controls.Skia.Uno.svg)](https://www.nuget.org/packages/Svg.Controls.Skia.Uno/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Controls.Skia.Uno.svg)](https://www.nuget.org/packages/Svg.Controls.Skia.Uno/) |
+| `Svg.Custom` | [![NuGet](https://img.shields.io/nuget/v/Svg.Custom.svg)](https://www.nuget.org/packages/Svg.Custom/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Custom.svg)](https://www.nuget.org/packages/Svg.Custom/) |
+| `Svg.Editor.Avalonia` | [![NuGet](https://img.shields.io/nuget/v/Svg.Editor.Avalonia.svg)](https://www.nuget.org/packages/Svg.Editor.Avalonia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Editor.Avalonia.svg)](https://www.nuget.org/packages/Svg.Editor.Avalonia/) |
+| `Svg.Editor.Core` | [![NuGet](https://img.shields.io/nuget/v/Svg.Editor.Core.svg)](https://www.nuget.org/packages/Svg.Editor.Core/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Editor.Core.svg)](https://www.nuget.org/packages/Svg.Editor.Core/) |
+| `Svg.Editor.Skia` | [![NuGet](https://img.shields.io/nuget/v/Svg.Editor.Skia.svg)](https://www.nuget.org/packages/Svg.Editor.Skia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Editor.Skia.svg)](https://www.nuget.org/packages/Svg.Editor.Skia/) |
+| `Svg.Editor.Skia.Avalonia` | [![NuGet](https://img.shields.io/nuget/v/Svg.Editor.Skia.Avalonia.svg)](https://www.nuget.org/packages/Svg.Editor.Skia.Avalonia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Editor.Skia.Avalonia.svg)](https://www.nuget.org/packages/Svg.Editor.Skia.Avalonia/) |
+| `Svg.Editor.Svg` | [![NuGet](https://img.shields.io/nuget/v/Svg.Editor.Svg.svg)](https://www.nuget.org/packages/Svg.Editor.Svg/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Editor.Svg.svg)](https://www.nuget.org/packages/Svg.Editor.Svg/) |
+| `Svg.Model` | [![NuGet](https://img.shields.io/nuget/v/Svg.Model.svg)](https://www.nuget.org/packages/Svg.Model/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Model.svg)](https://www.nuget.org/packages/Svg.Model/) |
+| `Svg.SceneGraph` | [![NuGet](https://img.shields.io/nuget/v/Svg.SceneGraph.svg)](https://www.nuget.org/packages/Svg.SceneGraph/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.SceneGraph.svg)](https://www.nuget.org/packages/Svg.SceneGraph/) |
+| `Svg.Skia` | [![NuGet](https://img.shields.io/nuget/v/Svg.Skia.svg)](https://www.nuget.org/packages/Svg.Skia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Skia.svg)](https://www.nuget.org/packages/Svg.Skia/) |
+| `Svg.Skia.Converter` | [![NuGet](https://img.shields.io/nuget/v/Svg.Skia.Converter.svg)](https://www.nuget.org/packages/Svg.Skia.Converter/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Skia.Converter.svg)](https://www.nuget.org/packages/Svg.Skia.Converter/) |
+| `Svg.SourceGenerator.Skia` | [![NuGet](https://img.shields.io/nuget/v/Svg.SourceGenerator.Skia.svg)](https://www.nuget.org/packages/Svg.SourceGenerator.Skia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.SourceGenerator.Skia.svg)](https://www.nuget.org/packages/Svg.SourceGenerator.Skia/) |
+| `svgc` | [![NuGet](https://img.shields.io/nuget/v/svgc.svg)](https://www.nuget.org/packages/svgc/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/svgc.svg)](https://www.nuget.org/packages/svgc/) |
+| `SvgToPng` | [![NuGet](https://img.shields.io/nuget/v/SvgToPng.svg)](https://www.nuget.org/packages/SvgToPng/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/SvgToPng.svg)](https://www.nuget.org/packages/SvgToPng/) |
+
 *Svg.Skia* is an [SVG](https://en.wikipedia.org/wiki/Scalable_Vector_Graphics) rendering library.
 
 ## About
 
 *Svg.Skia* can be used as a .NET library or as a CLI application
-to render SVG files based on a [static](http://www.w3.org/TR/SVG11/feature#SVG-static)
-[SVG Full 1.1](https://www.w3.org/TR/SVG11/) subset to raster images or
-to a backend's canvas.
+to render SVG files based on the [SVG Full 1.1](https://www.w3.org/TR/SVG11/)
+document model to raster images or to a backend's canvas.
 
 The `Svg.Skia` is using [SVG](https://github.com/vvvv/SVG) library to load `Svg` object model. 
 
@@ -32,6 +54,15 @@ The `Svg.Skia` can be used in same way as the [SkiaSharp.Extended.Svg](https://g
 
 The `Svg` library has a more complete implementation of the `Svg` document model than [SkiaSharp.Extended.Svg](https://github.com/mono/SkiaSharp.Extended/tree/main/source/SkiaSharp.Extended.Svg)
 and the `Svg.Skia` renderer will provide more complete rendering subsystem implementation.
+
+## Highlights
+
+- `Svg.Custom` now exposes the SVG 1.1 animation object model for `animate`, `set`, `animateMotion`, `animateColor`, `animateTransform`, and `mpath`.
+- `Svg.Custom` and `Svg.Skia` now include typed `pointer-events` handling plus geometry-aware topmost hit testing.
+- `Svg.Skia` now includes a shared interaction dispatcher, shared animation clock/controller, and host-driven animation playback APIs.
+- `Svg.Controls.Skia.Avalonia` and `Svg.Controls.Skia.Uno` now expose animation backend selection, playback rate, frame interval, and resolved-backend diagnostics.
+- Avalonia adds an optional `NativeComposition` animation backend with fallback to `RenderLoop` or `DispatcherTimer` when retained composition is unavailable.
+- `tests/Svg.Skia.Benchmarks` adds a local BenchmarkDotNet harness for the shared animation renderer, and `samples/TestApp` exposes backend and playback controls for manual verification.
 
 ## NuGet
 
@@ -202,7 +233,7 @@ The `SKSvg` class provides helpers for retrieving elements or drawables at a
 given point. The hit-testing methods expect coordinates in picture space:
 
 ```C#
-using SkiaSharp;
+using ShimSkiaSharp;
 using Svg.Skia;
 
 var svg = new SKSvg();
@@ -220,6 +251,10 @@ When drawing on a transformed canvas you can convert canvas coordinates to
 picture coordinates using `TryGetPicturePoint` and then use the hit-testing
 methods.
 
+The runtime also exposes `HitTestTopmostElement(...)` for pointer-dispatch
+scenarios where only the topmost routed target should be returned, and the hit
+test path now respects typed `pointer-events` values.
+
 #### Svg control
 
 The `Svg` Avalonia control exposes a `HitTestElements` method that accepts
@@ -228,6 +263,47 @@ a point in control coordinates and returns the matching SVG elements:
 ```C#
 var hits = svgControl.HitTestElements(new Point(x, y));
 ```
+
+### Animation and interaction
+
+`SKSvg` now exposes a shared animation runtime and a routed interaction layer
+that can be hosted from Avalonia, Uno, or custom Skia surfaces.
+
+```C#
+using System;
+using ShimSkiaSharp;
+using Svg.Skia;
+
+using var svg = new SKSvg();
+
+if (svg.Load("animated.svg") is not null && svg.HasAnimations)
+{
+    svg.AnimationInvalidated += (_, e) => Console.WriteLine(e.Time);
+
+    svg.SetAnimationTime(TimeSpan.FromSeconds(1));
+    svg.AdvanceAnimation(TimeSpan.FromMilliseconds(16));
+    svg.ResetAnimation();
+}
+
+var target = svg.HitTestTopmostElement(new SKPoint(10, 10));
+```
+
+The shared runtime surface includes:
+
+- `HasAnimations`
+- `AnimationTime`
+- `SetAnimationTime(...)`
+- `AdvanceAnimation(...)`
+- `ResetAnimation()`
+- `AnimationInvalidated`
+- `AnimationMinimumRenderInterval`
+- `HasPendingAnimationFrame`
+- `FlushPendingAnimationFrame()`
+- `LastAnimationDirtyTargetCount`
+
+The shared interaction surface includes `SvgInteractionDispatcher`,
+`SvgPointerInput`, routed `Dispatched` events, cursor hints, and optional
+compatibility bridging back into `SvgElement` mouse events.
 
 
 ### Avalonia
@@ -246,6 +322,26 @@ Install-Package Svg.Controls.Skia.Avalonia
 
 ```XAML
 <Svg Path="/Assets/__AJ_Digital_Camera.svg"/>
+```
+
+For animated content, the Skia-backed Avalonia and Uno controls also expose:
+
+- `AnimationBackend`
+- `AnimationFrameInterval`
+- `AnimationPlaybackRate`
+- `ActualAnimationBackend`
+- `AnimationBackendFallbackReason`
+
+Avalonia supports `Default`, `Manual`, `DispatcherTimer`, `RenderLoop`, and
+`NativeComposition`. Uno supports the same host-driven playback model but falls
+back from `NativeComposition` because it does not currently expose a working
+retained child-visual path.
+
+```XAML
+<Svg Path="/Assets/animated.svg"
+     AnimationBackend="Default"
+     AnimationPlaybackRate="1.0"
+     AnimationFrameInterval="0:0:0.016" />
 ```
 
 #### Image control

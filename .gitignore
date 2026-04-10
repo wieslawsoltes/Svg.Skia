@@ -295,3 +295,7 @@ __pycache__/
 
 # macOS
 .DS_Store
+/output
+/.playwright-cli
+TestApp.json
+/run-artifacts

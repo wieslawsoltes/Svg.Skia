@@ -18,6 +18,7 @@ svg.Load("image.svg");
 
 var element = svg.HitTestElements(new SKPoint(10, 10)).FirstOrDefault();
 var drawable = svg.HitTestDrawables(new SKRect(0, 0, 40, 40)).FirstOrDefault();
+var topmost = svg.HitTestTopmostElement(new SKPoint(10, 10));
 ```
 
 ## Hit testing on transformed canvases
@@ -49,6 +50,8 @@ There are overloads that take the canvas matrix directly:
 
 The Skia-backed `Avalonia.Svg.Skia.Svg` control exposes `HitTestElements(Point point)` in control coordinates, so the control handles the coordinate transform for you.
 
+The shared hit-test path now also respects typed `pointer-events` values, geometry-aware element bounds, and topmost-target routing used by `SvgInteractionDispatcher`.
+
 ## Model editing
 
 Once you identify the commands you care about, update the model and rebuild:
@@ -73,3 +76,5 @@ svg.RebuildFromModel();
 ```
 
 In Avalonia, the same pattern applies through `SvgSource.RebuildFromModel()`.
+
+For the higher-level routed input and animation playback surface, continue with [Interaction and Animation](interaction-and-animation).

@@ -16,6 +16,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Platform;
+using Avalonia.Platform.Storage;
 using Avalonia.Svg.Skia;
 using Avalonia.Threading;
 using Svg;
@@ -25,7 +26,6 @@ using Svg.Editor.Skia;
 using Svg.Editor.Svg;
 using Svg.Editor.Svg.Models;
 using Svg.Model;
-using Svg.Model.Drawables;
 using Svg.Model.Services;
 using Svg.Pathing;
 using Svg.Skia;
@@ -39,6 +39,7 @@ namespace Svg.Editor.Skia.Avalonia;
 public partial class SvgEditorWorkspace : UserControl
 {
     private const string DefaultWorkspaceTitlePrefix = "SVG Editor";
+    private static readonly DataFormat<string> SvgNodeDragFormat = DataFormat.CreateStringApplicationFormat("SvgNode");
 
     private struct DragInfo
     {
@@ -49,7 +50,7 @@ public partial class SvgEditorWorkspace : UserControl
         public float TransX;
         public float TransY;
     }
-    private DrawableBase? _selectedDrawable;
+    private SvgSceneNode? _selectedSceneNode;
     private SvgVisualElement? _selectedElement;
     private SvgElement? _selectedSvgElement;
     private SvgDocument? _document;
@@ -133,6 +134,7 @@ public partial class SvgEditorWorkspace : UserControl
     private ContextMenu? _treeMenu;
     private ContextMenu? _pathMenu;
     private SvgNode? _dragNode;
+    private PointerPressedEventArgs? _treeDragPressedEventArgs;
     private Point _treeDragStart;
     private bool _treeDragging;
 
@@ -208,7 +210,7 @@ public partial class SvgEditorWorkspace : UserControl
 
     private bool _polyEditing;
     private SvgVisualElement? _editPolyElement;
-    private DrawableBase? _editPolyDrawable;
+    private SvgSceneNode? _editPolySceneNode;
     private bool _editPolyline;
     private readonly List<Shim.SKPoint> _polyPoints = new();
     private int _activePolyPoint = -1;
@@ -221,7 +223,8 @@ public partial class SvgEditorWorkspace : UserControl
     private SK.SKPoint _boxStartPicture;
     private SK.SKPoint _boxEndPicture;
     private readonly List<SvgVisualElement> _multiSelected = new();
-    private readonly List<DrawableBase> _multiDrawables = new();
+    private readonly List<SvgSceneNode?> _multiSceneNodes = new();
+    private readonly List<SelectionVisualInfo> _multiSelectionVisuals = new();
     private SK.SKRect _multiBounds = SK.SKRect.Empty;
     private readonly List<Shim.SKPoint> _freehandPoints = new();
     private TextBox? _strokeWidthBox;
@@ -547,14 +550,15 @@ public partial class SvgEditorWorkspace : UserControl
 
     private void ClearSelectionState()
     {
-        _selectedDrawable = null;
+        _selectedSceneNode = null;
         _selectedElement = null;
         _selectedSvgElement = null;
 
         if (_multiSelected.Count > 0)
         {
             _multiSelected.Clear();
-            _multiDrawables.Clear();
+            _multiSceneNodes.Clear();
+            _multiSelectionVisuals.Clear();
             _multiBounds = SK.SKRect.Empty;
         }
 
@@ -598,24 +602,20 @@ public partial class SvgEditorWorkspace : UserControl
 
     public async Task ExportSelectedElementAsync()
     {
-        if (_selectedDrawable is null || SvgView.SkSvg is null)
+        if (SvgView.SkSvg is null)
             return;
 
         var path = await FileDialogService.SaveElementPngAsync(GetOwnerTopLevel(), Session.CurrentFile);
         if (string.IsNullOrEmpty(path))
             return;
 
-        var bounds = _selectedDrawable.TransformedBounds;
-        if (!(bounds.Width > 0) || !(bounds.Height > 0))
+        var sceneNode = _selectedSceneNode ?? (_selectedElement is not null ? ResolveRetainedSceneNode(_selectedElement) : null);
+        if (!TryCreateSelectionExportPicture(sceneNode, out var skPicture) || skPicture is null)
             return;
 
-        var picture = _selectedDrawable.Snapshot(bounds);
-        var skPicture = SvgView.SkSvg.SkiaModel.ToSKPicture(picture);
-        if (skPicture is null)
-            return;
-
-        using var stream = File.OpenWrite(path!);
-        skPicture.ToImage(stream, SK.SKColors.Transparent, SK.SKEncodedImageFormat.Png, 100, 1f, 1f,
+        using var exportPicture = skPicture;
+        using var stream = File.Create(path!);
+        exportPicture.ToImage(stream, SK.SKColors.Transparent, SK.SKEncodedImageFormat.Png, 100, 1f, 1f,
             SK.SKColorType.Rgba8888, SK.SKAlphaType.Premul, SvgView.SkSvg.Settings.Srgb);
     }
 
@@ -695,21 +695,20 @@ public partial class SvgEditorWorkspace : UserControl
 
     private void Window_OnDragOver(object? sender, DragEventArgs e)
     {
-        if (e.Data.Contains(DataFormats.FileNames))
+        if (e.DataTransfer.TryGetFiles()?.Any() == true)
             e.DragEffects = DragDropEffects.Copy;
     }
 
     private async void Window_OnDrop(object? sender, DragEventArgs e)
     {
-        if (e.Data.Contains(DataFormats.FileNames))
+        var file = e.DataTransfer.TryGetFiles()?
+            .Select(x => x.TryGetLocalPath())
+            .FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+
+        if (!string.IsNullOrWhiteSpace(file))
         {
-            var files = e.Data.GetFileNames();
-            var file = files?.FirstOrDefault();
-            if (!string.IsNullOrEmpty(file))
-            {
-                LoadDocument(file!);
-                SvgView.InvalidateVisual();
-            }
+            LoadDocument(file!);
+            SvgView.InvalidateVisual();
         }
     }
 
@@ -746,7 +745,7 @@ public partial class SvgEditorWorkspace : UserControl
             if (_document is { })
             {
                 SvgView.SkSvg!.FromSvgDocument(_document);
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 SvgView.InvalidateVisual();
             }
             return;
@@ -755,7 +754,7 @@ public partial class SvgEditorWorkspace : UserControl
         {
             AddPolyPoint(new Shim.SKPoint((float)addpp.X, (float)addpp.Y));
             SvgView.SkSvg!.FromSvgDocument(_document);
-            UpdateSelectedDrawable();
+            UpdateSelectedSceneState();
             SvgView.InvalidateVisual();
             return;
         }
@@ -770,7 +769,7 @@ public partial class SvgEditorWorkspace : UserControl
                 LoadProperties(_newElement);
                 _selectedElement = _newElement;
                 _selectedSvgElement = _newElement;
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 SvgView.SkSvg!.FromSvgDocument(_document);
                 SvgView.InvalidateVisual();
                 _newElement = null;
@@ -799,7 +798,7 @@ public partial class SvgEditorWorkspace : UserControl
                         SelectNodeFromElement(_newElement);
                         _selectedElement = _newElement as SvgVisualElement;
                         _selectedSvgElement = _newElement;
-                        UpdateSelectedDrawable();
+                        UpdateSelectedSceneState();
                         LoadProperties(_newElement);
                         SvgView.InvalidateVisual();
                         _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
@@ -819,7 +818,7 @@ public partial class SvgEditorWorkspace : UserControl
                     _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
                         _newStart, new Shim.SKPoint((float)x, (float)y), _snapToGrid, _selectionService.Snap);
                     SvgView.SkSvg!.FromSvgDocument(_document);
-                    UpdateSelectedDrawable();
+                    UpdateSelectedSceneState();
                     SvgView.InvalidateVisual();
                 }
             }
@@ -847,7 +846,7 @@ public partial class SvgEditorWorkspace : UserControl
                     SelectNodeFromElement(_newElement);
                     _selectedElement = _newElement;
                     _selectedSvgElement = _newElement;
-                    UpdateSelectedDrawable();
+                    UpdateSelectedSceneState();
                     LoadProperties(_newElement);
                     SvgView.InvalidateVisual();
                     _creating = true;
@@ -870,12 +869,12 @@ public partial class SvgEditorWorkspace : UserControl
         }
         if (SvgView.SkSvg is { } skSvg && SvgView.TryGetPicturePoint(point, out var pp))
         {
-            if (_selectedDrawable is null && _selectedElement is { })
-                UpdateSelectedDrawable();
+            if (_selectedSceneNode is null && _selectedElement is { })
+                UpdateSelectedSceneState();
             // check handles first
-            if (_selectedDrawable is { } sel && _selectedElement is { })
+            if (_selectedSceneNode is not null && _selectedElement is { })
             {
-                var bounds = GetBoundsInfo(sel);
+                var bounds = GetBoundsInfo(_selectedElement, _selectedSceneNode);
                 var handle = HitHandle(bounds, new SK.SKPoint(pp.X, pp.Y), out var center);
                 if (handle >= 0)
                 {
@@ -898,12 +897,12 @@ public partial class SvgEditorWorkspace : UserControl
                     _resizeElement = _selectedElement;
                     _resizeHandle = handle;
                     _resizeStart = new Shim.SKPoint(pp.X, pp.Y);
-                    _startRect = SvgView.SkSvg!.SkiaModel.ToSKRect(sel.GeometryBounds);
+                    _startRect = GetSelectionGeometryRect(_selectedSceneNode);
                     if (_startRect.Width == 0)
                         _startRect.Right = _startRect.Left + 0.01f;
                     if (_startRect.Height == 0)
                         _startRect.Bottom = _startRect.Top + 0.01f;
-                    _resizeMatrix = sel.TotalTransform;
+                    _resizeMatrix = GetSelectionTransform(_selectedSceneNode);
                     if (!_resizeMatrix.TryInvert(out _resizeInverse))
                         _resizeInverse = Shim.SKMatrix.CreateIdentity();
                     _resizeStartLocal = _resizeInverse.MapPoint(_resizeStart);
@@ -939,22 +938,20 @@ public partial class SvgEditorWorkspace : UserControl
                 }
             }
 
-            var hits = skSvg.HitTestElements(pp).OfType<SvgVisualElement>().ToList();
-            if (!_includeHidden)
-                hits = hits.Where(IsElementVisible).ToList();
+            var hitVisuals = HitTestSelectionVisuals(pp);
+            var hits = hitVisuals.Select(static visual => visual.Element).ToList();
             if (hits.Count > 0)
             {
                 if (_toolService.CurrentTool == Tool.PathSelect && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
                 {
-                    var pathEl = hits.OfType<SvgPath>().FirstOrDefault();
-                    if (pathEl is not null && _document is { })
+                    var pathHit = hitVisuals.FirstOrDefault(static visual => visual.Element is SvgPath);
+                    if (pathHit.Element is SvgPath pathEl && _document is { })
                     {
                         SaveUndoState();
-                        var drawable = skSvg.HitTestDrawables(pp).FirstOrDefault(d => d.Element == pathEl);
-                        if (drawable is { })
+                        if (pathHit.SceneNode is not null)
                         {
-                            _pathService.Start(pathEl, drawable);
-                            UpdateSelectedDrawable();
+                            _pathService.Start(pathEl, pathHit.SceneNode);
+                            UpdateSelectedSceneState();
                             SvgView.InvalidateVisual();
                             return;
                         }
@@ -962,14 +959,13 @@ public partial class SvgEditorWorkspace : UserControl
                 }
                 else if (_toolService.CurrentTool == Tool.PolygonSelect && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
                 {
-                    var polyEl = hits.OfType<SvgPolygon>().FirstOrDefault();
-                    if (polyEl is not null && _document is { })
+                    var polyHit = hitVisuals.FirstOrDefault(static visual => visual.Element is SvgPolygon);
+                    if (polyHit.Element is SvgPolygon polyEl && _document is { })
                     {
-                        var drawable = skSvg.HitTestDrawables(pp).FirstOrDefault(d => d.Element == polyEl);
-                        if (drawable is { })
+                        if (polyHit.SceneNode is not null)
                         {
-                            StartPolyEditing(polyEl, drawable);
-                            UpdateSelectedDrawable();
+                            StartPolyEditing(polyEl, polyHit.SceneNode);
+                            UpdateSelectedSceneState();
                             SvgView.InvalidateVisual();
                             return;
                         }
@@ -977,14 +973,13 @@ public partial class SvgEditorWorkspace : UserControl
                 }
                 else if (_toolService.CurrentTool == Tool.PolylineSelect && e.GetCurrentPoint(SvgView).Properties.IsLeftButtonPressed)
                 {
-                    var polyEl = hits.OfType<SvgPolyline>().FirstOrDefault();
-                    if (polyEl is not null && _document is { })
+                    var polyHit = hitVisuals.FirstOrDefault(static visual => visual.Element is SvgPolyline);
+                    if (polyHit.Element is SvgPolyline polyEl && _document is { })
                     {
-                        var drawable = skSvg.HitTestDrawables(pp).FirstOrDefault(d => d.Element == polyEl);
-                        if (drawable is { })
+                        if (polyHit.SceneNode is not null)
                         {
-                            StartPolyEditing(polyEl, drawable);
-                            UpdateSelectedDrawable();
+                            StartPolyEditing(polyEl, polyHit.SceneNode);
+                            UpdateSelectedSceneState();
                             SvgView.InvalidateVisual();
                             return;
                         }
@@ -1011,20 +1006,21 @@ public partial class SvgEditorWorkspace : UserControl
                     return;
                 }
 
-                _selectedDrawable = skSvg.HitTestDrawables(pp).FirstOrDefault();
+                _selectedSceneNode = null;
                 _selectedElement = null;
                 _selectedSvgElement = null;
                 if (_multiSelected.Count > 0)
                 {
                     _multiSelected.Clear();
-                    _multiDrawables.Clear();
+                    _multiSceneNodes.Clear();
+                    _multiSelectionVisuals.Clear();
                     _multiBounds = SK.SKRect.Empty;
                 }
                 if (_pathService.IsEditing)
                     _pathService.Stop();
                 if (_polyEditing)
                     StopPolyEditing();
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 SvgView.InvalidateVisual();
             }
         }
@@ -1058,7 +1054,7 @@ public partial class SvgEditorWorkspace : UserControl
                     _freehandPoints.Add(cur);
                     _toolService.AddFreehandPoint(_newElement, cur, _snapToGrid, _selectionService.Snap);
                     SvgView.SkSvg!.FromSvgDocument(_document);
-                    UpdateSelectedDrawable();
+                    UpdateSelectedSceneState();
                     SvgView.InvalidateVisual();
                 }
             }
@@ -1067,9 +1063,7 @@ public partial class SvgEditorWorkspace : UserControl
                 _toolService.UpdateElement(_newElement, _toolService.CurrentTool,
                     _newStart, cur, _snapToGrid, _selectionService.Snap);
                 SvgView.SkSvg!.FromSvgDocument(_document);
-                UpdateSelectedDrawable();
-                if (_pathService.IsEditing)
-                    _pathService.EditDrawable = _selectedDrawable;
+                UpdateSelectedSceneState();
                 SvgView.InvalidateVisual();
             }
             return;
@@ -1087,11 +1081,10 @@ public partial class SvgEditorWorkspace : UserControl
                     if (_selectedElement != _pressElement)
                     {
                         _selectedElement = _pressElement;
-                        _selectedDrawable = hitSvg.HitTestDrawables(_pressPoint).FirstOrDefault(d => d.Element == _selectedElement);
                         _selectedSvgElement = _pressElement;
                         LoadProperties(_selectedSvgElement);
                         SelectNodeFromElement(_selectedSvgElement);
-                        UpdateSelectedDrawable();
+                        UpdateSelectedSceneState();
                     }
                     StartDrag(_pressElement, new Shim.SKPoint(ppp.X, ppp.Y), e.Pointer);
                     SvgView.InvalidateVisual();
@@ -1120,9 +1113,7 @@ public partial class SvgEditorWorkspace : UserControl
             if (_document is { })
             {
                 SvgView.SkSvg!.FromSvgDocument(_document);
-                UpdateSelectedDrawable();
-                if (_pathService.IsEditing)
-                    _pathService.EditDrawable = _selectedDrawable;
+                UpdateSelectedSceneState();
                 SvgView.InvalidateVisual();
             }
             return;
@@ -1135,9 +1126,7 @@ public partial class SvgEditorWorkspace : UserControl
             _polyPoints[_activePolyPoint] = loc;
             UpdatePolyPoint(_activePolyPoint, loc);
             SvgView.SkSvg!.FromSvgDocument(_document);
-            UpdateSelectedDrawable();
-            if (_polyEditing)
-                _editPolyDrawable = _selectedDrawable;
+            UpdateSelectedSceneState();
             SvgView.InvalidateVisual();
             return;
         }
@@ -1182,7 +1171,7 @@ public partial class SvgEditorWorkspace : UserControl
                     }
                 }
                 SvgView.SkSvg!.FromSvgDocument(_document);
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 SvgView.InvalidateVisual();
             }
             else if (_isDragging && _dragElement is { } dragEl)
@@ -1219,7 +1208,7 @@ public partial class SvgEditorWorkspace : UserControl
                     _selectionService.SetTranslation(dragEl, tx, ty);
                 }
                 SvgView.SkSvg!.FromSvgDocument(_document);
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 SvgView.InvalidateVisual();
             }
             else if (_isResizing && _resizeElement is { })
@@ -1229,7 +1218,7 @@ public partial class SvgEditorWorkspace : UserControl
                 var dy = local.Y - _resizeStartLocal.Y;
                 _selectionService.ResizeElement(_resizeElement, _resizeHandle, dx, dy, _startRect, _startTransX, _startTransY, _startScaleX, _startScaleY);
                 SvgView.SkSvg!.FromSvgDocument(_document);
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 SvgView.InvalidateVisual();
             }
             else if (_isSkewing && _resizeElement is { })
@@ -1239,7 +1228,7 @@ public partial class SvgEditorWorkspace : UserControl
                 var dy = local.Y - _resizeStartLocal.Y;
                 _selectionService.SkewElement(_resizeElement, _resizeHandle, dx, dy, _startRect, _startSkewX, _startSkewY);
                 SvgView.SkSvg!.FromSvgDocument(_document);
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 SvgView.InvalidateVisual();
             }
             else if (_isRotating && _rotateElement is { })
@@ -1249,7 +1238,7 @@ public partial class SvgEditorWorkspace : UserControl
                 var delta = (float)((a2 - a1) * 180.0 / Math.PI);
                 _selectionService.SetRotation(_rotateElement, _startAngle + delta, _rotateCenter);
                 SvgView.SkSvg!.FromSvgDocument(_document);
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 SvgView.InvalidateVisual();
             }
         }
@@ -1271,20 +1260,20 @@ public partial class SvgEditorWorkspace : UserControl
                 var p2 = _boxEndPicture;
                 var rect = new Shim.SKRect(Math.Min(p1.X, p2.X), Math.Min(p1.Y, p2.Y), Math.Max(p1.X, p2.X), Math.Max(p1.Y, p2.Y));
                 var skRect = new SK.SKRect(rect.Left, rect.Top, rect.Right, rect.Bottom);
-                var elements = svg.HitTestElements(rect).OfType<SvgVisualElement>();
+                var elements = svg.HitTestSceneNodes(rect)
+                    .Select(static node => node.HitTestTargetElement ?? node.Element)
+                    .OfType<SvgVisualElement>()
+                    .Distinct();
                 if (!_includeHidden)
                     elements = elements.Where(IsElementVisible);
-                var root = svg.Drawable as DrawableBase;
                 var hits = new List<SvgVisualElement>();
                 var leftToRight = p2.X >= p1.X;
                 foreach (var el in elements)
                 {
-                    if (root is null)
+                    var sceneNode = ResolveRetainedSceneNode(el);
+                    if (sceneNode is null)
                         continue;
-                    var dr = FindDrawable(root, el);
-                    if (dr is null)
-                        continue;
-                    var b = SelectionService.GetBoundsRect(GetBoundsInfo(dr));
+                    var b = SelectionService.GetBoundsRect(GetBoundsInfo(el, sceneNode));
                     if (!leftToRight || SelectionService.ContainsRect(skRect, b))
                         hits.Add(el);
                 }
@@ -1311,7 +1300,7 @@ public partial class SvgEditorWorkspace : UserControl
                     foreach (var el in hits)
                         _multiSelected.Add(el);
                 }
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 if (_multiSelected.Count > 0)
                 {
                     _selectedElement = _multiSelected[0];
@@ -1365,13 +1354,12 @@ public partial class SvgEditorWorkspace : UserControl
                         _multiSelected.Add(element);
                     }
                     _selectedElement = element;
-                    _selectedDrawable = skSvg.HitTestDrawables(_pressPoint).FirstOrDefault(d => d.Element == _selectedElement);
                     _selectedSvgElement = _selectedElement;
                     if (_pathService.IsEditing && _pathService.EditPath != _selectedElement)
                         _pathService.Stop();
                     LoadProperties(_selectedSvgElement);
                     SelectNodeFromElement(_selectedSvgElement);
-                    UpdateSelectedDrawable();
+                    UpdateSelectedSceneState();
                     SvgView.InvalidateVisual();
                 }
                 else
@@ -1379,32 +1367,33 @@ public partial class SvgEditorWorkspace : UserControl
                     if (_multiSelected.Count > 0)
                     {
                         _multiSelected.Clear();
-                        _multiDrawables.Clear();
+                        _multiSceneNodes.Clear();
+                        _multiSelectionVisuals.Clear();
                         _multiBounds = SK.SKRect.Empty;
                     }
                     _selectedElement = element;
-                    _selectedDrawable = skSvg.HitTestDrawables(_pressPoint).FirstOrDefault(d => d.Element == _selectedElement);
                     _selectedSvgElement = _selectedElement;
                     if (_pathService.IsEditing && _pathService.EditPath != _selectedElement)
                         _pathService.Stop();
                     LoadProperties(_selectedSvgElement);
                     SelectNodeFromElement(_selectedSvgElement);
-                    UpdateSelectedDrawable();
+                    UpdateSelectedSceneState();
                     SvgView.InvalidateVisual();
                 }
             }
             else
             {
-                _selectedDrawable = null;
+                _selectedSceneNode = null;
                 _selectedElement = null;
                 _selectedSvgElement = null;
                 if (_multiSelected.Count > 0)
                 {
                     _multiSelected.Clear();
-                    _multiDrawables.Clear();
+                    _multiSceneNodes.Clear();
+                    _multiSelectionVisuals.Clear();
                     _multiBounds = SK.SKRect.Empty;
                 }
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 SvgView.InvalidateVisual();
             }
         }
@@ -1443,7 +1432,7 @@ public partial class SvgEditorWorkspace : UserControl
                     LoadProperties(_newElement);
                     _selectedElement = _newElement;
                     _selectedSvgElement = _newElement;
-                    UpdateSelectedDrawable();
+                    UpdateSelectedSceneState();
                 }
                 _newElement = null;
                 _freehandPoints.Clear();
@@ -1512,7 +1501,7 @@ public partial class SvgEditorWorkspace : UserControl
         SaveUndoState();
         _propertiesService.ApplyAll(_selectedSvgElement);
         SvgView.SkSvg!.FromSvgDocument(_document);
-        UpdateSelectedDrawable();
+        UpdateSelectedSceneState();
         SaveExpandedNodes();
         BuildTree();
         if (_selectedSvgElement is { })
@@ -1527,7 +1516,7 @@ public partial class SvgEditorWorkspace : UserControl
             SaveUndoState();
             entry.Apply(_selectedSvgElement);
             SvgView.SkSvg!.FromSvgDocument(_document);
-            UpdateSelectedDrawable();
+            UpdateSelectedSceneState();
             _propertiesService.UpdateIdList(_document);
             SvgView.InvalidateVisual();
         }
@@ -1540,7 +1529,7 @@ public partial class SvgEditorWorkspace : UserControl
         {
             node.IsVisible = btn.IsChecked == true;
             SvgView.SkSvg!.FromSvgDocument(_document);
-            UpdateSelectedDrawable();
+            UpdateSelectedSceneState();
             SvgView.InvalidateVisual();
         }
     }
@@ -1663,8 +1652,118 @@ public partial class SvgEditorWorkspace : UserControl
 
     private static SK.SKPoint Mid(SK.SKPoint a, SK.SKPoint b) => new((a.X + b.X) / 2f, (a.Y + b.Y) / 2f);
 
-    private BoundsInfo GetBoundsInfo(DrawableBase drawable)
-        => _selectionService.GetBoundsInfo(drawable, SvgView.SkSvg!, () => GetCanvasScale());
+    private SvgSceneNode? ResolveRetainedSceneNode(SvgElement? element)
+    {
+        if (element is null || SvgView.SkSvg is null)
+            return null;
+
+        return SvgView.SkSvg.TryGetRetainedSceneNode(element, out var sceneNode)
+            ? sceneNode
+            : null;
+    }
+
+    private List<SelectionVisualInfo> HitTestSelectionVisuals(Shim.SKPoint picturePoint)
+    {
+        var results = new List<SelectionVisualInfo>();
+        if (SvgView.SkSvg is not { } skSvg)
+            return results;
+
+        var seen = new HashSet<SvgVisualElement>();
+        foreach (var hitNode in skSvg.HitTestSceneNodes(picturePoint))
+        {
+            if ((hitNode.HitTestTargetElement ?? hitNode.Element) is not SvgVisualElement element ||
+                !seen.Add(element) ||
+                (!_includeHidden && !IsElementVisible(element)))
+            {
+                continue;
+            }
+
+            var sceneNode = ResolveRetainedSceneNode(element) ?? hitNode;
+            results.Add(new SelectionVisualInfo(element, sceneNode));
+        }
+
+        if (results.Count > 0)
+            return results;
+        return results;
+    }
+
+    private bool TryGetSelectionBounds(SvgVisualElement element, SvgSceneNode? sceneNode, out SK.SKRect bounds)
+    {
+        sceneNode ??= ResolveRetainedSceneNode(element);
+        if (sceneNode is not null && sceneNode.TransformedBounds.Width > 0 && sceneNode.TransformedBounds.Height > 0)
+        {
+            bounds = ToSkRect(sceneNode.TransformedBounds);
+            return true;
+        }
+
+        bounds = SK.SKRect.Empty;
+        return false;
+    }
+
+    private bool TryCreateSelectionExportPicture(SvgSceneNode? sceneNode, out SkiaSharp.SKPicture? skPicture)
+    {
+        skPicture = null;
+        if (SvgView.SkSvg is null)
+            return false;
+
+        if (sceneNode is not null && sceneNode.TransformedBounds.Width > 0 && sceneNode.TransformedBounds.Height > 0)
+        {
+            skPicture = SvgView.SkSvg.CreateRetainedSceneNodePicture(sceneNode, sceneNode.TransformedBounds);
+            if (skPicture is not null)
+                return true;
+        }
+
+        return false;
+    }
+
+    private BoundsInfo GetBoundsInfo(SelectionVisualInfo selection)
+    {
+        return GetBoundsInfo(selection.Element, selection.SceneNode);
+    }
+
+    private BoundsInfo GetBoundsInfo(SvgVisualElement element, SvgSceneNode? sceneNode = null)
+    {
+        sceneNode ??= ResolveRetainedSceneNode(element);
+        if (sceneNode is not null)
+            return _selectionService.GetBoundsInfo(sceneNode, () => GetCanvasScale());
+
+        throw new InvalidOperationException("No retained scene node is available for the selected element.");
+    }
+
+    private static SK.SKRect ToSkRect(Shim.SKRect rect)
+        => new(rect.Left, rect.Top, rect.Right, rect.Bottom);
+
+    private Shim.SKMatrix GetSelectionTransform(SvgSceneNode? sceneNode)
+        => sceneNode?.TotalTransform ?? Shim.SKMatrix.CreateIdentity();
+
+    private SK.SKRect GetSelectionGeometryRect(SvgSceneNode? sceneNode)
+    {
+        if (sceneNode is not null)
+            return ToSkRect(sceneNode.GeometryBounds);
+
+        return SK.SKRect.Empty;
+    }
+
+    private void RefreshPathEditingContext()
+    {
+        if (!_pathService.IsEditing || _pathService.EditPath is null)
+            return;
+
+        var sceneNode = ResolveRetainedSceneNode(_pathService.EditPath);
+        _pathService.EditSceneNode = sceneNode;
+        _pathService.SetEditTransform(GetSelectionTransform(sceneNode));
+    }
+
+    private void RefreshPolyEditingContext()
+    {
+        if (!_polyEditing || _editPolyElement is null)
+            return;
+
+        _editPolySceneNode = ResolveRetainedSceneNode(_editPolyElement);
+        _polyMatrix = GetSelectionTransform(_editPolySceneNode);
+        if (!_polyMatrix.TryInvert(out _polyInverse))
+            _polyInverse = Shim.SKMatrix.CreateIdentity();
+    }
 
     private int HitHandle(BoundsInfo b, SK.SKPoint pt, out SK.SKPoint center)
         => _selectionService.HitHandle(b, pt, GetCanvasScale(), out center);
@@ -1680,6 +1779,16 @@ public partial class SvgEditorWorkspace : UserControl
     {
         var scale = GetCanvasScale(e.Canvas);
         var artboardRect = _selectedArtboard is { } ab ? SK.SKRect.Create(0, 0, ab.Width, ab.Height) : (SK.SKRect?)null;
+        var selectedVisuals = _multiSelectionVisuals.Count > 0
+            ? (IList<SelectionVisualInfo>)_multiSelectionVisuals
+            : _selectedElement is { } selectedElement
+                && (_selectedSceneNode ?? ResolveRetainedSceneNode(selectedElement)) is { } selectedSceneNode
+                ? new List<SelectionVisualInfo> { new(selectedElement, selectedSceneNode) }
+                : new List<SelectionVisualInfo>();
+        SelectionVisualInfo? editPolyVisual = _polyEditing && _editPolyElement is { } editPolyElement
+            && _editPolySceneNode is { } editPolySceneNode
+            ? new SelectionVisualInfo(editPolyElement, editPolySceneNode)
+            : null;
         _overlayRenderer.Draw(e.Canvas,
             SvgView.SkSvg?.Picture,
             SvgView.SkSvg?.Picture?.CullRect,
@@ -1690,10 +1799,10 @@ public partial class SvgEditorWorkspace : UserControl
             _gridSize,
             Layers,
             _selectedLayer,
-            _multiDrawables.Count > 0 ? (IList<DrawableBase>)_multiDrawables : (_selectedDrawable is { } d ? new List<DrawableBase> { d } : new List<DrawableBase>()),
+            selectedVisuals,
             GetBoundsInfo,
             _polyEditing,
-            _editPolyDrawable,
+            editPolyVisual,
             _editPolyline,
             _polyPoints,
             _polyMatrix);
@@ -1743,7 +1852,7 @@ public partial class SvgEditorWorkspace : UserControl
             if (ExpandedNodeIds.Count == 0)
                 ExpandAll();
             if (_selectedSvgElement is SvgVisualElement)
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
             SvgView.InvalidateVisual();
         });
         UpdateArtboards();
@@ -1793,7 +1902,7 @@ public partial class SvgEditorWorkspace : UserControl
 
     private void UpdateLayers()
     {
-        _layerService.Load(_document, SvgView.SkSvg?.Drawable as DrawableBase);
+        _layerService.Load(_document, SvgView.SkSvg?.RetainedSceneGraph);
         if (Layers.Count > 0)
         {
             _selectedLayer = Layers[0];
@@ -1889,46 +1998,30 @@ public partial class SvgEditorWorkspace : UserControl
         return null;
     }
 
-    private DrawableBase? FindDrawable(DrawableBase drawable, SvgElement element)
-    {
-        if (drawable.Element == element)
-            return drawable;
-        if (drawable is DrawableContainer container)
-        {
-            foreach (var child in container.ChildrenDrawables)
-            {
-                var found = FindDrawable(child, element);
-                if (found is { })
-                    return found;
-            }
-        }
-        return null;
-    }
-
     private void DocumentTree_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (e.AddedItems.Count > 0 && e.AddedItems[0] is SvgNode node)
         {
             _selectedSvgElement = node.Element;
             _selectedElement = node.Element as SvgVisualElement;
-            UpdateSelectedDrawable();
-            if (_toolService.CurrentTool == Tool.PathSelect && _selectedElement is SvgPath path && _selectedDrawable is { })
+            UpdateSelectedSceneState();
+            if (_toolService.CurrentTool == Tool.PathSelect && _selectedElement is SvgPath path && _selectedSceneNode is not null)
             {
                 if (!_pathService.IsEditing || _pathService.EditPath != path)
                 {
                     SaveUndoState();
-                    _pathService.Start(path, _selectedDrawable!);
+                    _pathService.Start(path, _selectedSceneNode);
                 }
             }
-            else if (_toolService.CurrentTool == Tool.PolygonSelect && _selectedElement is SvgPolygon pg && _selectedDrawable is { })
+            else if (_toolService.CurrentTool == Tool.PolygonSelect && _selectedElement is SvgPolygon pg && _selectedSceneNode is not null)
             {
                 if (!_polyEditing || _editPolyElement != pg)
-                    StartPolyEditing(pg, _selectedDrawable!);
+                    StartPolyEditing(pg, _selectedSceneNode);
             }
-            else if (_toolService.CurrentTool == Tool.PolylineSelect && _selectedElement is SvgPolyline pl && _selectedDrawable is { })
+            else if (_toolService.CurrentTool == Tool.PolylineSelect && _selectedElement is SvgPolyline pl && _selectedSceneNode is not null)
             {
                 if (!_polyEditing || _editPolyElement != pl)
-                    StartPolyEditing(pl, _selectedDrawable!);
+                    StartPolyEditing(pl, _selectedSceneNode);
             }
             else if (_pathService.IsEditing)
             {
@@ -1944,37 +2037,46 @@ public partial class SvgEditorWorkspace : UserControl
         }
     }
 
-    private void UpdateSelectedDrawable()
+    private void UpdateSelectedSceneState()
     {
-        if (_multiSelected.Count > 0 && SvgView.SkSvg?.Drawable is DrawableBase root)
+        _selectedSceneNode = null;
+
+        if (_multiSelected.Count > 0)
         {
-            _multiDrawables.Clear();
+            _multiSceneNodes.Clear();
+            _multiSelectionVisuals.Clear();
             _multiBounds = SK.SKRect.Empty;
             foreach (var el in _multiSelected)
             {
-                var d = FindDrawable(root, el);
-                if (d is { })
+                var sceneNode = ResolveRetainedSceneNode(el);
+                _multiSceneNodes.Add(sceneNode);
+                if (sceneNode is not null)
                 {
-                    _multiDrawables.Add(d);
-                    var b = SelectionService.GetBoundsRect(GetBoundsInfo(d));
+                    _multiSelectionVisuals.Add(new SelectionVisualInfo(el, sceneNode));
+
+                    var b = SelectionService.GetBoundsRect(GetBoundsInfo(el, sceneNode));
                     _multiBounds = _multiBounds.IsEmpty ? b : SK.SKRect.Union(_multiBounds, b);
                 }
             }
-            _selectedDrawable = _multiDrawables.FirstOrDefault();
+            _selectedSceneNode = _multiSceneNodes.FirstOrDefault(static node => node is not null);
         }
-        else if (_selectedElement is { } element && SvgView.SkSvg?.Drawable is DrawableBase drawable)
+        else if (_selectedElement is { } element)
         {
-            _selectedDrawable = FindDrawable(drawable, element);
-            _multiDrawables.Clear();
+            _selectedSceneNode = ResolveRetainedSceneNode(element);
+            _multiSceneNodes.Clear();
+            _multiSelectionVisuals.Clear();
             _multiBounds = SK.SKRect.Empty;
         }
         else
         {
-            _selectedDrawable = null;
-            _multiDrawables.Clear();
+            _selectedSceneNode = null;
+            _multiSceneNodes.Clear();
+            _multiSelectionVisuals.Clear();
             _multiBounds = SK.SKRect.Empty;
         }
 
+        RefreshPathEditingContext();
+        RefreshPolyEditingContext();
         UpdateSessionSelection();
     }
 
@@ -2036,7 +2138,7 @@ public partial class SvgEditorWorkspace : UserControl
             ExpandedNodeIds.Add(node.Element.ID);
         for (var i = 0; i < node.Children.Count; i++)
         {
-            if (item.ItemContainerGenerator.ContainerFromIndex(i) is TreeViewItem child)
+            if (item.ContainerFromIndex(i) is TreeViewItem child)
                 SaveExpandedNodes(child, node.Children[i]);
         }
     }
@@ -2055,7 +2157,7 @@ public partial class SvgEditorWorkspace : UserControl
             item.IsExpanded = true;
         for (var i = 0; i < node.Children.Count; i++)
         {
-            if (item.ItemContainerGenerator.ContainerFromIndex(i) is TreeViewItem child)
+            if (item.ContainerFromIndex(i) is TreeViewItem child)
                 RestoreExpandedNodes(child, node.Children[i]);
         }
     }
@@ -2072,22 +2174,20 @@ public partial class SvgEditorWorkspace : UserControl
     }
 
 
-    private void StartPolyEditing(SvgVisualElement element, DrawableBase drawable)
+    private void StartPolyEditing(SvgVisualElement element, SvgSceneNode? sceneNode)
     {
         _polyEditing = true;
         _editPolyElement = element;
         _editPolyline = element is SvgPolyline;
-        _editPolyDrawable = drawable;
+        _editPolySceneNode = sceneNode;
         _selectedElement = element;
         _selectedSvgElement = element;
         _polyPoints.Clear();
         var pts = _editPolyline ? ((SvgPolyline)element).Points : ((SvgPolygon)element).Points;
         for (int i = 0; i + 1 < pts.Count; i += 2)
             _polyPoints.Add(new Shim.SKPoint(pts[i].Value, pts[i + 1].Value));
-        _polyMatrix = drawable.TotalTransform;
-        if (!_polyMatrix.TryInvert(out _polyInverse))
-            _polyInverse = Shim.SKMatrix.CreateIdentity();
-        UpdateSelectedDrawable();
+        RefreshPolyEditingContext();
+        UpdateSelectedSceneState();
         LoadProperties(element);
     }
 
@@ -2095,10 +2195,10 @@ public partial class SvgEditorWorkspace : UserControl
     {
         _polyEditing = false;
         _editPolyElement = null;
-        _editPolyDrawable = null;
+        _editPolySceneNode = null;
         _activePolyPoint = -1;
         _polyPoints.Clear();
-        UpdateSelectedDrawable();
+        UpdateSelectedSceneState();
     }
 
     private void UpdatePolyPoint(int index, Shim.SKPoint pt)
@@ -2297,11 +2397,12 @@ public partial class SvgEditorWorkspace : UserControl
                     p.Children.Remove(el);
             }
             _multiSelected.Clear();
-            _multiDrawables.Clear();
+            _multiSceneNodes.Clear();
+            _multiSelectionVisuals.Clear();
             _multiBounds = SK.SKRect.Empty;
             _selectedElement = null;
             _selectedSvgElement = null;
-            _selectedDrawable = null;
+            _selectedSceneNode = null;
             SvgView.SkSvg!.FromSvgDocument(_document);
             BuildTree();
             SvgView.InvalidateVisual();
@@ -2314,7 +2415,7 @@ public partial class SvgEditorWorkspace : UserControl
             parent.Children.Remove(_selectedSvgElement);
             _selectedElement = null;
             _selectedSvgElement = null;
-            _selectedDrawable = null;
+            _selectedSceneNode = null;
             SvgView.SkSvg!.FromSvgDocument(_document);
             BuildTree();
             SvgView.InvalidateVisual();
@@ -2363,11 +2464,12 @@ public partial class SvgEditorWorkspace : UserControl
         }
 
         _multiSelected.Clear();
-        _multiDrawables.Clear();
+        _multiSceneNodes.Clear();
+        _multiSelectionVisuals.Clear();
         _multiBounds = SK.SKRect.Empty;
         _selectedSvgElement = group;
         _selectedElement = null;
-        _selectedDrawable = null;
+        _selectedSceneNode = null;
         SvgView.SkSvg!.FromSvgDocument(_document);
         BuildTree();
         SelectNodeFromElement(group);
@@ -2452,7 +2554,7 @@ public partial class SvgEditorWorkspace : UserControl
                 txt.LetterSpacing = new SvgUnit(SvgUnitType.User, result.LetterSpacing);
                 txt.WordSpacing = new SvgUnit(SvgUnitType.User, result.WordSpacing);
                 SvgView.SkSvg!.FromSvgDocument(_document);
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 LoadProperties(txt);
                 SvgView.InvalidateVisual();
             }
@@ -2598,7 +2700,7 @@ public partial class SvgEditorWorkspace : UserControl
                 SaveUndoState();
                 info.Apply(use);
                 SvgView.SkSvg!.FromSvgDocument(_document);
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 SaveExpandedNodes();
                 BuildTree();
                 SelectNodeFromElement(use);
@@ -2617,7 +2719,7 @@ public partial class SvgEditorWorkspace : UserControl
                 SaveUndoState();
                 info.Apply(ve);
                 SvgView.SkSvg!.FromSvgDocument(_document);
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 SaveExpandedNodes();
                 BuildTree();
                 SelectNodeFromElement(ve);
@@ -2643,12 +2745,12 @@ public partial class SvgEditorWorkspace : UserControl
     private void PathToolButton_Click(object? sender, RoutedEventArgs e)
     {
         _toolService.SetTool(Tool.PathSelect);
-        if (_selectedElement is SvgPath path && _selectedDrawable is { })
+        if (_selectedElement is SvgPath path && _selectedSceneNode is not null)
         {
             if (!_pathService.IsEditing || _pathService.EditPath != path)
             {
                 SaveUndoState();
-                _pathService.Start(path, _selectedDrawable);
+                _pathService.Start(path, _selectedSceneNode);
             }
             SvgView.InvalidateVisual();
         }
@@ -2657,10 +2759,10 @@ public partial class SvgEditorWorkspace : UserControl
     private void PolygonSelectToolButton_Click(object? sender, RoutedEventArgs e)
     {
         _toolService.SetTool(Tool.PolygonSelect);
-        if (_selectedElement is SvgPolygon poly && _selectedDrawable is { })
+        if (_selectedElement is SvgPolygon poly && _selectedSceneNode is not null)
         {
             if (!_polyEditing || _editPolyElement != poly)
-                StartPolyEditing(poly, _selectedDrawable);
+                StartPolyEditing(poly, _selectedSceneNode);
             SvgView.InvalidateVisual();
         }
     }
@@ -2668,10 +2770,10 @@ public partial class SvgEditorWorkspace : UserControl
     private void PolylineSelectToolButton_Click(object? sender, RoutedEventArgs e)
     {
         _toolService.SetTool(Tool.PolylineSelect);
-        if (_selectedElement is SvgPolyline pl && _selectedDrawable is { })
+        if (_selectedElement is SvgPolyline pl && _selectedSceneNode is not null)
         {
             if (!_polyEditing || _editPolyElement != pl)
-                StartPolyEditing(pl, _selectedDrawable);
+                StartPolyEditing(pl, _selectedSceneNode);
             SvgView.InvalidateVisual();
         }
     }
@@ -2860,18 +2962,19 @@ public partial class SvgEditorWorkspace : UserControl
             {
                 _pathService.Stop();
                 SvgView.SkSvg!.FromSvgDocument(_document);
-                UpdateSelectedDrawable();
+                UpdateSelectedSceneState();
                 SvgView.InvalidateVisual();
             }
             else
             {
-                _selectedDrawable = null;
+                _selectedSceneNode = null;
                 _selectedElement = null;
                 _selectedSvgElement = null;
                 if (_multiSelected.Count > 0)
                 {
                     _multiSelected.Clear();
-                    _multiDrawables.Clear();
+                    _multiSceneNodes.Clear();
+                    _multiSelectionVisuals.Clear();
                     _multiBounds = SK.SKRect.Empty;
                 }
                 DocumentTree.SelectedItem = null;
@@ -2944,7 +3047,7 @@ public partial class SvgEditorWorkspace : UserControl
                         if (_document is { })
                         {
                             SvgView.SkSvg!.FromSvgDocument(_document);
-                            UpdateSelectedDrawable();
+                            UpdateSelectedSceneState();
                             SvgView.InvalidateVisual();
                         }
                     }
@@ -3119,6 +3222,7 @@ public partial class SvgEditorWorkspace : UserControl
         }
 
         _dragNode = DocumentTree.SelectedItem as SvgNode;
+        _treeDragPressedEventArgs = e;
         _treeDragStart = e.GetCurrentPoint(DocumentTree).Position;
         _treeDragging = false;
     }
@@ -3134,10 +3238,16 @@ public partial class SvgEditorWorkspace : UserControl
                     return;
                 _treeDragging = true;
             }
-            var data = new DataObject();
-            data.Set("SvgNode", node);
-            await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+            var data = new DataTransfer();
+            data.Add(DataTransferItem.Create(SvgNodeDragFormat, node.Element.ID ?? string.Empty));
+            if (_treeDragPressedEventArgs is null)
+            {
+                return;
+            }
+
+            await DragDrop.DoDragDropAsync(_treeDragPressedEventArgs, data, DragDropEffects.Move);
             _dragNode = null;
+            _treeDragPressedEventArgs = null;
             _treeDragging = false;
         }
     }
@@ -3145,12 +3255,13 @@ public partial class SvgEditorWorkspace : UserControl
     private void DocumentTree_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         _dragNode = null;
+        _treeDragPressedEventArgs = null;
         _treeDragging = false;
     }
 
     private void DocumentTree_OnDragOver(object? sender, DragEventArgs e)
     {
-        if (!e.Data.Contains("SvgNode"))
+        if (!e.DataTransfer.Contains(SvgNodeDragFormat))
         {
             HideDropIndicator();
             return;
@@ -3206,61 +3317,58 @@ public partial class SvgEditorWorkspace : UserControl
 
     private void DocumentTree_OnDrop(object? sender, DragEventArgs e)
     {
-        if (!e.Data.Contains("SvgNode") || _dropTarget is null)
+        if (!e.DataTransfer.Contains(SvgNodeDragFormat) || _dropTarget is null || _dragNode is not { } node)
         {
             HideDropIndicator();
             return;
         }
 
-        if (e.Data.Get("SvgNode") is SvgNode node)
+        var target = _dropTarget;
+        if (node == target || IsAncestor(node, target) || node.Parent is null)
         {
-            var target = _dropTarget;
-            if (node == target || IsAncestor(node, target) || node.Parent is null)
-            {
-                HideDropIndicator();
-                return;
-            }
-
-            SaveUndoState();
-            SaveExpandedNodes();
-            node.Parent.Element.Children.Remove(node.Element);
-
-            switch (_dropPosition)
-            {
-                case DropPosition.Before:
-                    if (target.Parent?.Element is SvgElement parentBefore)
-                    {
-                        var index = parentBefore.Children.IndexOf(target.Element);
-                        if (index < 0)
-                            index = parentBefore.Children.Count;
-                        if (index >= parentBefore.Children.Count)
-                            parentBefore.Children.Add(node.Element);
-                        else
-                            parentBefore.Children.Insert(index, node.Element);
-                    }
-                    break;
-                case DropPosition.After:
-                    if (target.Parent?.Element is SvgElement parentAfter)
-                    {
-                        var index = parentAfter.Children.IndexOf(target.Element);
-                        if (index < 0)
-                            index = parentAfter.Children.Count - 1;
-                        if (index + 1 >= parentAfter.Children.Count)
-                            parentAfter.Children.Add(node.Element);
-                        else
-                            parentAfter.Children.Insert(index + 1, node.Element);
-                    }
-                    break;
-                default:
-                    target.Element.Children.Add(node.Element);
-                    break;
-            }
-
-            SvgView.SkSvg!.FromSvgDocument(_document);
-            BuildTree();
-            SelectNodeFromElement(node.Element);
-            SvgView.InvalidateVisual();
+            HideDropIndicator();
+            return;
         }
+
+        SaveUndoState();
+        SaveExpandedNodes();
+        node.Parent.Element.Children.Remove(node.Element);
+
+        switch (_dropPosition)
+        {
+            case DropPosition.Before:
+                if (target.Parent?.Element is SvgElement parentBefore)
+                {
+                    var index = parentBefore.Children.IndexOf(target.Element);
+                    if (index < 0)
+                        index = parentBefore.Children.Count;
+                    if (index >= parentBefore.Children.Count)
+                        parentBefore.Children.Add(node.Element);
+                    else
+                        parentBefore.Children.Insert(index, node.Element);
+                }
+                break;
+            case DropPosition.After:
+                if (target.Parent?.Element is SvgElement parentAfter)
+                {
+                    var index = parentAfter.Children.IndexOf(target.Element);
+                    if (index < 0)
+                        index = parentAfter.Children.Count - 1;
+                    if (index + 1 >= parentAfter.Children.Count)
+                        parentAfter.Children.Add(node.Element);
+                    else
+                        parentAfter.Children.Insert(index + 1, node.Element);
+                }
+                break;
+            default:
+                target.Element.Children.Add(node.Element);
+                break;
+        }
+
+        SvgView.SkSvg!.FromSvgDocument(_document);
+        BuildTree();
+        SelectNodeFromElement(node.Element);
+        SvgView.InvalidateVisual();
 
         HideDropIndicator();
         _dropTarget = null;
@@ -3359,7 +3467,7 @@ public partial class SvgEditorWorkspace : UserControl
             SaveUndoState();
             _pathService.MakeSmooth(_pathService.ActivePoint);
             SvgView.SkSvg!.FromSvgDocument(_document);
-            UpdateSelectedDrawable();
+            UpdateSelectedSceneState();
             SvgView.InvalidateVisual();
         }
     }
@@ -3371,7 +3479,7 @@ public partial class SvgEditorWorkspace : UserControl
             SaveUndoState();
             _pathService.MakeCorner(_pathService.ActivePoint);
             SvgView.SkSvg!.FromSvgDocument(_document);
-            UpdateSelectedDrawable();
+            UpdateSelectedSceneState();
             SvgView.InvalidateVisual();
         }
     }
@@ -3399,7 +3507,7 @@ public partial class SvgEditorWorkspace : UserControl
             SaveUndoState();
             _pathService.SimplifyPath(sp);
             SvgView.SkSvg!.FromSvgDocument(_document);
-            UpdateSelectedDrawable();
+            UpdateSelectedSceneState();
             SvgView.InvalidateVisual();
         }
     }
@@ -3474,22 +3582,30 @@ public partial class SvgEditorWorkspace : UserControl
     {
         if (_document is null)
             return;
-        var list = new List<(SvgVisualElement Element, DrawableBase Drawable)>();
+
+        var list = new List<(SvgVisualElement Element, SK.SKRect Bounds)>();
         if (_multiSelected.Count >= 2)
         {
-            for (int i = 0; i < _multiSelected.Count && i < _multiDrawables.Count; i++)
-                list.Add((_multiSelected[i], _multiDrawables[i]));
+            for (int i = 0; i < _multiSelected.Count; i++)
+            {
+                var element = _multiSelected[i];
+                var sceneNode = i < _multiSceneNodes.Count ? _multiSceneNodes[i] : ResolveRetainedSceneNode(element);
+                if (TryGetSelectionBounds(element, sceneNode, out var bounds))
+                    list.Add((element, bounds));
+            }
         }
-        else if (_selectedElement is { } el && _selectedDrawable is { } dr)
+        else if (_selectedElement is { })
         {
             return; // need at least two
         }
+
         if (list.Count < 2)
             return;
+
         SaveUndoState();
         _alignService.Align(list, type);
         SvgView.SkSvg!.FromSvgDocument(_document);
-        UpdateSelectedDrawable();
+        UpdateSelectedSceneState();
         SvgView.InvalidateVisual();
     }
 
@@ -3497,20 +3613,30 @@ public partial class SvgEditorWorkspace : UserControl
     {
         if (_document is null)
             return;
-        var list = new List<(SvgVisualElement Element, DrawableBase Drawable)>();
+
+        var list = new List<(SvgVisualElement Element, SK.SKRect Bounds)>();
         if (_multiSelected.Count >= 3)
         {
-            for (int i = 0; i < _multiSelected.Count && i < _multiDrawables.Count; i++)
-                list.Add((_multiSelected[i], _multiDrawables[i]));
+            for (int i = 0; i < _multiSelected.Count; i++)
+            {
+                var element = _multiSelected[i];
+                var sceneNode = i < _multiSceneNodes.Count ? _multiSceneNodes[i] : ResolveRetainedSceneNode(element);
+                if (TryGetSelectionBounds(element, sceneNode, out var bounds))
+                    list.Add((element, bounds));
+            }
         }
         else
         {
             return; // need at least three
         }
+
+        if (list.Count < 3)
+            return;
+
         SaveUndoState();
         _alignService.Distribute(list, type);
         SvgView.SkSvg!.FromSvgDocument(_document);
-        UpdateSelectedDrawable();
+        UpdateSelectedSceneState();
         SvgView.InvalidateVisual();
     }
 
@@ -3519,24 +3645,31 @@ public partial class SvgEditorWorkspace : UserControl
         if (_document is null || SvgView.SkSvg is null)
             return;
 
-        var list = new List<(SvgVisualElement Element, DrawableBase Drawable)>();
+        var list = new List<(SvgVisualElement Element, SvgSceneNode? SceneNode)>();
         if (_multiSelected.Count > 0)
         {
-            for (int i = 0; i < _multiSelected.Count && i < _multiDrawables.Count; i++)
-                list.Add((_multiSelected[i], _multiDrawables[i]));
+            for (int i = 0; i < _multiSelected.Count; i++)
+            {
+                var element = _multiSelected[i];
+                var sceneNode = i < _multiSceneNodes.Count ? _multiSceneNodes[i] : ResolveRetainedSceneNode(element);
+                if (sceneNode is not null)
+                    list.Add((element, sceneNode));
+            }
         }
-        else if (_selectedElement is { } el && _selectedDrawable is { } dr)
+        else if (_selectedElement is { } el)
         {
-            list.Add((el, dr));
+            var sceneNode = _selectedSceneNode ?? ResolveRetainedSceneNode(el);
+            if (sceneNode is not null)
+                list.Add((el, sceneNode));
         }
 
         if (list.Count == 0)
             return;
 
         SaveUndoState();
-        foreach (var (el, drawable) in list)
+        foreach (var (el, sceneNode) in list)
         {
-            var center = _selectionService.GetBoundsInfo(drawable, SvgView.SkSvg, () => GetCanvasScale()).Center;
+            var center = GetBoundsInfo(el, sceneNode).Center;
             if (horizontal)
                 _selectionService.FlipHorizontal(el, center);
             else
@@ -3544,7 +3677,7 @@ public partial class SvgEditorWorkspace : UserControl
         }
 
         SvgView.SkSvg.FromSvgDocument(_document);
-        UpdateSelectedDrawable();
+        UpdateSelectedSceneState();
         SvgView.InvalidateVisual();
     }
 
@@ -3583,7 +3716,8 @@ public partial class SvgEditorWorkspace : UserControl
         first.ClipPath = new Uri($"#{clipId}", UriKind.Relative);
 
         _multiSelected.Clear();
-        _multiDrawables.Clear();
+        _multiSceneNodes.Clear();
+        _multiSelectionVisuals.Clear();
         _multiBounds = SK.SKRect.Empty;
 
         SvgView.SkSvg!.FromSvgDocument(_document);
@@ -3680,7 +3814,8 @@ public partial class SvgEditorWorkspace : UserControl
         Session.CurrentTool = ToCoreTool(newTool);
         _boxSelecting = false;
         _multiSelected.Clear();
-        _multiDrawables.Clear();
+        _multiSceneNodes.Clear();
+        _multiSelectionVisuals.Clear();
         _multiDragInfos = null;
         _isDragging = false;
         _dragElement = null;

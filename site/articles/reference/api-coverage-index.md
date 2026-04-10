@@ -7,6 +7,8 @@ title: "API Coverage Index"
 The generated API reference under `/api` is built from these projects:
 
 - `../src/Svg.Skia/Svg.Skia.csproj`
+- `../src/Svg.Animation/Svg.Animation.csproj`
+- `../src/Svg.SceneGraph/Svg.SceneGraph.csproj`
 - `../src/Svg.Model/Svg.Model.csproj`
 - `../src/Svg.Custom/Svg.Custom.csproj`
 - `../src/Svg.Controls.Avalonia/Svg.Controls.Avalonia.csproj`
@@ -26,20 +28,23 @@ The generated API reference under `/api` is built from these projects:
 Current API settings:
 
 - configuration: `Release`
-- target framework override: `netstandard2.0`
+- default target framework override: `netstandard2.0`
+- Avalonia 12 project overrides:
+  `Svg.Controls.Avalonia`, `Svg.Controls.Skia.Avalonia`, `Skia.Controls.Avalonia`, `Svg.Editor.Avalonia`, and `Svg.Editor.Skia.Avalonia` build API metadata with `net8.0`
 - output path: `/api`
 
-The Uno control project uses a per-project override of `TargetFramework=net10.0` because it does not target `netstandard2.0`.
-
-## Why `netstandard2.0`
+## Why mixed target frameworks
 
 This repository mixes:
 
 - multi-target runtime packages,
+- shared animation/runtime-host packages,
+- retained-scene graph packages,
 - multi-target editor packages,
+- a `net10.0` Uno control package,
 - `netstandard2.0`-only generator packages.
 
-Using `netstandard2.0` as the documentation build target keeps the API site aligned across the documented assemblies without having to split the API generation into multiple passes.
+The docs build keeps `netstandard2.0` as the default extraction target for the shared runtime and generator-facing packages, while overriding the Avalonia 12 packages to `net8.0`. The Uno control project uses a per-project override of `TargetFramework=net10.0` because it does not target `netstandard2.0`. That keeps a single API site without forcing the Avalonia or Uno projects back onto frameworks they no longer target.
 
 ## `Svg.CodeGen.Skia`
 

@@ -10,7 +10,7 @@
         <TextBox x:Name="FilterTextBoxControl"
                  DockPanel.Dock="Top"
                  Margin="0,0,0,4"
-                 Watermark="Filter properties" />
+                 PlaceholderText="Filter properties" />
         <dgrid:DataGrid x:Name="PropertiesGridControl"
                         AutoGenerateColumns="False"
                         HeadersVisibility="None"

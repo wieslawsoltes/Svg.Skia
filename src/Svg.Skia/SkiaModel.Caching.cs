@@ -15,6 +15,15 @@ public partial class SkiaModel
     private const int ResolvedTypefaceCacheLimit = 512;
     private const int PositionedTextCacheRefTrimThreshold = 1024;
 
+    private sealed class PictureReferenceEqualityComparer : IEqualityComparer<ShimSkiaSharp.SKPicture>
+    {
+        public static readonly PictureReferenceEqualityComparer Instance = new();
+
+        public bool Equals(ShimSkiaSharp.SKPicture? x, ShimSkiaSharp.SKPicture? y) => ReferenceEquals(x, y);
+
+        public int GetHashCode(ShimSkiaSharp.SKPicture obj) => RuntimeHelpers.GetHashCode(obj);
+    }
+
     private readonly struct TypefaceKey : IEquatable<TypefaceKey>
     {
         public TypefaceKey(
@@ -128,8 +137,47 @@ public partial class SkiaModel
     private readonly ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?> _typefaceCache = new();
     private readonly ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?> _resolvedTypefaceCache = new();
     private readonly object _positionedTextCacheLock = new();
+    private readonly object _pictureCacheLock = new();
     private ConditionalWeakTable<DrawTextBlobCanvasCommand, PositionedTextCache> _positionedTextCache = new();
     private readonly List<WeakReference<SkiaSharp.SKTextBlob>> _positionedTextCacheRefs = new();
+    private readonly Dictionary<ShimSkiaSharp.SKPicture, SkiaSharp.SKPicture> _pictureCache = new(PictureReferenceEqualityComparer.Instance);
     private IList<ITypefaceProvider>? _providerStateList;
     private int _providerStateHash;
+
+    internal void RegisterCachedPicture(ShimSkiaSharp.SKPicture picture, SkiaSharp.SKPicture skPicture)
+    {
+        lock (_pictureCacheLock)
+        {
+            _pictureCache[picture] = skPicture;
+        }
+    }
+
+    internal void UnregisterCachedPicture(ShimSkiaSharp.SKPicture? picture)
+    {
+        if (picture is null)
+        {
+            return;
+        }
+
+        lock (_pictureCacheLock)
+        {
+            _ = _pictureCache.Remove(picture);
+        }
+    }
+
+    internal bool TryGetCachedPicture(ShimSkiaSharp.SKPicture picture, out SkiaSharp.SKPicture skPicture)
+    {
+        lock (_pictureCacheLock)
+        {
+            return _pictureCache.TryGetValue(picture, out skPicture!);
+        }
+    }
+
+    internal void ClearCachedPictures()
+    {
+        lock (_pictureCacheLock)
+        {
+            _pictureCache.Clear();
+        }
+    }
 }

@@ -16,7 +16,7 @@ public static class SKPictureEditingExtensions
             throw new ArgumentNullException(nameof(picture));
         }
 
-        return picture.Commands?.OfType<TCommand>() ?? Enumerable.Empty<TCommand>();
+        return EnumerateCommands(picture).OfType<TCommand>();
     }
 
     public static int ReplaceCommands(this SKPicture picture, Func<CanvasCommand, CanvasCommand?> replace)
@@ -31,6 +31,84 @@ public static class SKPictureEditingExtensions
             throw new ArgumentNullException(nameof(replace));
         }
 
+        return ReplaceCommandsRecursive(picture, replace);
+    }
+
+    public static int UpdatePaints(
+        this SKPicture picture,
+        Func<SKPaint, bool> predicate,
+        Action<SKPaint> update,
+        EditMode mode = EditMode.InPlace)
+    {
+        if (picture is null)
+        {
+            throw new ArgumentNullException(nameof(picture));
+        }
+
+        if (predicate is null)
+        {
+            throw new ArgumentNullException(nameof(predicate));
+        }
+
+        if (update is null)
+        {
+            throw new ArgumentNullException(nameof(update));
+        }
+
+        var context = mode == EditMode.CloneOnWrite ? new CloneContext() : null;
+        var visited = new HashSet<SKPaint>(ReferenceEqualityComparer<SKPaint>.Instance);
+        return UpdatePaintsRecursive(picture, predicate, update, mode, context, visited);
+    }
+
+    public static int UpdatePaths(
+        this SKPicture picture,
+        Func<SKPath, bool> predicate,
+        Action<SKPath> update,
+        EditMode mode = EditMode.InPlace)
+    {
+        if (picture is null)
+        {
+            throw new ArgumentNullException(nameof(picture));
+        }
+
+        if (predicate is null)
+        {
+            throw new ArgumentNullException(nameof(predicate));
+        }
+
+        if (update is null)
+        {
+            throw new ArgumentNullException(nameof(update));
+        }
+
+        var context = mode == EditMode.CloneOnWrite ? new CloneContext() : null;
+        var visited = new HashSet<SKPath>(ReferenceEqualityComparer<SKPath>.Instance);
+        return UpdatePathsRecursive(picture, predicate, update, mode, context, visited);
+    }
+
+    private static IEnumerable<CanvasCommand> EnumerateCommands(SKPicture picture)
+    {
+        if (picture.Commands is null)
+        {
+            yield break;
+        }
+
+        foreach (var command in picture.Commands)
+        {
+            yield return command;
+
+            if (command is DrawPictureCanvasCommand { Picture: { } nestedPicture })
+            {
+                foreach (var nestedCommand in EnumerateCommands(nestedPicture))
+                {
+                    yield return nestedCommand;
+                }
+            }
+        }
+    }
+
+    private static int ReplaceCommandsRecursive(SKPicture picture, Func<CanvasCommand, CanvasCommand?> replace)
+    {
         var commands = picture.Commands;
         if (commands is null)
         {
@@ -55,32 +133,24 @@ public static class SKPictureEditingExtensions
                 commands[i] = next;
                 count++;
             }
+
+            if (next is DrawPictureCanvasCommand { Picture: { } nestedPicture })
+            {
+                count += ReplaceCommandsRecursive(nestedPicture, replace);
+            }
         }
 
         return count;
     }
 
-    public static int UpdatePaints(
-        this SKPicture picture,
+    private static int UpdatePaintsRecursive(
+        SKPicture picture,
         Func<SKPaint, bool> predicate,
         Action<SKPaint> update,
-        EditMode mode = EditMode.InPlace)
+        EditMode mode,
+        CloneContext? context,
+        HashSet<SKPaint> visited)
     {
-        if (picture is null)
-        {
-            throw new ArgumentNullException(nameof(picture));
-        }
-
-        if (predicate is null)
-        {
-            throw new ArgumentNullException(nameof(predicate));
-        }
-
-        if (update is null)
-        {
-            throw new ArgumentNullException(nameof(update));
-        }
-
         var commands = picture.Commands;
         if (commands is null)
         {
@@ -88,12 +158,25 @@ public static class SKPictureEditingExtensions
         }
 
         var count = 0;
-        var context = mode == EditMode.CloneOnWrite ? new CloneContext() : null;
-        var visited = new HashSet<SKPaint>(ReferenceEqualityComparer<SKPaint>.Instance);
-
         for (var i = 0; i < commands.Count; i++)
         {
             var command = commands[i];
+            if (command is DrawPictureCanvasCommand drawPictureCommand && drawPictureCommand.Picture is { } nestedPicture)
+            {
+                if (mode == EditMode.CloneOnWrite)
+                {
+                    var clonedPicture = ClonePicture(context!, nestedPicture);
+                    if (!ReferenceEquals(clonedPicture, nestedPicture))
+                    {
+                        command = drawPictureCommand with { Picture = clonedPicture };
+                        commands[i] = command;
+                        nestedPicture = clonedPicture;
+                    }
+                }
+
+                count += UpdatePaintsRecursive(nestedPicture, predicate, update, mode, context, visited);
+            }
+
             if (!TryGetPaint(command, out var paint) || paint is null || !predicate(paint))
             {
                 continue;
@@ -124,27 +207,14 @@ public static class SKPictureEditingExtensions
         return count;
     }
 
-    public static int UpdatePaths(
-        this SKPicture picture,
+    private static int UpdatePathsRecursive(
+        SKPicture picture,
         Func<SKPath, bool> predicate,
         Action<SKPath> update,
-        EditMode mode = EditMode.InPlace)
+        EditMode mode,
+        CloneContext? context,
+        HashSet<SKPath> visited)
     {
-        if (picture is null)
-        {
-            throw new ArgumentNullException(nameof(picture));
-        }
-
-        if (predicate is null)
-        {
-            throw new ArgumentNullException(nameof(predicate));
-        }
-
-        if (update is null)
-        {
-            throw new ArgumentNullException(nameof(update));
-        }
-
         var commands = picture.Commands;
         if (commands is null)
         {
@@ -152,12 +222,25 @@ public static class SKPictureEditingExtensions
         }
 
         var count = 0;
-        var context = mode == EditMode.CloneOnWrite ? new CloneContext() : null;
-        var visited = new HashSet<SKPath>(ReferenceEqualityComparer<SKPath>.Instance);
-
         for (var i = 0; i < commands.Count; i++)
         {
             var command = commands[i];
+            if (command is DrawPictureCanvasCommand drawPictureCommand && drawPictureCommand.Picture is { } nestedPicture)
+            {
+                if (mode == EditMode.CloneOnWrite)
+                {
+                    var clonedPicture = ClonePicture(context!, nestedPicture);
+                    if (!ReferenceEquals(clonedPicture, nestedPicture))
+                    {
+                        command = drawPictureCommand with { Picture = clonedPicture };
+                        commands[i] = command;
+                        nestedPicture = clonedPicture;
+                    }
+                }
+
+                count += UpdatePathsRecursive(nestedPicture, predicate, update, mode, context, visited);
+            }
+
             if (TryGetPath(command, out var path) && path is { } && predicate(path))
             {
                 if (mode == EditMode.CloneOnWrite)
@@ -307,6 +390,16 @@ public static class SKPictureEditingExtensions
         }
 
         return clipPath.DeepClone(context);
+    }
+
+    private static SKPicture ClonePicture(CloneContext context, SKPicture picture)
+    {
+        if (context.TryGet(picture, out SKPicture existing))
+        {
+            return existing;
+        }
+
+        return picture.DeepClone(context);
     }
 
     private static int UpdateClipPathPaths(

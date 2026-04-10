@@ -25,6 +25,7 @@ public abstract record CanvasCommand : IDeepCloneable<CanvasCommand>
                 ClipPathCanvasCommand clipPathCanvasCommand => new ClipPathCanvasCommand(clipPathCanvasCommand.ClipPath?.DeepClone(context), clipPathCanvasCommand.Operation, clipPathCanvasCommand.Antialias),
                 ClipRectCanvasCommand clipRectCanvasCommand => new ClipRectCanvasCommand(clipRectCanvasCommand.Rect, clipRectCanvasCommand.Operation, clipRectCanvasCommand.Antialias),
                 DrawImageCanvasCommand drawImageCanvasCommand => new DrawImageCanvasCommand(drawImageCanvasCommand.Image?.DeepClone(context), drawImageCanvasCommand.Source, drawImageCanvasCommand.Dest, drawImageCanvasCommand.Paint?.DeepClone(context)),
+                DrawPictureCanvasCommand drawPictureCanvasCommand => new DrawPictureCanvasCommand(drawPictureCanvasCommand.Picture?.DeepClone(context)),
                 DrawPathCanvasCommand drawPathCanvasCommand => new DrawPathCanvasCommand(drawPathCanvasCommand.Path?.DeepClone(context), drawPathCanvasCommand.Paint?.DeepClone(context)),
                 DrawTextBlobCanvasCommand drawTextBlobCanvasCommand => new DrawTextBlobCanvasCommand(drawTextBlobCanvasCommand.TextBlob?.DeepClone(context), drawTextBlobCanvasCommand.X, drawTextBlobCanvasCommand.Y, drawTextBlobCanvasCommand.Paint?.DeepClone(context)),
                 DrawTextCanvasCommand drawTextCanvasCommand => new DrawTextCanvasCommand(drawTextCanvasCommand.Text, drawTextCanvasCommand.X, drawTextCanvasCommand.Y, drawTextCanvasCommand.Paint?.DeepClone(context)),
@@ -51,6 +52,8 @@ public record ClipPathCanvasCommand(ClipPath? ClipPath, SKClipOperation Operatio
 public record ClipRectCanvasCommand(SKRect Rect, SKClipOperation Operation, bool Antialias) : CanvasCommand;
 
 public record DrawImageCanvasCommand(SKImage? Image, SKRect Source, SKRect Dest, SKPaint? Paint = null) : CanvasCommand;
+
+public record DrawPictureCanvasCommand(SKPicture? Picture) : CanvasCommand;
 
 public record DrawPathCanvasCommand(SKPath? Path, SKPaint? Paint) : CanvasCommand;
 
@@ -131,6 +134,11 @@ public class SKCanvas : ICloneable, IDeepCloneable<SKCanvas>
     public void DrawImage(SKImage image, SKRect source, SKRect dest, SKPaint? paint = null)
     {
         Commands?.Add(new DrawImageCanvasCommand(image, source, dest, paint));
+    }
+
+    public void DrawPicture(SKPicture picture)
+    {
+        Commands?.Add(new DrawPictureCanvasCommand(picture));
     }
 
     public void DrawPath(SKPath path, SKPaint paint)

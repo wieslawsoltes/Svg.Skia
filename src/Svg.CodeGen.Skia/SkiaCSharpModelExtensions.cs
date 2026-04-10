@@ -1871,6 +1871,17 @@ public static class SkiaCSharpModelExtensions
                         }
                         break;
                     }
+                case DrawPictureCanvasCommand drawPictureCanvasCommand:
+                    {
+                        if (drawPictureCanvasCommand.Picture is { })
+                        {
+                            var counterChildPicture = ++counter.Picture;
+                            drawPictureCanvasCommand.Picture.ToSKPicture(counter, sb, indent);
+                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawPicture({counter.PictureVarName}{counterChildPicture});");
+                            sb.AppendLine($"{indent}{counter.PictureVarName}{counterChildPicture}?.Dispose();");
+                        }
+                        break;
+                    }
                 case DrawPathCanvasCommand drawPathCanvasCommand:
                     {
                         if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })

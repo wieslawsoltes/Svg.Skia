@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Svg;
-using Svg.Model.Drawables;
 using Svg.Transforms;
 using SK = SkiaSharp;
 
@@ -25,7 +24,7 @@ public class AlignService
         Vertical
     }
 
-    public void Align(IList<(SvgVisualElement Element, DrawableBase Drawable)> items, AlignType type)
+    public void Align(IList<(SvgVisualElement Element, SK.SKRect Bounds)> items, AlignType type)
     {
         if (items == null || items.Count < 2)
             return;
@@ -34,57 +33,57 @@ public class AlignService
         switch (type)
         {
             case AlignType.Left:
-                target = items.Min(i => i.Drawable.TransformedBounds.Left);
-                foreach (var (el, dr) in items)
+                target = items.Min(i => i.Bounds.Left);
+                foreach (var (el, bounds) in items)
                 {
-                    var dx = target - dr.TransformedBounds.Left;
+                    var dx = target - bounds.Left;
                     var (tx, ty) = GetTranslation(el);
                     SetTranslation(el, tx + dx, ty);
                 }
                 break;
             case AlignType.HCenter:
-                target = items.Average(i => (i.Drawable.TransformedBounds.Left + i.Drawable.TransformedBounds.Right) / 2f);
-                foreach (var (el, dr) in items)
+                target = items.Average(i => (i.Bounds.Left + i.Bounds.Right) / 2f);
+                foreach (var (el, bounds) in items)
                 {
-                    var cx = (dr.TransformedBounds.Left + dr.TransformedBounds.Right) / 2f;
+                    var cx = (bounds.Left + bounds.Right) / 2f;
                     var dx = target - cx;
                     var (tx, ty) = GetTranslation(el);
                     SetTranslation(el, tx + dx, ty);
                 }
                 break;
             case AlignType.Right:
-                target = items.Max(i => i.Drawable.TransformedBounds.Right);
-                foreach (var (el, dr) in items)
+                target = items.Max(i => i.Bounds.Right);
+                foreach (var (el, bounds) in items)
                 {
-                    var dx = target - dr.TransformedBounds.Right;
+                    var dx = target - bounds.Right;
                     var (tx, ty) = GetTranslation(el);
                     SetTranslation(el, tx + dx, ty);
                 }
                 break;
             case AlignType.Top:
-                target = items.Min(i => i.Drawable.TransformedBounds.Top);
-                foreach (var (el, dr) in items)
+                target = items.Min(i => i.Bounds.Top);
+                foreach (var (el, bounds) in items)
                 {
-                    var dy = target - dr.TransformedBounds.Top;
+                    var dy = target - bounds.Top;
                     var (tx, ty) = GetTranslation(el);
                     SetTranslation(el, tx, ty + dy);
                 }
                 break;
             case AlignType.VCenter:
-                target = items.Average(i => (i.Drawable.TransformedBounds.Top + i.Drawable.TransformedBounds.Bottom) / 2f);
-                foreach (var (el, dr) in items)
+                target = items.Average(i => (i.Bounds.Top + i.Bounds.Bottom) / 2f);
+                foreach (var (el, bounds) in items)
                 {
-                    var cy = (dr.TransformedBounds.Top + dr.TransformedBounds.Bottom) / 2f;
+                    var cy = (bounds.Top + bounds.Bottom) / 2f;
                     var dy = target - cy;
                     var (tx, ty) = GetTranslation(el);
                     SetTranslation(el, tx, ty + dy);
                 }
                 break;
             case AlignType.Bottom:
-                target = items.Max(i => i.Drawable.TransformedBounds.Bottom);
-                foreach (var (el, dr) in items)
+                target = items.Max(i => i.Bounds.Bottom);
+                foreach (var (el, bounds) in items)
                 {
-                    var dy = target - dr.TransformedBounds.Bottom;
+                    var dy = target - bounds.Bottom;
                     var (tx, ty) = GetTranslation(el);
                     SetTranslation(el, tx, ty + dy);
                 }
@@ -92,25 +91,25 @@ public class AlignService
         }
     }
 
-    public void Distribute(IList<(SvgVisualElement Element, DrawableBase Drawable)> items, DistributeType type)
+    public void Distribute(IList<(SvgVisualElement Element, SK.SKRect Bounds)> items, DistributeType type)
     {
         if (items == null || items.Count < 3)
             return;
 
         var ordered = type == DistributeType.Horizontal
-            ? items.OrderBy(i => i.Drawable.TransformedBounds.Left).ToList()
-            : items.OrderBy(i => i.Drawable.TransformedBounds.Top).ToList();
+            ? items.OrderBy(i => i.Bounds.Left).ToList()
+            : items.OrderBy(i => i.Bounds.Top).ToList();
 
         if (type == DistributeType.Horizontal)
         {
-            var first = ordered.First().Drawable.TransformedBounds;
-            var last = ordered.Last().Drawable.TransformedBounds;
+            var first = ordered.First().Bounds;
+            var last = ordered.Last().Bounds;
             float start = (first.Left + first.Right) / 2f;
             float end = (last.Left + last.Right) / 2f;
             float step = (end - start) / (ordered.Count - 1);
             for (int i = 1; i < ordered.Count - 1; i++)
             {
-                var b = ordered[i].Drawable.TransformedBounds;
+                var b = ordered[i].Bounds;
                 float center = (b.Left + b.Right) / 2f;
                 float target = start + step * i;
                 var dx = target - center;
@@ -120,14 +119,14 @@ public class AlignService
         }
         else
         {
-            var first = ordered.First().Drawable.TransformedBounds;
-            var last = ordered.Last().Drawable.TransformedBounds;
+            var first = ordered.First().Bounds;
+            var last = ordered.Last().Bounds;
             float start = (first.Top + first.Bottom) / 2f;
             float end = (last.Top + last.Bottom) / 2f;
             float step = (end - start) / (ordered.Count - 1);
             for (int i = 1; i < ordered.Count - 1; i++)
             {
-                var b = ordered[i].Drawable.TransformedBounds;
+                var b = ordered[i].Bounds;
                 float center = (b.Top + b.Bottom) / 2f;
                 float target = start + step * i;
                 var dy = target - center;

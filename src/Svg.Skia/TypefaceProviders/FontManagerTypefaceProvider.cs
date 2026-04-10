@@ -10,6 +10,15 @@ public sealed class FontManagerTypefaceProvider : ITypefaceProvider
 {
     public static readonly char[] s_fontFamilyTrim = { '\'' };
 
+    private static bool IsGenericFamilyName(string familyName)
+    {
+        return familyName.Equals("serif", StringComparison.OrdinalIgnoreCase) ||
+               familyName.Equals("sans-serif", StringComparison.OrdinalIgnoreCase) ||
+               familyName.Equals("monospace", StringComparison.OrdinalIgnoreCase) ||
+               familyName.Equals("cursive", StringComparison.OrdinalIgnoreCase) ||
+               familyName.Equals("fantasy", StringComparison.OrdinalIgnoreCase);
+    }
+
     public SkiaSharp.SKFontManager FontManager { get; set; }
 
     public FontManagerTypefaceProvider()
@@ -55,8 +64,13 @@ public sealed class FontManagerTypefaceProvider : ITypefaceProvider
                     skTypeface = skFontManager.MatchFamily(fontFamilyName, skFontStyle);
                     if (skTypeface is { })
                     {
-                        if (!defaultName.Equals(fontFamilyName, StringComparison.Ordinal)
-                            && defaultName.Equals(skTypeface.FamilyName, StringComparison.Ordinal))
+                        var requestedExplicitDefault = defaultName.Equals(fontFamilyName, StringComparison.OrdinalIgnoreCase);
+                        var resolvedRequestedFamily = skTypeface.FamilyName.Equals(fontFamilyName, StringComparison.OrdinalIgnoreCase);
+                        var resolvedExplicitDefault = defaultName.Equals(skTypeface.FamilyName, StringComparison.OrdinalIgnoreCase);
+                        var requestedGenericFamily = IsGenericFamilyName(fontFamilyName);
+                        if (!resolvedRequestedFamily &&
+                            !(requestedExplicitDefault && resolvedExplicitDefault) &&
+                            !(requestedGenericFamily && !resolvedExplicitDefault))
                         {
                             skTypeface.Dispose();
                             skTypeface = null;

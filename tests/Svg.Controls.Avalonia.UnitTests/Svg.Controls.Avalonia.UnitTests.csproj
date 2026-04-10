@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <IsPackable>False</IsPackable>
     <Nullable>enable</Nullable>
     <RootNamespace>Avalonia.Svg.UnitTests</RootNamespace>
   </PropertyGroup>
 
   <Import Project="..\..\build\ReferenceAssemblies.props" />
-  <Import Project="..\..\build\XUnit.props" />
+  <Import Project="..\..\build\XUnit.v3.props" />
   <Import Project="..\..\build\Avalonia.props" />
  
   <ItemGroup>

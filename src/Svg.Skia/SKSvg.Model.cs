@@ -2,12 +2,13 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Xml;
 using ShimSkiaSharp;
+using Svg;
 using Svg.Model;
-using Svg.Model.Drawables.Factories;
 using Svg.Model.Services;
 
 namespace Svg.Skia;
@@ -22,6 +23,7 @@ public partial class SKSvg : IDisposable
 
     public static bool CacheOriginalStream { get; set; }
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromStream(System.IO.Stream stream, SvgParameters? parameters = null)
     {
         var skSvg = new SKSvg();
@@ -29,8 +31,10 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromStream(System.IO.Stream stream) => CreateFromStream(stream, null);
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromFile(string path, SvgParameters? parameters = null)
     {
         var skSvg = new SKSvg();
@@ -38,8 +42,10 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromFile(string path) => CreateFromFile(path, null);
 
+    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromVectorDrawable(string path, SvgParameters? parameters = null)
     {
         var skSvg = new SKSvg();
@@ -47,6 +53,7 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
+    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromVectorDrawable(System.IO.Stream stream, SvgParameters? parameters = null)
     {
         var skSvg = new SKSvg();
@@ -54,6 +61,7 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
+    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromVectorDrawable(XmlReader reader)
     {
         var skSvg = new SKSvg();
@@ -61,6 +69,7 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromXmlReader(XmlReader reader)
     {
         var skSvg = new SKSvg();
@@ -68,6 +77,7 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromSvg(string svg)
     {
         var skSvg = new SKSvg();
@@ -75,6 +85,7 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
+    [RequiresUnreferencedCode("Rendering from an SVG document may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromSvgDocument(SvgDocument svgDocument)
     {
         var skSvg = new SKSvg();
@@ -84,20 +95,23 @@ public partial class SKSvg : IDisposable
 
     public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
-        var picture = SvgService.ToModel(svgFragment, assetLoader, out _, out _);
+        var picture = SvgSceneRuntime.CreateModel(
+            svgFragment,
+            assetLoader,
+            DrawAttributes.None,
+            GetStandaloneViewport(skiaModel.Settings));
         return skiaModel.ToSKPicture(picture);
     }
 
     public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
-        var references = new HashSet<Uri> { svgFragment.OwnerDocument.BaseUri };
-        var size = SvgService.GetDimensions(svgFragment);
-        var bounds = SKRect.Create(size);
-        var drawable = DrawableFactory.Create(svgFragment, bounds, null, assetLoader, references);
-        if (drawable is { })
+        var picture = SvgSceneRuntime.CreateModel(
+            svgFragment,
+            assetLoader,
+            DrawAttributes.None,
+            GetStandaloneViewport(skiaModel.Settings));
+        if (picture is { })
         {
-            drawable.PostProcess(bounds, SKMatrix.Identity);
-            var picture = drawable.Snapshot(bounds);
             skiaModel.Draw(picture, skCanvas);
         }
     }
@@ -117,6 +131,11 @@ public partial class SKSvg : IDisposable
     private Uri? _originalBaseUri;
     private SourceFormat _originalSourceFormat;
     private int _activeDraws;
+    private SvgDocument? _animatedDocument;
+    private SvgAnimationFrameState? _lastRenderedAnimationFrameState;
+    private SvgAnimationFrameState? _pendingAnimationFrameState;
+    private TimeSpan _lastRenderedAnimationTime = TimeSpan.MinValue;
+    private TimeSpan _animationMinimumRenderInterval;
 
     public object Sync { get; } = new();
 
@@ -126,9 +145,25 @@ public partial class SKSvg : IDisposable
 
     public SkiaModel SkiaModel { get; }
 
-    public SKDrawable? Drawable { get; private set; }
-
     public SKPicture? Model { get; private set; }
+
+    public SvgDocument? SourceDocument { get; private set; }
+
+    public SvgAnimationController? AnimationController { get; private set; }
+
+    public bool HasAnimations => AnimationController?.HasAnimations == true;
+
+    public TimeSpan AnimationTime => AnimationController?.Clock.CurrentTime ?? TimeSpan.Zero;
+
+    public TimeSpan AnimationMinimumRenderInterval
+    {
+        get => _animationMinimumRenderInterval;
+        set => _animationMinimumRenderInterval = value < TimeSpan.Zero ? TimeSpan.Zero : value;
+    }
+
+    public bool HasPendingAnimationFrame => _pendingAnimationFrameState is not null;
+
+    public int LastAnimationDirtyTargetCount { get; private set; }
 
     private SkiaSharp.SKPicture? _picture;
     public virtual SkiaSharp.SKPicture? Picture
@@ -211,9 +246,16 @@ public partial class SKSvg : IDisposable
 
     public event EventHandler<SKSvgDrawEventArgs>? OnDraw;
 
+    public event EventHandler<SvgAnimationFrameChangedEventArgs>? AnimationInvalidated;
+
     protected virtual void RaiseOnDraw(SKSvgDrawEventArgs e)
     {
         OnDraw?.Invoke(this, e);
+    }
+
+    protected virtual void RaiseAnimationInvalidated(SvgAnimationFrameChangedEventArgs e)
+    {
+        AnimationInvalidated?.Invoke(this, e);
     }
 
     public SvgParameters? Parameters => _originalParameters;
@@ -267,6 +309,7 @@ public partial class SKSvg : IDisposable
     /// Creates a deep clone of the current <see cref="SKSvg"/>, including model and reload data.
     /// </summary>
     /// <returns>A new <see cref="SKSvg"/> instance with independent state.</returns>
+    [RequiresUnreferencedCode("Clone may recreate retained scene and animation state that use TypeDescriptor-based converters.")]
     public SKSvg Clone()
     {
         var clone = new SKSvg();
@@ -275,12 +318,15 @@ public partial class SKSvg : IDisposable
         clone.Settings.ColorType = Settings.ColorType;
         clone.Settings.SrgbLinear = Settings.SrgbLinear;
         clone.Settings.Srgb = Settings.Srgb;
+        clone.Settings.StandaloneViewport = Settings.StandaloneViewport;
+        clone.Settings.EnableSvgFonts = Settings.EnableSvgFonts;
         clone.Settings.TypefaceProviders = Settings.TypefaceProviders is null
             ? null
             : new List<TypefaceProviders.ITypefaceProvider>(Settings.TypefaceProviders);
 
         clone.Wireframe = Wireframe;
         clone.IgnoreAttributes = IgnoreAttributes;
+        clone.AnimationMinimumRenderInterval = AnimationMinimumRenderInterval;
 
         clone._originalParameters = _originalParameters;
         clone._originalPath = _originalPath;
@@ -300,51 +346,72 @@ public partial class SKSvg : IDisposable
         if (Model is { } model)
         {
             clone.Model = model.DeepClone();
-            clone.Drawable = Drawable?.DeepClone();
         }
 
+        if (SourceDocument?.DeepCopy() is SvgDocument sourceDocumentClone)
+        {
+            clone.SourceDocument = sourceDocumentClone;
+
+            if (HasAnimations)
+            {
+                clone.ReplaceAnimationController(new SvgAnimationController(sourceDocumentClone));
+                clone.SetAnimationTime(AnimationTime);
+            }
+        }
+
+        clone.InvalidateRetainedSceneGraph();
         return clone;
     }
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? parameters = null)
     {
         return LoadInternal(stream, parameters, null, SourceFormat.Svg, SvgService.Open);
     }
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream) => Load(stream, null);
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? parameters, Uri? baseUri)
     {
         return LoadInternal(stream, parameters, baseUri, SourceFormat.Svg, SvgService.Open);
     }
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(string? path, SvgParameters? parameters = null)
     {
         return LoadPath(path, parameters, SourceFormat.Svg, SvgService.Open);
     }
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(string path) => Load(path, null);
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(XmlReader reader)
     {
         return LoadReader(reader, SourceFormat.Svg, SvgService.Open);
     }
 
+    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? LoadVectorDrawable(System.IO.Stream stream, SvgParameters? parameters = null)
     {
         return LoadInternal(stream, parameters, null, SourceFormat.VectorDrawable, SvgService.OpenVectorDrawable);
     }
 
+    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? LoadVectorDrawable(string? path, SvgParameters? parameters = null)
     {
         return LoadPath(path, parameters, SourceFormat.VectorDrawable, SvgService.OpenVectorDrawable);
     }
 
+    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? LoadVectorDrawable(XmlReader reader)
     {
         return LoadReader(reader, SourceFormat.VectorDrawable, SvgService.OpenVectorDrawable);
     }
 
+    [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
     private SkiaSharp.SKPicture? LoadInternal(
         System.IO.Stream stream,
         SvgParameters? parameters,
@@ -385,6 +452,7 @@ public partial class SKSvg : IDisposable
         return LoadSvgDocument(svgDocument, baseUri);
     }
 
+    [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
     private SkiaSharp.SKPicture? LoadPath(
         string? path,
         SvgParameters? parameters,
@@ -406,6 +474,7 @@ public partial class SKSvg : IDisposable
         return LoadSvgDocument(loader(path, parameters));
     }
 
+    [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
     private SkiaSharp.SKPicture? LoadReader(
         XmlReader reader,
         SourceFormat sourceFormat,
@@ -421,6 +490,7 @@ public partial class SKSvg : IDisposable
         return LoadSvgDocument(loader(reader));
     }
 
+    [RequiresUnreferencedCode("Calls Svg.Skia.SvgAnimationController.SvgAnimationController(SvgDocument)")]
     private SkiaSharp.SKPicture? LoadSvgDocument(SvgDocument? svgDocument, Uri? baseUri = null)
     {
         if (svgDocument is null)
@@ -433,15 +503,25 @@ public partial class SKSvg : IDisposable
             svgDocument.BaseUri = baseUri;
         }
 
-        Model = SvgService.ToModel(svgDocument, AssetLoader, out var drawable, out _, _ignoreAttributes);
-        Drawable = drawable;
-        Picture = SkiaModel.ToSKPicture(Model);
-        WireframePicture?.Dispose();
-        WireframePicture = null;
+        SourceDocument = svgDocument;
+        ClearAnimationRenderState();
+        InvalidateRetainedSceneGraph();
 
-        return Picture;
+        var animationController = new SvgAnimationController(svgDocument);
+        if (animationController.HasAnimations)
+        {
+            ReplaceAnimationController(animationController);
+            _ = RenderAnimationFrame(animationController.EvaluateFrameState(TimeSpan.Zero), raiseInvalidation: false, bypassThrottle: true);
+            return Picture;
+        }
+
+        animationController.Dispose();
+        ReplaceAnimationController(null);
+
+        return RenderSvgDocument(svgDocument);
     }
 
+    [RequiresUnreferencedCode("Reloading may reparse cached SVG or VectorDrawable content through trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? ReLoad(SvgParameters? parameters)
     {
         if (!CacheOriginalStream)
@@ -479,40 +559,121 @@ public partial class SKSvg : IDisposable
             : LoadInternal(originalStream, parameters, originalBaseUri, SourceFormat.Svg, SvgService.Open);
     }
 
+    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? FromSvg(string svg)
     {
         var svgDocument = SvgService.FromSvg(svg);
         return LoadSvgDocument(svgDocument);
     }
 
+    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? FromVectorDrawable(string xml)
     {
         var svgDocument = SvgService.FromVectorDrawable(xml);
         return LoadSvgDocument(svgDocument);
     }
 
+    [RequiresUnreferencedCode("Rendering from an SVG document may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? FromSvgDocument(SvgDocument? svgDocument)
     {
         return LoadSvgDocument(svgDocument);
+    }
+
+    public void SetAnimationTime(TimeSpan time)
+    {
+        AnimationController?.Clock.Seek(time);
+    }
+
+    public void AdvanceAnimation(TimeSpan delta)
+    {
+        AnimationController?.Clock.AdvanceBy(delta);
+    }
+
+    public void ResetAnimation()
+    {
+        AnimationController?.Reset();
+    }
+
+    public bool NotifyPointerEvent(SvgElement? element, SvgPointerEventType eventType)
+    {
+        if (!RecordAnimationPointerEvent(element, eventType))
+        {
+            return false;
+        }
+
+        RefreshCurrentAnimationFrame(bypassThrottle: true);
+        return true;
+    }
+
+    public bool FlushPendingAnimationFrame()
+    {
+        if (_pendingAnimationFrameState is not { } pendingFrameState)
+        {
+            return false;
+        }
+
+        return RenderAnimationFrame(pendingFrameState, raiseInvalidation: true, bypassThrottle: true);
     }
 
     public bool Save(System.IO.Stream stream, SkiaSharp.SKColor background, SkiaSharp.SKEncodedImageFormat format = SkiaSharp.SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
     {
         if (Picture is { })
         {
-            return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, Settings.Srgb);
+            if (Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, Settings.Srgb))
+            {
+                return true;
+            }
         }
-        return false;
+
+        return TrySaveBlankModelImage(stream, background, format, quality, scaleX, scaleY);
     }
 
     public bool Save(string path, SkiaSharp.SKColor background, SkiaSharp.SKEncodedImageFormat format = SkiaSharp.SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
     {
-        if (Picture is { })
+        using var stream = System.IO.File.Open(path, System.IO.FileMode.Create, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None);
+        if (Save(stream, background, format, quality, scaleX, scaleY))
         {
-            using var stream = System.IO.File.OpenWrite(path);
-            return Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, Settings.Srgb);
+            return true;
         }
+
+        stream.SetLength(0);
         return false;
+    }
+
+    private bool TrySaveBlankModelImage(System.IO.Stream stream, SkiaSharp.SKColor background, SkiaSharp.SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
+    {
+        SKPicture? model;
+        lock (Sync)
+        {
+            model = Model;
+        }
+
+        if (model is null)
+        {
+            return false;
+        }
+
+        var width = model.CullRect.Width * scaleX;
+        var height = model.CullRect.Height * scaleY;
+        if (!(width > 0) || !(height > 0))
+        {
+            return false;
+        }
+
+        var imageInfo = new SkiaSharp.SKImageInfo((int)width, (int)height, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, Settings.Srgb);
+        using var bitmap = new SkiaSharp.SKBitmap(imageInfo);
+        using var canvas = new SkiaSharp.SKCanvas(bitmap);
+        canvas.Clear(background);
+
+        using var image = SkiaSharp.SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(format, quality);
+        if (data is null)
+        {
+            return false;
+        }
+
+        data.SaveTo(stream);
+        return true;
     }
 
     public void Draw(SkiaSharp.SKCanvas canvas)
@@ -520,12 +681,6 @@ public partial class SKSvg : IDisposable
         BeginDraw();
         try
         {
-            var picture = Picture;
-            if (picture is null)
-            {
-                return;
-            }
-
             canvas.Save();
             if (Wireframe && Model is { })
             {
@@ -552,8 +707,15 @@ public partial class SKSvg : IDisposable
                     canvas.DrawPicture(wireframePicture);
                 }
             }
-            else
+            else if (!TryDrawAnimationLayers(canvas))
             {
+                var picture = Picture;
+                if (picture is null)
+                {
+                    canvas.Restore();
+                    return;
+                }
+
                 canvas.DrawPicture(picture);
             }
             canvas.Restore();
@@ -568,11 +730,14 @@ public partial class SKSvg : IDisposable
 
     private void Reset()
     {
+        ReplaceAnimationController(null);
+        SourceDocument = null;
+        ClearAnimationRenderState();
+
         lock (Sync)
         {
             WaitForDrawsLocked();
             Model = null;
-            Drawable = null;
 
             _picture?.Dispose();
             _picture = null;
@@ -580,6 +745,8 @@ public partial class SKSvg : IDisposable
             WireframePicture?.Dispose();
             WireframePicture = null;
         }
+
+        InvalidateRetainedSceneGraph();
     }
 
     public void Dispose()
@@ -613,5 +780,242 @@ public partial class SKSvg : IDisposable
         {
             Monitor.Wait(Sync);
         }
+    }
+
+    private SkiaSharp.SKPicture? RenderSvgDocument(SvgDocument svgDocument, bool invalidateRetainedSceneGraph = true)
+    {
+        DisableAnimationLayerCaching();
+
+        if (!SvgSceneRuntime.TryCompile(svgDocument, AssetLoader, _ignoreAttributes, GetStandaloneViewport(), out var sceneDocument) ||
+            sceneDocument is null)
+        {
+            return null;
+        }
+
+        if (invalidateRetainedSceneGraph)
+        {
+            lock (Sync)
+            {
+                _retainedSceneGraph = sceneDocument;
+                _retainedSceneGraphDirty = false;
+            }
+        }
+
+        return RenderRetainedSceneDocument(sceneDocument) ? Picture : null;
+    }
+
+    private bool RenderRetainedSceneDocument(SvgSceneDocument sceneDocument)
+    {
+        var model = sceneDocument.CreateModel();
+        if (model is null)
+        {
+            return false;
+        }
+
+        var picture = SkiaModel.ToSKPicture(model);
+        if (picture is null)
+        {
+            return false;
+        }
+
+        lock (Sync)
+        {
+            WaitForDrawsLocked();
+
+            Model = model;
+
+            _picture?.Dispose();
+            _picture = picture;
+
+            WireframePicture?.Dispose();
+            WireframePicture = null;
+        }
+
+        return true;
+    }
+
+    private bool TryRenderCurrentAnimatedDocumentRetained()
+    {
+        SvgDocument? currentDocument;
+
+        lock (Sync)
+        {
+            currentDocument = _animatedDocument ?? SourceDocument;
+        }
+
+        if (currentDocument is null)
+        {
+            return false;
+        }
+
+        if (!SvgSceneRuntime.TryCompile(currentDocument, AssetLoader, IgnoreAttributes, GetStandaloneViewport(), out var sceneDocument) ||
+            sceneDocument is null)
+        {
+            return false;
+        }
+
+        lock (Sync)
+        {
+            _retainedSceneGraph = sceneDocument;
+            _retainedSceneGraphDirty = false;
+        }
+
+        return RenderRetainedSceneDocument(sceneDocument);
+    }
+
+    private void ReplaceAnimationController(SvgAnimationController? controller)
+    {
+        if (AnimationController is { } existing)
+        {
+            existing.FrameChanged -= OnAnimationFrameChanged;
+            existing.Dispose();
+        }
+
+        AnimationController = controller;
+
+        if (controller is { })
+        {
+            controller.FrameChanged += OnAnimationFrameChanged;
+        }
+    }
+
+    private void OnAnimationFrameChanged(object? sender, SvgAnimationFrameChangedEventArgs e)
+    {
+        if (!ReferenceEquals(sender, AnimationController) || SourceDocument is null || AnimationController is null)
+        {
+            return;
+        }
+
+        _ = RenderAnimationFrame(e.Time, raiseInvalidation: true, bypassThrottle: false);
+    }
+
+    internal bool RecordAnimationPointerEvent(SvgElement? element, SvgPointerEventType eventType)
+    {
+        return AnimationController?.RecordPointerEvent(element, eventType) == true;
+    }
+
+    internal void RefreshCurrentAnimationFrame(bool bypassThrottle = false)
+    {
+        _ = RenderAnimationFrame(AnimationTime, raiseInvalidation: true, bypassThrottle: bypassThrottle);
+    }
+
+    private void ClearAnimationRenderState()
+    {
+        DisableAnimationLayerCaching();
+        InvalidateNativeCompositionState();
+        _animatedDocument = null;
+        _lastRenderedAnimationFrameState = null;
+        _pendingAnimationFrameState = null;
+        _lastRenderedAnimationTime = TimeSpan.MinValue;
+        LastAnimationDirtyTargetCount = 0;
+    }
+
+    private bool RenderAnimationFrame(TimeSpan time, bool raiseInvalidation, bool bypassThrottle)
+    {
+        if (SourceDocument is null || AnimationController is null)
+        {
+            return false;
+        }
+
+        return RenderAnimationFrame(AnimationController.EvaluateFrameState(time), raiseInvalidation, bypassThrottle);
+    }
+
+    private bool RenderAnimationFrame(SvgAnimationFrameState frameState, bool raiseInvalidation, bool bypassThrottle)
+    {
+        if (SourceDocument is null || AnimationController is null)
+        {
+            return false;
+        }
+
+        if (_lastRenderedAnimationFrameState is { } lastRenderedFrameState &&
+            frameState.IsEquivalentTo(lastRenderedFrameState))
+        {
+            _pendingAnimationFrameState = null;
+            LastAnimationDirtyTargetCount = 0;
+            return false;
+        }
+
+        if (!bypassThrottle &&
+            AnimationMinimumRenderInterval > TimeSpan.Zero &&
+            _lastRenderedAnimationFrameState is not null &&
+            _lastRenderedAnimationTime != TimeSpan.MinValue &&
+            (frameState.Time - _lastRenderedAnimationTime).Duration() < AnimationMinimumRenderInterval)
+        {
+            _pendingAnimationFrameState = frameState;
+            LastAnimationDirtyTargetCount = frameState.GetDirtyTargetCount(_lastRenderedAnimationFrameState);
+            return false;
+        }
+
+        if (_animatedDocument is null)
+        {
+            _animatedDocument = AnimationController.CreateAnimatedDocument(frameState);
+            LastAnimationDirtyTargetCount = frameState.Count;
+        }
+        else
+        {
+            LastAnimationDirtyTargetCount = frameState.GetDirtyTargetCount(_lastRenderedAnimationFrameState);
+            AnimationController.ApplyFrameState(_animatedDocument, frameState, _lastRenderedAnimationFrameState);
+        }
+
+        var retainedSceneReady = TryPrepareRetainedSceneGraphForAnimationFrame(frameState, _lastRenderedAnimationFrameState, out var retainedSceneDocument);
+        var rendered = false;
+        if (retainedSceneReady &&
+            retainedSceneDocument is not null &&
+            (UsesAnimationLayerCaching || TryInitializeAnimationLayerCaching(retainedSceneDocument)))
+        {
+            rendered = TryRenderAnimationLayerFrame(retainedSceneDocument, frameState, _lastRenderedAnimationFrameState);
+            if (!rendered)
+            {
+                DisableAnimationLayerCaching();
+            }
+        }
+
+        if (!rendered)
+        {
+            rendered = retainedSceneReady &&
+                       retainedSceneDocument is not null &&
+                       RenderRetainedSceneDocument(retainedSceneDocument);
+        }
+
+        if (!rendered)
+        {
+            rendered = TryRenderCurrentAnimatedDocumentRetained();
+        }
+
+        if (!rendered)
+        {
+            return false;
+        }
+
+        _lastRenderedAnimationFrameState = frameState;
+        _lastRenderedAnimationTime = frameState.Time;
+        _pendingAnimationFrameState = null;
+
+        if (raiseInvalidation)
+        {
+            RaiseAnimationInvalidated(new SvgAnimationFrameChangedEventArgs(frameState.Time));
+        }
+
+        return true;
+    }
+
+    private SKRect GetStandaloneViewport()
+    {
+        return GetStandaloneViewport(Settings);
+    }
+
+    private static SKRect GetStandaloneViewport(SKSvgSettings settings)
+    {
+        var standaloneViewport = settings.StandaloneViewport;
+        if (standaloneViewport is null || standaloneViewport.Value.Width <= 0f || standaloneViewport.Value.Height <= 0f)
+        {
+            return SKRect.Empty;
+        }
+
+        return SKRect.Create(
+            standaloneViewport.Value.Left,
+            standaloneViewport.Value.Top,
+            standaloneViewport.Value.Width,
+            standaloneViewport.Value.Height);
     }
 }

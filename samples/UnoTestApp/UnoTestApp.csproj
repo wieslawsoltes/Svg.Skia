@@ -1,0 +1,26 @@
+<Project Sdk="Uno.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-desktop</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <ApplicationTitle>Svg.Skia Uno Test App</ApplicationTitle>
+    <ApplicationId>com.wieslawsoltes.unotestapp</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationPublisher>Svg.Skia</ApplicationPublisher>
+    <Description>Uno TestApp sample for Svg.Controls.Skia.Uno.</Description>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UnoFeatures>
+      SkiaRenderer;
+    </UnoFeatures>
+    <IsPackable>False</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TestApp.Shared\TestApp.Shared.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Controls.Skia.Uno\Svg.Controls.Skia.Uno.csproj" />
+  </ItemGroup>
+
+</Project>

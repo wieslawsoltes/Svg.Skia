@@ -1,9 +1,12 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:skia="using:Svg.Skia"
              xmlns:vm="using:TestApp.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="450"
              x:Class="TestApp.Views.MainView"
              DragDrop.AllowDrop="True"
              FontFamily="avares://Avalonia.Fonts.Inter/Assets#Inter">
@@ -18,7 +21,7 @@
              Grid.Row="0"
              Margin="6"
              Text="{Binding ItemQuery}"
-             Watermark="Filter...">
+             PlaceholderText="Filter...">
       <TextBox.InnerRightContent>
         <Button Content="X"
                 Command="{Binding ResetQueryCommand}" />
@@ -58,8 +61,7 @@
             </Panel.ContextFlyout>
             <TextBlock Text="{Binding Name}"
                        Padding="12"
-                       IsHitTestVisible="False">
-            </TextBlock>
+                       IsHitTestVisible="False" />
           </Panel>
         </DataTemplate>
       </ListBox.ItemTemplate>
@@ -103,76 +105,149 @@
                Margin="6"
                VerticalAlignment="Stretch"
                HorizontalAlignment="Stretch">
-      <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,6">
-        <Label Content="ScrollBar"
-               Margin="0,0,0,0"
-               VerticalAlignment="Center" />
-        <Label Content="H:"
-               Margin="6,0,6,0"
-               VerticalAlignment="Center" />
-        <ComboBox Name="HorizontalScrollBarVisibility" SelectedIndex="0">
-          <ScrollBarVisibility>Disabled</ScrollBarVisibility>
-          <ScrollBarVisibility>Auto</ScrollBarVisibility>
-          <ScrollBarVisibility>Hidden</ScrollBarVisibility>
-          <ScrollBarVisibility>Visible</ScrollBarVisibility>
-        </ComboBox>
-        <Label Content="V:"
-               Margin="6,0,6,0"
-               VerticalAlignment="Center" />
-        <ComboBox Name="VerticalScrollBarVisibility" SelectedIndex="0">
-          <ScrollBarVisibility>Disabled</ScrollBarVisibility>
-          <ScrollBarVisibility>Auto</ScrollBarVisibility>
-          <ScrollBarVisibility>Hidden</ScrollBarVisibility>
-          <ScrollBarVisibility>Visible</ScrollBarVisibility>
-        </ComboBox>
-        <Label Content="Stretch:"
-               Margin="6,0,6,0"
-               VerticalAlignment="Center" />
-        <ComboBox Name="SvgStretch" SelectedIndex="0">
-          <Stretch>None</Stretch>
-          <Stretch>Fill</Stretch>
-          <Stretch>Uniform</Stretch>
-          <Stretch>UniformToFill</Stretch>
-        </ComboBox>
+      <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+        <StackPanel Orientation="Horizontal" Margin="0,0,12,6">
+          <Label Content="ScrollBar"
+                 VerticalAlignment="Center" />
+          <Label Content="H:"
+                 Margin="6,0,6,0"
+                 VerticalAlignment="Center" />
+          <ComboBox Name="HorizontalScrollBarVisibility"
+                    Width="120"
+                    SelectedIndex="0">
+            <ScrollBarVisibility>Disabled</ScrollBarVisibility>
+            <ScrollBarVisibility>Auto</ScrollBarVisibility>
+            <ScrollBarVisibility>Hidden</ScrollBarVisibility>
+            <ScrollBarVisibility>Visible</ScrollBarVisibility>
+          </ComboBox>
+          <Label Content="V:"
+                 Margin="6,0,6,0"
+                 VerticalAlignment="Center" />
+          <ComboBox Name="VerticalScrollBarVisibility"
+                    Width="120"
+                    SelectedIndex="0">
+            <ScrollBarVisibility>Disabled</ScrollBarVisibility>
+            <ScrollBarVisibility>Auto</ScrollBarVisibility>
+            <ScrollBarVisibility>Hidden</ScrollBarVisibility>
+            <ScrollBarVisibility>Visible</ScrollBarVisibility>
+          </ComboBox>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,12,6">
+          <Label Content="Stretch:"
+                 Margin="0,0,6,0"
+                 VerticalAlignment="Center" />
+          <ComboBox Name="SvgStretch"
+                    Width="140"
+                    SelectedIndex="0">
+            <Stretch>None</Stretch>
+            <Stretch>Fill</Stretch>
+            <Stretch>Uniform</Stretch>
+            <Stretch>UniformToFill</Stretch>
+          </ComboBox>
+        </StackPanel>
+
         <ToggleSwitch IsChecked="{Binding #Svg.EnableCache}"
                       OnContent="Cache Enabled"
                       OffContent="Cache Disabled"
-                      Margin="6,0,6,0" />
+                      Margin="0,0,12,6" />
         <ToggleSwitch Name="ShowHitBoundsToggle"
+                      IsChecked="{Binding SvgView.ShowHitBounds, Mode=TwoWay}"
                       OnContent="Show Bounds"
                       OffContent="Hide Bounds"
-                      Margin="6,0,6,0"
-                      Click="ShowHitBoundsToggle_OnToggled" />
+                      Margin="0,0,12,6" />
         <ToggleSwitch IsChecked="{Binding #Svg.Wireframe}"
                       OnContent="Wireframe On"
                       OffContent="Wireframe Off"
-                      Margin="6,0,6,0" />
+                      Margin="0,0,12,6" />
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,12,6">
+          <Label Content="Anim:"
+                 Margin="0,0,6,0"
+                 VerticalAlignment="Center" />
+          <ComboBox Name="AnimationBackendBox"
+                    Width="140"
+                    SelectedItem="{Binding #Svg.AnimationBackend, Mode=TwoWay}">
+            <skia:SvgAnimationHostBackend>Default</skia:SvgAnimationHostBackend>
+            <skia:SvgAnimationHostBackend>Manual</skia:SvgAnimationHostBackend>
+            <skia:SvgAnimationHostBackend>DispatcherTimer</skia:SvgAnimationHostBackend>
+            <skia:SvgAnimationHostBackend>RenderLoop</skia:SvgAnimationHostBackend>
+            <skia:SvgAnimationHostBackend>NativeComposition</skia:SvgAnimationHostBackend>
+          </ComboBox>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,12,6">
+          <Label Content="Rate:"
+                 Margin="0,0,6,0"
+                 VerticalAlignment="Center" />
+          <Slider Name="AnimationPlaybackRateSlider"
+                  Width="120"
+                  Minimum="0"
+                  Maximum="4"
+                  Value="{Binding #Svg.AnimationPlaybackRate, Mode=TwoWay}" />
+          <TextBlock Margin="6,0,0,0"
+                     VerticalAlignment="Center"
+                     Text="{Binding #Svg.AnimationPlaybackRate, StringFormat={}{0:0.00}x}" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,12,6">
+          <Button Name="PlayAnimationButton"
+                  Content="Play"
+                  IsEnabled="{Binding SvgView.CanPlay}"
+                  Click="PlayAnimationButton_OnClick" />
+          <Button Name="PauseAnimationButton"
+                  Content="Pause"
+                  Margin="6,0,0,0"
+                  IsEnabled="{Binding SvgView.CanPause}"
+                  Click="PauseAnimationButton_OnClick" />
+          <Button Name="RestartAnimationButton"
+                  Content="Restart"
+                  Margin="6,0,0,0"
+                  IsEnabled="{Binding SvgView.CanRestart}"
+                  Click="RestartAnimationButton_OnClick" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,12,6">
+          <TextBlock VerticalAlignment="Center"
+                     Text="{Binding SvgView.AnimationStatusText}" />
+          <TextBlock Margin="6,0,0,0"
+                     VerticalAlignment="Center"
+                     Text="|" />
+          <TextBlock Margin="6,0,0,0"
+                     VerticalAlignment="Center"
+                     Text="{Binding SvgView.AnimationClockText}" />
+        </StackPanel>
+
+        <TextBlock Margin="0,0,12,6"
+                   VerticalAlignment="Center"
+                   Text="{Binding SvgView.AnimationBackendInfoText}"
+                   ToolTip.Tip="{Binding SvgView.AnimationBackendFallbackReason}" />
+
         <Button Content="Export"
-                Command="{Binding ExportCommand}"
-                CommandParameter="{Binding #Svg}"
-                Margin="0,0,0,0" />
-      </StackPanel>
+                Margin="0,0,0,6"
+                Click="ExportButton_OnClick" />
+      </WrapPanel>
       <ScrollViewer HorizontalScrollBarVisibility="{Binding #HorizontalScrollBarVisibility.SelectedItem}"
                     VerticalScrollBarVisibility="{Binding #VerticalScrollBarVisibility.SelectedItem}">
         <ScrollViewer.ContextFlyout>
           <MenuFlyout Placement="Bottom">
             <MenuItem Header="Export"
-                      Command="{Binding ExportCommand}"
-                      CommandParameter="{Binding #Svg}" />
+                      Click="ExportButton_OnClick" />
           </MenuFlyout>
         </ScrollViewer.ContextFlyout>
         <Svg Name="Svg"
              Stretch="{Binding #SvgStretch.SelectedItem}"
              Path="{Binding SelectedItem.Path, FallbackValue=''}"
              EnableCache="True"
+             AnimationBackend="Default"
              PointerPressed="Svg_OnPointerPressed" />
       </ScrollViewer>
     </DockPanel>
 
     <ListBox Grid.Column="2"
              Grid.Row="3"
-             Name="HitResults"
-             Margin="6" />
+             Margin="6"
+             ItemsSource="{Binding SvgView.HitResults}" />
 
   </Grid>
 

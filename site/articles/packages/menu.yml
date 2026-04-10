@@ -1,6 +1,8 @@
 packages:
   - {path: readme.md, title: "Packages"}
   - {path: svg-skia.md, title: "Svg.Skia"}
+  - {path: svg-animation.md, title: "Svg.Animation"}
+  - {path: svg-scenegraph.md, title: "Svg.SceneGraph"}
   - {path: svg-model.md, title: "Svg.Model"}
   - {path: svg-custom.md, title: "Svg.Custom"}
   - {path: shim-skiasharp.md, title: "ShimSkiaSharp"}

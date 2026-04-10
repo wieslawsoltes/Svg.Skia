@@ -6,6 +6,8 @@ namespace Svg.SourceGenerator.Skia;
 
 public class SkiaGeneratorSvgAssetLoader : Model.ISvgAssetLoader
 {
+    public bool EnableSvgFonts => false;
+
     public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
     {
         var data = ShimSkiaSharp.SKImage.FromStream(stream);

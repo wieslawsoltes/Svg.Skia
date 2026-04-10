@@ -7,8 +7,10 @@ using System.IO;
 using System.Net.Http;
 using Avalonia.Platform;
 using ShimSkiaSharp;
+using Svg;
 using Svg.Model;
 using Svg.Model.Services;
+using Svg.Skia;
 using SM = Svg.Model;
 
 namespace Avalonia.Svg;
@@ -35,7 +37,7 @@ public class SvgSource
         if (File.Exists(path))
         {
             var document = SvgService.Open(path, parameters);
-            return document is { } ? SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
+            return CreateModel(document);
         }
 
         if (Uri.TryCreate(path, UriKind.Absolute, out var uriHttp) && (uriHttp.Scheme == "http" || uriHttp.Scheme == "https"))
@@ -47,7 +49,7 @@ public class SvgSource
                 {
                     var stream = response.Content.ReadAsStreamAsync().Result;
                     var document = SvgService.Open(stream, parameters);
-                    return document is { } ? SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
+                    return CreateModel(document);
                 }
             }
             catch (HttpRequestException e)
@@ -63,7 +65,7 @@ public class SvgSource
         if (uri.IsAbsoluteUri && uri.IsFile)
         {
             var document = SvgService.Open(uri.LocalPath, parameters);
-            return document is { } ? SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
+            return CreateModel(document);
         }
         else
         {
@@ -73,7 +75,7 @@ public class SvgSource
                 return default;
             }
             var document = SvgService.Open(stream, parameters);
-            return document is { } ? SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
+            return CreateModel(document);
         }
     }
 
@@ -98,7 +100,7 @@ public class SvgSource
     public static SKPicture? LoadPicture(Stream stream, SvgParameters? parameters = null)
     {
         var document = SvgService.Open(stream, parameters);
-        return document is { } ? SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
+        return CreateModel(document);
     }
 
     /// <summary>
@@ -120,7 +122,7 @@ public class SvgSource
     public static SKPicture? LoadPictureFromSvg(string source, SvgParameters? parameters = null)
     {
         var document = SvgService.FromSvg(source);
-        return document is { } ? SvgService.ToModel(document, s_assetLoader, out _, out _) : default;
+        return CreateModel(document);
     }
 
     /// <summary>
@@ -131,6 +133,11 @@ public class SvgSource
     public static SvgSource LoadFromSvg(string source)
     {
         return new() { Picture = LoadPictureFromSvg(source) };
+    }
+
+    private static SKPicture? CreateModel(SvgDocument? document)
+    {
+        return document is { } ? SvgSceneRuntime.CreateModel(document, s_assetLoader) : default;
     }
 
     /// <summary>

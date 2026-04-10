@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Svg;
-using Svg.Model.Drawables;
 using Svg.Pathing;
+using Svg.Skia;
 using Svg.Transforms;
 using Shim = ShimSkiaSharp;
 using SK = SkiaSharp;
@@ -23,7 +23,7 @@ public class PathService
 
     private bool _editing;
     private SvgPath? _path;
-    private DrawableBase? _drawable;
+    private SvgSceneNode? _sceneNode;
     private readonly List<PathPoint> _points = new();
     private int _activeIndex = -1;
     private Shim.SKMatrix _matrix;
@@ -32,18 +32,30 @@ public class PathService
 
     public bool IsEditing => _editing;
     public SvgPath? EditPath => _path;
-    public DrawableBase? EditDrawable { get => _drawable; set => _drawable = value; }
+    public SvgSceneNode? EditSceneNode { get => _sceneNode; set => _sceneNode = value; }
     public IReadOnlyList<PathPoint> PathPoints => _points;
     public int ActivePoint { get => _activeIndex; set => _activeIndex = value; }
     public Shim.SKMatrix PathMatrix => _matrix;
     public Shim.SKMatrix PathInverse => _inverse;
     public SegmentTool CurrentSegmentTool { get => _segmentTool; set => _segmentTool = value; }
 
-    public void Start(SvgPath path, DrawableBase drawable)
+    public void Start(SvgPath path, SvgSceneNode sceneNode)
+    {
+        Start(path, sceneNode.TotalTransform, sceneNode);
+    }
+
+    public void SetEditTransform(Shim.SKMatrix matrix)
+    {
+        _matrix = matrix;
+        if (!_matrix.TryInvert(out _inverse))
+            _inverse = Shim.SKMatrix.CreateIdentity();
+    }
+
+    private void Start(SvgPath path, Shim.SKMatrix totalTransform, SvgSceneNode? sceneNode)
     {
         _editing = true;
         _path = path;
-        _drawable = drawable;
+        _sceneNode = sceneNode;
         _points.Clear();
         MakePathAbsolute(path);
         var segs = path.PathData;
@@ -83,16 +95,14 @@ public class PathService
                     break;
             }
         }
-        _matrix = drawable.TotalTransform;
-        if (!_matrix.TryInvert(out _inverse))
-            _inverse = Shim.SKMatrix.CreateIdentity();
+        SetEditTransform(totalTransform);
     }
 
     public void Stop()
     {
         _editing = false;
         _path = null;
-        _drawable = null;
+        _sceneNode = null;
         _points.Clear();
         _activeIndex = -1;
     }

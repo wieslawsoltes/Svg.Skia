@@ -3,6 +3,7 @@ using System.Linq;
 using Svg;
 using Svg.Editor.Skia;
 using Svg.Pathing;
+using Svg.Skia;
 using Xunit;
 using Shim = ShimSkiaSharp;
 
@@ -42,5 +43,26 @@ public class PathServiceTests
         var svgPath = PathService.ToSvgPathData(path!);
         Assert.Contains("M", svgPath);
         Assert.Contains("L", svgPath);
+    }
+
+    [Fact]
+    public void Start_UsesRetainedSceneNodeTransformForPathEditing()
+    {
+        const string svgMarkup = "<svg width=\"64\" height=\"64\"><g transform=\"translate(15,7)\"><path id=\"path1\" d=\"M 0 0 L 10 0\" /></g></svg>";
+
+        using var svg = new SKSvg();
+        svg.FromSvg(svgMarkup);
+
+        var path = Assert.IsType<SvgPath>(svg.SourceDocument!.Children.OfType<SvgGroup>().Single().Children.Single());
+        Assert.True(svg.TryGetRetainedSceneNodeById("path1", out var sceneNode));
+        Assert.NotNull(sceneNode);
+
+        var service = new PathService();
+        service.Start(path, sceneNode!);
+
+        Assert.Same(path, service.EditPath);
+        Assert.Same(sceneNode, service.EditSceneNode);
+        Assert.Equal(new Shim.SKPoint(15, 7), service.PathMatrix.MapPoint(new Shim.SKPoint(0, 0)));
+        Assert.Equal(new Shim.SKPoint(0, 0), service.PathInverse.MapPoint(new Shim.SKPoint(15, 7)));
     }
 }

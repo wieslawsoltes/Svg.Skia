@@ -35,12 +35,21 @@
   <Import Project="..\..\build\SkiaSharp.props" />
   <ItemGroup>
     <!--<ProjectReference Include="..\..\externals\SVG\Source\Svg.csproj" />-->
+    <ProjectReference Include="..\Svg.Animation\Svg.Animation.csproj" />
+    <ProjectReference Include="..\Svg.SceneGraph\Svg.SceneGraph.csproj" />
     <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" />
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HarfBuzzSharp" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.macOS" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.Win32" />
   </ItemGroup>
 
 </Project>

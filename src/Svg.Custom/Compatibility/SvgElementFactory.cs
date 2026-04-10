@@ -1,0 +1,322 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Xml;
+using ExCSS;
+
+namespace Svg
+{
+    /// <summary>
+    /// Provides the methods required in order to parse and create <see cref="SvgElement"/> instances from XML.
+    ///
+    /// This Svg.Custom copy intentionally diverges from the upstream SVG parser in one narrow
+    /// place: raw presentation attributes of the form <c>marker="..."</c> are ignored, while
+    /// stylesheet and inline-style <c>marker</c> declarations still use the original CSS path.
+    /// The W3C marker tests expect that distinction, but the original upstream logic treated the
+    /// presentation-attribute shorthand the same as CSS shorthand. We keep the behavioral change
+    /// here so the reason stays documented next to the override and the submodule remains clean.
+    /// </summary>
+    [ElementFactory]
+    internal partial class SvgElementFactory
+    {
+        private readonly StylesheetParser stylesheetParser = new StylesheetParser(true, true, tolerateInvalidValues: true);
+
+        /// <summary>
+        /// Gets a list of available types that can be used when creating an <see cref="SvgElement"/>.
+        /// </summary>
+        public List<ElementInfo> AvailableElements => availableElements;
+
+        /// <summary>
+        /// Gets a list of available types that can be used when creating an <see cref="SvgElement"/>.
+        /// </summary>
+        internal Dictionary<string, List<Type>> AvailableElementsDictionary => availableElementsDictionary;
+
+        /// <summary>
+        /// Creates an <see cref="SvgDocument"/> from the current node in the specified <see cref="XmlReader"/>.
+        /// </summary>
+        /// <param name="reader">The <see cref="XmlReader"/> containing the node to parse into an <see cref="SvgDocument"/>.</param>
+        /// <exception cref="ArgumentNullException">The <paramref name="reader"/> parameter cannot be <c>null</c>.</exception>
+        /// <exception cref="InvalidOperationException">The CreateDocument method can only be used to parse root &lt;svg&gt; elements.</exception>
+        public T CreateDocument<T>(XmlReader reader) where T : SvgDocument, new()
+        {
+            if (reader == null)
+            {
+                throw new ArgumentNullException("reader");
+            }
+
+            if (reader.LocalName != "svg")
+            {
+                throw new InvalidOperationException("The CreateDocument method can only be used to parse root <svg> elements.");
+            }
+
+            return (T)CreateElement<T>(reader, true, null);
+        }
+
+        /// <summary>
+        /// Creates an <see cref="SvgElement"/> from the current node in the specified <see cref="XmlReader"/>.
+        /// </summary>
+        /// <param name="reader">The <see cref="XmlReader"/> containing the node to parse into a subclass of <see cref="SvgElement"/>.</param>
+        /// <param name="document">The <see cref="SvgDocument"/> that the created element belongs to.</param>
+        /// <exception cref="ArgumentNullException">The <paramref name="reader"/> and <paramref name="document"/> parameters cannot be <c>null</c>.</exception>
+        public SvgElement CreateElement(XmlReader reader, SvgDocument document)
+        {
+            if (reader == null)
+            {
+                throw new ArgumentNullException("reader");
+            }
+
+            return CreateElement<SvgDocument>(reader, false, document);
+        }
+
+        private SvgElement CreateElement<T>(XmlReader reader, bool fragmentIsDocument, SvgDocument document) where T : SvgDocument, new()
+        {
+            SvgElement createdElement = null;
+            string elementName = reader.LocalName;
+            string elementNS = reader.NamespaceURI;
+
+            //Trace.TraceInformation("Begin CreateElement: {0}", elementName);
+
+            if (elementNS == SvgNamespaces.SvgNamespace || string.IsNullOrEmpty(elementNS))
+            {
+                if (elementName == "svg")
+                {
+                    createdElement = (fragmentIsDocument) ? new T() : new SvgFragment();
+                }
+                else
+                {
+                    if (availableElementsWithoutSvg.TryGetValue(elementName, out var validType))
+                    {
+                        createdElement = validType.CreateInstance();
+                    }
+                    else
+                    {
+                        createdElement = new SvgUnknownElement(elementName);
+                    }
+                }
+
+                if (createdElement != null)
+                {
+                    SetAttributes(createdElement, reader, document);
+                }
+            }
+            else
+            {
+                // All non svg element (html, ...)
+                createdElement = new NonSvgElement(elementName, elementNS);
+                SetAttributes(createdElement, reader, document);
+            }
+
+            //Trace.TraceInformation("End CreateElement");
+
+            return createdElement;
+        }
+
+        private void SetAttributes(SvgElement element, XmlReader reader, SvgDocument document)
+        {
+            //Trace.TraceInformation("Begin SetAttributes");
+
+            //string[] styles = null;
+            //string[] style = null;
+            //int i = 0;
+
+            while (reader.MoveToNextAttribute())
+            {
+                var prefix = reader.Prefix;
+                var localName = reader.LocalName;
+                if (reader.ReadAttributeValue())
+                {
+                    if (prefix.Length == 0)
+                    {
+                        if (localName.Equals("xmlns"))
+                        {
+                            element.Namespaces[string.Empty] = reader.Value;
+                            continue;
+                        }
+                        else if (localName.Equals("version"))
+                            continue;
+                    }
+                    else if (prefix.Equals("xmlns"))
+                    {
+                        element.Namespaces[localName] = reader.Value;
+                        continue;
+                    }
+                    if (localName.Equals("style") && !(element is NonSvgElement))
+                    {
+                        var inlineSheet = stylesheetParser.Parse("#a{" + reader.Value + "}");
+                        foreach (var rule in inlineSheet.StyleRules)
+                            foreach (var declaration in rule.Style)
+                                element.AddStyle(declaration.Name, declaration.Original, SvgElement.StyleSpecificity_InlineStyle);
+                    }
+                    else if (prefix.Length == 0 && localName.Equals("marker"))
+                    {
+                        // Compare this to the original upstream file: upstream forwarded the
+                        // presentation attribute through the same style machinery as CSS, which
+                        // populated SvgMarkerElement.Marker on groups and paths. We skip only the
+                        // raw XML attribute here so stylesheet and inline-style marker shorthands
+                        // continue to work exactly as before.
+                        continue;
+                    }
+                    else if (prefix.Length == 0 && IsStyleAttribute(localName))
+                    {
+                        element.AddStyle(localName, reader.Value, SvgElement.StyleSpecificity_PresAttribute);
+                    }
+                    else
+                    {
+                        var ns = prefix.Length == 0 ? string.Empty : reader.LookupNamespace(prefix);
+                        SetPropertyValue(element, ns, localName, reader.Value, document);
+                    }
+                }
+            }
+
+            //Trace.TraceInformation("End SetAttributes");
+        }
+
+        private static bool IsStyleAttribute(string name)
+        {
+            switch (name)
+            {
+                case "alignment-baseline":
+                case "baseline-shift":
+                case "clip":
+                case "clip-path":
+                case "clip-rule":
+                case "color":
+                case "color-interpolation":
+                case "color-interpolation-filters":
+                case "color-profile":
+                case "color-rendering":
+                case "cursor":
+                case "direction":
+                case "display":
+                case "dominant-baseline":
+                case "enable-background":
+                case "fill":
+                case "fill-opacity":
+                case "fill-rule":
+                case "filter":
+                case "flood-color":
+                case "flood-opacity":
+                case "font":
+                case "font-family":
+                case "font-size":
+                case "font-size-adjust":
+                case "font-stretch":
+                case "font-style":
+                case "font-variant":
+                case "font-weight":
+                case "glyph-orientation-horizontal":
+                case "glyph-orientation-vertical":
+                case "image-rendering":
+                case "kerning":
+                case "letter-spacing":
+                case "lighting-color":
+                case "marker":
+                case "marker-end":
+                case "marker-mid":
+                case "marker-start":
+                case "mask":
+                case "opacity":
+                case "overflow":
+                case "pointer-events":
+                case "shape-rendering":
+                case "stop-color":
+                case "stop-opacity":
+                case "stroke":
+                case "stroke-dasharray":
+                case "stroke-dashoffset":
+                case "stroke-linecap":
+                case "stroke-linejoin":
+                case "stroke-miterlimit":
+                case "stroke-opacity":
+                case "stroke-width":
+                case "text-anchor":
+                case "text-decoration":
+                case "text-rendering":
+                case "text-transform":
+                case "unicode-bidi":
+                case "visibility":
+                case "word-spacing":
+                case "writing-mode":
+                    return true;
+            }
+            return false;
+        }
+        internal static bool SetPropertyValue(SvgElement element, string ns, string attributeName, string attributeValue, SvgDocument document, bool isStyle = false)
+        {
+            if (attributeName == "stop-opacity" && string.Equals(attributeValue, "inherit", StringComparison.OrdinalIgnoreCase))
+            {
+                if (isStyle)
+                {
+                    // Keep style values staged exactly as authored so TryGetAttribute can still
+                    // see the inherit keyword later.
+                    return false;
+                }
+
+                // The upstream float conversion path accepts stop-opacity but loses the literal
+                // "inherit" token before gradient evaluation runs. Svg.Custom keeps the raw
+                // presentation attribute so the gradient stop/server overrides can follow the SVG
+                // inheritance chain at render time.
+                element.CustomAttributes[ns.Length == 0 ? attributeName : $"{ns}:{attributeName}"] = attributeValue;
+                return true;
+            }
+
+            if (attributeName == "opacity" && attributeValue == "undefined")
+            {
+                attributeValue = "1";
+            }
+            var setValueResult = element.SetValue(attributeName, document, CultureInfo.InvariantCulture, attributeValue);
+            if (setValueResult)
+            {
+                return true;
+            }
+            {
+                if (isStyle)
+                    // custom styles shall remain as style
+                    return false;
+                // attribute is not a svg attribute, store it in custom attributes
+                element.CustomAttributes[ns.Length == 0 ? attributeName : $"{ns}:{attributeName}"] = attributeValue;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Contains information about a type inheriting from <see cref="SvgElement"/>.
+        /// </summary>
+        [DebuggerDisplay("{ElementName}, {ElementType}")]
+        internal sealed class ElementInfo
+        {
+            /// <summary>
+            /// Gets the SVG name of the <see cref="SvgElement"/>.
+            /// </summary>
+            public string ElementName { get; set; }
+            /// <summary>
+            /// Gets the <see cref="Type"/> of the <see cref="SvgElement"/> subclass.
+            /// </summary>
+            public Type ElementType { get; set; }
+            /// <summary>
+            /// Creates a new instance based on <see cref="ElementType"/> type.
+            /// </summary>
+            public Func<SvgElement> CreateInstance { get; set; }
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ElementInfo"/> struct.
+            /// </summary>
+            /// <param name="elementName">Name of the element.</param>
+            /// <param name="elementType">Type of the element.</param>
+            public ElementInfo(string elementName, Type elementType)
+            {
+                this.ElementName = elementName;
+                this.ElementType = elementType;
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ElementInfo"/> class.
+            /// </summary>
+            public ElementInfo()
+            {
+            }
+        }
+    }
+}

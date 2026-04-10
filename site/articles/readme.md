@@ -20,7 +20,7 @@ Svg.Skia spans a few related areas:
 2. [Packages](packages) for library-by-library installation, responsibilities, and usage patterns.
 3. [Editor](editor) when the goal is embedding or composing the reusable SVG editor stack.
 4. [Concepts](concepts) to understand how files, models, pictures, and Avalonia resources relate.
-5. [Guides](guides) for scenario-focused tasks such as exporting images, hit testing, or generating code.
+5. [Guides](guides) for scenario-focused tasks such as exporting images, hit testing, interaction, animation playback, or generating code.
 6. [XAML Usage](xaml) when the primary integration point is Avalonia or Uno.
 7. [Reference](reference) for package maps, samples, licensing, and the docs pipeline.
 

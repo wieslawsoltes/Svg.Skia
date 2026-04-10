@@ -14,6 +14,18 @@ namespace Avalonia.Svg;
 /// </summary>
 public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
 {
+    private static float GetGlyphAdvance(GlyphTypeface glyphTypeface, int codepoint)
+    {
+        var glyphId = glyphTypeface.CharacterToGlyphMap.GetGlyph(codepoint);
+
+        return glyphTypeface.TryGetHorizontalGlyphAdvance(glyphId, out var advance)
+            ? advance / (float)glyphTypeface.Metrics.DesignEmHeight
+            : 0f;
+    }
+
+    /// <inheritdoc />
+    public bool EnableSvgFonts => true;
+
     /// <inheritdoc />
     public SKImage LoadImage(Stream stream)
     {
@@ -115,7 +127,7 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
             }
 
             var glyphTypeface = (typeface ?? Typeface.Default).GlyphTypeface;
-            runningAdvance += glyphTypeface.GetGlyphAdvance(glyphTypeface.GetGlyph((uint)codepoint));
+            runningAdvance += GetGlyphAdvance(glyphTypeface, codepoint);
 
             if (char.IsHighSurrogate(text[i]))
             {
@@ -159,7 +171,7 @@ public class AvaloniaSvgAssetLoader : SM.ISvgAssetLoader
         for (int i = 0; i < text.Length; i++)
         {
             var codepoint = char.ConvertToUtf32(text, i);
-            advance += glyphTypeface.GetGlyphAdvance(glyphTypeface.GetGlyph((uint)codepoint));
+            advance += GetGlyphAdvance(glyphTypeface, codepoint);
             if (char.IsHighSurrogate(text[i]))
             {
                 i++;

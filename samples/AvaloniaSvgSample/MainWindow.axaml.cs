@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using Avalonia.Svg;
 using ShimSkiaSharp;
 
@@ -15,9 +16,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-#if DEBUG
-        this.AttachDevTools();
-#endif
         svgSvgDockPanel.AddHandler(DragDrop.DropEvent, Drop);
         svgSvgDockPanel.AddHandler(DragDrop.DragOverEvent, DragOver);
 
@@ -89,7 +87,7 @@ public partial class MainWindow : Window
     {
         e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
 
-        if (!e.Data.Contains(DataFormats.Files))
+        if (e.DataTransfer.TryGetFiles() is not { Length: > 0 })
         {
             e.DragEffects = DragDropEffects.None;
         }
@@ -97,41 +95,41 @@ public partial class MainWindow : Window
 
     private void Drop(object sender, DragEventArgs e)
     {
-        if (e.Data.Contains(DataFormats.Files))
+        var fileName = e.DataTransfer.TryGetFiles()?
+            .Select(file => file.TryGetLocalPath())
+            .FirstOrDefault(path => !string.IsNullOrWhiteSpace(path));
+
+        if (!string.IsNullOrWhiteSpace(fileName))
         {
-            var fileName = e.Data.GetFileNames()?.FirstOrDefault();
-            if (!string.IsNullOrWhiteSpace(fileName))
+            if (sender == svgSvgDockPanel)
             {
-                if (sender == svgSvgDockPanel)
+                svgSvg.Path = fileName;
+            }
+            else if (sender == svgExtensionDockPanel)
+            {
+                svgExtensionImage.Source = new SvgImage
                 {
-                    svgSvg.Path = fileName;
-                }
-                else if (sender == svgExtensionDockPanel)
+                    Source = SvgSource.Load(fileName, null)
+                };
+            }
+            else if (sender == svgSourceDockPanel)
+            {
+                svgSourceImage.Source = new SvgImage
                 {
-                    svgExtensionImage.Source = new SvgImage
-                    {
-                        Source = SvgSource.Load(fileName, null)
-                    };
-                }
-                else if (sender == svgSourceDockPanel)
+                    Source = SvgSource.Load(fileName, null)
+                };
+            }
+            else if (sender == svgResourceDockPanel)
+            {
+                svgResourceImage.Source = new SvgImage
                 {
-                    svgSourceImage.Source = new SvgImage
-                    {
-                        Source = SvgSource.Load(fileName, null)
-                    };
-                }
-                else if (sender == svgResourceDockPanel)
-                {
-                    svgResourceImage.Source = new SvgImage
-                    {
-                        Source = SvgSource.Load(fileName, null)
-                    };
-                }
-                else if (sender == stringTextBox || sender == svgString)
-                {
-                    var source = File.ReadAllText(fileName);
-                    stringTextBox.Text = source;
-                }
+                    Source = SvgSource.Load(fileName, null)
+                };
+            }
+            else if (sender == stringTextBox || sender == svgString)
+            {
+                var source = File.ReadAllText(fileName);
+                stringTextBox.Text = source;
             }
         }
     }

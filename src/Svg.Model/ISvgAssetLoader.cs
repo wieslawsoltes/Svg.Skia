@@ -10,6 +10,7 @@ public record struct TypefaceSpan(string Text, float Advance, SKTypeface? Typefa
 
 public interface ISvgAssetLoader
 {
+    bool EnableSvgFonts { get; }
     SKImage LoadImage(Stream stream);
     List<TypefaceSpan> FindTypefaces(string? text, SKPaint paintPreferredTypeface);
     SKFontMetrics GetFontMetrics(SKPaint paint);

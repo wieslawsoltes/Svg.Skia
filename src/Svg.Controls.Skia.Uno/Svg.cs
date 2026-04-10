@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Numerics;
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
 using Svg;
@@ -8,6 +10,9 @@ using Svg.Model;
 using Svg.Skia;
 using Uno.WinUI.Graphics2DSK;
 using Windows.Foundation;
+using Windows.System;
+using DispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue;
+using DispatcherQueueTimer = Microsoft.UI.Dispatching.DispatcherQueueTimer;
 using ShimPoint = ShimSkiaSharp.SKPoint;
 using SkiaAutoCanvasRestore = SkiaSharp.SKAutoCanvasRestore;
 using SkiaCanvas = SkiaSharp.SKCanvas;
@@ -24,6 +29,29 @@ public sealed class Svg : SKCanvasElement
     private Dictionary<string, SvgSource>? _cache;
     private CancellationTokenSource? _pendingLoadCts;
     private long _loadVersion;
+    private SKSvg? _trackedAnimationSvg;
+    private readonly Stopwatch _animationPlaybackStopwatch = new();
+    private DispatcherQueueTimer? _animationDispatcherTimer;
+    private SvgAnimationHostBackendResolution _animationBackendResolution =
+        new(SvgAnimationHostBackend.Default, SvgAnimationHostBackend.Default, null);
+    private TimeSpan _lastAnimationPlaybackTimestamp;
+    private bool _animationRenderingSubscribed;
+    private static readonly InputSystemCursor s_arrowCursor = InputSystemCursor.Create(InputSystemCursorShape.Arrow);
+    private static readonly InputSystemCursor s_appStartingCursor = InputSystemCursor.Create(InputSystemCursorShape.AppStarting);
+    private static readonly InputSystemCursor s_crossCursor = InputSystemCursor.Create(InputSystemCursorShape.Cross);
+    private static readonly InputSystemCursor s_handCursor = InputSystemCursor.Create(InputSystemCursorShape.Hand);
+    private static readonly InputSystemCursor s_helpCursor = InputSystemCursor.Create(InputSystemCursorShape.Help);
+    private static readonly InputSystemCursor s_iBeamCursor = InputSystemCursor.Create(InputSystemCursorShape.IBeam);
+    private static readonly InputSystemCursor s_sizeAllCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeAll);
+    private static readonly InputSystemCursor s_sizeNorthSouthCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeNorthSouth);
+    private static readonly InputSystemCursor s_sizeWestEastCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeWestEast);
+    private static readonly InputSystemCursor s_sizeNorthEastSouthWestCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeNortheastSouthwest);
+    private static readonly InputSystemCursor s_sizeNorthWestSouthEastCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeNorthwestSoutheast);
+    private static readonly InputSystemCursor s_universalNoCursor = InputSystemCursor.Create(InputSystemCursorShape.UniversalNo);
+    private static readonly InputSystemCursor s_upArrowCursor = InputSystemCursor.Create(InputSystemCursorShape.UpArrow);
+    private static readonly InputSystemCursor s_waitCursor = InputSystemCursor.Create(InputSystemCursorShape.Wait);
+
+    public SvgInteractionDispatcher Interaction { get; } = new();
 
     public static readonly DependencyProperty SvgSourceProperty =
         DependencyProperty.Register(
@@ -116,8 +144,35 @@ public sealed class Svg : SKCanvasElement
             typeof(Svg),
             new PropertyMetadata(null, OnSourcePropertyChanged));
 
+    public static readonly DependencyProperty AnimationBackendProperty =
+        DependencyProperty.Register(
+            nameof(AnimationBackend),
+            typeof(SvgAnimationHostBackend),
+            typeof(Svg),
+            new PropertyMetadata(SvgAnimationHostBackend.Default, OnAnimationPlaybackPropertyChanged));
+
+    public static readonly DependencyProperty AnimationFrameIntervalProperty =
+        DependencyProperty.Register(
+            nameof(AnimationFrameInterval),
+            typeof(TimeSpan),
+            typeof(Svg),
+            new PropertyMetadata(TimeSpan.FromMilliseconds(16), OnAnimationPlaybackPropertyChanged));
+
+    public static readonly DependencyProperty AnimationPlaybackRateProperty =
+        DependencyProperty.Register(
+            nameof(AnimationPlaybackRate),
+            typeof(double),
+            typeof(Svg),
+            new PropertyMetadata(1.0, OnAnimationPlaybackPropertyChanged));
+
     public Svg()
     {
+        PointerMoved += OnControlPointerMoved;
+        PointerPressed += OnControlPointerPressed;
+        PointerReleased += OnControlPointerReleased;
+        PointerExited += OnControlPointerExited;
+        PointerWheelChanged += OnControlPointerWheelChanged;
+        Loaded += OnLoaded;
         Unloaded += OnUnloaded;
     }
 
@@ -199,6 +254,32 @@ public sealed class Svg : SKCanvasElement
         set => SetValue(CurrentCssProperty, value);
     }
 
+    public SvgAnimationHostBackend AnimationBackend
+    {
+        get => (SvgAnimationHostBackend)GetValue(AnimationBackendProperty);
+        set => SetValue(AnimationBackendProperty, value);
+    }
+
+    public TimeSpan AnimationFrameInterval
+    {
+        get => NormalizeAnimationFrameInterval((TimeSpan)GetValue(AnimationFrameIntervalProperty));
+        set => SetValue(AnimationFrameIntervalProperty, NormalizeAnimationFrameInterval(value));
+    }
+
+    public double AnimationPlaybackRate
+    {
+        get => NormalizeAnimationPlaybackRate((double)GetValue(AnimationPlaybackRateProperty));
+        set => SetValue(AnimationPlaybackRateProperty, NormalizeAnimationPlaybackRate(value));
+    }
+
+    public SvgAnimationHostBackend ActualAnimationBackend => _animationBackendResolution.ActualBackend;
+
+    public string? AnimationBackendFallbackReason => _animationBackendResolution.FallbackReason;
+
+    public SvgAnimationHostBackendResolution AnimationBackendResolution => _animationBackendResolution;
+
+    public SvgAnimationHostBackendCapabilities AnimationBackendCapabilities => CreateAnimationBackendCapabilities();
+
     public SkiaPicture? Picture => _svg?.Picture;
 
     public SKSvg? SkSvg => _svg?.Svg;
@@ -245,9 +326,37 @@ public sealed class Svg : SKCanvasElement
         return Array.Empty<SvgElement>();
     }
 
+    private void OnControlPointerMoved(object sender, PointerRoutedEventArgs e)
+    {
+        DispatchPointerMoved(e);
+    }
+
+    private void OnControlPointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        DispatchPointerPressed(e);
+    }
+
+    private void OnControlPointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        DispatchPointerReleased(e);
+    }
+
+    private void OnControlPointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        var result = Interaction.DispatchPointerExited(SkSvg, CreatePointerInput(e, SvgMouseButton.None, 0, 0));
+        e.Handled |= result.Handled;
+        ApplyNativeCursor(null);
+    }
+
+    private void OnControlPointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        DispatchPointerWheelChanged(e);
+    }
+
     protected override Size MeasureOverride(Size availableSize)
     {
-        if (_svg?.Picture is not { } picture)
+        var picture = _svg?.Picture;
+        if (picture is null)
         {
             return default;
         }
@@ -263,7 +372,8 @@ public sealed class Svg : SKCanvasElement
 
     protected override Size ArrangeOverride(Size finalSize)
     {
-        if (_svg?.Picture is not { } picture)
+        var picture = _svg?.Picture;
+        if (picture is null)
         {
             return default;
         }
@@ -280,7 +390,14 @@ public sealed class Svg : SKCanvasElement
     protected override void RenderOverride(SkiaCanvas canvas, Size area)
     {
         var source = _svg;
-        if (source?.Svg is null || source.Picture is null)
+        if (source is null)
+        {
+            return;
+        }
+
+        var skSvg = source?.Svg;
+        var picture = source?.Picture;
+        if (skSvg is null || picture is null)
         {
             return;
         }
@@ -288,10 +405,10 @@ public sealed class Svg : SKCanvasElement
         if (!SvgRenderLayout.TryCreateRenderInfo(
                 new SvgSize(area.Width, area.Height),
                 new SvgRect(
-                    source.Picture.CullRect.Left,
-                    source.Picture.CullRect.Top,
-                    source.Picture.CullRect.Width,
-                    source.Picture.CullRect.Height),
+                    picture.CullRect.Left,
+                    picture.CullRect.Top,
+                    picture.CullRect.Width,
+                    picture.CullRect.Height),
                 Stretch,
                 StretchDirection,
                 Zoom,
@@ -302,7 +419,7 @@ public sealed class Svg : SKCanvasElement
             return;
         }
 
-        if (!source.BeginRender())
+        if (!source!.BeginRender())
         {
             return;
         }
@@ -313,7 +430,7 @@ public sealed class Svg : SKCanvasElement
             canvas.ClipRect(ToSKRect(renderInfo.DestinationRect));
             var matrix = ToSKMatrix(renderInfo.Matrix);
             canvas.Concat(in matrix);
-            source.Svg.Draw(canvas);
+            skSvg.Draw(canvas);
         }
         finally
         {
@@ -358,7 +475,10 @@ public sealed class Svg : SKCanvasElement
 
     private static void OnSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        ((Svg)d).QueueSourceReload();
+        var control = (Svg)d;
+        control.Interaction.Reset();
+        control.ApplyNativeCursor(null);
+        control.QueueSourceReload();
     }
 
     private static void OnLayoutPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -387,6 +507,12 @@ public sealed class Svg : SKCanvasElement
         var control = (Svg)d;
         ApplyRenderOptions(control._svg, control.Wireframe, control.DisableFilters);
         control.Invalidate();
+    }
+
+    private static void OnAnimationPlaybackPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (Svg)d;
+        control.UpdateAnimationPlayback();
     }
 
     private static void ApplyRenderOptions(SvgSource? source, bool wireframe, bool disableFilters)
@@ -430,9 +556,17 @@ public sealed class Svg : SKCanvasElement
         return filtered.Length == 0 ? null : string.Join(" ", filtered);
     }
 
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        TrackAnimationSvg(_svg?.Svg);
+    }
+
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        Interaction.Reset();
+        ApplyNativeCursor(null);
         CancelPendingLoad();
+        TrackAnimationSvg(null);
     }
 
     private void QueueSourceReload()
@@ -519,8 +653,9 @@ public sealed class Svg : SKCanvasElement
 
         if (EnableCache && _cache is { } cache && cache.TryGetValue(cacheKey, out var cached))
         {
-            ApplyRenderOptions(cached, Wireframe, DisableFilters);
-            return new LoadResult(cached, true);
+            var workingSource = CreateWorkingSource(cached);
+            ApplyRenderOptions(workingSource, Wireframe, DisableFilters);
+            return new LoadResult(workingSource, ReferenceEquals(workingSource, cached));
         }
 
         var source = await SvgSource.LoadAsync(path, parameters: parameters, cancellationToken: cancellationToken)
@@ -529,8 +664,8 @@ public sealed class Svg : SKCanvasElement
 
         if (EnableCache && _cache is { } cacheStore)
         {
-            cacheStore[cacheKey] = source;
-            return new LoadResult(source, true);
+            cacheStore[cacheKey] = CreateWorkingSource(source);
+            return new LoadResult(source, false);
         }
 
         return new LoadResult(source, false);
@@ -548,7 +683,8 @@ public sealed class Svg : SKCanvasElement
     {
         renderInfo = default;
 
-        if (_svg?.Picture is not { } picture)
+        var picture = _svg?.Picture;
+        if (picture is null)
         {
             return false;
         }
@@ -568,6 +704,7 @@ public sealed class Svg : SKCanvasElement
     {
         var previous = _svg;
         _svg = result.Source;
+        TrackAnimationSvg(_svg?.Svg);
 
         if (previous is not null && !ReferenceEquals(previous, _svg) && !IsCached(previous))
         {
@@ -582,9 +719,11 @@ public sealed class Svg : SKCanvasElement
     private void ClearSource()
     {
         CancelPendingLoad();
+        Interaction.Reset();
 
         var previous = _svg;
         _svg = null;
+        TrackAnimationSvg(null);
 
         if (previous is not null && !IsCached(previous))
         {
@@ -622,6 +761,11 @@ public sealed class Svg : SKCanvasElement
         _cache = null;
     }
 
+    private static SvgSource CreateWorkingSource(SvgSource source)
+    {
+        return source.Svg?.HasAnimations == true ? source.Clone() : source;
+    }
+
     private bool IsCached(SvgSource source)
     {
         return _cache is { } cache && cache.Values.Any(value => ReferenceEquals(value, source));
@@ -636,4 +780,377 @@ public sealed class Svg : SKCanvasElement
     }
 
     private readonly record struct LoadResult(SvgSource? Source, bool IsCacheEntry);
+
+    private void DispatchPointerMoved(PointerRoutedEventArgs e)
+    {
+        if (_svg?.Svg is not { } skSvg || !TryGetPicturePoint(e.GetCurrentPoint(this).Position, out _))
+        {
+            ApplyNativeCursor(null);
+            return;
+        }
+
+        var result = Interaction.DispatchPointerMoved(skSvg, CreatePointerInput(e, SvgMouseButton.None, 0, 0));
+        e.Handled |= result.Handled;
+        ApplyNativeCursor(result.Cursor);
+    }
+
+    private void DispatchPointerPressed(PointerRoutedEventArgs e)
+    {
+        if (_svg?.Svg is not { } skSvg || !TryGetPicturePoint(e.GetCurrentPoint(this).Position, out _))
+        {
+            ApplyNativeCursor(null);
+            return;
+        }
+
+        CapturePointer(e.Pointer);
+        var point = e.GetCurrentPoint(this);
+        var button = MapPointerUpdateKind(point.Properties.PointerUpdateKind);
+        var result = Interaction.DispatchPointerPressed(skSvg, CreatePointerInput(e, button, 1, 0));
+        e.Handled |= result.Handled;
+        ApplyNativeCursor(result.Cursor);
+    }
+
+    private void DispatchPointerReleased(PointerRoutedEventArgs e)
+    {
+        if (_svg?.Svg is not { } skSvg || !TryGetPicturePoint(e.GetCurrentPoint(this).Position, out _))
+        {
+            ApplyNativeCursor(null);
+            return;
+        }
+
+        var point = e.GetCurrentPoint(this);
+        var button = MapPointerUpdateKind(point.Properties.PointerUpdateKind);
+        var result = Interaction.DispatchPointerReleased(skSvg, CreatePointerInput(e, button, 1, 0));
+        e.Handled |= result.Handled;
+        ApplyNativeCursor(result.Cursor);
+        ReleasePointerCapture(e.Pointer);
+    }
+
+    private void DispatchPointerWheelChanged(PointerRoutedEventArgs e)
+    {
+        if (_svg?.Svg is not { } skSvg || !TryGetPicturePoint(e.GetCurrentPoint(this).Position, out _))
+        {
+            ApplyNativeCursor(null);
+            return;
+        }
+
+        var wheelDelta = e.GetCurrentPoint(this).Properties.MouseWheelDelta;
+        var result = Interaction.DispatchPointerWheelChanged(skSvg, CreatePointerInput(e, SvgMouseButton.None, 0, wheelDelta));
+        e.Handled |= result.Handled;
+        ApplyNativeCursor(result.Cursor);
+    }
+
+    private SvgPointerInput CreatePointerInput(PointerRoutedEventArgs e, SvgMouseButton button, int clickCount, int wheelDelta)
+    {
+        if (!TryGetPicturePoint(e.GetCurrentPoint(this).Position, out var picturePoint))
+        {
+            picturePoint = default;
+        }
+
+        return new SvgPointerInput(
+            picturePoint,
+            MapPointerType(e.Pointer.PointerDeviceType),
+            button,
+            clickCount,
+            wheelDelta,
+            e.KeyModifiers.HasFlag(VirtualKeyModifiers.Menu),
+            e.KeyModifiers.HasFlag(VirtualKeyModifiers.Shift),
+            e.KeyModifiers.HasFlag(VirtualKeyModifiers.Control),
+            e.Pointer.PointerId.ToString());
+    }
+
+    private static SvgPointerDeviceType MapPointerType(PointerDeviceType pointerType)
+    {
+        return pointerType switch
+        {
+            PointerDeviceType.Mouse => SvgPointerDeviceType.Mouse,
+            PointerDeviceType.Touch => SvgPointerDeviceType.Touch,
+            PointerDeviceType.Pen => SvgPointerDeviceType.Pen,
+            _ => SvgPointerDeviceType.Unknown
+        };
+    }
+
+    private static SvgMouseButton MapPointerUpdateKind(PointerUpdateKind updateKind)
+    {
+        return updateKind switch
+        {
+            PointerUpdateKind.LeftButtonPressed or PointerUpdateKind.LeftButtonReleased => SvgMouseButton.Left,
+            PointerUpdateKind.MiddleButtonPressed or PointerUpdateKind.MiddleButtonReleased => SvgMouseButton.Middle,
+            PointerUpdateKind.RightButtonPressed or PointerUpdateKind.RightButtonReleased => SvgMouseButton.Right,
+            PointerUpdateKind.XButton1Pressed or PointerUpdateKind.XButton1Released => SvgMouseButton.XButton1,
+            PointerUpdateKind.XButton2Pressed or PointerUpdateKind.XButton2Released => SvgMouseButton.XButton2,
+            _ => SvgMouseButton.None
+        };
+    }
+
+    private void ApplyNativeCursor(string? svgCursor)
+    {
+        ProtectedCursor = ResolveNativeCursor(svgCursor);
+    }
+
+    private static InputSystemCursor? ResolveNativeCursor(string? svgCursor)
+    {
+        return NormalizeSvgCursorKeyword(svgCursor) switch
+        {
+            null => null,
+            "auto" or "default" or "arrow" => s_arrowCursor,
+            "pointer" or "hand" => s_handCursor,
+            "text" or "ibeam" => s_iBeamCursor,
+            "crosshair" => s_crossCursor,
+            "help" => s_helpCursor,
+            "wait" => s_waitCursor,
+            "progress" => s_appStartingCursor,
+            "move" or "all-scroll" or "grab" or "grabbing" => s_sizeAllCursor,
+            "ew-resize" or "col-resize" or "e-resize" or "w-resize" => s_sizeWestEastCursor,
+            "ns-resize" or "row-resize" or "n-resize" or "s-resize" => s_sizeNorthSouthCursor,
+            "ne-resize" or "sw-resize" or "nesw-resize" => s_sizeNorthEastSouthWestCursor,
+            "nw-resize" or "se-resize" or "nwse-resize" => s_sizeNorthWestSouthEastCursor,
+            "not-allowed" or "no-drop" => s_universalNoCursor,
+            "up-arrow" => s_upArrowCursor,
+            _ => null
+        };
+    }
+
+    private static string? NormalizeSvgCursorKeyword(string? svgCursor)
+    {
+        var keyword = svgCursor ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(keyword))
+        {
+            return null;
+        }
+
+        keyword = keyword.Trim();
+        var fallbackSeparator = keyword.LastIndexOf(',');
+        if (fallbackSeparator >= 0 && fallbackSeparator < keyword.Length - 1)
+        {
+            keyword = keyword.Substring(fallbackSeparator + 1).Trim();
+        }
+
+        if (keyword.StartsWith("url(", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return string.Equals(keyword, "none", StringComparison.OrdinalIgnoreCase)
+            ? null
+            : keyword.ToLowerInvariant();
+    }
+
+    private void TrackAnimationSvg(SKSvg? skSvg)
+    {
+        if (ReferenceEquals(_trackedAnimationSvg, skSvg))
+        {
+            return;
+        }
+
+        ApplyNativeCursor(null);
+
+        if (_trackedAnimationSvg is { })
+        {
+            _trackedAnimationSvg.AnimationInvalidated -= OnAnimationInvalidated;
+        }
+
+        _trackedAnimationSvg = skSvg;
+
+        if (skSvg is { })
+        {
+            skSvg.AnimationInvalidated += OnAnimationInvalidated;
+        }
+
+        UpdateAnimationPlayback();
+    }
+
+    private SvgAnimationHostBackendCapabilities CreateAnimationBackendCapabilities()
+    {
+        var isHostReady = XamlRoot is not null && IsLoaded;
+        return new SvgAnimationHostBackendCapabilities(
+            isHostReady,
+            isHostReady && DispatcherQueue is not null,
+            isHostReady,
+            supportsNativeComposition: false);
+    }
+
+    private void UpdateAnimationPlayback()
+    {
+        if (DispatcherQueue is { HasThreadAccess: false } dispatcherQueue)
+        {
+            _ = dispatcherQueue.TryEnqueue(UpdateAnimationPlayback);
+            return;
+        }
+
+        StopAnimationPlaybackDrivers();
+
+        var capabilities = CreateAnimationBackendCapabilities();
+        var hasAnimations = _trackedAnimationSvg?.HasAnimations == true;
+        _animationBackendResolution = SvgAnimationHostBackendResolver.Resolve(AnimationBackend, capabilities, hasAnimations);
+
+        if (_trackedAnimationSvg is not { } skSvg)
+        {
+            return;
+        }
+
+        skSvg.AnimationMinimumRenderInterval = _animationBackendResolution.ActualBackend == SvgAnimationHostBackend.Manual
+            ? TimeSpan.Zero
+            : NormalizeAnimationFrameInterval(AnimationFrameInterval);
+
+        ResetAnimationPlaybackClock();
+
+        switch (_animationBackendResolution.ActualBackend)
+        {
+            case SvgAnimationHostBackend.DispatcherTimer:
+                {
+                    StartDispatcherTimer();
+                    break;
+                }
+            case SvgAnimationHostBackend.RenderLoop:
+                {
+                    StartRenderLoop();
+                    break;
+                }
+        }
+    }
+
+    private void StartDispatcherTimer()
+    {
+        if (DispatcherQueue is not { } dispatcherQueue)
+        {
+            return;
+        }
+
+        _animationDispatcherTimer ??= CreateAnimationDispatcherTimer(dispatcherQueue);
+        _animationDispatcherTimer.Interval = NormalizeAnimationFrameInterval(AnimationFrameInterval);
+        _animationDispatcherTimer.Start();
+    }
+
+    private void StartRenderLoop()
+    {
+        if (_animationRenderingSubscribed)
+        {
+            return;
+        }
+
+        CompositionTarget.Rendering += OnCompositionTargetRendering;
+        _animationRenderingSubscribed = true;
+    }
+
+    private DispatcherQueueTimer CreateAnimationDispatcherTimer(DispatcherQueue dispatcherQueue)
+    {
+        var timer = dispatcherQueue.CreateTimer();
+        timer.IsRepeating = true;
+        timer.Tick += OnAnimationDispatcherTimerTick;
+        return timer;
+    }
+
+    private void StopAnimationPlaybackDrivers()
+    {
+        if (_animationDispatcherTimer is { } dispatcherTimer)
+        {
+            dispatcherTimer.Stop();
+        }
+
+        if (_animationRenderingSubscribed)
+        {
+            CompositionTarget.Rendering -= OnCompositionTargetRendering;
+            _animationRenderingSubscribed = false;
+        }
+
+        if (_trackedAnimationSvg is { } skSvg)
+        {
+            skSvg.AnimationMinimumRenderInterval = TimeSpan.Zero;
+        }
+    }
+
+    private void OnAnimationDispatcherTimerTick(DispatcherQueueTimer sender, object args)
+    {
+        TickAnimationPlayback();
+    }
+
+    private void OnCompositionTargetRendering(object? sender, object args)
+    {
+        TickAnimationPlayback();
+    }
+
+    private void ResetAnimationPlaybackClock()
+    {
+        _animationPlaybackStopwatch.Restart();
+        _lastAnimationPlaybackTimestamp = TimeSpan.Zero;
+    }
+
+    private void TickAnimationPlayback()
+    {
+        if (_trackedAnimationSvg is not { HasAnimations: true } skSvg)
+        {
+            return;
+        }
+
+        var currentTimestamp = _animationPlaybackStopwatch.Elapsed;
+        var delta = currentTimestamp - _lastAnimationPlaybackTimestamp;
+        _lastAnimationPlaybackTimestamp = currentTimestamp;
+
+        var scaledDelta = ScaleAnimationDelta(delta, AnimationPlaybackRate);
+        if (scaledDelta > TimeSpan.Zero)
+        {
+            skSvg.AdvanceAnimation(scaledDelta);
+            return;
+        }
+
+        if (skSvg.HasPendingAnimationFrame)
+        {
+            skSvg.FlushPendingAnimationFrame();
+        }
+    }
+
+    private static TimeSpan NormalizeAnimationFrameInterval(TimeSpan interval)
+    {
+        return interval <= TimeSpan.Zero ? TimeSpan.FromMilliseconds(16) : interval;
+    }
+
+    private static double NormalizeAnimationPlaybackRate(double playbackRate)
+    {
+        return !IsFinite(playbackRate) || playbackRate < 0 ? 0 : playbackRate;
+    }
+
+    private static TimeSpan ScaleAnimationDelta(TimeSpan delta, double playbackRate)
+    {
+        if (delta <= TimeSpan.Zero || playbackRate <= 0 || !IsFinite(playbackRate))
+        {
+            return TimeSpan.Zero;
+        }
+
+        var scaledTicks = delta.Ticks * playbackRate;
+        if (double.IsNaN(scaledTicks))
+        {
+            return TimeSpan.Zero;
+        }
+
+        if (double.IsInfinity(scaledTicks) || scaledTicks >= long.MaxValue)
+        {
+            return TimeSpan.MaxValue;
+        }
+
+        return TimeSpan.FromTicks((long)Math.Round(scaledTicks, MidpointRounding.AwayFromZero));
+    }
+
+    private static bool IsFinite(double value)
+    {
+        return !double.IsNaN(value) && !double.IsInfinity(value);
+    }
+
+    private void OnAnimationInvalidated(object? sender, SvgAnimationFrameChangedEventArgs e)
+    {
+        if (DispatcherQueue is { } dispatcherQueue)
+        {
+            _ = dispatcherQueue.TryEnqueue(() =>
+            {
+                InvalidateMeasure();
+                InvalidateArrange();
+                Invalidate();
+            });
+            return;
+        }
+
+        InvalidateMeasure();
+        InvalidateArrange();
+        Invalidate();
+    }
 }

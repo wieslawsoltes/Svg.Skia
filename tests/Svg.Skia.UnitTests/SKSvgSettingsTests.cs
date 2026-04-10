@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+using SkiaSharp;
+using Svg.Skia.TypefaceProviders;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
 
@@ -6,6 +7,14 @@ namespace Svg.Skia.UnitTests;
 
 public class SKSvgSettingsTests : SvgUnitTest
 {
+    [Fact]
+    public void Defaults_EnableSvgFonts()
+    {
+        var settings = new SKSvgSettings();
+
+        Assert.True(settings.EnableSvgFonts);
+    }
+
     [Theory]
     [InlineData("Amiri", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
     [InlineData("Mplus 1p", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
@@ -51,5 +60,40 @@ public class SKSvgSettingsTests : SvgUnitTest
             Assert.Equal((int)fontWidth, expectedTypeface.FontWidth);
             Assert.Equal(fontStyle, expectedTypeface.FontSlant);
         }
+    }
+
+    [Fact]
+    public void Clone_PreservesEnableSvgFonts()
+    {
+        var svg = new SKSvg();
+        svg.Settings.EnableSvgFonts = true;
+
+        var clone = svg.Clone();
+
+        Assert.True(clone.Settings.EnableSvgFonts);
+    }
+
+    [Fact]
+    public void DefaultTypefaceProvider_AllowsExplicitDefaultFamilyRequest()
+    {
+        var provider = new DefaultTypefaceProvider();
+        var familyName = SKTypeface.Default.FamilyName;
+
+        using var typeface = provider.FromFamilyName(familyName, SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
+
+        Assert.NotNull(typeface);
+        Assert.Equal(familyName, typeface!.FamilyName);
+    }
+
+    [Fact]
+    public void FontManagerTypefaceProvider_AllowsExplicitDefaultFamilyRequest()
+    {
+        var provider = new FontManagerTypefaceProvider();
+        var familyName = SKTypeface.Default.FamilyName;
+
+        using var typeface = provider.FromFamilyName(familyName, SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
+
+        Assert.NotNull(typeface);
+        Assert.Equal(familyName, typeface!.FamilyName);
     }
 }

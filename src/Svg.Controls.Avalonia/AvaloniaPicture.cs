@@ -179,6 +179,17 @@ public sealed class AvaloniaPicture : IDisposable
                     }
                     break;
                 }
+            case DrawPictureCanvasCommand drawPictureCanvasCommand:
+                {
+                    if (drawPictureCanvasCommand.Picture?.Commands is { } nestedCommands)
+                    {
+                        foreach (var nestedCommand in nestedCommands)
+                        {
+                            RecordCommand(nestedCommand, commands);
+                        }
+                    }
+                    break;
+                }
             case DrawPathCanvasCommand drawPathCanvasCommand:
                 {
                     RecordPathCommand(drawPathCanvasCommand, commands);

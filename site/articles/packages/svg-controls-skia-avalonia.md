@@ -17,7 +17,8 @@ dotnet add package Svg.Controls.Skia.Avalonia
 - your Avalonia app already uses the Skia-backed rendering path,
 - you want `Svg`, `SvgImage`, `SvgSource`, and `SvgResource` in XAML,
 - you need control-coordinate hit testing,
-- you want zoom, pan, wireframe, filter toggles, or source reload support,
+- you want zoom, pan, wireframe, filter toggles, source reload support, or routed interaction,
+- you want host-driven SVG animation playback with optional retained native composition,
 - you want direct access to the underlying `Svg.Skia.SKSvg`.
 
 ## Main types
@@ -29,6 +30,7 @@ dotnet add package Svg.Controls.Skia.Avalonia
 | `Avalonia.Svg.Skia.SvgSource` | Reusable, cloneable, reloadable source object |
 | `SvgImageExtension` | Markup extension for concise XAML image usage |
 | `SvgResourceExtension` | Brush-producing markup extension for backgrounds and fills |
+| `Svg.Skia.SvgInteractionDispatcher` | Routed pointer helper exposed through `Svg.Interaction` |
 
 ## Basic XAML usage
 
@@ -88,9 +90,51 @@ The `Svg` control adds behavior that does not exist in the non-Skia Avalonia pac
 - `ZoomToPoint(...)`
 - `TryGetPicturePoint(...)`
 - `HitTestElements(...)`
+- `Interaction`
+- `AnimationBackend`
+- `AnimationFrameInterval`
+- `AnimationPlaybackRate`
+- `ActualAnimationBackend`
+- `AnimationBackendFallbackReason`
 - `SkSvg` access
 
 Those features make this package the better choice for editors, diagram viewers, and interactive inspection tools.
+
+## Animation playback and retained composition
+
+The Avalonia `Svg` control now hosts the shared `SKSvg` animation runtime.
+
+Available backends are:
+
+- `Default`
+- `Manual`
+- `DispatcherTimer`
+- `RenderLoop`
+- `NativeComposition`
+
+`Default` prefers `NativeComposition` when the host compositor and the loaded SVG can support the retained scene. If that path is unavailable, the control reports the resolved backend through `ActualAnimationBackend` and the reason through `AnimationBackendFallbackReason`.
+
+Example:
+
+```xml
+<svg:Svg Path="/Assets/animated.svg"
+         AnimationBackend="Default"
+         AnimationPlaybackRate="1"
+         AnimationFrameInterval="0:0:0.016" />
+```
+
+`NativeComposition` uses retained compositor child visuals for supported top-level SVG layers while still relying on the shared `SKSvg` animation runtime for timing and property evaluation.
+
+## Routed interaction
+
+The control exposes one shared `SvgInteractionDispatcher` instance through `Interaction`.
+
+That surface is useful when a host wants:
+
+- routed pointer notifications,
+- capture-aware move and release handling,
+- cursor hints,
+- optional compatibility bridging back into `SvgElement` mouse events.
 
 ## Hit testing in Avalonia coordinates
 
@@ -121,5 +165,6 @@ This is useful for icons, patterned surfaces, or backgrounds that should stay re
 
 - [XAML Overview](../xaml/overview)
 - [Svg Control and SvgImage](../xaml/svg-control-and-svgimage)
+- [Interaction and Animation](../guides/interaction-and-animation)
 - [SvgResource and Brushes](../xaml/svgresource-and-brushes)
 - [Styling and Previewer](../xaml/styling-and-previewer)

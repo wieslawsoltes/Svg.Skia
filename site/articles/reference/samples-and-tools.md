@@ -15,7 +15,7 @@ The `samples/` directory covers both end-user scenarios and repository-internal 
 - `AvaloniaControlsSample`: `SKCanvasControl`, `SKBitmapControl`, `SKPathControl`, and `SKPictureControl`.
 - `AvaloniaSKPictureImageSample`: `SKPictureImage` and animation examples.
 - `AvalonDraw`: larger sample application for SVG editing-oriented scenarios.
-- `TestApp`: extra Avalonia test host.
+- `TestApp`: extra Avalonia test host with animation-backend selection, playback-rate control, play, pause, restart, resolved-backend diagnostics, and native-composition verification.
 
 ## CLI and generation samples
 

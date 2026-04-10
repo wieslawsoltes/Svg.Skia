@@ -41,7 +41,7 @@ public partial class SymbolPickerView : SvgEditorDialogViewBase<SymbolSelectionR
         Cancel();
     }
 
-    private void SymbolList_OnGotFocus(object? sender, GotFocusEventArgs e)
+    private void SymbolList_OnGotFocus(object? sender, FocusChangedEventArgs e)
     {
         _symbolList.IsDropDownOpen = true;
     }

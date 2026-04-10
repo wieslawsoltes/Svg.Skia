@@ -13,7 +13,7 @@
             <DockPanel>
                 <TextBox x:Name="FilterTextBoxControl"
                          Margin="4"
-                         Watermark="Filter"
+                         PlaceholderText="Filter"
                          DockPanel.Dock="Top" />
                 <Grid>
                     <TreeView x:Name="DocumentTreeControl"

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using ShimSkiaSharp;
 using Xunit;
@@ -36,5 +37,19 @@ public class SKCanvasTests
         Assert.Equal(0, save.Count);
         var restore = Assert.IsType<RestoreCanvasCommand>(canvas.Commands![1]);
         Assert.Equal(0, restore.Count);
+    }
+
+    [Fact]
+    public void DrawPicture_RecordsCommand()
+    {
+        var canvas = CreateCanvas();
+        var picture = new SKPicture(
+            SKRect.Create(0, 0, 5, 5),
+            new List<CanvasCommand> { new SaveCanvasCommand(0) });
+
+        canvas.DrawPicture(picture);
+
+        var command = Assert.IsType<DrawPictureCanvasCommand>(canvas.Commands!.Single());
+        Assert.Same(picture, command.Picture);
     }
 }

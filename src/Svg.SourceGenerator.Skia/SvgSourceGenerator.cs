@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Svg.CodeGen.Skia;
 using Svg.Model.Services;
+using Svg.Skia;
 
 namespace Svg.SourceGenerator.Skia;
 
@@ -104,7 +105,7 @@ public class SvgSourceGenerator : IIncrementalGenerator
             var svgDocument = SvgService.FromSvg(svg!);
             if (svgDocument is { })
             {
-                var picture = SvgService.ToModel(svgDocument, s_assetLoader, out _, out _);
+                var picture = SvgSceneRuntime.CreateModel(svgDocument, s_assetLoader);
                 if (picture is { } && picture.Commands is { })
                 {
                     var code = SkiaCSharpCodeGen.Generate(picture, namespaceName!, className!);

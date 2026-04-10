@@ -3,5 +3,6 @@ guides:
   - {path: loading-svg-and-vectordrawable.md, title: "Loading Svg and VectorDrawable"}
   - {path: exporting-images-pdf-and-xps.md, title: "Exporting Images, Pdf, and Xps"}
   - {path: hit-testing-and-model-editing.md, title: "Hit Testing and Model Editing"}
+  - {path: interaction-and-animation.md, title: "Interaction and Animation"}
   - {path: cli-conversion.md, title: "CLI Conversion"}
   - {path: source-generator-and-svgc.md, title: "Source Generator and svgc"}

@@ -113,6 +113,25 @@ public class CloneCommandTests
     }
 
     [Fact]
+    public void CanvasCommand_DeepClone_ClonesDrawPicture()
+    {
+        var nestedPicture = new SKPicture(
+            SKRect.Create(0, 0, 10, 10),
+            new List<CanvasCommand>
+            {
+                new DrawPathCanvasCommand(CloneTestData.CreatePath(), CloneTestData.CreatePaint())
+            });
+        CanvasCommand command = new DrawPictureCanvasCommand(nestedPicture);
+
+        var clone = command.DeepClone();
+        var typed = Assert.IsType<DrawPictureCanvasCommand>(clone);
+
+        Assert.NotSame(nestedPicture, typed.Picture);
+        Assert.NotSame(nestedPicture.Commands, typed.Picture!.Commands);
+        Assert.IsType<DrawPathCanvasCommand>(typed.Picture.Commands![0]);
+    }
+
+    [Fact]
     public void CanvasCommand_DeepClone_ClonesDrawTextBlob()
     {
         var textBlob = CloneTestData.CreateTextBlob();

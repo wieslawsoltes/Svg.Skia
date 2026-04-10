@@ -45,6 +45,7 @@
     <ProjectReference Include="..\ShimSkiaSharp\ShimSkiaSharp.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Svg.SceneGraph\Svg.SceneGraph.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" PrivateAssets="all" />
   </ItemGroup>
 
@@ -55,6 +56,7 @@
     <None Include="..\ShimSkiaSharp\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\Svg.Custom\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\Svg.Model\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\Svg.SceneGraph\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\Svg.Skia\bin\$(Configuration)\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
@@ -69,6 +71,7 @@
       <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\ShimSkiaSharp\bin\$(Configuration)\netstandard2.0\ShimSkiaSharp.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Custom\bin\$(Configuration)\netstandard2.0\Svg.Custom.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Model\bin\$(Configuration)\netstandard2.0\Svg.Model.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.SceneGraph\bin\$(Configuration)\netstandard2.0\Svg.SceneGraph.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(MSBuildThisFileDirectory)\..\Svg.Skia\bin\$(Configuration)\netstandard2.0\Svg.Skia.dll" IncludeRuntimeDependency="false" />
     </ItemGroup>
   </Target>

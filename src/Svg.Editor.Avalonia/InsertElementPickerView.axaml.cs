@@ -41,7 +41,7 @@ public partial class InsertElementPickerView : SvgEditorDialogViewBase<InsertEle
         Cancel();
     }
 
-    private void ElementList_OnGotFocus(object? sender, GotFocusEventArgs e)
+    private void ElementList_OnGotFocus(object? sender, FocusChangedEventArgs e)
     {
         _elementList.IsDropDownOpen = true;
     }

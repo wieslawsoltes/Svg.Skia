@@ -29,6 +29,9 @@ public static class CanvasCommandVisitorExtensions
             case DrawImageCanvasCommand drawImage:
                 visitor.Visit(drawImage);
                 break;
+            case DrawPictureCanvasCommand drawPicture:
+                visitor.Visit(drawPicture);
+                break;
             case DrawPathCanvasCommand drawPath:
                 visitor.Visit(drawPath);
                 break;

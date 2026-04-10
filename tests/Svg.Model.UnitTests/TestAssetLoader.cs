@@ -7,6 +7,8 @@ namespace Svg.Model.UnitTests;
 
 internal sealed class TestAssetLoader : ISvgAssetLoader
 {
+    public bool EnableSvgFonts => false;
+
     public SKImage LoadImage(Stream stream)
         => new() { Data = SKImage.FromStream(stream) };
 

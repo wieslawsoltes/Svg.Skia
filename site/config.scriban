@@ -74,17 +74,19 @@ with api.dotnet
     }
     projects = [
         { name: "Svg.Skia", path: "../src/Svg.Skia/Svg.Skia.csproj" },
+        { name: "Svg.Animation", path: "../src/Svg.Animation/Svg.Animation.csproj" },
+        { name: "Svg.SceneGraph", path: "../src/Svg.SceneGraph/Svg.SceneGraph.csproj" },
         { name: "Svg.Model", path: "../src/Svg.Model/Svg.Model.csproj" },
         { name: "Svg.Custom", path: "../src/Svg.Custom/Svg.Custom.csproj" },
-        { name: "Svg.Controls.Avalonia", path: "../src/Svg.Controls.Avalonia/Svg.Controls.Avalonia.csproj" },
-        { name: "Svg.Controls.Skia.Avalonia", path: "../src/Svg.Controls.Skia.Avalonia/Svg.Controls.Skia.Avalonia.csproj" },
+        { name: "Svg.Controls.Avalonia", path: "../src/Svg.Controls.Avalonia/Svg.Controls.Avalonia.csproj", properties: { TargetFramework: "net8.0" } },
+        { name: "Svg.Controls.Skia.Avalonia", path: "../src/Svg.Controls.Skia.Avalonia/Svg.Controls.Skia.Avalonia.csproj", properties: { TargetFramework: "net8.0" } },
+        { name: "Skia.Controls.Avalonia", path: "../src/Skia.Controls.Avalonia/Skia.Controls.Avalonia.csproj", properties: { TargetFramework: "net8.0" } },
         { name: "Svg.Controls.Skia.Uno", path: "../src/Svg.Controls.Skia.Uno/Svg.Controls.Skia.Uno.csproj", properties: { TargetFramework: "net10.0" } },
-        { name: "Skia.Controls.Avalonia", path: "../src/Skia.Controls.Avalonia/Skia.Controls.Avalonia.csproj" },
         { name: "Svg.Editor.Core", path: "../src/Svg.Editor.Core/Svg.Editor.Core.csproj" },
         { name: "Svg.Editor.Svg", path: "../src/Svg.Editor.Svg/Svg.Editor.Svg.csproj" },
         { name: "Svg.Editor.Skia", path: "../src/Svg.Editor.Skia/Svg.Editor.Skia.csproj" },
-        { name: "Svg.Editor.Avalonia", path: "../src/Svg.Editor.Avalonia/Svg.Editor.Avalonia.csproj" },
-        { name: "Svg.Editor.Skia.Avalonia", path: "../src/Svg.Editor.Skia.Avalonia/Svg.Editor.Skia.Avalonia.csproj" },
+        { name: "Svg.Editor.Avalonia", path: "../src/Svg.Editor.Avalonia/Svg.Editor.Avalonia.csproj", properties: { TargetFramework: "net8.0" } },
+        { name: "Svg.Editor.Skia.Avalonia", path: "../src/Svg.Editor.Skia.Avalonia/Svg.Editor.Skia.Avalonia.csproj", properties: { TargetFramework: "net8.0" } },
         { name: "ShimSkiaSharp", path: "../src/ShimSkiaSharp/ShimSkiaSharp.csproj" },
         { name: "Svg.SourceGenerator.Skia", path: "../src/Svg.SourceGenerator.Skia/Svg.SourceGenerator.Skia.csproj" }
     ]

@@ -1,5 +1,6 @@
 using System.Linq;
 using ShimSkiaSharp;
+using ShimSkiaSharp.Editing;
 using Xunit;
 
 namespace Svg.Skia.UnitTests;
@@ -17,7 +18,7 @@ public class SKSvgRebuildFromModelTests
         var original = svg.Picture;
         Assert.NotNull(original);
 
-        var command = svg.Model?.Commands?.OfType<DrawPathCanvasCommand>().FirstOrDefault();
+        var command = svg.Model?.FindCommands<DrawPathCanvasCommand>().FirstOrDefault();
         Assert.NotNull(command);
 
         if (command?.Paint is { } paint)

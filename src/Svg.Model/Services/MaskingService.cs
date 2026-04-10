@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using ShimSkiaSharp;
-using Svg.Model.Drawables.Elements;
 
 namespace Svg.Model.Services;
 
@@ -12,10 +11,19 @@ internal static class MaskingService
 {
     internal static bool CanDraw(SvgVisualElement svgVisualElement, DrawAttributes ignoreAttributes)
     {
-        var visible = svgVisualElement.Visible;
-        var ignoreDisplay = ignoreAttributes.HasFlag(DrawAttributes.Display);
-        var display = ignoreDisplay || !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
-        return visible && display;
+        return IsVisible(svgVisualElement, ignoreAttributes) &&
+               IsDisplayRendered(svgVisualElement, ignoreAttributes);
+    }
+
+    internal static bool IsVisible(SvgVisualElement svgVisualElement, DrawAttributes ignoreAttributes)
+    {
+        return ignoreAttributes.HasFlag(DrawAttributes.Visibility) || svgVisualElement.Visible;
+    }
+
+    internal static bool IsDisplayRendered(SvgVisualElement svgVisualElement, DrawAttributes ignoreAttributes)
+    {
+        return ignoreAttributes.HasFlag(DrawAttributes.Display) ||
+               !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
     }
 
     private static SvgFillRule ToFillRule(SvgVisualElement svgVisualElement, SvgClipRule? svgClipPathClipRule)
@@ -405,16 +413,5 @@ internal static class MaskingService
             return skClipRect;
         }
         return default;
-    }
-
-    internal static MaskDrawable? GetSvgElementMask(SvgElement svgElement, SKRect skBounds, HashSet<Uri> uris, ISvgAssetLoader assetLoader, HashSet<Uri>? references)
-    {
-        var svgMaskRef = svgElement.GetUriElementReference<SvgMask>("mask", uris);
-        if (svgMaskRef?.Children is null)
-        {
-            return default;
-        }
-        var maskDrawable = MaskDrawable.Create(svgMaskRef, skBounds, null, assetLoader, references);
-        return maskDrawable;
     }
 }

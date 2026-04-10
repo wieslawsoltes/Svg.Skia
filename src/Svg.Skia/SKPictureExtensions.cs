@@ -8,7 +8,7 @@ public static class SKPictureExtensions
 {
     public static void Draw(this SkiaSharp.SKPicture skPicture, SkiaSharp.SKColor background, float scaleX, float scaleY, SkiaSharp.SKCanvas skCanvas)
     {
-        skCanvas.DrawColor(background);
+        skCanvas.Clear(background);
         skCanvas.Save();
         skCanvas.Scale(scaleX, scaleY);
         skCanvas.DrawPicture(skPicture);

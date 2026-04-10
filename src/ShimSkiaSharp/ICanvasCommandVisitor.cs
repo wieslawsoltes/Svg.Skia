@@ -9,6 +9,7 @@ public interface ICanvasCommandVisitor
     void Visit(ClipPathCanvasCommand cmd);
     void Visit(ClipRectCanvasCommand cmd);
     void Visit(DrawImageCanvasCommand cmd);
+    void Visit(DrawPictureCanvasCommand cmd);
     void Visit(DrawPathCanvasCommand cmd);
     void Visit(DrawTextBlobCanvasCommand cmd);
     void Visit(DrawTextCanvasCommand cmd);
