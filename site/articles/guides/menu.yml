@@ -1,8 +1,11 @@
 guides:
   - {path: readme.md, title: "Guides"}
-  - {path: loading-svg-and-vectordrawable.md, title: "Loading Svg and VectorDrawable"}
+  - {path: loading-svg-and-vectordrawable.md, title: "Loading SVG, SvgDocument, and VectorDrawable"}
+  - {path: svgdocument-handling-and-mutation.md, title: "SvgDocument Handling and Mutation"}
+  - {path: retained-scene-graph-usage.md, title: "Retained Scene Graph Usage"}
   - {path: exporting-images-pdf-and-xps.md, title: "Exporting Images, Pdf, and Xps"}
-  - {path: hit-testing-and-model-editing.md, title: "Hit Testing and Model Editing"}
+  - {path: hit-testing-and-model-editing.md, title: "Hit Testing and Scene Inspection"}
+  - {path: performance-and-retained-scene-refresh.md, title: "Performance and Retained-Scene Refresh"}
   - {path: interaction-and-animation.md, title: "Interaction and Animation"}
   - {path: cli-conversion.md, title: "CLI Conversion"}
   - {path: source-generator-and-svgc.md, title: "Source Generator and svgc"}

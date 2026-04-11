@@ -44,7 +44,7 @@ That makes `Svg.Custom` suitable for tooling that needs to parse, inspect, clone
 `SKSvg` still exposes the broad hit-test APIs:
 
 - `HitTestElements(...)`
-- `HitTestDrawables(...)`
+- `HitTestSceneNodes(...)`
 - `TryGetPicturePoint(...)`
 - `TryGetPictureRect(...)`
 
@@ -143,4 +143,4 @@ The repository also adds two practical validation paths for this work:
 - `tests/Svg.Skia.Benchmarks` measures the shared animation renderer and layered redraw behavior.
 - `samples/TestApp` exposes backend selection, playback rate, clock display, play, pause, and restart controls so you can exercise the runtime manually.
 
-For related lower-level guidance, see [Hit Testing and Model Editing](hit-testing-and-model-editing), [Svg.Skia](../packages/svg-skia), [Svg.Controls.Skia.Avalonia](../packages/svg-controls-skia-avalonia), and [Svg.Controls.Skia.Uno](../packages/svg-controls-skia-uno).
+For related lower-level guidance, see [Hit Testing and Scene Inspection](hit-testing-and-model-editing), [Svg.Skia](../packages/svg-skia), [Svg.Controls.Skia.Avalonia](../packages/svg-controls-skia-avalonia), and [Svg.Controls.Skia.Uno](../packages/svg-controls-skia-uno).

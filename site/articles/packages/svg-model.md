@@ -124,4 +124,4 @@ Use this interface directly when integrating the model layer into a new host env
 
 - [Package Architecture](../concepts/package-architecture)
 - [Picture Model and Rebuild](../concepts/picture-model-and-rebuild)
-- [Hit Testing and Model Editing](../guides/hit-testing-and-model-editing)
+- [Hit Testing and Scene Inspection](../guides/hit-testing-and-model-editing)

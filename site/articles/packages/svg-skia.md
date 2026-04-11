@@ -4,7 +4,7 @@ title: "Svg.Skia"
 
 # Svg.Skia
 
-`Svg.Skia` is the main runtime rendering package in this repository. It loads SVG content into a `SkiaSharp.SKPicture`, preserves the intermediate model and drawable tree, and adds export, interaction, hit-testing, and animation helpers around that workflow.
+`Svg.Skia` is the main runtime rendering package in this repository. It loads SVG content into a `SkiaSharp.SKPicture`, keeps the authored `SvgDocument`, retained `SvgSceneDocument`, and intermediate command model available, and adds export, interaction, hit-testing, and animation helpers around that workflow.
 
 ## Install
 
@@ -17,7 +17,7 @@ dotnet add package Svg.Skia
 - your application already uses `SkiaSharp`,
 - you need direct access to `SkiaSharp.SKPicture`,
 - you want runtime export to bitmap, pdf, or xps formats,
-- you need hit testing or model rebuild after editing,
+- you need retained-scene hit testing or DOM refresh after editing,
 - you need shared pointer routing or animation playback outside a UI-specific package,
 - you want Android `VectorDrawable` input support.
 
@@ -27,6 +27,7 @@ dotnet add package Svg.Skia
 | --- | --- |
 | `SKSvg` | Main load, render, save, hit-test, and rebuild entry point |
 | `SkiaModel` | Converts the intermediate `ShimSkiaSharp` model to real SkiaSharp objects |
+| `SvgSceneDocument` | Compiled retained scene used for hit testing, subtree rendering, and incremental refresh |
 | `SKSvgSettings` | Controls color-space and font-resolution behavior |
 | `ITypefaceProvider` | Plug-in point for custom typeface lookup |
 | `SkiaSvgAssetLoader` | `Svg.Model` asset-loader implementation for images and fonts |
@@ -38,8 +39,8 @@ dotnet add package Svg.Skia
 1. Create `SKSvg`.
 2. Load from file, stream, XML, string, or `SvgDocument`.
 3. Read `Picture` for drawing.
-4. Optionally inspect `Model` and `Drawable`.
-5. Save or rebuild after edits.
+4. Optionally inspect `SourceDocument`, `RetainedSceneGraph`, or `Model`.
+5. Save or refresh after edits.
 
 ## Load and draw
 
@@ -79,11 +80,12 @@ if (svg.Load("Assets/icon.svg") is not null)
 
 Use this package instead of a UI package when the output target is not an Avalonia control.
 
-## Hit testing and rebuild
+## Hit testing and refresh
 
-`SKSvg` keeps both the intermediate model and the drawable tree, which makes it the best runtime package for inspection-oriented scenarios.
+`SKSvg` keeps the authored document, retained scene graph, and intermediate model, which makes it the best runtime package for inspection-oriented scenarios.
 
 ```csharp
+using System;
 using System.Linq;
 using ShimSkiaSharp;
 using Svg.Skia;
@@ -93,18 +95,22 @@ using var svg = new SKSvg();
 if (svg.Load("Assets/icon.svg") is not null)
 {
     var hit = svg.HitTestElements(new SKPoint(24, 24)).FirstOrDefault();
+    var topmost = svg.HitTestTopmostElement(new SKPoint(24, 24));
     if (hit is not null)
     {
         Console.WriteLine(hit.ID);
     }
 
-    var rebuilt = svg.RebuildFromModel();
+    if (svg.TryGetRetainedSceneNodeById("layer-a", out var node) && node is not null)
+    {
+        using var subtreePicture = svg.CreateRetainedSceneNodePicture(node);
+    }
 }
 ```
 
-Use `TryGetPicturePoint` or `TryGetPictureRect` when the pointer coordinates come from a transformed canvas rather than picture space.
+Use `TryGetPicturePoint` or `TryGetPictureRect` when the pointer coordinates come from a transformed canvas rather than picture space. Use `TryApplyRetainedSceneMutationAndRender(...)` or `TryApplyRetainedSceneMutationByIdAndRender(...)` when a localized DOM edit should refresh the current `Picture` without a full `FromSvgDocument(...)` rebuild.
 
-For routed input targets, use `HitTestTopmostElement(...)` instead of `HitTestElements(...)`.
+For low-level command edits, mutate `Model` and call `RebuildFromModel()`.
 
 ## Shared interaction
 
@@ -185,8 +191,11 @@ Add custom `ITypefaceProvider` implementations when your application resolves fo
 
 ## Related docs
 
-- [Loading SVG and VectorDrawable](../guides/loading-svg-and-vectordrawable)
+- [Loading SVG, SvgDocument, and VectorDrawable](../guides/loading-svg-and-vectordrawable)
+- [SvgDocument Handling and Mutation](../guides/svgdocument-handling-and-mutation)
+- [Retained Scene Graph Usage](../guides/retained-scene-graph-usage)
 - [Exporting Images, PDF, and XPS](../guides/exporting-images-pdf-and-xps)
-- [Hit Testing and Model Editing](../guides/hit-testing-and-model-editing)
+- [Hit Testing and Scene Inspection](../guides/hit-testing-and-model-editing)
+- [Performance and Retained-Scene Refresh](../guides/performance-and-retained-scene-refresh)
 - [Interaction and Animation](../guides/interaction-and-animation)
 - [Android VectorDrawable Support](../advanced/android-vectordrawable-support)
