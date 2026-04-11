@@ -1,3 +1,4 @@
+using System;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
@@ -9,6 +10,11 @@ public static class Program
 {
     public static void Main(string[] args)
     {
+        if (SvgLoadPipelineProfiler.TryRun(args))
+        {
+            return;
+        }
+
         var config = DefaultConfig.Instance
             .AddDiagnoser(MemoryDiagnoser.Default)
             .AddJob(Job.ShortRun.WithId("ShortRun"));

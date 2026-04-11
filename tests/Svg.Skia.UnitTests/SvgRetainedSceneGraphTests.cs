@@ -1586,6 +1586,34 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void TryApplyRetainedSceneMutationByIdAndRender_RefreshesCurrentPicture()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(
+            "<svg width=\"80\" height=\"40\">" +
+            "  <rect id=\"rect-a\" x=\"10\" y=\"8\" width=\"24\" height=\"12\" fill=\"red\" />" +
+            "</svg>");
+
+        var sourceDocument = Assert.IsType<SvgDocument>(svg.RetainedSceneGraph!.SourceDocument);
+        var rect = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("rect-a"));
+        rect.Fill = new SvgColourServer(Color.BlueViolet);
+
+        var updated = svg.TryApplyRetainedSceneMutationByIdAndRender("rect-a", new[] { "fill" }, out var result);
+
+        Assert.True(updated);
+        Assert.NotNull(result);
+        Assert.True(result!.Succeeded);
+        Assert.Equal(1, result.CompilationRootCount);
+        Assert.NotNull(svg.Picture);
+
+        using var expectedSvg = new SKSvg();
+        expectedSvg.FromSvgDocument((SvgDocument)sourceDocument.DeepCopy());
+
+        Assert.NotNull(expectedSvg.Picture);
+        AssertPicturesEqual(expectedSvg, expectedSvg.Picture!, svg.Picture!);
+    }
+
+    [Fact]
     public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForMaskedRichTextDocument()
     {
         using var svg = new SKSvg();

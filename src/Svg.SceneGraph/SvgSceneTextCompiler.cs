@@ -246,7 +246,14 @@ internal static class SvgSceneTextCompiler
 
         var recorder = new SKPictureRecorder();
         var canvas = recorder.BeginRecording(cullRect);
-        DrawText(svgTextBase, viewport, ignoreAttributes | DrawAttributes.ClipPath | DrawAttributes.Mask | DrawAttributes.Opacity, canvas, assetLoader, references);
+        DrawText(
+            svgTextBase,
+            viewport,
+            ignoreAttributes | DrawAttributes.ClipPath | DrawAttributes.Mask | DrawAttributes.Opacity,
+            canvas,
+            assetLoader,
+            references,
+            geometryBounds);
         var localModel = recorder.EndRecording();
         node.LocalModel = localModel.Commands is { Count: > 0 } ? localModel : null;
 
@@ -275,7 +282,8 @@ internal static class SvgSceneTextCompiler
         DrawAttributes ignoreAttributes,
         SKCanvas canvas,
         ISvgAssetLoader assetLoader,
-        HashSet<Uri>? references)
+        HashSet<Uri>? references,
+        SKRect geometryBounds)
     {
         var xs = new List<float>();
         var ys = new List<float>();
@@ -291,7 +299,7 @@ internal static class SvgSceneTextCompiler
         var currentX = x;
         var currentY = y;
 
-        DrawTextBase(svgTextBase, ref currentX, ref currentY, viewport, ignoreAttributes, canvas, assetLoader, references, EstimateGeometryBounds(svgTextBase, viewport, assetLoader), inheritedRotationState: null, inheritedAbsolutePositionState: null, trimLeadingWhitespaceAtStart: true);
+        DrawTextBase(svgTextBase, ref currentX, ref currentY, viewport, ignoreAttributes, canvas, assetLoader, references, geometryBounds, inheritedRotationState: null, inheritedAbsolutePositionState: null, trimLeadingWhitespaceAtStart: true);
     }
 
     internal static SKPath? CreateClipPath(SvgTextBase svgTextBase, SKRect viewport, ISvgAssetLoader assetLoader)
