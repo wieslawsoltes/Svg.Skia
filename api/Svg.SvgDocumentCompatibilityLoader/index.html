@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="SvgDocumentCompatibilityLoader Class | Svg.Skia">
-<meta name="twitter:description" content="SvgDocumentCompatibilityLoader Class Definition Namespace Svg Assembly Svg.Custom.dll Inherits Object View source Show inherited members (7) System.Object.Equals(System.Object) System.Object.Equals(System.Object, System.Object) System.Object.GetHashCode() System.Object.GetType() System.Object.MemberwiseClone() System.Object.ReferenceEquals(System.Object, System.Object) System.Object.ToString() public static class SvgDocumentCompatibilityLoader Filter members: Tip: use kind:method, kind:property, kind:ctor. Press Esc to clear. Methods (4) FromSvg&lt;T>(String)...">
+<meta name="twitter:description" content="SvgDocumentCompatibilityLoader Class Definition Namespace Svg Assembly Svg.Custom.dll Inherits Object View source Show inherited members (7) System.Object.Equals(System.Object) System.Object.Equals(System.Object, System.Object) System.Object.GetHashCode() System.Object.GetType() System.Object.MemberwiseClone() System.Object.ReferenceEquals(System.Object, System.Object) System.Object.ToString() Browser-compatibility focused loader for Svg.Custom. The upstream loader is good enough for basic SVG parsing, but the Chrome-backed W3C rows showed two loader-specific gaps that matter before CSS can be applied correctly:...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="SvgDocumentCompatibilityLoader Class | Svg.Skia">
 <meta property="og:title" content="SvgDocumentCompatibilityLoader Class | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="SvgDocumentCompatibilityLoader Class Definition Namespace Svg Assembly Svg.Custom.dll Inherits Object View source Show inherited members (7) System.Object.Equals(System.Object) System.Object.Equals(System.Object, System.Object) System.Object.GetHashCode() System.Object.GetType() System.Object.MemberwiseClone() System.Object.ReferenceEquals(System.Object, System.Object) System.Object.ToString() public static class SvgDocumentCompatibilityLoader Filter members: Tip: use kind:method, kind:property, kind:ctor. Press Esc to clear. Methods (4) FromSvg&lt;T>(String)...">
+<meta property="og:description" content="SvgDocumentCompatibilityLoader Class Definition Namespace Svg Assembly Svg.Custom.dll Inherits Object View source Show inherited members (7) System.Object.Equals(System.Object) System.Object.Equals(System.Object, System.Object) System.Object.GetHashCode() System.Object.GetType() System.Object.MemberwiseClone() System.Object.ReferenceEquals(System.Object, System.Object) System.Object.ToString() Browser-compatibility focused loader for Svg.Custom. The upstream loader is good enough for basic SVG parsing, but the Chrome-backed W3C rows showed two loader-specific gaps that matter before CSS can be applied correctly:...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="SvgDocumentCompatibilityLoader Class | Svg.Skia">
   </head>
@@ -154,7 +154,7 @@
 <div><span class="api-dotnet-label">Inherits</span> <span class="api-dotnet-inline-list"><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object">Object</a></span></div>
 </div>
 <div class="api-dotnet-definition-actions">
-<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/src/Svg.Custom/Compatibility/SvgDocumentCompatibilityLoader.cs#L12" target="_blank" rel="noopener">View source</a>
+<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/src/Svg.Custom/Compatibility/SvgDocumentCompatibilityLoader.cs#L25" target="_blank" rel="noopener">View source</a>
 </div>
 </div>
 <details class="api-dotnet-inherited">
@@ -170,6 +170,18 @@
 </ul>
 </details>
 </div>
+<p>Browser-compatibility focused loader for Svg.Custom.</p>
+<p>The upstream loader is good enough for basic SVG parsing, but the Chrome-backed W3C rows showed
+two loader-specific gaps that matter before CSS can be applied correctly:</p>
+<ol>
+<li>relative stylesheet references need a stable document base URI, even when the SVG is opened
+through the convenience API and CSS is applied after parsing;</li>
+<li>the XML/tree-loading path needs to preserve the raw stylesheet text so the stricter
+browser-compatibility CSS pass can run after the document model is built.</li>
+</ol>
+<p>This class keeps the upstream XML tree construction shape and delegates the Chrome-aligned CSS
+policy to Svg.SvgCssCompatibilityProcessor once the raw style sources have been
+collected.</p>
 <pre><code class="language-csharp">public static class SvgDocumentCompatibilityLoader
 </code></pre>
 <div class="api-dotnet-member-filter" data-api-dotnet-filter>

@@ -155,7 +155,7 @@
 <div><span class="api-dotnet-label">Implements</span> <span class="api-dotnet-inline-list"><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IDictionary-2">IDictionary&lt;String, Object&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.ICollection-1">ICollection&lt;KeyValuePair&lt;String, Object&gt;&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IReadOnlyDictionary-2">IReadOnlyDictionary&lt;String, Object&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IReadOnlyCollection-1">IReadOnlyCollection&lt;KeyValuePair&lt;String, Object&gt;&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.Generic.IEnumerable-1">IEnumerable&lt;KeyValuePair&lt;String, Object&gt;&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.IDictionary">IDictionary</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.ICollection">ICollection</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Collections.IEnumerable">IEnumerable</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Runtime.Serialization.IDeserializationCallback">IDeserializationCallback</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Runtime.Serialization.ISerializable">ISerializable</a></span></div>
 </div>
 <div class="api-dotnet-definition-actions">
-<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/SVG/blob/05f48977768989cb889334eceb7804fbb822af0f/Source/SvgAttributeCollection.cs#L8" target="_blank" rel="noopener">View source</a>
+<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/src/Svg.Custom/SvgAttributeCollection.cs#L19" target="_blank" rel="noopener">View source</a>
 </div>
 </div>
 <details class="api-dotnet-inherited">
@@ -210,7 +210,16 @@
 </ul>
 </details>
 </div>
-<p>A collection of Scalable Vector Attributes that can be inherited from the owner elements ancestors.</p>
+<p>Svg.Custom override of the upstream attribute collection.</p>
+<p>The upstream implementation returns the exact same deferred paint server instance when an
+inheritable property such as <code>fill=&quot;currentColor&quot;</code> flows from a parent element to a
+child. That is usually fine for concrete colors, but it breaks once the deferred server has
+cached the parent's computed <code>color</code>: descendants that override <code>color</code> keep
+rendering with the parent's color instead of resolving <code>currentColor</code> for themselves.</p>
+<p>We keep the original inheritance logic intact and only clone inherited deferred
+<code>currentColor</code> paint servers. Direct properties, such as filter primitives with
+<code>lighting-color=&quot;currentColor&quot;</code>, still resolve against the element that declared the
+property, while inherited paint still gets a fresh per-consumer resolution context.</p>
 <pre><code class="language-csharp">public sealed class SvgAttributeCollection : Dictionary&lt;string, object&gt;, IDictionary&lt;string, object&gt;, ICollection&lt;KeyValuePair&lt;string, object&gt;&gt;, IReadOnlyDictionary&lt;string, object&gt;, IReadOnlyCollection&lt;KeyValuePair&lt;string, object&gt;&gt;, IEnumerable&lt;KeyValuePair&lt;string, object&gt;&gt;, IDictionary, ICollection, IEnumerable, IDeserializationCallback, ISerializable
 </code></pre>
 <div class="api-dotnet-member-filter" data-api-dotnet-filter>
@@ -223,20 +232,20 @@
 </div>
 <h2 id="constructors">Constructors <span class="api-dotnet-count">(1)</span></h2>
 <div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="constructors">
-<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Constructor"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.SvgAttributeCollection.-ctor-Svg.SvgElement/"><i class="bi bi-hammer api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SvgAttributeCollection(SvgElement)</code></a><span class="api-dotnet-member-summary">Initialises a new instance of a <a href="/Svg.Skia/api/Svg.SvgAttributeCollection/">SvgAttributeCollection</a> with the given <a href="/Svg.Skia/api/Svg.SvgElement/">SvgElement</a> as the owner.</span></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Constructor"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.SvgAttributeCollection.-ctor-Svg.SvgElement/"><i class="bi bi-hammer api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SvgAttributeCollection(SvgElement)</code></a></div>
 </div>
 <h2 id="properties">Properties <span class="api-dotnet-count">(1)</span></h2>
 <div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="properties">
-<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.SvgAttributeCollection.Item-System.String/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Item[String]</code></a><span class="api-dotnet-member-summary">Gets the attribute with the specified name.</span></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.SvgAttributeCollection.Item-System.String/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Item[String]</code></a></div>
 </div>
 <h2 id="methods">Methods <span class="api-dotnet-count">(2)</span></h2>
 <div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="methods">
-<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.SvgAttributeCollection.GetAttribute--1-System.String---0/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">GetAttribute&lt;TAttributeType&gt;(String, TAttributeType)</code></a><span class="api-dotnet-member-summary">Gets the attribute with the specified name.</span></div>
-<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.SvgAttributeCollection.GetInheritedAttribute--1-System.String-System.Boolean---0/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">GetInheritedAttribute&lt;TAttributeType&gt;(String, Boolean, TAttributeType)</code></a><span class="api-dotnet-member-summary">Gets the attribute with the specified name and inherits from ancestors if there is no attribute set.</span></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.SvgAttributeCollection.GetAttribute--1-System.String---0/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">GetAttribute&lt;TAttributeType&gt;(String, TAttributeType)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.SvgAttributeCollection.GetInheritedAttribute--1-System.String-System.Boolean---0/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">GetInheritedAttribute&lt;TAttributeType&gt;(String, Boolean, TAttributeType)</code></a></div>
 </div>
 <h2 id="events">Events <span class="api-dotnet-count">(1)</span></h2>
 <div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="events">
-<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Event"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.SvgAttributeCollection.AttributeChanged/"><i class="bi bi-bell api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">AttributeChanged</code></a><span class="api-dotnet-member-summary">Fired when an Atrribute has changed</span></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Event"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.SvgAttributeCollection.AttributeChanged/"><i class="bi bi-bell api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">AttributeChanged</code></a></div>
 </div>
 </div>
 
