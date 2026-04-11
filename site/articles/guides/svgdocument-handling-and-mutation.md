@@ -81,6 +81,7 @@ Avalonia exposes the same pattern through `SvgSource.ReLoad(...)`.
 
 ```csharp
 using Svg;
+using Svg.Model.Services;
 using Svg.Skia;
 
 var sharedDocument = SvgService.FromSvg("<svg width=\"10\" height=\"10\" />");

@@ -113,7 +113,7 @@ Not every mutation can stay incremental. If a call to `ApplyRetainedSceneMutatio
 ```csharp
 if (!svg.TryApplyRetainedSceneMutationByIdAndRender("root", new[] { "viewBox" }, out _))
 {
-    svg.FromSvgDocument(svg.SourceDocument);
+    svg.FromSvgDocument(scene.SourceDocument);
 }
 ```
 

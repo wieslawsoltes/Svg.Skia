@@ -192,7 +192,13 @@ public partial class SKSvg
         }
 
         result = sceneDocument.ApplyMutation(element, changedAttributes);
-        return result.Succeeded && RenderRetainedSceneDocument(sceneDocument);
+        if (!result.Succeeded)
+        {
+            return false;
+        }
+
+        DisableAnimationLayerCaching();
+        return RenderRetainedSceneDocument(sceneDocument);
     }
 
     public bool TryApplyRetainedSceneMutationAndRender(
@@ -207,7 +213,13 @@ public partial class SKSvg
         }
 
         result = sceneDocument.ApplyMutation(addressKey, changedAttributes);
-        return result.Succeeded && RenderRetainedSceneDocument(sceneDocument);
+        if (!result.Succeeded)
+        {
+            return false;
+        }
+
+        DisableAnimationLayerCaching();
+        return RenderRetainedSceneDocument(sceneDocument);
     }
 
     public bool TryApplyRetainedSceneMutationByIdAndRender(
@@ -222,7 +234,13 @@ public partial class SKSvg
         }
 
         result = sceneDocument.ApplyMutationById(id, changedAttributes);
-        return result.Succeeded && RenderRetainedSceneDocument(sceneDocument);
+        if (!result.Succeeded)
+        {
+            return false;
+        }
+
+        DisableAnimationLayerCaching();
+        return RenderRetainedSceneDocument(sceneDocument);
     }
 
     public SKPicture? CreateRetainedSceneNodeModel(SvgSceneNode node, SKRect? clip = null)

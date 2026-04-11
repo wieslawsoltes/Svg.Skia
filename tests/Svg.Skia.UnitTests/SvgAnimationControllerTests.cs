@@ -189,6 +189,35 @@ public class SvgAnimationControllerTests
     }
 
     [Fact]
+    public void TryApplyRetainedSceneMutationByIdAndRender_DisablesAnimationLayerCachingBeforeDraw()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(TopLevelLayeredAnimationSvg);
+
+        Assert.True(svg.HasAnimations);
+        Assert.True(svg.UsesAnimationLayerCaching);
+
+        var sourceDocument = GetRenderedDocument(svg);
+        var staticRect = sourceDocument.GetElementById<SvgRectangle>("static");
+        Assert.NotNull(staticRect);
+        staticRect!.Fill = new SvgColourServer(System.Drawing.Color.Lime);
+
+        var updated = svg.TryApplyRetainedSceneMutationByIdAndRender("static", new[] { "fill" }, out var result);
+
+        Assert.True(updated);
+        Assert.NotNull(result);
+        Assert.True(result!.Succeeded);
+        Assert.False(svg.UsesAnimationLayerCaching);
+
+        using var bitmap = DrawBitmap(svg);
+        var pixel = bitmap.GetPixel(2, 2);
+        Assert.True(pixel.Alpha > 200);
+        Assert.True(pixel.Red < 80);
+        Assert.True(pixel.Green > 200);
+        Assert.True(pixel.Blue < 80);
+    }
+
+    [Fact]
     public void SetAnimationTime_RebuildsInheritedStrokeAnimationsUnderLayerCaching()
     {
         using var svg = new SKSvg();
@@ -1561,6 +1590,18 @@ public class SvgAnimationControllerTests
             svg.Settings.Srgb);
 
         return Assert.IsType<SkiaBitmap>(bitmap);
+    }
+
+    private static SkiaBitmap DrawBitmap(SKSvg svg)
+    {
+        Assert.NotNull(svg.Picture);
+        var width = Math.Max(1, (int)Math.Ceiling(svg.Picture!.CullRect.Width));
+        var height = Math.Max(1, (int)Math.Ceiling(svg.Picture!.CullRect.Height));
+        var bitmap = new SkiaBitmap(new SkiaSharp.SKImageInfo(width, height, SkiaColorType.Rgba8888, SkiaAlphaType.Unpremul, svg.Settings.Srgb));
+        using var canvas = new SkiaSharp.SKCanvas(bitmap);
+        canvas.Clear(SkiaColors.Transparent);
+        svg.Draw(canvas);
+        return bitmap;
     }
 
     private static string GetBitmapSignature(SkiaBitmap bitmap)

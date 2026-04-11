@@ -46,11 +46,14 @@ internal static class SvgLoadPipelineProfiler
             throw new FileNotFoundException("SVG file not found.", path);
         }
 
+        var absolutePath = Path.GetFullPath(path);
+        var fileUri = new Uri(absolutePath);
         var svgText = File.ReadAllText(path);
         var fileInfo = new FileInfo(path);
         var stageSkiaModel = new SkiaModel(new SKSvgSettings());
         var stageAssetLoader = new SkiaSvgAssetLoader(stageSkiaModel);
         var parsedDocument = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svgText);
+        parsedDocument.BaseUri = fileUri;
         if (!SvgSceneRuntime.TryCompile(parsedDocument, stageAssetLoader, DrawAttributes.None, out var compiledScene) ||
             compiledScene is null)
         {
@@ -74,7 +77,7 @@ internal static class SvgLoadPipelineProfiler
         Console.WriteLine($"Iterations: {iterations} (warmup {warmupIterations})");
         Console.WriteLine();
 
-        Warmup(svgText, warmupIterations);
+        Warmup(svgText, fileUri, warmupIterations);
 
         var results = new List<ProfileResult>
         {
@@ -129,7 +132,7 @@ internal static class SvgLoadPipelineProfiler
                 var bytes = Encoding.UTF8.GetBytes(svgText);
                 using var stream = new MemoryStream(bytes);
                 using var svg = new SKSvg();
-                using var picture = svg.Load(stream);
+                using var picture = svg.Load(stream, parameters: null, baseUri: fileUri);
                 return ProfileSample.From(scope, picture?.CullRect.Height ?? 0f);
             }),
             Measure("Mutate + full FromSvgDocument rebuild", iterations, () =>
@@ -146,7 +149,7 @@ internal static class SvgLoadPipelineProfiler
                 using var scope = ThreadAllocationScope.Start();
                 using var svg = new SKSvg();
                 svg.FromSvg(svgText);
-                var changedElement = MutateFirstVisualFill(svg.SourceDocument);
+                var changedElement = MutateFirstVisualFill(svg.RetainedSceneGraph?.SourceDocument);
                 SvgSceneMutationResult? result = null;
                 var updated = changedElement is not null &&
                               svg.TryApplyRetainedSceneMutationAndRender(changedElement, new[] { "fill" }, out result);
@@ -157,12 +160,14 @@ internal static class SvgLoadPipelineProfiler
         PrintSummary(results);
     }
 
-    private static void Warmup(string svgText, int iterations)
+    private static void Warmup(string svgText, Uri baseUri, int iterations)
     {
         for (var i = 0; i < iterations; i++)
         {
+            var bytes = Encoding.UTF8.GetBytes(svgText);
+            using var stream = new MemoryStream(bytes);
             using var svg = new SKSvg();
-            svg.FromSvg(svgText);
+            svg.Load(stream, parameters: null, baseUri: baseUri);
             using var bitmap = svg.Picture?.ToBitmap(SKColors.Transparent, 1f, 1f, SKColorType.Rgba8888, SKAlphaType.Premul, svg.Settings.Srgb);
         }
     }
