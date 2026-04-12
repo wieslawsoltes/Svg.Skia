@@ -12,7 +12,7 @@ using Svg.Model.Services;
 
 namespace Svg.Skia;
 
-internal static class SvgSceneTextCompiler
+internal static partial class SvgSceneTextCompiler
 {
     private static readonly Regex s_multipleSpaces = new(@" {2,}", RegexOptions.Compiled);
     private static readonly Regex s_numberPrefix = new(@"^[+-]?(?:(?:\d+\.\d*)|(?:\d+)|(?:\.\d+))(?:[eE][+-]?\d+)?", RegexOptions.Compiled);

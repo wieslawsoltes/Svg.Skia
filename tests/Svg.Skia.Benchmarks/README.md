@@ -25,6 +25,14 @@ BenchmarkDotNet results are emitted under `artifacts/benchmarks/` as HTML and Gi
   - `SplitCodepoints(...)` across real text fragments
   - `MeasureNaturalTextAdvance(...)` across real text fragments
   - `MeasureNaturalCodepointAdvances(...)` across real text fragments
+- `SvgAlignedTextPlacementBenchmarks`
+  - direct `TryCreateAlignedCodepointPlacements(...)` runs across aligned-spacing and text-length scenarios
+- `SvgTextPathPlacementBenchmarks`
+  - `textPath` geometry resolution
+  - prepared `textPath` placement input creation
+  - midpoint lookup over precomputed glyph offsets
+  - final placement emission from resolved midpoints
+  - direct `TryCreateTextPathCodepointPlacements(...)` runs from prebuilt path geometry
 - `SvgShimPictureModelBenchmarks`
   - full retained-scene model materialization
   - top-level node and leaf node model materialization
@@ -66,6 +74,8 @@ dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.cs
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextAssetLoaderBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*"
+dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgAlignedTextPlacementBenchmarks*"
+dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextPathPlacementBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgShimPictureModelBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRenderBitmapBenchmarks*"
