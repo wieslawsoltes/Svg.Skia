@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using ShimSkiaSharp;
 using ShimSkiaSharp.Editing;
@@ -124,6 +126,84 @@ public class SKSvgRebuildFromModelTests
         Assert.Equal(new SkiaColor(0, 0, 0, 255), rebuiltBitmap.GetPixel(5, 5));
     }
 
+    [Fact]
+    public void ToSKPicture_ReflectsInPlaceMutatedImageDataAfterInitialNativeBuild()
+    {
+        var initialData = CreateEncodedSolidBitmap(new SkiaColor(255, 0, 0, 255));
+        var mutatedData = CreateEncodedSolidBitmap(new SkiaColor(0, 0, 255, 255));
+        Assert.Equal(mutatedData.Length, initialData.Length);
+
+        var image = new ShimSkiaSharp.SKImage
+        {
+            Data = initialData,
+            Width = 1,
+            Height = 1
+        };
+        var picture = new ShimSkiaSharp.SKPicture(
+            ShimSkiaSharp.SKRect.Create(0, 0, 1, 1),
+            new CanvasCommand[]
+            {
+                new DrawImageCanvasCommand(
+                    image,
+                    ShimSkiaSharp.SKRect.Create(0, 0, 1, 1),
+                    ShimSkiaSharp.SKRect.Create(0, 0, 1, 1))
+            });
+        var skiaModel = new SkiaModel(new SKSvgSettings());
+
+        using var originalPicture = skiaModel.ToSKPicture(picture);
+        using var originalBitmap = RenderBitmap(Assert.IsType<SkiaPicture>(originalPicture));
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), originalBitmap.GetPixel(0, 0));
+
+        Array.Copy(mutatedData, initialData, initialData.Length);
+
+        using var rebuiltPicture = skiaModel.ToSKPicture(picture);
+        using var rebuiltBitmap = RenderBitmap(Assert.IsType<SkiaPicture>(rebuiltPicture));
+        Assert.Equal(new SkiaColor(0, 0, 255, 255), rebuiltBitmap.GetPixel(0, 0));
+    }
+
+    [Fact]
+    public void ToSKPicture_ReflectsInPlaceMutatedPolyPointsAfterInitialNativeBuild()
+    {
+        var points = new List<ShimSkiaSharp.SKPoint>
+        {
+            new(0f, 0f),
+            new(4f, 0f),
+            new(4f, 10f),
+            new(0f, 10f)
+        };
+        var path = new ShimSkiaSharp.SKPath();
+        path.Commands!.Add(new AddPolyPathCommand(points, true));
+
+        var picture = new ShimSkiaSharp.SKPicture(
+            ShimSkiaSharp.SKRect.Create(0, 0, 10, 10),
+            new CanvasCommand[]
+            {
+                new DrawPathCanvasCommand(
+                    path,
+                    new ShimSkiaSharp.SKPaint
+                    {
+                        Style = ShimSkiaSharp.SKPaintStyle.Fill,
+                        Color = new ShimSkiaSharp.SKColor(255, 0, 0, 255)
+                    })
+            });
+        var skiaModel = new SkiaModel(new SKSvgSettings());
+
+        using var originalPicture = skiaModel.ToSKPicture(picture);
+        using var originalBitmap = RenderBitmap(Assert.IsType<SkiaPicture>(originalPicture));
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), originalBitmap.GetPixel(2, 5));
+        Assert.Equal(SKColors.White, originalBitmap.GetPixel(8, 5));
+
+        points[0] = new ShimSkiaSharp.SKPoint(6f, 0f);
+        points[1] = new ShimSkiaSharp.SKPoint(10f, 0f);
+        points[2] = new ShimSkiaSharp.SKPoint(10f, 10f);
+        points[3] = new ShimSkiaSharp.SKPoint(6f, 10f);
+
+        using var rebuiltPicture = skiaModel.ToSKPicture(picture);
+        using var rebuiltBitmap = RenderBitmap(Assert.IsType<SkiaPicture>(rebuiltPicture));
+        Assert.Equal(SKColors.White, rebuiltBitmap.GetPixel(2, 5));
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), rebuiltBitmap.GetPixel(8, 5));
+    }
+
     private static SkiaBitmap RenderBitmap(SkiaPicture picture)
     {
         var bitmap = picture.ToBitmap(
@@ -135,5 +215,32 @@ public class SKSvgRebuildFromModelTests
             SkiaColorSpace.CreateSrgb());
 
         return Assert.IsType<SkiaBitmap>(bitmap);
+    }
+
+    private static byte[] CreateEncodedSolidBitmap(SkiaColor color)
+    {
+        return new byte[]
+        {
+            0x42, 0x4D,
+            0x3A, 0x00, 0x00, 0x00,
+            0x00, 0x00,
+            0x00, 0x00,
+            0x36, 0x00, 0x00, 0x00,
+            0x28, 0x00, 0x00, 0x00,
+            0x01, 0x00, 0x00, 0x00,
+            0x01, 0x00, 0x00, 0x00,
+            0x01, 0x00,
+            0x20, 0x00,
+            0x00, 0x00, 0x00, 0x00,
+            0x04, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00,
+            color.Blue,
+            color.Green,
+            color.Red,
+            color.Alpha
+        };
     }
 }

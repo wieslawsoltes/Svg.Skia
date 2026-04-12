@@ -173,25 +173,25 @@ public partial class SkiaModel
 
     private sealed class NativePathCacheEntry
     {
-        public NativePathCacheEntry(int version, SkiaSharp.SKPath path)
+        public NativePathCacheEntry(int revision, SkiaSharp.SKPath path)
         {
-            Version = version;
+            Revision = revision;
             Path = path;
         }
 
-        public int Version { get; }
+        public int Revision { get; }
         public SkiaSharp.SKPath Path { get; }
     }
 
     private sealed class NativeImageCacheEntry
     {
-        public NativeImageCacheEntry(int version, SkiaSharp.SKImage image)
+        public NativeImageCacheEntry(int revision, SkiaSharp.SKImage image)
         {
-            Version = version;
+            Revision = revision;
             Image = image;
         }
 
-        public int Version { get; }
+        public int Revision { get; }
         public SkiaSharp.SKImage Image { get; }
     }
 
@@ -282,6 +282,73 @@ public partial class SkiaModel
         {
             hash.Add(values[i]);
         }
+    }
+
+    private static void AddBytes(ref RevisionBuilder hash, byte[]? bytes)
+    {
+        if (bytes is null)
+        {
+            hash.Add(0);
+            return;
+        }
+
+        hash.Add(bytes.Length);
+        for (var i = 0; i < bytes.Length; i++)
+        {
+            hash.Add(bytes[i]);
+        }
+    }
+
+    private static void AddPoints(ref RevisionBuilder hash, IList<SKPoint>? points)
+    {
+        if (points is null)
+        {
+            hash.Add(0);
+            return;
+        }
+
+        hash.Add(points.Count);
+        for (var i = 0; i < points.Count; i++)
+        {
+            hash.Add(points[i].X);
+            hash.Add(points[i].Y);
+        }
+    }
+
+    private static int GetPathRevision(ShimSkiaSharp.SKPath path)
+    {
+        var hash = new RevisionBuilder();
+        hash.Add(path.Version);
+
+        var commands = path.Commands;
+        if (commands is null)
+        {
+            hash.Add(0);
+            return hash.ToRevision();
+        }
+
+        hash.Add(commands.Count);
+        for (var i = 0; i < commands.Count; i++)
+        {
+            if (commands[i] is AddPolyPathCommand addPolyPathCommand)
+            {
+                hash.Add(i);
+                hash.Add(addPolyPathCommand.Close);
+                AddPoints(ref hash, addPolyPathCommand.Points);
+            }
+        }
+
+        return hash.ToRevision();
+    }
+
+    private static int GetImageRevision(ShimSkiaSharp.SKImage image)
+    {
+        var hash = new RevisionBuilder();
+        hash.Add(image.Version);
+        hash.Add(image.Width);
+        hash.Add(image.Height);
+        AddBytes(ref hash, image.Data);
+        return hash.ToRevision();
     }
 
     private static HashSet<object> CreateVisitedSet()
@@ -1007,10 +1074,12 @@ public partial class SkiaModel
             return null;
         }
 
+        var revision = GetPathRevision(path);
+
         lock (_nativeObjectCacheLock)
         {
             if (_nativePathCache.TryGetValue(path, out var cached) &&
-                cached.Version == path.Version &&
+                cached.Revision == revision &&
                 cached.Path.Handle != IntPtr.Zero)
             {
                 return cached.Path;
@@ -1018,7 +1087,7 @@ public partial class SkiaModel
 
             var created = ToSKPath(path);
             _nativePathCache.Remove(path);
-            _nativePathCache.Add(path, new NativePathCacheEntry(path.Version, created));
+            _nativePathCache.Add(path, new NativePathCacheEntry(revision, created));
             return created;
         }
     }
@@ -1030,10 +1099,12 @@ public partial class SkiaModel
             return null;
         }
 
+        var revision = GetImageRevision(image);
+
         lock (_nativeObjectCacheLock)
         {
             if (_nativeImageCache.TryGetValue(image, out var cached) &&
-                cached.Version == image.Version &&
+                cached.Revision == revision &&
                 cached.Image.Handle != IntPtr.Zero)
             {
                 return cached.Image;
@@ -1041,7 +1112,7 @@ public partial class SkiaModel
 
             var created = ToSKImage(image);
             _nativeImageCache.Remove(image);
-            _nativeImageCache.Add(image, new NativeImageCacheEntry(image.Version, created));
+            _nativeImageCache.Add(image, new NativeImageCacheEntry(revision, created));
             return created;
         }
     }
