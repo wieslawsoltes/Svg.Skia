@@ -2226,13 +2226,22 @@ public static class SvgSceneCompiler
         }
 
         FinalizeDirectStructuralBounds(root, SKMatrix.Identity);
-        return new SvgSceneDocument(
+        var sceneDocument = new SvgSceneDocument(
             owner.OwnerDocument,
             GetEffectiveDocumentCullRect(cullRect, root),
             viewport,
             root,
             assetLoader,
             ignoreAttributes);
+
+        // Temporary pattern scenes use a synthetic root opacity that should not be
+        // replaced by the owner's own element opacity during scene-document initialization.
+        root.Opacity = SvgScenePaintingService.GetOpacityPaint(opacity);
+        root.OpacityValue = ignoreAttributes.HasFlag(DrawAttributes.Opacity)
+            ? 1f
+            : SvgScenePaintingService.AdjustSvgOpacity(opacity);
+
+        return sceneDocument;
     }
 
     private static HashSet<Uri>? CreateReferences(SvgElement element)

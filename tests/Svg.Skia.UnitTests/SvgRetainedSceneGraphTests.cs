@@ -13,9 +13,9 @@ using Svg.FilterEffects;
 using Svg.Model.Services;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
-using SkiaColor = SkiaSharp.SKColor;
 using SkiaAlphaType = SkiaSharp.SKAlphaType;
 using SkiaBitmap = SkiaSharp.SKBitmap;
+using SkiaColor = SkiaSharp.SKColor;
 using SkiaColors = SkiaSharp.SKColors;
 using SkiaColorType = SkiaSharp.SKColorType;
 
