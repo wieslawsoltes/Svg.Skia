@@ -17,6 +17,10 @@ BenchmarkDotNet results are emitted under `artifacts/benchmarks/` as HTML and Gi
   - full retained-scene compile
   - node-tree compile only
   - index/resource/dependency/runtime-payload rebuild sub-stages
+- `SvgPathConversionBenchmarks`
+  - direct `PathingService.ToPath(...)` conversion across real document paths
+  - split between `<path>` geometry and primitive shape geometry
+  - external SVG scenarios such as `solar battery.svg`
 - `SvgTextAssetLoaderBenchmarks`
   - repeated and sequence `MeasureText(...)` runs
   - repeated and sequence `FindTypefaces(...)` runs
@@ -72,6 +76,7 @@ dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.cs
 ```bash
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgXmlDomParseBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*"
+dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgPathConversionBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextAssetLoaderBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgAlignedTextPlacementBenchmarks*"

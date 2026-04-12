@@ -168,7 +168,10 @@ internal static class PathingService
         var haveFigure = false;
         var start = System.Drawing.PointF.Empty;
         var prevMove = start;
-        var points = new List<System.Drawing.PointF>();
+        var lastCubicSecondControlPoint = System.Drawing.PointF.Empty;
+        var hasLastCubicSecondControlPoint = false;
+        var lastQuadraticControlPoint = System.Drawing.PointF.Empty;
+        var hasLastQuadraticControlPoint = false;
 
         for (var i = 0; i < svgPathSegmentList.Count; i++)
         {
@@ -195,6 +198,8 @@ internal static class PathingService
                         skPath.MoveTo(end.X, end.Y);
                         start = end;
                         prevMove = end;
+                        hasLastCubicSecondControlPoint = false;
+                        hasLastQuadraticControlPoint = false;
                         break;
                     }
                 case SvgLineSegment svgLineSegment:
@@ -206,9 +211,9 @@ internal static class PathingService
                         haveFigure = true;
                         var end = ToAbsolute(svgLineSegment.End, svgLineSegment.IsRelative, start);
                         skPath.LineTo(end.X, end.Y);
-                        points.Add(start);
-                        points.Add(end);
                         start = end;
+                        hasLastCubicSecondControlPoint = false;
+                        hasLastQuadraticControlPoint = false;
                         break;
                     }
                 case SvgCubicCurveSegment svgCubicCurveSegment:
@@ -222,11 +227,9 @@ internal static class PathingService
                         var firstControlPoint = svgCubicCurveSegment.FirstControlPoint;
                         if (float.IsNaN(firstControlPoint.X) || float.IsNaN(firstControlPoint.Y))
                         {
-                            var prev = svgPathSegmentList.IndexOf(svgCubicCurveSegment) - 1;
-                            if (prev >= 0 && svgPathSegmentList[prev] is SvgCubicCurveSegment)
+                            if (hasLastCubicSecondControlPoint)
                             {
-                                var prevSecondControlPoint = points[points.Count - 2];
-                                firstControlPoint = Reflect(new System.Drawing.PointF(prevSecondControlPoint.X, prevSecondControlPoint.Y), start);
+                                firstControlPoint = Reflect(lastCubicSecondControlPoint, start);
                             }
                             else
                             {
@@ -242,11 +245,10 @@ internal static class PathingService
                         var first = firstControlPoint;
                         var second = ToAbsolute(svgCubicCurveSegment.SecondControlPoint, svgCubicCurveSegment.IsRelative, start);
                         skPath.CubicTo(first.X, first.Y, second.X, second.Y, end.X, end.Y);
-                        points.Add(start);
-                        points.Add(first);
-                        points.Add(second);
-                        points.Add(end);
                         start = end;
+                        lastCubicSecondControlPoint = second;
+                        hasLastCubicSecondControlPoint = true;
+                        hasLastQuadraticControlPoint = false;
                         break;
                     }
                 case SvgQuadraticCurveSegment svgQuadraticCurveSegment:
@@ -260,11 +262,9 @@ internal static class PathingService
                         var controlPoint = svgQuadraticCurveSegment.ControlPoint;
                         if (float.IsNaN(controlPoint.X) || float.IsNaN(controlPoint.Y))
                         {
-                            var prev = svgPathSegmentList.IndexOf(svgQuadraticCurveSegment) - 1;
-                            if (prev >= 0 && svgPathSegmentList[prev] is SvgQuadraticCurveSegment)
+                            if (hasLastQuadraticControlPoint)
                             {
-                                var prevControlPoint = points[points.Count - 2];
-                                controlPoint = Reflect(new System.Drawing.PointF(prevControlPoint.X, prevControlPoint.Y), start);
+                                controlPoint = Reflect(lastQuadraticControlPoint, start);
                             }
                             else
                             {
@@ -279,10 +279,10 @@ internal static class PathingService
                         var end = ToAbsolute(svgQuadraticCurveSegment.End, svgQuadraticCurveSegment.IsRelative, start);
 
                         skPath.QuadTo(controlPoint.X, controlPoint.Y, end.X, end.Y);
-                        points.Add(start);
-                        points.Add(controlPoint);
-                        points.Add(end);
                         start = end;
+                        lastQuadraticControlPoint = controlPoint;
+                        hasLastQuadraticControlPoint = true;
+                        hasLastCubicSecondControlPoint = false;
                         break;
                     }
                 case SvgArcSegment svgArcSegment:
@@ -299,9 +299,9 @@ internal static class PathingService
                         var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
                         var end = ToAbsolute(svgArcSegment.End, svgArcSegment.IsRelative, start);
                         skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, end.X, end.Y);
-                        points.Add(start);
-                        points.Add(end);
                         start = end;
+                        hasLastCubicSecondControlPoint = false;
+                        hasLastQuadraticControlPoint = false;
                         break;
                     }
                 case SvgClosePathSegment _:
@@ -322,6 +322,8 @@ internal static class PathingService
                         haveFigure = false;
                         skPath.Close();
                         start = prevMove;
+                        hasLastCubicSecondControlPoint = false;
+                        hasLastQuadraticControlPoint = false;
                         break;
                     }
             }
