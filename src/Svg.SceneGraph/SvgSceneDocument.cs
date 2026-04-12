@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using ShimSkiaSharp;
 using Svg;
 using Svg.Model;
@@ -322,6 +323,17 @@ public sealed class SvgSceneDocument
 
     internal void RebuildIndexesAndDependencies()
     {
+        var addressKeyCache = new SvgElementAddressKeyCache();
+        ClearIndexesAndDependencies();
+        ReindexNodes();
+        RebuildResourceGraph(addressKeyCache);
+        RegisterNodeDependencies(addressKeyCache);
+        ResolveRuntimePayloads(addressKeyCache);
+        Revision++;
+    }
+
+    internal void ClearIndexesAndDependencies()
+    {
         _nodesByAddress.Clear();
         _nodesById.Clear();
         _compilationRootsByKey.Clear();
@@ -329,15 +341,9 @@ public sealed class SvgSceneDocument
         _resourcesByKey.Clear();
         _resourcesById.Clear();
         _resourcesByAddress.Clear();
-
-        ReindexNodes();
-        RebuildResourceGraph();
-        RegisterNodeDependencies();
-        ResolveRuntimePayloads();
-        Revision++;
     }
 
-    private void ReindexNodes()
+    internal void ReindexNodes()
     {
         foreach (var node in Traverse())
         {
@@ -364,127 +370,266 @@ public sealed class SvgSceneDocument
         }
     }
 
-    private void RebuildResourceGraph()
+    internal void RebuildResourceGraph(SvgElementAddressKeyCache addressKeyCache)
     {
         if (SourceDocument is null)
         {
             return;
         }
 
-        foreach (var element in TraverseElements(SourceDocument))
+        var activeResources = new List<SvgSceneResource>();
+        var pendingDependencyKeysByResource = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        var traversalStack = new Stack<(SvgElement Element, SvgSceneResource? ResourceToExit, bool IsExit)>();
+        traversalStack.Push((SourceDocument, null, false));
+
+        while (traversalStack.Count > 0)
         {
-            if (SvgSceneCompiler.TryGetResourceKind(element, out var resourceKind))
+            var frame = traversalStack.Pop();
+            if (frame.IsExit)
             {
-                var addressKey = SvgSceneCompiler.TryGetElementAddressKey(element);
-                if (string.IsNullOrWhiteSpace(addressKey))
+                if (frame.ResourceToExit is not null &&
+                    activeResources.Count > 0 &&
+                    ReferenceEquals(activeResources[activeResources.Count - 1], frame.ResourceToExit))
                 {
-                    continue;
+                    activeResources.RemoveAt(activeResources.Count - 1);
                 }
 
-                var resource = new SvgSceneResource(addressKey!, resourceKind, element, addressKey);
-                _resourcesByKey[addressKey!] = resource;
+                continue;
+            }
 
-                if (!string.IsNullOrWhiteSpace(resource.Id) && !_resourcesById.ContainsKey(resource.Id!))
+            var element = frame.Element;
+            var elementAddressKey = addressKeyCache.GetOrCreate(element);
+            SvgSceneResource? enteredResource = null;
+
+            if (SvgSceneCompiler.TryGetResourceKind(element, out var resourceKind) &&
+                !string.IsNullOrWhiteSpace(elementAddressKey))
+            {
+                enteredResource = new SvgSceneResource(elementAddressKey!, resourceKind, element, elementAddressKey);
+                _resourcesByKey[elementAddressKey!] = enteredResource;
+
+                if (!string.IsNullOrWhiteSpace(enteredResource.Id) && !_resourcesById.ContainsKey(enteredResource.Id!))
                 {
-                    _resourcesById.Add(resource.Id!, resource);
+                    _resourcesById.Add(enteredResource.Id!, enteredResource);
                 }
 
-                foreach (var subtreeElement in TraverseElements(element))
-                {
-                    var subtreeAddressKey = SvgSceneCompiler.TryGetElementAddressKey(subtreeElement);
-                    if (string.IsNullOrWhiteSpace(subtreeAddressKey))
-                    {
-                        continue;
-                    }
+                activeResources.Add(enteredResource);
+                pendingDependencyKeysByResource[enteredResource.Key] = new HashSet<string>(StringComparer.Ordinal);
+                traversalStack.Push((element, enteredResource, true));
+            }
 
-                    resource.AddSubtreeAddress(subtreeAddressKey!);
-                    if (!_resourcesByAddress.TryGetValue(subtreeAddressKey!, out var resources))
+            if (!string.IsNullOrWhiteSpace(elementAddressKey))
+            {
+                for (var i = 0; i < activeResources.Count; i++)
+                {
+                    var resource = activeResources[i];
+                    resource.AddSubtreeAddress(elementAddressKey!);
+                    if (!_resourcesByAddress.TryGetValue(elementAddressKey!, out var resources))
                     {
                         resources = new List<SvgSceneResource>();
-                        _resourcesByAddress.Add(subtreeAddressKey!, resources);
+                        _resourcesByAddress.Add(elementAddressKey!, resources);
                     }
 
                     resources.Add(resource);
                 }
             }
+
+            if (activeResources.Count > 0)
+            {
+                SvgSceneCompiler.VisitReferencedElements(
+                    element,
+                    static (_, dependencyAddressKey, state) =>
+                    {
+                        for (var i = 0; i < state.ActiveResources.Count; i++)
+                        {
+                            state.PendingDependencyKeysByResource[state.ActiveResources[i].Key].Add(dependencyAddressKey);
+                        }
+                    },
+                    addressKeyCache.GetOrCreate,
+                    (ActiveResources: activeResources, PendingDependencyKeysByResource: pendingDependencyKeysByResource));
+            }
+
+            for (var i = element.Children.Count - 1; i >= 0; i--)
+            {
+                traversalStack.Push((element.Children[i], null, false));
+            }
         }
 
         foreach (var resource in _resourcesByKey.Values)
         {
-            foreach (var subtreeElement in TraverseElements(resource.SourceElement))
+            if (!pendingDependencyKeysByResource.TryGetValue(resource.Key, out var dependencyAddressKeys))
             {
-                foreach (var dependencyElement in SvgSceneCompiler.EnumerateReferencedElements(subtreeElement))
-                {
-                    var dependencyAddressKey = SvgSceneCompiler.TryGetElementAddressKey(dependencyElement);
-                    if (string.IsNullOrWhiteSpace(dependencyAddressKey))
-                    {
-                        continue;
-                    }
+                continue;
+            }
 
-                    if (_resourcesByKey.TryGetValue(dependencyAddressKey!, out var dependencyResource))
-                    {
-                        resource.AddDependency(dependencyResource.Key);
-                        dependencyResource.AddReverseDependency(resource.Key);
-                    }
+            foreach (var dependencyAddressKey in dependencyAddressKeys)
+            {
+                if (_resourcesByKey.TryGetValue(dependencyAddressKey, out var dependencyResource))
+                {
+                    resource.AddDependency(dependencyResource.Key);
+                    dependencyResource.AddReverseDependency(resource.Key);
                 }
             }
         }
     }
 
-    private void RegisterNodeDependencies()
+    internal void RegisterNodeDependencies(SvgElementAddressKeyCache addressKeyCache)
     {
+        RegisterCompilationRootSubtreeAddresses(addressKeyCache);
+        RegisterNodeDependencies(Root, new List<string>(), addressKeyCache);
+    }
+
+    private void RegisterCompilationRootSubtreeAddresses(SvgElementAddressKeyCache addressKeyCache)
+    {
+        if (SourceDocument is null)
+        {
+            return;
+        }
+
+        var compilationRootsByElement = BuildCompilationRootLookup();
+        if (compilationRootsByElement.Count == 0)
+        {
+            return;
+        }
+
+        var activeCompilationRootKeys = new List<string>();
+        var traversalStack = new Stack<(SvgElement Element, int AddedCompilationRootCount, bool IsExit)>();
+        traversalStack.Push((SourceDocument, 0, false));
+
+        while (traversalStack.Count > 0)
+        {
+            var frame = traversalStack.Pop();
+            if (frame.IsExit)
+            {
+                if (frame.AddedCompilationRootCount > 0)
+                {
+                    activeCompilationRootKeys.RemoveRange(
+                        activeCompilationRootKeys.Count - frame.AddedCompilationRootCount,
+                        frame.AddedCompilationRootCount);
+                }
+
+                continue;
+            }
+
+            var addedCompilationRootCount = 0;
+            if (compilationRootsByElement.TryGetValue(frame.Element, out var elementCompilationRootKeys))
+            {
+                addedCompilationRootCount = elementCompilationRootKeys.Count;
+                activeCompilationRootKeys.AddRange(elementCompilationRootKeys);
+                traversalStack.Push((frame.Element, addedCompilationRootCount, true));
+            }
+
+            var subtreeAddressKey = addressKeyCache.GetOrCreate(frame.Element);
+            if (!string.IsNullOrWhiteSpace(subtreeAddressKey))
+            {
+                for (var i = 0; i < activeCompilationRootKeys.Count; i++)
+                {
+                    RegisterDependentAddress(subtreeAddressKey!, activeCompilationRootKeys[i]);
+                }
+            }
+
+            for (var i = frame.Element.Children.Count - 1; i >= 0; i--)
+            {
+                traversalStack.Push((frame.Element.Children[i], 0, false));
+            }
+        }
+    }
+
+    private Dictionary<SvgElement, List<string>> BuildCompilationRootLookup()
+    {
+        var compilationRootsByElement = new Dictionary<SvgElement, List<string>>(SvgElementReferenceComparer.Instance);
+
         foreach (var node in Traverse())
         {
-            if (string.IsNullOrWhiteSpace(node.CompilationRootKey))
+            if (!node.IsCompilationRootBoundary ||
+                string.IsNullOrWhiteSpace(node.CompilationRootKey) ||
+                node.Element is null)
             {
                 continue;
             }
 
+            if (!compilationRootsByElement.TryGetValue(node.Element, out var compilationRootKeys))
+            {
+                compilationRootKeys = new List<string>();
+                compilationRootsByElement.Add(node.Element, compilationRootKeys);
+            }
+
+            if (!compilationRootKeys.Contains(node.CompilationRootKey!, StringComparer.Ordinal))
+            {
+                compilationRootKeys.Add(node.CompilationRootKey!);
+            }
+        }
+
+        return compilationRootsByElement;
+    }
+
+    private void RegisterNodeDependencies(SvgSceneNode node, List<string> activeCompilationRootKeys, SvgElementAddressKeyCache addressKeyCache)
+    {
+        var addedCompilationRootKey = false;
+        if (node.IsCompilationRootBoundary && !string.IsNullOrWhiteSpace(node.CompilationRootKey))
+        {
+            activeCompilationRootKeys.Add(node.CompilationRootKey!);
+            addedCompilationRootKey = true;
+        }
+
+        if (activeCompilationRootKeys.Count > 0)
+        {
             if (!string.IsNullOrWhiteSpace(node.ElementAddressKey))
             {
-                RegisterDependentAddress(node.ElementAddressKey!, node.CompilationRootKey!);
+                for (var i = 0; i < activeCompilationRootKeys.Count; i++)
+                {
+                    RegisterDependentAddress(node.ElementAddressKey!, activeCompilationRootKeys[i]);
+                }
             }
 
-            if (node.Element is null)
+            if (node.Element is not null)
             {
-                continue;
+                SvgSceneCompiler.VisitReferencedElements(
+                    node.Element,
+                    static (_, dependencyAddressKey, state) =>
+                    {
+                        for (var i = 0; i < state.ActiveCompilationRootKeys.Count; i++)
+                        {
+                            var compilationRootKey = state.ActiveCompilationRootKeys[i];
+                            if (state.ResourcesByKey.TryGetValue(dependencyAddressKey, out var resource))
+                            {
+                                resource.AddDependentCompilationRoot(compilationRootKey);
+                            }
+                            else
+                            {
+                                state.SceneDocument.RegisterDependentAddress(dependencyAddressKey, compilationRootKey);
+                            }
+                        }
+                    },
+                    addressKeyCache.GetOrCreate,
+                    (SceneDocument: this, ResourcesByKey: _resourcesByKey, ActiveCompilationRootKeys: activeCompilationRootKeys));
             }
+        }
 
-            foreach (var subtreeElement in TraverseElements(node.Element))
-            {
-                var subtreeAddressKey = SvgSceneCompiler.TryGetElementAddressKey(subtreeElement);
-                if (!string.IsNullOrWhiteSpace(subtreeAddressKey))
-                {
-                    RegisterDependentAddress(subtreeAddressKey!, node.CompilationRootKey!);
-                }
-            }
+        if (node.MaskNode is { } maskNode)
+        {
+            RegisterNodeDependencies(maskNode, activeCompilationRootKeys, addressKeyCache);
+        }
 
-            foreach (var dependencyElement in SvgSceneCompiler.EnumerateReferencedElements(node.Element))
-            {
-                var dependencyAddressKey = SvgSceneCompiler.TryGetElementAddressKey(dependencyElement);
-                if (string.IsNullOrWhiteSpace(dependencyAddressKey))
-                {
-                    continue;
-                }
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            RegisterNodeDependencies(node.Children[i], activeCompilationRootKeys, addressKeyCache);
+        }
 
-                if (_resourcesByKey.TryGetValue(dependencyAddressKey!, out var resource))
-                {
-                    resource.AddDependentCompilationRoot(node.CompilationRootKey!);
-                }
-                else
-                {
-                    RegisterDependentAddress(dependencyAddressKey!, node.CompilationRootKey!);
-                }
-            }
+        if (addedCompilationRootKey)
+        {
+            activeCompilationRootKeys.RemoveAt(activeCompilationRootKeys.Count - 1);
         }
     }
 
-    private void ResolveRuntimePayloads()
+    internal void ResolveRuntimePayloads(SvgElementAddressKeyCache addressKeyCache)
     {
-        ResolveRuntimePayloadTree(Root);
+        ResolveRuntimePayloadTree(Root, refreshRetainedMetadata: false, addressKeyCache);
     }
 
-    internal void ResolveRuntimePayloadTree(SvgSceneNode? root)
+    internal void ResolveRuntimePayloadTree(
+        SvgSceneNode? root,
+        bool refreshRetainedMetadata = false,
+        SvgElementAddressKeyCache? addressKeyCache = null)
     {
         if (root is null)
         {
@@ -493,18 +638,26 @@ public sealed class SvgSceneDocument
 
         foreach (var node in TraverseStructural(root))
         {
-            ResolveRuntimePayload(node);
+            ResolveRuntimePayload(node, refreshRetainedMetadata, addressKeyCache);
         }
     }
 
-    private void ResolveRuntimePayload(SvgSceneNode node)
+    private void ResolveRuntimePayload(SvgSceneNode node, bool refreshRetainedMetadata, SvgElementAddressKeyCache? addressKeyCache)
     {
         if (!node.IsRenderable || node.Element is not SvgElement element)
         {
             return;
         }
 
-        SvgSceneCompiler.AssignRetainedVisualState(node, element);
+        Func<SvgElement?, string?>? getElementAddressKey = null;
+        if (refreshRetainedMetadata)
+        {
+            SvgSceneCompiler.AssignRetainedVisualState(node, element);
+            if (addressKeyCache is not null)
+            {
+                getElementAddressKey = addressKeyCache.GetOrCreate;
+            }
+        }
 
         if (node.Kind == SvgSceneNodeKind.Marker)
         {
@@ -514,6 +667,11 @@ public sealed class SvgSceneDocument
 
         if (element is SvgVisualElement visualElement)
         {
+            if (refreshRetainedMetadata)
+            {
+                SvgSceneCompiler.AssignRetainedResourceKeys(node, element, getElementAddressKey);
+            }
+
             node.ClipPath = ResolveClipPath(node);
             node.OpacityValue = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
                 ? 1f
@@ -691,6 +849,21 @@ public sealed class SvgSceneDocument
             {
                 stack.Push(current.Children[i]);
             }
+        }
+    }
+
+    private sealed class SvgElementReferenceComparer : IEqualityComparer<SvgElement>
+    {
+        public static readonly SvgElementReferenceComparer Instance = new();
+
+        public bool Equals(SvgElement? x, SvgElement? y)
+        {
+            return ReferenceEquals(x, y);
+        }
+
+        public int GetHashCode(SvgElement obj)
+        {
+            return RuntimeHelpers.GetHashCode(obj);
         }
     }
 }

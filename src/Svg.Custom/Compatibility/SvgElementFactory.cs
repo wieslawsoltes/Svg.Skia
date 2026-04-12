@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Xml;
-using ExCSS;
 
 namespace Svg
 {
@@ -23,8 +22,7 @@ namespace Svg
     internal partial class SvgElementFactory
     {
         private const string RawTextDecorationAttributeKey = "__svgskia:text-decoration-raw";
-
-        private readonly StylesheetParser stylesheetParser = new StylesheetParser(true, true, tolerateInvalidValues: true);
+        private readonly SvgInlineStyleAttributeParser inlineStyleAttributeParser = new();
 
         /// <summary>
         /// Gets a list of available types that can be used when creating an <see cref="SvgElement"/>.
@@ -147,10 +145,7 @@ namespace Svg
                     }
                     if (localName.Equals("style") && !(element is NonSvgElement))
                     {
-                        var inlineSheet = stylesheetParser.Parse("#a{" + reader.Value + "}");
-                        foreach (var rule in inlineSheet.StyleRules)
-                            foreach (var declaration in rule.Style)
-                                element.AddStyle(declaration.Name, declaration.Original, SvgElement.StyleSpecificity_InlineStyle);
+                        inlineStyleAttributeParser.ApplyStyles(element, reader.Value);
                     }
                     else if (prefix.Length == 0 && localName.Equals("marker"))
                     {

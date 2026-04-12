@@ -1408,6 +1408,35 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_ApplyMutation_UpdatesAnimationChildDependents()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(
+            "<svg width=\"40\" height=\"20\">" +
+            "  <rect id=\"target\" x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"red\">" +
+            "    <animate id=\"move-anim\" attributeName=\"x\" from=\"0\" to=\"8\" dur=\"1s\" fill=\"freeze\" />" +
+            "  </rect>" +
+            "</svg>");
+
+        var sourceDocument = Assert.IsType<SvgDocument>(svg.RetainedSceneGraph!.SourceDocument);
+        var animation = Assert.IsType<SvgAnimate>(sourceDocument.GetElementById("move-anim"));
+        animation.To = "16";
+
+        var result = svg.ApplyRetainedSceneMutationById("move-anim", new[] { "to" });
+
+        Assert.True(result.Succeeded);
+        Assert.True(result.CompilationRootCount >= 1);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        using var expectedSvg = new SKSvg();
+        expectedSvg.FromSvgDocument((SvgDocument)sourceDocument.DeepCopy());
+
+        Assert.NotNull(retainedPicture);
+        Assert.NotNull(expectedSvg.Picture);
+        AssertPicturesEqual(expectedSvg, expectedSvg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
     public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForPatternDocument()
     {
         using var svg = new SKSvg();

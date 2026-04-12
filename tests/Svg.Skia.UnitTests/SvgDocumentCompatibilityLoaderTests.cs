@@ -156,6 +156,57 @@ public class SvgDocumentCompatibilityLoaderTests
     }
 
     [Fact]
+    public void FromSvg_AggregatesMixedTextAndChildContentInDocumentOrder()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <text id="target">start<tspan>mid</tspan>end</text>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var text = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "target");
+
+        Assert.Equal("startmidend", text.Content);
+        Assert.NotEmpty(text.Nodes);
+    }
+
+    [Fact]
+    public void FromSvg_ClearsNodesWhenElementContainsOnlyChildElements()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <g id="target">
+                <rect width="10" height="10" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var group = document.Descendants().OfType<SvgGroup>().Single(static element => element.ID == "target");
+
+        Assert.Empty(group.Nodes);
+        Assert.Single(group.Children);
+    }
+
+    [Fact]
+    public void FromSvg_AggregatesSingleTextNodeContentAndPreservesContentNode()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <text id="target">hello</text>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var text = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "target");
+
+        Assert.Equal("hello", text.Content);
+        Assert.Single(text.Nodes);
+        Assert.IsType<SvgContentNode>(text.Nodes[0]);
+    }
+
+    [Fact]
     public void OpenPath_AppliesImportedStylesheetsWhenMediaMatchesScreen()
     {
         var tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -800,6 +851,91 @@ public class SvgDocumentCompatibilityLoaderTests
         {
             Directory.Delete(tempDirectory, recursive: true);
         }
+    }
+
+    [Fact]
+    public void FromSvg_ParsesInlineStyleAttributesWithQuotedSemicolons()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <text id="target" x="0" y="15" style="font-family:'Semi;Colon'; fill: red">test</text>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var text = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(text.Fill);
+
+        Assert.Equal(Color.Red.ToArgb(), fill.Colour.ToArgb());
+        Assert.Contains("Semi;Colon", text.FontFamily, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FromSvg_ParsesInlineStyleAttributesWithComments()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <rect id="target" width="10" height="10" style="/* lead */ fill: green; /* mid */ stroke: blue" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+        var stroke = Assert.IsType<SvgColourServer>(rect.Stroke);
+
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+        Assert.Equal(Color.Blue.ToArgb(), stroke.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_ParsesInlineStyleAttributesWithTrailingCommentsInsideDeclaration()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <rect id="target" width="10" height="10" style="/*lead*/fill:green/*tail*/" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_ParsesInlineStyleAttributesCaseInsensitively()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <rect id="target" width="10" height="10" fill="red" style="FiLl: oRaNgE" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Orange.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_ParsesInlineStyleAttributesWithEmptyDeclarationsAndWhitespace()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <rect id="target" width="10" height="10" style=" ; ; fill: green ; ; stroke: blue ; " />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+        var stroke = Assert.IsType<SvgColourServer>(rect.Stroke);
+
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+        Assert.Equal(Color.Blue.ToArgb(), stroke.Colour.ToArgb());
     }
 
     private static LoadResult CaptureLoad(Func<SvgDocument> load)
