@@ -13,6 +13,7 @@ using Svg.FilterEffects;
 using Svg.Model.Services;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
+using SkiaColor = SkiaSharp.SKColor;
 using SkiaAlphaType = SkiaSharp.SKAlphaType;
 using SkiaBitmap = SkiaSharp.SKBitmap;
 using SkiaColors = SkiaSharp.SKColors;
@@ -1366,6 +1367,35 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_AppliesBlendFilterToFilteredGroupsLikeEquivalentSingles()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(FilteredGroupComparisonSvg);
+
+        Assert.NotNull(svg.Picture);
+
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+
+        var singleBlue = bitmap.GetPixel(36, 9);
+        var singleYellow = bitmap.GetPixel(36, 27);
+        var groupBlue = bitmap.GetPixel(36, 45);
+        var groupYellow = bitmap.GetPixel(36, 63);
+
+        Assert.NotEqual(new SkiaColor(0, 0, 255, 255), groupBlue);
+        Assert.NotEqual(new SkiaColor(255, 255, 0, 255), groupYellow);
+        Assert.True(
+            groupBlue.Green > singleBlue.Green &&
+            groupBlue.Blue > singleBlue.Blue &&
+            groupBlue.Red < singleBlue.Red,
+            $"Expected grouped multiply row to shift away from the unfiltered blue source, but single={singleBlue} group={groupBlue}.");
+        Assert.True(
+            groupYellow.Green > singleYellow.Green &&
+            groupYellow.Red < 200 &&
+            groupYellow.Blue == 0,
+            $"Expected grouped multiply row to shift away from the unfiltered yellow source, but single={singleYellow} group={groupYellow}.");
+    }
+
+    [Fact]
     public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForUseAndMarkerDocument()
     {
         using var svg = new SKSvg();
@@ -1922,6 +1952,31 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
           <g filter="url(#blend)">
             <rect x="8" y="6" width="56" height="6" fill="#0000ff" opacity="0.5" />
             <rect x="8" y="16" width="56" height="6" fill="#ffff00" opacity="0.5" />
+          </g>
+        </svg>
+        """;
+
+    private const string FilteredGroupComparisonSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="72"
+             height="72"
+             viewBox="0 0 72 72">
+          <defs>
+            <linearGradient id="bg-compare" x1="0" y1="0" x2="72" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ff0000" />
+              <stop offset="100%" stop-color="#00ff00" />
+            </linearGradient>
+            <filter id="blend-compare" x="0%" y="0%" width="100%" height="100%">
+              <feFlood flood-color="#00ff00" flood-opacity="0.5" result="flood" />
+              <feBlend in="SourceGraphic" in2="flood" mode="multiply" />
+            </filter>
+          </defs>
+          <rect x="0" y="0" width="72" height="72" fill="url(#bg-compare)" />
+          <rect x="8" y="6" width="56" height="6" fill="#0000ff" opacity="0.5" filter="url(#blend-compare)" />
+          <rect x="8" y="24" width="56" height="6" fill="#ffff00" opacity="0.5" filter="url(#blend-compare)" />
+          <g filter="url(#blend-compare)">
+            <rect x="8" y="42" width="56" height="6" fill="#0000ff" opacity="0.5" />
+            <rect x="8" y="60" width="56" height="6" fill="#ffff00" opacity="0.5" />
           </g>
         </svg>
         """;
