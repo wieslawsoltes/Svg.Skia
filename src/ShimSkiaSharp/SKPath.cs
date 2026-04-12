@@ -69,7 +69,8 @@ public record QuadToPathCommand(float X0, float Y0, float X1, float Y1) : PathCo
 
 public class SKPath : ICloneable, IDeepCloneable<SKPath>
 {
-    public SKPathFillType FillType { get; set; }
+    private SKPathFillType _fillType;
+    private int _version;
 
     public IList<PathCommand>? Commands { get; private set; }
 
@@ -77,9 +78,26 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
 
     public SKRect Bounds => GetBounds();
 
+    internal int Version => _version;
+
+    public SKPathFillType FillType
+    {
+        get => _fillType;
+        set
+        {
+            if (_fillType == value)
+            {
+                return;
+            }
+
+            _fillType = value;
+            _version++;
+        }
+    }
+
     public SKPath()
     {
-        Commands = new List<PathCommand>();
+        Commands = new ChangeTrackingList<PathCommand>(IncrementVersion);
     }
 
     public SKPath Clone() => DeepClone(new CloneContext());
@@ -99,9 +117,16 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
         context.Add(this, clone);
 
         clone.FillType = FillType;
-        clone.Commands = CloneHelpers.CloneList(Commands, context, command => command.DeepClone(context));
+        clone.Commands = new ChangeTrackingList<PathCommand>(
+            CloneHelpers.CloneList(Commands, context, command => command.DeepClone(context)),
+            clone.IncrementVersion);
 
         return clone;
+    }
+
+    private void IncrementVersion()
+    {
+        _version++;
     }
 
 
