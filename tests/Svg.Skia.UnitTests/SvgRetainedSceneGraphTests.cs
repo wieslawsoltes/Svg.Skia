@@ -1327,6 +1327,45 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForPrimitiveShapesDocument()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(PrimitiveShapesSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.NotNull(svg.Picture);
+        Assert.NotNull(retainedPicture);
+        AssertPicturesEqual(svg, svg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForRootOpacityDocument()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(RootOpacitySvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.NotNull(svg.Picture);
+        Assert.NotNull(retainedPicture);
+        AssertPicturesEqual(svg, svg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForFilteredGroupDocument()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(FilteredGroupSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.NotNull(svg.Picture);
+        Assert.NotNull(retainedPicture);
+        AssertPicturesEqual(svg, svg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
     public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForUseAndMarkerDocument()
     {
         using var svg = new SKSvg();
@@ -1850,6 +1889,40 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
           <line id="shape-line" x1="4" y1="24" x2="20" y2="34" stroke="#6600aa" stroke-width="2" />
           <polyline id="shape-polyline" points="26,34 32,22 38,30 44,20" fill="none" stroke="#00aaaa" stroke-width="2" />
           <polygon id="shape-polygon" points="54,22 68,22 74,34 60,36" fill="#ffaa00" />
+        </svg>
+        """;
+
+    private const string RootOpacitySvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="32"
+             height="32"
+             viewBox="0 0 32 32"
+             opacity="0.5">
+          <rect x="2" y="2" width="28" height="28" fill="#008000" />
+          <rect x="1" y="1" width="30" height="30" fill="none" stroke="#000000" />
+        </svg>
+        """;
+
+    private const string FilteredGroupSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="72"
+             height="28"
+             viewBox="0 0 72 28">
+          <defs>
+            <linearGradient id="bg" x1="0" y1="0" x2="72" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ff0000" />
+              <stop offset="100%" stop-color="#00ff00" />
+            </linearGradient>
+            <filter id="blend" x="0%" y="0%" width="100%" height="100%">
+              <feFlood flood-color="#00ff00" flood-opacity="0.5" result="flood" />
+              <feBlend in="SourceGraphic" in2="flood" mode="multiply" />
+            </filter>
+          </defs>
+          <rect x="0" y="0" width="72" height="28" fill="url(#bg)" />
+          <g filter="url(#blend)">
+            <rect x="8" y="6" width="56" height="6" fill="#0000ff" opacity="0.5" />
+            <rect x="8" y="16" width="56" height="6" fill="#ffff00" opacity="0.5" />
+          </g>
         </svg>
         """;
 

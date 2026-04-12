@@ -324,10 +324,15 @@ public sealed class SvgSceneDocument
     internal void RebuildIndexesAndDependencies()
     {
         var addressKeyCache = new SvgElementAddressKeyCache();
+        var (hasResourceElements, hasReferenceDependencies) = AnalyzeDependencyRequirements();
         ClearIndexesAndDependencies();
         ReindexNodes();
-        RebuildResourceGraph(addressKeyCache);
-        RegisterNodeDependencies(addressKeyCache);
+        if (hasResourceElements)
+        {
+            RebuildResourceGraph(addressKeyCache);
+        }
+
+        RegisterNodeDependencies(addressKeyCache, hasReferenceDependencies);
         ResolveRuntimePayloads(addressKeyCache);
         Revision++;
     }
@@ -474,8 +479,50 @@ public sealed class SvgSceneDocument
 
     internal void RegisterNodeDependencies(SvgElementAddressKeyCache addressKeyCache)
     {
+        RegisterNodeDependencies(addressKeyCache, includeReferencedDependencies: true);
+    }
+
+    internal void RegisterNodeDependencies(SvgElementAddressKeyCache addressKeyCache, bool includeReferencedDependencies)
+    {
         RegisterCompilationRootSubtreeAddresses(addressKeyCache);
+        if (!includeReferencedDependencies)
+        {
+            return;
+        }
+
         RegisterNodeDependencies(Root, new List<string>(), addressKeyCache);
+    }
+
+    private (bool HasResourceElements, bool HasReferenceDependencies) AnalyzeDependencyRequirements()
+    {
+        if (SourceDocument is null)
+        {
+            return (false, false);
+        }
+
+        var hasResourceElements = false;
+        var hasReferenceDependencies = false;
+        foreach (var element in TraverseElements(SourceDocument))
+        {
+            if (!hasResourceElements &&
+                SvgSceneCompiler.TryGetResourceKind(element, out _))
+            {
+                hasResourceElements = true;
+            }
+
+            if (!hasReferenceDependencies &&
+                SvgSceneCompiler.MayReferenceOtherElements(element))
+            {
+                hasReferenceDependencies = true;
+            }
+
+            if (hasResourceElements && hasReferenceDependencies)
+            {
+                break;
+            }
+        }
+
+        return (hasResourceElements, hasReferenceDependencies);
     }
 
     private void RegisterCompilationRootSubtreeAddresses(SvgElementAddressKeyCache addressKeyCache)
@@ -665,6 +712,13 @@ public sealed class SvgSceneDocument
             node.IsDisplayNone = false;
         }
 
+        node.OpacityValue = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
+            ? 1f
+            : SvgScenePaintingService.AdjustSvgOpacity(element.Opacity);
+        node.Opacity = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
+            ? null
+            : SvgScenePaintingService.GetOpacityPaint(element.Opacity);
+
         if (element is SvgVisualElement visualElement)
         {
             if (refreshRetainedMetadata)
@@ -672,20 +726,15 @@ public sealed class SvgSceneDocument
                 SvgSceneCompiler.AssignRetainedResourceKeys(node, element, getElementAddressKey);
             }
 
+            var hasOwnPaintPayload = HasOwnPaintPayload(node);
             node.ClipPath = ResolveClipPath(node);
-            node.OpacityValue = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
-                ? 1f
-                : SvgScenePaintingService.AdjustSvgOpacity(visualElement.Opacity);
-            node.Opacity = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
-                ? null
-                : SvgScenePaintingService.GetOpacityPaint(visualElement.Opacity);
-            node.Fill = SvgScenePaintingService.IsValidFill(visualElement)
+            node.Fill = hasOwnPaintPayload && SvgScenePaintingService.IsValidFill(visualElement)
                 ? SvgScenePaintingService.GetFillPaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes)
                 : null;
-            node.Stroke = SvgScenePaintingService.IsValidStroke(visualElement, node.GeometryBounds)
+            node.Stroke = hasOwnPaintPayload && SvgScenePaintingService.IsValidStroke(visualElement, node.GeometryBounds)
                 ? SvgScenePaintingService.GetStrokePaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes)
                 : null;
-            node.StrokeWidth = node.Stroke?.StrokeWidth ?? 0f;
+            node.StrokeWidth = hasOwnPaintPayload ? node.Stroke?.StrokeWidth ?? 0f : 0f;
             node.SetMask(null);
             node.MaskPaint = null;
             node.MaskDstIn = null;
@@ -726,6 +775,14 @@ public sealed class SvgSceneDocument
                 }
             }
         }
+    }
+
+    private static bool HasOwnPaintPayload(SvgSceneNode node)
+    {
+        return node.HasLocalVisuals ||
+               node.HitTestPath is not null ||
+               node.SupportsFillHitTest ||
+               node.SupportsStrokeHitTest;
     }
 
     private ClipPath? ResolveClipPath(SvgSceneNode node)

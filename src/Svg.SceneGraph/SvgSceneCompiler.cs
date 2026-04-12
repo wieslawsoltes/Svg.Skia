@@ -426,6 +426,34 @@ public static class SvgSceneCompiler
         }
     }
 
+    internal static bool MayReferenceOtherElements(SvgElement element)
+    {
+        if (element is SvgVisualElement visualElement)
+        {
+            if (visualElement.ClipPath is not null ||
+                visualElement.Filter is not null ||
+                HasMaskReference(element) ||
+                HasPaintServerReference(element, visualElement.Fill) ||
+                HasPaintServerReference(element, visualElement.Stroke))
+            {
+                return true;
+            }
+        }
+
+        return element switch
+        {
+            SvgMarkerElement markerElement => markerElement.MarkerStart is not null ||
+                                              markerElement.MarkerMid is not null ||
+                                              markerElement.MarkerEnd is not null,
+            SvgUse svgUse => svgUse.ReferencedElement is not null,
+            SvgGradientServer gradientServer => gradientServer.InheritGradient is not null,
+            SvgPatternServer patternServer => patternServer.InheritGradient is not null,
+            SvgTextRef textRef => textRef.ReferencedElement is not null,
+            SvgTextPath textPath => textPath.ReferencedPath is not null,
+            _ => false
+        };
+    }
+
     internal static string? TryGetElementAddressKey(SvgElement? element)
     {
         if (element is null || element is SvgDocument)
@@ -854,17 +882,6 @@ public static class SvgSceneCompiler
         DrawAttributes ignoreAttributes)
     {
         FinalizeDirectStructuralBounds(node, parentTotalTransform);
-
-        if (!node.IsRenderable)
-        {
-            return;
-        }
-
-        if (!ignoreAttributes.HasFlag(DrawAttributes.Opacity))
-        {
-            node.Opacity = SvgScenePaintingService.GetOpacityPaint(svgGroup.Opacity);
-            node.OpacityValue = SvgScenePaintingService.AdjustSvgOpacity(svgGroup.Opacity);
-        }
     }
 
     private static void FinalizeDirectAnchorNode(
@@ -879,12 +896,6 @@ public static class SvgSceneCompiler
         node.MaskDstIn = null;
         node.Filter = null;
         node.FilterClip = null;
-        node.Opacity = ignoreAttributes.HasFlag(DrawAttributes.Opacity)
-            ? null
-            : SvgScenePaintingService.GetOpacityPaint(svgAnchor.Opacity);
-        node.OpacityValue = ignoreAttributes.HasFlag(DrawAttributes.Opacity)
-            ? 1f
-            : SvgScenePaintingService.AdjustSvgOpacity(svgAnchor.Opacity);
     }
 
     private static void FinalizeDirectSwitchNode(
@@ -899,12 +910,6 @@ public static class SvgSceneCompiler
         node.MaskDstIn = null;
         node.Filter = null;
         node.FilterClip = null;
-        node.Opacity = ignoreAttributes.HasFlag(DrawAttributes.Opacity)
-            ? null
-            : SvgScenePaintingService.GetOpacityPaint(svgSwitch.Opacity);
-        node.OpacityValue = ignoreAttributes.HasFlag(DrawAttributes.Opacity)
-            ? 1f
-            : SvgScenePaintingService.AdjustSvgOpacity(svgSwitch.Opacity);
     }
 
     private static void FinalizeDirectFragmentNode(
@@ -915,17 +920,6 @@ public static class SvgSceneCompiler
         DrawAttributes ignoreAttributes)
     {
         FinalizeDirectStructuralBounds(node, parentTotalTransform);
-
-        if (!node.IsRenderable)
-        {
-            return;
-        }
-
-        if (!ignoreAttributes.HasFlag(DrawAttributes.Opacity))
-        {
-            node.Opacity = SvgScenePaintingService.GetOpacityPaint(svgFragment.Opacity);
-            node.OpacityValue = SvgScenePaintingService.AdjustSvgOpacity(svgFragment.Opacity);
-        }
     }
 
     private static void FinalizeDirectStructuralBounds(
@@ -1130,12 +1124,6 @@ public static class SvgSceneCompiler
                     compileContext);
             }
             return true;
-        }
-
-        if (!ignoreAttributes.HasFlag(DrawAttributes.Opacity))
-        {
-            node.Opacity = SvgScenePaintingService.GetOpacityPaint(visualElement.Opacity);
-            node.OpacityValue = SvgScenePaintingService.AdjustSvgOpacity(visualElement.Opacity);
         }
 
         if (markerElement is not null)
@@ -2443,6 +2431,11 @@ public static class SvgSceneCompiler
         return SvgDeferredPaintServer.TryGet<SvgPaintServer>(server, owner) as SvgElement;
     }
 
+    private static bool HasPaintServerReference(SvgElement owner, SvgPaintServer? server)
+    {
+        return GetResolvedPaintServerElement(owner, server) is not null;
+    }
+
     private static SvgElement? ResolveReference(SvgElement owner, Uri? uri)
     {
         return uri is null ? null : owner.OwnerDocument?.GetElementById(uri.ToString());
@@ -2462,6 +2455,12 @@ public static class SvgSceneCompiler
 
         var svgMask = element.GetUriElementReference<SvgMask>("mask", new HashSet<Uri>());
         return (getElementAddressKey ?? TryGetElementAddressKey)(svgMask);
+    }
+
+    private static bool HasMaskReference(SvgElement element)
+    {
+        return element.TryGetAttribute("mask", out string maskValue) &&
+               !string.IsNullOrWhiteSpace(maskValue);
     }
 
     internal static void AssignRetainedResourceKeys(SvgSceneNode node, SvgElement? element, Func<SvgElement?, string?>? getElementAddressKey = null)

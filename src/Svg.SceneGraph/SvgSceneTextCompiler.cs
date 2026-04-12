@@ -234,16 +234,8 @@ internal static partial class SvgSceneTextCompiler
         node.HitTestTargetElement = svgTextBase;
         SvgSceneCompiler.AssignRetainedVisualState(node, svgTextBase);
         SvgSceneCompiler.AssignRetainedResourceKeys(node, svgTextBase, getElementAddressKey);
-        node.OpacityValue = SvgScenePaintingService.AdjustSvgOpacity(svgTextBase.Opacity);
-        node.Fill = SvgScenePaintingService.IsValidFill(svgTextBase)
-            ? SvgScenePaintingService.GetFillPaint(svgTextBase, SKRect.Empty, assetLoader, ignoreAttributes)
-            : null;
-        node.Stroke = SvgScenePaintingService.IsValidStroke(svgTextBase, SKRect.Empty)
-            ? SvgScenePaintingService.GetStrokePaint(svgTextBase, SKRect.Empty, assetLoader, ignoreAttributes)
-            : null;
         node.SupportsFillHitTest = SvgScenePaintingService.IsValidFill(svgTextBase);
         node.SupportsStrokeHitTest = SvgScenePaintingService.IsValidStroke(svgTextBase, SKRect.Empty);
-        node.StrokeWidth = node.Stroke?.StrokeWidth ?? 0f;
 
         var geometryBounds = EstimateGeometryBounds(svgTextBase, viewport, assetLoader);
         node.GeometryBounds = geometryBounds;
