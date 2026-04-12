@@ -1,0 +1,180 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using ShimSkiaSharp;
+using Svg.Model;
+using Svg.Model.Services;
+using Xunit;
+
+namespace Svg.Skia.UnitTests;
+
+public class SvgSceneTextCompilerTests
+{
+    private static readonly Type s_svgSceneTextCompilerType =
+        typeof(SvgSceneNode).Assembly.GetType("Svg.Skia.SvgSceneTextCompiler")
+        ?? throw new InvalidOperationException("Could not locate Svg.Skia.SvgSceneTextCompiler.");
+
+    private static readonly MethodInfo s_splitCodepointsMethod = s_svgSceneTextCompilerType.GetMethod("SplitCodepoints", BindingFlags.NonPublic | BindingFlags.Static)!;
+    private static readonly MethodInfo s_measureNaturalTextAdvanceMethod = s_svgSceneTextCompilerType.GetMethod(
+        "MeasureNaturalTextAdvance",
+        BindingFlags.NonPublic | BindingFlags.Static,
+        binder: null,
+        [typeof(SvgTextBase), typeof(string), typeof(SKRect), typeof(ISvgAssetLoader)],
+        modifiers: null)!;
+    private static readonly MethodInfo s_measureNaturalCodepointAdvancesMethod = s_svgSceneTextCompilerType.GetMethod(
+        "MeasureNaturalCodepointAdvances",
+        BindingFlags.NonPublic | BindingFlags.Static,
+        binder: null,
+        [typeof(SvgTextBase), typeof(IReadOnlyList<string>), typeof(SKRect), typeof(ISvgAssetLoader)],
+        modifiers: null)!;
+
+    [Fact]
+    public void MeasureNaturalCodepointAdvances_SimpleAsciiText_MatchesPrefixMeasurement()
+    {
+        VerifyMatchesPrefixMeasurement("Item 42 ");
+    }
+
+    [Fact]
+    public void MeasureNaturalCodepointAdvances_CombiningMarkText_MatchesPrefixMeasurement()
+    {
+        VerifyMatchesPrefixMeasurement("Cafe\u0301 ");
+    }
+
+    [Fact]
+    public void MeasureNaturalCodepointAdvances_KerningPairText_MatchesPrefixMeasurement()
+    {
+        VerifyMatchesPrefixMeasurement("AVATAR ");
+    }
+
+    [Fact]
+    public void MeasureNaturalCodepointAdvances_RecomputesForDifferentFontSizes()
+    {
+        var smallAdvance = MeasureTotalAdvance("Scale", 12);
+        var largeAdvance = MeasureTotalAdvance("Scale", 36);
+
+        Assert.True(largeAdvance > smallAdvance * 2f);
+    }
+
+    private static void VerifyMatchesPrefixMeasurement(string textContent)
+    {
+        var document = CreateDocument(textContent, 24);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var geometryBounds = GetDocumentViewport(document);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        var codepoints = InvokeSplitCodepoints(textContent);
+        var actual = InvokeMeasureNaturalCodepointAdvances(svgText, codepoints, geometryBounds, assetLoader);
+        var expected = MeasureExpectedPrefixAdvances(svgText, codepoints, geometryBounds, assetLoader);
+
+        Assert.Equal(expected.Length, actual.Length);
+        for (var i = 0; i < expected.Length; i++)
+        {
+            Assert.Equal(expected[i], actual[i], 3);
+        }
+    }
+
+    private static float[] MeasureExpectedPrefixAdvances(
+        SvgTextBase svgTextBase,
+        IReadOnlyList<string> codepoints,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader)
+    {
+        var advances = new float[codepoints.Count];
+        var builder = new StringBuilder();
+        var previousAdvance = 0f;
+
+        for (var i = 0; i < codepoints.Count; i++)
+        {
+            var prefixText = builder.ToString();
+            builder.Append(codepoints[i]);
+            var currentAdvance = InvokeMeasureNaturalTextAdvance(svgTextBase, builder.ToString(), geometryBounds, assetLoader);
+            var codepointAdvance = currentAdvance - previousAdvance;
+            if (string.IsNullOrWhiteSpace(codepoints[i]))
+            {
+                var withWhitespaceAdvance = InvokeMeasureNaturalTextAdvance(svgTextBase, prefixText + codepoints[i] + "x", geometryBounds, assetLoader);
+                var withoutWhitespaceAdvance = InvokeMeasureNaturalTextAdvance(svgTextBase, prefixText + "x", geometryBounds, assetLoader);
+                var contextualWhitespaceAdvance = withWhitespaceAdvance - withoutWhitespaceAdvance;
+                if (contextualWhitespaceAdvance > 0f)
+                {
+                    codepointAdvance = contextualWhitespaceAdvance;
+                }
+            }
+
+            if (codepointAdvance < 0f)
+            {
+                codepointAdvance = 0f;
+            }
+
+            advances[i] = codepointAdvance;
+            previousAdvance += codepointAdvance;
+        }
+
+        return advances;
+    }
+
+    private static float MeasureTotalAdvance(string textContent, int fontSize)
+    {
+        var document = CreateDocument(textContent, fontSize);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var geometryBounds = GetDocumentViewport(document);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        var codepoints = InvokeSplitCodepoints(textContent);
+        var advances = InvokeMeasureNaturalCodepointAdvances(svgText, codepoints, geometryBounds, assetLoader);
+        return advances.Sum();
+    }
+
+    private static SvgDocument CreateDocument(string textContent, int fontSize)
+    {
+        return SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
+            $$"""
+              <svg xmlns="http://www.w3.org/2000/svg" width="240" height="80" viewBox="0 0 240 80">
+                <text id="label" x="10" y="40" font-family="sans-serif" font-size="{{fontSize}}">{{textContent}}</text>
+              </svg>
+              """);
+    }
+
+    private static List<string> InvokeSplitCodepoints(string text)
+    {
+        return Assert.IsType<List<string>>(s_splitCodepointsMethod.Invoke(null, [text]));
+    }
+
+    private static float InvokeMeasureNaturalTextAdvance(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader)
+    {
+        return Assert.IsType<float>(s_measureNaturalTextAdvanceMethod.Invoke(null, [svgTextBase, text, geometryBounds, assetLoader]));
+    }
+
+    private static float[] InvokeMeasureNaturalCodepointAdvances(
+        SvgTextBase svgTextBase,
+        IReadOnlyList<string> codepoints,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader)
+    {
+        return Assert.IsType<float[]>(s_measureNaturalCodepointAdvancesMethod.Invoke(null, [svgTextBase, codepoints, geometryBounds, assetLoader]));
+    }
+
+    private static SKRect GetDocumentViewport(SvgDocument document)
+    {
+        var size = SvgService.GetDimensions(document);
+        var bounds = SKRect.Create(size);
+        if (!bounds.IsEmpty)
+        {
+            return bounds;
+        }
+
+        if (document.ViewBox.Width > 0f && document.ViewBox.Height > 0f)
+        {
+            return SKRect.Create(
+                document.ViewBox.MinX,
+                document.ViewBox.MinY,
+                document.ViewBox.Width,
+                document.ViewBox.Height);
+        }
+
+        return SKRect.Empty;
+    }
+}
