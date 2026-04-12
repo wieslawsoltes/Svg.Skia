@@ -57,6 +57,24 @@ public class SvgSceneTextCompilerTests
         Assert.True(largeAdvance > smallAdvance * 2f);
     }
 
+    [Fact]
+    public void MeasureNaturalCodepointAdvances_RecomputesForDifferentFontSizes_OnSharedAssetLoader()
+    {
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        var smallDocument = CreateDocument("Scale", 12);
+        var largeDocument = CreateDocument("Scale", 36);
+        var smallText = smallDocument.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var largeText = largeDocument.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var smallBounds = GetDocumentViewport(smallDocument);
+        var largeBounds = GetDocumentViewport(largeDocument);
+        var codepoints = InvokeSplitCodepoints("Scale");
+
+        var smallAdvances = InvokeMeasureNaturalCodepointAdvances(smallText, codepoints, smallBounds, assetLoader);
+        var largeAdvances = InvokeMeasureNaturalCodepointAdvances(largeText, codepoints, largeBounds, assetLoader);
+
+        Assert.True(largeAdvances.Sum() > smallAdvances.Sum() * 2f);
+    }
+
     private static void VerifyMatchesPrefixMeasurement(string textContent)
     {
         var document = CreateDocument(textContent, 24);

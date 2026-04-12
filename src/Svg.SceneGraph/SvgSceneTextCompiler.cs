@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -17,11 +17,13 @@ internal static partial class SvgSceneTextCompiler
     private static readonly Regex s_multipleSpaces = new(@" {2,}", RegexOptions.Compiled);
     private static readonly Regex s_numberPrefix = new(@"^[+-]?(?:(?:\d+\.\d*)|(?:\d+)|(?:\.\d+))(?:[eE][+-]?\d+)?", RegexOptions.Compiled);
     private static readonly ConcurrentDictionary<SimpleCodepointAdvanceCacheKey, float> s_simpleCodepointAdvanceCache = new();
+    private static readonly ConcurrentDictionary<NaturalCodepointAdvanceCacheKey, float[]> s_naturalCodepointAdvanceCache = new();
     private const int MaxEllipseSteps = 128;
     private const float FullCircleRadians = 2f * (float)Math.PI;
     private const float SyntheticSmallCapsScale = 0.75f;
     private const float TextLengthTolerance = 1.5f;
     private const int SimpleCodepointAdvanceCacheLimit = 4096;
+    private const int NaturalCodepointAdvanceCacheLimit = 1024;
     private const string RawTextDecorationAttributeKey = "__svgskia:text-decoration-raw";
 
     private readonly record struct SequentialTextRun(SvgTextBase StyleSource, string Text);
@@ -51,6 +53,21 @@ internal static partial class SvgSceneTextCompiler
         SKFontStyleWeight TypefaceWeight,
         SKFontStyleWidth TypefaceWidth,
         SKFontStyleSlant TypefaceSlant);
+
+    private readonly record struct NaturalCodepointAdvanceCacheKey(
+        int AssetLoaderId,
+        string Text,
+        float TextSize,
+        bool LcdRenderText,
+        bool SubpixelText,
+        SKTextEncoding TextEncoding,
+        string? TypefaceFamilyName,
+        SKFontStyleWeight TypefaceWeight,
+        SKFontStyleWidth TypefaceWidth,
+        SKFontStyleSlant TypefaceSlant,
+        bool RightToLeft,
+        bool RequiresSyntheticSmallCaps,
+        bool UsesBrowserCompatibleRunTypeface);
 
     private readonly record struct PositionedCodepointPlacement(SKPoint Point, float RotationDegrees, float ScaleX, float ScaleOriginX);
 
@@ -6830,8 +6847,43 @@ internal static partial class SvgSceneTextCompiler
             return advances;
         }
 
-        if (TryMeasureNaturalCodepointAdvancesFromSimpleShapedRun(svgTextBase, codepoints, geometryBounds, assetLoader, out var shapedAdvances))
+        var text = string.Concat(codepoints);
+        if (string.IsNullOrEmpty(text))
         {
+            return advances;
+        }
+
+        var paint = new SKPaint();
+        PaintingService.SetPaintText(svgTextBase, geometryBounds, paint);
+        paint.TextAlign = SKTextAlign.Left;
+
+        var isRightToLeft = IsRightToLeft(svgTextBase);
+        var requiresSyntheticSmallCaps = RequiresSyntheticSmallCaps(svgTextBase, text);
+        var usesBrowserCompatibleRunTypeface = ShouldUseBrowserCompatibleRunTypeface(svgTextBase, text);
+        var cacheKey = CreateNaturalCodepointAdvanceCacheKey(
+            assetLoader,
+            text,
+            paint,
+            isRightToLeft,
+            requiresSyntheticSmallCaps,
+            usesBrowserCompatibleRunTypeface);
+        if (TryGetCachedNaturalCodepointAdvances(cacheKey, out var cachedAdvances))
+        {
+            return cachedAdvances;
+        }
+
+        if (TryMeasureNaturalCodepointAdvancesFromSimpleShapedRun(
+                svgTextBase,
+                text,
+                codepoints,
+                paint,
+                assetLoader,
+                isRightToLeft,
+                requiresSyntheticSmallCaps,
+                usesBrowserCompatibleRunTypeface,
+                out var shapedAdvances))
+        {
+            CacheNaturalCodepointAdvances(cacheKey, shapedAdvances);
             return shapedAdvances;
         }
 
@@ -6862,14 +6914,19 @@ internal static partial class SvgSceneTextCompiler
             previousAdvance += codepointAdvance;
         }
 
+        CacheNaturalCodepointAdvances(cacheKey, advances);
         return advances;
     }
 
     private static bool TryMeasureNaturalCodepointAdvancesFromSimpleShapedRun(
         SvgTextBase svgTextBase,
+        string text,
         IReadOnlyList<string> codepoints,
-        SKRect geometryBounds,
+        SKPaint paint,
         ISvgAssetLoader assetLoader,
+        bool isRightToLeft,
+        bool requiresSyntheticSmallCaps,
+        bool usesBrowserCompatibleRunTypeface,
         out float[] advances)
     {
         advances = Array.Empty<float>();
@@ -6878,20 +6935,14 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var text = string.Concat(codepoints);
-        if (string.IsNullOrEmpty(text) ||
-            IsRightToLeft(svgTextBase) ||
+        if (isRightToLeft ||
             ContainsMixedStrongDirections(text) ||
-            RequiresSyntheticSmallCaps(svgTextBase, text) ||
-            ShouldUseBrowserCompatibleRunTypeface(svgTextBase, text) ||
+            requiresSyntheticSmallCaps ||
+            usesBrowserCompatibleRunTypeface ||
             !IsSimpleCodepointAdvanceShapingText(codepoints))
         {
             return false;
         }
-
-        var paint = new SKPaint();
-        PaintingService.SetPaintText(svgTextBase, geometryBounds, paint);
-        paint.TextAlign = SKTextAlign.Left;
 
         if (SvgFontTextRenderer.TryGetLayout(svgTextBase, text, paint, assetLoader, out _))
         {
@@ -6910,6 +6961,52 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return TryCreatePrefixEquivalentSimpleRunAdvances(codepoints, runAdvances, shapedRun.Advance, shapingPaint, assetLoader, out advances);
+    }
+
+    private static bool TryGetCachedNaturalCodepointAdvances(
+        NaturalCodepointAdvanceCacheKey cacheKey,
+        out float[] advances)
+    {
+        if (s_naturalCodepointAdvanceCache.TryGetValue(cacheKey, out var cachedAdvances))
+        {
+            advances = (float[])cachedAdvances.Clone();
+            return true;
+        }
+
+        advances = Array.Empty<float>();
+        return false;
+    }
+
+    private static void CacheNaturalCodepointAdvances(
+        NaturalCodepointAdvanceCacheKey cacheKey,
+        float[] advances)
+    {
+        s_naturalCodepointAdvanceCache.TryAdd(cacheKey, (float[])advances.Clone());
+        TrimNaturalCodepointAdvanceCacheIfNeeded();
+    }
+
+    private static NaturalCodepointAdvanceCacheKey CreateNaturalCodepointAdvanceCacheKey(
+        ISvgAssetLoader assetLoader,
+        string text,
+        SKPaint paint,
+        bool isRightToLeft,
+        bool requiresSyntheticSmallCaps,
+        bool usesBrowserCompatibleRunTypeface)
+    {
+        return new NaturalCodepointAdvanceCacheKey(
+            RuntimeHelpers.GetHashCode(assetLoader),
+            text,
+            paint.TextSize,
+            paint.LcdRenderText,
+            paint.SubpixelText,
+            paint.TextEncoding,
+            paint.Typeface?.FamilyName,
+            paint.Typeface?.FontWeight ?? SKFontStyleWeight.Normal,
+            paint.Typeface?.FontWidth ?? SKFontStyleWidth.Normal,
+            paint.Typeface?.FontSlant ?? SKFontStyleSlant.Upright,
+            isRightToLeft,
+            requiresSyntheticSmallCaps,
+            usesBrowserCompatibleRunTypeface);
     }
 
     private static bool TryCreateSingleRunShapingPaint(
@@ -7130,6 +7227,14 @@ internal static partial class SvgSceneTextCompiler
         if (s_simpleCodepointAdvanceCache.Count > SimpleCodepointAdvanceCacheLimit)
         {
             s_simpleCodepointAdvanceCache.Clear();
+        }
+    }
+
+    private static void TrimNaturalCodepointAdvanceCacheIfNeeded()
+    {
+        if (s_naturalCodepointAdvanceCache.Count > NaturalCodepointAdvanceCacheLimit)
+        {
+            s_naturalCodepointAdvanceCache.Clear();
         }
     }
 

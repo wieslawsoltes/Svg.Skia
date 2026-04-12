@@ -1,7 +1,7 @@
 using System.Linq;
-using SkiaSharp;
 using ShimSkiaSharp;
 using ShimSkiaSharp.Editing;
+using SkiaSharp;
 using Xunit;
 using SkiaBitmap = SkiaSharp.SKBitmap;
 using SkiaColor = SkiaSharp.SKColor;
