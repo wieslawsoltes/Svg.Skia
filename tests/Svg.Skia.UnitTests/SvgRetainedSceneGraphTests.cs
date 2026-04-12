@@ -1315,6 +1315,23 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_IndexesNestedSharedUseDescendantsAsMultipleNodes()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(NestedSharedUseSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        var sourceDocument = Assert.IsType<SvgDocument>(scene!.SourceDocument);
+        var leaf = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("leaf"));
+        Assert.True(svg.TryGetRetainedSceneNodes(leaf, out var indexedNodes));
+        Assert.Equal(2, indexedNodes.Count);
+        Assert.All(indexedNodes, static node => Assert.False(string.IsNullOrWhiteSpace(node.ElementAddressKey)));
+        Assert.Contains('/', Assert.IsType<string>(indexedNodes[0].ElementAddressKey));
+        Assert.All(indexedNodes, static node => Assert.Equal("leaf", node.ElementId));
+    }
+
+    [Fact]
     public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForSimpleDocument()
     {
         using var svg = new SKSvg();
@@ -1466,6 +1483,34 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
 
         Assert.True(result.Succeeded);
         Assert.True(result.CompilationRootCount >= 2);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        using var expectedSvg = new SKSvg();
+        expectedSvg.FromSvgDocument((SvgDocument)sourceDocument.DeepCopy());
+
+        Assert.NotNull(retainedPicture);
+        Assert.NotNull(expectedSvg.Picture);
+        AssertPicturesEqual(expectedSvg, expectedSvg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ApplyMutation_UpdatesNestedUseDescendantDependents()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(NestedSharedUseSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        var sourceDocument = Assert.IsType<SvgDocument>(scene!.SourceDocument);
+        var leaf = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("leaf"));
+        leaf.Fill = new SvgColourServer(Color.Purple);
+
+        var result = scene.ApplyMutation(leaf, new[] { "fill" });
+
+        Assert.True(result.Succeeded);
+        Assert.True(result.CompilationRootCount >= 2);
+        Assert.True(svg.TryGetRetainedSceneNodes(leaf, out var indexedNodes));
+        Assert.Equal(2, indexedNodes.Count);
 
         using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
         using var expectedSvg = new SKSvg();
@@ -1904,6 +1949,24 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
           </defs>
           <use id="use-a" xlink:href="#template" x="2" y="2" />
           <use id="use-b" xlink:href="#template" x="18" y="10" />
+        </svg>
+        """;
+
+    private const string NestedSharedUseSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             xmlns:xlink="http://www.w3.org/1999/xlink"
+             width="48"
+             height="24"
+             viewBox="0 0 48 24">
+          <defs>
+            <g id="template">
+              <g id="inner">
+                <rect id="leaf" x="0" y="0" width="8" height="8" fill="green" />
+              </g>
+            </g>
+          </defs>
+          <use id="use-a" xlink:href="#template" x="2" y="2" />
+          <use id="use-b" xlink:href="#template" x="20" y="10" />
         </svg>
         """;
 

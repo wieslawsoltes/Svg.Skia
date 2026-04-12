@@ -1259,7 +1259,7 @@ public static class SvgSceneCompiler
             return true;
         }
 
-        RefreshGeneratedElementAddresses(referencedNode, compileContext);
+        RefreshGeneratedElementAddresses(referencedNode);
         AssignGeneratedHitTestTarget(referencedNode, svgUse);
         useNode.AddChild(referencedNode);
         FinalizeDirectStructuralBounds(useNode, parentTotalTransform);
@@ -2378,20 +2378,26 @@ public static class SvgSceneCompiler
         }
     }
 
-    private static void RefreshGeneratedElementAddresses(SvgSceneNode node, SvgSceneCompileContext compileContext)
+    private static void RefreshGeneratedElementAddresses(SvgSceneNode node)
     {
-        node.RefreshElementIdentity(compileContext.GetElementAddressKey(node.Element));
+        var addressKeyCache = new SvgElementAddressKeyCache();
+        RefreshGeneratedElementAddresses(node, addressKeyCache.GetOrCreate);
+    }
+
+    private static void RefreshGeneratedElementAddresses(SvgSceneNode node, Func<SvgElement?, string?> getElementAddressKey)
+    {
+        node.RefreshElementIdentity(getElementAddressKey(node.Element));
         AssignRetainedVisualState(node, node.Element);
-        AssignRetainedResourceKeys(node, node.Element, compileContext.GetElementAddressKey);
+        AssignRetainedResourceKeys(node, node.Element, getElementAddressKey);
 
         if (node.MaskNode is { } maskNode)
         {
-            RefreshGeneratedElementAddresses(maskNode, compileContext);
+            RefreshGeneratedElementAddresses(maskNode, getElementAddressKey);
         }
 
         for (var i = 0; i < node.Children.Count; i++)
         {
-            RefreshGeneratedElementAddresses(node.Children[i], compileContext);
+            RefreshGeneratedElementAddresses(node.Children[i], getElementAddressKey);
         }
     }
 
