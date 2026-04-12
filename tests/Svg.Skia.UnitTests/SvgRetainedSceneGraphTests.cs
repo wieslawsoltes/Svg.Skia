@@ -1463,6 +1463,48 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForLongTextPathDocument()
+    {
+        const string longTextPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink"
+                 width="640"
+                 height="120"
+                 viewBox="0 0 640 120">
+              <defs>
+                <path id="wave-path"
+                      d="M16,62
+                         C40,38 64,86 88,62
+                         C112,38 136,86 160,62
+                         C184,38 208,86 232,62
+                         C256,38 280,86 304,62
+                         C328,38 352,86 376,62
+                         C400,38 424,86 448,62
+                         C472,38 496,86 520,62
+                         C544,38 568,86 592,62" />
+              </defs>
+              <text fill="#1f2937"
+                    font-family="Noto Sans"
+                    font-size="18"
+                    letter-spacing="0.75"
+                    textLength="520">
+                <textPath xlink:href="#wave-path" startOffset="4%">Retained scene graph text path parity benchmark</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(longTextPathSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.NotNull(svg.Picture);
+        Assert.NotNull(retainedPicture);
+        AssertPicturesEqual(svg, svg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
     public void RetainedSceneGraph_ApplyMutation_UpdatesGradientResourceDependents()
     {
         using var svg = new SKSvg();

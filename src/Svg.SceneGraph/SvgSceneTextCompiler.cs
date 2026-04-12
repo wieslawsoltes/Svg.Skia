@@ -5353,6 +5353,18 @@ internal static partial class SvgSceneTextCompiler
         }
 
         var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, codepoints, geometryBounds, assetLoader);
+        var letterSpacingUnit = svgTextBase.LetterSpacing;
+        var wordSpacingUnit = svgTextBase.WordSpacing;
+        var hasLetterSpacingAdjustment = HasSpacingAdjustment(letterSpacingUnit);
+        var hasWordSpacingAdjustment = HasSpacingAdjustment(wordSpacingUnit);
+        var letterSpacingIsPercentage = hasLetterSpacingAdjustment && letterSpacingUnit.Type == SvgUnitType.Percentage;
+        var wordSpacingIsPercentage = hasWordSpacingAdjustment && wordSpacingUnit.Type == SvgUnitType.Percentage;
+        var fixedLetterSpacing = hasLetterSpacingAdjustment && !letterSpacingIsPercentage
+            ? letterSpacingUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgTextBase, geometryBounds)
+            : 0f;
+        var fixedWordSpacing = hasWordSpacingAdjustment && !wordSpacingIsPercentage
+            ? wordSpacingUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgTextBase, geometryBounds)
+            : 0f;
         var naturalLength = 0f;
         for (var i = 0; i < codepoints.Count; i++)
         {
@@ -5362,16 +5374,18 @@ internal static partial class SvgSceneTextCompiler
                 continue;
             }
 
-            var letterSpacing = ResolveSpacingValue(svgTextBase, svgTextBase.LetterSpacing, geometryBounds, naturalAdvances[i]);
-            if (SupportsLetterSpacing(codepoints[i]))
+            if (hasLetterSpacingAdjustment && SupportsLetterSpacing(codepoints[i]))
             {
-                naturalLength += letterSpacing;
+                naturalLength += letterSpacingIsPercentage
+                    ? naturalAdvances[i] * (letterSpacingUnit.Value / 100f)
+                    : fixedLetterSpacing;
             }
 
-            var wordSpacing = ResolveSpacingValue(svgTextBase, svgTextBase.WordSpacing, geometryBounds, naturalAdvances[i]);
-            if (IsWhitespaceCodepoint(codepoints[i]))
+            if (hasWordSpacingAdjustment && IsWhitespaceCodepoint(codepoints[i]))
             {
-                naturalLength += wordSpacing;
+                naturalLength += wordSpacingIsPercentage
+                    ? naturalAdvances[i] * (wordSpacingUnit.Value / 100f)
+                    : fixedWordSpacing;
             }
         }
 
@@ -5403,6 +5417,8 @@ internal static partial class SvgSceneTextCompiler
         var currentOffset = startOffset;
         var currentVOffset = baseVOffset + GetBaselineShift(svgTextBase, viewport);
         var pathLength = pathSamples[pathSamples.Count - 1].Distance;
+        var pathSegmentIndex = 1;
+        var previousGlyphMidOffset = float.NegativeInfinity;
         var visibleText = new StringBuilder();
         var visiblePlacements = new List<PositionedCodepointPlacement>(codepoints.Count);
         for (var i = 0; i < codepoints.Count; i++)
@@ -5419,16 +5435,18 @@ internal static partial class SvgSceneTextCompiler
             var wordSpacing = 0f;
             if (i < codepoints.Count - 1)
             {
-                letterSpacing = ResolveSpacingValue(svgTextBase, svgTextBase.LetterSpacing, geometryBounds, naturalAdvances[i]);
-                if (!SupportsLetterSpacing(codepoints[i]))
+                if (hasLetterSpacingAdjustment && SupportsLetterSpacing(codepoints[i]))
                 {
-                    letterSpacing = 0f;
+                    letterSpacing = letterSpacingIsPercentage
+                        ? naturalAdvances[i] * (letterSpacingUnit.Value / 100f)
+                        : fixedLetterSpacing;
                 }
 
-                wordSpacing = ResolveSpacingValue(svgTextBase, svgTextBase.WordSpacing, geometryBounds, naturalAdvances[i]);
-                if (!IsWhitespaceCodepoint(codepoints[i]))
+                if (hasWordSpacingAdjustment && IsWhitespaceCodepoint(codepoints[i]))
                 {
-                    wordSpacing = 0f;
+                    wordSpacing = wordSpacingIsPercentage
+                        ? naturalAdvances[i] * (wordSpacingUnit.Value / 100f)
+                        : fixedWordSpacing;
                 }
             }
 
@@ -5450,15 +5468,36 @@ internal static partial class SvgSceneTextCompiler
                 break;
             }
 
-            if (!TryGetPathPointAndTangent(pathSamples, glyphMidOffset, out var rawPoint, out var tangent))
+            if (glyphMidOffset < previousGlyphMidOffset)
+            {
+                pathSegmentIndex = 1;
+            }
+
+            previousGlyphMidOffset = glyphMidOffset;
+
+            if (!TryGetPathPointAndTangent(pathSamples, glyphMidOffset, ref pathSegmentIndex, out var rawPoint, out var tangent))
             {
                 return false;
             }
 
+            var codepointRotationDegrees = GetCodepointRotationDegrees(svgTextBase, codepoints[i], rotations, i);
             var angleDegrees = (float)(Math.Atan2(tangent.Y, tangent.X) * 180d / Math.PI);
-            var finalAngleDegrees = angleDegrees + GetCodepointRotationDegrees(svgTextBase, codepoints[i], rotations, i);
-            var finalAngleRadians = finalAngleDegrees * ((float)Math.PI / 180f);
-            var baselineDirection = new SKPoint((float)Math.Cos(finalAngleRadians), (float)Math.Sin(finalAngleRadians));
+            var finalAngleDegrees = angleDegrees + codepointRotationDegrees;
+            SKPoint baselineDirection;
+            if (Math.Abs(codepointRotationDegrees) <= 0.001f)
+            {
+                baselineDirection = tangent;
+            }
+            else
+            {
+                var rotationRadians = codepointRotationDegrees * ((float)Math.PI / 180f);
+                var cos = (float)Math.Cos(rotationRadians);
+                var sin = (float)Math.Sin(rotationRadians);
+                baselineDirection = new SKPoint(
+                    (tangent.X * cos) - (tangent.Y * sin),
+                    (tangent.X * sin) + (tangent.Y * cos));
+            }
+
             var baselineNormal = new SKPoint(-baselineDirection.Y, baselineDirection.X);
             var point = new SKPoint(
                 rawPoint.X + (baselineNormal.X * currentVOffset) - (baselineDirection.X * glyphAdvance * 0.5f),
@@ -5800,16 +5839,135 @@ internal static partial class SvgSceneTextCompiler
             }
 
             var t = (distance - previous.Distance) / segmentLength;
+            var deltaX = current.Point.X - previous.Point.X;
+            var deltaY = current.Point.Y - previous.Point.Y;
             point = new SKPoint(
-                previous.Point.X + ((current.Point.X - previous.Point.X) * t),
-                previous.Point.Y + ((current.Point.Y - previous.Point.Y) * t));
-            tangent = Normalize(new SKPoint(current.Point.X - previous.Point.X, current.Point.Y - previous.Point.Y));
+                previous.Point.X + (deltaX * t),
+                previous.Point.Y + (deltaY * t));
+            tangent = new SKPoint(deltaX / segmentLength, deltaY / segmentLength);
             return true;
         }
 
         point = pathSamples[pathSamples.Count - 1].Point;
         tangent = GetPathEndTangent(pathSamples);
         return true;
+    }
+
+    private static bool TryGetPathPointAndTangent(
+        IReadOnlyList<PathSample> pathSamples,
+        float distance,
+        ref int preferredSegmentIndex,
+        out SKPoint point,
+        out SKPoint tangent)
+    {
+        point = default;
+        tangent = new SKPoint(1f, 0f);
+        if (pathSamples.Count == 0)
+        {
+            return false;
+        }
+
+        if (pathSamples.Count == 1)
+        {
+            point = pathSamples[0].Point;
+            preferredSegmentIndex = 1;
+            return true;
+        }
+
+        if (distance <= 0f)
+        {
+            point = pathSamples[0].Point;
+            tangent = GetPathStartTangent(pathSamples);
+            preferredSegmentIndex = FindNextUsablePathSegmentIndex(pathSamples, 1);
+            return true;
+        }
+
+        var lastIndex = pathSamples.Count - 1;
+        if (distance >= pathSamples[lastIndex].Distance)
+        {
+            point = pathSamples[lastIndex].Point;
+            tangent = GetPathEndTangent(pathSamples);
+            preferredSegmentIndex = lastIndex;
+            return true;
+        }
+
+        preferredSegmentIndex = ResolvePathSegmentIndex(pathSamples, distance, preferredSegmentIndex);
+        var previous = pathSamples[preferredSegmentIndex - 1];
+        var current = pathSamples[preferredSegmentIndex];
+        var segmentLength = current.Distance - previous.Distance;
+        if (segmentLength <= 0f)
+        {
+            point = current.Point;
+            tangent = Normalize(new SKPoint(current.Point.X - previous.Point.X, current.Point.Y - previous.Point.Y));
+            return true;
+        }
+
+        var t = (distance - previous.Distance) / segmentLength;
+        var deltaX = current.Point.X - previous.Point.X;
+        var deltaY = current.Point.Y - previous.Point.Y;
+        point = new SKPoint(
+            previous.Point.X + (deltaX * t),
+            previous.Point.Y + (deltaY * t));
+        tangent = new SKPoint(deltaX / segmentLength, deltaY / segmentLength);
+        return true;
+    }
+
+    private static int ResolvePathSegmentIndex(IReadOnlyList<PathSample> pathSamples, float distance, int preferredSegmentIndex)
+    {
+        var count = pathSamples.Count;
+        preferredSegmentIndex = FindNextUsablePathSegmentIndex(pathSamples, preferredSegmentIndex < 1 ? 1 : preferredSegmentIndex);
+        if (preferredSegmentIndex < count)
+        {
+            var previous = pathSamples[preferredSegmentIndex - 1];
+            var current = pathSamples[preferredSegmentIndex];
+            if (distance >= previous.Distance && distance <= current.Distance)
+            {
+                return preferredSegmentIndex;
+            }
+
+            if (distance > current.Distance)
+            {
+                return BinarySearchPathSegmentIndex(pathSamples, distance, preferredSegmentIndex + 1, count - 1);
+            }
+        }
+
+        return BinarySearchPathSegmentIndex(pathSamples, distance, 1, count - 1);
+    }
+
+    private static int BinarySearchPathSegmentIndex(IReadOnlyList<PathSample> pathSamples, float distance, int low, int high)
+    {
+        if (low > high)
+        {
+            return pathSamples.Count - 1;
+        }
+
+        while (low < high)
+        {
+            var mid = low + ((high - low) / 2);
+            if (pathSamples[mid].Distance < distance)
+            {
+                low = mid + 1;
+            }
+            else
+            {
+                high = mid;
+            }
+        }
+
+        return FindNextUsablePathSegmentIndex(pathSamples, low);
+    }
+
+    private static int FindNextUsablePathSegmentIndex(IReadOnlyList<PathSample> pathSamples, int startIndex)
+    {
+        for (var i = Math.Max(1, startIndex); i < pathSamples.Count; i++)
+        {
+            if (!pathSamples[i].StartsSubpath)
+            {
+                return i;
+            }
+        }
+
+        return pathSamples.Count - 1;
     }
 
     private static float ResolveTextPathStartOffset(SvgTextPath svgTextPath, SvgPath? svgPath, SKPath skPath, SKRect viewport, float transformedPathLength)
@@ -6728,11 +6886,6 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        if (HasTextPathAncestor(svgTextBase))
-        {
-            return false;
-        }
-
         var text = string.Concat(codepoints);
         if (string.IsNullOrEmpty(text) ||
             IsRightToLeft(svgTextBase) ||
@@ -6962,19 +7115,6 @@ internal static partial class SvgSceneTextCompiler
         return true;
     }
 
-    private static bool HasTextPathAncestor(SvgTextBase svgTextBase)
-    {
-        for (SvgElement? current = svgTextBase; current is not null; current = current.Parent)
-        {
-            if (current is SvgTextPath)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private static SimpleCodepointAdvanceCacheKey CreateSimpleCodepointAdvanceCacheKey(
         ISvgAssetLoader assetLoader,
         string codepoint,
@@ -7146,22 +7286,36 @@ internal static partial class SvgSceneTextCompiler
         var hasEffectiveSpacingAdjustments = HasEffectiveSpacingAdjustments(svgTextBase, codepoints);
 
         var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, codepoints, geometryBounds, assetLoader);
+        var letterSpacingUnit = svgTextBase.LetterSpacing;
+        var wordSpacingUnit = svgTextBase.WordSpacing;
+        var hasLetterSpacingAdjustment = HasSpacingAdjustment(letterSpacingUnit);
+        var hasWordSpacingAdjustment = HasSpacingAdjustment(wordSpacingUnit);
+        var letterSpacingIsPercentage = hasLetterSpacingAdjustment && letterSpacingUnit.Type == SvgUnitType.Percentage;
+        var wordSpacingIsPercentage = hasWordSpacingAdjustment && wordSpacingUnit.Type == SvgUnitType.Percentage;
+        var fixedLetterSpacing = hasLetterSpacingAdjustment && !letterSpacingIsPercentage
+            ? letterSpacingUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgTextBase, geometryBounds)
+            : 0f;
+        var fixedWordSpacing = hasWordSpacingAdjustment && !wordSpacingIsPercentage
+            ? wordSpacingUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgTextBase, geometryBounds)
+            : 0f;
         var naturalLength = 0f;
         for (var i = 0; i < codepoints.Count; i++)
         {
             naturalLength += naturalAdvances[i];
             if (i < codepoints.Count - 1)
             {
-                var letterSpacing = ResolveSpacingValue(svgTextBase, svgTextBase.LetterSpacing, geometryBounds, naturalAdvances[i]);
-                if (SupportsLetterSpacing(codepoints[i]))
+                if (hasLetterSpacingAdjustment && SupportsLetterSpacing(codepoints[i]))
                 {
-                    naturalLength += letterSpacing;
+                    naturalLength += letterSpacingIsPercentage
+                        ? naturalAdvances[i] * (letterSpacingUnit.Value / 100f)
+                        : fixedLetterSpacing;
                 }
 
-                var wordSpacing = ResolveSpacingValue(svgTextBase, svgTextBase.WordSpacing, geometryBounds, naturalAdvances[i]);
-                if (IsWhitespaceCodepoint(codepoints[i]))
+                if (hasWordSpacingAdjustment && IsWhitespaceCodepoint(codepoints[i]))
                 {
-                    naturalLength += wordSpacing;
+                    naturalLength += wordSpacingIsPercentage
+                        ? naturalAdvances[i] * (wordSpacingUnit.Value / 100f)
+                        : fixedWordSpacing;
                 }
             }
         }
@@ -7227,20 +7381,22 @@ internal static partial class SvgSceneTextCompiler
             }
 
             var clusterAdvance = naturalAdvances[i];
-            var letterSpacing = ResolveSpacingValue(svgTextBase, svgTextBase.LetterSpacing, geometryBounds, naturalAdvances[i]);
-            if (SupportsLetterSpacing(codepoints[i]))
+            if (hasLetterSpacingAdjustment && SupportsLetterSpacing(codepoints[i]))
             {
-                clusterAdvance += letterSpacing;
+                clusterAdvance += letterSpacingIsPercentage
+                    ? naturalAdvances[i] * (letterSpacingUnit.Value / 100f)
+                    : fixedLetterSpacing;
                 if (!IsValidPositiveAdvance(clusterAdvance))
                 {
                     clusterAdvance = 0f;
                 }
             }
 
-            var wordSpacing = ResolveSpacingValue(svgTextBase, svgTextBase.WordSpacing, geometryBounds, naturalAdvances[i]);
-            if (IsWhitespaceCodepoint(codepoints[i]))
+            if (hasWordSpacingAdjustment && IsWhitespaceCodepoint(codepoints[i]))
             {
-                clusterAdvance += wordSpacing;
+                clusterAdvance += wordSpacingIsPercentage
+                    ? naturalAdvances[i] * (wordSpacingUnit.Value / 100f)
+                    : fixedWordSpacing;
             }
 
             if (!scaleRunFromStart)
