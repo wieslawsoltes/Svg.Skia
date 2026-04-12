@@ -1072,7 +1072,7 @@ public static class SvgSceneCompiler
         node.Transform = TransformsService.ToMatrix(visualElement.Transforms);
         node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
         node.TransformedBounds = node.TotalTransform.MapRect(node.GeometryBounds);
-        node.HitTestPath = path?.DeepClone();
+        node.HitTestPath = path;
         node.SupportsFillHitTest = SvgScenePaintingService.IsValidFill(visualElement);
         node.SupportsStrokeHitTest = SvgScenePaintingService.IsValidStroke(visualElement, node.GeometryBounds);
         node.HitTestTargetElement = GetDefaultHitTestTargetElement(node, element);
@@ -1099,15 +1099,18 @@ public static class SvgSceneCompiler
             return true;
         }
 
-        var localModel = CreateDirectPathModel(visualElement, path, node.GeometryBounds, assetLoader, ignoreAttributes, out var canKeepRenderable);
-        node.LocalModel = localModel;
-        node.Fill = SvgScenePaintingService.IsValidFill(visualElement)
-            ? SvgScenePaintingService.GetFillPaint(visualElement, node.GeometryBounds, assetLoader, ignoreAttributes)
-            : null;
-        node.Stroke = SvgScenePaintingService.IsValidStroke(visualElement, node.GeometryBounds)
-            ? SvgScenePaintingService.GetStrokePaint(visualElement, node.GeometryBounds, assetLoader, ignoreAttributes)
-            : null;
-        node.StrokeWidth = node.Stroke?.StrokeWidth ?? 0f;
+        var localPath = CreateDirectPathVisual(
+            visualElement,
+            path,
+            node.GeometryBounds,
+            assetLoader,
+            ignoreAttributes,
+            out var localFill,
+            out var localStroke,
+            out var canKeepRenderable);
+        node.LocalPath = localPath;
+        node.LocalFill = localFill;
+        node.LocalStroke = localStroke;
         if (!canKeepRenderable)
         {
             node.IsRenderable = false;
@@ -2271,18 +2274,20 @@ public static class SvgSceneCompiler
         return visualElement is not null;
     }
 
-    private static SKPicture? CreateDirectPathModel(
+    private static SKPath? CreateDirectPathVisual(
         SvgVisualElement visualElement,
         SKPath path,
         SKRect geometryBounds,
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
+        out SKPaint? fill,
+        out SKPaint? stroke,
         out bool canKeepRenderable)
     {
         canKeepRenderable = true;
 
-        var fill = default(SKPaint);
-        var stroke = default(SKPaint);
+        fill = default;
+        stroke = default;
         var canDrawFill = true;
         var canDrawStroke = true;
 
@@ -2321,20 +2326,7 @@ public static class SvgSceneCompiler
             return null;
         }
 
-        var recorder = new SKPictureRecorder();
-        var canvas = recorder.BeginRecording(cullRect);
-        if (fill is not null)
-        {
-            canvas.DrawPath(path, fill);
-        }
-
-        if (stroke is not null)
-        {
-            canvas.DrawPath(path, stroke);
-        }
-
-        var picture = recorder.EndRecording();
-        return picture.Commands is { Count: > 0 } ? picture : null;
+        return path;
     }
 
     private static SKRect GetEffectiveDocumentCullRect(SKRect cullRect, SvgSceneNode rootNode)

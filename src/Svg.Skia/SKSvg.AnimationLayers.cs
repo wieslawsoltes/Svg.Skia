@@ -855,10 +855,7 @@ public partial class SKSvg
             canvas.SaveLayer(filter);
         }
 
-        if (node.LocalModel is { } localModel)
-        {
-            canvas.DrawPicture(localModel);
-        }
+        SvgSceneRenderer.DrawNodeLocalVisuals(node, canvas);
 
         for (var i = 0; i < node.Children.Count; i++)
         {

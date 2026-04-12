@@ -128,9 +128,9 @@ public static class SvgSceneRenderer
             canvas.SaveLayer(filter);
         }
 
-        if (node.IsRenderable && node.LocalModel is { } localModel)
+        if (node.IsRenderable)
         {
-            canvas.DrawPicture(localModel);
+            DrawNodeLocalVisuals(node, canvas);
         }
 
         for (var i = 0; i < node.Children.Count; i++)
@@ -243,9 +243,9 @@ public static class SvgSceneRenderer
             canvas.SaveLayer(node.Filter!);
         }
 
-        if (node.IsRenderable && node.LocalModel is { } localModel)
+        if (node.IsRenderable)
         {
-            canvas.DrawPicture(localModel);
+            DrawNodeLocalVisuals(node, canvas);
         }
 
         for (var i = 0; i < node.Children.Count; i++)
@@ -266,6 +266,30 @@ public static class SvgSceneRenderer
 
         RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter);
         return true;
+    }
+
+    internal static void DrawNodeLocalVisuals(SvgSceneNode node, SKCanvas canvas)
+    {
+        if (node.LocalModel is { } localModel)
+        {
+            canvas.DrawPicture(localModel);
+            return;
+        }
+
+        if (node.LocalPath is not { } localPath)
+        {
+            return;
+        }
+
+        if (node.LocalFill is { } localFill)
+        {
+            canvas.DrawPath(localPath, localFill);
+        }
+
+        if (node.LocalStroke is { } localStroke)
+        {
+            canvas.DrawPath(localPath, localStroke);
+        }
     }
 
     private static bool IsSelfOrAncestor(SvgSceneNode node, SvgSceneNode descendant)

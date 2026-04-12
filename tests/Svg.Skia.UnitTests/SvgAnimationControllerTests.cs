@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -120,15 +121,15 @@ public class SvgAnimationControllerTests
         Assert.True(svg.HasAnimations);
         Assert.True(svg.UsesAnimationLayerCaching);
 
-        var initialPictures = GetAnimatedSubtreePictures(svg);
+        var initialSignatures = GetAnimatedSubtreeSignatures(svg);
 
         svg.SetAnimationTime(TimeSpan.FromSeconds(1));
 
-        var updatedPictures = GetAnimatedSubtreePictures(svg);
-        Assert.Equal(2, initialPictures.Count);
-        Assert.Equal(2, updatedPictures.Count);
-        Assert.Equal(GetPictureSignature(initialPictures[0]), GetPictureSignature(updatedPictures[0]));
-        Assert.NotEqual(GetPictureSignature(initialPictures[1]), GetPictureSignature(updatedPictures[1]));
+        var updatedSignatures = GetAnimatedSubtreeSignatures(svg);
+        Assert.Equal(2, initialSignatures.Count);
+        Assert.Equal(2, updatedSignatures.Count);
+        Assert.Equal(initialSignatures[0], updatedSignatures[0]);
+        Assert.NotEqual(initialSignatures[1], updatedSignatures[1]);
     }
 
     [Fact]
@@ -1509,7 +1510,7 @@ public class SvgAnimationControllerTests
         </svg>
         """;
 
-    private static System.Collections.Generic.List<ShimSkiaSharp.SKPicture> GetAnimatedSubtreePictures(SKSvg svg)
+    private static System.Collections.Generic.List<string> GetAnimatedSubtreeSignatures(SKSvg svg)
     {
         var compositePicture = svg.Model;
         Assert.NotNull(compositePicture);
@@ -1519,10 +1520,10 @@ public class SvgAnimationControllerTests
 
         var dynamicLayerPicture = layerPictures[layerPictures.Count - 1].Picture;
         Assert.NotNull(dynamicLayerPicture);
-        return CollectLeafPictures(dynamicLayerPicture!);
+        return CollectLeafPictureSignatures(dynamicLayerPicture!);
     }
 
-    private static System.Collections.Generic.List<ShimSkiaSharp.SKPicture> CollectLeafPictures(ShimSkiaSharp.SKPicture picture)
+    private static System.Collections.Generic.List<string> CollectLeafPictureSignatures(ShimSkiaSharp.SKPicture picture)
     {
         var nestedPictures = picture.Commands!
             .OfType<DrawPictureCanvasCommand>()
@@ -1531,18 +1532,74 @@ public class SvgAnimationControllerTests
             .Cast<ShimSkiaSharp.SKPicture>()
             .ToList();
 
-        if (nestedPictures.Count == 0)
+        if (nestedPictures.Count > 0)
         {
-            return new System.Collections.Generic.List<ShimSkiaSharp.SKPicture> { picture };
+            var leafSignatures = new System.Collections.Generic.List<string>();
+            for (var i = 0; i < nestedPictures.Count; i++)
+            {
+                leafSignatures.AddRange(CollectLeafPictureSignatures(nestedPictures[i]));
+            }
+
+            return leafSignatures;
         }
 
-        var leafPictures = new System.Collections.Generic.List<SKPicture>();
-        for (var i = 0; i < nestedPictures.Count; i++)
+        var commandRangeSignatures = CollectTopLevelCommandRangeSignatures(picture);
+        if (commandRangeSignatures.Count > 0)
         {
-            leafPictures.AddRange(CollectLeafPictures(nestedPictures[i]));
+            return commandRangeSignatures;
         }
 
-        return leafPictures;
+        return new System.Collections.Generic.List<string> { GetPictureSignature(picture) };
+    }
+
+    private static System.Collections.Generic.List<string> CollectTopLevelCommandRangeSignatures(ShimSkiaSharp.SKPicture picture)
+    {
+        if (picture.Commands is not { Count: > 0 } commands)
+        {
+            return new System.Collections.Generic.List<string>();
+        }
+
+        var signatures = new System.Collections.Generic.List<string>();
+        var depth = 0;
+        var segmentStart = -1;
+
+        for (var i = 0; i < commands.Count; i++)
+        {
+            switch (commands[i])
+            {
+                case SaveCanvasCommand:
+                case SaveLayerCanvasCommand:
+                    if (depth == 1)
+                    {
+                        segmentStart = i;
+                    }
+
+                    depth++;
+                    break;
+                case RestoreCanvasCommand:
+                    depth--;
+                    if (depth == 1 && segmentStart >= 0)
+                    {
+                        signatures.Add(GetCommandRangeSignature(picture, commands, segmentStart, i));
+                        segmentStart = -1;
+                    }
+                    break;
+            }
+        }
+
+        return signatures;
+    }
+
+    private static string GetCommandRangeSignature(ShimSkiaSharp.SKPicture picture, IList<CanvasCommand> commands, int start, int end)
+    {
+        var builder = new StringBuilder();
+
+        for (var i = start; i <= end; i++)
+        {
+            AppendCommandSignature(builder, commands[i]);
+        }
+
+        return builder.ToString();
     }
 
     private static string GetPictureSignature(ShimSkiaSharp.SKPicture picture)
@@ -1569,13 +1626,92 @@ public class SvgAnimationControllerTests
 
         for (var i = 0; i < commands.Count; i++)
         {
-            var command = commands[i];
-            builder.Append('|').Append(command.GetType().Name);
-            if (command is DrawPictureCanvasCommand drawPicture && drawPicture.Picture is { } nestedPicture)
-            {
-                AppendPictureSignature(builder, nestedPicture);
-            }
+            AppendCommandSignature(builder, commands[i]);
         }
+    }
+
+    private static void AppendCommandSignature(StringBuilder builder, CanvasCommand command)
+    {
+        builder.Append('|').Append(command.GetType().Name);
+        switch (command)
+        {
+            case DrawPictureCanvasCommand drawPicture when drawPicture.Picture is { } nestedPicture:
+                AppendPictureSignature(builder, nestedPicture);
+                break;
+            case DrawPathCanvasCommand drawPath:
+                AppendRectSignature(builder, drawPath.Path?.Bounds ?? SKRect.Empty);
+                AppendPaintSignature(builder, drawPath.Paint);
+                break;
+            case DrawTextCanvasCommand drawText:
+                builder
+                    .Append('(')
+                    .Append(drawText.Text)
+                    .Append('@')
+                    .Append(drawText.X)
+                    .Append(',')
+                    .Append(drawText.Y)
+                    .Append(')');
+                AppendPaintSignature(builder, drawText.Paint);
+                break;
+            case DrawTextBlobCanvasCommand drawTextBlob:
+                builder
+                    .Append('(')
+                    .Append(drawTextBlob.X)
+                    .Append(',')
+                    .Append(drawTextBlob.Y)
+                    .Append(')');
+                AppendPaintSignature(builder, drawTextBlob.Paint);
+                break;
+            case DrawImageCanvasCommand drawImage:
+                AppendRectSignature(builder, drawImage.Source);
+                AppendRectSignature(builder, drawImage.Dest);
+                AppendPaintSignature(builder, drawImage.Paint);
+                break;
+            case ClipRectCanvasCommand clipRect:
+                AppendRectSignature(builder, clipRect.Rect);
+                break;
+            case SetMatrixCanvasCommand setMatrix:
+                builder
+                    .Append('(')
+                    .Append(setMatrix.DeltaMatrix.ScaleX).Append(',')
+                    .Append(setMatrix.DeltaMatrix.SkewX).Append(',')
+                    .Append(setMatrix.DeltaMatrix.TransX).Append(',')
+                    .Append(setMatrix.DeltaMatrix.SkewY).Append(',')
+                    .Append(setMatrix.DeltaMatrix.ScaleY).Append(',')
+                    .Append(setMatrix.DeltaMatrix.TransY)
+                    .Append(')');
+                break;
+        }
+    }
+
+    private static void AppendRectSignature(StringBuilder builder, SKRect rect)
+    {
+        builder
+            .Append('[')
+            .Append(rect.Left).Append(',')
+            .Append(rect.Top).Append(',')
+            .Append(rect.Right).Append(',')
+            .Append(rect.Bottom)
+            .Append(']');
+    }
+
+    private static void AppendPaintSignature(StringBuilder builder, SKPaint? paint)
+    {
+        if (paint is null)
+        {
+            builder.Append("(null)");
+            return;
+        }
+
+        builder
+            .Append('(')
+            .Append(paint.Style).Append(',')
+            .Append(paint.Color?.Red ?? 0).Append(',')
+            .Append(paint.Color?.Green ?? 0).Append(',')
+            .Append(paint.Color?.Blue ?? 0).Append(',')
+            .Append(paint.Color?.Alpha ?? 0).Append(',')
+            .Append(paint.StrokeWidth)
+            .Append(')');
     }
 
     private static SkiaBitmap RenderBitmap(SKSvg svg)
