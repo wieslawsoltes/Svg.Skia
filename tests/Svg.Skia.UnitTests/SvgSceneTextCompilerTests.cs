@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -46,6 +47,29 @@ public class SvgSceneTextCompilerTests
     public void MeasureNaturalCodepointAdvances_KerningPairText_MatchesPrefixMeasurement()
     {
         VerifyMatchesPrefixMeasurement("AVATAR ");
+    }
+
+    [Fact]
+    public void MeasureNaturalCodepointAdvances_FallsBackWhenSampledPrefixesDoNotMatch()
+    {
+        var document = CreateDocument("ABC", 24);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var geometryBounds = GetDocumentViewport(document);
+        var assetLoader = new DivergentPrefixAssetLoader(
+            new Dictionary<string, float>(StringComparer.Ordinal)
+            {
+                ["A"] = 2f,
+                ["B"] = 3f,
+                ["C"] = 3f,
+                ["ABC"] = 8f,
+                ["AB"] = 5f
+            },
+            [1f, 4f, 3f]);
+        var codepoints = InvokeSplitCodepoints("ABC");
+
+        var actual = InvokeMeasureNaturalCodepointAdvances(svgText, codepoints, geometryBounds, assetLoader);
+
+        Assert.Equal([2f, 3f, 3f], actual);
     }
 
     [Fact]
@@ -194,5 +218,77 @@ public class SvgSceneTextCompilerTests
         }
 
         return SKRect.Empty;
+    }
+
+    private sealed class DivergentPrefixAssetLoader : ISvgAssetLoader, ISvgTextRunTypefaceResolver, ISvgTextGlyphRunResolver
+    {
+        private readonly IReadOnlyDictionary<string, float> _measuredAdvances;
+        private readonly float[] _runAdvances;
+        private readonly SKTypeface _typeface = SKTypeface.FromFamilyName(
+            "sans-serif",
+            SKFontStyleWeight.Normal,
+            SKFontStyleWidth.Normal,
+            SKFontStyleSlant.Upright);
+
+        public DivergentPrefixAssetLoader(IReadOnlyDictionary<string, float> measuredAdvances, float[] runAdvances)
+        {
+            _measuredAdvances = measuredAdvances;
+            _runAdvances = runAdvances;
+        }
+
+        public bool EnableSvgFonts => false;
+
+        public SKImage LoadImage(Stream stream) => throw new NotSupportedException();
+
+        public List<TypefaceSpan> FindTypefaces(string? text, SKPaint paintPreferredTypeface)
+        {
+            var resolvedText = text ?? string.Empty;
+            return
+            [
+                new TypefaceSpan(resolvedText, GetAdvance(resolvedText), _typeface)
+            ];
+        }
+
+        public SKFontMetrics GetFontMetrics(SKPaint paint) => default;
+
+        public float MeasureText(string? text, SKPaint paint, ref SKRect bounds)
+        {
+            bounds = default;
+            return GetAdvance(text ?? string.Empty);
+        }
+
+        public SKPath? GetTextPath(string? text, SKPaint paint, float x, float y) => null;
+
+        public SKTypeface? FindRunTypeface(string? text, SKPaint paintPreferredTypeface) => _typeface;
+
+        public bool TryShapeGlyphRun(string? text, SKPaint paint, out ShapedGlyphRun shapedRun)
+        {
+            if (string.IsNullOrEmpty(text) || text.Length != _runAdvances.Length)
+            {
+                shapedRun = default;
+                return false;
+            }
+
+            var glyphs = new ushort[_runAdvances.Length];
+            var points = new SKPoint[_runAdvances.Length];
+            var clusters = new int[_runAdvances.Length];
+            var currentX = 0f;
+
+            for (var i = 0; i < _runAdvances.Length; i++)
+            {
+                glyphs[i] = (ushort)(i + 1);
+                points[i] = new SKPoint(currentX, 0f);
+                clusters[i] = i;
+                currentX += _runAdvances[i];
+            }
+
+            shapedRun = new ShapedGlyphRun(glyphs, points, clusters, currentX);
+            return true;
+        }
+
+        private float GetAdvance(string text)
+        {
+            return _measuredAdvances.TryGetValue(text, out var advance) ? advance : 0f;
+        }
     }
 }

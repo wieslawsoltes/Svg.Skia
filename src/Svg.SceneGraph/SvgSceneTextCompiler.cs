@@ -30,6 +30,13 @@ internal static partial class SvgSceneTextCompiler
 
     private readonly record struct ShapedSequentialRunSegment(SvgTextBase StyleSource, ushort[] Glyphs, SKPoint[] Points);
 
+    private readonly record struct ResolvedSequentialCompileRun(
+        SvgTextBase StyleSource,
+        string DrawText,
+        SKTypeface? Typeface,
+        float Advance,
+        SKRect RelativeBounds);
+
     private readonly record struct LogicalBidiRun(int StartCharIndex, int Length, int Direction);
 
     private readonly record struct TextPathRun(SvgTextBase StyleSource, string Text, float Dx, float Dy);
@@ -254,6 +261,19 @@ internal static partial class SvgSceneTextCompiler
         node.SupportsFillHitTest = SvgScenePaintingService.IsValidFill(svgTextBase);
         node.SupportsStrokeHitTest = SvgScenePaintingService.IsValidStroke(svgTextBase, SKRect.Empty);
 
+        if (TryCompileSequentialText(svgTextBase, viewport, ignoreAttributes, assetLoader, out var compiledGeometryBounds, out var sequentialModel))
+        {
+            node.GeometryBounds = compiledGeometryBounds;
+            node.TransformedBounds = node.TotalTransform.MapRect(compiledGeometryBounds);
+            node.LocalModel = sequentialModel;
+            if (node.LocalModel is null)
+            {
+                node.IsRenderable = false;
+            }
+
+            return true;
+        }
+
         var geometryBounds = EstimateGeometryBounds(svgTextBase, viewport, assetLoader);
         node.GeometryBounds = geometryBounds;
         node.TransformedBounds = node.TotalTransform.MapRect(geometryBounds);
@@ -290,6 +310,170 @@ internal static partial class SvgSceneTextCompiler
 
         return true;
     }
+
+    private static bool TryCompileSequentialText(
+        SvgTextBase svgTextBase,
+        SKRect viewport,
+        DrawAttributes ignoreAttributes,
+        ISvgAssetLoader assetLoader,
+        out SKRect geometryBounds,
+        out SKPicture? localModel)
+    {
+        geometryBounds = SKRect.Empty;
+        localModel = null;
+
+        if (HasSequentialTextRunBarriers(svgTextBase) ||
+            IsVerticalWritingMode(svgTextBase) ||
+            !TryCollectSequentialTextRuns(svgTextBase, requireAnchorContent: false, IsTextReferenceRenderingEnabled(assetLoader), trimLeadingWhitespaceAtStart: true, out var runs) ||
+            runs.Count == 0 ||
+            !TryResolveSequentialCompileRuns(runs, viewport, assetLoader, out var resolvedRuns))
+        {
+            return false;
+        }
+
+        var x = svgTextBase.X.Count >= 1
+            ? svgTextBase.X[0].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, viewport)
+            : 0f;
+        var y = svgTextBase.Y.Count >= 1
+            ? svgTextBase.Y[0].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, viewport)
+            : 0f;
+        var baselineShift = GetBaselineShiftVector(svgTextBase, viewport);
+        var currentX = x + baselineShift.X;
+        var currentY = y + baselineShift.Y;
+        ApplyInitialSequentialOffsets(svgTextBase, viewport, ref currentX, ref currentY);
+
+        var textAlign = GetTextAnchorAlign(svgTextBase, viewport);
+        var totalAdvance = 0f;
+        for (var i = 0; i < resolvedRuns.Count; i++)
+        {
+            totalAdvance += resolvedRuns[i].Advance;
+        }
+
+        var inlineOrigin = GetAlignedStartCoordinate(currentX, totalAdvance, textAlign);
+        var runX = inlineOrigin;
+        for (var i = 0; i < resolvedRuns.Count; i++)
+        {
+            UnionBounds(ref geometryBounds, OffsetRect(resolvedRuns[i].RelativeBounds, runX, currentY));
+            ApplyInlineAdvance(resolvedRuns[i].StyleSource, ref runX, ref currentY, resolvedRuns[i].Advance);
+        }
+
+        var cullRect = CreateLocalCullRect(geometryBounds);
+        if (cullRect.IsEmpty)
+        {
+            return true;
+        }
+
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(cullRect);
+        DrawResolvedSequentialCompileRuns(resolvedRuns, inlineOrigin, currentY, geometryBounds, ignoreAttributes, canvas, assetLoader);
+        var recordedModel = recorder.EndRecording();
+        localModel = recordedModel.Commands is { Count: > 0 } ? recordedModel : null;
+        return true;
+    }
+
+    private static bool TryResolveSequentialCompileRuns(
+        IReadOnlyList<SequentialTextRun> runs,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        out List<ResolvedSequentialCompileRun> resolvedRuns)
+    {
+        resolvedRuns = new List<ResolvedSequentialCompileRun>(runs.Count);
+        for (var i = 0; i < runs.Count; i++)
+        {
+            if (!TryResolveSequentialCompileRun(runs[i], geometryBounds, assetLoader, out var resolvedRun))
+            {
+                resolvedRuns.Clear();
+                return false;
+            }
+
+            resolvedRuns.Add(resolvedRun);
+        }
+
+        return resolvedRuns.Count > 0;
+    }
+
+    private static bool TryResolveSequentialCompileRun(
+        SequentialTextRun run,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        out ResolvedSequentialCompileRun resolvedRun)
+    {
+        resolvedRun = default;
+        var metricsPaint = CreateTextMetricsPaint(run.StyleSource, geometryBounds);
+        var fallbackText = GetBrowserCompatibleFallbackText(run.StyleSource, run.Text, assetLoader);
+        if (string.IsNullOrEmpty(fallbackText))
+        {
+            return false;
+        }
+
+        if (!TryCreateBrowserCompatibleFullRunPaint(run.StyleSource, fallbackText, metricsPaint, assetLoader, out var fullRunPaint, out var shapedText))
+        {
+            return false;
+        }
+
+        var measureBounds = new SKRect();
+        var advance = EnsureWhitespaceAdvance(fallbackText, fullRunPaint, assetLoader, assetLoader.MeasureText(shapedText, fullRunPaint, ref measureBounds));
+        var relativeBounds = measureBounds;
+        if (relativeBounds.IsEmpty)
+        {
+            relativeBounds = GetTextAdvanceBox(run.StyleSource, 0f, 0f, advance, fullRunPaint, assetLoader);
+        }
+        else
+        {
+            relativeBounds = ExpandTextBoundsWithAdvanceBox(run.StyleSource, relativeBounds, 0f, 0f, advance, fullRunPaint, assetLoader);
+        }
+
+        resolvedRun = new ResolvedSequentialCompileRun(run.StyleSource, shapedText, fullRunPaint.Typeface, advance, relativeBounds);
+        return true;
+    }
+
+    private static void DrawResolvedSequentialCompileRuns(
+        IReadOnlyList<ResolvedSequentialCompileRun> resolvedRuns,
+        float startX,
+        float startY,
+        SKRect geometryBounds,
+        DrawAttributes ignoreAttributes,
+        SKCanvas canvas,
+        ISvgAssetLoader assetLoader)
+    {
+        var currentX = startX;
+        var currentY = startY;
+        for (var i = 0; i < resolvedRuns.Count; i++)
+        {
+            var run = resolvedRuns[i];
+            if (SvgScenePaintingService.IsValidFill(run.StyleSource))
+            {
+                var fillPaint = SvgScenePaintingService.GetFillPaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes);
+                if (fillPaint is not null)
+                {
+                    PaintingService.SetPaintText(run.StyleSource, geometryBounds, fillPaint);
+                    fillPaint.TextAlign = SKTextAlign.Left;
+                    fillPaint.Typeface = run.Typeface;
+                    canvas.DrawText(run.DrawText, currentX, currentY, fillPaint);
+                }
+            }
+
+            if (SvgScenePaintingService.IsValidStroke(run.StyleSource, geometryBounds))
+            {
+                var strokePaint = SvgScenePaintingService.GetStrokePaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes);
+                if (strokePaint is not null)
+                {
+                    PaintingService.SetPaintText(run.StyleSource, geometryBounds, strokePaint);
+                    strokePaint.TextAlign = SKTextAlign.Left;
+                    strokePaint.Typeface = run.Typeface;
+                    canvas.DrawText(run.DrawText, currentX, currentY, strokePaint);
+                }
+            }
+
+            ApplyInlineAdvance(run.StyleSource, ref currentX, ref currentY, run.Advance);
+        }
+    }
+
+    private static SKRect OffsetRect(SKRect rect, float x, float y)
+    {
+        return new SKRect(rect.Left + x, rect.Top + y, rect.Right + x, rect.Bottom + y);
+    }
+
 
     private static SKRect EstimateGeometryBounds(SvgTextBase svgTextBase, SKRect viewport, ISvgAssetLoader assetLoader)
     {
@@ -6876,6 +7060,7 @@ internal static partial class SvgSceneTextCompiler
                 svgTextBase,
                 text,
                 codepoints,
+                geometryBounds,
                 paint,
                 assetLoader,
                 isRightToLeft,
@@ -6922,6 +7107,7 @@ internal static partial class SvgSceneTextCompiler
         SvgTextBase svgTextBase,
         string text,
         IReadOnlyList<string> codepoints,
+        SKRect geometryBounds,
         SKPaint paint,
         ISvgAssetLoader assetLoader,
         bool isRightToLeft,
@@ -6960,7 +7146,15 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        return TryCreatePrefixEquivalentSimpleRunAdvances(codepoints, runAdvances, shapedRun.Advance, shapingPaint, assetLoader, out advances);
+        return TryCreatePrefixEquivalentSimpleRunAdvances(
+            svgTextBase,
+            codepoints,
+            geometryBounds,
+            runAdvances,
+            shapedRun.Advance,
+            shapingPaint,
+            assetLoader,
+            out advances);
     }
 
     private static bool TryGetCachedNaturalCodepointAdvances(
@@ -7125,7 +7319,9 @@ internal static partial class SvgSceneTextCompiler
     }
 
     private static bool TryCreatePrefixEquivalentSimpleRunAdvances(
+        SvgTextBase svgTextBase,
         IReadOnlyList<string> codepoints,
+        SKRect geometryBounds,
         IReadOnlyList<float> runAdvances,
         float totalAdvance,
         SKPaint shapingPaint,
@@ -7167,8 +7363,107 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
+        if (!HasMatchingSampledPrefixMeasurements(svgTextBase, codepoints, geometryBounds, assetLoader, prefixEquivalentAdvances))
+        {
+            return false;
+        }
+
         advances = prefixEquivalentAdvances;
         return true;
+    }
+
+    private static bool HasMatchingSampledPrefixMeasurements(
+        SvgTextBase svgTextBase,
+        IReadOnlyList<string> codepoints,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        IReadOnlyList<float> advances)
+    {
+        if (codepoints.Count == 0 || advances.Count != codepoints.Count)
+        {
+            return false;
+        }
+
+        var sampleIndices = GetPrefixValidationSampleIndices(codepoints);
+        if (sampleIndices.Count == 0)
+        {
+            return false;
+        }
+
+        const float epsilon = 0.05f;
+        var builder = new StringBuilder();
+        var accumulatedAdvance = 0f;
+        var sampleCursor = 0;
+
+        for (var i = 0; i < codepoints.Count; i++)
+        {
+            builder.Append(codepoints[i]);
+            accumulatedAdvance += advances[i];
+
+            if (sampleCursor >= sampleIndices.Count || i != sampleIndices[sampleCursor])
+            {
+                continue;
+            }
+
+            var measuredAdvance = MeasureNaturalTextAdvance(svgTextBase, builder.ToString(), geometryBounds, assetLoader);
+            if (Math.Abs(measuredAdvance - accumulatedAdvance) > epsilon)
+            {
+                return false;
+            }
+
+            sampleCursor++;
+        }
+
+        return sampleCursor == sampleIndices.Count;
+    }
+
+    private static List<int> GetPrefixValidationSampleIndices(IReadOnlyList<string> codepoints)
+    {
+        var count = codepoints.Count;
+        if (count == 0)
+        {
+            return [];
+        }
+
+        if (count <= 8)
+        {
+            var allIndices = new List<int>(count);
+            for (var i = 0; i < count; i++)
+            {
+                allIndices.Add(i);
+            }
+
+            return allIndices;
+        }
+
+        var samples = new SortedSet<int>
+        {
+            0,
+            1,
+            count / 2,
+            count - 2,
+            count - 1
+        };
+
+        for (var i = 0; i < count; i++)
+        {
+            if (IsWhitespaceCodepoint(codepoints[i]))
+            {
+                samples.Add(i);
+                break;
+            }
+        }
+
+        for (var i = count - 1; i >= 0; i--)
+        {
+            if (IsWhitespaceCodepoint(codepoints[i]))
+            {
+                samples.Add(i);
+                break;
+            }
+        }
+
+        return [.. samples];
     }
 
     private static bool TryMeasureSimpleRunCodepointAdvance(
@@ -7854,7 +8149,15 @@ internal static partial class SvgSceneTextCompiler
                 assetLoader,
                 assetLoader.MeasureText(shapedText, fullRunPaint, ref fullRunMeasureBounds));
 
-            if (TryGetRenderedTextLocalBounds(shapedText, fullRunPaint, assetLoader, out var fullRunBounds))
+            if (!fullRunMeasureBounds.IsEmpty)
+            {
+                bounds = new SKRect(
+                    anchorX + fullRunMeasureBounds.Left,
+                    anchorY + fullRunMeasureBounds.Top,
+                    anchorX + fullRunMeasureBounds.Right,
+                    anchorY + fullRunMeasureBounds.Bottom);
+            }
+            else if (TryGetRenderedTextLocalBounds(shapedText, fullRunPaint, assetLoader, out var fullRunBounds))
             {
                 bounds = new SKRect(
                     anchorX + fullRunBounds.Left,
@@ -7875,18 +8178,16 @@ internal static partial class SvgSceneTextCompiler
                 var localPaint = paint.Clone();
                 localPaint.Typeface = spans[i].Typeface;
 
-                var measuredAdvance = 0f;
                 var spanBounds = SKRect.Empty;
-                if (TryGetRenderedTextLocalBounds(spans[i].Text, localPaint, assetLoader, out var renderedBounds))
+                var spanMeasureBounds = new SKRect();
+                var measuredAdvance = assetLoader.MeasureText(spans[i].Text, localPaint, ref spanMeasureBounds);
+                if (!spanMeasureBounds.IsEmpty)
+                {
+                    spanBounds = spanMeasureBounds;
+                }
+                else if (TryGetRenderedTextLocalBounds(spans[i].Text, localPaint, assetLoader, out var renderedBounds))
                 {
                     spanBounds = renderedBounds;
-                    var spanMeasureBounds = new SKRect();
-                    measuredAdvance = assetLoader.MeasureText(spans[i].Text, localPaint, ref spanMeasureBounds);
-                }
-                else
-                {
-                    var fallbackMeasureBounds = new SKRect();
-                    measuredAdvance = assetLoader.MeasureText(spans[i].Text, localPaint, ref fallbackMeasureBounds);
                 }
 
                 var spanAdvance = EnsureWhitespaceAdvance(spans[i].Text, localPaint, assetLoader, spans[i].Advance > 0f ? spans[i].Advance : measuredAdvance);
@@ -7907,14 +8208,15 @@ internal static partial class SvgSceneTextCompiler
             return !bounds.IsEmpty || advance > 0f;
         }
 
-        var textBounds = SKRect.Empty;
-        if (!TryGetRenderedTextLocalBounds(fallbackText, paint, assetLoader, out textBounds))
+        var measureBounds = new SKRect();
+        advance = EnsureWhitespaceAdvance(fallbackText, paint, assetLoader, assetLoader.MeasureText(fallbackText, paint, ref measureBounds));
+        var textBounds = measureBounds;
+        if (textBounds.IsEmpty &&
+            !TryGetRenderedTextLocalBounds(fallbackText, paint, assetLoader, out textBounds))
         {
             textBounds = new SKRect();
         }
 
-        var measureBounds = new SKRect();
-        advance = EnsureWhitespaceAdvance(fallbackText, paint, assetLoader, assetLoader.MeasureText(fallbackText, paint, ref measureBounds));
         if (textBounds.IsEmpty)
         {
             bounds = GetTextAdvanceBox(svgTextBase, anchorX, anchorY, advance, paint, assetLoader);
