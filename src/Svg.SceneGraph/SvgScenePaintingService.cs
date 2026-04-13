@@ -10,6 +10,8 @@ namespace Svg.Skia;
 
 internal static class SvgScenePaintingService
 {
+    internal readonly record struct SolidFillPaintCacheKey(bool IsAntialias, SKColor Color, bool LinearRgb);
+
     internal static float AdjustSvgOpacity(float opacity)
     {
         return Math.Min(Math.Max(opacity, 0f), 1f);
@@ -62,6 +64,52 @@ internal static class SvgScenePaintingService
         return TryApplyPaintServer(svgVisualElement, svgVisualElement.Fill, opacity, skBounds, skPaint, forStroke: false, assetLoader, ignoreAttributes)
             ? skPaint
             : null;
+    }
+
+    internal static bool TryCreateSolidFillPaintCacheKey(
+        SvgVisualElement svgVisualElement,
+        DrawAttributes ignoreAttributes,
+        out SolidFillPaintCacheKey key)
+    {
+        key = default;
+
+        if (svgVisualElement.Fill is not SvgColourServer svgColourServer)
+        {
+            return false;
+        }
+
+        var colorInterpolation = GetColorInterpolation(svgVisualElement);
+        var isLinearRgb = colorInterpolation == SvgColourInterpolation.LinearRGB;
+        var opacity = AdjustSvgOpacity(svgVisualElement.FillOpacity);
+        var skColor = GetColor(svgColourServer, opacity, ignoreAttributes);
+        if (isLinearRgb)
+        {
+            skColor = ToLinear(skColor);
+        }
+
+        key = new SolidFillPaintCacheKey(
+            PaintingService.IsAntialias(svgVisualElement),
+            skColor,
+            isLinearRgb);
+        return true;
+    }
+
+    internal static SKPaint CreateSolidFillPaint(SolidFillPaintCacheKey key)
+    {
+        var paint = new SKPaint
+        {
+            IsAntialias = key.IsAntialias,
+            Style = SKPaintStyle.Fill
+        };
+
+        if (!key.LinearRgb)
+        {
+            paint.Color = key.Color;
+            return paint;
+        }
+
+        paint.Shader = SKShader.CreateColor(key.Color, SKColorSpace.SrgbLinear);
+        return paint;
     }
 
     internal static SKPaint? GetStrokePaint(

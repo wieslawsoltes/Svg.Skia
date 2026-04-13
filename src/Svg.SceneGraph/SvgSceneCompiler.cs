@@ -17,6 +17,7 @@ public static class SvgSceneCompiler
     {
         private readonly HashSet<string> _activeDocumentKeys = new(StringComparer.Ordinal);
         private readonly SvgElementAddressKeyCache _addressKeys = new();
+        private readonly Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> _solidFillPaintCache = new();
 
         public bool TryEnter(SvgDocument? document, out string? documentKey)
         {
@@ -35,6 +36,28 @@ public static class SvgSceneCompiler
         public string? GetElementAddressKey(SvgElement? element)
         {
             return _addressKeys.GetOrCreate(element);
+        }
+
+        public bool TryGetCachedSolidFillPaint(
+            SvgVisualElement visualElement,
+            DrawAttributes ignoreAttributes,
+            out SKPaint? paint)
+        {
+            paint = null;
+
+            if (!SvgScenePaintingService.TryCreateSolidFillPaintCacheKey(visualElement, ignoreAttributes, out var key))
+            {
+                return false;
+            }
+
+            if (!_solidFillPaintCache.TryGetValue(key, out var cachedPaint))
+            {
+                cachedPaint = SvgScenePaintingService.CreateSolidFillPaint(key);
+                _solidFillPaintCache[key] = cachedPaint;
+            }
+
+            paint = cachedPaint.Clone();
+            return true;
         }
 
         private static string? GetDocumentKey(SvgDocument? document)
@@ -1105,6 +1128,7 @@ public static class SvgSceneCompiler
             node.GeometryBounds,
             assetLoader,
             ignoreAttributes,
+            compileContext,
             out var localFill,
             out var localStroke,
             out var canKeepRenderable);
@@ -2289,6 +2313,7 @@ public static class SvgSceneCompiler
         SKRect geometryBounds,
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
+        SvgSceneCompileContext compileContext,
         out SKPaint? fill,
         out SKPaint? stroke,
         out bool canKeepRenderable)
@@ -2302,7 +2327,9 @@ public static class SvgSceneCompiler
 
         if (SvgScenePaintingService.IsValidFill(visualElement))
         {
-            fill = SvgScenePaintingService.GetFillPaint(visualElement, geometryBounds, assetLoader, ignoreAttributes);
+            fill = compileContext.TryGetCachedSolidFillPaint(visualElement, ignoreAttributes, out var cachedFill)
+                ? cachedFill
+                : SvgScenePaintingService.GetFillPaint(visualElement, geometryBounds, assetLoader, ignoreAttributes);
             if (fill is null)
             {
                 canDrawFill = false;
