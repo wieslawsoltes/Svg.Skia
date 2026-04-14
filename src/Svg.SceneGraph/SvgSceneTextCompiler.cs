@@ -283,7 +283,7 @@ internal static partial class SvgSceneTextCompiler
             return true;
         }
 
-        var cullRect = CreateLocalCullRect(geometryBounds);
+        var cullRect = CreateTextLocalCullRect(geometryBounds);
         if (cullRect.IsEmpty)
         {
             node.IsRenderable = false;
@@ -358,7 +358,7 @@ internal static partial class SvgSceneTextCompiler
             ApplyInlineAdvance(resolvedRuns[i].StyleSource, ref runX, ref currentY, resolvedRuns[i].Advance);
         }
 
-        var cullRect = CreateLocalCullRect(geometryBounds);
+        var cullRect = CreateTextLocalCullRect(geometryBounds);
         if (cullRect.IsEmpty)
         {
             return true;
@@ -9472,5 +9472,23 @@ internal static partial class SvgSceneTextCompiler
             0f,
             Math.Abs(bounds.Left) + bounds.Width,
             Math.Abs(bounds.Top) + bounds.Height);
+    }
+
+    private static SKRect CreateTextLocalCullRect(SKRect bounds)
+    {
+        if (bounds.IsEmpty)
+        {
+            return SKRect.Empty;
+        }
+
+        // Text bounds come from font metrics and can be slightly tighter than the final
+        // platform rasterization, especially around antialiased glyph edges.
+        const float padding = 1f;
+        var paddedBounds = new SKRect(
+            bounds.Left - padding,
+            bounds.Top - padding,
+            bounds.Right + padding,
+            bounds.Bottom + padding);
+        return CreateLocalCullRect(paddedBounds);
     }
 }

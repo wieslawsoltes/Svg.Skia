@@ -123,6 +123,25 @@ public class SvgSceneTextCompilerTests
         Assert.False(succeeded);
     }
 
+    [Fact]
+    public void TryCompileSequentialText_FallsBack_ForSignInAssetTextNodes()
+    {
+        var document = SvgDocument.Open("/Users/wieslawsoltes/GitHub/Svg.Skia/tests/Tests/Sign in.svg");
+        var viewport = GetDocumentViewport(document);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings { EnableSvgFonts = true }));
+        var compiledIds = new List<string>();
+
+        foreach (var svgText in document.Descendants().OfType<SvgText>())
+        {
+            if (InvokeTryCompileSequentialText(svgText, viewport, assetLoader))
+            {
+                compiledIds.Add(svgText.ID ?? svgText.GetType().Name);
+            }
+        }
+
+        Assert.Empty(compiledIds);
+    }
+
     private static void VerifyMatchesPrefixMeasurement(string textContent)
     {
         var document = CreateDocument(textContent, 24);
