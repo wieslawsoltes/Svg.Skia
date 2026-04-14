@@ -326,6 +326,7 @@ internal static partial class SvgSceneTextCompiler
             IsVerticalWritingMode(svgTextBase) ||
             !TryCollectSequentialTextRuns(svgTextBase, requireAnchorContent: false, IsTextReferenceRenderingEnabled(assetLoader), trimLeadingWhitespaceAtStart: true, out var runs) ||
             runs.Count == 0 ||
+            !CanUseSequentialCompileFastPath(runs) ||
             !TryResolveSequentialCompileRuns(runs, viewport, assetLoader, out var resolvedRuns))
         {
             return false;
@@ -368,6 +369,70 @@ internal static partial class SvgSceneTextCompiler
         DrawResolvedSequentialCompileRuns(resolvedRuns, inlineOrigin, currentY, geometryBounds, ignoreAttributes, canvas, assetLoader);
         var recordedModel = recorder.EndRecording();
         localModel = recordedModel.Commands is { Count: > 0 } ? recordedModel : null;
+        return true;
+    }
+
+    private static bool CanUseSequentialCompileFastPath(IReadOnlyList<SequentialTextRun> runs)
+    {
+        for (var i = 0; i < runs.Count; i++)
+        {
+            if (!HasGenericSequentialCompileFontFamily(runs[i].StyleSource) ||
+                !IsSimpleAsciiSequentialCompileText(runs[i].Text))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool HasGenericSequentialCompileFontFamily(SvgTextBase svgTextBase)
+    {
+        var fontFamily = svgTextBase.FontFamily;
+        if (string.IsNullOrWhiteSpace(fontFamily))
+        {
+            return true;
+        }
+
+        var families = fontFamily.Split([','], StringSplitOptions.RemoveEmptyEntries);
+        if (families.Length == 0)
+        {
+            return true;
+        }
+
+        for (var i = 0; i < families.Length; i++)
+        {
+            var family = families[i].Trim().Trim('\'', '"');
+            if (!family.Equals("sans-serif", StringComparison.OrdinalIgnoreCase) &&
+                !family.Equals("serif", StringComparison.OrdinalIgnoreCase) &&
+                !family.Equals("monospace", StringComparison.OrdinalIgnoreCase) &&
+                !family.Equals("cursive", StringComparison.OrdinalIgnoreCase) &&
+                !family.Equals("fantasy", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsSimpleAsciiSequentialCompileText(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return false;
+        }
+
+        for (var i = 0; i < text.Length; i++)
+        {
+            var ch = text[i];
+            if (ch > 0x7F ||
+                char.IsControl(ch))
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 

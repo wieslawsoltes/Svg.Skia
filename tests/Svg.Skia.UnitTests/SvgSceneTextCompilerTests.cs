@@ -30,6 +30,12 @@ public class SvgSceneTextCompilerTests
         binder: null,
         [typeof(SvgTextBase), typeof(IReadOnlyList<string>), typeof(SKRect), typeof(ISvgAssetLoader)],
         modifiers: null)!;
+    private static readonly MethodInfo s_tryCompileSequentialTextMethod = s_svgSceneTextCompilerType.GetMethod(
+        "TryCompileSequentialText",
+        BindingFlags.NonPublic | BindingFlags.Static,
+        binder: null,
+        [typeof(SvgTextBase), typeof(SKRect), typeof(DrawAttributes), typeof(ISvgAssetLoader), typeof(SKRect).MakeByRefType(), typeof(SKPicture).MakeByRefType()],
+        modifiers: null)!;
 
     [Fact]
     public void MeasureNaturalCodepointAdvances_SimpleAsciiText_MatchesPrefixMeasurement()
@@ -97,6 +103,24 @@ public class SvgSceneTextCompilerTests
         var largeAdvances = InvokeMeasureNaturalCodepointAdvances(largeText, codepoints, largeBounds, assetLoader);
 
         Assert.True(largeAdvances.Sum() > smallAdvances.Sum() * 2f);
+    }
+
+    [Fact]
+    public void TryCompileSequentialText_FallsBack_ForCustomFontAndEmoji()
+    {
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="80" viewBox="0 0 240 80">
+              <text id="label" x="10" y="40" font-family="AppleGothic">📧Email</text>
+            </svg>
+            """);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var viewport = GetDocumentViewport(document);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+
+        var succeeded = InvokeTryCompileSequentialText(svgText, viewport, assetLoader);
+
+        Assert.False(succeeded);
     }
 
     private static void VerifyMatchesPrefixMeasurement(string textContent)
@@ -197,6 +221,24 @@ public class SvgSceneTextCompilerTests
         ISvgAssetLoader assetLoader)
     {
         return Assert.IsType<float[]>(s_measureNaturalCodepointAdvancesMethod.Invoke(null, [svgTextBase, codepoints, geometryBounds, assetLoader]));
+    }
+
+    private static bool InvokeTryCompileSequentialText(
+        SvgTextBase svgTextBase,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader)
+    {
+        var args = new object?[]
+        {
+            svgTextBase,
+            viewport,
+            DrawAttributes.None,
+            assetLoader,
+            default(SKRect),
+            null
+        };
+
+        return Assert.IsType<bool>(s_tryCompileSequentialTextMethod.Invoke(null, args));
     }
 
     private static SKRect GetDocumentViewport(SvgDocument document)
