@@ -9,6 +9,12 @@ public static class SKPictureExtensions
     public static void Draw(this SkiaSharp.SKPicture skPicture, SkiaSharp.SKColor background, float scaleX, float scaleY, SkiaSharp.SKCanvas skCanvas)
     {
         skCanvas.Clear(background);
+        if (scaleX == 1f && scaleY == 1f)
+        {
+            skCanvas.DrawPicture(skPicture);
+            return;
+        }
+
         skCanvas.Save();
         skCanvas.Scale(scaleX, scaleY);
         skCanvas.DrawPicture(skPicture);
@@ -17,13 +23,11 @@ public static class SKPictureExtensions
 
     public static SkiaSharp.SKBitmap? ToBitmap(this SkiaSharp.SKPicture skPicture, SkiaSharp.SKColor background, float scaleX, float scaleY, SkiaSharp.SKColorType skColorType, SkiaSharp.SKAlphaType skAlphaType, SkiaSharp.SKColorSpace skColorSpace)
     {
-        var width = skPicture.CullRect.Width * scaleX;
-        var height = skPicture.CullRect.Height * scaleY;
-        if (!(width > 0) || !(height > 0))
+        if (!TryCreateImageInfo(skPicture, scaleX, scaleY, skColorType, skAlphaType, skColorSpace, out var skImageInfo))
         {
             return null;
         }
-        var skImageInfo = new SkiaSharp.SKImageInfo((int)width, (int)height, skColorType, skAlphaType, skColorSpace);
+
         var skBitmap = new SkiaSharp.SKBitmap(skImageInfo);
         using var skCanvas = new SkiaSharp.SKCanvas(skBitmap);
         Draw(skPicture, background, scaleX, scaleY, skCanvas);
@@ -32,12 +36,19 @@ public static class SKPictureExtensions
 
     public static bool ToImage(this SkiaSharp.SKPicture skPicture, Stream stream, SkiaSharp.SKColor background, SkiaSharp.SKEncodedImageFormat format, int quality, float scaleX, float scaleY, SkiaSharp.SKColorType skColorType, SkiaSharp.SKAlphaType skAlphaType, SkiaSharp.SKColorSpace skColorSpace)
     {
-        using var skBitmap = skPicture.ToBitmap(background, scaleX, scaleY, skColorType, skAlphaType, skColorSpace);
-        if (skBitmap is null)
+        if (!TryCreateImageInfo(skPicture, scaleX, scaleY, skColorType, skAlphaType, skColorSpace, out var skImageInfo))
         {
             return false;
         }
-        using var skImage = SkiaSharp.SKImage.FromBitmap(skBitmap);
+
+        using var skSurface = SkiaSharp.SKSurface.Create(skImageInfo);
+        if (skSurface is null)
+        {
+            return false;
+        }
+
+        Draw(skPicture, background, scaleX, scaleY, skSurface.Canvas);
+        using var skImage = skSurface.Snapshot();
         using var skData = skImage.Encode(format, quality);
         if (skData is { })
         {
@@ -133,6 +144,20 @@ public static class SKPictureExtensions
         using var skCanvas = skDocument.BeginPage(width, height);
         Draw(skPicture, background, scaleX, scaleY, skCanvas);
         skDocument.Close();
+        return true;
+    }
+
+    private static bool TryCreateImageInfo(this SkiaSharp.SKPicture skPicture, float scaleX, float scaleY, SkiaSharp.SKColorType skColorType, SkiaSharp.SKAlphaType skAlphaType, SkiaSharp.SKColorSpace skColorSpace, out SkiaSharp.SKImageInfo skImageInfo)
+    {
+        var width = skPicture.CullRect.Width * scaleX;
+        var height = skPicture.CullRect.Height * scaleY;
+        if (!(width > 0) || !(height > 0))
+        {
+            skImageInfo = default;
+            return false;
+        }
+
+        skImageInfo = new SkiaSharp.SKImageInfo((int)width, (int)height, skColorType, skAlphaType, skColorSpace);
         return true;
     }
 }

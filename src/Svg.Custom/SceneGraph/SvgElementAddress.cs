@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
+using System.Text;
 
 #nullable enable
 
@@ -11,11 +11,12 @@ internal sealed class SvgElementAddress
     public SvgElementAddress(int[] childIndexes)
     {
         ChildIndexes = childIndexes;
+        Key = CreateKey(childIndexes);
     }
 
     public int[] ChildIndexes { get; }
 
-    public string Key => string.Join("/", ChildIndexes.Select(static index => index.ToString(CultureInfo.InvariantCulture)));
+    public string Key { get; }
 
     public static SvgElementAddress Create(SvgElement element)
     {
@@ -46,5 +47,26 @@ internal sealed class SvgElementAddress
         }
 
         return current;
+    }
+
+    private static string CreateKey(IReadOnlyList<int> childIndexes)
+    {
+        if (childIndexes.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var builder = new StringBuilder(childIndexes.Count * 2);
+        for (var i = 0; i < childIndexes.Count; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append('/');
+            }
+
+            builder.Append(childIndexes[i].ToString(CultureInfo.InvariantCulture));
+        }
+
+        return builder.ToString();
     }
 }

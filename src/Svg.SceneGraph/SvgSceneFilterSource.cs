@@ -9,9 +9,6 @@ namespace Svg.Skia;
 
 internal sealed class SvgSceneFilterSource : ISvgSceneFilterSource
 {
-    private const DrawAttributes FilterSourceInput =
-        DrawAttributes.Filter;
-
     private readonly SvgSceneDocument _sceneDocument;
     private readonly SvgSceneNode _node;
 
@@ -27,10 +24,12 @@ internal sealed class SvgSceneFilterSource : ISvgSceneFilterSource
             _sceneDocument,
             _node,
             clip,
-            FilterSourceInput,
+            DrawAttributes.None,
             until: null,
             enableRootTransform: false,
-            ignoreRootOpacity: true);
+            ignoreRootOpacity: true,
+            ignoreRootMask: true,
+            ignoreRootFilter: true);
     }
 
     public SKPicture? BackgroundImage(SKRect? clip)

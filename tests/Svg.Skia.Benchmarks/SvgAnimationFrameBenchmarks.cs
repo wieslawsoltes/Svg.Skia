@@ -5,7 +5,6 @@ using SkiaSharp;
 
 namespace Svg.Skia.Benchmarks;
 
-[MemoryDiagnoser]
 public class SvgAnimationFrameBenchmarks
 {
     private static readonly string[] Palette =
@@ -64,24 +63,28 @@ public class SvgAnimationFrameBenchmarks
     }
 
     [Benchmark(Baseline = true)]
+    [BenchmarkCategory("Animation", "Advance")]
     public int AdvanceLayeredFrame()
     {
         return AdvanceFrame(_layeredAdvanceSvg!, ref _layeredAdvanceFrameIndex);
     }
 
     [Benchmark]
+    [BenchmarkCategory("Animation", "Advance")]
     public int AdvanceResourceFrame()
     {
         return AdvanceFrame(_resourceAdvanceSvg!, ref _resourceAdvanceFrameIndex);
     }
 
     [Benchmark]
+    [BenchmarkCategory("Animation", "Draw")]
     public int AdvanceAndDrawLayeredFrame()
     {
         return AdvanceFrameAndDraw(_layeredDrawSvg!, ref _layeredDrawFrameIndex);
     }
 
     [Benchmark]
+    [BenchmarkCategory("Animation", "Draw")]
     public int AdvanceAndDrawResourceFrame()
     {
         return AdvanceFrameAndDraw(_resourceDrawSvg!, ref _resourceDrawFrameIndex);

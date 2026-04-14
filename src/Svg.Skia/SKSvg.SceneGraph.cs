@@ -180,6 +180,69 @@ public partial class SKSvg
             : new SvgSceneMutationResult(false, 0, 0);
     }
 
+    public bool TryApplyRetainedSceneMutationAndRender(
+        SvgElement element,
+        IReadOnlyCollection<string>? changedAttributes,
+        out SvgSceneMutationResult? result)
+    {
+        result = null;
+        if (!TryEnsureRetainedSceneGraph(out var sceneDocument) || sceneDocument is null)
+        {
+            return false;
+        }
+
+        result = sceneDocument.ApplyMutation(element, changedAttributes);
+        if (!result.Succeeded)
+        {
+            return false;
+        }
+
+        DisableAnimationLayerCaching();
+        return RenderRetainedSceneDocument(sceneDocument);
+    }
+
+    public bool TryApplyRetainedSceneMutationAndRender(
+        string addressKey,
+        IReadOnlyCollection<string>? changedAttributes,
+        out SvgSceneMutationResult? result)
+    {
+        result = null;
+        if (!TryEnsureRetainedSceneGraph(out var sceneDocument) || sceneDocument is null)
+        {
+            return false;
+        }
+
+        result = sceneDocument.ApplyMutation(addressKey, changedAttributes);
+        if (!result.Succeeded)
+        {
+            return false;
+        }
+
+        DisableAnimationLayerCaching();
+        return RenderRetainedSceneDocument(sceneDocument);
+    }
+
+    public bool TryApplyRetainedSceneMutationByIdAndRender(
+        string id,
+        IReadOnlyCollection<string>? changedAttributes,
+        out SvgSceneMutationResult? result)
+    {
+        result = null;
+        if (!TryEnsureRetainedSceneGraph(out var sceneDocument) || sceneDocument is null)
+        {
+            return false;
+        }
+
+        result = sceneDocument.ApplyMutationById(id, changedAttributes);
+        if (!result.Succeeded)
+        {
+            return false;
+        }
+
+        DisableAnimationLayerCaching();
+        return RenderRetainedSceneDocument(sceneDocument);
+    }
+
     public SKPicture? CreateRetainedSceneNodeModel(SvgSceneNode node, SKRect? clip = null)
     {
         if (!TryEnsureRetainedSceneGraph(out var sceneDocument) || sceneDocument is null)

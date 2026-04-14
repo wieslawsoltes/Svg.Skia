@@ -15,6 +15,7 @@ using Svg.Skia.UnitTests.Common;
 using Xunit;
 using SkiaAlphaType = SkiaSharp.SKAlphaType;
 using SkiaBitmap = SkiaSharp.SKBitmap;
+using SkiaColor = SkiaSharp.SKColor;
 using SkiaColors = SkiaSharp.SKColors;
 using SkiaColorType = SkiaSharp.SKColorType;
 
@@ -1314,6 +1315,23 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_IndexesNestedSharedUseDescendantsAsMultipleNodes()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(NestedSharedUseSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        var sourceDocument = Assert.IsType<SvgDocument>(scene!.SourceDocument);
+        var leaf = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("leaf"));
+        Assert.True(svg.TryGetRetainedSceneNodes(leaf, out var indexedNodes));
+        Assert.Equal(2, indexedNodes.Count);
+        Assert.All(indexedNodes, static node => Assert.False(string.IsNullOrWhiteSpace(node.ElementAddressKey)));
+        Assert.Contains('/', Assert.IsType<string>(indexedNodes[0].ElementAddressKey));
+        Assert.All(indexedNodes, static node => Assert.Equal("leaf", node.ElementId));
+    }
+
+    [Fact]
     public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForSimpleDocument()
     {
         using var svg = new SKSvg();
@@ -1324,6 +1342,74 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.NotNull(svg.Picture);
         Assert.NotNull(retainedPicture);
         AssertPicturesEqual(svg, svg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForPrimitiveShapesDocument()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(PrimitiveShapesSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.NotNull(svg.Picture);
+        Assert.NotNull(retainedPicture);
+        AssertPicturesEqual(svg, svg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForRootOpacityDocument()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(RootOpacitySvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.NotNull(svg.Picture);
+        Assert.NotNull(retainedPicture);
+        AssertPicturesEqual(svg, svg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForFilteredGroupDocument()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(FilteredGroupSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.NotNull(svg.Picture);
+        Assert.NotNull(retainedPicture);
+        AssertPicturesEqual(svg, svg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_AppliesBlendFilterToFilteredGroupsLikeEquivalentSingles()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(FilteredGroupComparisonSvg);
+
+        Assert.NotNull(svg.Picture);
+
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+
+        var singleBlue = bitmap.GetPixel(36, 9);
+        var singleYellow = bitmap.GetPixel(36, 27);
+        var groupBlue = bitmap.GetPixel(36, 45);
+        var groupYellow = bitmap.GetPixel(36, 63);
+
+        Assert.NotEqual(new SkiaColor(0, 0, 255, 255), groupBlue);
+        Assert.NotEqual(new SkiaColor(255, 255, 0, 255), groupYellow);
+        Assert.True(
+            groupBlue.Green > singleBlue.Green &&
+            groupBlue.Blue > singleBlue.Blue &&
+            groupBlue.Red < singleBlue.Red,
+            $"Expected grouped multiply row to shift away from the unfiltered blue source, but single={singleBlue} group={groupBlue}.");
+        Assert.True(
+            groupYellow.Green > singleYellow.Green &&
+            groupYellow.Red < 200 &&
+            groupYellow.Blue == 0,
+            $"Expected grouped multiply row to shift away from the unfiltered yellow source, but single={singleYellow} group={groupYellow}.");
     }
 
     [Fact]
@@ -1408,6 +1494,63 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_ApplyMutation_UpdatesNestedUseDescendantDependents()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(NestedSharedUseSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        var sourceDocument = Assert.IsType<SvgDocument>(scene!.SourceDocument);
+        var leaf = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("leaf"));
+        leaf.Fill = new SvgColourServer(Color.Purple);
+
+        var result = scene.ApplyMutation(leaf, new[] { "fill" });
+
+        Assert.True(result.Succeeded);
+        Assert.True(result.CompilationRootCount >= 2);
+        Assert.True(svg.TryGetRetainedSceneNodes(leaf, out var indexedNodes));
+        Assert.Equal(2, indexedNodes.Count);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        using var expectedSvg = new SKSvg();
+        expectedSvg.FromSvgDocument((SvgDocument)sourceDocument.DeepCopy());
+
+        Assert.NotNull(retainedPicture);
+        Assert.NotNull(expectedSvg.Picture);
+        AssertPicturesEqual(expectedSvg, expectedSvg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ApplyMutation_UpdatesAnimationChildDependents()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(
+            "<svg width=\"40\" height=\"20\">" +
+            "  <rect id=\"target\" x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"red\">" +
+            "    <animate id=\"move-anim\" attributeName=\"x\" from=\"0\" to=\"8\" dur=\"1s\" fill=\"freeze\" />" +
+            "  </rect>" +
+            "</svg>");
+
+        var sourceDocument = Assert.IsType<SvgDocument>(svg.RetainedSceneGraph!.SourceDocument);
+        var animation = Assert.IsType<SvgAnimate>(sourceDocument.GetElementById("move-anim"));
+        animation.To = "16";
+
+        var result = svg.ApplyRetainedSceneMutationById("move-anim", new[] { "to" });
+
+        Assert.True(result.Succeeded);
+        Assert.True(result.CompilationRootCount >= 1);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        using var expectedSvg = new SKSvg();
+        expectedSvg.FromSvgDocument((SvgDocument)sourceDocument.DeepCopy());
+
+        Assert.NotNull(retainedPicture);
+        Assert.NotNull(expectedSvg.Picture);
+        AssertPicturesEqual(expectedSvg, expectedSvg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
     public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForPatternDocument()
     {
         using var svg = new SKSvg();
@@ -1425,6 +1568,48 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     {
         using var svg = new SKSvg();
         svg.FromSvg(RichTextSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.NotNull(svg.Picture);
+        Assert.NotNull(retainedPicture);
+        AssertPicturesEqual(svg, svg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForLongTextPathDocument()
+    {
+        const string longTextPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink"
+                 width="640"
+                 height="120"
+                 viewBox="0 0 640 120">
+              <defs>
+                <path id="wave-path"
+                      d="M16,62
+                         C40,38 64,86 88,62
+                         C112,38 136,86 160,62
+                         C184,38 208,86 232,62
+                         C256,38 280,86 304,62
+                         C328,38 352,86 376,62
+                         C400,38 424,86 448,62
+                         C472,38 496,86 520,62
+                         C544,38 568,86 592,62" />
+              </defs>
+              <text fill="#1f2937"
+                    font-family="Noto Sans"
+                    font-size="18"
+                    letter-spacing="0.75"
+                    textLength="520">
+                <textPath xlink:href="#wave-path" startOffset="4%">Retained scene graph text path parity benchmark</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(longTextPathSvg);
 
         using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
 
@@ -1586,6 +1771,34 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void TryApplyRetainedSceneMutationByIdAndRender_RefreshesCurrentPicture()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(
+            "<svg width=\"80\" height=\"40\">" +
+            "  <rect id=\"rect-a\" x=\"10\" y=\"8\" width=\"24\" height=\"12\" fill=\"red\" />" +
+            "</svg>");
+
+        var sourceDocument = Assert.IsType<SvgDocument>(svg.RetainedSceneGraph!.SourceDocument);
+        var rect = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("rect-a"));
+        rect.Fill = new SvgColourServer(Color.BlueViolet);
+
+        var updated = svg.TryApplyRetainedSceneMutationByIdAndRender("rect-a", new[] { "fill" }, out var result);
+
+        Assert.True(updated);
+        Assert.NotNull(result);
+        Assert.True(result!.Succeeded);
+        Assert.Equal(1, result.CompilationRootCount);
+        Assert.NotNull(svg.Picture);
+
+        using var expectedSvg = new SKSvg();
+        expectedSvg.FromSvgDocument((SvgDocument)sourceDocument.DeepCopy());
+
+        Assert.NotNull(expectedSvg.Picture);
+        AssertPicturesEqual(expectedSvg, expectedSvg.Picture!, svg.Picture!);
+    }
+
+    [Fact]
     public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForMaskedRichTextDocument()
     {
         using var svg = new SKSvg();
@@ -1739,6 +1952,24 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         </svg>
         """;
 
+    private const string NestedSharedUseSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             xmlns:xlink="http://www.w3.org/1999/xlink"
+             width="48"
+             height="24"
+             viewBox="0 0 48 24">
+          <defs>
+            <g id="template">
+              <g id="inner">
+                <rect id="leaf" x="0" y="0" width="8" height="8" fill="green" />
+              </g>
+            </g>
+          </defs>
+          <use id="use-a" xlink:href="#template" x="2" y="2" />
+          <use id="use-b" xlink:href="#template" x="20" y="10" />
+        </svg>
+        """;
+
     private const string PrimitiveShapesSvg = """
         <svg xmlns="http://www.w3.org/2000/svg"
              width="80"
@@ -1751,6 +1982,65 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
           <line id="shape-line" x1="4" y1="24" x2="20" y2="34" stroke="#6600aa" stroke-width="2" />
           <polyline id="shape-polyline" points="26,34 32,22 38,30 44,20" fill="none" stroke="#00aaaa" stroke-width="2" />
           <polygon id="shape-polygon" points="54,22 68,22 74,34 60,36" fill="#ffaa00" />
+        </svg>
+        """;
+
+    private const string RootOpacitySvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="32"
+             height="32"
+             viewBox="0 0 32 32"
+             opacity="0.5">
+          <rect x="2" y="2" width="28" height="28" fill="#008000" />
+          <rect x="1" y="1" width="30" height="30" fill="none" stroke="#000000" />
+        </svg>
+        """;
+
+    private const string FilteredGroupSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="72"
+             height="28"
+             viewBox="0 0 72 28">
+          <defs>
+            <linearGradient id="bg" x1="0" y1="0" x2="72" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ff0000" />
+              <stop offset="100%" stop-color="#00ff00" />
+            </linearGradient>
+            <filter id="blend" x="0%" y="0%" width="100%" height="100%">
+              <feFlood flood-color="#00ff00" flood-opacity="0.5" result="flood" />
+              <feBlend in="SourceGraphic" in2="flood" mode="multiply" />
+            </filter>
+          </defs>
+          <rect x="0" y="0" width="72" height="28" fill="url(#bg)" />
+          <g filter="url(#blend)">
+            <rect x="8" y="6" width="56" height="6" fill="#0000ff" opacity="0.5" />
+            <rect x="8" y="16" width="56" height="6" fill="#ffff00" opacity="0.5" />
+          </g>
+        </svg>
+        """;
+
+    private const string FilteredGroupComparisonSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="72"
+             height="72"
+             viewBox="0 0 72 72">
+          <defs>
+            <linearGradient id="bg-compare" x1="0" y1="0" x2="72" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ff0000" />
+              <stop offset="100%" stop-color="#00ff00" />
+            </linearGradient>
+            <filter id="blend-compare" x="0%" y="0%" width="100%" height="100%">
+              <feFlood flood-color="#00ff00" flood-opacity="0.5" result="flood" />
+              <feBlend in="SourceGraphic" in2="flood" mode="multiply" />
+            </filter>
+          </defs>
+          <rect x="0" y="0" width="72" height="72" fill="url(#bg-compare)" />
+          <rect x="8" y="6" width="56" height="6" fill="#0000ff" opacity="0.5" filter="url(#blend-compare)" />
+          <rect x="8" y="24" width="56" height="6" fill="#ffff00" opacity="0.5" filter="url(#blend-compare)" />
+          <g filter="url(#blend-compare)">
+            <rect x="8" y="42" width="56" height="6" fill="#0000ff" opacity="0.5" />
+            <rect x="8" y="60" width="56" height="6" fill="#ffff00" opacity="0.5" />
+          </g>
         </svg>
         """;
 

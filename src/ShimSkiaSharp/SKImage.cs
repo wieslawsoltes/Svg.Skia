@@ -7,11 +7,57 @@ namespace ShimSkiaSharp;
 
 public class SKImage : ICloneable, IDeepCloneable<SKImage>
 {
-    public byte[]? Data { get; set; }
+    private byte[]? _data;
+    private float _width;
+    private float _height;
+    private int _version;
 
-    public float Width { get; set; }
+    internal int Version => _version;
 
-    public float Height { get; set; }
+    public byte[]? Data
+    {
+        get => _data;
+        set
+        {
+            if (ReferenceEquals(_data, value))
+            {
+                return;
+            }
+
+            _data = value;
+            _version++;
+        }
+    }
+
+    public float Width
+    {
+        get => _width;
+        set
+        {
+            if (_width.Equals(value))
+            {
+                return;
+            }
+
+            _width = value;
+            _version++;
+        }
+    }
+
+    public float Height
+    {
+        get => _height;
+        set
+        {
+            if (_height.Equals(value))
+            {
+                return;
+            }
+
+            _height = value;
+            _version++;
+        }
+    }
 
     public static byte[] FromStream(Stream sourceStream)
     {

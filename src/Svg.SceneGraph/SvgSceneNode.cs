@@ -70,6 +70,12 @@ public sealed class SvgSceneNode
 
     public SKPicture? LocalModel { get; internal set; }
 
+    internal SKPath? LocalPath { get; set; }
+
+    internal SKPaint? LocalFill { get; set; }
+
+    internal SKPaint? LocalStroke { get; set; }
+
     public SKPath? HitTestPath { get; internal set; }
 
     public SKRect GeometryBounds { get; internal set; }
@@ -120,7 +126,9 @@ public sealed class SvgSceneNode
 
     public long Version { get; private set; }
 
-    public bool HasLocalVisuals => LocalModel?.Commands is { Count: > 0 };
+    public bool HasLocalVisuals =>
+        LocalModel?.Commands is { Count: > 0 } ||
+        (LocalPath is not null && (LocalFill is not null || LocalStroke is not null));
 
     internal void AddChild(SvgSceneNode child)
     {
@@ -157,6 +165,9 @@ public sealed class SvgSceneNode
         CompilationRootKey = replacement.CompilationRootKey;
         IsCompilationRootBoundary = replacement.IsCompilationRootBoundary;
         LocalModel = replacement.LocalModel;
+        LocalPath = replacement.LocalPath;
+        LocalFill = replacement.LocalFill;
+        LocalStroke = replacement.LocalStroke;
         HitTestPath = replacement.HitTestPath?.DeepClone();
         GeometryBounds = replacement.GeometryBounds;
         TransformedBounds = replacement.TransformedBounds;

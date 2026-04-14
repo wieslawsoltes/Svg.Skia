@@ -65,4 +65,4 @@ In a custom surface, the interaction controller is the entry point for:
 
 - [Rendering and Svg Services](../editor/rendering-and-svg-services)
 - [Svg.Editor.Skia.Avalonia](svg-editor-skia-avalonia)
-- [Hit Testing and Model Editing](../guides/hit-testing-and-model-editing)
+- [Hit Testing and Scene Inspection](../guides/hit-testing-and-model-editing)

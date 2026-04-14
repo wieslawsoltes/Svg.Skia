@@ -194,11 +194,28 @@ public partial class SkiaModel
         return blob;
     }
 
-    private readonly record struct ShapedTextResult(
-        ushort[] Codepoints,
-        SkiaSharp.SKPoint[] Points,
-        int[] Clusters,
-        float Width);
+    private readonly struct ShapedTextResult
+    {
+        public ShapedTextResult(
+            ushort[] codepoints,
+            SkiaSharp.SKPoint[] points,
+            int[] clusters,
+            float width)
+        {
+            Codepoints = codepoints;
+            Points = points;
+            Clusters = clusters;
+            Width = width;
+        }
+
+        public ushort[] Codepoints { get; }
+
+        public SkiaSharp.SKPoint[] Points { get; }
+
+        public int[] Clusters { get; }
+
+        public float Width { get; }
+    }
 
     private sealed class HarfBuzzTextShaper : IDisposable
     {

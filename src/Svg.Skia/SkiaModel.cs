@@ -261,6 +261,7 @@ public partial class SkiaModel
             _typefaceCache.Clear();
             _resolvedTypefaceCache.Clear();
             ClearPositionedTextCache();
+            ClearReusableRenderCaches();
         }
     }
 
@@ -1646,10 +1647,11 @@ public partial class SkiaModel
         }
 
         var skRect = ToSKRect(picture.CullRect);
+        var commands = picture.Commands;
         using var skPictureRecorder = new SkiaSharp.SKPictureRecorder();
         using var skCanvas = skPictureRecorder.BeginRecording(skRect);
 
-        if (picture.Commands is { Count: > 0 })
+        if (commands is { Count: > 0 })
         {
             Draw(picture, skCanvas);
         }
@@ -1669,10 +1671,11 @@ public partial class SkiaModel
         }
 
         var skRect = ToSKRect(picture.CullRect);
+        var commands = picture.Commands;
         using var skPictureRecorder = new SkiaSharp.SKPictureRecorder();
         using var skCanvas = skPictureRecorder.BeginRecording(skRect);
 
-        if (picture.Commands is { Count: > 0 })
+        if (commands is { Count: > 0 })
         {
             Draw(picture, skCanvas, true);
         }
@@ -1741,7 +1744,7 @@ public partial class SkiaModel
                     {
                         var paint = wireframe
                             ? ToWireframePaint(saveLayerCanvasCommand.Paint)
-                            : ToSKPaint(saveLayerCanvasCommand.Paint);
+                            : GetRenderPaint(saveLayerCanvasCommand.Paint);
                         skCanvas.SaveLayer(paint);
                     }
                     else
@@ -1762,10 +1765,10 @@ public partial class SkiaModel
                         }
                         else
                         {
-                            var image = ToSKImage(drawImageCanvasCommand.Image);
+                            var image = GetRenderImage(drawImageCanvasCommand.Image);
                             var source = ToSKRect(drawImageCanvasCommand.Source);
                             var dest = ToSKRect(drawImageCanvasCommand.Dest);
-                            var paint = ToSKPaint(drawImageCanvasCommand.Paint);
+                            var paint = GetRenderPaint(drawImageCanvasCommand.Paint);
                             skCanvas.DrawImage(image, source, dest, paint);
                         }
                     }
@@ -1790,10 +1793,10 @@ public partial class SkiaModel
                 {
                     if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
                     {
-                        var path = ToSKPath(drawPathCanvasCommand.Path);
+                        var path = GetRenderPath(drawPathCanvasCommand.Path);
                         var paint = wireframe
                             ? ToWireframePaint(drawPathCanvasCommand.Paint)
-                            : ToSKPaint(drawPathCanvasCommand.Paint);
+                            : GetRenderPaint(drawPathCanvasCommand.Paint);
                         skCanvas.DrawPath(path, paint);
                     }
                     break;
@@ -1805,7 +1808,7 @@ public partial class SkiaModel
                         var sourcePaint = drawPositionedTextCanvasCommand.Paint;
                         var paint = wireframe
                             ? ToWireframePaint(sourcePaint)
-                            : ToSKPaint(sourcePaint);
+                            : GetRenderPaint(sourcePaint);
                         if (paint is null)
                         {
                             break;
@@ -1828,7 +1831,7 @@ public partial class SkiaModel
                         var y = drawTextCanvasCommand.Y;
                         var paint = wireframe
                             ? ToWireframePaint(drawTextCanvasCommand.Paint)
-                            : ToSKPaint(drawTextCanvasCommand.Paint);
+                            : GetRenderPaint(drawTextCanvasCommand.Paint);
                         if (paint is null)
                         {
                             break;
@@ -1846,12 +1849,12 @@ public partial class SkiaModel
                     if (drawTextOnPathCanvasCommand.Path is { } && drawTextOnPathCanvasCommand.Paint is { })
                     {
                         var text = drawTextOnPathCanvasCommand.Text;
-                        var path = ToSKPath(drawTextOnPathCanvasCommand.Path);
+                        var path = GetRenderPath(drawTextOnPathCanvasCommand.Path);
                         var hOffset = drawTextOnPathCanvasCommand.HOffset;
                         var vOffset = drawTextOnPathCanvasCommand.VOffset;
                         var paint = wireframe
                             ? ToWireframePaint(drawTextOnPathCanvasCommand.Paint)
-                            : ToSKPaint(drawTextOnPathCanvasCommand.Paint);
+                            : GetRenderPaint(drawTextOnPathCanvasCommand.Paint);
                         skCanvas.DrawTextOnPath(text, path, hOffset, vOffset, paint);
                     }
                     break;
@@ -1861,14 +1864,15 @@ public partial class SkiaModel
 
     public void Draw(SKPicture picture, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
     {
-        if (picture.Commands is null)
+        var commands = picture.Commands;
+        if (commands is null)
         {
             return;
         }
 
-        foreach (var canvasCommand in picture.Commands)
+        for (var i = 0; i < commands.Count; i++)
         {
-            Draw(canvasCommand, skCanvas, wireframe);
+            Draw(commands[i], skCanvas, wireframe);
         }
     }
 

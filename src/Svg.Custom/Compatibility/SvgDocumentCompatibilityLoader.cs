@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
+using System.Text;
 using System.Xml;
 
 namespace Svg;
@@ -178,9 +178,9 @@ public static class SvgDocumentCompatibilityLoader
                     case XmlNodeType.EndElement:
                         element = elementStack.Pop();
 
-                        if (element.Nodes.OfType<SvgContentNode>().Any())
+                        if (TryAggregateNodeContent(element, out var content))
                         {
-                            element.Content = string.Concat(element.Nodes.Select(n => n.Content).ToArray());
+                            element.Content = content;
                         }
                         else
                         {
@@ -239,6 +239,73 @@ public static class SvgDocumentCompatibilityLoader
     private static bool ShouldPreserveTextWhitespace(SvgElement element)
     {
         return element is SvgTextBase;
+    }
+
+    private static bool TryAggregateNodeContent(SvgElement element, out string content)
+    {
+        var nodes = element.Nodes;
+        if (nodes.Count == 0)
+        {
+            content = string.Empty;
+            return false;
+        }
+
+        if (nodes.Count == 1)
+        {
+            var node = nodes[0];
+            if (node is SvgContentNode)
+            {
+                content = node.Content ?? string.Empty;
+                return true;
+            }
+
+            content = string.Empty;
+            return false;
+        }
+
+        var hasContentNode = false;
+        string? aggregatedContent = null;
+        StringBuilder? builder = null;
+
+        for (var i = 0; i < nodes.Count; i++)
+        {
+            var node = nodes[i];
+            if (node is SvgContentNode)
+            {
+                hasContentNode = true;
+            }
+
+            var nodeContent = node.Content;
+            if (string.IsNullOrEmpty(nodeContent))
+            {
+                continue;
+            }
+
+            if (builder is not null)
+            {
+                builder.Append(nodeContent);
+                continue;
+            }
+
+            if (aggregatedContent is null)
+            {
+                aggregatedContent = nodeContent;
+                continue;
+            }
+
+            builder = new StringBuilder(aggregatedContent.Length + nodeContent.Length);
+            builder.Append(aggregatedContent);
+            builder.Append(nodeContent);
+        }
+
+        if (!hasContentNode)
+        {
+            content = string.Empty;
+            return false;
+        }
+
+        content = builder?.ToString() ?? aggregatedContent ?? string.Empty;
+        return true;
     }
 
     private static Uri? TryGetAbsoluteBaseUri(string? baseUri)

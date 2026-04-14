@@ -369,7 +369,7 @@ internal sealed class SvgSceneFilterContext
                     var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, input1FilterResult, input2FilterResult, input1Key, input2Key);
                     var skCropRect = skFilterPrimitiveRegion;
                     var background = ApplyColourInterpolation(input2FilterResult, colorInterpolationFilters)!;
-                    var foreground = ApplyColourInterpolation(input1FilterResult, colorInterpolationFilters);
+                    var foreground = ApplyColourInterpolation(input1FilterResult, colorInterpolationFilters, allowImplicitSourceGraphic: true);
                     var skImageFilter = CreateBlend(svgBlend, background, foreground, skCropRect);
                     _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                     if (skImageFilter is { })
@@ -425,7 +425,7 @@ internal sealed class SvgSceneFilterContext
                     var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, input1FilterResult, input2FilterResult, input1Key, input2Key);
                     var skCropRect = skFilterPrimitiveRegion;
                     var background = ApplyColourInterpolation(input2FilterResult, colorInterpolationFilters)!;
-                    var foreground = ApplyColourInterpolation(input1FilterResult, colorInterpolationFilters);
+                    var foreground = ApplyColourInterpolation(input1FilterResult, colorInterpolationFilters, allowImplicitSourceGraphic: true);
                     var skImageFilter = CreateComposite(svgComposite, background, foreground, skCropRect);
                     _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                     if (skImageFilter is { })
@@ -968,7 +968,10 @@ internal sealed class SvgSceneFilterContext
         return svgFilters;
     }
 
-    private SKImageFilter? ApplyColourInterpolation(SvgSceneFilterResult? input, SvgColourInterpolation dst)
+    private SKImageFilter? ApplyColourInterpolation(
+        SvgSceneFilterResult? input,
+        SvgColourInterpolation dst,
+        bool allowImplicitSourceGraphic = false)
     {
         if (input is null)
         {
@@ -976,20 +979,26 @@ internal sealed class SvgSceneFilterContext
         }
 
         var src = input.ColorSpace;
+        var useImplicitSourceGraphic = allowImplicitSourceGraphic &&
+                                       string.Equals(input.Key, SourceGraphic, StringComparison.Ordinal);
 
         if (src == dst)
         {
-            return input.Filter;
+            return useImplicitSourceGraphic ? null : input.Filter;
         }
 
         if (src == SvgColourInterpolation.SRGB && dst == SvgColourInterpolation.LinearRGB)
         {
-            return SKImageFilter.CreateColorFilter(FilterEffectsService.SRGBToLinearGamma(), input.Filter);
+            return SKImageFilter.CreateColorFilter(
+                FilterEffectsService.SRGBToLinearGamma(),
+                useImplicitSourceGraphic ? null : input.Filter);
         }
 
         if (src == SvgColourInterpolation.LinearRGB && dst == SvgColourInterpolation.SRGB)
         {
-            return SKImageFilter.CreateColorFilter(FilterEffectsService.LinearToSRGBGamma(), input.Filter);
+            return SKImageFilter.CreateColorFilter(
+                FilterEffectsService.LinearToSRGBGamma(),
+                useImplicitSourceGraphic ? null : input.Filter);
         }
 
         return null;
@@ -1534,9 +1543,20 @@ internal sealed class SvgSceneFilterContext
             cropRect = _skFilterRegion;
         }
 
-        var cf = SKColorFilter.CreateBlendMode(floodColor.Value, SKBlendMode.Src);
-
-        return SKImageFilter.CreateColorFilter(cf, input, cropRect);
+        var floodRect = cropRect.Value;
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(floodRect);
+        var paint = new SKPaint
+        {
+            IsAntialias = true,
+            Style = SKPaintStyle.Fill,
+            Color = floodColor.Value
+        };
+        var path = new SKPath();
+        path.AddRect(floodRect);
+        canvas.DrawPath(path, paint);
+        var picture = recorder.EndRecording();
+        return SKImageFilter.CreatePicture(picture, floodRect);
     }
 
     private SKImageFilter? CreateBlur(SvgGaussianBlur svgGaussianBlur, SKImageFilter? input = default, SKRect? cropRect = default)

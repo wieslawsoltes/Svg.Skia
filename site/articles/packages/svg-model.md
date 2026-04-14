@@ -35,6 +35,7 @@ dotnet add package Svg.Model
 `Svg.Model` can parse content and produce either a drawable tree or a `ShimSkiaSharp.SKPicture`. Asset resolution still requires an `ISvgAssetLoader` implementation, which usually comes from `Svg.Skia` or an application-specific host.
 
 ```csharp
+using System;
 using ShimSkiaSharp;
 using Svg.Model.Drawables;
 using Svg.Model.Services;
@@ -124,4 +125,4 @@ Use this interface directly when integrating the model layer into a new host env
 
 - [Package Architecture](../concepts/package-architecture)
 - [Picture Model and Rebuild](../concepts/picture-model-and-rebuild)
-- [Hit Testing and Model Editing](../guides/hit-testing-and-model-editing)
+- [Hit Testing and Scene Inspection](../guides/hit-testing-and-model-editing)

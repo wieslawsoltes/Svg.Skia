@@ -38,7 +38,9 @@ public static class SvgSceneRenderer
         DrawAttributes ignoreAttributes = DrawAttributes.None,
         SvgSceneNode? until = null,
         bool enableRootTransform = true,
-        bool ignoreRootOpacity = false)
+        bool ignoreRootOpacity = false,
+        bool ignoreRootMask = false,
+        bool ignoreRootFilter = false)
     {
         var cullRect = clip ?? SvgSceneNodeBoundsService.GetRenderableBounds(node);
         if (cullRect.IsEmpty)
@@ -48,7 +50,7 @@ public static class SvgSceneRenderer
 
         var recorder = new SKPictureRecorder();
         var canvas = recorder.BeginRecording(cullRect);
-        RenderNodeToCanvas(sceneDocument, node, canvas, ignoreAttributes, until, enableRootTransform, ignoreRootOpacity);
+        RenderNodeToCanvas(sceneDocument, node, canvas, ignoreAttributes, until, enableRootTransform, ignoreRootOpacity, ignoreRootMask, ignoreRootFilter);
         return recorder.EndRecording();
     }
 
@@ -59,7 +61,9 @@ public static class SvgSceneRenderer
         DrawAttributes ignoreAttributes = DrawAttributes.None,
         SvgSceneNode? until = null,
         bool enableTransform = true,
-        bool ignoreCurrentOpacity = false)
+        bool ignoreCurrentOpacity = false,
+        bool ignoreCurrentMask = false,
+        bool ignoreCurrentFilter = false)
     {
         if (until is not null && ReferenceEquals(node, until))
         {
@@ -104,9 +108,9 @@ public static class SvgSceneRenderer
             canvas.ClipRect(innerClip, SKClipOperation.Intersect);
         }
 
-        var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask);
+        var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask) && !ignoreCurrentMask;
         var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity) && !ignoreCurrentOpacity;
-        var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter);
+        var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter) && !ignoreCurrentFilter;
 
         if (node.MaskPaint is { } maskPaint && node.MaskNode is not null && enableMask)
         {
@@ -128,9 +132,9 @@ public static class SvgSceneRenderer
             canvas.SaveLayer(filter);
         }
 
-        if (node.IsRenderable && node.LocalModel is { } localModel)
+        if (node.IsRenderable)
         {
-            canvas.DrawPicture(localModel);
+            DrawNodeLocalVisuals(node, canvas);
         }
 
         for (var i = 0; i < node.Children.Count; i++)
@@ -243,9 +247,9 @@ public static class SvgSceneRenderer
             canvas.SaveLayer(node.Filter!);
         }
 
-        if (node.IsRenderable && node.LocalModel is { } localModel)
+        if (node.IsRenderable)
         {
-            canvas.DrawPicture(localModel);
+            DrawNodeLocalVisuals(node, canvas);
         }
 
         for (var i = 0; i < node.Children.Count; i++)
@@ -266,6 +270,30 @@ public static class SvgSceneRenderer
 
         RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter);
         return true;
+    }
+
+    internal static void DrawNodeLocalVisuals(SvgSceneNode node, SKCanvas canvas)
+    {
+        if (node.LocalModel is { } localModel)
+        {
+            canvas.DrawPicture(localModel);
+            return;
+        }
+
+        if (node.LocalPath is not { } localPath)
+        {
+            return;
+        }
+
+        if (node.LocalFill is { } localFill)
+        {
+            canvas.DrawPath(localPath, localFill);
+        }
+
+        if (node.LocalStroke is { } localStroke)
+        {
+            canvas.DrawPath(localPath, localStroke);
+        }
     }
 
     private static bool IsSelfOrAncestor(SvgSceneNode node, SvgSceneNode descendant)
