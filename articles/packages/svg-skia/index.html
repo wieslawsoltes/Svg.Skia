@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Svg.Skia | Svg.Skia">
-<meta name="twitter:description" content="Svg.Skia Svg.Skia is the main runtime rendering package in this repository. It loads SVG content into a SkiaSharp.SKPicture, preserves the intermediate model and drawable tree, and adds export, interaction, hit-testing, and animation helpers around that workflow. Install dotnet add package Svg.Skia Choose this package when your application already uses SkiaSharp, you need direct access to SkiaSharp.SKPicture, you want runtime export to bitmap, pdf, or xps formats,...">
+<meta name="twitter:description" content="Svg.Skia Svg.Skia is the main runtime rendering package in this repository. It loads SVG content into a SkiaSharp.SKPicture, keeps the authored SvgDocument, retained SvgSceneDocument, and intermediate command model available, and adds export, interaction, hit-testing, and animation helpers around that workflow. Install dotnet add package Svg.Skia Choose this package when your application already uses SkiaSharp, you need direct access to SkiaSharp.SKPicture, you want runtime export to bitmap, pdf, or xps formats,...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Svg.Skia | Svg.Skia">
 <meta property="og:title" content="Svg.Skia | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Svg.Skia Svg.Skia is the main runtime rendering package in this repository. It loads SVG content into a SkiaSharp.SKPicture, preserves the intermediate model and drawable tree, and adds export, interaction, hit-testing, and animation helpers around that workflow. Install dotnet add package Svg.Skia Choose this package when your application already uses SkiaSharp, you need direct access to SkiaSharp.SKPicture, you want runtime export to bitmap, pdf, or xps formats,...">
+<meta property="og:description" content="Svg.Skia Svg.Skia is the main runtime rendering package in this repository. It loads SVG content into a SkiaSharp.SKPicture, keeps the authored SvgDocument, retained SvgSceneDocument, and intermediate command model available, and adds export, interaction, hit-testing, and animation helpers around that workflow. Install dotnet add package Svg.Skia Choose this package when your application already uses SkiaSharp, you need direct access to SkiaSharp.SKPicture, you want runtime export to bitmap, pdf, or xps formats,...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Svg.Skia | Svg.Skia">
   </head>
@@ -144,7 +144,7 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="svgskia">Svg.Skia</h1>
-<p><code>Svg.Skia</code> is the main runtime rendering package in this repository. It loads SVG content into a <code>SkiaSharp.SKPicture</code>, preserves the intermediate model and drawable tree, and adds export, interaction, hit-testing, and animation helpers around that workflow.</p>
+<p><code>Svg.Skia</code> is the main runtime rendering package in this repository. It loads SVG content into a <code>SkiaSharp.SKPicture</code>, keeps the authored <code>SvgDocument</code>, retained <code>SvgSceneDocument</code>, and intermediate command model available, and adds export, interaction, hit-testing, and animation helpers around that workflow.</p>
 <h2 id="install">Install</h2>
 <pre><code class="language-bash">dotnet add package Svg.Skia
 </code></pre>
@@ -153,7 +153,7 @@
 <li>your application already uses <code>SkiaSharp</code>,</li>
 <li>you need direct access to <code>SkiaSharp.SKPicture</code>,</li>
 <li>you want runtime export to bitmap, pdf, or xps formats,</li>
-<li>you need hit testing or model rebuild after editing,</li>
+<li>you need retained-scene hit testing or DOM refresh after editing,</li>
 <li>you need shared pointer routing or animation playback outside a UI-specific package,</li>
 <li>you want Android <code>VectorDrawable</code> input support.</li>
 </ul>
@@ -173,6 +173,10 @@
 <tr>
 <td><code>SkiaModel</code></td>
 <td>Converts the intermediate <code>ShimSkiaSharp</code> model to real SkiaSharp objects</td>
+</tr>
+<tr>
+<td><code>SvgSceneDocument</code></td>
+<td>Compiled retained scene used for hit testing, subtree rendering, and incremental refresh</td>
 </tr>
 <tr>
 <td><code>SKSvgSettings</code></td>
@@ -201,8 +205,8 @@
 <li>Create <code>SKSvg</code>.</li>
 <li>Load from file, stream, XML, string, or <code>SvgDocument</code>.</li>
 <li>Read <code>Picture</code> for drawing.</li>
-<li>Optionally inspect <code>Model</code> and <code>Drawable</code>.</li>
-<li>Save or rebuild after edits.</li>
+<li>Optionally inspect <code>SourceDocument</code>, <code>RetainedSceneGraph</code>, or <code>Model</code>.</li>
+<li>Save or refresh after edits.</li>
 </ol>
 <h2 id="load-and-draw">Load and draw</h2>
 <pre><code class="language-csharp">using SkiaSharp;
@@ -233,9 +237,10 @@ if (svg.Load(&quot;Assets/icon.svg&quot;) is not null)
 }
 </code></pre>
 <p>Use this package instead of a UI package when the output target is not an Avalonia control.</p>
-<h2 id="hit-testing-and-rebuild">Hit testing and rebuild</h2>
-<p><code>SKSvg</code> keeps both the intermediate model and the drawable tree, which makes it the best runtime package for inspection-oriented scenarios.</p>
-<pre><code class="language-csharp">using System.Linq;
+<h2 id="hit-testing-and-refresh">Hit testing and refresh</h2>
+<p><code>SKSvg</code> keeps the authored document, retained scene graph, and intermediate model, which makes it the best runtime package for inspection-oriented scenarios.</p>
+<pre><code class="language-csharp">using System;
+using System.Linq;
 using ShimSkiaSharp;
 using Svg.Skia;
 
@@ -244,16 +249,20 @@ using var svg = new SKSvg();
 if (svg.Load(&quot;Assets/icon.svg&quot;) is not null)
 {
     var hit = svg.HitTestElements(new SKPoint(24, 24)).FirstOrDefault();
+    var topmost = svg.HitTestTopmostElement(new SKPoint(24, 24));
     if (hit is not null)
     {
         Console.WriteLine(hit.ID);
     }
 
-    var rebuilt = svg.RebuildFromModel();
+    if (svg.TryGetRetainedSceneNodeById(&quot;layer-a&quot;, out var node) &amp;&amp; node is not null)
+    {
+        using var subtreePicture = svg.CreateRetainedSceneNodePicture(node);
+    }
 }
 </code></pre>
-<p>Use <code>TryGetPicturePoint</code> or <code>TryGetPictureRect</code> when the pointer coordinates come from a transformed canvas rather than picture space.</p>
-<p>For routed input targets, use <code>HitTestTopmostElement(...)</code> instead of <code>HitTestElements(...)</code>.</p>
+<p>Use <code>TryGetPicturePoint</code> or <code>TryGetPictureRect</code> when the pointer coordinates come from a transformed canvas rather than picture space. Use <code>TryApplyRetainedSceneMutationAndRender(...)</code> or <code>TryApplyRetainedSceneMutationByIdAndRender(...)</code> when a localized DOM edit should refresh the current <code>Picture</code> without a full <code>FromSvgDocument(...)</code> rebuild.</p>
+<p>For low-level command edits, mutate <code>Model</code> and call <code>RebuildFromModel()</code>.</p>
 <h2 id="shared-interaction">Shared interaction</h2>
 <p><code>Svg.Skia</code> now includes a shared input-routing surface through <code>SvgInteractionDispatcher</code>.</p>
 <p>Use it when a host wants:</p>
@@ -318,9 +327,12 @@ if (svg.LoadVectorDrawable(&quot;Assets/icon.xml&quot;) is not null)
 </ul>
 <h2 id="related-docs">Related docs</h2>
 <ul>
-<li><a href="/Svg.Skia/articles/guides/loading-svg-and-vectordrawable">Loading SVG and VectorDrawable</a></li>
+<li><a href="/Svg.Skia/articles/guides/loading-svg-and-vectordrawable">Loading SVG, SvgDocument, and VectorDrawable</a></li>
+<li><a href="/Svg.Skia/articles/guides/svgdocument-handling-and-mutation">SvgDocument Handling and Mutation</a></li>
+<li><a href="/Svg.Skia/articles/guides/retained-scene-graph-usage">Retained Scene Graph Usage</a></li>
 <li><a href="/Svg.Skia/articles/guides/exporting-images-pdf-and-xps">Exporting Images, PDF, and XPS</a></li>
-<li><a href="/Svg.Skia/articles/guides/hit-testing-and-model-editing">Hit Testing and Model Editing</a></li>
+<li><a href="/Svg.Skia/articles/guides/hit-testing-and-model-editing">Hit Testing and Scene Inspection</a></li>
+<li><a href="/Svg.Skia/articles/guides/performance-and-retained-scene-refresh">Performance and Retained-Scene Refresh</a></li>
 <li><a href="/Svg.Skia/articles/guides/interaction-and-animation">Interaction and Animation</a></li>
 <li><a href="/Svg.Skia/articles/advanced/android-vectordrawable-support">Android VectorDrawable Support</a></li>
 </ul>

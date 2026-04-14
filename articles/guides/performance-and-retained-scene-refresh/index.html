@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>Performance and Retained-Scene Refresh | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Performance and Retained-Scene Refresh | Svg.Skia">
+<meta name="twitter:description" content="Performance and Retained-Scene Refresh The load and refresh cost of an SVG is not one number. In Svg.Skia the work is split across document parsing, retained-scene compilation, shim-model creation, native SKPicture materialization, and any later raster export. This matters when a device looks &quot;slow to load&quot; because the bottleneck may be DOM parsing, scene compilation, PNG encoding, or a full rebuild after a small mutation. Measure the staged pipeline...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="Performance and Retained-Scene Refresh | Svg.Skia">
+<meta property="og:title" content="Performance and Retained-Scene Refresh | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="Performance and Retained-Scene Refresh The load and refresh cost of an SVG is not one number. In Svg.Skia the work is split across document parsing, retained-scene compilation, shim-model creation, native SKPicture materialization, and any later raster export. This matters when a device looks &quot;slow to load&quot; because the bottleneck may be DOM parsing, scene compilation, PNG encoding, or a full rebuild after a small mutation. Measure the staged pipeline...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="Performance and Retained-Scene Refresh | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-guides.2e32d38b19994f437ccd846af7f6bbd1.html' data-lunet-menu-open='menu-id-guides-0' data-lunet-menu-active='menu-item-guides-7,menu-item-guides-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/guides/' class='breadcrumb-link  '>Guides</a>  </li>
+          <li class='breadcrumb-item  active'>
+            Performance and Retained-Scene Refresh  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="performance-and-retained-scene-refresh">Performance and Retained-Scene Refresh</h1>
+<p>The load and refresh cost of an SVG is not one number. In <code>Svg.Skia</code> the work is split across document parsing, retained-scene compilation, shim-model creation, native <code>SKPicture</code> materialization, and any later raster export.</p>
+<p>This matters when a device looks &quot;slow to load&quot; because the bottleneck may be DOM parsing, scene compilation, PNG encoding, or a full rebuild after a small mutation.</p>
+<h2 id="measure-the-staged-pipeline">Measure the staged pipeline</h2>
+<p>The benchmark project includes a dedicated profiler for one SVG file:</p>
+<pre><code class="language-bash">dotnet run --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -c Release -- --profile-svg '/Users/wieslawsoltes/Downloads/solar battery.svg' 20
+</code></pre>
+<p>That command reports separate timings for:</p>
+<ul>
+<li>parsing text into <code>SvgDocument</code>,</li>
+<li>compiling the retained <code>SvgSceneDocument</code>,</li>
+<li>creating the shim <code>SKPicture</code> model,</li>
+<li>creating the native <code>SkiaSharp.SKPicture</code>,</li>
+<li>rendering to a bitmap,</li>
+<li>encoding to PNG,</li>
+<li>full <code>SKSvg.FromSvg(...)</code>,</li>
+<li>control-like source loading,</li>
+<li>full <code>FromSvgDocument(...)</code> rebuild after a mutation,</li>
+<li>retained-scene mutation refresh.</li>
+</ul>
+<h2 id="example-profile">Example profile</h2>
+<p>Example output from <code>osx-arm64</code>, <code>Release</code>, <code>20</code> iterations, for <code>/Users/wieslawsoltes/Downloads/solar battery.svg</code> (<code>29,974</code> bytes):</p>
+<table class="table">
+<thead>
+<tr>
+<th>Stage</th>
+<th style="text-align: right;">Mean</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Parse <code>SvgDocument</code> from string</td>
+<td style="text-align: right;"><code>2.46 ms</code></td>
+</tr>
+<tr>
+<td>Compile retained scene</td>
+<td style="text-align: right;"><code>5.08 ms</code></td>
+</tr>
+<tr>
+<td>Create shim picture model</td>
+<td style="text-align: right;"><code>0.04 ms</code></td>
+</tr>
+<tr>
+<td>Create native <code>SKPicture</code></td>
+<td style="text-align: right;"><code>0.53 ms</code></td>
+</tr>
+<tr>
+<td>Render native picture to bitmap</td>
+<td style="text-align: right;"><code>3.77 ms</code></td>
+</tr>
+<tr>
+<td>Encode native picture to PNG</td>
+<td style="text-align: right;"><code>13.85 ms</code></td>
+</tr>
+<tr>
+<td>Load via <code>SKSvg.FromSvg(...)</code></td>
+<td style="text-align: right;"><code>12.39 ms</code></td>
+</tr>
+<tr>
+<td>Control-like source load</td>
+<td style="text-align: right;"><code>11.14 ms</code></td>
+</tr>
+<tr>
+<td>Mutate + full <code>FromSvgDocument(...)</code> rebuild</td>
+<td style="text-align: right;"><code>16.11 ms</code></td>
+</tr>
+<tr>
+<td>Mutate + retained-scene refresh</td>
+<td style="text-align: right;"><code>12.73 ms</code></td>
+</tr>
+</tbody>
+</table>
+<p>Treat those numbers as a shape, not a promise. CM4, CM5, desktop ARM, and different output resolutions will change the absolute timings.</p>
+<h2 id="hot-paths-to-watch">Hot paths to watch</h2>
+<p>The staged profile above points at the current hot paths:</p>
+<ul>
+<li>retained-scene compilation is the main load-time cost inside <code>SKSvg</code>,</li>
+<li>native picture creation is comparatively small,</li>
+<li>PNG encoding can dominate end-to-end export time even when rendering itself is fast,</li>
+<li>retained-scene mutation refresh is cheaper than a full <code>FromSvgDocument(...)</code> rebuild for small localized edits.</li>
+</ul>
+<p>Text-heavy documents can push more cost into text compilation and measurement than purely geometric assets, so profile representative files instead of relying on one benchmark.</p>
+<h2 id="retained-scene-refresh-apis">Retained-scene refresh APIs</h2>
+<p><code>SKSvg</code> exposes three refresh helpers for localized DOM edits:</p>
+<ul>
+<li><code>TryApplyRetainedSceneMutationAndRender(SvgElement element, IReadOnlyCollection&lt;string&gt;? changedAttributes, out SvgSceneMutationResult? result)</code></li>
+<li><code>TryApplyRetainedSceneMutationAndRender(string addressKey, IReadOnlyCollection&lt;string&gt;? changedAttributes, out SvgSceneMutationResult? result)</code></li>
+<li><code>TryApplyRetainedSceneMutationByIdAndRender(string id, IReadOnlyCollection&lt;string&gt;? changedAttributes, out SvgSceneMutationResult? result)</code></li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-csharp">using System.Drawing;
+using Svg;
+using Svg.Skia;
+
+using var svg = new SKSvg();
+svg.FromSvg(
+    &quot;&lt;svg width=\&quot;80\&quot; height=\&quot;40\&quot;&gt;&quot; +
+    &quot;  &lt;rect id=\&quot;rect-a\&quot; x=\&quot;10\&quot; y=\&quot;8\&quot; width=\&quot;24\&quot; height=\&quot;12\&quot; fill=\&quot;red\&quot; /&gt;&quot; +
+    &quot;&lt;/svg&gt;&quot;);
+
+var scene = svg.RetainedSceneGraph!;
+var rect = (SvgRectangle)scene.SourceDocument!.GetElementById(&quot;rect-a&quot;)!;
+rect.Fill = new SvgColourServer(Color.BlueViolet);
+
+if (!svg.TryApplyRetainedSceneMutationByIdAndRender(&quot;rect-a&quot;, new[] { &quot;fill&quot; }, out var result))
+{
+    svg.FromSvgDocument(scene.SourceDocument);
+}
+</code></pre>
+<p>The returned <code>SvgSceneMutationResult</code> reports whether the refresh succeeded and how many compilation roots had to be recompiled.</p>
+<h2 id="picking-the-right-refresh-path">Picking the right refresh path</h2>
+<p>Use retained-scene refresh when:</p>
+<ul>
+<li>the change is localized to one element or a small subtree,</li>
+<li>you know which attributes changed,</li>
+<li>the renderer is already holding a retained scene graph,</li>
+<li>you want the current <code>Picture</code> refreshed without a full DOM-to-scene recompilation.</li>
+</ul>
+<p>Use <code>FromSvgDocument(...)</code> when:</p>
+<ul>
+<li>the root element changed,</li>
+<li>structure was added or removed,</li>
+<li>the mutation touches a case that cannot be refreshed incrementally,</li>
+<li>you want the simplest and most predictable rebuild path.</li>
+</ul>
+<p>Use <code>ReLoad(...)</code> when:</p>
+<ul>
+<li>the underlying source is unchanged,</li>
+<li>only <code>SvgParameters</code> changed,</li>
+<li>the original source path or stream should be reparsed with different CSS or entities.</li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

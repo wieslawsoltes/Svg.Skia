@@ -6,21 +6,21 @@
     <meta name="generator" content="lunet 1.0.10.0">
     <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
     <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
-    <title>Loading Svg and VectorDrawable | Svg.Skia</title>
+    <title>Loading SVG, SvgDocument, and VectorDrawable | Svg.Skia</title>
     <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
     <script src="/Svg.Skia/js/lite-defer.js" defer></script>
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
-<meta name="twitter:title" content="Loading Svg and VectorDrawable | Svg.Skia">
-<meta name="twitter:description" content="Loading Svg and VectorDrawable Files, streams, and raw strings Use SKSvg when you need direct control over the runtime renderer: using System.IO; using Svg.Skia; using var svgFromFile = new SKSvg(); svgFromFile.Load(&quot;image.svg&quot;); using var stream = File.OpenRead(&quot;image.svg&quot;); using var svgFromStream = new SKSvg(); svgFromStream.Load(stream); using var svgFromText = new SKSvg(); svgFromText.FromSvg(&quot;&lt;svg width=\&quot;16\&quot; height=\&quot;16\&quot;>&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;8\&quot; fill=\&quot;red\&quot; />&lt;/svg>&quot;);...">
+<meta name="twitter:title" content="Loading SVG, SvgDocument, and VectorDrawable | Svg.Skia">
+<meta name="twitter:description" content="Loading SVG, SvgDocument, and VectorDrawable SKSvg exposes several load surfaces because the repository supports both &quot;parse from source&quot; and &quot;render an already-owned document&quot; workflows. Choose the right load API Use Load(path) when the source is a file or resource path and you want auto-detection for .svg, .svgz, and Android VectorDrawable XML. Use Load(stream, parameters, baseUri) when the input already lives in memory or when external assets need a base URI...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
-<meta name="twitter:image:alt" content="Loading Svg and VectorDrawable | Svg.Skia">
-<meta property="og:title" content="Loading Svg and VectorDrawable | Svg.Skia">
+<meta name="twitter:image:alt" content="Loading SVG, SvgDocument, and VectorDrawable | Svg.Skia">
+<meta property="og:title" content="Loading SVG, SvgDocument, and VectorDrawable | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Loading Svg and VectorDrawable Files, streams, and raw strings Use SKSvg when you need direct control over the runtime renderer: using System.IO; using Svg.Skia; using var svgFromFile = new SKSvg(); svgFromFile.Load(&quot;image.svg&quot;); using var stream = File.OpenRead(&quot;image.svg&quot;); using var svgFromStream = new SKSvg(); svgFromStream.Load(stream); using var svgFromText = new SKSvg(); svgFromText.FromSvg(&quot;&lt;svg width=\&quot;16\&quot; height=\&quot;16\&quot;>&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;8\&quot; fill=\&quot;red\&quot; />&lt;/svg>&quot;);...">
+<meta property="og:description" content="Loading SVG, SvgDocument, and VectorDrawable SKSvg exposes several load surfaces because the repository supports both &quot;parse from source&quot; and &quot;render an already-owned document&quot; workflows. Choose the right load API Use Load(path) when the source is a file or resource path and you want auto-detection for .svg, .svgz, and Android VectorDrawable XML. Use Load(stream, parameters, baseUri) when the input already lives in memory or when external assets need a base URI...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
-<meta property="og:image:alt" content="Loading Svg and VectorDrawable | Svg.Skia">
+<meta property="og:image:alt" content="Loading SVG, SvgDocument, and VectorDrawable | Svg.Skia">
   </head>
   <body>
 
@@ -98,23 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <ol id='menu-id-guides-0' class='menu menu-level0 show '>
-            <li id='menu-item-guides-1' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/' class='menu-link  '>Guides</a></span>  </li>
-            <li id='menu-item-guides-2' class='menu-item  active'>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/loading-svg-and-vectordrawable/' class='menu-link  '>Loading Svg and VectorDrawable</a></span>  </li>
-            <li id='menu-item-guides-3' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/exporting-images-pdf-and-xps/' class='menu-link  '>Exporting Images, Pdf, and Xps</a></span>  </li>
-            <li id='menu-item-guides-4' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/hit-testing-and-model-editing/' class='menu-link  '>Hit Testing and Model Editing</a></span>  </li>
-            <li id='menu-item-guides-5' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/interaction-and-animation/' class='menu-link  '>Interaction and Animation</a></span>  </li>
-            <li id='menu-item-guides-6' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/cli-conversion/' class='menu-link  '>CLI Conversion</a></span>  </li>
-            <li id='menu-item-guides-7' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/source-generator-and-svgc/' class='menu-link  '>Source Generator and svgc</a></span>  </li>
-          </ol>
-
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-guides.2e32d38b19994f437ccd846af7f6bbd1.html' data-lunet-menu-open='menu-id-guides-0' data-lunet-menu-active='menu-item-guides-2,menu-item-guides-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -132,7 +116,7 @@
           <li class='breadcrumb-item '>
             <a href='/Svg.Skia/articles/guides/' class='breadcrumb-link  '>Guides</a>  </li>
           <li class='breadcrumb-item  active'>
-            Loading Svg and VectorDrawable  </li>
+            Loading SVG, SvgDocument, and VectorDrawable  </li>
         </ol>
 
         <p id="lunet-results"></p>
@@ -159,10 +143,21 @@
           </button>
         </div>
 <!-- lunet:summarize -->
-<h1 id="loading-svg-and-vectordrawable">Loading Svg and VectorDrawable</h1>
-<h2 id="files-streams-and-raw-strings">Files, streams, and raw strings</h2>
-<p>Use <code>SKSvg</code> when you need direct control over the runtime renderer:</p>
-<pre><code class="language-csharp">using System.IO;
+<h1 id="loading-svg-svgdocument-and-vectordrawable">Loading SVG, SvgDocument, and VectorDrawable</h1>
+<p><code>SKSvg</code> exposes several load surfaces because the repository supports both &quot;parse from source&quot; and &quot;render an already-owned document&quot; workflows.</p>
+<h2 id="choose-the-right-load-api">Choose the right load API</h2>
+<ul>
+<li>Use <code>Load(path)</code> when the source is a file or resource path and you want auto-detection for <code>.svg</code>, <code>.svgz</code>, and Android <code>VectorDrawable</code> XML.</li>
+<li>Use <code>Load(stream, parameters, baseUri)</code> when the input already lives in memory or when external assets need a base URI for resolution.</li>
+<li>Use <code>Load(XmlReader)</code> when an upstream XML pipeline is already creating readers.</li>
+<li>Use <code>FromSvg(string)</code> when raw markup is already in memory.</li>
+<li>Use <code>FromSvgDocument(SvgDocument)</code> when your code already parsed or generated a <code>SvgDocument</code>.</li>
+<li>Use <code>LoadVectorDrawable(...)</code> or <code>FromVectorDrawable(...)</code> when the source is explicitly Android drawable XML.</li>
+</ul>
+<h2 id="files-streams-base-uris-and-xml-readers">Files, streams, base URIs, and XML readers</h2>
+<pre><code class="language-csharp">using System;
+using System.IO;
+using System.Xml;
 using Svg.Skia;
 
 using var svgFromFile = new SKSvg();
@@ -170,10 +165,11 @@ svgFromFile.Load(&quot;image.svg&quot;);
 
 using var stream = File.OpenRead(&quot;image.svg&quot;);
 using var svgFromStream = new SKSvg();
-svgFromStream.Load(stream);
+svgFromStream.Load(stream, parameters: null, baseUri: new Uri(&quot;file:///Users/me/Assets/&quot;));
 
-using var svgFromText = new SKSvg();
-svgFromText.FromSvg(&quot;&lt;svg width=\&quot;16\&quot; height=\&quot;16\&quot;&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;8\&quot; fill=\&quot;red\&quot; /&gt;&lt;/svg&gt;&quot;);
+using var reader = XmlReader.Create(new StringReader(&quot;&lt;svg width=\&quot;16\&quot; height=\&quot;16\&quot; /&gt;&quot;));
+using var svgFromReader = new SKSvg();
+svgFromReader.Load(reader);
 </code></pre>
 <h2 id="reusable-factory-helpers">Reusable factory helpers</h2>
 <p>If you prefer one-shot helpers, <code>SKSvg</code> exposes factory methods:</p>
@@ -181,15 +177,47 @@ svgFromText.FromSvg(&quot;&lt;svg width=\&quot;16\&quot; height=\&quot;16\&quot;
 <li><code>CreateFromFile(...)</code></li>
 <li><code>CreateFromStream(...)</code></li>
 <li><code>CreateFromSvg(...)</code></li>
+<li><code>CreateFromSvgDocument(...)</code></li>
 <li><code>CreateFromVectorDrawable(...)</code></li>
 </ul>
-<h2 id="avalonia-resource-loading">Avalonia resource loading</h2>
-<p>The Skia-backed Avalonia package resolves resource paths through <code>SvgSource.Load(...)</code>:</p>
+<h2 id="raw-svg-strings-and-parsed-documents">Raw SVG strings and parsed documents</h2>
+<p>When parsing is already done elsewhere, loading from a <code>SvgDocument</code> avoids reparsing text and makes the document available immediately through <code>SKSvg.SourceDocument</code>.</p>
+<pre><code class="language-csharp">using Svg;
+using Svg.Model.Services;
+using Svg.Skia;
+
+var svgText = &quot;&lt;svg width=\&quot;16\&quot; height=\&quot;16\&quot;&gt;&lt;circle cx=\&quot;8\&quot; cy=\&quot;8\&quot; r=\&quot;8\&quot; fill=\&quot;red\&quot; /&gt;&lt;/svg&gt;&quot;;
+
+using var svgFromText = new SKSvg();
+svgFromText.FromSvg(svgText);
+
+var document = SvgService.FromSvg(svgText);
+using var svgFromDocument = new SKSvg();
+svgFromDocument.FromSvgDocument(document);
+</code></pre>
+<p>If you plan to mutate the DOM later, <code>FromSvgDocument(...)</code> is the most direct starting point because your code already owns the document instance.</p>
+<h2 id="reloading-with-different-css-or-entity-parameters">Reloading with different CSS or entity parameters</h2>
+<p><code>ReLoad(...)</code> reparses the original input using a new <code>SvgParameters</code> value. This is useful when the source stays the same but the CSS or XML entities change.</p>
+<pre><code class="language-csharp">using Svg.Model;
+using Svg.Skia;
+
+SKSvg.CacheOriginalStream = true;
+
+using var svg = new SKSvg();
+svg.Load(&quot;image.svg&quot;, new SvgParameters(null, &quot;.accent { fill: red; }&quot;));
+
+svg.ReLoad(new SvgParameters(null, &quot;.accent { fill: blue; }&quot;));
+</code></pre>
+<p><code>ReLoad(...)</code> requires <code>SKSvg.CacheOriginalStream = true</code> when the original source came from a stream.</p>
+<h2 id="avalonia-resource-and-document-loading">Avalonia resource and document loading</h2>
+<p>The Skia-backed Avalonia package exposes both path-based loading and document-based loading:</p>
 <pre><code class="language-csharp">using Avalonia.Svg.Skia;
+using Svg;
 
 var source = SvgSource.Load(&quot;avares://MyAssembly/Assets/Icon.svg&quot;, baseUri: null);
+var documentSource = SvgSource.LoadFromSvgDocument(new SvgDocument());
 </code></pre>
-<p>The non-Skia package exposes the same pattern through <code>Avalonia.Svg.SvgSource.Load(...)</code>.</p>
+<p>Use <code>SvgSource.LoadFromSvgDocument(...)</code> when an editor or tool already owns a <code>SvgDocument</code> and the control should render that DOM directly.</p>
 <h2 id="vectordrawable-handling">VectorDrawable handling</h2>
 <p>Use these APIs when the source is Android XML:</p>
 <pre><code class="language-csharp">using Svg.Skia;
@@ -203,6 +231,7 @@ svg.LoadVectorDrawable(&quot;icon.xml&quot;);
 using var svg = new SKSvg();
 svg.FromVectorDrawable(vectorDrawableXml);
 </code></pre>
+<p><code>Load(path)</code> also auto-detects <code>VectorDrawable</code> XML from the file contents, so the explicit methods are mainly for callers that want a fixed code path.</p>
 <p>The repository tests cover:</p>
 <ul>
 <li>width and viewport validation,</li>

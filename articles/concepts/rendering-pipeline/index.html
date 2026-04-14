@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Rendering Pipeline | Svg.Skia">
-<meta name="twitter:description" content="Rendering Pipeline At a high level, the render path is: Parse markup into SVG document objects. Convert the document into the intermediate picture model. Materialize that model as a SkiaSharp.SKPicture. Draw the picture, export it, or expose it through Avalonia. Parsing Svg.Custom supplies the SVG document object model. SvgService is the main entry point used across the repository to open or parse documents. Model generation Svg.Model converts document nodes into...">
+<meta name="twitter:description" content="Rendering Pipeline At a high level, the render path is: Parse markup into SVG document objects. Compile the document into a retained SvgSceneDocument. Render that retained scene into the intermediate ShimSkiaSharp.SKPicture model. Materialize the shim model as a SkiaSharp.SKPicture. Draw the picture, export it, or expose it through Avalonia and Uno. Parsing Svg.Custom supplies the SVG document object model. SvgService is the main entry point used across the repository to...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Rendering Pipeline | Svg.Skia">
 <meta property="og:title" content="Rendering Pipeline | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Rendering Pipeline At a high level, the render path is: Parse markup into SVG document objects. Convert the document into the intermediate picture model. Materialize that model as a SkiaSharp.SKPicture. Draw the picture, export it, or expose it through Avalonia. Parsing Svg.Custom supplies the SVG document object model. SvgService is the main entry point used across the repository to open or parse documents. Model generation Svg.Model converts document nodes into...">
+<meta property="og:description" content="Rendering Pipeline At a high level, the render path is: Parse markup into SVG document objects. Compile the document into a retained SvgSceneDocument. Render that retained scene into the intermediate ShimSkiaSharp.SKPicture model. Materialize the shim model as a SkiaSharp.SKPicture. Draw the picture, export it, or expose it through Avalonia and Uno. Parsing Svg.Custom supplies the SVG document object model. SvgService is the main entry point used across the repository to...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Rendering Pipeline | Svg.Skia">
   </head>
@@ -159,23 +159,43 @@
 <p>At a high level, the render path is:</p>
 <ol>
 <li>Parse markup into SVG document objects.</li>
-<li>Convert the document into the intermediate picture model.</li>
-<li>Materialize that model as a <code>SkiaSharp.SKPicture</code>.</li>
-<li>Draw the picture, export it, or expose it through Avalonia.</li>
+<li>Compile the document into a retained <code>SvgSceneDocument</code>.</li>
+<li>Render that retained scene into the intermediate <code>ShimSkiaSharp.SKPicture</code> model.</li>
+<li>Materialize the shim model as a <code>SkiaSharp.SKPicture</code>.</li>
+<li>Draw the picture, export it, or expose it through Avalonia and Uno.</li>
 </ol>
 <h2 id="parsing">Parsing</h2>
 <p><code>Svg.Custom</code> supplies the SVG document object model. <code>SvgService</code> is the main entry point used across the repository to open or parse documents.</p>
-<h2 id="model-generation">Model generation</h2>
-<p><code>Svg.Model</code> converts document nodes into a <code>ShimSkiaSharp.SKPicture</code> model. That model is a command tree rather than a GPU-backed picture, so it can be inspected or mutated safely.</p>
+<h2 id="retained-scene-compilation">Retained-scene compilation</h2>
+<p><code>Svg.SceneGraph</code> compiles a <code>SvgDocument</code> or <code>SvgFragment</code> into <code>SvgSceneDocument</code>. That retained scene graph stores:</p>
+<ul>
+<li>the compiled <code>SvgSceneNode</code> tree,</li>
+<li>resource dependency indexes,</li>
+<li>compilation-root boundaries for incremental mutation refresh,</li>
+<li>hit-test geometry and bounds,</li>
+<li>the document instance that backs the current scene.</li>
+</ul>
+<p><code>SvgSceneRuntime.TryCompile(...)</code> is the repository's main entry point for this phase.</p>
+<h2 id="shim-model-generation">Shim-model generation</h2>
+<p><code>SvgSceneDocument.CreateModel()</code> renders the retained scene into a <code>ShimSkiaSharp.SKPicture</code> command model. That model is still CPU-side data, which makes it safe to inspect, clone, or mutate before creating a native SkiaSharp picture.</p>
 <h2 id="picture-materialization">Picture materialization</h2>
 <p><code>Svg.Skia.SKSvg</code> owns:</p>
 <ul>
 <li>the original source information,</li>
-<li>the generated drawable tree,</li>
+<li>the current <code>SvgDocument</code>,</li>
+<li>the retained <code>SvgSceneDocument</code>,</li>
 <li>the <code>ShimSkiaSharp</code> model, and</li>
 <li>the lazily created <code>SkiaSharp.SKPicture</code>.</li>
 </ul>
-<p>The <code>Picture</code> property is created on demand from the current model. When the model changes, <code>RebuildFromModel()</code> creates a fresh <code>SKPicture</code>.</p>
+<p>During a normal <code>Load(...)</code>, <code>FromSvg(...)</code>, or <code>FromSvgDocument(...)</code> call, <code>SKSvg</code> compiles the retained scene, renders a shim model from it, and refreshes the current <code>Picture</code>.</p>
+<p>After that:</p>
+<ul>
+<li><code>SourceDocument</code> exposes the authored DOM,</li>
+<li><code>RetainedSceneGraph</code> exposes the compiled scene,</li>
+<li><code>Model</code> exposes the shim picture model,</li>
+<li><code>Picture</code> exposes the native <code>SkiaSharp.SKPicture</code>.</li>
+</ul>
+<p>That separation is what allows the runtime to support DOM mutation, retained-scene refresh, hit testing, model editing, and export without reparsing source text on every operation.</p>
 <h2 id="avalonia-integration">Avalonia integration</h2>
 <p>The Avalonia packages sit on top of the same conceptual steps:</p>
 <ul>
@@ -192,6 +212,7 @@
 <li>vector output through <code>ToSvg()</code>,</li>
 <li>document output through <code>ToPdf()</code> and <code>ToXps()</code>.</li>
 </ul>
+<p>For the practical loading and mutation workflows built on top of this pipeline, see <a href="/Svg.Skia/articles/guides/loading-svg-and-vectordrawable">Loading SVG, SvgDocument, and VectorDrawable</a>, <a href="/Svg.Skia/articles/guides/retained-scene-graph-usage">Retained Scene Graph Usage</a>, and <a href="/Svg.Skia/articles/guides/performance-and-retained-scene-refresh">Performance and Retained-Scene Refresh</a>.</p>
 
       </div>
   </div>

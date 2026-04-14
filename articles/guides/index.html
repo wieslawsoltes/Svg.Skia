@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Guides | Svg.Skia">
-<meta name="twitter:description" content="Guides These pages focus on specific tasks instead of describing the whole architecture. In this section Loading Svg and VectorDrawable compares the different load APIs. Exporting Images, Pdf, and Xps covers output helpers and supported formats. Hit Testing and Model Editing walks through interaction and command mutation. Interaction and Animation covers the shared pointer-routing surface, animation runtime, host backends, and retained native composition. CLI Conversion covers Svg.Skia.Converter...">
+<meta name="twitter:description" content="Guides These pages focus on specific tasks instead of describing the whole architecture. In this section Loading SVG, SvgDocument, and VectorDrawable compares the file, stream, string, reader, and document load APIs. SvgDocument Handling and Mutation covers DOM ownership, full-document rebuilds, and reload workflows. Retained Scene Graph Usage shows how to inspect nodes, resources, and subtree pictures. Exporting Images, Pdf, and Xps covers output helpers and supported formats. Hit Testing and...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Guides | Svg.Skia">
 <meta property="og:title" content="Guides | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Guides These pages focus on specific tasks instead of describing the whole architecture. In this section Loading Svg and VectorDrawable compares the different load APIs. Exporting Images, Pdf, and Xps covers output helpers and supported formats. Hit Testing and Model Editing walks through interaction and command mutation. Interaction and Animation covers the shared pointer-routing surface, animation runtime, host backends, and retained native composition. CLI Conversion covers Svg.Skia.Converter...">
+<meta property="og:description" content="Guides These pages focus on specific tasks instead of describing the whole architecture. In this section Loading SVG, SvgDocument, and VectorDrawable compares the file, stream, string, reader, and document load APIs. SvgDocument Handling and Mutation covers DOM ownership, full-document rebuilds, and reload workflows. Retained Scene Graph Usage shows how to inspect nodes, resources, and subtree pictures. Exporting Images, Pdf, and Xps covers output helpers and supported formats. Hit Testing and...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Guides | Svg.Skia">
   </head>
@@ -98,23 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <ol id='menu-id-guides-0' class='menu menu-level0 show '>
-            <li id='menu-item-guides-1' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/' class='menu-link  '>Guides</a></span>  </li>
-            <li id='menu-item-guides-2' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/loading-svg-and-vectordrawable/' class='menu-link  '>Loading Svg and VectorDrawable</a></span>  </li>
-            <li id='menu-item-guides-3' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/exporting-images-pdf-and-xps/' class='menu-link  '>Exporting Images, Pdf, and Xps</a></span>  </li>
-            <li id='menu-item-guides-4' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/hit-testing-and-model-editing/' class='menu-link  '>Hit Testing and Model Editing</a></span>  </li>
-            <li id='menu-item-guides-5' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/interaction-and-animation/' class='menu-link  '>Interaction and Animation</a></span>  </li>
-            <li id='menu-item-guides-6' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/cli-conversion/' class='menu-link  '>CLI Conversion</a></span>  </li>
-            <li id='menu-item-guides-7' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/guides/source-generator-and-svgc/' class='menu-link  '>Source Generator and svgc</a></span>  </li>
-          </ol>
-
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-guides.2e32d38b19994f437ccd846af7f6bbd1.html' data-lunet-menu-open='menu-id-guides-0' data-lunet-menu-active='menu-item-guides-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -161,9 +145,12 @@
 <p>These pages focus on specific tasks instead of describing the whole architecture.</p>
 <h2 id="in-this-section">In this section</h2>
 <ul>
-<li><a href="/Svg.Skia/articles/guides/loading-svg-and-vectordrawable">Loading Svg and VectorDrawable</a> compares the different load APIs.</li>
+<li><a href="/Svg.Skia/articles/guides/loading-svg-and-vectordrawable">Loading SVG, SvgDocument, and VectorDrawable</a> compares the file, stream, string, reader, and document load APIs.</li>
+<li><a href="/Svg.Skia/articles/guides/svgdocument-handling-and-mutation">SvgDocument Handling and Mutation</a> covers DOM ownership, full-document rebuilds, and reload workflows.</li>
+<li><a href="/Svg.Skia/articles/guides/retained-scene-graph-usage">Retained Scene Graph Usage</a> shows how to inspect nodes, resources, and subtree pictures.</li>
 <li><a href="/Svg.Skia/articles/guides/exporting-images-pdf-and-xps">Exporting Images, Pdf, and Xps</a> covers output helpers and supported formats.</li>
-<li><a href="/Svg.Skia/articles/guides/hit-testing-and-model-editing">Hit Testing and Model Editing</a> walks through interaction and command mutation.</li>
+<li><a href="/Svg.Skia/articles/guides/hit-testing-and-model-editing">Hit Testing and Scene Inspection</a> walks through element and scene-node hit testing.</li>
+<li><a href="/Svg.Skia/articles/guides/performance-and-retained-scene-refresh">Performance and Retained-Scene Refresh</a> documents the staged load costs and incremental mutation-refresh APIs.</li>
 <li><a href="/Svg.Skia/articles/guides/interaction-and-animation">Interaction and Animation</a> covers the shared pointer-routing surface, animation runtime, host backends, and retained native composition.</li>
 <li><a href="/Svg.Skia/articles/guides/cli-conversion">CLI Conversion</a> covers <code>Svg.Skia.Converter</code>.</li>
 <li><a href="/Svg.Skia/articles/guides/source-generator-and-svgc">Source Generator and svgc</a> covers generated-code workflows.</li>

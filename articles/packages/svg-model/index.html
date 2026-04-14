@@ -192,7 +192,8 @@
 </table>
 <h2 id="load-a-document-and-build-the-model">Load a document and build the model</h2>
 <p><code>Svg.Model</code> can parse content and produce either a drawable tree or a <code>ShimSkiaSharp.SKPicture</code>. Asset resolution still requires an <code>ISvgAssetLoader</code> implementation, which usually comes from <code>Svg.Skia</code> or an application-specific host.</p>
-<pre><code class="language-csharp">using ShimSkiaSharp;
+<pre><code class="language-csharp">using System;
+using ShimSkiaSharp;
 using Svg.Model.Drawables;
 using Svg.Model.Services;
 using Svg.Skia;
@@ -271,7 +272,7 @@ if (drawable is DrawableBase root)
 <ul>
 <li><a href="/Svg.Skia/articles/concepts/package-architecture">Package Architecture</a></li>
 <li><a href="/Svg.Skia/articles/concepts/picture-model-and-rebuild">Picture Model and Rebuild</a></li>
-<li><a href="/Svg.Skia/articles/guides/hit-testing-and-model-editing">Hit Testing and Model Editing</a></li>
+<li><a href="/Svg.Skia/articles/guides/hit-testing-and-model-editing">Hit Testing and Scene Inspection</a></li>
 </ul>
 
       </div>

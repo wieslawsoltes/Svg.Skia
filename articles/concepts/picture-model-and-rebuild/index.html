@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Picture Model and Rebuild | Svg.Skia">
-<meta name="twitter:description" content="Picture Model and Rebuild One of the more useful parts of Svg.Skia is that it does not stop at &quot;load and draw&quot;. The intermediate command model remains available. Accessing the model SKSvg.Model exposes the ShimSkiaSharp.SKPicture command tree. This is the structure that SkiaModel later turns into SkiaSharp.SKPicture. Editing commands Because the model is a plain command graph, you can inspect and mutate it before rebuilding the final picture:...">
+<meta name="twitter:description" content="Picture Model and Rebuild One of the more useful parts of Svg.Skia is that it does not stop at &quot;load and draw&quot;. The runtime keeps several layers alive, and each layer has a different rebuild story. The available layers After loading, SKSvg can expose: SourceDocument for authored SVG DOM work, RetainedSceneGraph for compiled-node inspection and incremental mutation refresh, Model for low-level ShimSkiaSharp.SKPicture command editing, Picture for the current native...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Picture Model and Rebuild | Svg.Skia">
 <meta property="og:title" content="Picture Model and Rebuild | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Picture Model and Rebuild One of the more useful parts of Svg.Skia is that it does not stop at &quot;load and draw&quot;. The intermediate command model remains available. Accessing the model SKSvg.Model exposes the ShimSkiaSharp.SKPicture command tree. This is the structure that SkiaModel later turns into SkiaSharp.SKPicture. Editing commands Because the model is a plain command graph, you can inspect and mutate it before rebuilding the final picture:...">
+<meta property="og:description" content="Picture Model and Rebuild One of the more useful parts of Svg.Skia is that it does not stop at &quot;load and draw&quot;. The runtime keeps several layers alive, and each layer has a different rebuild story. The available layers After loading, SKSvg can expose: SourceDocument for authored SVG DOM work, RetainedSceneGraph for compiled-node inspection and incremental mutation refresh, Model for low-level ShimSkiaSharp.SKPicture command editing, Picture for the current native...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Picture Model and Rebuild | Svg.Skia">
   </head>
@@ -156,7 +156,47 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="picture-model-and-rebuild">Picture Model and Rebuild</h1>
-<p>One of the more useful parts of Svg.Skia is that it does not stop at &quot;load and draw&quot;. The intermediate command model remains available.</p>
+<p>One of the more useful parts of <code>Svg.Skia</code> is that it does not stop at &quot;load and draw&quot;. The runtime keeps several layers alive, and each layer has a different rebuild story.</p>
+<h2 id="the-available-layers">The available layers</h2>
+<p>After loading, <code>SKSvg</code> can expose:</p>
+<ul>
+<li><code>SourceDocument</code> for authored SVG DOM work,</li>
+<li><code>RetainedSceneGraph</code> for compiled-node inspection and incremental mutation refresh,</li>
+<li><code>Model</code> for low-level <code>ShimSkiaSharp.SKPicture</code> command editing,</li>
+<li><code>Picture</code> for the current native <code>SkiaSharp.SKPicture</code>.</li>
+</ul>
+<p>Choose the layer that matches the kind of change you are making.</p>
+<h2 id="full-document-rebuild">Full document rebuild</h2>
+<p>When the DOM changes structurally or when the simplest path is good enough, mutate the document and call <code>FromSvgDocument(...)</code> again:</p>
+<pre><code class="language-csharp">using System.Drawing;
+using Svg;
+using Svg.Skia;
+
+using var svg = new SKSvg();
+svg.FromSvg(&quot;&lt;svg width=\&quot;10\&quot; height=\&quot;10\&quot;&gt;&lt;rect id=\&quot;r\&quot; width=\&quot;10\&quot; height=\&quot;10\&quot; fill=\&quot;red\&quot; /&gt;&lt;/svg&gt;&quot;);
+
+var rect = (SvgRectangle)svg.SourceDocument!.GetElementById(&quot;r&quot;)!;
+rect.Fill = new SvgColourServer(Color.BlueViolet);
+
+svg.FromSvgDocument(svg.SourceDocument);
+</code></pre>
+<p>This recompiles the retained scene and regenerates the current <code>Picture</code>.</p>
+<h2 id="retained-scene-mutation-refresh">Retained-scene mutation refresh</h2>
+<p>For small localized DOM edits, update the scene-backed document and ask the retained scene to recompile only the affected compilation roots:</p>
+<pre><code class="language-csharp">using System.Drawing;
+using Svg;
+using Svg.Skia;
+
+using var svg = new SKSvg();
+svg.FromSvg(&quot;&lt;svg width=\&quot;10\&quot; height=\&quot;10\&quot;&gt;&lt;rect id=\&quot;r\&quot; width=\&quot;10\&quot; height=\&quot;10\&quot; fill=\&quot;red\&quot; /&gt;&lt;/svg&gt;&quot;);
+
+var scene = svg.RetainedSceneGraph!;
+var rect = (SvgRectangle)scene.SourceDocument!.GetElementById(&quot;r&quot;)!;
+rect.Fill = new SvgColourServer(Color.BlueViolet);
+
+svg.TryApplyRetainedSceneMutationByIdAndRender(&quot;r&quot;, new[] { &quot;fill&quot; }, out var result);
+</code></pre>
+<p>This path keeps the current <code>Picture</code> refreshed without paying for a full rebuild every time.</p>
 <h2 id="accessing-the-model">Accessing the model</h2>
 <p><code>SKSvg.Model</code> exposes the <code>ShimSkiaSharp.SKPicture</code> command tree. This is the structure that <code>SkiaModel</code> later turns into <code>SkiaSharp.SKPicture</code>.</p>
 <h2 id="editing-commands">Editing commands</h2>
@@ -179,21 +219,34 @@ foreach (var cmd in svg.Model?.Commands?.OfType&lt;DrawPathCanvasCommand&gt;() ?
 svg.RebuildFromModel();
 </code></pre>
 <h2 id="avalonia-rebuild-flow">Avalonia rebuild flow</h2>
-<p>The same idea exists in the Avalonia wrappers:</p>
+<p>The same ideas exist in the Avalonia wrappers:</p>
 <ul>
 <li><code>Avalonia.Svg.Skia.SvgSource.RebuildFromModel()</code></li>
 <li><code>Avalonia.Svg.Skia.SvgSource.ReLoad(...)</code></li>
+<li><code>Avalonia.Svg.Skia.SvgSource.LoadFromSvgDocument(...)</code></li>
 <li><code>Avalonia.Svg.SvgSource.RebuildFromModel()</code></li>
 </ul>
-<p>This makes it possible to keep an SVG-backed image source in XAML while still mutating the underlying commands from code.</p>
+<p>This makes it possible to keep an SVG-backed image source in XAML while still choosing between DOM rebuilds, parameter reloads, and low-level model mutation from code.</p>
 <h2 id="cloning">Cloning</h2>
 <p>The Avalonia image and source types provide cloning helpers so you can keep one original asset and derive modified variants without mutating shared state:</p>
 <ul>
 <li><code>SvgSource.Clone()</code></li>
 <li><code>SvgImage.Clone()</code></li>
 </ul>
-<h2 id="when-to-use-model-editing">When to use model editing</h2>
-<p>Model editing is a good fit when:</p>
+<h2 id="when-to-use-each-rebuild-path">When to use each rebuild path</h2>
+<p>Use <code>FromSvgDocument(...)</code> when:</p>
+<ul>
+<li>you added or removed elements,</li>
+<li>the root document changed,</li>
+<li>the simplest rebuild path is more important than maximum refresh performance.</li>
+</ul>
+<p>Use retained-scene mutation refresh when:</p>
+<ul>
+<li>one element or subtree changed,</li>
+<li>you know which attributes changed,</li>
+<li>you want to reuse the existing compiled scene as much as possible.</li>
+</ul>
+<p>Use <code>Model</code> plus <code>RebuildFromModel()</code> when:</p>
 <ul>
 <li>CSS alone is not expressive enough,</li>
 <li>the asset must stay embedded but the commands need a runtime tweak,</li>
