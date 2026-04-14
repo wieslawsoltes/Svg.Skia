@@ -18,7 +18,7 @@ public class SKSvgTests : SvgUnitTest
     private static string GetActualPngPath(string name)
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
-    [WindowsTheory]
+    [OSXTheory]
     [InlineData("Sign in", 0.04)]
     public void Test(string name, double errorThreshold)
     {

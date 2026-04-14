@@ -126,7 +126,7 @@ public class SvgSceneTextCompilerTests
     [Fact]
     public void TryCompileSequentialText_FallsBack_ForSignInAssetTextNodes()
     {
-        var document = SvgDocument.Open("/Users/wieslawsoltes/GitHub/Svg.Skia/tests/Tests/Sign in.svg");
+        var document = SvgDocument.Open(GetTestAssetPath("Sign in.svg"));
         var viewport = GetDocumentViewport(document);
         var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings { EnableSvgFonts = true }));
         var compiledIds = new List<string>();
@@ -217,6 +217,11 @@ public class SvgSceneTextCompilerTests
                 <text id="label" x="10" y="40" font-family="sans-serif" font-size="{{fontSize}}">{{textContent}}</text>
               </svg>
               """);
+    }
+
+    private static string GetTestAssetPath(string name)
+    {
+        return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "Tests", name));
     }
 
     private static List<string> InvokeSplitCodepoints(string text)
