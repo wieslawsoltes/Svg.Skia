@@ -72,6 +72,12 @@ internal static partial class SvgSceneTextCompiler
             SKRect geometryBounds,
             ISvgAssetLoader assetLoader);
 
+        PreparedLineStats MeasureLineStats(
+            SvgTextBase styleSource,
+            string text,
+            SKRect geometryBounds,
+            ISvgAssetLoader assetLoader);
+
         float[] MeasureNaturalCodepointAdvances(
             SvgTextBase styleSource,
             IReadOnlyList<string> codepoints,
@@ -106,6 +112,33 @@ internal static partial class SvgSceneTextCompiler
         public float NaturalAdvance { get; }
 
         public IReadOnlyList<float> NaturalCodepointAdvances { get; }
+    }
+
+    private sealed class PreparedLineStats
+    {
+        public PreparedLineStats(
+            string drawText,
+            SKTypeface? typeface,
+            float advance,
+            SKRect relativeBounds,
+            bool usesResolvedRunTypeface)
+        {
+            DrawText = drawText;
+            Typeface = typeface;
+            Advance = advance;
+            RelativeBounds = relativeBounds;
+            UsesResolvedRunTypeface = usesResolvedRunTypeface;
+        }
+
+        public string DrawText { get; }
+
+        public SKTypeface? Typeface { get; }
+
+        public float Advance { get; }
+
+        public SKRect RelativeBounds { get; }
+
+        public bool UsesResolvedRunTypeface { get; }
     }
 
     private sealed record PreparedSequentialRun(
@@ -189,6 +222,15 @@ internal static partial class SvgSceneTextCompiler
             return MeasureNaturalTextAdvanceCore(styleSource, text, geometryBounds, assetLoader);
         }
 
+        public PreparedLineStats MeasureLineStats(
+            SvgTextBase styleSource,
+            string text,
+            SKRect geometryBounds,
+            ISvgAssetLoader assetLoader)
+        {
+            return MeasureLineStatsCore(styleSource, text, geometryBounds, assetLoader);
+        }
+
         public float[] MeasureNaturalCodepointAdvances(
             SvgTextBase styleSource,
             IReadOnlyList<string> codepoints,
@@ -233,7 +275,7 @@ internal static partial class SvgSceneTextCompiler
     {
         preparedText = null;
 
-        if (HasSequentialTextRunBarriers(svgTextBase) ||
+        if (HasPreparedSequentialTextContainerBarriers(svgTextBase) ||
             !TryCollectSequentialTextRuns(svgTextBase, requireAnchorContent: false, IsTextReferenceRenderingEnabled(assetLoader), trimLeadingWhitespaceAtStart, out var runs))
         {
             return false;
@@ -248,7 +290,8 @@ internal static partial class SvgSceneTextCompiler
         ISvgAssetLoader assetLoader,
         out PreparedSequentialText? preparedText)
     {
-        if (!s_preparedTextEngine.TryPrepareSequentialText(runs, geometryBounds, assetLoader, out var prepared) ||
+        if (!CanPrepareSequentialTextRuns(runs, geometryBounds, assetLoader) ||
+            !s_preparedTextEngine.TryPrepareSequentialText(runs, geometryBounds, assetLoader, out var prepared) ||
             prepared.Runs.Count != runs.Count)
         {
             preparedText = null;
@@ -257,6 +300,51 @@ internal static partial class SvgSceneTextCompiler
 
         preparedText = prepared;
         return true;
+    }
+
+    private static PreparedLineStats MeasureLineStats(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader)
+    {
+        return s_preparedTextEngine.MeasureLineStats(svgTextBase, text, geometryBounds, assetLoader);
+    }
+
+    private static bool CanPrepareSequentialTextRuns(
+        IReadOnlyList<SequentialTextRun> runs,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader)
+    {
+        if (runs.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < runs.Count; i++)
+        {
+            if (!CanPrepareSequentialTextRun(runs[i], geometryBounds, assetLoader))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool CanPrepareSequentialTextRun(
+        SequentialTextRun run,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader)
+    {
+        if (IsVerticalWritingMode(run.StyleSource) ||
+            HasOwnTextLengthAdjustment(run.StyleSource))
+        {
+            return false;
+        }
+
+        var paint = CreateTextMetricsPaint(run.StyleSource, geometryBounds);
+        return !SvgFontTextRenderer.TryGetLayout(run.StyleSource, run.Text, paint, assetLoader, out _);
     }
 
     private static void ClearPreparedTextCaches()
@@ -396,5 +484,106 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return MeasureNaturalTextAdvanceHorizontal(svgTextBase, text, geometryBounds, assetLoader);
+    }
+
+    private static PreparedLineStats MeasureLineStatsCore(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader)
+    {
+        var paint = CreateTextMetricsPaint(svgTextBase, geometryBounds);
+        var fallbackText = GetBrowserCompatibleFallbackText(svgTextBase, text, assetLoader);
+        if (string.IsNullOrEmpty(fallbackText))
+        {
+            return new PreparedLineStats(string.Empty, paint.Typeface, 0f, SKRect.Empty, usesResolvedRunTypeface: false);
+        }
+
+        if (TryCreateBrowserCompatibleFullRunPaint(svgTextBase, fallbackText, paint, assetLoader, out var fullRunPaint, out var shapedText))
+        {
+            var measureBounds = new SKRect();
+            var advance = EnsureWhitespaceAdvance(
+                fallbackText,
+                fullRunPaint,
+                assetLoader,
+                assetLoader.MeasureText(shapedText, fullRunPaint, ref measureBounds));
+            var relativeBounds = measureBounds;
+            if (relativeBounds.IsEmpty)
+            {
+                relativeBounds = GetTextAdvanceBox(svgTextBase, 0f, 0f, advance, fullRunPaint, assetLoader);
+            }
+            else
+            {
+                relativeBounds = ExpandTextBoundsWithAdvanceBox(svgTextBase, relativeBounds, 0f, 0f, advance, fullRunPaint, assetLoader);
+            }
+
+            return new PreparedLineStats(shapedText, fullRunPaint.Typeface, advance, relativeBounds, usesResolvedRunTypeface: true);
+        }
+
+        var spans = assetLoader.FindTypefaces(fallbackText, paint);
+        if (spans.Count > 0)
+        {
+            var currentX = 0f;
+            var totalAdvance = 0f;
+            var bounds = SKRect.Empty;
+            for (var i = 0; i < spans.Count; i++)
+            {
+                var localPaint = paint.Clone();
+                localPaint.Typeface = spans[i].Typeface;
+
+                var spanBounds = SKRect.Empty;
+                var spanMeasureBounds = new SKRect();
+                var measuredAdvance = assetLoader.MeasureText(spans[i].Text, localPaint, ref spanMeasureBounds);
+                if (!spanMeasureBounds.IsEmpty)
+                {
+                    spanBounds = spanMeasureBounds;
+                }
+                else if (TryGetRenderedTextLocalBounds(spans[i].Text, localPaint, assetLoader, out var renderedBounds))
+                {
+                    spanBounds = renderedBounds;
+                }
+
+                var spanAdvance = EnsureWhitespaceAdvance(spans[i].Text, localPaint, assetLoader, spans[i].Advance > 0f ? spans[i].Advance : measuredAdvance);
+                if (!spanBounds.IsEmpty)
+                {
+                    UnionBounds(ref bounds, new SKRect(
+                        currentX + spanBounds.Left,
+                        spanBounds.Top,
+                        currentX + spanBounds.Right,
+                        spanBounds.Bottom));
+                }
+
+                UnionBounds(ref bounds, GetTextAdvanceBox(svgTextBase, currentX, 0f, spanAdvance, localPaint, assetLoader));
+                currentX += spanAdvance;
+                totalAdvance += spanAdvance;
+            }
+
+            return new PreparedLineStats(
+                ApplyBrowserCompatibleBidiControls(svgTextBase, fallbackText),
+                paint.Typeface,
+                totalAdvance,
+                bounds,
+                usesResolvedRunTypeface: false);
+        }
+
+        var fallbackMeasureBounds = new SKRect();
+        var advanceWithoutTypefaceSpans = EnsureWhitespaceAdvance(fallbackText, paint, assetLoader, assetLoader.MeasureText(fallbackText, paint, ref fallbackMeasureBounds));
+        var relativeFallbackBounds = fallbackMeasureBounds;
+        if (relativeFallbackBounds.IsEmpty &&
+            !TryGetRenderedTextLocalBounds(fallbackText, paint, assetLoader, out relativeFallbackBounds))
+        {
+            relativeFallbackBounds = GetTextAdvanceBox(svgTextBase, 0f, 0f, advanceWithoutTypefaceSpans, paint, assetLoader);
+        }
+        else
+        {
+            relativeFallbackBounds = ExpandTextBoundsWithAdvanceBox(svgTextBase, relativeFallbackBounds, 0f, 0f, advanceWithoutTypefaceSpans, paint, assetLoader);
+        }
+
+        return new PreparedLineStats(
+            ApplyBrowserCompatibleBidiControls(svgTextBase, fallbackText),
+            paint.Typeface,
+            advanceWithoutTypefaceSpans,
+            relativeFallbackBounds,
+            usesResolvedRunTypeface: false);
     }
 }

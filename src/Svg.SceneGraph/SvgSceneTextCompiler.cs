@@ -290,11 +290,11 @@ internal static partial class SvgSceneTextCompiler
         geometryBounds = SKRect.Empty;
         localModel = null;
 
-        if (HasSequentialTextRunBarriers(svgTextBase) ||
-            IsVerticalWritingMode(svgTextBase) ||
+        if (HasPreparedSequentialTextContainerBarriers(svgTextBase) ||
             !TryCollectSequentialTextRuns(svgTextBase, requireAnchorContent: false, IsTextReferenceRenderingEnabled(assetLoader), trimLeadingWhitespaceAtStart: true, out var runs) ||
             runs.Count == 0 ||
             !CanUseSequentialCompileFastPath(runs) ||
+            !CanPrepareSequentialTextRuns(runs, viewport, assetLoader) ||
             !TryResolveSequentialCompileRuns(runs, viewport, assetLoader, out var resolvedRuns))
         {
             return false;
@@ -432,31 +432,19 @@ internal static partial class SvgSceneTextCompiler
         out ResolvedSequentialCompileRun resolvedRun)
     {
         resolvedRun = default;
-        var metricsPaint = CreateTextMetricsPaint(run.StyleSource, geometryBounds);
-        var fallbackText = GetBrowserCompatibleFallbackText(run.StyleSource, run.Text, assetLoader);
-        if (string.IsNullOrEmpty(fallbackText))
+        var lineStats = MeasureLineStats(run.StyleSource, run.Text, geometryBounds, assetLoader);
+        if (!lineStats.UsesResolvedRunTypeface ||
+            string.IsNullOrEmpty(lineStats.DrawText))
         {
             return false;
         }
 
-        if (!TryCreateBrowserCompatibleFullRunPaint(run.StyleSource, fallbackText, metricsPaint, assetLoader, out var fullRunPaint, out var shapedText))
-        {
-            return false;
-        }
-
-        var measureBounds = new SKRect();
-        var advance = EnsureWhitespaceAdvance(fallbackText, fullRunPaint, assetLoader, assetLoader.MeasureText(shapedText, fullRunPaint, ref measureBounds));
-        var relativeBounds = measureBounds;
-        if (relativeBounds.IsEmpty)
-        {
-            relativeBounds = GetTextAdvanceBox(run.StyleSource, 0f, 0f, advance, fullRunPaint, assetLoader);
-        }
-        else
-        {
-            relativeBounds = ExpandTextBoundsWithAdvanceBox(run.StyleSource, relativeBounds, 0f, 0f, advance, fullRunPaint, assetLoader);
-        }
-
-        resolvedRun = new ResolvedSequentialCompileRun(run.StyleSource, shapedText, fullRunPaint.Typeface, advance, relativeBounds);
+        resolvedRun = new ResolvedSequentialCompileRun(
+            run.StyleSource,
+            lineStats.DrawText,
+            lineStats.Typeface,
+            lineStats.Advance,
+            lineStats.RelativeBounds);
         return true;
     }
 
@@ -663,7 +651,7 @@ internal static partial class SvgSceneTextCompiler
         SKPath path,
         bool trimLeadingWhitespaceAtStart)
     {
-        if (HasSequentialTextRunBarriers(svgTextBase))
+        if (HasPreparedSequentialTextContainerBarriers(svgTextBase))
         {
             return false;
         }
@@ -4422,7 +4410,7 @@ internal static partial class SvgSceneTextCompiler
         ISvgAssetLoader assetLoader,
         bool trimLeadingWhitespaceAtStart)
     {
-        if (HasSequentialTextRunBarriers(svgTextBase))
+        if (HasPreparedSequentialTextContainerBarriers(svgTextBase))
         {
             return false;
         }
@@ -4494,7 +4482,7 @@ internal static partial class SvgSceneTextCompiler
         ref SKRect bounds,
         bool trimLeadingWhitespaceAtStart)
     {
-        if (HasSequentialTextRunBarriers(svgTextBase))
+        if (HasPreparedSequentialTextContainerBarriers(svgTextBase))
         {
             return false;
         }
@@ -6848,6 +6836,33 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return true;
+    }
+
+    private static bool HasPreparedSequentialTextContainerBarriers(SvgTextBase svgTextBase)
+    {
+        return HasSequentialTextRunBarriers(svgTextBase) ||
+               ContainsPreparedSequentialTextSubtreeBarrier(svgTextBase);
+    }
+
+    private static bool ContainsPreparedSequentialTextSubtreeBarrier(SvgTextBase svgTextBase)
+    {
+        if (IsVerticalWritingMode(svgTextBase) ||
+            HasOwnTextLengthAdjustment(svgTextBase))
+        {
+            return true;
+        }
+
+        foreach (var node in GetContentNodes(svgTextBase))
+        {
+            if (node is SvgTextBase childTextBase &&
+                CanRenderTextSubtree(childTextBase) &&
+                ContainsPreparedSequentialTextSubtreeBarrier(childTextBase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool IsTextReferenceRenderingEnabled(ISvgAssetLoader assetLoader)
