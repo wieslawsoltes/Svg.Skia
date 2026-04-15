@@ -193,6 +193,42 @@ public class SvgSceneTextCompilerTests
     }
 
     [Fact]
+    public void TryCompileSequentialText_Succeeds_ForDirectedAsciiRuns()
+    {
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="320" height="120" viewBox="0 0 320 120">
+              <text id="label" x="10" y="40" font-family="sans-serif" font-size="24" direction="rtl" unicode-bidi="embed">ABC<tspan font-weight="bold">DEF</tspan></text>
+            </svg>
+            """);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var viewport = GetDocumentViewport(document);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+
+        var succeeded = InvokeTryCompileSequentialText(svgText, viewport, assetLoader);
+
+        Assert.True(succeeded);
+    }
+
+    [Fact]
+    public void TryCompileSequentialText_FallsBack_ForNestedTextLengthAdjustment()
+    {
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="320" height="120" viewBox="0 0 320 120">
+              <text id="label" x="10" y="40" font-family="sans-serif" font-size="24">A<tspan textLength="120"><tspan>BC</tspan></tspan>D</text>
+            </svg>
+            """);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var viewport = GetDocumentViewport(document);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+
+        var succeeded = InvokeTryCompileSequentialText(svgText, viewport, assetLoader);
+
+        Assert.False(succeeded);
+    }
+
+    [Fact]
     public void TryPrepareFlatTextRun_ReturnsPreparedNaturalMetrics_ForSimpleText()
     {
         var document = CreateDocument("AVATAR ", 24);
@@ -251,6 +287,36 @@ public class SvgSceneTextCompilerTests
     }
 
     [Fact]
+    public void TryPrepareSequentialTextRuns_ReturnsPerRunAdvances_ForMixedDirectionNestedText()
+    {
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="320" height="120" viewBox="0 0 320 120">
+              <text id="label" x="10" y="40" font-family="sans-serif" font-size="24">abc<tspan font-weight="bold">אבג</tspan>xyz</text>
+            </svg>
+            """);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var geometryBounds = GetDocumentViewport(document);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+
+        var prepared = InvokeTryPrepareSequentialTextRuns(svgText, geometryBounds, assetLoader, trimLeadingWhitespaceAtStart: true, out var snapshot);
+
+        Assert.True(prepared);
+        Assert.NotNull(snapshot);
+        Assert.Collection(
+            snapshot!.Runs,
+            run => Assert.Equal("abc", run.Text),
+            run => Assert.Equal("אבג", run.Text),
+            run => Assert.Equal("xyz", run.Text));
+
+        foreach (var run in snapshot.Runs)
+        {
+            var expectedAdvance = InvokeMeasureTextAdvance(run.StyleSource, run.Text, geometryBounds, assetLoader);
+            Assert.Equal(expectedAdvance, run.Advance, 3);
+        }
+    }
+
+    [Fact]
     public void TryPrepareSequentialTextRuns_RejectsPositionedTspanBarrier()
     {
         var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
@@ -262,6 +328,93 @@ public class SvgSceneTextCompilerTests
         var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
         var geometryBounds = GetDocumentViewport(document);
         var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+
+        var prepared = InvokeTryPrepareSequentialTextRuns(svgText, geometryBounds, assetLoader, trimLeadingWhitespaceAtStart: true, out var snapshot);
+
+        Assert.False(prepared);
+        Assert.Null(snapshot);
+    }
+
+    [Fact]
+    public void TryPrepareSequentialTextRuns_RejectsTextLengthAdjustment()
+    {
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="80" viewBox="0 0 240 80">
+              <text id="label" x="10" y="40" font-family="sans-serif" font-size="24" textLength="180">a<tspan>b</tspan>c</text>
+            </svg>
+            """);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var geometryBounds = GetDocumentViewport(document);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+
+        var prepared = InvokeTryPrepareSequentialTextRuns(svgText, geometryBounds, assetLoader, trimLeadingWhitespaceAtStart: true, out var snapshot);
+
+        Assert.False(prepared);
+        Assert.Null(snapshot);
+    }
+
+    [Fact]
+    public void TryPrepareSequentialTextRuns_RejectsNestedTextLengthAdjustmentContainer()
+    {
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="80" viewBox="0 0 240 80">
+              <text id="label" x="10" y="40" font-family="sans-serif" font-size="24">a<tspan textLength="120"><tspan>b</tspan></tspan>c</text>
+            </svg>
+            """);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var geometryBounds = GetDocumentViewport(document);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+
+        var prepared = InvokeTryPrepareSequentialTextRuns(svgText, geometryBounds, assetLoader, trimLeadingWhitespaceAtStart: true, out var snapshot);
+
+        Assert.False(prepared);
+        Assert.Null(snapshot);
+    }
+
+    [Fact]
+    public void TryPrepareSequentialTextRuns_RejectsTextPathBarrier()
+    {
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="320" height="120" viewBox="0 0 320 120">
+              <defs>
+                <path id="curve" d="M20 60 C 80 10, 180 10, 260 60" />
+              </defs>
+              <text id="label" font-family="sans-serif" font-size="24">
+                <textPath xlink:href="#curve">Curved text</textPath>
+              </text>
+            </svg>
+            """);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var geometryBounds = GetDocumentViewport(document);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+
+        var prepared = InvokeTryPrepareSequentialTextRuns(svgText, geometryBounds, assetLoader, trimLeadingWhitespaceAtStart: true, out var snapshot);
+
+        Assert.False(prepared);
+        Assert.Null(snapshot);
+    }
+
+    [Fact]
+    public void TryPrepareSequentialTextRuns_RejectsSvgFontRun()
+    {
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120">
+              <defs>
+                <font id="DefaultFontFace" horiz-adv-x="100">
+                  <font-face font-family="DefaultFont" units-per-em="100" ascent="100" descent="0" />
+                  <glyph unicode="A" horiz-adv-x="100" d="M10 0H30V100H10Z" />
+                </font>
+              </defs>
+              <text id="label" x="10" y="60" font-family="DefaultFont" font-size="48">A</text>
+            </svg>
+            """);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var geometryBounds = GetDocumentViewport(document);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings { EnableSvgFonts = true }));
 
         var prepared = InvokeTryPrepareSequentialTextRuns(svgText, geometryBounds, assetLoader, trimLeadingWhitespaceAtStart: true, out var snapshot);
 
