@@ -49,6 +49,12 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
         EnsureTypefaceProviderCaches();
 
+        var cacheKey = new TypefaceSpanCacheKey(text, paintPreferredTypeface);
+        if (_typefaceSpanCache.TryGetValue(cacheKey, out var cachedSpans))
+        {
+            return new List<Model.TypefaceSpan>(cachedSpans);
+        }
+
         var preferredTypeface = paintPreferredTypeface.Typeface;
         var weight = _skiaModel.ToSKFontStyleWeight(preferredTypeface?.FontWeight ?? ShimSkiaSharp.SKFontStyleWeight.Normal);
         var width = _skiaModel.ToSKFontStyleWidth(preferredTypeface?.FontWidth ?? ShimSkiaSharp.SKFontStyleWidth.Normal);
@@ -63,6 +69,14 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
             return ret;
         }
 
+        if (TryCreateSingleTypefaceSpan(text, runningPaint, out var singleSpan))
+        {
+            ret.Add(singleSpan);
+            _typefaceSpanCache[cacheKey] = ret.ToArray();
+            TrimCachesIfNeeded();
+            return ret;
+        }
+
         var currentTypefaceStartIndex = 0;
         var i = 0;
 
@@ -71,15 +85,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
             var currentTypefaceText = text.Substring(currentTypefaceStartIndex, i - currentTypefaceStartIndex);
 
             ret.Add(new(currentTypefaceText, _skiaModel.GetTextAdvance(currentTypefaceText, runningPaint),
-                runningPaint.Typeface is null
-                    ? null
-                    : ShimSkiaSharp.SKTypeface.FromFamilyName(
-                        runningPaint.Typeface.FamilyName,
-                        // SkiaSharp provides int properties here. Let's just assume our
-                        // ShimSkiaSharp defines the same values as SkiaSharp and convert directly
-                        (ShimSkiaSharp.SKFontStyleWeight)runningPaint.Typeface.FontWeight,
-                        (ShimSkiaSharp.SKFontStyleWidth)runningPaint.Typeface.FontWidth,
-                        (ShimSkiaSharp.SKFontStyleSlant)runningPaint.Typeface.FontSlant)
+                ToShimTypeface(runningPaint.Typeface)
             ));
         }
 
@@ -117,6 +123,9 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         }
 
         YieldCurrentTypefaceText();
+
+        _typefaceSpanCache[cacheKey] = ret.ToArray();
+        TrimCachesIfNeeded();
 
         return ret;
     }
@@ -268,6 +277,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
             _providerStateHash = hash;
             _matchCharacterCache.Clear();
             _providerTypefaceCache.Clear();
+            _typefaceSpanCache.Clear();
             ClearPaintCache();
         }
     }
@@ -382,6 +392,11 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         if (_providerTypefaceCache.Count > ProviderTypefaceCacheLimit)
         {
             _providerTypefaceCache.Clear();
+        }
+
+        if (_typefaceSpanCache.Count > TypefaceSpanCacheLimit)
+        {
+            _typefaceSpanCache.Clear();
         }
     }
 
@@ -519,6 +534,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
     private static List<int> CollectDistinctRenderableCodepoints(string text)
     {
         var codepoints = new List<int>();
+        var seenCodepoints = new HashSet<int>();
         for (var i = 0; i < text.Length; i++)
         {
             var codepoint = char.ConvertToUtf32(text, i);
@@ -532,7 +548,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
                 continue;
             }
 
-            if (!codepoints.Contains(codepoint))
+            if (seenCodepoints.Add(codepoint))
             {
                 codepoints.Add(codepoint);
             }
@@ -544,6 +560,30 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         }
 
         return codepoints;
+    }
+
+    private Model.TypefaceSpan CreateTypefaceSpan(string text, SkiaSharp.SKPaint paint)
+    {
+        return new Model.TypefaceSpan(text, _skiaModel.GetTextAdvance(text, paint), ToShimTypeface(paint.Typeface));
+    }
+
+    private bool TryCreateSingleTypefaceSpan(string text, SkiaSharp.SKPaint paint, out Model.TypefaceSpan span)
+    {
+        span = default;
+
+        if (paint.Typeface is not { } typeface || typeface.Handle == IntPtr.Zero)
+        {
+            return false;
+        }
+
+        var codepoints = CollectDistinctRenderableCodepoints(text);
+        if (codepoints.Count > 0 && !CanRenderAllCodepoints(typeface, codepoints))
+        {
+            return false;
+        }
+
+        span = CreateTypefaceSpan(text, paint);
+        return true;
     }
 
     private static bool CanRenderAllCodepoints(SkiaSharp.SKTypeface? typeface, IReadOnlyList<int> codepoints)

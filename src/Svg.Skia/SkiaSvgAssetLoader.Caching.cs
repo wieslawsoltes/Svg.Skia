@@ -110,6 +110,83 @@ public partial class SkiaSvgAssetLoader
         }
     }
 
+    private readonly struct TypefaceSpanCacheKey : System.IEquatable<TypefaceSpanCacheKey>
+    {
+        public TypefaceSpanCacheKey(string text, ShimSkiaSharp.SKPaint paint)
+        {
+            Text = text;
+            TextSize = paint.TextSize;
+            LcdRenderText = paint.LcdRenderText;
+            SubpixelText = paint.SubpixelText;
+            TextEncoding = paint.TextEncoding;
+
+            if (paint.Typeface is { } typeface)
+            {
+                HasTypeface = true;
+                TypefaceFamilyName = typeface.FamilyName;
+                TypefaceWeight = typeface.FontWeight;
+                TypefaceWidth = typeface.FontWidth;
+                TypefaceSlant = typeface.FontSlant;
+            }
+            else
+            {
+                HasTypeface = false;
+                TypefaceFamilyName = null;
+                TypefaceWeight = default;
+                TypefaceWidth = default;
+                TypefaceSlant = default;
+            }
+        }
+
+        public string Text { get; }
+        public float TextSize { get; }
+        public bool LcdRenderText { get; }
+        public bool SubpixelText { get; }
+        public ShimSkiaSharp.SKTextEncoding TextEncoding { get; }
+        public bool HasTypeface { get; }
+        public string? TypefaceFamilyName { get; }
+        public ShimSkiaSharp.SKFontStyleWeight TypefaceWeight { get; }
+        public ShimSkiaSharp.SKFontStyleWidth TypefaceWidth { get; }
+        public ShimSkiaSharp.SKFontStyleSlant TypefaceSlant { get; }
+
+        public bool Equals(TypefaceSpanCacheKey other)
+        {
+            return string.Equals(Text, other.Text, StringComparison.Ordinal)
+                && TextSize.Equals(other.TextSize)
+                && LcdRenderText == other.LcdRenderText
+                && SubpixelText == other.SubpixelText
+                && TextEncoding == other.TextEncoding
+                && HasTypeface == other.HasTypeface
+                && string.Equals(TypefaceFamilyName, other.TypefaceFamilyName, StringComparison.Ordinal)
+                && TypefaceWeight == other.TypefaceWeight
+                && TypefaceWidth == other.TypefaceWidth
+                && TypefaceSlant == other.TypefaceSlant;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is TypefaceSpanCacheKey other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash = Text.GetHashCode(StringComparison.Ordinal);
+                hash = (hash * 397) ^ TextSize.GetHashCode();
+                hash = (hash * 397) ^ (LcdRenderText ? 1 : 0);
+                hash = (hash * 397) ^ (SubpixelText ? 1 : 0);
+                hash = (hash * 397) ^ (int)TextEncoding;
+                hash = (hash * 397) ^ (HasTypeface ? 1 : 0);
+                hash = (hash * 397) ^ (TypefaceFamilyName?.GetHashCode(StringComparison.Ordinal) ?? 0);
+                hash = (hash * 397) ^ (int)TypefaceWeight;
+                hash = (hash * 397) ^ (int)TypefaceWidth;
+                hash = (hash * 397) ^ (int)TypefaceSlant;
+                return hash;
+            }
+        }
+    }
+
     private readonly struct PaintSignature : System.IEquatable<PaintSignature>
     {
         public PaintSignature(ShimSkiaSharp.SKPaint paint)
@@ -283,9 +360,11 @@ public partial class SkiaSvgAssetLoader
 
     private const int MatchCharacterCacheLimit = 4096;
     private const int ProviderTypefaceCacheLimit = 512;
+    private const int TypefaceSpanCacheLimit = 1024;
     private const int PaintCacheRefTrimThreshold = 1024;
     private readonly ConcurrentDictionary<MatchCharacterKey, SkiaSharp.SKTypeface?> _matchCharacterCache = new();
     private readonly ConcurrentDictionary<ProviderTypefaceKey, SkiaSharp.SKTypeface?> _providerTypefaceCache = new();
+    private readonly ConcurrentDictionary<TypefaceSpanCacheKey, Model.TypefaceSpan[]> _typefaceSpanCache = new();
     private readonly object _paintCacheLock = new();
     private ConditionalWeakTable<ShimSkiaSharp.SKPaint, CachedSkPaint> _paintCache = new();
     private readonly List<WeakReference<SkiaSharp.SKPaint>> _paintCacheRefs = new();
