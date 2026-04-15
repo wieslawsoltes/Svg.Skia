@@ -493,6 +493,16 @@ internal static partial class SvgSceneTextCompiler
         ISvgAssetLoader assetLoader)
     {
         var paint = CreateTextMetricsPaint(svgTextBase, geometryBounds);
+        return MeasureLineStatsCore(svgTextBase, text, geometryBounds, assetLoader, paint);
+    }
+
+    private static PreparedLineStats MeasureLineStatsCore(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        SKPaint paint)
+    {
         var fallbackText = GetBrowserCompatibleFallbackText(svgTextBase, text, assetLoader);
         if (string.IsNullOrEmpty(fallbackText))
         {

@@ -294,8 +294,7 @@ internal static partial class SvgSceneTextCompiler
             !TryCollectSequentialTextRuns(svgTextBase, requireAnchorContent: false, IsTextReferenceRenderingEnabled(assetLoader), trimLeadingWhitespaceAtStart: true, out var runs) ||
             runs.Count == 0 ||
             !CanUseSequentialCompileFastPath(runs) ||
-            !CanPrepareSequentialTextRuns(runs, viewport, assetLoader) ||
-            !TryResolveSequentialCompileRuns(runs, viewport, assetLoader, out var resolvedRuns))
+            !TryPrepareSequentialCompileRuns(runs, viewport, assetLoader, out var resolvedRuns, out var totalAdvance))
         {
             return false;
         }
@@ -312,12 +311,6 @@ internal static partial class SvgSceneTextCompiler
         ApplyInitialSequentialOffsets(svgTextBase, viewport, ref currentX, ref currentY);
 
         var textAlign = GetTextAnchorAlign(svgTextBase, viewport);
-        var totalAdvance = 0f;
-        for (var i = 0; i < resolvedRuns.Count; i++)
-        {
-            totalAdvance += resolvedRuns[i].Advance;
-        }
-
         var inlineOrigin = GetAlignedStartCoordinate(currentX, totalAdvance, textAlign);
         var runX = inlineOrigin;
         for (var i = 0; i < resolvedRuns.Count; i++)
@@ -404,48 +397,59 @@ internal static partial class SvgSceneTextCompiler
         return true;
     }
 
-    private static bool TryResolveSequentialCompileRuns(
+    private static bool TryPrepareSequentialCompileRuns(
         IReadOnlyList<SequentialTextRun> runs,
         SKRect geometryBounds,
         ISvgAssetLoader assetLoader,
-        out List<ResolvedSequentialCompileRun> resolvedRuns)
+        out List<ResolvedSequentialCompileRun> resolvedRuns,
+        out float totalAdvance)
     {
         resolvedRuns = new List<ResolvedSequentialCompileRun>(runs.Count);
-        for (var i = 0; i < runs.Count; i++)
-        {
-            if (!TryResolveSequentialCompileRun(runs[i], geometryBounds, assetLoader, out var resolvedRun))
-            {
-                resolvedRuns.Clear();
-                return false;
-            }
+        totalAdvance = 0f;
 
-            resolvedRuns.Add(resolvedRun);
-        }
-
-        return resolvedRuns.Count > 0;
-    }
-
-    private static bool TryResolveSequentialCompileRun(
-        SequentialTextRun run,
-        SKRect geometryBounds,
-        ISvgAssetLoader assetLoader,
-        out ResolvedSequentialCompileRun resolvedRun)
-    {
-        resolvedRun = default;
-        var lineStats = MeasureLineStats(run.StyleSource, run.Text, geometryBounds, assetLoader);
-        if (!lineStats.UsesResolvedRunTypeface ||
-            string.IsNullOrEmpty(lineStats.DrawText))
+        if (runs.Count == 0)
         {
             return false;
         }
 
-        resolvedRun = new ResolvedSequentialCompileRun(
-            run.StyleSource,
-            lineStats.DrawText,
-            lineStats.Typeface,
-            lineStats.Advance,
-            lineStats.RelativeBounds);
-        return true;
+        for (var i = 0; i < runs.Count; i++)
+        {
+            var run = runs[i];
+            if (IsVerticalWritingMode(run.StyleSource) ||
+                HasOwnTextLengthAdjustment(run.StyleSource))
+            {
+                resolvedRuns.Clear();
+                totalAdvance = 0f;
+                return false;
+            }
+
+            var paint = CreateTextMetricsPaint(run.StyleSource, geometryBounds);
+            if (SvgFontTextRenderer.TryGetLayout(run.StyleSource, run.Text, paint, assetLoader, out _))
+            {
+                resolvedRuns.Clear();
+                totalAdvance = 0f;
+                return false;
+            }
+
+            var lineStats = MeasureLineStatsCore(run.StyleSource, run.Text, geometryBounds, assetLoader, paint);
+            if (!lineStats.UsesResolvedRunTypeface ||
+                string.IsNullOrEmpty(lineStats.DrawText))
+            {
+                resolvedRuns.Clear();
+                totalAdvance = 0f;
+                return false;
+            }
+
+            resolvedRuns.Add(new ResolvedSequentialCompileRun(
+                run.StyleSource,
+                lineStats.DrawText,
+                lineStats.Typeface,
+                lineStats.Advance,
+                lineStats.RelativeBounds));
+            totalAdvance += lineStats.Advance;
+        }
+
+        return resolvedRuns.Count > 0;
     }
 
     private static void DrawResolvedSequentialCompileRuns(
