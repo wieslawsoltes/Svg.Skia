@@ -9,6 +9,7 @@ namespace Svg.Skia.Benchmarks;
 internal static class SvgLoadPipelineBenchmarkScenarios
 {
     private const string ExternalPathsEnvVar = "SVG_SKIA_BENCHMARK_SVG_PATHS";
+    private const string ScenarioFilterEnvVar = "SVG_SKIA_BENCHMARK_SCENARIO_FILTER";
     private static readonly Lazy<IReadOnlyList<SvgLoadPipelineBenchmarkScenario>> ScenariosCache = new(CreateScenarios);
 
     public static IEnumerable<string> Names => ScenariosCache.Value.Select(static scenario => scenario.Name);
@@ -33,40 +34,66 @@ internal static class SvgLoadPipelineBenchmarkScenarios
         };
 
         var externalPaths = Environment.GetEnvironmentVariable(ExternalPathsEnvVar);
-        if (string.IsNullOrWhiteSpace(externalPaths))
+        if (!string.IsNullOrWhiteSpace(externalPaths))
+        {
+            var externalScenarioCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var candidate in externalPaths.Split(['\n', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var fullPath = Path.GetFullPath(candidate);
+                if (!File.Exists(fullPath))
+                {
+                    throw new FileNotFoundException($"Benchmark SVG file configured via {ExternalPathsEnvVar} was not found.", fullPath);
+                }
+
+                var fileName = Path.GetFileName(fullPath);
+                var scenarioName = $"file:{fileName}";
+                if (externalScenarioCounts.TryGetValue(scenarioName, out var suffix))
+                {
+                    suffix++;
+                    externalScenarioCounts[scenarioName] = suffix;
+                    scenarioName = $"{scenarioName}#{suffix}";
+                }
+                else
+                {
+                    externalScenarioCounts[scenarioName] = 0;
+                }
+
+                scenarios.Add(new SvgLoadPipelineBenchmarkScenario(
+                    scenarioName,
+                    File.ReadAllText(fullPath),
+                    new Uri(fullPath)));
+            }
+        }
+
+        return ApplyScenarioFilter(scenarios);
+    }
+
+    private static IReadOnlyList<SvgLoadPipelineBenchmarkScenario> ApplyScenarioFilter(
+        IReadOnlyList<SvgLoadPipelineBenchmarkScenario> scenarios)
+    {
+        var scenarioFilter = Environment.GetEnvironmentVariable(ScenarioFilterEnvVar);
+        if (string.IsNullOrWhiteSpace(scenarioFilter))
         {
             return scenarios;
         }
 
-        var externalScenarioCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var candidate in externalPaths.Split(['\n', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        var filters = scenarioFilter
+            .Split(['\n', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (filters.Length == 0)
         {
-            var fullPath = Path.GetFullPath(candidate);
-            if (!File.Exists(fullPath))
-            {
-                throw new FileNotFoundException($"Benchmark SVG file configured via {ExternalPathsEnvVar} was not found.", fullPath);
-            }
-
-            var fileName = Path.GetFileName(fullPath);
-            var scenarioName = $"file:{fileName}";
-            if (externalScenarioCounts.TryGetValue(scenarioName, out var suffix))
-            {
-                suffix++;
-                externalScenarioCounts[scenarioName] = suffix;
-                scenarioName = $"{scenarioName}#{suffix}";
-            }
-            else
-            {
-                externalScenarioCounts[scenarioName] = 0;
-            }
-
-            scenarios.Add(new SvgLoadPipelineBenchmarkScenario(
-                scenarioName,
-                File.ReadAllText(fullPath),
-                new Uri(fullPath)));
+            return scenarios;
         }
 
-        return scenarios;
+        var filteredScenarios = scenarios
+            .Where(scenario => filters.Any(filter => scenario.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)))
+            .ToArray();
+        if (filteredScenarios.Length == 0)
+        {
+            throw new InvalidOperationException(
+                $"Benchmark scenario filter '{scenarioFilter}' did not match any scenario names.");
+        }
+
+        return filteredScenarios;
     }
 
     private static string BuildInlineStyleScene(int elementCount)

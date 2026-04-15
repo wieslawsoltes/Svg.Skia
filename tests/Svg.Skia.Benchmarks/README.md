@@ -107,6 +107,14 @@ SVG_SKIA_BENCHMARK_SVG_PATHS="/Users/me/Downloads/solar battery.svg" \
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgLoadPipelineBenchmarks*"
 ```
 
+To restrict a run to specific scenario names, set `SVG_SKIA_BENCHMARK_SCENARIO_FILTER`:
+
+```bash
+SVG_SKIA_BENCHMARK_SVG_PATHS="/Users/me/Downloads/solar battery.svg" \
+SVG_SKIA_BENCHMARK_SCENARIO_FILTER="file:solar battery.svg" \
+dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*CompileRetainedSceneFromParsedDocument*"
+```
+
 ## Manual profiler
 
 For quick local stage-by-stage sampling outside BenchmarkDotNet, the project also keeps the ad hoc profiler:

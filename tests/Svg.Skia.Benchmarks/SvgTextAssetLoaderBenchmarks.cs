@@ -111,4 +111,39 @@ public class SvgTextAssetLoaderBenchmarks
 
         return totalAdvance;
     }
+
+    [Benchmark]
+    [BenchmarkCategory("Compile", "Text", "FindTypefaces", "Single", "Cold")]
+    public float FindTypefacesSingleCold()
+    {
+        var coldLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        var spans = coldLoader.FindTypefaces(repeatedText, textPaint!);
+        var totalAdvance = 0f;
+        for (var i = 0; i < spans.Count; i++)
+        {
+            totalAdvance += spans[i].Advance;
+        }
+
+        return totalAdvance;
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Compile", "Text", "FindTypefaces", "Sequence", "Cold")]
+    public float FindTypefacesSequenceCold()
+    {
+        var coldLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        var totalAdvance = 0f;
+        var samples = textSamples!;
+
+        for (var i = 0; i < samples.Length; i++)
+        {
+            var spans = coldLoader.FindTypefaces(samples[i], textPaint!);
+            for (var spanIndex = 0; spanIndex < spans.Count; spanIndex++)
+            {
+                totalAdvance += spans[spanIndex].Advance;
+            }
+        }
+
+        return totalAdvance;
+    }
 }
