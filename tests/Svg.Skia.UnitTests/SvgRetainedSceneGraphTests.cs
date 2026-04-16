@@ -1880,6 +1880,53 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_RendersBackgroundOffsetFromEmptyFilteredGroupInsideOpacityScope()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="200"
+                 height="200"
+                 viewBox="0 0 200 200">
+              <defs>
+                <filter id="offset-filter" filterUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+                  <feOffset in="BackgroundImage" dx="100" />
+                </filter>
+              </defs>
+              <g enable-background="new" opacity="0.5">
+                <rect x="20" y="20" width="60" height="60" fill="green" />
+                <rect x="30" y="30" width="60" height="60" fill="blue" />
+                <g id="offset-target" filter="url(#offset-filter)" />
+              </g>
+            </svg>
+            """);
+
+        Assert.NotNull(svg.Picture);
+        Assert.True(svg.RetainedSceneGraph!.TryGetNodeById("offset-target", out var filterNode));
+        Assert.NotNull(filterNode);
+        Assert.NotNull(filterNode!.Filter);
+        Assert.False(filterNode.SuppressSubtreeRendering);
+        Assert.NotNull(filterNode.FilterClip);
+        Assert.NotNull(filterNode.StandaloneFilterModel);
+
+        using var isolatedNodePicture = svg.CreateRetainedSceneNodePicture(filterNode);
+        Assert.NotNull(isolatedNodePicture);
+        using var isolatedNodeBitmap = ToBitmap(svg, isolatedNodePicture!);
+        var isolatedNodePixel = isolatedNodeBitmap.GetPixel(150, 60);
+        Assert.True(
+            isolatedNodePixel.Blue > 0 && isolatedNodePixel.Alpha > 0,
+            $"Expected isolated retained-node picture to contain offset output, but pixel was {isolatedNodePixel}.");
+
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+
+        var offsetPixel = bitmap.GetPixel(150, 60);
+        Assert.True(
+            offsetPixel.Blue > 0 && offsetPixel.Alpha > 0,
+            $"Expected background offset output inside the filtered empty group, but pixel was {offsetPixel}.");
+    }
+
+    [Fact]
     public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForUseAndMarkerDocument()
     {
         using var svg = new SKSvg();
@@ -2108,6 +2155,36 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.NotNull(retainedPicture);
         Assert.NotNull(expectedSvg.Picture);
         AssertPicturesEqual(expectedSvg, expectedSvg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void SceneRuntime_RecompileAfterAncestorPointerEventsMutation_RefreshesInheritedMetadata()
+    {
+        const string svgText = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="20">
+              <g id="host" pointer-events="stroke">
+                <rect id="target" x="10" y="2" width="12" height="8" fill="red" />
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        var document = Assert.IsType<SvgDocument>(SvgService.FromSvg(svgText));
+
+        Assert.True(SvgSceneRuntime.TryCompile(document, svg.AssetLoader, DrawAttributes.None, out var initialScene));
+        Assert.NotNull(initialScene);
+        Assert.True(initialScene!.TryGetNodeById("target", out var initialTargetNode));
+        Assert.NotNull(initialTargetNode);
+        Assert.Equal(SvgPointerEvents.Stroke, initialTargetNode!.PointerEvents);
+
+        var host = Assert.IsType<SvgGroup>(document.GetElementById("host"));
+        host.PointerEvents = SvgPointerEvents.None;
+
+        Assert.True(SvgSceneRuntime.TryCompile(document, svg.AssetLoader, DrawAttributes.None, out var updatedScene));
+        Assert.NotNull(updatedScene);
+        Assert.True(updatedScene!.TryGetNodeById("target", out var updatedTargetNode));
+        Assert.NotNull(updatedTargetNode);
+        Assert.Equal(SvgPointerEvents.None, updatedTargetNode!.PointerEvents);
     }
 
     [Fact]

@@ -1314,7 +1314,8 @@ public static class SvgSceneCompiler
             node.Children.Count != 0 ||
             node.MaskPaint is not null ||
             node.MaskNode is not null ||
-            node.Filter is not null)
+            node.Filter is not null ||
+            !string.IsNullOrEmpty(node.FilterResourceKey))
         {
             return;
         }

@@ -15,12 +15,14 @@ public partial class SKSvg
             bool hasMaskLayer,
             bool hasOpacityLayer,
             bool hasFilterLayer,
+            bool hasStandaloneFilterOutput,
             SKRect? layerBounds)
         {
             HasBaseSave = hasBaseSave;
             HasMaskLayer = hasMaskLayer;
             HasOpacityLayer = hasOpacityLayer;
             HasFilterLayer = hasFilterLayer;
+            HasStandaloneFilterOutput = hasStandaloneFilterOutput;
             LayerBounds = layerBounds;
         }
 
@@ -31,6 +33,8 @@ public partial class SKSvg
         public bool HasOpacityLayer { get; }
 
         public bool HasFilterLayer { get; }
+
+        public bool HasStandaloneFilterOutput { get; }
 
         public SKRect? LayerBounds { get; }
     }
@@ -845,7 +849,7 @@ public partial class SKSvg
             return true;
         }
 
-        if (!node.IsRenderable)
+        if (!node.IsRenderable && node.StandaloneFilterModel is null)
         {
             return true;
         }
@@ -856,14 +860,21 @@ public partial class SKSvg
         var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter);
         var state = ApplyStaticNodeCanvasState(node, canvas, enableClip, enableMask, enableOpacity, enableFilter);
 
-        SvgSceneRenderer.DrawNodeLocalVisuals(node, canvas);
-
-        for (var i = 0; i < node.Children.Count; i++)
+        if (state.HasStandaloneFilterOutput)
         {
-            if (!RenderStaticNodeToCanvas(node.Children[i], canvas, cutRoots, ignoreAttributes))
+            DrawStandaloneFilterOutput(node, canvas);
+        }
+        else
+        {
+            SvgSceneRenderer.DrawNodeLocalVisuals(node, canvas);
+
+            for (var i = 0; i < node.Children.Count; i++)
             {
-                RestoreStaticNode(canvas, state);
-                return false;
+                if (!RenderStaticNodeToCanvas(node.Children[i], canvas, cutRoots, ignoreAttributes))
+                {
+                    RestoreStaticNode(canvas, state);
+                    return false;
+                }
             }
         }
 
@@ -899,7 +910,8 @@ public partial class SKSvg
         var hasMaskLayer = enableMask && node.MaskPaint is not null && node.MaskNode is not null;
         var canFoldOpacity = enableOpacity && SvgScenePaintingService.CanFoldOpacityIntoLeafDirectDraw(node);
         var hasOpacityLayer = enableOpacity && node.Opacity is not null && !canFoldOpacity;
-        var hasFilterLayer = enableFilter && node.Filter is not null;
+        var hasStandaloneFilterOutput = enableFilter && node.StandaloneFilterModel is not null;
+        var hasFilterLayer = enableFilter && node.Filter is not null && !hasStandaloneFilterOutput;
         var layerBounds = (hasMaskLayer || hasOpacityLayer)
             ? ResolveCurrentLayerBounds(node)
             : null;
@@ -911,7 +923,7 @@ public partial class SKSvg
             node.Clip is not null ||
             hasClipPath ||
             node.InnerClip is not null ||
-            (hasFilterLayer && node.FilterClip is not null);
+            ((hasFilterLayer || hasStandaloneFilterOutput) && node.FilterClip is not null);
 
         if (hasBaseSave)
         {
@@ -941,6 +953,11 @@ public partial class SKSvg
         if (node.InnerClip is { } innerClip)
         {
             canvas.ClipRect(innerClip, SKClipOperation.Intersect);
+        }
+
+        if ((hasFilterLayer || hasStandaloneFilterOutput) && node.FilterClip is { } filterClip)
+        {
+            canvas.ClipRect(filterClip, SKClipOperation.Intersect);
         }
 
         if (hasMaskLayer)
@@ -979,7 +996,19 @@ public partial class SKSvg
             }
         }
 
-        return new StaticNodeCanvasState(hasBaseSave, hasMaskLayer, hasOpacityLayer, hasFilterLayer, layerBounds);
+        return new StaticNodeCanvasState(hasBaseSave, hasMaskLayer, hasOpacityLayer, hasFilterLayer, hasStandaloneFilterOutput, layerBounds);
+    }
+
+    private static void DrawStandaloneFilterOutput(
+        SvgSceneNode node,
+        SKCanvas canvas)
+    {
+        if (node.StandaloneFilterModel is not { } standaloneFilterModel)
+        {
+            return;
+        }
+
+        canvas.DrawPicture(standaloneFilterModel);
     }
 
     private static void RestoreStaticNode(

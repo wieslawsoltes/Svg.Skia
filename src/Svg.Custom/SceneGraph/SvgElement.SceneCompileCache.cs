@@ -12,7 +12,16 @@ namespace Svg
         internal uint GetSceneGraphCompileMetadataVersion()
         {
             EnsureSceneGraphCompileMetadataTracking();
-            return _sceneGraphCompileMetadataVersion;
+
+            var version = _sceneGraphCompileMetadataVersion;
+            if (Parent is SvgElement parent)
+            {
+                version = CombineSceneGraphCompileMetadataVersion(
+                    parent.GetSceneGraphCompileMetadataVersion(),
+                    version);
+            }
+
+            return version;
         }
 
         internal IReadOnlyCollection<string>? ConsumeSceneGraphPendingChangedAttributes()
@@ -70,6 +79,14 @@ namespace Svg
             }
 
             _sceneGraphPendingChangedAttributes.Add(attributeName);
+        }
+
+        private static uint CombineSceneGraphCompileMetadataVersion(uint inheritedVersion, uint localVersion)
+        {
+            unchecked
+            {
+                return (inheritedVersion * 16777619u) ^ localVersion;
+            }
         }
     }
 }

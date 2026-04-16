@@ -1235,6 +1235,8 @@ public sealed class SvgSceneDocument
             node.MaskDstIn = null;
             node.Filter = null;
             node.FilterClip = null;
+            node.RequiresFilterInputCarrier = false;
+            node.StandaloneFilterModel = null;
             node.SuppressSubtreeRendering = false;
 
             if (!IgnoreAttributes.HasFlag(DrawAttributes.Mask))
@@ -1262,6 +1264,10 @@ public sealed class SvgSceneDocument
                     {
                         node.Filter = filterPayload.FilterPaint?.DeepClone();
                         node.FilterClip = filterPayload.FilterClip;
+                        node.RequiresFilterInputCarrier = filterPayload.RequiresInputCarrier;
+                        node.StandaloneFilterModel = filterPayload.RequiresInputCarrier
+                            ? CreateStandaloneFilterModel(filterPayload)
+                            : null;
                     }
                     else
                     {
@@ -1314,6 +1320,23 @@ public sealed class SvgSceneDocument
         return _resourcesByKey.TryGetValue(node.FilterResourceKey!, out var resource)
             ? resource.ResolveFilterPayload(this, node)
             : null;
+    }
+
+    private static SKPicture? CreateStandaloneFilterModel(SvgSceneFilterPayload filterPayload)
+    {
+        if (filterPayload.FilterPaint is not { } filterPaint ||
+            filterPayload.FilterClip is not { } filterClip ||
+            filterClip.IsEmpty)
+        {
+            return null;
+        }
+
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(filterClip);
+        var path = new SKPath();
+        path.AddRect(filterClip);
+        canvas.DrawPath(path, filterPaint.DeepClone());
+        return recorder.EndRecording();
     }
 
     private void RegisterDependentAddress(string addressKey, string compilationRootKey)

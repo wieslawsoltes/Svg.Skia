@@ -114,6 +114,10 @@ public sealed class SvgSceneNode
 
     public SKRect? FilterClip { get; internal set; }
 
+    public bool RequiresFilterInputCarrier { get; internal set; }
+
+    public SKPicture? StandaloneFilterModel { get; internal set; }
+
     public SKPaint? Fill { get; internal set; }
 
     public SKPaint? Stroke { get; internal set; }
@@ -200,6 +204,8 @@ public sealed class SvgSceneNode
         OpacityValue = replacement.OpacityValue;
         Filter = replacement.Filter;
         FilterClip = replacement.FilterClip;
+        RequiresFilterInputCarrier = replacement.RequiresFilterInputCarrier;
+        StandaloneFilterModel = replacement.StandaloneFilterModel;
         Fill = replacement.Fill;
         Stroke = replacement.Stroke;
         SupportsFillHitTest = replacement.SupportsFillHitTest;

@@ -191,7 +191,11 @@ public sealed class SvgSceneResource
             references);
 
         var payload = filterContext.FilterPaint is { } filterPaint
-            ? new SvgSceneFilterPayload(filterPaint.DeepClone(), filterContext.FilterClip, isValid: true)
+            ? new SvgSceneFilterPayload(
+                filterPaint.DeepClone(),
+                filterContext.FilterClip,
+                isValid: true,
+                requiresInputCarrier: filterContext.RequiresInputCarrier)
             : SvgSceneFilterPayload.Invalid(filterContext.FilterClip);
 
         _filterPayloads.Add(cacheKey, payload);
@@ -322,11 +326,12 @@ internal sealed class SvgSceneMaskPayload
 
 internal sealed class SvgSceneFilterPayload
 {
-    public SvgSceneFilterPayload(SKPaint? filterPaint, SKRect? filterClip, bool isValid)
+    public SvgSceneFilterPayload(SKPaint? filterPaint, SKRect? filterClip, bool isValid, bool requiresInputCarrier = false)
     {
         FilterPaint = filterPaint;
         FilterClip = filterClip;
         IsValid = isValid;
+        RequiresInputCarrier = requiresInputCarrier;
     }
 
     public static SvgSceneFilterPayload Invalid(SKRect? filterClip)
@@ -337,4 +342,6 @@ internal sealed class SvgSceneFilterPayload
     public SKRect? FilterClip { get; }
 
     public bool IsValid { get; }
+
+    public bool RequiresInputCarrier { get; }
 }

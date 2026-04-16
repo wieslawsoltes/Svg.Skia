@@ -66,12 +66,16 @@ internal sealed class SvgSceneFilterContext
     private SvgSceneFilterResult? _lastResult;
     private readonly Dictionary<SKImageFilter, SKRect> _regions;
     private bool _useTransparentBlackResult;
+    private bool _hasStandaloneCarrierCandidate;
+    private bool _referencesSourceDependentInput;
 
     public bool IsValid { get; private set; }
 
     public SKRect? FilterClip { get; private set; }
 
     public SKPaint? FilterPaint { get; private set; }
+
+    public bool RequiresInputCarrier => _hasStandaloneCarrierCandidate && !_referencesSourceDependentInput;
 
     public SvgSceneFilterContext(SvgSceneDocument sceneDocument, SvgVisualElement svgVisualElement, SKRect skBounds, SKRect skViewport, ISvgSceneFilterSource filterSource, ISvgAssetLoader assetLoader, HashSet<Uri>? references)
     {
@@ -493,6 +497,7 @@ internal sealed class SvgSceneFilterContext
                 }
             case SvgFlood svgFlood:
                 {
+                    _hasStandaloneCarrierCandidate = true;
                     var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
                     var skCropRect = skFilterPrimitiveRegion;
                     var skImageFilter = CreateFlood(svgFlood, _svgVisualElement, null, skCropRect);
@@ -620,6 +625,7 @@ internal sealed class SvgSceneFilterContext
                 }
             case SvgTurbulence svgTurbulence:
                 {
+                    _hasStandaloneCarrierCandidate = true;
                     var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
                     var skCropRect = skFilterPrimitiveRegion;
                     var skImageFilter = CreateTurbulence(svgTurbulence, skCropRect);
@@ -759,6 +765,8 @@ internal sealed class SvgSceneFilterContext
                 return _lastResult;
             }
 
+            _referencesSourceDependentInput = true;
+
             if (_results.ContainsKey(SourceGraphic))
             {
                 return _results[SourceGraphic];
@@ -787,6 +795,7 @@ internal sealed class SvgSceneFilterContext
         {
             case SourceGraphic:
                 {
+                    _referencesSourceDependentInput = true;
                     var skPicture = _filterSource.SourceGraphic(cullRect);
                     if (skPicture is { })
                     {
@@ -803,6 +812,7 @@ internal sealed class SvgSceneFilterContext
                 }
             case SourceAlpha:
                 {
+                    _referencesSourceDependentInput = true;
                     var skPicture = _filterSource.SourceGraphic(cullRect);
                     if (skPicture is { })
                     {
@@ -819,6 +829,7 @@ internal sealed class SvgSceneFilterContext
                 }
             case BackgroundImage:
                 {
+                    _hasStandaloneCarrierCandidate = true;
                     if (_filterUnits == SvgCoordinateUnits.ObjectBoundingBox)
                     {
                         var skImageFilter = GetTransparentBlackImage();
@@ -850,6 +861,7 @@ internal sealed class SvgSceneFilterContext
                 }
             case BackgroundAlpha:
                 {
+                    _hasStandaloneCarrierCandidate = true;
                     if (_filterUnits == SvgCoordinateUnits.ObjectBoundingBox)
                     {
                         var skImageFilter = GetTransparentBlackAlpha();
@@ -881,6 +893,7 @@ internal sealed class SvgSceneFilterContext
                 }
             case FillPaint:
                 {
+                    _referencesSourceDependentInput = true;
                     var skPicture = _filterSource.FillPaint(cullRect);
                     if (skPicture is { })
                     {
@@ -903,6 +916,7 @@ internal sealed class SvgSceneFilterContext
                 }
             case StrokePaint:
                 {
+                    _referencesSourceDependentInput = true;
                     var skPicture = _filterSource.StrokePaint(cullRect);
                     if (skPicture is { })
                     {

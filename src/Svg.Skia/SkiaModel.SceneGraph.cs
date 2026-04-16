@@ -17,18 +17,21 @@ public partial class SkiaModel
             bool hasBaseSave,
             bool hasMaskLayer,
             bool hasOpacityLayer,
-            bool hasFilterLayer)
+            bool hasFilterLayer,
+            bool hasStandaloneFilterOutput)
         {
             HasBaseSave = hasBaseSave;
             HasMaskLayer = hasMaskLayer;
             HasOpacityLayer = hasOpacityLayer;
             HasFilterLayer = hasFilterLayer;
+            HasStandaloneFilterOutput = hasStandaloneFilterOutput;
         }
 
         public bool HasBaseSave { get; }
         public bool HasMaskLayer { get; }
         public bool HasOpacityLayer { get; }
         public bool HasFilterLayer { get; }
+        public bool HasStandaloneFilterOutput { get; }
     }
 
     internal NativePicture? ToSKPicture(SvgSceneDocument? sceneDocument)
@@ -116,17 +119,24 @@ public partial class SkiaModel
             enableOpacity,
             enableFilter);
 
-        if (node.IsRenderable)
+        if (state.HasStandaloneFilterOutput)
+        {
+            DrawStandaloneFilterOutputToNativeCanvas(node, canvas);
+        }
+        else if (node.IsRenderable)
         {
             DrawNodeLocalVisualsToNativeCanvas(node, canvas);
         }
 
-        for (var i = 0; i < node.Children.Count; i++)
+        if (!state.HasStandaloneFilterOutput)
         {
-            if (!RenderSceneNodeToNativeCanvas(sceneDocument, node.Children[i], canvas, ignoreAttributes, until))
+            for (var i = 0; i < node.Children.Count; i++)
             {
-                RestoreNativeNode(canvas, state);
-                return false;
+                if (!RenderSceneNodeToNativeCanvas(sceneDocument, node.Children[i], canvas, ignoreAttributes, until))
+                {
+                    RestoreNativeNode(canvas, state);
+                    return false;
+                }
             }
         }
 
@@ -155,7 +165,8 @@ public partial class SkiaModel
         var hasMaskLayer = enableMask && node.MaskPaint is not null && node.MaskNode is not null;
         var canFoldOpacity = enableOpacity && SvgScenePaintingService.CanFoldOpacityIntoLeafDirectDraw(node);
         var hasOpacityLayer = enableOpacity && node.Opacity is not null && !canFoldOpacity;
-        var hasFilterLayer = enableFilter && node.Filter is not null;
+        var hasStandaloneFilterOutput = enableFilter && node.StandaloneFilterModel is not null;
+        var hasFilterLayer = enableFilter && node.Filter is not null && !hasStandaloneFilterOutput;
         var layerBounds = (hasMaskLayer || hasOpacityLayer)
             ? ResolveCurrentLayerBounds(node)
             : null;
@@ -167,7 +178,7 @@ public partial class SkiaModel
             node.Clip is not null ||
             hasClipPath ||
             node.InnerClip is not null ||
-            (hasFilterLayer && node.FilterClip is not null);
+            ((hasFilterLayer || hasStandaloneFilterOutput) && node.FilterClip is not null);
 
         if (hasBaseSave)
         {
@@ -204,6 +215,11 @@ public partial class SkiaModel
             canvas.ClipRect(ToSKRect(innerClip), NativeClipOperation.Intersect);
         }
 
+        if ((hasFilterLayer || hasStandaloneFilterOutput) && node.FilterClip is { } filterClip)
+        {
+            canvas.ClipRect(ToSKRect(filterClip), NativeClipOperation.Intersect);
+        }
+
         if (hasMaskLayer)
         {
             SaveLayer(canvas, node.MaskPaint, layerBounds);
@@ -219,7 +235,7 @@ public partial class SkiaModel
             SaveLayer(canvas, node.Filter, filterLayerBounds);
         }
 
-        return new NativeNodeCanvasState(hasBaseSave, hasMaskLayer, hasOpacityLayer, hasFilterLayer);
+        return new NativeNodeCanvasState(hasBaseSave, hasMaskLayer, hasOpacityLayer, hasFilterLayer, hasStandaloneFilterOutput);
     }
 
     private void DrawNodeLocalVisualsToNativeCanvas(SvgSceneNode node, NativeCanvas canvas)
@@ -291,6 +307,23 @@ public partial class SkiaModel
         }
     }
 
+    private void DrawStandaloneFilterOutputToNativeCanvas(SvgSceneNode node, NativeCanvas canvas)
+    {
+        if (node.StandaloneFilterModel is not { } standaloneFilterModel)
+        {
+            return;
+        }
+
+        if (TryGetCachedPicture(standaloneFilterModel, out var cachedPicture))
+        {
+            canvas.DrawPicture(cachedPicture);
+        }
+        else
+        {
+            Draw(standaloneFilterModel, canvas);
+        }
+    }
+
     private void RestoreNativeNode(NativeCanvas canvas, NativeNodeCanvasState state)
     {
         if (state.HasFilterLayer)
@@ -350,6 +383,11 @@ public partial class SkiaModel
         }
 
         var bounds = node.IsRenderable ? node.TransformedBounds : ShimSkiaSharp.SKRect.Empty;
+        if (node.StandaloneFilterModel is { } standaloneFilterModel && !standaloneFilterModel.CullRect.IsEmpty)
+        {
+            bounds = UnionNonEmpty(bounds, node.TotalTransform.MapRect(standaloneFilterModel.CullRect));
+        }
+
         for (var i = 0; i < node.Children.Count; i++)
         {
             bounds = UnionNonEmpty(bounds, GetRenderableBounds(node.Children[i]));

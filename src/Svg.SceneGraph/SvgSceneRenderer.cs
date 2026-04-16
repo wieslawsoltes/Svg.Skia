@@ -11,7 +11,8 @@ public static class SvgSceneRenderer
         bool HasBaseSave,
         bool HasMaskLayer,
         bool HasOpacityLayer,
-        bool HasFilterLayer);
+        bool HasFilterLayer,
+        bool HasStandaloneFilterOutput);
 
     public static SKPicture? Render(SvgSceneDocument? sceneDocument)
     {
@@ -99,17 +100,24 @@ public static class SvgSceneRenderer
             enableOpacity,
             enableFilter);
 
-        if (node.IsRenderable)
+        if (state.HasStandaloneFilterOutput)
+        {
+            DrawStandaloneFilterOutput(node, canvas);
+        }
+        else if (node.IsRenderable)
         {
             DrawNodeLocalVisuals(node, canvas);
         }
 
-        for (var i = 0; i < node.Children.Count; i++)
+        if (!state.HasStandaloneFilterOutput)
         {
-            if (!RenderNodeToCanvas(sceneDocument, node.Children[i], canvas, ignoreAttributes, until))
+            for (var i = 0; i < node.Children.Count; i++)
             {
-                RestoreNode(canvas, state);
-                return false;
+                if (!RenderNodeToCanvas(sceneDocument, node.Children[i], canvas, ignoreAttributes, until))
+                {
+                    RestoreNode(canvas, state);
+                    return false;
+                }
             }
         }
 
@@ -179,17 +187,24 @@ public static class SvgSceneRenderer
             enableOpacity: !isOnUntilPath,
             enableFilter: !isOnUntilPath);
 
-        if (node.IsRenderable)
+        if (state.HasStandaloneFilterOutput)
+        {
+            DrawStandaloneFilterOutput(node, canvas);
+        }
+        else if (node.IsRenderable)
         {
             DrawNodeLocalVisuals(node, canvas);
         }
 
-        for (var i = 0; i < node.Children.Count; i++)
+        if (!state.HasStandaloneFilterOutput)
         {
-            if (!RenderBackgroundToCanvasCore(sceneDocument, node.Children[i], canvas, until, enableTransform: true))
+            for (var i = 0; i < node.Children.Count; i++)
             {
-                RestoreNode(canvas, state);
-                return false;
+                if (!RenderBackgroundToCanvasCore(sceneDocument, node.Children[i], canvas, until, enableTransform: true))
+                {
+                    RestoreNode(canvas, state);
+                    return false;
+                }
             }
         }
 
@@ -251,6 +266,27 @@ public static class SvgSceneRenderer
         }
     }
 
+    private static void DrawStandaloneFilterOutput(SvgSceneNode node, SKCanvas canvas)
+    {
+        if (node.StandaloneFilterModel is not { } standaloneFilterModel)
+        {
+            return;
+        }
+
+        canvas.DrawPicture(standaloneFilterModel);
+    }
+
+    internal static SKRect? ResolveFilterCarrierBounds(SvgSceneNode node)
+    {
+        if (node.FilterClip is { } filterClip && !filterClip.IsEmpty)
+        {
+            return filterClip;
+        }
+
+        var localBounds = SvgSceneNodeBoundsService.GetLocalRenderablePaintBounds(node);
+        return localBounds.IsEmpty ? null : localBounds;
+    }
+
     private static bool IsSelfOrAncestor(SvgSceneNode node, SvgSceneNode descendant)
     {
         for (var current = descendant; current is not null; current = current.Parent)
@@ -278,7 +314,8 @@ public static class SvgSceneRenderer
         var hasMaskLayer = enableMask && node.MaskPaint is not null && node.MaskNode is not null;
         var canFoldOpacity = enableOpacity && SvgScenePaintingService.CanFoldOpacityIntoLeafDirectDraw(node);
         var hasOpacityLayer = enableOpacity && node.Opacity is not null && !canFoldOpacity;
-        var hasFilterLayer = enableFilter && node.Filter is not null;
+        var hasStandaloneFilterOutput = enableFilter && node.StandaloneFilterModel is not null;
+        var hasFilterLayer = enableFilter && node.Filter is not null && !hasStandaloneFilterOutput;
         var layerBounds = (hasMaskLayer || hasOpacityLayer)
             ? ResolveCurrentLayerBounds(node)
             : null;
@@ -290,7 +327,7 @@ public static class SvgSceneRenderer
             node.Clip is not null ||
             hasClipPath ||
             node.InnerClip is not null ||
-            (hasFilterLayer && node.FilterClip is not null);
+            ((hasFilterLayer || hasStandaloneFilterOutput) && node.FilterClip is not null);
 
         if (hasBaseSave)
         {
@@ -320,6 +357,11 @@ public static class SvgSceneRenderer
         if (node.InnerClip is { } innerClip)
         {
             canvas.ClipRect(innerClip, SKClipOperation.Intersect);
+        }
+
+        if ((hasFilterLayer || hasStandaloneFilterOutput) && node.FilterClip is { } filterClip)
+        {
+            canvas.ClipRect(filterClip, SKClipOperation.Intersect);
         }
 
         if (hasMaskLayer)
@@ -358,7 +400,7 @@ public static class SvgSceneRenderer
             }
         }
 
-        return new NodeCanvasState(hasBaseSave, hasMaskLayer, hasOpacityLayer, hasFilterLayer);
+        return new NodeCanvasState(hasBaseSave, hasMaskLayer, hasOpacityLayer, hasFilterLayer, hasStandaloneFilterOutput);
     }
 
     private static void RestoreNode(

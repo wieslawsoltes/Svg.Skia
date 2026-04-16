@@ -58,10 +58,8 @@ internal static class SvgScenePaintingService
         }
 
         if (paint.Color is not { } color ||
-            paint.Shader is not null ||
             paint.ColorFilter is not null ||
-            paint.ImageFilter is not null ||
-            paint.BlendMode != SKBlendMode.SrcOver)
+            paint.ImageFilter is not null)
         {
             return false;
         }
