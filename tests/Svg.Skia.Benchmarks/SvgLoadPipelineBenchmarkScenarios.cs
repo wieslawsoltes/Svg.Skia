@@ -30,6 +30,7 @@ internal static class SvgLoadPipelineBenchmarkScenarios
             new("generated-filtered-shapes-256", BuildFilteredShapeScene(256), null),
             new("generated-text-192", BuildTextScene(192), null),
             new("generated-text-path-curves-96", BuildTextPathScene(96), null),
+            new("generated-filtered-text-path-curves-48", BuildFilteredTextPathScene(48), null),
             new("generated-shapes-1024", BuildShapeScene(1024), null)
         };
 
@@ -302,6 +303,43 @@ internal static class SvgLoadPipelineBenchmarkScenarios
         }
 
         builder.AppendLine("  </g>");
+        builder.AppendLine("</svg>");
+        return builder.ToString();
+    }
+
+    private static string BuildFilteredTextPathScene(int textPathCount)
+    {
+        const int columns = 4;
+        var rows = (textPathCount + columns - 1) / columns;
+        var width = 420;
+        var height = Math.Max(80, (rows * 44) + 24);
+        var builder = CreateSvgBuilder(width, height);
+        builder.AppendLine("""
+  <defs>
+    <filter id="blur-filter" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" />
+    </filter>
+""");
+
+        for (var i = 0; i < textPathCount; i++)
+        {
+            var column = i % columns;
+            var row = i / columns;
+            var x = 12 + (column * 100);
+            var y = 22 + (row * 44);
+            builder.AppendLine($"""    <path id="filtered-curve-{i}" d="M{x},{y + 12} C{x + 18},{y - 4} {x + 58},{y + 28} {x + 82},{y + 12}" />""");
+        }
+
+        builder.AppendLine("  </defs>");
+
+        for (var i = 0; i < textPathCount; i++)
+        {
+            var fill = i % 2 == 0 ? "midnightblue" : "darkorange";
+            builder.AppendLine($"""  <text font-size="10" fill="{fill}">""");
+            builder.AppendLine($"""    <textPath href="#filtered-curve-{i}" filter="url(#blur-filter)">Filtered path {i}</textPath>""");
+            builder.AppendLine("  </text>");
+        }
+
         builder.AppendLine("</svg>");
         return builder.ToString();
     }

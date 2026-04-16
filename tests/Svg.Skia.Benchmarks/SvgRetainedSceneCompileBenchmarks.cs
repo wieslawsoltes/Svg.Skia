@@ -9,6 +9,7 @@ namespace Svg.Skia.Benchmarks;
 
 public class SvgRetainedSceneCompileBenchmarks
 {
+    private SvgLoadPipelineBenchmarkScenario? scenario;
     private SvgDocument? parsedDocument;
     private SkiaSvgAssetLoader? assetLoader;
     private SkiaModel? skiaModel;
@@ -27,7 +28,7 @@ public class SvgRetainedSceneCompileBenchmarks
     [GlobalSetup]
     public void GlobalSetup()
     {
-        var scenario = SvgLoadPipelineBenchmarkScenarios.Resolve(ScenarioName);
+        scenario = SvgLoadPipelineBenchmarkScenarios.Resolve(ScenarioName);
         parsedDocument = SvgBenchmarkHelpers.ParseDocument(scenario);
         viewport = SvgBenchmarkHelpers.GetDocumentViewport(parsedDocument);
         skiaModel = new SkiaModel(new SKSvgSettings());
@@ -60,6 +61,27 @@ public class SvgRetainedSceneCompileBenchmarks
     public int CompileViaSceneRuntime()
     {
         var succeeded = SvgSceneRuntime.TryCompile(parsedDocument!, assetLoader!, DrawAttributes.None, out var sceneDocument);
+        return succeeded && sceneDocument is not null ? sceneDocument.Root.Children.Count : -1;
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Compile", "Runtime", "FreshAssetLoader")]
+    public int CompileViaSceneRuntimeWithFreshAssetLoader()
+    {
+        var localSkiaModel = new SkiaModel(new SKSvgSettings());
+        var localAssetLoader = new SkiaSvgAssetLoader(localSkiaModel);
+        var succeeded = SvgSceneRuntime.TryCompile(parsedDocument!, localAssetLoader, DrawAttributes.None, out var sceneDocument);
+        return succeeded && sceneDocument is not null ? sceneDocument.Root.Children.Count : -1;
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Compile", "Runtime", "FreshParsedDocument")]
+    public int CompileViaSceneRuntimeWithFreshParsedDocument()
+    {
+        var localDocument = SvgBenchmarkHelpers.ParseDocument(scenario!);
+        var localSkiaModel = new SkiaModel(new SKSvgSettings());
+        var localAssetLoader = new SkiaSvgAssetLoader(localSkiaModel);
+        var succeeded = SvgSceneRuntime.TryCompile(localDocument, localAssetLoader, DrawAttributes.None, out var sceneDocument);
         return succeeded && sceneDocument is not null ? sceneDocument.Root.Children.Count : -1;
     }
 

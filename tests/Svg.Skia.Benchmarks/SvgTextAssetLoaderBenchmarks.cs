@@ -80,6 +80,39 @@ public class SvgTextAssetLoaderBenchmarks
     }
 
     [Benchmark]
+    [BenchmarkCategory("Compile", "Text", "FontMetrics", "Sequence")]
+    public float GetFontMetricsSequence()
+    {
+        var totalAscent = 0f;
+        var samples = textSamples!;
+
+        for (var i = 0; i < samples.Length; i++)
+        {
+            totalAscent += assetLoader!.GetFontMetrics(textPaint!).Ascent;
+        }
+
+        return totalAscent;
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Compile", "Text", "GlyphShaping", "Sequence")]
+    public float TryShapeGlyphRunSequence()
+    {
+        var totalAdvance = 0f;
+        var samples = textSamples!;
+
+        for (var i = 0; i < samples.Length; i++)
+        {
+            if (assetLoader!.TryShapeGlyphRun(samples[i], textPaint!, out var shapedRun))
+            {
+                totalAdvance += shapedRun.Advance;
+            }
+        }
+
+        return totalAdvance;
+    }
+
+    [Benchmark]
     [BenchmarkCategory("Compile", "Text", "FindTypefaces", "Single")]
     public float FindTypefacesSingle()
     {
@@ -141,6 +174,41 @@ public class SvgTextAssetLoaderBenchmarks
             for (var spanIndex = 0; spanIndex < spans.Count; spanIndex++)
             {
                 totalAdvance += spans[spanIndex].Advance;
+            }
+        }
+
+        return totalAdvance;
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Compile", "Text", "FontMetrics", "Sequence", "Cold")]
+    public float GetFontMetricsSequenceCold()
+    {
+        var coldLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        var totalAscent = 0f;
+        var samples = textSamples!;
+
+        for (var i = 0; i < samples.Length; i++)
+        {
+            totalAscent += coldLoader.GetFontMetrics(textPaint!).Ascent;
+        }
+
+        return totalAscent;
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Compile", "Text", "GlyphShaping", "Sequence", "Cold")]
+    public float TryShapeGlyphRunSequenceCold()
+    {
+        var coldLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        var totalAdvance = 0f;
+        var samples = textSamples!;
+
+        for (var i = 0; i < samples.Length; i++)
+        {
+            if (coldLoader.TryShapeGlyphRun(samples[i], textPaint!, out var shapedRun))
+            {
+                totalAdvance += shapedRun.Advance;
             }
         }
 

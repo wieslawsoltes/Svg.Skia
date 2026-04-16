@@ -136,6 +136,32 @@ public class SvgLoadPipelineBenchmarks
         return inlinePicture?.CullRect.Width ?? 0f;
     }
 
+    [Benchmark]
+    [BenchmarkCategory("Load", "EndToEnd", "StringSource", "ControlLike")]
+    public float LoadViaSkSvgFromStringWithBaseUri()
+    {
+        using var svg = new SKSvg();
+        using var picture = svg.FromSvg(svgText, parameters: null, baseUri);
+        return picture?.CullRect.Width ?? 0f;
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("Load", "EndToEnd", "ShimModel")]
+    public int LoadViaSkSvgAndAccessModel()
+    {
+        using var svg = new SKSvg();
+        if (baseUri is { } scenarioBaseUri)
+        {
+            var bytes = Encoding.UTF8.GetBytes(svgText);
+            using var stream = new MemoryStream(bytes);
+            using var picture = svg.Load(stream, parameters: null, scenarioBaseUri);
+            return svg.Model?.Commands?.Count ?? -1;
+        }
+
+        using var inlinePicture = svg.FromSvg(svgText);
+        return svg.Model?.Commands?.Count ?? -1;
+    }
+
     private SvgDocument ParseDocument()
     {
         var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svgText);

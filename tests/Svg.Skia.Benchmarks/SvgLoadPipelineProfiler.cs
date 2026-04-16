@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using SkiaSharp;
 using Svg;
 using Svg.Model;
@@ -129,10 +128,8 @@ internal static class SvgLoadPipelineProfiler
             Measure("Control-like source load", iterations, () =>
             {
                 using var scope = ThreadAllocationScope.Start();
-                var bytes = Encoding.UTF8.GetBytes(svgText);
-                using var stream = new MemoryStream(bytes);
                 using var svg = new SKSvg();
-                using var picture = svg.Load(stream, parameters: null, baseUri: fileUri);
+                using var picture = svg.FromSvg(svgText, parameters: null, baseUri: fileUri);
                 return ProfileSample.From(scope, picture?.CullRect.Height ?? 0f);
             }),
             Measure("Mutate + full FromSvgDocument rebuild", iterations, () =>
@@ -164,10 +161,8 @@ internal static class SvgLoadPipelineProfiler
     {
         for (var i = 0; i < iterations; i++)
         {
-            var bytes = Encoding.UTF8.GetBytes(svgText);
-            using var stream = new MemoryStream(bytes);
             using var svg = new SKSvg();
-            svg.Load(stream, parameters: null, baseUri: baseUri);
+            svg.FromSvg(svgText, parameters: null, baseUri: baseUri);
             using var bitmap = svg.Picture?.ToBitmap(SKColors.Transparent, 1f, 1f, SKColorType.Rgba8888, SKAlphaType.Premul, svg.Settings.Srgb);
         }
     }

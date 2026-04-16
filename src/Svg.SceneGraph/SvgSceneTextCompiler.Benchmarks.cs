@@ -103,6 +103,29 @@ internal static partial class SvgSceneTextCompiler
         public int VisibleGlyphCount => VisibleGlyphMidOffsets.Length;
     }
 
+    internal sealed class FilteredTextPathRunBenchmarkInput
+    {
+        internal FilteredTextPathRunBenchmarkInput(
+            object run,
+            SKRect viewport,
+            SKRect geometryBounds,
+            SKRect cullRect)
+        {
+            Run = run;
+            Viewport = viewport;
+            GeometryBounds = geometryBounds;
+            CullRect = cullRect;
+        }
+
+        internal object Run { get; }
+
+        public SKRect Viewport { get; }
+
+        public SKRect GeometryBounds { get; }
+
+        public SKRect CullRect { get; }
+    }
+
     internal static AlignedCodepointPlacementBenchmarkInput CreateAlignedCodepointPlacementBenchmarkInput(
         SvgTextBase svgTextBase,
         string text,
@@ -282,6 +305,58 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return checksum;
+    }
+
+    internal static FilteredTextPathRunBenchmarkInput[] CreateFilteredTextPathRunBenchmarkInputs(
+        SvgTextPath svgTextPath,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader)
+    {
+        if (!TryResolveTextPathGeometry(svgTextPath, viewport, out var svgPath, out var skPath, out var geometryBounds, out var pathSamples, out var pathLength))
+        {
+            throw new InvalidOperationException($"Failed to resolve textPath geometry for '{svgTextPath.ID ?? svgTextPath.Content}'.");
+        }
+
+        if (!TryCollectTextPathRuns(svgTextPath, viewport, out var runs) || runs.Count == 0)
+        {
+            throw new InvalidOperationException($"Failed to collect textPath runs for '{svgTextPath.ID ?? svgTextPath.Content}'.");
+        }
+
+        ResolveTextPathChunkOffsets(svgTextPath, useCurrentPositionOffset: false, currentX: 0f, currentY: 0f, viewport, assetLoader, pathSamples, out var horizontalOffset, out var verticalOffset);
+        var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, svgPath, skPath, viewport, pathLength);
+        var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
+        var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
+
+        if (!TryCreateTextPathRunPlacements(runs, pathSamples, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out _, out _))
+        {
+            throw new InvalidOperationException($"Failed to create positioned textPath runs for '{svgTextPath.ID ?? svgTextPath.Content}'.");
+        }
+
+        var inputs = new FilteredTextPathRunBenchmarkInput[positionedRuns.Count];
+        for (var i = 0; i < positionedRuns.Count; i++)
+        {
+            inputs[i] = new FilteredTextPathRunBenchmarkInput(positionedRuns[i], viewport, geometryBounds, geometryBounds);
+        }
+
+        return inputs;
+    }
+
+    internal static int BenchmarkDrawFilteredTextPathRun(
+        FilteredTextPathRunBenchmarkInput input,
+        ISvgAssetLoader assetLoader)
+    {
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(input.CullRect);
+        var drew = TryDrawFilteredPositionedTextPathRun(
+            (PositionedTextPathRun)input.Run,
+            input.Viewport,
+            input.GeometryBounds,
+            DrawAttributes.None,
+            canvas,
+            assetLoader,
+            references: null);
+        var picture = recorder.EndRecording();
+        return drew ? picture.Commands?.Count ?? 0 : 0;
     }
 
     private static void BuildTextPathBenchmarkPlacementPlan(
