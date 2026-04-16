@@ -25,6 +25,28 @@ namespace Svg;
 /// </summary>
 public static class SvgDocumentCompatibilityLoader
 {
+    public static T Open<T>(Stream stream) where T : SvgDocument, new()
+    {
+        return Open<T>(stream, baseUri: null);
+    }
+
+    public static T Open<T>(Stream stream, Uri? baseUri) where T : SvgDocument, new()
+    {
+        if (stream is null)
+        {
+            throw new ArgumentNullException(nameof(stream));
+        }
+
+        var reader = new SvgTextReader(stream, null)
+        {
+            XmlResolver = new SvgDtdResolver(),
+            WhitespaceHandling = WhitespaceHandling.All,
+            DtdProcessing = SvgDocument.DisableDtdProcessing ? DtdProcessing.Ignore : DtdProcessing.Parse,
+        };
+
+        return Create<T>(reader, css: null, baseUri: baseUri, eagerApplyCompatibilityStyles: false);
+    }
+
     public static T Open<T>(string path, SvgOptions svgOptions) where T : SvgDocument, new()
     {
         if (path is null)
@@ -44,7 +66,7 @@ public static class SvgDocumentCompatibilityLoader
         return Open<T>(stream, svgOptions, null);
     }
 
-    private static T Open<T>(Stream stream, SvgOptions svgOptions, Uri? baseUri) where T : SvgDocument, new()
+    public static T Open<T>(Stream stream, SvgOptions svgOptions, Uri? baseUri) where T : SvgDocument, new()
     {
         if (stream is null)
         {
@@ -58,10 +80,15 @@ public static class SvgDocumentCompatibilityLoader
             DtdProcessing = SvgDocument.DisableDtdProcessing ? DtdProcessing.Ignore : DtdProcessing.Parse,
         };
 
-        return Create<T>(reader, svgOptions.Css, baseUri);
+        return Create<T>(reader, svgOptions.Css, baseUri, eagerApplyCompatibilityStyles: false);
     }
 
     public static T FromSvg<T>(string svg) where T : SvgDocument, new()
+    {
+        return FromSvg<T>(svg, new SvgOptions(), null);
+    }
+
+    public static T FromSvg<T>(string svg, Uri? baseUri) where T : SvgDocument, new()
     {
         if (string.IsNullOrEmpty(svg))
         {
@@ -76,7 +103,37 @@ public static class SvgDocumentCompatibilityLoader
             DtdProcessing = SvgDocument.DisableDtdProcessing ? DtdProcessing.Ignore : DtdProcessing.Parse,
         };
 
-        return Create<T>(reader);
+        var loadResult = LoadStructure<T>(
+            reader,
+            css: null,
+            baseUri,
+            eagerApplyCompatibilityStyles: false);
+        FinalizeDocument(loadResult);
+        return (T)loadResult.Document;
+    }
+
+    public static T FromSvg<T>(string svg, SvgOptions svgOptions, Uri? baseUri = null) where T : SvgDocument, new()
+    {
+        if (string.IsNullOrEmpty(svg))
+        {
+            throw new ArgumentNullException(nameof(svg));
+        }
+
+        using var stringReader = new StringReader(svg);
+        var reader = new SvgTextReader(stringReader, svgOptions.Entities)
+        {
+            XmlResolver = new SvgDtdResolver(),
+            WhitespaceHandling = WhitespaceHandling.All,
+            DtdProcessing = SvgDocument.DisableDtdProcessing ? DtdProcessing.Ignore : DtdProcessing.Parse,
+        };
+
+        var loadResult = LoadStructure<T>(
+            reader,
+            svgOptions.Css,
+            baseUri,
+            eagerApplyCompatibilityStyles: CanEagerApplyCompatibilityStyles(svgOptions.Css, svg));
+        FinalizeDocument(loadResult);
+        return (T)loadResult.Document;
     }
 
     public static T Open<T>(XmlReader reader) where T : SvgDocument, new()
@@ -101,16 +158,80 @@ public static class SvgDocumentCompatibilityLoader
             IgnoreWhitespace = false,
         });
 
-        return Create<T>(svgReader, baseUri: baseUri);
+        var loadResult = LoadStructure<T>(
+            svgReader,
+            baseUri: baseUri,
+            eagerApplyCompatibilityStyles: true);
+        FinalizeDocument(loadResult);
+        return (T)loadResult.Document;
     }
 
-    private static T Create<T>(XmlReader reader, string? css = null, Uri? baseUri = null) where T : SvgDocument, new()
+    private static T Create<T>(
+        XmlReader reader,
+        string? css = null,
+        Uri? baseUri = null,
+        bool? eagerApplyCompatibilityStyles = null) where T : SvgDocument, new()
+    {
+        var loadResult = LoadStructure<T>(
+            reader,
+            css,
+            baseUri,
+            eagerApplyCompatibilityStyles ?? CanEagerApplyCompatibilityStyles(css));
+        FinalizeDocument(loadResult);
+        return (T)loadResult.Document;
+    }
+
+    internal static SvgCompatibilityLoadResult LoadStructure<T>(string svg, string? css = null, Uri? baseUri = null) where T : SvgDocument, new()
+    {
+        if (string.IsNullOrEmpty(svg))
+        {
+            throw new ArgumentNullException(nameof(svg));
+        }
+
+        using var stringReader = new StringReader(svg);
+        using var reader = new SvgTextReader(stringReader, null)
+        {
+            XmlResolver = new SvgDtdResolver(),
+            WhitespaceHandling = WhitespaceHandling.All,
+            DtdProcessing = SvgDocument.DisableDtdProcessing ? DtdProcessing.Ignore : DtdProcessing.Parse,
+        };
+
+        return LoadStructure<T>(
+            reader,
+            css,
+            baseUri,
+            eagerApplyCompatibilityStyles: CanEagerApplyCompatibilityStyles(css, svg));
+    }
+
+    internal static int CreateElementsOnly<T>(string svg) where T : SvgDocument, new()
+    {
+        if (string.IsNullOrEmpty(svg))
+        {
+            throw new ArgumentNullException(nameof(svg));
+        }
+
+        using var stringReader = new StringReader(svg);
+        using var reader = new SvgTextReader(stringReader, null)
+        {
+            XmlResolver = new SvgDtdResolver(),
+            WhitespaceHandling = WhitespaceHandling.All,
+            DtdProcessing = SvgDocument.DisableDtdProcessing ? DtdProcessing.Ignore : DtdProcessing.Parse,
+        };
+
+        return CreateElementsOnly<T>(reader);
+    }
+
+    internal static SvgCompatibilityLoadResult LoadStructure<T>(
+        XmlReader reader,
+        string? css = null,
+        Uri? baseUri = null,
+        bool eagerApplyCompatibilityStyles = false) where T : SvgDocument, new()
     {
         // Keep each stylesheet fragment together with the URI it should resolve against. That lets
         // inline CSS from the SVG document, externally supplied CSS, and recursively imported CSS
         // all share one merge/apply path without losing origin information.
         var styles = new List<SvgCssStyleSource>();
-        var elementFactory = new SvgElementFactory();
+        var elementFactory = new SvgElementFactory(eagerApplyCompatibilityStyles);
         var svgDocument = Create<T>(reader, elementFactory, styles, baseUri);
 
         // Avalonia and other hosts can concatenate optional CSS inputs into a whitespace-only
@@ -124,15 +245,84 @@ public static class SvgDocumentCompatibilityLoader
             styles.Add(new SvgCssStyleSource(normalizedCss, baseUri));
         }
 
-        SvgCssCompatibilityProcessor.Apply(svgDocument!, styles, elementFactory);
-        svgDocument?.FlushStyles(true);
-        return svgDocument!;
+        return new SvgCompatibilityLoadResult(svgDocument!, elementFactory, styles, elementFactory.HasStagedStyles);
+    }
+
+    internal static int CreateElementsOnly<T>(XmlReader reader) where T : SvgDocument, new()
+    {
+        if (reader is null)
+        {
+            throw new ArgumentNullException(nameof(reader));
+        }
+
+        var elementFactory = new SvgElementFactory();
+        T? svgDocument = null;
+        var elementCount = 0;
+
+        while (reader.Read())
+        {
+            if (reader.NodeType != XmlNodeType.Element)
+            {
+                continue;
+            }
+
+            if (svgDocument is null)
+            {
+                svgDocument = elementFactory.CreateDocument<T>(reader);
+            }
+            else
+            {
+                _ = elementFactory.CreateElement(reader, svgDocument);
+            }
+
+            elementCount++;
+        }
+
+        return elementCount;
+    }
+
+    internal static bool ApplyCompatibilityCss(SvgCompatibilityLoadResult loadResult)
+    {
+        if (loadResult is null)
+        {
+            throw new ArgumentNullException(nameof(loadResult));
+        }
+
+        var appliedStyles = SvgCssCompatibilityProcessor.Apply(loadResult.Document, loadResult.Styles, loadResult.ElementFactory);
+        loadResult.HasStagedStyles |= appliedStyles;
+        return appliedStyles;
+    }
+
+    internal static void FlushCompatibilityStyles(SvgCompatibilityLoadResult loadResult, bool onlyWhenStagedStyles = false)
+    {
+        if (loadResult is null)
+        {
+            throw new ArgumentNullException(nameof(loadResult));
+        }
+
+        if (onlyWhenStagedStyles && !loadResult.HasStagedStyles)
+        {
+            return;
+        }
+
+        loadResult.Document.FlushStylesCompatibility(true);
+    }
+
+    internal static void FinalizeDocument(SvgCompatibilityLoadResult loadResult)
+    {
+        if (loadResult is null)
+        {
+            throw new ArgumentNullException(nameof(loadResult));
+        }
+
+        ApplyCompatibilityCss(loadResult);
+        FlushCompatibilityStyles(loadResult, onlyWhenStagedStyles: true);
     }
 
     private static T Create<T>(XmlReader reader, SvgElementFactory elementFactory, List<SvgCssStyleSource> styles, Uri? baseUri)
         where T : SvgDocument, new()
     {
-        var elementStack = new Stack<SvgElement>();
+        var elementStack = new List<ParseFrame>(64);
         var elementEmpty = false;
         SvgElement? element = null;
         SvgElement? parent;
@@ -159,15 +349,32 @@ public static class SvgDocumentCompatibilityLoader
 
                         if (elementStack.Count > 0)
                         {
-                            parent = elementStack.Peek();
+                            var parentFrameIndex = elementStack.Count - 1;
+                            var parentFrame = elementStack[parentFrameIndex];
+                            parent = parentFrame.Element;
                             if (parent is not null && element is not null)
                             {
                                 parent.Children.Add(element);
-                                parent.Nodes.Add(element);
+                                parent.MergeChildStyleSubtreeCompatibility(element);
+
+                                if (parentFrame.TracksChildNodes)
+                                {
+                                    parent.Nodes.Add(element);
+                                }
+
+                                elementStack[parentFrameIndex] = parentFrame;
+                                elementStack.Add(new ParseFrame(element));
+                            }
+                            else
+                            {
+                                elementStack.Add(new ParseFrame(element!));
                             }
                         }
+                        else
+                        {
+                            elementStack.Add(new ParseFrame(element!));
+                        }
 
-                        elementStack.Push(element!);
                         if (elementEmpty)
                         {
                             goto case XmlNodeType.EndElement;
@@ -176,9 +383,13 @@ public static class SvgDocumentCompatibilityLoader
                         break;
 
                     case XmlNodeType.EndElement:
-                        element = elementStack.Pop();
+                        var topIndex = elementStack.Count - 1;
+                        var parseFrame = elementStack[topIndex];
+                        elementStack.RemoveAt(topIndex);
+                        element = parseFrame.Element;
 
-                        if (TryAggregateNodeContent(element, out var content))
+                        if (parseFrame.HasContentNode &&
+                            TryAggregateNodeContent(element, out var content))
                         {
                             element.Content = content;
                         }
@@ -204,15 +415,25 @@ public static class SvgDocumentCompatibilityLoader
                     case XmlNodeType.SignificantWhitespace:
                         if (elementStack.Count > 0)
                         {
-                            elementStack.Peek().Nodes.Add(new SvgContentNode { Content = reader.Value });
+                            var currentFrameIndex = elementStack.Count - 1;
+                            var currentFrame = elementStack[currentFrameIndex];
+                            EnsureTrackedChildNodes(ref currentFrame);
+                            currentFrame.Element.Nodes.Add(new SvgContentNode { Content = reader.Value });
+                            currentFrame.HasContentNode = true;
+                            elementStack[currentFrameIndex] = currentFrame;
                         }
 
                         break;
 
                     case XmlNodeType.Whitespace:
-                        if (elementStack.Count > 0 && ShouldPreserveTextWhitespace(elementStack.Peek()))
+                        if (elementStack.Count > 0 && ShouldPreserveTextWhitespace(elementStack[elementStack.Count - 1].Element))
                         {
-                            elementStack.Peek().Nodes.Add(new SvgContentNode { Content = reader.Value });
+                            var currentFrameIndex = elementStack.Count - 1;
+                            var currentFrame = elementStack[currentFrameIndex];
+                            EnsureTrackedChildNodes(ref currentFrame);
+                            currentFrame.Element.Nodes.Add(new SvgContentNode { Content = reader.Value });
+                            currentFrame.HasContentNode = true;
+                            elementStack[currentFrameIndex] = currentFrame;
                         }
 
                         break;
@@ -221,7 +442,12 @@ public static class SvgDocumentCompatibilityLoader
                         reader.ResolveEntity();
                         if (elementStack.Count > 0)
                         {
-                            elementStack.Peek().Nodes.Add(new SvgContentNode { Content = reader.Value });
+                            var currentFrameIndex = elementStack.Count - 1;
+                            var currentFrame = elementStack[currentFrameIndex];
+                            EnsureTrackedChildNodes(ref currentFrame);
+                            currentFrame.Element.Nodes.Add(new SvgContentNode { Content = reader.Value });
+                            currentFrame.HasContentNode = true;
+                            elementStack[currentFrameIndex] = currentFrame;
                         }
 
                         break;
@@ -239,6 +465,51 @@ public static class SvgDocumentCompatibilityLoader
     private static bool ShouldPreserveTextWhitespace(SvgElement element)
     {
         return element is SvgTextBase;
+    }
+
+    private static void EnsureTrackedChildNodes(ref ParseFrame frame)
+    {
+        if (frame.TracksChildNodes)
+        {
+            return;
+        }
+
+        var children = frame.Element.Children;
+        for (var i = 0; i < children.Count; i++)
+        {
+            frame.Element.Nodes.Add(children[i]);
+        }
+
+        frame.TracksChildNodes = true;
+    }
+
+    private static bool CanEagerApplyCompatibilityStyles(string? css, string? svg = null)
+    {
+        if (!string.IsNullOrWhiteSpace(css))
+        {
+            return false;
+        }
+
+        return svg is null || !ContainsStyleElement(svg);
+    }
+
+    private static bool ContainsStyleElement(string svg)
+    {
+        return svg.IndexOf("<style", StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    private struct ParseFrame
+    {
+        public ParseFrame(SvgElement element)
+        {
+            Element = element;
+        }
+
+        public SvgElement Element { get; }
+
+        public bool HasContentNode { get; set; }
+
+        public bool TracksChildNodes { get; set; }
     }
 
     private static bool TryAggregateNodeContent(SvgElement element, out string content)

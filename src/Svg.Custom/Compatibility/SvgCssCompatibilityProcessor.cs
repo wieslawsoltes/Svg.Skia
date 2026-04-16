@@ -49,11 +49,11 @@ internal static class SvgCssCompatibilityProcessor
     private const string PortraitOrientation = "portrait";
     private const int MaxStringBuilderCapacity = int.MaxValue - 1;
 
-    public static void Apply(SvgDocument svgDocument, IReadOnlyCollection<SvgCssStyleSource> styles, SvgElementFactory elementFactory)
+    public static bool Apply(SvgDocument svgDocument, IReadOnlyCollection<SvgCssStyleSource> styles, SvgElementFactory elementFactory)
     {
         if (styles.Count == 0)
         {
-            return;
+            return false;
         }
 
         var mediaContext = ResolveMediaContext(svgDocument);
@@ -63,13 +63,14 @@ internal static class SvgCssCompatibilityProcessor
         var cssTotal = ExpandImportedStyles(styles, mediaContext);
         if (string.IsNullOrWhiteSpace(cssTotal))
         {
-            return;
+            return false;
         }
 
         var stylesheetParser = new StylesheetParser(true, true, tolerateInvalidValues: true);
         var stylesheet = stylesheetParser.Parse(cssTotal);
         var rootNode = new NonSvgElement();
         rootNode.Children.Add(svgDocument);
+        var appliedAnyStyles = false;
         try
         {
             foreach (var rule in stylesheet.StyleRules)
@@ -91,11 +92,13 @@ internal static class SvgCssCompatibilityProcessor
 
                         foreach (var declaration in declarations)
                         {
-                            elem.AddStyle(declaration.Name, declaration.Value, specificity);
+                            elem.AddStyleCompatibility(declaration.Name, declaration.Value, specificity);
+                            appliedAnyStyles = true;
 
                             if (projectsToTextContainer)
                             {
-                                textContainer!.AddStyle(declaration.Name, declaration.Value, specificity);
+                                textContainer!.AddStyleCompatibility(declaration.Name, declaration.Value, specificity);
+                                appliedAnyStyles = true;
                             }
                         }
                     }
@@ -126,6 +129,8 @@ internal static class SvgCssCompatibilityProcessor
             // extra level, which makes CreateAnimatedDocument fail to resolve targets on clones.
             _ = rootNode.Children.Remove(svgDocument);
         }
+
+        return appliedAnyStyles;
     }
 
     public static bool ShouldApplyStyleElement(SvgUnknownElement styleElement)

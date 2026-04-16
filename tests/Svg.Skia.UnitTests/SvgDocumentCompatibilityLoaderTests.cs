@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
+using Svg.Pathing;
 using Xunit;
 
 namespace Svg.Skia.UnitTests;
@@ -169,6 +170,24 @@ public class SvgDocumentCompatibilityLoaderTests
 
         Assert.Equal("startmidend", text.Content);
         Assert.NotEmpty(text.Nodes);
+    }
+
+    [Fact]
+    public void FromSvg_AggregatesChildFirstMixedContentInDocumentOrder()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <text id="target"><tspan>mid</tspan>end</text>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var text = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "target");
+
+        Assert.Equal("midend", text.Content);
+        Assert.Equal(2, text.Nodes.Count);
+        Assert.IsType<SvgTextSpan>(text.Nodes[0]);
+        Assert.IsType<SvgContentNode>(text.Nodes[1]);
     }
 
     [Fact]
@@ -854,6 +873,43 @@ public class SvgDocumentCompatibilityLoaderTests
     }
 
     [Fact]
+    public void LoadStructure_WithoutStylesheet_EagerlyAppliesCompatibilityStyles()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <rect id="target" width="10" height="10" fill="red" stroke="blue" style="fill: orange" />
+            </svg>
+            """;
+
+        var loadStructure = typeof(SvgDocumentCompatibilityLoader).GetMethod(
+            "LoadStructure",
+            BindingFlags.NonPublic | BindingFlags.Static,
+            binder: null,
+            new[] { typeof(string), typeof(string), typeof(Uri) },
+            modifiers: null);
+        Assert.NotNull(loadStructure);
+
+        var loadResult = loadStructure!.MakeGenericMethod(typeof(SvgDocument)).Invoke(null, new object?[] { svg, null, null });
+        Assert.NotNull(loadResult);
+
+        var documentProperty = loadResult!.GetType().GetProperty("Document");
+        var hasStagedStylesProperty = loadResult.GetType().GetProperty("HasStagedStyles");
+        Assert.NotNull(documentProperty);
+        Assert.NotNull(hasStagedStylesProperty);
+
+        var document = Assert.IsType<SvgDocument>(documentProperty!.GetValue(loadResult));
+        var hasStagedStyles = Assert.IsType<bool>(hasStagedStylesProperty!.GetValue(loadResult));
+
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+        var stroke = Assert.IsType<SvgColourServer>(rect.Stroke);
+
+        Assert.Equal(Color.Orange.ToArgb(), fill.Colour.ToArgb());
+        Assert.Equal(Color.Blue.ToArgb(), stroke.Colour.ToArgb());
+        Assert.False(hasStagedStyles);
+    }
+
+    [Fact]
     public void FromSvg_ParsesInlineStyleAttributesWithQuotedSemicolons()
     {
         const string svg = """
@@ -936,6 +992,33 @@ public class SvgDocumentCompatibilityLoaderTests
 
         Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
         Assert.Equal(Color.Blue.ToArgb(), stroke.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_DoesNotShareMutablePathDataAcrossFreshDocuments()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <path id="target" d="M1 1 L9 1 L9 9 Z" />
+            </svg>
+            """;
+
+        var firstDocument = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var secondDocument = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var firstPath = firstDocument.Descendants().OfType<SvgPath>().Single(static element => element.ID == "target");
+        var secondPath = secondDocument.Descendants().OfType<SvgPath>().Single(static element => element.ID == "target");
+
+        Assert.NotSame(firstPath.PathData, secondPath.PathData);
+        Assert.NotNull(firstPath.PathData);
+        Assert.NotNull(secondPath.PathData);
+        Assert.NotSame(firstPath.PathData[0], secondPath.PathData[0]);
+
+        firstPath.PathData[0] = new SvgMoveToSegment(false, new PointF(3f, 3f));
+
+        var firstMove = Assert.IsType<SvgMoveToSegment>(firstPath.PathData[0]);
+        var secondMove = Assert.IsType<SvgMoveToSegment>(secondPath.PathData[0]);
+        Assert.Equal(new PointF(3f, 3f), firstMove.End);
+        Assert.Equal(new PointF(1f, 1f), secondMove.End);
     }
 
     private static LoadResult CaptureLoad(Func<SvgDocument> load)

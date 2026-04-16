@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -791,9 +789,7 @@ public class Svg : Control
 
         try
         {
-            var bytes = Encoding.UTF8.GetBytes(source);
-            using var ms = new MemoryStream(bytes);
-            ReplaceCurrentSource(SvgSource.LoadFromStream(ms, parameters));
+            ReplaceCurrentSource(SvgSource.LoadFromSvg(source, _baseUri, parameters));
             if (_svg?.Svg is { } skSvg)
             {
                 skSvg.Wireframe = _wireframe;

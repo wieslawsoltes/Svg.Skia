@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Xml;
+using Svg.Helpers;
+using Svg.Pathing;
+using Svg.Transforms;
 
 namespace Svg
 {
@@ -22,7 +26,24 @@ namespace Svg
     internal partial class SvgElementFactory
     {
         private const string RawTextDecorationAttributeKey = "__svgskia:text-decoration-raw";
+        private const int SharedPathDataPrototypeCacheLimit = 1024;
+        private static readonly char[] ViewBoxSplitChars = { ' ', '\t', '\n', '\r', ',' };
+        private static readonly ConcurrentDictionary<string, SharedPathDataPrototypeEntry> SharedPathDataPrototypeCache =
+            new(StringComparer.Ordinal);
         private readonly SvgInlineStyleAttributeParser inlineStyleAttributeParser = new();
+        private readonly bool eagerApplyCompatibilityStyles;
+
+        public SvgElementFactory(bool eagerApplyCompatibilityStyles = false)
+        {
+            this.eagerApplyCompatibilityStyles = eagerApplyCompatibilityStyles;
+        }
+
+        internal bool HasStagedStyles { get; private set; }
+
+        internal static void ClearPathDataPrototypeCacheForBenchmarks()
+        {
+            SharedPathDataPrototypeCache.Clear();
+        }
 
         /// <summary>
         /// Gets a list of available types that can be used when creating an <see cref="SvgElement"/>.
@@ -118,36 +139,39 @@ namespace Svg
         {
             //Trace.TraceInformation("Begin SetAttributes");
 
-            //string[] styles = null;
-            //string[] style = null;
-            //int i = 0;
-
             while (reader.MoveToNextAttribute())
             {
                 var prefix = reader.Prefix;
                 var localName = reader.LocalName;
-                if (reader.ReadAttributeValue())
+                var value = reader.Value;
+
+                if (prefix.Length == 0)
                 {
-                    if (prefix.Length == 0)
+                    if (localName.Equals("xmlns"))
                     {
-                        if (localName.Equals("xmlns"))
-                        {
-                            element.Namespaces[string.Empty] = reader.Value;
-                            continue;
-                        }
-                        else if (localName.Equals("version"))
-                            continue;
-                    }
-                    else if (prefix.Equals("xmlns"))
-                    {
-                        element.Namespaces[localName] = reader.Value;
+                        element.Namespaces[string.Empty] = value;
                         continue;
                     }
+
+                    if (localName.Equals("version"))
+                    {
+                        continue;
+                    }
+
                     if (localName.Equals("style") && !(element is NonSvgElement))
                     {
-                        inlineStyleAttributeParser.ApplyStyles(element, reader.Value);
+                        if (inlineStyleAttributeParser.ApplyStyles(
+                                element,
+                                value,
+                                document,
+                                eagerApplyCompatibilityStyles,
+                                out var stagedStyles) &&
+                            stagedStyles)
+                        {
+                            HasStagedStyles = true;
+                        }
                     }
-                    else if (prefix.Length == 0 && localName.Equals("marker"))
+                    else if (localName.Equals("marker"))
                     {
                         // Compare this to the original upstream file: upstream forwarded the
                         // presentation attribute through the same style machinery as CSS, which
@@ -156,19 +180,42 @@ namespace Svg
                         // continue to work exactly as before.
                         continue;
                     }
-                    else if (prefix.Length == 0 && IsStyleAttribute(localName))
+                    else if (IsStyleAttribute(localName))
                     {
-                        element.AddStyle(localName, reader.Value, SvgElement.StyleSpecificity_PresAttribute);
+                        if (!TryApplyCompatibilityStyleImmediately(element, localName, value, document))
+                        {
+                            element.AddStyleCompatibility(localName, value, SvgElement.StyleSpecificity_PresAttribute);
+                            HasStagedStyles = true;
+                        }
                     }
                     else
                     {
-                        var ns = prefix.Length == 0 ? string.Empty : reader.LookupNamespace(prefix);
-                        SetPropertyValue(element, ns, localName, reader.Value, document);
+                        SetPropertyValue(element, string.Empty, localName, value, document);
                     }
+
+                    continue;
                 }
+
+                if (prefix.Equals("xmlns"))
+                {
+                    element.Namespaces[localName] = value;
+                    continue;
+                }
+
+                SetPropertyValue(element, reader.NamespaceURI, localName, value, document);
             }
 
             //Trace.TraceInformation("End SetAttributes");
+        }
+
+        private bool TryApplyCompatibilityStyleImmediately(
+            SvgElement element,
+            string attributeName,
+            string attributeValue,
+            SvgDocument document)
+        {
+            return eagerApplyCompatibilityStyles &&
+                   SetPropertyValue(element, string.Empty, attributeName, attributeValue, document, true);
         }
 
         private static bool IsStyleAttribute(string name)
@@ -248,6 +295,13 @@ namespace Svg
                 element.CustomAttributes[RawTextDecorationAttributeKey] = attributeValue;
             }
 
+            if (!isStyle &&
+                ns.Length == 0 &&
+                TrySetCommonUnprefixedPropertyFast(element, attributeName, attributeValue))
+            {
+                return true;
+            }
+
             if (attributeName == "stop-opacity" && string.Equals(attributeValue, "inherit", StringComparison.OrdinalIgnoreCase))
             {
                 if (isStyle)
@@ -282,6 +336,350 @@ namespace Svg
                 element.CustomAttributes[ns.Length == 0 ? attributeName : $"{ns}:{attributeName}"] = attributeValue;
             }
             return true;
+        }
+
+        private static bool TrySetCommonUnprefixedPropertyFast(SvgElement element, string attributeName, string attributeValue)
+        {
+            try
+            {
+                switch (attributeName)
+                {
+                    case "id":
+                        element.ID = attributeValue;
+                        return true;
+                    case "viewBox":
+                        return TrySetViewBoxFast(element, attributeValue);
+                    case "transform":
+                        element.Transforms = SvgTransformConverter.Parse(attributeValue.AsSpan());
+                        return true;
+                    case "d" when element is SvgPath path:
+                        var parsedPathData = ParsePathDataWithSharedCache(attributeValue);
+                        path.PathData = parsedPathData.PathData;
+                        path.SetSceneGraphPathDataHash(parsedPathData.Hash);
+                        return true;
+                    case "cx":
+                        return TrySetCenterXFast(element, attributeValue);
+                    case "cy":
+                        return TrySetCenterYFast(element, attributeValue);
+                    case "r":
+                        return TrySetRadiusFast(element, attributeValue);
+                    case "x":
+                        return TrySetXFast(element, attributeValue);
+                    case "y":
+                        return TrySetYFast(element, attributeValue);
+                    case "rx":
+                        return TrySetCornerRadiusXFast(element, attributeValue);
+                    case "ry":
+                        return TrySetCornerRadiusYFast(element, attributeValue);
+                    case "width":
+                        return TrySetWidthFast(element, attributeValue);
+                    case "height":
+                        return TrySetHeightFast(element, attributeValue);
+                    default:
+                        return false;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private readonly struct ParsedPathDataResult
+        {
+            public ParsedPathDataResult(SvgPathSegmentList pathData, SceneGraphPathDataHash hash)
+            {
+                PathData = pathData;
+                Hash = hash;
+            }
+
+            public SvgPathSegmentList PathData { get; }
+            public SceneGraphPathDataHash Hash { get; }
+        }
+
+        private sealed class SharedPathDataPrototypeEntry
+        {
+            public SharedPathDataPrototypeEntry(SvgPathSegmentList prototype, SceneGraphPathDataHash hash)
+            {
+                Prototype = prototype;
+                Hash = hash;
+            }
+
+            public SvgPathSegmentList Prototype { get; }
+            public SceneGraphPathDataHash Hash { get; }
+        }
+
+        private static ParsedPathDataResult ParsePathDataWithSharedCache(string attributeValue)
+        {
+            if (string.IsNullOrEmpty(attributeValue))
+            {
+                var emptyPathData = SvgPathBuilder.Parse(attributeValue.AsSpan());
+                return new ParsedPathDataResult(emptyPathData, SceneGraphPathDataHashFactory.Create(emptyPathData));
+            }
+
+            if (SharedPathDataPrototypeCache.TryGetValue(attributeValue, out var cachedPrototype))
+            {
+                return new ParsedPathDataResult((SvgPathSegmentList)cachedPrototype.Prototype.Clone(), cachedPrototype.Hash);
+            }
+
+            var parsed = SvgPathBuilder.Parse(attributeValue.AsSpan());
+            var hash = SceneGraphPathDataHashFactory.Create(parsed);
+            SharedPathDataPrototypeCache[attributeValue] = new SharedPathDataPrototypeEntry(parsed, hash);
+            TrimSharedPathDataPrototypeCacheIfNeeded();
+            return new ParsedPathDataResult((SvgPathSegmentList)parsed.Clone(), hash);
+        }
+
+        private static void TrimSharedPathDataPrototypeCacheIfNeeded()
+        {
+            if (SharedPathDataPrototypeCache.Count > SharedPathDataPrototypeCacheLimit)
+            {
+                SharedPathDataPrototypeCache.Clear();
+            }
+        }
+
+        private static bool TrySetViewBoxFast(SvgElement element, string attributeValue)
+        {
+            var viewBox = ParseViewBox(attributeValue.AsSpan());
+            if (element is ISvgViewPort viewPort)
+            {
+                viewPort.ViewBox = viewBox;
+                return true;
+            }
+
+            if (element is SvgSymbol symbol)
+            {
+                symbol.ViewBox = viewBox;
+                return true;
+            }
+
+            if (element is SvgPatternServer patternServer)
+            {
+                patternServer.ViewBox = viewBox;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static SvgViewBox ParseViewBox(ReadOnlySpan<char> attributeValue)
+        {
+            var splitChars = ViewBoxSplitChars.AsSpan();
+            var parts = new StringSplitEnumerator(attributeValue, splitChars);
+
+            if (!parts.MoveNext())
+            {
+                throw new SvgException("The 'viewBox' attribute must be in the format 'minX, minY, width, height'.");
+            }
+
+            var minX = StringParser.ToFloat(parts.Current.Value);
+            if (!parts.MoveNext())
+            {
+                throw new SvgException("The 'viewBox' attribute must be in the format 'minX, minY, width, height'.");
+            }
+
+            var minY = StringParser.ToFloat(parts.Current.Value);
+            if (!parts.MoveNext())
+            {
+                throw new SvgException("The 'viewBox' attribute must be in the format 'minX, minY, width, height'.");
+            }
+
+            var width = StringParser.ToFloat(parts.Current.Value);
+            if (!parts.MoveNext())
+            {
+                throw new SvgException("The 'viewBox' attribute must be in the format 'minX, minY, width, height'.");
+            }
+
+            var height = StringParser.ToFloat(parts.Current.Value);
+            if (parts.MoveNext())
+            {
+                throw new SvgException("The 'viewBox' attribute must be in the format 'minX, minY, width, height'.");
+            }
+
+            return new SvgViewBox(minX, minY, width, height);
+        }
+
+        private static bool TrySetCenterXFast(SvgElement element, string attributeValue)
+        {
+            var unit = SvgUnitConverter.Parse(attributeValue.AsSpan());
+            if (element is SvgCircle circle)
+            {
+                circle.CenterX = unit;
+                return true;
+            }
+
+            if (element is SvgEllipse ellipse)
+            {
+                ellipse.CenterX = unit;
+                return true;
+            }
+
+            if (element is SvgRadialGradientServer radialGradient)
+            {
+                radialGradient.CenterX = unit;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TrySetCenterYFast(SvgElement element, string attributeValue)
+        {
+            var unit = SvgUnitConverter.Parse(attributeValue.AsSpan());
+            if (element is SvgCircle circle)
+            {
+                circle.CenterY = unit;
+                return true;
+            }
+
+            if (element is SvgEllipse ellipse)
+            {
+                ellipse.CenterY = unit;
+                return true;
+            }
+
+            if (element is SvgRadialGradientServer radialGradient)
+            {
+                radialGradient.CenterY = unit;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TrySetRadiusFast(SvgElement element, string attributeValue)
+        {
+            var unit = SvgUnitConverter.Parse(attributeValue.AsSpan());
+            if (element is SvgCircle circle)
+            {
+                circle.Radius = unit;
+                return true;
+            }
+
+            if (element is SvgRadialGradientServer radialGradient)
+            {
+                radialGradient.Radius = unit;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TrySetXFast(SvgElement element, string attributeValue)
+        {
+            if (element is SvgTextBase textBase)
+            {
+                textBase.X = SvgUnitCollectionConverter.Parse(attributeValue.AsSpan());
+                return true;
+            }
+
+            if (element is SvgRectangle rectangle)
+            {
+                rectangle.X = SvgUnitConverter.Parse(attributeValue.AsSpan());
+                return true;
+            }
+
+            if (element is SvgFragment fragment)
+            {
+                fragment.X = SvgUnitConverter.Parse(attributeValue.AsSpan());
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TrySetYFast(SvgElement element, string attributeValue)
+        {
+            if (element is SvgTextBase textBase)
+            {
+                textBase.Y = SvgUnitCollectionConverter.Parse(attributeValue.AsSpan());
+                return true;
+            }
+
+            if (element is SvgRectangle rectangle)
+            {
+                rectangle.Y = SvgUnitConverter.Parse(attributeValue.AsSpan());
+                return true;
+            }
+
+            if (element is SvgFragment fragment)
+            {
+                fragment.Y = SvgUnitConverter.Parse(attributeValue.AsSpan());
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TrySetCornerRadiusXFast(SvgElement element, string attributeValue)
+        {
+            var unit = SvgUnitConverter.Parse(attributeValue.AsSpan());
+            if (element is SvgRectangle rectangle)
+            {
+                rectangle.CornerRadiusX = unit;
+                return true;
+            }
+
+            if (element is SvgEllipse ellipse)
+            {
+                ellipse.RadiusX = unit;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TrySetCornerRadiusYFast(SvgElement element, string attributeValue)
+        {
+            var unit = SvgUnitConverter.Parse(attributeValue.AsSpan());
+            if (element is SvgRectangle rectangle)
+            {
+                rectangle.CornerRadiusY = unit;
+                return true;
+            }
+
+            if (element is SvgEllipse ellipse)
+            {
+                ellipse.RadiusY = unit;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TrySetWidthFast(SvgElement element, string attributeValue)
+        {
+            var unit = SvgUnitConverter.Parse(attributeValue.AsSpan());
+            if (element is SvgRectangle rectangle)
+            {
+                rectangle.Width = unit;
+                return true;
+            }
+
+            if (element is SvgFragment fragment)
+            {
+                fragment.Width = unit;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TrySetHeightFast(SvgElement element, string attributeValue)
+        {
+            var unit = SvgUnitConverter.Parse(attributeValue.AsSpan());
+            if (element is SvgRectangle rectangle)
+            {
+                rectangle.Height = unit;
+                return true;
+            }
+
+            if (element is SvgFragment fragment)
+            {
+                fragment.Height = unit;
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>

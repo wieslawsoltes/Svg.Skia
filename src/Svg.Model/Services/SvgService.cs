@@ -780,12 +780,35 @@ public static class SvgService
 
     public static SvgDocument? Open(System.IO.Stream stream, SvgParameters? parameters = null)
     {
-        return SvgDocumentCompatibilityLoader.Open<SvgDocument>(stream, new SvgOptions(parameters?.Entities, parameters?.Css));
+        return HasExplicitSvgOptions(parameters)
+            ? SvgDocumentCompatibilityLoader.Open<SvgDocument>(stream, new SvgOptions(parameters?.Entities, parameters?.Css))
+            : SvgDocumentCompatibilityLoader.Open<SvgDocument>(stream);
+    }
+
+    public static SvgDocument? Open(System.IO.Stream stream, SvgParameters? parameters, Uri? baseUri)
+    {
+        return HasExplicitSvgOptions(parameters)
+            ? SvgDocumentCompatibilityLoader.Open<SvgDocument>(stream, new SvgOptions(parameters?.Entities, parameters?.Css), baseUri)
+            : SvgDocumentCompatibilityLoader.Open<SvgDocument>(stream, baseUri);
     }
 
     public static SvgDocument? FromSvg(string svg)
     {
         return SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+    }
+
+    public static SvgDocument? FromSvg(string svg, SvgParameters? parameters)
+    {
+        return HasExplicitSvgOptions(parameters)
+            ? SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg, new SvgOptions(parameters?.Entities, parameters?.Css))
+            : SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+    }
+
+    public static SvgDocument? FromSvg(string svg, SvgParameters? parameters, Uri? baseUri)
+    {
+        return HasExplicitSvgOptions(parameters)
+            ? SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg, new SvgOptions(parameters?.Entities, parameters?.Css), baseUri)
+            : SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg, baseUri);
     }
 
     public static SvgDocument? Open(XmlReader reader)
@@ -805,5 +828,11 @@ public static class SvgService
         using var fileStream = System.IO.File.OpenRead(path);
         using var xmlReader = XmlReader.Create(fileStream, settings);
         return VectorDrawableConverter.IsVectorDrawable(xmlReader);
+    }
+
+    private static bool HasExplicitSvgOptions(SvgParameters? parameters)
+    {
+        return parameters is { Entities: not null } ||
+               !string.IsNullOrWhiteSpace(parameters?.Css);
     }
 }

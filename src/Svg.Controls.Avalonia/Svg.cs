@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Metadata;
@@ -314,9 +312,7 @@ public class Svg : Control
 
         if (source is not null)
         {
-            var bytes = Encoding.UTF8.GetBytes(source);
-            using var ms = new MemoryStream(bytes);
-            _picture = SvgSource.LoadPicture(ms, parameters);
+            _picture = SvgSource.LoadPictureFromSvg(source, parameters, _baseUri);
             if (_picture is { })
             {
                 _avaloniaPicture = AvaloniaPicture.Record(_picture);

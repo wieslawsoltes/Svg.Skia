@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
 using Microsoft.UI.Xaml.Markup;
 using SkiaSharp;
 using Svg;
@@ -24,6 +23,7 @@ public sealed class SvgSource : IDisposable
     private SKSvg? _skSvg;
     private SKPicture? _picture;
     private SvgParameters? _originalParameters;
+    private string? _originalSvg;
     private string? _originalPath;
     private Stream? _originalStream;
     private Uri? _originalBaseUri;
@@ -97,7 +97,7 @@ public sealed class SvgSource : IDisposable
         {
             lock (Sync)
             {
-                return _originalStream is not null || _originalPath is not null || _skSvg is not null;
+                return _originalStream is not null || _originalSvg is not null || _originalPath is not null || _skSvg is not null;
             }
         }
     }
@@ -187,14 +187,18 @@ public sealed class SvgSource : IDisposable
 
     public static SvgSource LoadFromSvg(string svg)
     {
-        return LoadFromSvg(svg, null);
+        return LoadFromSvg(svg, null, null);
     }
 
     public static SvgSource LoadFromSvg(string svg, SvgParameters? parameters)
     {
-        var source = new SvgSource();
-        using var stream = CreateStream(svg);
-        Load(source, stream, parameters);
+        return LoadFromSvg(svg, null, parameters);
+    }
+
+    public static SvgSource LoadFromSvg(string svg, Uri? baseUri, SvgParameters? parameters)
+    {
+        var source = new SvgSource(baseUri);
+        Load(source, svg, parameters, baseUri);
         return source;
     }
 
@@ -224,6 +228,7 @@ public sealed class SvgSource : IDisposable
             {
                 source._originalStream?.Dispose();
                 source._originalStream = originalStream;
+                source._originalSvg = null;
                 source._originalPath = null;
                 source._originalParameters = null;
                 source._originalBaseUri = document.BaseUri;
@@ -273,6 +278,7 @@ public sealed class SvgSource : IDisposable
         };
 
         SvgParameters? originalParameters;
+        string? originalSvg;
         string? originalPath;
         Uri? originalBaseUri;
         SKSvg? skSvg;
@@ -284,6 +290,7 @@ public sealed class SvgSource : IDisposable
         lock (Sync)
         {
             originalParameters = _originalParameters;
+            originalSvg = _originalSvg;
             originalPath = _originalPath;
             originalBaseUri = _originalBaseUri;
             skSvg = _skSvg;
@@ -301,6 +308,7 @@ public sealed class SvgSource : IDisposable
 
             canClonePicture = picture is { }
                               && _originalStream is null
+                              && _originalSvg is null
                               && _originalPath is null
                               && Path is null;
 
@@ -311,6 +319,7 @@ public sealed class SvgSource : IDisposable
         }
 
         clone._originalParameters = CloneParameters(originalParameters);
+        clone._originalSvg = originalSvg;
         clone._originalPath = originalPath;
         clone._originalBaseUri = originalBaseUri;
         clone._originalStream = originalStreamCopy;
@@ -335,6 +344,7 @@ public sealed class SvgSource : IDisposable
     public async Task ReLoadAsync(SvgParameters? parameters, CancellationToken cancellationToken = default)
     {
         MemoryStream? streamCopy = null;
+        string? originalSvg;
         string? originalPath;
         string? path;
         Uri? originalBaseUri;
@@ -342,7 +352,7 @@ public sealed class SvgSource : IDisposable
 
         lock (Sync)
         {
-            if (_originalStream is null && _originalPath is null && Path is null)
+            if (_originalStream is null && _originalSvg is null && _originalPath is null && Path is null)
             {
                 return;
             }
@@ -355,6 +365,7 @@ public sealed class SvgSource : IDisposable
                 streamCopy.Position = 0;
             }
 
+            originalSvg = _originalSvg;
             originalPath = _originalPath;
             originalBaseUri = _originalBaseUri;
             path = Path;
@@ -365,6 +376,12 @@ public sealed class SvgSource : IDisposable
         if (streamCopy is { })
         {
             LoadFromCachedStream(this, streamCopy, parameters, originalBaseUri);
+            return;
+        }
+
+        if (originalSvg is { })
+        {
+            Load(this, originalSvg, parameters, originalBaseUri);
             return;
         }
 
@@ -432,6 +449,7 @@ public sealed class SvgSource : IDisposable
             lock (source.Sync)
             {
                 source._originalPath = null;
+                source._originalSvg = null;
                 source._originalStream?.Dispose();
                 source._originalStream = null;
                 source._originalParameters = parameters;
@@ -450,10 +468,32 @@ public sealed class SvgSource : IDisposable
         lock (source.Sync)
         {
             source._originalPath = path;
+            source._originalSvg = null;
             source._originalStream?.Dispose();
             source._originalStream = null;
             source._originalParameters = parameters;
             source._originalBaseUri = new Uri(path, UriKind.RelativeOrAbsolute);
+            source._skSvg = skSvg;
+            source._picture = picture;
+        }
+
+        return picture;
+    }
+
+    private static SKPicture? Load(SvgSource source, string svg, SvgParameters? parameters, Uri? baseUri = null)
+    {
+        var skSvg = new SKSvg();
+        skSvg.FromSvg(svg, parameters, baseUri);
+        var picture = skSvg.Picture;
+
+        lock (source.Sync)
+        {
+            source._originalStream?.Dispose();
+            source._originalStream = null;
+            source._originalSvg = svg;
+            source._originalPath = null;
+            source._originalParameters = parameters;
+            source._originalBaseUri = baseUri;
             source._skSvg = skSvg;
             source._picture = picture;
         }
@@ -479,6 +519,7 @@ public sealed class SvgSource : IDisposable
         {
             source._originalStream?.Dispose();
             source._originalStream = cachedStream;
+            source._originalSvg = null;
             source._originalPath = null;
             source._originalParameters = parameters;
             source._originalBaseUri = baseUri;
@@ -569,11 +610,6 @@ public sealed class SvgSource : IDisposable
         return null;
     }
 
-    private static MemoryStream CreateStream(string svg)
-    {
-        return new MemoryStream(Encoding.UTF8.GetBytes(svg));
-    }
-
     private static MemoryStream CreateStream(SvgDocument document)
     {
         var stream = new MemoryStream();
@@ -622,6 +658,7 @@ public sealed class SvgSource : IDisposable
 
         _picture = null;
         _skSvg = null;
+        _originalSvg = null;
         _originalPath = null;
         _originalParameters = null;
         _originalBaseUri = null;

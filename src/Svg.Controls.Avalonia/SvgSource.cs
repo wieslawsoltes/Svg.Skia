@@ -119,9 +119,11 @@ public class SvgSource
     /// </summary>
     /// <param name="source">The svg source.</param>
     /// <returns>The svg picture.</returns>
-    public static SKPicture? LoadPictureFromSvg(string source, SvgParameters? parameters = null)
+    public static SKPicture? LoadPictureFromSvg(string source, SvgParameters? parameters = null, Uri? baseUri = null)
     {
-        var document = SvgService.FromSvg(source);
+        var document = baseUri is null
+            ? SvgService.FromSvg(source, parameters)
+            : SvgService.FromSvg(source, parameters, baseUri);
         return CreateModel(document);
     }
 

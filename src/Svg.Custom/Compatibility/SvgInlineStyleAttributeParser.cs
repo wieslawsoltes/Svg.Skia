@@ -1,4 +1,6 @@
+#nullable enable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using ExCSS;
@@ -11,51 +13,166 @@ namespace Svg;
 /// </summary>
 internal sealed class SvgInlineStyleAttributeParser
 {
-    private readonly StylesheetParser stylesheetParser = new(true, true, tolerateInvalidValues: true);
+    private const int SharedInlineStyleCacheLimit = 512;
 
-    public void ApplyStyles(SvgElement element, string styleText)
+    private readonly struct InlineStyleDeclaration
     {
-        if (TryApplyInlineDeclarations(element, styleText))
+        public InlineStyleDeclaration(string name, string value)
         {
-            return;
+            Name = name;
+            Value = value;
         }
 
+        public string Name { get; }
+        public string Value { get; }
+    }
+
+    private readonly struct CachedInlineStyleDeclarations
+    {
+        public CachedInlineStyleDeclarations(InlineStyleDeclaration[] declarations)
+        {
+            Declarations = declarations;
+        }
+
+        public InlineStyleDeclaration[] Declarations { get; }
+    }
+
+    private static readonly ConcurrentDictionary<string, CachedInlineStyleDeclarations> s_sharedInlineStyleDeclarationsCache = new(StringComparer.Ordinal);
+    private readonly StylesheetParser stylesheetParser = new(true, true, tolerateInvalidValues: true);
+
+    public bool ApplyStyles(SvgElement element, string styleText)
+    {
+        return ApplyStyles(element, styleText, document: null, eagerApply: false, out _);
+    }
+
+    public bool ApplyStyles(
+        SvgElement element,
+        string styleText,
+        SvgDocument? document,
+        bool eagerApply,
+        out bool stagedStyles)
+    {
+        if (string.IsNullOrWhiteSpace(styleText))
+        {
+            stagedStyles = false;
+            return false;
+        }
+
+        if (TryGetCachedInlineDeclarations(styleText, out var cachedDeclarations))
+        {
+            stagedStyles = ApplyDeclarations(element, cachedDeclarations, document, eagerApply);
+            return cachedDeclarations.Length > 0;
+        }
+
+        if (TryParseInlineDeclarations(styleText, out var inlineDeclarations))
+        {
+            CacheInlineDeclarations(styleText, inlineDeclarations);
+            stagedStyles = ApplyDeclarations(element, inlineDeclarations, document, eagerApply);
+            return inlineDeclarations.Length > 0;
+        }
+
+        var fallbackDeclarations = ParseInlineDeclarationsWithStylesheetParser(styleText);
+        CacheInlineDeclarations(styleText, fallbackDeclarations);
+        stagedStyles = ApplyDeclarations(element, fallbackDeclarations, document, eagerApply);
+        return fallbackDeclarations.Length > 0;
+    }
+
+    private static bool TryGetCachedInlineDeclarations(string styleText, out InlineStyleDeclaration[] declarations)
+    {
+        if (s_sharedInlineStyleDeclarationsCache.TryGetValue(styleText, out var cachedDeclarations))
+        {
+            declarations = cachedDeclarations.Declarations;
+            return true;
+        }
+
+        declarations = Array.Empty<InlineStyleDeclaration>();
+        return false;
+    }
+
+    private static void CacheInlineDeclarations(string styleText, InlineStyleDeclaration[] declarations)
+    {
+        TrimSharedInlineStyleCacheIfNeeded();
+        s_sharedInlineStyleDeclarationsCache[styleText] = new CachedInlineStyleDeclarations(declarations);
+    }
+
+    private static void TrimSharedInlineStyleCacheIfNeeded()
+    {
+        if (s_sharedInlineStyleDeclarationsCache.Count > SharedInlineStyleCacheLimit)
+        {
+            s_sharedInlineStyleDeclarationsCache.Clear();
+        }
+    }
+
+    internal static void ClearSharedCacheForBenchmarks()
+    {
+        s_sharedInlineStyleDeclarationsCache.Clear();
+    }
+
+    private static bool ApplyDeclarations(
+        SvgElement element,
+        InlineStyleDeclaration[] declarations,
+        SvgDocument? document,
+        bool eagerApply)
+    {
+        var stagedStyles = false;
+        for (var i = 0; i < declarations.Length; i++)
+        {
+            var declaration = declarations[i];
+            if (eagerApply &&
+                document is not null &&
+                SvgElementFactory.SetPropertyValue(element, string.Empty, declaration.Name, declaration.Value, document, true))
+            {
+                continue;
+            }
+
+            element.AddStyleCompatibility(declaration.Name, declaration.Value, SvgElement.StyleSpecificity_InlineStyle);
+            stagedStyles = true;
+        }
+
+        return stagedStyles;
+    }
+
+    private InlineStyleDeclaration[] ParseInlineDeclarationsWithStylesheetParser(string styleText)
+    {
         var inlineSheet = stylesheetParser.Parse("#a{" + styleText + "}");
+        List<InlineStyleDeclaration> declarations = null!;
         foreach (var rule in inlineSheet.StyleRules)
         {
             foreach (var declaration in rule.Style)
             {
-                element.AddStyle(declaration.Name, declaration.Original, SvgElement.StyleSpecificity_InlineStyle);
+                declarations ??= new List<InlineStyleDeclaration>();
+                declarations.Add(new InlineStyleDeclaration(declaration.Name, declaration.Original));
             }
         }
+
+        return declarations is null ? Array.Empty<InlineStyleDeclaration>() : declarations.ToArray();
     }
 
-    private static bool TryApplyInlineDeclarations(SvgElement element, string styleText)
+    private static bool TryParseInlineDeclarations(string styleText, out InlineStyleDeclaration[] declarations)
     {
-        if (string.IsNullOrWhiteSpace(styleText))
-        {
-            return true;
-        }
-
+        var parsedDeclarations = new List<InlineStyleDeclaration>();
         var index = 0;
         while (true)
         {
             if (!SkipIgnorableStyleContent(styleText, ref index))
             {
+                declarations = Array.Empty<InlineStyleDeclaration>();
                 return false;
             }
 
             if (index >= styleText.Length)
             {
+                declarations = parsedDeclarations.Count == 0 ? Array.Empty<InlineStyleDeclaration>() : parsedDeclarations.ToArray();
                 return true;
             }
 
             if (!TryReadInlineDeclaration(styleText, ref index, out var name, out var value))
             {
+                declarations = Array.Empty<InlineStyleDeclaration>();
                 return false;
             }
 
-            element.AddStyle(name, value, SvgElement.StyleSpecificity_InlineStyle);
+            parsedDeclarations.Add(new InlineStyleDeclaration(name, value));
         }
     }
 
@@ -276,7 +393,7 @@ internal sealed class SvgInlineStyleAttributeParser
             return string.Empty;
         }
 
-        StringBuilder builder = null;
+        StringBuilder? builder = null;
         var quote = '\0';
         var escape = false;
         var segmentEnd = trimmedStart + trimmedLength;
@@ -342,7 +459,7 @@ internal sealed class SvgInlineStyleAttributeParser
             return normalized;
         }
 
-        StringBuilder builder = null;
+        StringBuilder? builder = null;
         for (var i = 0; i < normalized.Length; i++)
         {
             var character = normalized[i];
