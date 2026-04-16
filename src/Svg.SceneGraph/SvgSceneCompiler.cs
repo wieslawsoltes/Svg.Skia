@@ -13,20 +13,69 @@ namespace Svg.Skia;
 
 public static class SvgSceneCompiler
 {
+    private sealed class DirectVisualPathCacheEntry
+    {
+        public uint Version { get; set; }
+
+        public SvgFillRule FillRule { get; set; }
+
+        public SKRect Viewport { get; set; }
+
+        public float FontSize { get; set; }
+
+        public SKPath? Path { get; set; }
+    }
+
+    private sealed class RetainedCompileMetadataCacheEntry
+    {
+        public bool IsInitialized { get; set; }
+
+        public uint Version { get; set; }
+
+        public RetainedCompileMetadata Metadata { get; set; }
+    }
+
+    private readonly record struct RetainedCompileMetadata(
+        SKMatrix Transform,
+        bool IsAntialias,
+        bool HasRequiredFeatures,
+        bool HasRequiredExtensions,
+        bool HasSystemLanguage,
+        SvgPointerEvents PointerEvents,
+        bool IsVisible,
+        bool IsDisplayNone,
+        string? Cursor,
+        bool CreatesBackgroundLayer,
+        SKRect? BackgroundClip);
+
+    private static readonly ConditionalWeakTable<SvgElement, DirectVisualPathCacheEntry> s_directVisualPathCache = new();
+    private static readonly ConditionalWeakTable<SvgElement, RetainedCompileMetadataCacheEntry> s_retainedCompileMetadataCache = new();
+
     private sealed class SvgSceneCompileContext
     {
         private readonly HashSet<string> _activeDocumentKeys = new(StringComparer.Ordinal);
         private readonly SvgElementAddressKeyCache _addressKeys = new();
         private readonly Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> _solidFillPaintCache = new();
+        private readonly Dictionary<SvgScenePaintingService.SolidStrokePaintCacheKey, SKPaint> _solidStrokePaintCache = new();
+        private readonly Stack<IDisposable> _textLineStatsScopes = new();
 
         public bool TryEnter(SvgDocument? document, out string? documentKey)
         {
             documentKey = GetDocumentKey(document);
-            return documentKey is null || _activeDocumentKeys.Add(documentKey);
+            if (documentKey is not null &&
+                !_activeDocumentKeys.Add(documentKey))
+            {
+                return false;
+            }
+
+            _textLineStatsScopes.Push(SvgSceneTextCompiler.BeginCompileLineStatsCacheScope());
+            return true;
         }
 
         public void Exit(string? documentKey)
         {
+            _textLineStatsScopes.Pop().Dispose();
+
             if (documentKey is not null)
             {
                 _activeDocumentKeys.Remove(documentKey);
@@ -56,7 +105,40 @@ public static class SvgSceneCompiler
                 _solidFillPaintCache[key] = cachedPaint;
             }
 
-            paint = cachedPaint.Clone();
+            // Direct retained path paints are treated as immutable after compile, so matching nodes
+            // can share the cached template instead of cloning it back into every node.
+            paint = cachedPaint;
+            return true;
+        }
+
+        public bool TryGetCachedSolidStrokePaint(
+            SvgVisualElement visualElement,
+            SKRect geometryBounds,
+            float strokeWidth,
+            DrawAttributes ignoreAttributes,
+            out SKPaint? paint)
+        {
+            paint = null;
+
+            if (!SvgScenePaintingService.TryCreateSolidStrokePaintCacheKey(
+                    visualElement,
+                    geometryBounds,
+                    strokeWidth,
+                    ignoreAttributes,
+                    out var key))
+            {
+                return false;
+            }
+
+            if (!_solidStrokePaintCache.TryGetValue(key, out var cachedPaint))
+            {
+                cachedPaint = SvgScenePaintingService.CreateSolidStrokePaint(key);
+                _solidStrokePaintCache[key] = cachedPaint;
+            }
+
+            // Direct retained path paints are treated as immutable after compile, so matching nodes
+            // can share the cached template instead of cloning it back into every node.
+            paint = cachedPaint;
             return true;
         }
 
@@ -310,6 +392,14 @@ public static class SvgSceneCompiler
 
         try
         {
+            var useTargetedRefresh = CanUseTargetedMutationRefresh(element, changedAttributes, resources.Count);
+            var previousSubtrees = useTargetedRefresh
+                ? new List<IReadOnlyList<SvgSceneNode>>(compilationRootKeys.Count)
+                : null;
+            var currentRoots = useTargetedRefresh
+                ? new List<SvgSceneNode>(compilationRootKeys.Count)
+                : null;
+
             for (var i = 0; i < compilationRootKeys.Count; i++)
             {
                 var compilationRootKey = compilationRootKeys[i];
@@ -319,6 +409,11 @@ public static class SvgSceneCompiler
                     currentElement is null)
                 {
                     return new SvgSceneMutationResult(false, i, resources.Count);
+                }
+
+                if (useTargetedRefresh)
+                {
+                    previousSubtrees!.Add(CaptureSubtreeNodes(currentNode));
                 }
 
                 var replacement = CompileElementNode(
@@ -337,9 +432,22 @@ public static class SvgSceneCompiler
                 }
 
                 currentNode.ReplaceWith(replacement);
+
+                if (useTargetedRefresh)
+                {
+                    currentRoots!.Add(currentNode);
+                }
             }
 
-            sceneDocument.RebuildIndexesAndDependencies();
+            if (useTargetedRefresh)
+            {
+                sceneDocument.RefreshMutationSubtrees(previousSubtrees!, currentRoots!, new SvgElementAddressKeyCache());
+            }
+            else
+            {
+                sceneDocument.RebuildIndexesAndDependencies();
+            }
+
             return new SvgSceneMutationResult(true, compilationRootKeys.Count, resources.Count);
         }
         finally
@@ -356,6 +464,52 @@ public static class SvgSceneCompiler
         }
 
         return ReferenceEquals(sceneDocument.Root.Element, element);
+    }
+
+    private static bool CanUseTargetedMutationRefresh(
+        SvgElement element,
+        IReadOnlyCollection<string>? changedAttributes,
+        int resourceCount)
+    {
+        if (resourceCount > 0 || changedAttributes is null || changedAttributes.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (var changedAttribute in changedAttributes)
+        {
+            if (string.Equals(changedAttribute, "id", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static IReadOnlyList<SvgSceneNode> CaptureSubtreeNodes(SvgSceneNode root)
+    {
+        var nodes = new List<SvgSceneNode>();
+        var stack = new Stack<SvgSceneNode>();
+        stack.Push(root);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+            nodes.Add(current);
+
+            if (current.MaskNode is { } maskNode)
+            {
+                stack.Push(maskNode);
+            }
+
+            for (var i = current.Children.Count - 1; i >= 0; i--)
+            {
+                stack.Push(current.Children[i]);
+            }
+        }
+
+        return nodes;
     }
 
     internal static bool TryGetResourceKind(SvgElement element, out SvgSceneResourceKind kind)
@@ -398,13 +552,23 @@ public static class SvgSceneCompiler
                 return;
             }
 
-            var dependencyAddressKey = (getElementAddressKey ?? TryGetElementAddressKey)(dependencyElement) ?? dependencyElement.ID;
-            if (string.IsNullOrWhiteSpace(dependencyAddressKey) || !seen.Add(dependencyAddressKey))
-            {
-                return;
-            }
+            var pending = new Stack<SvgElement>();
+            pending.Push(dependencyElement);
 
-            visitor(dependencyElement, dependencyAddressKey!, state);
+            while (pending.Count > 0)
+            {
+                var current = pending.Pop();
+                var dependencyAddressKey = (getElementAddressKey ?? TryGetElementAddressKey)(current) ?? current.ID;
+                if (!string.IsNullOrWhiteSpace(dependencyAddressKey) && seen.Add(dependencyAddressKey))
+                {
+                    visitor(current, dependencyAddressKey!, state);
+                }
+
+                for (var i = current.Children.Count - 1; i >= 0; i--)
+                {
+                    pending.Push(current.Children[i]);
+                }
+            }
         }
 
         if (element is SvgVisualElement visualElement)
@@ -479,26 +643,7 @@ public static class SvgSceneCompiler
 
     internal static string? TryGetElementAddressKey(SvgElement? element)
     {
-        if (element is null || element is SvgDocument)
-        {
-            return null;
-        }
-
-        var address = SvgElementAddress.Create(element);
-        if (address.ChildIndexes.Length == 0)
-        {
-            return null;
-        }
-
-        for (var i = 0; i < address.ChildIndexes.Length; i++)
-        {
-            if (address.ChildIndexes[i] < 0)
-            {
-                return null;
-            }
-        }
-
-        return address.Key;
+        return new SvgElementAddressKeyCache().GetOrCreate(element);
     }
 
     private static SvgSceneNode? CompileElementNode(
@@ -558,6 +703,10 @@ public static class SvgSceneCompiler
             return null;
         }
 
+        var childParentTotalTransform = node.TotalTransform.IsIdentity
+            ? parentTotalTransform
+            : node.TotalTransform;
+
         if (ShouldCompileDomChildren(element))
         {
             for (var i = 0; i < element.Children.Count; i++)
@@ -565,14 +714,14 @@ public static class SvgSceneCompiler
                 if (CompileElementNode(
                         element.Children[i],
                         viewport,
-                        node.TotalTransform.IsIdentity ? parentTotalTransform : node.TotalTransform,
+                        childParentTotalTransform,
                         assetLoader,
                         ignoreAttributes,
                         compilationRootKey: null,
                         createOwnCompilationRootBoundary: true,
                         compileContext) is { } childNode)
                 {
-                    node.AddChild(childNode);
+                    node.AddChild(childNode, invalidateRenderablePaintBoundsUpward: false);
                 }
             }
         }
@@ -583,14 +732,14 @@ public static class SvgSceneCompiler
                  CompileElementNode(
                      activeSwitchChild,
                      viewport,
-                     node.TotalTransform.IsIdentity ? parentTotalTransform : node.TotalTransform,
+                     childParentTotalTransform,
                      assetLoader,
                      ignoreAttributes,
                      node.CompilationRootKey,
                      createOwnCompilationRootBoundary: false,
                      compileContext) is { } directSwitchChildNode)
         {
-            node.AddChild(directSwitchChildNode);
+            node.AddChild(directSwitchChildNode, invalidateRenderablePaintBoundsUpward: false);
         }
 
         if (node.CompilationStrategy == SvgSceneCompilationStrategy.DirectRetained)
@@ -635,9 +784,7 @@ public static class SvgSceneCompiler
             SvgMarker => SvgSceneNodeKind.Marker,
             _ => SvgSceneNodeKind.Container
         };
-        var transform = element is SvgVisualElement visualElement
-            ? TransformsService.ToMatrix(visualElement.Transforms)
-            : SKMatrix.Identity;
+        var metadata = GetRetainedCompileMetadata(element);
 
         node = new SvgSceneNode(
             kind,
@@ -649,9 +796,9 @@ public static class SvgSceneCompiler
         {
             CompilationStrategy = SvgSceneCompilationStrategy.DirectRetained,
             IsRenderable = false,
-            IsAntialias = element is SvgVisualElement visual ? PaintingService.IsAntialias(visual) : true,
-            Transform = transform,
-            TotalTransform = parentTotalTransform.PreConcat(transform),
+            IsAntialias = metadata.IsAntialias,
+            Transform = metadata.Transform,
+            TotalTransform = parentTotalTransform.PreConcat(metadata.Transform),
             HitTestTargetElement = null
         };
         AssignRetainedVisualState(node, element);
@@ -676,6 +823,7 @@ public static class SvgSceneCompiler
         {
             case SvgDocument svgDocument:
                 {
+                    var metadata = GetRetainedCompileMetadata(svgDocument);
                     if (!HasFeatures(svgDocument, ignoreAttributes))
                     {
                         node = CreateDirectStructuralNode(
@@ -683,7 +831,7 @@ public static class SvgSceneCompiler
                             compilationRootKey,
                             createOwnCompilationRootBoundary,
                             compileContext,
-                            PaintingService.IsAntialias(svgDocument),
+                            metadata.IsAntialias,
                             isRenderable: false,
                             suppressSubtreeRendering: true,
                             SKMatrix.Identity,
@@ -692,7 +840,7 @@ public static class SvgSceneCompiler
                     }
 
                     var fragmentViewport = GetFragmentViewport(svgDocument, viewport, out var x, out var y, out var size);
-                    var transform = TransformsService.ToMatrix(svgDocument.Transforms);
+                    var transform = metadata.Transform;
                     var viewBoxTransform = TransformsService.ToMatrix(svgDocument.ViewBox, svgDocument.AspectRatio, x, y, size.Width, size.Height);
                     transform = transform.PreConcat(viewBoxTransform);
 
@@ -701,7 +849,7 @@ public static class SvgSceneCompiler
                         compilationRootKey,
                         createOwnCompilationRootBoundary,
                         compileContext,
-                        PaintingService.IsAntialias(svgDocument),
+                        metadata.IsAntialias,
                         isRenderable: true,
                         suppressSubtreeRendering: false,
                         transform,
@@ -729,20 +877,22 @@ public static class SvgSceneCompiler
                 }
             case SvgAnchor svgAnchor:
                 {
+                    var metadata = GetRetainedCompileMetadata(svgAnchor);
                     node = CreateDirectStructuralNode(
                         svgAnchor,
                         compilationRootKey,
                         createOwnCompilationRootBoundary,
                         compileContext,
-                        PaintingService.IsAntialias(svgAnchor),
+                        metadata.IsAntialias,
                         isRenderable: true,
                         suppressSubtreeRendering: false,
-                        TransformsService.ToMatrix(svgAnchor.Transforms),
+                        metadata.Transform,
                         parentTotalTransform);
                     return true;
                 }
             case SvgGroup svgGroup:
                 {
+                    var metadata = GetRetainedCompileMetadata(svgGroup);
                     var hasFeatures = HasFeatures(svgGroup, ignoreAttributes);
                     var isVisible = MaskingService.IsVisible(svgGroup, ignoreAttributes);
                     var isDisplayRendered = MaskingService.IsDisplayRendered(svgGroup, ignoreAttributes);
@@ -751,15 +901,16 @@ public static class SvgSceneCompiler
                         compilationRootKey,
                         createOwnCompilationRootBoundary,
                         compileContext,
-                        PaintingService.IsAntialias(svgGroup),
+                        metadata.IsAntialias,
                         hasFeatures && isVisible && isDisplayRendered,
                         suppressSubtreeRendering: !hasFeatures || !isDisplayRendered,
-                        TransformsService.ToMatrix(svgGroup.Transforms),
+                        metadata.Transform,
                         parentTotalTransform);
                     return true;
                 }
             case SvgSwitch svgSwitch:
                 {
+                    var metadata = GetRetainedCompileMetadata(svgSwitch);
                     var hasFeatures = HasFeatures(svgSwitch, ignoreAttributes);
                     var isVisible = MaskingService.IsVisible(svgSwitch, ignoreAttributes);
                     var isDisplayRendered = MaskingService.IsDisplayRendered(svgSwitch, ignoreAttributes);
@@ -768,15 +919,16 @@ public static class SvgSceneCompiler
                         compilationRootKey,
                         createOwnCompilationRootBoundary,
                         compileContext,
-                        PaintingService.IsAntialias(svgSwitch),
+                        metadata.IsAntialias,
                         hasFeatures && isVisible && isDisplayRendered,
                         suppressSubtreeRendering: !hasFeatures || !isDisplayRendered,
-                        TransformsService.ToMatrix(svgSwitch.Transforms),
+                        metadata.Transform,
                         parentTotalTransform);
                     return true;
                 }
             case SvgFragment svgFragment when element is not SvgDocument:
                 {
+                    var metadata = GetRetainedCompileMetadata(svgFragment);
                     if (!HasFeatures(svgFragment, ignoreAttributes))
                     {
                         node = CreateDirectStructuralNode(
@@ -784,7 +936,7 @@ public static class SvgSceneCompiler
                             compilationRootKey,
                             createOwnCompilationRootBoundary,
                             compileContext,
-                            PaintingService.IsAntialias(svgFragment),
+                            metadata.IsAntialias,
                             isRenderable: false,
                             suppressSubtreeRendering: true,
                             SKMatrix.Identity,
@@ -793,7 +945,7 @@ public static class SvgSceneCompiler
                     }
 
                     var fragmentViewport = GetFragmentViewport(svgFragment, viewport, out var x, out var y, out var size);
-                    var transform = TransformsService.ToMatrix(svgFragment.Transforms);
+                    var transform = metadata.Transform;
                     var viewBoxTransform = TransformsService.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, size.Width, size.Height);
                     transform = transform.PreConcat(viewBoxTransform);
 
@@ -802,7 +954,7 @@ public static class SvgSceneCompiler
                         compilationRootKey,
                         createOwnCompilationRootBoundary,
                         compileContext,
-                        PaintingService.IsAntialias(svgFragment),
+                        metadata.IsAntialias,
                         isRenderable: true,
                         suppressSubtreeRendering: false,
                         transform,
@@ -950,32 +1102,6 @@ public static class SvgSceneCompiler
         SKMatrix parentTotalTransform)
     {
         var bounds = node.GeometryBounds;
-        for (var i = 0; i < node.Children.Count; i++)
-        {
-            var child = node.Children[i];
-            if (child.IsDisplayNone)
-            {
-                continue;
-            }
-
-            var childBounds = child.GeometryBounds;
-            if (childBounds.IsEmpty)
-            {
-                continue;
-            }
-
-            if (!child.Transform.IsIdentity)
-            {
-                childBounds = child.Transform.MapRect(childBounds);
-            }
-
-            bounds = bounds.IsEmpty
-                ? childBounds
-                : SKRect.Union(bounds, childBounds);
-        }
-
-        node.GeometryBounds = bounds;
-        node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
         node.TransformedBounds = node.TotalTransform.MapRect(bounds);
     }
 
@@ -1074,6 +1200,7 @@ public static class SvgSceneCompiler
         var effectiveCompilationRootKey = createOwnCompilationRootBoundary
             ? elementAddressKey
             : compilationRootKey;
+        var metadata = GetRetainedCompileMetadata(element);
 
         node = new SvgSceneNode(
             SvgSceneNodeKindExtensions.FromElement(element),
@@ -1087,20 +1214,24 @@ public static class SvgSceneCompiler
         };
 
         var hasFeatures = HasFeatures(element, ignoreAttributes);
-        var canDraw = MaskingService.CanDraw(visualElement, ignoreAttributes);
-        var isRenderable = hasFeatures && canDraw;
-        node.IsRenderable = isRenderable;
-        node.IsAntialias = PaintingService.IsAntialias(visualElement);
+        node.IsAntialias = metadata.IsAntialias;
         node.GeometryBounds = path?.Bounds ?? SKRect.Empty;
-        node.Transform = TransformsService.ToMatrix(visualElement.Transforms);
+        node.Transform = metadata.Transform;
         node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
         node.TransformedBounds = node.TotalTransform.MapRect(node.GeometryBounds);
         node.HitTestPath = path;
-        node.SupportsFillHitTest = SvgScenePaintingService.IsValidFill(visualElement);
-        node.SupportsStrokeHitTest = SvgScenePaintingService.IsValidStroke(visualElement, node.GeometryBounds);
+        var supportsFillHitTest = SvgScenePaintingService.IsValidFill(visualElement);
+        var supportsStrokeHitTest = SvgScenePaintingService.TryGetStrokeWidth(
+            visualElement,
+            node.GeometryBounds,
+            out var strokeWidth);
+        node.SupportsFillHitTest = supportsFillHitTest;
+        node.SupportsStrokeHitTest = supportsStrokeHitTest;
         node.HitTestTargetElement = GetDefaultHitTestTargetElement(node, element);
         AssignRetainedVisualState(node, element);
         AssignRetainedResourceKeys(node, element, compileContext.GetElementAddressKey);
+        var isRenderable = hasFeatures && CanDrawFromAssignedRetainedVisualState(node, ignoreAttributes);
+        node.IsRenderable = isRenderable;
         var markerElement = visualElement as SvgMarkerElement;
 
         if (!isRenderable || path is null || path.IsEmpty)
@@ -1126,6 +1257,9 @@ public static class SvgSceneCompiler
             visualElement,
             path,
             node.GeometryBounds,
+            supportsFillHitTest,
+            supportsStrokeHitTest,
+            strokeWidth,
             assetLoader,
             ignoreAttributes,
             compileContext,
@@ -1166,7 +1300,47 @@ public static class SvgSceneCompiler
                 compileContext);
         }
 
+        TryFoldLeafOpacityIntoDirectPathPaint(node);
+
         return true;
+    }
+
+    internal static void TryFoldLeafOpacityIntoDirectPathPaint(SvgSceneNode node)
+    {
+        if (node.Opacity is null ||
+            node.OpacityValue >= 1f ||
+            node.LocalModel is not null ||
+            node.LocalPath is null ||
+            node.Children.Count != 0 ||
+            node.MaskPaint is not null ||
+            node.MaskNode is not null ||
+            node.Filter is not null)
+        {
+            return;
+        }
+
+        var hasFill = node.LocalFill is not null;
+        var hasStroke = node.LocalStroke is not null;
+        if (hasFill == hasStroke)
+        {
+            return;
+        }
+
+        if (!SvgScenePaintingService.TryCreateOpacityAdjustedDirectPaint(
+                node.LocalFill,
+                node.OpacityValue,
+                out var adjustedFill) ||
+            !SvgScenePaintingService.TryCreateOpacityAdjustedDirectPaint(
+                node.LocalStroke,
+                node.OpacityValue,
+                out var adjustedStroke))
+        {
+            return;
+        }
+
+        node.LocalFill = adjustedFill;
+        node.LocalStroke = adjustedStroke;
+        node.Opacity = null;
     }
 
     private static bool TryCompileDirectUseNode(
@@ -1184,6 +1358,7 @@ public static class SvgSceneCompiler
         var effectiveCompilationRootKey = createOwnCompilationRootBoundary
             ? elementAddressKey
             : compilationRootKey;
+        var useMetadata = GetRetainedCompileMetadata(svgUse);
 
         var useNode = new SvgSceneNode(
             SvgSceneNodeKind.Use,
@@ -1194,14 +1369,15 @@ public static class SvgSceneCompiler
             createOwnCompilationRootBoundary && !string.IsNullOrWhiteSpace(effectiveCompilationRootKey))
         {
             CompilationStrategy = SvgSceneCompilationStrategy.DirectRetained,
-            IsAntialias = PaintingService.IsAntialias(svgUse),
-            IsRenderable = HasFeatures(svgUse, ignoreAttributes) && MaskingService.CanDraw(svgUse, ignoreAttributes),
+            IsAntialias = useMetadata.IsAntialias,
             HitTestTargetElement = svgUse,
             Fill = null,
             Stroke = null
         };
         AssignRetainedResourceKeys(useNode, svgUse, compileContext.GetElementAddressKey);
         AssignRetainedVisualState(useNode, svgUse);
+        useNode.IsRenderable = HasFeatures(svgUse, ignoreAttributes) &&
+                               CanDrawFromAssignedRetainedVisualState(useNode, ignoreAttributes);
 
         var x = svgUse.X.ToDeviceValue(UnitRenderingType.Horizontal, svgUse, viewport);
         var y = svgUse.Y.ToDeviceValue(UnitRenderingType.Vertical, svgUse, viewport);
@@ -1223,7 +1399,7 @@ public static class SvgSceneCompiler
             ? null
             : SvgService.GetReference<SvgElement>(svgUse, svgUse.ReferencedElement);
 
-        var useTransform = TransformsService.ToMatrix(svgUse.Transforms);
+        var useTransform = useMetadata.Transform;
         if (referencedElement is not SvgSymbol)
         {
             useTransform = useTransform.PreConcat(SKMatrix.CreateTranslation(x, y));
@@ -1285,7 +1461,7 @@ public static class SvgSceneCompiler
 
         RefreshGeneratedElementAddresses(referencedNode);
         AssignGeneratedHitTestTarget(referencedNode, svgUse);
-        useNode.AddChild(referencedNode);
+        useNode.AddChild(referencedNode, invalidateRenderablePaintBoundsUpward: false);
         FinalizeDirectStructuralBounds(useNode, parentTotalTransform);
         node = useNode;
         return true;
@@ -1328,6 +1504,7 @@ public static class SvgSceneCompiler
         var effectiveCompilationRootKey = createOwnCompilationRootBoundary
             ? elementAddressKey
             : compilationRootKey;
+        var imageMetadata = GetRetainedCompileMetadata(svgImage);
 
         node = new SvgSceneNode(
             SvgSceneNodeKind.Image,
@@ -1338,8 +1515,7 @@ public static class SvgSceneCompiler
             createOwnCompilationRootBoundary && !string.IsNullOrWhiteSpace(effectiveCompilationRootKey))
         {
             CompilationStrategy = SvgSceneCompilationStrategy.DirectRetained,
-            IsAntialias = PaintingService.IsAntialias(svgImage),
-            IsRenderable = HasFeatures(svgImage, ignoreAttributes) && MaskingService.CanDraw(svgImage, ignoreAttributes),
+            IsAntialias = imageMetadata.IsAntialias,
             HitTestTargetElement = svgImage,
             SupportsFillHitTest = true,
             Fill = null,
@@ -1347,13 +1523,15 @@ public static class SvgSceneCompiler
         };
         AssignRetainedResourceKeys(node, svgImage, compileContext.GetElementAddressKey);
         AssignRetainedVisualState(node, svgImage);
+        node.IsRenderable = HasFeatures(svgImage, ignoreAttributes) &&
+                            CanDrawFromAssignedRetainedVisualState(node, ignoreAttributes);
 
         var width = svgImage.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, viewport);
         var height = svgImage.Height.ToDeviceValue(UnitRenderingType.Vertical, svgImage, viewport);
         var x = svgImage.Location.X.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, viewport);
         var y = svgImage.Location.Y.ToDeviceValue(UnitRenderingType.Vertical, svgImage, viewport);
 
-        node.Transform = TransformsService.ToMatrix(svgImage.Transforms);
+        node.Transform = imageMetadata.Transform;
         node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
 
         if (!node.IsRenderable || width <= 0f || height <= 0f || string.IsNullOrWhiteSpace(svgImage.Href))
@@ -1438,7 +1616,7 @@ public static class SvgSceneCompiler
                 }
 
                 AssignGeneratedHitTestTarget(fragmentNode, svgImage);
-                node.AddChild(fragmentNode);
+                node.AddChild(fragmentNode, invalidateRenderablePaintBoundsUpward: false);
                 break;
         }
 
@@ -1475,6 +1653,8 @@ public static class SvgSceneCompiler
             height = symbolHeight.ToDeviceValue(UnitRenderingType.Vertical, svgSymbol, viewport);
         }
 
+        var symbolMetadata = GetRetainedCompileMetadata(svgSymbol);
+
         var node = new SvgSceneNode(
             SvgSceneNodeKind.Fragment,
             svgSymbol,
@@ -1484,7 +1664,7 @@ public static class SvgSceneCompiler
             isCompilationRootBoundary: false)
         {
             CompilationStrategy = SvgSceneCompilationStrategy.DirectRetained,
-            IsAntialias = PaintingService.IsAntialias(svgSymbol),
+            IsAntialias = symbolMetadata.IsAntialias,
             IsRenderable = true,
             HitTestTargetElement = null,
             Fill = null,
@@ -1493,7 +1673,7 @@ public static class SvgSceneCompiler
         AssignRetainedResourceKeys(node, svgSymbol, compileContext.GetElementAddressKey);
         AssignRetainedVisualState(node, svgSymbol);
 
-        var transform = TransformsService.ToMatrix(svgSymbol.Transforms);
+        var transform = symbolMetadata.Transform;
         var viewBoxTransform = TransformsService.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
         transform = transform.PreConcat(viewBoxTransform);
         node.Transform = transform;
@@ -1523,7 +1703,7 @@ public static class SvgSceneCompiler
                     createOwnCompilationRootBoundary: false,
                     compileContext) is { } childNode)
             {
-                node.AddChild(childNode);
+                node.AddChild(childNode, invalidateRenderablePaintBoundsUpward: false);
             }
         }
 
@@ -1557,6 +1737,7 @@ public static class SvgSceneCompiler
         var fragmentTransform = SKMatrix.CreateTranslation(destRect.Left, destRect.Top)
             .PreConcat(SKMatrix.CreateScale(destRect.Width / srcRect.Width, destRect.Height / srcRect.Height));
         var totalTransform = parentTotalTransform.PreConcat(fragmentTransform);
+        var imageMetadata = GetRetainedCompileMetadata(svgImage);
 
         var node = new SvgSceneNode(
             SvgSceneNodeKind.Fragment,
@@ -1567,7 +1748,7 @@ public static class SvgSceneCompiler
             isCompilationRootBoundary: false)
         {
             CompilationStrategy = SvgSceneCompilationStrategy.DirectRetained,
-            IsAntialias = PaintingService.IsAntialias(svgImage),
+            IsAntialias = imageMetadata.IsAntialias,
             IsRenderable = true,
             HitTestTargetElement = null,
             LocalModel = imagePicture,
@@ -1604,6 +1785,7 @@ public static class SvgSceneCompiler
 
         var fragmentTransform = SKMatrix.CreateTranslation(destClip.Left, destClip.Top);
         var totalTransform = parentTotalTransform.PreConcat(fragmentTransform);
+        var imageMetadata = GetRetainedCompileMetadata(svgImage);
 
         var node = new SvgSceneNode(
             SvgSceneNodeKind.Fragment,
@@ -1614,7 +1796,7 @@ public static class SvgSceneCompiler
             isCompilationRootBoundary: false)
         {
             CompilationStrategy = SvgSceneCompilationStrategy.DirectRetained,
-            IsAntialias = PaintingService.IsAntialias(svgImage),
+            IsAntialias = imageMetadata.IsAntialias,
             IsRenderable = true,
             HitTestTargetElement = null,
             LocalModel = imagePicture,
@@ -1756,7 +1938,7 @@ public static class SvgSceneCompiler
                     startMarkerNode is not null)
                 {
                     AssignGeneratedHitTestTarget(startMarkerNode, hitTestTarget);
-                    node.AddChild(startMarkerNode);
+                    node.AddChild(startMarkerNode, invalidateRenderablePaintBoundsUpward: false);
                 }
             }
         }
@@ -1803,7 +1985,7 @@ public static class SvgSceneCompiler
                         midMarkerNode is not null)
                     {
                         AssignGeneratedHitTestTarget(midMarkerNode, hitTestTarget);
-                        node.AddChild(midMarkerNode);
+                        node.AddChild(midMarkerNode, invalidateRenderablePaintBoundsUpward: false);
                     }
                 }
 
@@ -1836,7 +2018,7 @@ public static class SvgSceneCompiler
                         closingMidMarkerNode is not null)
                     {
                         AssignGeneratedHitTestTarget(closingMidMarkerNode, hitTestTarget);
-                        node.AddChild(closingMidMarkerNode);
+                        node.AddChild(closingMidMarkerNode, invalidateRenderablePaintBoundsUpward: false);
                     }
                 }
             }
@@ -1886,7 +2068,7 @@ public static class SvgSceneCompiler
                     endMarkerNode is not null)
                 {
                     AssignGeneratedHitTestTarget(endMarkerNode, hitTestTarget);
-                    node.AddChild(endMarkerNode);
+                    node.AddChild(endMarkerNode, invalidateRenderablePaintBoundsUpward: false);
                 }
             }
         }
@@ -2040,7 +2222,8 @@ public static class SvgSceneCompiler
                 break;
         }
 
-        var transform = TransformsService.ToMatrix(svgMarker.Transforms);
+        var markerMetadata = GetRetainedCompileMetadata(svgMarker);
+        var transform = markerMetadata.Transform;
         transform = transform.PreConcat(markerMatrix);
 
         node = new SvgSceneNode(
@@ -2053,7 +2236,7 @@ public static class SvgSceneCompiler
         {
             CompilationStrategy = SvgSceneCompilationStrategy.DirectRetained,
             IsRenderable = true,
-            IsAntialias = PaintingService.IsAntialias(svgMarker),
+            IsAntialias = markerMetadata.IsAntialias,
             Transform = transform,
             TotalTransform = parentTotalTransform.PreConcat(transform),
             Fill = null,
@@ -2096,7 +2279,7 @@ public static class SvgSceneCompiler
         }
 
         ResetGeneratedDisplayState(childNode);
-        node.AddChild(childNode);
+        node.AddChild(childNode, invalidateRenderablePaintBoundsUpward: false);
         FinalizeDirectStructuralBounds(node, parentTotalTransform);
         return true;
     }
@@ -2182,10 +2365,18 @@ public static class SvgSceneCompiler
 
     private static bool HasFeatures(SvgElement element, DrawAttributes ignoreAttributes)
     {
-        var hasRequiredFeatures = ignoreAttributes.HasFlag(DrawAttributes.RequiredFeatures) || element.HasRequiredFeatures();
-        var hasRequiredExtensions = ignoreAttributes.HasFlag(DrawAttributes.RequiredExtensions) || element.HasRequiredExtensions();
-        var hasSystemLanguage = ignoreAttributes.HasFlag(DrawAttributes.SystemLanguage) || element.HasSystemLanguage();
+        var metadata = GetRetainedCompileMetadata(element);
+        var hasRequiredFeatures = ignoreAttributes.HasFlag(DrawAttributes.RequiredFeatures) || metadata.HasRequiredFeatures;
+        var hasRequiredExtensions = ignoreAttributes.HasFlag(DrawAttributes.RequiredExtensions) || metadata.HasRequiredExtensions;
+        var hasSystemLanguage = ignoreAttributes.HasFlag(DrawAttributes.SystemLanguage) || metadata.HasSystemLanguage;
         return hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage;
+    }
+
+    private static bool CanDrawFromAssignedRetainedVisualState(SvgSceneNode node, DrawAttributes ignoreAttributes)
+    {
+        var isVisible = ignoreAttributes.HasFlag(DrawAttributes.Visibility) || node.IsVisible;
+        var isDisplayRendered = ignoreAttributes.HasFlag(DrawAttributes.Display) || !node.IsDisplayNone;
+        return isVisible && isDisplayRendered;
     }
 
     internal static SvgSceneDocument? CompileTemporaryChildrenScene(
@@ -2240,7 +2431,7 @@ public static class SvgSceneCompiler
                         createOwnCompilationRootBoundary: false,
                         compileContext) is { } childNode)
                 {
-                    root.AddChild(childNode);
+                    root.AddChild(childNode, invalidateRenderablePaintBoundsUpward: false);
                 }
             }
         }
@@ -2275,19 +2466,140 @@ public static class SvgSceneCompiler
 
     private static bool TryGetDirectVisualPath(SvgElement element, SKRect viewport, out SKPath? path)
     {
-        path = element switch
+        switch (element)
         {
-            SvgPath svgPath => svgPath.PathData?.ToPath(svgPath.FillRule),
-            SvgRectangle svgRectangle => svgRectangle.ToPath(svgRectangle.FillRule, viewport),
-            SvgCircle svgCircle => svgCircle.ToPath(svgCircle.FillRule, viewport),
-            SvgEllipse svgEllipse => svgEllipse.ToPath(svgEllipse.FillRule, viewport),
-            SvgLine svgLine => svgLine.ToPath(svgLine.FillRule, viewport),
-            SvgPolyline svgPolyline => svgPolyline.Points?.ToPath(svgPolyline.FillRule, false, viewport),
-            SvgPolygon svgPolygon => svgPolygon.Points?.ToPath(svgPolygon.FillRule, true, viewport),
-            _ => null
-        };
+            case SvgPath svgPath:
+                return TryGetCachedDirectVisualPath(
+                    svgPath,
+                    svgPath.FillRule,
+                    viewport,
+                    usesViewport: false,
+                    static (current, _) => CreateDirectSvgPath(current),
+                    out path);
+            case SvgRectangle svgRectangle:
+                return TryGetCachedDirectVisualPath(
+                    svgRectangle,
+                    svgRectangle.FillRule,
+                    viewport,
+                    usesViewport: true,
+                    static (current, currentViewport) => current.ToPath(current.FillRule, currentViewport),
+                    out path);
+            case SvgCircle svgCircle:
+                return TryGetCachedDirectVisualPath(
+                    svgCircle,
+                    svgCircle.FillRule,
+                    viewport,
+                    usesViewport: true,
+                    static (current, currentViewport) => current.ToPath(current.FillRule, currentViewport),
+                    out path);
+            case SvgEllipse svgEllipse:
+                return TryGetCachedDirectVisualPath(
+                    svgEllipse,
+                    svgEllipse.FillRule,
+                    viewport,
+                    usesViewport: true,
+                    static (current, currentViewport) => current.ToPath(current.FillRule, currentViewport),
+                    out path);
+            case SvgLine svgLine:
+                return TryGetCachedDirectVisualPath(
+                    svgLine,
+                    svgLine.FillRule,
+                    viewport,
+                    usesViewport: true,
+                    static (current, currentViewport) => current.ToPath(current.FillRule, currentViewport),
+                    out path);
+            case SvgPolyline svgPolyline:
+                return TryGetCachedDirectVisualPath(
+                    svgPolyline,
+                    svgPolyline.FillRule,
+                    viewport,
+                    usesViewport: true,
+                    static (current, currentViewport) => current.Points?.ToPath(current.FillRule, false, currentViewport),
+                    out path);
+            case SvgPolygon svgPolygon:
+                return TryGetCachedDirectVisualPath(
+                    svgPolygon,
+                    svgPolygon.FillRule,
+                    viewport,
+                    usesViewport: true,
+                    static (current, currentViewport) => current.Points?.ToPath(current.FillRule, true, currentViewport),
+                    out path);
+            default:
+                path = null;
+                return false;
+        }
+    }
 
-        return path is not null;
+    private static SKPath? CreateDirectSvgPath(SvgPath svgPath)
+    {
+        if (svgPath.PathData is not { } pathData)
+        {
+            return null;
+        }
+
+        if (!svgPath.TryGetSceneGraphPathDataHash(out var pathDataHash) ||
+            pathDataHash.SegmentCount != pathData.Count)
+        {
+            pathDataHash = SceneGraphPathDataHashFactory.Create(pathData);
+            svgPath.SetSceneGraphPathDataHash(pathDataHash);
+        }
+
+        return pathData.ToPath(svgPath.FillRule, pathDataHash);
+    }
+
+    private static bool TryGetCachedDirectVisualPath<TElement>(
+        TElement element,
+        SvgFillRule fillRule,
+        SKRect viewport,
+        bool usesViewport,
+        Func<TElement, SKRect, SKPath?> factory,
+        out SKPath? path)
+        where TElement : SvgElement
+    {
+        var version = element.GetSceneGraphDirectVisualPathVersion();
+        var fontSize = element.FontSize.ToDeviceValue(UnitRenderingType.Other, null, SKRect.Empty);
+        var entry = s_directVisualPathCache.GetValue(element, static _ => new DirectVisualPathCacheEntry());
+
+        lock (entry)
+        {
+            if (entry.Version == version &&
+                entry.FillRule == fillRule &&
+                entry.FontSize.Equals(fontSize) &&
+                (!usesViewport || AreEquivalentViewports(entry.Viewport, viewport)) &&
+                !ShouldRefreshNullCachedDirectVisualPath(element, entry.Path))
+            {
+                path = entry.Path;
+                return path is not null;
+            }
+
+            path = factory(element, viewport);
+            entry.Version = version;
+            entry.FillRule = fillRule;
+            entry.Viewport = viewport;
+            entry.FontSize = fontSize;
+            entry.Path = path;
+            return path is not null;
+        }
+    }
+
+    private static bool ShouldRefreshNullCachedDirectVisualPath<TElement>(TElement element, SKPath? cachedPath)
+        where TElement : SvgElement
+    {
+        if (cachedPath is not null)
+        {
+            return false;
+        }
+
+        return element is SvgPath svgPath &&
+               svgPath.PathData is { Count: > 0 };
+    }
+
+    private static bool AreEquivalentViewports(SKRect left, SKRect right)
+    {
+        return left.Left == right.Left &&
+               left.Top == right.Top &&
+               left.Right == right.Right &&
+               left.Bottom == right.Bottom;
     }
 
     private static bool TryGetDirectVisualElement(SvgElement element, out SvgVisualElement? visualElement)
@@ -2311,6 +2623,9 @@ public static class SvgSceneCompiler
         SvgVisualElement visualElement,
         SKPath path,
         SKRect geometryBounds,
+        bool supportsFillHitTest,
+        bool supportsStrokeHitTest,
+        float strokeWidth,
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
         SvgSceneCompileContext compileContext,
@@ -2324,8 +2639,13 @@ public static class SvgSceneCompiler
         stroke = default;
         var canDrawFill = true;
         var canDrawStroke = true;
+        var cullRect = CreateLocalCullRect(geometryBounds);
+        if (cullRect.IsEmpty)
+        {
+            return null;
+        }
 
-        if (SvgScenePaintingService.IsValidFill(visualElement))
+        if (supportsFillHitTest)
         {
             fill = compileContext.TryGetCachedSolidFillPaint(visualElement, ignoreAttributes, out var cachedFill)
                 ? cachedFill
@@ -2336,9 +2656,16 @@ public static class SvgSceneCompiler
             }
         }
 
-        if (SvgScenePaintingService.IsValidStroke(visualElement, geometryBounds))
+        if (supportsStrokeHitTest)
         {
-            stroke = SvgScenePaintingService.GetStrokePaint(visualElement, geometryBounds, assetLoader, ignoreAttributes);
+            stroke = compileContext.TryGetCachedSolidStrokePaint(
+                    visualElement,
+                    geometryBounds,
+                    strokeWidth,
+                    ignoreAttributes,
+                    out var cachedStroke)
+                ? cachedStroke
+                : SvgScenePaintingService.GetStrokePaint(visualElement, geometryBounds, assetLoader, ignoreAttributes, strokeWidth);
             if (stroke is null)
             {
                 canDrawStroke = false;
@@ -2352,12 +2679,6 @@ public static class SvgSceneCompiler
         }
 
         if (fill is null && stroke is null)
-        {
-            return null;
-        }
-
-        var cullRect = CreateLocalCullRect(path.Bounds);
-        if (cullRect.IsEmpty)
         {
             return null;
         }
@@ -2462,6 +2783,18 @@ public static class SvgSceneCompiler
             return null;
         }
 
+        if (server is SvgColourServer)
+        {
+            return null;
+        }
+
+        if (server is not SvgDeferredPaintServer &&
+            server.Parent is null &&
+            server.OwnerDocument is null)
+        {
+            return null;
+        }
+
         return SvgDeferredPaintServer.TryGet<SvgPaintServer>(server, owner) as SvgElement;
     }
 
@@ -2508,9 +2841,31 @@ public static class SvgSceneCompiler
             return;
         }
 
-        node.ClipResourceKey = TryGetResourceKey(visualElement, visualElement.ClipPath, getElementAddressKey);
-        node.MaskResourceKey = TryGetMaskResourceKey(visualElement, getElementAddressKey);
-        node.FilterResourceKey = TryGetResourceKey(visualElement, visualElement.Filter, getElementAddressKey);
+        var clipPath = visualElement.ClipPath;
+        var filter = visualElement.Filter;
+        var hasMaskReference = HasMaskReference(visualElement);
+
+        if (clipPath is null &&
+            filter is null &&
+            !hasMaskReference)
+        {
+            return;
+        }
+
+        if (clipPath is not null)
+        {
+            node.ClipResourceKey = TryGetResourceKey(visualElement, clipPath, getElementAddressKey);
+        }
+
+        if (hasMaskReference)
+        {
+            node.MaskResourceKey = TryGetMaskResourceKey(visualElement, getElementAddressKey);
+        }
+
+        if (filter is not null)
+        {
+            node.FilterResourceKey = TryGetResourceKey(visualElement, filter, getElementAddressKey);
+        }
     }
 
     internal static void AssignRetainedVisualState(SvgSceneNode node, SvgElement? element)
@@ -2522,26 +2877,81 @@ public static class SvgSceneCompiler
         node.CreatesBackgroundLayer = false;
         node.BackgroundClip = null;
 
-        if (element is not null &&
-            TryGetCursorAttribute(element, out var cursor))
+        if (element is null)
         {
-            node.Cursor = cursor;
+            return;
         }
 
-        if (element is SvgVisualElement visualElement)
+        var metadata = GetRetainedCompileMetadata(element);
+        node.PointerEvents = metadata.PointerEvents;
+        node.IsVisible = metadata.IsVisible;
+        node.IsDisplayNone = metadata.IsDisplayNone;
+        node.Cursor = metadata.Cursor;
+        node.CreatesBackgroundLayer = metadata.CreatesBackgroundLayer;
+        node.BackgroundClip = metadata.BackgroundClip;
+    }
+
+    private static RetainedCompileMetadata GetRetainedCompileMetadata(SvgElement element)
+    {
+        var version = element.GetSceneGraphCompileMetadataVersion();
+        var entry = s_retainedCompileMetadataCache.GetValue(element, static _ => new RetainedCompileMetadataCacheEntry());
+
+        lock (entry)
         {
-            node.PointerEvents = visualElement.PointerEvents;
-            node.IsVisible = visualElement.Visible;
-            node.IsDisplayNone = string.Equals(visualElement.Display?.Trim(), "none", StringComparison.OrdinalIgnoreCase);
+            if (entry.IsInitialized &&
+                entry.Version == version)
+            {
+                return entry.Metadata;
+            }
+
+            var metadata = CreateRetainedCompileMetadata(element);
+            entry.IsInitialized = true;
+            entry.Version = version;
+            entry.Metadata = metadata;
+            return metadata;
+        }
+    }
+
+    private static RetainedCompileMetadata CreateRetainedCompileMetadata(SvgElement element)
+    {
+        var transform = element is SvgVisualElement visualElement
+            ? TransformsService.ToMatrix(visualElement.Transforms)
+            : SKMatrix.Identity;
+        var isAntialias = element is SvgVisualElement visual
+            ? PaintingService.IsAntialias(visual)
+            : true;
+        var hasRequiredFeatures = element.HasRequiredFeatures();
+        var hasRequiredExtensions = element.HasRequiredExtensions();
+        var hasSystemLanguage = element.HasSystemLanguage();
+        var pointerEvents = element is SvgVisualElement visualState ? visualState.PointerEvents : SvgPointerEvents.VisiblePainted;
+        var isVisible = element is SvgVisualElement visibleState ? visibleState.Visible : true;
+        var isDisplayNone = element is SvgVisualElement displayState &&
+                            string.Equals(displayState.Display?.Trim(), "none", StringComparison.OrdinalIgnoreCase);
+        var cursor = TryGetCursorAttribute(element, out var parsedCursor)
+            ? parsedCursor
+            : null;
+
+        var createsBackgroundLayer = false;
+        SKRect? backgroundClip = null;
+        if (element.IsContainerElement() &&
+            TryParseEnableBackground(element, out var parsedBackgroundClip))
+        {
+            createsBackgroundLayer = true;
+            backgroundClip = parsedBackgroundClip;
         }
 
-        if (element is not null &&
-            element.IsContainerElement() &&
-            TryParseEnableBackground(element, out var backgroundClip))
-        {
-            node.CreatesBackgroundLayer = true;
-            node.BackgroundClip = backgroundClip;
-        }
+        return new RetainedCompileMetadata(
+            transform,
+            isAntialias,
+            hasRequiredFeatures,
+            hasRequiredExtensions,
+            hasSystemLanguage,
+            pointerEvents,
+            isVisible,
+            isDisplayNone,
+            cursor,
+            createsBackgroundLayer,
+            backgroundClip);
     }
 
     private static Uri? GetUriAttribute(SvgElement element, string name)
@@ -2709,6 +3119,7 @@ public static class SvgSceneCompiler
 
         var compileContext = new SvgSceneCompileContext();
         _ = compileContext.TryEnter(svgMask.OwnerDocument, out var documentKey);
+        var maskMetadata = GetRetainedCompileMetadata(svgMask);
 
         var node = new SvgSceneNode(
             SvgSceneNodeKind.Mask,
@@ -2720,7 +3131,7 @@ public static class SvgSceneCompiler
         {
             CompilationStrategy = SvgSceneCompilationStrategy.DirectRetained,
             IsRenderable = true,
-            IsAntialias = PaintingService.IsAntialias(svgMask),
+            IsAntialias = maskMetadata.IsAntialias,
             GeometryBounds = maskRect.Value,
             Transform = transform,
             TotalTransform = transform,
@@ -2744,7 +3155,7 @@ public static class SvgSceneCompiler
                         createOwnCompilationRootBoundary: false,
                         compileContext) is { } childNode)
                 {
-                    node.AddChild(childNode);
+                    node.AddChild(childNode, invalidateRenderablePaintBoundsUpward: false);
                 }
             }
         }

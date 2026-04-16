@@ -19,6 +19,11 @@ public interface ISvgAssetLoader
     SKPath? GetTextPath(string? text, SKPaint paint, float x, float y);
 }
 
+public interface ISvgTextMeasurementCacheKeyProvider
+{
+    int TextMeasurementCacheKey { get; }
+}
+
 public interface ISvgTextReferenceRenderingOptions
 {
     bool EnableTextReferences { get; }

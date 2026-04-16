@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using ShimSkiaSharp;
 using Svg.Pathing;
@@ -9,6 +10,9 @@ namespace Svg.Model.Services;
 
 internal static class PathingService
 {
+    private const int SharedSvgPathDataCacheLimit = 2048;
+    private const int SharedShapePathCacheLimit = 1024;
+
     [Flags]
     internal enum PathPointType : byte
     {
@@ -21,6 +25,124 @@ internal static class PathingService
         PathMarker = 0x20,
         CloseSubpath = 0x80
     }
+
+    private readonly struct SvgPathDataSignature : IEquatable<SvgPathDataSignature>
+    {
+        public SvgPathDataSignature(SceneGraphPathDataHash pathDataHash, SvgFillRule fillRule)
+        {
+            SegmentCount = pathDataHash.SegmentCount;
+            FillRule = fillRule;
+            Hash1 = pathDataHash.Hash1;
+            Hash2 = pathDataHash.Hash2;
+        }
+
+        public int SegmentCount { get; }
+        public SvgFillRule FillRule { get; }
+        public int Hash1 { get; }
+        public int Hash2 { get; }
+
+        public bool Equals(SvgPathDataSignature other)
+        {
+            return SegmentCount == other.SegmentCount &&
+                   FillRule == other.FillRule &&
+                   Hash1 == other.Hash1 &&
+                   Hash2 == other.Hash2;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is SvgPathDataSignature other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash = SegmentCount;
+                hash = (hash * 397) ^ (int)FillRule;
+                hash = (hash * 397) ^ Hash1;
+                hash = (hash * 397) ^ Hash2;
+                return hash;
+            }
+        }
+    }
+
+    private static readonly ConcurrentDictionary<SvgPathDataSignature, SKPath> s_sharedSvgPathDataCache = new();
+
+    private enum SharedShapePathKind : byte
+    {
+        Rectangle = 1,
+        Circle = 2,
+        Ellipse = 3,
+        Line = 4
+    }
+
+    private readonly struct SharedShapePathSignature : IEquatable<SharedShapePathSignature>
+    {
+        public SharedShapePathSignature(
+            SharedShapePathKind kind,
+            SvgFillRule fillRule,
+            float value0,
+            float value1,
+            float value2,
+            float value3,
+            float value4,
+            float value5)
+        {
+            Kind = kind;
+            FillRule = fillRule;
+            Value0 = value0;
+            Value1 = value1;
+            Value2 = value2;
+            Value3 = value3;
+            Value4 = value4;
+            Value5 = value5;
+        }
+
+        public SharedShapePathKind Kind { get; }
+        public SvgFillRule FillRule { get; }
+        public float Value0 { get; }
+        public float Value1 { get; }
+        public float Value2 { get; }
+        public float Value3 { get; }
+        public float Value4 { get; }
+        public float Value5 { get; }
+
+        public bool Equals(SharedShapePathSignature other)
+        {
+            return Kind == other.Kind &&
+                   FillRule == other.FillRule &&
+                   Value0.Equals(other.Value0) &&
+                   Value1.Equals(other.Value1) &&
+                   Value2.Equals(other.Value2) &&
+                   Value3.Equals(other.Value3) &&
+                   Value4.Equals(other.Value4) &&
+                   Value5.Equals(other.Value5);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is SharedShapePathSignature other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash = (int)Kind;
+                hash = (hash * 397) ^ (int)FillRule;
+                hash = (hash * 397) ^ Value0.GetHashCode();
+                hash = (hash * 397) ^ Value1.GetHashCode();
+                hash = (hash * 397) ^ Value2.GetHashCode();
+                hash = (hash * 397) ^ Value3.GetHashCode();
+                hash = (hash * 397) ^ Value4.GetHashCode();
+                hash = (hash * 397) ^ Value5.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    private static readonly ConcurrentDictionary<SharedShapePathSignature, SKPath> s_sharedShapePathCache = new();
 
     internal static List<(SKPoint Point, byte Type)> GetPathTypes(this SKPath path)
     {
@@ -153,9 +275,23 @@ internal static class PathingService
 
     internal static SKPath? ToPath(this SvgPathSegmentList? svgPathSegmentList, SvgFillRule svgFillRule)
     {
+        return ToPath(svgPathSegmentList, svgFillRule, null);
+    }
+
+    internal static SKPath? ToPath(this SvgPathSegmentList? svgPathSegmentList, SvgFillRule svgFillRule, SceneGraphPathDataHash? pathDataHash)
+    {
         if (svgPathSegmentList is null || svgPathSegmentList.Count <= 0)
         {
             return default;
+        }
+
+        var hash = pathDataHash is { } cachedHash && cachedHash.SegmentCount == svgPathSegmentList.Count
+            ? cachedHash
+            : SceneGraphPathDataHashFactory.Create(svgPathSegmentList);
+        var signature = new SvgPathDataSignature(hash, svgFillRule);
+        if (s_sharedSvgPathDataCache.TryGetValue(signature, out var sharedPath))
+        {
+            return sharedPath.DeepClone();
         }
 
         var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
@@ -334,7 +470,17 @@ internal static class PathingService
             return default;
         }
 
+        s_sharedSvgPathDataCache[signature] = skPath.DeepClone();
+        TrimSharedSvgPathDataCacheIfNeeded();
         return skPath;
+    }
+
+    private static void TrimSharedSvgPathDataCacheIfNeeded()
+    {
+        if (s_sharedSvgPathDataCache.Count > SharedSvgPathDataCacheLimit)
+        {
+            s_sharedSvgPathDataCache.Clear();
+        }
     }
 
     internal static SKPath? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, SKRect skViewport)
@@ -366,12 +512,6 @@ internal static class PathingService
 
     internal static SKPath? ToPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, SKRect skViewport)
     {
-        var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
-        var skPath = new SKPath
-        {
-            FillType = fillType
-        };
-
         var x = svgRectangle.X.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skViewport);
         var y = svgRectangle.Y.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, skViewport);
         var width = svgRectangle.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, skViewport);
@@ -424,6 +564,25 @@ internal static class PathingService
             }
         }
 
+        var signature = new SharedShapePathSignature(
+            SharedShapePathKind.Rectangle,
+            svgFillRule,
+            x,
+            y,
+            width,
+            height,
+            rx,
+            ry);
+        if (s_sharedShapePathCache.TryGetValue(signature, out var sharedPath))
+        {
+            return sharedPath.DeepClone();
+        }
+
+        var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+        var skPath = new SKPath
+        {
+            FillType = fillType
+        };
         var isRound = rx > 0f && ry > 0f;
         var skRectBounds = SKRect.Create(x, y, width, height);
 
@@ -436,17 +595,13 @@ internal static class PathingService
             skPath.AddRect(skRectBounds);
         }
 
+        s_sharedShapePathCache[signature] = skPath.DeepClone();
+        TrimSharedShapePathCacheIfNeeded();
         return skPath;
     }
 
     internal static SKPath? ToPath(this SvgCircle svgCircle, SvgFillRule svgFillRule, SKRect skViewport)
     {
-        var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
-        var skPath = new SKPath
-        {
-            FillType = fillType
-        };
-
         var cx = svgCircle.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgCircle, skViewport);
         var cy = svgCircle.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgCircle, skViewport);
         var radius = svgCircle.Radius.ToDeviceValue(UnitRenderingType.Other, svgCircle, skViewport);
@@ -456,19 +611,34 @@ internal static class PathingService
             return default;
         }
 
-        skPath.AddCircle(cx, cy, radius);
+        var signature = new SharedShapePathSignature(
+            SharedShapePathKind.Circle,
+            svgFillRule,
+            cx,
+            cy,
+            radius,
+            0f,
+            0f,
+            0f);
+        if (s_sharedShapePathCache.TryGetValue(signature, out var sharedPath))
+        {
+            return sharedPath.DeepClone();
+        }
 
-        return skPath;
-    }
-
-    internal static SKPath? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, SKRect skViewport)
-    {
         var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
         var skPath = new SKPath
         {
             FillType = fillType
         };
+        skPath.AddCircle(cx, cy, radius);
 
+        s_sharedShapePathCache[signature] = skPath.DeepClone();
+        TrimSharedShapePathCacheIfNeeded();
+        return skPath;
+    }
+
+    internal static SKPath? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, SKRect skViewport)
+    {
         var cx = svgEllipse.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, skViewport);
         var cy = svgEllipse.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, skViewport);
         var rx = svgEllipse.RadiusX.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skViewport);
@@ -479,29 +649,73 @@ internal static class PathingService
             return default;
         }
 
-        var skRectBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
+        var signature = new SharedShapePathSignature(
+            SharedShapePathKind.Ellipse,
+            svgFillRule,
+            cx,
+            cy,
+            rx,
+            ry,
+            0f,
+            0f);
+        if (s_sharedShapePathCache.TryGetValue(signature, out var sharedPath))
+        {
+            return sharedPath.DeepClone();
+        }
 
-        skPath.AddOval(skRectBounds);
-
-        return skPath;
-    }
-
-    internal static SKPath? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, SKRect skViewport)
-    {
         var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
         var skPath = new SKPath
         {
             FillType = fillType
         };
+        var skRectBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
 
+        skPath.AddOval(skRectBounds);
+
+        s_sharedShapePathCache[signature] = skPath.DeepClone();
+        TrimSharedShapePathCacheIfNeeded();
+        return skPath;
+    }
+
+    internal static SKPath? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, SKRect skViewport)
+    {
         var x0 = svgLine.StartX.ToDeviceValue(UnitRenderingType.Horizontal, svgLine, skViewport);
         var y0 = svgLine.StartY.ToDeviceValue(UnitRenderingType.Vertical, svgLine, skViewport);
         var x1 = svgLine.EndX.ToDeviceValue(UnitRenderingType.Horizontal, svgLine, skViewport);
         var y1 = svgLine.EndY.ToDeviceValue(UnitRenderingType.Vertical, svgLine, skViewport);
 
+        var signature = new SharedShapePathSignature(
+            SharedShapePathKind.Line,
+            svgFillRule,
+            x0,
+            y0,
+            x1,
+            y1,
+            0f,
+            0f);
+        if (s_sharedShapePathCache.TryGetValue(signature, out var sharedPath))
+        {
+            return sharedPath.DeepClone();
+        }
+
+        var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+        var skPath = new SKPath
+        {
+            FillType = fillType
+        };
         skPath.MoveTo(x0, y0);
         skPath.LineTo(x1, y1);
 
+        s_sharedShapePathCache[signature] = skPath.DeepClone();
+        TrimSharedShapePathCacheIfNeeded();
         return skPath;
+    }
+
+    private static void TrimSharedShapePathCacheIfNeeded()
+    {
+        if (s_sharedShapePathCache.Count > SharedShapePathCacheLimit)
+        {
+            s_sharedShapePathCache.Clear();
+        }
     }
 }

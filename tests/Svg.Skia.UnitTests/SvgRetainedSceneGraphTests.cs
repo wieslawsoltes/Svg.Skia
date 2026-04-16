@@ -4,13 +4,16 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using ShimSkiaSharp;
 using ShimSkiaSharp.Editing;
 using Svg;
 using Svg.DataTypes;
 using Svg.FilterEffects;
+using Svg.Model;
 using Svg.Model.Services;
+using Svg.Pathing;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
 using SkiaAlphaType = SkiaSharp.SKAlphaType;
@@ -52,6 +55,437 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.NotNull(picture);
         Assert.NotNull(picture!.Commands);
         Assert.NotEmpty(picture.Commands!);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_DirectNativePictureMatchesShimReplayPath()
+    {
+        const string directNativeSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+              <defs>
+                <clipPath id="clip-a">
+                  <rect x="0" y="0" width="20" height="20" />
+                </clipPath>
+              </defs>
+              <g transform="translate(4,5)" opacity="0.6" clip-path="url(#clip-a)">
+                <rect x="0" y="0" width="24" height="24" fill="#cc3344" />
+                <rect x="8" y="4" width="10" height="12" fill="#3366cc" />
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(directNativeSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+
+        using var directPicture = svg.CreateRetainedSceneGraphPicture();
+        var shimModel = scene!.CreateModel();
+        using var replayedPicture = svg.SkiaModel.ToSKPicture(shimModel);
+
+        Assert.NotNull(directPicture);
+        Assert.NotNull(shimModel);
+        Assert.NotNull(replayedPicture);
+        AssertPicturesEqual(svg, replayedPicture!, directPicture!);
+    }
+
+    [Fact]
+    public void RetainedPicture_ReusesCachedNativePictureUntilRetainedSceneChanges()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(SimpleSvg);
+
+        var retainedPicture = svg.RetainedPicture;
+        var cachedRetainedPicture = svg.RetainedPicture;
+        using var freshRetainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.NotNull(retainedPicture);
+        Assert.NotNull(cachedRetainedPicture);
+        Assert.NotNull(freshRetainedPicture);
+        Assert.Same(retainedPicture, cachedRetainedPicture);
+        Assert.NotSame(retainedPicture, freshRetainedPicture);
+        AssertPicturesEqual(svg, freshRetainedPicture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void RetainedPicture_InvalidatesAfterRetainedSceneMutation()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(SimpleSvg);
+
+        var initialRetainedPicture = svg.RetainedPicture;
+        var sourceDocument = Assert.IsType<SvgDocument>(svg.RetainedSceneGraph!.SourceDocument);
+        var target = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("target"));
+        target.Fill = new SvgColourServer(Color.Purple);
+
+        var result = svg.ApplyRetainedSceneMutation(target, new[] { "fill" });
+        var updatedRetainedPicture = svg.RetainedPicture;
+        using var freshRetainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.True(result.Succeeded);
+        Assert.NotNull(initialRetainedPicture);
+        Assert.NotNull(updatedRetainedPicture);
+        Assert.NotNull(freshRetainedPicture);
+        Assert.NotSame(initialRetainedPicture, updatedRetainedPicture);
+        AssertPicturesEqual(svg, freshRetainedPicture!, updatedRetainedPicture!);
+    }
+
+    [Fact]
+    public void RetainedPicture_InvalidatesAfterAnimationFrameUpdate()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(AnimatedSvg);
+
+        var initialRetainedPicture = svg.RetainedPicture;
+        Assert.NotNull(initialRetainedPicture);
+
+        svg.SetAnimationTime(TimeSpan.FromSeconds(2));
+
+        var updatedRetainedPicture = svg.RetainedPicture;
+
+        Assert.NotNull(svg.Picture);
+        Assert.NotNull(updatedRetainedPicture);
+        Assert.NotSame(initialRetainedPicture, updatedRetainedPicture);
+        AssertPicturesEqual(svg, svg.Picture!, updatedRetainedPicture!);
+    }
+
+    [Fact]
+    public void CachedRetainedSceneNodePicture_ReusesCachedNativePictureUntilRetainedSceneChanges()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(SimpleSvg);
+
+        Assert.True(svg.TryGetRetainedSceneNodeById("target", out var targetNode));
+        Assert.NotNull(targetNode);
+
+        var cachedTargetPicture = svg.GetCachedRetainedSceneNodePicture(targetNode!);
+        var cachedTargetPictureAgain = svg.GetCachedRetainedSceneNodePicture(targetNode!);
+        using var freshTargetPicture = svg.CreateRetainedSceneNodePicture(targetNode!);
+
+        Assert.NotNull(cachedTargetPicture);
+        Assert.NotNull(cachedTargetPictureAgain);
+        Assert.NotNull(freshTargetPicture);
+        Assert.Same(cachedTargetPicture, cachedTargetPictureAgain);
+        Assert.NotSame(cachedTargetPicture, freshTargetPicture);
+        AssertPicturesEqual(svg, freshTargetPicture!, cachedTargetPicture!);
+    }
+
+    [Fact]
+    public void CachedRetainedSceneNodePicture_InvalidatesAfterRetainedSceneMutation()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(SimpleSvg);
+
+        Assert.True(svg.TryGetRetainedSceneNodeById("target", out var targetNode));
+        Assert.NotNull(targetNode);
+
+        var initialTargetPicture = svg.GetCachedRetainedSceneNodePicture(targetNode!);
+        var sourceDocument = Assert.IsType<SvgDocument>(svg.RetainedSceneGraph!.SourceDocument);
+        var target = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("target"));
+        target.Fill = new SvgColourServer(Color.Purple);
+
+        var result = svg.ApplyRetainedSceneMutation(target, new[] { "fill" });
+        var updatedTargetPicture = svg.GetCachedRetainedSceneNodePicture(targetNode!);
+        using var freshTargetPicture = svg.CreateRetainedSceneNodePicture(targetNode!);
+
+        Assert.True(result.Succeeded);
+        Assert.NotNull(initialTargetPicture);
+        Assert.NotNull(updatedTargetPicture);
+        Assert.NotNull(freshTargetPicture);
+        Assert.NotSame(initialTargetPicture, updatedTargetPicture);
+        AssertPicturesEqual(svg, freshTargetPicture!, updatedTargetPicture!);
+    }
+
+    [Fact]
+    public void CachedRetainedSceneNodePicture_WithClip_ReusesCachedNativePicturePerClipUntilRetainedSceneChanges()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(SimpleSvg);
+
+        Assert.True(svg.TryGetRetainedSceneNodeById("target", out var targetNode));
+        Assert.NotNull(targetNode);
+
+        var clip = targetNode!.TransformedBounds;
+        var differentClip = clip;
+        differentClip.Right -= 1f;
+        var cachedTargetPicture = svg.GetCachedRetainedSceneNodePicture(targetNode, clip);
+        var cachedTargetPictureAgain = svg.GetCachedRetainedSceneNodePicture(targetNode, clip);
+        var cachedTargetPictureForDifferentClip = svg.GetCachedRetainedSceneNodePicture(targetNode, differentClip);
+        using var freshTargetPicture = svg.CreateRetainedSceneNodePicture(targetNode, clip);
+
+        Assert.NotNull(cachedTargetPicture);
+        Assert.NotNull(cachedTargetPictureAgain);
+        Assert.NotNull(cachedTargetPictureForDifferentClip);
+        Assert.NotNull(freshTargetPicture);
+        Assert.Same(cachedTargetPicture, cachedTargetPictureAgain);
+        Assert.NotSame(cachedTargetPicture, cachedTargetPictureForDifferentClip);
+        Assert.NotSame(cachedTargetPicture, freshTargetPicture);
+        AssertPicturesEqual(svg, freshTargetPicture!, cachedTargetPicture!);
+    }
+
+    [Fact]
+    public void CachedRetainedSceneNodePicture_WithClip_InvalidatesAfterRetainedSceneMutation()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(SimpleSvg);
+
+        Assert.True(svg.TryGetRetainedSceneNodeById("target", out var targetNode));
+        Assert.NotNull(targetNode);
+
+        var clip = targetNode!.TransformedBounds;
+        var initialTargetPicture = svg.GetCachedRetainedSceneNodePicture(targetNode, clip);
+        var sourceDocument = Assert.IsType<SvgDocument>(svg.RetainedSceneGraph!.SourceDocument);
+        var target = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("target"));
+        target.Fill = new SvgColourServer(Color.Purple);
+
+        var result = svg.ApplyRetainedSceneMutation(target, new[] { "fill" });
+        var updatedTargetPicture = svg.GetCachedRetainedSceneNodePicture(targetNode, clip);
+        using var freshTargetPicture = svg.CreateRetainedSceneNodePicture(targetNode, clip);
+
+        Assert.True(result.Succeeded);
+        Assert.NotNull(initialTargetPicture);
+        Assert.NotNull(updatedTargetPicture);
+        Assert.NotNull(freshTargetPicture);
+        Assert.NotSame(initialTargetPicture, updatedTargetPicture);
+        AssertPicturesEqual(svg, freshTargetPicture!, updatedTargetPicture!);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ReusesCachedSolidDirectPaintTemplatesAcrossMatchingNodes()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(SolidDirectPaintReuseSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("fill-a", out var fillNodeA));
+        Assert.True(scene.TryGetNodeById("fill-b", out var fillNodeB));
+        Assert.True(scene.TryGetNodeById("stroke-a", out var strokeNodeA));
+        Assert.True(scene.TryGetNodeById("stroke-b", out var strokeNodeB));
+
+        var fillPaintA = GetInternalPaint(fillNodeA!, "LocalFill");
+        var fillPaintB = GetInternalPaint(fillNodeB!, "LocalFill");
+        var strokePaintA = GetInternalPaint(strokeNodeA!, "LocalStroke");
+        var strokePaintB = GetInternalPaint(strokeNodeB!, "LocalStroke");
+
+        Assert.NotNull(fillPaintA);
+        Assert.NotNull(fillPaintB);
+        Assert.NotNull(strokePaintA);
+        Assert.NotNull(strokePaintB);
+        Assert.Same(fillPaintA, fillPaintB);
+        Assert.Same(strokePaintA, strokePaintB);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ReusesSharedPathDataAcrossFreshParsedDocuments()
+    {
+        const string sharedPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+              <path id="path-target" d="M2 2 L30 2 L30 30 C24 26 18 24 2 30 Z" fill="#3366cc" />
+            </svg>
+            """;
+        const string differentPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+              <path id="path-target" d="M2 2 L30 2 L26 30 C20 24 12 24 2 28 Z" fill="#3366cc" />
+            </svg>
+            """;
+
+        var firstDocument = SvgService.FromSvg(sharedPathSvg);
+        var secondDocument = SvgService.FromSvg(sharedPathSvg);
+        var differentDocument = SvgService.FromSvg(differentPathSvg);
+        Assert.NotNull(firstDocument);
+        Assert.NotNull(secondDocument);
+        Assert.NotNull(differentDocument);
+        var firstPathTarget = firstDocument.GetElementById("path-target");
+        var secondPathTarget = secondDocument.GetElementById("path-target");
+        var differentPathTarget = differentDocument.GetElementById("path-target");
+        Assert.NotNull(firstPathTarget);
+        Assert.NotNull(secondPathTarget);
+        Assert.NotNull(differentPathTarget);
+
+        var firstPathElement = Assert.IsType<SvgPath>(firstPathTarget);
+        var secondPathElement = Assert.IsType<SvgPath>(secondPathTarget);
+        var differentPathElement = Assert.IsType<SvgPath>(differentPathTarget);
+        var firstPathData = Assert.IsType<Svg.Pathing.SvgPathSegmentList>(firstPathElement.PathData);
+        var secondPathData = Assert.IsType<Svg.Pathing.SvgPathSegmentList>(secondPathElement.PathData);
+        var differentPathData = Assert.IsType<Svg.Pathing.SvgPathSegmentList>(differentPathElement.PathData);
+
+        var firstPath = InvokeInternalPathDataToPath(firstPathData, firstPathElement.FillRule);
+        var secondPath = InvokeInternalPathDataToPath(secondPathData, secondPathElement.FillRule);
+        var differentPath = InvokeInternalPathDataToPath(differentPathData, differentPathElement.FillRule);
+
+        Assert.NotNull(firstPath);
+        Assert.NotNull(secondPath);
+        Assert.NotNull(differentPath);
+        Assert.NotSame(firstPath, secondPath);
+        Assert.Equal(firstPath.Commands?.Count, secondPath.Commands?.Count);
+        Assert.Equal(firstPath.Bounds, secondPath.Bounds);
+        Assert.NotSame(firstPath, differentPath);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_SharedPathDataAcrossFreshParsedDocuments_RemainsMutationIsolated()
+    {
+        const string sharedPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+              <path id="path-target" d="M2 2 L30 2 L30 30 C24 26 18 24 2 30 Z" fill="#3366cc" />
+            </svg>
+            """;
+
+        var firstDocument = SvgService.FromSvg(sharedPathSvg);
+        var secondDocument = SvgService.FromSvg(sharedPathSvg);
+        Assert.NotNull(firstDocument);
+        Assert.NotNull(secondDocument);
+
+        var firstPathElement = Assert.IsType<SvgPath>(firstDocument.GetElementById("path-target"));
+        var secondPathElement = Assert.IsType<SvgPath>(secondDocument.GetElementById("path-target"));
+        var firstPath = InvokeInternalPathDataToPath(Assert.IsType<Svg.Pathing.SvgPathSegmentList>(firstPathElement.PathData), firstPathElement.FillRule);
+        var secondPath = InvokeInternalPathDataToPath(Assert.IsType<Svg.Pathing.SvgPathSegmentList>(secondPathElement.PathData), secondPathElement.FillRule);
+
+        Assert.NotNull(firstPath);
+        Assert.NotNull(secondPath);
+        Assert.NotSame(firstPath, secondPath);
+
+        firstPath.Commands!.Clear();
+
+        Assert.NotEmpty(secondPath.Commands!);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_OmitsSaveRestoreForStateFreeWrapperNodes()
+    {
+        const string wrapperSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g>
+                <a href="https://example.com">
+                  <rect x="1" y="2" width="6" height="7" fill="red" />
+                </a>
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapperSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+
+        Assert.NotNull(retainedModel);
+        Assert.Empty(retainedModel!.FindCommands<SaveCanvasCommand>());
+        Assert.Empty(retainedModel.FindCommands<RestoreCanvasCommand>());
+        Assert.Single(retainedModel.FindCommands<DrawPathCanvasCommand>());
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_UsesSaveLayerWithoutExtraSaveForOpacityOnlyWrapper()
+    {
+        const string opacitySvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g opacity="0.5">
+                <rect x="1" y="2" width="6" height="7" fill="red" />
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(opacitySvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+
+        Assert.NotNull(retainedModel);
+        Assert.Empty(retainedModel!.FindCommands<SaveCanvasCommand>());
+        var saveLayer = Assert.Single(retainedModel.FindCommands<SaveLayerCanvasCommand>());
+        Assert.True(saveLayer.Bounds is { } bounds && !bounds.IsEmpty);
+        Assert.Single(retainedModel.FindCommands<RestoreCanvasCommand>());
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_FoldsLeafOpacityIntoSingleDirectPaintWithoutSaveLayer()
+    {
+        const string opacitySvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <path id="target" d="M2 2 L18 2 L18 18 L2 18 Z" fill="red" opacity="0.5" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(opacitySvg);
+
+        var parsedPath = Assert.IsType<SvgPath>(Assert.IsAssignableFrom<SvgElement>(svg.SourceDocument!.GetElementById("target")));
+        Assert.NotNull(parsedPath.PathData);
+        Assert.NotEmpty(parsedPath.PathData);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        var scene = svg.RetainedSceneGraph;
+
+        Assert.NotNull(retainedModel);
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("target", out var node));
+        Assert.NotNull(node);
+        var localPathProperty = typeof(SvgSceneNode).GetProperty("LocalPath", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(localPathProperty);
+        Assert.Empty(node!.Children);
+        Assert.Null(node.LocalModel);
+        Assert.NotNull(localPathProperty!.GetValue(node));
+        Assert.Null(node.Opacity);
+        Assert.Equal(0.5f, node.OpacityValue);
+
+        var localFill = GetInternalPaint(node, "LocalFill");
+        var localStroke = GetInternalPaint(node, "LocalStroke");
+        Assert.True((localFill is not null) ^ (localStroke is not null));
+
+        Assert.Empty(retainedModel!.FindCommands<SaveLayerCanvasCommand>());
+        Assert.Single(retainedModel.FindCommands<DrawPathCanvasCommand>());
+    }
+
+    [Fact]
+    public void PictureModel_UsesBoundedSaveLayerForFilteredTextPath()
+    {
+        const string filteredTextPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="24" viewBox="0 0 48 24">
+              <defs>
+                <path id="curve-a" d="M4,16 C12,4 24,20 44,8" />
+                <filter id="blur-filter" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="1.5" />
+                </filter>
+              </defs>
+              <text font-size="8" fill="#204080">
+                <textPath href="#curve-a" filter="url(#blur-filter)">Blurred</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(filteredTextPathSvg);
+
+        var model = svg.Model;
+
+        Assert.NotNull(model);
+        var saveLayers = model!.FindCommands<SaveLayerCanvasCommand>().ToArray();
+        Assert.NotEmpty(saveLayers);
+        Assert.All(saveLayers, saveLayer => Assert.True(saveLayer.Bounds is { } bounds && !bounds.IsEmpty));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_KeepsSaveRestoreForTransformScopedNodes()
+    {
+        const string transformSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g transform="translate(4,5)">
+                <rect x="1" y="2" width="6" height="7" fill="red" />
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(transformSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+
+        Assert.NotNull(retainedModel);
+        Assert.Single(retainedModel!.FindCommands<SaveCanvasCommand>());
+        Assert.Single(retainedModel.FindCommands<SetMatrixCanvasCommand>());
+        Assert.Single(retainedModel.FindCommands<RestoreCanvasCommand>());
     }
 
     [Fact]
@@ -941,6 +1375,24 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_PreservesPaintPayloadsForFilteredPaintSourceNodes()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(FilteredPaintPayloadSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+
+        AssertCompilationStrategy(scene!, "filtered-paint-target", SvgSceneCompilationStrategy.DirectRetained);
+        Assert.True(scene.TryGetNodeById("filtered-paint-target", out var filteredNode));
+        Assert.NotNull(filteredNode);
+        Assert.NotNull(filteredNode!.Filter);
+        Assert.NotNull(filteredNode.Fill);
+        Assert.NotNull(filteredNode.Stroke);
+        Assert.True(filteredNode.StrokeWidth > 0f);
+    }
+
+    [Fact]
     public void RetainedSceneGraph_AssignsRetainedResourceKeysForClipMaskAndFilter()
     {
         using var svg = new SKSvg();
@@ -960,6 +1412,21 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.Contains(scene.ResourcesById.Values, static resource => resource.Id == "clip-a");
         Assert.Contains(scene.ResourcesById.Values, static resource => resource.Id == "mask-a");
         Assert.Contains(scene.ResourcesById.Values, static resource => resource.Id == "filter-a");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_LeavesRetainedResourceKeysNullForPlainDirectNodes()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(SimpleSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("target", out var targetNode));
+        Assert.NotNull(targetNode);
+        Assert.Null(targetNode!.ClipResourceKey);
+        Assert.Null(targetNode.MaskResourceKey);
+        Assert.Null(targetNode.FilterResourceKey);
     }
 
     [Fact]
@@ -1551,6 +2018,140 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_ApplyMutation_UpdatesDirectRectGeometryAfterCachedCompile()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(SimpleSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        var sourceDocument = Assert.IsType<SvgDocument>(scene!.SourceDocument);
+        var target = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("target"));
+        target.Width = 12;
+
+        var result = scene.ApplyMutation(target, new[] { "width" });
+
+        Assert.True(result.Succeeded);
+        Assert.True(result.CompilationRootCount >= 1);
+
+        Assert.True(GetIsPathDirty(target));
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        using var expectedSvg = new SKSvg();
+        expectedSvg.FromSvgDocument((SvgDocument)sourceDocument.DeepCopy());
+
+        Assert.NotNull(retainedPicture);
+        Assert.NotNull(expectedSvg.Picture);
+        AssertPicturesEqual(expectedSvg, expectedSvg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ApplyMutation_UpdatesDirectPathGeometryAfterCachedCompile()
+    {
+        const string svgText = """
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 viewBox="0 0 24 24">
+              <path id="target" d="M2 2 L8 2 L8 8 L2 8 Z" fill="red" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(svgText);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        var sourceDocument = Assert.IsType<SvgDocument>(scene!.SourceDocument);
+        var target = Assert.IsType<SvgPath>(sourceDocument.GetElementById("target"));
+        target.PathData[1] = new SvgLineSegment(false, new PointF(14f, 2f));
+
+        var result = scene.ApplyMutation(target, new[] { "d" });
+
+        Assert.True(result.Succeeded);
+        Assert.True(result.CompilationRootCount >= 1);
+        Assert.True(GetIsPathDirty(target));
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        using var expectedSvg = new SKSvg();
+        expectedSvg.FromSvgDocument((SvgDocument)sourceDocument.DeepCopy());
+
+        Assert.NotNull(retainedPicture);
+        Assert.NotNull(expectedSvg.Picture);
+        AssertPicturesEqual(expectedSvg, expectedSvg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ApplyMutation_UpdatesDirectVisualTransformAfterCachedCompile()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(SimpleSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        var sourceDocument = Assert.IsType<SvgDocument>(scene!.SourceDocument);
+        var target = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("target"));
+        target.Transforms = new Svg.Transforms.SvgTransformCollection
+        {
+            new Svg.Transforms.SvgTranslate(6f, 3f)
+        };
+
+        var result = scene.ApplyMutation(target, new[] { "transform" });
+
+        Assert.True(result.Succeeded);
+        Assert.True(result.CompilationRootCount >= 1);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        using var expectedSvg = new SKSvg();
+        expectedSvg.FromSvgDocument((SvgDocument)sourceDocument.DeepCopy());
+
+        Assert.NotNull(retainedPicture);
+        Assert.NotNull(expectedSvg.Picture);
+        AssertPicturesEqual(expectedSvg, expectedSvg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void SceneRuntime_RecompileAfterSiblingInsertion_UsesCurrentElementAddressKeys()
+    {
+        const string svgText = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="20">
+              <g id="host">
+                <rect id="target" x="10" y="2" width="12" height="8" fill="red" />
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        var document = Assert.IsType<SvgDocument>(SvgService.FromSvg(svgText));
+
+        Assert.True(SvgSceneRuntime.TryCompile(document, svg.AssetLoader, DrawAttributes.None, out var initialScene));
+        Assert.NotNull(initialScene);
+
+        var host = Assert.IsType<SvgGroup>(document.GetElementById("host"));
+        var target = Assert.IsType<SvgRectangle>(document.GetElementById("target"));
+        Assert.True(initialScene!.TryGetNode(target, out var initialTargetNode));
+        Assert.NotNull(initialTargetNode);
+
+        host.Children.Insert(0, new SvgRectangle
+        {
+            ID = "inserted",
+            X = 1,
+            Y = 1,
+            Width = 4,
+            Height = 4,
+            Fill = new SvgColourServer(Color.Blue)
+        });
+
+        Assert.True(SvgSceneRuntime.TryCompile(document, svg.AssetLoader, DrawAttributes.None, out var updatedScene));
+        Assert.NotNull(updatedScene);
+        Assert.True(updatedScene!.TryGetNode(target, out var updatedTargetNode));
+        Assert.NotNull(updatedTargetNode);
+        Assert.Equal("target", updatedTargetNode!.ElementId);
+        Assert.True(updatedScene.TryGetNodeById("inserted", out var insertedNode));
+        Assert.NotNull(insertedNode);
+    }
+
+    [Fact]
     public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForPatternDocument()
     {
         using var svg = new SKSvg();
@@ -1926,6 +2527,34 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         return Path.Combine("..", "..", "..", "..", "..", "externals", "resvg", "tests", "svg", fileName);
     }
 
+    private static SKPaint? GetInternalPaint(SvgSceneNode node, string propertyName)
+    {
+        var property = typeof(SvgSceneNode).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(property);
+        return property!.GetValue(node) as SKPaint;
+    }
+
+    private static SKPath? InvokeInternalPathDataToPath(Svg.Pathing.SvgPathSegmentList pathData, SvgFillRule fillRule)
+    {
+        var pathingServiceType = typeof(SvgService).Assembly.GetType("Svg.Model.Services.PathingService");
+        Assert.NotNull(pathingServiceType);
+        var method = pathingServiceType!.GetMethod(
+            "ToPath",
+            BindingFlags.Static | BindingFlags.NonPublic,
+            binder: null,
+            types: new[] { typeof(Svg.Pathing.SvgPathSegmentList), typeof(SvgFillRule) },
+            modifiers: null);
+        Assert.NotNull(method);
+        return method!.Invoke(null, new object[] { pathData, fillRule }) as SKPath;
+    }
+
+    private static bool GetIsPathDirty(SvgElement element)
+    {
+        var property = typeof(SvgElement).GetProperty("IsPathDirty", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(property);
+        return Assert.IsType<bool>(property!.GetValue(element));
+    }
+
     private const string SimpleSvg = """
         <svg xmlns="http://www.w3.org/2000/svg"
              width="24"
@@ -1935,6 +2564,18 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
             <rect id="target" x="2" y="2" width="8" height="8" fill="red" />
             <circle id="accent" cx="18" cy="6" r="4" fill="blue" />
           </g>
+        </svg>
+        """;
+
+    private const string SolidDirectPaintReuseSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="40"
+             height="24"
+             viewBox="0 0 40 24">
+          <rect id="fill-a" x="2" y="2" width="8" height="8" fill="#cc3344" />
+          <rect id="fill-b" x="14" y="2" width="8" height="8" fill="#cc3344" />
+          <line id="stroke-a" x1="4" y1="18" x2="12" y2="18" stroke="#2255aa" stroke-width="2" fill="none" />
+          <line id="stroke-b" x1="16" y1="18" x2="24" y2="18" stroke="#2255aa" stroke-width="2" fill="none" />
         </svg>
         """;
 
@@ -2085,6 +2726,28 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
             </filter>
           </defs>
           <rect id="filtered-image-target" x="4" y="4" width="16" height="16" fill="#3366cc" filter="url(#image-filter)" />
+        </svg>
+        """;
+
+    private const string FilteredPaintPayloadSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             viewBox="0 0 24 24">
+          <defs>
+            <filter id="paint-filter" x="-25%" y="-25%" width="150%" height="150%">
+              <feBlend in="FillPaint" in2="StrokePaint" mode="multiply" />
+            </filter>
+          </defs>
+          <rect id="filtered-paint-target"
+                x="4"
+                y="4"
+                width="16"
+                height="16"
+                fill="#3366cc"
+                stroke="#cc6633"
+                stroke-width="2"
+                filter="url(#paint-filter)" />
         </svg>
         """;
 

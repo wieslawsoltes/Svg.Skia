@@ -22,18 +22,30 @@ internal sealed class SvgElementAddressKeyCache
         }
 
         var parent = element.Parent;
-        var childIndex = parent is null ? -1 : GetChildIndex(parent, element);
+        if (parent is null)
+        {
+            return null;
+        }
+
+        var parentAddressKey = GetOrCreate(parent);
+        if (element.TryGetSceneGraphAddressKey(parent, parentAddressKey, out addressKey))
+        {
+            _addressKeys[element] = addressKey;
+            return addressKey;
+        }
+
+        var childIndex = GetChildIndex(parent, element);
         if (childIndex < 0)
         {
             return null;
         }
 
         var indexText = childIndex.ToString(CultureInfo.InvariantCulture);
-        var parentAddressKey = GetOrCreate(parent);
         addressKey = parentAddressKey is null
             ? indexText
             : string.Concat(parentAddressKey, "/", indexText);
 
+        element.SetSceneGraphAddressKey(parent, parentAddressKey, childIndex, addressKey);
         _addressKeys[element] = addressKey;
         return addressKey;
     }

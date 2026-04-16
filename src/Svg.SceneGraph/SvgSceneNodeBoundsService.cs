@@ -28,16 +28,43 @@ internal static class SvgSceneNodeBoundsService
             return SKRect.Empty;
         }
 
-        var bounds = node.IsRenderable
-            ? GetInflatedBounds(node, node.TransformedBounds)
-            : SKRect.Empty;
+        return node.HasRenderablePaintBounds
+            ? node.RenderablePaintBounds
+            : ComputeRenderablePaintBounds(node);
+    }
 
-        for (var i = 0; i < node.Children.Count; i++)
+    public static SKRect GetLocalRenderablePaintBounds(SvgSceneNode? node)
+    {
+        if (node is null)
         {
-            bounds = UnionNonEmpty(bounds, GetRenderablePaintBounds(node.Children[i]));
+            return SKRect.Empty;
         }
 
-        return bounds;
+        return node.HasLocalRenderablePaintBounds
+            ? node.LocalRenderablePaintBounds
+            : ComputeLocalRenderablePaintBounds(node);
+    }
+
+    internal static SKRect CacheRenderablePaintBounds(SvgSceneNode? node)
+    {
+        if (node is null)
+        {
+            return SKRect.Empty;
+        }
+
+        CacheRenderablePaintBounds(node, out var worldBounds, out _);
+        return worldBounds;
+    }
+
+    internal static void RefreshRenderablePaintBoundsUpward(SvgSceneNode? node)
+    {
+        for (var current = node; current is not null; current = current.Parent)
+        {
+            current.RenderablePaintBounds = ComputeRenderablePaintBounds(current);
+            current.HasRenderablePaintBounds = true;
+            current.LocalRenderablePaintBounds = ComputeLocalRenderablePaintBounds(current);
+            current.HasLocalRenderablePaintBounds = true;
+        }
     }
 
     public static SKRect GetPixelAlignedBounds(SKRect bounds)
@@ -92,5 +119,87 @@ internal static class SvgSceneNodeBoundsService
         return current.IsEmpty
             ? candidate
             : SKRect.Union(current, candidate);
+    }
+
+    private static void CacheRenderablePaintBounds(SvgSceneNode node, out SKRect worldBounds, out SKRect localBounds)
+    {
+        worldBounds = node.IsRenderable
+            ? GetInflatedBounds(node, node.TransformedBounds)
+            : SKRect.Empty;
+        localBounds = node.IsRenderable
+            ? GetLocalInflatedBounds(node, node.GeometryBounds)
+            : SKRect.Empty;
+
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            CacheRenderablePaintBounds(node.Children[i], out var childWorldBounds, out var childLocalBounds);
+            worldBounds = UnionNonEmpty(worldBounds, childWorldBounds);
+            localBounds = UnionNonEmpty(localBounds, MapToParentLocalSpace(node.Children[i], childLocalBounds));
+        }
+
+        node.RenderablePaintBounds = worldBounds;
+        node.HasRenderablePaintBounds = true;
+        node.LocalRenderablePaintBounds = localBounds;
+        node.HasLocalRenderablePaintBounds = true;
+    }
+
+    private static SKRect ComputeRenderablePaintBounds(SvgSceneNode node)
+    {
+        var bounds = node.IsRenderable
+            ? GetInflatedBounds(node, node.TransformedBounds)
+            : SKRect.Empty;
+
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            bounds = UnionNonEmpty(bounds, GetRenderablePaintBounds(node.Children[i]));
+        }
+
+        return bounds;
+    }
+
+    private static SKRect ComputeLocalRenderablePaintBounds(SvgSceneNode node)
+    {
+        var bounds = node.IsRenderable
+            ? GetLocalInflatedBounds(node, node.GeometryBounds)
+            : SKRect.Empty;
+
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            bounds = UnionNonEmpty(bounds, MapToParentLocalSpace(node.Children[i], GetLocalRenderablePaintBounds(node.Children[i])));
+        }
+
+        return bounds;
+    }
+
+    private static SKRect GetLocalInflatedBounds(SvgSceneNode node, SKRect bounds)
+    {
+        if (bounds.IsEmpty || node.StrokeWidth <= 0f)
+        {
+            return bounds;
+        }
+
+        var inflation = node.StrokeWidth / 2f;
+        if (inflation <= 0f)
+        {
+            return bounds;
+        }
+
+        bounds.Left -= inflation;
+        bounds.Top -= inflation;
+        bounds.Right += inflation;
+        bounds.Bottom += inflation;
+        return bounds;
+    }
+
+    private static SKRect MapToParentLocalSpace(SvgSceneNode child, SKRect bounds)
+    {
+        if (bounds.IsEmpty)
+        {
+            return bounds;
+        }
+
+        return child.Transform.IsIdentity
+            ? bounds
+            : child.Transform.MapRect(bounds);
     }
 }

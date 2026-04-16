@@ -81,6 +81,14 @@ public sealed class SvgSceneResource
         }
     }
 
+    internal void RemoveDependentCompilationRoot(string compilationRootKey)
+    {
+        if (!string.IsNullOrWhiteSpace(compilationRootKey))
+        {
+            _dependentCompilationRoots.Remove(compilationRootKey);
+        }
+    }
+
     internal SvgSceneClipPayload? ResolveClipPayload(SvgSceneDocument sceneDocument, SvgSceneNode targetNode)
     {
         if (Kind != SvgSceneResourceKind.ClipPath || SourceElement is not SvgClipPath svgClipPath)

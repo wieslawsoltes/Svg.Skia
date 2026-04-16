@@ -37,6 +37,16 @@ public class SvgSceneTextCompilerTests
         binder: null,
         [typeof(SvgTextBase), typeof(IReadOnlyList<string>), typeof(SKRect), typeof(ISvgAssetLoader)],
         modifiers: null)!;
+    private static readonly MethodInfo s_measureLineStatsMethod = s_svgSceneTextCompilerType.GetMethod(
+        "MeasureLineStats",
+        BindingFlags.NonPublic | BindingFlags.Static,
+        binder: null,
+        [typeof(SvgTextBase), typeof(string), typeof(SKRect), typeof(ISvgAssetLoader)],
+        modifiers: null)!;
+    private static readonly MethodInfo s_clearPreparedTextCachesMethod = s_svgSceneTextCompilerType.GetMethod("ClearPreparedTextCaches", BindingFlags.NonPublic | BindingFlags.Static)!;
+    private static readonly FieldInfo s_naturalTextAdvanceCacheField = s_svgSceneTextCompilerType.GetField("s_naturalTextAdvanceCache", BindingFlags.NonPublic | BindingFlags.Static)!;
+    private static readonly FieldInfo s_naturalCodepointAdvanceCacheField = s_svgSceneTextCompilerType.GetField("s_naturalCodepointAdvanceCache", BindingFlags.NonPublic | BindingFlags.Static)!;
+    private static readonly FieldInfo s_sharedLineStatsCacheField = s_svgSceneTextCompilerType.GetField("s_sharedLineStatsCache", BindingFlags.NonPublic | BindingFlags.Static)!;
     private static readonly MethodInfo s_tryPrepareFlatTextRunMethod = s_svgSceneTextCompilerType
         .GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
         .Single(method =>
@@ -153,6 +163,164 @@ public class SvgSceneTextCompilerTests
         var largeAdvances = InvokeMeasureNaturalCodepointAdvances(largeText, codepoints, largeBounds, assetLoader);
 
         Assert.True(largeAdvances.Sum() > smallAdvances.Sum() * 2f);
+    }
+
+    [Fact]
+    public void MeasureNaturalCodepointAdvances_ReusesAcrossFreshLoaders_WhenTextMeasurementCacheKeyMatches()
+    {
+        ClearPreparedTextCaches();
+        try
+        {
+            var document = CreateDocument("Cache", 24);
+            var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+            var geometryBounds = GetDocumentViewport(document);
+            var codepoints = InvokeSplitCodepoints("Cache");
+            var cacheKey = Guid.NewGuid().GetHashCode();
+
+            var firstLoader = new SharedKeyCountingAssetLoader(cacheKey);
+            var firstAdvances = InvokeMeasureNaturalCodepointAdvances(svgText, codepoints, geometryBounds, firstLoader);
+            Assert.Equal(1, GetNaturalCodepointAdvanceCacheCount());
+
+            var secondLoader = new SharedKeyCountingAssetLoader(cacheKey);
+            var secondAdvances = InvokeMeasureNaturalCodepointAdvances(svgText, codepoints, geometryBounds, secondLoader);
+
+            Assert.Equal(firstAdvances, secondAdvances);
+            Assert.Equal(1, GetNaturalCodepointAdvanceCacheCount());
+        }
+        finally
+        {
+            ClearPreparedTextCaches();
+        }
+    }
+
+    [Fact]
+    public void MeasureNaturalCodepointAdvances_DoesNotReuseAcrossFreshLoaders_WhenTextMeasurementCacheKeyDiffers()
+    {
+        ClearPreparedTextCaches();
+        try
+        {
+            var document = CreateDocument("Cache", 24);
+            var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+            var geometryBounds = GetDocumentViewport(document);
+            var codepoints = InvokeSplitCodepoints("Cache");
+            var firstCacheKey = Guid.NewGuid().GetHashCode();
+
+            var firstLoader = new SharedKeyCountingAssetLoader(firstCacheKey);
+            _ = InvokeMeasureNaturalCodepointAdvances(svgText, codepoints, geometryBounds, firstLoader);
+
+            var secondLoader = new SharedKeyCountingAssetLoader(unchecked(firstCacheKey + 1));
+            _ = InvokeMeasureNaturalCodepointAdvances(svgText, codepoints, geometryBounds, secondLoader);
+
+            Assert.Equal(2, GetNaturalCodepointAdvanceCacheCount());
+        }
+        finally
+        {
+            ClearPreparedTextCaches();
+        }
+    }
+
+    [Fact]
+    public void MeasureNaturalTextAdvance_ReusesAcrossFreshLoaders_WhenTextMeasurementCacheKeyMatches()
+    {
+        ClearPreparedTextCaches();
+        try
+        {
+            var document = CreateDocument("Cache", 24);
+            var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+            var geometryBounds = GetDocumentViewport(document);
+            var cacheKey = Guid.NewGuid().GetHashCode();
+
+            var firstLoader = new SharedKeyCountingAssetLoader(cacheKey);
+            var firstAdvance = InvokeMeasureNaturalTextAdvance(svgText, "Cache", geometryBounds, firstLoader);
+            Assert.Equal(1, GetNaturalTextAdvanceCacheCount());
+
+            var secondLoader = new SharedKeyCountingAssetLoader(cacheKey);
+            var secondAdvance = InvokeMeasureNaturalTextAdvance(svgText, "Cache", geometryBounds, secondLoader);
+
+            Assert.Equal(firstAdvance, secondAdvance, 3);
+            Assert.Equal(1, GetNaturalTextAdvanceCacheCount());
+        }
+        finally
+        {
+            ClearPreparedTextCaches();
+        }
+    }
+
+    [Fact]
+    public void MeasureNaturalTextAdvance_DoesNotReuseAcrossFreshLoaders_WhenTextMeasurementCacheKeyDiffers()
+    {
+        ClearPreparedTextCaches();
+        try
+        {
+            var document = CreateDocument("Cache", 24);
+            var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+            var geometryBounds = GetDocumentViewport(document);
+            var firstCacheKey = Guid.NewGuid().GetHashCode();
+
+            var firstLoader = new SharedKeyCountingAssetLoader(firstCacheKey);
+            _ = InvokeMeasureNaturalTextAdvance(svgText, "Cache", geometryBounds, firstLoader);
+
+            var secondLoader = new SharedKeyCountingAssetLoader(unchecked(firstCacheKey + 1));
+            _ = InvokeMeasureNaturalTextAdvance(svgText, "Cache", geometryBounds, secondLoader);
+
+            Assert.Equal(2, GetNaturalTextAdvanceCacheCount());
+        }
+        finally
+        {
+            ClearPreparedTextCaches();
+        }
+    }
+
+    [Fact]
+    public void MeasureLineStats_ReusesAcrossFreshLoaders_WhenTextMeasurementCacheKeyMatches()
+    {
+        ClearPreparedTextCaches();
+        try
+        {
+            var document = CreateDocument("Cache", 24);
+            var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+            var geometryBounds = GetDocumentViewport(document);
+            var cacheKey = Guid.NewGuid().GetHashCode();
+
+            var firstLoader = new SharedKeyCountingAssetLoader(cacheKey);
+            var firstLineStats = InvokeMeasureLineStats(svgText, "Cache", geometryBounds, firstLoader);
+            Assert.Equal(1, GetSharedLineStatsCacheCount());
+
+            var secondLoader = new SharedKeyCountingAssetLoader(cacheKey);
+            var secondLineStats = InvokeMeasureLineStats(svgText, "Cache", geometryBounds, secondLoader);
+
+            Assert.Same(firstLineStats, secondLineStats);
+            Assert.Equal(1, GetSharedLineStatsCacheCount());
+        }
+        finally
+        {
+            ClearPreparedTextCaches();
+        }
+    }
+
+    [Fact]
+    public void MeasureLineStats_DoesNotReuseAcrossFreshLoaders_WhenTextMeasurementCacheKeyDiffers()
+    {
+        ClearPreparedTextCaches();
+        try
+        {
+            var document = CreateDocument("Cache", 24);
+            var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+            var geometryBounds = GetDocumentViewport(document);
+            var firstCacheKey = Guid.NewGuid().GetHashCode();
+
+            var firstLoader = new SharedKeyCountingAssetLoader(firstCacheKey);
+            _ = InvokeMeasureLineStats(svgText, "Cache", geometryBounds, firstLoader);
+
+            var secondLoader = new SharedKeyCountingAssetLoader(unchecked(firstCacheKey + 1));
+            _ = InvokeMeasureLineStats(svgText, "Cache", geometryBounds, secondLoader);
+
+            Assert.Equal(2, GetSharedLineStatsCacheCount());
+        }
+        finally
+        {
+            ClearPreparedTextCaches();
+        }
     }
 
     [Fact]
@@ -561,6 +729,42 @@ public class SvgSceneTextCompilerTests
         return Assert.IsType<float[]>(s_measureNaturalCodepointAdvancesMethod.Invoke(null, [svgTextBase, codepoints, geometryBounds, assetLoader]));
     }
 
+    private static object InvokeMeasureLineStats(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader)
+    {
+        return s_measureLineStatsMethod.Invoke(null, [svgTextBase, text, geometryBounds, assetLoader])
+            ?? throw new InvalidOperationException("MeasureLineStats returned null.");
+    }
+
+    private static void ClearPreparedTextCaches()
+    {
+        s_clearPreparedTextCachesMethod.Invoke(null, null);
+    }
+
+    private static int GetNaturalCodepointAdvanceCacheCount()
+    {
+        var cache = s_naturalCodepointAdvanceCacheField.GetValue(null)
+            ?? throw new InvalidOperationException("Natural codepoint advance cache was not initialized.");
+        return Assert.IsType<int>(cache.GetType().GetProperty("Count")!.GetValue(cache));
+    }
+
+    private static int GetNaturalTextAdvanceCacheCount()
+    {
+        var cache = s_naturalTextAdvanceCacheField.GetValue(null)
+            ?? throw new InvalidOperationException("Natural text advance cache was not initialized.");
+        return Assert.IsType<int>(cache.GetType().GetProperty("Count")!.GetValue(cache));
+    }
+
+    private static int GetSharedLineStatsCacheCount()
+    {
+        var cache = s_sharedLineStatsCacheField.GetValue(null)
+            ?? throw new InvalidOperationException("Shared line stats cache was not initialized.");
+        return Assert.IsType<int>(cache.GetType().GetProperty("Count")!.GetValue(cache));
+    }
+
     private static bool InvokeTryPrepareFlatTextRun(
         SvgTextBase svgTextBase,
         string text,
@@ -803,6 +1007,52 @@ public class SvgSceneTextCompilerTests
             }
 
             throw new InvalidOperationException($"Unexpected prefix measurement for '{text}'.");
+        }
+    }
+
+    private sealed class SharedKeyCountingAssetLoader : ISvgAssetLoader, ISvgTextMeasurementCacheKeyProvider, ISvgTextRunTypefaceResolver
+    {
+        private readonly SKTypeface _typeface = SKTypeface.FromFamilyName(
+            "sans-serif",
+            SKFontStyleWeight.Normal,
+            SKFontStyleWidth.Normal,
+            SKFontStyleSlant.Upright);
+
+        public SharedKeyCountingAssetLoader(int cacheKey)
+        {
+            TextMeasurementCacheKey = cacheKey;
+        }
+
+        public bool EnableSvgFonts => false;
+
+        public int TextMeasurementCacheKey { get; }
+
+        public SKImage LoadImage(Stream stream) => throw new NotSupportedException();
+
+        public List<TypefaceSpan> FindTypefaces(string? text, SKPaint paintPreferredTypeface)
+        {
+            var resolvedText = text ?? string.Empty;
+            return
+            [
+                new TypefaceSpan(resolvedText, GetAdvance(resolvedText), _typeface)
+            ];
+        }
+
+        public SKFontMetrics GetFontMetrics(SKPaint paint) => default;
+
+        public float MeasureText(string? text, SKPaint paint, ref SKRect bounds)
+        {
+            bounds = default;
+            return GetAdvance(text ?? string.Empty);
+        }
+
+        public SKPath? GetTextPath(string? text, SKPaint paint, float x, float y) => null;
+
+        public SKTypeface? FindRunTypeface(string? text, SKPaint paintPreferredTypeface) => _typeface;
+
+        private static float GetAdvance(string text)
+        {
+            return text.Length * 10f;
         }
     }
 }

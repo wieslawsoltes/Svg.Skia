@@ -82,6 +82,14 @@ public sealed class SvgSceneNode
 
     public SKRect TransformedBounds { get; internal set; }
 
+    internal SKRect RenderablePaintBounds { get; set; }
+
+    internal bool HasRenderablePaintBounds { get; set; }
+
+    internal SKRect LocalRenderablePaintBounds { get; set; }
+
+    internal bool HasLocalRenderablePaintBounds { get; set; }
+
     public SKMatrix Transform { get; internal set; }
 
     public SKMatrix TotalTransform { get; internal set; }
@@ -130,10 +138,15 @@ public sealed class SvgSceneNode
         LocalModel?.Commands is { Count: > 0 } ||
         (LocalPath is not null && (LocalFill is not null || LocalStroke is not null));
 
-    internal void AddChild(SvgSceneNode child)
+    internal void AddChild(SvgSceneNode child, bool invalidateRenderablePaintBoundsUpward = true)
     {
         child.Parent = this;
         _children.Add(child);
+        AccumulateStructuralChildGeometryBounds(child);
+        if (invalidateRenderablePaintBoundsUpward)
+        {
+            InvalidateRenderablePaintBoundsUpward();
+        }
     }
 
     internal void SetMask(SvgSceneNode? maskNode)
@@ -171,6 +184,10 @@ public sealed class SvgSceneNode
         HitTestPath = replacement.HitTestPath?.DeepClone();
         GeometryBounds = replacement.GeometryBounds;
         TransformedBounds = replacement.TransformedBounds;
+        RenderablePaintBounds = replacement.RenderablePaintBounds;
+        HasRenderablePaintBounds = replacement.HasRenderablePaintBounds;
+        LocalRenderablePaintBounds = replacement.LocalRenderablePaintBounds;
+        HasLocalRenderablePaintBounds = replacement.HasLocalRenderablePaintBounds;
         Transform = replacement.Transform;
         TotalTransform = replacement.TotalTransform;
         Overflow = replacement.Overflow;
@@ -195,11 +212,12 @@ public sealed class SvgSceneNode
         _children.Clear();
         for (var i = 0; i < replacement.Children.Count; i++)
         {
-            AddChild(replacement.Children[i]);
+            AddChild(replacement.Children[i], invalidateRenderablePaintBoundsUpward: false);
         }
 
         MaskNode = null;
         SetMask(replacement.MaskNode);
+        InvalidateRenderablePaintBoundsUpward();
         MarkDirty();
     }
 
@@ -238,5 +256,49 @@ public sealed class SvgSceneNode
         }
 
         MaskNode?.ClearDirty();
+    }
+
+    private void AccumulateStructuralChildGeometryBounds(SvgSceneNode child)
+    {
+        if (!ShouldAccumulateStructuralChildGeometryBounds() ||
+            child.IsDisplayNone)
+        {
+            return;
+        }
+
+        var childBounds = child.GeometryBounds;
+        if (childBounds.IsEmpty)
+        {
+            return;
+        }
+
+        if (!child.Transform.IsIdentity)
+        {
+            childBounds = child.Transform.MapRect(childBounds);
+        }
+
+        GeometryBounds = GeometryBounds.IsEmpty
+            ? childBounds
+            : SKRect.Union(GeometryBounds, childBounds);
+    }
+
+    private bool ShouldAccumulateStructuralChildGeometryBounds()
+    {
+        return Kind is SvgSceneNodeKind.Fragment or
+               SvgSceneNodeKind.Group or
+               SvgSceneNodeKind.Anchor or
+               SvgSceneNodeKind.Use or
+               SvgSceneNodeKind.Switch;
+    }
+
+    private void InvalidateRenderablePaintBoundsUpward()
+    {
+        for (var current = this; current is not null; current = current.Parent)
+        {
+            current.HasRenderablePaintBounds = false;
+            current.RenderablePaintBounds = SKRect.Empty;
+            current.HasLocalRenderablePaintBounds = false;
+            current.LocalRenderablePaintBounds = SKRect.Empty;
+        }
     }
 }

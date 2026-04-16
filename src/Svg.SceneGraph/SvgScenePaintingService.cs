@@ -11,6 +11,14 @@ namespace Svg.Skia;
 internal static class SvgScenePaintingService
 {
     internal readonly record struct SolidFillPaintCacheKey(bool IsAntialias, SKColor Color, bool LinearRgb);
+    internal readonly record struct SolidStrokePaintCacheKey(
+        bool IsAntialias,
+        SKColor Color,
+        bool LinearRgb,
+        SKStrokeCap StrokeCap,
+        SKStrokeJoin StrokeJoin,
+        float StrokeMiter,
+        float StrokeWidth);
 
     internal static float AdjustSvgOpacity(float opacity)
     {
@@ -19,7 +27,11 @@ internal static class SvgScenePaintingService
 
     internal static SKPaint? GetOpacityPaint(float opacity)
     {
-        var adjustedOpacity = AdjustSvgOpacity(opacity);
+        return GetOpacityPaintFromAdjusted(AdjustSvgOpacity(opacity));
+    }
+
+    internal static SKPaint? GetOpacityPaintFromAdjusted(float adjustedOpacity)
+    {
         if (adjustedOpacity >= 1f)
         {
             return null;
@@ -33,6 +45,65 @@ internal static class SvgScenePaintingService
         };
     }
 
+    internal static bool TryCreateOpacityAdjustedDirectPaint(
+        SKPaint? paint,
+        float adjustedOpacity,
+        out SKPaint? adjustedPaint)
+    {
+        adjustedPaint = null;
+
+        if (paint is null)
+        {
+            return true;
+        }
+
+        if (paint.Color is not { } color ||
+            paint.Shader is not null ||
+            paint.ColorFilter is not null ||
+            paint.ImageFilter is not null ||
+            paint.BlendMode != SKBlendMode.SrcOver)
+        {
+            return false;
+        }
+
+        var clone = paint.Clone();
+        clone.Color = new SKColor(color.Red, color.Green, color.Blue, CombineWithOpacity(color.Alpha, adjustedOpacity));
+        adjustedPaint = clone;
+        return true;
+    }
+
+    internal static bool CanFoldOpacityIntoLeafDirectDraw(SvgSceneNode node)
+    {
+        if (node.Opacity is null ||
+            node.OpacityValue >= 1f ||
+            node.LocalModel is not null ||
+            node.LocalPath is null ||
+            node.Children.Count != 0 ||
+            node.MaskPaint is not null ||
+            node.MaskNode is not null ||
+            node.Filter is not null)
+        {
+            return false;
+        }
+
+        var hasFill = node.LocalFill is not null;
+        var hasStroke = node.LocalStroke is not null;
+        return hasFill ^ hasStroke;
+    }
+
+    internal static bool TryGetOpacityAdjustedLeafDirectPaints(
+        SvgSceneNode node,
+        out SKPaint? adjustedFill,
+        out SKPaint? adjustedStroke)
+    {
+        adjustedFill = null;
+        adjustedStroke = null;
+
+        return CanFoldOpacityIntoLeafDirectDraw(node) &&
+               TryCreateOpacityAdjustedDirectPaint(node.LocalFill, node.OpacityValue, out adjustedFill) &&
+               TryCreateOpacityAdjustedDirectPaint(node.LocalStroke, node.OpacityValue, out adjustedStroke);
+    }
+
     internal static bool IsValidFill(SvgElement svgElement)
     {
         var fill = svgElement.Fill;
@@ -41,11 +112,22 @@ internal static class SvgScenePaintingService
 
     internal static bool IsValidStroke(SvgElement svgElement, SKRect skBounds)
     {
-        var stroke = svgElement.Stroke;
-        var strokeWidth = svgElement.StrokeWidth;
-        return stroke is not null
-            && stroke != SvgPaintServer.None
-            && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
+        return svgElement is SvgVisualElement svgVisualElement &&
+               TryGetStrokeWidth(svgVisualElement, skBounds, out _);
+    }
+
+    internal static bool TryGetStrokeWidth(SvgVisualElement svgVisualElement, SKRect skBounds, out float strokeWidth)
+    {
+        strokeWidth = default;
+
+        var stroke = svgVisualElement.Stroke;
+        if (stroke is null || stroke == SvgPaintServer.None)
+        {
+            return false;
+        }
+
+        strokeWidth = svgVisualElement.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgVisualElement, skBounds);
+        return strokeWidth > 0f;
     }
 
     internal static SKPaint? GetFillPaint(
@@ -112,11 +194,110 @@ internal static class SvgScenePaintingService
         return paint;
     }
 
+    internal static bool TryCreateSolidStrokePaintCacheKey(
+        SvgVisualElement svgVisualElement,
+        SKRect skBounds,
+        DrawAttributes ignoreAttributes,
+        out SolidStrokePaintCacheKey key)
+    {
+        if (!TryGetStrokeWidth(svgVisualElement, skBounds, out var strokeWidth))
+        {
+            key = default;
+            return false;
+        }
+
+        return TryCreateSolidStrokePaintCacheKey(
+            svgVisualElement,
+            skBounds,
+            strokeWidth,
+            ignoreAttributes,
+            out key);
+    }
+
+    internal static bool TryCreateSolidStrokePaintCacheKey(
+        SvgVisualElement svgVisualElement,
+        SKRect skBounds,
+        float strokeWidth,
+        DrawAttributes ignoreAttributes,
+        out SolidStrokePaintCacheKey key)
+    {
+        key = default;
+
+        if (svgVisualElement.Stroke is not SvgColourServer svgColourServer ||
+            svgVisualElement.StrokeDashArray is { Count: > 0 })
+        {
+            return false;
+        }
+
+        var colorInterpolation = GetColorInterpolation(svgVisualElement);
+        var isLinearRgb = colorInterpolation == SvgColourInterpolation.LinearRGB;
+        var opacity = AdjustSvgOpacity(svgVisualElement.StrokeOpacity);
+        var skColor = GetColor(svgColourServer, opacity, ignoreAttributes);
+        if (isLinearRgb)
+        {
+            skColor = ToLinear(skColor);
+        }
+
+        key = new SolidStrokePaintCacheKey(
+            PaintingService.IsAntialias(svgVisualElement),
+            skColor,
+            isLinearRgb,
+            svgVisualElement.StrokeLineCap switch
+            {
+                SvgStrokeLineCap.Round => SKStrokeCap.Round,
+                SvgStrokeLineCap.Square => SKStrokeCap.Square,
+                _ => SKStrokeCap.Butt
+            },
+            svgVisualElement.StrokeLineJoin switch
+            {
+                SvgStrokeLineJoin.Round => SKStrokeJoin.Round,
+                SvgStrokeLineJoin.Bevel => SKStrokeJoin.Bevel,
+                _ => SKStrokeJoin.Miter
+            },
+            svgVisualElement.StrokeMiterLimit,
+            strokeWidth);
+        return true;
+    }
+
+    internal static SKPaint CreateSolidStrokePaint(SolidStrokePaintCacheKey key)
+    {
+        var paint = new SKPaint
+        {
+            IsAntialias = key.IsAntialias,
+            Style = SKPaintStyle.Stroke,
+            StrokeCap = key.StrokeCap,
+            StrokeJoin = key.StrokeJoin,
+            StrokeMiter = key.StrokeMiter,
+            StrokeWidth = key.StrokeWidth
+        };
+
+        if (!key.LinearRgb)
+        {
+            paint.Color = key.Color;
+            return paint;
+        }
+
+        paint.Shader = SKShader.CreateColor(key.Color, SKColorSpace.SrgbLinear);
+        return paint;
+    }
+
     internal static SKPaint? GetStrokePaint(
         SvgVisualElement svgVisualElement,
         SKRect skBounds,
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes)
+    {
+        return TryGetStrokeWidth(svgVisualElement, skBounds, out var strokeWidth)
+            ? GetStrokePaint(svgVisualElement, skBounds, assetLoader, ignoreAttributes, strokeWidth)
+            : null;
+    }
+
+    internal static SKPaint? GetStrokePaint(
+        SvgVisualElement svgVisualElement,
+        SKRect skBounds,
+        ISvgAssetLoader assetLoader,
+        DrawAttributes ignoreAttributes,
+        float strokeWidth)
     {
         var skPaint = new SKPaint
         {
@@ -145,7 +326,7 @@ internal static class SvgScenePaintingService
         };
 
         skPaint.StrokeMiter = svgVisualElement.StrokeMiterLimit;
-        skPaint.StrokeWidth = svgVisualElement.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgVisualElement, skBounds);
+        skPaint.StrokeWidth = strokeWidth;
 
         if (svgVisualElement.StrokeDashArray is { })
         {
