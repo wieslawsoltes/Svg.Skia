@@ -8,6 +8,33 @@ namespace Svg.Skia;
 
 public partial class SKSvg
 {
+    private readonly struct StaticNodeCanvasState
+    {
+        public StaticNodeCanvasState(
+            bool hasBaseSave,
+            bool hasMaskLayer,
+            bool hasOpacityLayer,
+            bool hasFilterLayer,
+            SKRect? layerBounds)
+        {
+            HasBaseSave = hasBaseSave;
+            HasMaskLayer = hasMaskLayer;
+            HasOpacityLayer = hasOpacityLayer;
+            HasFilterLayer = hasFilterLayer;
+            LayerBounds = layerBounds;
+        }
+
+        public bool HasBaseSave { get; }
+
+        public bool HasMaskLayer { get; }
+
+        public bool HasOpacityLayer { get; }
+
+        public bool HasFilterLayer { get; }
+
+        public SKRect? LayerBounds { get; }
+    }
+
     private sealed class AnimationLayerRootInfo
     {
         public AnimationLayerRootInfo(string compilationRootKey, SvgSceneNode rootNode, int order)
@@ -160,6 +187,11 @@ public partial class SKSvg
     {
         lock (Sync)
         {
+            if (!HasAnimationLayerCachingStateLocked())
+            {
+                return;
+            }
+
             WaitForDrawsLocked();
 
             if (_animationLayerEntries is { Length: > 0 } entries)
@@ -183,6 +215,19 @@ public partial class SKSvg
             _dynamicAnimationLayerPicture = null;
             UsesAnimationLayerCaching = false;
         }
+    }
+
+    private bool HasAnimationLayerCachingStateLocked()
+    {
+        return UsesAnimationLayerCaching ||
+               _animationLayerTargetKeys is not null ||
+               _animationLayerEntries is not null ||
+               _animationLayerEntriesByKey is not null ||
+               _animationLayerBounds is not null ||
+               _staticAnimationLayerModel is not null ||
+               _dynamicAnimationLayerModel is not null ||
+               _staticAnimationLayerPicture is not null ||
+               _dynamicAnimationLayerPicture is not null;
     }
 
     private bool TryRenderAnimationLayerFrame(
@@ -279,6 +324,8 @@ public partial class SKSvg
                 _dynamicAnimationLayerModel = dynamicLayerModel;
                 _dynamicAnimationLayerPicture = dynamicLayerPicture;
 
+                ClearRetainedPictureLocked();
+                ClearSaveImageCacheLocked();
                 _picture?.Dispose();
                 _picture = null;
 
@@ -803,15 +850,80 @@ public partial class SKSvg
             return true;
         }
 
-        canvas.Save();
-
         var enableClip = !ignoreAttributes.HasFlag(DrawAttributes.ClipPath);
+        var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask);
+        var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity);
+        var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter);
+        var state = ApplyStaticNodeCanvasState(node, canvas, enableClip, enableMask, enableOpacity, enableFilter);
+
+        SvgSceneRenderer.DrawNodeLocalVisuals(node, canvas);
+
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            if (!RenderStaticNodeToCanvas(node.Children[i], canvas, cutRoots, ignoreAttributes))
+            {
+                RestoreStaticNode(canvas, state);
+                return false;
+            }
+        }
+
+        if (state.HasMaskLayer && node.MaskNode is { } maskNode && node.MaskDstIn is { } maskDstIn)
+        {
+            if (state.LayerBounds is { } maskLayerBounds)
+            {
+                canvas.SaveLayer(maskLayerBounds, maskDstIn);
+            }
+            else
+            {
+                canvas.SaveLayer(maskDstIn);
+            }
+
+            _ = RenderStaticNodeToCanvas(maskNode, canvas, cutRoots, ignoreAttributes);
+            canvas.Restore();
+        }
+
+        RestoreStaticNode(canvas, state);
+        return true;
+    }
+
+    private static StaticNodeCanvasState ApplyStaticNodeCanvasState(
+        SvgSceneNode node,
+        SKCanvas canvas,
+        bool enableClipPath,
+        bool enableMask,
+        bool enableOpacity,
+        bool enableFilter)
+    {
+        var hasTransform = !node.Transform.IsIdentity;
+        var hasClipPath = enableClipPath && node.ClipPath is not null;
+        var hasMaskLayer = enableMask && node.MaskPaint is not null && node.MaskNode is not null;
+        var canFoldOpacity = enableOpacity && SvgScenePaintingService.CanFoldOpacityIntoLeafDirectDraw(node);
+        var hasOpacityLayer = enableOpacity && node.Opacity is not null && !canFoldOpacity;
+        var hasFilterLayer = enableFilter && node.Filter is not null;
+        var layerBounds = (hasMaskLayer || hasOpacityLayer)
+            ? ResolveCurrentLayerBounds(node)
+            : null;
+        SKRect? filterLayerBounds = hasFilterLayer && node.FilterClip is { } filterClipCandidate && !filterClipCandidate.IsEmpty
+            ? SvgSceneNodeBoundsService.GetPixelAlignedBounds(filterClipCandidate)
+            : null;
+        var hasBaseSave = node.Overflow is not null ||
+            hasTransform ||
+            node.Clip is not null ||
+            hasClipPath ||
+            node.InnerClip is not null ||
+            (hasFilterLayer && node.FilterClip is not null);
+
+        if (hasBaseSave)
+        {
+            canvas.Save();
+        }
+
         if (node.Overflow is { } overflow)
         {
             canvas.ClipRect(overflow, SKClipOperation.Intersect);
         }
 
-        if (!node.Transform.IsIdentity)
+        if (hasTransform)
         {
             canvas.SetMatrix(node.Transform);
         }
@@ -821,9 +933,9 @@ public partial class SKSvg
             canvas.ClipRect(clip, SKClipOperation.Intersect);
         }
 
-        if (node.ClipPath is { } clipPath && enableClip)
+        if (hasClipPath)
         {
-            canvas.ClipPath(clipPath, SKClipOperation.Intersect, node.IsAntialias);
+            canvas.ClipPath(node.ClipPath!, SKClipOperation.Intersect, node.IsAntialias);
         }
 
         if (node.InnerClip is { } innerClip)
@@ -831,74 +943,78 @@ public partial class SKSvg
             canvas.ClipRect(innerClip, SKClipOperation.Intersect);
         }
 
-        var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask);
-        var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity);
-        var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter);
-
-        if (node.MaskPaint is { } maskPaint && node.MaskNode is not null && enableMask)
+        if (hasMaskLayer)
         {
-            canvas.SaveLayer(maskPaint);
-        }
-
-        if (node.Opacity is { } opacity && enableOpacity)
-        {
-            canvas.SaveLayer(opacity);
-        }
-
-        if (node.Filter is { } filter && enableFilter)
-        {
-            if (node.FilterClip is { } filterClip)
+            if (layerBounds is { } maskLayerBounds)
             {
-                canvas.ClipRect(filterClip, SKClipOperation.Intersect);
+                canvas.SaveLayer(maskLayerBounds, node.MaskPaint!);
             }
-
-            canvas.SaveLayer(filter);
-        }
-
-        SvgSceneRenderer.DrawNodeLocalVisuals(node, canvas);
-
-        for (var i = 0; i < node.Children.Count; i++)
-        {
-            if (!RenderStaticNodeToCanvas(node.Children[i], canvas, cutRoots, ignoreAttributes))
+            else
             {
-                RestoreStaticNode(canvas, node, enableMask, enableOpacity, enableFilter);
-                return false;
+                canvas.SaveLayer(node.MaskPaint!);
             }
         }
 
-        if (node.MaskNode is { } maskNode && node.MaskDstIn is { } maskDstIn && enableMask)
+        if (hasOpacityLayer)
         {
-            canvas.SaveLayer(maskDstIn);
-            _ = RenderStaticNodeToCanvas(maskNode, canvas, cutRoots, ignoreAttributes);
-            canvas.Restore();
+            if (layerBounds is { } opacityLayerBounds)
+            {
+                canvas.SaveLayer(opacityLayerBounds, node.Opacity!);
+            }
+            else
+            {
+                canvas.SaveLayer(node.Opacity!);
+            }
         }
 
-        RestoreStaticNode(canvas, node, enableMask, enableOpacity, enableFilter);
-        return true;
+        if (hasFilterLayer)
+        {
+            if (filterLayerBounds is { } boundedFilterLayer)
+            {
+                canvas.SaveLayer(boundedFilterLayer, node.Filter!);
+            }
+            else
+            {
+                canvas.SaveLayer(node.Filter!);
+            }
+        }
+
+        return new StaticNodeCanvasState(hasBaseSave, hasMaskLayer, hasOpacityLayer, hasFilterLayer, layerBounds);
     }
 
     private static void RestoreStaticNode(
         SKCanvas canvas,
-        SvgSceneNode node,
-        bool enableMask,
-        bool enableOpacity,
-        bool enableFilter)
+        StaticNodeCanvasState state)
     {
-        if (node.Filter is not null && enableFilter)
+        if (state.HasFilterLayer)
         {
             canvas.Restore();
         }
 
-        if (node.Opacity is not null && enableOpacity)
+        if (state.HasOpacityLayer)
         {
             canvas.Restore();
         }
 
-        if (node.MaskNode is not null && enableMask)
+        if (state.HasMaskLayer)
         {
             canvas.Restore();
         }
 
-        canvas.Restore();
+        if (state.HasBaseSave)
+        {
+            canvas.Restore();
+        }
+    }
+
+    private static SKRect? ResolveCurrentLayerBounds(SvgSceneNode node)
+    {
+        var localBounds = SvgSceneNodeBoundsService.GetLocalRenderablePaintBounds(node);
+        if (localBounds.IsEmpty)
+        {
+            return null;
+        }
+
+        return SvgSceneNodeBoundsService.GetPixelAlignedBounds(localBounds);
     }
 }

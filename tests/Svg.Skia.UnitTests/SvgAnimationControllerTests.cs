@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using ShimSkiaSharp;
+using ShimSkiaSharp.Editing;
 using Svg;
 using Svg.Model;
 using Svg.Model.Services;
@@ -19,6 +20,48 @@ namespace Svg.Skia.UnitTests;
 
 public class SvgAnimationControllerTests
 {
+    [Fact]
+    public void LoadStaticSvg_DoesNotCreateAnimationController()
+    {
+        const string staticSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12">
+              <rect x="1" y="1" width="10" height="10" fill="red" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        var picture = svg.FromSvg(staticSvg);
+
+        Assert.NotNull(picture);
+        Assert.False(svg.HasAnimations);
+        Assert.Null(svg.AnimationController);
+        Assert.NotNull(svg.Picture);
+    }
+
+    [Fact]
+    public void LoadStaticSvg_AfterAnimatedSvg_ClearsAnimationState()
+    {
+        const string staticSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12">
+              <rect x="1" y="1" width="10" height="10" fill="red" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(TopLevelLayeredAnimationSvg);
+
+        Assert.True(svg.HasAnimations);
+        Assert.True(svg.UsesAnimationLayerCaching);
+
+        var picture = svg.FromSvg(staticSvg);
+
+        Assert.NotNull(picture);
+        Assert.False(svg.HasAnimations);
+        Assert.Null(svg.AnimationController);
+        Assert.False(svg.UsesAnimationLayerCaching);
+        Assert.NotNull(svg.Picture);
+    }
+
     [Fact]
     public void CreateAnimatedDocument_AppliesCoreAnimationTypes()
     {
@@ -113,6 +156,23 @@ public class SvgAnimationControllerTests
     }
 
     [Fact]
+    public void SetAnimationTime_AnimationLayerCachingRecordsBoundedSaveLayersForStaticOpacityWrappers()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(OpacityLayeredAnimationSvg);
+
+        Assert.True(svg.HasAnimations);
+        Assert.True(svg.UsesAnimationLayerCaching);
+
+        var staticLayerModel = GetAnimationLayerModel(svg, "_staticAnimationLayerModel");
+        Assert.NotNull(staticLayerModel);
+
+        var saveLayers = staticLayerModel!.FindCommands<SaveLayerCanvasCommand>().ToArray();
+        Assert.NotEmpty(saveLayers);
+        Assert.All(saveLayers, saveLayer => Assert.True(saveLayer.Bounds is { } bounds && !bounds.IsEmpty));
+    }
+
+    [Fact]
     public void SetAnimationTime_PreservesEquivalentUnchangedAnimatedSubtreeContent()
     {
         using var svg = new SKSvg();
@@ -187,6 +247,7 @@ public class SvgAnimationControllerTests
         using var updatedStream = new MemoryStream();
         Assert.True(svg.Save(updatedStream, SkiaColors.Transparent));
         Assert.True(updatedStream.Length > 0);
+        Assert.NotEqual(initialStream.ToArray(), updatedStream.ToArray());
     }
 
     [Fact]
@@ -1111,6 +1172,22 @@ public class SvgAnimationControllerTests
         </svg>
         """;
 
+    private const string OpacityLayeredAnimationSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="40"
+             height="20"
+             viewBox="0 0 40 20">
+          <g opacity="0.5">
+            <rect id="static" x="0" y="0" width="10" height="8" fill="navy" />
+          </g>
+          <g id="animated-root">
+            <rect id="moving" x="0" y="12" width="10" height="6" fill="crimson">
+              <animate attributeName="x" from="0" to="10" dur="2s" fill="freeze" />
+            </rect>
+          </g>
+        </svg>
+        """;
+
     private const string SubtreeLayeredAnimationSvg = """
         <svg xmlns="http://www.w3.org/2000/svg"
              width="80"
@@ -1523,6 +1600,13 @@ public class SvgAnimationControllerTests
         return CollectLeafPictureSignatures(dynamicLayerPicture!);
     }
 
+    private static ShimSkiaSharp.SKPicture? GetAnimationLayerModel(SKSvg svg, string fieldName)
+    {
+        var field = typeof(SKSvg).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(field);
+        return field!.GetValue(svg) as ShimSkiaSharp.SKPicture;
+    }
+
     private static System.Collections.Generic.List<string> CollectLeafPictureSignatures(ShimSkiaSharp.SKPicture picture)
     {
         var nestedPictures = picture.Commands!
@@ -1584,6 +1668,19 @@ public class SvgAnimationControllerTests
                         segmentStart = -1;
                     }
                     break;
+            }
+        }
+
+        if (signatures.Count == 0)
+        {
+            for (var i = 0; i < commands.Count; i++)
+            {
+                if (commands[i] is SaveCanvasCommand or SaveLayerCanvasCommand or RestoreCanvasCommand)
+                {
+                    continue;
+                }
+
+                signatures.Add(GetCommandRangeSignature(picture, commands, i, i));
             }
         }
 

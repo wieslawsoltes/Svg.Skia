@@ -71,6 +71,8 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
 {
     private SKPathFillType _fillType;
     private int _version;
+    private int _cachedBoundsVersion = -1;
+    private SKRect _cachedBounds = SKRect.Empty;
 
     public IList<PathCommand>? Commands { get; private set; }
 
@@ -132,9 +134,16 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
 
     private SKRect GetBounds()
     {
+        if (_cachedBoundsVersion == _version)
+        {
+            return _cachedBounds;
+        }
+
         if (Commands is null || Commands.Count == 0)
         {
-            return SKRect.Empty;
+            _cachedBounds = SKRect.Empty;
+            _cachedBoundsVersion = _version;
+            return _cachedBounds;
         }
 
         var bounds = new SKRect(float.MaxValue, float.MaxValue, float.MinValue, float.MinValue);
@@ -282,6 +291,8 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
             }
         }
 
+        _cachedBounds = bounds;
+        _cachedBoundsVersion = _version;
         return bounds;
     }
 

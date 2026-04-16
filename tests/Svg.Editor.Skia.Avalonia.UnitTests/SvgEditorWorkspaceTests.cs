@@ -364,8 +364,12 @@ public class SvgEditorWorkspaceTests
             Assert.NotNull(selectedSceneNode);
 
             await workspace.ExportSelectedElementAsync();
+            var firstExportLength = new FileInfo(exportPath).Length;
+
+            await workspace.ExportSelectedElementAsync();
 
             Assert.True(File.Exists(exportPath));
+            Assert.True(firstExportLength > 0);
             Assert.True(new FileInfo(exportPath).Length > 0);
 
             host.Close();

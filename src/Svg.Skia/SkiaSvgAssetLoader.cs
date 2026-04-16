@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Svg.Skia.TypefaceProviders;
 
 namespace Svg.Skia;
@@ -10,9 +12,10 @@ namespace Svg.Skia;
 /// <summary>
 /// Asset loader implementation using SkiaSharp types.
 /// </summary>
-public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextReferenceRenderingOptions, Model.ISvgTextRunTypefaceResolver, Model.ISvgTextGlyphRunResolver, Model.ISvgTextDirectedGlyphRunResolver
+public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextMeasurementCacheKeyProvider, Model.ISvgTextReferenceRenderingOptions, Model.ISvgTextRunTypefaceResolver, Model.ISvgTextGlyphRunResolver, Model.ISvgTextDirectedGlyphRunResolver
 {
     private readonly SkiaModel _skiaModel;
+    private const int SharedTextMeasurementCacheKey = 0x53A2C1D;
 
     /// <summary>
     /// Initializes a new instance of <see cref="SkiaSvgAssetLoader"/>.
@@ -28,6 +31,9 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
     /// <inheritdoc />
     public bool EnableTextReferences => _skiaModel.Settings.EnableTextReferences;
+
+    /// <inheritdoc />
+    int Model.ISvgTextMeasurementCacheKeyProvider.TextMeasurementCacheKey => GetTextMeasurementCacheKey();
 
     /// <inheritdoc />
     public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
@@ -49,8 +55,9 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
         EnsureTypefaceProviderCaches();
 
+        var typefaceSpanCache = GetTypefaceSpanCache();
         var cacheKey = new TypefaceSpanCacheKey(text, paintPreferredTypeface);
-        if (_typefaceSpanCache.TryGetValue(cacheKey, out var cachedSpans))
+        if (typefaceSpanCache.TryGetValue(cacheKey, out var cachedSpans))
         {
             return new List<Model.TypefaceSpan>(cachedSpans);
         }
@@ -72,7 +79,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         if (TryCreateSingleTypefaceSpan(text, runningPaint, out var singleSpan))
         {
             ret.Add(singleSpan);
-            _typefaceSpanCache[cacheKey] = ret.ToArray();
+            typefaceSpanCache[cacheKey] = ret.ToArray();
             TrimCachesIfNeeded();
             return ret;
         }
@@ -124,7 +131,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
         YieldCurrentTypefaceText();
 
-        _typefaceSpanCache[cacheKey] = ret.ToArray();
+        typefaceSpanCache[cacheKey] = ret.ToArray();
         TrimCachesIfNeeded();
 
         return ret;
@@ -140,7 +147,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
         EnsureTypefaceProviderCaches();
 
-        var codepoints = CollectDistinctRenderableCodepoints(text);
+        var codepoints = CollectDistinctRenderableCodepoints(text!);
         if (codepoints.Count == 0)
         {
             return paintPreferredTypeface.Typeface;
@@ -204,7 +211,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
     /// <inheritdoc />
     public ShimSkiaSharp.SKFontMetrics GetFontMetrics(ShimSkiaSharp.SKPaint paint)
     {
-        using var skPaint = _skiaModel.ToSKPaint(paint);
+        var skPaint = GetCachedPaint(paint);
         if (skPaint is null)
         {
             return default;
@@ -245,13 +252,27 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
     /// <inheritdoc />
     public bool TryShapeGlyphRun(string? text, ShimSkiaSharp.SKPaint paint, out Model.ShapedGlyphRun shapedRun)
     {
-        return _skiaModel.TryShapeGlyphRun(text, paint, out shapedRun);
+        var skPaint = GetCachedPaint(paint);
+        if (skPaint is null)
+        {
+            shapedRun = default;
+            return false;
+        }
+
+        return _skiaModel.TryShapeGlyphRun(text, skPaint, rightToLeft: null, out shapedRun);
     }
 
     /// <inheritdoc />
     public bool TryShapeGlyphRun(string? text, ShimSkiaSharp.SKPaint paint, bool rightToLeft, out Model.ShapedGlyphRun shapedRun)
     {
-        return _skiaModel.TryShapeGlyphRun(text, paint, rightToLeft, out shapedRun);
+        var skPaint = GetCachedPaint(paint);
+        if (skPaint is null)
+        {
+            shapedRun = default;
+            return false;
+        }
+
+        return _skiaModel.TryShapeGlyphRun(text, skPaint, rightToLeft, out shapedRun);
     }
 
     /// <inheritdoc />
@@ -269,17 +290,95 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
     private void EnsureTypefaceProviderCaches()
     {
-        var providers = _skiaModel.Settings.TypefaceProviders;
+        var providers = _skiaModel.Settings.ConfiguredTypefaceProviders;
         var hash = ComputeTypefaceProviderHash(providers);
         if (!ReferenceEquals(providers, _providerStateList) || hash != _providerStateHash)
         {
             _providerStateList = providers;
             _providerStateHash = hash;
-            _matchCharacterCache.Clear();
-            _providerTypefaceCache.Clear();
-            _typefaceSpanCache.Clear();
+            _matchCharacterCache?.Clear();
+            _providerTypefaceCache?.Clear();
+            _typefaceSpanCache?.Clear();
             ClearPaintCache();
         }
+    }
+
+    private bool UsesSharedTypefaceCaches()
+    {
+        var providers = _skiaModel.Settings.ConfiguredTypefaceProviders;
+        return (providers is null || providers.Count == 0) &&
+               !_skiaModel.Settings.EnableSvgFonts &&
+               !_skiaModel.Settings.EnableTextReferences;
+    }
+
+    private int GetTextMeasurementCacheKey()
+    {
+        var providers = _skiaModel.Settings.ConfiguredTypefaceProviders;
+        if ((providers is null || providers.Count == 0) &&
+            !_skiaModel.Settings.EnableSvgFonts &&
+            !_skiaModel.Settings.EnableTextReferences)
+        {
+            return SharedTextMeasurementCacheKey;
+        }
+
+        unchecked
+        {
+            return (RuntimeHelpers.GetHashCode(this) * 397) ^ ComputeTypefaceProviderHash(providers);
+        }
+    }
+
+    private static bool CanCachePaint(ShimSkiaSharp.SKPaint paint)
+    {
+        return paint.Shader is null
+            && paint.ColorFilter is null
+            && paint.ImageFilter is null
+            && paint.PathEffect is null;
+    }
+
+    private bool CanUseSharedPaintTemplates(ShimSkiaSharp.SKPaint paint)
+    {
+        return CanCachePaint(paint) &&
+               (paint.Typeface is null || UsesSharedTypefaceCaches());
+    }
+
+    private ConcurrentDictionary<MatchCharacterKey, SkiaSharp.SKTypeface?> GetMatchCharacterCache()
+    {
+        return UsesSharedTypefaceCaches()
+            ? s_sharedMatchCharacterCache
+            : LazyInitializer.EnsureInitialized(ref _matchCharacterCache)!;
+    }
+
+    private ConcurrentDictionary<ProviderTypefaceKey, SkiaSharp.SKTypeface?> GetProviderTypefaceCache()
+    {
+        return UsesSharedTypefaceCaches()
+            ? s_sharedProviderTypefaceCache
+            : LazyInitializer.EnsureInitialized(ref _providerTypefaceCache)!;
+    }
+
+    private ConcurrentDictionary<TypefaceSpanCacheKey, Model.TypefaceSpan[]> GetTypefaceSpanCache()
+    {
+        return UsesSharedTypefaceCaches()
+            ? s_sharedTypefaceSpanCache
+            : LazyInitializer.EnsureInitialized(ref _typefaceSpanCache)!;
+    }
+
+    private object GetPaintCacheLock()
+    {
+        return LazyInitializer.EnsureInitialized(ref _paintCacheLock, static () => new object())!;
+    }
+
+    private ConditionalWeakTable<ShimSkiaSharp.SKPaint, CachedSkPaint> GetPaintCache()
+    {
+        return LazyInitializer.EnsureInitialized(
+            ref _paintCache,
+            static () => new ConditionalWeakTable<ShimSkiaSharp.SKPaint, CachedSkPaint>())!;
+    }
+
+    private List<WeakReference<SkiaSharp.SKPaint>> GetPaintCacheRefs()
+    {
+        return LazyInitializer.EnsureInitialized(
+            ref _paintCacheRefs,
+            static () => new List<WeakReference<SkiaSharp.SKPaint>>())!;
     }
 
     private static int ComputeTypefaceProviderHash(IList<ITypefaceProvider>? providers)
@@ -319,34 +418,96 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
     private void ClearPaintCache()
     {
-        lock (_paintCacheLock)
-        {
-            foreach (var weak in _paintCacheRefs)
-            {
-                if (weak.TryGetTarget(out var paint) && paint.Handle != IntPtr.Zero)
-                {
-                    paint.Dispose();
-                }
-            }
-
-            _paintCacheRefs.Clear();
-            _paintCache = new ConditionalWeakTable<ShimSkiaSharp.SKPaint, CachedSkPaint>();
-        }
-    }
-
-    private void TrimPaintCacheRefsIfNeeded()
-    {
-        if (_paintCacheRefs.Count <= PaintCacheRefTrimThreshold)
+        var paintCacheLock = _paintCacheLock;
+        if (paintCacheLock is null)
         {
             return;
         }
 
-        for (var i = _paintCacheRefs.Count - 1; i >= 0; i--)
+        lock (paintCacheLock)
         {
-            var weak = _paintCacheRefs[i];
+            if (_paintCacheRefs is { } paintCacheRefs)
+            {
+                foreach (var weak in paintCacheRefs)
+                {
+                    if (weak.TryGetTarget(out var paint) && paint.Handle != IntPtr.Zero)
+                    {
+                        paint.Dispose();
+                    }
+                }
+
+                paintCacheRefs.Clear();
+            }
+
+            _paintCache = null;
+        }
+    }
+
+    private static SharedPaintTemplate CreateSharedPaintTemplate(SkiaSharp.SKPaint paint)
+    {
+        return new SharedPaintTemplate(
+            paint.Style,
+            paint.IsAntialias,
+            paint.StrokeWidth,
+            paint.StrokeCap,
+            paint.StrokeJoin,
+            paint.StrokeMiter,
+            paint.TextSize,
+            paint.TextAlign,
+            paint.Typeface,
+            paint.LcdRenderText,
+            paint.SubpixelText,
+            paint.TextEncoding,
+            paint.Color,
+            paint.BlendMode,
+            paint.FilterQuality,
+            paint.FakeBoldText);
+    }
+
+    private static SkiaSharp.SKPaint CreatePaint(in SharedPaintTemplate template)
+    {
+        return new SkiaSharp.SKPaint
+        {
+            Style = template.Style,
+            IsAntialias = template.IsAntialias,
+            StrokeWidth = template.StrokeWidth,
+            StrokeCap = template.StrokeCap,
+            StrokeJoin = template.StrokeJoin,
+            StrokeMiter = template.StrokeMiter,
+            TextSize = template.TextSize,
+            TextAlign = template.TextAlign,
+            Typeface = template.Typeface,
+            LcdRenderText = template.LcdRenderText,
+            SubpixelText = template.SubpixelText,
+            TextEncoding = template.TextEncoding,
+            Color = template.Color,
+            BlendMode = template.BlendMode,
+            FilterQuality = template.FilterQuality,
+            FakeBoldText = template.FakeBoldText
+        };
+    }
+
+    private static void TrimSharedPaintTemplateCacheIfNeeded()
+    {
+        if (s_sharedPaintTemplateCache.Count > SharedPaintTemplateCacheLimit)
+        {
+            s_sharedPaintTemplateCache.Clear();
+        }
+    }
+
+    private static void TrimPaintCacheRefsIfNeeded(List<WeakReference<SkiaSharp.SKPaint>> paintCacheRefs)
+    {
+        if (paintCacheRefs.Count <= PaintCacheRefTrimThreshold)
+        {
+            return;
+        }
+
+        for (var i = paintCacheRefs.Count - 1; i >= 0; i--)
+        {
+            var weak = paintCacheRefs[i];
             if (!weak.TryGetTarget(out var paint) || paint.Handle == IntPtr.Zero)
             {
-                _paintCacheRefs.RemoveAt(i);
+                paintCacheRefs.RemoveAt(i);
             }
         }
     }
@@ -356,9 +517,10 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         EnsureTypefaceProviderCaches();
 
         var signature = new PaintSignature(paint);
-        lock (_paintCacheLock)
+        lock (GetPaintCacheLock())
         {
-            if (_paintCache.TryGetValue(paint, out var cached))
+            var paintCache = GetPaintCache();
+            if (paintCache.TryGetValue(paint, out var cached))
             {
                 if (cached.Paint.Handle != IntPtr.Zero && cached.Signature.Equals(signature))
                 {
@@ -366,37 +528,56 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
                 }
 
                 cached.Dispose();
-                _paintCache.Remove(paint);
+                paintCache.Remove(paint);
             }
 
-            var skPaint = _skiaModel.ToSKPaint(paint);
+            SkiaSharp.SKPaint? skPaint;
+            if (CanUseSharedPaintTemplates(paint) &&
+                s_sharedPaintTemplateCache.TryGetValue(signature, out var sharedTemplate))
+            {
+                skPaint = CreatePaint(sharedTemplate);
+            }
+            else
+            {
+                skPaint = _skiaModel.ToSKPaint(paint);
+                if (skPaint is not null && CanUseSharedPaintTemplates(paint))
+                {
+                    s_sharedPaintTemplateCache[signature] = CreateSharedPaintTemplate(skPaint);
+                    TrimSharedPaintTemplateCacheIfNeeded();
+                }
+            }
+
             if (skPaint is null)
             {
                 return null;
             }
 
-            _paintCache.Add(paint, new CachedSkPaint(signature, skPaint));
-            _paintCacheRefs.Add(new WeakReference<SkiaSharp.SKPaint>(skPaint));
-            TrimPaintCacheRefsIfNeeded();
+            paintCache.Add(paint, new CachedSkPaint(signature, skPaint));
+            var paintCacheRefs = GetPaintCacheRefs();
+            paintCacheRefs.Add(new WeakReference<SkiaSharp.SKPaint>(skPaint));
+            TrimPaintCacheRefsIfNeeded(paintCacheRefs);
             return skPaint;
         }
     }
 
     private void TrimCachesIfNeeded()
     {
-        if (_matchCharacterCache.Count > MatchCharacterCacheLimit)
+        var matchCharacterCache = GetMatchCharacterCache();
+        if (matchCharacterCache.Count > MatchCharacterCacheLimit)
         {
-            _matchCharacterCache.Clear();
+            matchCharacterCache.Clear();
         }
 
-        if (_providerTypefaceCache.Count > ProviderTypefaceCacheLimit)
+        var providerTypefaceCache = GetProviderTypefaceCache();
+        if (providerTypefaceCache.Count > ProviderTypefaceCacheLimit)
         {
-            _providerTypefaceCache.Clear();
+            providerTypefaceCache.Clear();
         }
 
-        if (_typefaceSpanCache.Count > TypefaceSpanCacheLimit)
+        var typefaceSpanCache = GetTypefaceSpanCache();
+        if (typefaceSpanCache.Count > TypefaceSpanCacheLimit)
         {
-            _typefaceSpanCache.Clear();
+            typefaceSpanCache.Clear();
         }
     }
 
@@ -409,14 +590,15 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
     {
         var normalizedFamily = familyName;
         var key = new MatchCharacterKey(normalizedFamily, weight, width, slant, codepoint);
-        if (_matchCharacterCache.TryGetValue(key, out var cached))
+        var matchCharacterCache = GetMatchCharacterCache();
+        if (matchCharacterCache.TryGetValue(key, out var cached))
         {
             if (cached is not null && cached.Handle != IntPtr.Zero)
             {
                 return cached;
             }
 
-            _matchCharacterCache.TryRemove(key, out _);
+            matchCharacterCache.TryRemove(key, out _);
         }
 
         var typeface = TryMatchCharacterFromCustomProviders(normalizedFamily, weight, width, slant, codepoint);
@@ -506,7 +688,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
             typeface = null;
         }
 
-        _matchCharacterCache.TryAdd(key, typeface);
+        matchCharacterCache.TryAdd(key, typeface);
         TrimCachesIfNeeded();
         return typeface;
     }
@@ -623,14 +805,15 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         SkiaSharp.SKFontStyleSlant slant)
     {
         var key = new ProviderTypefaceKey(provider, familyName, weight, width, slant);
-        if (_providerTypefaceCache.TryGetValue(key, out var cached))
+        var providerTypefaceCache = GetProviderTypefaceCache();
+        if (providerTypefaceCache.TryGetValue(key, out var cached))
         {
             if (cached is not null && cached.Handle != IntPtr.Zero)
             {
                 return cached;
             }
 
-            _providerTypefaceCache.TryRemove(key, out _);
+            providerTypefaceCache.TryRemove(key, out _);
         }
 
         var typeface = provider.FromFamilyName(familyName, weight, width, slant);
@@ -638,7 +821,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         {
             typeface = null;
         }
-        _providerTypefaceCache.TryAdd(key, typeface);
+        providerTypefaceCache.TryAdd(key, typeface);
         TrimCachesIfNeeded();
         return typeface;
     }
@@ -654,13 +837,14 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
     /// <returns>A matching typeface from custom providers, or null if none found.</returns>
     private SkiaSharp.SKTypeface? TryMatchCharacterFromCustomProviders(string? familyName, SkiaSharp.SKFontStyleWeight weight, SkiaSharp.SKFontStyleWidth width, SkiaSharp.SKFontStyleSlant slant, int codepoint)
     {
-        if (_skiaModel.Settings.TypefaceProviders is null || _skiaModel.Settings.TypefaceProviders.Count == 0)
+        var providers = _skiaModel.Settings.ConfiguredTypefaceProviders;
+        if (providers is null || providers.Count == 0)
         {
             return null;
         }
 
         var familyKey = familyName ?? "Default";
-        foreach (var provider in _skiaModel.Settings.TypefaceProviders)
+        foreach (var provider in providers)
         {
             var typeface = GetProviderTypeface(provider, familyKey, weight, width, slant);
             if (typeface is { } && typeface.ContainsGlyph(codepoint))

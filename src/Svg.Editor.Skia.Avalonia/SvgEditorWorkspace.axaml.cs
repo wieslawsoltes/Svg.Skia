@@ -610,12 +610,11 @@ public partial class SvgEditorWorkspace : UserControl
             return;
 
         var sceneNode = _selectedSceneNode ?? (_selectedElement is not null ? ResolveRetainedSceneNode(_selectedElement) : null);
-        if (!TryCreateSelectionExportPicture(sceneNode, out var skPicture) || skPicture is null)
+        if (!TryGetSelectionExportPicture(sceneNode, out var skPicture) || skPicture is null)
             return;
 
-        using var exportPicture = skPicture;
         using var stream = File.Create(path!);
-        exportPicture.ToImage(stream, SK.SKColors.Transparent, SK.SKEncodedImageFormat.Png, 100, 1f, 1f,
+        skPicture.ToImage(stream, SK.SKColors.Transparent, SK.SKEncodedImageFormat.Png, 100, 1f, 1f,
             SK.SKColorType.Rgba8888, SK.SKAlphaType.Premul, SvgView.SkSvg.Settings.Srgb);
     }
 
@@ -1700,7 +1699,7 @@ public partial class SvgEditorWorkspace : UserControl
         return false;
     }
 
-    private bool TryCreateSelectionExportPicture(SvgSceneNode? sceneNode, out SkiaSharp.SKPicture? skPicture)
+    private bool TryGetSelectionExportPicture(SvgSceneNode? sceneNode, out SkiaSharp.SKPicture? skPicture)
     {
         skPicture = null;
         if (SvgView.SkSvg is null)
@@ -1708,7 +1707,7 @@ public partial class SvgEditorWorkspace : UserControl
 
         if (sceneNode is not null && sceneNode.TransformedBounds.Width > 0 && sceneNode.TransformedBounds.Height > 0)
         {
-            skPicture = SvgView.SkSvg.CreateRetainedSceneNodePicture(sceneNode, sceneNode.TransformedBounds);
+            skPicture = SvgView.SkSvg.GetCachedRetainedSceneNodePicture(sceneNode, sceneNode.TransformedBounds);
             if (skPicture is not null)
                 return true;
         }

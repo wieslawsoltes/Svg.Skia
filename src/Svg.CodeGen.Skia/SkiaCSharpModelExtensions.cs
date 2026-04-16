@@ -1786,11 +1786,19 @@ public static class SkiaCSharpModelExtensions
                     }
                 case SaveLayerCanvasCommand saveLayerCanvasCommand:
                     {
+                        var bounds = saveLayerCanvasCommand.Bounds?.ToSKRect();
                         if (saveLayerCanvasCommand.Paint is { })
                         {
                             var counterPaint = ++counter.Paint;
                             saveLayerCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
-                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer({counter.PaintVarName}{counterPaint});");
+                            if (bounds is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer({bounds}, {counter.PaintVarName}{counterPaint});");
+                            }
+                            else
+                            {
+                                sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer({counter.PaintVarName}{counterPaint});");
+                            }
 
                             // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
@@ -1823,7 +1831,14 @@ public static class SkiaCSharpModelExtensions
                         }
                         else
                         {
-                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer();");
+                            if (bounds is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer({bounds}, null);");
+                            }
+                            else
+                            {
+                                sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer();");
+                            }
                         }
                         break;
                     }

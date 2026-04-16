@@ -49,4 +49,19 @@ public class SKPathTests
         Assert.Equal(expected.Right, path.Bounds.Right, 3);
         Assert.Equal(expected.Bottom, path.Bounds.Bottom, 3);
     }
+
+    [Fact]
+    public void Bounds_RecomputesAfterPathMutation()
+    {
+        var path = new SKPath();
+        path.MoveTo(1, 2);
+        path.LineTo(3, 4);
+
+        Assert.Equal(new SKRect(1, 2, 3, 4), path.Bounds);
+
+        path.LineTo(8, 6);
+
+        Assert.Equal(new SKRect(1, 2, 8, 6), path.Bounds);
+        Assert.Equal(new SKRect(1, 2, 8, 6), path.Bounds);
+    }
 }

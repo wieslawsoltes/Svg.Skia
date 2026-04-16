@@ -172,13 +172,13 @@ public partial class SkiaSvgAssetLoader
         {
             unchecked
             {
-                var hash = Text.GetHashCode(StringComparison.Ordinal);
+                var hash = StringComparer.Ordinal.GetHashCode(Text);
                 hash = (hash * 397) ^ TextSize.GetHashCode();
                 hash = (hash * 397) ^ (LcdRenderText ? 1 : 0);
                 hash = (hash * 397) ^ (SubpixelText ? 1 : 0);
                 hash = (hash * 397) ^ (int)TextEncoding;
                 hash = (hash * 397) ^ (HasTypeface ? 1 : 0);
-                hash = (hash * 397) ^ (TypefaceFamilyName?.GetHashCode(StringComparison.Ordinal) ?? 0);
+                hash = (hash * 397) ^ (TypefaceFamilyName is not null ? StringComparer.Ordinal.GetHashCode(TypefaceFamilyName) : 0);
                 hash = (hash * 397) ^ (int)TypefaceWeight;
                 hash = (hash * 397) ^ (int)TypefaceWidth;
                 hash = (hash * 397) ^ (int)TypefaceSlant;
@@ -358,16 +358,77 @@ public partial class SkiaSvgAssetLoader
         }
     }
 
+    private readonly struct SharedPaintTemplate
+    {
+        public SharedPaintTemplate(
+            SkiaSharp.SKPaintStyle style,
+            bool isAntialias,
+            float strokeWidth,
+            SkiaSharp.SKStrokeCap strokeCap,
+            SkiaSharp.SKStrokeJoin strokeJoin,
+            float strokeMiter,
+            float textSize,
+            SkiaSharp.SKTextAlign textAlign,
+            SkiaSharp.SKTypeface? typeface,
+            bool lcdRenderText,
+            bool subpixelText,
+            SkiaSharp.SKTextEncoding textEncoding,
+            SkiaSharp.SKColor color,
+            SkiaSharp.SKBlendMode blendMode,
+            SkiaSharp.SKFilterQuality filterQuality,
+            bool fakeBoldText)
+        {
+            Style = style;
+            IsAntialias = isAntialias;
+            StrokeWidth = strokeWidth;
+            StrokeCap = strokeCap;
+            StrokeJoin = strokeJoin;
+            StrokeMiter = strokeMiter;
+            TextSize = textSize;
+            TextAlign = textAlign;
+            Typeface = typeface;
+            LcdRenderText = lcdRenderText;
+            SubpixelText = subpixelText;
+            TextEncoding = textEncoding;
+            Color = color;
+            BlendMode = blendMode;
+            FilterQuality = filterQuality;
+            FakeBoldText = fakeBoldText;
+        }
+
+        public SkiaSharp.SKPaintStyle Style { get; }
+        public bool IsAntialias { get; }
+        public float StrokeWidth { get; }
+        public SkiaSharp.SKStrokeCap StrokeCap { get; }
+        public SkiaSharp.SKStrokeJoin StrokeJoin { get; }
+        public float StrokeMiter { get; }
+        public float TextSize { get; }
+        public SkiaSharp.SKTextAlign TextAlign { get; }
+        public SkiaSharp.SKTypeface? Typeface { get; }
+        public bool LcdRenderText { get; }
+        public bool SubpixelText { get; }
+        public SkiaSharp.SKTextEncoding TextEncoding { get; }
+        public SkiaSharp.SKColor Color { get; }
+        public SkiaSharp.SKBlendMode BlendMode { get; }
+        public SkiaSharp.SKFilterQuality FilterQuality { get; }
+        public bool FakeBoldText { get; }
+    }
+
     private const int MatchCharacterCacheLimit = 4096;
     private const int ProviderTypefaceCacheLimit = 512;
     private const int TypefaceSpanCacheLimit = 1024;
     private const int PaintCacheRefTrimThreshold = 1024;
-    private readonly ConcurrentDictionary<MatchCharacterKey, SkiaSharp.SKTypeface?> _matchCharacterCache = new();
-    private readonly ConcurrentDictionary<ProviderTypefaceKey, SkiaSharp.SKTypeface?> _providerTypefaceCache = new();
-    private readonly ConcurrentDictionary<TypefaceSpanCacheKey, Model.TypefaceSpan[]> _typefaceSpanCache = new();
-    private readonly object _paintCacheLock = new();
-    private ConditionalWeakTable<ShimSkiaSharp.SKPaint, CachedSkPaint> _paintCache = new();
-    private readonly List<WeakReference<SkiaSharp.SKPaint>> _paintCacheRefs = new();
+    private const int SharedPaintTemplateCacheLimit = 1024;
+    private static readonly ConcurrentDictionary<MatchCharacterKey, SkiaSharp.SKTypeface?> s_sharedMatchCharacterCache = new();
+    private static readonly ConcurrentDictionary<ProviderTypefaceKey, SkiaSharp.SKTypeface?> s_sharedProviderTypefaceCache = new();
+    private static readonly ConcurrentDictionary<TypefaceSpanCacheKey, Model.TypefaceSpan[]> s_sharedTypefaceSpanCache = new();
+    private static readonly ConcurrentDictionary<PaintSignature, SharedPaintTemplate> s_sharedPaintTemplateCache = new();
+    private ConcurrentDictionary<MatchCharacterKey, SkiaSharp.SKTypeface?>? _matchCharacterCache;
+    private ConcurrentDictionary<ProviderTypefaceKey, SkiaSharp.SKTypeface?>? _providerTypefaceCache;
+    private ConcurrentDictionary<TypefaceSpanCacheKey, Model.TypefaceSpan[]>? _typefaceSpanCache;
+    private object? _paintCacheLock;
+    private ConditionalWeakTable<ShimSkiaSharp.SKPaint, CachedSkPaint>? _paintCache;
+    private List<WeakReference<SkiaSharp.SKPaint>>? _paintCacheRefs;
     private IList<ITypefaceProvider>? _providerStateList;
     private int _providerStateHash;
 }

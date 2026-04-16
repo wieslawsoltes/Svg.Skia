@@ -6,6 +6,18 @@ namespace Svg.Skia;
 
 public static class SKPictureExtensions
 {
+    public static bool TryGetImageInfo(this SkiaSharp.SKPicture skPicture, float scaleX, float scaleY, SkiaSharp.SKColorType skColorType, SkiaSharp.SKAlphaType skAlphaType, SkiaSharp.SKColorSpace? skColorSpace, out SkiaSharp.SKImageInfo skImageInfo)
+    {
+        if (!TryGetRasterDimensions(skPicture, scaleX, scaleY, out var width, out var height))
+        {
+            skImageInfo = default;
+            return false;
+        }
+
+        skImageInfo = new SkiaSharp.SKImageInfo(width, height, skColorType, skAlphaType, skColorSpace);
+        return true;
+    }
+
     public static void Draw(this SkiaSharp.SKPicture skPicture, SkiaSharp.SKColor background, float scaleX, float scaleY, SkiaSharp.SKCanvas skCanvas)
     {
         skCanvas.Clear(background);
@@ -21,9 +33,26 @@ public static class SKPictureExtensions
         skCanvas.Restore();
     }
 
+    public static bool ToBitmap(this SkiaSharp.SKPicture skPicture, SkiaSharp.SKBitmap skBitmap, SkiaSharp.SKColor background, float scaleX, float scaleY)
+    {
+        using var skCanvas = new SkiaSharp.SKCanvas(skBitmap);
+        return ToBitmap(skPicture, skBitmap, skCanvas, background, scaleX, scaleY);
+    }
+
+    public static bool ToBitmap(this SkiaSharp.SKPicture skPicture, SkiaSharp.SKBitmap skBitmap, SkiaSharp.SKCanvas skCanvas, SkiaSharp.SKColor background, float scaleX, float scaleY)
+    {
+        if (!TryMatchRasterTargetDimensions(skPicture, scaleX, scaleY, skBitmap.Width, skBitmap.Height))
+        {
+            return false;
+        }
+
+        Draw(skPicture, background, scaleX, scaleY, skCanvas);
+        return true;
+    }
+
     public static SkiaSharp.SKBitmap? ToBitmap(this SkiaSharp.SKPicture skPicture, SkiaSharp.SKColor background, float scaleX, float scaleY, SkiaSharp.SKColorType skColorType, SkiaSharp.SKAlphaType skAlphaType, SkiaSharp.SKColorSpace skColorSpace)
     {
-        if (!TryCreateImageInfo(skPicture, scaleX, scaleY, skColorType, skAlphaType, skColorSpace, out var skImageInfo))
+        if (!TryGetImageInfo(skPicture, scaleX, scaleY, skColorType, skAlphaType, skColorSpace, out var skImageInfo))
         {
             return null;
         }
@@ -34,28 +63,35 @@ public static class SKPictureExtensions
         return skBitmap;
     }
 
-    public static bool ToImage(this SkiaSharp.SKPicture skPicture, Stream stream, SkiaSharp.SKColor background, SkiaSharp.SKEncodedImageFormat format, int quality, float scaleX, float scaleY, SkiaSharp.SKColorType skColorType, SkiaSharp.SKAlphaType skAlphaType, SkiaSharp.SKColorSpace skColorSpace)
+    public static bool ToImage(this SkiaSharp.SKPicture skPicture, Stream stream, SkiaSharp.SKSurface skSurface, SkiaSharp.SKColor background, SkiaSharp.SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
     {
-        if (!TryCreateImageInfo(skPicture, scaleX, scaleY, skColorType, skAlphaType, skColorSpace, out var skImageInfo))
-        {
-            return false;
-        }
-
-        using var skSurface = SkiaSharp.SKSurface.Create(skImageInfo);
-        if (skSurface is null)
+        var deviceClipBounds = skSurface.Canvas.DeviceClipBounds;
+        if (!TryMatchRasterTargetDimensions(skPicture, scaleX, scaleY, deviceClipBounds.Width, deviceClipBounds.Height))
         {
             return false;
         }
 
         Draw(skPicture, background, scaleX, scaleY, skSurface.Canvas);
-        using var skImage = skSurface.Snapshot();
-        using var skData = skImage.Encode(format, quality);
-        if (skData is { })
+        using var skPixmap = skSurface.PeekPixels();
+        return skPixmap is not null && EncodePixmap(skPixmap, stream, format, quality);
+    }
+
+    public static bool ToImage(this SkiaSharp.SKPicture skPicture, Stream stream, SkiaSharp.SKColor background, SkiaSharp.SKEncodedImageFormat format, int quality, float scaleX, float scaleY, SkiaSharp.SKColorType skColorType, SkiaSharp.SKAlphaType skAlphaType, SkiaSharp.SKColorSpace skColorSpace)
+    {
+        if (!TryGetImageInfo(skPicture, scaleX, scaleY, skColorType, skAlphaType, skColorSpace, out var skImageInfo))
         {
-            skData.SaveTo(stream);
-            return true;
+            return false;
         }
-        return false;
+
+        using var skBitmap = new SkiaSharp.SKBitmap(skImageInfo);
+        using var skCanvas = new SkiaSharp.SKCanvas(skBitmap);
+        if (!ToBitmap(skPicture, skBitmap, skCanvas, background, scaleX, scaleY))
+        {
+            return false;
+        }
+
+        using var skPixmap = skBitmap.PeekPixels();
+        return skPixmap is not null && EncodePixmap(skPixmap, stream, format, quality);
     }
 
     public static bool ToSvg(this SkiaSharp.SKPicture skPicture, string path, SkiaSharp.SKColor background, float scaleX, float scaleY)
@@ -147,17 +183,41 @@ public static class SKPictureExtensions
         return true;
     }
 
-    private static bool TryCreateImageInfo(this SkiaSharp.SKPicture skPicture, float scaleX, float scaleY, SkiaSharp.SKColorType skColorType, SkiaSharp.SKAlphaType skAlphaType, SkiaSharp.SKColorSpace skColorSpace, out SkiaSharp.SKImageInfo skImageInfo)
+    private static bool TryGetRasterDimensions(this SkiaSharp.SKPicture skPicture, float scaleX, float scaleY, out int width, out int height)
     {
-        var width = skPicture.CullRect.Width * scaleX;
-        var height = skPicture.CullRect.Height * scaleY;
-        if (!(width > 0) || !(height > 0))
+        var scaledWidth = skPicture.CullRect.Width * scaleX;
+        var scaledHeight = skPicture.CullRect.Height * scaleY;
+        if (!(scaledWidth > 0) || !(scaledHeight > 0))
         {
-            skImageInfo = default;
+            width = 0;
+            height = 0;
             return false;
         }
 
-        skImageInfo = new SkiaSharp.SKImageInfo((int)width, (int)height, skColorType, skAlphaType, skColorSpace);
+        width = (int)scaledWidth;
+        height = (int)scaledHeight;
         return true;
+    }
+
+    private static bool TryMatchRasterTargetDimensions(this SkiaSharp.SKPicture skPicture, float scaleX, float scaleY, int width, int height)
+    {
+        return TryGetRasterDimensions(skPicture, scaleX, scaleY, out var expectedWidth, out var expectedHeight) &&
+               expectedWidth == width &&
+               expectedHeight == height;
+    }
+
+    private static bool EncodePixmap(
+        SkiaSharp.SKPixmap skPixmap,
+        Stream stream,
+        SkiaSharp.SKEncodedImageFormat format,
+        int quality)
+    {
+        return format == SkiaSharp.SKEncodedImageFormat.Png
+            ? skPixmap.Encode(
+                stream,
+                new SkiaSharp.SKPngEncoderOptions(
+                    SkiaSharp.SKPngEncoderFilterFlags.None,
+                    1))
+            : skPixmap.Encode(stream, format, quality);
     }
 }

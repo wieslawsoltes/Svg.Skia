@@ -184,12 +184,13 @@ public class CloneCommandTests
     public void CanvasCommand_DeepClone_ClonesSaveLayer()
     {
         var paint = CloneTestData.CreatePaint();
-        CanvasCommand command = new SaveLayerCanvasCommand(1, paint);
+        CanvasCommand command = new SaveLayerCanvasCommand(1, paint, new SKRect(1, 2, 3, 4));
 
         var clone = command.DeepClone();
         var typed = Assert.IsType<SaveLayerCanvasCommand>(clone);
 
         Assert.Equal(1, typed.Count);
         Assert.NotSame(paint, typed.Paint);
+        Assert.Equal(new SKRect(1, 2, 3, 4), typed.Bounds);
     }
 }

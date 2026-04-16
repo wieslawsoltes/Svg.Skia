@@ -113,7 +113,18 @@ public partial class SkiaModel
         }
 
         using var skPaint = ToSKPaint(paint);
-        if (skPaint is null || !TryShapeText(text, 0f, 0f, skPaint, rightToLeft, out var result))
+        return skPaint is not null && TryShapeGlyphRun(text, skPaint, rightToLeft, out shapedRun);
+    }
+
+    internal bool TryShapeGlyphRun(string? text, SkiaSharp.SKPaint paint, bool? rightToLeft, out ShapedGlyphRun shapedRun)
+    {
+        shapedRun = default;
+        if (string.IsNullOrEmpty(text))
+        {
+            return false;
+        }
+
+        if (!TryShapeText(text!, 0f, 0f, paint, rightToLeft, out var result))
         {
             return false;
         }

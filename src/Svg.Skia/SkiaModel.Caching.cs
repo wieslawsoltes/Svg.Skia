@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using ShimSkiaSharp;
 using Svg.Skia.TypefaceProviders;
 
@@ -14,6 +15,8 @@ public partial class SkiaModel
     private const int TypefaceCacheLimit = 512;
     private const int ResolvedTypefaceCacheLimit = 512;
     private const int PositionedTextCacheRefTrimThreshold = 1024;
+    private const int SharedRenderPaintTemplateCacheLimit = 1024;
+    private const int SharedRenderPathCacheLimit = 1024;
 
     private sealed class PictureReferenceEqualityComparer : IEqualityComparer<ShimSkiaSharp.SKPicture>
     {
@@ -46,6 +49,24 @@ public partial class SkiaModel
         public int ToRevision()
         {
             return _hash;
+        }
+    }
+
+    private struct PathSignatureBuilder
+    {
+        private int _hash1;
+        private int _hash2;
+
+        public void Add<T>(T value)
+        {
+            var hash = value?.GetHashCode() ?? 0;
+            _hash1 = unchecked((_hash1 * 397) ^ hash);
+            _hash2 = unchecked((_hash2 * 1009) ^ (hash * 16777619));
+        }
+
+        public RenderPathSignature ToSignature(int commandCount, ShimSkiaSharp.SKPathFillType fillType)
+        {
+            return new RenderPathSignature(commandCount, fillType, _hash1, _hash2);
         }
     }
 
@@ -147,16 +168,10 @@ public partial class SkiaModel
         }
     }
 
-    private sealed class PositionedTextCache
+    private sealed class PositionedTextCacheSet
     {
-        public PositionedTextCache(FontSignature signature, SkiaSharp.SKTextBlob textBlob)
-        {
-            Signature = signature;
-            TextBlob = textBlob;
-        }
-
-        public FontSignature Signature { get; }
-        public SkiaSharp.SKTextBlob TextBlob { get; }
+        public object SyncRoot { get; } = new();
+        public Dictionary<FontSignature, SkiaSharp.SKTextBlob> Entries { get; } = new();
     }
 
     private sealed class NativePaintCacheEntry
@@ -169,6 +184,238 @@ public partial class SkiaModel
 
         public int Version { get; }
         public SkiaSharp.SKPaint Paint { get; }
+    }
+
+    private readonly struct RenderPaintSignature : IEquatable<RenderPaintSignature>
+    {
+        public RenderPaintSignature(ShimSkiaSharp.SKPaint paint)
+        {
+            Style = paint.Style;
+            IsAntialias = paint.IsAntialias;
+            StrokeWidth = paint.StrokeWidth;
+            StrokeCap = paint.StrokeCap;
+            StrokeJoin = paint.StrokeJoin;
+            StrokeMiter = paint.StrokeMiter;
+            TextSize = paint.TextSize;
+            TextAlign = paint.TextAlign;
+            LcdRenderText = paint.LcdRenderText;
+            SubpixelText = paint.SubpixelText;
+            TextEncoding = paint.TextEncoding;
+            BlendMode = paint.BlendMode;
+            FilterQuality = paint.FilterQuality;
+            if (paint.Typeface is { } typeface)
+            {
+                HasTypeface = true;
+                TypefaceFamilyName = typeface.FamilyName;
+                TypefaceWeight = typeface.FontWeight;
+                TypefaceWidth = typeface.FontWidth;
+                TypefaceSlant = typeface.FontSlant;
+            }
+            else
+            {
+                HasTypeface = false;
+                TypefaceFamilyName = null;
+                TypefaceWeight = default;
+                TypefaceWidth = default;
+                TypefaceSlant = default;
+            }
+
+            if (paint.Color is { } color)
+            {
+                HasColor = true;
+                Color = color;
+            }
+            else
+            {
+                HasColor = false;
+                Color = default;
+            }
+        }
+
+        public ShimSkiaSharp.SKPaintStyle Style { get; }
+        public bool IsAntialias { get; }
+        public float StrokeWidth { get; }
+        public ShimSkiaSharp.SKStrokeCap StrokeCap { get; }
+        public ShimSkiaSharp.SKStrokeJoin StrokeJoin { get; }
+        public float StrokeMiter { get; }
+        public float TextSize { get; }
+        public ShimSkiaSharp.SKTextAlign TextAlign { get; }
+        public bool LcdRenderText { get; }
+        public bool SubpixelText { get; }
+        public ShimSkiaSharp.SKTextEncoding TextEncoding { get; }
+        public ShimSkiaSharp.SKBlendMode BlendMode { get; }
+        public ShimSkiaSharp.SKFilterQuality FilterQuality { get; }
+        public bool HasTypeface { get; }
+        public string? TypefaceFamilyName { get; }
+        public ShimSkiaSharp.SKFontStyleWeight TypefaceWeight { get; }
+        public ShimSkiaSharp.SKFontStyleWidth TypefaceWidth { get; }
+        public ShimSkiaSharp.SKFontStyleSlant TypefaceSlant { get; }
+        public bool HasColor { get; }
+        public ShimSkiaSharp.SKColor Color { get; }
+
+        public bool Equals(RenderPaintSignature other)
+        {
+            return Style == other.Style
+                && IsAntialias == other.IsAntialias
+                && StrokeWidth.Equals(other.StrokeWidth)
+                && StrokeCap == other.StrokeCap
+                && StrokeJoin == other.StrokeJoin
+                && StrokeMiter.Equals(other.StrokeMiter)
+                && TextSize.Equals(other.TextSize)
+                && TextAlign == other.TextAlign
+                && LcdRenderText == other.LcdRenderText
+                && SubpixelText == other.SubpixelText
+                && TextEncoding == other.TextEncoding
+                && BlendMode == other.BlendMode
+                && FilterQuality == other.FilterQuality
+                && HasTypeface == other.HasTypeface
+                && string.Equals(TypefaceFamilyName, other.TypefaceFamilyName, StringComparison.Ordinal)
+                && TypefaceWeight == other.TypefaceWeight
+                && TypefaceWidth == other.TypefaceWidth
+                && TypefaceSlant == other.TypefaceSlant
+                && HasColor == other.HasColor
+                && (!HasColor || (Color.Red == other.Color.Red
+                    && Color.Green == other.Color.Green
+                    && Color.Blue == other.Color.Blue
+                    && Color.Alpha == other.Color.Alpha));
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is RenderPaintSignature other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash = (int)Style;
+                hash = (hash * 397) ^ (IsAntialias ? 1 : 0);
+                hash = (hash * 397) ^ StrokeWidth.GetHashCode();
+                hash = (hash * 397) ^ (int)StrokeCap;
+                hash = (hash * 397) ^ (int)StrokeJoin;
+                hash = (hash * 397) ^ StrokeMiter.GetHashCode();
+                hash = (hash * 397) ^ TextSize.GetHashCode();
+                hash = (hash * 397) ^ (int)TextAlign;
+                hash = (hash * 397) ^ (LcdRenderText ? 1 : 0);
+                hash = (hash * 397) ^ (SubpixelText ? 1 : 0);
+                hash = (hash * 397) ^ (int)TextEncoding;
+                hash = (hash * 397) ^ (int)BlendMode;
+                hash = (hash * 397) ^ (int)FilterQuality;
+                hash = (hash * 397) ^ (HasTypeface ? 1 : 0);
+                hash = (hash * 397) ^ (TypefaceFamilyName?.GetHashCode() ?? 0);
+                hash = (hash * 397) ^ (int)TypefaceWeight;
+                hash = (hash * 397) ^ (int)TypefaceWidth;
+                hash = (hash * 397) ^ (int)TypefaceSlant;
+                hash = (hash * 397) ^ (HasColor ? 1 : 0);
+                if (HasColor)
+                {
+                    hash = (hash * 397) ^ Color.Red;
+                    hash = (hash * 397) ^ Color.Green;
+                    hash = (hash * 397) ^ Color.Blue;
+                    hash = (hash * 397) ^ Color.Alpha;
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    private readonly struct SharedRenderPaintTemplate
+    {
+        public SharedRenderPaintTemplate(
+            SkiaSharp.SKPaintStyle style,
+            bool isAntialias,
+            float strokeWidth,
+            SkiaSharp.SKStrokeCap strokeCap,
+            SkiaSharp.SKStrokeJoin strokeJoin,
+            float strokeMiter,
+            float textSize,
+            SkiaSharp.SKTextAlign textAlign,
+            SkiaSharp.SKTypeface? typeface,
+            bool lcdRenderText,
+            bool subpixelText,
+            SkiaSharp.SKTextEncoding textEncoding,
+            SkiaSharp.SKColor color,
+            SkiaSharp.SKBlendMode blendMode,
+            SkiaSharp.SKFilterQuality filterQuality,
+            bool fakeBoldText)
+        {
+            Style = style;
+            IsAntialias = isAntialias;
+            StrokeWidth = strokeWidth;
+            StrokeCap = strokeCap;
+            StrokeJoin = strokeJoin;
+            StrokeMiter = strokeMiter;
+            TextSize = textSize;
+            TextAlign = textAlign;
+            Typeface = typeface;
+            LcdRenderText = lcdRenderText;
+            SubpixelText = subpixelText;
+            TextEncoding = textEncoding;
+            Color = color;
+            BlendMode = blendMode;
+            FilterQuality = filterQuality;
+            FakeBoldText = fakeBoldText;
+        }
+
+        public SkiaSharp.SKPaintStyle Style { get; }
+        public bool IsAntialias { get; }
+        public float StrokeWidth { get; }
+        public SkiaSharp.SKStrokeCap StrokeCap { get; }
+        public SkiaSharp.SKStrokeJoin StrokeJoin { get; }
+        public float StrokeMiter { get; }
+        public float TextSize { get; }
+        public SkiaSharp.SKTextAlign TextAlign { get; }
+        public SkiaSharp.SKTypeface? Typeface { get; }
+        public bool LcdRenderText { get; }
+        public bool SubpixelText { get; }
+        public SkiaSharp.SKTextEncoding TextEncoding { get; }
+        public SkiaSharp.SKColor Color { get; }
+        public SkiaSharp.SKBlendMode BlendMode { get; }
+        public SkiaSharp.SKFilterQuality FilterQuality { get; }
+        public bool FakeBoldText { get; }
+    }
+
+    private readonly struct RenderPathSignature : IEquatable<RenderPathSignature>
+    {
+        public RenderPathSignature(int commandCount, ShimSkiaSharp.SKPathFillType fillType, int hash1, int hash2)
+        {
+            CommandCount = commandCount;
+            FillType = fillType;
+            Hash1 = hash1;
+            Hash2 = hash2;
+        }
+
+        public int CommandCount { get; }
+        public ShimSkiaSharp.SKPathFillType FillType { get; }
+        public int Hash1 { get; }
+        public int Hash2 { get; }
+
+        public bool Equals(RenderPathSignature other)
+        {
+            return CommandCount == other.CommandCount &&
+                   FillType == other.FillType &&
+                   Hash1 == other.Hash1 &&
+                   Hash2 == other.Hash2;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is RenderPathSignature other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash = CommandCount;
+                hash = (hash * 397) ^ (int)FillType;
+                hash = (hash * 397) ^ Hash1;
+                hash = (hash * 397) ^ Hash2;
+                return hash;
+            }
+        }
     }
 
     private sealed class NativePathCacheEntry
@@ -243,21 +490,26 @@ public partial class SkiaModel
         public SkiaSharp.SKImageFilter ImageFilter { get; }
     }
 
-    private readonly ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?> _typefaceCache = new();
-    private readonly ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?> _resolvedTypefaceCache = new();
-    private readonly object _positionedTextCacheLock = new();
-    private readonly object _pictureCacheLock = new();
-    private readonly object _nativeObjectCacheLock = new();
-    private ConditionalWeakTable<DrawTextBlobCanvasCommand, PositionedTextCache> _positionedTextCache = new();
-    private ConditionalWeakTable<ShimSkiaSharp.SKPaint, NativePaintCacheEntry> _nativePaintCache = new();
-    private ConditionalWeakTable<ShimSkiaSharp.SKPath, NativePathCacheEntry> _nativePathCache = new();
-    private ConditionalWeakTable<ShimSkiaSharp.SKImage, NativeImageCacheEntry> _nativeImageCache = new();
-    private ConditionalWeakTable<ShimSkiaSharp.SKShader, NativeShaderCacheEntry> _nativeShaderCache = new();
-    private ConditionalWeakTable<ShimSkiaSharp.SKColorFilter, NativeColorFilterCacheEntry> _nativeColorFilterCache = new();
-    private ConditionalWeakTable<ShimSkiaSharp.SKPathEffect, NativePathEffectCacheEntry> _nativePathEffectCache = new();
-    private ConditionalWeakTable<ShimSkiaSharp.SKImageFilter, NativeImageFilterCacheEntry> _nativeImageFilterCache = new();
-    private readonly List<WeakReference<SkiaSharp.SKTextBlob>> _positionedTextCacheRefs = new();
-    private readonly Dictionary<ShimSkiaSharp.SKPicture, SkiaSharp.SKPicture> _pictureCache = new(PictureReferenceEqualityComparer.Instance);
+    private static readonly ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?> s_sharedTypefaceCache = new();
+    private static readonly ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?> s_sharedResolvedTypefaceCache = new();
+    private static readonly ConcurrentDictionary<RenderPaintSignature, SharedRenderPaintTemplate> s_sharedRenderPaintTemplateCache = new();
+    private static readonly ConcurrentDictionary<RenderPathSignature, SkiaSharp.SKPath> s_sharedRenderPathCache = new();
+    private static readonly ConditionalWeakTable<ShimSkiaSharp.SKTextBlob, PositionedTextCacheSet> s_sharedPositionedTextCache = new();
+    private ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?>? _typefaceCache;
+    private ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?>? _resolvedTypefaceCache;
+    private object? _positionedTextCacheLock;
+    private object? _pictureCacheLock;
+    private object? _nativeObjectCacheLock;
+    private ConditionalWeakTable<ShimSkiaSharp.SKTextBlob, PositionedTextCacheSet>? _positionedTextCache;
+    private ConditionalWeakTable<ShimSkiaSharp.SKPaint, NativePaintCacheEntry>? _nativePaintCache;
+    private ConditionalWeakTable<ShimSkiaSharp.SKPath, NativePathCacheEntry>? _nativePathCache;
+    private ConditionalWeakTable<ShimSkiaSharp.SKImage, NativeImageCacheEntry>? _nativeImageCache;
+    private ConditionalWeakTable<ShimSkiaSharp.SKShader, NativeShaderCacheEntry>? _nativeShaderCache;
+    private ConditionalWeakTable<ShimSkiaSharp.SKColorFilter, NativeColorFilterCacheEntry>? _nativeColorFilterCache;
+    private ConditionalWeakTable<ShimSkiaSharp.SKPathEffect, NativePathEffectCacheEntry>? _nativePathEffectCache;
+    private ConditionalWeakTable<ShimSkiaSharp.SKImageFilter, NativeImageFilterCacheEntry>? _nativeImageFilterCache;
+    private List<WeakReference<SkiaSharp.SKTextBlob>>? _positionedTextCacheRefs;
+    private Dictionary<ShimSkiaSharp.SKPicture, SkiaSharp.SKPicture>? _pictureCache;
     private IList<ITypefaceProvider>? _providerStateList;
     private int _providerStateHash;
 
@@ -267,6 +519,71 @@ public partial class SkiaModel
             && paint.ColorFilter is null
             && paint.ImageFilter is null
             && paint.PathEffect is null;
+    }
+
+    private bool CanUseSharedRenderPaintTemplates(ShimSkiaSharp.SKPaint paint)
+    {
+        return paint.Typeface is null || UsesSharedTypefaceCaches();
+    }
+
+    private static SharedRenderPaintTemplate CreateSharedRenderPaintTemplate(SkiaSharp.SKPaint paint)
+    {
+        return new SharedRenderPaintTemplate(
+            paint.Style,
+            paint.IsAntialias,
+            paint.StrokeWidth,
+            paint.StrokeCap,
+            paint.StrokeJoin,
+            paint.StrokeMiter,
+            paint.TextSize,
+            paint.TextAlign,
+            paint.Typeface,
+            paint.LcdRenderText,
+            paint.SubpixelText,
+            paint.TextEncoding,
+            paint.Color,
+            paint.BlendMode,
+            paint.FilterQuality,
+            paint.FakeBoldText);
+    }
+
+    private static SkiaSharp.SKPaint CreateRenderPaint(in SharedRenderPaintTemplate template)
+    {
+        return new SkiaSharp.SKPaint
+        {
+            Style = template.Style,
+            IsAntialias = template.IsAntialias,
+            StrokeWidth = template.StrokeWidth,
+            StrokeCap = template.StrokeCap,
+            StrokeJoin = template.StrokeJoin,
+            StrokeMiter = template.StrokeMiter,
+            TextSize = template.TextSize,
+            TextAlign = template.TextAlign,
+            Typeface = template.Typeface,
+            LcdRenderText = template.LcdRenderText,
+            SubpixelText = template.SubpixelText,
+            TextEncoding = template.TextEncoding,
+            Color = template.Color,
+            BlendMode = template.BlendMode,
+            FilterQuality = template.FilterQuality,
+            FakeBoldText = template.FakeBoldText
+        };
+    }
+
+    private static void TrimSharedRenderPaintTemplateCacheIfNeeded()
+    {
+        if (s_sharedRenderPaintTemplateCache.Count > SharedRenderPaintTemplateCacheLimit)
+        {
+            s_sharedRenderPaintTemplateCache.Clear();
+        }
+    }
+
+    private static void TrimSharedRenderPathCacheIfNeeded()
+    {
+        if (s_sharedRenderPathCache.Count > SharedRenderPathCacheLimit)
+        {
+            s_sharedRenderPathCache.Clear();
+        }
     }
 
     private static void AddValues<T>(ref RevisionBuilder hash, T[]? values)
@@ -283,6 +600,7 @@ public partial class SkiaModel
             hash.Add(values[i]);
         }
     }
+
 
     private static void AddBytes(ref RevisionBuilder hash, byte[]? bytes)
     {
@@ -315,6 +633,30 @@ public partial class SkiaModel
         }
     }
 
+    private static void AddPoints(ref PathSignatureBuilder hash, IList<SKPoint>? points)
+    {
+        if (points is null)
+        {
+            hash.Add(0);
+            return;
+        }
+
+        hash.Add(points.Count);
+        for (var i = 0; i < points.Count; i++)
+        {
+            hash.Add(points[i].X);
+            hash.Add(points[i].Y);
+        }
+    }
+
+    private static void AddRect(ref PathSignatureBuilder hash, SKRect rect)
+    {
+        hash.Add(rect.Left);
+        hash.Add(rect.Top);
+        hash.Add(rect.Right);
+        hash.Add(rect.Bottom);
+    }
+
     private static int GetPathRevision(ShimSkiaSharp.SKPath path)
     {
         var hash = new RevisionBuilder();
@@ -339,6 +681,96 @@ public partial class SkiaModel
         }
 
         return hash.ToRevision();
+    }
+
+    private static RenderPathSignature CreateRenderPathSignature(ShimSkiaSharp.SKPath path)
+    {
+        var hash = new PathSignatureBuilder();
+        hash.Add(path.FillType);
+
+        var commands = path.Commands;
+        if (commands is null)
+        {
+            return hash.ToSignature(0, path.FillType);
+        }
+
+        for (var i = 0; i < commands.Count; i++)
+        {
+            hash.Add(i);
+            switch (commands[i])
+            {
+                case AddCirclePathCommand addCirclePathCommand:
+                    hash.Add(1);
+                    hash.Add(addCirclePathCommand.X);
+                    hash.Add(addCirclePathCommand.Y);
+                    hash.Add(addCirclePathCommand.Radius);
+                    break;
+                case AddOvalPathCommand addOvalPathCommand:
+                    hash.Add(2);
+                    AddRect(ref hash, addOvalPathCommand.Rect);
+                    break;
+                case AddPolyPathCommand addPolyPathCommand:
+                    hash.Add(3);
+                    hash.Add(addPolyPathCommand.Close);
+                    AddPoints(ref hash, addPolyPathCommand.Points);
+                    break;
+                case AddRectPathCommand addRectPathCommand:
+                    hash.Add(4);
+                    AddRect(ref hash, addRectPathCommand.Rect);
+                    break;
+                case AddRoundRectPathCommand addRoundRectPathCommand:
+                    hash.Add(5);
+                    AddRect(ref hash, addRoundRectPathCommand.Rect);
+                    hash.Add(addRoundRectPathCommand.Rx);
+                    hash.Add(addRoundRectPathCommand.Ry);
+                    break;
+                case ArcToPathCommand arcToPathCommand:
+                    hash.Add(6);
+                    hash.Add(arcToPathCommand.Rx);
+                    hash.Add(arcToPathCommand.Ry);
+                    hash.Add(arcToPathCommand.XAxisRotate);
+                    hash.Add(arcToPathCommand.LargeArc);
+                    hash.Add(arcToPathCommand.Sweep);
+                    hash.Add(arcToPathCommand.X);
+                    hash.Add(arcToPathCommand.Y);
+                    break;
+                case ClosePathCommand:
+                    hash.Add(7);
+                    break;
+                case CubicToPathCommand cubicToPathCommand:
+                    hash.Add(8);
+                    hash.Add(cubicToPathCommand.X0);
+                    hash.Add(cubicToPathCommand.Y0);
+                    hash.Add(cubicToPathCommand.X1);
+                    hash.Add(cubicToPathCommand.Y1);
+                    hash.Add(cubicToPathCommand.X2);
+                    hash.Add(cubicToPathCommand.Y2);
+                    break;
+                case LineToPathCommand lineToPathCommand:
+                    hash.Add(9);
+                    hash.Add(lineToPathCommand.X);
+                    hash.Add(lineToPathCommand.Y);
+                    break;
+                case MoveToPathCommand moveToPathCommand:
+                    hash.Add(10);
+                    hash.Add(moveToPathCommand.X);
+                    hash.Add(moveToPathCommand.Y);
+                    break;
+                case QuadToPathCommand quadToPathCommand:
+                    hash.Add(11);
+                    hash.Add(quadToPathCommand.X0);
+                    hash.Add(quadToPathCommand.Y0);
+                    hash.Add(quadToPathCommand.X1);
+                    hash.Add(quadToPathCommand.Y1);
+                    break;
+                default:
+                    hash.Add(255);
+                    hash.Add(commands[i]?.GetHashCode() ?? 0);
+                    break;
+            }
+        }
+
+        return hash.ToSignature(commands.Count, path.FillType);
     }
 
     private static int GetImageRevision(ShimSkiaSharp.SKImage image)
@@ -914,23 +1346,40 @@ public partial class SkiaModel
             return CreateRenderPaint(paint);
         }
 
-        lock (_nativeObjectCacheLock)
+        var signature = new RenderPaintSignature(paint);
+        lock (GetNativeObjectCacheLock())
         {
-            if (_nativePaintCache.TryGetValue(paint, out var cached) &&
+            var nativePaintCache = GetNativePaintCache();
+            if (nativePaintCache.TryGetValue(paint, out var cached) &&
                 cached.Version == paint.Version &&
                 cached.Paint.Handle != IntPtr.Zero)
             {
                 return cached.Paint;
             }
 
-            var created = CreateRenderPaint(paint);
+            SkiaSharp.SKPaint? created;
+            if (CanUseSharedRenderPaintTemplates(paint) &&
+                s_sharedRenderPaintTemplateCache.TryGetValue(signature, out var sharedTemplate))
+            {
+                created = CreateRenderPaint(sharedTemplate);
+            }
+            else
+            {
+                created = CreateRenderPaint(paint);
+                if (created is not null && CanUseSharedRenderPaintTemplates(paint))
+                {
+                    s_sharedRenderPaintTemplateCache[signature] = CreateSharedRenderPaintTemplate(created);
+                    TrimSharedRenderPaintTemplateCacheIfNeeded();
+                }
+            }
+
             if (created is null)
             {
                 return null;
             }
 
-            _nativePaintCache.Remove(paint);
-            _nativePaintCache.Add(paint, new NativePaintCacheEntry(paint.Version, created));
+            nativePaintCache.Remove(paint);
+            nativePaintCache.Add(paint, new NativePaintCacheEntry(paint.Version, created));
             return created;
         }
     }
@@ -947,9 +1396,10 @@ public partial class SkiaModel
             return ToSKShader(shader);
         }
 
-        lock (_nativeObjectCacheLock)
+        lock (GetNativeObjectCacheLock())
         {
-            if (_nativeShaderCache.TryGetValue(shader, out var cached) &&
+            var nativeShaderCache = GetNativeShaderCache();
+            if (nativeShaderCache.TryGetValue(shader, out var cached) &&
                 cached.Revision == revision &&
                 cached.Shader.Handle != IntPtr.Zero)
             {
@@ -962,8 +1412,8 @@ public partial class SkiaModel
                 return null;
             }
 
-            _nativeShaderCache.Remove(shader);
-            _nativeShaderCache.Add(shader, new NativeShaderCacheEntry(revision, created));
+            nativeShaderCache.Remove(shader);
+            nativeShaderCache.Add(shader, new NativeShaderCacheEntry(revision, created));
             return created;
         }
     }
@@ -980,9 +1430,10 @@ public partial class SkiaModel
             return ToSKColorFilter(colorFilter);
         }
 
-        lock (_nativeObjectCacheLock)
+        lock (GetNativeObjectCacheLock())
         {
-            if (_nativeColorFilterCache.TryGetValue(colorFilter, out var cached) &&
+            var nativeColorFilterCache = GetNativeColorFilterCache();
+            if (nativeColorFilterCache.TryGetValue(colorFilter, out var cached) &&
                 cached.Revision == revision &&
                 cached.ColorFilter.Handle != IntPtr.Zero)
             {
@@ -995,8 +1446,8 @@ public partial class SkiaModel
                 return null;
             }
 
-            _nativeColorFilterCache.Remove(colorFilter);
-            _nativeColorFilterCache.Add(colorFilter, new NativeColorFilterCacheEntry(revision, created));
+            nativeColorFilterCache.Remove(colorFilter);
+            nativeColorFilterCache.Add(colorFilter, new NativeColorFilterCacheEntry(revision, created));
             return created;
         }
     }
@@ -1013,9 +1464,21 @@ public partial class SkiaModel
             return ToSKPathEffect(pathEffect);
         }
 
-        lock (_nativeObjectCacheLock)
+        lock (GetNativeObjectCacheLock())
         {
-            if (_nativePathEffectCache.TryGetValue(pathEffect, out var cached) &&
+            var nativePathEffectCache = GetNativePathEffectCache();
+            if (nativePathEffectCache.TryGetValue(pathEffect, out var cached) &&
+                cached.Revision == revision &&
+                cached.PathEffect.Handle != IntPtr.Zero)
+            {
+                return cached.PathEffect;
+            }
+        }
+
+        lock (GetNativeObjectCacheLock())
+        {
+            var nativePathEffectCache = GetNativePathEffectCache();
+            if (nativePathEffectCache.TryGetValue(pathEffect, out var cached) &&
                 cached.Revision == revision &&
                 cached.PathEffect.Handle != IntPtr.Zero)
             {
@@ -1028,8 +1491,8 @@ public partial class SkiaModel
                 return null;
             }
 
-            _nativePathEffectCache.Remove(pathEffect);
-            _nativePathEffectCache.Add(pathEffect, new NativePathEffectCacheEntry(revision, created));
+            nativePathEffectCache.Remove(pathEffect);
+            nativePathEffectCache.Add(pathEffect, new NativePathEffectCacheEntry(revision, created));
             return created;
         }
     }
@@ -1046,9 +1509,10 @@ public partial class SkiaModel
             return ToSKImageFilter(imageFilter);
         }
 
-        lock (_nativeObjectCacheLock)
+        lock (GetNativeObjectCacheLock())
         {
-            if (_nativeImageFilterCache.TryGetValue(imageFilter, out var cached) &&
+            var nativeImageFilterCache = GetNativeImageFilterCache();
+            if (nativeImageFilterCache.TryGetValue(imageFilter, out var cached) &&
                 cached.Revision == revision &&
                 cached.ImageFilter.Handle != IntPtr.Zero)
             {
@@ -1061,8 +1525,8 @@ public partial class SkiaModel
                 return null;
             }
 
-            _nativeImageFilterCache.Remove(imageFilter);
-            _nativeImageFilterCache.Add(imageFilter, new NativeImageFilterCacheEntry(revision, created));
+            nativeImageFilterCache.Remove(imageFilter);
+            nativeImageFilterCache.Add(imageFilter, new NativeImageFilterCacheEntry(revision, created));
             return created;
         }
     }
@@ -1075,19 +1539,31 @@ public partial class SkiaModel
         }
 
         var revision = GetPathRevision(path);
+        var signature = CreateRenderPathSignature(path);
 
-        lock (_nativeObjectCacheLock)
+        lock (GetNativeObjectCacheLock())
         {
-            if (_nativePathCache.TryGetValue(path, out var cached) &&
+            var nativePathCache = GetNativePathCache();
+            if (nativePathCache.TryGetValue(path, out var cached) &&
                 cached.Revision == revision &&
                 cached.Path.Handle != IntPtr.Zero)
             {
                 return cached.Path;
             }
 
+            if (s_sharedRenderPathCache.TryGetValue(signature, out var sharedPath) &&
+                sharedPath.Handle != IntPtr.Zero)
+            {
+                nativePathCache.Remove(path);
+                nativePathCache.Add(path, new NativePathCacheEntry(revision, sharedPath));
+                return sharedPath;
+            }
+
             var created = ToSKPath(path);
-            _nativePathCache.Remove(path);
-            _nativePathCache.Add(path, new NativePathCacheEntry(revision, created));
+            s_sharedRenderPathCache[signature] = created;
+            TrimSharedRenderPathCacheIfNeeded();
+            nativePathCache.Remove(path);
+            nativePathCache.Add(path, new NativePathCacheEntry(revision, created));
             return created;
         }
     }
@@ -1101,9 +1577,10 @@ public partial class SkiaModel
 
         var revision = GetImageRevision(image);
 
-        lock (_nativeObjectCacheLock)
+        lock (GetNativeObjectCacheLock())
         {
-            if (_nativeImageCache.TryGetValue(image, out var cached) &&
+            var nativeImageCache = GetNativeImageCache();
+            if (nativeImageCache.TryGetValue(image, out var cached) &&
                 cached.Revision == revision &&
                 cached.Image.Handle != IntPtr.Zero)
             {
@@ -1111,31 +1588,37 @@ public partial class SkiaModel
             }
 
             var created = ToSKImage(image);
-            _nativeImageCache.Remove(image);
-            _nativeImageCache.Add(image, new NativeImageCacheEntry(revision, created));
+            nativeImageCache.Remove(image);
+            nativeImageCache.Add(image, new NativeImageCacheEntry(revision, created));
             return created;
         }
     }
 
     internal void ClearReusableRenderCaches()
     {
-        lock (_nativeObjectCacheLock)
+        var nativeObjectCacheLock = _nativeObjectCacheLock;
+        if (nativeObjectCacheLock is null)
         {
-            _nativePaintCache = new ConditionalWeakTable<ShimSkiaSharp.SKPaint, NativePaintCacheEntry>();
-            _nativePathCache = new ConditionalWeakTable<ShimSkiaSharp.SKPath, NativePathCacheEntry>();
-            _nativeImageCache = new ConditionalWeakTable<ShimSkiaSharp.SKImage, NativeImageCacheEntry>();
-            _nativeShaderCache = new ConditionalWeakTable<ShimSkiaSharp.SKShader, NativeShaderCacheEntry>();
-            _nativeColorFilterCache = new ConditionalWeakTable<ShimSkiaSharp.SKColorFilter, NativeColorFilterCacheEntry>();
-            _nativePathEffectCache = new ConditionalWeakTable<ShimSkiaSharp.SKPathEffect, NativePathEffectCacheEntry>();
-            _nativeImageFilterCache = new ConditionalWeakTable<ShimSkiaSharp.SKImageFilter, NativeImageFilterCacheEntry>();
+            return;
+        }
+
+        lock (nativeObjectCacheLock)
+        {
+            _nativePaintCache = null;
+            _nativePathCache = null;
+            _nativeImageCache = null;
+            _nativeShaderCache = null;
+            _nativeColorFilterCache = null;
+            _nativePathEffectCache = null;
+            _nativeImageFilterCache = null;
         }
     }
 
     internal void RegisterCachedPicture(ShimSkiaSharp.SKPicture picture, SkiaSharp.SKPicture skPicture)
     {
-        lock (_pictureCacheLock)
+        lock (GetPictureCacheLock())
         {
-            _pictureCache[picture] = skPicture;
+            GetPictureCache()[picture] = skPicture;
         }
     }
 
@@ -1146,25 +1629,31 @@ public partial class SkiaModel
             return;
         }
 
-        lock (_pictureCacheLock)
+        lock (GetPictureCacheLock())
         {
-            _ = _pictureCache.Remove(picture);
+            _ = GetPictureCache().Remove(picture);
         }
     }
 
     internal bool TryGetCachedPicture(ShimSkiaSharp.SKPicture picture, out SkiaSharp.SKPicture skPicture)
     {
-        lock (_pictureCacheLock)
+        lock (GetPictureCacheLock())
         {
-            return _pictureCache.TryGetValue(picture, out skPicture!);
+            return GetPictureCache().TryGetValue(picture, out skPicture!);
         }
     }
 
     internal void ClearCachedPictures()
     {
-        lock (_pictureCacheLock)
+        var pictureCacheLock = _pictureCacheLock;
+        if (pictureCacheLock is null)
         {
-            _pictureCache.Clear();
+            return;
+        }
+
+        lock (pictureCacheLock)
+        {
+            _pictureCache?.Clear();
         }
     }
 }

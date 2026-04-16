@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using ShimSkiaSharp;
 using ShimSkiaSharp.Editing;
 using SkiaSharp;
+using Svg;
+using Svg.Model.Services;
 using Xunit;
 using SkiaBitmap = SkiaSharp.SKBitmap;
 using SkiaColor = SkiaSharp.SKColor;
@@ -48,6 +51,111 @@ public class SKSvgRebuildFromModelTests
 
         Assert.NotNull(rebuilt);
         Assert.NotSame(original, rebuilt);
+        Assert.Same(rebuilt, svg.Picture);
+    }
+
+    [Fact]
+    public void FromSvg_LeavesModelDeferredUntilRequested()
+    {
+        var svg = new SKSvg();
+
+        var picture = svg.FromSvg(SampleSvg);
+
+        Assert.NotNull(picture);
+        Assert.Null(GetCachedModel(svg));
+
+        var model = svg.Model;
+
+        Assert.NotNull(model);
+        Assert.Same(model, GetCachedModel(svg));
+    }
+
+    [Fact]
+    public void FromSvgDocument_LeavesModelDeferredUntilRequested()
+    {
+        var svg = new SKSvg();
+        var document = SvgService.FromSvg(SampleSvg);
+
+        var picture = svg.FromSvgDocument(document);
+
+        Assert.NotNull(picture);
+        Assert.Same(picture, svg.Picture);
+        Assert.NotNull(svg.RetainedSceneGraph);
+        Assert.Null(GetCachedModel(svg));
+
+        var model = svg.Model;
+
+        Assert.NotNull(model);
+        Assert.Same(model, GetCachedModel(svg));
+    }
+
+    [Fact]
+    public void FromSvgDocument_SameStaticDocumentReload_LeavesModelDeferredUntilRequested()
+    {
+        var svg = new SKSvg();
+        svg.FromSvg(SampleSvg);
+
+        var document = Assert.IsType<SvgDocument>(svg.SourceDocument);
+        var rect = Assert.IsType<SvgRectangle>(document.Children[0]);
+        rect.Fill = new SvgColourServer(System.Drawing.Color.Blue);
+
+        var picture = svg.FromSvgDocument(document);
+
+        Assert.NotNull(picture);
+        Assert.Same(picture, svg.Picture);
+        Assert.NotNull(svg.RetainedSceneGraph);
+        Assert.Null(GetCachedModel(svg));
+
+        using var bitmap = RenderBitmap(Assert.IsType<SkiaPicture>(picture));
+        Assert.Equal(new SkiaColor(0, 0, 255, 255), bitmap.GetPixel(5, 5));
+
+        var model = svg.Model;
+
+        Assert.NotNull(model);
+        Assert.Same(model, GetCachedModel(svg));
+    }
+
+    [Fact]
+    public void TryApplyRetainedSceneMutationAndRender_LeavesModelDeferredUntilRequested()
+    {
+        var svg = new SKSvg();
+        var picture = svg.FromSvg(SampleSvg);
+
+        Assert.NotNull(picture);
+        Assert.Null(GetCachedModel(svg));
+
+        var document = Assert.IsType<SvgDocument>(svg.SourceDocument);
+        var rect = Assert.IsType<SvgRectangle>(document.Children[0]);
+        rect.Fill = new SvgColourServer(System.Drawing.Color.Blue);
+
+        Assert.True(svg.TryApplyRetainedSceneMutationAndRender(rect, new[] { "fill" }, out var result));
+        Assert.NotNull(result);
+        Assert.True(result!.CompilationRootCount >= 1);
+        Assert.NotNull(svg.Picture);
+        Assert.Null(GetCachedModel(svg));
+
+        using var bitmap = RenderBitmap(Assert.IsType<SkiaPicture>(svg.Picture));
+        Assert.Equal(new SkiaColor(0, 0, 255, 255), bitmap.GetPixel(5, 5));
+
+        var model = svg.Model;
+
+        Assert.NotNull(model);
+        Assert.Same(model, GetCachedModel(svg));
+    }
+
+    [Fact]
+    public void RebuildFromModel_MaterializesDeferredModel()
+    {
+        var svg = new SKSvg();
+        svg.FromSvg(SampleSvg);
+
+        Assert.Null(GetCachedModel(svg));
+
+        var rebuilt = svg.RebuildFromModel();
+
+        Assert.NotNull(rebuilt);
+        Assert.NotNull(svg.Model);
+        Assert.Same(svg.Model, GetCachedModel(svg));
         Assert.Same(rebuilt, svg.Picture);
     }
 
@@ -242,5 +350,12 @@ public class SKSvgRebuildFromModelTests
             color.Red,
             color.Alpha
         };
+    }
+
+    private static ShimSkiaSharp.SKPicture? GetCachedModel(SKSvg svg)
+    {
+        var field = typeof(SKSvg).GetField("_model", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(field);
+        return field!.GetValue(svg) as ShimSkiaSharp.SKPicture;
     }
 }
