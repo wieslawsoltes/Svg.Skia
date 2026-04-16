@@ -82,7 +82,8 @@ internal static partial class SvgSceneTextCompiler
         SKFontStyleWidth TypefaceWidth,
         SKFontStyleSlant TypefaceSlant,
         string Direction,
-        string UnicodeBidi);
+        string UnicodeBidi,
+        bool RequiresSyntheticSmallCaps);
 
     private readonly record struct CompileLineStatsCacheKey(
         int StyleSourceId,
@@ -577,7 +578,8 @@ internal static partial class SvgSceneTextCompiler
             paint.Typeface?.FontWidth ?? SKFontStyleWidth.Normal,
             paint.Typeface?.FontSlant ?? SKFontStyleSlant.Upright,
             GetInheritedTextAttribute(svgTextBase, "direction") ?? string.Empty,
-            GetInheritedTextAttribute(svgTextBase, "unicode-bidi") ?? string.Empty);
+            GetInheritedTextAttribute(svgTextBase, "unicode-bidi") ?? string.Empty,
+            RequiresSyntheticSmallCaps(svgTextBase, text));
     }
 
     private static bool TryGetSharedCachedLineStats(

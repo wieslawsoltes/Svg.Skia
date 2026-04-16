@@ -324,6 +324,39 @@ public class SvgSceneTextCompilerTests
     }
 
     [Fact]
+    public void MeasureLineStats_DoesNotReuseAcrossFreshLoaders_WhenSmallCapsBehaviorDiffers()
+    {
+        ClearPreparedTextCaches();
+        try
+        {
+            var sharedCacheKey = Guid.NewGuid().GetHashCode();
+            var firstDocument = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
+                """
+                <svg xmlns="http://www.w3.org/2000/svg" width="240" height="80" viewBox="0 0 240 80">
+                  <text id="label" x="10" y="40" font-family="sans-serif" font-size="24" font-variant="small-caps">Cache</text>
+                </svg>
+                """);
+            var secondDocument = CreateDocument("Cache", 24);
+            var firstText = firstDocument.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+            var secondText = secondDocument.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+            var firstBounds = GetDocumentViewport(firstDocument);
+            var secondBounds = GetDocumentViewport(secondDocument);
+
+            var firstLoader = new SharedKeyCountingAssetLoader(sharedCacheKey);
+            _ = InvokeMeasureLineStats(firstText, "Cache", firstBounds, firstLoader);
+
+            var secondLoader = new SharedKeyCountingAssetLoader(sharedCacheKey);
+            _ = InvokeMeasureLineStats(secondText, "Cache", secondBounds, secondLoader);
+
+            Assert.Equal(2, GetSharedLineStatsCacheCount());
+        }
+        finally
+        {
+            ClearPreparedTextCaches();
+        }
+    }
+
+    [Fact]
     public void TryCompileSequentialText_FallsBack_ForCustomFontAndEmoji()
     {
         var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
