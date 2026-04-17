@@ -1236,6 +1236,7 @@ public sealed class SvgSceneDocument
             node.Filter = null;
             node.FilterClip = null;
             node.RequiresFilterInputCarrier = false;
+            node.CanSkipStandaloneFilterClip = false;
             node.StandaloneFilterModel = null;
             node.SuppressSubtreeRendering = false;
 
@@ -1265,6 +1266,7 @@ public sealed class SvgSceneDocument
                         node.Filter = filterPayload.FilterPaint?.DeepClone();
                         node.FilterClip = filterPayload.FilterClip;
                         node.RequiresFilterInputCarrier = filterPayload.RequiresInputCarrier;
+                        node.CanSkipStandaloneFilterClip = filterPayload.CanSkipStandaloneFilterClip;
                         node.StandaloneFilterModel = filterPayload.RequiresInputCarrier
                             ? CreateStandaloneFilterModel(filterPayload)
                             : null;

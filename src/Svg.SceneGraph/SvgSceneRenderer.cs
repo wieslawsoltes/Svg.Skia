@@ -268,6 +268,17 @@ public static class SvgSceneRenderer
 
     private static void DrawStandaloneFilterOutput(SvgSceneNode node, SKCanvas canvas)
     {
+        if (node.RequiresFilterInputCarrier &&
+            node.Filter is { } filterPaint &&
+            node.FilterClip is { } filterClip &&
+            !filterClip.IsEmpty)
+        {
+            var path = new SKPath();
+            path.AddRect(filterClip);
+            canvas.DrawPath(path, filterPaint);
+            return;
+        }
+
         if (node.StandaloneFilterModel is not { } standaloneFilterModel)
         {
             return;
@@ -316,6 +327,7 @@ public static class SvgSceneRenderer
         var hasOpacityLayer = enableOpacity && node.Opacity is not null && !canFoldOpacity;
         var hasStandaloneFilterOutput = enableFilter && node.StandaloneFilterModel is not null;
         var hasFilterLayer = enableFilter && node.Filter is not null && !hasStandaloneFilterOutput;
+        var needsStandaloneFilterClip = hasStandaloneFilterOutput && !node.CanSkipStandaloneFilterClip;
         var layerBounds = (hasMaskLayer || hasOpacityLayer)
             ? ResolveCurrentLayerBounds(node)
             : null;
@@ -327,7 +339,7 @@ public static class SvgSceneRenderer
             node.Clip is not null ||
             hasClipPath ||
             node.InnerClip is not null ||
-            ((hasFilterLayer || hasStandaloneFilterOutput) && node.FilterClip is not null);
+            ((hasFilterLayer || needsStandaloneFilterClip) && node.FilterClip is not null);
 
         if (hasBaseSave)
         {
@@ -359,7 +371,7 @@ public static class SvgSceneRenderer
             canvas.ClipRect(innerClip, SKClipOperation.Intersect);
         }
 
-        if ((hasFilterLayer || hasStandaloneFilterOutput) && node.FilterClip is { } filterClip)
+        if ((hasFilterLayer || needsStandaloneFilterClip) && node.FilterClip is { } filterClip)
         {
             canvas.ClipRect(filterClip, SKClipOperation.Intersect);
         }

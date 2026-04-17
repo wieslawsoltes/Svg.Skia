@@ -67,7 +67,9 @@ internal sealed class SvgSceneFilterContext
     private readonly Dictionary<SKImageFilter, SKRect> _regions;
     private bool _useTransparentBlackResult;
     private bool _hasStandaloneCarrierCandidate;
+    private bool _referencesBackgroundInput;
     private bool _referencesSourceDependentInput;
+    private bool _requiresStandaloneFilterClip;
 
     public bool IsValid { get; private set; }
 
@@ -76,6 +78,8 @@ internal sealed class SvgSceneFilterContext
     public SKPaint? FilterPaint { get; private set; }
 
     public bool RequiresInputCarrier => _hasStandaloneCarrierCandidate && !_referencesSourceDependentInput;
+
+    public bool CanSkipStandaloneFilterClip => RequiresInputCarrier && _referencesBackgroundInput && !_requiresStandaloneFilterClip;
 
     public SvgSceneFilterContext(SvgSceneDocument sceneDocument, SvgVisualElement svgVisualElement, SKRect skBounds, SKRect skViewport, ISvgSceneFilterSource filterSource, ISvgAssetLoader assetLoader, HashSet<Uri>? references)
     {
@@ -498,6 +502,7 @@ internal sealed class SvgSceneFilterContext
             case SvgFlood svgFlood:
                 {
                     _hasStandaloneCarrierCandidate = true;
+                    _requiresStandaloneFilterClip = true;
                     var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
                     var skCropRect = skFilterPrimitiveRegion;
                     var skImageFilter = CreateFlood(svgFlood, _svgVisualElement, null, skCropRect);
@@ -626,6 +631,7 @@ internal sealed class SvgSceneFilterContext
             case SvgTurbulence svgTurbulence:
                 {
                     _hasStandaloneCarrierCandidate = true;
+                    _requiresStandaloneFilterClip = true;
                     var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
                     var skCropRect = skFilterPrimitiveRegion;
                     var skImageFilter = CreateTurbulence(svgTurbulence, skCropRect);
@@ -830,6 +836,7 @@ internal sealed class SvgSceneFilterContext
             case BackgroundImage:
                 {
                     _hasStandaloneCarrierCandidate = true;
+                    _referencesBackgroundInput = true;
                     if (_filterUnits == SvgCoordinateUnits.ObjectBoundingBox)
                     {
                         var skImageFilter = GetTransparentBlackImage();
@@ -862,6 +869,7 @@ internal sealed class SvgSceneFilterContext
             case BackgroundAlpha:
                 {
                     _hasStandaloneCarrierCandidate = true;
+                    _referencesBackgroundInput = true;
                     if (_filterUnits == SvgCoordinateUnits.ObjectBoundingBox)
                     {
                         var skImageFilter = GetTransparentBlackAlpha();

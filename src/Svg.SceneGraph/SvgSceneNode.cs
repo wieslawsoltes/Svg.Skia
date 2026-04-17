@@ -116,6 +116,8 @@ public sealed class SvgSceneNode
 
     public bool RequiresFilterInputCarrier { get; internal set; }
 
+    public bool CanSkipStandaloneFilterClip { get; internal set; }
+
     public SKPicture? StandaloneFilterModel { get; internal set; }
 
     public SKPaint? Fill { get; internal set; }
@@ -205,6 +207,7 @@ public sealed class SvgSceneNode
         Filter = replacement.Filter;
         FilterClip = replacement.FilterClip;
         RequiresFilterInputCarrier = replacement.RequiresFilterInputCarrier;
+        CanSkipStandaloneFilterClip = replacement.CanSkipStandaloneFilterClip;
         StandaloneFilterModel = replacement.StandaloneFilterModel;
         Fill = replacement.Fill;
         Stroke = replacement.Stroke;
