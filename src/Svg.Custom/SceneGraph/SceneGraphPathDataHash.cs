@@ -85,7 +85,6 @@ internal static class SceneGraphPathDataHashFactory
 
         return builder.ToHash(svgPathSegmentList.Count);
     }
-
     private static void AddPoint(ref Builder builder, System.Drawing.PointF point)
     {
         builder.Add(point.X);

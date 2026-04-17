@@ -156,7 +156,7 @@ public partial class SKSvg
                 return sceneDocument is not null;
             }
 
-            sourceDocument = _animatedDocument ?? SourceDocument;
+            sourceDocument = _animatedDocument ?? _sourceDocument;
         }
 
         if (sourceDocument is null)
@@ -564,7 +564,7 @@ public partial class SKSvg
 
         lock (Sync)
         {
-            currentDocument = _animatedDocument ?? SourceDocument;
+            currentDocument = _animatedDocument ?? _sourceDocument;
         }
 
         sceneDocument = null;

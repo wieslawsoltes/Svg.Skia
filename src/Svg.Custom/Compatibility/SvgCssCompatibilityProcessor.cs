@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -31,6 +32,7 @@ internal static class SvgCssCompatibilityProcessor
     private const string CssMimeType = "text/css";
     private const string ImportAtRule = "@import";
     private const string CharsetAtRule = "@charset";
+    private const string FontFaceAtRule = "@font-face";
     private const string UrlKeyword = "url";
     private const string ScreenMediaType = "screen";
     private const string AllMediaType = "all";
@@ -48,6 +50,12 @@ internal static class SvgCssCompatibilityProcessor
     private const string LandscapeOrientation = "landscape";
     private const string PortraitOrientation = "portrait";
     private const int MaxStringBuilderCapacity = int.MaxValue - 1;
+    private const int SharedStylesheetCacheLimit = 128;
+    private const int SharedNormalizedStyleContentCacheLimit = 128;
+    private static readonly ConcurrentDictionary<string, Stylesheet> SharedStylesheetCache =
+        new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, string> SharedNormalizedStyleContentCache =
+        new(StringComparer.Ordinal);
 
     public static bool Apply(SvgDocument svgDocument, IReadOnlyCollection<SvgCssStyleSource> styles, SvgElementFactory elementFactory)
     {
@@ -66,10 +74,11 @@ internal static class SvgCssCompatibilityProcessor
             return false;
         }
 
-        var stylesheetParser = new StylesheetParser(true, true, tolerateInvalidValues: true);
-        var stylesheet = stylesheetParser.Parse(cssTotal);
+        cssTotal = StripFontFaceRules(cssTotal);
+        var stylesheet = GetOrParseStylesheet(cssTotal);
         var rootNode = new NonSvgElement();
         rootNode.Children.Add(svgDocument);
+        var selectorIndex = new FastSelectorIndex(svgDocument);
         var appliedAnyStyles = false;
         try
         {
@@ -80,7 +89,9 @@ internal static class SvgCssCompatibilityProcessor
                     var projectsLinkStylesToText = ContainsLinkPseudoClass(rule.Selector);
                     var specificity = rule.Selector.GetSpecificity();
                     List<AppliedDeclaration>? declarations = null;
-                    var elemsToStyle = rootNode.QuerySelectorAll(rule.Selector, elementFactory);
+                    var elemsToStyle = TryGetFastSelectorMatches(rule.Selector, selectorIndex, out var fastMatches)
+                        ? fastMatches
+                        : rootNode.QuerySelectorAll(rule.Selector, elementFactory);
 
                     foreach (var elem in elemsToStyle)
                     {
@@ -131,6 +142,318 @@ internal static class SvgCssCompatibilityProcessor
         }
 
         return appliedAnyStyles;
+    }
+
+    internal static string NormalizeStyleElementContent(string cssText)
+    {
+        if (string.IsNullOrWhiteSpace(cssText) ||
+            cssText.IndexOf(FontFaceAtRule, StringComparison.OrdinalIgnoreCase) < 0)
+        {
+            return cssText;
+        }
+
+        if (SharedNormalizedStyleContentCache.TryGetValue(cssText, out var cachedNormalizedContent))
+        {
+            return cachedNormalizedContent;
+        }
+
+        var builder = new StringBuilder(cssText.Length);
+        var index = 0;
+        var removedUnsupportedFontFace = false;
+
+        while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
+        {
+            if (statement.Length <= 0)
+            {
+                continue;
+            }
+
+            var statementSpan = cssText.AsSpan(statement.Start, statement.Length);
+            if (HasAtRuleKeyword(statementSpan, FontFaceAtRule) &&
+                !ContainsFragmentBackedFontFaceSource(statementSpan))
+            {
+                removedUnsupportedFontFace = true;
+                continue;
+            }
+
+            AppendStatement(builder, cssText, statement);
+        }
+
+        var normalizedContent = removedUnsupportedFontFace
+            ? builder.ToString()
+            : cssText;
+        SharedNormalizedStyleContentCache[cssText] = normalizedContent;
+
+        if (SharedNormalizedStyleContentCache.Count > SharedNormalizedStyleContentCacheLimit)
+        {
+            SharedNormalizedStyleContentCache.Clear();
+            SharedNormalizedStyleContentCache[cssText] = normalizedContent;
+        }
+
+        return normalizedContent;
+    }
+
+    private static bool TryGetFastSelectorMatches(ISelector selector, FastSelectorIndex selectorIndex, out IReadOnlyList<SvgElement> matches)
+    {
+        switch (selector)
+        {
+            case ClassSelector classSelector:
+                matches = selectorIndex.GetByClass(classSelector.Class);
+                return true;
+
+            case TypeSelector typeSelector:
+                matches = selectorIndex.GetByType(typeSelector.Name);
+                return true;
+
+            case CompoundSelector compoundSelector when TryGetSingleSelector(compoundSelector, out var singleSelector):
+                return TryGetFastSelectorMatches(singleSelector, selectorIndex, out matches);
+
+            case ListSelector listSelector:
+                HashSet<SvgElement>? union = null;
+                foreach (var part in listSelector)
+                {
+                    if (!TryGetFastSelectorMatches(part, selectorIndex, out var partMatches))
+                    {
+                        matches = Array.Empty<SvgElement>();
+                        return false;
+                    }
+
+                    union ??= new HashSet<SvgElement>();
+                    foreach (var match in partMatches)
+                    {
+                        union.Add(match);
+                    }
+                }
+
+                matches = union is null
+                    ? Array.Empty<SvgElement>()
+                    : selectorIndex.FilterInDocumentOrder(union);
+                return true;
+
+            default:
+                matches = Array.Empty<SvgElement>();
+                return false;
+        }
+    }
+
+    private static bool TryGetSingleSelector(CompoundSelector compoundSelector, out ISelector selector)
+    {
+        selector = null!;
+        using var enumerator = compoundSelector.GetEnumerator();
+        if (!enumerator.MoveNext())
+        {
+            return false;
+        }
+
+        var first = enumerator.Current;
+        if (enumerator.MoveNext())
+        {
+            return false;
+        }
+
+        selector = first;
+        return true;
+    }
+
+    private static Stylesheet GetOrParseStylesheet(string cssTotal)
+    {
+        if (SharedStylesheetCache.TryGetValue(cssTotal, out var cachedStylesheet))
+        {
+            return cachedStylesheet;
+        }
+
+        var stylesheetParser = new StylesheetParser(true, true, tolerateInvalidValues: true);
+        var parsedStylesheet = stylesheetParser.Parse(cssTotal);
+        SharedStylesheetCache[cssTotal] = parsedStylesheet;
+
+        if (SharedStylesheetCache.Count > SharedStylesheetCacheLimit)
+        {
+            SharedStylesheetCache.Clear();
+            SharedStylesheetCache[cssTotal] = parsedStylesheet;
+        }
+
+        return parsedStylesheet;
+    }
+
+    private static string StripFontFaceRules(string cssText)
+    {
+        if (cssText.IndexOf(FontFaceAtRule, StringComparison.OrdinalIgnoreCase) < 0)
+        {
+            return cssText;
+        }
+
+        var builder = new StringBuilder(cssText.Length);
+        var index = 0;
+        while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
+        {
+            if (statement.Length <= 0)
+            {
+                continue;
+            }
+
+            if (HasAtRuleKeyword(cssText.AsSpan(statement.Start, statement.Length), FontFaceAtRule))
+            {
+                continue;
+            }
+
+            AppendStatement(builder, cssText, statement);
+        }
+
+        return builder.Length == cssText.Length
+            ? cssText
+            : builder.ToString();
+    }
+
+    private static bool ContainsFragmentBackedFontFaceSource(ReadOnlySpan<char> css)
+    {
+        var index = 0;
+        while (index < css.Length)
+        {
+            var relativeUrlIndex = css.Slice(index).IndexOf("url".AsSpan(), StringComparison.OrdinalIgnoreCase);
+            if (relativeUrlIndex < 0)
+            {
+                return false;
+            }
+
+            index += relativeUrlIndex + UrlKeyword.Length;
+            while (index < css.Length && char.IsWhiteSpace(css[index]))
+            {
+                index++;
+            }
+
+            if (index >= css.Length || css[index] != '(')
+            {
+                continue;
+            }
+
+            index++;
+            while (index < css.Length && char.IsWhiteSpace(css[index]))
+            {
+                index++;
+            }
+
+            if (index < css.Length && (css[index] == '\'' || css[index] == '"'))
+            {
+                index++;
+            }
+
+            if (index < css.Length && css[index] == '#')
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private sealed class FastSelectorIndex
+    {
+        private readonly List<SvgElement> _allElements;
+        private readonly Dictionary<string, List<SvgElement>> _classIndex;
+        private readonly Dictionary<string, List<SvgElement>> _typeIndex;
+
+        public FastSelectorIndex(SvgDocument svgDocument)
+        {
+            _allElements = new List<SvgElement>();
+            _classIndex = new Dictionary<string, List<SvgElement>>(StringComparer.Ordinal);
+            _typeIndex = new Dictionary<string, List<SvgElement>>(StringComparer.OrdinalIgnoreCase);
+
+            var stack = new Stack<SvgElement>();
+            stack.Push(svgDocument);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                _allElements.Add(current);
+                AddType(current);
+                AddClasses(current);
+
+                for (var i = current.Children.Count - 1; i >= 0; i--)
+                {
+                    stack.Push(current.Children[i]);
+                }
+            }
+        }
+
+        public IReadOnlyList<SvgElement> GetByClass(string className)
+        {
+            return _classIndex.TryGetValue(className, out var matches)
+                ? matches
+                : Array.Empty<SvgElement>();
+        }
+
+        public IReadOnlyList<SvgElement> GetByType(string typeName)
+        {
+            return _typeIndex.TryGetValue(typeName, out var matches)
+                ? matches
+                : Array.Empty<SvgElement>();
+        }
+
+        public IReadOnlyList<SvgElement> FilterInDocumentOrder(HashSet<SvgElement> matches)
+        {
+            var orderedMatches = new List<SvgElement>(matches.Count);
+            for (var i = 0; i < _allElements.Count; i++)
+            {
+                var current = _allElements[i];
+                if (matches.Contains(current))
+                {
+                    orderedMatches.Add(current);
+                }
+            }
+
+            return orderedMatches;
+        }
+
+        private void AddType(SvgElement element)
+        {
+            var typeName = element.ElementName;
+            if (!_typeIndex.TryGetValue(typeName, out var matches))
+            {
+                matches = new List<SvgElement>();
+                _typeIndex[typeName] = matches;
+            }
+
+            matches.Add(element);
+        }
+
+        private void AddClasses(SvgElement element)
+        {
+            if (!element.TryGetAttribute("class", out var classValue) ||
+                string.IsNullOrWhiteSpace(classValue))
+            {
+                return;
+            }
+
+            var span = classValue.AsSpan();
+            var index = 0;
+            while (index < span.Length)
+            {
+                while (index < span.Length && char.IsWhiteSpace(span[index]))
+                {
+                    index++;
+                }
+
+                var start = index;
+                while (index < span.Length && !char.IsWhiteSpace(span[index]))
+                {
+                    index++;
+                }
+
+                if (index <= start)
+                {
+                    continue;
+                }
+
+                var className = classValue.Substring(start, index - start);
+                if (!_classIndex.TryGetValue(className, out var matches))
+                {
+                    matches = new List<SvgElement>();
+                    _classIndex[className] = matches;
+                }
+
+                matches.Add(element);
+            }
+        }
     }
 
     public static bool ShouldApplyStyleElement(SvgUnknownElement styleElement)

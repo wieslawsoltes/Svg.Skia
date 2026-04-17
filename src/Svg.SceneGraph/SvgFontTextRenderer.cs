@@ -396,6 +396,14 @@ namespace Svg.Skia
                         continue;
                     }
 
+                    // External @font-face sources are not resolved into Skia typefaces here. Only
+                    // fragment-backed SVG font references can produce entries, so skip stylesheet
+                    // scans that cannot possibly contain one.
+                    if (!ContainsFragmentBackedFontFaceSource(unknown.Content.AsSpan()))
+                    {
+                        continue;
+                    }
+
                     foreach (var cssFace in ParseCssFontFaces(unknown.Content))
                     {
                         if (!CanResolveSvgFontReference(cssFace.SourceUri))
@@ -413,6 +421,48 @@ namespace Svg.Skia
                         AddEntry(new SvgFontEntry(_nextOrder++, font, metricsFace, cssFace));
                     }
                 }
+            }
+
+            private static bool ContainsFragmentBackedFontFaceSource(ReadOnlySpan<char> css)
+            {
+                var index = 0;
+                while (index < css.Length)
+                {
+                    var relativeUrlIndex = css.Slice(index).IndexOf("url".AsSpan(), StringComparison.OrdinalIgnoreCase);
+                    if (relativeUrlIndex < 0)
+                    {
+                        return false;
+                    }
+
+                    index += relativeUrlIndex + 3;
+                    while (index < css.Length && char.IsWhiteSpace(css[index]))
+                    {
+                        index++;
+                    }
+
+                    if (index >= css.Length || css[index] != '(')
+                    {
+                        continue;
+                    }
+
+                    index++;
+                    while (index < css.Length && char.IsWhiteSpace(css[index]))
+                    {
+                        index++;
+                    }
+
+                    if (index < css.Length && (css[index] == '\'' || css[index] == '"'))
+                    {
+                        index++;
+                    }
+
+                    if (index < css.Length && css[index] == '#')
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private static bool CanResolveSvgFontReference(Uri? sourceUri)

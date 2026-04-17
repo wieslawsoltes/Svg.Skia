@@ -286,4 +286,26 @@ public class SKSvgTests : SvgUnitTest
             Directory.Delete(tempDirectory, recursive: true);
         }
     }
+
+    [Fact]
+    public void FromSvg_WithoutBaseUri_LeavesSourceDocumentBaseUriNull()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <defs>
+                <linearGradient id="grad">
+                  <stop offset="0" stop-color="red" />
+                  <stop offset="1" stop-color="blue" />
+                </linearGradient>
+              </defs>
+              <rect width="20" height="20" fill="url(#grad)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        using var picture = svg.FromSvg(svgMarkup);
+
+        Assert.NotNull(picture);
+        Assert.Null(svg.SourceDocument?.BaseUri);
+    }
 }

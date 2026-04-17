@@ -15,6 +15,8 @@ namespace Svg.Skia;
 
 public partial class SKSvg : IDisposable
 {
+    private const string ParsedAnimationElementsHintKey = "__svgskia:contains-animation-elements";
+
     private enum SourceFormat
     {
         Svg,
@@ -137,6 +139,7 @@ public partial class SKSvg : IDisposable
     private string? _originalPath;
     private System.IO.Stream? _originalStream;
     private Uri? _originalBaseUri;
+    private static readonly Uri s_inlineSvgParseBaseUri = new("svgskia://inline/document.svg");
     private SourceFormat _originalSourceFormat;
     private int _activeDraws;
     private SvgDocument? _animatedDocument;
@@ -618,7 +621,7 @@ public partial class SKSvg : IDisposable
             svgDocument = loader(stream, parameters);
         }
 
-        return LoadSvgDocument(svgDocument, applyBaseUriAfterLoad ? baseUri : null);
+        return LoadSvgDocument(svgDocument, applyBaseUriAfterLoad ? baseUri : null, trustParsedAnimationHint: true);
     }
 
     [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
@@ -647,7 +650,7 @@ public partial class SKSvg : IDisposable
             ClearOriginalLoadStateIfNeeded();
         }
 
-        return LoadSvgDocument(loader(path, parameters));
+        return LoadSvgDocument(loader(path, parameters), trustParsedAnimationHint: true);
     }
 
     [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
@@ -670,11 +673,11 @@ public partial class SKSvg : IDisposable
             ClearOriginalLoadStateIfNeeded();
         }
 
-        return LoadSvgDocument(loader(reader));
+        return LoadSvgDocument(loader(reader), trustParsedAnimationHint: true);
     }
 
     [RequiresUnreferencedCode("Calls Svg.Skia.SvgAnimationController.SvgAnimationController(SvgDocument)")]
-    private SkiaSharp.SKPicture? LoadSvgDocument(SvgDocument? svgDocument, Uri? baseUri = null)
+    private SkiaSharp.SKPicture? LoadSvgDocument(SvgDocument? svgDocument, Uri? baseUri = null, bool trustParsedAnimationHint = false)
     {
         if (svgDocument is null)
         {
@@ -697,7 +700,12 @@ public partial class SKSvg : IDisposable
 
         SourceDocument = svgDocument;
 
-        if (ContainsAnimationElements(svgDocument))
+        var containsAnimationElements = trustParsedAnimationHint &&
+                                        TryGetParsedAnimationElementsHint(svgDocument, out var parsedContainsAnimationElementsForScan)
+            ? parsedContainsAnimationElementsForScan
+            : ContainsAnimationElements(svgDocument);
+
+        if (containsAnimationElements)
         {
             var animationController = new SvgAnimationController(svgDocument);
             if (animationController.HasAnimations)
@@ -732,7 +740,7 @@ public partial class SKSvg : IDisposable
     {
         lock (Sync)
         {
-            return SourceDocument is not null ||
+            return _sourceDocument is not null ||
                    AnimationController is not null ||
                    _animatedDocument is not null ||
                    _lastRenderedAnimationFrameState is not null ||
@@ -884,30 +892,53 @@ public partial class SKSvg : IDisposable
     [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? FromSvg(string svg)
     {
-        var svgDocument = SvgService.FromSvg(svg);
-        return LoadSvgDocument(svgDocument);
+        var svgDocument = SvgService.FromSvg(svg, parameters: null, s_inlineSvgParseBaseUri);
+        return LoadInlineSvgDocument(svgDocument);
     }
 
     [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? FromSvg(string svg, SvgParameters? parameters, Uri? baseUri = null)
     {
-        var svgDocument = baseUri is null
-            ? SvgService.FromSvg(svg, parameters)
-            : SvgService.FromSvg(svg, parameters, baseUri);
-        return LoadSvgDocument(svgDocument);
+        if (baseUri is not null)
+        {
+            var svgDocument = SvgService.FromSvg(svg, parameters, baseUri);
+            return LoadSvgDocument(svgDocument, trustParsedAnimationHint: true);
+        }
+
+        return LoadInlineSvgDocument(SvgService.FromSvg(svg, parameters, s_inlineSvgParseBaseUri));
     }
 
     [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? FromVectorDrawable(string xml)
     {
         var svgDocument = SvgService.FromVectorDrawable(xml);
-        return LoadSvgDocument(svgDocument);
+        return LoadSvgDocument(svgDocument, trustParsedAnimationHint: true);
     }
 
     [RequiresUnreferencedCode("Rendering from an SVG document may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? FromSvgDocument(SvgDocument? svgDocument)
     {
         return LoadSvgDocument(svgDocument);
+    }
+
+    private static void ClearInlineParseBaseUri(SvgDocument? svgDocument)
+    {
+        if (svgDocument is not null)
+        {
+            svgDocument.BaseUri = null;
+        }
+    }
+
+    private SkiaSharp.SKPicture? LoadInlineSvgDocument(SvgDocument? svgDocument)
+    {
+        try
+        {
+            return LoadSvgDocument(svgDocument, trustParsedAnimationHint: true);
+        }
+        finally
+        {
+            ClearInlineParseBaseUri(svgDocument);
+        }
     }
 
     public void SetAnimationTime(TimeSpan time)
@@ -1079,7 +1110,7 @@ public partial class SKSvg : IDisposable
             {
                 SourceDocument = null;
                 ClearSaveImageCacheLocked();
-                _picture?.Dispose();
+                DisposePictureIfAlive(_picture);
                 _picture = null;
                 _retainedSceneGraph = null;
                 _retainedSceneGraphDirty = true;
@@ -1100,10 +1131,10 @@ public partial class SKSvg : IDisposable
 
                 ClearSaveImageCacheLocked();
                 ClearRetainedPictureLocked();
-                _picture?.Dispose();
+                DisposePictureIfAlive(_picture);
                 _picture = null;
 
-                WireframePicture?.Dispose();
+                DisposePictureIfAlive(WireframePicture);
                 WireframePicture = null;
             }
             else
@@ -1140,6 +1171,14 @@ public partial class SKSvg : IDisposable
     {
         Reset();
         _originalStream?.Dispose();
+    }
+
+    private static void DisposePictureIfAlive(SkiaSharp.SKPicture? picture)
+    {
+        if (picture is not null && picture.Handle != IntPtr.Zero)
+        {
+            picture.Dispose();
+        }
     }
 
     private void BeginDraw()
@@ -1287,6 +1326,18 @@ public partial class SKSvg : IDisposable
         return false;
     }
 
+    private static bool TryGetParsedAnimationElementsHint(SvgDocument svgDocument, out bool containsAnimationElements)
+    {
+        if (svgDocument.CustomAttributes.TryGetValue(ParsedAnimationElementsHintKey, out var value))
+        {
+            containsAnimationElements = string.Equals(value, "1", StringComparison.Ordinal);
+            return true;
+        }
+
+        containsAnimationElements = false;
+        return false;
+    }
+
     private SkiaSharp.SKPicture? RenderSvgDocument(
         SvgDocument svgDocument,
         bool invalidateRetainedSceneGraph = true,
@@ -1371,7 +1422,7 @@ public partial class SKSvg : IDisposable
     private bool CanPublishFirstStaticLoadLocked(SvgDocument? sourceDocument)
     {
         return sourceDocument is not null &&
-               ReferenceEquals(SourceDocument, sourceDocument) &&
+               ReferenceEquals(_sourceDocument, sourceDocument) &&
                AnimationController is null &&
                _animatedDocument is null &&
                _lastRenderedAnimationFrameState is null &&
@@ -1412,7 +1463,7 @@ public partial class SKSvg : IDisposable
     {
         lock (Sync)
         {
-            return ReferenceEquals(SourceDocument, sourceDocument) &&
+            return ReferenceEquals(_sourceDocument, sourceDocument) &&
                    AnimationController is null &&
                    _animatedDocument is null &&
                    _lastRenderedAnimationFrameState is null &&
@@ -1430,7 +1481,7 @@ public partial class SKSvg : IDisposable
 
         lock (Sync)
         {
-            currentDocument = _animatedDocument ?? SourceDocument;
+            currentDocument = _animatedDocument ?? _sourceDocument;
         }
 
         if (currentDocument is null)
@@ -1465,7 +1516,7 @@ public partial class SKSvg : IDisposable
 
     private void OnAnimationFrameChanged(object? sender, SvgAnimationFrameChangedEventArgs e)
     {
-        if (!ReferenceEquals(sender, AnimationController) || SourceDocument is null || AnimationController is null)
+        if (!ReferenceEquals(sender, AnimationController) || _sourceDocument is null || AnimationController is null)
         {
             return;
         }
@@ -1506,7 +1557,7 @@ public partial class SKSvg : IDisposable
 
     private bool RenderAnimationFrame(TimeSpan time, bool raiseInvalidation, bool bypassThrottle)
     {
-        if (SourceDocument is null || AnimationController is null)
+        if (_sourceDocument is null || AnimationController is null)
         {
             return false;
         }
@@ -1516,7 +1567,7 @@ public partial class SKSvg : IDisposable
 
     private bool RenderAnimationFrame(SvgAnimationFrameState frameState, bool raiseInvalidation, bool bypassThrottle)
     {
-        if (SourceDocument is null || AnimationController is null)
+        if (_sourceDocument is null || AnimationController is null)
         {
             return false;
         }

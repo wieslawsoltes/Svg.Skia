@@ -15,6 +15,7 @@ namespace Svg.Model.Services;
 
 public static class SvgService
 {
+    private const string ParsedXmlBaseHintKey = "__svgskia:contains-xml-base";
     public static CultureInfo? s_systemLanguageOverride = default;
 
     private static readonly char[] s_spaceTab = { ' ', '\t' };
@@ -397,6 +398,14 @@ public static class SvgService
             return false;
         }
 
+        var ownerDocument = svgOwnerElement.OwnerDocument;
+        if (ownerDocument?.BaseUri is null &&
+            ownerDocument.CustomAttributes.TryGetValue(ParsedXmlBaseHintKey, out var parsedXmlBaseHint) &&
+            string.Equals(parsedXmlBaseHint, "0", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
         var baseUriFragments = new Stack<string>();
         for (var current = svgOwnerElement; current is not null; current = current.Parent)
         {
@@ -407,7 +416,7 @@ public static class SvgService
             }
         }
 
-        var resolvedBaseUri = svgOwnerElement.OwnerDocument?.BaseUri;
+        var resolvedBaseUri = ownerDocument?.BaseUri;
         while (baseUriFragments.Count > 0)
         {
             var nextBaseUri = new Uri(baseUriFragments.Pop(), UriKind.RelativeOrAbsolute);

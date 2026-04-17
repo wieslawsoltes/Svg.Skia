@@ -25,6 +25,10 @@ namespace Svg;
 /// </summary>
 public static class SvgDocumentCompatibilityLoader
 {
+    private const int EagerCompatibilityStyleSvgLengthThreshold = 128 * 1024;
+    private const string ParsedAnimationElementsHintKey = "__svgskia:contains-animation-elements";
+    private const string ParsedXmlBaseHintKey = "__svgskia:contains-xml-base";
+
     public static T Open<T>(Stream stream) where T : SvgDocument, new()
     {
         return Open<T>(stream, baseUri: null);
@@ -242,7 +246,9 @@ public static class SvgDocumentCompatibilityLoader
         var normalizedCss = string.IsNullOrWhiteSpace(css) ? null : css;
         if (normalizedCss is not null)
         {
-            styles.Add(new SvgCssStyleSource(normalizedCss, baseUri));
+            styles.Add(new SvgCssStyleSource(
+                SvgCssCompatibilityProcessor.NormalizeStyleElementContent(normalizedCss),
+                baseUri));
         }
 
         return new SvgCompatibilityLoadResult(svgDocument!, elementFactory, styles, elementFactory.HasStagedStyles);
@@ -324,6 +330,8 @@ public static class SvgDocumentCompatibilityLoader
     {
         var elementStack = new List<ParseFrame>(64);
         var elementEmpty = false;
+        var containsAnimationElements = false;
+        var containsXmlBase = false;
         SvgElement? element = null;
         SvgElement? parent;
         T? svgDocument = null;
@@ -346,6 +354,9 @@ public static class SvgDocumentCompatibilityLoader
                             svgDocument.BaseUri = baseUri;
                             element = svgDocument;
                         }
+
+                        containsAnimationElements |= element is SvgAnimationElement;
+                        containsXmlBase |= element.ContainsAttribute("xml:base") || element.ContainsAttribute("base");
 
                         if (elementStack.Count > 0)
                         {
@@ -388,8 +399,13 @@ public static class SvgDocumentCompatibilityLoader
                         elementStack.RemoveAt(topIndex);
                         element = parseFrame.Element;
 
-                        if (parseFrame.HasContentNode &&
-                            TryAggregateNodeContent(element, out var content))
+                        if (parseFrame.AccumulatedContent is { } accumulatedContent)
+                        {
+                            element.Content = accumulatedContent.ToString();
+                            element.Nodes.Clear();
+                        }
+                        else if (parseFrame.HasContentNode &&
+                                 TryAggregateNodeContent(element, out var content))
                         {
                             element.Content = content;
                         }
@@ -402,10 +418,16 @@ public static class SvgDocumentCompatibilityLoader
                             unknown.ElementName == "style" &&
                             SvgCssCompatibilityProcessor.ShouldApplyStyleElement(unknown))
                         {
+                            var normalizedStyleContent = SvgCssCompatibilityProcessor.NormalizeStyleElementContent(unknown.Content ?? string.Empty);
+                            if (!string.Equals(unknown.Content, normalizedStyleContent, StringComparison.Ordinal))
+                            {
+                                unknown.Content = normalizedStyleContent;
+                            }
+
                             // Preserve the document base URI with every collected <style> block so
                             // any nested @import inside that block resolves relative to the SVG file
                             // that declared it, not to the current process working directory.
-                            styles.Add(new SvgCssStyleSource(unknown.Content ?? string.Empty, svgDocument?.BaseUri));
+                            styles.Add(new SvgCssStyleSource(normalizedStyleContent, svgDocument?.BaseUri));
                         }
 
                         break;
@@ -417,8 +439,7 @@ public static class SvgDocumentCompatibilityLoader
                         {
                             var currentFrameIndex = elementStack.Count - 1;
                             var currentFrame = elementStack[currentFrameIndex];
-                            EnsureTrackedChildNodes(ref currentFrame);
-                            currentFrame.Element.Nodes.Add(new SvgContentNode { Content = reader.Value });
+                            AppendContentNodeValue(ref currentFrame, reader.Value);
                             currentFrame.HasContentNode = true;
                             elementStack[currentFrameIndex] = currentFrame;
                         }
@@ -426,12 +447,17 @@ public static class SvgDocumentCompatibilityLoader
                         break;
 
                     case XmlNodeType.Whitespace:
-                        if (elementStack.Count > 0 && ShouldPreserveTextWhitespace(elementStack[elementStack.Count - 1].Element))
+                        if (elementStack.Count > 0)
                         {
                             var currentFrameIndex = elementStack.Count - 1;
                             var currentFrame = elementStack[currentFrameIndex];
-                            EnsureTrackedChildNodes(ref currentFrame);
-                            currentFrame.Element.Nodes.Add(new SvgContentNode { Content = reader.Value });
+                            if (!currentFrame.AccumulatesContentWithoutNodes &&
+                                !ShouldPreserveTextWhitespace(currentFrame.Element))
+                            {
+                                break;
+                            }
+
+                            AppendContentNodeValue(ref currentFrame, reader.Value);
                             currentFrame.HasContentNode = true;
                             elementStack[currentFrameIndex] = currentFrame;
                         }
@@ -444,8 +470,7 @@ public static class SvgDocumentCompatibilityLoader
                         {
                             var currentFrameIndex = elementStack.Count - 1;
                             var currentFrame = elementStack[currentFrameIndex];
-                            EnsureTrackedChildNodes(ref currentFrame);
-                            currentFrame.Element.Nodes.Add(new SvgContentNode { Content = reader.Value });
+                            AppendContentNodeValue(ref currentFrame, reader.Value);
                             currentFrame.HasContentNode = true;
                             elementStack[currentFrameIndex] = currentFrame;
                         }
@@ -457,6 +482,12 @@ public static class SvgDocumentCompatibilityLoader
             {
                 Trace.TraceError(ex.Message);
             }
+        }
+
+        if (svgDocument is not null)
+        {
+            svgDocument.CustomAttributes[ParsedAnimationElementsHintKey] = containsAnimationElements ? "1" : "0";
+            svgDocument.CustomAttributes[ParsedXmlBaseHintKey] = containsXmlBase ? "1" : "0";
         }
 
         return svgDocument!;
@@ -483,9 +514,26 @@ public static class SvgDocumentCompatibilityLoader
         frame.TracksChildNodes = true;
     }
 
+    private static void AppendContentNodeValue(ref ParseFrame frame, string value)
+    {
+        if (frame.AccumulatesContentWithoutNodes)
+        {
+            (frame.AccumulatedContent ??= new StringBuilder()).Append(value);
+            return;
+        }
+
+        EnsureTrackedChildNodes(ref frame);
+        frame.Element.Nodes.Add(new SvgContentNode { Content = value });
+    }
+
     private static bool CanEagerApplyCompatibilityStyles(string? css, string? svg = null)
     {
         if (!string.IsNullOrWhiteSpace(css))
+        {
+            return false;
+        }
+
+        if (svg is { Length: > EagerCompatibilityStyleSvgLengthThreshold })
         {
             return false;
         }
@@ -503,6 +551,8 @@ public static class SvgDocumentCompatibilityLoader
         public ParseFrame(SvgElement element)
         {
             Element = element;
+            AccumulatesContentWithoutNodes = ShouldAccumulateContentWithoutNodes(element);
+            AccumulatedContent = null;
         }
 
         public SvgElement Element { get; }
@@ -510,6 +560,16 @@ public static class SvgDocumentCompatibilityLoader
         public bool HasContentNode { get; set; }
 
         public bool TracksChildNodes { get; set; }
+
+        public bool AccumulatesContentWithoutNodes { get; }
+
+        public StringBuilder? AccumulatedContent { get; set; }
+    }
+
+    private static bool ShouldAccumulateContentWithoutNodes(SvgElement element)
+    {
+        return element is SvgUnknownElement unknown &&
+               unknown.ElementName == "style";
     }
 
     private static bool TryAggregateNodeContent(SvgElement element, out string content)

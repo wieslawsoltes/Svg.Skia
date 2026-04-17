@@ -1021,6 +1021,58 @@ public class SvgDocumentCompatibilityLoaderTests
         Assert.Equal(new PointF(1f, 1f), secondMove.End);
     }
 
+    [Fact]
+    public void FromSvg_StripsUnsupportedExternalCssFontFaceRulesFromStoredStyleContent()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style type="text/css"><![CDATA[
+                @font-face {
+                  font-family: 'ExternalOnly';
+                  src: url('../fonts/OpenGostTypeA-Regular.ttf') format('truetype');
+                }
+                #target { fill: red; }
+              ]]></style>
+              <text id="target" x="0" y="15" fill="blue">test</text>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var style = document.Descendants().OfType<SvgUnknownElement>().Single();
+        var text = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(text.Fill);
+
+        Assert.DoesNotContain("@font-face", style.Content, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(Color.Red.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_PreservesFragmentBackedCssFontFaceRulesInStoredStyleContent()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <font id="DefaultFont" horiz-adv-x="100">
+                  <font-face font-family="DefaultFont" units-per-em="100" ascent="100" descent="0" />
+                  <glyph unicode="A" glyph-name="A" horiz-adv-x="100" d="M0 0 L50 100 L100 0 Z" />
+                </font>
+              </defs>
+              <style type="text/css"><![CDATA[
+                @font-face {
+                  font-family: 'DefaultFont';
+                  src: url(#DefaultFont);
+                }
+              ]]></style>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var style = document.Descendants().OfType<SvgUnknownElement>().Single();
+
+        Assert.Contains("@font-face", style.Content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("url(#DefaultFont)", style.Content, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static LoadResult CaptureLoad(Func<SvgDocument> load)
     {
         try

@@ -27,6 +27,12 @@ public partial class SvgPath
         _sceneGraphPathDataHashInitialized = true;
     }
 
+    internal void SeedSceneGraphPathDataHash(SceneGraphPathDataHash hash)
+    {
+        _sceneGraphPathDataHash = hash;
+        _sceneGraphPathDataHashInitialized = true;
+    }
+
     private void EnsureSceneGraphPathDataHashTracking()
     {
         if (_sceneGraphPathDataHashTrackingInitialized)

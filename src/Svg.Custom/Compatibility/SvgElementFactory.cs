@@ -26,9 +26,13 @@ namespace Svg
     internal partial class SvgElementFactory
     {
         private const string RawTextDecorationAttributeKey = "__svgskia:text-decoration-raw";
-        private const int SharedPathDataPrototypeCacheLimit = 1024;
+        private const int SharedPathDataPrototypeCacheLimit = 8192;
+        private const int SharedPathDataPrototypeMinLength = 64;
+        private const int SharedPathDataPrototypeMaxSeedLength = 512;
         private static readonly char[] ViewBoxSplitChars = { ' ', '\t', '\n', '\r', ',' };
         private static readonly ConcurrentDictionary<string, SharedPathDataPrototypeEntry> SharedPathDataPrototypeCache =
+            new(StringComparer.Ordinal);
+        private static readonly ConcurrentDictionary<string, byte> SharedPathDataPrototypeSeenOnce =
             new(StringComparer.Ordinal);
         private readonly SvgInlineStyleAttributeParser inlineStyleAttributeParser = new();
         private readonly bool eagerApplyCompatibilityStyles;
@@ -43,6 +47,7 @@ namespace Svg
         internal static void ClearPathDataPrototypeCacheForBenchmarks()
         {
             SharedPathDataPrototypeCache.Clear();
+            SharedPathDataPrototypeSeenOnce.Clear();
         }
 
         /// <summary>
@@ -355,7 +360,10 @@ namespace Svg
                     case "d" when element is SvgPath path:
                         var parsedPathData = ParsePathDataWithSharedCache(attributeValue);
                         path.PathData = parsedPathData.PathData;
-                        path.SetSceneGraphPathDataHash(parsedPathData.Hash);
+                        if (parsedPathData.HasHash)
+                        {
+                            path.SeedSceneGraphPathDataHash(parsedPathData.Hash);
+                        }
                         return true;
                     case "cx":
                         return TrySetCenterXFast(element, attributeValue);
@@ -387,14 +395,16 @@ namespace Svg
 
         private readonly struct ParsedPathDataResult
         {
-            public ParsedPathDataResult(SvgPathSegmentList pathData, SceneGraphPathDataHash hash)
+            public ParsedPathDataResult(SvgPathSegmentList pathData, SceneGraphPathDataHash hash, bool hasHash = true)
             {
                 PathData = pathData;
                 Hash = hash;
+                HasHash = hasHash;
             }
 
             public SvgPathSegmentList PathData { get; }
             public SceneGraphPathDataHash Hash { get; }
+            public bool HasHash { get; }
         }
 
         private sealed class SharedPathDataPrototypeEntry
@@ -417,6 +427,17 @@ namespace Svg
                 return new ParsedPathDataResult(emptyPathData, SceneGraphPathDataHashFactory.Create(emptyPathData));
             }
 
+            if (attributeValue.Length < SharedPathDataPrototypeMinLength)
+            {
+                var parsedShortPath = SvgPathBuilder.Parse(attributeValue.AsSpan());
+                return new ParsedPathDataResult(parsedShortPath, SceneGraphPathDataHashFactory.Create(parsedShortPath));
+            }
+
+            if (attributeValue.Length > SharedPathDataPrototypeMaxSeedLength)
+            {
+                return new ParsedPathDataResult(SvgPathBuilder.Parse(attributeValue.AsSpan()), default, hasHash: false);
+            }
+
             if (SharedPathDataPrototypeCache.TryGetValue(attributeValue, out var cachedPrototype))
             {
                 return new ParsedPathDataResult((SvgPathSegmentList)cachedPrototype.Prototype.Clone(), cachedPrototype.Hash);
@@ -424,9 +445,18 @@ namespace Svg
 
             var parsed = SvgPathBuilder.Parse(attributeValue.AsSpan());
             var hash = SceneGraphPathDataHashFactory.Create(parsed);
-            SharedPathDataPrototypeCache[attributeValue] = new SharedPathDataPrototypeEntry(parsed, hash);
-            TrimSharedPathDataPrototypeCacheIfNeeded();
-            return new ParsedPathDataResult((SvgPathSegmentList)parsed.Clone(), hash);
+            if (!SharedPathDataPrototypeSeenOnce.TryAdd(attributeValue, 0))
+            {
+                SharedPathDataPrototypeSeenOnce.TryRemove(attributeValue, out _);
+                SharedPathDataPrototypeCache[attributeValue] = new SharedPathDataPrototypeEntry((SvgPathSegmentList)parsed.Clone(), hash);
+                TrimSharedPathDataPrototypeCacheIfNeeded();
+            }
+            else
+            {
+                TrimSharedPathDataPrototypeSeenOnceIfNeeded();
+            }
+
+            return new ParsedPathDataResult(parsed, hash);
         }
 
         private static void TrimSharedPathDataPrototypeCacheIfNeeded()
@@ -434,6 +464,14 @@ namespace Svg
             if (SharedPathDataPrototypeCache.Count > SharedPathDataPrototypeCacheLimit)
             {
                 SharedPathDataPrototypeCache.Clear();
+            }
+        }
+
+        private static void TrimSharedPathDataPrototypeSeenOnceIfNeeded()
+        {
+            if (SharedPathDataPrototypeSeenOnce.Count > SharedPathDataPrototypeCacheLimit)
+            {
+                SharedPathDataPrototypeSeenOnce.Clear();
             }
         }
 

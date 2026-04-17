@@ -15,8 +15,8 @@ public partial class SkiaModel
     private const int TypefaceCacheLimit = 512;
     private const int ResolvedTypefaceCacheLimit = 512;
     private const int PositionedTextCacheRefTrimThreshold = 1024;
-    private const int SharedRenderPaintTemplateCacheLimit = 1024;
-    private const int SharedRenderPathCacheLimit = 1024;
+    private const int SharedRenderPaintTemplateCacheLimit = 8192;
+    private const int SharedRenderPathCacheLimit = 8192;
 
     private sealed class PictureReferenceEqualityComparer : IEqualityComparer<ShimSkiaSharp.SKPicture>
     {
@@ -430,6 +430,18 @@ public partial class SkiaModel
         public SkiaSharp.SKPath Path { get; }
     }
 
+    private sealed class RenderPathSignatureCacheEntry
+    {
+        public RenderPathSignatureCacheEntry(int revision, RenderPathSignature signature)
+        {
+            Revision = revision;
+            Signature = signature;
+        }
+
+        public int Revision { get; }
+        public RenderPathSignature Signature { get; }
+    }
+
     private sealed class NativeImageCacheEntry
     {
         public NativeImageCacheEntry(int revision, SkiaSharp.SKImage image)
@@ -494,6 +506,7 @@ public partial class SkiaModel
     private static readonly ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?> s_sharedResolvedTypefaceCache = new();
     private static readonly ConcurrentDictionary<RenderPaintSignature, SharedRenderPaintTemplate> s_sharedRenderPaintTemplateCache = new();
     private static readonly ConcurrentDictionary<RenderPathSignature, SkiaSharp.SKPath> s_sharedRenderPathCache = new();
+    private static readonly ConditionalWeakTable<ShimSkiaSharp.SKPath, RenderPathSignatureCacheEntry> s_sharedRenderPathSignatureCache = new();
     private static readonly ConditionalWeakTable<ShimSkiaSharp.SKTextBlob, PositionedTextCacheSet> s_sharedPositionedTextCache = new();
     private ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?>? _typefaceCache;
     private ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?>? _resolvedTypefaceCache;
@@ -771,6 +784,26 @@ public partial class SkiaModel
         }
 
         return hash.ToSignature(commands.Count, path.FillType);
+    }
+
+    private static RenderPathSignature GetCachedRenderPathSignature(ShimSkiaSharp.SKPath path, int revision)
+    {
+        if (s_sharedRenderPathSignatureCache.TryGetValue(path, out var cached) &&
+            cached.Revision == revision)
+        {
+            return cached.Signature;
+        }
+
+        var signature = CreateRenderPathSignature(path);
+        s_sharedRenderPathSignatureCache.Remove(path);
+        s_sharedRenderPathSignatureCache.Add(path, new RenderPathSignatureCacheEntry(revision, signature));
+        return signature;
+    }
+
+    private static bool CanUseSharedRenderPathCache(ShimSkiaSharp.SKPath path)
+    {
+        var commands = path.Commands;
+        return commands is not [AddPolyPathCommand];
     }
 
     private static int GetImageRevision(ShimSkiaSharp.SKImage image)
@@ -1539,7 +1572,6 @@ public partial class SkiaModel
         }
 
         var revision = GetPathRevision(path);
-        var signature = CreateRenderPathSignature(path);
 
         lock (GetNativeObjectCacheLock())
         {
@@ -1551,17 +1583,26 @@ public partial class SkiaModel
                 return cached.Path;
             }
 
-            if (s_sharedRenderPathCache.TryGetValue(signature, out var sharedPath) &&
-                sharedPath.Handle != IntPtr.Zero)
+            if (CanUseSharedRenderPathCache(path))
             {
+                var signature = GetCachedRenderPathSignature(path, revision);
+                if (s_sharedRenderPathCache.TryGetValue(signature, out var sharedPath) &&
+                    sharedPath.Handle != IntPtr.Zero)
+                {
+                    nativePathCache.Remove(path);
+                    nativePathCache.Add(path, new NativePathCacheEntry(revision, sharedPath));
+                    return sharedPath;
+                }
+
+                var sharedCreated = ToSKPath(path);
+                s_sharedRenderPathCache[signature] = sharedCreated;
+                TrimSharedRenderPathCacheIfNeeded();
                 nativePathCache.Remove(path);
-                nativePathCache.Add(path, new NativePathCacheEntry(revision, sharedPath));
-                return sharedPath;
+                nativePathCache.Add(path, new NativePathCacheEntry(revision, sharedCreated));
+                return sharedCreated;
             }
 
             var created = ToSKPath(path);
-            s_sharedRenderPathCache[signature] = created;
-            TrimSharedRenderPathCacheIfNeeded();
             nativePathCache.Remove(path);
             nativePathCache.Add(path, new NativePathCacheEntry(revision, created));
             return created;
