@@ -39,7 +39,20 @@ internal sealed class SvgSceneFilterSource : ISvgSceneFilterSource
             return null;
         }
 
-        var cullRect = clip ?? CreateLocalCullRect(_node.GeometryBounds);
+        var backgroundBounds = SvgSceneNodeBoundsService.GetLocalRenderablePaintBounds(containerNode);
+        var cullRect = !backgroundBounds.IsEmpty
+            ? backgroundBounds
+            : clip ?? CreateLocalCullRect(_node.GeometryBounds);
+        if (clip is { } requestedClip && !requestedClip.IsEmpty)
+        {
+            cullRect = IntersectBounds(cullRect, requestedClip);
+        }
+
+        if (!clipRect.IsEmpty)
+        {
+            cullRect = IntersectBounds(cullRect, clipRect);
+        }
+
         if (cullRect.IsEmpty)
         {
             return null;
@@ -100,6 +113,30 @@ internal sealed class SvgSceneFilterSource : ISvgSceneFilterSource
             0f,
             Math.Abs(bounds.Left) + bounds.Width,
             Math.Abs(bounds.Top) + bounds.Height);
+    }
+
+    private static SKRect IntersectBounds(SKRect current, SKRect candidate)
+    {
+        if (current.IsEmpty)
+        {
+            return candidate;
+        }
+
+        if (candidate.IsEmpty)
+        {
+            return current;
+        }
+
+        var left = Math.Max(current.Left, candidate.Left);
+        var top = Math.Max(current.Top, candidate.Top);
+        var right = Math.Min(current.Right, candidate.Right);
+        var bottom = Math.Min(current.Bottom, candidate.Bottom);
+        if (right <= left || bottom <= top)
+        {
+            return SKRect.Empty;
+        }
+
+        return new SKRect(left, top, right, bottom);
     }
 
     private SKPicture? RenderPaintPicture(SKPaint? paint, SKRect? clip)
