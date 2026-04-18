@@ -803,7 +803,9 @@ public partial class SkiaModel
     private static bool CanUseSharedRenderPathCache(ShimSkiaSharp.SKPath path)
     {
         var commands = path.Commands;
-        return commands is not [AddPolyPathCommand];
+        return commands is null
+               || commands.Count != 1
+               || commands[0] is not AddPolyPathCommand;
     }
 
     private static int GetImageRevision(ShimSkiaSharp.SKImage image)
