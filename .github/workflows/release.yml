@@ -139,16 +139,63 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+  pack-maui:
+    name: Pack MAUI Release
+    runs-on: macos-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install .NET MAUI workload
+        working-directory: src/SvgML.Maui
+        run: dotnet workload install maui --ignore-failed-sources --skip-manifest-update
+
+      - name: Restore
+        working-directory: src/SvgML.Maui
+        run: dotnet restore SvgML.Maui.slnx
+
+      - name: Build
+        working-directory: src/SvgML.Maui
+        run: dotnet build SvgML.Maui.slnx -c Release --no-restore
+
+      - name: Pack
+        working-directory: src/SvgML.Maui
+        run: dotnet pack SvgML.Maui.csproj -c Release --no-restore -o ../../artifacts/maui-packages
+
+      - name: Upload NuGet packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-maui-nuget-packages
+          path: |
+            artifacts/maui-packages/*.nupkg
+            artifacts/maui-packages/*.snupkg
+          if-no-files-found: error
+          retention-days: 90
+
   publish-nuget:
     name: Publish to NuGet
     runs-on: ubuntu-latest
-    needs: [build, pack]
+    needs: [build, pack, pack-maui]
     environment: nuget
     steps:
       - name: Download NuGet packages
         uses: actions/download-artifact@v4
         with:
           name: release-nuget-packages
+          path: packages
+
+      - name: Download MAUI NuGet packages
+        uses: actions/download-artifact@v4
+        with:
+          name: release-maui-nuget-packages
           path: packages
 
       - name: Setup .NET
@@ -170,7 +217,7 @@ jobs:
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [build, pack, publish-nuget]
+    needs: [build, pack, pack-maui, publish-nuget]
     permissions:
       contents: write
     steps:
@@ -183,6 +230,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: release-nuget-packages
+          path: packages
+
+      - name: Download MAUI NuGet packages
+        uses: actions/download-artifact@v4
+        with:
+          name: release-maui-nuget-packages
           path: packages
 
       - name: Create GitHub Release
