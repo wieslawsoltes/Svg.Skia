@@ -1,0 +1,60 @@
+<Page x:Class="SvgML.Uno.Demo.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:svgml="using:SvgML"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+  <ScrollViewer>
+    <StackPanel Spacing="20" Padding="24" MaxWidth="960">
+      <TextBlock Text="SvgML.Uno"
+                 FontSize="28"
+                 FontWeight="SemiBold" />
+      <TextBlock Text="Inline SVG authored directly in Uno XAML and rendered through the shared Svg.Skia pipeline."
+                 TextWrapping="WrapWholeWords" />
+
+      <Border Padding="16" BorderThickness="1" CornerRadius="12">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Inline SVG with Bound Fill"
+                     FontSize="18"
+                     FontWeight="SemiBold" />
+          <svgml:svg Height="200"
+                     Stretch="Uniform"
+                     viewBox="0 0 220 120">
+            <svgml:path d="M0 0 H220 V120 H0 Z" fill="#0f766e" />
+            <svgml:path d="M72 32 a28 28 0 1 0 0 56 a28 28 0 1 0 0 -56"
+                        fill="{Binding ElementName=CircleFillInput, Path=Text, Mode=TwoWay}" />
+            <svgml:path d="M132 88 L168 30 L196 88 Z"
+                        fill="#0f172a"
+                        opacity="0.35" />
+          </svgml:svg>
+          <TextBox x:Name="CircleFillInput"
+                   Header="Circle fill"
+                   Text="tomato" />
+        </StackPanel>
+      </Border>
+
+      <Border Padding="16" BorderThickness="1" CornerRadius="12">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Runtime CSS Restyling"
+                     FontSize="18"
+                     FontWeight="SemiBold" />
+          <svgml:svg x:Name="StyledSvg"
+                     Height="220"
+                     Stretch="Uniform"
+                     viewBox="0 0 240 160">
+            <svgml:path d="M12 12 H228 V148 H12 Z" fill="#f8fafc" />
+            <svgml:path id="accent-shape" d="M78 48 a34 34 0 1 0 0 68 a34 34 0 1 0 0 -68" />
+            <svgml:path id="outline-shape" d="M132 118 L178 46 L206 118 Z" fill="none" />
+            <svgml:path id="accent-bar" d="M132 60 H180 V78 H132 Z" />
+          </svgml:svg>
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Button Content="Swap Theme" Click="OnSwapThemeClick" />
+            <TextBlock x:Name="ThemeStatusText"
+                       VerticalAlignment="Center"
+                       Text="Current theme: cobalt" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</Page>
