@@ -146,13 +146,21 @@ internal static class SvgRenderLayout
 
             if (stretch == Stretch.Uniform)
             {
-                var uniform = Math.Min(candidateScaleX, candidateScaleY);
+                var uniform = hasWidth && !hasHeight
+                    ? candidateScaleX
+                    : !hasWidth && hasHeight
+                        ? candidateScaleY
+                        : Math.Min(candidateScaleX, candidateScaleY);
                 scaleX = uniform;
                 scaleY = uniform;
             }
             else if (stretch == Stretch.UniformToFill)
             {
-                var uniform = Math.Max(candidateScaleX, candidateScaleY);
+                var uniform = hasWidth && !hasHeight
+                    ? candidateScaleX
+                    : !hasWidth && hasHeight
+                        ? candidateScaleY
+                        : Math.Max(candidateScaleX, candidateScaleY);
                 scaleX = uniform;
                 scaleY = uniform;
             }
