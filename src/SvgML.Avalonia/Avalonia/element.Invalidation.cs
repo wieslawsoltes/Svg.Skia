@@ -36,7 +36,15 @@ public abstract partial class element
                 break;
 
             case NotifyCollectionChangedAction.Reset:
-                throw new NotSupportedException();
+                var logicalChildren = LogicalChildren.OfType<Control>().ToList();
+                var visualChildren = VisualChildren.OfType<Visual>().ToList();
+
+                LogicalChildren.RemoveAll(logicalChildren);
+                VisualChildren.RemoveAll(visualChildren);
+
+                LogicalChildren.InsertRange(0, Children.OfType<Control>().ToList());
+                VisualChildren.InsertRange(0, Children.OfType<Visual>());
+                break;
         }
 
         Invalidate();

@@ -12,7 +12,7 @@ public abstract partial class element
 
     protected string ToSvgString(Enum value)
     {
-        return value.ToString();
+        return value.ToString().Replace('_', '-');
     }
 
     protected string ToSvgString(float value)
