@@ -1,0 +1,11 @@
+<Solution>
+  <Project Path="../../externals/Svg.Generators/Svg.Generators.csproj" />
+  <Project Path="../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj" />
+  <Project Path="../ShimSkiaSharp/ShimSkiaSharp.csproj" />
+  <Project Path="../Svg.Animation/Svg.Animation.csproj" />
+  <Project Path="../Svg.Custom/Svg.Custom.csproj" />
+  <Project Path="../Svg.Model/Svg.Model.csproj" />
+  <Project Path="../Svg.SceneGraph/Svg.SceneGraph.csproj" />
+  <Project Path="../Svg.Skia/Svg.Skia.csproj" />
+  <Project Path="SvgML.Maui.csproj" />
+</Solution>

@@ -31,7 +31,7 @@ switch (target)
             {
                 ElementBaseType = "SkiaSharp.Views.Maui.Controls.SKCanvasView",
                 BaseWriterType = "element",
-                BasePath = "../../MauiDemo/SvgML.Maui/Generated",
+                BasePath = "../SvgML.Maui/Generated",
                 TypeDefs = SvgTypeDefs.TypeDefs
             };
 
@@ -40,4 +40,3 @@ switch (target)
             break;
         }
 }
-

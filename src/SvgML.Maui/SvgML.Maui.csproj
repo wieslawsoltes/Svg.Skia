@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+        <TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
+        <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
+        <!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
+        <UseMaui>true</UseMaui>
+        <SingleProject>true</SingleProject>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>SvgML</RootNamespace>
+        <Description>Inline SVG element authoring for .NET MAUI XAML backed by Svg.Skia.</Description>
+        <PackageId>SvgML.Maui</PackageId>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageTags>svg;xaml;maui;dotnet-maui;control;inline-svg</PackageTags>
+        <IsPackable>true</IsPackable>
+        <NoWarn>$(NoWarn);CS1591;CS8981</NoWarn>
+
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)"/>
+        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)"/>
+        <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="2.88.9" />
+    </ItemGroup>
+
+    <Import Project="..\..\build\SourceLink.props" />
+    <Import Project="..\..\build\SignAssembly.props" />
+
+    <PropertyGroup>
+        <SvgMLBasePath>..\SvgML</SvgMLBasePath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="$(SvgMLBasePath)\Manual\**\*.cs" LinkBase="Manual" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Platforms\Android\" />
+      <Folder Include="Platforms\iOS\" />
+      <Folder Include="Platforms\MacCatalyst\" />
+    </ItemGroup>
+    
+</Project>
