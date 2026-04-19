@@ -10,9 +10,9 @@ public partial class feComposite : filter_primitive
     public static readonly Microsoft.UI.Xaml.DependencyProperty operatorProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "operator",
-            typeof(@operator),
+            typeof(OperatorValue),
             typeof(feComposite),
-            new Microsoft.UI.Xaml.PropertyMetadata(default(@operator), OnSvgPropertyChanged));
+            new Microsoft.UI.Xaml.PropertyMetadata(default(OperatorValue), OnSvgPropertyChanged));
 
     public static readonly Microsoft.UI.Xaml.DependencyProperty k1Property =
         Microsoft.UI.Xaml.DependencyProperty.Register(
@@ -49,9 +49,9 @@ public partial class feComposite : filter_primitive
             typeof(feComposite),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
 
-    public @operator @operator
+    public OperatorValue @operator
     {
-        get => (@operator)GetValue(operatorProperty);
+        get => (OperatorValue)GetValue(operatorProperty);
         set => SetValue(operatorProperty, value);
     }
 

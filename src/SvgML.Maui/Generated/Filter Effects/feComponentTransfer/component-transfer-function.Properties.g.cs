@@ -6,7 +6,7 @@ namespace SvgML;
 public abstract partial class component_transfer_function : element
 {
     public static readonly Microsoft.Maui.Controls.BindableProperty typeProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("type", typeof(type_component_transfer_function), typeof(component_transfer_function));
+        Microsoft.Maui.Controls.BindableProperty.Create("type", typeof(TypeComponentTransferFunctionValue), typeof(component_transfer_function));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty tableValuesProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("tableValues", typeof(numbers), typeof(component_transfer_function));
@@ -26,9 +26,9 @@ public abstract partial class component_transfer_function : element
     public static readonly Microsoft.Maui.Controls.BindableProperty offsetProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("offset", typeof(float), typeof(component_transfer_function));
 
-    public type_component_transfer_function type
+    public TypeComponentTransferFunctionValue type
     {
-        get => (type_component_transfer_function)GetValue(typeProperty);
+        get => (TypeComponentTransferFunctionValue)GetValue(typeProperty);
         set => SetValue(typeProperty, value);
     }
 

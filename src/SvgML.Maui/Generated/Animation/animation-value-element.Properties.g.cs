@@ -6,7 +6,7 @@ namespace SvgML;
 public abstract partial class animation_value_element : animation_attribute_element
 {
     public static readonly Microsoft.Maui.Controls.BindableProperty calcModeProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("calcMode", typeof(Svg.SvgAnimationCalcMode), typeof(animation_value_element));
+        Microsoft.Maui.Controls.BindableProperty.Create("calcMode", typeof(SvgAnimationCalcModeValue), typeof(animation_value_element));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty valuesProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("values", typeof(string), typeof(animation_value_element));
@@ -27,14 +27,14 @@ public abstract partial class animation_value_element : animation_attribute_elem
         Microsoft.Maui.Controls.BindableProperty.Create("by", typeof(string), typeof(animation_value_element));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty additiveProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("additive", typeof(Svg.SvgAnimationAdditive), typeof(animation_value_element));
+        Microsoft.Maui.Controls.BindableProperty.Create("additive", typeof(SvgAnimationAdditiveValue), typeof(animation_value_element));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty accumulateProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("accumulate", typeof(Svg.SvgAnimationAccumulate), typeof(animation_value_element));
+        Microsoft.Maui.Controls.BindableProperty.Create("accumulate", typeof(SvgAnimationAccumulateValue), typeof(animation_value_element));
 
-    public Svg.SvgAnimationCalcMode calcMode
+    public SvgAnimationCalcModeValue calcMode
     {
-        get => (Svg.SvgAnimationCalcMode)GetValue(calcModeProperty);
+        get => (SvgAnimationCalcModeValue)GetValue(calcModeProperty);
         set => SetValue(calcModeProperty, value);
     }
 
@@ -74,15 +74,15 @@ public abstract partial class animation_value_element : animation_attribute_elem
         set => SetValue(byProperty, value);
     }
 
-    public Svg.SvgAnimationAdditive additive
+    public SvgAnimationAdditiveValue additive
     {
-        get => (Svg.SvgAnimationAdditive)GetValue(additiveProperty);
+        get => (SvgAnimationAdditiveValue)GetValue(additiveProperty);
         set => SetValue(additiveProperty, value);
     }
 
-    public Svg.SvgAnimationAccumulate accumulate
+    public SvgAnimationAccumulateValue accumulate
     {
-        get => (Svg.SvgAnimationAccumulate)GetValue(accumulateProperty);
+        get => (SvgAnimationAccumulateValue)GetValue(accumulateProperty);
         set => SetValue(accumulateProperty, value);
     }
 }

@@ -8,7 +8,7 @@ public partial class animateMotion : animation_element
     protected override string SvgTag => "animateMotion";
 
     public static readonly Microsoft.Maui.Controls.BindableProperty calcModeProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("calcMode", typeof(Svg.SvgAnimationCalcMode), typeof(animateMotion));
+        Microsoft.Maui.Controls.BindableProperty.Create("calcMode", typeof(SvgAnimationCalcModeValue), typeof(animateMotion));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty valuesProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("values", typeof(string), typeof(animateMotion));
@@ -29,10 +29,10 @@ public partial class animateMotion : animation_element
         Microsoft.Maui.Controls.BindableProperty.Create("by", typeof(string), typeof(animateMotion));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty additiveProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("additive", typeof(Svg.SvgAnimationAdditive), typeof(animateMotion));
+        Microsoft.Maui.Controls.BindableProperty.Create("additive", typeof(SvgAnimationAdditiveValue), typeof(animateMotion));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty accumulateProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("accumulate", typeof(Svg.SvgAnimationAccumulate), typeof(animateMotion));
+        Microsoft.Maui.Controls.BindableProperty.Create("accumulate", typeof(SvgAnimationAccumulateValue), typeof(animateMotion));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty pathProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("path", typeof(string), typeof(animateMotion));
@@ -46,9 +46,9 @@ public partial class animateMotion : animation_element
     public static readonly Microsoft.Maui.Controls.BindableProperty originProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("origin", typeof(string), typeof(animateMotion));
 
-    public Svg.SvgAnimationCalcMode calcMode
+    public SvgAnimationCalcModeValue calcMode
     {
-        get => (Svg.SvgAnimationCalcMode)GetValue(calcModeProperty);
+        get => (SvgAnimationCalcModeValue)GetValue(calcModeProperty);
         set => SetValue(calcModeProperty, value);
     }
 
@@ -88,15 +88,15 @@ public partial class animateMotion : animation_element
         set => SetValue(byProperty, value);
     }
 
-    public Svg.SvgAnimationAdditive additive
+    public SvgAnimationAdditiveValue additive
     {
-        get => (Svg.SvgAnimationAdditive)GetValue(additiveProperty);
+        get => (SvgAnimationAdditiveValue)GetValue(additiveProperty);
         set => SetValue(additiveProperty, value);
     }
 
-    public Svg.SvgAnimationAccumulate accumulate
+    public SvgAnimationAccumulateValue accumulate
     {
-        get => (Svg.SvgAnimationAccumulate)GetValue(accumulateProperty);
+        get => (SvgAnimationAccumulateValue)GetValue(accumulateProperty);
         set => SetValue(accumulateProperty, value);
     }
 

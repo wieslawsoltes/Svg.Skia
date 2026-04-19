@@ -8,7 +8,7 @@ public partial class feComposite : filter_primitive
     protected override string SvgTag => "feComposite";
 
     public static readonly Microsoft.Maui.Controls.BindableProperty operatorProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("operator", typeof(@operator), typeof(feComposite));
+        Microsoft.Maui.Controls.BindableProperty.Create("operator", typeof(OperatorValue), typeof(feComposite));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty k1Property = 
         Microsoft.Maui.Controls.BindableProperty.Create("k1", typeof(float), typeof(feComposite));
@@ -25,9 +25,9 @@ public partial class feComposite : filter_primitive
     public static readonly Microsoft.Maui.Controls.BindableProperty in2Property = 
         Microsoft.Maui.Controls.BindableProperty.Create("in2", typeof(string), typeof(feComposite));
 
-    public @operator @operator
+    public OperatorValue @operator
     {
-        get => (@operator)GetValue(operatorProperty);
+        get => (OperatorValue)GetValue(operatorProperty);
         set => SetValue(operatorProperty, value);
     }
 

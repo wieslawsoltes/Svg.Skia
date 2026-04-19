@@ -10,9 +10,9 @@ public partial class feBlend : filter_primitive
     public static readonly Microsoft.UI.Xaml.DependencyProperty modeProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "mode",
-            typeof(blend_mode),
+            typeof(BlendModeValue),
             typeof(feBlend),
-            new Microsoft.UI.Xaml.PropertyMetadata(default(blend_mode), OnSvgPropertyChanged));
+            new Microsoft.UI.Xaml.PropertyMetadata(default(BlendModeValue), OnSvgPropertyChanged));
 
     public static readonly Microsoft.UI.Xaml.DependencyProperty in2Property =
         Microsoft.UI.Xaml.DependencyProperty.Register(
@@ -21,9 +21,9 @@ public partial class feBlend : filter_primitive
             typeof(feBlend),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
 
-    public blend_mode mode
+    public BlendModeValue mode
     {
-        get => (blend_mode)GetValue(modeProperty);
+        get => (BlendModeValue)GetValue(modeProperty);
         set => SetValue(modeProperty, value);
     }
 

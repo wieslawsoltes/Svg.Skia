@@ -15,9 +15,9 @@ public abstract partial class animation_attribute_element : animation_element
     public static readonly Microsoft.UI.Xaml.DependencyProperty attributeTypeProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "attributeType",
-            typeof(Svg.SvgAnimationAttributeType),
+            typeof(SvgAnimationAttributeTypeValue),
             typeof(animation_attribute_element),
-            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgAnimationAttributeType), OnSvgPropertyChanged));
+            new Microsoft.UI.Xaml.PropertyMetadata(default(SvgAnimationAttributeTypeValue), OnSvgPropertyChanged));
 
     public string attributeName
     {
@@ -25,9 +25,9 @@ public abstract partial class animation_attribute_element : animation_element
         set => SetValue(attributeNameProperty, value);
     }
 
-    public Svg.SvgAnimationAttributeType attributeType
+    public SvgAnimationAttributeTypeValue attributeType
     {
-        get => (Svg.SvgAnimationAttributeType)GetValue(attributeTypeProperty);
+        get => (SvgAnimationAttributeTypeValue)GetValue(attributeTypeProperty);
         set => SetValue(attributeTypeProperty, value);
     }
 }

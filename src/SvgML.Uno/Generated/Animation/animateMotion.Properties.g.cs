@@ -10,9 +10,9 @@ public partial class animateMotion : animation_element
     public static readonly Microsoft.UI.Xaml.DependencyProperty calcModeProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "calcMode",
-            typeof(Svg.SvgAnimationCalcMode),
+            typeof(SvgAnimationCalcModeValue),
             typeof(animateMotion),
-            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgAnimationCalcMode), OnSvgPropertyChanged));
+            new Microsoft.UI.Xaml.PropertyMetadata(default(SvgAnimationCalcModeValue), OnSvgPropertyChanged));
 
     public static readonly Microsoft.UI.Xaml.DependencyProperty valuesProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
@@ -59,16 +59,16 @@ public partial class animateMotion : animation_element
     public static readonly Microsoft.UI.Xaml.DependencyProperty additiveProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "additive",
-            typeof(Svg.SvgAnimationAdditive),
+            typeof(SvgAnimationAdditiveValue),
             typeof(animateMotion),
-            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgAnimationAdditive), OnSvgPropertyChanged));
+            new Microsoft.UI.Xaml.PropertyMetadata(default(SvgAnimationAdditiveValue), OnSvgPropertyChanged));
 
     public static readonly Microsoft.UI.Xaml.DependencyProperty accumulateProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "accumulate",
-            typeof(Svg.SvgAnimationAccumulate),
+            typeof(SvgAnimationAccumulateValue),
             typeof(animateMotion),
-            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgAnimationAccumulate), OnSvgPropertyChanged));
+            new Microsoft.UI.Xaml.PropertyMetadata(default(SvgAnimationAccumulateValue), OnSvgPropertyChanged));
 
     public static readonly Microsoft.UI.Xaml.DependencyProperty pathProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
@@ -98,9 +98,9 @@ public partial class animateMotion : animation_element
             typeof(animateMotion),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
 
-    public Svg.SvgAnimationCalcMode calcMode
+    public SvgAnimationCalcModeValue calcMode
     {
-        get => (Svg.SvgAnimationCalcMode)GetValue(calcModeProperty);
+        get => (SvgAnimationCalcModeValue)GetValue(calcModeProperty);
         set => SetValue(calcModeProperty, value);
     }
 
@@ -140,15 +140,15 @@ public partial class animateMotion : animation_element
         set => SetValue(byProperty, value);
     }
 
-    public Svg.SvgAnimationAdditive additive
+    public SvgAnimationAdditiveValue additive
     {
-        get => (Svg.SvgAnimationAdditive)GetValue(additiveProperty);
+        get => (SvgAnimationAdditiveValue)GetValue(additiveProperty);
         set => SetValue(additiveProperty, value);
     }
 
-    public Svg.SvgAnimationAccumulate accumulate
+    public SvgAnimationAccumulateValue accumulate
     {
-        get => (Svg.SvgAnimationAccumulate)GetValue(accumulateProperty);
+        get => (SvgAnimationAccumulateValue)GetValue(accumulateProperty);
         set => SetValue(accumulateProperty, value);
     }
 

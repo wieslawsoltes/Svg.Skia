@@ -10,9 +10,9 @@ public partial class feColorMatrix : filter_primitive
     public static readonly Microsoft.UI.Xaml.DependencyProperty typeProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "type",
-            typeof(type_feColorMatrix),
+            typeof(TypeFeColorMatrixValue),
             typeof(feColorMatrix),
-            new Microsoft.UI.Xaml.PropertyMetadata(default(type_feColorMatrix), OnSvgPropertyChanged));
+            new Microsoft.UI.Xaml.PropertyMetadata(default(TypeFeColorMatrixValue), OnSvgPropertyChanged));
 
     public static readonly Microsoft.UI.Xaml.DependencyProperty valuesProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
@@ -21,9 +21,9 @@ public partial class feColorMatrix : filter_primitive
             typeof(feColorMatrix),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
 
-    public type_feColorMatrix type
+    public TypeFeColorMatrixValue type
     {
-        get => (type_feColorMatrix)GetValue(typeProperty);
+        get => (TypeFeColorMatrixValue)GetValue(typeProperty);
         set => SetValue(typeProperty, value);
     }
 

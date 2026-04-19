@@ -8,14 +8,14 @@ public partial class feBlend : filter_primitive
     protected override string SvgTag => "feBlend";
 
     public static readonly Microsoft.Maui.Controls.BindableProperty modeProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("mode", typeof(blend_mode), typeof(feBlend));
+        Microsoft.Maui.Controls.BindableProperty.Create("mode", typeof(BlendModeValue), typeof(feBlend));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty in2Property = 
         Microsoft.Maui.Controls.BindableProperty.Create("in2", typeof(string), typeof(feBlend));
 
-    public blend_mode mode
+    public BlendModeValue mode
     {
-        get => (blend_mode)GetValue(modeProperty);
+        get => (BlendModeValue)GetValue(modeProperty);
         set => SetValue(modeProperty, value);
     }
 

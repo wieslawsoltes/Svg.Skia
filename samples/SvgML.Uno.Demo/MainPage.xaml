@@ -62,6 +62,7 @@
                 <svg xmlns="using:SvgML"
                      x:Name="StyledSvg"
                      Height="220"
+                     CurrentCss="#accent-shape, #accent-bar { fill: #2563eb; } #outline-shape { stroke: #0f172a; stroke-width: 4; }"
                      Stretch="Uniform"
                      viewBox="0 0 240 160">
                   <path d="M12 12 H228 V148 H12 Z" fill="#f8fafc" />
@@ -153,7 +154,10 @@
                         opacity="0.15" />
                   <path d="M0 -11 A11 11 0 1 1 0 11 A11 11 0 1 1 0 -11 Z"
                         fill="#2563eb">
-                    <animateMotion x:Name="OrbitAnimation" />
+                    <animateMotion path="M40 80 C40 30 200 30 200 80 C200 130 40 130 40 80 Z"
+                                   dur="4.5s"
+                                   repeatCount="indefinite"
+                                   rotate="auto" />
                   </path>
                 </svg>
               </StackPanel>
@@ -185,7 +189,12 @@
                     <path d="M114 94 H126 V140 H114 Z" fill="#fb923c" />
                     <path d="M60 74 H106 V86 H60 Z" fill="#fb923c" />
                     <path d="M134 74 H180 V86 H134 Z" fill="#f97316" />
-                    <animateTransform x:Name="RotorAnimation" />
+                    <animateTransform attributeName="transform"
+                                      type="rotate"
+                                      from="0 120 80"
+                                      to="360 120 80"
+                                      dur="3.4s"
+                                      repeatCount="indefinite" />
                   </g>
                   <path d="M120 65 A15 15 0 1 1 120 95 A15 15 0 1 1 120 65 Z" fill="#9a3412" />
                 </svg>

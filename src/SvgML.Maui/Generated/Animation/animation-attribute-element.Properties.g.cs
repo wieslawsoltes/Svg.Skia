@@ -9,7 +9,7 @@ public abstract partial class animation_attribute_element : animation_element
         Microsoft.Maui.Controls.BindableProperty.Create("attributeName", typeof(string), typeof(animation_attribute_element));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty attributeTypeProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("attributeType", typeof(Svg.SvgAnimationAttributeType), typeof(animation_attribute_element));
+        Microsoft.Maui.Controls.BindableProperty.Create("attributeType", typeof(SvgAnimationAttributeTypeValue), typeof(animation_attribute_element));
 
     public string attributeName
     {
@@ -17,9 +17,9 @@ public abstract partial class animation_attribute_element : animation_element
         set => SetValue(attributeNameProperty, value);
     }
 
-    public Svg.SvgAnimationAttributeType attributeType
+    public SvgAnimationAttributeTypeValue attributeType
     {
-        get => (Svg.SvgAnimationAttributeType)GetValue(attributeTypeProperty);
+        get => (SvgAnimationAttributeTypeValue)GetValue(attributeTypeProperty);
         set => SetValue(attributeTypeProperty, value);
     }
 }

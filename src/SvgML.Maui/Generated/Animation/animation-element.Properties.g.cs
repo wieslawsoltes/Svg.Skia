@@ -36,7 +36,7 @@ public abstract partial class animation_element : element
         Microsoft.Maui.Controls.BindableProperty.Create("max", typeof(string), typeof(animation_element));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty restartProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("restart", typeof(Svg.SvgAnimationRestart), typeof(animation_element));
+        Microsoft.Maui.Controls.BindableProperty.Create("restart", typeof(SvgAnimationRestartValue), typeof(animation_element));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty repeatCountProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("repeatCount", typeof(string), typeof(animation_element));
@@ -45,7 +45,7 @@ public abstract partial class animation_element : element
         Microsoft.Maui.Controls.BindableProperty.Create("repeatDur", typeof(string), typeof(animation_element));
 
     public new static readonly Microsoft.Maui.Controls.BindableProperty fillProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("fill", typeof(Svg.SvgAnimationFill), typeof(animation_element));
+        Microsoft.Maui.Controls.BindableProperty.Create("fill", typeof(SvgAnimationFillValue), typeof(animation_element));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty onbeginProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("onbegin", typeof(string), typeof(animation_element));
@@ -119,9 +119,9 @@ public abstract partial class animation_element : element
         set => SetValue(maxProperty, value);
     }
 
-    public Svg.SvgAnimationRestart restart
+    public SvgAnimationRestartValue restart
     {
-        get => (Svg.SvgAnimationRestart)GetValue(restartProperty);
+        get => (SvgAnimationRestartValue)GetValue(restartProperty);
         set => SetValue(restartProperty, value);
     }
 
@@ -137,9 +137,9 @@ public abstract partial class animation_element : element
         set => SetValue(repeatDurProperty, value);
     }
 
-    public new Svg.SvgAnimationFill fill
+    public new SvgAnimationFillValue fill
     {
-        get => (Svg.SvgAnimationFill)GetValue(fillProperty);
+        get => (SvgAnimationFillValue)GetValue(fillProperty);
         set => SetValue(fillProperty, value);
     }
 

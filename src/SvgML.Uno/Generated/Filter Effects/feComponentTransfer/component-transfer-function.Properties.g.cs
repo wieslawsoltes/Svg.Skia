@@ -8,9 +8,9 @@ public abstract partial class component_transfer_function : element
     public static readonly Microsoft.UI.Xaml.DependencyProperty typeProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "type",
-            typeof(type_component_transfer_function),
+            typeof(TypeComponentTransferFunctionValue),
             typeof(component_transfer_function),
-            new Microsoft.UI.Xaml.PropertyMetadata(default(type_component_transfer_function), OnSvgPropertyChanged));
+            new Microsoft.UI.Xaml.PropertyMetadata(default(TypeComponentTransferFunctionValue), OnSvgPropertyChanged));
 
     public static readonly Microsoft.UI.Xaml.DependencyProperty tableValuesProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
@@ -54,9 +54,9 @@ public abstract partial class component_transfer_function : element
             typeof(component_transfer_function),
             new Microsoft.UI.Xaml.PropertyMetadata(default(float), OnSvgPropertyChanged));
 
-    public type_component_transfer_function type
+    public TypeComponentTransferFunctionValue type
     {
-        get => (type_component_transfer_function)GetValue(typeProperty);
+        get => (TypeComponentTransferFunctionValue)GetValue(typeProperty);
         set => SetValue(typeProperty, value);
     }
 

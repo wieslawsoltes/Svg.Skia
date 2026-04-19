@@ -10,13 +10,13 @@ public partial class animateTransform : animation_value_element
     public static readonly Microsoft.UI.Xaml.DependencyProperty typeProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "type",
-            typeof(Svg.SvgAnimateTransformType),
+            typeof(SvgAnimateTransformTypeValue),
             typeof(animateTransform),
-            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgAnimateTransformType), OnSvgPropertyChanged));
+            new Microsoft.UI.Xaml.PropertyMetadata(default(SvgAnimateTransformTypeValue), OnSvgPropertyChanged));
 
-    public Svg.SvgAnimateTransformType type
+    public SvgAnimateTransformTypeValue type
     {
-        get => (Svg.SvgAnimateTransformType)GetValue(typeProperty);
+        get => (SvgAnimateTransformTypeValue)GetValue(typeProperty);
         set => SetValue(typeProperty, value);
     }
 }

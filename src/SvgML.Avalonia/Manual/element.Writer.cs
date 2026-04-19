@@ -10,9 +10,16 @@ public abstract partial class element
         return value;
     }
 
+    protected string ToSvgString(object value)
+    {
+        return value is ISvgEnumBridge bridge
+            ? SvgEnumBridge.ToSvgString((Enum)bridge.RawValue)
+            : value.ToString() ?? string.Empty;
+    }
+
     protected string ToSvgString(Enum value)
     {
-        return value.ToString().Replace('_', '-');
+        return SvgEnumBridge.ToSvgString(value);
     }
 
     protected string ToSvgString(bool value)

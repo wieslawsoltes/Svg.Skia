@@ -5,6 +5,16 @@ namespace CodeGenerator;
 
 internal sealed class UnoGenerator(GeneratorSettings settings) : Generator(settings)
 {
+    protected override bool UsesEnumBridge(string type)
+    {
+        return IsEnumBackedType(type);
+    }
+
+    protected override bool UsesCreateFromStringBridge()
+    {
+        return true;
+    }
+
     protected override void ToFrameworkProperty(StringBuilder sb, string t, PropertyDef p, string classType, bool hidesInheritedProperty)
     {
         var newModifier = hidesInheritedProperty ? "new " : string.Empty;

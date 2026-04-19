@@ -8,14 +8,14 @@ public partial class feColorMatrix : filter_primitive
     protected override string SvgTag => "feColorMatrix";
 
     public static readonly Microsoft.Maui.Controls.BindableProperty typeProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("type", typeof(type_feColorMatrix), typeof(feColorMatrix));
+        Microsoft.Maui.Controls.BindableProperty.Create("type", typeof(TypeFeColorMatrixValue), typeof(feColorMatrix));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty valuesProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("values", typeof(string), typeof(feColorMatrix));
 
-    public type_feColorMatrix type
+    public TypeFeColorMatrixValue type
     {
-        get => (type_feColorMatrix)GetValue(typeProperty);
+        get => (TypeFeColorMatrixValue)GetValue(typeProperty);
         set => SetValue(typeProperty, value);
     }
 

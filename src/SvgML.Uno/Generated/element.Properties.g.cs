@@ -108,9 +108,9 @@ public abstract partial class element : Uno.WinUI.Graphics2DSK.SKCanvasElement
     public static readonly Microsoft.UI.Xaml.DependencyProperty fill_ruleProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "fill-rule",
-            typeof(fill_rule),
+            typeof(FillRuleValue),
             typeof(element),
-            new Microsoft.UI.Xaml.PropertyMetadata(default(fill_rule), OnSvgPropertyChanged));
+            new Microsoft.UI.Xaml.PropertyMetadata(default(FillRuleValue), OnSvgPropertyChanged));
 
     public static readonly Microsoft.UI.Xaml.DependencyProperty fill_opacityProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
@@ -371,9 +371,9 @@ public abstract partial class element : Uno.WinUI.Graphics2DSK.SKCanvasElement
         set => SetValue(strokeProperty, value);
     }
 
-    public fill_rule fill_rule
+    public FillRuleValue fill_rule
     {
-        get => (fill_rule)GetValue(fill_ruleProperty);
+        get => (FillRuleValue)GetValue(fill_ruleProperty);
         set => SetValue(fill_ruleProperty, value);
     }
 

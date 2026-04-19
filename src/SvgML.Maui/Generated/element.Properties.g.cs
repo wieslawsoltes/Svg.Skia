@@ -50,7 +50,7 @@ public abstract partial class element : SkiaSharp.Views.Maui.Controls.SKCanvasVi
         Microsoft.Maui.Controls.BindableProperty.Create("stroke", typeof(string), typeof(element));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty fill_ruleProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("fill-rule", typeof(fill_rule), typeof(element));
+        Microsoft.Maui.Controls.BindableProperty.Create("fill-rule", typeof(FillRuleValue), typeof(element));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty fill_opacityProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("fill-opacity", typeof(float), typeof(element));
@@ -211,9 +211,9 @@ public abstract partial class element : SkiaSharp.Views.Maui.Controls.SKCanvasVi
         set => SetValue(strokeProperty, value);
     }
 
-    public fill_rule fill_rule
+    public FillRuleValue fill_rule
     {
-        get => (fill_rule)GetValue(fill_ruleProperty);
+        get => (FillRuleValue)GetValue(fill_ruleProperty);
         set => SetValue(fill_ruleProperty, value);
     }
 
