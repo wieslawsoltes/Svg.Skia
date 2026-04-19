@@ -56,11 +56,15 @@ public abstract partial class element
             if (item is element child)
             {
                 child.AttachToTree(this, root);
+                if (!_attachedChildren.Contains(child))
+                {
+                    _attachedChildren.Add(child);
+                }
             }
         }
     }
 
-    private static void DetachItems(IList? items)
+    private void DetachItems(IList? items)
     {
         if (items is null)
         {
@@ -72,16 +76,25 @@ public abstract partial class element
             if (item is element child)
             {
                 child.DetachFromTree();
+                _attachedChildren.Remove(child);
             }
         }
     }
 
     private void ReattachChildren()
     {
+        foreach (var child in _attachedChildren.ToArray())
+        {
+            child.DetachFromTree();
+        }
+
+        _attachedChildren.Clear();
+
         var root = RootSvg ?? this as svg;
         foreach (var child in Children)
         {
             child.AttachToTree(this, root);
+            _attachedChildren.Add(child);
         }
     }
 }

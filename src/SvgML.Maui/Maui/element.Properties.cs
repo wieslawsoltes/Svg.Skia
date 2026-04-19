@@ -3,6 +3,7 @@ namespace SvgML;
 [ContentProperty("Children")]
 public abstract partial class element
 {
+    private readonly List<element> _attachedChildren = [];
     private element? _parentElement;
     private svg? _rootSvg;
 
@@ -22,19 +23,22 @@ public abstract partial class element
         _parentElement = parent;
         _rootSvg = root ?? this as svg;
 
+        _attachedChildren.Clear();
         foreach (var child in Children)
         {
             child.AttachToTree(this, _rootSvg);
+            _attachedChildren.Add(child);
         }
     }
 
     internal void DetachFromTree()
     {
-        foreach (var child in Children)
+        foreach (var child in _attachedChildren)
         {
             child.DetachFromTree();
         }
 
+        _attachedChildren.Clear();
         _parentElement = null;
         _rootSvg = null;
     }
