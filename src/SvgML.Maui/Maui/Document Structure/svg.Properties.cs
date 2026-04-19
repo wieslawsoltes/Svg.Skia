@@ -13,7 +13,7 @@ public partial class svg
         BindableProperty.Create(nameof(Stretch), typeof(Stretch), typeof(svg), Stretch.Uniform);
 
     public static readonly BindableProperty StretchDirectionProperty = 
-        BindableProperty.Create(nameof(Stretch), typeof(StretchDirection), typeof(svg), StretchDirection.Both);
+        BindableProperty.Create(nameof(StretchDirection), typeof(StretchDirection), typeof(svg), StretchDirection.Both);
 
     // TODO: inherits = true
     public static readonly BindableProperty CssProperty = 
@@ -35,12 +35,24 @@ public partial class svg
         set { SetValue(StretchDirectionProperty, value); }
     }
 
-    public static string GetCss(BindableObject element)
+    public string? Css
+    {
+        get { return GetCss(this); }
+        set { SetCss(this, value); }
+    }
+
+    public string? CurrentCss
+    {
+        get { return GetCurrentCss(this); }
+        set { SetCurrentCss(this, value); }
+    }
+
+    public static string? GetCss(BindableObject element)
     {
         return (string)element.GetValue(CssProperty);
     }
 
-    public static void SetCss(BindableObject element, string value)
+    public static void SetCss(BindableObject element, string? value)
     {
         element.SetValue(CssProperty, value);
     }
@@ -50,8 +62,21 @@ public partial class svg
         return (string)element.GetValue(CurrentCssProperty);
     }
 
-    public static void SetCurrentCss(BindableObject element, string value)
+    public static void SetCurrentCss(BindableObject element, string? value)
     {
         element.SetValue(CurrentCssProperty, value);
+    }
+
+    private static void OnCssPropertyAttachedPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        switch (bindable)
+        {
+            case svg svgControl:
+                svgControl.ReloadAndInvalidate();
+                break;
+            case element elementControl:
+                elementControl.RootSvg?.InvalidateSvgTree();
+                break;
+        }
     }
 }

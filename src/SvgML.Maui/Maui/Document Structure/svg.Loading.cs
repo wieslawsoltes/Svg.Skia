@@ -7,6 +7,8 @@ using Svg;
 using Svg.Model;
 using Svg.Model.Services;
 using Svg.Skia;
+using ShimMatrix = ShimSkiaSharp.SKMatrix;
+using ShimRect = ShimSkiaSharp.SKRect;
 
 namespace SvgML;
 
@@ -266,7 +268,7 @@ public partial class svg
         }
     }
 
-    private static SKRect UnionRect(SKRect a, SKRect b)
+    private static ShimRect UnionRect(ShimRect a, ShimRect b)
     {
         if (a.IsEmpty)
         {
@@ -278,10 +280,10 @@ public partial class svg
             return a;
         }
 
-        return SKRect.Union(a, b);
+        return ShimRect.Union(a, b);
     }
 
-    private static Rect ToRect(SKRect rect)
+    private static Rect ToRect(ShimRect rect)
     {
         if (rect.IsEmpty)
         {
@@ -291,9 +293,9 @@ public partial class svg
         return new Rect(rect.Left, rect.Top, rect.Width, rect.Height);
     }
 
-    private static Matrix3x2 ToMatrix3x2(SKMatrix matrix)
+    private static Matrix3x2 ToMatrix3x2(ShimMatrix matrix)
     {
-        if (matrix.Equals(default(SKMatrix)))
+        if (matrix.Equals(default(ShimMatrix)))
         {
             return Matrix3x2.Identity;
         }
@@ -309,8 +311,8 @@ public partial class svg
 
     private sealed class SceneNodeMetrics
     {
-        public SKRect Geometry { get; set; }
-        public SKRect Transformed { get; set; }
+        public ShimRect Geometry { get; set; }
+        public ShimRect Transformed { get; set; }
         public Matrix3x2 Transform { get; set; } = Matrix3x2.Identity;
         public Matrix3x2 TotalTransform { get; set; } = Matrix3x2.Identity;
         public List<SvgSceneNode> SceneNodes { get; } = new();

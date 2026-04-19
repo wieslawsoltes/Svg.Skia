@@ -1,9 +1,9 @@
 using System.Numerics;
 using Microsoft.Maui.Graphics;
-using SkiaSharp;
 using Svg;
 using Svg.Skia;
 using ShimPoint = ShimSkiaSharp.SKPoint;
+using ShimRect = ShimSkiaSharp.SKRect;
 
 namespace SvgML;
 
@@ -72,7 +72,7 @@ public abstract partial class element
         return svgAncestor.HitTestElements(point).Any(e => ReferenceEquals(e, this));
     }
 
-    public bool HitTest(SKRect rect)
+    public bool HitTest(ShimRect rect)
     {
         var svgAncestor = RootSvg ?? this as svg;
         if (svgAncestor is null)

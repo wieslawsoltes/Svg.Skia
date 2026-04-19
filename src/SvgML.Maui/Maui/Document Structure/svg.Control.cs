@@ -7,6 +7,8 @@ using Svg.Model;
 using Svg.Skia;
 using MauiPoint = Microsoft.Maui.Graphics.Point;
 using MauiRect = Microsoft.Maui.Graphics.Rect;
+using ShimPoint = ShimSkiaSharp.SKPoint;
+using ShimRect = ShimSkiaSharp.SKRect;
 
 namespace SvgML;
 
@@ -33,7 +35,7 @@ public partial class svg
         ReloadAndInvalidate();
     }
 
-    public bool TryGetPicturePoint(MauiPoint point, out SKPoint picturePoint)
+    public bool TryGetPicturePoint(MauiPoint point, out ShimPoint picturePoint)
     {
         picturePoint = default;
 
@@ -43,11 +45,11 @@ public partial class svg
             return false;
         }
 
-        picturePoint = new SKPoint((float)mappedPoint.X, (float)mappedPoint.Y);
+        picturePoint = new ShimPoint((float)mappedPoint.X, (float)mappedPoint.Y);
         return true;
     }
 
-    public bool TryGetPictureRect(MauiRect rect, out SKRect pictureRect)
+    public bool TryGetPictureRect(MauiRect rect, out ShimRect pictureRect)
     {
         pictureRect = default;
 
@@ -57,7 +59,7 @@ public partial class svg
             return false;
         }
 
-        pictureRect = new SKRect(
+        pictureRect = new ShimRect(
             (float)mappedRect.Left,
             (float)mappedRect.Top,
             (float)mappedRect.Right,
@@ -65,7 +67,7 @@ public partial class svg
         return true;
     }
 
-    public IEnumerable<SvgElement> HitTestSvgElements(SKPoint point)
+    public IEnumerable<SvgElement> HitTestSvgElements(ShimPoint point)
     {
         if (_skSvg is null)
         {
@@ -75,7 +77,7 @@ public partial class svg
         return _skSvg.HitTestElements(point);
     }
 
-    public IEnumerable<SvgElement> HitTestSvgElements(SKRect rect)
+    public IEnumerable<SvgElement> HitTestSvgElements(ShimRect rect)
     {
         if (_skSvg is null)
         {
@@ -105,7 +107,7 @@ public partial class svg
         return Array.Empty<SvgElement>();
     }
 
-    public IEnumerable<element> HitTestElements(SKPoint point)
+    public IEnumerable<element> HitTestElements(ShimPoint point)
     {
         if (_skSvg is null)
         {
@@ -122,7 +124,7 @@ public partial class svg
         }
     }
 
-    public IEnumerable<element> HitTestElements(SKRect rect)
+    public IEnumerable<element> HitTestElements(ShimRect rect)
     {
         if (_skSvg is null)
         {
@@ -165,7 +167,7 @@ public partial class svg
         }
     }
 
-    public IEnumerable<SvgSceneNode> HitTestSceneNodes(SKPoint point)
+    public IEnumerable<SvgSceneNode> HitTestSceneNodes(ShimPoint point)
     {
         if (_skSvg is null)
         {
@@ -178,7 +180,7 @@ public partial class svg
         }
     }
 
-    public IEnumerable<SvgSceneNode> HitTestSceneNodes(SKRect rect)
+    public IEnumerable<SvgSceneNode> HitTestSceneNodes(ShimRect rect)
     {
         if (_skSvg is null)
         {
@@ -295,7 +297,7 @@ public partial class svg
         canvas.Save();
         canvas.ClipRect(ToSKRect(renderInfo.DestinationRect));
         var matrix = ToSKMatrix(renderInfo.Matrix);
-        canvas.Concat(in matrix);
+        canvas.Concat(ref matrix);
         canvas.DrawPicture(picture);
         canvas.Restore();
     }
@@ -313,12 +315,6 @@ public partial class svg
         if (propertyName == nameof(CurrentCss))
         {
             ReloadAndInvalidate();
-            return;
-        }
-
-        if (propertyName == nameof(ClipToBounds))
-        {
-            InvalidateSurface();
             return;
         }
 
