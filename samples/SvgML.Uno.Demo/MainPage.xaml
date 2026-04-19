@@ -3,59 +3,197 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-  <ScrollViewer>
-    <StackPanel Spacing="20" Padding="24" MaxWidth="960">
+  <Grid RowDefinitions="Auto,*">
+    <StackPanel Grid.Row="0" Spacing="6" Padding="24,24,24,12">
       <TextBlock Text="SvgML.Uno"
                  FontSize="28"
                  FontWeight="SemiBold" />
       <TextBlock Text="Inline SVG authored directly in Uno XAML and rendered through the shared Svg.Skia pipeline."
                  TextWrapping="WrapWholeWords" />
-
-      <Border Padding="16" BorderThickness="1" CornerRadius="12">
-        <StackPanel Spacing="12">
-          <TextBlock Text="Inline SVG with Bound Fill"
-                     FontSize="18"
-                     FontWeight="SemiBold" />
-          <svg xmlns="using:SvgML"
-               Height="200"
-               Stretch="Uniform"
-               viewBox="0 0 220 120">
-            <path d="M0 0 H220 V120 H0 Z" fill="#0f766e" />
-            <path d="M72 32 a28 28 0 1 0 0 56 a28 28 0 1 0 0 -56"
-                  fill="{Binding ElementName=CircleFillInput, Path=Text, Mode=TwoWay}" />
-            <path d="M132 88 L168 30 L196 88 Z"
-                  fill="#0f172a"
-                  opacity="0.35" />
-          </svg>
-          <TextBox x:Name="CircleFillInput"
-                   Header="Circle fill"
-                   Text="tomato" />
-        </StackPanel>
-      </Border>
-
-      <Border Padding="16" BorderThickness="1" CornerRadius="12">
-        <StackPanel Spacing="12">
-          <TextBlock Text="Runtime CSS Restyling"
-                     FontSize="18"
-                     FontWeight="SemiBold" />
-          <svg xmlns="using:SvgML"
-               x:Name="StyledSvg"
-               Height="220"
-               Stretch="Uniform"
-               viewBox="0 0 240 160">
-            <path d="M12 12 H228 V148 H12 Z" fill="#f8fafc" />
-            <path id="accent-shape" d="M78 48 a34 34 0 1 0 0 68 a34 34 0 1 0 0 -68" />
-            <path id="outline-shape" d="M132 118 L178 46 L206 118 Z" fill="none" />
-            <path id="accent-bar" d="M132 60 H180 V78 H132 Z" />
-          </svg>
-          <StackPanel Orientation="Horizontal" Spacing="12">
-            <Button Content="Swap Theme" Click="OnSwapThemeClick" />
-            <TextBlock x:Name="ThemeStatusText"
-                       VerticalAlignment="Center"
-                       Text="Current theme: cobalt" />
-          </StackPanel>
-        </StackPanel>
-      </Border>
     </StackPanel>
-  </ScrollViewer>
+
+    <Pivot Grid.Row="1">
+      <PivotItem Header="Bound Fill">
+        <ScrollViewer>
+          <StackPanel Spacing="16" Padding="24,12,24,24" MaxWidth="960">
+            <TextBlock Text="Bind standard Uno controls into inline SVG properties."
+                       TextWrapping="WrapWholeWords" />
+            <Border Padding="16"
+                    BorderBrush="#330F172A"
+                    BorderThickness="1"
+                    CornerRadius="12">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Inline SVG with Bound Fill"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+                <svg xmlns="using:SvgML"
+                     Height="200"
+                     Stretch="Uniform"
+                     viewBox="0 0 220 120">
+                  <path d="M0 0 H220 V120 H0 Z" fill="#0f766e" />
+                  <path d="M72 32 a28 28 0 1 0 0 56 a28 28 0 1 0 0 -56"
+                        fill="{Binding ElementName=CircleFillInput, Path=Text, Mode=TwoWay}" />
+                  <path d="M132 88 L168 30 L196 88 Z"
+                        fill="#0f172a"
+                        opacity="0.35" />
+                </svg>
+                <TextBox x:Name="CircleFillInput"
+                         Header="Circle fill"
+                         Text="tomato" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </PivotItem>
+
+      <PivotItem Header="CSS Restyling">
+        <ScrollViewer>
+          <StackPanel Spacing="16" Padding="24,12,24,24" MaxWidth="960">
+            <TextBlock Text="Swap CSS at runtime without rebuilding the inline SVG tree."
+                       TextWrapping="WrapWholeWords" />
+            <Border Padding="16"
+                    BorderBrush="#330F172A"
+                    BorderThickness="1"
+                    CornerRadius="12">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Runtime CSS Restyling"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+                <svg xmlns="using:SvgML"
+                     x:Name="StyledSvg"
+                     Height="220"
+                     Stretch="Uniform"
+                     viewBox="0 0 240 160">
+                  <path d="M12 12 H228 V148 H12 Z" fill="#f8fafc" />
+                  <path id="accent-shape" d="M78 48 a34 34 0 1 0 0 68 a34 34 0 1 0 0 -68" />
+                  <path id="outline-shape" d="M132 118 L178 46 L206 118 Z" fill="none" />
+                  <path id="accent-bar" d="M132 60 H180 V78 H132 Z" />
+                </svg>
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <Button Content="Swap Theme" Click="OnSwapThemeClick" />
+                  <TextBlock x:Name="ThemeStatusText"
+                             VerticalAlignment="Center"
+                             Text="Current theme: cobalt" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </PivotItem>
+
+      <PivotItem Header="Pulse">
+        <ScrollViewer>
+          <StackPanel Spacing="16" Padding="24,12,24,24" MaxWidth="960">
+            <TextBlock Text="Basic attribute animation with a pulsing circle and a breathing ring."
+                       TextWrapping="WrapWholeWords" />
+            <Border Padding="16"
+                    BorderBrush="#330F172A"
+                    BorderThickness="1"
+                    CornerRadius="12">
+              <StackPanel Spacing="12">
+                <TextBlock Text="animate"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+                <svg xmlns="using:SvgML"
+                     Height="240"
+                     Stretch="Uniform"
+                     viewBox="0 0 240 160">
+                  <path d="M0 0 H240 V160 H0 Z" fill="#ecfeff" />
+                  <path d="M120 38 A42 42 0 1 1 120 122 A42 42 0 1 1 120 38 Z"
+                        fill="none"
+                        stroke="#67e8f9"
+                        opacity="0.4">
+                    <animate attributeName="stroke-opacity"
+                             values="0.2;1;0.2"
+                             dur="2.2s"
+                             repeatCount="indefinite" />
+                    <animate attributeName="stroke-width"
+                             values="4;14;4"
+                             dur="2.2s"
+                             repeatCount="indefinite" />
+                  </path>
+                  <path d="M120 56 A24 24 0 1 1 120 104 A24 24 0 1 1 120 56 Z"
+                        fill="#14b8a6">
+                    <animate attributeName="opacity"
+                             values="1;0.45;1"
+                             dur="2.2s"
+                             repeatCount="indefinite" />
+                  </path>
+                </svg>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </PivotItem>
+
+      <PivotItem Header="Orbit">
+        <ScrollViewer>
+          <StackPanel Spacing="16" Padding="24,12,24,24" MaxWidth="960">
+            <TextBlock Text="Motion animation that moves a satellite around a custom path."
+                       TextWrapping="WrapWholeWords" />
+            <Border Padding="16"
+                    BorderBrush="#330F172A"
+                    BorderThickness="1"
+                    CornerRadius="12">
+              <StackPanel Spacing="12">
+                <TextBlock Text="animateMotion"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+                <svg xmlns="using:SvgML"
+                     Height="240"
+                     Stretch="Uniform"
+                     viewBox="0 0 240 160">
+                  <path d="M0 0 H240 V160 H0 Z" fill="#eff6ff" />
+                  <path d="M40 80 C40 30 200 30 200 80 C200 130 40 130 40 80 Z"
+                        fill="none"
+                        stroke="#93c5fd"
+                        opacity="0.9" />
+                  <path d="M120 62 A18 18 0 1 1 120 98 A18 18 0 1 1 120 62 Z"
+                        fill="#1d4ed8"
+                        opacity="0.15" />
+                  <path d="M0 -11 A11 11 0 1 1 0 11 A11 11 0 1 1 0 -11 Z"
+                        fill="#2563eb">
+                    <animateMotion x:Name="OrbitAnimation" />
+                  </path>
+                </svg>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </PivotItem>
+
+      <PivotItem Header="Transform">
+        <ScrollViewer>
+          <StackPanel Spacing="16" Padding="24,12,24,24" MaxWidth="960">
+            <TextBlock Text="Transform animation rotating a grouped shape around a shared pivot."
+                       TextWrapping="WrapWholeWords" />
+            <Border Padding="16"
+                    BorderBrush="#330F172A"
+                    BorderThickness="1"
+                    CornerRadius="12">
+              <StackPanel Spacing="12">
+                <TextBlock Text="animateTransform"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+                <svg xmlns="using:SvgML"
+                     Height="240"
+                     Stretch="Uniform"
+                     viewBox="0 0 240 160">
+                  <path d="M0 0 H240 V160 H0 Z" fill="#fff7ed" />
+                  <g>
+                    <path d="M114 20 H126 V66 H114 Z" fill="#f97316" />
+                    <path d="M114 94 H126 V140 H114 Z" fill="#fb923c" />
+                    <path d="M60 74 H106 V86 H60 Z" fill="#fb923c" />
+                    <path d="M134 74 H180 V86 H134 Z" fill="#f97316" />
+                    <animateTransform x:Name="RotorAnimation" />
+                  </g>
+                  <path d="M120 65 A15 15 0 1 1 120 95 A15 15 0 1 1 120 65 Z" fill="#9a3412" />
+                </svg>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </PivotItem>
+    </Pivot>
+  </Grid>
 </Page>
