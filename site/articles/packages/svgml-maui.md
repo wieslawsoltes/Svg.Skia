@@ -81,6 +81,8 @@ The MAUI XAML surface stays close to authored SVG for CLR-safe names:
 
 - The package reuses the same `Svg.Skia` renderer as the Avalonia and Uno stacks.
 - Dash-named members use CLR-safe underscores in MAUI XAML, for example `stroke_width`, `fill_opacity`, or `font_face`.
+- The MAUI runtime now keeps retained-scene mappings for the inline tree, so `HitTestElements(...)`, `HitTestSceneNodes(...)`, `GetControlBounds(...)`, and `GetElementForSceneNode(...)` can work against authored `SvgML.element` controls.
+- Use `HitTestSvgElements(...)` when you need the underlying `SvgElement` instances instead of the XAML-authored controls.
 - In this repository, `SvgML.Maui` builds in a dedicated MAUI lane rather than inside the main `Svg.Skia.slnx`.
 - The imported MAUI sample is the best end-to-end reference for current usage.
 

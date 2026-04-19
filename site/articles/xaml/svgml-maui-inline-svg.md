@@ -70,6 +70,8 @@ The repository currently ships `SvgML.Maui` for:
 
 The MAUI-specific build and pack path lives under `src/SvgML.Maui`.
 
+The runtime exposes authored-element hit testing and retained-scene mapping through `HitTestElements(...)`, `HitTestSceneNodes(...)`, `GetControlBounds(...)`, and `GetElementForSceneNode(...)`. Use `HitTestSvgElements(...)` when tooling needs the raw `SvgElement` model instances instead.
+
 ## When to use SvgML.Maui versus external SVG assets
 
 - Choose `SvgML.Maui` when the visual is authored inline and should stay near page markup or bindings.
