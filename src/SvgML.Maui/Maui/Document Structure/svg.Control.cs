@@ -1,235 +1,394 @@
+using System.Numerics;
+using Microsoft.Maui.Graphics;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
+using Svg;
 using Svg.Model;
 using Svg.Skia;
+using MauiPoint = Microsoft.Maui.Graphics.Point;
+using MauiRect = Microsoft.Maui.Graphics.Rect;
 
 namespace SvgML;
 
-/// <summary>
-/// Svg control.
-/// </summary>
 public partial class svg
 {
     static svg()
     {
         Initialize();
-
-        // TODO:
-        // ClipToBoundsProperty.OverrideDefaultValue(typeof(svg), true);
     }
 
     public svg()
     {
+        AttachToTree(parent: null, root: this);
         Loaded += OnLoaded;
-        PaintSurface += OnPaintSurface;
     }
 
-    private static void OnCssPropertyAttachedPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+    internal void InvalidateSvgTree()
     {
-        if (bindable is svg svg)
+        if (!IsLoaded)
         {
-            svg.InvalidateMeasure();
-            svg.InvalidateSurface();
+            return;
+        }
+
+        ReloadAndInvalidate();
+    }
+
+    public bool TryGetPicturePoint(MauiPoint point, out SKPoint picturePoint)
+    {
+        picturePoint = default;
+
+        if (!TryGetRenderInfo(out var renderInfo)
+            || !renderInfo.TryMapToPicture(new SvgPoint(point.X, point.Y), out var mappedPoint))
+        {
+            return false;
+        }
+
+        picturePoint = new SKPoint((float)mappedPoint.X, (float)mappedPoint.Y);
+        return true;
+    }
+
+    public bool TryGetPictureRect(MauiRect rect, out SKRect pictureRect)
+    {
+        pictureRect = default;
+
+        if (!TryGetRenderInfo(out var renderInfo)
+            || !renderInfo.TryMapToPicture(new SvgRect(rect.X, rect.Y, rect.Width, rect.Height), out var mappedRect))
+        {
+            return false;
+        }
+
+        pictureRect = new SKRect(
+            (float)mappedRect.Left,
+            (float)mappedRect.Top,
+            (float)mappedRect.Right,
+            (float)mappedRect.Bottom);
+        return true;
+    }
+
+    public IEnumerable<SvgElement> HitTestSvgElements(SKPoint point)
+    {
+        if (_skSvg is null)
+        {
+            return Array.Empty<SvgElement>();
+        }
+
+        return _skSvg.HitTestElements(point);
+    }
+
+    public IEnumerable<SvgElement> HitTestSvgElements(SKRect rect)
+    {
+        if (_skSvg is null)
+        {
+            return Array.Empty<SvgElement>();
+        }
+
+        return _skSvg.HitTestElements(rect);
+    }
+
+    public IEnumerable<SvgElement> HitTestSvgElements(MauiPoint point)
+    {
+        if (_skSvg is { } skSvg && TryGetPicturePoint(point, out var picturePoint))
+        {
+            return skSvg.HitTestElements(picturePoint);
+        }
+
+        return Array.Empty<SvgElement>();
+    }
+
+    public IEnumerable<SvgElement> HitTestSvgElements(MauiRect rect)
+    {
+        if (_skSvg is { } skSvg && TryGetPictureRect(rect, out var pictureRect))
+        {
+            return skSvg.HitTestElements(pictureRect);
+        }
+
+        return Array.Empty<SvgElement>();
+    }
+
+    public IEnumerable<element> HitTestElements(SKPoint point)
+    {
+        if (_skSvg is null)
+        {
+            yield break;
+        }
+
+        var visited = new HashSet<element>();
+        foreach (var svgElement in _skSvg.HitTestElements(point))
+        {
+            if (_elementBySvgElement.TryGetValue(svgElement, out var control) && visited.Add(control))
+            {
+                yield return control;
+            }
         }
     }
 
-    // TODO:
-    //*
+    public IEnumerable<element> HitTestElements(SKRect rect)
+    {
+        if (_skSvg is null)
+        {
+            yield break;
+        }
+
+        var visited = new HashSet<element>();
+        foreach (var svgElement in _skSvg.HitTestElements(rect))
+        {
+            if (_elementBySvgElement.TryGetValue(svgElement, out var control) && visited.Add(control))
+            {
+                yield return control;
+            }
+        }
+    }
+
+    public IEnumerable<element> HitTestElements(MauiPoint point)
+    {
+        if (!TryGetPicturePoint(point, out var picturePoint))
+        {
+            yield break;
+        }
+
+        foreach (var element in HitTestElements(picturePoint))
+        {
+            yield return element;
+        }
+    }
+
+    public IEnumerable<element> HitTestElements(MauiRect rect)
+    {
+        if (!TryGetPictureRect(rect, out var pictureRect))
+        {
+            yield break;
+        }
+
+        foreach (var element in HitTestElements(pictureRect))
+        {
+            yield return element;
+        }
+    }
+
+    public IEnumerable<SvgSceneNode> HitTestSceneNodes(SKPoint point)
+    {
+        if (_skSvg is null)
+        {
+            yield break;
+        }
+
+        foreach (var sceneNode in _skSvg.HitTestSceneNodes(point))
+        {
+            yield return sceneNode;
+        }
+    }
+
+    public IEnumerable<SvgSceneNode> HitTestSceneNodes(SKRect rect)
+    {
+        if (_skSvg is null)
+        {
+            yield break;
+        }
+
+        foreach (var sceneNode in _skSvg.HitTestSceneNodes(rect))
+        {
+            yield return sceneNode;
+        }
+    }
+
+    public IEnumerable<SvgSceneNode> HitTestSceneNodes(MauiPoint point)
+    {
+        if (!TryGetPicturePoint(point, out var picturePoint))
+        {
+            yield break;
+        }
+
+        foreach (var sceneNode in HitTestSceneNodes(picturePoint))
+        {
+            yield return sceneNode;
+        }
+    }
+
+    public IEnumerable<SvgSceneNode> HitTestSceneNodes(MauiRect rect)
+    {
+        if (!TryGetPictureRect(rect, out var pictureRect))
+        {
+            yield break;
+        }
+
+        foreach (var sceneNode in HitTestSceneNodes(pictureRect))
+        {
+            yield return sceneNode;
+        }
+    }
+
+    public MauiRect GetControlBounds(element element)
+    {
+        if (element is null || !TryGetRenderInfo(out var renderInfo))
+        {
+            return default;
+        }
+
+        return element.GetControlBounds(renderInfo.Matrix);
+    }
+
+    public element? GetElementForSceneNode(SvgSceneNode? sceneNode)
+    {
+        if (sceneNode is null)
+        {
+            return null;
+        }
+
+        return _elementBySceneNode.TryGetValue(sceneNode, out var control)
+            ? control
+            : null;
+    }
+
+    public element? GetElementForSvgElement(SvgElement? svgElement)
+    {
+        if (svgElement is null)
+        {
+            return null;
+        }
+
+        return _elementBySvgElement.TryGetValue(svgElement, out var control)
+            ? control
+            : null;
+    }
+
     protected override Size MeasureOverride(double widthConstraint, double heightConstraint)
     {
-        // return base.MeasureOverride(widthConstraint, heightConstraint);
-        if (_picture == null)
+        var picture = _picture;
+        if (picture is null)
         {
             return new Size();
         }
 
-        var sourceSize = _picture is { }
-            ? new Size(_picture.CullRect.Width, _picture.CullRect.Height)
-            : default;
+        var size = SvgRenderLayout.CalculateSize(
+            new SvgSize(widthConstraint, heightConstraint),
+            new SvgSize(picture.CullRect.Width, picture.CullRect.Height),
+            Stretch,
+            StretchDirection);
 
-        // return Stretch.CalculateSize(availableSize, sourceSize, StretchDirection);
-        return sourceSize;
+        return new Size(size.Width, size.Height);
     }
-    //*/
 
-    // TODO:
-    /*
-    protected override Size ArrangeOverride(Rect bounds)
-    {
-        // return base.ArrangeOverride(bounds);
-
-        if (_picture == null)
-        {
-            return new Size();
-        }
-
-        var sourceSize = _picture is { }
-            ? new Size(_picture.CullRect.Width, _picture.CullRect.Height)
-            : default;
-
-        // TODO:
-        // return Stretch.CalculateSize(finalSize, sourceSize);
-        return sourceSize;
-    }
-    //*/
-
-    private void OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        Render(e);
-    }
-    
     protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)
     {
         base.OnPaintSurface(e);
-
-        Render(e);
+        Render(e.Surface.Canvas, e.Info.Width, e.Info.Height);
     }
 
-    private void Render(SKCanvas canvas)
+    private void Render(SKCanvas canvas, int width, int height)
     {
-        lock (Sync)
-        {
-            var picture = Picture;
-            if (picture is null)
-            {
-                return;
-            }
-
-            canvas.Save();
-            canvas.DrawPicture(picture);
-            canvas.Restore();
-        } 
-    }
-
-    private void Render(SKPaintSurfaceEventArgs e)
-    {
-        var source = _picture;
-        if (source is null)
+        var picture = _picture;
+        if (picture is null)
         {
             return;
         }
 
-        // TODO: Copy code from Avalonia version: public override void Render(DrawingContext context)
-
-        // TODO: SKPictureCustomDrawOperation
-        Render(e.Surface.Canvas);
-    }
-
-    // TODO:
-    /*
-    public override void Render(DrawingContext context)
-    {
-        var source = _picture;
-        if (source is null)
+        if (!SvgRenderLayout.TryCreateRenderInfo(
+                new SvgSize(width, height),
+                new SvgRect(picture.CullRect.Left, picture.CullRect.Top, picture.CullRect.Width, picture.CullRect.Height),
+                Stretch,
+                StretchDirection,
+                out var renderInfo))
         {
             return;
         }
 
-        var viewPort = new Rect(Bounds.Size);
-        var sourceSize = new Size(source.CullRect.Width, source.CullRect.Height);
-        if (sourceSize.Width <= 0 || sourceSize.Height <= 0)
-        {
-            return;
-        }
-
-        var scale = Stretch.CalculateScaling(Bounds.Size, sourceSize, StretchDirection);
-        var scaledSize = sourceSize * scale;
-        var destRect = viewPort
-            .CenterRect(new Rect(scaledSize))
-            .Intersect(viewPort);
-        var sourceRect = new Rect(sourceSize)
-            .CenterRect(new Rect(destRect.Size / scale));
-
-        var bounds = source.CullRect;
-        var scaleMatrix = Matrix.CreateScale(
-            destRect.Width / sourceRect.Width,
-            destRect.Height / sourceRect.Height);
-        var translateMatrix = Matrix.CreateTranslation(
-            -sourceRect.X + destRect.X - bounds.Top,
-            -sourceRect.Y + destRect.Y - bounds.Left);
-
-        using var _ = ClipToBounds ? context.PushClip(destRect) : default;
-
-        using (context.PushTransform(translateMatrix * scaleMatrix))
-        {
-            context.Custom(
-                new SKPictureCustomDrawOperation(
-                    new Rect(0, 0, bounds.Width, bounds.Height),
-                    this));
-        }
-    }
-    */
-
-    protected override void Invalidate()
-    {
-        base.Invalidate();
-
-        // TODO: Only invalidate SvgSource if its Svg property that changed.
-
-        if (IsLoaded)
-        {
-            OnSourceChanged(this);
-        }
+        canvas.Save();
+        canvas.ClipRect(ToSKRect(renderInfo.DestinationRect));
+        var matrix = ToSKMatrix(renderInfo.Matrix);
+        canvas.Concat(in matrix);
+        canvas.DrawPicture(picture);
+        canvas.Restore();
     }
 
     protected override void OnPropertyChanged(string propertyName = null)
     {
         base.OnPropertyChanged(propertyName);
-        
-        if (propertyName == "Css")
+
+        if (propertyName == nameof(Css))
         {
-            OnCssChanged(GetCss(this));
+            ReloadAndInvalidate();
+            return;
         }
 
-        if (propertyName == "CurrentCss")
+        if (propertyName == nameof(CurrentCss))
         {
-            OnCurrentCssChanged(GetCurrentCss(this));
+            ReloadAndInvalidate();
+            return;
         }
 
-        if (propertyName == "ClipToBounds")
+        if (propertyName == nameof(ClipToBounds))
         {
             InvalidateSurface();
+            return;
         }
 
-        if (propertyName == "Stretch" || propertyName == "StretchDirection")
+        if (propertyName == nameof(Stretch) || propertyName == nameof(StretchDirection))
         {
             InvalidateMeasure();
             InvalidateSurface();
+            return;
+        }
+
+        if (IsLoaded)
+        {
+            ReloadAndInvalidate();
         }
     }
 
     private void OnLoaded(object? sender, EventArgs e)
     {
+        ReloadAndInvalidate();
+    }
+
+    private void ReloadAndInvalidate()
+    {
         OnSourceChanged(this);
-    }
-
-    private void OnCssChanged(string? css)
-    {
-        var source = this;
-        var currentCss = GetCurrentCss(this);
-        var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
-        Load(source, parameters);
-        InvalidateMeasure();
-        InvalidateSurface();
-    }
-
-    private void OnCurrentCssChanged(string? currentCss)
-    {
-        var source = this;
-        var css = GetCss(this);
-        var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
-        Load(source, parameters);
         InvalidateMeasure();
         InvalidateSurface();
     }
 
     private void OnSourceChanged(svg? source)
     {
-        var css = GetCss(this);
-        var currentCss = GetCurrentCss(this);
-        var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+        var parameters = BuildParameters(GetCss(this), GetCurrentCss(this));
         Load(source, parameters);
-        InvalidateMeasure();
-        InvalidateSurface();
+    }
+
+    private bool TryGetRenderInfo(out SvgRenderInfo renderInfo)
+    {
+        renderInfo = default;
+
+        var picture = _picture;
+        if (picture is null)
+        {
+            return false;
+        }
+
+        return SvgRenderLayout.TryCreateRenderInfo(
+            new SvgSize(Width, Height),
+            new SvgRect(picture.CullRect.Left, picture.CullRect.Top, picture.CullRect.Width, picture.CullRect.Height),
+            Stretch,
+            StretchDirection,
+            out renderInfo);
+    }
+
+    private static SKRect ToSKRect(SvgRect rect)
+    {
+        return new SKRect((float)rect.Left, (float)rect.Top, (float)rect.Right, (float)rect.Bottom);
+    }
+
+    private static SKMatrix ToSKMatrix(Matrix3x2 matrix)
+    {
+        return new SKMatrix
+        {
+            ScaleX = matrix.M11,
+            SkewX = matrix.M21,
+            TransX = matrix.M31,
+            SkewY = matrix.M12,
+            ScaleY = matrix.M22,
+            TransY = matrix.M32,
+            Persp0 = 0,
+            Persp1 = 0,
+            Persp2 = 1
+        };
     }
 }

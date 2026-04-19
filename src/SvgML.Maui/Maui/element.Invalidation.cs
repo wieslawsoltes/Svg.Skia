@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Specialized;
 
 namespace SvgML;
@@ -9,63 +10,78 @@ public abstract partial class element
         switch (e.Action)
         {
             case NotifyCollectionChangedAction.Add:
-                // TODO:
-                // LogicalChildren.InsertRange(e.NewStartingIndex, e.NewItems!.OfType<Control>().ToList());
-                // VisualChildren.InsertRange(e.NewStartingIndex, e.NewItems!.OfType<Visual>());
-
-                foreach (var element in e.NewItems!.OfType<Element>().ToList())
-                {
-                    AddLogicalChild(element);
-                }
-                break;
-
-            case NotifyCollectionChangedAction.Move:
-                // TODO:
-                // LogicalChildren.MoveRange(e.OldStartingIndex, e.OldItems!.Count, e.NewStartingIndex);
-                // VisualChildren.MoveRange(e.OldStartingIndex, e.OldItems!.Count, e.NewStartingIndex);
-
+                AttachItems(e.NewItems);
                 break;
 
             case NotifyCollectionChangedAction.Remove:
-                // TODO:
-                // LogicalChildren.RemoveAll(e.OldItems!.OfType<Control>().ToList());
-                // VisualChildren.RemoveAll(e.OldItems!.OfType<Visual>());
-                
-                foreach (var element in e.NewItems!.OfType<Element>().ToList())
-                {
-                    RemoveLogicalChild(element);
-                }
+                DetachItems(e.OldItems);
                 break;
 
             case NotifyCollectionChangedAction.Replace:
-                // TODO:
-                for (var i = 0; i < e.OldItems!.Count; ++i)
-                {
-                    var index = i + e.OldStartingIndex;
-                    var child = (Element)e.NewItems![i]!;
-                    // InsertLogicalChild(index, child);
+                DetachItems(e.OldItems);
+                AttachItems(e.NewItems);
+                break;
 
-                    // LogicalChildren[index] = child;
-                    // VisualChildren[index] = child;
-                }
+            case NotifyCollectionChangedAction.Move:
                 break;
 
             case NotifyCollectionChangedAction.Reset:
-                throw new NotSupportedException();
+                ReattachChildren();
+                break;
         }
 
-        Invalidate();
+        OnSvgChanged();
     }
 
     protected override void OnPropertyChanged(string propertyName = null)
     {
         base.OnPropertyChanged(propertyName);
 
-        Invalidate();
+        if (this is not svg)
+        {
+            OnSvgChanged();
+        }
     }
 
-    protected virtual void Invalidate()
+    private void AttachItems(IList? items)
     {
-        (Parent as element)?.Invalidate();
+        if (items is null)
+        {
+            return;
+        }
+
+        var root = RootSvg ?? this as svg;
+        foreach (var item in items)
+        {
+            if (item is element child)
+            {
+                child.AttachToTree(this, root);
+            }
+        }
+    }
+
+    private static void DetachItems(IList? items)
+    {
+        if (items is null)
+        {
+            return;
+        }
+
+        foreach (var item in items)
+        {
+            if (item is element child)
+            {
+                child.DetachFromTree();
+            }
+        }
+    }
+
+    private void ReattachChildren()
+    {
+        var root = RootSvg ?? this as svg;
+        foreach (var child in Children)
+        {
+            child.AttachToTree(this, root);
+        }
     }
 }
