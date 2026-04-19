@@ -1,20 +1,30 @@
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using Microsoft.UI.Xaml;
-using SkiaSharp;
 using Svg;
 using Svg.Model;
+using Svg.Model.Services;
 using Svg.Skia;
 using Windows.Foundation;
+using SkiaCanvas = SkiaSharp.SKCanvas;
+using SkiaMatrix = SkiaSharp.SKMatrix;
+using SkiaPicture = SkiaSharp.SKPicture;
+using SkiaRect = SkiaSharp.SKRect;
+using ShimMatrix = ShimSkiaSharp.SKMatrix;
 using ShimPoint = ShimSkiaSharp.SKPoint;
+using ShimRect = ShimSkiaSharp.SKRect;
 
 namespace SvgML;
 
 public partial class svg
 {
-    private SKPicture? _picture;
+    private SkiaPicture? _picture;
     private SKSvg? _skSvg;
+    private SvgDocument? _svgDocument;
     private bool _reloadQueued;
+    private readonly Dictionary<SvgElement, element> _elementBySvgElement = new();
+    private readonly Dictionary<SvgSceneNode, element> _elementBySceneNode = new();
 
     static svg()
     {
@@ -28,7 +38,7 @@ public partial class svg
         Unloaded += OnUnloaded;
     }
 
-    public SKPicture? Picture => _picture;
+    public SkiaPicture? Picture => _picture;
 
     public SKSvg? SkSvg => _skSvg;
 
@@ -39,8 +49,6 @@ public partial class svg
     internal void InvalidateSvgTree()
     {
         QueueReload();
-        InvalidateMeasure();
-        InvalidateArrange();
     }
 
     public bool TryGetPicturePoint(Point point, out ShimPoint picturePoint)
@@ -61,7 +69,45 @@ public partial class svg
         return true;
     }
 
-    public IEnumerable<SvgElement> HitTestElements(Point point)
+    public bool TryGetPictureRect(Rect rect, out ShimRect pictureRect)
+    {
+        pictureRect = default;
+
+        if (!TryGetRenderInfo(out var renderInfo)
+            || !renderInfo.TryMapToPicture(new SvgRect(rect.X, rect.Y, rect.Width, rect.Height), out var mappedRect))
+        {
+            return false;
+        }
+
+        pictureRect = new ShimRect(
+            (float)mappedRect.Left,
+            (float)mappedRect.Top,
+            (float)mappedRect.Right,
+            (float)mappedRect.Bottom);
+        return true;
+    }
+
+    public IEnumerable<SvgElement> HitTestSvgElements(ShimPoint point)
+    {
+        if (_skSvg is null)
+        {
+            return Array.Empty<SvgElement>();
+        }
+
+        return _skSvg.HitTestElements(point);
+    }
+
+    public IEnumerable<SvgElement> HitTestSvgElements(ShimRect rect)
+    {
+        if (_skSvg is null)
+        {
+            return Array.Empty<SvgElement>();
+        }
+
+        return _skSvg.HitTestElements(rect);
+    }
+
+    public IEnumerable<SvgElement> HitTestSvgElements(Point point)
     {
         if (_skSvg is { } skSvg && TryGetPicturePoint(point, out var picturePoint))
         {
@@ -69,6 +115,162 @@ public partial class svg
         }
 
         return Array.Empty<SvgElement>();
+    }
+
+    public IEnumerable<SvgElement> HitTestSvgElements(Rect rect)
+    {
+        if (_skSvg is { } skSvg && TryGetPictureRect(rect, out var pictureRect))
+        {
+            return skSvg.HitTestElements(pictureRect);
+        }
+
+        return Array.Empty<SvgElement>();
+    }
+
+    public IEnumerable<element> HitTestElements(ShimPoint point)
+    {
+        if (_skSvg is null)
+        {
+            yield break;
+        }
+
+        var visited = new HashSet<element>();
+        foreach (var svgElement in _skSvg.HitTestElements(point))
+        {
+            if (_elementBySvgElement.TryGetValue(svgElement, out var control) && visited.Add(control))
+            {
+                yield return control;
+            }
+        }
+    }
+
+    public IEnumerable<element> HitTestElements(ShimRect rect)
+    {
+        if (_skSvg is null)
+        {
+            yield break;
+        }
+
+        var visited = new HashSet<element>();
+        foreach (var svgElement in _skSvg.HitTestElements(rect))
+        {
+            if (_elementBySvgElement.TryGetValue(svgElement, out var control) && visited.Add(control))
+            {
+                yield return control;
+            }
+        }
+    }
+
+    public IEnumerable<element> HitTestElements(Point point)
+    {
+        if (!TryGetPicturePoint(point, out var picturePoint))
+        {
+            yield break;
+        }
+
+        foreach (var element in HitTestElements(picturePoint))
+        {
+            yield return element;
+        }
+    }
+
+    public IEnumerable<element> HitTestElements(Rect rect)
+    {
+        if (!TryGetPictureRect(rect, out var pictureRect))
+        {
+            yield break;
+        }
+
+        foreach (var element in HitTestElements(pictureRect))
+        {
+            yield return element;
+        }
+    }
+
+    public IEnumerable<SvgSceneNode> HitTestSceneNodes(ShimPoint point)
+    {
+        if (_skSvg is null)
+        {
+            yield break;
+        }
+
+        foreach (var sceneNode in _skSvg.HitTestSceneNodes(point))
+        {
+            yield return sceneNode;
+        }
+    }
+
+    public IEnumerable<SvgSceneNode> HitTestSceneNodes(ShimRect rect)
+    {
+        if (_skSvg is null)
+        {
+            yield break;
+        }
+
+        foreach (var sceneNode in _skSvg.HitTestSceneNodes(rect))
+        {
+            yield return sceneNode;
+        }
+    }
+
+    public IEnumerable<SvgSceneNode> HitTestSceneNodes(Point point)
+    {
+        if (!TryGetPicturePoint(point, out var picturePoint))
+        {
+            yield break;
+        }
+
+        foreach (var sceneNode in HitTestSceneNodes(picturePoint))
+        {
+            yield return sceneNode;
+        }
+    }
+
+    public IEnumerable<SvgSceneNode> HitTestSceneNodes(Rect rect)
+    {
+        if (!TryGetPictureRect(rect, out var pictureRect))
+        {
+            yield break;
+        }
+
+        foreach (var sceneNode in HitTestSceneNodes(pictureRect))
+        {
+            yield return sceneNode;
+        }
+    }
+
+    public Rect GetControlBounds(element element)
+    {
+        if (element is null || !TryGetRenderInfo(out var renderInfo))
+        {
+            return default;
+        }
+
+        return element.GetControlBounds(renderInfo.Matrix);
+    }
+
+    public element? GetElementForSceneNode(SvgSceneNode? sceneNode)
+    {
+        if (sceneNode is null)
+        {
+            return null;
+        }
+
+        return _elementBySceneNode.TryGetValue(sceneNode, out var control)
+            ? control
+            : null;
+    }
+
+    public element? GetElementForSvgElement(SvgElement? svgElement)
+    {
+        if (svgElement is null)
+        {
+            return null;
+        }
+
+        return _elementBySvgElement.TryGetValue(svgElement, out var control)
+            ? control
+            : null;
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -105,7 +307,7 @@ public partial class svg
         return new Size(size.Width, size.Height);
     }
 
-    protected override void RenderOverride(SKCanvas canvas, Size area)
+    protected override void RenderOverride(SkiaCanvas canvas, Size area)
     {
         var picture = _picture;
         if (picture is null)
@@ -149,15 +351,21 @@ public partial class svg
             _ = dispatcherQueue.TryEnqueue(() =>
             {
                 _reloadQueued = false;
-                ReloadFromInlineTree();
-                Invalidate();
+                ReloadAndInvalidate();
             });
 
             return;
         }
 
         _reloadQueued = false;
+        ReloadAndInvalidate();
+    }
+
+    private void ReloadAndInvalidate()
+    {
         ReloadFromInlineTree();
+        InvalidateMeasure();
+        InvalidateArrange();
         Invalidate();
     }
 
@@ -205,7 +413,8 @@ public partial class svg
     {
         var skSvg = new SKSvg();
         var picture = skSvg.Load(stream, parameters);
-        if (picture is null)
+        var svgDocument = skSvg.SourceDocument;
+        if (picture is null || svgDocument is null)
         {
             skSvg.Dispose();
             ClearLoadedData();
@@ -219,9 +428,11 @@ public partial class svg
             previousSvg = _skSvg;
             _skSvg = skSvg;
             _picture = picture;
+            _svgDocument = svgDocument;
         }
 
         previousSvg?.Dispose();
+        UpdateElementMappings(skSvg, svgDocument);
         return true;
     }
 
@@ -234,9 +445,11 @@ public partial class svg
             previousSvg = _skSvg;
             _skSvg = null;
             _picture = null;
+            _svgDocument = null;
         }
 
         previousSvg?.Dispose();
+        UpdateElementMappings(null, null);
     }
 
     private bool TryGetRenderInfo(out SvgRenderInfo renderInfo)
@@ -257,14 +470,212 @@ public partial class svg
             out renderInfo);
     }
 
-    private static SKRect ToSKRect(SvgRect rect)
+    private void UpdateElementMappings(SKSvg? skSvg, SvgDocument? document)
     {
-        return new SKRect((float)rect.Left, (float)rect.Top, (float)rect.Right, (float)rect.Bottom);
+        _elementBySvgElement.Clear();
+        _elementBySceneNode.Clear();
+        ClearElementData(this);
+
+        if (document is null || skSvg is null || !skSvg.TryEnsureRetainedSceneGraph(out var sceneDocument) || sceneDocument is null)
+        {
+            return;
+        }
+
+        var metrics = BuildSceneNodeMetrics(sceneDocument);
+        MapElementRecursive(this, document, metrics);
     }
 
-    private static SKMatrix ToSKMatrix(Matrix3x2 matrix)
+    private static Dictionary<SvgElement, SceneNodeMetrics> BuildSceneNodeMetrics(SvgSceneDocument sceneDocument)
     {
-        return new SKMatrix
+        var metrics = new Dictionary<SvgElement, SceneNodeMetrics>();
+
+        foreach (var current in sceneDocument.Traverse())
+        {
+            if (current.Element is SvgElement svgElement)
+            {
+                if (!metrics.TryGetValue(svgElement, out var entry))
+                {
+                    entry = new SceneNodeMetrics
+                    {
+                        Geometry = current.GeometryBounds,
+                        Transformed = current.TransformedBounds,
+                        Transform = ToMatrix3x2(current.Transform),
+                        TotalTransform = ToMatrix3x2(current.TotalTransform)
+                    };
+                    metrics.Add(svgElement, entry);
+                }
+                else
+                {
+                    entry.Geometry = UnionRect(entry.Geometry, current.GeometryBounds);
+                    entry.Transformed = UnionRect(entry.Transformed, current.TransformedBounds);
+                }
+
+                entry.SceneNodes.Add(current);
+            }
+        }
+
+        return metrics;
+    }
+
+    private void MapElementRecursive(element control, SvgElement svgElement, Dictionary<SvgElement, SceneNodeMetrics> metrics)
+    {
+        _elementBySvgElement[svgElement] = control;
+
+        if (metrics.TryGetValue(svgElement, out var metric))
+        {
+            control.UpdateSvgData(
+                svgElement,
+                metric.SceneNodes,
+                ToRect(metric.Geometry),
+                ToRect(metric.Transformed),
+                metric.Transform,
+                metric.TotalTransform);
+
+            foreach (var sceneNode in metric.SceneNodes)
+            {
+                _elementBySceneNode[sceneNode] = control;
+            }
+        }
+        else
+        {
+            control.UpdateSvgData(
+                svgElement,
+                Array.Empty<SvgSceneNode>(),
+                default,
+                default,
+                Matrix3x2.Identity,
+                Matrix3x2.Identity);
+        }
+
+        var svgChildren = svgElement.Children.OfType<SvgElement>().ToList();
+        foreach (var childControl in control.Children.OfType<element>())
+        {
+            if (IsContentElement(childControl))
+            {
+                ClearElementData(childControl);
+                continue;
+            }
+
+            var match = TakeChildSvgElement(childControl, svgChildren);
+            if (match is null)
+            {
+                ClearElementData(childControl);
+                continue;
+            }
+
+            MapElementRecursive(childControl, match, metrics);
+        }
+    }
+
+    private static bool IsContentElement(element control) => control is content;
+
+    private static SvgElement? TakeChildSvgElement(element control, List<SvgElement> svgChildren)
+    {
+        if (svgChildren.Count == 0)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrEmpty(control.id))
+        {
+            var byId = svgChildren.FirstOrDefault(e => string.Equals(e.ID, control.id, StringComparison.Ordinal));
+            if (byId is not null)
+            {
+                svgChildren.Remove(byId);
+                return byId;
+            }
+        }
+
+        var tag = control.SvgElementName;
+        if (!string.IsNullOrEmpty(tag))
+        {
+            var byTag = svgChildren.FirstOrDefault(e => string.Equals(GetElementName(e), tag, StringComparison.OrdinalIgnoreCase));
+            if (byTag is not null)
+            {
+                svgChildren.Remove(byTag);
+                return byTag;
+            }
+        }
+
+        var first = svgChildren[0];
+        svgChildren.RemoveAt(0);
+        return first;
+    }
+
+    private static string? GetElementName(SvgElement element)
+    {
+        var attribute = element.GetType().GetCustomAttribute<SvgElementAttribute>();
+        return attribute?.ElementName ?? element.ID;
+    }
+
+    private static void ClearElementData(element control)
+    {
+        control.ClearSvgData();
+
+        foreach (var child in control.Children.OfType<element>())
+        {
+            ClearElementData(child);
+        }
+    }
+
+    private static ShimRect UnionRect(ShimRect a, ShimRect b)
+    {
+        if (a.IsEmpty)
+        {
+            return b;
+        }
+
+        if (b.IsEmpty)
+        {
+            return a;
+        }
+
+        return ShimRect.Union(a, b);
+    }
+
+    private static Rect ToRect(ShimRect rect)
+    {
+        if (rect.IsEmpty)
+        {
+            return default;
+        }
+
+        return new Rect(rect.Left, rect.Top, rect.Width, rect.Height);
+    }
+
+    private static Matrix3x2 ToMatrix3x2(ShimMatrix matrix)
+    {
+        if (matrix.Equals(default(ShimMatrix)))
+        {
+            return Matrix3x2.Identity;
+        }
+
+        return new Matrix3x2(
+            matrix.ScaleX,
+            matrix.SkewY,
+            matrix.SkewX,
+            matrix.ScaleY,
+            matrix.TransX,
+            matrix.TransY);
+    }
+
+    private sealed class SceneNodeMetrics
+    {
+        public ShimRect Geometry { get; set; }
+        public ShimRect Transformed { get; set; }
+        public Matrix3x2 Transform { get; set; } = Matrix3x2.Identity;
+        public Matrix3x2 TotalTransform { get; set; } = Matrix3x2.Identity;
+        public List<SvgSceneNode> SceneNodes { get; } = new();
+    }
+
+    private static SkiaRect ToSKRect(SvgRect rect)
+    {
+        return new SkiaRect((float)rect.Left, (float)rect.Top, (float)rect.Right, (float)rect.Bottom);
+    }
+
+    private static SkiaMatrix ToSKMatrix(Matrix3x2 matrix)
+    {
+        return new SkiaMatrix
         {
             ScaleX = matrix.M11,
             SkewX = matrix.M21,

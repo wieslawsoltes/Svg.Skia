@@ -53,6 +53,28 @@ internal readonly record struct SvgRenderInfo(SvgRect DestinationRect, SvgRect S
         picturePoint = new SvgPoint(mapped.X, mapped.Y);
         return true;
     }
+
+    public bool TryMapToPicture(SvgRect rect, out SvgRect pictureRect)
+    {
+        if (!Matrix3x2.Invert(Matrix, out var inverse))
+        {
+            pictureRect = default;
+            return false;
+        }
+
+        var topLeft = Vector2.Transform(new Vector2((float)rect.Left, (float)rect.Top), inverse);
+        var topRight = Vector2.Transform(new Vector2((float)rect.Right, (float)rect.Top), inverse);
+        var bottomRight = Vector2.Transform(new Vector2((float)rect.Right, (float)rect.Bottom), inverse);
+        var bottomLeft = Vector2.Transform(new Vector2((float)rect.Left, (float)rect.Bottom), inverse);
+
+        var minX = Math.Min(Math.Min(topLeft.X, topRight.X), Math.Min(bottomRight.X, bottomLeft.X));
+        var minY = Math.Min(Math.Min(topLeft.Y, topRight.Y), Math.Min(bottomRight.Y, bottomLeft.Y));
+        var maxX = Math.Max(Math.Max(topLeft.X, topRight.X), Math.Max(bottomRight.X, bottomLeft.X));
+        var maxY = Math.Max(Math.Max(topLeft.Y, topRight.Y), Math.Max(bottomRight.Y, bottomLeft.Y));
+
+        pictureRect = new SvgRect(minX, minY, maxX - minX, maxY - minY);
+        return true;
+    }
 }
 
 internal static class SvgRenderLayout
