@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>SvgML</RootNamespace>
+    <NoWarn>$(NoWarn);CS1591;CS8981</NoWarn>
+    <IsPackable>True</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>$(AvaloniaVersionPrefix)</VersionPrefix>
+    <VersionSuffix>$(AvaloniaVersionSuffix)</VersionSuffix>
+    <Description>Inline SVG element authoring for Avalonia XAML backed by Svg.Skia.</Description>
+    <PackageId>SvgML</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>svg;xaml;avalonia;avaloniaui;control;inline-svg</PackageTags>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\SourceLink.props" />
+  <Import Project="..\..\build\SignAssembly.props" />
+  <Import Project="..\..\build\Avalonia.props" />
+  <Import Project="..\..\build\Avalonia.Skia.props" />
+
+  <ItemGroup>
+    <PackageReference Include="Fody">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <WeaverFiles Include="$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)','..','SvgML.Weavers','bin','$(Configuration)','netstandard2.0','Weavers.dll'))"
+                 WeaverClassNames="FieldRename;PropertyRename;TypeRename"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
+    <ProjectReference Include="..\SvgML.Weavers\Weavers.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Avalonia/HitTesting/SvgHitTester.cs" />
+  </ItemGroup>
+
+</Project>

@@ -70,6 +70,9 @@
     <Project Path="samples/TestApp/TestApp.csproj" />
     <Project Path="samples/UnoTestApp/UnoTestApp.csproj" />
   </Folder>
+  <Folder Name="/samples/SvgML.Demo/">
+    <Project Path="samples/SvgML.Demo/Demo.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/ShimSkiaSharp/ShimSkiaSharp.csproj" />
     <Project Path="src/Skia.Controls.Avalonia/Skia.Controls.Avalonia.csproj" />
@@ -87,6 +90,13 @@
     <Project Path="src/Svg.SceneGraph/Svg.SceneGraph.csproj" />
     <Project Path="src/Svg.Skia/Svg.Skia.csproj" />
     <Project Path="src/Svg.SourceGenerator.Skia/Svg.SourceGenerator.Skia.csproj" />
+    <Project Path="src/SvgML/SvgML.csproj" />
+  </Folder>
+  <Folder Name="/src/SvgML.CodeGenerator/">
+    <Project Path="src/SvgML.CodeGenerator/CodeGenerator.csproj" />
+  </Folder>
+  <Folder Name="/src/SvgML.Weavers/">
+    <Project Path="src/SvgML.Weavers/Weavers.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ShimSkiaSharp.UnitTests/ShimSkiaSharp.UnitTests.csproj" />

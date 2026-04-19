@@ -1,0 +1,67 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
+        x:Class="SvgML.MainWindow"
+        Width="800" Height="500"
+        Title="SvgML Demo">
+
+  <Window.Styles>
+    <Style Selector=":is(rect)[id=r2]">
+      <Style.Animations>
+        <Animation Duration="0:0:1" IterationCount="Infinite" PlaybackDirection="Alternate">
+          <KeyFrame Cue="0%">
+            <Setter Property="x" Value="0%"/>
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="x" Value="90%"/>
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="filter[id=noise] feTurbulence">
+      <Style.Animations>
+        <Animation Duration="0:0:1" IterationCount="Infinite" PlaybackDirection="Alternate">
+          <KeyFrame Cue="0%">
+            <Setter Property="baseFrequency" Value="0 0.000001"/>
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="baseFrequency" Value="0 0.2"/>
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="baseFrequency" Value="0 0.000001"/>
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </Window.Styles>
+
+  <Window.Resources>
+
+    <svg viewBox="0 0 500 500" x:Key="SvgIcon" x:Shared="False">
+      <defs>
+        <filter id='noise' x='0%' y='0%' width='100%' height='100%'>
+          <feTurbulence type="fractalNoise" result="NOISE" baseFrequency="0 0.000001" numOctaves="2"/>
+          <feDisplacementMap in="SourceGraphic" in2="NOISE" scale="30" xChannelSelector="R" yChannelSelector="R" />  
+        </filter>  
+      </defs>
+      <rect width="100%" height="100%" fill="lightgray" />
+      <rect width="10%" height="10%" x="0%" y="45%" fill="green" filter="#noise" id="r2" />
+    </svg>
+
+  </Window.Resources>
+
+  <StackPanel Spacing="20" VerticalAlignment="Center">
+     <Viewbox Width="100" Height="100">
+       <ContentPresenter Content="{DynamicResource SvgIcon}" />
+     </Viewbox>
+    <Viewbox Width="100" Height="100">
+      <ContentPresenter Content="{DynamicResource SvgIcon}" />
+    </Viewbox>
+    <Viewbox Width="100" Height="100">
+      <ContentPresenter Content="{DynamicResource SvgIcon}" />
+    </Viewbox>
+  </StackPanel>
+  
+</Window>
