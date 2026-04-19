@@ -5,6 +5,13 @@ namespace SvgML;
 
 public abstract partial class marker_element : path_based
 {
+    public static readonly Microsoft.UI.Xaml.DependencyProperty markerProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "marker",
+            typeof(string),
+            typeof(marker_element),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
+
     public static readonly Microsoft.UI.Xaml.DependencyProperty marker_endProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "marker-end",
@@ -25,6 +32,12 @@ public abstract partial class marker_element : path_based
             typeof(string),
             typeof(marker_element),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
+
+    public string marker
+    {
+        get => (string)GetValue(markerProperty);
+        set => SetValue(markerProperty, value);
+    }
 
     public string marker_end
     {

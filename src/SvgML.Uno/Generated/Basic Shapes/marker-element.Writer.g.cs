@@ -9,6 +9,24 @@ public abstract partial class marker_element
     {
         base.WriteAttributes(writer, parent);
 
+        if (ReadLocalValue(markerProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            if (ReadLocalValue(marker_startProperty) == Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+            {
+                writer.WriteLine($"marker-start=\"{ToSvgString(marker)}\"");
+            }
+
+            if (ReadLocalValue(marker_midProperty) == Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+            {
+                writer.WriteLine($"marker-mid=\"{ToSvgString(marker)}\"");
+            }
+
+            if (ReadLocalValue(marker_endProperty) == Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+            {
+                writer.WriteLine($"marker-end=\"{ToSvgString(marker)}\"");
+            }
+        }
+
         if (ReadLocalValue(marker_endProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
         {
             writer.WriteLine($"marker-end=\"{ToSvgString(marker_end)}\"");

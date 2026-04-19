@@ -17,6 +17,9 @@ public abstract partial class visual : element
     public static readonly Avalonia.StyledProperty<string?> filterProperty =
         Avalonia.AvaloniaProperty.Register<visual, string?>("filter");
 
+    public static readonly Avalonia.StyledProperty<Svg.SvgPointerEvents?> pointer_eventsProperty =
+        Avalonia.AvaloniaProperty.Register<visual, Svg.SvgPointerEvents?>("pointer-events");
+
     public static readonly Avalonia.StyledProperty<string?> enable_backgroundProperty =
         Avalonia.AvaloniaProperty.Register<visual, string?>("enable-background");
 
@@ -42,6 +45,12 @@ public abstract partial class visual : element
     {
         get => GetValue(filterProperty);
         set => SetValue(filterProperty, value);
+    }
+
+    public Svg.SvgPointerEvents? pointer_events
+    {
+        get => GetValue(pointer_eventsProperty);
+        set => SetValue(pointer_eventsProperty, value);
     }
 
     public string? enable_background

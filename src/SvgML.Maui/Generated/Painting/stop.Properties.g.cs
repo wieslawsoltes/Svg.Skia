@@ -14,7 +14,7 @@ public partial class stop : element
         Microsoft.Maui.Controls.BindableProperty.Create("stop-color", typeof(string), typeof(stop));
 
     public static readonly Microsoft.Maui.Controls.BindableProperty stop_opacityProperty = 
-        Microsoft.Maui.Controls.BindableProperty.Create("stop-opacity", typeof(float), typeof(stop));
+        Microsoft.Maui.Controls.BindableProperty.Create("stop-opacity", typeof(string), typeof(stop));
 
     public Svg.SvgUnit offset
     {
@@ -28,9 +28,9 @@ public partial class stop : element
         set => SetValue(stop_colorProperty, value);
     }
 
-    public float stop_opacity
+    public string stop_opacity
     {
-        get => (float)GetValue(stop_opacityProperty);
+        get => (string)GetValue(stop_opacityProperty);
         set => SetValue(stop_opacityProperty, value);
     }
 }

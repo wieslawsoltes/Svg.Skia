@@ -7,14 +7,14 @@ public partial class missing_glyph : glyph
 {
     protected override string SvgTag => "missing-glyph";
 
-    public static readonly Microsoft.UI.Xaml.DependencyProperty glyph_nameProperty =
+    public new static readonly Microsoft.UI.Xaml.DependencyProperty glyph_nameProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "glyph-name",
             typeof(string),
             typeof(missing_glyph),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
 
-    public string glyph_name
+    public new string glyph_name
     {
         get => (string)GetValue(glyph_nameProperty);
         set => SetValue(glyph_nameProperty, value);

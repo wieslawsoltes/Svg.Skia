@@ -9,6 +9,24 @@ public abstract partial class marker_element
     {
         base.WriteAttributes(writer, parent);
 
+        if (marker is not null)
+        {
+            if (marker_start is null)
+            {
+                writer.WriteLine($"marker-start=\"{ToSvgString(marker)}\"");
+            }
+
+            if (marker_mid is null)
+            {
+                writer.WriteLine($"marker-mid=\"{ToSvgString(marker)}\"");
+            }
+
+            if (marker_end is null)
+            {
+                writer.WriteLine($"marker-end=\"{ToSvgString(marker)}\"");
+            }
+        }
+
         if (marker_end is not null)
         {
             writer.WriteLine($"marker-end=\"{ToSvgString(marker_end)}\"");

@@ -13,8 +13,8 @@ public partial class stop : element
     public static readonly Avalonia.StyledProperty<string?> stop_colorProperty =
         Avalonia.AvaloniaProperty.Register<stop, string?>("stop-color");
 
-    public static readonly Avalonia.StyledProperty<float?> stop_opacityProperty =
-        Avalonia.AvaloniaProperty.Register<stop, float?>("stop-opacity");
+    public static readonly Avalonia.StyledProperty<string?> stop_opacityProperty =
+        Avalonia.AvaloniaProperty.Register<stop, string?>("stop-opacity");
 
     public Svg.SvgUnit? offset
     {
@@ -28,7 +28,7 @@ public partial class stop : element
         set => SetValue(stop_colorProperty, value);
     }
 
-    public float? stop_opacity
+    public string? stop_opacity
     {
         get => GetValue(stop_opacityProperty);
         set => SetValue(stop_opacityProperty, value);

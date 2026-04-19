@@ -24,9 +24,9 @@ public partial class stop : element
     public static readonly Microsoft.UI.Xaml.DependencyProperty stop_opacityProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "stop-opacity",
-            typeof(float),
+            typeof(string),
             typeof(stop),
-            new Microsoft.UI.Xaml.PropertyMetadata(default(float), OnSvgPropertyChanged));
+            new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
 
     public Svg.SvgUnit offset
     {
@@ -40,9 +40,9 @@ public partial class stop : element
         set => SetValue(stop_colorProperty, value);
     }
 
-    public float stop_opacity
+    public string stop_opacity
     {
-        get => (float)GetValue(stop_opacityProperty);
+        get => (string)GetValue(stop_opacityProperty);
         set => SetValue(stop_opacityProperty, value);
     }
 }

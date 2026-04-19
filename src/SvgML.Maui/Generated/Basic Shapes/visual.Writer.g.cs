@@ -29,6 +29,11 @@ public abstract partial class visual
             writer.WriteLine($"filter=\"{ToSvgString(filter)}\"");
         }
 
+        if (this.IsSet(pointer_eventsProperty))
+        {
+            writer.WriteLine($"pointer-events=\"{ToSvgString(pointer_events)}\"");
+        }
+
         if (this.IsSet(enable_backgroundProperty))
         {
             writer.WriteLine($"enable-background=\"{ToSvgString(enable_background)}\"");

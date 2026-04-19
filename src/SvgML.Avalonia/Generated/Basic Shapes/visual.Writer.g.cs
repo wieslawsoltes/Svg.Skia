@@ -29,6 +29,11 @@ public abstract partial class visual
             writer.WriteLine($"filter=\"{ToSvgString(filter)}\"");
         }
 
+        if (pointer_events is not null)
+        {
+            writer.WriteLine($"pointer-events=\"{ToSvgString(pointer_events)}\"");
+        }
+
         if (enable_background is not null)
         {
             writer.WriteLine($"enable-background=\"{ToSvgString(enable_background)}\"");

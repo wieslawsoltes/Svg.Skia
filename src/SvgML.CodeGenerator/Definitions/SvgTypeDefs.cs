@@ -48,6 +48,7 @@ internal static class SvgTypeDefs
             FilePath: "Basic Shapes",
             Properties:
             [
+                new ("marker"),
                 new ("marker-end"),
                 new ("marker-mid"),
                 new ("marker-start"),
@@ -103,6 +104,7 @@ internal static class SvgTypeDefs
                 new ("clip-path"),
                 new ("clip-rule"),
                 new ("filter"),
+                new ("pointer-events", "Svg.SvgPointerEvents"),
                 // style
                 new ("enable-background"),
             ]),
@@ -230,6 +232,128 @@ internal static class SvgTypeDefs
                 new ("y", "Svg.SvgUnit"),
                 new ("width", "Svg.SvgUnit"),
                 new ("height", "Svg.SvgUnit"),
+            ]),
+
+        #endregion
+
+        #region Animation
+
+        new(TargetTpe: "animation-element",
+            IsAbstract: true,
+            BaseType: "element",
+            FilePath: "Animation",
+            Properties:
+            [
+                new ("href"),
+                new ("requiredFeatures"),
+                new ("requiredExtensions"),
+                new ("systemLanguage"),
+                new ("externalResourcesRequired", "bool"),
+                new ("begin"),
+                new ("dur"),
+                new ("end"),
+                new ("min"),
+                new ("max"),
+                new ("restart", "Svg.SvgAnimationRestart"),
+                new ("repeatCount"),
+                new ("repeatDur"),
+                new ("fill", "Svg.SvgAnimationFill"),
+                new ("onbegin"),
+                new ("onend"),
+                new ("onrepeat"),
+                new ("onload"),
+            ]),
+
+        new(TargetTpe: "animation-attribute-element",
+            IsAbstract: true,
+            BaseType: "animation-element",
+            FilePath: "Animation",
+            Properties:
+            [
+                new ("attributeName"),
+                new ("attributeType", "Svg.SvgAnimationAttributeType"),
+            ]),
+
+        new(TargetTpe: "animation-value-element",
+            IsAbstract: true,
+            BaseType: "animation-attribute-element",
+            FilePath: "Animation",
+            Properties:
+            [
+                new ("calcMode", "Svg.SvgAnimationCalcMode"),
+                new ("values"),
+                new ("keyTimes", "numbers"),
+                new ("keySplines"),
+                new ("from"),
+                new ("to"),
+                new ("by"),
+                new ("additive", "Svg.SvgAnimationAdditive"),
+                new ("accumulate", "Svg.SvgAnimationAccumulate"),
+            ]),
+
+        new(TargetTpe: "animate",
+            IsAbstract: false,
+            BaseType: "animation-value-element",
+            FilePath: "Animation",
+            Properties:
+            [
+            ]),
+
+        new(TargetTpe: "set",
+            IsAbstract: false,
+            BaseType: "animation-attribute-element",
+            FilePath: "Animation",
+            Properties:
+            [
+                new ("to"),
+            ]),
+
+        new(TargetTpe: "animateMotion",
+            IsAbstract: false,
+            BaseType: "animation-element",
+            FilePath: "Animation",
+            Properties:
+            [
+                new ("calcMode", "Svg.SvgAnimationCalcMode"),
+                new ("values"),
+                new ("keyTimes", "numbers"),
+                new ("keySplines"),
+                new ("from"),
+                new ("to"),
+                new ("by"),
+                new ("additive", "Svg.SvgAnimationAdditive"),
+                new ("accumulate", "Svg.SvgAnimationAccumulate"),
+                new ("path"),
+                new ("keyPoints", "numbers"),
+                new ("rotate"),
+                new ("origin"),
+            ]),
+
+        new(TargetTpe: "animateColor",
+            IsAbstract: false,
+            BaseType: "animation-value-element",
+            FilePath: "Animation",
+            Properties:
+            [
+            ]),
+
+        new(TargetTpe: "animateTransform",
+            IsAbstract: false,
+            BaseType: "animation-value-element",
+            FilePath: "Animation",
+            Properties:
+            [
+                new ("type", "Svg.SvgAnimateTransformType"),
+            ]),
+
+        new(TargetTpe: "mpath",
+            IsAbstract: false,
+            BaseType: "element",
+            FilePath: "Animation",
+            Properties:
+            [
+                new ("href"),
+                new ("externalResourcesRequired", "bool"),
             ]),
 
         #endregion
@@ -587,7 +711,7 @@ internal static class SvgTypeDefs
                 new ("href"),
                 new ("gradientTransform"),
                 new ("stop-color"),
-                new ("stop-opacity", "float"),
+                new ("stop-opacity"),
             ]),
 
         new(TargetTpe: "linearGradient",
@@ -668,7 +792,7 @@ internal static class SvgTypeDefs
             [
                 new ("offset", "Svg.SvgUnit"),
                 new ("stop-color"),
-                new ("stop-opacity", "float"),
+                new ("stop-opacity"),
             ]),
 
         #endregion

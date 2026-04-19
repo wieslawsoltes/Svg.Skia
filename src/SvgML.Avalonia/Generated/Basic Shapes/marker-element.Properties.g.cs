@@ -5,6 +5,9 @@ namespace SvgML;
 
 public abstract partial class marker_element : path_based
 {
+    public static readonly Avalonia.StyledProperty<string?> markerProperty =
+        Avalonia.AvaloniaProperty.Register<marker_element, string?>("marker");
+
     public static readonly Avalonia.StyledProperty<string?> marker_endProperty =
         Avalonia.AvaloniaProperty.Register<marker_element, string?>("marker-end");
 
@@ -13,6 +16,12 @@ public abstract partial class marker_element : path_based
 
     public static readonly Avalonia.StyledProperty<string?> marker_startProperty =
         Avalonia.AvaloniaProperty.Register<marker_element, string?>("marker-start");
+
+    public string? marker
+    {
+        get => GetValue(markerProperty);
+        set => SetValue(markerProperty, value);
+    }
 
     public string? marker_end
     {

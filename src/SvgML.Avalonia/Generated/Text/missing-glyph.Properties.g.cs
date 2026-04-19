@@ -7,10 +7,10 @@ public partial class missing_glyph : glyph
 {
     protected override string SvgTag => "missing-glyph";
 
-    public static readonly Avalonia.StyledProperty<string?> glyph_nameProperty =
+    public new static readonly Avalonia.StyledProperty<string?> glyph_nameProperty =
         Avalonia.AvaloniaProperty.Register<missing_glyph, string?>("glyph-name");
 
-    public string? glyph_name
+    public new string? glyph_name
     {
         get => GetValue(glyph_nameProperty);
         set => SetValue(glyph_nameProperty, value);

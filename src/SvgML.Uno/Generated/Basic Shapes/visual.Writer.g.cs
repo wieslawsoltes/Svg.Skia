@@ -29,6 +29,11 @@ public abstract partial class visual
             writer.WriteLine($"filter=\"{ToSvgString(filter)}\"");
         }
 
+        if (ReadLocalValue(pointer_eventsProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"pointer-events=\"{ToSvgString(pointer_events)}\"");
+        }
+
         if (ReadLocalValue(enable_backgroundProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
         {
             writer.WriteLine($"enable-background=\"{ToSvgString(enable_background)}\"");

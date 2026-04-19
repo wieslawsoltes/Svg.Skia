@@ -17,6 +17,9 @@ public abstract partial class visual : element
     public static readonly Microsoft.Maui.Controls.BindableProperty filterProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("filter", typeof(string), typeof(visual));
 
+    public static readonly Microsoft.Maui.Controls.BindableProperty pointer_eventsProperty = 
+        Microsoft.Maui.Controls.BindableProperty.Create("pointer-events", typeof(Svg.SvgPointerEvents), typeof(visual));
+
     public static readonly Microsoft.Maui.Controls.BindableProperty enable_backgroundProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("enable-background", typeof(string), typeof(visual));
 
@@ -42,6 +45,12 @@ public abstract partial class visual : element
     {
         get => (string)GetValue(filterProperty);
         set => SetValue(filterProperty, value);
+    }
+
+    public Svg.SvgPointerEvents pointer_events
+    {
+        get => (Svg.SvgPointerEvents)GetValue(pointer_eventsProperty);
+        set => SetValue(pointer_eventsProperty, value);
     }
 
     public string enable_background

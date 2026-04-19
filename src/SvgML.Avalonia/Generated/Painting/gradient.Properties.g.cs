@@ -20,8 +20,8 @@ public abstract partial class gradient : paint
     public static readonly Avalonia.StyledProperty<string?> stop_colorProperty =
         Avalonia.AvaloniaProperty.Register<gradient, string?>("stop-color");
 
-    public static readonly Avalonia.StyledProperty<float?> stop_opacityProperty =
-        Avalonia.AvaloniaProperty.Register<gradient, float?>("stop-opacity");
+    public static readonly Avalonia.StyledProperty<string?> stop_opacityProperty =
+        Avalonia.AvaloniaProperty.Register<gradient, string?>("stop-opacity");
 
     public string? spreadMethod
     {
@@ -53,7 +53,7 @@ public abstract partial class gradient : paint
         set => SetValue(stop_colorProperty, value);
     }
 
-    public float? stop_opacity
+    public string? stop_opacity
     {
         get => GetValue(stop_opacityProperty);
         set => SetValue(stop_opacityProperty, value);

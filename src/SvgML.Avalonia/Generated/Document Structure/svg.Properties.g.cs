@@ -28,10 +28,10 @@ public partial class svg : element
     public static readonly Avalonia.StyledProperty<string?> preserveAspectRatioProperty =
         Avalonia.AvaloniaProperty.Register<svg, string?>("preserveAspectRatio");
 
-    public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> font_sizeProperty =
+    public new static readonly Avalonia.StyledProperty<Svg.SvgUnit?> font_sizeProperty =
         Avalonia.AvaloniaProperty.Register<svg, Svg.SvgUnit?>("font-size");
 
-    public static readonly Avalonia.StyledProperty<string?> font_familyProperty =
+    public new static readonly Avalonia.StyledProperty<string?> font_familyProperty =
         Avalonia.AvaloniaProperty.Register<svg, string?>("font-family");
 
     public Svg.SvgUnit? x
@@ -76,13 +76,13 @@ public partial class svg : element
         set => SetValue(preserveAspectRatioProperty, value);
     }
 
-    public Svg.SvgUnit? font_size
+    public new Svg.SvgUnit? font_size
     {
         get => GetValue(font_sizeProperty);
         set => SetValue(font_sizeProperty, value);
     }
 
-    public string? font_family
+    public new string? font_family
     {
         get => GetValue(font_familyProperty);
         set => SetValue(font_familyProperty, value);

@@ -28,10 +28,10 @@ public partial class svg : element
     public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("preserveAspectRatio", typeof(string), typeof(svg));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty font_sizeProperty = 
+    public new static readonly Microsoft.Maui.Controls.BindableProperty font_sizeProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("font-size", typeof(Svg.SvgUnit), typeof(svg));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty font_familyProperty = 
+    public new static readonly Microsoft.Maui.Controls.BindableProperty font_familyProperty = 
         Microsoft.Maui.Controls.BindableProperty.Create("font-family", typeof(string), typeof(svg));
 
     public Svg.SvgUnit x
@@ -76,13 +76,13 @@ public partial class svg : element
         set => SetValue(preserveAspectRatioProperty, value);
     }
 
-    public Svg.SvgUnit font_size
+    public new Svg.SvgUnit font_size
     {
         get => (Svg.SvgUnit)GetValue(font_sizeProperty);
         set => SetValue(font_sizeProperty, value);
     }
 
-    public string font_family
+    public new string font_family
     {
         get => (string)GetValue(font_familyProperty);
         set => SetValue(font_familyProperty, value);

@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Text;
 
 namespace CodeGenerator;
@@ -5,6 +7,37 @@ namespace CodeGenerator;
 internal abstract class Generator(GeneratorSettings settings)
 {
     private GeneratorSettings Settings { get; } = settings;
+
+    private bool HidesInheritedProperty(TypeDef typeDef, PropertyDef property)
+    {
+        var baseType = typeDef.BaseType;
+        while (TryGetTypeDef(baseType, out var baseTypeDef))
+        {
+            if (baseTypeDef.Properties.Any(p => string.Equals(p.Name, property.Name, StringComparison.Ordinal)))
+            {
+                return true;
+            }
+
+            baseType = baseTypeDef.BaseType;
+        }
+
+        return false;
+    }
+
+    private bool TryGetTypeDef(string targetType, out TypeDef typeDef)
+    {
+        for (var i = 0; i < Settings.TypeDefs.Length; i++)
+        {
+            if (string.Equals(Settings.TypeDefs[i].TargetTpe, targetType, StringComparison.Ordinal))
+            {
+                typeDef = Settings.TypeDefs[i];
+                return true;
+            }
+        }
+
+        typeDef = null!;
+        return false;
+    }
 
     public virtual void Generate()
     {
@@ -22,16 +55,40 @@ internal abstract class Generator(GeneratorSettings settings)
         return Settings.ReservedWords.Contains(s) ? $"@{s}" : s;
     }
 
-    protected abstract void ToFrameworkProperty(StringBuilder sb, string t, PropertyDef p, string classType);
+    protected abstract void ToFrameworkProperty(StringBuilder sb, string t, PropertyDef p, string classType, bool hidesInheritedProperty);
 
-    protected abstract void ToClrProperty(StringBuilder sb, string t, string propertyName);
+    protected abstract void ToClrProperty(StringBuilder sb, string t, string propertyName, bool hidesInheritedProperty);
 
     protected virtual void ToSetProperty(StringBuilder sb, string propertyName, string pns, string name)
     {
-        // TODO: if ({{propertyName}} is not null)
+        if (string.Equals(name, "marker", StringComparison.Ordinal))
+        {
+            sb.AppendLine(
+                value: $$"""
+                                 if ({{propertyName}} is not null)
+                                 {
+                                     if (marker_start is null)
+                                     {
+                                         writer.WriteLine($"marker-start=\"{ToSvgString({{propertyName}})}\"");
+                                     }
+
+                                     if (marker_mid is null)
+                                     {
+                                         writer.WriteLine($"marker-mid=\"{ToSvgString({{propertyName}})}\"");
+                                     }
+
+                                     if (marker_end is null)
+                                     {
+                                         writer.WriteLine($"marker-end=\"{ToSvgString({{propertyName}})}\"");
+                                     }
+                                 }
+                         """);
+            return;
+        }
+
         sb.AppendLine(
             value: $$"""
-                             if ({{propertyName}} != null)
+                             if ({{propertyName}} is not null)
                              {
                                  writer.WriteLine($"{{pns}}{{name}}=\"{ToSvgString({{propertyName}})}\"");
                              }
@@ -105,8 +162,9 @@ internal abstract class Generator(GeneratorSettings settings)
             var p = typeDef.Properties[j];
             var t = HandleReserved(ReplaceDash(p.Type));
             var classType = HandleReserved(ReplaceDash(p: typeDef.TargetTpe));
+            var hidesInheritedProperty = HidesInheritedProperty(typeDef, p);
 
-            ToFrameworkProperty(sb, t, p, classType);
+            ToFrameworkProperty(sb, t, p, classType, hidesInheritedProperty);
 
             sb.AppendLine(value: "");
         }
@@ -119,8 +177,9 @@ internal abstract class Generator(GeneratorSettings settings)
             // TODO: Handle property types
             var t = HandleReserved(ReplaceDash(p.Type));
             var propertyName = ReplaceDash(p: p.Name);
+            var hidesInheritedProperty = HidesInheritedProperty(typeDef, p);
 
-            ToClrProperty(sb, t, propertyName);
+            ToClrProperty(sb, t, propertyName, hidesInheritedProperty);
 
             if (k < typeDef.Properties.Length - 1)
             {

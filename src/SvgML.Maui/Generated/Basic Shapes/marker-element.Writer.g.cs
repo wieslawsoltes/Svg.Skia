@@ -9,6 +9,24 @@ public abstract partial class marker_element
     {
         base.WriteAttributes(writer, parent);
 
+        if (this.IsSet(markerProperty))
+        {
+            if (!this.IsSet(marker_startProperty))
+            {
+                writer.WriteLine($"marker-start=\"{ToSvgString(marker)}\"");
+            }
+
+            if (!this.IsSet(marker_midProperty))
+            {
+                writer.WriteLine($"marker-mid=\"{ToSvgString(marker)}\"");
+            }
+
+            if (!this.IsSet(marker_endProperty))
+            {
+                writer.WriteLine($"marker-end=\"{ToSvgString(marker)}\"");
+            }
+        }
+
         if (this.IsSet(marker_endProperty))
         {
             writer.WriteLine($"marker-end=\"{ToSvgString(marker_end)}\"");

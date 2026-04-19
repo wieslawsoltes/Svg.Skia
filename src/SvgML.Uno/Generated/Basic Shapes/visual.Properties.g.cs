@@ -33,6 +33,13 @@ public abstract partial class visual : element
             typeof(visual),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
 
+    public static readonly Microsoft.UI.Xaml.DependencyProperty pointer_eventsProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "pointer-events",
+            typeof(Svg.SvgPointerEvents),
+            typeof(visual),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgPointerEvents), OnSvgPropertyChanged));
+
     public static readonly Microsoft.UI.Xaml.DependencyProperty enable_backgroundProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "enable-background",
@@ -62,6 +69,12 @@ public abstract partial class visual : element
     {
         get => (string)GetValue(filterProperty);
         set => SetValue(filterProperty, value);
+    }
+
+    public Svg.SvgPointerEvents pointer_events
+    {
+        get => (Svg.SvgPointerEvents)GetValue(pointer_eventsProperty);
+        set => SetValue(pointer_eventsProperty, value);
     }
 
     public string enable_background

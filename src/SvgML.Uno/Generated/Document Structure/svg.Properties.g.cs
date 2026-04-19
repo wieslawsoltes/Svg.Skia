@@ -56,14 +56,14 @@ public partial class svg : element
             typeof(svg),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
 
-    public static readonly Microsoft.UI.Xaml.DependencyProperty font_sizeProperty =
+    public new static readonly Microsoft.UI.Xaml.DependencyProperty font_sizeProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "font-size",
             typeof(Svg.SvgUnit),
             typeof(svg),
             new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
 
-    public static readonly Microsoft.UI.Xaml.DependencyProperty font_familyProperty =
+    public new static readonly Microsoft.UI.Xaml.DependencyProperty font_familyProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "font-family",
             typeof(string),
@@ -112,13 +112,13 @@ public partial class svg : element
         set => SetValue(preserveAspectRatioProperty, value);
     }
 
-    public Svg.SvgUnit font_size
+    public new Svg.SvgUnit font_size
     {
         get => (Svg.SvgUnit)GetValue(font_sizeProperty);
         set => SetValue(font_sizeProperty, value);
     }
 
-    public string font_family
+    public new string font_family
     {
         get => (string)GetValue(font_familyProperty);
         set => SetValue(font_familyProperty, value);

@@ -15,6 +15,16 @@ public abstract partial class element
         return value.ToString().Replace('_', '-');
     }
 
+    protected string ToSvgString(bool value)
+    {
+        return value ? "true" : "false";
+    }
+
+    protected string ToSvgString(bool? value)
+    {
+        return value.HasValue ? ToSvgString(value.Value) : string.Empty;
+    }
+
     protected string ToSvgString(float value)
     {
         return value.ToString("G7", CultureInfo.InvariantCulture);
@@ -22,7 +32,7 @@ public abstract partial class element
 
     protected string ToSvgString(float? value)
     {
-        return ToSvgString(value.Value);
+        return value.HasValue ? ToSvgString(value.Value) : string.Empty;
     }
 
     protected string ToSvgString(SvgUnit value)
@@ -32,7 +42,7 @@ public abstract partial class element
 
     protected string ToSvgString(SvgUnit? value)
     {
-        return ToSvgString(value.Value);
+        return value.HasValue ? ToSvgString(value.Value) : string.Empty;
     }
 
     protected string ToSvgString(SvgNumberCollection value)
