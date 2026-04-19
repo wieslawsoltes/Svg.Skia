@@ -39,11 +39,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="$(SvgMLBasePath)\Manual\**\*.cs" LinkBase="Manual" />
+        <Compile Include="$(SvgMLBasePath)\Manual\**\*.cs"
+                 Exclude="$(SvgMLBasePath)\Manual\Document Structure\svg.Loading.cs"
+                 LinkBase="Manual" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
+        <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj"
+                          SetTargetFramework="TargetFramework=net8.0" />
     </ItemGroup>
 
     <ItemGroup>

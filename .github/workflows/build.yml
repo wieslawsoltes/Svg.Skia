@@ -139,11 +139,17 @@ jobs:
 
       - name: Restore
         working-directory: src/SvgML.Maui
-        run: dotnet restore SvgML.Maui.slnx
+        run: |
+          dotnet restore SvgML.Maui.csproj -p:SvgMLMauiBuild=true
+          dotnet restore ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -p:SvgMLMauiBuild=true
 
-      - name: Build
+      - name: Build library
         working-directory: src/SvgML.Maui
-        run: dotnet build SvgML.Maui.slnx -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
+        run: dotnet build SvgML.Maui.csproj -c Release --no-restore -p:SvgMLMauiBuild=true -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
+
+      - name: Build sample
+        working-directory: src/SvgML.Maui
+        run: dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -c Release --no-restore -p:SvgMLMauiBuild=true
 
   pack:
     name: Pack (ubuntu-latest)
@@ -215,11 +221,11 @@ jobs:
 
       - name: Restore
         working-directory: src/SvgML.Maui
-        run: dotnet restore SvgML.Maui.csproj
+        run: dotnet restore SvgML.Maui.csproj -p:SvgMLMauiBuild=true
 
       - name: Pack
         working-directory: src/SvgML.Maui
-        run: dotnet pack SvgML.Maui.csproj -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}" -o ../../artifacts/maui-packages
+        run: dotnet pack SvgML.Maui.csproj -c Release --no-restore -p:SvgMLMauiBuild=true -p:VersionSuffix="${{ env.VERSION_SUFFIX }}" -o ../../artifacts/maui-packages
 
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v4
