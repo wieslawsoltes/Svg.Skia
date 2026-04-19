@@ -2,9 +2,9 @@
 
     <PropertyGroup>
         <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
-        <TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
+        <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
         <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
-        <!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
+        <!-- <TargetFrameworks>$(TargetFrameworks);net10.0-tizen</TargetFrameworks> -->
         <UseMaui>true</UseMaui>
         <SingleProject>true</SingleProject>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -25,8 +25,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)"/>
-        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)"/>
+        <PackageReference Include="Microsoft.Maui.Controls" />
+        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" />
         <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="2.88.9" />
     </ItemGroup>
 
@@ -45,8 +45,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj"
-                          SetTargetFramework="TargetFramework=net8.0" />
+        <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
     </ItemGroup>
 
     <ItemGroup>
