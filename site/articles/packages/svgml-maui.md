@@ -14,9 +14,9 @@ dotnet add package SvgML.Maui
 
 Current packaged targets:
 
-- `net8.0-android`
-- `net8.0-ios`
-- `net8.0-maccatalyst`
+- `net10.0-android`
+- `net10.0-ios`
+- `net10.0-maccatalyst`
 
 ## Startup
 
@@ -75,7 +75,7 @@ The MAUI XAML surface stays close to authored SVG for CLR-safe names:
 - Library source: `src/SvgML.Maui`
 - Shared manual serialization/loading layer: `src/SvgML.Avalonia/Manual`
 - Demo app: `samples/SvgML.Maui.Demo`
-- MAUI-specific solution and SDK pin: `src/SvgML.Maui/SvgML.Maui.slnx` and `src/SvgML.Maui/global.json`
+- MAUI-specific SDK pin: `src/SvgML.Maui/global.json`
 
 ## Notes
 

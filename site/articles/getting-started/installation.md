@@ -80,9 +80,9 @@ The generator and codegen packages target `netstandard2.0`.
 
 Avalonia-specific UI packages, including `Svg.Controls.Avalonia`, `Svg.Controls.Skia.Avalonia`, `Skia.Controls.Avalonia`, and `SvgML.Avalonia`, target `net8.0` and `net10.0`.
 
-`SvgML.Maui` targets `net8.0-android`, `net8.0-ios`, and `net8.0-maccatalyst`.
+`SvgML.Maui` targets `net10.0-android`, `net10.0-ios`, and `net10.0-maccatalyst`.
 
-`SvgML.Uno` targets `net10.0` through `Uno.Sdk` with `SkiaRenderer` enabled.
+`SvgML.Uno` currently targets `net10.0` through `Uno.Sdk` with `SkiaRenderer` enabled. The current Uno `6.5.x` packages in this repository do not ship `net8.0` assets.
 
 ## Repository prerequisites
 
@@ -104,12 +104,13 @@ The standalone Uno sample app additionally needs Uno workloads configured throug
 uno-check --target desktop --target web --target android --target ios
 ```
 
-The `SvgML.Maui` lane uses its own MAUI-local solution and requires the .NET MAUI workload:
+The `SvgML.Maui` lane uses its own MAUI-local workspace and requires the .NET MAUI workload:
 
 ```bash
 cd src/SvgML.Maui
 dotnet workload install maui
-dotnet build SvgML.Maui.slnx -c Release
+dotnet build SvgML.Maui.csproj -c Release
+dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -c Release
 ```
 
 ## Project workflow commands

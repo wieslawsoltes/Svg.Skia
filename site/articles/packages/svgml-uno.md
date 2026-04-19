@@ -16,6 +16,8 @@ Current package target:
 
 - `net10.0` via `Uno.Sdk`
 
+The current Uno `6.5.x` packages used in this repository only ship `net9.0` and `net10.0` assets, so `net8.0` is not available on the Uno lane without a broader Uno stack change.
+
 ## Namespace setup
 
 Uno's XAML source generator still resolves third-party controls through explicit CLR namespace mappings, so the no-prefix pattern is to scope the `SvgML` namespace directly on the inline SVG subtree:
