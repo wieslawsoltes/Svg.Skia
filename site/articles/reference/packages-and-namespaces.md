@@ -18,6 +18,7 @@ title: "Packages and Namespaces"
 | [Svg.Controls.Avalonia](../packages/svg-controls-avalonia) | `Avalonia.Svg` | Avalonia drawing-stack controls, images, resources |
 | [SvgML](../packages/svgml) | `SvgML` | Inline Avalonia XAML SVG element tree |
 | [SvgML.Maui](../packages/svgml-maui) | `SvgML` | Inline .NET MAUI XAML SVG element tree |
+| [SvgML.Uno](../packages/svgml-uno) | `SvgML` | Inline Uno Platform XAML SVG element tree |
 | [Skia.Controls.Avalonia](../packages/skia-controls-avalonia) | `Avalonia.Controls.Skia` | General-purpose Avalonia Skia controls |
 | [ShimSkiaSharp](../packages/shim-skiasharp) | `ShimSkiaSharp` | Intermediate picture-recorder command model |
 

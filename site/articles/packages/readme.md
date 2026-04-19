@@ -28,6 +28,7 @@ Packaged tools such as `Svg.Skia.Converter` and `svgc` stay documented under [Sa
 | `Svg.Controls.Avalonia` | You want the same high-level Avalonia SVG concepts but rendered through the Avalonia drawing stack. | [Svg.Controls.Avalonia](svg-controls-avalonia) |
 | `SvgML` | You want to author SVG markup inline in Avalonia XAML and still render it through the shared `Svg.Skia` pipeline. | [SvgML](svgml) |
 | `SvgML.Maui` | You want to author SVG markup inline in .NET MAUI XAML and render it through the shared `Svg.Skia` pipeline. | [SvgML.Maui](svgml-maui) |
+| `SvgML.Uno` | You want to author SVG markup inline in Uno Platform XAML and render it through the shared `Svg.Skia` pipeline. | [SvgML.Uno](svgml-uno) |
 | `Skia.Controls.Avalonia` | You want reusable Avalonia controls and `IImage` wrappers for raw SkiaSharp content, with or without SVG. | [Skia.Controls.Avalonia](skia-controls-avalonia) |
 
 ## Editor packages
@@ -53,6 +54,7 @@ Packaged tools such as `Svg.Skia.Converter` and `svgc` stay documented under [Sa
 - Choose `Svg.Animation` when the main task is SVG timing, host backend selection, or animation-controller integration rather than the full rendering surface.
 - Choose `Svg.SceneGraph` when you need retained compiled scene nodes and bounds instead of only the intermediate model or the final Skia output.
 - Choose `Svg.Controls.Skia.Uno` for Uno Platform usage on the Skia-backed path with host-driven animation playback.
+- Choose `SvgML.Uno` when the SVG itself should live in Uno XAML pages or controls instead of an external asset file.
 - Choose `Svg.Controls.Skia.Avalonia` for interactive Avalonia usage on the Skia-backed path, especially when retained native composition matters.
 - Choose `SvgML` when the SVG itself should live in Avalonia XAML resources, templates, or views instead of an external asset file.
 - Choose `SvgML.Maui` when the SVG itself should live in .NET MAUI XAML pages or controls instead of an external asset file.
