@@ -1,28 +1,36 @@
+using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
 using System.Text;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Svg;
 using Svg.Model;
 using Svg.Model.Services;
 using Svg.Skia;
 using Windows.Foundation;
+using ShimMatrix = ShimSkiaSharp.SKMatrix;
+using ShimPoint = ShimSkiaSharp.SKPoint;
+using ShimRect = ShimSkiaSharp.SKRect;
 using SkiaCanvas = SkiaSharp.SKCanvas;
 using SkiaMatrix = SkiaSharp.SKMatrix;
 using SkiaPicture = SkiaSharp.SKPicture;
 using SkiaRect = SkiaSharp.SKRect;
-using ShimMatrix = ShimSkiaSharp.SKMatrix;
-using ShimPoint = ShimSkiaSharp.SKPoint;
-using ShimRect = ShimSkiaSharp.SKRect;
 
 namespace SvgML;
 
 public partial class svg
 {
+    private static readonly TimeSpan s_animationFrameInterval = TimeSpan.FromMilliseconds(16);
+
     private SkiaPicture? _picture;
     private SKSvg? _skSvg;
     private SvgDocument? _svgDocument;
     private bool _reloadQueued;
+    private readonly Stopwatch _animationPlaybackStopwatch = new();
+    private DispatcherQueueTimer? _animationTimer;
+    private SKSvg? _trackedAnimationSvg;
+    private TimeSpan _lastAnimationPlaybackTimestamp;
     private readonly Dictionary<SvgElement, element> _elementBySvgElement = new();
     private readonly Dictionary<SvgSceneNode, element> _elementBySceneNode = new();
 
@@ -369,6 +377,106 @@ public partial class svg
         Invalidate();
     }
 
+    private void UpdateAnimationPlayback()
+    {
+        if (DispatcherQueue is { HasThreadAccess: false } dispatcherQueue)
+        {
+            _ = dispatcherQueue.TryEnqueue(UpdateAnimationPlayback);
+            return;
+        }
+
+        StopAnimationPlayback();
+
+        if (!IsLoaded || _skSvg is not { HasAnimations: true } skSvg)
+        {
+            return;
+        }
+
+        _trackedAnimationSvg = skSvg;
+        skSvg.AnimationMinimumRenderInterval = TimeSpan.Zero;
+        skSvg.AnimationInvalidated += OnAnimationInvalidated;
+
+        if (DispatcherQueue is not { } dispatcherQueueWithTimer)
+        {
+            return;
+        }
+
+        _animationTimer ??= CreateAnimationTimer(dispatcherQueueWithTimer);
+        _lastAnimationPlaybackTimestamp = TimeSpan.Zero;
+        _animationPlaybackStopwatch.Restart();
+        _animationTimer.Interval = s_animationFrameInterval;
+        _animationTimer.Start();
+    }
+
+    private DispatcherQueueTimer CreateAnimationTimer(DispatcherQueue dispatcherQueue)
+    {
+        var timer = dispatcherQueue.CreateTimer();
+        timer.IsRepeating = true;
+        timer.Tick += OnAnimationTimerTick;
+        return timer;
+    }
+
+    private void StopAnimationPlayback()
+    {
+        _animationTimer?.Stop();
+
+        if (_trackedAnimationSvg is { } skSvg)
+        {
+            skSvg.AnimationInvalidated -= OnAnimationInvalidated;
+            skSvg.AnimationMinimumRenderInterval = TimeSpan.Zero;
+        }
+
+        _trackedAnimationSvg = null;
+        _lastAnimationPlaybackTimestamp = TimeSpan.Zero;
+        _animationPlaybackStopwatch.Reset();
+    }
+
+    private void OnAnimationTimerTick(DispatcherQueueTimer sender, object args)
+    {
+        if (_trackedAnimationSvg is not { HasAnimations: true } skSvg)
+        {
+            return;
+        }
+
+        var currentTimestamp = _animationPlaybackStopwatch.Elapsed;
+        var delta = currentTimestamp - _lastAnimationPlaybackTimestamp;
+        _lastAnimationPlaybackTimestamp = currentTimestamp;
+
+        if (delta > TimeSpan.Zero)
+        {
+            skSvg.AdvanceAnimation(delta);
+        }
+    }
+
+    private void OnAnimationInvalidated(object? sender, SvgAnimationFrameChangedEventArgs e)
+    {
+        if (!ReferenceEquals(sender, _trackedAnimationSvg))
+        {
+            return;
+        }
+
+        void Refresh()
+        {
+            if (_trackedAnimationSvg is not { } skSvg)
+            {
+                return;
+            }
+
+            _picture = skSvg.Picture;
+            InvalidateMeasure();
+            InvalidateArrange();
+            Invalidate();
+        }
+
+        if (DispatcherQueue is { HasThreadAccess: false } dispatcherQueue)
+        {
+            _ = dispatcherQueue.TryEnqueue(Refresh);
+            return;
+        }
+
+        Refresh();
+    }
+
     private void ReloadFromInlineTree()
     {
         try
@@ -433,6 +541,7 @@ public partial class svg
 
         previousSvg?.Dispose();
         UpdateElementMappings(skSvg, svgDocument);
+        UpdateAnimationPlayback();
         return true;
     }
 
@@ -450,6 +559,7 @@ public partial class svg
 
         previousSvg?.Dispose();
         UpdateElementMappings(null, null);
+        UpdateAnimationPlayback();
     }
 
     private bool TryGetRenderInfo(out SvgRenderInfo renderInfo)
@@ -692,11 +802,13 @@ public partial class svg
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         InvalidateSvgTree();
+        UpdateAnimationPlayback();
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         _reloadQueued = false;
+        StopAnimationPlayback();
     }
 
     private static void OnSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
