@@ -95,8 +95,8 @@ public partial class svg
             destRect.Width / sourceRect.Width,
             destRect.Height / sourceRect.Height);
         var translateMatrix = Matrix.CreateTranslation(
-            -sourceRect.X + destRect.X - bounds.Top,
-            -sourceRect.Y + destRect.Y - bounds.Left);
+            -sourceRect.X + destRect.X - bounds.Left,
+            -sourceRect.Y + destRect.Y - bounds.Top);
 
         using var _ = ClipToBounds ? context.PushClip(destRect) : default;
 
@@ -145,8 +145,8 @@ public partial class svg
             destRect.Width / sourceRect.Width,
             destRect.Height / sourceRect.Height);
         var translateMatrix = Matrix.CreateTranslation(
-            -sourceRect.X + destRect.X - sourceBounds.Top,
-            -sourceRect.Y + destRect.Y - sourceBounds.Left);
+            -sourceRect.X + destRect.X - sourceBounds.Left,
+            -sourceRect.Y + destRect.Y - sourceBounds.Top);
 
         matrix = translateMatrix * scaleMatrix;
         return true;
