@@ -1,5 +1,8 @@
-﻿
-using CodeGenerator;
+﻿using CodeGenerator;
+
+var repoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
+
+string ResolveGeneratedPath(string projectName) => Path.Combine(repoRoot, "src", projectName, "Generated");
 
 if (args.Length == 0)
 {
@@ -16,7 +19,7 @@ switch (target)
             {
                 ElementBaseType = "Avalonia.Controls.Control",
                 BaseWriterType = "element",
-                BasePath = "../SvgML/Generated",
+                BasePath = ResolveGeneratedPath("SvgML"),
                 TypeDefs = SvgTypeDefs.TypeDefs
             };
 
@@ -31,11 +34,26 @@ switch (target)
             {
                 ElementBaseType = "SkiaSharp.Views.Maui.Controls.SKCanvasView",
                 BaseWriterType = "element",
-                BasePath = "../SvgML.Maui/Generated",
+                BasePath = ResolveGeneratedPath("SvgML.Maui"),
                 TypeDefs = SvgTypeDefs.TypeDefs
             };
 
             new MauiGenerator(settings).Generate();
+
+            break;
+        }
+
+    case "uno":
+        {
+            var settings = new GeneratorSettings
+            {
+                ElementBaseType = "Uno.WinUI.Graphics2DSK.SKCanvasElement",
+                BaseWriterType = "element",
+                BasePath = ResolveGeneratedPath("SvgML.Uno"),
+                TypeDefs = SvgTypeDefs.TypeDefs
+            };
+
+            new UnoGenerator(settings).Generate();
 
             break;
         }
