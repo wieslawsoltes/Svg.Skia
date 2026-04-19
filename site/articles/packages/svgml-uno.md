@@ -18,11 +18,7 @@ Current package target:
 
 ## Namespace setup
 
-Uno uses the CLR namespace directly:
-
-```xml
-xmlns:svgml="using:SvgML"
-```
+Uno's XAML source generator still resolves third-party controls through explicit CLR namespace mappings, so the no-prefix pattern is to scope the `SvgML` namespace directly on the inline SVG subtree:
 
 ## Main types
 
@@ -37,19 +33,19 @@ xmlns:svgml="using:SvgML"
 
 ```xml
 <Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:svgml="using:SvgML">
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <svgml:svg Height="200"
-             Stretch="Uniform"
-             viewBox="0 0 220 120">
-    <svgml:path d="M0 0 H220 V120 H0 Z" fill="#0f766e" />
-    <svgml:path d="M72 32 a28 28 0 1 0 0 56 a28 28 0 1 0 0 -56"
-                fill="{Binding ElementName=CircleFillInput, Path=Text, Mode=TwoWay}" />
-    <svgml:path d="M132 88 L168 30 L196 88 Z"
-                fill="#0f172a"
-                opacity="0.35" />
-  </svgml:svg>
+  <svg xmlns="using:SvgML"
+       Height="200"
+       Stretch="Uniform"
+       viewBox="0 0 220 120">
+    <path d="M0 0 H220 V120 H0 Z" fill="#0f766e" />
+    <path d="M72 32 a28 28 0 1 0 0 56 a28 28 0 1 0 0 -56"
+          fill="{Binding ElementName=CircleFillInput, Path=Text, Mode=TwoWay}" />
+    <path d="M132 88 L168 30 L196 88 Z"
+          fill="#0f172a"
+          opacity="0.35" />
+  </svg>
 </Page>
 ```
 
@@ -58,6 +54,10 @@ xmlns:svgml="using:SvgML"
 - `SvgML.Uno` builds on `Uno.Sdk` with `SkiaRenderer`, so it stays aligned with the same rendering stack as `Svg.Controls.Skia.Uno`.
 - CLR-safe SVG names such as `viewBox`, `d`, `fill`, and `id` map cleanly through the current Uno XAML compiler.
 - Dash-named members use CLR-safe underscores in Uno XAML, for example `stroke_width` or `font_face`.
+- The runtime now maps retained scene nodes back to authored `SvgML.element` controls, so `HitTestElements(...)`, `HitTestSceneNodes(...)`, `GetControlBounds(...)`, and `GetElementForSceneNode(...)` all work from the inline tree.
+- Use `HitTestSvgElements(...)` when you need the underlying `SvgElement` model objects rather than the authored XAML controls.
+- `xmlns:svgml="using:SvgML"` still works if you prefer an explicit namespace prefix at page scope.
+- Avalonia-style assembly `XmlnsDefinition` mapping is not enough for Uno's current source-generator path, so the scoped `xmlns="using:SvgML"` pattern is the reliable prefix-free option today.
 - The end-to-end sample lives in `samples/SvgML.Uno.Demo`.
 
 ## Related

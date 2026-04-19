@@ -14,29 +14,25 @@ Install the package:
 dotnet add package SvgML.Uno
 ```
 
-Use the CLR namespace in Uno XAML:
-
-```xml
-xmlns:svgml="using:SvgML"
-```
+Uno's current XAML source generator still expects third-party controls to arrive through explicit CLR namespace mappings. The reliable prefix-free pattern is to scope `xmlns="using:SvgML"` on the inline SVG subtree itself. If you prefer an explicit alias, `xmlns:svgml="using:SvgML"` still works.
 
 ## Inline XAML example
 
 ```xml
 <Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:svgml="using:SvgML">
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <svgml:svg Height="200"
-             Stretch="Uniform"
-             viewBox="0 0 220 120">
-    <svgml:path d="M0 0 H220 V120 H0 Z" fill="#0f766e" />
-    <svgml:path d="M72 32 a28 28 0 1 0 0 56 a28 28 0 1 0 0 -56"
-                fill="{Binding ElementName=CircleFillInput, Path=Text, Mode=TwoWay}" />
-    <svgml:path d="M132 88 L168 30 L196 88 Z"
-                fill="#0f172a"
-                opacity="0.35" />
-  </svgml:svg>
+  <svg xmlns="using:SvgML"
+       Height="200"
+       Stretch="Uniform"
+       viewBox="0 0 220 120">
+    <path d="M0 0 H220 V120 H0 Z" fill="#0f766e" />
+    <path d="M72 32 a28 28 0 1 0 0 56 a28 28 0 1 0 0 -56"
+          fill="{Binding ElementName=CircleFillInput, Path=Text, Mode=TwoWay}" />
+    <path d="M132 88 L168 30 L196 88 Z"
+          fill="#0f172a"
+          opacity="0.35" />
+  </svg>
 </Page>
 ```
 
@@ -52,6 +48,8 @@ xmlns:svgml="using:SvgML"
 - The package itself targets `net10.0` through `Uno.Sdk`.
 - The current repository sample is desktop-focused: `samples/SvgML.Uno.Demo`.
 - The sample emphasizes string-backed SVG attributes because those map most directly through the current Uno XAML compiler.
+- The runtime exposes authored-element hit testing and retained-scene mapping through `HitTestElements(...)`, `HitTestSceneNodes(...)`, `GetControlBounds(...)`, and `GetElementForSceneNode(...)`.
+- Use `HitTestSvgElements(...)` when editor or diagnostics code needs the underlying `SvgElement` instances.
 
 ## When to use SvgML.Uno versus SvgSource
 
