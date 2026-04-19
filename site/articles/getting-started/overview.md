@@ -16,6 +16,7 @@ Svg.Skia is a repository, not just a single package. The main entry points are:
 | `Svg.Controls.Skia.Avalonia` | You want Avalonia controls that render through the Skia-backed pipeline. | `Svg`, `SvgImage`, `SvgSource`, `SvgResource`, animation playback, native composition | [Svg.Controls.Skia.Avalonia](../packages/svg-controls-skia-avalonia) |
 | `Svg.Controls.Avalonia` | You want Avalonia controls without depending on the Skia-backed Avalonia renderer path. | `Svg`, `SvgImage`, `SvgSource`, `SvgResource` | [Svg.Controls.Avalonia](../packages/svg-controls-avalonia) |
 | `SvgML` | You want the SVG tree itself to be authored inline in Avalonia XAML. | `svg`, `rect`, `g`, filters, text nodes, Avalonia-styled SVG element tree | [SvgML](../packages/svgml) |
+| `SvgML.Maui` | You want the SVG tree itself to be authored inline in .NET MAUI XAML. | `svg`, `rect`, `g`, filters, text nodes, MAUI-styled SVG element tree | [SvgML.Maui](../packages/svgml-maui) |
 | `Skia.Controls.Avalonia` | You need general-purpose `SKCanvas`, `SKPicture`, `SKBitmap`, or `SKPath` controls in Avalonia. | `SKCanvasControl`, `SKPictureImage`, and related controls | [Skia.Controls.Avalonia](../packages/skia-controls-avalonia) |
 | `Svg.Editor.*` | You want reusable SVG editor components, from session/services up to a full Avalonia workspace. | `SvgEditorSession`, editor services, panels, `SvgEditorWorkspace` | [Editor](../editor) |
 | `Svg.CodeGen.Skia` | You want to generate checked-in or pipeline-produced C# from the picture model. | C# source from `ShimSkiaSharp.SKPicture` | [Svg.CodeGen.Skia](../packages/svg-codegen-skia) |
@@ -36,6 +37,10 @@ Start with `Svg.Controls.Skia.Avalonia` when the app is already on Avalonia plus
 Choose `Svg.Controls.Avalonia` when you want the same SVG concepts exposed through the Avalonia drawing stack instead.
 
 Choose `SvgML` when small icons, diagrams, or effect graphs should stay inline in XAML resources or templates instead of moving into external `.svg` files.
+
+### .NET MAUI application
+
+Start with `SvgML.Maui` when the visual should be authored inline in .NET MAUI XAML instead of loaded from a separate `.svg` asset file.
 
 ### Uno application
 

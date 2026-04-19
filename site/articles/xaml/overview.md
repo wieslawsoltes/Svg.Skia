@@ -15,6 +15,15 @@ This package brings the SVG element tree itself into Avalonia XAML. Use it when:
 - you want Avalonia style selectors and animations to target the inline SVG tree,
 - you are happy to render through the shared `Svg.Skia` backend behind the scenes.
 
+### `SvgML.Maui`
+
+This package brings the SVG element tree itself into .NET MAUI XAML. Use it when:
+
+- you want inline `svg`, `rect`, `g`, filter, or text elements directly inside a MAUI page,
+- you want SVG attribute names such as `fill-opacity`, `stroke-width`, or `viewBox` to stay close to authored markup,
+- you want the inline tree to render through the shared `Svg.Skia` backend without loading an external asset file,
+- you are targeting the current MAUI package lane: Android, iOS, or Mac Catalyst.
+
 ### `Uno.Svg.Skia`
 
 This package wraps the `Svg.Skia` runtime renderer for Uno Platform. Use it when:
@@ -62,6 +71,7 @@ The namespaces differ:
 | `Svg.Controls.Skia.Avalonia` | `Avalonia.Svg.Skia` |
 | `Svg.Controls.Avalonia` | `Avalonia.Svg` |
 | `SvgML` | `SvgML` |
+| `SvgML.Maui` | `SvgML` |
 
 ## General-purpose Skia controls
 

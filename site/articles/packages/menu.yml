@@ -10,6 +10,7 @@ packages:
   - {path: svg-controls-skia-avalonia.md, title: "Svg.Controls.Skia.Avalonia"}
   - {path: svg-controls-avalonia.md, title: "Svg.Controls.Avalonia"}
   - {path: svgml.md, title: "SvgML"}
+  - {path: svgml-maui.md, title: "SvgML.Maui"}
   - {path: skia-controls-avalonia.md, title: "Skia.Controls.Avalonia"}
   - {path: svg-editor-core.md, title: "Svg.Editor.Core"}
   - {path: svg-editor-svg.md, title: "Svg.Editor.Svg"}

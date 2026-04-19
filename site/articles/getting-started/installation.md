@@ -36,6 +36,12 @@ Inline SVG authoring for Avalonia XAML:
 dotnet add package SvgML
 ```
 
+Inline SVG authoring for .NET MAUI XAML:
+
+```bash
+dotnet add package SvgML.Maui
+```
+
 General-purpose Skia controls for Avalonia:
 
 ```bash
@@ -68,6 +74,8 @@ The generator and codegen packages target `netstandard2.0`.
 
 Avalonia-specific UI packages, including `Svg.Controls.Avalonia`, `Svg.Controls.Skia.Avalonia`, `Skia.Controls.Avalonia`, and `SvgML`, target `net8.0` and `net10.0`.
 
+`SvgML.Maui` targets `net8.0-android`, `net8.0-ios`, and `net8.0-maccatalyst`.
+
 ## Repository prerequisites
 
 The repository uses git submodules for upstream SVG sources and external test data. After cloning:
@@ -86,6 +94,14 @@ The standalone Uno sample app additionally needs Uno workloads configured throug
 
 ```bash
 uno-check --target desktop --target web --target android --target ios
+```
+
+The `SvgML.Maui` lane uses its own MAUI-local solution and requires the .NET MAUI workload:
+
+```bash
+cd src/SvgML.Maui
+dotnet workload install maui
+dotnet build SvgML.Maui.slnx -c Release
 ```
 
 ## Project workflow commands
