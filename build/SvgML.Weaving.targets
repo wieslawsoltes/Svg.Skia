@@ -1,0 +1,36 @@
+<Project>
+  <PropertyGroup>
+    <!-- Only the Avalonia package opts into CLR-name weaving. -->
+    <SvgMLSelfWeaverEnabled Condition="'$(SvgMLSelfWeaverEnabled)' == ''">false</SvgMLSelfWeaverEnabled>
+    <ProduceReferenceAssembly Condition="'$(SvgMLSelfWeaverEnabled)' == 'true'">false</ProduceReferenceAssembly>
+    <SvgMLSelfWeaverTargetFramework Condition="'$(SvgMLSelfWeaverTargetFramework)' == ''">net10.0</SvgMLSelfWeaverTargetFramework>
+    <_SvgMLSelfWeaverProjectPath Condition="'$(_SvgMLSelfWeaverProjectPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\src\SvgML.SelfWeaver\SvgML.SelfWeaver.csproj'))</_SvgMLSelfWeaverProjectPath>
+    <_SvgMLSelfWeaverDllPath Condition="'$(_SvgMLSelfWeaverDllPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\src\SvgML.SelfWeaver\bin\$(Configuration)\$(SvgMLSelfWeaverTargetFramework)\SvgML.SelfWeaver.dll'))</_SvgMLSelfWeaverDllPath>
+  </PropertyGroup>
+
+  <Target Name="SvgML_BuildSelfWeaver"
+          Condition="'$(SvgMLSelfWeaverEnabled)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(NoBuild)' != 'true' and '$(TargetFramework)' != '' and Exists('$(_SvgMLSelfWeaverProjectPath)')">
+    <MSBuild Projects="$(_SvgMLSelfWeaverProjectPath)"
+             Targets="Restore"
+             BuildInParallel="false"
+             RemoveProperties="TargetFramework;TargetFrameworks;RuntimeIdentifier;SelfContained;PublishTrimmed;PublishSingleFile;PublishReadyToRun;NoBuild"
+             Properties="Configuration=$(Configuration);TargetFramework=$(SvgMLSelfWeaverTargetFramework);DesignTimeBuild=false;BuildingProject=false;NoBuild=false" />
+    <MSBuild Projects="$(_SvgMLSelfWeaverProjectPath)"
+             Targets="Build"
+             BuildInParallel="false"
+             RemoveProperties="TargetFramework;TargetFrameworks;RuntimeIdentifier;SelfContained;PublishTrimmed;PublishSingleFile;PublishReadyToRun;NoBuild"
+             Properties="Configuration=$(Configuration);TargetFramework=$(SvgMLSelfWeaverTargetFramework);DesignTimeBuild=false;BuildingProject=false;NoBuild=false" />
+  </Target>
+
+  <Target Name="SvgML_SelfWeave"
+          AfterTargets="Build"
+          BeforeTargets="Pack"
+          DependsOnTargets="SvgML_BuildSelfWeaver"
+          Condition="'$(SvgMLSelfWeaverEnabled)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(TargetFramework)' != '' and '$(TargetPath)' != ''">
+    <Error Condition="!Exists('$(_SvgMLSelfWeaverDllPath)')"
+           Text="SvgML self-weaver was not found at '$(_SvgMLSelfWeaverDllPath)'." />
+    <Error Condition="!Exists('$(TargetPath)')"
+           Text="SvgML target assembly was not found at '$(TargetPath)'." />
+    <Exec Command="dotnet &quot;$(_SvgMLSelfWeaverDllPath)&quot; &quot;$(TargetPath)&quot;" />
+  </Target>
+</Project>

@@ -44,7 +44,7 @@ builder
 
 ## Inline example
 
-The MAUI XAML surface is intentionally close to authored SVG:
+The MAUI XAML surface stays close to authored SVG for CLR-safe names:
 
 ```xml
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -73,13 +73,14 @@ The MAUI XAML surface is intentionally close to authored SVG:
 ## Repository layout
 
 - Library source: `src/SvgML.Maui`
-- Shared manual serialization/loading layer: `src/SvgML/Manual`
+- Shared manual serialization/loading layer: `src/SvgML.Avalonia/Manual`
 - Demo app: `samples/SvgML.Maui.Demo`
 - MAUI-specific solution and SDK pin: `src/SvgML.Maui/SvgML.Maui.slnx` and `src/SvgML.Maui/global.json`
 
 ## Notes
 
 - The package reuses the same `Svg.Skia` renderer as the Avalonia and Uno stacks.
+- Dash-named members use CLR-safe underscores in MAUI XAML, for example `stroke_width`, `fill_opacity`, or `font_face`.
 - In this repository, `SvgML.Maui` builds in a dedicated MAUI lane rather than inside the main `Svg.Skia.slnx`.
 - The imported MAUI sample is the best end-to-end reference for current usage.
 

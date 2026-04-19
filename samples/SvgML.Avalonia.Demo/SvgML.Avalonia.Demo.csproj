@@ -9,7 +9,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <IsPackable>False</IsPackable>
-    <RootNamespace>SvgML</RootNamespace>
+    <RootNamespace>SvgML.Avalonia.Demo</RootNamespace>
   </PropertyGroup>
 
   <Import Project="..\..\build\Avalonia.props" />
@@ -18,7 +18,7 @@
   <Import Project="..\..\build\Avalonia.Diagnostics.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SvgML\SvgML.csproj" />
+    <ProjectReference Include="..\..\src\SvgML.Avalonia\SvgML.Avalonia.csproj" />
   </ItemGroup>
 
 </Project>

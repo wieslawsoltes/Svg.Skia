@@ -56,7 +56,8 @@ builder
 ## What maps cleanly from SVG
 
 - Element names such as `svg`, `rect`, `circle`, `defs`, `linearGradient`, and `stop` stay close to authored SVG.
-- Attribute names such as `viewBox`, `fill`, `opacity`, `stroke-width`, and `fill-opacity` stay close to the SVG vocabulary.
+- CLR-safe attribute names such as `viewBox`, `fill`, and `opacity` stay close to the SVG vocabulary.
+- Dash-named members use CLR-safe underscores in MAUI XAML, for example `stroke_width`, `fill_opacity`, or `font_face`.
 - Text or control bindings can feed attribute values directly, which makes small interactive diagrams practical inside MAUI pages.
 
 ## Current package lane

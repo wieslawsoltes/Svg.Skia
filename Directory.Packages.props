@@ -15,10 +15,9 @@
     <PackageVersion Include="Avalonia.Controls.DataGrid" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Controls.ColorPicker" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.0.2" />
+    <PackageVersion Include="Mono.Cecil" Version="0.11.6" />
     <PackageVersion Include="Svg" Version="3.4.4" />
     <PackageVersion Include="ExCSS" Version="4.3.1" />
-    <PackageVersion Include="Fody" Version="6.8.1" />
-    <PackageVersion Include="FodyHelpers" Version="6.8.1" />
     <PackageVersion Include="SkiaSharp" Version="2.88.9" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="2.88.9" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="2.88.9" />

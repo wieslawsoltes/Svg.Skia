@@ -56,7 +56,8 @@ xmlns:svgml="using:SvgML"
 ## Notes
 
 - `SvgML.Uno` builds on `Uno.Sdk` with `SkiaRenderer`, so it stays aligned with the same rendering stack as `Svg.Controls.Skia.Uno`.
-- The current demo focuses on string-backed SVG attributes such as `viewBox`, `d`, `fill`, and `id`, which map cleanly through the current Uno XAML compiler.
+- CLR-safe SVG names such as `viewBox`, `d`, `fill`, and `id` map cleanly through the current Uno XAML compiler.
+- Dash-named members use CLR-safe underscores in Uno XAML, for example `stroke_width` or `font_face`.
 - The end-to-end sample lives in `samples/SvgML.Uno.Demo`.
 
 ## Related

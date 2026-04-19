@@ -19,7 +19,7 @@ switch (target)
             {
                 ElementBaseType = "Avalonia.Controls.Control",
                 BaseWriterType = "element",
-                BasePath = ResolveGeneratedPath("SvgML"),
+                BasePath = ResolveGeneratedPath("SvgML.Avalonia"),
                 TypeDefs = SvgTypeDefs.TypeDefs
             };
 

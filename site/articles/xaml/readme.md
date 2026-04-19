@@ -10,7 +10,7 @@ Svg.Skia supports Avalonia, Uno, and .NET MAUI XAML-facing stacks plus a set of 
 
 - [Overview](overview) explains when to choose `Avalonia.Svg.Skia` versus `Avalonia.Svg`.
 - [Svg Control and SvgImage](svg-control-and-svgimage) covers the primary controls and image-source types.
-- [SvgML Inline SVG](svgml-inline-svg) covers authoring SVG elements directly inside Avalonia XAML.
+- [SvgML.Avalonia Inline SVG](svgml-avalonia-inline-svg) covers authoring SVG elements directly inside Avalonia XAML.
 - [SvgML.Maui Inline SVG](svgml-maui-inline-svg) covers authoring SVG elements directly inside .NET MAUI XAML.
 - [SvgML.Uno Inline SVG](svgml-uno-inline-svg) covers authoring SVG elements directly inside Uno Platform XAML.
 - [Uno Svg Control](uno-svg-control) covers the Uno-specific control surface on the Skia-backed path.

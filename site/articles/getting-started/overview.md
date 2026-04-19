@@ -15,7 +15,7 @@ Svg.Skia is a repository, not just a single package. The main entry points are:
 | `Svg.Controls.Skia.Uno` | You want Uno controls that render through the Skia-backed pipeline. | `Svg`, `SvgSource`, hit testing, zoom/pan, animation playback | [Svg.Controls.Skia.Uno](../packages/svg-controls-skia-uno) |
 | `Svg.Controls.Skia.Avalonia` | You want Avalonia controls that render through the Skia-backed pipeline. | `Svg`, `SvgImage`, `SvgSource`, `SvgResource`, animation playback, native composition | [Svg.Controls.Skia.Avalonia](../packages/svg-controls-skia-avalonia) |
 | `Svg.Controls.Avalonia` | You want Avalonia controls without depending on the Skia-backed Avalonia renderer path. | `Svg`, `SvgImage`, `SvgSource`, `SvgResource` | [Svg.Controls.Avalonia](../packages/svg-controls-avalonia) |
-| `SvgML` | You want the SVG tree itself to be authored inline in Avalonia XAML. | `svg`, `rect`, `g`, filters, text nodes, Avalonia-styled SVG element tree | [SvgML](../packages/svgml) |
+| `SvgML.Avalonia` | You want the SVG tree itself to be authored inline in Avalonia XAML. | `svg`, `rect`, `g`, filters, text nodes, Avalonia-styled SVG element tree | [SvgML.Avalonia](../packages/svgml-avalonia) |
 | `SvgML.Maui` | You want the SVG tree itself to be authored inline in .NET MAUI XAML. | `svg`, `rect`, `g`, filters, text nodes, MAUI-styled SVG element tree | [SvgML.Maui](../packages/svgml-maui) |
 | `SvgML.Uno` | You want the SVG tree itself to be authored inline in Uno Platform XAML. | `svg`, `path`, `g`, filters, text nodes, Uno-styled SVG element tree | [SvgML.Uno](../packages/svgml-uno) |
 | `Skia.Controls.Avalonia` | You need general-purpose `SKCanvas`, `SKPicture`, `SKBitmap`, or `SKPath` controls in Avalonia. | `SKCanvasControl`, `SKPictureImage`, and related controls | [Skia.Controls.Avalonia](../packages/skia-controls-avalonia) |
@@ -37,7 +37,7 @@ Start with `Svg.Controls.Skia.Avalonia` when the app is already on Avalonia plus
 
 Choose `Svg.Controls.Avalonia` when you want the same SVG concepts exposed through the Avalonia drawing stack instead.
 
-Choose `SvgML` when small icons, diagrams, or effect graphs should stay inline in XAML resources or templates instead of moving into external `.svg` files.
+Choose `SvgML.Avalonia` when small icons, diagrams, or effect graphs should stay inline in XAML resources or templates instead of moving into external `.svg` files.
 
 ### .NET MAUI application
 

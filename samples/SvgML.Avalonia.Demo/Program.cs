@@ -1,7 +1,7 @@
 ﻿using System;
 using Avalonia;
 
-namespace SvgML;
+namespace SvgML.Avalonia.Demo;
 
 class Program
 {

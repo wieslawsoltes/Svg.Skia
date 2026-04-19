@@ -43,7 +43,8 @@ xmlns:svgml="using:SvgML"
 ## What maps cleanly from SVG
 
 - Element names such as `svg`, `path`, `defs`, `filter`, and `text` stay close to authored SVG.
-- Attribute names such as `viewBox`, `d`, `fill`, `opacity`, and `stroke-width` stay close to the SVG vocabulary.
+- CLR-safe attribute names such as `viewBox`, `d`, `fill`, and `opacity` stay close to the SVG vocabulary.
+- Dash-named members use CLR-safe underscores in Uno XAML, for example `stroke_width` or `font_face`.
 - Text or control bindings can feed attribute values directly, which makes small interactive diagrams practical inside Uno pages.
 
 ## Current shape of the Uno lane

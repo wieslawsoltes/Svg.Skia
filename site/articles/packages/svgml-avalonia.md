@@ -1,15 +1,17 @@
 ---
-title: "SvgML"
+title: "SvgML.Avalonia"
 ---
 
-# SvgML
+# SvgML.Avalonia
 
-`SvgML` lets you author an SVG element tree directly in Avalonia XAML. Instead of loading an external `.svg` file, you declare `svg`, `rect`, `g`, gradients, filters, text, and related nodes inline, and the package serializes that tree back through the shared `Svg.Skia` loading pipeline.
+`SvgML.Avalonia` lets you author an SVG element tree directly in Avalonia XAML. Instead of loading an external `.svg` file, you declare `svg`, `rect`, `g`, gradients, filters, text, and related nodes inline, and the package serializes that tree back through the shared `Svg.Skia` loading pipeline.
+
+The NuGet package name is `SvgML.Avalonia`, while the CLR namespace exposed to Avalonia XAML remains `SvgML`.
 
 ## Install
 
 ```bash
-dotnet add package SvgML
+dotnet add package SvgML.Avalonia
 ```
 
 ## Choose this package when
@@ -34,7 +36,7 @@ dotnet add package SvgML
 <Window
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:svgml="clr-namespace:SvgML;assembly=SvgML">
+    xmlns:svgml="clr-namespace:SvgML;assembly=SvgML.Avalonia">
   <svgml:svg Width="160"
              Height="160"
              viewBox="0 0 100 100">
@@ -85,7 +87,7 @@ Because the SVG tree is made of Avalonia controls, normal Avalonia selectors and
 </Style>
 ```
 
-For a fuller example, see [SvgML Inline SVG](../xaml/svgml-inline-svg) and the `samples/SvgML.Demo` project in the repository.
+For a fuller example, see [SvgML.Avalonia Inline SVG](../xaml/svgml-avalonia-inline-svg) and the `samples/SvgML.Avalonia.Demo` project in the repository.
 
 ## When not to choose this package
 
@@ -96,5 +98,5 @@ For a fuller example, see [SvgML Inline SVG](../xaml/svgml-inline-svg) and the `
 ## Related docs
 
 - [XAML Overview](../xaml/overview)
-- [SvgML Inline SVG](../xaml/svgml-inline-svg)
+- [SvgML.Avalonia Inline SVG](../xaml/svgml-avalonia-inline-svg)
 - [Svg.Controls.Skia.Avalonia](svg-controls-skia-avalonia)

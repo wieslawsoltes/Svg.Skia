@@ -12,7 +12,7 @@ The `samples/` directory covers both end-user scenarios and repository-internal 
 - `AvaloniaSvgSkiaSample`: end-to-end sample for `Avalonia.Svg.Skia`, including `Svg`, `SvgImage`, `SvgSource`, resource usage, and draw-control integration.
 - `AvaloniaSvgSkiaStylingSample`: CSS-based restyling and pointer-over behavior.
 - `AvaloniaSvgSample`: equivalent non-Skia Avalonia stack sample.
-- `SvgML.Demo`: inline XAML-authored SVG sample showing reusable resources plus animated filter and geometry properties.
+- `SvgML.Avalonia.Demo`: inline XAML-authored SVG sample showing reusable resources plus animated filter and geometry properties.
 - `SvgML.Maui.Demo`: .NET MAUI inline SVG sample showing the same authored element-tree pattern on Android, iOS, and Mac Catalyst.
 - `SvgML.Uno.Demo`: Uno desktop sample showing inline XAML-authored SVG trees with direct binding and runtime CSS updates.
 - `AvaloniaControlsSample`: `SKCanvasControl`, `SKBitmapControl`, `SKPathControl`, and `SKPictureControl`.

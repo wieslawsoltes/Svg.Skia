@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace SvgML;
+namespace SvgML.Avalonia.Demo;
 
 public partial class MainWindow : Window
 {

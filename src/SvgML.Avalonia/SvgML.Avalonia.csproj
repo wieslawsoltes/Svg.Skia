@@ -14,8 +14,10 @@
   <PropertyGroup>
     <VersionPrefix>$(AvaloniaVersionPrefix)</VersionPrefix>
     <VersionSuffix>$(AvaloniaVersionSuffix)</VersionSuffix>
+    <SvgMLSelfWeaverEnabled>true</SvgMLSelfWeaverEnabled>
     <Description>Inline SVG element authoring for Avalonia XAML backed by Svg.Skia.</Description>
-    <PackageId>SvgML</PackageId>
+    <AssemblyName>SvgML.Avalonia</AssemblyName>
+    <PackageId>SvgML.Avalonia</PackageId>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;xaml;avalonia;avaloniaui;control;inline-svg</PackageTags>
   </PropertyGroup>
@@ -26,24 +28,13 @@
   <Import Project="..\..\build\Avalonia.Skia.props" />
 
   <ItemGroup>
-    <PackageReference Include="Fody">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <WeaverFiles Include="$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)','..','SvgML.Weavers','bin','$(Configuration)','netstandard2.0','Weavers.dll'))"
-                 WeaverClassNames="FieldRename;PropertyRename;TypeRename"/>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
-    <ProjectReference Include="..\SvgML.Weavers\Weavers.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="Avalonia/HitTesting/SvgHitTester.cs" />
   </ItemGroup>
+
+  <Import Project="..\..\build\SvgML.Weaving.targets" />
 
 </Project>

@@ -6,7 +6,7 @@ title: "Overview"
 
 ## UI SVG stacks
 
-### `SvgML`
+### `SvgML.Avalonia`
 
 This package brings the SVG element tree itself into Avalonia XAML. Use it when:
 
@@ -79,7 +79,7 @@ The namespaces differ:
 | `Svg.Controls.Skia.Uno` | `Uno.Svg.Skia` |
 | `Svg.Controls.Skia.Avalonia` | `Avalonia.Svg.Skia` |
 | `Svg.Controls.Avalonia` | `Avalonia.Svg` |
-| `SvgML` | `SvgML` |
+| `SvgML.Avalonia` | `SvgML` |
 | `SvgML.Maui` | `SvgML` |
 | `SvgML.Uno` | `SvgML` |
 

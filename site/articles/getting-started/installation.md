@@ -33,7 +33,7 @@ dotnet add package Svg.Controls.Avalonia
 Inline SVG authoring for Avalonia XAML:
 
 ```bash
-dotnet add package SvgML
+dotnet add package SvgML.Avalonia
 ```
 
 Inline SVG authoring for .NET MAUI XAML:
@@ -78,7 +78,7 @@ Most runtime packages in this repository multi-target:
 
 The generator and codegen packages target `netstandard2.0`.
 
-Avalonia-specific UI packages, including `Svg.Controls.Avalonia`, `Svg.Controls.Skia.Avalonia`, `Skia.Controls.Avalonia`, and `SvgML`, target `net8.0` and `net10.0`.
+Avalonia-specific UI packages, including `Svg.Controls.Avalonia`, `Svg.Controls.Skia.Avalonia`, `Skia.Controls.Avalonia`, and `SvgML.Avalonia`, target `net8.0` and `net10.0`.
 
 `SvgML.Maui` targets `net8.0-android`, `net8.0-ios`, and `net8.0-maccatalyst`.
 

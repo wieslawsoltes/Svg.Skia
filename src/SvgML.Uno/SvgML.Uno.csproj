@@ -9,6 +9,7 @@
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CS1591;CS8981</NoWarn>
     <IsPackable>true</IsPackable>
+    <SvgMLSelfWeaverEnabled>false</SvgMLSelfWeaverEnabled>
     <RootNamespace>SvgML</RootNamespace>
     <PackageId>SvgML.Uno</PackageId>
     <Description>Inline SVG element authoring for Uno Platform XAML backed by Svg.Skia.</Description>
@@ -22,11 +23,12 @@
   <PropertyGroup>
     <VersionPrefix>$(UnoVersionPrefix)</VersionPrefix>
     <VersionSuffix>$(UnoVersionSuffix)</VersionSuffix>
-    <SvgMLBasePath>..\SvgML</SvgMLBasePath>
+    <SvgMLBasePath>..\SvgML.Avalonia</SvgMLBasePath>
   </PropertyGroup>
 
   <Import Project="..\..\build\SourceLink.props" />
   <Import Project="..\..\build\SkiaSharp.v3.props" />
+  <Import Project="..\..\build\SvgML.Weaving.targets" />
 
   <ItemGroup>
     <Compile Include="$(SvgMLBasePath)\Manual\**\*.cs"
