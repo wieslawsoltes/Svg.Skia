@@ -30,6 +30,12 @@ Avalonia controls backed by the Avalonia drawing stack:
 dotnet add package Svg.Controls.Avalonia
 ```
 
+Inline SVG authoring for Avalonia XAML:
+
+```bash
+dotnet add package SvgML
+```
+
 General-purpose Skia controls for Avalonia:
 
 ```bash
@@ -59,6 +65,8 @@ Most runtime packages in this repository multi-target:
 - `net10.0`
 
 The generator and codegen packages target `netstandard2.0`.
+
+Avalonia-specific UI packages, including `Svg.Controls.Avalonia`, `Svg.Controls.Skia.Avalonia`, `Skia.Controls.Avalonia`, and `SvgML`, target `net8.0` and `net10.0`.
 
 ## Repository prerequisites
 

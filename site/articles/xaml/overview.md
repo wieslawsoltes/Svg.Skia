@@ -6,6 +6,15 @@ title: "Overview"
 
 ## UI SVG stacks
 
+### `SvgML`
+
+This package brings the SVG element tree itself into Avalonia XAML. Use it when:
+
+- you want inline `svg`, `rect`, `g`, filter, or text elements inside resources or templates,
+- you want SVG attribute names such as `fill-opacity`, `stroke-width`, or `viewBox` to stay close to authored markup,
+- you want Avalonia style selectors and animations to target the inline SVG tree,
+- you are happy to render through the shared `Svg.Skia` backend behind the scenes.
+
 ### `Uno.Svg.Skia`
 
 This package wraps the `Svg.Skia` runtime renderer for Uno Platform. Use it when:
@@ -52,6 +61,7 @@ The namespaces differ:
 | `Svg.Controls.Skia.Uno` | `Uno.Svg.Skia` |
 | `Svg.Controls.Skia.Avalonia` | `Avalonia.Svg.Skia` |
 | `Svg.Controls.Avalonia` | `Avalonia.Svg` |
+| `SvgML` | `SvgML` |
 
 ## General-purpose Skia controls
 

@@ -12,6 +12,7 @@ The `samples/` directory covers both end-user scenarios and repository-internal 
 - `AvaloniaSvgSkiaSample`: end-to-end sample for `Avalonia.Svg.Skia`, including `Svg`, `SvgImage`, `SvgSource`, resource usage, and draw-control integration.
 - `AvaloniaSvgSkiaStylingSample`: CSS-based restyling and pointer-over behavior.
 - `AvaloniaSvgSample`: equivalent non-Skia Avalonia stack sample.
+- `SvgML.Demo`: inline XAML-authored SVG sample showing reusable resources plus animated filter and geometry properties.
 - `AvaloniaControlsSample`: `SKCanvasControl`, `SKBitmapControl`, `SKPathControl`, and `SKPictureControl`.
 - `AvaloniaSKPictureImageSample`: `SKPictureImage` and animation examples.
 - `AvalonDraw`: larger sample application for SVG editing-oriented scenarios.
