@@ -31,22 +31,23 @@ builder
 ```xml
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:svgml="clr-namespace:SvgML;assembly=SvgML.Maui"
              x:Class="SvgML.Maui.Demo.MainPage">
 
   <VerticalStackLayout Padding="30,0" Spacing="25">
-    <svg viewBox="0 0 200 100">
-      <defs>
-        <linearGradient id="gradient" x1="0%" y1="0%" x2="0" y2="100%">
-          <stop offset="0%" style="stop-color:skyblue;" />
-          <stop offset="100%" style="stop-color:seagreen;" />
-        </linearGradient>
-      </defs>
+    <svgml:svg viewBox="0 0 200 100">
+      <svgml:defs>
+        <svgml:linearGradient id="gradient" x1="0%" y1="0%" x2="0" y2="100%">
+          <svgml:stop offset="0%" style="stop-color:skyblue;" />
+          <svgml:stop offset="100%" style="stop-color:seagreen;" />
+        </svgml:linearGradient>
+      </svgml:defs>
 
-      <rect x="0" y="0" width="100%" height="100%" fill="url(#gradient)" />
-      <circle cx="50" cy="50" r="40"
-              fill="{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}" />
-      <circle cx="150" cy="50" r="40" fill="black" opacity="0.3" />
-    </svg>
+      <svgml:rect x="0" y="0" width="100%" height="100%" fill="url(#gradient)" />
+      <svgml:circle cx="50" cy="50" r="40"
+                    fill="{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}" />
+      <svgml:circle cx="150" cy="50" r="40" fill="black" opacity="0.3" />
+    </svgml:svg>
 
     <Entry x:Name="CircleFill" Text="red" />
   </VerticalStackLayout>
@@ -59,6 +60,10 @@ builder
 - CLR-safe attribute names such as `viewBox`, `fill`, and `opacity` stay close to the SVG vocabulary.
 - Dash-named members use CLR-safe underscores in MAUI XAML, for example `stroke_width`, `fill_opacity`, or `font_face`.
 - Text or control bindings can feed attribute values directly, which makes small interactive diagrams practical inside MAUI pages.
+
+## Namespace note
+
+Use an explicit MAUI alias such as `xmlns:svgml="clr-namespace:SvgML;assembly=SvgML.Maui"` for inline SVG nodes. The protected MAUI default namespace cannot safely absorb `SvgML.Maui` when the library is referenced from source, so explicit aliasing is the reliable authoring path.
 
 ## Current package lane
 

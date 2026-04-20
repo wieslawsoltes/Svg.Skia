@@ -44,26 +44,27 @@ builder
 
 ## Inline example
 
-The MAUI XAML surface stays close to authored SVG for CLR-safe names:
+The MAUI XAML surface stays close to authored SVG for CLR-safe names, but it should be brought in through an explicit XML alias instead of the protected MAUI default namespace:
 
 ```xml
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:svgml="clr-namespace:SvgML;assembly=SvgML.Maui"
              x:Class="SvgML.Maui.Demo.MainPage">
 
   <VerticalStackLayout Padding="30,0" Spacing="25">
-    <svg viewBox="0 0 200 100">
-      <defs>
-        <linearGradient id="gradient" x1="0%" y1="0%" x2="0" y2="100%">
-          <stop offset="0%" style="stop-color:skyblue;" />
-          <stop offset="100%" style="stop-color:seagreen;" />
-        </linearGradient>
-      </defs>
+    <svgml:svg viewBox="0 0 200 100">
+      <svgml:defs>
+        <svgml:linearGradient id="gradient" x1="0%" y1="0%" x2="0" y2="100%">
+          <svgml:stop offset="0%" style="stop-color:skyblue;" />
+          <svgml:stop offset="100%" style="stop-color:seagreen;" />
+        </svgml:linearGradient>
+      </svgml:defs>
 
-      <rect x="0" y="0" width="100%" height="100%" fill="url(#gradient)" />
-      <circle cx="50" cy="50" r="40"
-              fill="{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}" />
-    </svg>
+      <svgml:rect x="0" y="0" width="100%" height="100%" fill="url(#gradient)" />
+      <svgml:circle cx="50" cy="50" r="40"
+                    fill="{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}" />
+    </svgml:svg>
 
     <Entry x:Name="CircleFill" Text="red" />
   </VerticalStackLayout>
@@ -80,6 +81,7 @@ The MAUI XAML surface stays close to authored SVG for CLR-safe names:
 ## Notes
 
 - The package reuses the same `Svg.Skia` renderer as the Avalonia and Uno stacks.
+- Use `xmlns:svgml="clr-namespace:SvgML;assembly=SvgML.Maui"` in page XAML. MAUI's protected default namespace cannot be extended safely when `SvgML.Maui` is consumed as a source project reference.
 - Dash-named members use CLR-safe underscores in MAUI XAML, for example `stroke_width`, `fill_opacity`, or `font_face`.
 - The MAUI runtime now keeps retained-scene mappings for the inline tree, so `HitTestElements(...)`, `HitTestSceneNodes(...)`, `GetControlBounds(...)`, and `GetElementForSceneNode(...)` can work against authored `SvgML.element` controls.
 - Use `HitTestSvgElements(...)` when you need the underlying `SvgElement` instances instead of the XAML-authored controls.
