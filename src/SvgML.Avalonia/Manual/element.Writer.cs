@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Security;
 using Svg;
 
 namespace SvgML;
@@ -7,7 +8,7 @@ public abstract partial class element
 {
     protected string ToSvgString(string value)
     {
-        return value;
+        return SecurityElement.Escape(value) ?? string.Empty;
     }
 
     protected string ToSvgString(object value)

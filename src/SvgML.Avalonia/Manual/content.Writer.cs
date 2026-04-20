@@ -29,6 +29,6 @@ internal partial class content
 
     protected override void WriteContents(TextWriter writer, element parent)
     {
-        writer.Write(Content);
+        writer.Write(System.Security.SecurityElement.Escape(Content) ?? string.Empty);
     }
 }

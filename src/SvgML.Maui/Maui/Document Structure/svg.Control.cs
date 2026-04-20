@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Numerics;
 using Microsoft.Maui.Graphics;
 using SkiaSharp;
@@ -14,6 +15,8 @@ namespace SvgML;
 
 public partial class svg
 {
+    private static readonly Lazy<HashSet<string>> SvgBindablePropertyNames = new(CreateSvgBindablePropertyNames);
+
     static svg()
     {
         Initialize();
@@ -325,7 +328,7 @@ public partial class svg
             return;
         }
 
-        if (IsLoaded)
+        if (IsLoaded && IsSvgBindablePropertyName(propertyName))
         {
             ReloadAndInvalidate();
         }
@@ -386,5 +389,33 @@ public partial class svg
             Persp1 = 0,
             Persp2 = 1
         };
+    }
+
+    private static bool IsSvgBindablePropertyName(string? propertyName)
+    {
+        return propertyName is not null && SvgBindablePropertyNames.Value.Contains(propertyName);
+    }
+
+    private static HashSet<string> CreateSvgBindablePropertyNames()
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+
+        for (Type? type = typeof(svg); type is not null && type.Namespace == typeof(svg).Namespace; type = type.BaseType)
+        {
+            foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy))
+            {
+                if (!typeof(BindableProperty).IsAssignableFrom(field.FieldType))
+                {
+                    continue;
+                }
+
+                if (field.GetValue(null) is BindableProperty bindableProperty && !string.IsNullOrEmpty(bindableProperty.PropertyName))
+                {
+                    names.Add(bindableProperty.PropertyName);
+                }
+            }
+        }
+
+        return names;
     }
 }
