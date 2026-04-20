@@ -158,23 +158,25 @@ jobs:
         working-directory: src/SvgML.Maui
         run: dotnet workload install maui --ignore-failed-sources --skip-manifest-update
 
-      - name: Restore
+      - name: Restore library
         working-directory: src/SvgML.Maui
-        run: |
-          dotnet restore SvgML.Maui.csproj
-          dotnet restore ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -p:TargetFramework=net10.0-maccatalyst
+        run: dotnet restore SvgML.Maui.csproj
 
       - name: Build library
         working-directory: src/SvgML.Maui
         run: dotnet build SvgML.Maui.csproj -c Release --no-restore
 
-      - name: Build sample
-        working-directory: src/SvgML.Maui
-        run: dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -f net10.0-maccatalyst -c Release --no-restore
-
       - name: Pack
         working-directory: src/SvgML.Maui
         run: dotnet pack SvgML.Maui.csproj -c Release --no-restore -o ../../artifacts/maui-packages
+
+      - name: Restore sample
+        working-directory: src/SvgML.Maui
+        run: dotnet restore ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -p:TargetFramework=net10.0-maccatalyst
+
+      - name: Build sample
+        working-directory: src/SvgML.Maui
+        run: dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -f net10.0-maccatalyst -c Release --no-restore
 
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v4
