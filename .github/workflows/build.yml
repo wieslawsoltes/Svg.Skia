@@ -49,10 +49,10 @@ jobs:
           fi
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore Svg.Skia.slnx
 
       - name: Build
-        run: dotnet build -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
+        run: dotnet build Svg.Skia.slnx -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
 
   test:
     name: Test (${{ matrix.os }})
@@ -83,13 +83,13 @@ jobs:
           fi
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore Svg.Skia.slnx
 
       - name: Build
-        run: dotnet build -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
+        run: dotnet build Svg.Skia.slnx -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
 
       - name: Test
-        run: dotnet test -c Release --no-build --logger trx --results-directory artifacts/test
+        run: dotnet test Svg.Skia.slnx -c Release --no-build --logger trx --results-directory artifacts/test
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -108,6 +108,46 @@ jobs:
           path: artifacts/test/**/*.trx
           reporter: dotnet-trx
           fail-on-empty: false
+
+  build-maui:
+    name: Build MAUI (macos-latest)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install .NET MAUI workload
+        working-directory: src/SvgML.Maui
+        run: dotnet workload install maui --ignore-failed-sources --skip-manifest-update
+
+      - name: Determine version suffix
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
+            echo "VERSION_SUFFIX=" >> $GITHUB_ENV
+          else
+            echo "VERSION_SUFFIX=-build.${{ github.run_number }}" >> $GITHUB_ENV
+          fi
+
+      - name: Restore library
+        working-directory: src/SvgML.Maui
+        run: dotnet restore SvgML.Maui.csproj
+
+      - name: Build library
+        working-directory: src/SvgML.Maui
+        run: dotnet build SvgML.Maui.csproj -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
+
+      - name: Build sample
+        working-directory: src/SvgML.Maui
+        run: dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -f net10.0-android -c Release -p:RuntimeIdentifier=android-arm64
 
   pack:
     name: Pack (ubuntu-latest)
@@ -134,10 +174,10 @@ jobs:
           fi
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore Svg.Skia.slnx
 
       - name: Pack
-        run: dotnet pack -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}" -o artifacts/packages
+        run: dotnet pack Svg.Skia.slnx -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}" -o artifacts/packages
 
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v4
@@ -146,5 +186,51 @@ jobs:
           path: |
             artifacts/packages/*.nupkg
             artifacts/packages/*.snupkg
+          if-no-files-found: error
+          retention-days: 30
+
+  pack-maui:
+    name: Pack MAUI (macos-latest)
+    runs-on: macos-latest
+    needs: build-maui
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install .NET MAUI workload
+        working-directory: src/SvgML.Maui
+        run: dotnet workload install maui --ignore-failed-sources --skip-manifest-update
+
+      - name: Determine version suffix
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
+            echo "VERSION_SUFFIX=" >> $GITHUB_ENV
+          else
+            echo "VERSION_SUFFIX=-build.${{ github.run_number }}" >> $GITHUB_ENV
+          fi
+
+      - name: Restore
+        working-directory: src/SvgML.Maui
+        run: dotnet restore SvgML.Maui.csproj
+
+      - name: Pack
+        working-directory: src/SvgML.Maui
+        run: dotnet pack SvgML.Maui.csproj -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}" -o ../../artifacts/maui-packages
+
+      - name: Upload NuGet packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages-maui-macos-latest
+          path: |
+            artifacts/maui-packages/*.nupkg
+            artifacts/maui-packages/*.snupkg
           if-no-files-found: error
           retention-days: 30

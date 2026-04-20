@@ -3,6 +3,9 @@ xaml:
   - {path: overview.md, title: "Overview"}
   - {path: uno-svg-control.md, title: "Uno Svg Control"}
   - {path: svg-control-and-svgimage.md, title: "Svg Control and SvgImage"}
+  - {path: svgml-avalonia-inline-svg.md, title: "SvgML.Avalonia Inline SVG"}
+  - {path: svgml-maui-inline-svg.md, title: "SvgML.Maui Inline SVG"}
+  - {path: svgml-uno-inline-svg.md, title: "SvgML.Uno Inline SVG"}
   - {path: svgresource-and-brushes.md, title: "SvgResource and Brushes"}
   - {path: styling-and-previewer.md, title: "Styling and Previewer"}
   - {path: skia-controls-and-skpictureimage.md, title: "Skia Controls and SKPictureImage"}

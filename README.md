@@ -33,6 +33,9 @@
 | `Svg.Skia` | [![NuGet](https://img.shields.io/nuget/v/Svg.Skia.svg)](https://www.nuget.org/packages/Svg.Skia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Skia.svg)](https://www.nuget.org/packages/Svg.Skia/) |
 | `Svg.Skia.Converter` | [![NuGet](https://img.shields.io/nuget/v/Svg.Skia.Converter.svg)](https://www.nuget.org/packages/Svg.Skia.Converter/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Skia.Converter.svg)](https://www.nuget.org/packages/Svg.Skia.Converter/) |
 | `Svg.SourceGenerator.Skia` | [![NuGet](https://img.shields.io/nuget/v/Svg.SourceGenerator.Skia.svg)](https://www.nuget.org/packages/Svg.SourceGenerator.Skia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.SourceGenerator.Skia.svg)](https://www.nuget.org/packages/Svg.SourceGenerator.Skia/) |
+| `SvgML.Avalonia` | [![NuGet](https://img.shields.io/nuget/v/SvgML.Avalonia.svg)](https://www.nuget.org/packages/SvgML.Avalonia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/SvgML.Avalonia.svg)](https://www.nuget.org/packages/SvgML.Avalonia/) |
+| `SvgML.Maui` | [![NuGet](https://img.shields.io/nuget/v/SvgML.Maui.svg)](https://www.nuget.org/packages/SvgML.Maui/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/SvgML.Maui.svg)](https://www.nuget.org/packages/SvgML.Maui/) |
+| `SvgML.Uno` | [![NuGet](https://img.shields.io/nuget/v/SvgML.Uno.svg)](https://www.nuget.org/packages/SvgML.Uno/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/SvgML.Uno.svg)](https://www.nuget.org/packages/SvgML.Uno/) |
 | `svgc` | [![NuGet](https://img.shields.io/nuget/v/svgc.svg)](https://www.nuget.org/packages/svgc/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/svgc.svg)](https://www.nuget.org/packages/svgc/) |
 | `SvgToPng` | [![NuGet](https://img.shields.io/nuget/v/SvgToPng.svg)](https://www.nuget.org/packages/SvgToPng/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/SvgToPng.svg)](https://www.nuget.org/packages/SvgToPng/) |
 
@@ -61,6 +64,7 @@ and the `Svg.Skia` renderer will provide more complete rendering subsystem imple
 - `Svg.Custom` and `Svg.Skia` now include typed `pointer-events` handling plus geometry-aware topmost hit testing.
 - `Svg.Skia` now includes a shared interaction dispatcher, shared animation clock/controller, and host-driven animation playback APIs.
 - `Svg.Controls.Skia.Avalonia` and `Svg.Controls.Skia.Uno` now expose animation backend selection, playback rate, frame interval, and resolved-backend diagnostics.
+- `SvgML.Avalonia`, `SvgML.Maui`, and `SvgML.Uno` now live in the same repository, so inline Avalonia, .NET MAUI, and Uno XAML-authored SVG trees build against the local `Svg.Skia` sources and ship from the same release pipeline.
 - Avalonia adds an optional `NativeComposition` animation backend with fallback to `RenderLoop` or `DispatcherTimer` when retained composition is unavailable.
 - `tests/Svg.Skia.Benchmarks` adds a local BenchmarkDotNet harness for the shared animation renderer, and `samples/TestApp` exposes backend and playback controls for manual verification.
 

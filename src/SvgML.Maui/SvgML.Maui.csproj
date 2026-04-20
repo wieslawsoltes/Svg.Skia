@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+        <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
+        <!-- <TargetFrameworks>$(TargetFrameworks);net10.0-tizen</TargetFrameworks> -->
+        <UseMaui>true</UseMaui>
+        <SingleProject>true</SingleProject>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>SvgML</RootNamespace>
+        <Description>Inline SVG element authoring for .NET MAUI XAML backed by Svg.Skia.</Description>
+        <PackageId>SvgML.Maui</PackageId>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageTags>svg;xaml;maui;dotnet-maui;control;inline-svg</PackageTags>
+        <IsPackable>true</IsPackable>
+        <SvgMLSelfWeaverEnabled>false</SvgMLSelfWeaverEnabled>
+        <NoWarn>$(NoWarn);CS1591;CS8981</NoWarn>
+
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">12.2</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Maui.Controls" />
+        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" />
+        <PackageReference Include="SkiaSharp.Views.Maui.Controls" />
+    </ItemGroup>
+
+    <Import Project="..\..\build\SourceLink.props" />
+    <Import Project="..\..\build\SignAssembly.props" />
+    <Import Project="..\..\build\SvgML.Weaving.targets" />
+
+    <PropertyGroup>
+        <VersionPrefix>$(MauiVersionPrefix)</VersionPrefix>
+        <VersionSuffix>$(MauiVersionSuffix)</VersionSuffix>
+        <SvgMLBasePath>..\SvgML.Avalonia</SvgMLBasePath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="$(SvgMLBasePath)\Manual\**\*.cs"
+                 Exclude="$(SvgMLBasePath)\Manual\Document Structure\svg.Loading.cs"
+                 LinkBase="Manual" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Platforms\Android\" />
+      <Folder Include="Platforms\iOS\" />
+      <Folder Include="Platforms\MacCatalyst\" />
+    </ItemGroup>
+    
+</Project>

@@ -1,0 +1,25 @@
+<Project Sdk="Uno.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-desktop</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <ApplicationTitle>SvgML.Uno Demo</ApplicationTitle>
+    <ApplicationId>com.wieslawsoltes.svgmlunodemo</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationPublisher>Svg.Skia</ApplicationPublisher>
+    <Description>Uno sample for SvgML.Uno inline SVG authoring.</Description>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UnoFeatures>
+      SkiaRenderer;
+    </UnoFeatures>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SvgML.Uno\SvgML.Uno.csproj" />
+  </ItemGroup>
+
+</Project>

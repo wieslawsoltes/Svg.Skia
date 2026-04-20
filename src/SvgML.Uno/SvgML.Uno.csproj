@@ -1,0 +1,43 @@
+<Project Sdk="Uno.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <UnoSingleProject>true</UnoSingleProject>
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);CS1591;CS8981</NoWarn>
+    <IsPackable>true</IsPackable>
+    <SvgMLSelfWeaverEnabled>false</SvgMLSelfWeaverEnabled>
+    <RootNamespace>SvgML</RootNamespace>
+    <PackageId>SvgML.Uno</PackageId>
+    <Description>Inline SVG element authoring for Uno Platform XAML backed by Svg.Skia.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>svg;xaml;uno;uno-platform;winui;control;inline-svg</PackageTags>
+    <UnoFeatures>
+      SkiaRenderer;
+    </UnoFeatures>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>$(UnoVersionPrefix)</VersionPrefix>
+    <VersionSuffix>$(UnoVersionSuffix)</VersionSuffix>
+    <SvgMLBasePath>..\SvgML.Avalonia</SvgMLBasePath>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\SourceLink.props" />
+  <Import Project="..\..\build\SkiaSharp.v3.props" />
+  <Import Project="..\..\build\SvgML.Weaving.targets" />
+
+  <ItemGroup>
+    <Compile Include="$(SvgMLBasePath)\Manual\**\*.cs"
+             Exclude="$(SvgMLBasePath)\Manual\Document Structure\svg.Loading.cs"
+             LinkBase="Manual" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
+  </ItemGroup>
+
+</Project>

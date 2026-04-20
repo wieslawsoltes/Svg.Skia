@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>SvgML</RootNamespace>
+    <NoWarn>$(NoWarn);CS1591;CS8981</NoWarn>
+    <IsPackable>True</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>$(AvaloniaVersionPrefix)</VersionPrefix>
+    <VersionSuffix>$(AvaloniaVersionSuffix)</VersionSuffix>
+    <SvgMLSelfWeaverEnabled>true</SvgMLSelfWeaverEnabled>
+    <Description>Inline SVG element authoring for Avalonia XAML backed by Svg.Skia.</Description>
+    <AssemblyName>SvgML.Avalonia</AssemblyName>
+    <PackageId>SvgML.Avalonia</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>svg;xaml;avalonia;avaloniaui;control;inline-svg</PackageTags>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\SourceLink.props" />
+  <Import Project="..\..\build\SignAssembly.props" />
+  <Import Project="..\..\build\Avalonia.props" />
+  <Import Project="..\..\build\Avalonia.Skia.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Avalonia/HitTesting/SvgHitTester.cs" />
+  </ItemGroup>
+
+  <Import Project="..\..\build\SvgML.Weaving.targets" />
+
+</Project>
