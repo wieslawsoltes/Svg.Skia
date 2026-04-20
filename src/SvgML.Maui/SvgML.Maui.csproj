@@ -34,6 +34,8 @@
     <Import Project="..\..\build\SvgML.Weaving.targets" />
 
     <PropertyGroup>
+        <VersionPrefix>$(MauiVersionPrefix)</VersionPrefix>
+        <VersionSuffix>$(MauiVersionSuffix)</VersionSuffix>
         <SvgMLBasePath>..\SvgML.Avalonia</SvgMLBasePath>
     </PropertyGroup>
 
