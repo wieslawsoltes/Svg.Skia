@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
 		<TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net10.0-tizen</TargetFrameworks> -->
@@ -58,8 +57,8 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
-		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="2.88.9" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+		<PackageReference Include="SkiaSharp.Views.Maui.Controls" />
 	</ItemGroup>
 
 	<ItemGroup>
