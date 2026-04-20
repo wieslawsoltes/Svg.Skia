@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>SvgML Namespace | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="SvgML Namespace | Svg.Skia">
+<meta name="twitter:description" content="SvgML Namespace Filter types: Classes (98) a animate animateColor animateMotion animateTransform animation_attribute_element animation_element animation_value_element circle clipPath component_transfer_function defs desc element elements elementsTypeConverter elementTypeConverter ellipse feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence filter filter_primitive FloatAnimator FloatNullableAnimator font font_face font_face_src font_face_uri foreignObject g glyph gradient hkern image IntAnimator IntNullableAnimator kern line linearGradient marker marker_element mask...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="SvgML Namespace | Svg.Skia">
+<meta property="og:title" content="SvgML Namespace | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="SvgML Namespace Filter types: Classes (98) a animate animateColor animateMotion animateTransform animation_attribute_element animation_element animation_value_element circle clipPath component_transfer_function defs desc element elements elementsTypeConverter elementTypeConverter ellipse feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence filter filter_primitive FloatAnimator FloatNullableAnimator font font_face font_face_src font_face_uri foreignObject g glyph gradient hkern image IntAnimator IntNullableAnimator kern line linearGradient marker marker_element mask...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="SvgML Namespace | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-api">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-3 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.6e9687f393ad01e1091053c10fa45801.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-4997' data-lunet-menu-active='menu-item-menu-4997,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-7 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/api/' class='breadcrumb-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a>  </li>
+          <li class='breadcrumb-item  active'>
+            <i class='bi bi-diagram-3' aria-hidden='true'></i> SvgML  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<div class="api-dotnet">
+<h1 id="svgml-namespace">SvgML Namespace</h1>
+<div class="api-dotnet-member-filter" data-api-dotnet-filter>
+<div class="api-dotnet-member-filter-row">
+<label class="api-dotnet-member-filter-label" for="api-dotnet-member-filter-svgml">Filter types:</label>
+<input id="api-dotnet-member-filter-svgml" class="form-control form-control-sm api-dotnet-member-filter-input" type="search" placeholder="name, kind, summary" autocomplete="off" spellcheck="false" />
+<div class="api-dotnet-member-filter-status" aria-live="polite"></div>
+</div>
+</div>
+<h2 id="classes">Classes <span class="api-dotnet-count">(98)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="classes">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.a/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">a</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.animate/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">animate</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.animateColor/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">animateColor</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.animateMotion/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">animateMotion</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.animateTransform/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">animateTransform</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.animation-attribute-element/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">animation_attribute_element</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.animation-element/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">animation_element</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.animation-value-element/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">animation_value_element</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.circle/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">circle</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.clipPath/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">clipPath</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.component-transfer-function/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">component_transfer_function</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.defs/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">defs</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.desc/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">desc</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.element/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">element</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.elements/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">elements</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.elementsTypeConverter/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">elementsTypeConverter</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.elementTypeConverter/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">elementTypeConverter</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.ellipse/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">ellipse</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feBlend/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feBlend</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feColorMatrix/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feColorMatrix</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feComponentTransfer/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feComponentTransfer</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feComposite/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feComposite</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feConvolveMatrix/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feConvolveMatrix</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feDiffuseLighting/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feDiffuseLighting</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feDisplacementMap/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feDisplacementMap</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feDistantLight/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feDistantLight</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feFlood/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feFlood</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feFuncA/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feFuncA</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feFuncB/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feFuncB</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feFuncG/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feFuncG</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feFuncR/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feFuncR</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feGaussianBlur/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feGaussianBlur</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feImage/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feImage</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feMerge/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feMerge</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feMergeNode/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feMergeNode</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feMorphology/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feMorphology</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feOffset/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feOffset</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.fePointLight/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">fePointLight</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feSpecularLighting/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feSpecularLighting</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feSpotLight/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feSpotLight</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feTile/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feTile</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.feTurbulence/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">feTurbulence</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.filter/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">filter</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.filter-primitive/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">filter_primitive</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.FloatAnimator/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">FloatAnimator</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.FloatNullableAnimator/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">FloatNullableAnimator</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.font/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">font</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.font-face/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">font_face</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.font-face-src/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">font_face_src</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.font-face-uri/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">font_face_uri</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.foreignObject/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">foreignObject</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.g/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">g</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.glyph/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">glyph</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.gradient/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">gradient</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.hkern/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">hkern</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.image/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">image</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.IntAnimator/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">IntAnimator</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.IntNullableAnimator/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">IntNullableAnimator</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.kern/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">kern</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.line/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">line</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.linearGradient/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">linearGradient</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.marker/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">marker</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.marker-element/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">marker_element</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.mask/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">mask</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.metadata/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">metadata</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.missing-glyph/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">missing_glyph</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.mpath/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">mpath</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.numbers/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">numbers</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.numbersAnimator/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">numbersAnimator</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.numbersNullableAnimator/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">numbersNullableAnimator</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.numbersTypeConverter/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">numbersTypeConverter</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.paint/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">paint</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.path/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">path</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.path-based/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">path_based</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.pattern/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">pattern</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.polygon/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">polygon</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.polyline/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">polyline</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.radialGradient/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">radialGradient</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.rect/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">rect</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.script/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">script</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.set/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">set</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.stop/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">stop</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.svg/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">svg</code></a><span class="api-dotnet-member-summary">Svg control.</span></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.SvgNumberCollectionAnimator/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SvgNumberCollectionAnimator</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.SvgNumberCollectionNullableAnimator/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SvgNumberCollectionNullableAnimator</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.SvgUnitAnimator/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SvgUnitAnimator</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.SvgUnitNullableAnimator/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SvgUnitNullableAnimator</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.switch/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">switch</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.symbol/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">symbol</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.text/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">text</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.text-base/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">text_base</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.textPath/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">textPath</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.title/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">title</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.tref/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">tref</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.tspan/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">tspan</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.use/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">use</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.visual/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">visual</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Class"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.vkern/"><i class="bi bi-box api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">vkern</code></a></div>
+</div>
+<h2 id="interfaces">Interfaces <span class="api-dotnet-count">(1)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="interfaces">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Interface"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.ISvgEnumBridge/"><i class="bi bi-diagram-3 api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">ISvgEnumBridge</code></a></div>
+</div>
+<h2 id="enums">Enums <span class="api-dotnet-count">(5)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="enums">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Enum"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.blend-mode/"><i class="bi bi-list-ul api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">blend_mode</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Enum"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.fill-rule/"><i class="bi bi-list-ul api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">fill_rule</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Enum"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.operator/"><i class="bi bi-list-ul api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">operator</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Enum"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.type-component-transfer-function/"><i class="bi bi-list-ul api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">type_component_transfer_function</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Enum"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.type-feColorMatrix/"><i class="bi bi-list-ul api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">type_feColorMatrix</code></a></div>
+</div>
+</div>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

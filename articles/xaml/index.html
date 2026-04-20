@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="XAML Usage | Svg.Skia">
-<meta name="twitter:description" content="XAML Usage Svg.Skia supports two Avalonia-facing stacks plus a set of reusable Skia controls. In this section Overview explains when to choose Avalonia.Svg.Skia versus Avalonia.Svg. Svg Control and SvgImage covers the primary controls and image-source types. Uno Svg Control covers the Uno-specific control surface on the Skia-backed path. SvgResource and Brushes covers reusable brushes and resource dictionaries. Styling and Previewer covers CSS overlays, state-based styling, and previewer setup....">
+<meta name="twitter:description" content="XAML Usage Svg.Skia supports Avalonia, Uno, and .NET MAUI XAML-facing stacks plus a set of reusable Skia controls. In this section Overview explains when to choose Avalonia.Svg.Skia versus Avalonia.Svg. Svg Control and SvgImage covers the primary controls and image-source types. SvgML.Avalonia Inline SVG covers authoring SVG elements directly inside Avalonia XAML. SvgML.Maui Inline SVG covers authoring SVG elements directly inside .NET MAUI XAML....">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="XAML Usage | Svg.Skia">
 <meta property="og:title" content="XAML Usage | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="XAML Usage Svg.Skia supports two Avalonia-facing stacks plus a set of reusable Skia controls. In this section Overview explains when to choose Avalonia.Svg.Skia versus Avalonia.Svg. Svg Control and SvgImage covers the primary controls and image-source types. Uno Svg Control covers the Uno-specific control surface on the Skia-backed path. SvgResource and Brushes covers reusable brushes and resource dictionaries. Styling and Previewer covers CSS overlays, state-based styling, and previewer setup....">
+<meta property="og:description" content="XAML Usage Svg.Skia supports Avalonia, Uno, and .NET MAUI XAML-facing stacks plus a set of reusable Skia controls. In this section Overview explains when to choose Avalonia.Svg.Skia versus Avalonia.Svg. Svg Control and SvgImage covers the primary controls and image-source types. SvgML.Avalonia Inline SVG covers authoring SVG elements directly inside Avalonia XAML. SvgML.Maui Inline SVG covers authoring SVG elements directly inside .NET MAUI XAML....">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="XAML Usage | Svg.Skia">
   </head>
@@ -98,23 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <ol id='menu-id-xaml-0' class='menu menu-level0 show '>
-            <li id='menu-item-xaml-1' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/' class='menu-link  '>XAML Usage</a></span>  </li>
-            <li id='menu-item-xaml-2' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/overview/' class='menu-link  '>Overview</a></span>  </li>
-            <li id='menu-item-xaml-3' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/uno-svg-control/' class='menu-link  '>Uno Svg Control</a></span>  </li>
-            <li id='menu-item-xaml-4' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/svg-control-and-svgimage/' class='menu-link  '>Svg Control and SvgImage</a></span>  </li>
-            <li id='menu-item-xaml-5' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/svgresource-and-brushes/' class='menu-link  '>SvgResource and Brushes</a></span>  </li>
-            <li id='menu-item-xaml-6' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/styling-and-previewer/' class='menu-link  '>Styling and Previewer</a></span>  </li>
-            <li id='menu-item-xaml-7' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/skia-controls-and-skpictureimage/' class='menu-link  '>Skia Controls and SKPictureImage</a></span>  </li>
-          </ol>
-
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-xaml.bf6eadbb257cad05efd65d08444681da.html' data-lunet-menu-open='menu-id-xaml-0' data-lunet-menu-active='menu-item-xaml-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -158,11 +142,14 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="xaml-usage">XAML Usage</h1>
-<p>Svg.Skia supports two Avalonia-facing stacks plus a set of reusable Skia controls.</p>
+<p>Svg.Skia supports Avalonia, Uno, and .NET MAUI XAML-facing stacks plus a set of reusable Skia controls.</p>
 <h2 id="in-this-section">In this section</h2>
 <ul>
 <li><a href="/Svg.Skia/articles/xaml/overview">Overview</a> explains when to choose <code>Avalonia.Svg.Skia</code> versus <code>Avalonia.Svg</code>.</li>
 <li><a href="/Svg.Skia/articles/xaml/svg-control-and-svgimage">Svg Control and SvgImage</a> covers the primary controls and image-source types.</li>
+<li><a href="/Svg.Skia/articles/xaml/svgml-avalonia-inline-svg">SvgML.Avalonia Inline SVG</a> covers authoring SVG elements directly inside Avalonia XAML.</li>
+<li><a href="/Svg.Skia/articles/xaml/svgml-maui-inline-svg">SvgML.Maui Inline SVG</a> covers authoring SVG elements directly inside .NET MAUI XAML.</li>
+<li><a href="/Svg.Skia/articles/xaml/svgml-uno-inline-svg">SvgML.Uno Inline SVG</a> covers authoring SVG elements directly inside Uno Platform XAML.</li>
 <li><a href="/Svg.Skia/articles/xaml/uno-svg-control">Uno Svg Control</a> covers the Uno-specific control surface on the Skia-backed path.</li>
 <li><a href="/Svg.Skia/articles/xaml/svgresource-and-brushes">SvgResource and Brushes</a> covers reusable brushes and resource dictionaries.</li>
 <li><a href="/Svg.Skia/articles/xaml/styling-and-previewer">Styling and Previewer</a> covers CSS overlays, state-based styling, and previewer setup.</li>

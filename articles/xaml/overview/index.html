@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Overview | Svg.Skia">
-<meta name="twitter:description" content="Overview UI SVG stacks Uno.Svg.Skia This package wraps the Svg.Skia runtime renderer for Uno Platform. Use it when: you want Uno XAML integration through SKCanvasElement, you need SvgSource resources with async asset loading, you want HitTestElements(...), TryGetPicturePoint(...), zoom, pan, wireframe, filter toggles, or animation playback. Avalonia.Svg.Skia This package wraps the Svg.Skia runtime renderer. Use it when: you already depend on Skia-backed rendering, you want...">
+<meta name="twitter:description" content="Overview UI SVG stacks SvgML.Avalonia This package brings the SVG element tree itself into Avalonia XAML. Use it when: you want inline svg, rect, g, filter, or text elements inside resources or templates, you want SVG attribute names such as fill-opacity, stroke-width, or viewBox to stay close to authored markup, you want Avalonia style selectors and animations to target the inline SVG tree, you are happy to render through the...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Overview | Svg.Skia">
 <meta property="og:title" content="Overview | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Overview UI SVG stacks Uno.Svg.Skia This package wraps the Svg.Skia runtime renderer for Uno Platform. Use it when: you want Uno XAML integration through SKCanvasElement, you need SvgSource resources with async asset loading, you want HitTestElements(...), TryGetPicturePoint(...), zoom, pan, wireframe, filter toggles, or animation playback. Avalonia.Svg.Skia This package wraps the Svg.Skia runtime renderer. Use it when: you already depend on Skia-backed rendering, you want...">
+<meta property="og:description" content="Overview UI SVG stacks SvgML.Avalonia This package brings the SVG element tree itself into Avalonia XAML. Use it when: you want inline svg, rect, g, filter, or text elements inside resources or templates, you want SVG attribute names such as fill-opacity, stroke-width, or viewBox to stay close to authored markup, you want Avalonia style selectors and animations to target the inline SVG tree, you are happy to render through the...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Overview | Svg.Skia">
   </head>
@@ -98,23 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <ol id='menu-id-xaml-0' class='menu menu-level0 show '>
-            <li id='menu-item-xaml-1' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/' class='menu-link  '>XAML Usage</a></span>  </li>
-            <li id='menu-item-xaml-2' class='menu-item  active'>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/overview/' class='menu-link  '>Overview</a></span>  </li>
-            <li id='menu-item-xaml-3' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/uno-svg-control/' class='menu-link  '>Uno Svg Control</a></span>  </li>
-            <li id='menu-item-xaml-4' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/svg-control-and-svgimage/' class='menu-link  '>Svg Control and SvgImage</a></span>  </li>
-            <li id='menu-item-xaml-5' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/svgresource-and-brushes/' class='menu-link  '>SvgResource and Brushes</a></span>  </li>
-            <li id='menu-item-xaml-6' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/styling-and-previewer/' class='menu-link  '>Styling and Previewer</a></span>  </li>
-            <li id='menu-item-xaml-7' class='menu-item '>
-              <span class='menu-item-row'><a href='/Svg.Skia/articles/xaml/skia-controls-and-skpictureimage/' class='menu-link  '>Skia Controls and SKPictureImage</a></span>  </li>
-          </ol>
-
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-xaml.bf6eadbb257cad05efd65d08444681da.html' data-lunet-menu-open='menu-id-xaml-0' data-lunet-menu-active='menu-item-xaml-2,menu-item-xaml-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -161,6 +145,30 @@
 <!-- lunet:summarize -->
 <h1 id="overview">Overview</h1>
 <h2 id="ui-svg-stacks">UI SVG stacks</h2>
+<h3 id="svgmlavalonia"><code>SvgML.Avalonia</code></h3>
+<p>This package brings the SVG element tree itself into Avalonia XAML. Use it when:</p>
+<ul>
+<li>you want inline <code>svg</code>, <code>rect</code>, <code>g</code>, filter, or text elements inside resources or templates,</li>
+<li>you want SVG attribute names such as <code>fill-opacity</code>, <code>stroke-width</code>, or <code>viewBox</code> to stay close to authored markup,</li>
+<li>you want Avalonia style selectors and animations to target the inline SVG tree,</li>
+<li>you are happy to render through the shared <code>Svg.Skia</code> backend behind the scenes.</li>
+</ul>
+<h3 id="svgmlmaui"><code>SvgML.Maui</code></h3>
+<p>This package brings the SVG element tree itself into .NET MAUI XAML. Use it when:</p>
+<ul>
+<li>you want inline <code>svg</code>, <code>rect</code>, <code>g</code>, filter, or text elements directly inside a MAUI page,</li>
+<li>you want SVG attribute names such as <code>fill-opacity</code>, <code>stroke-width</code>, or <code>viewBox</code> to stay close to authored markup,</li>
+<li>you want the inline tree to render through the shared <code>Svg.Skia</code> backend without loading an external asset file,</li>
+<li>you are targeting the current MAUI package lane: Android, iOS, or Mac Catalyst.</li>
+</ul>
+<h3 id="svgmluno"><code>SvgML.Uno</code></h3>
+<p>This package brings the SVG element tree itself into Uno Platform XAML. Use it when:</p>
+<ul>
+<li>you want inline <code>svg</code>, <code>path</code>, <code>g</code>, filter, or text elements directly inside a Uno page,</li>
+<li>you want SVG attribute names such as <code>fill</code>, <code>opacity</code>, <code>stroke-width</code>, or <code>viewBox</code> to stay close to authored markup,</li>
+<li>you want the inline tree to render through the shared <code>Svg.Skia</code> backend without loading an external asset file,</li>
+<li>you are already on the Uno <code>SkiaRenderer</code> path and want the authored markup to stay in XAML instead of a separate asset file.</li>
+</ul>
 <h3 id="unosvgskia"><code>Uno.Svg.Skia</code></h3>
 <p>This package wraps the <code>Svg.Skia</code> runtime renderer for Uno Platform. Use it when:</p>
 <ul>
@@ -214,6 +222,18 @@
 <tr>
 <td><code>Svg.Controls.Avalonia</code></td>
 <td><code>Avalonia.Svg</code></td>
+</tr>
+<tr>
+<td><code>SvgML.Avalonia</code></td>
+<td><code>SvgML</code></td>
+</tr>
+<tr>
+<td><code>SvgML.Maui</code></td>
+<td><code>SvgML</code></td>
+</tr>
+<tr>
+<td><code>SvgML.Uno</code></td>
+<td><code>SvgML</code></td>
 </tr>
 </tbody>
 </table>

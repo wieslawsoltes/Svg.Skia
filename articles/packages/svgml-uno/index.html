@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>SvgML.Uno | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="SvgML.Uno | Svg.Skia">
+<meta name="twitter:description" content="SvgML.Uno SvgML.Uno lets you author an SVG element tree directly in Uno Platform XAML. Instead of loading an external .svg file, you declare svg, path, g, filters, text, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. Package dotnet add package SvgML.Uno Current package target: net10.0 via Uno.Sdk The current Uno 6.5.x packages used in this repository only ship...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="SvgML.Uno | Svg.Skia">
+<meta property="og:title" content="SvgML.Uno | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="SvgML.Uno SvgML.Uno lets you author an SVG element tree directly in Uno Platform XAML. Instead of loading an external .svg file, you declare svg, path, g, filters, text, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. Package dotnet add package SvgML.Uno Current package target: net10.0 via Uno.Sdk The current Uno 6.5.x packages used in this repository only ship...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="SvgML.Uno | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-packages.c4d6384b3262fb6d1b1feb2f099679fe.html' data-lunet-menu-open='menu-id-packages-0' data-lunet-menu-active='menu-item-packages-13,menu-item-packages-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/packages/' class='breadcrumb-link  '>Packages</a>  </li>
+          <li class='breadcrumb-item  active'>
+            SvgML.Uno  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="svgmluno">SvgML.Uno</h1>
+<p><code>SvgML.Uno</code> lets you author an SVG element tree directly in Uno Platform XAML. Instead of loading an external <code>.svg</code> file, you declare <code>svg</code>, <code>path</code>, <code>g</code>, filters, text, and related nodes inline, and the package serializes that tree back through the shared <code>Svg.Skia</code> loading pipeline.</p>
+<h2 id="package">Package</h2>
+<pre><code class="language-bash">dotnet add package SvgML.Uno
+</code></pre>
+<p>Current package target:</p>
+<ul>
+<li><code>net10.0</code> via <code>Uno.Sdk</code></li>
+</ul>
+<p>The current Uno <code>6.5.x</code> packages used in this repository only ship <code>net9.0</code> and <code>net10.0</code> assets, so <code>net8.0</code> is not available on the Uno lane without a broader Uno stack change.</p>
+<h2 id="namespace-setup">Namespace setup</h2>
+<p>Uno's XAML source generator still resolves third-party controls through explicit CLR namespace mappings, so the no-prefix pattern is to scope the <code>SvgML</code> namespace directly on the inline SVG subtree:</p>
+<h2 id="main-types">Main types</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Type</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SvgML.svg</code></td>
+<td>Root Uno control that owns the inline SVG tree and renders it</td>
+</tr>
+<tr>
+<td><code>SvgML.element</code></td>
+<td>Base class for generated SVG element controls</td>
+</tr>
+<tr>
+<td><code>SvgML.elements</code></td>
+<td>Child collection for nested SVG nodes</td>
+</tr>
+<tr>
+<td><code>SvgML.content</code></td>
+<td>Text-content wrapper used by text-related nodes</td>
+</tr>
+</tbody>
+</table>
+<h2 id="inline-example">Inline example</h2>
+<pre><code class="language-xml">&lt;Page xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+      xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;&gt;
+
+  &lt;svg xmlns=&quot;using:SvgML&quot;
+       Height=&quot;200&quot;
+       Stretch=&quot;Uniform&quot;
+       viewBox=&quot;0 0 220 120&quot;&gt;
+    &lt;path d=&quot;M0 0 H220 V120 H0 Z&quot; fill=&quot;#0f766e&quot; /&gt;
+    &lt;path d=&quot;M72 32 a28 28 0 1 0 0 56 a28 28 0 1 0 0 -56&quot;
+          fill=&quot;{Binding ElementName=CircleFillInput, Path=Text, Mode=TwoWay}&quot; /&gt;
+    &lt;path d=&quot;M132 88 L168 30 L196 88 Z&quot;
+          fill=&quot;#0f172a&quot;
+          opacity=&quot;0.35&quot; /&gt;
+  &lt;/svg&gt;
+&lt;/Page&gt;
+</code></pre>
+<h2 id="notes">Notes</h2>
+<ul>
+<li><code>SvgML.Uno</code> builds on <code>Uno.Sdk</code> with <code>SkiaRenderer</code>, so it stays aligned with the same rendering stack as <code>Svg.Controls.Skia.Uno</code>.</li>
+<li>CLR-safe SVG names such as <code>viewBox</code>, <code>d</code>, <code>fill</code>, and <code>id</code> map cleanly through the current Uno XAML compiler.</li>
+<li>Dash-named members use CLR-safe underscores in Uno XAML, for example <code>stroke_width</code> or <code>font_face</code>.</li>
+<li>The runtime now maps retained scene nodes back to authored <code>SvgML.element</code> controls, so <code>HitTestElements(...)</code>, <code>HitTestSceneNodes(...)</code>, <code>GetControlBounds(...)</code>, and <code>GetElementForSceneNode(...)</code> all work from the inline tree.</li>
+<li>Use <code>HitTestSvgElements(...)</code> when you need the underlying <code>SvgElement</code> model objects rather than the authored XAML controls.</li>
+<li><code>xmlns:svgml=&quot;using:SvgML&quot;</code> still works if you prefer an explicit namespace prefix at page scope.</li>
+<li>Avalonia-style assembly <code>XmlnsDefinition</code> mapping is not enough for Uno's current source-generator path, so the scoped <code>xmlns=&quot;using:SvgML&quot;</code> pattern is the reliable prefix-free option today.</li>
+<li>The end-to-end sample lives in <code>samples/SvgML.Uno.Demo</code>.</li>
+</ul>
+<h2 id="related">Related</h2>
+<ul>
+<li><a href="/Svg.Skia/articles/xaml/svgml-uno-inline-svg">SvgML.Uno Inline SVG</a></li>
+<li><a href="/Svg.Skia/articles/xaml/uno-svg-control">Uno Svg Control</a></li>
+<li><a href="/Svg.Skia/articles/reference/samples-and-tools">Samples and Tools</a></li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

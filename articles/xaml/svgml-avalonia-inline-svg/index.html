@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>SvgML.Avalonia Inline SVG | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="SvgML.Avalonia Inline SVG | Svg.Skia">
+<meta name="twitter:description" content="SvgML.Avalonia Inline SVG SvgML.Avalonia is the Avalonia XAML-first path in this repository. It turns an inline tree of SVG-like controls into SVG markup, then feeds that markup through the shared Svg.Skia renderer. The NuGet package name is SvgML.Avalonia, while the CLR namespace used from XAML remains SvgML. Namespace setup &lt;Window xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot; xmlns:svgml=&quot;clr-namespace:SvgML;assembly=SvgML.Avalonia&quot;>...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="SvgML.Avalonia Inline SVG | Svg.Skia">
+<meta property="og:title" content="SvgML.Avalonia Inline SVG | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="SvgML.Avalonia Inline SVG SvgML.Avalonia is the Avalonia XAML-first path in this repository. It turns an inline tree of SVG-like controls into SVG markup, then feeds that markup through the shared Svg.Skia renderer. The NuGet package name is SvgML.Avalonia, while the CLR namespace used from XAML remains SvgML. Namespace setup &lt;Window xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot; xmlns:svgml=&quot;clr-namespace:SvgML;assembly=SvgML.Avalonia&quot;>...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="SvgML.Avalonia Inline SVG | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-xaml.bf6eadbb257cad05efd65d08444681da.html' data-lunet-menu-open='menu-id-xaml-0' data-lunet-menu-active='menu-item-xaml-5,menu-item-xaml-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/xaml/' class='breadcrumb-link  '>XAML Usage</a>  </li>
+          <li class='breadcrumb-item  active'>
+            SvgML.Avalonia Inline SVG  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="svgmlavalonia-inline-svg">SvgML.Avalonia Inline SVG</h1>
+<p><code>SvgML.Avalonia</code> is the Avalonia XAML-first path in this repository. It turns an inline tree of SVG-like controls into SVG markup, then feeds that markup through the shared <code>Svg.Skia</code> renderer.</p>
+<p>The NuGet package name is <code>SvgML.Avalonia</code>, while the CLR namespace used from XAML remains <code>SvgML</code>.</p>
+<h2 id="namespace-setup">Namespace setup</h2>
+<pre><code class="language-xml">&lt;Window
+    xmlns=&quot;https://github.com/avaloniaui&quot;
+    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+    xmlns:svgml=&quot;clr-namespace:SvgML;assembly=SvgML.Avalonia&quot;&gt;
+</code></pre>
+<h2 id="inline-resource-example">Inline resource example</h2>
+<pre><code class="language-xml">&lt;Window.Resources&gt;
+  &lt;svgml:svg x:Key=&quot;InlineIcon&quot;
+             x:Shared=&quot;False&quot;
+             viewBox=&quot;0 0 500 500&quot;&gt;
+    &lt;svgml:defs&gt;
+      &lt;svgml:filter id=&quot;noise&quot;
+                    x=&quot;0%&quot;
+                    y=&quot;0%&quot;
+                    width=&quot;100%&quot;
+                    height=&quot;100%&quot;&gt;
+        &lt;svgml:feTurbulence type=&quot;fractalNoise&quot;
+                            result=&quot;NOISE&quot;
+                            baseFrequency=&quot;0 0.000001&quot;
+                            numOctaves=&quot;2&quot; /&gt;
+        &lt;svgml:feDisplacementMap in=&quot;SourceGraphic&quot;
+                                 in2=&quot;NOISE&quot;
+                                 scale=&quot;30&quot;
+                                 xChannelSelector=&quot;R&quot;
+                                 yChannelSelector=&quot;R&quot; /&gt;
+      &lt;/svgml:filter&gt;
+    &lt;/svgml:defs&gt;
+
+    &lt;svgml:rect width=&quot;100%&quot;
+                height=&quot;100%&quot;
+                fill=&quot;lightgray&quot; /&gt;
+    &lt;svgml:rect id=&quot;r2&quot;
+                width=&quot;10%&quot;
+                height=&quot;10%&quot;
+                x=&quot;0%&quot;
+                y=&quot;45%&quot;
+                fill=&quot;green&quot;
+                filter=&quot;#noise&quot; /&gt;
+  &lt;/svgml:svg&gt;
+&lt;/Window.Resources&gt;
+</code></pre>
+<p>That pattern is useful when the icon or effect graph should live next to the XAML that consumes it.</p>
+<h2 id="animating-inline-svg-elements">Animating inline SVG elements</h2>
+<p>Avalonia style selectors can target the inline SVG controls directly:</p>
+<pre><code class="language-xml">&lt;Window.Styles&gt;
+  &lt;Style Selector=&quot;svgml|rect#r2&quot;&gt;
+    &lt;Style.Animations&gt;
+      &lt;Animation Duration=&quot;0:0:1&quot;
+                 IterationCount=&quot;Infinite&quot;
+                 PlaybackDirection=&quot;Alternate&quot;&gt;
+        &lt;KeyFrame Cue=&quot;0%&quot;&gt;
+          &lt;Setter Property=&quot;x&quot; Value=&quot;0%&quot; /&gt;
+        &lt;/KeyFrame&gt;
+        &lt;KeyFrame Cue=&quot;100%&quot;&gt;
+          &lt;Setter Property=&quot;x&quot; Value=&quot;90%&quot; /&gt;
+        &lt;/KeyFrame&gt;
+      &lt;/Animation&gt;
+    &lt;/Style.Animations&gt;
+  &lt;/Style&gt;
+&lt;/Window.Styles&gt;
+</code></pre>
+<p>The same approach works for filter elements such as <code>feTurbulence</code>, which makes <code>SvgML.Avalonia</code> a good fit for small procedural effects or animated UI accents.</p>
+<h2 id="rendering-and-hit-testing">Rendering and hit testing</h2>
+<p>The root <code>svg</code> control exposes:</p>
+<ul>
+<li><code>Picture</code> for direct <code>SKPicture</code> access,</li>
+<li><code>HitTestElements(...)</code> and <code>HitTestSceneNodes(...)</code>,</li>
+<li><code>TryGetPicturePoint(...)</code> and <code>TryGetPictureRect(...)</code>,</li>
+<li><code>GetElementForSceneNode(...)</code> for mapping retained-scene results back to the authored controls.</li>
+</ul>
+<p>This is more than a markup serializer. The authored control tree and renderer state stay connected.</p>
+<h2 id="when-to-use-svgmlavalonia-versus-svgsource">When to use SvgML.Avalonia versus SvgSource</h2>
+<ul>
+<li>Choose <code>SvgML.Avalonia</code> when the visual is authored inline and should be styleable as part of the Avalonia view.</li>
+<li>Choose <code>Avalonia.Svg.Skia</code> or <code>Avalonia.Svg</code> when the source is already an external SVG asset or a reusable <code>SvgSource</code>.</li>
+</ul>
+<p>The repository sample at <code>samples/SvgML.Avalonia.Demo</code> shows both the reusable-resource pattern and selector-driven animation.</p>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

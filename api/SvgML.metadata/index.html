@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>metadata Class | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="metadata Class | Svg.Skia">
+<meta name="twitter:description" content="metadata Class Definition Namespace SvgML Assembly SvgML.Avalonia.dll Inherits Object → Avalonia.AvaloniaObject → Avalonia.Animation.Animatable → Avalonia.StyledElement → Avalonia.Visual → Avalonia.Layout.Layoutable → Avalonia.Interactivity.Interactive → Avalonia.Input.InputElement → Avalonia.Controls.Control → element Implements INotifyPropertyChanged, Avalonia.IDataContextProvider, Avalonia.LogicalTree.ILogical, Avalonia.Styling.IThemeVariantHost, Avalonia.Controls.IResourceHost, Avalonia.Controls.IResourceNode, Avalonia.Styling.IStyleHost, Avalonia.Controls.ISetLogicalParent, Avalonia.Controls.ISetInheritanceParent, ISupportInitialize, Avalonia.INamed, Avalonia.Input.IInputElement, Avalonia.Controls.Templates.IDataTemplateHost, Avalonia.Styling.ISetterValue...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="metadata Class | Svg.Skia">
+<meta property="og:title" content="metadata Class | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="metadata Class Definition Namespace SvgML Assembly SvgML.Avalonia.dll Inherits Object → Avalonia.AvaloniaObject → Avalonia.Animation.Animatable → Avalonia.StyledElement → Avalonia.Visual → Avalonia.Layout.Layoutable → Avalonia.Interactivity.Interactive → Avalonia.Input.InputElement → Avalonia.Controls.Control → element Implements INotifyPropertyChanged, Avalonia.IDataContextProvider, Avalonia.LogicalTree.ILogical, Avalonia.Styling.IThemeVariantHost, Avalonia.Controls.IResourceHost, Avalonia.Controls.IResourceNode, Avalonia.Styling.IStyleHost, Avalonia.Controls.ISetLogicalParent, Avalonia.Controls.ISetInheritanceParent, ISupportInitialize, Avalonia.INamed, Avalonia.Input.IInputElement, Avalonia.Controls.Templates.IDataTemplateHost, Avalonia.Styling.ISetterValue...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="metadata Class | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-api">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-3 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.6e9687f393ad01e1091053c10fa45801.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-5861,menu-id-menu-4997' data-lunet-menu-active='menu-item-menu-5861,menu-item-menu-4997,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-7 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/api/' class='breadcrumb-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/api/SvgML/' class='breadcrumb-link  '><i class='bi bi-diagram-3' aria-hidden='true'></i> SvgML</a>  </li>
+          <li class='breadcrumb-item  active'>
+            <i class='bi bi-box' aria-hidden='true'></i> metadata  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<div class="api-dotnet">
+<h1 id="metadata-class">metadata Class</h1>
+<h2 id="definition" class="heading-anchor-hidden">Definition</h2>
+<div class="api-dotnet-definition">
+<div class="api-dotnet-definition-header">
+<div class="api-dotnet-definition-meta">
+<div><span class="api-dotnet-label">Namespace</span> SvgML</div>
+<div><span class="api-dotnet-label">Assembly</span> SvgML.Avalonia.dll</div>
+<div><span class="api-dotnet-label">Inherits</span> <span class="api-dotnet-inline-list"><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object">Object</a> &#x2192; <a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject/">Avalonia.AvaloniaObject</a> &#x2192; <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Animation.Animatable/">Avalonia.Animation.Animatable</a> &#x2192; <a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement/">Avalonia.StyledElement</a> &#x2192; <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual/">Avalonia.Visual</a> &#x2192; <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable/">Avalonia.Layout.Layoutable</a> &#x2192; <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Interactivity.Interactive/">Avalonia.Interactivity.Interactive</a> &#x2192; <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement/">Avalonia.Input.InputElement</a> &#x2192; <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control/">Avalonia.Controls.Control</a> &#x2192; <a href="/Svg.Skia/api/SvgML.element/">element</a></span></div>
+<div><span class="api-dotnet-label">Implements</span> <span class="api-dotnet-inline-list"><a href="https://docs.microsoft.com/en-us/dotnet/api/System.ComponentModel.INotifyPropertyChanged">INotifyPropertyChanged</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.IDataContextProvider/">Avalonia.IDataContextProvider</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.LogicalTree.ILogical/">Avalonia.LogicalTree.ILogical</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Styling.IThemeVariantHost/">Avalonia.Styling.IThemeVariantHost</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.IResourceHost/">Avalonia.Controls.IResourceHost</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.IResourceNode/">Avalonia.Controls.IResourceNode</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Styling.IStyleHost/">Avalonia.Styling.IStyleHost</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.ISetLogicalParent/">Avalonia.Controls.ISetLogicalParent</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.ISetInheritanceParent/">Avalonia.Controls.ISetInheritanceParent</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.ComponentModel.ISupportInitialize">ISupportInitialize</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.INamed/">Avalonia.INamed</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.IInputElement/">Avalonia.Input.IInputElement</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Templates.IDataTemplateHost/">Avalonia.Controls.Templates.IDataTemplateHost</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Styling.ISetterValue/">Avalonia.Styling.ISetterValue</a>, <a href="https://api-docs.avaloniaui.net/docs/Avalonia.Rendering.ICustomHitTest/">Avalonia.Rendering.ICustomHitTest</a></span></div>
+</div>
+<div class="api-dotnet-definition-actions">
+<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/src/SvgML.Avalonia/Generated/Metadata/metadata.Writer.g.cs#L5" target="_blank" rel="noopener">View source</a>
+</div>
+</div>
+<details class="api-dotnet-inherited">
+<summary>Show inherited members (443)</summary>
+<ul>
+<li><a href="/Svg.Skia/api/SvgML.element.SvgElement/">SvgML.element.SvgElement</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.SceneNodes/">SvgML.element.SceneNodes</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.GeometryBounds/">SvgML.element.GeometryBounds</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.TransformedBounds/">SvgML.element.TransformedBounds</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.TransformMatrix/">SvgML.element.TransformMatrix</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.TotalTransformMatrix/">SvgML.element.TotalTransformMatrix</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.HitTest-ShimSkiaSharp.SKPoint/">SvgML.element.HitTest(ShimSkiaSharp.SKPoint)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.HitTest-ShimSkiaSharp.SKRect/">SvgML.element.HitTest(ShimSkiaSharp.SKRect)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.GetControlBounds-Avalonia.Matrix/">SvgML.element.GetControlBounds(Avalonia.Matrix)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.Avalonia-Rendering-ICustomHitTest-HitTest-Avalonia.Point/">SvgML.element.Avalonia.Rendering.ICustomHitTest.HitTest(Avalonia.Point)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ChildrenChanged-System.Object-System.Collections.Specialized.NotifyCo-2680411d8363/">SvgML.element.ChildrenChanged(System.Object?, System.Collections.Specialized.NotifyCollectionChangedEventArgs)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.OnPropertyChanged-Avalonia.AvaloniaPropertyChangedEventArgs/">SvgML.element.OnPropertyChanged(Avalonia.AvaloniaPropertyChangedEventArgs)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.Invalidate/">SvgML.element.Invalidate()</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.Children/">SvgML.element.Children</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.styleProperty/">SvgML.element.styleProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.colorProperty/">SvgML.element.colorProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.transformProperty/">SvgML.element.transformProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.idProperty/">SvgML.element.idProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.spProperty/">SvgML.element.spProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onclickProperty/">SvgML.element.onclickProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onmousedownProperty/">SvgML.element.onmousedownProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onmouseupProperty/">SvgML.element.onmouseupProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onmousemoveProperty/">SvgML.element.onmousemoveProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onmousescrollProperty/">SvgML.element.onmousescrollProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onmouseoverProperty/">SvgML.element.onmouseoverProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onmouseoutProperty/">SvgML.element.onmouseoutProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.fillProperty/">SvgML.element.fillProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.strokeProperty/">SvgML.element.strokeProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.fill-ruleProperty/">SvgML.element.fill_ruleProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.fill-opacityProperty/">SvgML.element.fill_opacityProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-widthProperty/">SvgML.element.stroke_widthProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-linecapProperty/">SvgML.element.stroke_linecapProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-linejoinProperty/">SvgML.element.stroke_linejoinProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-miterlimitProperty/">SvgML.element.stroke_miterlimitProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-dasharrayProperty/">SvgML.element.stroke_dasharrayProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-dashoffsetProperty/">SvgML.element.stroke_dashoffsetProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-opacityProperty/">SvgML.element.stroke_opacityProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.opacityProperty/">SvgML.element.opacityProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.shape-renderingProperty/">SvgML.element.shape_renderingProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.color-interpolationProperty/">SvgML.element.color_interpolationProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.color-interpolation-filtersProperty/">SvgML.element.color_interpolation_filtersProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.visibilityProperty/">SvgML.element.visibilityProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.displayProperty/">SvgML.element.displayProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.text-anchorProperty/">SvgML.element.text_anchorProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.baseline-shiftProperty/">SvgML.element.baseline_shiftProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font-familyProperty/">SvgML.element.font_familyProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font-sizeProperty/">SvgML.element.font_sizeProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font-styleProperty/">SvgML.element.font_styleProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font-variantProperty/">SvgML.element.font_variantProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.text-decorationProperty/">SvgML.element.text_decorationProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font-weightProperty/">SvgML.element.font_weightProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font-stretchProperty/">SvgML.element.font_stretchProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.text-transformProperty/">SvgML.element.text_transformProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.fontProperty/">SvgML.element.fontProperty</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.style/">SvgML.element.style</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.color/">SvgML.element.color</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.transform/">SvgML.element.transform</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.id/">SvgML.element.id</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.sp/">SvgML.element.sp</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onclick/">SvgML.element.onclick</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onmousedown/">SvgML.element.onmousedown</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onmouseup/">SvgML.element.onmouseup</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onmousemove/">SvgML.element.onmousemove</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onmousescroll/">SvgML.element.onmousescroll</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onmouseover/">SvgML.element.onmouseover</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.onmouseout/">SvgML.element.onmouseout</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.fill/">SvgML.element.fill</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke/">SvgML.element.stroke</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.fill-rule/">SvgML.element.fill_rule</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.fill-opacity/">SvgML.element.fill_opacity</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-width/">SvgML.element.stroke_width</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-linecap/">SvgML.element.stroke_linecap</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-linejoin/">SvgML.element.stroke_linejoin</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-miterlimit/">SvgML.element.stroke_miterlimit</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-dasharray/">SvgML.element.stroke_dasharray</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-dashoffset/">SvgML.element.stroke_dashoffset</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.stroke-opacity/">SvgML.element.stroke_opacity</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.opacity/">SvgML.element.opacity</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.shape-rendering/">SvgML.element.shape_rendering</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.color-interpolation/">SvgML.element.color_interpolation</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.color-interpolation-filters/">SvgML.element.color_interpolation_filters</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.visibility/">SvgML.element.visibility</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.display/">SvgML.element.display</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.text-anchor/">SvgML.element.text_anchor</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.baseline-shift/">SvgML.element.baseline_shift</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font-family/">SvgML.element.font_family</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font-size/">SvgML.element.font_size</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font-style/">SvgML.element.font_style</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font-variant/">SvgML.element.font_variant</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.text-decoration/">SvgML.element.text_decoration</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font-weight/">SvgML.element.font_weight</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font-stretch/">SvgML.element.font_stretch</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.text-transform/">SvgML.element.text_transform</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.font/">SvgML.element.font</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ToSvgString-System.String/">SvgML.element.ToSvgString(System.String)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ToSvgString-System.Object/">SvgML.element.ToSvgString(System.Object)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ToSvgString-System.Enum/">SvgML.element.ToSvgString(System.Enum)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ToSvgString-System.Boolean/">SvgML.element.ToSvgString(System.Boolean)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ToSvgString-System.Nullable-System.Boolean-/">SvgML.element.ToSvgString(System.Nullable&lt;System.Boolean&gt;)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ToSvgString-System.Single/">SvgML.element.ToSvgString(System.Single)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ToSvgString-System.Nullable-System.Single-/">SvgML.element.ToSvgString(System.Nullable&lt;System.Single&gt;)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ToSvgString-Svg.SvgUnit/">SvgML.element.ToSvgString(Svg.SvgUnit)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ToSvgString-System.Nullable-Svg.SvgUnit-/">SvgML.element.ToSvgString(System.Nullable&lt;Svg.SvgUnit&gt;)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ToSvgString-Svg.SvgNumberCollection/">SvgML.element.ToSvgString(Svg.SvgNumberCollection)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ToSvgString-SvgML.numbers/">SvgML.element.ToSvgString(SvgML.numbers)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.ToSvgString-SvgML.element/">SvgML.element.ToSvgString(SvgML.element)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.Write-System.IO.TextWriter-SvgML.element/">SvgML.element.Write(System.IO.TextWriter, SvgML.element)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.WriteXmlns-System.IO.TextWriter-SvgML.element/">SvgML.element.WriteXmlns(System.IO.TextWriter, SvgML.element)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.WriteBeginStartTag-System.IO.TextWriter-SvgML.element/">SvgML.element.WriteBeginStartTag(System.IO.TextWriter, SvgML.element)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.WriteEndStartTag-System.IO.TextWriter-SvgML.element/">SvgML.element.WriteEndStartTag(System.IO.TextWriter, SvgML.element)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.WriteEndTag-System.IO.TextWriter-SvgML.element/">SvgML.element.WriteEndTag(System.IO.TextWriter, SvgML.element)</a></li>
+<li><a href="/Svg.Skia/api/SvgML.element.WriteContents-System.IO.TextWriter-SvgML.element/">SvgML.element.WriteContents(System.IO.TextWriter, SvgML.element)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.FocusAdornerProperty/">Avalonia.Controls.Control.FocusAdornerProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.TagProperty/">Avalonia.Controls.Control.TagProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.ContextMenuProperty/">Avalonia.Controls.Control.ContextMenuProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.ContextFlyoutProperty/">Avalonia.Controls.Control.ContextFlyoutProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.RequestBringIntoViewEvent/">Avalonia.Controls.Control.RequestBringIntoViewEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.LoadedEvent/">Avalonia.Controls.Control.LoadedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.UnloadedEvent/">Avalonia.Controls.Control.UnloadedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.SizeChangedEvent/">Avalonia.Controls.Control.SizeChangedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.Avalonia-Styling-ISetterValue-Initialize-Avalonia.Styling.SetterBase/">Avalonia.Controls.Control.Avalonia#Styling#ISetterValue#Initialize(Avalonia.Styling.SetterBase)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.GetTemplateFocusTarget/">Avalonia.Controls.Control.GetTemplateFocusTarget</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.OnLoaded-Avalonia.Interactivity.RoutedEventArgs/">Avalonia.Controls.Control.OnLoaded(Avalonia.Interactivity.RoutedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.OnUnloaded-Avalonia.Interactivity.RoutedEventArgs/">Avalonia.Controls.Control.OnUnloaded(Avalonia.Interactivity.RoutedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.OnSizeChanged-Avalonia.Controls.SizeChangedEventArgs/">Avalonia.Controls.Control.OnSizeChanged(Avalonia.Controls.SizeChangedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.OnAttachedToVisualTreeCore-Avalonia.VisualTreeAttachmentEventArgs/">Avalonia.Controls.Control.OnAttachedToVisualTreeCore(Avalonia.VisualTreeAttachmentEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.OnDetachedFromVisualTreeCore-Avalonia.VisualTreeAttachmentEventArgs/">Avalonia.Controls.Control.OnDetachedFromVisualTreeCore(Avalonia.VisualTreeAttachmentEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.OnGotFocus-Avalonia.Input.FocusChangedEventArgs/">Avalonia.Controls.Control.OnGotFocus(Avalonia.Input.FocusChangedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.OnLostFocus-Avalonia.Input.FocusChangedEventArgs/">Avalonia.Controls.Control.OnLostFocus(Avalonia.Input.FocusChangedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.OnCreateAutomationPeer/">Avalonia.Controls.Control.OnCreateAutomationPeer</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.OnPointerReleased-Avalonia.Input.PointerReleasedEventArgs/">Avalonia.Controls.Control.OnPointerReleased(Avalonia.Input.PointerReleasedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.OnKeyUp-Avalonia.Input.KeyEventArgs/">Avalonia.Controls.Control.OnKeyUp(Avalonia.Input.KeyEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.UpdateDataValidation-Avalonia.AvaloniaProperty-Avalonia.D-f369a77c9784/">Avalonia.Controls.Control.UpdateDataValidation(Avalonia.AvaloniaProperty,Avalonia.Data.BindingValueType,System.Exception)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.FocusAdorner/">Avalonia.Controls.Control.FocusAdorner</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.DataTemplates/">Avalonia.Controls.Control.DataTemplates</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.ContextMenu/">Avalonia.Controls.Control.ContextMenu</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.ContextFlyout/">Avalonia.Controls.Control.ContextFlyout</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.IsLoaded/">Avalonia.Controls.Control.IsLoaded</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.Tag/">Avalonia.Controls.Control.Tag</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.Avalonia-Controls-Templates-IDataTemplateHost-IsDataTempl-b77c14a88d44/">Avalonia.Controls.Control.Avalonia#Controls#Templates#IDataTemplateHost#IsDataTemplatesInitialized</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.Loaded/">Avalonia.Controls.Control.Loaded</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.Unloaded/">Avalonia.Controls.Control.Unloaded</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Controls.Control.SizeChanged/">Avalonia.Controls.Control.SizeChanged</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.FocusableProperty/">Avalonia.Input.InputElement.FocusableProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsEnabledProperty/">Avalonia.Input.InputElement.IsEnabledProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsEffectivelyEnabledProperty/">Avalonia.Input.InputElement.IsEffectivelyEnabledProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.CursorProperty/">Avalonia.Input.InputElement.CursorProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsKeyboardFocusWithinProperty/">Avalonia.Input.InputElement.IsKeyboardFocusWithinProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsFocusedProperty/">Avalonia.Input.InputElement.IsFocusedProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsHitTestVisibleProperty/">Avalonia.Input.InputElement.IsHitTestVisibleProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsPointerOverProperty/">Avalonia.Input.InputElement.IsPointerOverProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsTabStopProperty/">Avalonia.Input.InputElement.IsTabStopProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.GotFocusEvent/">Avalonia.Input.InputElement.GotFocusEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.GettingFocusEvent/">Avalonia.Input.InputElement.GettingFocusEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.LostFocusEvent/">Avalonia.Input.InputElement.LostFocusEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.LosingFocusEvent/">Avalonia.Input.InputElement.LosingFocusEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.KeyDownEvent/">Avalonia.Input.InputElement.KeyDownEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.KeyUpEvent/">Avalonia.Input.InputElement.KeyUpEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.TabIndexProperty/">Avalonia.Input.InputElement.TabIndexProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.TextInputEvent/">Avalonia.Input.InputElement.TextInputEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.TextInputMethodClientRequestedEvent/">Avalonia.Input.InputElement.TextInputMethodClientRequestedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerEnteredEvent/">Avalonia.Input.InputElement.PointerEnteredEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerExitedEvent/">Avalonia.Input.InputElement.PointerExitedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerMovedEvent/">Avalonia.Input.InputElement.PointerMovedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerPressedEvent/">Avalonia.Input.InputElement.PointerPressedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerReleasedEvent/">Avalonia.Input.InputElement.PointerReleasedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerCaptureLostEvent/">Avalonia.Input.InputElement.PointerCaptureLostEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerWheelChangedEvent/">Avalonia.Input.InputElement.PointerWheelChangedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.ContextRequestedEvent/">Avalonia.Input.InputElement.ContextRequestedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.ContextCanceledEvent/">Avalonia.Input.InputElement.ContextCanceledEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsHoldingEnabledProperty/">Avalonia.Input.InputElement.IsHoldingEnabledProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsHoldWithMouseEnabledProperty/">Avalonia.Input.InputElement.IsHoldWithMouseEnabledProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PinchEvent/">Avalonia.Input.InputElement.PinchEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PinchEndedEvent/">Avalonia.Input.InputElement.PinchEndedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PullGestureEvent/">Avalonia.Input.InputElement.PullGestureEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PullGestureEndedEvent/">Avalonia.Input.InputElement.PullGestureEndedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.SwipeGestureEvent/">Avalonia.Input.InputElement.SwipeGestureEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.SwipeGestureEndedEvent/">Avalonia.Input.InputElement.SwipeGestureEndedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.ScrollGestureEvent/">Avalonia.Input.InputElement.ScrollGestureEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.ScrollGestureInertiaStartingEvent/">Avalonia.Input.InputElement.ScrollGestureInertiaStartingEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.ScrollGestureEndedEvent/">Avalonia.Input.InputElement.ScrollGestureEndedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerTouchPadGestureMagnifyEvent/">Avalonia.Input.InputElement.PointerTouchPadGestureMagnifyEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerTouchPadGestureRotateEvent/">Avalonia.Input.InputElement.PointerTouchPadGestureRotateEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerTouchPadGestureSwipeEvent/">Avalonia.Input.InputElement.PointerTouchPadGestureSwipeEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.TappedEvent/">Avalonia.Input.InputElement.TappedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.RightTappedEvent/">Avalonia.Input.InputElement.RightTappedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.HoldingEvent/">Avalonia.Input.InputElement.HoldingEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.DoubleTappedEvent/">Avalonia.Input.InputElement.DoubleTappedEvent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.Focus-Avalonia.Input.NavigationMethod-Avalonia.Input.KeyModifiers/">Avalonia.Input.InputElement.Focus(Avalonia.Input.NavigationMethod,Avalonia.Input.KeyModifiers)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnAccessKey-Avalonia.Interactivity.RoutedEventArgs/">Avalonia.Input.InputElement.OnAccessKey(Avalonia.Interactivity.RoutedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnGettingFocus-Avalonia.Input.FocusChangingEventArgs/">Avalonia.Input.InputElement.OnGettingFocus(Avalonia.Input.FocusChangingEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnLosingFocus-Avalonia.Input.FocusChangingEventArgs/">Avalonia.Input.InputElement.OnLosingFocus(Avalonia.Input.FocusChangingEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnKeyDown-Avalonia.Input.KeyEventArgs/">Avalonia.Input.InputElement.OnKeyDown(Avalonia.Input.KeyEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnTextInput-Avalonia.Input.TextInputEventArgs/">Avalonia.Input.InputElement.OnTextInput(Avalonia.Input.TextInputEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnPointerEntered-Avalonia.Input.PointerEventArgs/">Avalonia.Input.InputElement.OnPointerEntered(Avalonia.Input.PointerEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnPointerExited-Avalonia.Input.PointerEventArgs/">Avalonia.Input.InputElement.OnPointerExited(Avalonia.Input.PointerEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnPointerMoved-Avalonia.Input.PointerEventArgs/">Avalonia.Input.InputElement.OnPointerMoved(Avalonia.Input.PointerEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnPointerPressed-Avalonia.Input.PointerPressedEventArgs/">Avalonia.Input.InputElement.OnPointerPressed(Avalonia.Input.PointerPressedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.GetNextTabStopOverride/">Avalonia.Input.InputElement.GetNextTabStopOverride</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.GetPreviousTabStopOverride/">Avalonia.Input.InputElement.GetPreviousTabStopOverride</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.GetFirstFocusableElementOverride/">Avalonia.Input.InputElement.GetFirstFocusableElementOverride</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.GetLastFocusableElementOverride/">Avalonia.Input.InputElement.GetLastFocusableElementOverride</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnPointerCaptureLost-Avalonia.Input.PointerCaptureLostEventArgs/">Avalonia.Input.InputElement.OnPointerCaptureLost(Avalonia.Input.PointerCaptureLostEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.ProcessTabStopOverride-Avalonia.Input.IInputElement-Ava-62e8f3bbfe09/">Avalonia.Input.InputElement.ProcessTabStopOverride(Avalonia.Input.IInputElement,Avalonia.Input.IInputElement,System.Boolean,System.Boolean,Avalonia.Input.IInputElement@)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.ProcessCandidateTabStopOverride-Avalonia.Input.IInputEl-c610878cc5f6/">Avalonia.Input.InputElement.ProcessCandidateTabStopOverride(Avalonia.Input.IInputElement,Avalonia.Input.IInputElement,Avalonia.Input.IInputElement,System.Boolean,Avalonia.Input.IInputElement@)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnPointerWheelChanged-Avalonia.Input.PointerWheelEventArgs/">Avalonia.Input.InputElement.OnPointerWheelChanged(Avalonia.Input.PointerWheelEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnTapped-Avalonia.Input.TappedEventArgs/">Avalonia.Input.InputElement.OnTapped(Avalonia.Input.TappedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnRightTapped-Avalonia.Input.TappedEventArgs/">Avalonia.Input.InputElement.OnRightTapped(Avalonia.Input.TappedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnDoubleTapped-Avalonia.Input.TappedEventArgs/">Avalonia.Input.InputElement.OnDoubleTapped(Avalonia.Input.TappedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.OnHolding-Avalonia.Input.HoldingRoutedEventArgs/">Avalonia.Input.InputElement.OnHolding(Avalonia.Input.HoldingRoutedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.UpdateIsEffectivelyEnabled/">Avalonia.Input.InputElement.UpdateIsEffectivelyEnabled</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.GetIsHoldingEnabled-Avalonia.StyledElement/">Avalonia.Input.InputElement.GetIsHoldingEnabled(Avalonia.StyledElement)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.SetIsHoldingEnabled-Avalonia.StyledElement-System.Boolean/">Avalonia.Input.InputElement.SetIsHoldingEnabled(Avalonia.StyledElement,System.Boolean)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.GetIsHoldWithMouseEnabled-Avalonia.StyledElement/">Avalonia.Input.InputElement.GetIsHoldWithMouseEnabled(Avalonia.StyledElement)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.SetIsHoldWithMouseEnabled-Avalonia.StyledElement-System.Boolean/">Avalonia.Input.InputElement.SetIsHoldWithMouseEnabled(Avalonia.StyledElement,System.Boolean)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.Focusable/">Avalonia.Input.InputElement.Focusable</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsEnabled/">Avalonia.Input.InputElement.IsEnabled</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.Cursor/">Avalonia.Input.InputElement.Cursor</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsKeyboardFocusWithin/">Avalonia.Input.InputElement.IsKeyboardFocusWithin</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsFocused/">Avalonia.Input.InputElement.IsFocused</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsHitTestVisible/">Avalonia.Input.InputElement.IsHitTestVisible</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsPointerOver/">Avalonia.Input.InputElement.IsPointerOver</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsTabStop/">Avalonia.Input.InputElement.IsTabStop</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsEffectivelyEnabled/">Avalonia.Input.InputElement.IsEffectivelyEnabled</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.TabIndex/">Avalonia.Input.InputElement.TabIndex</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.KeyBindings/">Avalonia.Input.InputElement.KeyBindings</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.IsEnabledCore/">Avalonia.Input.InputElement.IsEnabledCore</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.GestureRecognizers/">Avalonia.Input.InputElement.GestureRecognizers</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.GotFocus/">Avalonia.Input.InputElement.GotFocus</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.GettingFocus/">Avalonia.Input.InputElement.GettingFocus</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.LostFocus/">Avalonia.Input.InputElement.LostFocus</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.LosingFocus/">Avalonia.Input.InputElement.LosingFocus</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.KeyDown/">Avalonia.Input.InputElement.KeyDown</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.KeyUp/">Avalonia.Input.InputElement.KeyUp</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.TextInput/">Avalonia.Input.InputElement.TextInput</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.TextInputMethodClientRequested/">Avalonia.Input.InputElement.TextInputMethodClientRequested</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerEntered/">Avalonia.Input.InputElement.PointerEntered</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerExited/">Avalonia.Input.InputElement.PointerExited</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerMoved/">Avalonia.Input.InputElement.PointerMoved</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerPressed/">Avalonia.Input.InputElement.PointerPressed</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerReleased/">Avalonia.Input.InputElement.PointerReleased</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerCaptureLost/">Avalonia.Input.InputElement.PointerCaptureLost</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerWheelChanged/">Avalonia.Input.InputElement.PointerWheelChanged</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.ContextRequested/">Avalonia.Input.InputElement.ContextRequested</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.ContextCanceled/">Avalonia.Input.InputElement.ContextCanceled</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.Pinch/">Avalonia.Input.InputElement.Pinch</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PinchEnded/">Avalonia.Input.InputElement.PinchEnded</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PullGesture/">Avalonia.Input.InputElement.PullGesture</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PullGestureEnded/">Avalonia.Input.InputElement.PullGestureEnded</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.ScrollGesture/">Avalonia.Input.InputElement.ScrollGesture</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.ScrollGestureInertiaStarting/">Avalonia.Input.InputElement.ScrollGestureInertiaStarting</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.ScrollGestureEnded/">Avalonia.Input.InputElement.ScrollGestureEnded</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerTouchPadGestureMagnify/">Avalonia.Input.InputElement.PointerTouchPadGestureMagnify</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerTouchPadGestureRotate/">Avalonia.Input.InputElement.PointerTouchPadGestureRotate</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.SwipeGesture/">Avalonia.Input.InputElement.SwipeGesture</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.SwipeGestureEnded/">Avalonia.Input.InputElement.SwipeGestureEnded</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.PointerTouchPadGestureSwipe/">Avalonia.Input.InputElement.PointerTouchPadGestureSwipe</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.Tapped/">Avalonia.Input.InputElement.Tapped</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.RightTapped/">Avalonia.Input.InputElement.RightTapped</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.Holding/">Avalonia.Input.InputElement.Holding</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Input.InputElement.DoubleTapped/">Avalonia.Input.InputElement.DoubleTapped</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Interactivity.Interactive.AddHandler-Avalonia.Interactivity.RoutedEvent-Sy-cf2cba9055fc/">Avalonia.Interactivity.Interactive.AddHandler(Avalonia.Interactivity.RoutedEvent,System.Delegate,Avalonia.Interactivity.RoutingStrategies,System.Boolean)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Interactivity.Interactive.AddHandler-1-Avalonia.Interactivity.RoutedEvent-354de3764390/">Avalonia.Interactivity.Interactive.AddHandler``1(Avalonia.Interactivity.RoutedEvent{{TEventArgs}},System.EventHandler{{TEventArgs}},Avalonia.Interactivity.RoutingStrategies,System.Boolean)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Interactivity.Interactive.RemoveHandler-Avalonia.Interactivity.RoutedEvent-a4cfef94ee3c/">Avalonia.Interactivity.Interactive.RemoveHandler(Avalonia.Interactivity.RoutedEvent,System.Delegate)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Interactivity.Interactive.RemoveHandler-1-Avalonia.Interactivity.RoutedEve-201a6679cd6e/">Avalonia.Interactivity.Interactive.RemoveHandler``1(Avalonia.Interactivity.RoutedEvent{{TEventArgs}},System.EventHandler{{TEventArgs}})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Interactivity.Interactive.RaiseEvent-Avalonia.Interactivity.RoutedEventArgs/">Avalonia.Interactivity.Interactive.RaiseEvent(Avalonia.Interactivity.RoutedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Interactivity.Interactive.BuildEventRoute-Avalonia.Interactivity.RoutedEvent/">Avalonia.Interactivity.Interactive.BuildEventRoute(Avalonia.Interactivity.RoutedEvent)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.DesiredSizeProperty/">Avalonia.Layout.Layoutable.DesiredSizeProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.WidthProperty/">Avalonia.Layout.Layoutable.WidthProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.HeightProperty/">Avalonia.Layout.Layoutable.HeightProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.MinWidthProperty/">Avalonia.Layout.Layoutable.MinWidthProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.MaxWidthProperty/">Avalonia.Layout.Layoutable.MaxWidthProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.MinHeightProperty/">Avalonia.Layout.Layoutable.MinHeightProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.MaxHeightProperty/">Avalonia.Layout.Layoutable.MaxHeightProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.MarginProperty/">Avalonia.Layout.Layoutable.MarginProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.HorizontalAlignmentProperty/">Avalonia.Layout.Layoutable.HorizontalAlignmentProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.VerticalAlignmentProperty/">Avalonia.Layout.Layoutable.VerticalAlignmentProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.UseLayoutRoundingProperty/">Avalonia.Layout.Layoutable.UseLayoutRoundingProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.UpdateLayout/">Avalonia.Layout.Layoutable.UpdateLayout</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.ApplyTemplate/">Avalonia.Layout.Layoutable.ApplyTemplate</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.Measure-Avalonia.Size/">Avalonia.Layout.Layoutable.Measure(Avalonia.Size)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.Arrange-Avalonia.Rect/">Avalonia.Layout.Layoutable.Arrange(Avalonia.Rect)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.InvalidateMeasure/">Avalonia.Layout.Layoutable.InvalidateMeasure</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.InvalidateArrange/">Avalonia.Layout.Layoutable.InvalidateArrange</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.AffectsMeasure--1-Avalonia.AvaloniaProperty--/">Avalonia.Layout.Layoutable.AffectsMeasure``1(Avalonia.AvaloniaProperty[])</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.AffectsArrange--1-Avalonia.AvaloniaProperty--/">Avalonia.Layout.Layoutable.AffectsArrange``1(Avalonia.AvaloniaProperty[])</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.MeasureCore-Avalonia.Size/">Avalonia.Layout.Layoutable.MeasureCore(Avalonia.Size)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.MeasureOverride-Avalonia.Size/">Avalonia.Layout.Layoutable.MeasureOverride(Avalonia.Size)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.ArrangeCore-Avalonia.Rect/">Avalonia.Layout.Layoutable.ArrangeCore(Avalonia.Rect)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.ArrangeOverride-Avalonia.Size/">Avalonia.Layout.Layoutable.ArrangeOverride(Avalonia.Size)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.OnMeasureInvalidated/">Avalonia.Layout.Layoutable.OnMeasureInvalidated</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.OnVisualParentChanged-Avalonia.Visual-Avalonia.Visual/">Avalonia.Layout.Layoutable.OnVisualParentChanged(Avalonia.Visual,Avalonia.Visual)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.Width/">Avalonia.Layout.Layoutable.Width</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.Height/">Avalonia.Layout.Layoutable.Height</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.MinWidth/">Avalonia.Layout.Layoutable.MinWidth</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.MaxWidth/">Avalonia.Layout.Layoutable.MaxWidth</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.MinHeight/">Avalonia.Layout.Layoutable.MinHeight</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.MaxHeight/">Avalonia.Layout.Layoutable.MaxHeight</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.Margin/">Avalonia.Layout.Layoutable.Margin</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.HorizontalAlignment/">Avalonia.Layout.Layoutable.HorizontalAlignment</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.VerticalAlignment/">Avalonia.Layout.Layoutable.VerticalAlignment</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.DesiredSize/">Avalonia.Layout.Layoutable.DesiredSize</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.IsMeasureValid/">Avalonia.Layout.Layoutable.IsMeasureValid</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.IsArrangeValid/">Avalonia.Layout.Layoutable.IsArrangeValid</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.UseLayoutRounding/">Avalonia.Layout.Layoutable.UseLayoutRounding</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.EffectiveViewportChanged/">Avalonia.Layout.Layoutable.EffectiveViewportChanged</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Layout.Layoutable.LayoutUpdated/">Avalonia.Layout.Layoutable.LayoutUpdated</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.BoundsProperty/">Avalonia.Visual.BoundsProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.ClipToBoundsProperty/">Avalonia.Visual.ClipToBoundsProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.ClipProperty/">Avalonia.Visual.ClipProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.IsVisibleProperty/">Avalonia.Visual.IsVisibleProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.OpacityProperty/">Avalonia.Visual.OpacityProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.OpacityMaskProperty/">Avalonia.Visual.OpacityMaskProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.CacheModeProperty/">Avalonia.Visual.CacheModeProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.EffectProperty/">Avalonia.Visual.EffectProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.HasMirrorTransformProperty/">Avalonia.Visual.HasMirrorTransformProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.RenderTransformProperty/">Avalonia.Visual.RenderTransformProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.RenderTransformOriginProperty/">Avalonia.Visual.RenderTransformOriginProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.FlowDirectionProperty/">Avalonia.Visual.FlowDirectionProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.VisualParentProperty/">Avalonia.Visual.VisualParentProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.ZIndexProperty/">Avalonia.Visual.ZIndexProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.GetFlowDirection-Avalonia.Visual/">Avalonia.Visual.GetFlowDirection(Avalonia.Visual)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.SetFlowDirection-Avalonia.Visual-Avalonia.Media.FlowDirection/">Avalonia.Visual.SetFlowDirection(Avalonia.Visual,Avalonia.Media.FlowDirection)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.InvalidateVisual/">Avalonia.Visual.InvalidateVisual</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.Render-Avalonia.Media.DrawingContext/">Avalonia.Visual.Render(Avalonia.Media.DrawingContext)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.AffectsRender--1-Avalonia.AvaloniaProperty--/">Avalonia.Visual.AffectsRender``1(Avalonia.AvaloniaProperty[])</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.LogicalChildrenCollectionChanged-System.Object-System.Collections.S-f8fda31efdd3/">Avalonia.Visual.LogicalChildrenCollectionChanged(System.Object,System.Collections.Specialized.NotifyCollectionChangedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.OnAttachedToVisualTree-Avalonia.VisualTreeAttachmentEventArgs/">Avalonia.Visual.OnAttachedToVisualTree(Avalonia.VisualTreeAttachmentEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.OnDetachedFromVisualTree-Avalonia.VisualTreeAttachmentEventArgs/">Avalonia.Visual.OnDetachedFromVisualTree(Avalonia.VisualTreeAttachmentEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.InvalidateMirrorTransform/">Avalonia.Visual.InvalidateMirrorTransform</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.Bounds/">Avalonia.Visual.Bounds</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.ClipToBounds/">Avalonia.Visual.ClipToBounds</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.Clip/">Avalonia.Visual.Clip</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.IsEffectivelyVisible/">Avalonia.Visual.IsEffectivelyVisible</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.IsVisible/">Avalonia.Visual.IsVisible</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.Opacity/">Avalonia.Visual.Opacity</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.OpacityMask/">Avalonia.Visual.OpacityMask</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.CacheMode/">Avalonia.Visual.CacheMode</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.Effect/">Avalonia.Visual.Effect</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.HasMirrorTransform/">Avalonia.Visual.HasMirrorTransform</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.RenderTransform/">Avalonia.Visual.RenderTransform</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.RenderTransformOrigin/">Avalonia.Visual.RenderTransformOrigin</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.FlowDirection/">Avalonia.Visual.FlowDirection</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.ZIndex/">Avalonia.Visual.ZIndex</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.VisualChildren/">Avalonia.Visual.VisualChildren</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.VisualRoot/">Avalonia.Visual.VisualRoot</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.BypassFlowDirectionPolicies/">Avalonia.Visual.BypassFlowDirectionPolicies</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.AttachedToVisualTree/">Avalonia.Visual.AttachedToVisualTree</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Visual.DetachedFromVisualTree/">Avalonia.Visual.DetachedFromVisualTree</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.DataContextProperty/">Avalonia.StyledElement.DataContextProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.NameProperty/">Avalonia.StyledElement.NameProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.ParentProperty/">Avalonia.StyledElement.ParentProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.TemplatedParentProperty/">Avalonia.StyledElement.TemplatedParentProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.ThemeProperty/">Avalonia.StyledElement.ThemeProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.BeginInit/">Avalonia.StyledElement.BeginInit</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.EndInit/">Avalonia.StyledElement.EndInit</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.ApplyStyling/">Avalonia.StyledElement.ApplyStyling</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.InitializeIfNeeded/">Avalonia.StyledElement.InitializeIfNeeded</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-LogicalTree-ILogical-NotifyAttachedToLogicalTree-Av-605288ebf108/">Avalonia.StyledElement.Avalonia#LogicalTree#ILogical#NotifyAttachedToLogicalTree(Avalonia.LogicalTree.LogicalTreeAttachmentEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-LogicalTree-ILogical-NotifyDetachedFromLogicalTree-bcccebaee1b8/">Avalonia.StyledElement.Avalonia#LogicalTree#ILogical#NotifyDetachedFromLogicalTree(Avalonia.LogicalTree.LogicalTreeAttachmentEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-LogicalTree-ILogical-NotifyResourcesChanged-Avaloni-6a6417ddbe61/">Avalonia.StyledElement.Avalonia#LogicalTree#ILogical#NotifyResourcesChanged(Avalonia.Controls.ResourcesChangedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-Controls-IResourceHost-NotifyHostedResourcesChanged-c073fb77bc24/">Avalonia.StyledElement.Avalonia#Controls#IResourceHost#NotifyHostedResourcesChanged(Avalonia.Controls.ResourcesChangedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.TryGetResource-System.Object-Avalonia.Styling.ThemeVariant-System.Object-/">Avalonia.StyledElement.TryGetResource(System.Object,Avalonia.Styling.ThemeVariant,System.Object@)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-Controls-ISetLogicalParent-SetParent-Avalonia.Logic-b6fe8a555129/">Avalonia.StyledElement.Avalonia#Controls#ISetLogicalParent#SetParent(Avalonia.LogicalTree.ILogical)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-Controls-ISetInheritanceParent-SetParent-Avalonia.AvaloniaObject/">Avalonia.StyledElement.Avalonia#Controls#ISetInheritanceParent#SetParent(Avalonia.AvaloniaObject)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-Styling-IStyleHost-StylesAdded-System.Collections.G-bbfeb422a58d/">Avalonia.StyledElement.Avalonia#Styling#IStyleHost#StylesAdded(System.Collections.Generic.IReadOnlyList{Avalonia.Styling.IStyle})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-Styling-IStyleHost-StylesRemoved-System.Collections-d94ac800a36d/">Avalonia.StyledElement.Avalonia#Styling#IStyleHost#StylesRemoved(System.Collections.Generic.IReadOnlyList{Avalonia.Styling.IStyle})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.OnAttachedToLogicalTree-Avalonia.LogicalTree.LogicalTreeAtta-400d1cb8c79b/">Avalonia.StyledElement.OnAttachedToLogicalTree(Avalonia.LogicalTree.LogicalTreeAttachmentEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.OnDetachedFromLogicalTree-Avalonia.LogicalTree.LogicalTreeAt-72685808a8be/">Avalonia.StyledElement.OnDetachedFromLogicalTree(Avalonia.LogicalTree.LogicalTreeAttachmentEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.OnDataContextChanged-System.EventArgs/">Avalonia.StyledElement.OnDataContextChanged(System.EventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.OnDataContextBeginUpdate/">Avalonia.StyledElement.OnDataContextBeginUpdate</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.OnDataContextEndUpdate/">Avalonia.StyledElement.OnDataContextEndUpdate</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.OnInitialized/">Avalonia.StyledElement.OnInitialized</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Name/">Avalonia.StyledElement.Name</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Classes/">Avalonia.StyledElement.Classes</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.DataContext/">Avalonia.StyledElement.DataContext</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.IsInitialized/">Avalonia.StyledElement.IsInitialized</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Styles/">Avalonia.StyledElement.Styles</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.StyleKey/">Avalonia.StyledElement.StyleKey</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Resources/">Avalonia.StyledElement.Resources</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.TemplatedParent/">Avalonia.StyledElement.TemplatedParent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Theme/">Avalonia.StyledElement.Theme</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.LogicalChildren/">Avalonia.StyledElement.LogicalChildren</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.PseudoClasses/">Avalonia.StyledElement.PseudoClasses</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.StyleKeyOverride/">Avalonia.StyledElement.StyleKeyOverride</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-LogicalTree-ILogical-IsAttachedToLogicalTree/">Avalonia.StyledElement.Avalonia#LogicalTree#ILogical#IsAttachedToLogicalTree</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Parent/">Avalonia.StyledElement.Parent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.ActualThemeVariant/">Avalonia.StyledElement.ActualThemeVariant</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-LogicalTree-ILogical-LogicalParent/">Avalonia.StyledElement.Avalonia#LogicalTree#ILogical#LogicalParent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-LogicalTree-ILogical-LogicalChildren/">Avalonia.StyledElement.Avalonia#LogicalTree#ILogical#LogicalChildren</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-Controls-IResourceNode-HasResources/">Avalonia.StyledElement.Avalonia#Controls#IResourceNode#HasResources</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-Styling-IStyleHost-IsStylesInitialized/">Avalonia.StyledElement.Avalonia#Styling#IStyleHost#IsStylesInitialized</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Avalonia-Styling-IStyleHost-StylingParent/">Avalonia.StyledElement.Avalonia#Styling#IStyleHost#StylingParent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.AttachedToLogicalTree/">Avalonia.StyledElement.AttachedToLogicalTree</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.DetachedFromLogicalTree/">Avalonia.StyledElement.DetachedFromLogicalTree</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.DataContextChanged/">Avalonia.StyledElement.DataContextChanged</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.Initialized/">Avalonia.StyledElement.Initialized</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.ResourcesChanged/">Avalonia.StyledElement.ResourcesChanged</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.StyledElement.ActualThemeVariantChanged/">Avalonia.StyledElement.ActualThemeVariantChanged</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Animation.Animatable.TransitionsProperty/">Avalonia.Animation.Animatable.TransitionsProperty</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Animation.Animatable.OnPropertyChangedCore-Avalonia.AvaloniaPropertyChangedEventArgs/">Avalonia.Animation.Animatable.OnPropertyChangedCore(Avalonia.AvaloniaPropertyChangedEventArgs)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.Animation.Animatable.Transitions/">Avalonia.Animation.Animatable.Transitions</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.CheckAccess/">Avalonia.AvaloniaObject.CheckAccess</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.VerifyAccess/">Avalonia.AvaloniaObject.VerifyAccess</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.ClearValue-Avalonia.AvaloniaProperty/">Avalonia.AvaloniaObject.ClearValue(Avalonia.AvaloniaProperty)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.ClearValue--1-Avalonia.AvaloniaProperty--T--/">Avalonia.AvaloniaObject.ClearValue``1(Avalonia.AvaloniaProperty{{T}})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.ClearValue--1-Avalonia.StyledProperty--T--/">Avalonia.AvaloniaObject.ClearValue``1(Avalonia.StyledProperty{{T}})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.ClearValue--1-Avalonia.DirectPropertyBase--T--/">Avalonia.AvaloniaObject.ClearValue``1(Avalonia.DirectPropertyBase{{T}})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.Equals-System.Object/">Avalonia.AvaloniaObject.Equals(System.Object)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.GetHashCode/">Avalonia.AvaloniaObject.GetHashCode</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.GetValue-Avalonia.AvaloniaProperty/">Avalonia.AvaloniaObject.GetValue(Avalonia.AvaloniaProperty)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.GetValue--1-Avalonia.StyledProperty--T--/">Avalonia.AvaloniaObject.GetValue``1(Avalonia.StyledProperty{{T}})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.GetValue--1-Avalonia.DirectPropertyBase--T--/">Avalonia.AvaloniaObject.GetValue``1(Avalonia.DirectPropertyBase{{T}})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.GetBaseValue--1-Avalonia.StyledProperty--T--/">Avalonia.AvaloniaObject.GetBaseValue``1(Avalonia.StyledProperty{{T}})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.IsAnimating-Avalonia.AvaloniaProperty/">Avalonia.AvaloniaObject.IsAnimating(Avalonia.AvaloniaProperty)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.IsSet-Avalonia.AvaloniaProperty/">Avalonia.AvaloniaObject.IsSet(Avalonia.AvaloniaProperty)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.SetValue-Avalonia.AvaloniaProperty-System.Object-Avalonia.D-ada52a8d781d/">Avalonia.AvaloniaObject.SetValue(Avalonia.AvaloniaProperty,System.Object,Avalonia.Data.BindingPriority)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.SetValue-1-Avalonia.StyledProperty-T-T-Avalonia.Data.Bindin-3afbc818bfd9/">Avalonia.AvaloniaObject.SetValue``1(Avalonia.StyledProperty{{T}},{T},Avalonia.Data.BindingPriority)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.SetValue--1-Avalonia.DirectPropertyBase--T----T-/">Avalonia.AvaloniaObject.SetValue``1(Avalonia.DirectPropertyBase{{T}},{T})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.SetCurrentValue-Avalonia.AvaloniaProperty-System.Object/">Avalonia.AvaloniaObject.SetCurrentValue(Avalonia.AvaloniaProperty,System.Object)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.SetCurrentValue--1-Avalonia.StyledProperty--T----T-/">Avalonia.AvaloniaObject.SetCurrentValue``1(Avalonia.StyledProperty{{T}},{T})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.Bind-Avalonia.AvaloniaProperty-Avalonia.Data.BindingBase/">Avalonia.AvaloniaObject.Bind(Avalonia.AvaloniaProperty,Avalonia.Data.BindingBase)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.Bind-Avalonia.AvaloniaProperty-System.IObservable-System.Ob-ef614652d70c/">Avalonia.AvaloniaObject.Bind(Avalonia.AvaloniaProperty,System.IObservable{System.Object},Avalonia.Data.BindingPriority)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.Bind-1-Avalonia.StyledProperty-T-System.IObservable-System-24a3513e7229/">Avalonia.AvaloniaObject.Bind``1(Avalonia.StyledProperty{{T}},System.IObservable{System.Object},Avalonia.Data.BindingPriority)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.Bind-1-Avalonia.StyledProperty-T-System.IObservable-T-Avalo-a654d5de846e/">Avalonia.AvaloniaObject.Bind``1(Avalonia.StyledProperty{{T}},System.IObservable{{T}},Avalonia.Data.BindingPriority)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.Bind-1-Avalonia.StyledProperty-T-System.IObservable-Avaloni-5f4f361b973f/">Avalonia.AvaloniaObject.Bind``1(Avalonia.StyledProperty{{T}},System.IObservable{Avalonia.Data.BindingValue{{T}}},Avalonia.Data.BindingPriority)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.Bind-1-Avalonia.DirectPropertyBase-T-System.IObservable-Sys-8bc5b1c7678b/">Avalonia.AvaloniaObject.Bind``1(Avalonia.DirectPropertyBase{{T}},System.IObservable{System.Object})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.Bind--1-Avalonia.DirectPropertyBase--T---System.IObservable--T--/">Avalonia.AvaloniaObject.Bind``1(Avalonia.DirectPropertyBase{{T}},System.IObservable{{T}})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.Bind-1-Avalonia.DirectPropertyBase-T-System.IObservable-Ava-5da53bf46575/">Avalonia.AvaloniaObject.Bind``1(Avalonia.DirectPropertyBase{{T}},System.IObservable{Avalonia.Data.BindingValue{{T}}})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.CoerceValue-Avalonia.AvaloniaProperty/">Avalonia.AvaloniaObject.CoerceValue(Avalonia.AvaloniaProperty)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.RaisePropertyChanged--1-Avalonia.DirectPropertyBase--T----T---T-/">Avalonia.AvaloniaObject.RaisePropertyChanged``1(Avalonia.DirectPropertyBase{{T}},{T},{T})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.SetAndRaise--1-Avalonia.DirectPropertyBase--T----T----T-/">Avalonia.AvaloniaObject.SetAndRaise``1(Avalonia.DirectPropertyBase{{T}},{T}@,{T})</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.InheritanceParent/">Avalonia.AvaloniaObject.InheritanceParent</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.Item-Avalonia.AvaloniaProperty/">Avalonia.AvaloniaObject.Item(Avalonia.AvaloniaProperty)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.Item-Avalonia.Data.IndexerDescriptor/">Avalonia.AvaloniaObject.Item(Avalonia.Data.IndexerDescriptor)</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.Dispatcher/">Avalonia.AvaloniaObject.Dispatcher</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.PropertyChanged/">Avalonia.AvaloniaObject.PropertyChanged</a></li>
+<li><a href="https://api-docs.avaloniaui.net/docs/Avalonia.AvaloniaObject.System-ComponentModel-INotifyPropertyChanged-PropertyChanged/">Avalonia.AvaloniaObject.System#ComponentModel#INotifyPropertyChanged#PropertyChanged</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.Equals-System.Object-System.Object">System.Object.Equals(System.Object, System.Object)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.GetType">System.Object.GetType()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.MemberwiseClone">System.Object.MemberwiseClone()</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.ReferenceEquals-System.Object-System.Object">System.Object.ReferenceEquals(System.Object, System.Object)</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Object.ToString">System.Object.ToString()</a></li>
+</ul>
+</details>
+</div>
+<pre><code class="language-csharp">public class metadata : element, IAvaloniaObjectDebug, INotifyPropertyChanged, IDataContextProvider, ILogical, IThemeVariantHost, IResourceHost, IResourceNode, IStyleHost, ISetLogicalParent, ISetInheritanceParent, ISupportInitialize, INamed, IAvaloniaListItemValidator&lt;ILogical&gt;, IAvaloniaListItemValidator&lt;Visual&gt;, IInputElement, IDataTemplateHost, IVisualBrushInitialize, ISetterValue, ICustomHitTest
+</code></pre>
+<div class="api-dotnet-member-filter" data-api-dotnet-filter>
+<div class="api-dotnet-member-filter-row">
+<label class="api-dotnet-member-filter-label" for="api-dotnet-member-filter-svgml-metadata">Filter members:</label>
+<input id="api-dotnet-member-filter-svgml-metadata" class="form-control form-control-sm api-dotnet-member-filter-input" type="search" placeholder="name, kind, summary (e.g. kind:method)" autocomplete="off" spellcheck="false" />
+<div class="api-dotnet-member-filter-status" aria-live="polite"></div>
+</div>
+<div class="form-text api-dotnet-member-filter-help">Tip: use <code>kind:method</code>, <code>kind:property</code>, <code>kind:ctor</code>. Press <kbd>Esc</kbd> to clear.</div>
+</div>
+<h2 id="properties">Properties <span class="api-dotnet-count">(1)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="properties">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.metadata.SvgTag/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SvgTag</code></a></div>
+</div>
+<h2 id="methods">Methods <span class="api-dotnet-count">(1)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="methods">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/SvgML.metadata.WriteAttributes-System.IO.TextWriter-SvgML.element/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">WriteAttributes(TextWriter, element)</code></a></div>
+</div>
+</div>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

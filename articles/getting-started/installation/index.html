@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Installation | Svg.Skia">
-<meta name="twitter:description" content="Installation NuGet packages Core renderer: dotnet add package Svg.Skia Uno control package: dotnet add package Svg.Controls.Skia.Uno Avalonia controls backed by Skia: dotnet add package Svg.Controls.Skia.Avalonia Avalonia controls backed by the Avalonia drawing stack: dotnet add package Svg.Controls.Avalonia General-purpose Skia controls for Avalonia: dotnet add package Skia.Controls.Avalonia Source generator: dotnet add package Svg.SourceGenerator.Skia Converter as a global tool:...">
+<meta name="twitter:description" content="Installation NuGet packages Core renderer: dotnet add package Svg.Skia Uno control package: dotnet add package Svg.Controls.Skia.Uno Avalonia controls backed by Skia: dotnet add package Svg.Controls.Skia.Avalonia Avalonia controls backed by the Avalonia drawing stack: dotnet add package Svg.Controls.Avalonia Inline SVG authoring for Avalonia XAML: dotnet add package SvgML.Avalonia Inline SVG authoring for .NET MAUI XAML: dotnet add package SvgML.Maui Inline SVG authoring for Uno Platform XAML:...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Installation | Svg.Skia">
 <meta property="og:title" content="Installation | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Installation NuGet packages Core renderer: dotnet add package Svg.Skia Uno control package: dotnet add package Svg.Controls.Skia.Uno Avalonia controls backed by Skia: dotnet add package Svg.Controls.Skia.Avalonia Avalonia controls backed by the Avalonia drawing stack: dotnet add package Svg.Controls.Avalonia General-purpose Skia controls for Avalonia: dotnet add package Skia.Controls.Avalonia Source generator: dotnet add package Svg.SourceGenerator.Skia Converter as a global tool:...">
+<meta property="og:description" content="Installation NuGet packages Core renderer: dotnet add package Svg.Skia Uno control package: dotnet add package Svg.Controls.Skia.Uno Avalonia controls backed by Skia: dotnet add package Svg.Controls.Skia.Avalonia Avalonia controls backed by the Avalonia drawing stack: dotnet add package Svg.Controls.Avalonia Inline SVG authoring for Avalonia XAML: dotnet add package SvgML.Avalonia Inline SVG authoring for .NET MAUI XAML: dotnet add package SvgML.Maui Inline SVG authoring for Uno Platform XAML:...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Installation | Svg.Skia">
   </head>
@@ -171,6 +171,15 @@
 <p>Avalonia controls backed by the Avalonia drawing stack:</p>
 <pre><code class="language-bash">dotnet add package Svg.Controls.Avalonia
 </code></pre>
+<p>Inline SVG authoring for Avalonia XAML:</p>
+<pre><code class="language-bash">dotnet add package SvgML.Avalonia
+</code></pre>
+<p>Inline SVG authoring for .NET MAUI XAML:</p>
+<pre><code class="language-bash">dotnet add package SvgML.Maui
+</code></pre>
+<p>Inline SVG authoring for Uno Platform XAML:</p>
+<pre><code class="language-bash">dotnet add package SvgML.Uno
+</code></pre>
 <p>General-purpose Skia controls for Avalonia:</p>
 <pre><code class="language-bash">dotnet add package Skia.Controls.Avalonia
 </code></pre>
@@ -190,6 +199,9 @@
 <li><code>net10.0</code></li>
 </ul>
 <p>The generator and codegen packages target <code>netstandard2.0</code>.</p>
+<p>Avalonia-specific UI packages, including <code>Svg.Controls.Avalonia</code>, <code>Svg.Controls.Skia.Avalonia</code>, <code>Skia.Controls.Avalonia</code>, and <code>SvgML.Avalonia</code>, target <code>net8.0</code> and <code>net10.0</code>.</p>
+<p><code>SvgML.Maui</code> targets <code>net10.0-android</code>, <code>net10.0-ios</code>, and <code>net10.0-maccatalyst</code>.</p>
+<p><code>SvgML.Uno</code> currently targets <code>net10.0</code> through <code>Uno.Sdk</code> with <code>SkiaRenderer</code> enabled. The current Uno <code>6.5.x</code> packages in this repository do not ship <code>net8.0</code> assets.</p>
 <h2 id="repository-prerequisites">Repository prerequisites</h2>
 <p>The repository uses git submodules for upstream SVG sources and external test data. After cloning:</p>
 <pre><code class="language-bash">git submodule update --init --recursive
@@ -199,6 +211,12 @@
 </code></pre>
 <p>The standalone Uno sample app additionally needs Uno workloads configured through <code>uno-check</code>, but the default repository solution does not:</p>
 <pre><code class="language-bash">uno-check --target desktop --target web --target android --target ios
+</code></pre>
+<p>The <code>SvgML.Maui</code> lane uses its own MAUI-local workspace and requires the .NET MAUI workload:</p>
+<pre><code class="language-bash">cd src/SvgML.Maui
+dotnet workload install maui
+dotnet build SvgML.Maui.csproj -c Release
+dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -c Release
 </code></pre>
 <h2 id="project-workflow-commands">Project workflow commands</h2>
 <p>Formatting:</p>
