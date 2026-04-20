@@ -162,7 +162,7 @@ jobs:
         working-directory: src/SvgML.Maui
         run: |
           dotnet restore SvgML.Maui.csproj
-          dotnet restore ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj
+          dotnet restore ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -p:TargetFramework=net10.0-maccatalyst
 
       - name: Build library
         working-directory: src/SvgML.Maui
@@ -170,7 +170,7 @@ jobs:
 
       - name: Build sample
         working-directory: src/SvgML.Maui
-        run: dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -c Release --no-restore
+        run: dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -f net10.0-maccatalyst -c Release --no-restore
 
       - name: Pack
         working-directory: src/SvgML.Maui
