@@ -147,7 +147,7 @@ jobs:
 
       - name: Build sample
         working-directory: src/SvgML.Maui
-        run: dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -f net10.0-maccatalyst -c Release -p:RuntimeIdentifier=maccatalyst-arm64
+        run: dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -f net10.0-android -c Release -p:RuntimeIdentifier=android-arm64
 
   pack:
     name: Pack (ubuntu-latest)
