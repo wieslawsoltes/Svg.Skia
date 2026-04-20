@@ -145,13 +145,9 @@ jobs:
         working-directory: src/SvgML.Maui
         run: dotnet build SvgML.Maui.csproj -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
 
-      - name: Restore sample
-        working-directory: src/SvgML.Maui
-        run: dotnet restore ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -p:TargetFramework=net10.0-maccatalyst
-
       - name: Build sample
         working-directory: src/SvgML.Maui
-        run: dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -f net10.0-maccatalyst -c Release --no-restore
+        run: dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -f net10.0-maccatalyst -c Release
 
   pack:
     name: Pack (ubuntu-latest)
