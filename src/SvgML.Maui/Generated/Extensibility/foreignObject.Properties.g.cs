@@ -6,4 +6,40 @@ namespace SvgML;
 public partial class foreignObject : visual
 {
     protected override string SvgTag => "foreignObject";
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("x", typeof(Svg.SvgUnit), typeof(foreignObject));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("y", typeof(Svg.SvgUnit), typeof(foreignObject));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("width", typeof(Svg.SvgUnit), typeof(foreignObject));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("height", typeof(Svg.SvgUnit), typeof(foreignObject));
+
+    public Svg.SvgUnit x
+    {
+        get => (Svg.SvgUnit)GetValue(xProperty);
+        set => SetValue(xProperty, value);
+    }
+
+    public Svg.SvgUnit y
+    {
+        get => (Svg.SvgUnit)GetValue(yProperty);
+        set => SetValue(yProperty, value);
+    }
+
+    public Svg.SvgUnit width
+    {
+        get => (Svg.SvgUnit)GetValue(widthProperty);
+        set => SetValue(widthProperty, value);
+    }
+
+    public Svg.SvgUnit height
+    {
+        get => (Svg.SvgUnit)GetValue(heightProperty);
+        set => SetValue(heightProperty, value);
+    }
 }

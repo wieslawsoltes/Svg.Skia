@@ -195,6 +195,16 @@ internal static partial class SvgSceneTextCompiler
         }
     }
 
+    internal static bool TryMeasureGeometryBounds(
+        SvgTextBase svgTextBase,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader,
+        out SKRect geometryBounds)
+    {
+        geometryBounds = EstimateGeometryBounds(svgTextBase, viewport, assetLoader);
+        return !geometryBounds.IsEmpty;
+    }
+
     public static bool TryCompile(
         SvgTextBase svgTextBase,
         SKRect viewport,

@@ -8,5 +8,25 @@ public partial class foreignObject
     protected override void WriteAttributes(TextWriter writer, element parent)
     {
         base.WriteAttributes(writer, parent);
+
+        if (x is not null)
+        {
+            writer.WriteLine($"x=\"{ToSvgString(x)}\"");
+        }
+
+        if (y is not null)
+        {
+            writer.WriteLine($"y=\"{ToSvgString(y)}\"");
+        }
+
+        if (width is not null)
+        {
+            writer.WriteLine($"width=\"{ToSvgString(width)}\"");
+        }
+
+        if (height is not null)
+        {
+            writer.WriteLine($"height=\"{ToSvgString(height)}\"");
+        }
     }
 }

@@ -366,6 +366,10 @@ internal static class SvgTypeDefs
             FilePath: "Extensibility",
             Properties:
             [
+                new ("x", "Svg.SvgUnit"),
+                new ("y", "Svg.SvgUnit"),
+                new ("width", "Svg.SvgUnit"),
+                new ("height", "Svg.SvgUnit"),
             ]),
         
         #endregion
