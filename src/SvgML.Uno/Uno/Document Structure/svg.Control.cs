@@ -33,6 +33,7 @@ public partial class svg
     private TimeSpan _lastAnimationPlaybackTimestamp;
     private readonly Dictionary<SvgElement, element> _elementBySvgElement = new();
     private readonly Dictionary<SvgSceneNode, element> _elementBySceneNode = new();
+    private Size _arrangedSvgSize;
 
     static svg()
     {
@@ -41,6 +42,7 @@ public partial class svg
 
     public svg()
     {
+        InitializeHostedControls();
         AttachToTree(parent: null, root: this);
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
@@ -289,6 +291,8 @@ public partial class svg
             return default;
         }
 
+        _layoutRoot.Measure(availableSize);
+
         var size = SvgRenderLayout.CalculateSize(
             new SvgSize(availableSize.Width, availableSize.Height),
             new SvgSize(picture.CullRect.Width, picture.CullRect.Height),
@@ -303,6 +307,8 @@ public partial class svg
         var picture = _picture;
         if (picture is null)
         {
+            _arrangedSvgSize = default;
+            _layoutRoot.Arrange(new Rect(0D, 0D, 0D, 0D));
             return default;
         }
 
@@ -312,37 +318,10 @@ public partial class svg
             Stretch,
             StretchDirection);
 
+        _arrangedSvgSize = new Size(size.Width, size.Height);
+        _layoutRoot.Arrange(new Rect(0D, 0D, size.Width, size.Height));
+        ArrangeHostedControls();
         return new Size(size.Width, size.Height);
-    }
-
-    protected override void RenderOverride(SkiaCanvas canvas, Size area)
-    {
-        var picture = _picture;
-        if (picture is null)
-        {
-            return;
-        }
-
-        if (!SvgRenderLayout.TryCreateRenderInfo(
-                new SvgSize(area.Width, area.Height),
-                new SvgRect(
-                    picture.CullRect.Left,
-                    picture.CullRect.Top,
-                    picture.CullRect.Width,
-                    picture.CullRect.Height),
-                Stretch,
-                StretchDirection,
-                out var renderInfo))
-        {
-            return;
-        }
-
-        canvas.Save();
-        canvas.ClipRect(ToSKRect(renderInfo.DestinationRect));
-        var matrix = ToSKMatrix(renderInfo.Matrix);
-        canvas.Concat(in matrix);
-        canvas.DrawPicture(picture);
-        canvas.Restore();
     }
 
     private void QueueReload()
@@ -374,7 +353,7 @@ public partial class svg
         ReloadFromInlineTree();
         InvalidateMeasure();
         InvalidateArrange();
-        Invalidate();
+        InvalidateDrawingSurface();
     }
 
     private void UpdateAnimationPlayback()
@@ -465,7 +444,7 @@ public partial class svg
             _picture = skSvg.Picture;
             InvalidateMeasure();
             InvalidateArrange();
-            Invalidate();
+            InvalidateDrawingSurface();
         }
 
         if (DispatcherQueue is { HasThreadAccess: false } dispatcherQueue)
@@ -572,8 +551,15 @@ public partial class svg
             return false;
         }
 
+        var width = ActualWidth > 0D ? ActualWidth : _arrangedSvgSize.Width;
+        var height = ActualHeight > 0D ? ActualHeight : _arrangedSvgSize.Height;
+        if (width <= 0D || height <= 0D)
+        {
+            return false;
+        }
+
         return SvgRenderLayout.TryCreateRenderInfo(
-            new SvgSize(ActualWidth, ActualHeight),
+            new SvgSize(width, height),
             new SvgRect(picture.CullRect.Left, picture.CullRect.Top, picture.CullRect.Width, picture.CullRect.Height),
             Stretch,
             StretchDirection,
@@ -588,11 +574,14 @@ public partial class svg
 
         if (document is null || skSvg is null || !skSvg.TryEnsureRetainedSceneGraph(out var sceneDocument) || sceneDocument is null)
         {
+            SynchronizeHostedControls();
             return;
         }
 
         var metrics = BuildSceneNodeMetrics(sceneDocument);
-        MapElementRecursive(this, document, metrics);
+        var textBoundsFallback = new TextBoundsFallbackContext(skSvg.AssetLoader, sceneDocument.CullRect);
+        MapElementRecursive(this, document, metrics, textBoundsFallback);
+        SynchronizeHostedControls();
     }
 
     private static Dictionary<SvgElement, SceneNodeMetrics> BuildSceneNodeMetrics(SvgSceneDocument sceneDocument)
@@ -627,11 +616,15 @@ public partial class svg
         return metrics;
     }
 
-    private void MapElementRecursive(element control, SvgElement svgElement, Dictionary<SvgElement, SceneNodeMetrics> metrics)
+    private void MapElementRecursive(
+        element control,
+        SvgElement svgElement,
+        Dictionary<SvgElement, SceneNodeMetrics> metrics,
+        TextBoundsFallbackContext textBoundsFallback)
     {
         _elementBySvgElement[svgElement] = control;
 
-        if (metrics.TryGetValue(svgElement, out var metric))
+        if (TryGetSceneNodeMetrics(svgElement, metrics, textBoundsFallback, out var metric))
         {
             control.UpdateSvgData(
                 svgElement,
@@ -673,7 +666,7 @@ public partial class svg
                 continue;
             }
 
-            MapElementRecursive(childControl, match, metrics);
+            MapElementRecursive(childControl, match, metrics, textBoundsFallback);
         }
     }
 
@@ -686,9 +679,10 @@ public partial class svg
             return null;
         }
 
-        if (!string.IsNullOrEmpty(control.id))
+        var mappingId = control.GetSvgMappingId();
+        if (!string.IsNullOrEmpty(mappingId))
         {
-            var byId = svgChildren.FirstOrDefault(e => string.Equals(e.ID, control.id, StringComparison.Ordinal));
+            var byId = svgChildren.FirstOrDefault(e => string.Equals(e.ID, mappingId, StringComparison.Ordinal));
             if (byId is not null)
             {
                 svgChildren.Remove(byId);
@@ -716,6 +710,85 @@ public partial class svg
     {
         var attribute = element.GetType().GetCustomAttribute<SvgElementAttribute>();
         return attribute?.ElementName ?? element.ID;
+    }
+
+    private static bool TryGetSceneNodeMetrics(
+        SvgElement svgElement,
+        Dictionary<SvgElement, SceneNodeMetrics> metrics,
+        TextBoundsFallbackContext textBoundsFallback,
+        out SceneNodeMetrics metric)
+    {
+        var aggregate = CreateAggregateSceneNodeMetrics(svgElement, metrics, textBoundsFallback);
+        if (aggregate is null)
+        {
+            metric = null!;
+            return false;
+        }
+
+        metric = aggregate;
+        return true;
+    }
+
+    private static SceneNodeMetrics? CreateAggregateSceneNodeMetrics(
+        SvgElement svgElement,
+        Dictionary<SvgElement, SceneNodeMetrics> metrics,
+        TextBoundsFallbackContext textBoundsFallback)
+    {
+        SceneNodeMetrics? aggregate = metrics.TryGetValue(svgElement, out var direct)
+            ? CloneSceneNodeMetrics(direct)
+            : null;
+
+        foreach (var child in svgElement.Children.OfType<SvgElement>())
+        {
+            var childMetrics = CreateAggregateSceneNodeMetrics(child, metrics, textBoundsFallback);
+            if (childMetrics is null)
+            {
+                continue;
+            }
+
+            if (aggregate is null)
+            {
+                aggregate = childMetrics;
+                continue;
+            }
+
+            aggregate.Geometry = UnionRect(aggregate.Geometry, childMetrics.Geometry);
+            aggregate.Transformed = UnionRect(aggregate.Transformed, childMetrics.Transformed);
+            aggregate.SceneNodes.AddRange(childMetrics.SceneNodes);
+        }
+
+        if ((aggregate is null || aggregate.Transformed.IsEmpty)
+            && svgElement is SvgTextBase svgTextBase
+            && SvgSceneCompiler.TryMeasureTextBounds(
+                svgTextBase,
+                textBoundsFallback.Viewport,
+                textBoundsFallback.AssetLoader,
+                out var measuredBounds))
+        {
+            aggregate = new SceneNodeMetrics
+            {
+                Geometry = measuredBounds,
+                Transformed = measuredBounds,
+                Transform = Matrix3x2.Identity,
+                TotalTransform = Matrix3x2.Identity
+            };
+        }
+
+        return aggregate;
+    }
+
+    private static SceneNodeMetrics CloneSceneNodeMetrics(SceneNodeMetrics source)
+    {
+        var clone = new SceneNodeMetrics
+        {
+            Geometry = source.Geometry,
+            Transformed = source.Transformed,
+            Transform = source.Transform,
+            TotalTransform = source.TotalTransform
+        };
+
+        clone.SceneNodes.AddRange(source.SceneNodes);
+        return clone;
     }
 
     private static void ClearElementData(element control)
@@ -769,6 +842,8 @@ public partial class svg
             matrix.TransY);
     }
 
+    private readonly record struct TextBoundsFallbackContext(ISvgAssetLoader AssetLoader, ShimRect Viewport);
+
     private sealed class SceneNodeMetrics
     {
         public ShimRect Geometry { get; set; }
@@ -809,6 +884,7 @@ public partial class svg
     {
         _reloadQueued = false;
         StopAnimationPlayback();
+        CloseHostedControlPresenters();
     }
 
     private static void OnSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -821,6 +897,6 @@ public partial class svg
         var control = (svg)d;
         control.InvalidateMeasure();
         control.InvalidateArrange();
-        control.Invalidate();
+        control.InvalidateDrawingSurface();
     }
 }

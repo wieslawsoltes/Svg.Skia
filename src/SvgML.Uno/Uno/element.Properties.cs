@@ -1,13 +1,10 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Markup;
-using SkiaSharp;
-using Uno.WinUI.Graphics2DSK;
-using Windows.Foundation;
 
 namespace SvgML;
 
 [ContentProperty(Name = nameof(Children))]
-public abstract partial class element : SKCanvasElement
+public abstract partial class element
 {
     private readonly List<element> _attachedChildren = [];
     private element? _parentElement;
@@ -23,10 +20,6 @@ public abstract partial class element : SKCanvasElement
     internal element? ParentElement => _parentElement;
 
     internal svg? RootSvg => _rootSvg;
-
-    protected override void RenderOverride(SKCanvas canvas, Size area)
-    {
-    }
 
     protected static void OnSvgPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
