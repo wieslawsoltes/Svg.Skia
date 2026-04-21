@@ -41,7 +41,7 @@
 
     <ItemGroup>
         <Compile Include="$(SvgMLBasePath)\Manual\**\*.cs"
-                 Exclude="$(SvgMLBasePath)\Manual\Document Structure\svg.Loading.cs"
+                 Exclude="$(SvgMLBasePath)\Manual\Document Structure\svg.Loading.cs;$(SvgMLBasePath)\Manual\elements.cs"
                  LinkBase="Manual" />
     </ItemGroup>
 

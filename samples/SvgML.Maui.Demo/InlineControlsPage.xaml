@@ -32,52 +32,52 @@
                          viewBox="0 0 520 260">
                         <rect x="0" y="0" width="520" height="260" fill="#F8FAFC" />
                         <rect x="18" y="18" width="484" height="224" fill="#FFFFFF" opacity="0.92" />
-                        <text x="32" y="76">
-                            <foreignObject width="124" height="40">
+                        <text x="32" y="52" fill="#0F172A" style="font-size:24px;">
+                            <content Content="Release review" />
+                        </text>
+                        <text x="32" y="94" fill="#334155" style="font-size:16px;">
+                            <tspan>
+                                <content Content="Approve " />
+                            </tspan>
+                            <foreignObject>
                                 <maui:Button Text="Publish"
                                              WidthRequest="112"
-                                             HeightRequest="40"
+                                             HeightRequest="34"
                                              Padding="16,8"
                                              BackgroundColor="#2563EB"
-                                             TextColor="White"
-                                             Margin="0,0,12,0" />
+                                             TextColor="White" />
                             </foreignObject>
-                            <foreignObject width="112" height="40">
-                                <maui:Button Text="Preview"
-                                             WidthRequest="112"
-                                             HeightRequest="40"
-                                             Padding="16,8" />
-                            </foreignObject>
+                            <tspan>
+                                <content Content=" to send the revision live." />
+                            </tspan>
                         </text>
-                        <text x="32" y="138">
-                            <foreignObject width="192" height="38">
+                        <text x="32" y="138" fill="#334155" style="font-size:16px;">
+                            <tspan>
+                                <content Content="Owner " />
+                            </tspan>
+                            <foreignObject>
                                 <maui:Entry WidthRequest="180"
-                                            HeightRequest="38"
+                                            HeightRequest="34"
                                             Text="Design systems"
-                                            FontSize="14"
-                                            Margin="0,0,12,0" />
-                            </foreignObject>
-                            <foreignObject width="150" height="38">
-                                <maui:Entry WidthRequest="150"
-                                            HeightRequest="38"
-                                            Text="Q2 launch"
                                             FontSize="14" />
                             </foreignObject>
+                            <tspan>
+                                <content Content=" can edit the label in flow." />
+                            </tspan>
                         </text>
-                        <text x="32" y="200">
-                            <foreignObject width="132" height="40">
-                                <maui:Button Text="Assign reviewer"
-                                             WidthRequest="120"
-                                             HeightRequest="40"
-                                             Padding="16,8"
-                                             Margin="0,0,12,0" />
-                            </foreignObject>
-                            <foreignObject width="120" height="40">
-                                <maui:Button Text="Create task"
-                                             WidthRequest="120"
-                                             HeightRequest="40"
+                        <text x="32" y="182" fill="#334155" style="font-size:16px;">
+                            <tspan>
+                                <content Content="Preview " />
+                            </tspan>
+                            <foreignObject>
+                                <maui:Button Text="Open sample"
+                                             WidthRequest="118"
+                                             HeightRequest="34"
                                              Padding="16,8" />
                             </foreignObject>
+                            <tspan>
+                                <content Content=" before the review is submitted." />
+                            </tspan>
                         </text>
                     </svg>
                 </VerticalStackLayout>
