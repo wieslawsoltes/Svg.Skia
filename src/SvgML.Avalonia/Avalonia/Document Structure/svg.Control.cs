@@ -64,7 +64,9 @@ public partial class svg
             ? new Size(_picture.CullRect.Width, _picture.CullRect.Height)
             : default;
 
-        return Stretch.CalculateSize(finalSize, sourceSize);
+        var arrangedSize = Stretch.CalculateSize(finalSize, sourceSize);
+        ArrangeHostedControls();
+        return arrangedSize;
     }
 
     public override void Render(DrawingContext context)
