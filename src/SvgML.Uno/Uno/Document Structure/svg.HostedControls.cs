@@ -84,7 +84,9 @@ public partial class svg
 
         if (!isInline || bounds.Width <= 0D || bounds.Height <= 0D)
         {
-            return bounds;
+            return !isInline && TryGetForeignObjectHostedControlBounds(entry.Element, entry.Host, out var fallbackBounds)
+                ? fallbackBounds
+                : bounds;
         }
 
         entry.Control.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
@@ -92,6 +94,31 @@ public partial class svg
         var width = desired.Width > 0D ? desired.Width : bounds.Width;
         var height = desired.Height > 0D ? desired.Height : bounds.Height;
         return new Rect(bounds.X, bounds.Bottom - height, width, height);
+    }
+
+    private bool TryGetForeignObjectHostedControlBounds(
+        element hostedElement,
+        IHostedControlElement host,
+        out Rect bounds)
+    {
+        bounds = default;
+
+        if (host is not foreignObject foreignObject
+            || !TryGetRenderInfo(out var renderInfo))
+        {
+            return false;
+        }
+
+        var slot = foreignObject.GetHostSlot();
+        if (slot.IsEmpty)
+        {
+            return false;
+        }
+
+        var localBounds = new Rect(slot.X, slot.Y, slot.Width, slot.Height);
+        var pictureBounds = TransformPictureBoundsToControl(localBounds, hostedElement.TotalTransformMatrix);
+        bounds = TransformPictureBoundsToControl(pictureBounds, renderInfo.Matrix);
+        return bounds.Width > 0D && bounds.Height > 0D;
     }
 
     private bool TryGetInlineHostedControlBounds(element inlineElement, IHostedControlElement host, out Rect bounds)

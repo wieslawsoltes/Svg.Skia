@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maui="http://schemas.microsoft.com/dotnet/2021/maui"
+             x:Class="SvgML.Maui.Demo.SceneControlsPage"
+             Title="Scene Controls">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="16">
+            <Label Text="foreignObject controls in the SVG scene"
+                   FontSize="28"
+                   FontAttributes="Bold" />
+            <Label Text="SVG foreignObject can host native .NET MAUI controls anywhere a graphical SVG element is allowed, not only inside text. The hosted controls below are positioned by SVG x/y/width/height."
+                   LineBreakMode="WordWrap" />
+
+            <Border Padding="18"
+                    Stroke="#330F172A"
+                    StrokeThickness="1"
+                    BackgroundColor="#FCFCFD">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Native controls placed by SVG geometry"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+
+                    <svg xmlns="https://github.com/svgml"
+                         HeightRequest="420"
+                         Stretch="Uniform"
+                         viewBox="0 0 640 360">
+                        <defs>
+                            <linearGradient id="scene-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#E0F2FE;" />
+                                <stop offset="100%" style="stop-color:#ECFCCB;" />
+                            </linearGradient>
+                        </defs>
+                        <rect x="0" y="0" width="640" height="360" rx="26" fill="url(#scene-gradient)" />
+                        <rect x="26" y="26" width="588" height="308" rx="22" fill="#FFFFFF" opacity="0.82" />
+
+                        <g transform="translate(54 58)">
+                            <rect x="0" y="0" width="230" height="138" rx="18" fill="#F8FAFC" stroke="#CBD5E1" />
+                            <text x="20" y="34" fill="#0F172A" style="font-size:18px;font-weight:700;">Publish lane</text>
+                            <text x="20" y="62" fill="#475569" style="font-size:12px;">Button is hosted by a group-local rectangle.</text>
+                            <foreignObject x="20" y="78" width="168" height="42">
+                                <maui:Button Text="Run export"
+                                             Padding="18,8"
+                                             BackgroundColor="#2563EB"
+                                             TextColor="White" />
+                            </foreignObject>
+                        </g>
+
+                        <g transform="translate(342 58)">
+                            <rect x="0" y="0" width="244" height="138" rx="18" fill="#F8FAFC" stroke="#CBD5E1" />
+                            <text x="20" y="34" fill="#0F172A" style="font-size:18px;font-weight:700;">Data source</text>
+                            <text x="20" y="62" fill="#475569" style="font-size:12px;">The editor is part of the SVG scene flow.</text>
+                            <foreignObject x="20" y="78" width="196" height="42">
+                                <maui:Entry Text="northwind.csv"
+                                            FontSize="14" />
+                            </foreignObject>
+                        </g>
+
+                        <path d="M82 240 H558" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" />
+                        <text x="82" y="232" fill="#334155" style="font-size:16px;font-weight:700;">Opacity budget</text>
+                        <foreignObject x="214" y="214" width="230" height="46">
+                            <maui:Slider Minimum="0"
+                                         Maximum="100"
+                                         Value="62" />
+                        </foreignObject>
+
+                        <g transform="translate(94 286)">
+                            <rect x="0" y="0" width="452" height="48" rx="24" fill="#0F172A" opacity="0.08" />
+                            <text x="24" y="31" fill="#0F172A" style="font-size:14px;">Root-level host:</text>
+                            <foreignObject x="146" y="7" width="154" height="34">
+                                <maui:HorizontalStackLayout Spacing="8">
+                                    <maui:CheckBox IsChecked="True"
+                                                   VerticalOptions="Center" />
+                                    <maui:Label Text="Ready"
+                                                VerticalOptions="Center" />
+                                </maui:HorizontalStackLayout>
+                            </foreignObject>
+                            <foreignObject x="310" y="7" width="118" height="34">
+                                <maui:Button Text="Details"
+                                             Padding="14,5" />
+                            </foreignObject>
+                        </g>
+                    </svg>
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

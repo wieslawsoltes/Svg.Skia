@@ -28,6 +28,11 @@ internal readonly record struct HostedControlSize(double Width, double Height)
     }
 }
 
+internal readonly record struct HostedControlSlot(double X, double Y, double Width, double Height)
+{
+    public bool IsEmpty => Width <= 0D || Height <= 0D;
+}
+
 internal static class HostedControlTree
 {
     public static IEnumerable<(element Element, IHostedControlElement Host)> Enumerate(element root)
@@ -78,6 +83,15 @@ public partial class foreignObject : IHostedControlElement
         return HostedControlSize.From(widthValue, heightValue);
     }
 
+    internal HostedControlSlot GetHostSlot()
+    {
+        var size = GetHostSlotSize().OrFallback();
+        var xValue = TryGetLength(x, out var explicitX) ? explicitX : 0D;
+        var yValue = TryGetLength(y, out var explicitY) ? explicitY : 0D;
+
+        return new HostedControlSlot(xValue, yValue, size.Width, size.Height);
+    }
+
     internal partial HostedControlSize MeasureHostedControl();
 
     internal partial bool IsWidthSet();
@@ -94,9 +108,20 @@ public partial class foreignObject : IHostedControlElement
 
     private static bool TryGetPositiveLength(Svg.SvgUnit unit, out double value)
     {
+        return TryGetLength(unit, out value) && value > 0D;
+    }
+
+    private static bool TryGetLength(Svg.SvgUnit? unit, out double value)
+    {
+        value = 0D;
+        return unit is { } actual && TryGetLength(actual, out value);
+    }
+
+    private static bool TryGetLength(Svg.SvgUnit unit, out double value)
+    {
         value = 0D;
 
-        if (unit.IsEmpty || unit.IsNone || unit.Value <= 0f)
+        if (unit.IsEmpty || unit.IsNone)
         {
             return false;
         }
@@ -112,6 +137,12 @@ public partial class foreignObject : IHostedControlElement
             _ => 0D
         };
 
-        return value > 0D;
+        return unit.Type is Svg.SvgUnitType.Pixel
+            or Svg.SvgUnitType.User
+            or Svg.SvgUnitType.Inch
+            or Svg.SvgUnitType.Centimeter
+            or Svg.SvgUnitType.Millimeter
+            or Svg.SvgUnitType.Pica
+            or Svg.SvgUnitType.Point;
     }
 }

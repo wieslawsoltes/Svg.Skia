@@ -8,6 +8,8 @@ Use SVG `foreignObject` as the idiomatic SvgML host for native inline controls o
 
 `InlineUIContainer` has been removed; `foreignObject` is the single native-control host element.
 
+This also covers non-inline SVG scene placement: a `foreignObject` with a native child can be authored anywhere a graphical SVG element is allowed, including directly under `svg` and inside transformed grouping containers.
+
 ## SVG Basis
 
 - MDN describes `foreignObject` as the SVG element for including content from another namespace, most commonly HTML in browsers: https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/foreignObject
@@ -53,6 +55,8 @@ All platforms now use one hosted-control layout contract:
 - enumerate hosted controls from the SvgML source tree
 - detect inline placement by walking from the hosted element to an owning `text_base`
 - compute inline slot positions from the source text tree
+- use retained-scene `foreignObject` bounds for normal SVG-scene placement
+- fall back to the source `foreignObject` slot (`x`, `y`, `width`, `height`) transformed through the element's total SVG transform when retained bounds are not available
 - transform SVG picture-space bounds into platform control coordinates
 - measure and arrange the native child in that slot
 
@@ -72,6 +76,8 @@ Uno uses the WinUI/Uno-supported `using:SvgML` XAML namespace form because Uno's
 
 ## Samples
 
-The Avalonia, Uno, and MAUI demos now demonstrate inline controls using `foreignObject`.
+The Avalonia, Uno, and MAUI demos now demonstrate both inline controls and scene controls using `foreignObject`.
+
+Scene controls show root-level placement and controls hosted inside translated SVG groups, with native buttons, text editors, sliders, and checkbox content arranged from SVG geometry.
 
 Uno sample markup relies on measured native size because Uno XAML does not currently convert literal `SvgUnit` values for `foreignObject` attributes.

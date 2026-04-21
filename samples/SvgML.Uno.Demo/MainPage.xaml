@@ -103,6 +103,84 @@
         </ScrollViewer>
       </PivotItem>
 
+      <PivotItem Header="Scene Controls">
+        <ScrollViewer>
+          <StackPanel Spacing="16" Padding="24,12,24,24" MaxWidth="960">
+            <TextBlock Text="Use SVG foreignObject as a scene element to host native Uno controls from root-level SVG and transformed groups."
+                       TextWrapping="WrapWholeWords" />
+            <Border Padding="16"
+                    BorderBrush="#330F172A"
+                    BorderThickness="1"
+                    CornerRadius="12">
+              <StackPanel Spacing="12">
+                <TextBlock Text="foreignObject controls placed by SVG geometry"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+                <svg xmlns="using:SvgML"
+                     Height="420"
+                     Stretch="Uniform"
+                     viewBox="0 0 640 360">
+                  <path d="M0 0 H640 V360 H0 Z" fill="#E0F2FE" />
+                  <path d="M26 26 H614 V334 H26 Z" fill="#FFFFFF" opacity="0.82" />
+
+                  <g transform="translate(54 58)">
+                    <path d="M0 0 H230 V138 H0 Z" fill="#F8FAFC" stroke="#CBD5E1" />
+                    <text x="20" y="34" fill="#0F172A" style="font-size:18px;font-weight:700;">Publish lane</text>
+                    <text x="20" y="62" fill="#475569" style="font-size:12px;">Button is hosted by a group-local rectangle.</text>
+                    <foreignObject transform="translate(20 78)">
+                      <ui:Button Content="Run export"
+                                 HorizontalAlignment="Stretch"
+                                 Width="168"
+                                 Height="42"
+                                 Padding="18,8" />
+                    </foreignObject>
+                  </g>
+
+                  <g transform="translate(342 58)">
+                    <path d="M0 0 H244 V138 H0 Z" fill="#F8FAFC" stroke="#CBD5E1" />
+                    <text x="20" y="34" fill="#0F172A" style="font-size:18px;font-weight:700;">Data source</text>
+                    <text x="20" y="62" fill="#475569" style="font-size:12px;">The editor is part of the SVG scene flow.</text>
+                    <foreignObject transform="translate(20 78)">
+                      <ui:TextBox Text="northwind.csv"
+                                  HorizontalAlignment="Stretch"
+                                  Width="196"
+                                  Height="42" />
+                    </foreignObject>
+                  </g>
+
+                  <path d="M82 240 H558" stroke="#CBD5E1" style="stroke-width:2;stroke-linecap:round;" />
+                  <text x="82" y="232" fill="#334155" style="font-size:16px;font-weight:700;">Opacity budget</text>
+                  <foreignObject transform="translate(214 214)">
+                    <ui:Slider Minimum="0"
+                               Maximum="100"
+                               Value="62"
+                               Width="230"
+                               Height="46" />
+                  </foreignObject>
+
+                  <g transform="translate(94 286)">
+                    <path d="M0 0 H452 V48 H0 Z" fill="#0F172A" opacity="0.08" />
+                    <text x="24" y="31" fill="#0F172A" style="font-size:14px;">Root-level host:</text>
+                    <foreignObject transform="translate(146 7)">
+                      <ui:CheckBox Content="Ready"
+                                   IsChecked="True"
+                                   Width="154"
+                                   Height="34" />
+                    </foreignObject>
+                    <foreignObject transform="translate(310 7)">
+                      <ui:Button Content="Details"
+                                 Width="118"
+                                 Height="34"
+                                 Padding="14,5" />
+                    </foreignObject>
+                  </g>
+                </svg>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </PivotItem>
+
       <PivotItem Header="CSS Restyling">
         <ScrollViewer>
           <StackPanel Spacing="16" Padding="24,12,24,24" MaxWidth="960">
