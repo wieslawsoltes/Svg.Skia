@@ -22,4 +22,6 @@
     <ProjectReference Include="..\..\src\SvgML.Uno\SvgML.Uno.csproj" />
   </ItemGroup>
 
+  <Import Project="..\..\src\SvgML.Uno\buildTransitive\SvgML.Uno.targets" />
+
 </Project>

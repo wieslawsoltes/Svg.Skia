@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Markup;
 namespace SvgML;
 
 [ContentProperty(Name = nameof(ContentNodes))]
+[System.Windows.Markup.ContentWrapper(typeof(content))]
 public abstract partial class element
 {
     private readonly List<element> _attachedChildren = [];
@@ -64,6 +65,7 @@ public abstract partial class element
     }
 }
 
+[System.Windows.Markup.WhitespaceSignificantCollection]
 public sealed class SvgContentCollection : IList<object>, IList
 {
     private readonly elements _children;
