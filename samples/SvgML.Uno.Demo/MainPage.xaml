@@ -66,49 +66,35 @@
                      viewBox="0 0 520 260">
                   <path d="M0 0 H520 V260 H0 Z" fill="#F8FAFC" />
                   <path d="M18 18 H502 V242 H18 Z" fill="#FFFFFF" opacity="0.92" />
-                  <text x="32" y="52" fill="#0F172A" style="font-size:24px;">
-                    <content Content="Release review" />
-                  </text>
+                  <text x="32" y="52" fill="#0F172A" style="font-size:24px;">Release review</text>
                   <text x="32" y="94" fill="#334155" style="font-size:16px;">
-                    <tspan>
-                      <content Content="Approve " />
-                    </tspan>
+                    <tspan>Approve </tspan>
                     <foreignObject>
                       <ui:Button Content="Publish"
                                  MinWidth="110"
                                  Height="34"
                                  Padding="16,6" />
                     </foreignObject>
-                    <tspan>
-                      <content Content=" to send the revision live." />
-                    </tspan>
+                    <tspan> to send the revision live.</tspan>
                   </text>
                   <text x="32" y="138" fill="#334155" style="font-size:16px;">
-                    <tspan>
-                      <content Content="Owner " />
-                    </tspan>
+                    <tspan>Owner </tspan>
                     <foreignObject>
                       <ui:TextBox Width="180"
                                   Height="34"
                                   Text="Design systems" />
                     </foreignObject>
-                    <tspan>
-                      <content Content=" can edit the label in flow." />
-                    </tspan>
+                    <tspan> can edit the label in flow.</tspan>
                   </text>
                   <text x="32" y="182" fill="#334155" style="font-size:16px;">
-                    <tspan>
-                      <content Content="Preview " />
-                    </tspan>
+                    <tspan>Preview </tspan>
                     <foreignObject>
                       <ui:Button Content="Open sample"
                                  MinWidth="118"
                                  Height="34"
                                  Padding="16,6" />
                     </foreignObject>
-                    <tspan>
-                      <content Content=" before the review is submitted." />
-                    </tspan>
+                    <tspan> before the review is submitted.</tspan>
                   </text>
                 </svg>
               </StackPanel>
