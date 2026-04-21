@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:svgml="https://github.com/svgml"
              x:Class="SvgML.Maui.Demo.MainPage"
              Title="Bound Fill">
 
@@ -26,24 +25,7 @@
                            FontSize="18"
                            FontAttributes="Bold" />
 
-                    <svgml:svg HeightRequest="220"
-                               Stretch="Uniform"
-                               viewBox="0 0 220 120"
-                               BindingContext="{x:Reference CircleFill}"
-                               x:DataType="Entry">
-                        <svgml:defs>
-                            <svgml:linearGradient id="gradient" x1="0%" y1="0%" x2="0" y2="100%">
-                                <svgml:stop offset="0%" style="stop-color:skyblue;" />
-                                <svgml:stop offset="100%" style="stop-color:seagreen;" />
-                            </svgml:linearGradient>
-                        </svgml:defs>
-                        <svgml:rect x="0" y="0" width="100%" height="100%" fill="url(#gradient)" />
-                        <svgml:circle cx="50"
-                                      cy="50"
-                                      r="40"
-                                      fill="{Binding Text, Mode=TwoWay}" />
-                        <svgml:circle cx="150" cy="50" r="40" fill="black" opacity="0.3" />
-                    </svgml:svg>
+                    <ContentView x:Name="BoundSvgHost" />
 
                     <Entry x:Name="CircleFill"
                            Placeholder="Circle fill"
