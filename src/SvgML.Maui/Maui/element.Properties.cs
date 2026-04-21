@@ -12,7 +12,7 @@ public abstract partial class element
         Children.CollectionChanged += ChildrenChanged;
     }
 
-    public elements Children { get; } = new elements();
+    public new elements Children { get; } = new elements();
 
     internal element? ParentElement => _parentElement;
 

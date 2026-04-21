@@ -3,7 +3,7 @@
 
 namespace SvgML;
 
-public abstract partial class element : SkiaSharp.Views.Maui.Controls.SKCanvasView
+public abstract partial class element : Microsoft.Maui.Controls.ContentView
 {
     protected abstract string SvgTag { get; }
 
