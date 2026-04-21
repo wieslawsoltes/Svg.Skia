@@ -2,9 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
+        mc:Ignorable="d" d:DesignWidth="960" d:DesignHeight="680"
         x:Class="SvgML.Avalonia.Demo.MainWindow"
-        Width="800" Height="500"
+        Width="960" Height="680"
         Title="SvgML.Avalonia Demo">
 
   <Window.Styles>
@@ -52,16 +52,90 @@
 
   </Window.Resources>
 
-  <StackPanel Spacing="20" VerticalAlignment="Center">
-     <Viewbox Width="100" Height="100">
-       <ContentPresenter Content="{DynamicResource SvgIcon}" />
-     </Viewbox>
-    <Viewbox Width="100" Height="100">
-      <ContentPresenter Content="{DynamicResource SvgIcon}" />
-    </Viewbox>
-    <Viewbox Width="100" Height="100">
-      <ContentPresenter Content="{DynamicResource SvgIcon}" />
-    </Viewbox>
-  </StackPanel>
+  <TabControl Margin="16" SelectedIndex="1">
+    <TabItem Header="Animated Resource">
+      <ScrollViewer>
+        <StackPanel Margin="24" Spacing="20">
+          <TextBlock Text="Animated resource reuse"
+                     FontSize="26"
+                     FontWeight="SemiBold" />
+          <TextBlock MaxWidth="760"
+                     TextWrapping="Wrap"
+                     Text="The same SvgML resource is instantiated three times. Each ContentPresenter gets an independent animated SVG tree because the resource is marked x:Shared=False." />
+          <StackPanel Orientation="Horizontal"
+                      Spacing="24"
+                      HorizontalAlignment="Center">
+            <Viewbox Width="120" Height="120">
+              <ContentPresenter Content="{DynamicResource SvgIcon}" />
+            </Viewbox>
+            <Viewbox Width="120" Height="120">
+              <ContentPresenter Content="{DynamicResource SvgIcon}" />
+            </Viewbox>
+            <Viewbox Width="120" Height="120">
+              <ContentPresenter Content="{DynamicResource SvgIcon}" />
+            </Viewbox>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <TabItem Header="Hosted Controls">
+      <ScrollViewer>
+        <StackPanel Margin="24" Spacing="16" MaxWidth="980">
+          <TextBlock Text="Inline foreignObject controls"
+                     FontSize="26"
+                     FontWeight="SemiBold" />
+          <TextBlock TextWrapping="Wrap"
+                     Text="SVG foreignObject reserves space inside SVG text and hosts a real Avalonia control there, so the button and editor stay part of the text flow instead of being manually overlaid." />
+
+          <Border Padding="20"
+                  CornerRadius="16"
+                  BorderBrush="#330F172A"
+                  BorderThickness="1"
+                  Background="#FCFCFD">
+            <StackPanel Spacing="16">
+              <TextBlock Text="foreignObject controls inside SvgML text"
+                         FontSize="18"
+                         FontWeight="SemiBold" />
+
+              <svg Height="340"
+                   Stretch="Uniform"
+                   viewBox="0 0 520 260">
+                <rect x="0" y="0" width="520" height="260" fill="#F8FAFC" />
+                <rect x="18" y="18" width="484" height="224" fill="#FFFFFF" opacity="0.92" />
+                <text x="32" y="52" fill="#0F172A" style="font-size:24px;">Release review</text>
+                <text x="32" y="94" fill="#334155" style="font-size:16px;">
+                  <tspan>Approve </tspan>
+                  <foreignObject width="110" height="34">
+                    <Button Content="Publish"
+                            MinWidth="110"
+                            Padding="16,6" />
+                  </foreignObject>
+                  <tspan> to send the revision live.</tspan>
+                </text>
+                <text x="32" y="138" fill="#334155" style="font-size:16px;">
+                  <tspan>Owner </tspan>
+                  <foreignObject width="180" height="34">
+                    <TextBox Width="180"
+                             Text="Design systems" />
+                  </foreignObject>
+                  <tspan> can edit the label in flow.</tspan>
+                </text>
+                <text x="32" y="182" fill="#334155" style="font-size:16px;">
+                  <tspan>Preview </tspan>
+                  <foreignObject width="118" height="34">
+                    <Button Content="Open sample"
+                            MinWidth="118"
+                            Padding="16,6" />
+                  </foreignObject>
+                  <tspan> before the review is submitted.</tspan>
+                </text>
+              </svg>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+  </TabControl>
   
 </Window>
