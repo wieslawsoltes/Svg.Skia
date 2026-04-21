@@ -1,18 +1,37 @@
 namespace SvgML;
 
-[ContentProperty("Children")]
+[ContentProperty(nameof(Elements))]
 public abstract partial class element
 {
     private readonly List<element> _attachedChildren = [];
+    private elements _children = new();
     private element? _parentElement;
     private svg? _rootSvg;
 
     public element()
     {
-        Children.CollectionChanged += ChildrenChanged;
+        _children.CollectionChanged += ChildrenChanged;
     }
 
-    public new elements Children { get; } = new elements();
+    public IList<element> Elements => _children;
+
+    public new elements Children
+    {
+        get => _children;
+        set
+        {
+            if (ReferenceEquals(_children, value))
+            {
+                return;
+            }
+
+            _children.CollectionChanged -= ChildrenChanged;
+            _children = value ?? new elements();
+            _children.CollectionChanged += ChildrenChanged;
+            ReattachChildren();
+            OnSvgChanged();
+        }
+    }
 
     internal element? ParentElement => _parentElement;
 

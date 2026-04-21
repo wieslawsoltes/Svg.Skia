@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maui="http://schemas.microsoft.com/dotnet/2021/maui"
              x:Class="SvgML.Maui.Demo.InlineControlsPage"
              Title="Hosted Controls">
 
@@ -25,7 +26,60 @@
                            FontSize="18"
                            FontAttributes="Bold" />
 
-                    <ContentView x:Name="HostedSvgHost" />
+                    <svg xmlns="https://github.com/svgml"
+                         HeightRequest="340"
+                         Stretch="Uniform"
+                         viewBox="0 0 520 260">
+                        <rect x="0" y="0" width="520" height="260" fill="#F8FAFC" />
+                        <rect x="18" y="18" width="484" height="224" fill="#FFFFFF" opacity="0.92" />
+                        <text x="32" y="76">
+                            <foreignObject width="124" height="40">
+                                <maui:Button Text="Publish"
+                                             WidthRequest="112"
+                                             HeightRequest="40"
+                                             Padding="16,8"
+                                             BackgroundColor="#2563EB"
+                                             TextColor="White"
+                                             Margin="0,0,12,0" />
+                            </foreignObject>
+                            <foreignObject width="112" height="40">
+                                <maui:Button Text="Preview"
+                                             WidthRequest="112"
+                                             HeightRequest="40"
+                                             Padding="16,8" />
+                            </foreignObject>
+                        </text>
+                        <text x="32" y="138">
+                            <foreignObject width="192" height="38">
+                                <maui:Entry WidthRequest="180"
+                                            HeightRequest="38"
+                                            Text="Design systems"
+                                            FontSize="14"
+                                            Margin="0,0,12,0" />
+                            </foreignObject>
+                            <foreignObject width="150" height="38">
+                                <maui:Entry WidthRequest="150"
+                                            HeightRequest="38"
+                                            Text="Q2 launch"
+                                            FontSize="14" />
+                            </foreignObject>
+                        </text>
+                        <text x="32" y="200">
+                            <foreignObject width="132" height="40">
+                                <maui:Button Text="Assign reviewer"
+                                             WidthRequest="120"
+                                             HeightRequest="40"
+                                             Padding="16,8"
+                                             Margin="0,0,12,0" />
+                            </foreignObject>
+                            <foreignObject width="120" height="40">
+                                <maui:Button Text="Create task"
+                                             WidthRequest="120"
+                                             HeightRequest="40"
+                                             Padding="16,8" />
+                            </foreignObject>
+                        </text>
+                    </svg>
                 </VerticalStackLayout>
             </Border>
         </VerticalStackLayout>
