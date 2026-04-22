@@ -1,7 +1,10 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using Avalonia.Headless.XUnit;
 using Avalonia.Svg.Skia;
+using Avalonia.Threading;
+using Svg.Model;
 using Svg.Skia;
 using Xunit;
 
@@ -9,6 +12,58 @@ namespace Avalonia.Svg.Skia.UnitTests;
 
 public class SvgControlTests
 {
+    private const string SampleSvg =
+        "<svg width=\"10\" height=\"10\"><rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"red\" /></svg>";
+
+    private const string ReplacementSvg =
+        "<svg width=\"20\" height=\"12\"><rect x=\"0\" y=\"0\" width=\"20\" height=\"12\" fill=\"blue\" /></svg>";
+
+    [AvaloniaFact]
+    public async Task Source_LoadsInlineSvg()
+    {
+        var svg = new Svg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"));
+
+        svg.Source = SampleSvg;
+
+        await WaitForSourceAsync(svg);
+
+        Assert.NotNull(svg.SkSvg);
+        Assert.NotNull(svg.Picture);
+        Assert.Equal(10, svg.Picture!.CullRect.Width);
+        Assert.Equal(10, svg.Picture.CullRect.Height);
+    }
+
+    [AvaloniaFact]
+    public async Task Source_UsesMostRecentInlineSvg()
+    {
+        var svg = new Svg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"));
+
+        svg.Source = SampleSvg;
+        svg.Source = ReplacementSvg;
+
+        await WaitForSourceAsync(svg);
+
+        Assert.NotNull(svg.Picture);
+        Assert.Equal(20, svg.Picture!.CullRect.Width);
+        Assert.Equal(12, svg.Picture.CullRect.Height);
+    }
+
+    [AvaloniaFact]
+    public async Task Source_AppliesCurrentRenderOptionsWhenLoadCompletes()
+    {
+        var svg = new Svg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"));
+
+        svg.Source = SampleSvg;
+        svg.Wireframe = true;
+        svg.DisableFilters = true;
+
+        await WaitForSourceAsync(svg);
+
+        Assert.NotNull(svg.SkSvg);
+        Assert.True(svg.SkSvg!.Wireframe);
+        Assert.Equal(DrawAttributes.Filter, svg.SkSvg.IgnoreAttributes);
+    }
+
     [AvaloniaFact]
     public void AnimationPlaybackRate_NormalizesNonFiniteValues()
     {
@@ -94,5 +149,21 @@ public class SvgControlTests
         var field = typeof(Svg).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.NotNull(field);
         field.SetValue(svg, value);
+    }
+
+    private static async Task WaitForSourceAsync(Svg svg)
+    {
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+        while (svg.Picture is null)
+        {
+            if (DateTime.UtcNow > deadline)
+            {
+                Assert.NotNull(svg.Picture);
+                return;
+            }
+
+            await Task.Delay(10);
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
+        }
     }
 }
