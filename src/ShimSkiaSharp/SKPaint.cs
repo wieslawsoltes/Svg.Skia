@@ -13,6 +13,7 @@ public sealed class SKPaint : ICloneable, IDeepCloneable<SKPaint>
     private SKStrokeCap _strokeCap = SKStrokeCap.Butt;
     private SKStrokeJoin _strokeJoin = SKStrokeJoin.Miter;
     private float _strokeMiter = 4;
+    private bool _isStrokeNonScaling;
     private SKTypeface? _typeface;
     private float _textSize = 12;
     private SKTextAlign _textAlign = SKTextAlign.Left;
@@ -131,6 +132,21 @@ public sealed class SKPaint : ICloneable, IDeepCloneable<SKPaint>
             }
 
             _strokeMiter = value;
+            _version++;
+        }
+    }
+
+    public bool IsStrokeNonScaling
+    {
+        get => _isStrokeNonScaling;
+        set
+        {
+            if (_isStrokeNonScaling == value)
+            {
+                return;
+            }
+
+            _isStrokeNonScaling = value;
             _version++;
         }
     }
@@ -353,6 +369,7 @@ public sealed class SKPaint : ICloneable, IDeepCloneable<SKPaint>
         clone.StrokeCap = StrokeCap;
         clone.StrokeJoin = StrokeJoin;
         clone.StrokeMiter = StrokeMiter;
+        clone.IsStrokeNonScaling = IsStrokeNonScaling;
         clone.Typeface = Typeface?.DeepClone(context);
         clone.TextSize = TextSize;
         clone.TextAlign = TextAlign;

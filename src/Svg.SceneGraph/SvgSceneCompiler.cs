@@ -1184,6 +1184,7 @@ public static class SvgSceneCompiler
         node.HitTestPath = path;
         node.SupportsFillHitTest = SvgScenePaintingService.IsValidFill(visualElement);
         node.SupportsStrokeHitTest = SvgScenePaintingService.IsValidStroke(visualElement, node.GeometryBounds);
+        node.IsStrokeNonScaling = visualElement.VectorEffect == SvgVectorEffect.NonScalingStroke;
         node.HitTestTargetElement = GetDefaultHitTestTargetElement(node, element);
         AssignRetainedVisualState(node, element);
         AssignRetainedResourceKeys(node, element, compileContext.GetElementAddressKey);

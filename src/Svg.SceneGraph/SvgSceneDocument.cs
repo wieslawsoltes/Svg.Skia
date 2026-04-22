@@ -735,6 +735,7 @@ public sealed class SvgSceneDocument
                 ? SvgScenePaintingService.GetStrokePaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes)
                 : null;
             node.StrokeWidth = hasOwnPaintPayload ? node.Stroke?.StrokeWidth ?? 0f : 0f;
+            node.IsStrokeNonScaling = hasOwnPaintPayload && visualElement.VectorEffect == SvgVectorEffect.NonScalingStroke;
             node.SetMask(null);
             node.MaskPaint = null;
             node.MaskDstIn = null;
