@@ -115,11 +115,14 @@ public partial class svg
 
         if (document is null || skSvg is null || !skSvg.TryEnsureRetainedSceneGraph(out var sceneDocument) || sceneDocument is null)
         {
+            SynchronizeHostedControls();
             return;
         }
 
         var metrics = BuildSceneNodeMetrics(sceneDocument);
-        MapElementRecursive(this, document, metrics);
+        var aggregateMetrics = new Dictionary<SvgElement, SceneNodeMetrics>();
+        MapElementRecursive(this, document, metrics, aggregateMetrics);
+        SynchronizeHostedControls();
     }
 
     private static Dictionary<SvgElement, SceneNodeMetrics> BuildSceneNodeMetrics(SvgSceneDocument sceneDocument)
@@ -152,11 +155,15 @@ public partial class svg
         return metrics;
     }
 
-    private void MapElementRecursive(element control, SvgElement svgElement, Dictionary<SvgElement, SceneNodeMetrics> metrics)
+    private void MapElementRecursive(
+        element control,
+        SvgElement svgElement,
+        Dictionary<SvgElement, SceneNodeMetrics> metrics,
+        Dictionary<SvgElement, SceneNodeMetrics> aggregateMetrics)
     {
         _elementBySvgElement[svgElement] = control;
 
-        if (metrics.TryGetValue(svgElement, out var metric))
+        if (TryGetSceneNodeMetrics(svgElement, metrics, aggregateMetrics, out var metric))
         {
             control.UpdateSvgData(
                 svgElement,
@@ -199,7 +206,7 @@ public partial class svg
                 continue;
             }
 
-            MapElementRecursive(childControl, match, metrics);
+            MapElementRecursive(childControl, match, metrics, aggregateMetrics);
         }
     }
 
@@ -212,9 +219,10 @@ public partial class svg
             return null;
         }
 
-        if (!string.IsNullOrEmpty(control.id))
+        var mappingId = control.GetSvgMappingId();
+        if (!string.IsNullOrEmpty(mappingId))
         {
-            var byId = svgChildren.FirstOrDefault(e => string.Equals(e.ID, control.id, StringComparison.Ordinal));
+            var byId = svgChildren.FirstOrDefault(e => string.Equals(e.ID, mappingId, StringComparison.Ordinal));
             if (byId is not null)
             {
                 svgChildren.Remove(byId);
@@ -242,6 +250,79 @@ public partial class svg
     {
         var attribute = element.GetType().GetCustomAttribute<SvgElementAttribute>();
         return attribute?.ElementName ?? element.ID;
+    }
+
+    private static bool TryGetSceneNodeMetrics(
+        SvgElement svgElement,
+        Dictionary<SvgElement, SceneNodeMetrics> metrics,
+        Dictionary<SvgElement, SceneNodeMetrics> aggregateMetrics,
+        out SceneNodeMetrics metric)
+    {
+        if (aggregateMetrics.TryGetValue(svgElement, out var cached))
+        {
+            metric = CloneSceneNodeMetrics(cached);
+            return true;
+        }
+
+        var aggregate = CreateAggregateSceneNodeMetrics(svgElement, metrics, aggregateMetrics);
+        if (aggregate is null)
+        {
+            metric = null!;
+            return false;
+        }
+
+        aggregateMetrics[svgElement] = CloneSceneNodeMetrics(aggregate);
+        metric = CloneSceneNodeMetrics(aggregate);
+        return true;
+    }
+
+    private static SceneNodeMetrics? CreateAggregateSceneNodeMetrics(
+        SvgElement svgElement,
+        Dictionary<SvgElement, SceneNodeMetrics> metrics,
+        Dictionary<SvgElement, SceneNodeMetrics> aggregateMetrics)
+    {
+        SceneNodeMetrics? aggregate = metrics.TryGetValue(svgElement, out var direct)
+            ? CloneSceneNodeMetrics(direct)
+            : null;
+
+        foreach (var child in svgElement.Children.OfType<SvgElement>())
+        {
+            if (!TryGetSceneNodeMetrics(child, metrics, aggregateMetrics, out var childMetrics))
+            {
+                continue;
+            }
+
+            if (childMetrics is null)
+            {
+                continue;
+            }
+
+            if (aggregate is null)
+            {
+                aggregate = CloneSceneNodeMetrics(childMetrics);
+                continue;
+            }
+
+            aggregate.Geometry = UnionRect(aggregate.Geometry, childMetrics.Geometry);
+            aggregate.Transformed = UnionRect(aggregate.Transformed, childMetrics.Transformed);
+            aggregate.SceneNodes.AddRange(childMetrics.SceneNodes);
+        }
+
+        return aggregate;
+    }
+
+    private static SceneNodeMetrics CloneSceneNodeMetrics(SceneNodeMetrics source)
+    {
+        var clone = new SceneNodeMetrics
+        {
+            Geometry = source.Geometry,
+            Transformed = source.Transformed,
+            Transform = source.Transform,
+            TotalTransform = source.TotalTransform
+        };
+
+        clone.SceneNodes.AddRange(source.SceneNodes);
+        return clone;
     }
 
     private void ClearElementData(element control)

@@ -64,7 +64,7 @@ and the `Svg.Skia` renderer will provide more complete rendering subsystem imple
 - `Svg.Custom` and `Svg.Skia` now include typed `pointer-events` handling plus geometry-aware topmost hit testing.
 - `Svg.Skia` now includes a shared interaction dispatcher, shared animation clock/controller, and host-driven animation playback APIs.
 - `Svg.Controls.Skia.Avalonia` and `Svg.Controls.Skia.Uno` now expose animation backend selection, playback rate, frame interval, and resolved-backend diagnostics.
-- `SvgML.Avalonia`, `SvgML.Maui`, and `SvgML.Uno` now live in the same repository, so inline Avalonia, .NET MAUI, and Uno XAML-authored SVG trees build against the local `Svg.Skia` sources and ship from the same release pipeline.
+- `SvgML.Avalonia`, `SvgML.Maui`, and `SvgML.Uno` now live in the same repository, so inline Avalonia, .NET MAUI, and Uno XAML-authored SVG trees, including native controls hosted through SVG `foreignObject`, build against the local `Svg.Skia` sources and ship from the same release pipeline.
 - Avalonia adds an optional `NativeComposition` animation backend with fallback to `RenderLoop` or `DispatcherTimer` when retained composition is unavailable.
 - `tests/Svg.Skia.Benchmarks` adds a local BenchmarkDotNet harness for the shared animation renderer, and `samples/TestApp` exposes backend and playback controls for manual verification.
 

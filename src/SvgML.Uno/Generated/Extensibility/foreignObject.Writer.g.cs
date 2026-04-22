@@ -8,5 +8,25 @@ public partial class foreignObject
     protected override void WriteAttributes(TextWriter writer, element parent)
     {
         base.WriteAttributes(writer, parent);
+
+        if (ReadLocalValue(xProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"x=\"{ToSvgString(x)}\"");
+        }
+
+        if (ReadLocalValue(yProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"y=\"{ToSvgString(y)}\"");
+        }
+
+        if (ReadLocalValue(widthProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"width=\"{ToSvgString(width)}\"");
+        }
+
+        if (ReadLocalValue(heightProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"height=\"{ToSvgString(height)}\"");
+        }
     }
 }

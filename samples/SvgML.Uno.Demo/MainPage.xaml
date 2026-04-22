@@ -1,6 +1,7 @@
 <Page x:Class="SvgML.Uno.Demo.MainPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
   <Grid RowDefinitions="Auto,*">
@@ -12,7 +13,7 @@
                  TextWrapping="WrapWholeWords" />
     </StackPanel>
 
-    <Pivot Grid.Row="1">
+    <Pivot x:Name="DemoPivot" Grid.Row="1">
       <PivotItem Header="Bound Fill">
         <ScrollViewer>
           <StackPanel Spacing="16" Padding="24,12,24,24" MaxWidth="960">
@@ -40,6 +41,154 @@
                 <TextBox x:Name="CircleFillInput"
                          Header="Circle fill"
                          Text="tomato" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </PivotItem>
+
+      <PivotItem Header="Hosted Controls">
+        <ScrollViewer>
+          <StackPanel Spacing="16" Padding="24,12,24,24" MaxWidth="960">
+            <TextBlock Text="SVG foreignObject reserves text layout inside the SVG and hosts a real Uno control in that slot, so the controls stay part of the text flow instead of being manually overlaid."
+                       TextWrapping="WrapWholeWords" />
+            <Border Padding="16"
+                    BorderBrush="#330F172A"
+                    BorderThickness="1"
+                    CornerRadius="12">
+              <StackPanel Spacing="12">
+                <TextBlock Text="foreignObject controls inside SvgML text"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+                <svg xmlns="using:SvgML"
+                     Height="340"
+                     Stretch="Uniform"
+                     viewBox="0 0 520 260">
+                  <path d="M0 0 H520 V260 H0 Z" fill="#F8FAFC" />
+                  <path d="M18 18 H502 V242 H18 Z" fill="#FFFFFF" opacity="0.92" />
+                  <text x="32" y="52" fill="#0F172A" style="font-size:24px;">
+                    <tspan>Release review</tspan>
+                  </text>
+                  <text x="32" y="94" fill="#334155" style="font-size:16px;">
+                    <tspan xml:space="preserve">Approve </tspan>
+                    <foreignObject>
+                      <ui:Button Content="Publish"
+                                 MinWidth="110"
+                                 Height="34"
+                                 Padding="16,6" />
+                    </foreignObject>
+                    <tspan xml:space="preserve"> to send the revision live.</tspan>
+                  </text>
+                  <text x="32" y="138" fill="#334155" style="font-size:16px;">
+                    <tspan xml:space="preserve">Owner </tspan>
+                    <foreignObject>
+                      <ui:TextBox Width="180"
+                                  Height="34"
+                                  Text="Design systems" />
+                    </foreignObject>
+                    <tspan xml:space="preserve"> can edit the label in flow.</tspan>
+                  </text>
+                  <text x="32" y="182" fill="#334155" style="font-size:16px;">
+                    <tspan xml:space="preserve">Preview </tspan>
+                    <foreignObject>
+                      <ui:Button Content="Open sample"
+                                 MinWidth="118"
+                                 Height="34"
+                                 Padding="16,6" />
+                    </foreignObject>
+                    <tspan xml:space="preserve"> before the review is submitted.</tspan>
+                  </text>
+                </svg>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </PivotItem>
+
+      <PivotItem Header="Scene Controls">
+        <ScrollViewer>
+          <StackPanel Spacing="16" Padding="24,12,24,24" MaxWidth="960">
+            <TextBlock Text="Use SVG foreignObject as a scene element to host native Uno controls from root-level SVG and transformed groups."
+                       TextWrapping="WrapWholeWords" />
+            <Border Padding="16"
+                    BorderBrush="#330F172A"
+                    BorderThickness="1"
+                    CornerRadius="12">
+              <StackPanel Spacing="12">
+                <TextBlock Text="foreignObject controls placed by SVG geometry"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+                <svg xmlns="using:SvgML"
+                     Height="420"
+                     Stretch="Uniform"
+                     viewBox="0 0 640 360">
+                  <path d="M0 0 H640 V360 H0 Z" fill="#E0F2FE" />
+                  <path d="M26 26 H614 V334 H26 Z" fill="#FFFFFF" opacity="0.82" />
+
+                  <g transform="translate(54 58)">
+                    <path d="M0 0 H230 V138 H0 Z" fill="#F8FAFC" stroke="#CBD5E1" />
+                    <text x="20" y="34" fill="#0F172A" style="font-size:18px;font-weight:700;">
+                      <tspan>Publish lane</tspan>
+                    </text>
+                    <text x="20" y="62" fill="#475569" style="font-size:12px;">
+                      <tspan>Button is hosted by a group-local rectangle.</tspan>
+                    </text>
+                    <foreignObject transform="translate(20 78)">
+                      <ui:Button Content="Run export"
+                                 HorizontalAlignment="Stretch"
+                                 Width="168"
+                                 Height="42"
+                                 Padding="18,8" />
+                    </foreignObject>
+                  </g>
+
+                  <g transform="translate(342 58)">
+                    <path d="M0 0 H244 V138 H0 Z" fill="#F8FAFC" stroke="#CBD5E1" />
+                    <text x="20" y="34" fill="#0F172A" style="font-size:18px;font-weight:700;">
+                      <tspan>Data source</tspan>
+                    </text>
+                    <text x="20" y="62" fill="#475569" style="font-size:12px;">
+                      <tspan>The editor is part of the SVG scene flow.</tspan>
+                    </text>
+                    <foreignObject transform="translate(20 78)">
+                      <ui:TextBox Text="northwind.csv"
+                                  HorizontalAlignment="Stretch"
+                                  Width="196"
+                                  Height="42" />
+                    </foreignObject>
+                  </g>
+
+                  <path d="M82 240 H558" stroke="#CBD5E1" style="stroke-width:2;stroke-linecap:round;" />
+                  <text x="82" y="232" fill="#334155" style="font-size:16px;font-weight:700;">
+                    <tspan>Opacity budget</tspan>
+                  </text>
+                  <foreignObject transform="translate(214 214)">
+                    <ui:Slider Minimum="0"
+                               Maximum="100"
+                               Value="62"
+                               Width="230"
+                               Height="46" />
+                  </foreignObject>
+
+                  <g transform="translate(94 286)">
+                    <path d="M0 0 H452 V48 H0 Z" fill="#0F172A" opacity="0.08" />
+                    <text x="24" y="31" fill="#0F172A" style="font-size:14px;">
+                      <tspan>Root-level host:</tspan>
+                    </text>
+                    <foreignObject transform="translate(146 7)">
+                      <ui:CheckBox Content="Ready"
+                                   IsChecked="True"
+                                   Width="154"
+                                   Height="34" />
+                    </foreignObject>
+                    <foreignObject transform="translate(310 7)">
+                      <ui:Button Content="Details"
+                                 Width="118"
+                                 Height="34"
+                                 Padding="14,5" />
+                    </foreignObject>
+                  </g>
+                </svg>
               </StackPanel>
             </Border>
           </StackPanel>

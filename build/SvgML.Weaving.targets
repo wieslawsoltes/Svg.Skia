@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <!-- Only the Avalonia package opts into CLR-name weaving. -->
+    <!-- SvgML UI packages opt into CLR-name weaving when their XAML compiler needs SVG names. -->
     <SvgMLSelfWeaverEnabled Condition="'$(SvgMLSelfWeaverEnabled)' == ''">false</SvgMLSelfWeaverEnabled>
     <ProduceReferenceAssembly Condition="'$(SvgMLSelfWeaverEnabled)' == 'true'">false</ProduceReferenceAssembly>
     <SvgMLSelfWeaverTargetFramework Condition="'$(SvgMLSelfWeaverTargetFramework)' == ''">net10.0</SvgMLSelfWeaverTargetFramework>

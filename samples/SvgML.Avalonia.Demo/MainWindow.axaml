@@ -2,9 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
+        mc:Ignorable="d" d:DesignWidth="960" d:DesignHeight="680"
         x:Class="SvgML.Avalonia.Demo.MainWindow"
-        Width="800" Height="500"
+        Width="960" Height="680"
         Title="SvgML.Avalonia Demo">
 
   <Window.Styles>
@@ -52,16 +52,169 @@
 
   </Window.Resources>
 
-  <StackPanel Spacing="20" VerticalAlignment="Center">
-     <Viewbox Width="100" Height="100">
-       <ContentPresenter Content="{DynamicResource SvgIcon}" />
-     </Viewbox>
-    <Viewbox Width="100" Height="100">
-      <ContentPresenter Content="{DynamicResource SvgIcon}" />
-    </Viewbox>
-    <Viewbox Width="100" Height="100">
-      <ContentPresenter Content="{DynamicResource SvgIcon}" />
-    </Viewbox>
-  </StackPanel>
+  <TabControl Margin="16" SelectedIndex="1">
+    <TabItem Header="Animated Resource">
+      <ScrollViewer>
+        <StackPanel Margin="24" Spacing="20">
+          <TextBlock Text="Animated resource reuse"
+                     FontSize="26"
+                     FontWeight="SemiBold" />
+          <TextBlock MaxWidth="760"
+                     TextWrapping="Wrap"
+                     Text="The same SvgML resource is instantiated three times. Each ContentPresenter gets an independent animated SVG tree because the resource is marked x:Shared=False." />
+          <StackPanel Orientation="Horizontal"
+                      Spacing="24"
+                      HorizontalAlignment="Center">
+            <Viewbox Width="120" Height="120">
+              <ContentPresenter Content="{DynamicResource SvgIcon}" />
+            </Viewbox>
+            <Viewbox Width="120" Height="120">
+              <ContentPresenter Content="{DynamicResource SvgIcon}" />
+            </Viewbox>
+            <Viewbox Width="120" Height="120">
+              <ContentPresenter Content="{DynamicResource SvgIcon}" />
+            </Viewbox>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <TabItem Header="Hosted Controls">
+      <ScrollViewer>
+        <StackPanel Margin="24" Spacing="16" MaxWidth="980">
+          <TextBlock Text="Inline foreignObject controls"
+                     FontSize="26"
+                     FontWeight="SemiBold" />
+          <TextBlock TextWrapping="Wrap"
+                     Text="SVG foreignObject reserves space inside SVG text and hosts a real Avalonia control there, so the button and editor stay part of the text flow instead of being manually overlaid." />
+
+          <Border Padding="20"
+                  CornerRadius="16"
+                  BorderBrush="#330F172A"
+                  BorderThickness="1"
+                  Background="#FCFCFD">
+            <StackPanel Spacing="16">
+              <TextBlock Text="foreignObject controls inside SvgML text"
+                         FontSize="18"
+                         FontWeight="SemiBold" />
+
+              <svg Height="340"
+                   Stretch="Uniform"
+                   viewBox="0 0 520 260">
+                <rect x="0" y="0" width="520" height="260" fill="#F8FAFC" />
+                <rect x="18" y="18" width="484" height="224" fill="#FFFFFF" opacity="0.92" />
+                <text x="32" y="52" fill="#0F172A" style="font-size:24px;">Release review</text>
+                <text x="32" y="94" fill="#334155" style="font-size:16px;">
+                  <tspan>Approve </tspan>
+                  <foreignObject width="110" height="34">
+                    <Button Content="Publish"
+                            MinWidth="110"
+                            Padding="16,6" />
+                  </foreignObject>
+                  <tspan> to send the revision live.</tspan>
+                </text>
+                <text x="32" y="138" fill="#334155" style="font-size:16px;">
+                  <tspan>Owner </tspan>
+                  <foreignObject width="180" height="34">
+                    <TextBox Width="180"
+                             Text="Design systems" />
+                  </foreignObject>
+                  <tspan> can edit the label in flow.</tspan>
+                </text>
+                <text x="32" y="182" fill="#334155" style="font-size:16px;">
+                  <tspan>Preview </tspan>
+                  <foreignObject width="118" height="34">
+                    <Button Content="Open sample"
+                            MinWidth="118"
+                            Padding="16,6" />
+                  </foreignObject>
+                  <tspan> before the review is submitted.</tspan>
+                </text>
+              </svg>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <TabItem Header="Scene Controls">
+      <ScrollViewer>
+        <StackPanel Margin="24" Spacing="16" MaxWidth="980">
+          <TextBlock Text="foreignObject controls in the SVG scene"
+                     FontSize="26"
+                     FontWeight="SemiBold" />
+          <TextBlock TextWrapping="Wrap"
+                     Text="SVG foreignObject can host native Avalonia controls anywhere a graphical SVG element is allowed, not only inside text. The hosted controls below are positioned by the SVG scene rectangle and inherit group placement." />
+
+          <Border Padding="20"
+                  CornerRadius="16"
+                  BorderBrush="#330F172A"
+                  BorderThickness="1"
+                  Background="#FCFCFD">
+            <StackPanel Spacing="16">
+              <TextBlock Text="Native controls placed by SVG x/y/width/height"
+                         FontSize="18"
+                         FontWeight="SemiBold" />
+
+              <svg Height="420"
+                   Stretch="Uniform"
+                   viewBox="0 0 640 360">
+                <defs>
+                  <linearGradient id="scene-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#E0F2FE;" />
+                    <stop offset="100%" style="stop-color:#ECFCCB;" />
+                  </linearGradient>
+                </defs>
+                <rect x="0" y="0" width="640" height="360" rx="26" fill="url(#scene-gradient)" />
+                <rect x="26" y="26" width="588" height="308" rx="22" fill="#FFFFFF" opacity="0.82" />
+
+                <g transform="translate(54 58)">
+                  <rect x="0" y="0" width="230" height="138" rx="18" fill="#F8FAFC" stroke="#CBD5E1" />
+                  <text x="20" y="34" fill="#0F172A" style="font-size:18px;font-weight:700;">Publish lane</text>
+                  <text x="20" y="62" fill="#475569" style="font-size:12px;">Button is hosted by a group-local rectangle.</text>
+                  <foreignObject x="20" y="78" width="168" height="42">
+                    <Button Content="Run export"
+                            Padding="18,8"
+                            HorizontalAlignment="Stretch" />
+                  </foreignObject>
+                </g>
+
+                <g transform="translate(342 58)">
+                  <rect x="0" y="0" width="244" height="138" rx="18" fill="#F8FAFC" stroke="#CBD5E1" />
+                  <text x="20" y="34" fill="#0F172A" style="font-size:18px;font-weight:700;">Data source</text>
+                  <text x="20" y="62" fill="#475569" style="font-size:12px;">The editor is part of the SVG scene flow.</text>
+                  <foreignObject x="20" y="78" width="196" height="42">
+                    <TextBox Text="northwind.csv"
+                             HorizontalAlignment="Stretch" />
+                  </foreignObject>
+                </g>
+
+                <path d="M82 240 H558" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" />
+                <text x="82" y="232" fill="#334155" style="font-size:16px;font-weight:700;">Opacity budget</text>
+                <foreignObject x="214" y="214" width="230" height="46">
+                  <Slider Minimum="0"
+                          Maximum="100"
+                          Value="62" />
+                </foreignObject>
+
+                <g transform="translate(94 286)">
+                  <rect x="0" y="0" width="452" height="48" rx="24" fill="#0F172A" opacity="0.08" />
+                  <text x="24" y="31" fill="#0F172A" style="font-size:14px;">Root-level host:</text>
+                  <foreignObject x="146" y="7" width="154" height="34">
+                    <CheckBox Content="Ready"
+                              IsChecked="True" />
+                  </foreignObject>
+                  <foreignObject x="310" y="7" width="118" height="34">
+                    <Button Content="Details"
+                            Padding="14,5" />
+                  </foreignObject>
+                </g>
+              </svg>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+  </TabControl>
   
 </Window>

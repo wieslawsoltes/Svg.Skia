@@ -92,6 +92,25 @@ public static class SvgSceneCompiler
             out sceneDocument);
     }
 
+    public static bool TryMeasureTextBounds(
+        SvgTextBase svgTextBase,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader,
+        out SKRect geometryBounds)
+    {
+        if (svgTextBase is null)
+        {
+            throw new ArgumentNullException(nameof(svgTextBase));
+        }
+
+        if (assetLoader is null)
+        {
+            throw new ArgumentNullException(nameof(assetLoader));
+        }
+
+        return SvgSceneTextCompiler.TryMeasureGeometryBounds(svgTextBase, viewport, assetLoader, out geometryBounds);
+    }
+
     private static bool TryCompile(
         SvgDocument? sourceDocument,
         SKRect cullRect,
@@ -892,6 +911,9 @@ public static class SvgSceneCompiler
             case SvgSwitch svgSwitch:
                 FinalizeDirectSwitchNode(node, svgSwitch, parentTotalTransform, ignoreAttributes);
                 break;
+            case SvgForeignObject svgForeignObject:
+                FinalizeDirectForeignObjectNode(node, svgForeignObject, viewport, parentTotalTransform);
+                break;
             case SvgFragment svgFragment when element is not SvgDocument:
                 FinalizeDirectFragmentNode(node, svgFragment, viewport, parentTotalTransform, ignoreAttributes);
                 break;
@@ -943,6 +965,70 @@ public static class SvgSceneCompiler
         DrawAttributes ignoreAttributes)
     {
         FinalizeDirectStructuralBounds(node, parentTotalTransform);
+    }
+
+    private static void FinalizeDirectForeignObjectNode(
+        SvgSceneNode node,
+        SvgForeignObject svgForeignObject,
+        SKRect viewport,
+        SKMatrix parentTotalTransform)
+    {
+        if (!TryGetForeignObjectBounds(svgForeignObject, viewport, out var bounds))
+        {
+            FinalizeDirectStructuralBounds(node, parentTotalTransform);
+            return;
+        }
+
+        node.GeometryBounds = bounds;
+        node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
+        node.TransformedBounds = node.TotalTransform.MapRect(bounds);
+    }
+
+    private static bool TryGetForeignObjectBounds(SvgForeignObject svgForeignObject, SKRect viewport, out SKRect bounds)
+    {
+        bounds = default;
+
+        var x = TryGetForeignObjectUnit(svgForeignObject, "x", out var xUnit)
+            ? xUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgForeignObject, viewport)
+            : 0f;
+        var y = TryGetForeignObjectUnit(svgForeignObject, "y", out var yUnit)
+            ? yUnit.ToDeviceValue(UnitRenderingType.Vertical, svgForeignObject, viewport)
+            : 0f;
+
+        if (!TryGetForeignObjectUnit(svgForeignObject, "width", out var widthUnit)
+            || !TryGetForeignObjectUnit(svgForeignObject, "height", out var heightUnit))
+        {
+            return false;
+        }
+
+        var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgForeignObject, viewport);
+        var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgForeignObject, viewport);
+        if (width <= 0f || height <= 0f)
+        {
+            return false;
+        }
+
+        bounds = SKRect.Create(x, y, width, height);
+        return true;
+    }
+
+    private static bool TryGetForeignObjectUnit(SvgForeignObject svgForeignObject, string attributeName, out SvgUnit unit)
+    {
+        unit = default;
+        if (!svgForeignObject.TryGetAttribute(attributeName, out var value) || string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        try
+        {
+            unit = SvgUnitConverter.Parse(value.AsSpan().Trim());
+            return !unit.IsEmpty && !unit.IsNone;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 
     private static void FinalizeDirectStructuralBounds(

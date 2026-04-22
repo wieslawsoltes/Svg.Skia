@@ -14,7 +14,7 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageTags>svg;xaml;maui;dotnet-maui;control;inline-svg</PackageTags>
         <IsPackable>true</IsPackable>
-        <SvgMLSelfWeaverEnabled>false</SvgMLSelfWeaverEnabled>
+        <SvgMLSelfWeaverEnabled>true</SvgMLSelfWeaverEnabled>
         <NoWarn>$(NoWarn);CS1591;CS8981</NoWarn>
 
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">12.2</SupportedOSPlatformVersion>
@@ -41,7 +41,7 @@
 
     <ItemGroup>
         <Compile Include="$(SvgMLBasePath)\Manual\**\*.cs"
-                 Exclude="$(SvgMLBasePath)\Manual\Document Structure\svg.Loading.cs"
+                 Exclude="$(SvgMLBasePath)\Manual\Document Structure\svg.Loading.cs;$(SvgMLBasePath)\Manual\elements.cs"
                  LinkBase="Manual" />
     </ItemGroup>
 

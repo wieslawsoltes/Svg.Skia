@@ -13,6 +13,9 @@ public static class AppHostBuilderExtensions
         GC.KeepAlive(typeof(stop));
         GC.KeepAlive(typeof(rect));
         GC.KeepAlive(typeof(circle));
+        GC.KeepAlive(typeof(text));
+        GC.KeepAlive(typeof(tspan));
+        GC.KeepAlive(typeof(foreignObject));
 
         // TODO: Add all types from SvgML.Maui into UseSvgML() extension method
         

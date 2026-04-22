@@ -18,9 +18,9 @@ public class elementsTypeConverter : TypeConverter
 
     public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
     {
-        var elements = (elements)value;
-
-        return string.Concat(elements.OfType<content>().Select(x => x.Content));
+        return value is elements elements
+            ? string.Concat(elements.OfType<content>().Select(static x => x.Content))
+            : string.Empty;
     }
 
     public override object ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
@@ -45,5 +45,18 @@ public class elements : ObservableCollection<element>
 
     public elements(params element[] items) : base(items)
     {
+    }
+
+    public void Add(string? text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        Add(new content
+        {
+            Content = text
+        });
     }
 }

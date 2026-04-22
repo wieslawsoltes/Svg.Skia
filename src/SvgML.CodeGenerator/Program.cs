@@ -32,7 +32,7 @@ switch (target)
         {
             var settings = new GeneratorSettings
             {
-                ElementBaseType = "SkiaSharp.Views.Maui.Controls.SKCanvasView",
+                ElementBaseType = "Microsoft.Maui.Controls.ContentView",
                 BaseWriterType = "element",
                 BasePath = ResolveGeneratedPath("SvgML.Maui"),
                 TypeDefs = SvgTypeDefs.TypeDefs
@@ -47,7 +47,7 @@ switch (target)
         {
             var settings = new GeneratorSettings
             {
-                ElementBaseType = "Uno.WinUI.Graphics2DSK.SKCanvasElement",
+                ElementBaseType = "Microsoft.UI.Xaml.Controls.ContentControl",
                 BaseWriterType = "element",
                 BasePath = ResolveGeneratedPath("SvgML.Uno"),
                 TypeDefs = SvgTypeDefs.TypeDefs

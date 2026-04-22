@@ -1,6 +1,6 @@
 namespace SvgML;
 
-internal partial class content
+public partial class content
 {
     protected override void Write(TextWriter writer, element parent)
     {

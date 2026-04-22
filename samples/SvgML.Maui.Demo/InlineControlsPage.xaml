@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maui="http://schemas.microsoft.com/dotnet/2021/maui"
+             x:Class="SvgML.Maui.Demo.InlineControlsPage"
+             Title="Hosted Controls">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="16">
+            <Label Text="foreignObject controls inside SvgML"
+                   FontSize="28"
+                   FontAttributes="Bold" />
+            <Label Text="SVG foreignObject reserves text layout inside the SVG and hosts a real .NET MAUI control there, so the controls stay part of the text flow instead of being manually overlaid."
+                   LineBreakMode="WordWrap" />
+
+            <Border Padding="18"
+                    Stroke="#330F172A"
+                    StrokeThickness="1"
+                    BackgroundColor="#FCFCFD">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Inline foreignObject controls arranged on SVG text rows"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+
+                    <svg xmlns="https://github.com/svgml"
+                         HeightRequest="340"
+                         Stretch="Uniform"
+                         viewBox="0 0 520 260">
+                        <rect x="0" y="0" width="520" height="260" fill="#F8FAFC" />
+                        <rect x="18" y="18" width="484" height="224" fill="#FFFFFF" opacity="0.92" />
+                        <text x="32" y="52" fill="#0F172A" style="font-size:24px;">Release review</text>
+                        <text x="32" y="94" fill="#334155" style="font-size:16px;">
+                            <tspan>Approve </tspan>
+                            <foreignObject>
+                                <maui:Button Text="Publish"
+                                             WidthRequest="112"
+                                             HeightRequest="34"
+                                             Padding="16,8"
+                                             BackgroundColor="#2563EB"
+                                             TextColor="White" />
+                            </foreignObject>
+                            <tspan> to send the revision live.</tspan>
+                        </text>
+                        <text x="32" y="138" fill="#334155" style="font-size:16px;">
+                            <tspan>Owner </tspan>
+                            <foreignObject>
+                                <maui:Entry WidthRequest="180"
+                                            HeightRequest="34"
+                                            Text="Design systems"
+                                            FontSize="14" />
+                            </foreignObject>
+                            <tspan> can edit the label in flow.</tspan>
+                        </text>
+                        <text x="32" y="182" fill="#334155" style="font-size:16px;">
+                            <tspan>Preview </tspan>
+                            <foreignObject>
+                                <maui:Button Text="Open sample"
+                                             WidthRequest="118"
+                                             HeightRequest="34"
+                                             Padding="16,8" />
+                            </foreignObject>
+                            <tspan> before the review is submitted.</tspan>
+                        </text>
+                    </svg>
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

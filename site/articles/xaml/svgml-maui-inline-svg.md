@@ -31,23 +31,23 @@ builder
 ```xml
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:svgml="clr-namespace:SvgML;assembly=SvgML.Maui"
              x:Class="SvgML.Maui.Demo.MainPage">
 
   <VerticalStackLayout Padding="30,0" Spacing="25">
-    <svgml:svg viewBox="0 0 200 100">
-      <svgml:defs>
-        <svgml:linearGradient id="gradient" x1="0%" y1="0%" x2="0" y2="100%">
-          <svgml:stop offset="0%" style="stop-color:skyblue;" />
-          <svgml:stop offset="100%" style="stop-color:seagreen;" />
-        </svgml:linearGradient>
-      </svgml:defs>
+    <svg xmlns="https://github.com/svgml"
+         viewBox="0 0 200 100">
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="0" y2="100%">
+          <stop offset="0%" style="stop-color:skyblue;" />
+          <stop offset="100%" style="stop-color:seagreen;" />
+        </linearGradient>
+      </defs>
 
-      <svgml:rect x="0" y="0" width="100%" height="100%" fill="url(#gradient)" />
-      <svgml:circle cx="50" cy="50" r="40"
-                    fill="{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}" />
-      <svgml:circle cx="150" cy="50" r="40" fill="black" opacity="0.3" />
-    </svgml:svg>
+      <rect x="0" y="0" width="100%" height="100%" fill="url(#gradient)" />
+      <circle cx="50" cy="50" r="40"
+              fill="{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}" />
+      <circle cx="150" cy="50" r="40" fill="black" opacity="0.3" />
+    </svg>
 
     <Entry x:Name="CircleFill" Text="red" />
   </VerticalStackLayout>
@@ -58,12 +58,44 @@ builder
 
 - Element names such as `svg`, `rect`, `circle`, `defs`, `linearGradient`, and `stop` stay close to authored SVG.
 - CLR-safe attribute names such as `viewBox`, `fill`, and `opacity` stay close to the SVG vocabulary.
-- Dash-named members use CLR-safe underscores in MAUI XAML, for example `stroke_width`, `fill_opacity`, or `font_face`.
+- Dash-named SVG attributes such as `stroke-width`, `fill-opacity`, and `font-size` are supported by the built MAUI package. The assembly is self-weaved before MAUI XamlC compiles consuming XAML, so authored markup should use the SVG names rather than underscore aliases.
 - Text or control bindings can feed attribute values directly, which makes small interactive diagrams practical inside MAUI pages.
 
 ## Namespace note
 
-Use an explicit MAUI alias such as `xmlns:svgml="clr-namespace:SvgML;assembly=SvgML.Maui"` for inline SVG nodes. The protected MAUI default namespace cannot safely absorb `SvgML.Maui` when the library is referenced from source, so explicit aliasing is the reliable authoring path.
+Scope each inline SVG subtree with `xmlns="https://github.com/svgml"` so SVG nodes can be authored without prefixes. Keep native MAUI controls in the MAUI namespace when they are hosted by `foreignObject`.
+
+## Native controls with foreignObject
+
+`foreignObject` hosts a single native MAUI `View` child. It can reserve a slot inside SVG text or place controls by scene geometry:
+
+```xml
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maui="http://schemas.microsoft.com/dotnet/2021/maui">
+
+  <svg xmlns="https://github.com/svgml"
+       HeightRequest="260"
+       Stretch="Uniform"
+       viewBox="0 0 420 180">
+    <text x="24" y="46" fill="#334155" style="font-size:16px;">
+      <tspan>Approve </tspan>
+      <foreignObject>
+        <maui:Button Text="Publish"
+                     WidthRequest="112"
+                     HeightRequest="34" />
+      </foreignObject>
+      <tspan> before release.</tspan>
+    </text>
+
+    <foreignObject x="24" y="92" width="180" height="36">
+      <maui:Entry Text="Design systems" />
+    </foreignObject>
+  </svg>
+</ContentPage>
+```
+
+For inline text, explicit `width`/`height` or the measured native view size controls the reserved advance. For scene placement, `x`, `y`, `width`, and `height` define the SVG slot. See [SvgML foreignObject Controls](svgml-foreignobject-controls) for sizing and unit details.
 
 ## Current package lane
 
@@ -82,4 +114,4 @@ The runtime exposes authored-element hit testing and retained-scene mapping thro
 - Choose `SvgML.Maui` when the visual is authored inline and should stay near page markup or bindings.
 - Choose external `.svg` assets plus `Svg.Skia` when the source graphic already exists as a file or should be shared outside XAML.
 
-The repository sample at `samples/SvgML.Maui.Demo` shows the current end-to-end setup.
+The repository sample at `samples/SvgML.Maui.Demo` shows bound SVG properties, inline hosted controls, and scene-level hosted controls.

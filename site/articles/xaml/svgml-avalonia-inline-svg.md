@@ -13,46 +13,47 @@ The NuGet package name is `SvgML.Avalonia`, while the CLR namespace used from XA
 ```xml
 <Window
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:svgml="clr-namespace:SvgML;assembly=SvgML.Avalonia">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 ```
+
+`SvgML.Avalonia` also maps `SvgML` into Avalonia's standard `https://github.com/avaloniaui` namespace, so the repository demo can author `svg`, `defs`, `rect`, `text`, and `foreignObject` without a prefix in normal Avalonia markup.
 
 ## Inline resource example
 
 ```xml
 <Window.Resources>
-  <svgml:svg x:Key="InlineIcon"
-             x:Shared="False"
-             viewBox="0 0 500 500">
-    <svgml:defs>
-      <svgml:filter id="noise"
-                    x="0%"
-                    y="0%"
-                    width="100%"
-                    height="100%">
-        <svgml:feTurbulence type="fractalNoise"
-                            result="NOISE"
-                            baseFrequency="0 0.000001"
-                            numOctaves="2" />
-        <svgml:feDisplacementMap in="SourceGraphic"
-                                 in2="NOISE"
-                                 scale="30"
-                                 xChannelSelector="R"
-                                 yChannelSelector="R" />
-      </svgml:filter>
-    </svgml:defs>
+  <svg x:Key="InlineIcon"
+       x:Shared="False"
+       viewBox="0 0 500 500">
+    <defs>
+      <filter id="noise"
+              x="0%"
+              y="0%"
+              width="100%"
+              height="100%">
+        <feTurbulence type="fractalNoise"
+                      result="NOISE"
+                      baseFrequency="0 0.000001"
+                      numOctaves="2" />
+        <feDisplacementMap in="SourceGraphic"
+                           in2="NOISE"
+                           scale="30"
+                           xChannelSelector="R"
+                           yChannelSelector="R" />
+      </filter>
+    </defs>
 
-    <svgml:rect width="100%"
-                height="100%"
-                fill="lightgray" />
-    <svgml:rect id="r2"
-                width="10%"
-                height="10%"
-                x="0%"
-                y="45%"
-                fill="green"
-                filter="#noise" />
-  </svgml:svg>
+    <rect width="100%"
+          height="100%"
+          fill="lightgray" />
+    <rect id="r2"
+          width="10%"
+          height="10%"
+          x="0%"
+          y="45%"
+          fill="green"
+          filter="#noise" />
+  </svg>
 </Window.Resources>
 ```
 
@@ -64,7 +65,7 @@ Avalonia style selectors can target the inline SVG controls directly:
 
 ```xml
 <Window.Styles>
-  <Style Selector="svgml|rect#r2">
+  <Style Selector=":is(rect)[id=r2]">
     <Style.Animations>
       <Animation Duration="0:0:1"
                  IterationCount="Infinite"
@@ -94,9 +95,36 @@ The root `svg` control exposes:
 
 This is more than a markup serializer. The authored control tree and renderer state stay connected.
 
+## Native controls with foreignObject
+
+SvgML uses SVG `foreignObject` as the native-control host. The same element works inside text flow and as a normal scene element:
+
+```xml
+<svg Height="260"
+     Stretch="Uniform"
+     viewBox="0 0 420 180">
+  <text x="24" y="46" fill="#334155" style="font-size:16px;">
+    <tspan>Approve </tspan>
+    <foreignObject width="110" height="34">
+      <Button Content="Publish" MinWidth="110" />
+    </foreignObject>
+    <tspan> before release.</tspan>
+  </text>
+
+  <g transform="translate(24 90)">
+    <rect x="0" y="0" width="240" height="56" fill="#F8FAFC" stroke="#CBD5E1" />
+    <foreignObject x="16" y="12" width="180" height="32">
+      <TextBox Text="Design systems" />
+    </foreignObject>
+  </g>
+</svg>
+```
+
+Inline `foreignObject` reserves text advance from explicit `width`/`height` or from the measured native control. Scene `foreignObject` uses SVG `x`, `y`, `width`, `height`, and inherited transforms. See [SvgML foreignObject Controls](svgml-foreignobject-controls) for the cross-platform layout details.
+
 ## When to use SvgML.Avalonia versus SvgSource
 
 - Choose `SvgML.Avalonia` when the visual is authored inline and should be styleable as part of the Avalonia view.
 - Choose `Avalonia.Svg.Skia` or `Avalonia.Svg` when the source is already an external SVG asset or a reusable `SvgSource`.
 
-The repository sample at `samples/SvgML.Avalonia.Demo` shows both the reusable-resource pattern and selector-driven animation.
+The repository sample at `samples/SvgML.Avalonia.Demo` shows reusable resources, selector-driven animation, inline hosted controls, and scene-level hosted controls.

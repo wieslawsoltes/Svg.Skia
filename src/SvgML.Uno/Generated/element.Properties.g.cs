@@ -3,7 +3,7 @@
 
 namespace SvgML;
 
-public abstract partial class element : Uno.WinUI.Graphics2DSK.SKCanvasElement
+public abstract partial class element : Microsoft.UI.Xaml.Controls.ContentControl
 {
     protected abstract string SvgTag { get; }
 

@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Controls.Skia.Uno\Svg.Controls.Skia.Uno.csproj" />
+    <ProjectReference Include="..\..\src\SvgML.Uno\SvgML.Uno.csproj" />
   </ItemGroup>
 
 </Project>

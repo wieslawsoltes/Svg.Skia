@@ -17,16 +17,16 @@ public class elementTypeConverter : TypeConverter
 
     public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
     {
-        var content = (content)value;
-
-        return content.Content;
+        return value is content content
+            ? content.Content
+            : string.Empty;
     }
 
     public override object ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
     {
         return new content
         {
-            Content = (string)value
+            Content = value as string ?? string.Empty
         };
     }
 }
@@ -34,4 +34,11 @@ public class elementTypeConverter : TypeConverter
 [TypeConverter(typeof(elementTypeConverter))]
 public abstract partial class element
 {
+    public static implicit operator element(string value)
+    {
+        return new content
+        {
+            Content = value
+        };
+    }
 }

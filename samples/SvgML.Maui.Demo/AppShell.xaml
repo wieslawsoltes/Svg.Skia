@@ -7,9 +7,19 @@
     Shell.FlyoutBehavior="Disabled"
     Title="SvgML.Maui Demo">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <TabBar>
+        <ShellContent
+            Title="Bound Fill"
+            ContentTemplate="{DataTemplate local:MainPage}"
+            Route="MainPage" />
+        <ShellContent
+            Title="Hosted Controls"
+            ContentTemplate="{DataTemplate local:InlineControlsPage}"
+            Route="InlineControlsPage" />
+        <ShellContent
+            Title="Scene Controls"
+            ContentTemplate="{DataTemplate local:SceneControlsPage}"
+            Route="SceneControlsPage" />
+    </TabBar>
 
 </Shell>

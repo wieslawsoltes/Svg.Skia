@@ -6,4 +6,56 @@ namespace SvgML;
 public partial class foreignObject : visual
 {
     protected override string SvgTag => "foreignObject";
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty xProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "x",
+            typeof(Svg.SvgUnit),
+            typeof(foreignObject),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty yProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "y",
+            typeof(Svg.SvgUnit),
+            typeof(foreignObject),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty widthProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "width",
+            typeof(Svg.SvgUnit),
+            typeof(foreignObject),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty heightProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "height",
+            typeof(Svg.SvgUnit),
+            typeof(foreignObject),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
+
+    public Svg.SvgUnit x
+    {
+        get => (Svg.SvgUnit)GetValue(xProperty);
+        set => SetValue(xProperty, value);
+    }
+
+    public Svg.SvgUnit y
+    {
+        get => (Svg.SvgUnit)GetValue(yProperty);
+        set => SetValue(yProperty, value);
+    }
+
+    public Svg.SvgUnit width
+    {
+        get => (Svg.SvgUnit)GetValue(widthProperty);
+        set => SetValue(widthProperty, value);
+    }
+
+    public Svg.SvgUnit height
+    {
+        get => (Svg.SvgUnit)GetValue(heightProperty);
+        set => SetValue(heightProperty, value);
+    }
 }

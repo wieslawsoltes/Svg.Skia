@@ -11,8 +11,8 @@ public abstract partial class element
         switch (e.Action)
         {
             case NotifyCollectionChangedAction.Add:
-                LogicalChildren.InsertRange(e.NewStartingIndex, e.NewItems!.OfType<Control>().ToList());
-                VisualChildren.InsertRange(e.NewStartingIndex, e.NewItems!.OfType<Visual>());
+                LogicalChildren.InsertRange(e.NewStartingIndex, e.NewItems!.OfType<element>().ToList());
+                VisualChildren.InsertRange(e.NewStartingIndex, e.NewItems!.OfType<element>());
                 break;
 
             case NotifyCollectionChangedAction.Move:
@@ -21,8 +21,8 @@ public abstract partial class element
                 break;
 
             case NotifyCollectionChangedAction.Remove:
-                LogicalChildren.RemoveAll(e.OldItems!.OfType<Control>().ToList());
-                VisualChildren.RemoveAll(e.OldItems!.OfType<Visual>());
+                LogicalChildren.RemoveAll(e.OldItems!.OfType<element>().Cast<Control>().ToList());
+                VisualChildren.RemoveAll(e.OldItems!.OfType<element>().Cast<Visual>());
                 break;
 
             case NotifyCollectionChangedAction.Replace:
@@ -36,14 +36,14 @@ public abstract partial class element
                 break;
 
             case NotifyCollectionChangedAction.Reset:
-                var logicalChildren = LogicalChildren.OfType<Control>().ToList();
-                var visualChildren = VisualChildren.OfType<Visual>().ToList();
+                var logicalChildren = LogicalChildren.OfType<element>().Cast<Control>().ToList();
+                var visualChildren = VisualChildren.OfType<element>().Cast<Visual>().ToList();
 
                 LogicalChildren.RemoveAll(logicalChildren);
                 VisualChildren.RemoveAll(visualChildren);
 
-                LogicalChildren.InsertRange(0, Children.OfType<Control>().ToList());
-                VisualChildren.InsertRange(0, Children.OfType<Visual>());
+                LogicalChildren.InsertRange(0, Children.OfType<element>().Cast<Control>().ToList());
+                VisualChildren.InsertRange(0, Children.OfType<element>().Cast<Visual>());
                 break;
         }
 

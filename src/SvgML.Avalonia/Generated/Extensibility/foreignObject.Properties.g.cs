@@ -6,4 +6,40 @@ namespace SvgML;
 public partial class foreignObject : visual
 {
     protected override string SvgTag => "foreignObject";
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> xProperty =
+        Avalonia.AvaloniaProperty.Register<foreignObject, Svg.SvgUnit?>("x");
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> yProperty =
+        Avalonia.AvaloniaProperty.Register<foreignObject, Svg.SvgUnit?>("y");
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> widthProperty =
+        Avalonia.AvaloniaProperty.Register<foreignObject, Svg.SvgUnit?>("width");
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> heightProperty =
+        Avalonia.AvaloniaProperty.Register<foreignObject, Svg.SvgUnit?>("height");
+
+    public Svg.SvgUnit? x
+    {
+        get => GetValue(xProperty);
+        set => SetValue(xProperty, value);
+    }
+
+    public Svg.SvgUnit? y
+    {
+        get => GetValue(yProperty);
+        set => SetValue(yProperty, value);
+    }
+
+    public Svg.SvgUnit? width
+    {
+        get => GetValue(widthProperty);
+        set => SetValue(widthProperty, value);
+    }
+
+    public Svg.SvgUnit? height
+    {
+        get => GetValue(heightProperty);
+        set => SetValue(heightProperty, value);
+    }
 }

@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Numerics;
 using Microsoft.Maui.Graphics;
 using SkiaSharp;
-using SkiaSharp.Views.Maui;
 using Svg;
 using Svg.Model;
 using Svg.Skia;
@@ -24,6 +23,7 @@ public partial class svg
 
     public svg()
     {
+        InitializeHostedControls();
         AttachToTree(parent: null, root: this);
         Loaded += OnLoaded;
     }
@@ -261,6 +261,7 @@ public partial class svg
         var picture = _picture;
         if (picture is null)
         {
+            _layoutRoot.Measure(0D, 0D);
             return new Size();
         }
 
@@ -270,13 +271,8 @@ public partial class svg
             Stretch,
             StretchDirection);
 
+        _layoutRoot.Measure(size.Width, size.Height);
         return new Size(size.Width, size.Height);
-    }
-
-    protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)
-    {
-        base.OnPaintSurface(e);
-        Render(e.Surface.Canvas, e.Info.Width, e.Info.Height);
     }
 
     private void Render(SKCanvas canvas, int width, int height)
@@ -305,7 +301,7 @@ public partial class svg
         canvas.Restore();
     }
 
-    protected override void OnPropertyChanged(string propertyName = null)
+    protected override void OnPropertyChanged(string? propertyName = null)
     {
         base.OnPropertyChanged(propertyName);
 
@@ -324,7 +320,7 @@ public partial class svg
         if (propertyName == nameof(Stretch) || propertyName == nameof(StretchDirection))
         {
             InvalidateMeasure();
-            InvalidateSurface();
+            InvalidateDrawingSurface();
             return;
         }
 
@@ -343,7 +339,7 @@ public partial class svg
     {
         OnSourceChanged(this);
         InvalidateMeasure();
-        InvalidateSurface();
+        InvalidateDrawingSurface();
     }
 
     private void OnSourceChanged(svg? source)
