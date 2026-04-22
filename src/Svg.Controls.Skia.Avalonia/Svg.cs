@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -48,6 +50,7 @@ public class Svg : Control
     private long _animationRenderLoopGeneration;
     private bool _nativeCompositionHostSupported = true;
     private SvgCompositionVisualScene? _nativeCompositionScene;
+    private long _sourceLoadVersion;
     private static readonly Cursor s_arrowCursor = new(StandardCursorType.Arrow);
     private static readonly Cursor s_appStartingCursor = new(StandardCursorType.AppStarting);
     private static readonly Cursor s_crossCursor = new(StandardCursorType.Cross);
@@ -721,6 +724,7 @@ public class Svg : Control
 
     private void LoadFromPath(string? path, SvgParameters? parameters = null)
     {
+        CancelPendingSourceLoad();
         Interaction.Reset();
         ApplyNativeCursor(null);
 
@@ -735,12 +739,7 @@ public class Svg : Control
         if (_enableCache && _cache is { } && _cache.TryGetValue(path, out var svg))
         {
             ReplaceCurrentSource(CreateWorkingSource(svg));
-            if (_svg?.Svg is { } skSvg)
-            {
-                skSvg.Wireframe = _wireframe;
-                skSvg.IgnoreAttributes = _disableFilters ? DrawAttributes.Filter : DrawAttributes.None;
-                skSvg.ClearWireframePicture();
-            }
+            ApplyRenderOptions(_svg, _wireframe, _disableFilters);
             TrackAnimationSvg(_svg?.Svg);
             return;
         }
@@ -755,12 +754,7 @@ public class Svg : Control
         {
             var loaded = SvgSource.Load(path, _baseUri, parameters);
             ReplaceCurrentSource(loaded);
-            if (_svg?.Svg is { } skSvg2)
-            {
-                skSvg2.Wireframe = _wireframe;
-                skSvg2.IgnoreAttributes = _disableFilters ? DrawAttributes.Filter : DrawAttributes.None;
-                skSvg2.ClearWireframePicture();
-            }
+            ApplyRenderOptions(_svg, _wireframe, _disableFilters);
             TrackAnimationSvg(_svg?.Svg);
 
             if (_enableCache && _cache is { } && _svg is { })
@@ -778,6 +772,7 @@ public class Svg : Control
 
     private void LoadFromSource(string? source, SvgParameters? parameters = null)
     {
+        var loadVersion = Interlocked.Increment(ref _sourceLoadVersion);
         Interaction.Reset();
         ApplyNativeCursor(null);
 
@@ -789,24 +784,80 @@ public class Svg : Control
             return;
         }
 
+        _ = LoadFromSourceAsync(source, parameters, loadVersion);
+    }
+
+    private async Task LoadFromSourceAsync(
+        string source,
+        SvgParameters? parameters,
+        long loadVersion)
+    {
+        SvgSource? loaded = null;
+
         try
         {
-            var bytes = Encoding.UTF8.GetBytes(source);
-            using var ms = new MemoryStream(bytes);
-            ReplaceCurrentSource(SvgSource.LoadFromStream(ms, parameters));
-            if (_svg?.Svg is { } skSvg)
+            loaded = await Task.Run(() =>
             {
-                skSvg.Wireframe = _wireframe;
-                skSvg.IgnoreAttributes = _disableFilters ? DrawAttributes.Filter : DrawAttributes.None;
-                skSvg.ClearWireframePicture();
-            }
-            TrackAnimationSvg(_svg?.Svg);
+                var bytes = Encoding.UTF8.GetBytes(source);
+                using var ms = new MemoryStream(bytes);
+                return SvgSource.LoadFromStream(ms, parameters);
+            }).ConfigureAwait(false);
         }
         catch (Exception e)
         {
-            Logger.TryGet(LogEventLevel.Warning, LogArea.Control)?.Log(this, "Failed to load svg image: " + e);
-            ReplaceCurrentSource(null);
-            TrackAnimationSvg(null);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (loadVersion != Volatile.Read(ref _sourceLoadVersion))
+                {
+                    return;
+                }
+
+                Logger.TryGet(LogEventLevel.Warning, LogArea.Control)?.Log(this, "Failed to load svg image: " + e);
+                ReplaceCurrentSource(null);
+                TrackAnimationSvg(null);
+                InvalidateMeasure();
+                InvalidateArrange();
+                InvalidateVisual();
+            }, DispatcherPriority.Background);
+            return;
+        }
+
+        try
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (loadVersion != Volatile.Read(ref _sourceLoadVersion))
+                {
+                    return;
+                }
+
+                ApplyRenderOptions(loaded, _wireframe, _disableFilters);
+                ReplaceCurrentSource(loaded);
+                loaded = null;
+                TrackAnimationSvg(_svg?.Svg);
+                InvalidateMeasure();
+                InvalidateArrange();
+                InvalidateVisual();
+            }, DispatcherPriority.Background);
+        }
+        finally
+        {
+            loaded?.Dispose();
+        }
+    }
+
+    private void CancelPendingSourceLoad()
+    {
+        Interlocked.Increment(ref _sourceLoadVersion);
+    }
+
+    private static void ApplyRenderOptions(SvgSource? source, bool wireframe, bool disableFilters)
+    {
+        if (source?.Svg is { } skSvg)
+        {
+            skSvg.Wireframe = wireframe;
+            skSvg.IgnoreAttributes = disableFilters ? DrawAttributes.Filter : DrawAttributes.None;
+            skSvg.ClearWireframePicture();
         }
     }
 
