@@ -71,6 +71,67 @@ public class EditingHelpersTests
     }
 
     [Fact]
+    public void FindCommandsBySourceElementId_FiltersNestedCommands()
+    {
+        var nestedPicture = new SKPicture(
+            SKRect.Create(0, 0, 10, 10),
+            new List<CanvasCommand>
+            {
+                new DrawPathCanvasCommand(CloneTestData.CreatePath(), CloneTestData.CreatePaint())
+                {
+                    SourceElementId = "target",
+                    SourceElementAddress = "0/1",
+                    SourceElementTypeName = "SvgPath"
+                }
+            });
+        var picture = new SKPicture(
+            SKRect.Create(0, 0, 10, 10),
+            new List<CanvasCommand>
+            {
+                new DrawPictureCanvasCommand(nestedPicture),
+                new DrawPathCanvasCommand(CloneTestData.CreatePath(), CloneTestData.CreatePaint())
+                {
+                    SourceElementId = "other",
+                    SourceElementAddress = "0/2",
+                    SourceElementTypeName = "SvgPath"
+                }
+            });
+
+        var commands = picture.FindCommandsBySourceElementId<DrawPathCanvasCommand>("target").ToList();
+
+        var command = Assert.Single(commands);
+        Assert.Equal("0/1", command.SourceElementAddress);
+        Assert.Equal("SvgPath", command.SourceElementTypeName);
+    }
+
+    [Fact]
+    public void FindCommandsBySourceElementAddress_FiltersCommands()
+    {
+        var picture = new SKPicture(
+            SKRect.Create(0, 0, 10, 10),
+            new List<CanvasCommand>
+            {
+                new DrawPathCanvasCommand(CloneTestData.CreatePath(), CloneTestData.CreatePaint())
+                {
+                    SourceElementId = "target-a",
+                    SourceElementAddress = "0/1",
+                    SourceElementTypeName = "SvgPath"
+                },
+                new DrawPathCanvasCommand(CloneTestData.CreatePath(), CloneTestData.CreatePaint())
+                {
+                    SourceElementId = "target-b",
+                    SourceElementAddress = "0/2",
+                    SourceElementTypeName = "SvgPath"
+                }
+            });
+
+        var commands = picture.FindCommandsBySourceElementAddress<DrawPathCanvasCommand>("0/2").ToList();
+
+        var command = Assert.Single(commands);
+        Assert.Equal("target-b", command.SourceElementId);
+    }
+
+    [Fact]
     public void UpdatePaints_InPlace_UpdatesUniquePaints()
     {
         var sharedPaint = CloneTestData.CreatePaint();
@@ -113,6 +174,34 @@ public class EditingHelpersTests
         Assert.Same(first, second);
         Assert.Equal(new SKColor(1, 2, 3, 4), sharedPaint.Color);
         Assert.Equal(new SKColor(7, 7, 7, 7), first.Color);
+    }
+
+    [Fact]
+    public void UpdatePaints_CloneOnWrite_PreservesSourceMetadata()
+    {
+        var command = new DrawPathCanvasCommand(CloneTestData.CreatePath(), CloneTestData.CreatePaint())
+        {
+            SourceElementId = "target",
+            SourceElementAddress = "0/1",
+            SourceElementTypeName = "SvgPath"
+        };
+        var picture = new SKPicture(
+            SKRect.Create(0, 0, 10, 10),
+            new List<CanvasCommand>
+            {
+                command
+            });
+
+        picture.UpdatePaints(
+            _ => true,
+            paint => paint.Color = new SKColor(0, 1, 2, 3),
+            EditMode.CloneOnWrite);
+
+        var updated = Assert.IsType<DrawPathCanvasCommand>(picture.Commands!.Single());
+        Assert.NotSame(command, updated);
+        Assert.Equal("target", updated.SourceElementId);
+        Assert.Equal("0/1", updated.SourceElementAddress);
+        Assert.Equal("SvgPath", updated.SourceElementTypeName);
     }
 
     [Fact]

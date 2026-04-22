@@ -19,6 +19,50 @@ public static class SKPictureEditingExtensions
         return EnumerateCommands(picture).OfType<TCommand>();
     }
 
+    public static IEnumerable<CanvasCommand> FindCommandsBySourceElementId(this SKPicture picture, string sourceElementId)
+    {
+        if (picture is null)
+        {
+            throw new ArgumentNullException(nameof(picture));
+        }
+
+        if (string.IsNullOrWhiteSpace(sourceElementId))
+        {
+            throw new ArgumentException("Source element id must not be empty.", nameof(sourceElementId));
+        }
+
+        return EnumerateCommands(picture)
+            .Where(command => string.Equals(command.SourceElementId, sourceElementId, StringComparison.Ordinal));
+    }
+
+    public static IEnumerable<TCommand> FindCommandsBySourceElementId<TCommand>(this SKPicture picture, string sourceElementId)
+        where TCommand : CanvasCommand
+    {
+        return FindCommandsBySourceElementId(picture, sourceElementId).OfType<TCommand>();
+    }
+
+    public static IEnumerable<CanvasCommand> FindCommandsBySourceElementAddress(this SKPicture picture, string sourceElementAddress)
+    {
+        if (picture is null)
+        {
+            throw new ArgumentNullException(nameof(picture));
+        }
+
+        if (string.IsNullOrWhiteSpace(sourceElementAddress))
+        {
+            throw new ArgumentException("Source element address must not be empty.", nameof(sourceElementAddress));
+        }
+
+        return EnumerateCommands(picture)
+            .Where(command => string.Equals(command.SourceElementAddress, sourceElementAddress, StringComparison.Ordinal));
+    }
+
+    public static IEnumerable<TCommand> FindCommandsBySourceElementAddress<TCommand>(this SKPicture picture, string sourceElementAddress)
+        where TCommand : CanvasCommand
+    {
+        return FindCommandsBySourceElementAddress(picture, sourceElementAddress).OfType<TCommand>();
+    }
+
     public static int ReplaceCommands(this SKPicture picture, Func<CanvasCommand, CanvasCommand?> replace)
     {
         if (picture is null)
