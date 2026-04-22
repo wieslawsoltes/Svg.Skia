@@ -2,6 +2,7 @@
 using System.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Svg;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
 
@@ -127,6 +128,19 @@ public class SKSvgTests : SvgUnitTest
     }
 
     [Fact]
+    public void Save_ProgrammaticTextDecorationLineThrough_RendersDecoration()
+    {
+        using var plain = RenderProgrammaticTextDecoration(SvgTextDecoration.None);
+        using var decorated = RenderProgrammaticTextDecoration(SvgTextDecoration.LineThrough);
+
+        var changedPixels = CountDifferingPixels(plain, decorated);
+
+        Assert.True(
+            changedPixels > 100,
+            $"Expected line-through decoration to alter the rendered text, but only {changedPixels} pixels changed.");
+    }
+
+    [Fact]
     public void Save_InheritedCurrentColor_UsesConsumingElementsColor()
     {
         const string svgMarkup = """
@@ -187,5 +201,54 @@ public class SKSvgTests : SvgUnitTest
         using var image = Image.Load<Rgba32>(output);
         Assert.Equal(120, image.Width);
         Assert.Equal(40, image.Height);
+    }
+
+    private static Image<Rgba32> RenderProgrammaticTextDecoration(SvgTextDecoration textDecoration)
+    {
+        var document = new SvgDocument
+        {
+            Width = new SvgUnit(SvgUnitType.User, 260f),
+            Height = new SvgUnit(SvgUnitType.User, 90f),
+            ViewBox = new SvgViewBox(0f, 0f, 260f, 90f)
+        };
+        var text = new SvgText("Text decoration")
+        {
+            X = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, 12f) },
+            Y = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, 58f) },
+            FontFamily = "sans-serif",
+            FontSize = new SvgUnit(SvgUnitType.User, 36f),
+            Fill = new SvgColourServer(System.Drawing.Color.Black),
+            TextDecoration = textDecoration
+        };
+        document.Children.Add(text);
+
+        using var svg = new SKSvg();
+        using var _ = svg.FromSvgDocument(document);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        return Image.Load<Rgba32>(output);
+    }
+
+    private static int CountDifferingPixels(Image<Rgba32> first, Image<Rgba32> second)
+    {
+        Assert.Equal(first.Width, second.Width);
+        Assert.Equal(first.Height, second.Height);
+
+        var count = 0;
+        for (var y = 0; y < first.Height; y++)
+        {
+            for (var x = 0; x < first.Width; x++)
+            {
+                if (!first[x, y].Equals(second[x, y]))
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
 }
