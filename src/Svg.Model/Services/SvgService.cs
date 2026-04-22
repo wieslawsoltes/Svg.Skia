@@ -488,6 +488,11 @@ public static class SvgService
                 return GetImageFromDataUri(uriString, svgOwnerElement, assetLoader);
             }
 
+            if (!uri.IsAbsoluteUri)
+            {
+                return default;
+            }
+
             return GetImageFromWeb(uri, assetLoader);
         }
         catch (Exception ex)
