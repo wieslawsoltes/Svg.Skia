@@ -40,10 +40,4 @@
     <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="buildTransitive\SvgML.Uno.targets"
-          Pack="true"
-          PackagePath="buildTransitive\SvgML.Uno.targets" />
-  </ItemGroup>
-
 </Project>
