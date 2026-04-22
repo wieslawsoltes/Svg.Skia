@@ -565,6 +565,25 @@ public partial class SkiaModel
         };
     }
 
+    private static float[]? GetGradientColorPositions(float[]? colorPos)
+    {
+        if (colorPos is null)
+        {
+            return null;
+        }
+
+        for (var i = 0; i < colorPos.Length; i++)
+        {
+            var value = colorPos[i];
+            if (float.IsNaN(value) || float.IsNegativeInfinity(value) || float.IsPositiveInfinity(value))
+            {
+                return null;
+            }
+        }
+
+        return colorPos;
+    }
+
     public SkiaSharp.SKShader? ToSKShader(SKShader? shader)
     {
         switch (shader)
@@ -579,11 +598,12 @@ public partial class SkiaModel
                 }
             case LinearGradientShader linearGradientShader:
                 {
-                    if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null)
+                    if (linearGradientShader.Colors is null)
                     {
                         return null;
                     }
 
+                    var colorPos = GetGradientColorPositions(linearGradientShader.ColorPos);
                     if (linearGradientShader.LocalMatrix is { })
                     {
                         return SkiaSharp.SKShader.CreateLinearGradient(
@@ -593,7 +613,7 @@ public partial class SkiaModel
                             linearGradientShader.ColorSpace == SKColorSpace.Srgb
                                 ? Settings.Srgb
                                 : Settings.SrgbLinear,
-                            linearGradientShader.ColorPos,
+                            colorPos,
                             ToSKShaderTileMode(linearGradientShader.Mode),
                             ToSKMatrix(linearGradientShader.LocalMatrix.Value));
                     }
@@ -605,16 +625,17 @@ public partial class SkiaModel
                         linearGradientShader.ColorSpace == SKColorSpace.Srgb
                             ? Settings.Srgb
                             : Settings.SrgbLinear,
-                        linearGradientShader.ColorPos,
+                        colorPos,
                         ToSKShaderTileMode(linearGradientShader.Mode));
                 }
             case RadialGradientShader radialGradientShader:
                 {
-                    if (radialGradientShader.Colors is null || radialGradientShader.ColorPos is null)
+                    if (radialGradientShader.Colors is null)
                     {
                         return null;
                     }
 
+                    var colorPos = GetGradientColorPositions(radialGradientShader.ColorPos);
                     if (radialGradientShader.LocalMatrix is { })
                     {
                         return SkiaSharp.SKShader.CreateRadialGradient(
@@ -624,7 +645,7 @@ public partial class SkiaModel
                             radialGradientShader.ColorSpace == SKColorSpace.Srgb
                                 ? Settings.Srgb
                                 : Settings.SrgbLinear,
-                            radialGradientShader.ColorPos,
+                            colorPos,
                             ToSKShaderTileMode(radialGradientShader.Mode),
                             ToSKMatrix(radialGradientShader.LocalMatrix.Value));
                     }
@@ -636,16 +657,17 @@ public partial class SkiaModel
                         radialGradientShader.ColorSpace == SKColorSpace.Srgb
                             ? Settings.Srgb
                             : Settings.SrgbLinear,
-                        radialGradientShader.ColorPos,
+                        colorPos,
                         ToSKShaderTileMode(radialGradientShader.Mode));
                 }
             case TwoPointConicalGradientShader twoPointConicalGradientShader:
                 {
-                    if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
+                    if (twoPointConicalGradientShader.Colors is null)
                     {
                         return null;
                     }
 
+                    var colorPos = GetGradientColorPositions(twoPointConicalGradientShader.ColorPos);
                     if (twoPointConicalGradientShader.LocalMatrix is { })
                     {
                         return SkiaSharp.SKShader.CreateTwoPointConicalGradient(
@@ -657,7 +679,7 @@ public partial class SkiaModel
                             twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb
                                 ? Settings.Srgb
                                 : Settings.SrgbLinear,
-                            twoPointConicalGradientShader.ColorPos,
+                            colorPos,
                             ToSKShaderTileMode(twoPointConicalGradientShader.Mode),
                             ToSKMatrix(twoPointConicalGradientShader.LocalMatrix.Value));
                     }
@@ -671,7 +693,7 @@ public partial class SkiaModel
                         twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb
                             ? Settings.Srgb
                             : Settings.SrgbLinear,
-                        twoPointConicalGradientShader.ColorPos,
+                        colorPos,
                         ToSKShaderTileMode(twoPointConicalGradientShader.Mode));
                 }
             case PictureShader pictureShader:
