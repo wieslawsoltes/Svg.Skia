@@ -243,6 +243,14 @@ namespace Svg
         }
         internal static bool SetPropertyValue(SvgElement element, string ns, string attributeName, string attributeValue, SvgDocument document, bool isStyle = false)
         {
+            if (ns.Length == 0 &&
+                element.GetProperties().Any(property =>
+                    property.DescriptorType == DescriptorType.Event &&
+                    property.AttributeName == attributeName))
+            {
+                element.CustomAttributes[attributeName] = attributeValue;
+            }
+
             if (attributeName == "text-decoration" && !string.IsNullOrWhiteSpace(attributeValue))
             {
                 element.CustomAttributes[RawTextDecorationAttributeKey] = attributeValue;
