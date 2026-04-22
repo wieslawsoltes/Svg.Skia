@@ -404,6 +404,7 @@ If you want to modify the generated draw commands, update the model and rebuild 
 ```csharp
 using System.Linq;
 using ShimSkiaSharp;
+using ShimSkiaSharp.Editing;
 using Svg.Skia;
 
 var skSvg = new SKSvg();
@@ -420,12 +421,27 @@ foreach (var cmd in skSvg.Model?.Commands?.OfType<DrawPathCanvasCommand>() ?? En
 skSvg.RebuildFromModel();
 ```
 
+Commands produced from SVG elements include source metadata. Use the source element id or address to update only the commands that came from a specific element:
+
+```csharp
+foreach (var cmd in skSvg.Model?.FindCommandsBySourceElementId<DrawPathCanvasCommand>("target-path") ?? Enumerable.Empty<DrawPathCanvasCommand>())
+{
+    if (cmd.Paint?.Color is { } color)
+    {
+        cmd.Paint.Color = new SKColor(0, 128, 0, color.Alpha);
+    }
+}
+
+skSvg.RebuildFromModel();
+```
+
 The same rebuild flow is available on Avalonia sources:
 
 ```csharp
 using System.Linq;
 using Avalonia.Svg.Skia;
 using ShimSkiaSharp;
+using ShimSkiaSharp.Editing;
 
 var source = SvgSource.Load("avares://MyAssembly/Assets/Icon.svg", baseUri: null);
 
