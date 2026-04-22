@@ -134,8 +134,7 @@ internal static class PaintingService
                     {
                         stopColor = ToLinear(stopColor);
                     }
-                    var offset = svgGradientStop.Offset.ToDeviceValue(UnitRenderingType.Horizontal, svgGradientServer, skBounds);
-                    offset /= skBounds.Width;
+                    var offset = ToGradientStopOffset(svgGradientStop.Offset);
                     colors.Add(stopColor);
                     colorPos.Add(offset);
                 }
@@ -181,6 +180,15 @@ internal static class PaintingService
                 colorPos[i] = maxPos;
             }
         }
+    }
+
+    private static float ToGradientStopOffset(SvgUnit offset)
+    {
+        var value = offset.Type == SvgUnitType.Percentage
+            ? offset.Value / 100f
+            : offset.Value;
+
+        return Math.Min(Math.Max(value, 0f), 1f);
     }
 
     internal static SKColorF[] ToSkColorF(this SKColor[] skColors)
