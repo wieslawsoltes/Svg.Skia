@@ -243,6 +243,16 @@ namespace Svg
         }
         internal static bool SetPropertyValue(SvgElement element, string ns, string attributeName, string attributeValue, SvgDocument document, bool isStyle = false)
         {
+            if (attributeName == "mix-blend-mode" || attributeName == "isolation")
+            {
+                if (isStyle)
+                {
+                    element.CustomAttributes[ns.Length == 0 ? attributeName : $"{ns}:{attributeName}"] = attributeValue;
+                }
+
+                return true;
+            }
+
             if (attributeName == "text-decoration" && !string.IsNullOrWhiteSpace(attributeValue))
             {
                 element.CustomAttributes[RawTextDecorationAttributeKey] = attributeValue;

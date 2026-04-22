@@ -2607,6 +2607,8 @@ public static class SvgSceneCompiler
         node.Cursor = null;
         node.CreatesBackgroundLayer = false;
         node.BackgroundClip = null;
+        node.IsIsolationGroup = false;
+        node.BlendModePaint = null;
 
         if (element is not null &&
             TryGetCursorAttribute(element, out var cursor))
@@ -2627,6 +2629,89 @@ public static class SvgSceneCompiler
         {
             node.CreatesBackgroundLayer = true;
             node.BackgroundClip = backgroundClip;
+        }
+
+        if (element is not null &&
+            TryParseMixBlendMode(element, out var blendMode))
+        {
+            node.BlendModePaint = new SKPaint
+            {
+                BlendMode = blendMode
+            };
+        }
+
+        if (element is not null &&
+            element.IsContainerElement() &&
+            TryParseIsolation(element))
+        {
+            node.IsIsolationGroup = true;
+        }
+    }
+
+    private static bool TryParseIsolation(SvgElement element)
+    {
+        return element.TryGetAttribute("isolation", out var value) &&
+               string.Equals(value?.Trim(), "isolate", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool TryParseMixBlendMode(SvgElement element, out SKBlendMode blendMode)
+    {
+        blendMode = SKBlendMode.SrcOver;
+        if (!element.TryGetAttribute("mix-blend-mode", out var value) ||
+            string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        switch (value.Trim())
+        {
+            case var mode when string.Equals(mode, "multiply", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.Multiply;
+                return true;
+            case var mode when string.Equals(mode, "screen", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.Screen;
+                return true;
+            case var mode when string.Equals(mode, "overlay", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.Overlay;
+                return true;
+            case var mode when string.Equals(mode, "darken", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.Darken;
+                return true;
+            case var mode when string.Equals(mode, "lighten", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.Lighten;
+                return true;
+            case var mode when string.Equals(mode, "color-dodge", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.ColorDodge;
+                return true;
+            case var mode when string.Equals(mode, "color-burn", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.ColorBurn;
+                return true;
+            case var mode when string.Equals(mode, "hard-light", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.HardLight;
+                return true;
+            case var mode when string.Equals(mode, "soft-light", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.SoftLight;
+                return true;
+            case var mode when string.Equals(mode, "difference", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.Difference;
+                return true;
+            case var mode when string.Equals(mode, "exclusion", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.Exclusion;
+                return true;
+            case var mode when string.Equals(mode, "hue", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.Hue;
+                return true;
+            case var mode when string.Equals(mode, "saturation", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.Saturation;
+                return true;
+            case var mode when string.Equals(mode, "color", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.Color;
+                return true;
+            case var mode when string.Equals(mode, "luminosity", StringComparison.OrdinalIgnoreCase):
+                blendMode = SKBlendMode.Luminosity;
+                return true;
+            default:
+                return false;
         }
     }
 

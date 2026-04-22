@@ -834,6 +834,22 @@ public partial class SKSvg
         var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask);
         var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity);
         var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter);
+        var enableBlendMode = node.BlendModePaint is not null;
+        var enableIsolation = node.IsIsolationGroup &&
+            !enableBlendMode &&
+            (node.MaskPaint is null || node.MaskNode is null || !enableMask) &&
+            (node.Opacity is null || !enableOpacity) &&
+            (node.Filter is null || !enableFilter);
+
+        if (enableIsolation)
+        {
+            canvas.SaveLayer(new SKPaint());
+        }
+
+        if (enableBlendMode)
+        {
+            canvas.SaveLayer(node.BlendModePaint!);
+        }
 
         if (node.MaskPaint is { } maskPaint && node.MaskNode is not null && enableMask)
         {
@@ -861,7 +877,7 @@ public partial class SKSvg
         {
             if (!RenderStaticNodeToCanvas(node.Children[i], canvas, cutRoots, ignoreAttributes))
             {
-                RestoreStaticNode(canvas, node, enableMask, enableOpacity, enableFilter);
+                RestoreStaticNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
                 return false;
             }
         }
@@ -873,7 +889,7 @@ public partial class SKSvg
             canvas.Restore();
         }
 
-        RestoreStaticNode(canvas, node, enableMask, enableOpacity, enableFilter);
+        RestoreStaticNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
         return true;
     }
 
@@ -882,7 +898,9 @@ public partial class SKSvg
         SvgSceneNode node,
         bool enableMask,
         bool enableOpacity,
-        bool enableFilter)
+        bool enableFilter,
+        bool enableBlendMode,
+        bool enableIsolation)
     {
         if (node.Filter is not null && enableFilter)
         {
@@ -895,6 +913,16 @@ public partial class SKSvg
         }
 
         if (node.MaskNode is not null && enableMask)
+        {
+            canvas.Restore();
+        }
+
+        if (enableBlendMode)
+        {
+            canvas.Restore();
+        }
+
+        if (enableIsolation)
         {
             canvas.Restore();
         }
