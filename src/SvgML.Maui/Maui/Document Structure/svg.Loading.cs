@@ -133,7 +133,8 @@ public partial class svg
         }
 
         var metrics = BuildSceneNodeMetrics(sceneDocument);
-        MapElementRecursive(this, document, metrics);
+        var aggregateMetrics = new Dictionary<SvgElement, SceneNodeMetrics>();
+        MapElementRecursive(this, document, metrics, aggregateMetrics);
         SynchronizeHostedControls();
     }
 
@@ -169,11 +170,15 @@ public partial class svg
         return metrics;
     }
 
-    private void MapElementRecursive(element control, SvgElement svgElement, Dictionary<SvgElement, SceneNodeMetrics> metrics)
+    private void MapElementRecursive(
+        element control,
+        SvgElement svgElement,
+        Dictionary<SvgElement, SceneNodeMetrics> metrics,
+        Dictionary<SvgElement, SceneNodeMetrics> aggregateMetrics)
     {
         _elementBySvgElement[svgElement] = control;
 
-        if (TryGetSceneNodeMetrics(svgElement, metrics, out var metric))
+        if (TryGetSceneNodeMetrics(svgElement, metrics, aggregateMetrics, out var metric))
         {
             control.UpdateSvgData(
                 svgElement,
@@ -215,7 +220,7 @@ public partial class svg
                 continue;
             }
 
-            MapElementRecursive(childControl, match, metrics);
+            MapElementRecursive(childControl, match, metrics, aggregateMetrics);
         }
     }
 
@@ -261,20 +266,34 @@ public partial class svg
         return attribute?.ElementName ?? element.ID;
     }
 
-    private static bool TryGetSceneNodeMetrics(SvgElement svgElement, Dictionary<SvgElement, SceneNodeMetrics> metrics, out SceneNodeMetrics metric)
+    private static bool TryGetSceneNodeMetrics(
+        SvgElement svgElement,
+        Dictionary<SvgElement, SceneNodeMetrics> metrics,
+        Dictionary<SvgElement, SceneNodeMetrics> aggregateMetrics,
+        out SceneNodeMetrics metric)
     {
-        var aggregate = CreateAggregateSceneNodeMetrics(svgElement, metrics);
+        if (aggregateMetrics.TryGetValue(svgElement, out var cached))
+        {
+            metric = CloneSceneNodeMetrics(cached);
+            return true;
+        }
+
+        var aggregate = CreateAggregateSceneNodeMetrics(svgElement, metrics, aggregateMetrics);
         if (aggregate is null)
         {
             metric = null!;
             return false;
         }
 
-        metric = aggregate;
+        aggregateMetrics[svgElement] = CloneSceneNodeMetrics(aggregate);
+        metric = CloneSceneNodeMetrics(aggregate);
         return true;
     }
 
-    private static SceneNodeMetrics? CreateAggregateSceneNodeMetrics(SvgElement svgElement, Dictionary<SvgElement, SceneNodeMetrics> metrics)
+    private static SceneNodeMetrics? CreateAggregateSceneNodeMetrics(
+        SvgElement svgElement,
+        Dictionary<SvgElement, SceneNodeMetrics> metrics,
+        Dictionary<SvgElement, SceneNodeMetrics> aggregateMetrics)
     {
         SceneNodeMetrics? aggregate = metrics.TryGetValue(svgElement, out var direct)
             ? CloneSceneNodeMetrics(direct)
@@ -282,7 +301,11 @@ public partial class svg
 
         foreach (var child in svgElement.Children.OfType<SvgElement>())
         {
-            var childMetrics = CreateAggregateSceneNodeMetrics(child, metrics);
+            if (!TryGetSceneNodeMetrics(child, metrics, aggregateMetrics, out var childMetrics))
+            {
+                continue;
+            }
+
             if (childMetrics is null)
             {
                 continue;
@@ -290,7 +313,7 @@ public partial class svg
 
             if (aggregate is null)
             {
-                aggregate = childMetrics;
+                aggregate = CloneSceneNodeMetrics(childMetrics);
                 continue;
             }
 

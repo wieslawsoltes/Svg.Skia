@@ -61,7 +61,7 @@
                             </foreignObject>
                         </g>
 
-                        <path d="M82 240 H558" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" />
+                        <path d="M82 240 H558" stroke="#CBD5E1" stroke_width="2" stroke_linecap="round" />
                         <text x="82" y="232" fill="#334155" style="font-size:16px;font-weight:700;">Opacity budget</text>
                         <foreignObject x="214" y="214" width="230" height="46">
                             <maui:Slider Minimum="0"

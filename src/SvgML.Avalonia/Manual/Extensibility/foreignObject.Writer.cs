@@ -28,7 +28,12 @@ public partial class foreignObject
 
     private void WriteInlinePlaceholder(TextWriter writer)
     {
-        var placeholderSize = GetHostSlotSize().OrFallback();
+        var placeholderSize = GetHostSlotSize();
+        if (placeholderSize.IsEmpty)
+        {
+            return;
+        }
+
         var widthValue = placeholderSize.Width.ToString("G7", CultureInfo.InvariantCulture);
         var heightValue = placeholderSize.Height.ToString("G7", CultureInfo.InvariantCulture);
 

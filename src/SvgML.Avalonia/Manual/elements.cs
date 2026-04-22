@@ -49,7 +49,7 @@ public class elements : ObservableCollection<element>
 
     public void Add(string? text)
     {
-        if (string.IsNullOrWhiteSpace(text))
+        if (string.IsNullOrEmpty(text))
         {
             return;
         }

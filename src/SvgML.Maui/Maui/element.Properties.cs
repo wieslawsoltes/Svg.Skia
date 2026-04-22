@@ -1,6 +1,6 @@
 namespace SvgML;
 
-[ContentProperty(nameof(Elements))]
+[ContentProperty(nameof(Children))]
 public abstract partial class element
 {
     private readonly List<element> _attachedChildren = [];

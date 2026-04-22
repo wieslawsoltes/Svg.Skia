@@ -33,6 +33,12 @@ internal readonly record struct HostedControlSlot(double X, double Y, double Wid
     public bool IsEmpty => Width <= 0D || Height <= 0D;
 }
 
+internal enum HostedControlLengthAxis
+{
+    X,
+    Y
+}
+
 internal static class HostedControlTree
 {
     public static IEnumerable<(element Element, IHostedControlElement Host)> Enumerate(element root)
@@ -67,27 +73,35 @@ public partial class foreignObject : IHostedControlElement
 
     HostedControlSize IHostedControlElement.GetHostedControlSize()
     {
-        return GetHostSlotSize().OrFallback();
+        var size = GetHostSlotSize();
+        return HasExplicitNonPositiveHostSize() ? size : size.OrFallback();
     }
 
     internal HostedControlSize GetHostSlotSize()
     {
         var measured = MeasureHostedControl();
-        var widthValue = TryGetPositiveLength(width, out var explicitWidth)
-            ? explicitWidth
-            : measured.Width;
-        var heightValue = TryGetPositiveLength(height, out var explicitHeight)
-            ? explicitHeight
-            : measured.Height;
+        var widthSet = IsWidthSet();
+        var heightSet = IsHeightSet();
+        var widthValue = ResolveHostLength(width, HostedControlLengthAxis.X, widthSet, measured.Width);
+        var heightValue = ResolveHostLength(height, HostedControlLengthAxis.Y, heightSet, measured.Height);
+        if ((widthSet && widthValue <= 0D) || (heightSet && heightValue <= 0D))
+        {
+            return HostedControlSize.Empty;
+        }
 
         return HostedControlSize.From(widthValue, heightValue);
     }
 
     internal HostedControlSlot GetHostSlot()
     {
-        var size = GetHostSlotSize().OrFallback();
-        var xValue = TryGetLength(x, out var explicitX) ? explicitX : 0D;
-        var yValue = TryGetLength(y, out var explicitY) ? explicitY : 0D;
+        var size = GetHostSlotSize();
+        if (!HasExplicitNonPositiveHostSize())
+        {
+            size = size.OrFallback();
+        }
+
+        var xValue = ResolveHostCoordinate(x, HostedControlLengthAxis.X);
+        var yValue = ResolveHostCoordinate(y, HostedControlLengthAxis.Y);
 
         return new HostedControlSlot(xValue, yValue, size.Width, size.Height);
     }
@@ -100,24 +114,40 @@ public partial class foreignObject : IHostedControlElement
 
     internal partial bool IsInTextTree();
 
-    private static bool TryGetPositiveLength(Svg.SvgUnit? unit, out double value)
+    internal partial double ResolveHostedControlLengthReference(HostedControlLengthAxis axis);
+
+    internal partial double ResolveHostedControlFontSize();
+
+    private double ResolveHostLength(
+        Svg.SvgUnit? unit,
+        HostedControlLengthAxis axis,
+        bool isSet,
+        double fallback)
     {
-        value = 0D;
-        return unit is { } actual && TryGetPositiveLength(actual, out value);
+        if (!isSet)
+        {
+            return fallback;
+        }
+
+        return unit is { } actual && TryGetLength(actual, axis, out var value)
+            ? value
+            : 0D;
     }
 
-    private static bool TryGetPositiveLength(Svg.SvgUnit unit, out double value)
+    private double ResolveHostCoordinate(Svg.SvgUnit? unit, HostedControlLengthAxis axis)
     {
-        return TryGetLength(unit, out value) && value > 0D;
+        return unit is { } actual && TryGetLength(actual, axis, out var value)
+            ? value
+            : 0D;
     }
 
-    private static bool TryGetLength(Svg.SvgUnit? unit, out double value)
+    private bool HasExplicitNonPositiveHostSize()
     {
-        value = 0D;
-        return unit is { } actual && TryGetLength(actual, out value);
+        return (IsWidthSet() && ResolveHostCoordinate(width, HostedControlLengthAxis.X) <= 0D)
+            || (IsHeightSet() && ResolveHostCoordinate(height, HostedControlLengthAxis.Y) <= 0D);
     }
 
-    private static bool TryGetLength(Svg.SvgUnit unit, out double value)
+    private bool TryGetLength(Svg.SvgUnit unit, HostedControlLengthAxis axis, out double value)
     {
         value = 0D;
 
@@ -126,9 +156,15 @@ public partial class foreignObject : IHostedControlElement
             return false;
         }
 
+        var fontSize = ResolveHostedControlFontSize();
+        var reference = ResolveHostedControlLengthReference(axis);
+
         value = unit.Type switch
         {
             Svg.SvgUnitType.Pixel or Svg.SvgUnitType.User => unit.Value,
+            Svg.SvgUnitType.Em => unit.Value * fontSize,
+            Svg.SvgUnitType.Ex => unit.Value * fontSize * 0.5D,
+            Svg.SvgUnitType.Percentage => unit.Value * reference / 100D,
             Svg.SvgUnitType.Inch => unit.Value * 96D,
             Svg.SvgUnitType.Centimeter => unit.Value * 96D / 2.54D,
             Svg.SvgUnitType.Millimeter => unit.Value * 96D / 25.4D,
@@ -139,6 +175,9 @@ public partial class foreignObject : IHostedControlElement
 
         return unit.Type is Svg.SvgUnitType.Pixel
             or Svg.SvgUnitType.User
+            or Svg.SvgUnitType.Em
+            or Svg.SvgUnitType.Ex
+            or Svg.SvgUnitType.Percentage
             or Svg.SvgUnitType.Inch
             or Svg.SvgUnitType.Centimeter
             or Svg.SvgUnitType.Millimeter

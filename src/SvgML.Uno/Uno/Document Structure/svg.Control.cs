@@ -580,7 +580,8 @@ public partial class svg
 
         var metrics = BuildSceneNodeMetrics(sceneDocument);
         var textBoundsFallback = new TextBoundsFallbackContext(skSvg.AssetLoader, sceneDocument.CullRect);
-        MapElementRecursive(this, document, metrics, textBoundsFallback);
+        var aggregateMetrics = new Dictionary<SvgElement, SceneNodeMetrics>();
+        MapElementRecursive(this, document, metrics, aggregateMetrics, textBoundsFallback);
         SynchronizeHostedControls();
     }
 
@@ -620,11 +621,12 @@ public partial class svg
         element control,
         SvgElement svgElement,
         Dictionary<SvgElement, SceneNodeMetrics> metrics,
+        Dictionary<SvgElement, SceneNodeMetrics> aggregateMetrics,
         TextBoundsFallbackContext textBoundsFallback)
     {
         _elementBySvgElement[svgElement] = control;
 
-        if (TryGetSceneNodeMetrics(svgElement, metrics, textBoundsFallback, out var metric))
+        if (TryGetSceneNodeMetrics(svgElement, metrics, aggregateMetrics, textBoundsFallback, out var metric))
         {
             control.UpdateSvgData(
                 svgElement,
@@ -666,7 +668,7 @@ public partial class svg
                 continue;
             }
 
-            MapElementRecursive(childControl, match, metrics, textBoundsFallback);
+            MapElementRecursive(childControl, match, metrics, aggregateMetrics, textBoundsFallback);
         }
     }
 
@@ -715,23 +717,32 @@ public partial class svg
     private static bool TryGetSceneNodeMetrics(
         SvgElement svgElement,
         Dictionary<SvgElement, SceneNodeMetrics> metrics,
+        Dictionary<SvgElement, SceneNodeMetrics> aggregateMetrics,
         TextBoundsFallbackContext textBoundsFallback,
         out SceneNodeMetrics metric)
     {
-        var aggregate = CreateAggregateSceneNodeMetrics(svgElement, metrics, textBoundsFallback);
+        if (aggregateMetrics.TryGetValue(svgElement, out var cached))
+        {
+            metric = CloneSceneNodeMetrics(cached);
+            return true;
+        }
+
+        var aggregate = CreateAggregateSceneNodeMetrics(svgElement, metrics, aggregateMetrics, textBoundsFallback);
         if (aggregate is null)
         {
             metric = null!;
             return false;
         }
 
-        metric = aggregate;
+        aggregateMetrics[svgElement] = CloneSceneNodeMetrics(aggregate);
+        metric = CloneSceneNodeMetrics(aggregate);
         return true;
     }
 
     private static SceneNodeMetrics? CreateAggregateSceneNodeMetrics(
         SvgElement svgElement,
         Dictionary<SvgElement, SceneNodeMetrics> metrics,
+        Dictionary<SvgElement, SceneNodeMetrics> aggregateMetrics,
         TextBoundsFallbackContext textBoundsFallback)
     {
         SceneNodeMetrics? aggregate = metrics.TryGetValue(svgElement, out var direct)
@@ -740,7 +751,11 @@ public partial class svg
 
         foreach (var child in svgElement.Children.OfType<SvgElement>())
         {
-            var childMetrics = CreateAggregateSceneNodeMetrics(child, metrics, textBoundsFallback);
+            if (!TryGetSceneNodeMetrics(child, metrics, aggregateMetrics, textBoundsFallback, out var childMetrics))
+            {
+                continue;
+            }
+
             if (childMetrics is null)
             {
                 continue;
@@ -748,7 +763,7 @@ public partial class svg
 
             if (aggregate is null)
             {
-                aggregate = childMetrics;
+                aggregate = CloneSceneNodeMetrics(childMetrics);
                 continue;
             }
 
@@ -765,16 +780,52 @@ public partial class svg
                 textBoundsFallback.AssetLoader,
                 out var measuredBounds))
         {
+            var totalTransform = FindNearestAncestorTotalTransform(svgElement, metrics);
             aggregate = new SceneNodeMetrics
             {
                 Geometry = measuredBounds,
-                Transformed = measuredBounds,
+                Transformed = TransformBounds(measuredBounds, totalTransform),
                 Transform = Matrix3x2.Identity,
-                TotalTransform = Matrix3x2.Identity
+                TotalTransform = totalTransform
             };
         }
 
         return aggregate;
+    }
+
+    private static Matrix3x2 FindNearestAncestorTotalTransform(
+        SvgElement svgElement,
+        Dictionary<SvgElement, SceneNodeMetrics> metrics)
+    {
+        for (var parent = svgElement.Parent; parent is not null; parent = parent.Parent)
+        {
+            if (metrics.TryGetValue(parent, out var parentMetrics))
+            {
+                return parentMetrics.TotalTransform;
+            }
+        }
+
+        return Matrix3x2.Identity;
+    }
+
+    private static ShimRect TransformBounds(ShimRect bounds, Matrix3x2 transform)
+    {
+        if (bounds.IsEmpty)
+        {
+            return default;
+        }
+
+        var topLeft = Vector2.Transform(new Vector2(bounds.Left, bounds.Top), transform);
+        var topRight = Vector2.Transform(new Vector2(bounds.Right, bounds.Top), transform);
+        var bottomRight = Vector2.Transform(new Vector2(bounds.Right, bounds.Bottom), transform);
+        var bottomLeft = Vector2.Transform(new Vector2(bounds.Left, bounds.Bottom), transform);
+
+        var minX = Math.Min(Math.Min(topLeft.X, topRight.X), Math.Min(bottomRight.X, bottomLeft.X));
+        var minY = Math.Min(Math.Min(topLeft.Y, topRight.Y), Math.Min(bottomRight.Y, bottomLeft.Y));
+        var maxX = Math.Max(Math.Max(topLeft.X, topRight.X), Math.Max(bottomRight.X, bottomLeft.X));
+        var maxY = Math.Max(Math.Max(topLeft.Y, topRight.Y), Math.Max(bottomRight.Y, bottomLeft.Y));
+
+        return new ShimRect(minX, minY, maxX, maxY);
     }
 
     private static SceneNodeMetrics CloneSceneNodeMetrics(SceneNodeMetrics source)
