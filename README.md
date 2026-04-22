@@ -369,6 +369,14 @@ retained child-visual path.
      Css=".Black { fill: #FF0000; }"  />
 ```
 
+For SVG assets that use `fill="currentColor"` or `stroke="currentColor"`,
+set the inherited SVG `color` value directly:
+
+```XAML
+<Svg Path="/Assets/icon.svg"
+     CurrentColor="#FFFFFFFF" />
+```
+
 ```XAML
 <Style Selector="Svg">
   <Setter Property="(Svg.Css)" Value=".Black { fill: #FF0000; }" />

@@ -8,12 +8,14 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
+using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Platform;
 using SkiaSharp;
 using Svg;
 using Svg.Model;
 using Svg.Skia;
+using DrawingColor = System.Drawing.Color;
 
 namespace Avalonia.Svg.Skia;
 
@@ -47,6 +49,8 @@ public sealed class SvgSource : IDisposable
 
     public string? Css { get; init; }
 
+    public Color? CurrentColor { get; init; }
+
     public SKSvg? Svg => Volatile.Read(ref _skSvg);
 
     public SvgParameters? Parameters => _originalParameters;
@@ -79,7 +83,7 @@ public sealed class SvgSource : IDisposable
             }
 
             var entitiesCopy = Entities is null ? null : new Dictionary<string, string>(Entities);
-            return LoadImpl(this, path, _baseUri, new SvgParameters(entitiesCopy, Css));
+            return LoadImpl(this, path, _baseUri, new SvgParameters(entitiesCopy, Css, ToDrawingColor(CurrentColor)));
         }
         set => _picture = value;
     }
@@ -415,7 +419,8 @@ public sealed class SvgSource : IDisposable
         {
             Path = Path,
             Entities = Entities is null ? null : new Dictionary<string, string>(Entities),
-            Css = Css
+            Css = Css,
+            CurrentColor = CurrentColor
         };
 
         SvgParameters? originalParameters;
@@ -482,7 +487,14 @@ public sealed class SvgSource : IDisposable
 
         var entities = parameters.Value.Entities;
         var entitiesCopy = entities is null ? null : new Dictionary<string, string>(entities);
-        return new SvgParameters(entitiesCopy, parameters.Value.Css);
+        return new SvgParameters(entitiesCopy, parameters.Value.Css, parameters.Value.CurrentColor);
+    }
+
+    private static DrawingColor? ToDrawingColor(Color? color)
+    {
+        return color is { } value
+            ? DrawingColor.FromArgb(value.A, value.R, value.G, value.B)
+            : null;
     }
 
     private static SKPicture? ClonePicture(SKPicture? picture)
