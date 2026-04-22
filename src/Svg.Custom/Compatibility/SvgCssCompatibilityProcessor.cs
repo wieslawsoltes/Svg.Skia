@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using ExCSS;
 using Svg.Css;
@@ -72,6 +73,8 @@ internal static class SvgCssCompatibilityProcessor
         rootNode.Children.Add(svgDocument);
         try
         {
+            ApplyCustomPropertyRules(cssTotal, svgDocument, rootNode, elementFactory, stylesheetParser);
+
             foreach (var rule in stylesheet.StyleRules)
             {
                 try
@@ -91,11 +94,11 @@ internal static class SvgCssCompatibilityProcessor
 
                         foreach (var declaration in declarations)
                         {
-                            elem.AddStyle(declaration.Name, declaration.Value, specificity);
+                            ApplyDeclaration(elem, declaration, specificity);
 
                             if (projectsToTextContainer)
                             {
-                                textContainer!.AddStyle(declaration.Name, declaration.Value, specificity);
+                                ApplyDeclaration(textContainer!, declaration, specificity);
                             }
                         }
                     }
@@ -126,6 +129,530 @@ internal static class SvgCssCompatibilityProcessor
             // extra level, which makes CreateAnimatedDocument fail to resolve targets on clones.
             _ = rootNode.Children.Remove(svgDocument);
         }
+    }
+
+    private static void ApplyCustomPropertyRules(
+        string cssText,
+        SvgDocument svgDocument,
+        SvgElement rootNode,
+        SvgElementFactory elementFactory,
+        StylesheetParser stylesheetParser)
+    {
+        var index = 0;
+        while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
+        {
+            if (statement.Terminator != CssStatementTerminator.Block ||
+                GetAtRuleKind(cssText, statement) != CssAtRuleKind.None ||
+                !TryGetStyleRuleParts(cssText, statement, out var selectorText, out var declarationsText))
+            {
+                continue;
+            }
+
+            var declarations = CreateCustomPropertyDeclarations(declarationsText);
+            if (declarations.Count == 0)
+            {
+                continue;
+            }
+
+            try
+            {
+                var selectorSheet = stylesheetParser.Parse(selectorText + "{fill:inherit}");
+                foreach (var rule in selectorSheet.StyleRules)
+                {
+                    var specificity = rule.Selector.GetSpecificity();
+                    var elemsToStyle = rootNode.QuerySelectorAll(rule.Selector, elementFactory);
+                    if (SelectorListContainsSvgRoot(selectorText))
+                    {
+                        elemsToStyle = elemsToStyle.Concat(new[] { svgDocument });
+                    }
+
+                    foreach (var elem in elemsToStyle.Distinct())
+                    {
+                        foreach (var declaration in declarations)
+                        {
+                            SvgCssVariableResolver.AddCustomProperty(elem, declaration.Name, declaration.Value, specificity);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning(ex.Message);
+            }
+        }
+    }
+
+    private static bool SelectorListContainsSvgRoot(string selectorText)
+    {
+        var segmentStart = 0;
+        var index = 0;
+        var parenthesisDepth = 0;
+
+        while (index < selectorText.Length)
+        {
+            var current = selectorText[index];
+            switch (current)
+            {
+                case '\'':
+                case '"':
+                    SkipQuotedString(selectorText.AsSpan(), ref index, current);
+                    continue;
+
+                case '(':
+                    parenthesisDepth++;
+                    index++;
+                    continue;
+
+                case ')' when parenthesisDepth > 0:
+                    parenthesisDepth--;
+                    index++;
+                    continue;
+
+                case ',' when parenthesisDepth == 0:
+                    if (SelectorSegmentTargetsSvgRoot(selectorText.AsSpan(segmentStart, index - segmentStart)))
+                    {
+                        return true;
+                    }
+
+                    index++;
+                    segmentStart = index;
+                    continue;
+
+                default:
+                    index++;
+                    break;
+            }
+        }
+
+        return SelectorSegmentTargetsSvgRoot(selectorText.AsSpan(segmentStart));
+    }
+
+    private static bool SelectorSegmentTargetsSvgRoot(ReadOnlySpan<char> selector)
+    {
+        var trimmed = TrimWhitespace(selector);
+        return trimmed.Equals("svg".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+               trimmed.Equals(":root".AsSpan(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void ApplyDeclaration(SvgElement element, AppliedDeclaration declaration, int specificity)
+    {
+        if (SvgCssVariableResolver.IsCustomPropertyName(declaration.Name))
+        {
+            SvgCssVariableResolver.AddCustomProperty(element, declaration.Name, declaration.Value, specificity);
+            return;
+        }
+
+        element.AddStyle(declaration.Name, declaration.Value, specificity);
+    }
+
+    private static bool TryGetStyleRuleParts(
+        string cssText,
+        CssStatement statement,
+        out string selectorText,
+        out string declarationsText)
+    {
+        selectorText = string.Empty;
+        declarationsText = string.Empty;
+
+        if (!TryFindTopLevelBlockOpen(cssText, statement.Start, statement.EndExclusive, out var openBraceIndex))
+        {
+            return false;
+        }
+
+        var closeBraceIndex = statement.EndExclusive - 1;
+        if (closeBraceIndex <= openBraceIndex || cssText[closeBraceIndex] != '}')
+        {
+            return false;
+        }
+
+        selectorText = TrimWhitespace(cssText.AsSpan(statement.Start, openBraceIndex - statement.Start)).ToString();
+        declarationsText = cssText.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
+        return !string.IsNullOrWhiteSpace(selectorText);
+    }
+
+    private static bool TryFindTopLevelBlockOpen(string cssText, int startIndex, int endExclusive, out int openBraceIndex)
+    {
+        openBraceIndex = -1;
+        var cssSpan = cssText.AsSpan(0, endExclusive);
+        var parenthesisDepth = 0;
+        var index = startIndex;
+
+        while (index < endExclusive)
+        {
+            if (TrySkipComment(cssSpan, ref index))
+            {
+                continue;
+            }
+
+            var current = cssText[index];
+            switch (current)
+            {
+                case '\'':
+                case '"':
+                    SkipQuotedString(cssSpan, ref index, current);
+                    continue;
+
+                case '(':
+                    parenthesisDepth++;
+                    index++;
+                    continue;
+
+                case ')' when parenthesisDepth > 0:
+                    parenthesisDepth--;
+                    index++;
+                    continue;
+
+                case '{' when parenthesisDepth == 0:
+                    openBraceIndex = index;
+                    return true;
+
+                default:
+                    index++;
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    private static List<AppliedDeclaration> CreateCustomPropertyDeclarations(string declarationsText)
+    {
+        var result = new List<AppliedDeclaration>();
+        var index = 0;
+
+        while (true)
+        {
+            if (!SkipIgnorableDeclarationContent(declarationsText, ref index))
+            {
+                return result;
+            }
+
+            if (index >= declarationsText.Length)
+            {
+                return result;
+            }
+
+            if (!TryReadDeclaration(declarationsText, ref index, out var name, out var value))
+            {
+                return result;
+            }
+
+            if (SvgCssVariableResolver.IsCustomPropertyName(name))
+            {
+                result.Add(new AppliedDeclaration(name, value));
+            }
+        }
+    }
+
+    private static bool TryReadDeclaration(string declarationsText, ref int index, out string name, out string value)
+    {
+        name = string.Empty;
+        value = string.Empty;
+        var declarationStart = index;
+
+        if (!TryFindDeclarationEnd(declarationsText, ref index, out var declarationEnd) ||
+            !TryFindDeclarationSeparator(declarationsText, declarationStart, declarationEnd, out var separatorIndex))
+        {
+            return false;
+        }
+
+        name = NormalizeDeclarationSegment(declarationsText, declarationStart, separatorIndex - declarationStart);
+        if (string.IsNullOrEmpty(name))
+        {
+            return false;
+        }
+
+        value = NormalizeDeclarationSegment(declarationsText, separatorIndex + 1, declarationEnd - separatorIndex - 1);
+        return true;
+    }
+
+    private static bool TryFindDeclarationEnd(string declarationsText, ref int index, out int declarationEnd)
+    {
+        var quote = '\0';
+        var escape = false;
+        var parentheses = 0;
+        var current = index;
+
+        while (current < declarationsText.Length)
+        {
+            var character = declarationsText[current];
+            if (quote != '\0')
+            {
+                if (escape)
+                {
+                    escape = false;
+                }
+                else if (character == '\\')
+                {
+                    escape = true;
+                }
+                else if (character == quote)
+                {
+                    quote = '\0';
+                }
+
+                current++;
+                continue;
+            }
+
+            if (character == '/' && current + 1 < declarationsText.Length && declarationsText[current + 1] == '*')
+            {
+                current += 2;
+                if (!TrySkipDeclarationComment(declarationsText, ref current))
+                {
+                    declarationEnd = 0;
+                    return false;
+                }
+
+                continue;
+            }
+
+            switch (character)
+            {
+                case '\'':
+                case '"':
+                    quote = character;
+                    break;
+                case '(':
+                    parentheses++;
+                    break;
+                case ')':
+                    if (parentheses > 0)
+                    {
+                        parentheses--;
+                    }
+
+                    break;
+                case ';' when parentheses == 0:
+                    declarationEnd = current;
+                    current++;
+                    index = current;
+                    return true;
+            }
+
+            current++;
+        }
+
+        declarationEnd = current;
+        index = current;
+        return quote == '\0' && parentheses == 0;
+    }
+
+    private static bool TryFindDeclarationSeparator(string declarationsText, int startIndex, int endIndex, out int separatorIndex)
+    {
+        var quote = '\0';
+        var escape = false;
+        var parentheses = 0;
+
+        for (var i = startIndex; i < endIndex; i++)
+        {
+            var character = declarationsText[i];
+            if (quote != '\0')
+            {
+                if (escape)
+                {
+                    escape = false;
+                }
+                else if (character == '\\')
+                {
+                    escape = true;
+                }
+                else if (character == quote)
+                {
+                    quote = '\0';
+                }
+
+                continue;
+            }
+
+            if (character == '/' && i + 1 < endIndex && declarationsText[i + 1] == '*')
+            {
+                i += 2;
+                if (!TrySkipDeclarationComment(declarationsText, ref i, endIndex))
+                {
+                    separatorIndex = -1;
+                    return false;
+                }
+
+                i--;
+                continue;
+            }
+
+            switch (character)
+            {
+                case '\'':
+                case '"':
+                    quote = character;
+                    break;
+                case '(':
+                    parentheses++;
+                    break;
+                case ')':
+                    if (parentheses > 0)
+                    {
+                        parentheses--;
+                    }
+
+                    break;
+                case ':' when parentheses == 0:
+                    separatorIndex = i;
+                    return true;
+            }
+        }
+
+        separatorIndex = -1;
+        return false;
+    }
+
+    private static bool SkipIgnorableDeclarationContent(string declarationsText, ref int index)
+    {
+        while (index < declarationsText.Length)
+        {
+            var character = declarationsText[index];
+            if (char.IsWhiteSpace(character) || character == ';')
+            {
+                index++;
+                continue;
+            }
+
+            if (character == '/' && index + 1 < declarationsText.Length && declarationsText[index + 1] == '*')
+            {
+                index += 2;
+                if (!TrySkipDeclarationComment(declarationsText, ref index))
+                {
+                    return false;
+                }
+
+                continue;
+            }
+
+            break;
+        }
+
+        return true;
+    }
+
+    private static bool TrySkipDeclarationComment(string declarationsText, ref int index)
+    {
+        return TrySkipDeclarationComment(declarationsText, ref index, declarationsText.Length);
+    }
+
+    private static bool TrySkipDeclarationComment(string declarationsText, ref int index, int endIndex)
+    {
+        while (index + 1 < endIndex)
+        {
+            if (declarationsText[index] == '*' && declarationsText[index + 1] == '/')
+            {
+                index += 2;
+                return true;
+            }
+
+            index++;
+        }
+
+        return false;
+    }
+
+    private static string NormalizeDeclarationSegment(string declarationsText, int startIndex, int length)
+    {
+        if (!TryTrimDeclarationSegment(declarationsText, startIndex, length, out var trimmedStart, out var trimmedLength))
+        {
+            return string.Empty;
+        }
+
+        StringBuilder? builder = null;
+        var quote = '\0';
+        var escape = false;
+        var segmentEnd = trimmedStart + trimmedLength;
+
+        for (var i = trimmedStart; i < segmentEnd; i++)
+        {
+            var character = declarationsText[i];
+            if (quote != '\0')
+            {
+                builder?.Append(character);
+                if (escape)
+                {
+                    escape = false;
+                }
+                else if (character == '\\')
+                {
+                    escape = true;
+                }
+                else if (character == quote)
+                {
+                    quote = '\0';
+                }
+
+                continue;
+            }
+
+            if (character == '/' && i + 1 < segmentEnd && declarationsText[i + 1] == '*')
+            {
+                builder ??= new StringBuilder(trimmedLength);
+                if (builder.Length == 0 && i > trimmedStart)
+                {
+                    builder.Append(declarationsText, trimmedStart, i - trimmedStart);
+                }
+
+                i += 2;
+                if (!TrySkipDeclarationComment(declarationsText, ref i, segmentEnd))
+                {
+                    return declarationsText.Substring(trimmedStart, trimmedLength);
+                }
+
+                i--;
+                continue;
+            }
+
+            if (character is '\'' or '"')
+            {
+                quote = character;
+            }
+
+            builder?.Append(character);
+        }
+
+        return builder is null
+            ? declarationsText.Substring(trimmedStart, trimmedLength)
+            : builder.ToString().Trim();
+    }
+
+    private static bool TryTrimDeclarationSegment(
+        string declarationsText,
+        int startIndex,
+        int length,
+        out int trimmedStart,
+        out int trimmedLength)
+    {
+        if (length <= 0)
+        {
+            trimmedStart = 0;
+            trimmedLength = 0;
+            return false;
+        }
+
+        var endIndex = startIndex + length - 1;
+        while (startIndex <= endIndex && char.IsWhiteSpace(declarationsText[startIndex]))
+        {
+            startIndex++;
+        }
+
+        while (endIndex >= startIndex && char.IsWhiteSpace(declarationsText[endIndex]))
+        {
+            endIndex--;
+        }
+
+        if (startIndex > endIndex)
+        {
+            trimmedStart = 0;
+            trimmedLength = 0;
+            return false;
+        }
+
+        trimmedStart = startIndex;
+        trimmedLength = endIndex - startIndex + 1;
+        return true;
     }
 
     public static bool ShouldApplyStyleElement(SvgUnknownElement styleElement)

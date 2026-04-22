@@ -243,6 +243,22 @@ namespace Svg
         }
         internal static bool SetPropertyValue(SvgElement element, string ns, string attributeName, string attributeValue, SvgDocument document, bool isStyle = false)
         {
+            if (SvgCssVariableResolver.IsCustomPropertyName(attributeName))
+            {
+                SvgCssVariableResolver.AddCustomProperty(
+                    element,
+                    attributeName,
+                    attributeValue,
+                    isStyle ? SvgElement.StyleSpecificity_InlineStyle : SvgElement.StyleSpecificity_PresAttribute);
+                return true;
+            }
+
+            if (!string.IsNullOrEmpty(attributeValue) &&
+                SvgCssVariableResolver.TryResolveValue(element, attributeValue, out var resolvedAttributeValue))
+            {
+                attributeValue = resolvedAttributeValue;
+            }
+
             if (attributeName == "text-decoration" && !string.IsNullOrWhiteSpace(attributeValue))
             {
                 element.CustomAttributes[RawTextDecorationAttributeKey] = attributeValue;
