@@ -146,8 +146,9 @@ public sealed class SvgSceneResource
             }
 
             sceneDocument.ResolveRuntimePayloadTree(maskNode);
+            var maskType = GetMaskType(svgMask);
 
-            var payload = new SvgSceneMaskPayload(maskNode, CreateMaskPaint(), CreateMaskDstInPaint());
+            var payload = new SvgSceneMaskPayload(maskNode, CreateMaskPaint(), CreateMaskDstInPaint(maskType));
             _maskPayloads.Add(cacheKey, payload);
             return payload;
         }
@@ -231,7 +232,7 @@ public sealed class SvgSceneResource
         };
     }
 
-    private static SKPaint CreateMaskDstInPaint()
+    private static SKPaint CreateMaskDstInPaint(MaskType maskType)
     {
         return new SKPaint
         {
@@ -239,7 +240,7 @@ public sealed class SvgSceneResource
             Style = SKPaintStyle.StrokeAndFill,
             BlendMode = SKBlendMode.DstIn,
             Color = FilterEffectsService.s_transparentBlack,
-            ColorFilter = SKColorFilter.CreateLumaColor()
+            ColorFilter = maskType == MaskType.Alpha ? null : SKColorFilter.CreateLumaColor()
         };
     }
 
@@ -261,10 +262,27 @@ public sealed class SvgSceneResource
             TotalTransform = SKMatrix.Identity,
             TransformedBounds = SKRect.Empty
         };
+        
+        var maskType = GetMaskType(svgMask);
 
         SvgSceneCompiler.AssignRetainedVisualState(maskNode, svgMask);
         SvgSceneCompiler.AssignRetainedResourceKeys(maskNode, svgMask);
-        return new SvgSceneMaskPayload(maskNode, CreateMaskPaint(), CreateMaskDstInPaint());
+        return new SvgSceneMaskPayload(maskNode, CreateMaskPaint(), CreateMaskDstInPaint(maskType));
+    }
+    
+    private static MaskType GetMaskType(SvgMask mask)
+    {
+        var maskType = MaskType.Luminance;
+        
+        if (mask.TryGetAttribute("mask-type", out var maskTypeStr)
+            && !string.IsNullOrWhiteSpace(maskTypeStr))
+        {
+            return string.Equals(maskTypeStr.Trim(), "alpha", StringComparison.OrdinalIgnoreCase)
+                ? MaskType.Alpha
+                : MaskType.Luminance;
+        }
+        
+        return maskType;
     }
 
     private sealed class ReadOnlySetView<T> : IReadOnlyCollection<T> where T : notnull
