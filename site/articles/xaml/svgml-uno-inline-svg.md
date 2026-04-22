@@ -14,7 +14,7 @@ Install the package:
 dotnet add package SvgML.Uno
 ```
 
-Uno's current XAML source generator still expects third-party controls to arrive through explicit CLR namespace mappings. The reliable prefix-free pattern is to scope `xmlns="using:SvgML"` on the inline SVG subtree itself. If you prefer an explicit alias, `xmlns:svgml="using:SvgML"` still works.
+Uno's current XAML source generator still expects third-party controls to arrive through explicit CLR namespace mappings. The reliable prefix-free pattern is to scope `xmlns="using:SvgML"` on the inline SVG subtree itself.
 
 ## Inline XAML example
 

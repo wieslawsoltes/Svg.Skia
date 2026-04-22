@@ -13,8 +13,7 @@ The NuGet package name is `SvgML.Avalonia`, while the CLR namespace used from XA
 ```xml
 <Window
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:svgml="https://github.com/svgml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 ```
 
 `SvgML.Avalonia` also maps `SvgML` into Avalonia's standard `https://github.com/avaloniaui` namespace, so the repository demo can author `svg`, `defs`, `rect`, `text`, and `foreignObject` without a prefix in normal Avalonia markup.
@@ -23,38 +22,38 @@ The NuGet package name is `SvgML.Avalonia`, while the CLR namespace used from XA
 
 ```xml
 <Window.Resources>
-  <svgml:svg x:Key="InlineIcon"
-             x:Shared="False"
-             viewBox="0 0 500 500">
-    <svgml:defs>
-      <svgml:filter id="noise"
-                    x="0%"
-                    y="0%"
-                    width="100%"
-                    height="100%">
-        <svgml:feTurbulence type="fractalNoise"
-                            result="NOISE"
-                            baseFrequency="0 0.000001"
-                            numOctaves="2" />
-        <svgml:feDisplacementMap in="SourceGraphic"
-                                 in2="NOISE"
-                                 scale="30"
-                                 xChannelSelector="R"
-                                 yChannelSelector="R" />
-      </svgml:filter>
-    </svgml:defs>
+  <svg x:Key="InlineIcon"
+       x:Shared="False"
+       viewBox="0 0 500 500">
+    <defs>
+      <filter id="noise"
+              x="0%"
+              y="0%"
+              width="100%"
+              height="100%">
+        <feTurbulence type="fractalNoise"
+                      result="NOISE"
+                      baseFrequency="0 0.000001"
+                      numOctaves="2" />
+        <feDisplacementMap in="SourceGraphic"
+                           in2="NOISE"
+                           scale="30"
+                           xChannelSelector="R"
+                           yChannelSelector="R" />
+      </filter>
+    </defs>
 
-    <svgml:rect width="100%"
-                height="100%"
-                fill="lightgray" />
-    <svgml:rect id="r2"
-                width="10%"
-                height="10%"
-                x="0%"
-                y="45%"
-                fill="green"
-                filter="#noise" />
-  </svgml:svg>
+    <rect width="100%"
+          height="100%"
+          fill="lightgray" />
+    <rect id="r2"
+          width="10%"
+          height="10%"
+          x="0%"
+          y="45%"
+          fill="green"
+          filter="#noise" />
+  </svg>
 </Window.Resources>
 ```
 
@@ -66,7 +65,7 @@ Avalonia style selectors can target the inline SVG controls directly:
 
 ```xml
 <Window.Styles>
-  <Style Selector="svgml|rect#r2">
+  <Style Selector=":is(rect)[id=r2]">
     <Style.Animations>
       <Animation Duration="0:0:1"
                  IterationCount="Infinite"

@@ -37,21 +37,20 @@ dotnet add package SvgML.Avalonia
 ```xml
 <Window
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:svgml="https://github.com/svgml">
-  <svgml:svg Width="160"
-             Height="160"
-             viewBox="0 0 100 100">
-    <svgml:rect width="100"
-                height="100"
-                fill="#F3F4F6" />
-    <svgml:circle cx="50"
-                  cy="50"
-                  r="30"
-                  fill="#0EA5E9"
-                  stroke="#0F172A"
-                  stroke-width="4" />
-  </svgml:svg>
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <svg Width="160"
+       Height="160"
+       viewBox="0 0 100 100">
+    <rect width="100"
+          height="100"
+          fill="#F3F4F6" />
+    <circle cx="50"
+            cy="50"
+            r="30"
+            fill="#0EA5E9"
+            stroke="#0F172A"
+            stroke-width="4" />
+  </svg>
 </Window>
 ```
 
@@ -73,15 +72,15 @@ That makes the package useful for interactive icons, small diagrams, templated v
 `foreignObject` is the public hosted-control API. It can be used inline in `text`/`tspan` or as a normal SVG scene element under `svg` or `g`.
 
 ```xml
-<svgml:svg Height="220" Stretch="Uniform" viewBox="0 0 360 160">
-  <svgml:text x="24" y="48" fill="#334155" style="font-size:16px;">
-    <svgml:tspan>Open </svgml:tspan>
-    <svgml:foreignObject width="120" height="34">
+<svg Height="220" Stretch="Uniform" viewBox="0 0 360 160">
+  <text x="24" y="48" fill="#334155" style="font-size:16px;">
+    <tspan>Open </tspan>
+    <foreignObject width="120" height="34">
       <Button Content="Preview" MinWidth="120" />
-    </svgml:foreignObject>
-    <svgml:tspan> in review mode.</svgml:tspan>
-  </svgml:text>
-</svgml:svg>
+    </foreignObject>
+    <tspan> in review mode.</tspan>
+  </text>
+</svg>
 ```
 
 The native control is hosted by the Avalonia visual tree while the SVG surface continues to render through `Svg.Skia`. See [SvgML foreignObject Controls](../xaml/svgml-foreignobject-controls) for cross-platform sizing and layout rules.
@@ -91,7 +90,7 @@ The native control is hosted by the Avalonia visual tree while the SVG surface c
 Because the SVG tree is made of Avalonia controls, normal Avalonia selectors and animations can target those elements.
 
 ```xml
-<Style Selector="svgml|rect#accent-bar">
+<Style Selector=":is(rect)[id=accent-bar]">
   <Style.Animations>
     <Animation Duration="0:0:1.2"
                IterationCount="Infinite"

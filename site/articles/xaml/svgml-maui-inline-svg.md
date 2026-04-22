@@ -31,23 +31,23 @@ builder
 ```xml
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:svgml="https://github.com/svgml"
              x:Class="SvgML.Maui.Demo.MainPage">
 
   <VerticalStackLayout Padding="30,0" Spacing="25">
-    <svgml:svg viewBox="0 0 200 100">
-      <svgml:defs>
-        <svgml:linearGradient id="gradient" x1="0%" y1="0%" x2="0" y2="100%">
-          <svgml:stop offset="0%" style="stop-color:skyblue;" />
-          <svgml:stop offset="100%" style="stop-color:seagreen;" />
-        </svgml:linearGradient>
-      </svgml:defs>
+    <svg xmlns="https://github.com/svgml"
+         viewBox="0 0 200 100">
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="0" y2="100%">
+          <stop offset="0%" style="stop-color:skyblue;" />
+          <stop offset="100%" style="stop-color:seagreen;" />
+        </linearGradient>
+      </defs>
 
-      <svgml:rect x="0" y="0" width="100%" height="100%" fill="url(#gradient)" />
-      <svgml:circle cx="50" cy="50" r="40"
-                    fill="{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}" />
-      <svgml:circle cx="150" cy="50" r="40" fill="black" opacity="0.3" />
-    </svgml:svg>
+      <rect x="0" y="0" width="100%" height="100%" fill="url(#gradient)" />
+      <circle cx="50" cy="50" r="40"
+              fill="{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}" />
+      <circle cx="150" cy="50" r="40" fill="black" opacity="0.3" />
+    </svg>
 
     <Entry x:Name="CircleFill" Text="red" />
   </VerticalStackLayout>
@@ -63,7 +63,7 @@ builder
 
 ## Namespace note
 
-Use `xmlns:svgml="https://github.com/svgml"` for inline SVG nodes, or scope a subtree with `xmlns="https://github.com/svgml"` when the children are mostly SvgML elements. Keep native MAUI controls in the MAUI namespace when they are hosted by `foreignObject`.
+Scope each inline SVG subtree with `xmlns="https://github.com/svgml"` so SVG nodes can be authored without prefixes. Keep native MAUI controls in the MAUI namespace when they are hosted by `foreignObject`.
 
 ## Native controls with foreignObject
 

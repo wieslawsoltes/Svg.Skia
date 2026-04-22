@@ -97,7 +97,6 @@ Uno currently works best when hosted-control size is supplied by the native chil
 - Dash-named SVG declarations can be authored through `style` when that is more reliable for Uno XAML, for example `style="stroke-width:2;stroke-linecap:round;"`.
 - The runtime now maps retained scene nodes back to authored `SvgML.element` controls, so `HitTestElements(...)`, `HitTestSceneNodes(...)`, `GetControlBounds(...)`, and `GetElementForSceneNode(...)` all work from the inline tree.
 - Use `HitTestSvgElements(...)` when you need the underlying `SvgElement` model objects rather than the authored XAML controls.
-- `xmlns:svgml="using:SvgML"` still works if you prefer an explicit namespace prefix at page scope.
 - Avalonia-style assembly `XmlnsDefinition` mapping is not enough for Uno's current source-generator path, so the scoped `xmlns="using:SvgML"` pattern is the reliable prefix-free option today.
 - The end-to-end sample lives in `samples/SvgML.Uno.Demo`.
 

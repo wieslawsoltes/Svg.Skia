@@ -45,27 +45,27 @@ builder
 
 ## Inline example
 
-The MAUI XAML surface stays close to authored SVG. Use the SvgML XML namespace URL for SvgML nodes:
+The MAUI XAML surface stays close to authored SVG. Scope the inline SVG subtree to the SvgML XML namespace URL and author SVG nodes without a prefix:
 
 ```xml
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:svgml="https://github.com/svgml"
              x:Class="SvgML.Maui.Demo.MainPage">
 
   <VerticalStackLayout Padding="30,0" Spacing="25">
-    <svgml:svg viewBox="0 0 200 100">
-      <svgml:defs>
-        <svgml:linearGradient id="gradient" x1="0%" y1="0%" x2="0" y2="100%">
-          <svgml:stop offset="0%" style="stop-color:skyblue;" />
-          <svgml:stop offset="100%" style="stop-color:seagreen;" />
-        </svgml:linearGradient>
-      </svgml:defs>
+    <svg xmlns="https://github.com/svgml"
+         viewBox="0 0 200 100">
+      <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="0" y2="100%">
+          <stop offset="0%" style="stop-color:skyblue;" />
+          <stop offset="100%" style="stop-color:seagreen;" />
+        </linearGradient>
+      </defs>
 
-      <svgml:rect x="0" y="0" width="100%" height="100%" fill="url(#gradient)" />
-      <svgml:circle cx="50" cy="50" r="40"
-                    fill="{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}" />
-    </svgml:svg>
+      <rect x="0" y="0" width="100%" height="100%" fill="url(#gradient)" />
+      <circle cx="50" cy="50" r="40"
+              fill="{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}" />
+    </svg>
 
     <Entry x:Name="CircleFill" Text="red" />
   </VerticalStackLayout>
@@ -117,7 +117,7 @@ See [SvgML foreignObject Controls](../xaml/svgml-foreignobject-controls) for siz
 ## Notes
 
 - The package reuses the same `Svg.Skia` renderer as the Avalonia and Uno stacks.
-- Use `xmlns:svgml="https://github.com/svgml"` in page XAML, or scope an SvgML subtree with `xmlns="https://github.com/svgml"`.
+- Scope each SvgML subtree with `xmlns="https://github.com/svgml"` so SVG nodes can be authored without prefixes.
 - Dash-named SVG members are authored with SVG names in MAUI XAML, for example `stroke-width`, `fill-opacity`, or `font-size`.
 - The MAUI runtime now keeps retained-scene mappings for the inline tree, so `HitTestElements(...)`, `HitTestSceneNodes(...)`, `GetControlBounds(...)`, and `GetElementForSceneNode(...)` can work against authored `SvgML.element` controls.
 - Use `HitTestSvgElements(...)` when you need the underlying `SvgElement` instances instead of the XAML-authored controls.
