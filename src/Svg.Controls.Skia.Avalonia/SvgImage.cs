@@ -113,24 +113,33 @@ public class SvgImage : AvaloniaObject, IImage
         if (change.Property == CssProperty)
         {
             var css = string.Concat(change.GetNewValue<string>(), ' ', CurrentCss);
-
-            if (Source is { } source && source.Css != css)
-            {
-                source.ReLoad(new SvgParameters(source.Parameters?.Entities, css));
-                RaiseInvalidated(EventArgs.Empty);
-            }
+            ReLoadSource(css);
         }
 
         if (change.Property == CurrentCssProperty)
         {
             var css = string.Concat(Css, ' ', change.GetNewValue<string>());
-
-            if (Source is { } source && source.Css != css)
-            {
-                source.ReLoad(new SvgParameters(source.Parameters?.Entities, css));
-                RaiseInvalidated(EventArgs.Empty);
-            }
+            ReLoadSource(css);
         }
+    }
+
+    private void ReLoadSource(string css)
+    {
+        if (Source is not { } source)
+        {
+            return;
+        }
+
+        var parameters = source.Parameters;
+        var sourceCss = parameters.HasValue ? parameters.Value.Css : source.Css;
+        if (sourceCss == css)
+        {
+            return;
+        }
+
+        var entities = parameters.HasValue ? parameters.Value.Entities : source.Entities;
+        source.ReLoad(new SvgParameters(entities, css));
+        RaiseInvalidated(EventArgs.Empty);
     }
 
     /// <summary>

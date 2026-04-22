@@ -1,9 +1,11 @@
-﻿using Avalonia;
+﻿using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Svg.Skia;
 using Avalonia.Svg.Skia.UnitTests.Views;
+using Svg.Model;
 using Xunit;
 
 namespace Avalonia.Svg.Skia.UnitTests;
@@ -83,5 +85,41 @@ public class SvgImageTests
         Assert.NotSame(svgImage.Source, clone.Source);
         Assert.Equal(svgImage.Css, clone.Css);
         Assert.Equal(svgImage.CurrentCss, clone.CurrentCss);
+    }
+
+    [AvaloniaFact]
+    public void SvgImage_Does_Not_Reload_When_Effective_Css_Is_Unchanged()
+    {
+        using var source = SvgSource.LoadFromSvg(SampleSvg, new SvgParameters(null, " "));
+        var originalSvg = source.Svg;
+        var originalPicture = source.Picture;
+        var svgImage = new SvgImage
+        {
+            Source = source
+        };
+
+        svgImage.Css = string.Empty;
+        svgImage.CurrentCss = string.Empty;
+
+        Assert.Same(originalSvg, source.Svg);
+        Assert.Same(originalPicture, source.Picture);
+    }
+
+    [AvaloniaFact]
+    public void SvgImage_Css_Reload_Disposes_Previous_Picture()
+    {
+        using var source = SvgSource.LoadFromSvg(SampleSvg, new SvgParameters(null, " "));
+        var originalPicture = source.Picture;
+        var svgImage = new SvgImage
+        {
+            Source = source
+        };
+
+        Assert.NotNull(originalPicture);
+
+        svgImage.Css = "rect { fill: blue; }";
+
+        Assert.NotSame(originalPicture, source.Picture);
+        Assert.Equal(IntPtr.Zero, originalPicture.Handle);
     }
 }
