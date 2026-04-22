@@ -126,6 +126,80 @@ public class SKSvgTests : SvgUnitTest
         Assert.Equal(360, image.Height);
     }
 
+    [Theory]
+    [InlineData("", 1, 3)]
+    [InlineData("vector-effect=\"non-scaling-stroke\"", 3, 6)]
+    [InlineData("style=\"vector-effect: non-scaling-stroke\"", 3, 6)]
+    public void Save_DownScaledVectorEffectNonScalingStroke_PreservesStrokeWidth(string vectorEffect, int minOpaquePixels, int maxOpaquePixels)
+    {
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(CreateNonScalingStrokeSvgMarkup(vectorEffect)));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent, SkiaSharp.SKEncodedImageFormat.Png, 100, 0.5f, 0.5f));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        Assert.Equal(50, image.Width);
+        Assert.Equal(20, image.Height);
+
+        var opaquePixels = CountOpaquePixelsInColumn(image, 25);
+        Assert.InRange(opaquePixels, minOpaquePixels, maxOpaquePixels);
+    }
+
+    [Theory]
+    [InlineData("", 1, 3)]
+    [InlineData("vector-effect=\"non-scaling-stroke\"", 3, 6)]
+    [InlineData("style=\"vector-effect: non-scaling-stroke\"", 3, 6)]
+    public void Draw_DownScaledVectorEffectNonScalingStroke_PreservesStrokeWidthAndRaisesOnDraw(string vectorEffect, int minOpaquePixels, int maxOpaquePixels)
+    {
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(CreateNonScalingStrokeSvgMarkup(vectorEffect)));
+        using var _ = svg.Load(input);
+        using var bitmap = new SkiaSharp.SKBitmap(new SkiaSharp.SKImageInfo(50, 20, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul));
+        using var canvas = new SkiaSharp.SKCanvas(bitmap);
+        var drawCount = 0;
+        svg.OnDraw += (_, _) => drawCount++;
+
+        canvas.Clear(SkiaSharp.SKColors.Transparent);
+        canvas.Scale(0.5f, 0.5f);
+        svg.Draw(canvas);
+
+        using var skImage = SkiaSharp.SKImage.FromBitmap(bitmap);
+        using var data = skImage.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+        Assert.NotNull(data);
+
+        using var output = new MemoryStream(data.ToArray());
+        using var image = Image.Load<Rgba32>(output);
+        var opaquePixels = CountOpaquePixelsInColumn(image, 25);
+        Assert.InRange(opaquePixels, minOpaquePixels, maxOpaquePixels);
+        Assert.Equal(1, drawCount);
+    }
+
+    private static string CreateNonScalingStrokeSvgMarkup(string vectorEffect)
+    {
+        return $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="40" viewBox="0 0 100 40">
+              <line x1="10" y1="20" x2="90" y2="20" stroke="black" stroke-width="4" {{vectorEffect}} />
+            </svg>
+            """;
+    }
+
+    private static int CountOpaquePixelsInColumn(Image<Rgba32> image, int x)
+    {
+        var count = 0;
+        for (var y = 0; y < image.Height; y++)
+        {
+            if (image[x, y].A > 200)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
     [Fact]
     public void Save_InheritedCurrentColor_UsesConsumingElementsColor()
     {
