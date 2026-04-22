@@ -527,6 +527,55 @@ public static AppBuilder BuildAvaloniaApp()
 
 This is known issue as previewer not always loads all dependencies, especially custom controls in Avalonia xmlns, other solution would be to add xmlns prefix to control with provided assembly path.
 
+### .NET MAUI
+
+`Svg.Skia` can be used in a .NET MAUI application anywhere the app already
+draws with SkiaSharp. For a MAUI XAML-native surface, use `SvgML.Maui`, which
+renders through the same `Svg.Skia` pipeline and supports native MAUI controls
+hosted by SVG `foreignObject`.
+
+#### Install Package
+
+```
+dotnet add package SvgML.Maui
+```
+
+```
+Install-Package SvgML.Maui
+```
+
+Register both the SkiaSharp MAUI host and SvgML during startup:
+
+```C#
+using SkiaSharp.Views.Maui.Controls.Hosting;
+using SvgML;
+
+builder
+    .UseMauiApp<App>()
+    .UseSkiaSharp()
+    .UseSvgML();
+```
+
+Author inline SVG in MAUI XAML by scoping the SVG subtree to the SvgML XML
+namespace:
+
+```XAML
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+  <svg xmlns="https://github.com/svgml"
+       viewBox="0 0 100 100"
+       HeightRequest="120">
+    <rect x="0" y="0" width="100" height="100" fill="#E0F2FE" />
+    <circle cx="50" cy="50" r="32" fill="#0284C7" />
+  </svg>
+</ContentPage>
+```
+
+For external `.svg` assets, keep using `Svg.Skia.SKSvg` from SkiaSharp drawing
+code such as an `SKCanvasView` paint callback and draw `svg.Picture` to the
+provided canvas. The MAUI package currently targets Android, iOS, and
+Mac Catalyst. See the [SvgML.Maui package guide](site/articles/packages/svgml-maui.md)
+and [sample app](samples/SvgML.Maui.Demo) for the full MAUI flow.
+
 ### Avalonia SkiaSharp Controls
 
 #### Install Package
