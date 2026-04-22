@@ -4,7 +4,7 @@ title: "SvgML.Avalonia"
 
 # SvgML.Avalonia
 
-`SvgML.Avalonia` lets you author an SVG element tree directly in Avalonia XAML. Instead of loading an external `.svg` file, you declare `svg`, `rect`, `g`, gradients, filters, text, and related nodes inline, and the package serializes that tree back through the shared `Svg.Skia` loading pipeline.
+`SvgML.Avalonia` lets you author an SVG element tree directly in Avalonia XAML. Instead of loading an external `.svg` file, you declare `svg`, `rect`, `g`, gradients, filters, text, `foreignObject`, and related nodes inline, and the package serializes that tree back through the shared `Svg.Skia` loading pipeline.
 
 The NuGet package name is `SvgML.Avalonia`, while the CLR namespace exposed to Avalonia XAML remains `SvgML`.
 
@@ -18,6 +18,7 @@ dotnet add package SvgML.Avalonia
 
 - the SVG should live in XAML resources, templates, or views instead of a separate asset file,
 - you want SVG-like element and attribute names in Avalonia markup,
+- you want SVG `foreignObject` to place real Avalonia controls inside text flow or scene geometry,
 - you want Avalonia styles or animations to target the inline SVG element tree,
 - you still want rendering, hit testing, and parsing to stay aligned with the shared `Svg.Skia` runtime.
 
@@ -28,7 +29,8 @@ dotnet add package SvgML.Avalonia
 | `SvgML.svg` | Root Avalonia control that owns the inline SVG tree and renders it |
 | `SvgML.element` | Base class for generated SVG element controls |
 | `SvgML.elements` | Child collection for nested SVG nodes |
-| `SvgML.content` | Text-content wrapper used by text-related nodes |
+| `SvgML.content` | Text-content backing node used by text-related nodes; authored XAML can normally use literal text |
+| `SvgML.foreignObject` | SVG-native host for an Avalonia `Control` inside text flow or scene geometry |
 
 ## Basic inline usage
 
@@ -36,7 +38,7 @@ dotnet add package SvgML.Avalonia
 <Window
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:svgml="clr-namespace:SvgML;assembly=SvgML.Avalonia">
+    xmlns:svgml="https://github.com/svgml">
   <svgml:svg Width="160"
              Height="160"
              viewBox="0 0 100 100">
@@ -66,6 +68,24 @@ The root `svg` control:
 
 That makes the package useful for interactive icons, small diagrams, templated visuals, and editor-like overlays where authored markup and rendered output both need to stay available.
 
+## Native hosted controls
+
+`foreignObject` is the public hosted-control API. It can be used inline in `text`/`tspan` or as a normal SVG scene element under `svg` or `g`.
+
+```xml
+<svgml:svg Height="220" Stretch="Uniform" viewBox="0 0 360 160">
+  <svgml:text x="24" y="48" fill="#334155" style="font-size:16px;">
+    <svgml:tspan>Open </svgml:tspan>
+    <svgml:foreignObject width="120" height="34">
+      <Button Content="Preview" MinWidth="120" />
+    </svgml:foreignObject>
+    <svgml:tspan> in review mode.</svgml:tspan>
+  </svgml:text>
+</svgml:svg>
+```
+
+The native control is hosted by the Avalonia visual tree while the SVG surface continues to render through `Svg.Skia`. See [SvgML foreignObject Controls](../xaml/svgml-foreignobject-controls) for cross-platform sizing and layout rules.
+
 ## Styling and animation
 
 Because the SVG tree is made of Avalonia controls, normal Avalonia selectors and animations can target those elements.
@@ -87,7 +107,7 @@ Because the SVG tree is made of Avalonia controls, normal Avalonia selectors and
 </Style>
 ```
 
-For a fuller example, see [SvgML.Avalonia Inline SVG](../xaml/svgml-avalonia-inline-svg) and the `samples/SvgML.Avalonia.Demo` project in the repository.
+For fuller examples, see [SvgML.Avalonia Inline SVG](../xaml/svgml-avalonia-inline-svg), [SvgML foreignObject Controls](../xaml/svgml-foreignobject-controls), and the `samples/SvgML.Avalonia.Demo` project in the repository.
 
 ## When not to choose this package
 
@@ -99,4 +119,5 @@ For a fuller example, see [SvgML.Avalonia Inline SVG](../xaml/svgml-avalonia-inl
 
 - [XAML Overview](../xaml/overview)
 - [SvgML.Avalonia Inline SVG](../xaml/svgml-avalonia-inline-svg)
+- [SvgML foreignObject Controls](../xaml/svgml-foreignobject-controls)
 - [Svg.Controls.Skia.Avalonia](svg-controls-skia-avalonia)

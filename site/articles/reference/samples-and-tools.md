@@ -12,9 +12,9 @@ The `samples/` directory covers both end-user scenarios and repository-internal 
 - `AvaloniaSvgSkiaSample`: end-to-end sample for `Avalonia.Svg.Skia`, including `Svg`, `SvgImage`, `SvgSource`, resource usage, and draw-control integration.
 - `AvaloniaSvgSkiaStylingSample`: CSS-based restyling and pointer-over behavior.
 - `AvaloniaSvgSample`: equivalent non-Skia Avalonia stack sample.
-- `SvgML.Avalonia.Demo`: inline XAML-authored SVG sample showing reusable resources plus animated filter and geometry properties.
-- `SvgML.Maui.Demo`: .NET MAUI inline SVG sample showing the same authored element-tree pattern on Android, iOS, and Mac Catalyst.
-- `SvgML.Uno.Demo`: Uno desktop sample showing inline XAML-authored SVG trees with direct binding and runtime CSS updates.
+- `SvgML.Avalonia.Demo`: inline XAML-authored SVG sample showing reusable resources, animated filter/geometry properties, and `foreignObject` hosted controls inside text flow and scene geometry.
+- `SvgML.Maui.Demo`: .NET MAUI inline SVG sample showing bound SVG properties, `foreignObject` hosted controls, and scene-level native controls on Android, iOS, and Mac Catalyst.
+- `SvgML.Uno.Demo`: Uno desktop sample showing inline XAML-authored SVG trees with direct binding, runtime CSS updates, and `foreignObject` hosted controls.
 - `AvaloniaControlsSample`: `SKCanvasControl`, `SKBitmapControl`, `SKPathControl`, and `SKPictureControl`.
 - `AvaloniaSKPictureImageSample`: `SKPictureImage` and animation examples.
 - `AvalonDraw`: larger sample application for SVG editing-oriented scenarios.
