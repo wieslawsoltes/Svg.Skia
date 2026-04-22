@@ -95,6 +95,10 @@ internal static class SvgRenderLayout
             return false;
         }
 
+        zoom = NormalizeZoom(zoom);
+        panX = NormalizeOffset(panX);
+        panY = NormalizeOffset(panY);
+
         var viewport = new SvgRect(0, 0, viewportSize.Width, viewportSize.Height);
         var (scaleX, scaleY) = CalculateScaling(viewportSize, sourceSize, stretch, stretchDirection);
         var scaledSize = new SvgRect(0, 0, sourceSize.Width * scaleX, sourceSize.Height * scaleY);
@@ -135,6 +139,8 @@ internal static class SvgRenderLayout
         double newZoom,
         SvgPoint point)
     {
+        zoom = NormalizeZoom(zoom);
+        newZoom = NormalizeZoom(newZoom);
         newZoom = Math.Clamp(newZoom, 0.1, 10.0);
         var zoomFactor = newZoom / zoom;
 
@@ -207,5 +213,20 @@ internal static class SvgRenderLayout
             StretchDirection.DownOnly => Math.Min(1.0, scale),
             _ => scale
         };
+    }
+
+    private static double NormalizeZoom(double zoom)
+    {
+        return IsFinite(zoom) && zoom > 0 ? zoom : 1.0;
+    }
+
+    private static double NormalizeOffset(double offset)
+    {
+        return IsFinite(offset) ? offset : 0.0;
+    }
+
+    private static bool IsFinite(double value)
+    {
+        return !double.IsNaN(value) && !double.IsInfinity(value);
     }
 }

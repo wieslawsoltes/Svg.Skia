@@ -217,16 +217,14 @@ public sealed class SvgSource : IDisposable
             skSvg.FromSvgDocument(document);
             var picture = skSvg.Picture;
 
-            lock (source.Sync)
-            {
-                source._originalStream?.Dispose();
-                source._originalStream = originalStream;
-                source._originalPath = null;
-                source._originalParameters = null;
-                source._originalBaseUri = document.BaseUri;
-                source._skSvg = skSvg;
-                source._picture = picture;
-            }
+            ReplaceLoadedState(
+                source,
+                skSvg,
+                picture,
+                originalStream,
+                originalPath: null,
+                parameters: null,
+                originalBaseUri: document.BaseUri);
 
             return source;
         }
@@ -426,17 +424,14 @@ public sealed class SvgSource : IDisposable
     {
         if (path is null)
         {
-            lock (source.Sync)
-            {
-                source._originalPath = null;
-                source._originalStream?.Dispose();
-                source._originalStream = null;
-                source._originalParameters = parameters;
-                source._originalBaseUri = null;
-                source._skSvg = null;
-                source._picture = null;
-            }
-
+            ReplaceLoadedState(
+                source,
+                skSvg: null,
+                picture: null,
+                originalStream: null,
+                originalPath: null,
+                parameters: parameters,
+                originalBaseUri: null);
             return null;
         }
 
@@ -444,18 +439,16 @@ public sealed class SvgSource : IDisposable
         skSvg.Load(path, parameters);
         var picture = skSvg.Picture;
 
-        lock (source.Sync)
-        {
-            source._originalPath = path;
-            source._originalStream?.Dispose();
-            source._originalStream = null;
-            source._originalParameters = parameters;
-            source._originalBaseUri = new Uri(path, UriKind.RelativeOrAbsolute);
-            source._skSvg = skSvg;
-            source._picture = picture;
-        }
-
-        return picture;
+        return ReplaceLoadedState(
+            source,
+            skSvg,
+            picture,
+            originalStream: null,
+            originalPath: path,
+            parameters: parameters,
+            originalBaseUri: new Uri(path, UriKind.RelativeOrAbsolute))
+            ? picture
+            : null;
     }
 
     private static SKPicture? Load(SvgSource source, Stream stream, SvgParameters? parameters = null, Uri? baseUri = null)
@@ -472,18 +465,16 @@ public sealed class SvgSource : IDisposable
         skSvg.Load(cachedStream, parameters, baseUri);
         var picture = skSvg.Picture;
 
-        lock (source.Sync)
-        {
-            source._originalStream?.Dispose();
-            source._originalStream = cachedStream;
-            source._originalPath = null;
-            source._originalParameters = parameters;
-            source._originalBaseUri = baseUri;
-            source._skSvg = skSvg;
-            source._picture = picture;
-        }
-
-        return picture;
+        return ReplaceLoadedState(
+            source,
+            skSvg,
+            picture,
+            cachedStream,
+            originalPath: null,
+            parameters: parameters,
+            originalBaseUri: baseUri)
+            ? picture
+            : null;
     }
 
     private static async Task<SKPicture?> LoadImplAsync(
@@ -528,7 +519,7 @@ public sealed class SvgSource : IDisposable
         {
             try
             {
-                var response = await s_httpClient
+                using var response = await s_httpClient
                     .GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -537,7 +528,13 @@ public sealed class SvgSource : IDisposable
                     return null;
                 }
 
-                return await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                await using var responseStream = await response.Content
+                    .ReadAsStreamAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                var stream = new MemoryStream();
+                await responseStream.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+                stream.Position = 0;
+                return stream;
             }
             catch (HttpRequestException e)
             {
@@ -563,6 +560,56 @@ public sealed class SvgSource : IDisposable
         }
 
         return null;
+    }
+
+    private static bool ReplaceLoadedState(
+        SvgSource source,
+        SKSvg? skSvg,
+        SKPicture? picture,
+        Stream? originalStream,
+        string? originalPath,
+        SvgParameters? parameters,
+        Uri? originalBaseUri)
+    {
+        SKPicture? previousPicture = null;
+        SKSvg? previousSvg = null;
+        Stream? previousStream = null;
+        var disposeNewResources = false;
+
+        lock (source.Sync)
+        {
+            while (source._activeRenders > 0 && !source._disposed && !source._disposePending)
+            {
+                Monitor.Wait(source.Sync);
+            }
+
+            if (source._disposed || source._disposePending)
+            {
+                disposeNewResources = true;
+            }
+            else
+            {
+                previousPicture = source._picture;
+                previousSvg = source._skSvg;
+                previousStream = source._originalStream;
+
+                source._originalStream = originalStream;
+                source._originalPath = originalPath;
+                source._originalParameters = parameters;
+                source._originalBaseUri = originalBaseUri;
+                source._skSvg = skSvg;
+                source._picture = picture;
+            }
+        }
+
+        if (disposeNewResources)
+        {
+            DisposeResources(picture, skSvg, originalStream);
+            return false;
+        }
+
+        DisposeResources(previousPicture, previousSvg, previousStream);
+        return true;
     }
 
     private static MemoryStream CreateStream(string svg)

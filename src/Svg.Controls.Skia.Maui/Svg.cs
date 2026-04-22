@@ -459,30 +459,6 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
             return;
         }
 
-        var skSvg = source.Svg;
-        var picture = source.Picture;
-        if (skSvg is null || picture is null)
-        {
-            return;
-        }
-
-        if (!SvgRenderLayout.TryCreateRenderInfo(
-                new SvgSize(width, height),
-                new SvgRect(
-                    picture.CullRect.Left,
-                    picture.CullRect.Top,
-                    picture.CullRect.Width,
-                    picture.CullRect.Height),
-                Stretch,
-                StretchDirection,
-                Zoom,
-                PanX,
-                PanY,
-                out var renderInfo))
-        {
-            return;
-        }
-
         if (!source.BeginRender())
         {
             return;
@@ -490,6 +466,30 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
 
         try
         {
+            var skSvg = source.Svg;
+            var picture = source.Picture;
+            if (skSvg is null || picture is null)
+            {
+                return;
+            }
+
+            if (!SvgRenderLayout.TryCreateRenderInfo(
+                    new SvgSize(width, height),
+                    new SvgRect(
+                        picture.CullRect.Left,
+                        picture.CullRect.Top,
+                        picture.CullRect.Width,
+                        picture.CullRect.Height),
+                    Stretch,
+                    StretchDirection,
+                    Zoom,
+                    PanX,
+                    PanY,
+                    out var renderInfo))
+            {
+                return;
+            }
+
             using var restore = new SkiaAutoCanvasRestore(canvas, true);
             canvas.ClipRect(ToSKRect(renderInfo.DestinationRect));
             var matrix = ToSKMatrix(renderInfo.Matrix);
@@ -577,20 +577,29 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var clone = source.Clone();
-        var parameters = BuildParameters(source, Css, CurrentCss);
-
-        if (clone.HasPathSource)
+        SvgSource? clone = null;
+        try
         {
-            await clone.ReLoadAsync(parameters, cancellationToken).ConfigureAwait(false);
-        }
-        else if (clone.HasLoadedSource && parameters is not null)
-        {
-            clone.ReLoad(parameters);
-        }
+            clone = source.Clone();
+            var parameters = BuildParameters(source, Css, CurrentCss);
 
-        ApplyRenderOptions(clone, Wireframe, DisableFilters);
-        return new LoadResult(clone, false);
+            if (clone.HasPathSource)
+            {
+                await clone.ReLoadAsync(parameters, cancellationToken).ConfigureAwait(false);
+            }
+            else if (clone.HasLoadedSource && parameters is not null)
+            {
+                clone.ReLoad(parameters);
+            }
+
+            ApplyRenderOptions(clone, Wireframe, DisableFilters);
+            return new LoadResult(clone);
+        }
+        catch
+        {
+            clone?.Dispose();
+            throw;
+        }
     }
 
     private async Task<LoadResult> LoadPathAsync(string path, CancellationToken cancellationToken)
@@ -598,25 +607,28 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
         var parameters = BuildParameters(null, Css, CurrentCss);
         var normalizedPath = SvgSource.NormalizePath(path).ToString();
         var cacheKey = SvgCacheKey.Create(normalizedPath, parameters);
+        var cache = EnableCache ? (_cache ??= new Dictionary<string, SvgSource>(StringComparer.Ordinal)) : null;
 
-        if (EnableCache && _cache is { } cache && cache.TryGetValue(cacheKey, out var cached))
+        if (cache is { } && cache.TryGetValue(cacheKey, out var cached))
         {
             var workingSource = CreateWorkingSource(cached);
             ApplyRenderOptions(workingSource, Wireframe, DisableFilters);
-            return new LoadResult(workingSource, ReferenceEquals(workingSource, cached));
+            return new LoadResult(workingSource);
         }
 
         var source = await SvgSource.LoadAsync(path, parameters: parameters, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
         ApplyRenderOptions(source, Wireframe, DisableFilters);
 
-        if (EnableCache && _cache is { } cacheStore)
+        cache = EnableCache ? (_cache ??= new Dictionary<string, SvgSource>(StringComparer.Ordinal)) : null;
+        if (cache is { })
         {
-            cacheStore[cacheKey] = CreateWorkingSource(source);
-            return new LoadResult(source, false);
+            var cacheEntry = CreateWorkingSource(source);
+            cache[cacheKey] = cacheEntry;
+            return new LoadResult(source);
         }
 
-        return new LoadResult(source, false);
+        return new LoadResult(source);
     }
 
     private LoadResult LoadInlineSource(string sourceText)
@@ -624,7 +636,7 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
         var parameters = BuildParameters(null, Css, CurrentCss);
         var source = SvgSource.LoadFromSvg(sourceText, parameters);
         ApplyRenderOptions(source, Wireframe, DisableFilters);
-        return new LoadResult(source, false);
+        return new LoadResult(source);
     }
 
     private bool TryGetRenderInfo(out SvgRenderInfo renderInfo)
@@ -732,13 +744,13 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
 
     private void DisposeResultIfOwned(LoadResult result)
     {
-        if (result.Source is not null && !result.IsCacheEntry)
+        if (result.Source is not null && !IsCached(result.Source))
         {
             result.Source.Dispose();
         }
     }
 
-    private readonly record struct LoadResult(SvgSource? Source, bool IsCacheEntry);
+    private readonly record struct LoadResult(SvgSource? Source);
 
     private void TrackAnimationSvg(SKSvg? skSvg)
     {
@@ -927,10 +939,20 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
 
     private void DispatchOnUiThread(Action action)
     {
-        if (Dispatcher is { IsDispatchRequired: true } dispatcher)
+        if (Dispatcher is { } dispatcher)
         {
-            dispatcher.Dispatch(action);
-            return;
+            if (dispatcher.IsDispatchRequired)
+            {
+                if (dispatcher.Dispatch(action))
+                {
+                    return;
+                }
+            }
+            else
+            {
+                action();
+                return;
+            }
         }
 
         if (MainThread.IsMainThread)
