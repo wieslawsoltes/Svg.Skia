@@ -15,6 +15,17 @@ namespace Svg.Skia.UnitTests;
 public class SKSvgRebuildFromModelTests
 {
     private const string SampleSvg = "<svg width=\"10\" height=\"10\"><rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"red\" /></svg>";
+    private const string SourceMappedSvg = """
+        <svg width="20" height="10" xmlns="http://www.w3.org/2000/svg">
+          <rect id="left" x="0" y="0" width="10" height="10" fill="red" />
+          <rect id="right" x="10" y="0" width="10" height="10" fill="blue" />
+        </svg>
+        """;
+    private const string SourceMappedStrokeSvg = """
+        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+          <rect id="target" x="2" y="2" width="16" height="16" fill="red" stroke="blue" stroke-width="2" />
+        </svg>
+        """;
     private const string GradientSvg = """
         <svg width="10" height="10" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -49,6 +60,59 @@ public class SKSvgRebuildFromModelTests
         Assert.NotNull(rebuilt);
         Assert.NotSame(original, rebuilt);
         Assert.Same(rebuilt, svg.Picture);
+    }
+
+    [Fact]
+    public void ModelCommands_ExposeSourceElementMetadata()
+    {
+        var svg = new SKSvg();
+        svg.FromSvg(SourceMappedStrokeSvg);
+
+        var commands = svg.Model!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("target")
+            .ToList();
+
+        Assert.Equal(2, commands.Count);
+        Assert.All(commands, static command =>
+        {
+            Assert.Equal("target", command.SourceElementId);
+            Assert.Equal("SvgRectangle", command.SourceElementTypeName);
+            Assert.False(string.IsNullOrWhiteSpace(command.SourceElementAddress));
+        });
+
+        var address = commands[0].SourceElementAddress!;
+        var commandsByAddress = svg.Model!
+            .FindCommandsBySourceElementAddress<DrawPathCanvasCommand>(address)
+            .ToList();
+
+        Assert.Equal(commands.Count, commandsByAddress.Count);
+        Assert.All(commandsByAddress, command => Assert.Equal(address, command.SourceElementAddress));
+    }
+
+    [Fact]
+    public void RebuildFromModel_CanUpdateCommandsForSourceElementId()
+    {
+        var svg = new SKSvg();
+        svg.FromSvg(SourceMappedSvg);
+
+        Assert.NotNull(svg.Picture);
+        using var originalBitmap = RenderBitmap(svg.Picture!);
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), originalBitmap.GetPixel(5, 5));
+        Assert.Equal(new SkiaColor(0, 0, 255, 255), originalBitmap.GetPixel(15, 5));
+
+        var rightCommands = svg.Model!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("right")
+            .ToList();
+        var command = Assert.Single(rightCommands);
+        Assert.NotNull(command.Paint);
+        command.Paint!.Color = new ShimSkiaSharp.SKColor(0, 128, 0, 255);
+
+        var rebuilt = svg.RebuildFromModel();
+
+        Assert.NotNull(rebuilt);
+        using var rebuiltBitmap = RenderBitmap(rebuilt!);
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), rebuiltBitmap.GetPixel(5, 5));
+        Assert.Equal(new SkiaColor(0, 128, 0, 255), rebuiltBitmap.GetPixel(15, 5));
     }
 
     [Fact]
