@@ -23,6 +23,16 @@ public class SKSvgSettings
 
     public bool EnableTextReferences { get; set; }
 
+    public bool EnableJavaScript { get; set; }
+
+    public bool EnableExternalJavaScript { get; set; }
+
+    public int JavaScriptTimeoutMilliseconds { get; set; }
+
+    public int JavaScriptMaxStatements { get; set; }
+
+    public bool ThrowOnJavaScriptError { get; set; }
+
     public SKSvgSettings()
     {
         AlphaType = SkiaSharp.SKAlphaType.Unpremul;
@@ -42,5 +52,10 @@ public class SKSvgSettings
         StandaloneViewport = null;
         EnableSvgFonts = true;
         EnableTextReferences = true;
+        EnableJavaScript = false;
+        EnableExternalJavaScript = true;
+        JavaScriptTimeoutMilliseconds = 1000;
+        JavaScriptMaxStatements = 10000;
+        ThrowOnJavaScriptError = false;
     }
 }

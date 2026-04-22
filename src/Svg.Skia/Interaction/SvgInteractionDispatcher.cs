@@ -374,21 +374,25 @@ public sealed class SvgInteractionDispatcher
             return true;
         }
 
+        var handled = false;
         foreach (var element in BuildRoute(target))
         {
             animationFrameDirty |= svg?.RecordAnimationPointerEvent(element, SvgPointerEventType.Wheel) == true;
+            var javaScriptResult = svg?.DispatchJavaScriptEvent(element, target, null, "mousescroll", "onmousescroll", input);
+            handled |= javaScriptResult?.DefaultPrevented == true;
             DispatchSvgMouseScroll(element, input);
             var routePhase = ReferenceEquals(element, target)
                 ? SvgPointerEventRoutePhase.Target
                 : SvgPointerEventRoutePhase.Bubble;
 
-            if (DispatchShared(SvgPointerEventType.Wheel, element, target, null, routePhase, input, cursor))
+            if (DispatchShared(SvgPointerEventType.Wheel, element, target, null, routePhase, input, cursor) ||
+                javaScriptResult?.CancelBubble == true)
             {
                 return true;
             }
         }
 
-        return false;
+        return handled;
     }
 
     private bool DispatchRoutedEvent(
@@ -423,21 +427,25 @@ public sealed class SvgInteractionDispatcher
             return true;
         }
 
+        var handled = false;
         foreach (var element in BuildRoute(target))
         {
             animationFrameDirty |= svg?.RecordAnimationPointerEvent(element, eventType) == true;
+            var javaScriptResult = svg?.DispatchJavaScriptEvent(element, target, relatedElement, ToJavaScriptEventType(svgEventName), svgEventName, input);
+            handled |= javaScriptResult?.DefaultPrevented == true;
             DispatchSvgMouseEvent(element, svgEventName, input);
             var routePhase = ReferenceEquals(element, target)
                 ? SvgPointerEventRoutePhase.Target
                 : SvgPointerEventRoutePhase.Bubble;
 
-            if (DispatchShared(eventType, element, target, relatedElement, routePhase, input, cursor))
+            if (DispatchShared(eventType, element, target, relatedElement, routePhase, input, cursor) ||
+                javaScriptResult?.CancelBubble == true)
             {
                 return true;
             }
         }
 
-        return false;
+        return handled;
     }
 
     private bool DispatchTunnelEvent(
@@ -623,6 +631,13 @@ public sealed class SvgInteractionDispatcher
             SvgMouseButton.XButton2 => 5,
             _ => 0
         };
+    }
+
+    private static string ToJavaScriptEventType(string svgEventName)
+    {
+        return svgEventName.StartsWith("on", StringComparison.Ordinal)
+            ? svgEventName.Substring(2)
+            : svgEventName;
     }
 }
 
