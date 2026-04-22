@@ -440,7 +440,15 @@ public static class SvgService
             return true;
         }
 
-        return element.CustomAttributes.TryGetValue($"{SvgNamespaces.XmlNamespace}:base", out value);
+        if (element.CustomAttributes.TryGetValue($"{SvgNamespaces.XmlNamespace}:base", out var customValue) &&
+            customValue is not null)
+        {
+            value = customValue;
+            return true;
+        }
+
+        value = string.Empty;
+        return false;
     }
 
     internal static Uri GetImageDocumentUri(Uri uri)
