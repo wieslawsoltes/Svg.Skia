@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="SvgML.Uno | Svg.Skia">
-<meta name="twitter:description" content="SvgML.Uno SvgML.Uno lets you author an SVG element tree directly in Uno Platform XAML. Instead of loading an external .svg file, you declare svg, path, g, filters, text, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. Package dotnet add package SvgML.Uno Current package target: net10.0 via Uno.Sdk The current Uno 6.5.x packages used in this repository only ship...">
+<meta name="twitter:description" content="SvgML.Uno SvgML.Uno lets you author an SVG element tree directly in Uno Platform XAML. Instead of loading an external .svg file, you declare svg, path, g, filters, text, foreignObject, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. Package dotnet add package SvgML.Uno Current package target: net10.0 via Uno.Sdk The current Uno 6.5.x packages used in this repository only ship...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="SvgML.Uno | Svg.Skia">
 <meta property="og:title" content="SvgML.Uno | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="SvgML.Uno SvgML.Uno lets you author an SVG element tree directly in Uno Platform XAML. Instead of loading an external .svg file, you declare svg, path, g, filters, text, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. Package dotnet add package SvgML.Uno Current package target: net10.0 via Uno.Sdk The current Uno 6.5.x packages used in this repository only ship...">
+<meta property="og:description" content="SvgML.Uno SvgML.Uno lets you author an SVG element tree directly in Uno Platform XAML. Instead of loading an external .svg file, you declare svg, path, g, filters, text, foreignObject, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. Package dotnet add package SvgML.Uno Current package target: net10.0 via Uno.Sdk The current Uno 6.5.x packages used in this repository only ship...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="SvgML.Uno | Svg.Skia">
   </head>
@@ -144,7 +144,7 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="svgmluno">SvgML.Uno</h1>
-<p><code>SvgML.Uno</code> lets you author an SVG element tree directly in Uno Platform XAML. Instead of loading an external <code>.svg</code> file, you declare <code>svg</code>, <code>path</code>, <code>g</code>, filters, text, and related nodes inline, and the package serializes that tree back through the shared <code>Svg.Skia</code> loading pipeline.</p>
+<p><code>SvgML.Uno</code> lets you author an SVG element tree directly in Uno Platform XAML. Instead of loading an external <code>.svg</code> file, you declare <code>svg</code>, <code>path</code>, <code>g</code>, filters, text, <code>foreignObject</code>, and related nodes inline, and the package serializes that tree back through the shared <code>Svg.Skia</code> loading pipeline.</p>
 <h2 id="package">Package</h2>
 <pre><code class="language-bash">dotnet add package SvgML.Uno
 </code></pre>
@@ -155,6 +155,13 @@
 <p>The current Uno <code>6.5.x</code> packages used in this repository only ship <code>net9.0</code> and <code>net10.0</code> assets, so <code>net8.0</code> is not available on the Uno lane without a broader Uno stack change.</p>
 <h2 id="namespace-setup">Namespace setup</h2>
 <p>Uno's XAML source generator still resolves third-party controls through explicit CLR namespace mappings, so the no-prefix pattern is to scope the <code>SvgML</code> namespace directly on the inline SVG subtree:</p>
+<pre><code class="language-xml">&lt;svg xmlns=&quot;using:SvgML&quot;
+     Height=&quot;200&quot;
+     Stretch=&quot;Uniform&quot;
+     viewBox=&quot;0 0 220 120&quot;&gt;
+  &lt;path d=&quot;M0 0 H220 V120 H0 Z&quot; fill=&quot;#0f766e&quot; /&gt;
+&lt;/svg&gt;
+</code></pre>
 <h2 id="main-types">Main types</h2>
 <table class="table">
 <thead>
@@ -178,7 +185,11 @@
 </tr>
 <tr>
 <td><code>SvgML.content</code></td>
-<td>Text-content wrapper used by text-related nodes</td>
+<td>Text-content backing node used by text-related nodes; authored XAML can normally use literal text</td>
+</tr>
+<tr>
+<td><code>SvgML.foreignObject</code></td>
+<td>SVG-native host for a Uno <code>UIElement</code> inside text flow or scene geometry</td>
 </tr>
 </tbody>
 </table>
@@ -199,20 +210,44 @@
   &lt;/svg&gt;
 &lt;/Page&gt;
 </code></pre>
+<h2 id="native-hosted-controls">Native hosted controls</h2>
+<p><code>foreignObject</code> is the public hosted-control API. It can reserve text flow inside <code>text</code>/<code>tspan</code> and can place native Uno controls in the SVG scene:</p>
+<pre><code class="language-xml">&lt;Page xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+      xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+      xmlns:ui=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;&gt;
+
+  &lt;svg xmlns=&quot;using:SvgML&quot;
+       Height=&quot;220&quot;
+       Stretch=&quot;Uniform&quot;
+       viewBox=&quot;0 0 360 160&quot;&gt;
+    &lt;text x=&quot;24&quot; y=&quot;48&quot; fill=&quot;#334155&quot; style=&quot;font-size:16px;&quot;&gt;
+      &lt;tspan xml:space=&quot;preserve&quot;&gt;Open &lt;/tspan&gt;
+      &lt;foreignObject&gt;
+        &lt;ui:Button Content=&quot;Preview&quot;
+                   MinWidth=&quot;120&quot;
+                   Height=&quot;34&quot; /&gt;
+      &lt;/foreignObject&gt;
+      &lt;tspan xml:space=&quot;preserve&quot;&gt; in review mode.&lt;/tspan&gt;
+    &lt;/text&gt;
+  &lt;/svg&gt;
+&lt;/Page&gt;
+</code></pre>
+<p>Uno currently works best when hosted-control size is supplied by the native child (<code>Width</code>, <code>Height</code>, <code>MinWidth</code>, and related properties). See <a href="/Svg.Skia/articles/xaml/svgml-foreignobject-controls">SvgML foreignObject Controls</a> for the shared layout model and Uno-specific authoring notes.</p>
 <h2 id="notes">Notes</h2>
 <ul>
 <li><code>SvgML.Uno</code> builds on <code>Uno.Sdk</code> with <code>SkiaRenderer</code>, so it stays aligned with the same rendering stack as <code>Svg.Controls.Skia.Uno</code>.</li>
 <li>CLR-safe SVG names such as <code>viewBox</code>, <code>d</code>, <code>fill</code>, and <code>id</code> map cleanly through the current Uno XAML compiler.</li>
 <li>Dash-named members use CLR-safe underscores in Uno XAML, for example <code>stroke_width</code> or <code>font_face</code>.</li>
+<li>Dash-named SVG declarations can be authored through <code>style</code> when that is more reliable for Uno XAML, for example <code>style=&quot;stroke-width:2;stroke-linecap:round;&quot;</code>.</li>
 <li>The runtime now maps retained scene nodes back to authored <code>SvgML.element</code> controls, so <code>HitTestElements(...)</code>, <code>HitTestSceneNodes(...)</code>, <code>GetControlBounds(...)</code>, and <code>GetElementForSceneNode(...)</code> all work from the inline tree.</li>
 <li>Use <code>HitTestSvgElements(...)</code> when you need the underlying <code>SvgElement</code> model objects rather than the authored XAML controls.</li>
-<li><code>xmlns:svgml=&quot;using:SvgML&quot;</code> still works if you prefer an explicit namespace prefix at page scope.</li>
 <li>Avalonia-style assembly <code>XmlnsDefinition</code> mapping is not enough for Uno's current source-generator path, so the scoped <code>xmlns=&quot;using:SvgML&quot;</code> pattern is the reliable prefix-free option today.</li>
 <li>The end-to-end sample lives in <code>samples/SvgML.Uno.Demo</code>.</li>
 </ul>
 <h2 id="related">Related</h2>
 <ul>
 <li><a href="/Svg.Skia/articles/xaml/svgml-uno-inline-svg">SvgML.Uno Inline SVG</a></li>
+<li><a href="/Svg.Skia/articles/xaml/svgml-foreignobject-controls">SvgML foreignObject Controls</a></li>
 <li><a href="/Svg.Skia/articles/xaml/uno-svg-control">Uno Svg Control</a></li>
 <li><a href="/Svg.Skia/articles/reference/samples-and-tools">Samples and Tools</a></li>
 </ul>

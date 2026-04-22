@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="SvgML.Avalonia | Svg.Skia">
-<meta name="twitter:description" content="SvgML.Avalonia SvgML.Avalonia lets you author an SVG element tree directly in Avalonia XAML. Instead of loading an external .svg file, you declare svg, rect, g, gradients, filters, text, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. The NuGet package name is SvgML.Avalonia, while the CLR namespace exposed to Avalonia XAML remains SvgML. Install dotnet add package SvgML.Avalonia...">
+<meta name="twitter:description" content="SvgML.Avalonia SvgML.Avalonia lets you author an SVG element tree directly in Avalonia XAML. Instead of loading an external .svg file, you declare svg, rect, g, gradients, filters, text, foreignObject, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. The NuGet package name is SvgML.Avalonia, while the CLR namespace exposed to Avalonia XAML remains SvgML. Install dotnet add package SvgML.Avalonia...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="SvgML.Avalonia | Svg.Skia">
 <meta property="og:title" content="SvgML.Avalonia | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="SvgML.Avalonia SvgML.Avalonia lets you author an SVG element tree directly in Avalonia XAML. Instead of loading an external .svg file, you declare svg, rect, g, gradients, filters, text, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. The NuGet package name is SvgML.Avalonia, while the CLR namespace exposed to Avalonia XAML remains SvgML. Install dotnet add package SvgML.Avalonia...">
+<meta property="og:description" content="SvgML.Avalonia SvgML.Avalonia lets you author an SVG element tree directly in Avalonia XAML. Instead of loading an external .svg file, you declare svg, rect, g, gradients, filters, text, foreignObject, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. The NuGet package name is SvgML.Avalonia, while the CLR namespace exposed to Avalonia XAML remains SvgML. Install dotnet add package SvgML.Avalonia...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="SvgML.Avalonia | Svg.Skia">
   </head>
@@ -144,7 +144,7 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="svgmlavalonia">SvgML.Avalonia</h1>
-<p><code>SvgML.Avalonia</code> lets you author an SVG element tree directly in Avalonia XAML. Instead of loading an external <code>.svg</code> file, you declare <code>svg</code>, <code>rect</code>, <code>g</code>, gradients, filters, text, and related nodes inline, and the package serializes that tree back through the shared <code>Svg.Skia</code> loading pipeline.</p>
+<p><code>SvgML.Avalonia</code> lets you author an SVG element tree directly in Avalonia XAML. Instead of loading an external <code>.svg</code> file, you declare <code>svg</code>, <code>rect</code>, <code>g</code>, gradients, filters, text, <code>foreignObject</code>, and related nodes inline, and the package serializes that tree back through the shared <code>Svg.Skia</code> loading pipeline.</p>
 <p>The NuGet package name is <code>SvgML.Avalonia</code>, while the CLR namespace exposed to Avalonia XAML remains <code>SvgML</code>.</p>
 <h2 id="install">Install</h2>
 <pre><code class="language-bash">dotnet add package SvgML.Avalonia
@@ -153,6 +153,7 @@
 <ul>
 <li>the SVG should live in XAML resources, templates, or views instead of a separate asset file,</li>
 <li>you want SVG-like element and attribute names in Avalonia markup,</li>
+<li>you want SVG <code>foreignObject</code> to place real Avalonia controls inside text flow or scene geometry,</li>
 <li>you want Avalonia styles or animations to target the inline SVG element tree,</li>
 <li>you still want rendering, hit testing, and parsing to stay aligned with the shared <code>Svg.Skia</code> runtime.</li>
 </ul>
@@ -179,28 +180,31 @@
 </tr>
 <tr>
 <td><code>SvgML.content</code></td>
-<td>Text-content wrapper used by text-related nodes</td>
+<td>Text-content backing node used by text-related nodes; authored XAML can normally use literal text</td>
+</tr>
+<tr>
+<td><code>SvgML.foreignObject</code></td>
+<td>SVG-native host for an Avalonia <code>Control</code> inside text flow or scene geometry</td>
 </tr>
 </tbody>
 </table>
 <h2 id="basic-inline-usage">Basic inline usage</h2>
 <pre><code class="language-xml">&lt;Window
     xmlns=&quot;https://github.com/avaloniaui&quot;
-    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
-    xmlns:svgml=&quot;clr-namespace:SvgML;assembly=SvgML.Avalonia&quot;&gt;
-  &lt;svgml:svg Width=&quot;160&quot;
-             Height=&quot;160&quot;
-             viewBox=&quot;0 0 100 100&quot;&gt;
-    &lt;svgml:rect width=&quot;100&quot;
-                height=&quot;100&quot;
-                fill=&quot;#F3F4F6&quot; /&gt;
-    &lt;svgml:circle cx=&quot;50&quot;
-                  cy=&quot;50&quot;
-                  r=&quot;30&quot;
-                  fill=&quot;#0EA5E9&quot;
-                  stroke=&quot;#0F172A&quot;
-                  stroke-width=&quot;4&quot; /&gt;
-  &lt;/svgml:svg&gt;
+    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;&gt;
+  &lt;svg Width=&quot;160&quot;
+       Height=&quot;160&quot;
+       viewBox=&quot;0 0 100 100&quot;&gt;
+    &lt;rect width=&quot;100&quot;
+          height=&quot;100&quot;
+          fill=&quot;#F3F4F6&quot; /&gt;
+    &lt;circle cx=&quot;50&quot;
+            cy=&quot;50&quot;
+            r=&quot;30&quot;
+            fill=&quot;#0EA5E9&quot;
+            stroke=&quot;#0F172A&quot;
+            stroke-width=&quot;4&quot; /&gt;
+  &lt;/svg&gt;
 &lt;/Window&gt;
 </code></pre>
 <p>The element/property naming stays close to SVG authoring, so attributes such as <code>stroke-width</code>, <code>fill-opacity</code>, and <code>viewBox</code> can stay readable in XAML.</p>
@@ -213,9 +217,22 @@
 <li>maps rendered <code>SvgElement</code> and retained scene-node results back to the originating inline controls.</li>
 </ul>
 <p>That makes the package useful for interactive icons, small diagrams, templated visuals, and editor-like overlays where authored markup and rendered output both need to stay available.</p>
+<h2 id="native-hosted-controls">Native hosted controls</h2>
+<p><code>foreignObject</code> is the public hosted-control API. It can be used inline in <code>text</code>/<code>tspan</code> or as a normal SVG scene element under <code>svg</code> or <code>g</code>.</p>
+<pre><code class="language-xml">&lt;svg Height=&quot;220&quot; Stretch=&quot;Uniform&quot; viewBox=&quot;0 0 360 160&quot;&gt;
+  &lt;text x=&quot;24&quot; y=&quot;48&quot; fill=&quot;#334155&quot; style=&quot;font-size:16px;&quot;&gt;
+    &lt;tspan&gt;Open &lt;/tspan&gt;
+    &lt;foreignObject width=&quot;120&quot; height=&quot;34&quot;&gt;
+      &lt;Button Content=&quot;Preview&quot; MinWidth=&quot;120&quot; /&gt;
+    &lt;/foreignObject&gt;
+    &lt;tspan&gt; in review mode.&lt;/tspan&gt;
+  &lt;/text&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>The native control is hosted by the Avalonia visual tree while the SVG surface continues to render through <code>Svg.Skia</code>. See <a href="/Svg.Skia/articles/xaml/svgml-foreignobject-controls">SvgML foreignObject Controls</a> for cross-platform sizing and layout rules.</p>
 <h2 id="styling-and-animation">Styling and animation</h2>
 <p>Because the SVG tree is made of Avalonia controls, normal Avalonia selectors and animations can target those elements.</p>
-<pre><code class="language-xml">&lt;Style Selector=&quot;svgml|rect#accent-bar&quot;&gt;
+<pre><code class="language-xml">&lt;Style Selector=&quot;:is(rect)[id=accent-bar]&quot;&gt;
   &lt;Style.Animations&gt;
     &lt;Animation Duration=&quot;0:0:1.2&quot;
                IterationCount=&quot;Infinite&quot;
@@ -230,7 +247,7 @@
   &lt;/Style.Animations&gt;
 &lt;/Style&gt;
 </code></pre>
-<p>For a fuller example, see <a href="/Svg.Skia/articles/xaml/svgml-avalonia-inline-svg">SvgML.Avalonia Inline SVG</a> and the <code>samples/SvgML.Avalonia.Demo</code> project in the repository.</p>
+<p>For fuller examples, see <a href="/Svg.Skia/articles/xaml/svgml-avalonia-inline-svg">SvgML.Avalonia Inline SVG</a>, <a href="/Svg.Skia/articles/xaml/svgml-foreignobject-controls">SvgML foreignObject Controls</a>, and the <code>samples/SvgML.Avalonia.Demo</code> project in the repository.</p>
 <h2 id="when-not-to-choose-this-package">When not to choose this package</h2>
 <ul>
 <li>Choose <a href="/Svg.Skia/articles/packages/svg-controls-skia-avalonia">Svg.Controls.Skia.Avalonia</a> when the SVG already exists as a file, stream, or <code>SvgSource</code>.</li>
@@ -241,6 +258,7 @@
 <ul>
 <li><a href="/Svg.Skia/articles/xaml/overview">XAML Overview</a></li>
 <li><a href="/Svg.Skia/articles/xaml/svgml-avalonia-inline-svg">SvgML.Avalonia Inline SVG</a></li>
+<li><a href="/Svg.Skia/articles/xaml/svgml-foreignobject-controls">SvgML foreignObject Controls</a></li>
 <li><a href="/Svg.Skia/articles/packages/svg-controls-skia-avalonia">Svg.Controls.Skia.Avalonia</a></li>
 </ul>
 

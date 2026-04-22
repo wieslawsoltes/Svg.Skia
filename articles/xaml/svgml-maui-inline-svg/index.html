@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-xaml.bf6eadbb257cad05efd65d08444681da.html' data-lunet-menu-open='menu-id-xaml-0' data-lunet-menu-active='menu-item-xaml-6,menu-item-xaml-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-xaml.8d271fe1103bfd7f0bee7ffa12a78186.html' data-lunet-menu-open='menu-id-xaml-0' data-lunet-menu-active='menu-item-xaml-6,menu-item-xaml-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -161,23 +161,23 @@ builder
 <h2 id="inline-xaml-example">Inline XAML example</h2>
 <pre><code class="language-xml">&lt;ContentPage xmlns=&quot;http://schemas.microsoft.com/dotnet/2021/maui&quot;
              xmlns:x=&quot;http://schemas.microsoft.com/winfx/2009/xaml&quot;
-             xmlns:svgml=&quot;clr-namespace:SvgML;assembly=SvgML.Maui&quot;
              x:Class=&quot;SvgML.Maui.Demo.MainPage&quot;&gt;
 
   &lt;VerticalStackLayout Padding=&quot;30,0&quot; Spacing=&quot;25&quot;&gt;
-    &lt;svgml:svg viewBox=&quot;0 0 200 100&quot;&gt;
-      &lt;svgml:defs&gt;
-        &lt;svgml:linearGradient id=&quot;gradient&quot; x1=&quot;0%&quot; y1=&quot;0%&quot; x2=&quot;0&quot; y2=&quot;100%&quot;&gt;
-          &lt;svgml:stop offset=&quot;0%&quot; style=&quot;stop-color:skyblue;&quot; /&gt;
-          &lt;svgml:stop offset=&quot;100%&quot; style=&quot;stop-color:seagreen;&quot; /&gt;
-        &lt;/svgml:linearGradient&gt;
-      &lt;/svgml:defs&gt;
+    &lt;svg xmlns=&quot;https://github.com/svgml&quot;
+         viewBox=&quot;0 0 200 100&quot;&gt;
+      &lt;defs&gt;
+        &lt;linearGradient id=&quot;gradient&quot; x1=&quot;0%&quot; y1=&quot;0%&quot; x2=&quot;0&quot; y2=&quot;100%&quot;&gt;
+          &lt;stop offset=&quot;0%&quot; style=&quot;stop-color:skyblue;&quot; /&gt;
+          &lt;stop offset=&quot;100%&quot; style=&quot;stop-color:seagreen;&quot; /&gt;
+        &lt;/linearGradient&gt;
+      &lt;/defs&gt;
 
-      &lt;svgml:rect x=&quot;0&quot; y=&quot;0&quot; width=&quot;100%&quot; height=&quot;100%&quot; fill=&quot;url(#gradient)&quot; /&gt;
-      &lt;svgml:circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;40&quot;
-                    fill=&quot;{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}&quot; /&gt;
-      &lt;svgml:circle cx=&quot;150&quot; cy=&quot;50&quot; r=&quot;40&quot; fill=&quot;black&quot; opacity=&quot;0.3&quot; /&gt;
-    &lt;/svgml:svg&gt;
+      &lt;rect x=&quot;0&quot; y=&quot;0&quot; width=&quot;100%&quot; height=&quot;100%&quot; fill=&quot;url(#gradient)&quot; /&gt;
+      &lt;circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;40&quot;
+              fill=&quot;{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}&quot; /&gt;
+      &lt;circle cx=&quot;150&quot; cy=&quot;50&quot; r=&quot;40&quot; fill=&quot;black&quot; opacity=&quot;0.3&quot; /&gt;
+    &lt;/svg&gt;
 
     &lt;Entry x:Name=&quot;CircleFill&quot; Text=&quot;red&quot; /&gt;
   &lt;/VerticalStackLayout&gt;
@@ -187,11 +187,38 @@ builder
 <ul>
 <li>Element names such as <code>svg</code>, <code>rect</code>, <code>circle</code>, <code>defs</code>, <code>linearGradient</code>, and <code>stop</code> stay close to authored SVG.</li>
 <li>CLR-safe attribute names such as <code>viewBox</code>, <code>fill</code>, and <code>opacity</code> stay close to the SVG vocabulary.</li>
-<li>Dash-named members use CLR-safe underscores in MAUI XAML, for example <code>stroke_width</code>, <code>fill_opacity</code>, or <code>font_face</code>.</li>
+<li>Dash-named SVG attributes such as <code>stroke-width</code>, <code>fill-opacity</code>, and <code>font-size</code> are supported by the built MAUI package. The assembly is self-weaved before MAUI XamlC compiles consuming XAML, so authored markup should use the SVG names rather than underscore aliases.</li>
 <li>Text or control bindings can feed attribute values directly, which makes small interactive diagrams practical inside MAUI pages.</li>
 </ul>
 <h2 id="namespace-note">Namespace note</h2>
-<p>Use an explicit MAUI alias such as <code>xmlns:svgml=&quot;clr-namespace:SvgML;assembly=SvgML.Maui&quot;</code> for inline SVG nodes. The protected MAUI default namespace cannot safely absorb <code>SvgML.Maui</code> when the library is referenced from source, so explicit aliasing is the reliable authoring path.</p>
+<p>Scope each inline SVG subtree with <code>xmlns=&quot;https://github.com/svgml&quot;</code> so SVG nodes can be authored without prefixes. Keep native MAUI controls in the MAUI namespace when they are hosted by <code>foreignObject</code>.</p>
+<h2 id="native-controls-with-foreignobject">Native controls with foreignObject</h2>
+<p><code>foreignObject</code> hosts a single native MAUI <code>View</code> child. It can reserve a slot inside SVG text or place controls by scene geometry:</p>
+<pre><code class="language-xml">&lt;ContentPage xmlns=&quot;http://schemas.microsoft.com/dotnet/2021/maui&quot;
+             xmlns:x=&quot;http://schemas.microsoft.com/winfx/2009/xaml&quot;
+             xmlns:maui=&quot;http://schemas.microsoft.com/dotnet/2021/maui&quot;&gt;
+
+  &lt;svg xmlns=&quot;https://github.com/svgml&quot;
+       HeightRequest=&quot;260&quot;
+       Stretch=&quot;Uniform&quot;
+       viewBox=&quot;0 0 420 180&quot;&gt;
+    &lt;text x=&quot;24&quot; y=&quot;46&quot; fill=&quot;#334155&quot; style=&quot;font-size:16px;&quot;&gt;
+      &lt;tspan&gt;Approve &lt;/tspan&gt;
+      &lt;foreignObject&gt;
+        &lt;maui:Button Text=&quot;Publish&quot;
+                     WidthRequest=&quot;112&quot;
+                     HeightRequest=&quot;34&quot; /&gt;
+      &lt;/foreignObject&gt;
+      &lt;tspan&gt; before release.&lt;/tspan&gt;
+    &lt;/text&gt;
+
+    &lt;foreignObject x=&quot;24&quot; y=&quot;92&quot; width=&quot;180&quot; height=&quot;36&quot;&gt;
+      &lt;maui:Entry Text=&quot;Design systems&quot; /&gt;
+    &lt;/foreignObject&gt;
+  &lt;/svg&gt;
+&lt;/ContentPage&gt;
+</code></pre>
+<p>For inline text, explicit <code>width</code>/<code>height</code> or the measured native view size controls the reserved advance. For scene placement, <code>x</code>, <code>y</code>, <code>width</code>, and <code>height</code> define the SVG slot. See <a href="/Svg.Skia/articles/xaml/svgml-foreignobject-controls">SvgML foreignObject Controls</a> for sizing and unit details.</p>
 <h2 id="current-package-lane">Current package lane</h2>
 <p>The repository currently ships <code>SvgML.Maui</code> for:</p>
 <ul>
@@ -206,7 +233,7 @@ builder
 <li>Choose <code>SvgML.Maui</code> when the visual is authored inline and should stay near page markup or bindings.</li>
 <li>Choose external <code>.svg</code> assets plus <code>Svg.Skia</code> when the source graphic already exists as a file or should be shared outside XAML.</li>
 </ul>
-<p>The repository sample at <code>samples/SvgML.Maui.Demo</code> shows the current end-to-end setup.</p>
+<p>The repository sample at <code>samples/SvgML.Maui.Demo</code> shows bound SVG properties, inline hosted controls, and scene-level hosted controls.</p>
 
       </div>
   </div>

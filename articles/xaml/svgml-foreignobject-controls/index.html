@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>SvgML foreignObject Controls | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="SvgML foreignObject Controls | Svg.Skia">
+<meta name="twitter:description" content="SvgML foreignObject Controls foreignObject is the SvgML host element for native UI controls. It follows the SVG vocabulary instead of introducing a custom host element, and it works in the Avalonia, Uno, and .NET MAUI SvgML packages. Use it when part of an inline SVG scene should be a real platform control: a button, text editor, slider, checkbox, or any other native view/control. Where it can be used foreignObject...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="SvgML foreignObject Controls | Svg.Skia">
+<meta property="og:title" content="SvgML foreignObject Controls | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="SvgML foreignObject Controls foreignObject is the SvgML host element for native UI controls. It follows the SVG vocabulary instead of introducing a custom host element, and it works in the Avalonia, Uno, and .NET MAUI SvgML packages. Use it when part of an inline SVG scene should be a real platform control: a button, text editor, slider, checkbox, or any other native view/control. Where it can be used foreignObject...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="SvgML foreignObject Controls | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-xaml.8d271fe1103bfd7f0bee7ffa12a78186.html' data-lunet-menu-open='menu-id-xaml-0' data-lunet-menu-active='menu-item-xaml-8,menu-item-xaml-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/xaml/' class='breadcrumb-link  '>XAML Usage</a>  </li>
+          <li class='breadcrumb-item  active'>
+            SvgML foreignObject Controls  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="svgml-foreignobject-controls">SvgML foreignObject Controls</h1>
+<p><code>foreignObject</code> is the SvgML host element for native UI controls. It follows the SVG vocabulary instead of introducing a custom host element, and it works in the Avalonia, Uno, and .NET MAUI SvgML packages.</p>
+<p>Use it when part of an inline SVG scene should be a real platform control: a button, text editor, slider, checkbox, or any other native view/control.</p>
+<h2 id="where-it-can-be-used">Where it can be used</h2>
+<p><code>foreignObject</code> follows SVG graphical-element placement for normal scene hosting, and SvgML also accepts it in text-related nodes for native inline-control slots:</p>
+<ul>
+<li>directly under <code>svg</code>,</li>
+<li>inside <code>g</code> and other transformed containers,</li>
+<li>inside <code>text</code>, <code>tspan</code>, or <code>textPath</code> in SvgML text layout to reserve an inline text slot.</li>
+</ul>
+<p>In normal scene placement, the SVG <code>x</code>, <code>y</code>, <code>width</code>, and <code>height</code> attributes define the hosted-control rectangle. In text placement, the hosted control participates in text layout by reserving inline advance before the native control is arranged over the rendered SVG.</p>
+<h2 id="sizing-and-layout">Sizing and layout</h2>
+<p>SvgML applies the SVG sizing rules to the host slot:</p>
+<ul>
+<li><code>x</code> and <code>y</code> default to <code>0</code>.</li>
+<li>Positive <code>width</code> and <code>height</code> create an explicit slot.</li>
+<li>Explicit non-positive <code>width</code> or <code>height</code> disables the hosted slot.</li>
+<li>Missing <code>width</code> or <code>height</code> falls back to the measured native control size.</li>
+<li>SVG units are supported for host geometry, including user units, <code>px</code>, <code>%</code>, <code>em</code>, <code>ex</code>, <code>in</code>, <code>cm</code>, <code>mm</code>, <code>pt</code>, and <code>pc</code>.</li>
+<li>Percentages resolve against the root <code>viewBox</code> when available, otherwise against the rendered picture bounds.</li>
+<li><code>em</code> and <code>ex</code> resolve from the inherited SVG font size, including <code>font-size</code> set through a <code>style</code> declaration.</li>
+<li>Group transforms and <code>foreignObject</code> transforms are applied before mapping picture-space bounds into platform UI coordinates.</li>
+</ul>
+<p>The native child is runtime UI interop. It is hosted above the Skia-rendered SVG surface and is not painted into the <code>SKPicture</code> or exported as vector content.</p>
+<h2 id="avalonia-example">Avalonia example</h2>
+<p><code>SvgML.Avalonia</code> maps the SvgML namespace into both <code>https://github.com/svgml</code> and the standard Avalonia namespace. The sample below uses unprefixed SvgML elements with normal Avalonia controls as <code>foreignObject</code> children:</p>
+<pre><code class="language-xml">&lt;Panel xmlns=&quot;https://github.com/avaloniaui&quot;
+       xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;&gt;
+  &lt;svg Height=&quot;340&quot;
+       Stretch=&quot;Uniform&quot;
+       viewBox=&quot;0 0 520 260&quot;&gt;
+    &lt;rect x=&quot;0&quot; y=&quot;0&quot; width=&quot;520&quot; height=&quot;260&quot; fill=&quot;#F8FAFC&quot; /&gt;
+
+    &lt;text x=&quot;32&quot; y=&quot;94&quot; fill=&quot;#334155&quot; style=&quot;font-size:16px;&quot;&gt;
+      &lt;tspan&gt;Approve &lt;/tspan&gt;
+      &lt;foreignObject width=&quot;110&quot; height=&quot;34&quot;&gt;
+        &lt;Button Content=&quot;Publish&quot;
+                MinWidth=&quot;110&quot;
+                Padding=&quot;16,6&quot; /&gt;
+      &lt;/foreignObject&gt;
+      &lt;tspan&gt; to send the revision live.&lt;/tspan&gt;
+    &lt;/text&gt;
+
+    &lt;g transform=&quot;translate(54 150)&quot;&gt;
+      &lt;rect x=&quot;0&quot; y=&quot;0&quot; width=&quot;230&quot; height=&quot;80&quot; fill=&quot;#F8FAFC&quot; stroke=&quot;#CBD5E1&quot; /&gt;
+      &lt;foreignObject x=&quot;20&quot; y=&quot;22&quot; width=&quot;168&quot; height=&quot;42&quot;&gt;
+        &lt;TextBox Text=&quot;northwind.csv&quot; /&gt;
+      &lt;/foreignObject&gt;
+    &lt;/g&gt;
+  &lt;/svg&gt;
+&lt;/Panel&gt;
+</code></pre>
+<p>Avalonia hosts the native child as part of the root <code>svg</code> control's visual/logical tree, so focus, input, and normal control styling continue to work.</p>
+<h2 id="net-maui-example">.NET MAUI example</h2>
+<p><code>SvgML.Maui</code> exposes <code>https://github.com/svgml</code>. Use a MAUI namespace alias for the hosted child controls:</p>
+<pre><code class="language-xml">&lt;ContentPage xmlns=&quot;http://schemas.microsoft.com/dotnet/2021/maui&quot;
+             xmlns:x=&quot;http://schemas.microsoft.com/winfx/2009/xaml&quot;
+             xmlns:maui=&quot;http://schemas.microsoft.com/dotnet/2021/maui&quot;&gt;
+
+  &lt;svg xmlns=&quot;https://github.com/svgml&quot;
+       HeightRequest=&quot;340&quot;
+       Stretch=&quot;Uniform&quot;
+       viewBox=&quot;0 0 520 260&quot;&gt;
+    &lt;rect x=&quot;0&quot; y=&quot;0&quot; width=&quot;520&quot; height=&quot;260&quot; fill=&quot;#F8FAFC&quot; /&gt;
+
+    &lt;text x=&quot;32&quot; y=&quot;94&quot; fill=&quot;#334155&quot; style=&quot;font-size:16px;&quot;&gt;
+      &lt;tspan&gt;Approve &lt;/tspan&gt;
+      &lt;foreignObject&gt;
+        &lt;maui:Button Text=&quot;Publish&quot;
+                     WidthRequest=&quot;112&quot;
+                     HeightRequest=&quot;34&quot;
+                     Padding=&quot;16,8&quot; /&gt;
+      &lt;/foreignObject&gt;
+      &lt;tspan&gt; to send the revision live.&lt;/tspan&gt;
+    &lt;/text&gt;
+
+    &lt;path d=&quot;M82 210 H438&quot;
+          stroke=&quot;#CBD5E1&quot;
+          stroke-width=&quot;2&quot;
+          stroke-linecap=&quot;round&quot; /&gt;
+  &lt;/svg&gt;
+&lt;/ContentPage&gt;
+</code></pre>
+<p>Normal MAUI builds include a package weaving step so XamlC can see SVG dashed CLR names such as <code>stroke-width</code>, <code>stroke-linecap</code>, and <code>fill-opacity</code>. Do not use underscore aliases such as <code>stroke_width</code> in authored MAUI XAML.</p>
+<h2 id="uno-example">Uno example</h2>
+<p>Uno uses the <code>using:SvgML</code> namespace form. Keep native Uno controls in the normal presentation namespace:</p>
+<pre><code class="language-xml">&lt;Page xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+      xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+      xmlns:ui=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;&gt;
+
+  &lt;svg xmlns=&quot;using:SvgML&quot;
+       Height=&quot;340&quot;
+       Stretch=&quot;Uniform&quot;
+       viewBox=&quot;0 0 520 260&quot;&gt;
+    &lt;path d=&quot;M0 0 H520 V260 H0 Z&quot; fill=&quot;#F8FAFC&quot; /&gt;
+
+    &lt;text x=&quot;32&quot; y=&quot;94&quot; fill=&quot;#334155&quot; style=&quot;font-size:16px;&quot;&gt;
+      &lt;tspan xml:space=&quot;preserve&quot;&gt;Approve &lt;/tspan&gt;
+      &lt;foreignObject&gt;
+        &lt;ui:Button Content=&quot;Publish&quot;
+                   MinWidth=&quot;110&quot;
+                   Height=&quot;34&quot;
+                   Padding=&quot;16,6&quot; /&gt;
+      &lt;/foreignObject&gt;
+      &lt;tspan xml:space=&quot;preserve&quot;&gt; to send the revision live.&lt;/tspan&gt;
+    &lt;/text&gt;
+
+    &lt;foreignObject transform=&quot;translate(214 180)&quot;&gt;
+      &lt;ui:Slider Minimum=&quot;0&quot;
+                 Maximum=&quot;100&quot;
+                 Value=&quot;62&quot;
+                 Width=&quot;230&quot;
+                 Height=&quot;46&quot; /&gt;
+    &lt;/foreignObject&gt;
+  &lt;/svg&gt;
+&lt;/Page&gt;
+</code></pre>
+<p>Uno currently works best when hosted-control size is provided by the native child (<code>Width</code>, <code>Height</code>, <code>MinWidth</code>, and related properties) or by a transform-positioned <code>foreignObject</code>. For dash-named SVG attributes outside <code>style</code>, use the existing Uno-safe member names where required by the Uno XAML compiler, or put the SVG declaration in <code>style</code>.</p>
+<h2 id="samples">Samples</h2>
+<p>The repository demos contain end-to-end pages for the hosted-control cases:</p>
+<ul>
+<li><code>samples/SvgML.Avalonia.Demo</code>: <code>Hosted Controls</code> and <code>Scene Controls</code> tabs.</li>
+<li><code>samples/SvgML.Maui.Demo</code>: <code>Hosted Controls</code> and <code>Scene Controls</code> shell pages.</li>
+<li><code>samples/SvgML.Uno.Demo</code>: <code>Hosted Controls</code> and <code>Scene Controls</code> pivot items.</li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

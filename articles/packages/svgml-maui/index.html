@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="SvgML.Maui | Svg.Skia">
-<meta name="twitter:description" content="SvgML.Maui SvgML.Maui lets you author an SVG element tree directly in .NET MAUI XAML. Instead of loading an external .svg file, you declare svg, rect, g, gradients, filters, text, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. Package dotnet add package SvgML.Maui Current packaged targets: net10.0-android net10.0-ios net10.0-maccatalyst Startup SvgML.Maui...">
+<meta name="twitter:description" content="SvgML.Maui SvgML.Maui lets you author an SVG element tree directly in .NET MAUI XAML. Instead of loading an external .svg file, you declare svg, rect, g, gradients, filters, text, foreignObject, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. Package dotnet add package SvgML.Maui Current packaged targets: net10.0-android net10.0-ios net10.0-maccatalyst Startup SvgML.Maui...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="SvgML.Maui | Svg.Skia">
 <meta property="og:title" content="SvgML.Maui | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="SvgML.Maui SvgML.Maui lets you author an SVG element tree directly in .NET MAUI XAML. Instead of loading an external .svg file, you declare svg, rect, g, gradients, filters, text, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. Package dotnet add package SvgML.Maui Current packaged targets: net10.0-android net10.0-ios net10.0-maccatalyst Startup SvgML.Maui...">
+<meta property="og:description" content="SvgML.Maui SvgML.Maui lets you author an SVG element tree directly in .NET MAUI XAML. Instead of loading an external .svg file, you declare svg, rect, g, gradients, filters, text, foreignObject, and related nodes inline, and the package serializes that tree back through the shared Svg.Skia loading pipeline. Package dotnet add package SvgML.Maui Current packaged targets: net10.0-android net10.0-ios net10.0-maccatalyst Startup SvgML.Maui...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="SvgML.Maui | Svg.Skia">
   </head>
@@ -144,7 +144,7 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="svgmlmaui">SvgML.Maui</h1>
-<p><code>SvgML.Maui</code> lets you author an SVG element tree directly in .NET MAUI XAML. Instead of loading an external <code>.svg</code> file, you declare <code>svg</code>, <code>rect</code>, <code>g</code>, gradients, filters, text, and related nodes inline, and the package serializes that tree back through the shared <code>Svg.Skia</code> loading pipeline.</p>
+<p><code>SvgML.Maui</code> lets you author an SVG element tree directly in .NET MAUI XAML. Instead of loading an external <code>.svg</code> file, you declare <code>svg</code>, <code>rect</code>, <code>g</code>, gradients, filters, text, <code>foreignObject</code>, and related nodes inline, and the package serializes that tree back through the shared <code>Svg.Skia</code> loading pipeline.</p>
 <h2 id="package">Package</h2>
 <pre><code class="language-bash">dotnet add package SvgML.Maui
 </code></pre>
@@ -187,7 +187,11 @@ builder
 </tr>
 <tr>
 <td><code>SvgML.content</code></td>
-<td>Text-content wrapper used by text-related nodes</td>
+<td>Text-content backing node used by text-related nodes; authored XAML can normally use literal text</td>
+</tr>
+<tr>
+<td><code>SvgML.foreignObject</code></td>
+<td>SVG-native host for a MAUI <code>View</code> inside text flow or scene geometry</td>
 </tr>
 <tr>
 <td><code>SvgML.AppHostBuilderExtensions</code></td>
@@ -196,30 +200,59 @@ builder
 </tbody>
 </table>
 <h2 id="inline-example">Inline example</h2>
-<p>The MAUI XAML surface stays close to authored SVG for CLR-safe names, but it should be brought in through an explicit XML alias instead of the protected MAUI default namespace:</p>
+<p>The MAUI XAML surface stays close to authored SVG. Scope the inline SVG subtree to the SvgML XML namespace URL and author SVG nodes without a prefix:</p>
 <pre><code class="language-xml">&lt;ContentPage xmlns=&quot;http://schemas.microsoft.com/dotnet/2021/maui&quot;
              xmlns:x=&quot;http://schemas.microsoft.com/winfx/2009/xaml&quot;
-             xmlns:svgml=&quot;clr-namespace:SvgML;assembly=SvgML.Maui&quot;
              x:Class=&quot;SvgML.Maui.Demo.MainPage&quot;&gt;
 
   &lt;VerticalStackLayout Padding=&quot;30,0&quot; Spacing=&quot;25&quot;&gt;
-    &lt;svgml:svg viewBox=&quot;0 0 200 100&quot;&gt;
-      &lt;svgml:defs&gt;
-        &lt;svgml:linearGradient id=&quot;gradient&quot; x1=&quot;0%&quot; y1=&quot;0%&quot; x2=&quot;0&quot; y2=&quot;100%&quot;&gt;
-          &lt;svgml:stop offset=&quot;0%&quot; style=&quot;stop-color:skyblue;&quot; /&gt;
-          &lt;svgml:stop offset=&quot;100%&quot; style=&quot;stop-color:seagreen;&quot; /&gt;
-        &lt;/svgml:linearGradient&gt;
-      &lt;/svgml:defs&gt;
+    &lt;svg xmlns=&quot;https://github.com/svgml&quot;
+         viewBox=&quot;0 0 200 100&quot;&gt;
+      &lt;defs&gt;
+        &lt;linearGradient id=&quot;gradient&quot; x1=&quot;0%&quot; y1=&quot;0%&quot; x2=&quot;0&quot; y2=&quot;100%&quot;&gt;
+          &lt;stop offset=&quot;0%&quot; style=&quot;stop-color:skyblue;&quot; /&gt;
+          &lt;stop offset=&quot;100%&quot; style=&quot;stop-color:seagreen;&quot; /&gt;
+        &lt;/linearGradient&gt;
+      &lt;/defs&gt;
 
-      &lt;svgml:rect x=&quot;0&quot; y=&quot;0&quot; width=&quot;100%&quot; height=&quot;100%&quot; fill=&quot;url(#gradient)&quot; /&gt;
-      &lt;svgml:circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;40&quot;
-                    fill=&quot;{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}&quot; /&gt;
-    &lt;/svgml:svg&gt;
+      &lt;rect x=&quot;0&quot; y=&quot;0&quot; width=&quot;100%&quot; height=&quot;100%&quot; fill=&quot;url(#gradient)&quot; /&gt;
+      &lt;circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;40&quot;
+              fill=&quot;{Binding Source={x:Reference CircleFill}, Path=Text, Mode=TwoWay}&quot; /&gt;
+    &lt;/svg&gt;
 
     &lt;Entry x:Name=&quot;CircleFill&quot; Text=&quot;red&quot; /&gt;
   &lt;/VerticalStackLayout&gt;
 &lt;/ContentPage&gt;
 </code></pre>
+<h2 id="native-hosted-controls">Native hosted controls</h2>
+<p><code>foreignObject</code> is the public hosted-control API. It can host one native MAUI <code>View</code> inside SVG text flow or at a rectangle in the SVG scene.</p>
+<pre><code class="language-xml">&lt;ContentPage xmlns=&quot;http://schemas.microsoft.com/dotnet/2021/maui&quot;
+             xmlns:x=&quot;http://schemas.microsoft.com/winfx/2009/xaml&quot;
+             xmlns:maui=&quot;http://schemas.microsoft.com/dotnet/2021/maui&quot;&gt;
+
+  &lt;svg xmlns=&quot;https://github.com/svgml&quot;
+       HeightRequest=&quot;220&quot;
+       Stretch=&quot;Uniform&quot;
+       viewBox=&quot;0 0 360 160&quot;&gt;
+    &lt;text x=&quot;24&quot; y=&quot;48&quot; fill=&quot;#334155&quot; style=&quot;font-size:16px;&quot;&gt;
+      &lt;tspan&gt;Open &lt;/tspan&gt;
+      &lt;foreignObject&gt;
+        &lt;maui:Button Text=&quot;Preview&quot;
+                     WidthRequest=&quot;120&quot;
+                     HeightRequest=&quot;34&quot; /&gt;
+      &lt;/foreignObject&gt;
+      &lt;tspan&gt; in review mode.&lt;/tspan&gt;
+    &lt;/text&gt;
+
+    &lt;path d=&quot;M24 112 H260&quot;
+          stroke=&quot;#CBD5E1&quot;
+          stroke-width=&quot;2&quot;
+          stroke-linecap=&quot;round&quot; /&gt;
+  &lt;/svg&gt;
+&lt;/ContentPage&gt;
+</code></pre>
+<p>The MAUI package is self-weaved during normal builds so MAUI XamlC can resolve SVG dashed names such as <code>stroke-width</code>, <code>stroke-linecap</code>, <code>fill-opacity</code>, and <code>font-size</code>. Authored MAUI XAML should use SVG names, not underscore aliases.</p>
+<p>See <a href="/Svg.Skia/articles/xaml/svgml-foreignobject-controls">SvgML foreignObject Controls</a> for sizing and layout rules.</p>
 <h2 id="repository-layout">Repository layout</h2>
 <ul>
 <li>Library source: <code>src/SvgML.Maui</code></li>
@@ -230,8 +263,8 @@ builder
 <h2 id="notes">Notes</h2>
 <ul>
 <li>The package reuses the same <code>Svg.Skia</code> renderer as the Avalonia and Uno stacks.</li>
-<li>Use <code>xmlns:svgml=&quot;clr-namespace:SvgML;assembly=SvgML.Maui&quot;</code> in page XAML. MAUI's protected default namespace cannot be extended safely when <code>SvgML.Maui</code> is consumed as a source project reference.</li>
-<li>Dash-named members use CLR-safe underscores in MAUI XAML, for example <code>stroke_width</code>, <code>fill_opacity</code>, or <code>font_face</code>.</li>
+<li>Scope each SvgML subtree with <code>xmlns=&quot;https://github.com/svgml&quot;</code> so SVG nodes can be authored without prefixes.</li>
+<li>Dash-named SVG members are authored with SVG names in MAUI XAML, for example <code>stroke-width</code>, <code>fill-opacity</code>, or <code>font-size</code>.</li>
 <li>The MAUI runtime now keeps retained-scene mappings for the inline tree, so <code>HitTestElements(...)</code>, <code>HitTestSceneNodes(...)</code>, <code>GetControlBounds(...)</code>, and <code>GetElementForSceneNode(...)</code> can work against authored <code>SvgML.element</code> controls.</li>
 <li>Use <code>HitTestSvgElements(...)</code> when you need the underlying <code>SvgElement</code> instances instead of the XAML-authored controls.</li>
 <li>In this repository, <code>SvgML.Maui</code> builds in a dedicated MAUI lane rather than inside the main <code>Svg.Skia.slnx</code>.</li>
@@ -240,6 +273,7 @@ builder
 <h2 id="related">Related</h2>
 <ul>
 <li><a href="/Svg.Skia/articles/xaml/svgml-maui-inline-svg">SvgML.Maui Inline SVG</a></li>
+<li><a href="/Svg.Skia/articles/xaml/svgml-foreignobject-controls">SvgML foreignObject Controls</a></li>
 <li><a href="/Svg.Skia/articles/reference/samples-and-tools">Samples and Tools</a></li>
 </ul>
 

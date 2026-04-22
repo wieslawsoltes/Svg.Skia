@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="SvgML.Avalonia Inline SVG | Svg.Skia">
-<meta name="twitter:description" content="SvgML.Avalonia Inline SVG SvgML.Avalonia is the Avalonia XAML-first path in this repository. It turns an inline tree of SVG-like controls into SVG markup, then feeds that markup through the shared Svg.Skia renderer. The NuGet package name is SvgML.Avalonia, while the CLR namespace used from XAML remains SvgML. Namespace setup &lt;Window xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot; xmlns:svgml=&quot;clr-namespace:SvgML;assembly=SvgML.Avalonia&quot;>...">
+<meta name="twitter:description" content="SvgML.Avalonia Inline SVG SvgML.Avalonia is the Avalonia XAML-first path in this repository. It turns an inline tree of SVG-like controls into SVG markup, then feeds that markup through the shared Svg.Skia renderer. The NuGet package name is SvgML.Avalonia, while the CLR namespace used from XAML remains SvgML. Namespace setup &lt;Window xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;>...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="SvgML.Avalonia Inline SVG | Svg.Skia">
 <meta property="og:title" content="SvgML.Avalonia Inline SVG | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="SvgML.Avalonia Inline SVG SvgML.Avalonia is the Avalonia XAML-first path in this repository. It turns an inline tree of SVG-like controls into SVG markup, then feeds that markup through the shared Svg.Skia renderer. The NuGet package name is SvgML.Avalonia, while the CLR namespace used from XAML remains SvgML. Namespace setup &lt;Window xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot; xmlns:svgml=&quot;clr-namespace:SvgML;assembly=SvgML.Avalonia&quot;>...">
+<meta property="og:description" content="SvgML.Avalonia Inline SVG SvgML.Avalonia is the Avalonia XAML-first path in this repository. It turns an inline tree of SVG-like controls into SVG markup, then feeds that markup through the shared Svg.Skia renderer. The NuGet package name is SvgML.Avalonia, while the CLR namespace used from XAML remains SvgML. Namespace setup &lt;Window xmlns=&quot;https://github.com/avaloniaui&quot; xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;>...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="SvgML.Avalonia Inline SVG | Svg.Skia">
   </head>
@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-xaml.bf6eadbb257cad05efd65d08444681da.html' data-lunet-menu-open='menu-id-xaml-0' data-lunet-menu-active='menu-item-xaml-5,menu-item-xaml-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-xaml.8d271fe1103bfd7f0bee7ffa12a78186.html' data-lunet-menu-open='menu-id-xaml-0' data-lunet-menu-active='menu-item-xaml-5,menu-item-xaml-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -149,50 +149,50 @@
 <h2 id="namespace-setup">Namespace setup</h2>
 <pre><code class="language-xml">&lt;Window
     xmlns=&quot;https://github.com/avaloniaui&quot;
-    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
-    xmlns:svgml=&quot;clr-namespace:SvgML;assembly=SvgML.Avalonia&quot;&gt;
+    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;&gt;
 </code></pre>
+<p><code>SvgML.Avalonia</code> also maps <code>SvgML</code> into Avalonia's standard <code>https://github.com/avaloniaui</code> namespace, so the repository demo can author <code>svg</code>, <code>defs</code>, <code>rect</code>, <code>text</code>, and <code>foreignObject</code> without a prefix in normal Avalonia markup.</p>
 <h2 id="inline-resource-example">Inline resource example</h2>
 <pre><code class="language-xml">&lt;Window.Resources&gt;
-  &lt;svgml:svg x:Key=&quot;InlineIcon&quot;
-             x:Shared=&quot;False&quot;
-             viewBox=&quot;0 0 500 500&quot;&gt;
-    &lt;svgml:defs&gt;
-      &lt;svgml:filter id=&quot;noise&quot;
-                    x=&quot;0%&quot;
-                    y=&quot;0%&quot;
-                    width=&quot;100%&quot;
-                    height=&quot;100%&quot;&gt;
-        &lt;svgml:feTurbulence type=&quot;fractalNoise&quot;
-                            result=&quot;NOISE&quot;
-                            baseFrequency=&quot;0 0.000001&quot;
-                            numOctaves=&quot;2&quot; /&gt;
-        &lt;svgml:feDisplacementMap in=&quot;SourceGraphic&quot;
-                                 in2=&quot;NOISE&quot;
-                                 scale=&quot;30&quot;
-                                 xChannelSelector=&quot;R&quot;
-                                 yChannelSelector=&quot;R&quot; /&gt;
-      &lt;/svgml:filter&gt;
-    &lt;/svgml:defs&gt;
+  &lt;svg x:Key=&quot;InlineIcon&quot;
+       x:Shared=&quot;False&quot;
+       viewBox=&quot;0 0 500 500&quot;&gt;
+    &lt;defs&gt;
+      &lt;filter id=&quot;noise&quot;
+              x=&quot;0%&quot;
+              y=&quot;0%&quot;
+              width=&quot;100%&quot;
+              height=&quot;100%&quot;&gt;
+        &lt;feTurbulence type=&quot;fractalNoise&quot;
+                      result=&quot;NOISE&quot;
+                      baseFrequency=&quot;0 0.000001&quot;
+                      numOctaves=&quot;2&quot; /&gt;
+        &lt;feDisplacementMap in=&quot;SourceGraphic&quot;
+                           in2=&quot;NOISE&quot;
+                           scale=&quot;30&quot;
+                           xChannelSelector=&quot;R&quot;
+                           yChannelSelector=&quot;R&quot; /&gt;
+      &lt;/filter&gt;
+    &lt;/defs&gt;
 
-    &lt;svgml:rect width=&quot;100%&quot;
-                height=&quot;100%&quot;
-                fill=&quot;lightgray&quot; /&gt;
-    &lt;svgml:rect id=&quot;r2&quot;
-                width=&quot;10%&quot;
-                height=&quot;10%&quot;
-                x=&quot;0%&quot;
-                y=&quot;45%&quot;
-                fill=&quot;green&quot;
-                filter=&quot;#noise&quot; /&gt;
-  &lt;/svgml:svg&gt;
+    &lt;rect width=&quot;100%&quot;
+          height=&quot;100%&quot;
+          fill=&quot;lightgray&quot; /&gt;
+    &lt;rect id=&quot;r2&quot;
+          width=&quot;10%&quot;
+          height=&quot;10%&quot;
+          x=&quot;0%&quot;
+          y=&quot;45%&quot;
+          fill=&quot;green&quot;
+          filter=&quot;#noise&quot; /&gt;
+  &lt;/svg&gt;
 &lt;/Window.Resources&gt;
 </code></pre>
 <p>That pattern is useful when the icon or effect graph should live next to the XAML that consumes it.</p>
 <h2 id="animating-inline-svg-elements">Animating inline SVG elements</h2>
 <p>Avalonia style selectors can target the inline SVG controls directly:</p>
 <pre><code class="language-xml">&lt;Window.Styles&gt;
-  &lt;Style Selector=&quot;svgml|rect#r2&quot;&gt;
+  &lt;Style Selector=&quot;:is(rect)[id=r2]&quot;&gt;
     &lt;Style.Animations&gt;
       &lt;Animation Duration=&quot;0:0:1&quot;
                  IterationCount=&quot;Infinite&quot;
@@ -218,12 +218,34 @@
 <li><code>GetElementForSceneNode(...)</code> for mapping retained-scene results back to the authored controls.</li>
 </ul>
 <p>This is more than a markup serializer. The authored control tree and renderer state stay connected.</p>
+<h2 id="native-controls-with-foreignobject">Native controls with foreignObject</h2>
+<p>SvgML uses SVG <code>foreignObject</code> as the native-control host. The same element works inside text flow and as a normal scene element:</p>
+<pre><code class="language-xml">&lt;svg Height=&quot;260&quot;
+     Stretch=&quot;Uniform&quot;
+     viewBox=&quot;0 0 420 180&quot;&gt;
+  &lt;text x=&quot;24&quot; y=&quot;46&quot; fill=&quot;#334155&quot; style=&quot;font-size:16px;&quot;&gt;
+    &lt;tspan&gt;Approve &lt;/tspan&gt;
+    &lt;foreignObject width=&quot;110&quot; height=&quot;34&quot;&gt;
+      &lt;Button Content=&quot;Publish&quot; MinWidth=&quot;110&quot; /&gt;
+    &lt;/foreignObject&gt;
+    &lt;tspan&gt; before release.&lt;/tspan&gt;
+  &lt;/text&gt;
+
+  &lt;g transform=&quot;translate(24 90)&quot;&gt;
+    &lt;rect x=&quot;0&quot; y=&quot;0&quot; width=&quot;240&quot; height=&quot;56&quot; fill=&quot;#F8FAFC&quot; stroke=&quot;#CBD5E1&quot; /&gt;
+    &lt;foreignObject x=&quot;16&quot; y=&quot;12&quot; width=&quot;180&quot; height=&quot;32&quot;&gt;
+      &lt;TextBox Text=&quot;Design systems&quot; /&gt;
+    &lt;/foreignObject&gt;
+  &lt;/g&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>Inline <code>foreignObject</code> reserves text advance from explicit <code>width</code>/<code>height</code> or from the measured native control. Scene <code>foreignObject</code> uses SVG <code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>, and inherited transforms. See <a href="/Svg.Skia/articles/xaml/svgml-foreignobject-controls">SvgML foreignObject Controls</a> for the cross-platform layout details.</p>
 <h2 id="when-to-use-svgmlavalonia-versus-svgsource">When to use SvgML.Avalonia versus SvgSource</h2>
 <ul>
 <li>Choose <code>SvgML.Avalonia</code> when the visual is authored inline and should be styleable as part of the Avalonia view.</li>
 <li>Choose <code>Avalonia.Svg.Skia</code> or <code>Avalonia.Svg</code> when the source is already an external SVG asset or a reusable <code>SvgSource</code>.</li>
 </ul>
-<p>The repository sample at <code>samples/SvgML.Avalonia.Demo</code> shows both the reusable-resource pattern and selector-driven animation.</p>
+<p>The repository sample at <code>samples/SvgML.Avalonia.Demo</code> shows reusable resources, selector-driven animation, inline hosted controls, and scene-level hosted controls.</p>
 
       </div>
   </div>

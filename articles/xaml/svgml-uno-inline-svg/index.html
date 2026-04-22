@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-xaml.bf6eadbb257cad05efd65d08444681da.html' data-lunet-menu-open='menu-id-xaml-0' data-lunet-menu-active='menu-item-xaml-7,menu-item-xaml-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-xaml.8d271fe1103bfd7f0bee7ffa12a78186.html' data-lunet-menu-open='menu-id-xaml-0' data-lunet-menu-active='menu-item-xaml-7,menu-item-xaml-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -149,7 +149,7 @@
 <p>Install the package:</p>
 <pre><code class="language-bash">dotnet add package SvgML.Uno
 </code></pre>
-<p>Uno's current XAML source generator still expects third-party controls to arrive through explicit CLR namespace mappings. The reliable prefix-free pattern is to scope <code>xmlns=&quot;using:SvgML&quot;</code> on the inline SVG subtree itself. If you prefer an explicit alias, <code>xmlns:svgml=&quot;using:SvgML&quot;</code> still works.</p>
+<p>Uno's current XAML source generator still expects third-party controls to arrive through explicit CLR namespace mappings. The reliable prefix-free pattern is to scope <code>xmlns=&quot;using:SvgML&quot;</code> on the inline SVG subtree itself.</p>
 <h2 id="inline-xaml-example">Inline XAML example</h2>
 <pre><code class="language-xml">&lt;Page xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
       xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;&gt;
@@ -172,13 +172,43 @@
 <li>Element names such as <code>svg</code>, <code>path</code>, <code>defs</code>, <code>filter</code>, and <code>text</code> stay close to authored SVG.</li>
 <li>CLR-safe attribute names such as <code>viewBox</code>, <code>d</code>, <code>fill</code>, and <code>opacity</code> stay close to the SVG vocabulary.</li>
 <li>Dash-named members use CLR-safe underscores in Uno XAML, for example <code>stroke_width</code> or <code>font_face</code>.</li>
+<li>Dash-named SVG declarations can also be placed in <code>style</code>, for example <code>style=&quot;stroke-width:2;stroke-linecap:round;&quot;</code>.</li>
 <li>Text or control bindings can feed attribute values directly, which makes small interactive diagrams practical inside Uno pages.</li>
 </ul>
+<h2 id="native-controls-with-foreignobject">Native controls with foreignObject</h2>
+<p><code>foreignObject</code> hosts a native Uno <code>UIElement</code> child. It can reserve text flow inside <code>text</code> and <code>tspan</code>, or it can place native controls in the SVG scene:</p>
+<pre><code class="language-xml">&lt;Page xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+      xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+      xmlns:ui=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;&gt;
+
+  &lt;svg xmlns=&quot;using:SvgML&quot;
+       Height=&quot;260&quot;
+       Stretch=&quot;Uniform&quot;
+       viewBox=&quot;0 0 420 180&quot;&gt;
+    &lt;text x=&quot;24&quot; y=&quot;46&quot; fill=&quot;#334155&quot; style=&quot;font-size:16px;&quot;&gt;
+      &lt;tspan xml:space=&quot;preserve&quot;&gt;Approve &lt;/tspan&gt;
+      &lt;foreignObject&gt;
+        &lt;ui:Button Content=&quot;Publish&quot;
+                   MinWidth=&quot;110&quot;
+                   Height=&quot;34&quot; /&gt;
+      &lt;/foreignObject&gt;
+      &lt;tspan xml:space=&quot;preserve&quot;&gt; before release.&lt;/tspan&gt;
+    &lt;/text&gt;
+
+    &lt;foreignObject transform=&quot;translate(24 92)&quot;&gt;
+      &lt;ui:TextBox Text=&quot;Design systems&quot;
+                  Width=&quot;180&quot;
+                  Height=&quot;36&quot; /&gt;
+    &lt;/foreignObject&gt;
+  &lt;/svg&gt;
+&lt;/Page&gt;
+</code></pre>
+<p>Uno currently works best when hosted-control size comes from the native child (<code>Width</code>, <code>Height</code>, <code>MinWidth</code>, and related properties). Use <code>transform</code> on <code>foreignObject</code> for scene placement when the Uno XAML compiler cannot convert a literal <code>SvgUnit</code> value for <code>x</code>, <code>y</code>, <code>width</code>, or <code>height</code>. See <a href="/Svg.Skia/articles/xaml/svgml-foreignobject-controls">SvgML foreignObject Controls</a> for the shared layout model.</p>
 <h2 id="current-shape-of-the-uno-lane">Current shape of the Uno lane</h2>
 <ul>
 <li>The package itself targets <code>net10.0</code> through <code>Uno.Sdk</code>.</li>
 <li>The current repository sample is desktop-focused: <code>samples/SvgML.Uno.Demo</code>.</li>
-<li>The sample emphasizes string-backed SVG attributes because those map most directly through the current Uno XAML compiler.</li>
+<li>The sample emphasizes string-backed SVG attributes and <code>style</code> declarations where those map most directly through the current Uno XAML compiler.</li>
 <li>The runtime exposes authored-element hit testing and retained-scene mapping through <code>HitTestElements(...)</code>, <code>HitTestSceneNodes(...)</code>, <code>GetControlBounds(...)</code>, and <code>GetElementForSceneNode(...)</code>.</li>
 <li>Use <code>HitTestSvgElements(...)</code> when editor or diagnostics code needs the underlying <code>SvgElement</code> instances.</li>
 </ul>
