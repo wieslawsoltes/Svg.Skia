@@ -178,6 +178,7 @@ public partial class svg
         out Rect bounds)
     {
         ApplyTextPosition(container, ref currentX, ref currentY);
+        currentX += MeasureTextContentWidth(container.Text, container);
 
         foreach (var child in container.Children)
         {

@@ -54,6 +54,12 @@ public abstract partial class text_base
             writer.WriteLine($"word-spacing=\"{ToSvgString(word_spacing)}\"");
         }
 
+        if (ReadLocalValue(spaceProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue
+            && !string.IsNullOrEmpty(space))
+        {
+            writer.WriteLine($"xml:space=\"{ToSvgString(space)}\"");
+        }
+
         if (ReadLocalValue(onchangeProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
         {
             writer.WriteLine($"onchange=\"{ToSvgString(onchange)}\"");
