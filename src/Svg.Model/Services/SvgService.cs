@@ -658,6 +658,33 @@ public static class SvgService
         return svgDocument;
     }
 
+    private static SvgDocument? ApplyParameters(SvgDocument? svgDocument, SvgParameters? parameters)
+    {
+        if (svgDocument is null)
+        {
+            return null;
+        }
+
+        if (parameters?.CurrentColor is { } currentColor && CanApplyCurrentColorParameter(svgDocument))
+        {
+            svgDocument.Color = new SvgColourServer(currentColor);
+        }
+
+        return svgDocument;
+    }
+
+    private static bool CanApplyCurrentColorParameter(SvgDocument svgDocument)
+    {
+        if (!svgDocument.TryGetAttribute("color", out var color))
+        {
+            return true;
+        }
+
+        return string.IsNullOrWhiteSpace(color) ||
+               string.Equals(color, "inherit", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(color, "currentColor", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static SKSize GetDimensions(SvgFragment svgFragment, SKRect skViewport = default)
     {
         float w, h;
@@ -721,7 +748,9 @@ public static class SvgService
 
     public static SvgDocument? OpenSvg(string path, SvgParameters? parameters = null)
     {
-        return SvgDocumentCompatibilityLoader.Open<SvgDocument>(path, new SvgOptions(parameters?.Entities, parameters?.Css));
+        return ApplyParameters(
+            SvgDocumentCompatibilityLoader.Open<SvgDocument>(path, new SvgOptions(parameters?.Entities, parameters?.Css)),
+            parameters);
     }
 
     public static SvgDocument? OpenSvgz(string path, SvgParameters? parameters = null)
@@ -750,10 +779,8 @@ public static class SvgService
 
     public static SvgDocument? OpenVectorDrawable(string path, SvgParameters? parameters = null)
     {
-        _ = parameters;
-
         using var fileStream = System.IO.File.OpenRead(path);
-        var svgDocument = OpenVectorDrawable(fileStream);
+        var svgDocument = OpenVectorDrawable(fileStream, parameters);
         if (svgDocument is { })
         {
             svgDocument.BaseUri = new Uri(System.IO.Path.GetFullPath(path));
@@ -764,8 +791,7 @@ public static class SvgService
 
     public static SvgDocument? OpenVectorDrawable(System.IO.Stream stream, SvgParameters? parameters = null)
     {
-        _ = parameters;
-        return VectorDrawableConverter.Open(stream);
+        return ApplyParameters(VectorDrawableConverter.Open(stream), parameters);
     }
 
     public static SvgDocument? FromVectorDrawable(string xml)
@@ -780,12 +806,25 @@ public static class SvgService
 
     public static SvgDocument? Open(System.IO.Stream stream, SvgParameters? parameters = null)
     {
-        return SvgDocumentCompatibilityLoader.Open<SvgDocument>(stream, new SvgOptions(parameters?.Entities, parameters?.Css));
+        return ApplyParameters(
+            SvgDocumentCompatibilityLoader.Open<SvgDocument>(stream, new SvgOptions(parameters?.Entities, parameters?.Css)),
+            parameters);
     }
 
     public static SvgDocument? FromSvg(string svg)
     {
-        return SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        return FromSvg(svg, null);
+    }
+
+    public static SvgDocument? FromSvg(string svg, SvgParameters? parameters)
+    {
+        if (string.IsNullOrEmpty(svg))
+        {
+            throw new ArgumentNullException(nameof(svg));
+        }
+
+        using var memoryStream = new System.IO.MemoryStream(Encoding.UTF8.GetBytes(svg));
+        return Open(memoryStream, parameters);
     }
 
     public static SvgDocument? Open(XmlReader reader)
