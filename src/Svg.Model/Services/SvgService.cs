@@ -488,6 +488,12 @@ public static class SvgService
                 return GetImageFromDataUri(uriString, svgOwnerElement, assetLoader);
             }
 
+            if (!SvgDocument.ResolveExternalImages.AllowsResolving(uri))
+            {
+                Trace.TraceWarning("Trying to resolve image from '{0}', but resolving external resources of that type is disabled.", uri);
+                return default;
+            }
+
             return GetImageFromWeb(uri, assetLoader);
         }
         catch (Exception ex)
