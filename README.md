@@ -21,6 +21,7 @@
 | `Svg.CodeGen.Skia` | [![NuGet](https://img.shields.io/nuget/v/Svg.CodeGen.Skia.svg)](https://www.nuget.org/packages/Svg.CodeGen.Skia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.CodeGen.Skia.svg)](https://www.nuget.org/packages/Svg.CodeGen.Skia/) |
 | `Svg.Controls.Avalonia` | [![NuGet](https://img.shields.io/nuget/v/Svg.Controls.Avalonia.svg)](https://www.nuget.org/packages/Svg.Controls.Avalonia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Controls.Avalonia.svg)](https://www.nuget.org/packages/Svg.Controls.Avalonia/) |
 | `Svg.Controls.Skia.Avalonia` | [![NuGet](https://img.shields.io/nuget/v/Svg.Controls.Skia.Avalonia.svg)](https://www.nuget.org/packages/Svg.Controls.Skia.Avalonia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Controls.Skia.Avalonia.svg)](https://www.nuget.org/packages/Svg.Controls.Skia.Avalonia/) |
+| `Svg.Controls.Skia.Maui` | [![NuGet](https://img.shields.io/nuget/v/Svg.Controls.Skia.Maui.svg)](https://www.nuget.org/packages/Svg.Controls.Skia.Maui/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Controls.Skia.Maui.svg)](https://www.nuget.org/packages/Svg.Controls.Skia.Maui/) |
 | `Svg.Controls.Skia.Uno` | [![NuGet](https://img.shields.io/nuget/v/Svg.Controls.Skia.Uno.svg)](https://www.nuget.org/packages/Svg.Controls.Skia.Uno/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Controls.Skia.Uno.svg)](https://www.nuget.org/packages/Svg.Controls.Skia.Uno/) |
 | `Svg.Custom` | [![NuGet](https://img.shields.io/nuget/v/Svg.Custom.svg)](https://www.nuget.org/packages/Svg.Custom/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Custom.svg)](https://www.nuget.org/packages/Svg.Custom/) |
 | `Svg.Editor.Avalonia` | [![NuGet](https://img.shields.io/nuget/v/Svg.Editor.Avalonia.svg)](https://www.nuget.org/packages/Svg.Editor.Avalonia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Editor.Avalonia.svg)](https://www.nuget.org/packages/Svg.Editor.Avalonia/) |
@@ -63,7 +64,7 @@ and the `Svg.Skia` renderer will provide more complete rendering subsystem imple
 - `Svg.Custom` now exposes the SVG 1.1 animation object model for `animate`, `set`, `animateMotion`, `animateColor`, `animateTransform`, and `mpath`.
 - `Svg.Custom` and `Svg.Skia` now include typed `pointer-events` handling plus geometry-aware topmost hit testing.
 - `Svg.Skia` now includes a shared interaction dispatcher, shared animation clock/controller, and host-driven animation playback APIs.
-- `Svg.Controls.Skia.Avalonia` and `Svg.Controls.Skia.Uno` now expose animation backend selection, playback rate, frame interval, and resolved-backend diagnostics.
+- `Svg.Controls.Skia.Avalonia`, `Svg.Controls.Skia.Maui`, and `Svg.Controls.Skia.Uno` now expose animation backend selection, playback rate, frame interval, and resolved-backend diagnostics.
 - `SvgML.Avalonia`, `SvgML.Maui`, and `SvgML.Uno` now live in the same repository, so inline Avalonia, .NET MAUI, and Uno XAML-authored SVG trees, including native controls hosted through SVG `foreignObject`, build against the local `Svg.Skia` sources and ship from the same release pipeline.
 - Avalonia adds an optional `NativeComposition` animation backend with fallback to `RenderLoop` or `DispatcherTimer` when retained composition is unavailable.
 - `tests/Svg.Skia.Benchmarks` adds a local BenchmarkDotNet harness for the shared animation renderer, and `samples/TestApp` exposes backend and playback controls for manual verification.
@@ -529,35 +530,61 @@ This is known issue as previewer not always loads all dependencies, especially c
 
 ### .NET MAUI
 
-`Svg.Skia` can be used in a .NET MAUI application anywhere the app already
-draws with SkiaSharp. For a MAUI XAML-native surface, use `SvgML.Maui`, which
-renders through the same `Svg.Skia` pipeline and supports native MAUI controls
-hosted by SVG `foreignObject`.
+Use `Svg.Controls.Skia.Maui` when a .NET MAUI application needs an `Svg` control
+for external `.svg` assets, inline source strings, reusable `SvgSource`
+resources, hit testing, zoom/pan, render flags, and host-driven animation
+playback on `SKCanvasView`.
+
+Use `SvgML.Maui` when the SVG element tree itself should be authored inline in
+.NET MAUI XAML and when SVG `foreignObject` should host native MAUI controls.
 
 #### Install Package
+
+```
+dotnet add package Svg.Controls.Skia.Maui
+```
 
 ```
 dotnet add package SvgML.Maui
 ```
 
 ```
+Install-Package Svg.Controls.Skia.Maui
+```
+
+```
 Install-Package SvgML.Maui
 ```
 
-Register both the SkiaSharp MAUI host and SvgML during startup:
+Register the SkiaSharp MAUI host during startup. Add `UseSvgML()` only when
+using the inline SvgML package:
 
 ```C#
 using SkiaSharp.Views.Maui.Controls.Hosting;
-using SvgML;
 
 builder
     .UseMauiApp<App>()
-    .UseSkiaSharp()
-    .UseSvgML();
+    .UseSkiaSharp();
 ```
 
-Author inline SVG in MAUI XAML by scoping the SVG subtree to the SvgML XML
-namespace:
+For external SVG assets, add the files as MAUI package assets and point the
+control at the logical asset name:
+
+```xml
+<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+```
+
+```XAML
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:svg="https://github.com/svgskia/maui">
+  <svg:Svg Path="Icons/tiger.svg"
+           HeightRequest="220"
+           Stretch="Uniform"
+           EnableCache="True" />
+</ContentPage>
+```
+
+For inline SvgML authoring, scope the SVG subtree to the SvgML XML namespace:
 
 ```XAML
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
@@ -570,11 +597,10 @@ namespace:
 </ContentPage>
 ```
 
-For external `.svg` assets, keep using `Svg.Skia.SKSvg` from SkiaSharp drawing
-code such as an `SKCanvasView` paint callback and draw `svg.Picture` to the
-provided canvas. The MAUI package currently targets Android, iOS, and
-Mac Catalyst. See the [SvgML.Maui package guide](site/articles/packages/svgml-maui.md)
-and [sample app](samples/SvgML.Maui.Demo) for the full MAUI flow.
+The MAUI packages currently target Android, iOS, and Mac Catalyst. See the
+[Svg.Controls.Skia.Maui package guide](site/articles/packages/svg-controls-skia-maui.md),
+[SvgML.Maui package guide](site/articles/packages/svgml-maui.md), and
+[sample app](samples/SvgML.Maui.Demo) for the full MAUI flow.
 
 ### Avalonia SkiaSharp Controls
 

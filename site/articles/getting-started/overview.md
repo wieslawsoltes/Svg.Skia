@@ -13,6 +13,7 @@ Svg.Skia is a repository, not just a single package. The main entry points are:
 | `Svg.Custom` | You want the underlying SVG DOM used by the renderer. | `SvgDocument`, `SvgElement`, animation DOM, parser APIs | [Svg.Custom](../packages/svg-custom) |
 | `ShimSkiaSharp` | You want the cloneable drawing-command model directly. | `SKPicture`, `SKCanvas`, `SKPath`, `SKPaint` | [ShimSkiaSharp](../packages/shim-skiasharp) |
 | `Svg.Controls.Skia.Uno` | You want Uno controls that render through the Skia-backed pipeline. | `Svg`, `SvgSource`, hit testing, zoom/pan, animation playback | [Svg.Controls.Skia.Uno](../packages/svg-controls-skia-uno) |
+| `Svg.Controls.Skia.Maui` | You want .NET MAUI controls that render external SVG assets through the Skia-backed pipeline. | `Svg`, `SvgSource`, hit testing, zoom/pan, animation playback | [Svg.Controls.Skia.Maui](../packages/svg-controls-skia-maui) |
 | `Svg.Controls.Skia.Avalonia` | You want Avalonia controls that render through the Skia-backed pipeline. | `Svg`, `SvgImage`, `SvgSource`, `SvgResource`, animation playback, native composition | [Svg.Controls.Skia.Avalonia](../packages/svg-controls-skia-avalonia) |
 | `Svg.Controls.Avalonia` | You want Avalonia controls without depending on the Skia-backed Avalonia renderer path. | `Svg`, `SvgImage`, `SvgSource`, `SvgResource` | [Svg.Controls.Avalonia](../packages/svg-controls-avalonia) |
 | `SvgML.Avalonia` | You want the SVG tree itself to be authored inline in Avalonia XAML, including native controls hosted through SVG `foreignObject`. | `svg`, `rect`, `g`, filters, text nodes, `foreignObject`, Avalonia-styled SVG element tree | [SvgML.Avalonia](../packages/svgml-avalonia) |
@@ -41,7 +42,9 @@ Choose `SvgML.Avalonia` when small icons, diagrams, effect graphs, or native-con
 
 ### .NET MAUI application
 
-Start with `SvgML.Maui` when the visual should be authored inline in .NET MAUI XAML instead of loaded from a separate `.svg` asset file, including cases where SVG `foreignObject` positions native MAUI controls.
+Start with `Svg.Controls.Skia.Maui` when the visual already exists as an external `.svg` asset or source string and should render through a MAUI `SKCanvasView`.
+
+Choose `SvgML.Maui` when the SVG tree should be authored inline in .NET MAUI XAML instead, including cases where SVG `foreignObject` positions native MAUI controls.
 
 ### Uno application
 
@@ -71,6 +74,7 @@ Use `Svg.Skia.Converter` when you need command-line automation for folders, patt
 - Android VectorDrawable import and validation coverage.
 - Model-level editing, interaction routing, and picture rebuild support.
 - Avalonia and Uno controls with host animation backends and resolved-backend diagnostics.
+- Skia-backed Avalonia, Uno, and .NET MAUI controls for external SVG assets.
 - SvgML inline XAML authoring for Avalonia, .NET MAUI, and Uno with SVG-native `foreignObject` interop for hosted platform controls.
 - Verification through unit tests, UI tests, and W3C test-suite assets.
 
