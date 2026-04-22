@@ -354,11 +354,14 @@ public partial class SkiaModel
             return null;
         }
 
+        var weight = (SkiaSharp.SKFontStyleWeight)style.Weight;
+        var width = (SkiaSharp.SKFontStyleWidth)style.Width;
+        var slant = (SkiaSharp.SKFontStyleSlant)style.Slant;
         var cacheKey = new TypefaceKey(
             candidate,
-            (SkiaSharp.SKFontStyleWeight)style.Weight,
-            (SkiaSharp.SKFontStyleWidth)style.Width,
-            (SkiaSharp.SKFontStyleSlant)style.Slant);
+            weight,
+            width,
+            slant);
         if (_resolvedTypefaceCache.TryGetValue(cacheKey, out var cached))
         {
             if (cached is not null && cached.Handle != IntPtr.Zero)
@@ -367,6 +370,17 @@ public partial class SkiaModel
             }
 
             _resolvedTypefaceCache.TryRemove(cacheKey, out _);
+        }
+
+        if (SharedTypefaceCache.TryGetResolvedTypeface(candidate, weight, width, slant, out var sharedCached))
+        {
+            if (sharedCached is not null)
+            {
+                _resolvedTypefaceCache.TryAdd(cacheKey, sharedCached);
+                TrimTypefaceCachesIfNeeded();
+            }
+
+            return sharedCached;
         }
 
         var fontManager = SkiaSharp.SKFontManager.Default;
@@ -406,7 +420,31 @@ public partial class SkiaModel
             _resolvedTypefaceCache.TryAdd(cacheKey, resolved);
             TrimTypefaceCachesIfNeeded();
         }
+
+        SharedTypefaceCache.AddResolvedTypeface(candidate, weight, width, slant, resolved);
         return resolved;
+    }
+
+    private static SkiaSharp.SKTypeface? ResolveProviderTypeface(
+        ITypefaceProvider typefaceProvider,
+        string candidate,
+        SkiaSharp.SKFontStyleWeight fontWeight,
+        SkiaSharp.SKFontStyleWidth fontWidth,
+        SkiaSharp.SKFontStyleSlant fontStyle)
+    {
+        var typeface = SharedTypefaceCache.TryGetOrAddProviderTypeface(
+            typefaceProvider,
+            candidate,
+            fontWeight,
+            fontWidth,
+            fontStyle,
+            out var cached)
+            ? cached
+            : typefaceProvider.FromFamilyName(candidate, fontWeight, fontWidth, fontStyle);
+
+        return typeface is { } && typeface.Handle == IntPtr.Zero
+            ? null
+            : typeface;
     }
 
     public SkiaSharp.SKTypeface? ToSKTypeface(SKTypeface? typeface)
@@ -437,7 +475,7 @@ public partial class SkiaModel
             {
                 foreach (var typefaceProvider in Settings.TypefaceProviders)
                 {
-                    var providerTypeface = typefaceProvider.FromFamilyName(candidate, fontWeight, fontWidth, fontStyle);
+                    var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
                     if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                     {
                         _typefaceCache.TryAdd(cacheKey, providerTypeface);
@@ -464,7 +502,7 @@ public partial class SkiaModel
                 {
                     foreach (var typefaceProvider in Settings.TypefaceProviders)
                     {
-                        var providerTypeface = typefaceProvider.FromFamilyName(candidate, fontWeight, fontWidth, fontStyle);
+                        var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
                         if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                         {
                             _typefaceCache.TryAdd(cacheKey, providerTypeface);
@@ -488,7 +526,7 @@ public partial class SkiaModel
         {
             foreach (var typefaceProvider in Settings.TypefaceProviders)
             {
-                var providerTypeface = typefaceProvider.FromFamilyName(SkiaSharp.SKTypeface.Default.FamilyName, fontWeight, fontWidth, fontStyle);
+                var providerTypeface = ResolveProviderTypeface(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, fontWeight, fontWidth, fontStyle);
                 if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                 {
                     _typefaceCache.TryAdd(cacheKey, providerTypeface);
