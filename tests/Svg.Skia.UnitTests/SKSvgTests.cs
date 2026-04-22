@@ -154,6 +154,32 @@ public class SKSvgTests : SvgUnitTest
     }
 
     [Fact]
+    public void Save_CssHexAlphaFill_RendersAlpha()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+              <style>#target { fill: #11223380; }</style>
+              <rect id="target" width="10" height="10" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[5, 5];
+        Assert.InRange(pixel.R, (byte)0x10, (byte)0x12);
+        Assert.InRange(pixel.G, (byte)0x21, (byte)0x23);
+        Assert.InRange(pixel.B, (byte)0x32, (byte)0x34);
+        Assert.Equal((byte)0x80, pixel.A);
+    }
+
+    [Fact]
     public void Load_CssFontFaceWithExternalFontUrl_DoesNotCrash()
     {
         const string svgMarkup = """
