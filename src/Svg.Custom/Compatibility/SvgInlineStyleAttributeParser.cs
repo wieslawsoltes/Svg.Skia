@@ -25,6 +25,11 @@ internal sealed class SvgInlineStyleAttributeParser
         {
             foreach (var declaration in rule.Style)
             {
+                if (string.IsNullOrWhiteSpace(declaration.Original))
+                {
+                    continue;
+                }
+
                 element.AddStyle(declaration.Name, declaration.Original, SvgElement.StyleSpecificity_InlineStyle);
             }
         }
@@ -53,6 +58,11 @@ internal sealed class SvgInlineStyleAttributeParser
             if (!TryReadInlineDeclaration(styleText, ref index, out var name, out var value))
             {
                 return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                continue;
             }
 
             element.AddStyle(name, value, SvgElement.StyleSpecificity_InlineStyle);
