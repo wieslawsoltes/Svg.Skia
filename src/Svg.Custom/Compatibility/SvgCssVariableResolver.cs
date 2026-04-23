@@ -2,16 +2,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 
 namespace Svg;
 
 internal static class SvgCssVariableResolver
 {
+    private const string ImportantKeyword = "important";
     private const int MaxResolutionDepth = 32;
-    private static readonly ConditionalWeakTable<SvgElement, Dictionary<string, SortedDictionary<int, string>>> s_customPropertyRules = new();
+    private static long s_customPropertySourceOrder;
+    private static readonly ConditionalWeakTable<SvgElement, Dictionary<string, List<CustomPropertyRule>>> s_customPropertyRules = new();
 
     public static bool IsCustomPropertyName(string? name)
     {
@@ -25,20 +27,32 @@ internal static class SvgCssVariableResolver
             return;
         }
 
+        var normalizedValue = NormalizeCustomPropertyValue(value, out var important);
         var propertyRules = s_customPropertyRules.GetOrCreateValue(element);
         if (!propertyRules.TryGetValue(name, out var rules))
         {
-            rules = new SortedDictionary<int, string>();
+            rules = new List<CustomPropertyRule>();
             propertyRules[name] = rules;
         }
 
-        while (rules.ContainsKey(specificity))
+        rules.Add(new CustomPropertyRule(
+            normalizedValue,
+            specificity,
+            important,
+            Interlocked.Increment(ref s_customPropertySourceOrder)));
+        element.CustomAttributes[name] = GetWinningRule(rules).Value;
+    }
+
+    private static string NormalizeCustomPropertyValue(string value, out bool important)
+    {
+        if (TryFindTrailingImportant(value, out var importantStartIndex))
         {
-            specificity++;
+            important = true;
+            return value.Substring(0, importantStartIndex).TrimEnd();
         }
 
-        rules[specificity] = value;
-        element.CustomAttributes[name] = rules.Last().Value;
+        important = false;
+        return value;
     }
 
     public static bool TryResolveValue(SvgElement element, string value, out string resolved)
@@ -292,6 +306,80 @@ internal static class SvgCssVariableResolver
         return char.IsLetterOrDigit(value) || value is '-' or '_';
     }
 
+    private static bool TryFindTrailingImportant(string value, out int importantStartIndex)
+    {
+        importantStartIndex = -1;
+        var index = value.Length - 1;
+        while (index >= 0 && char.IsWhiteSpace(value[index]))
+        {
+            index--;
+        }
+
+        var keywordStartIndex = index - ImportantKeyword.Length + 1;
+        if (keywordStartIndex < 0 ||
+            !value.AsSpan(keywordStartIndex, ImportantKeyword.Length)
+                .Equals(ImportantKeyword.AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        index = keywordStartIndex - 1;
+        while (index >= 0 && char.IsWhiteSpace(value[index]))
+        {
+            index--;
+        }
+
+        if (index < 0 || value[index] != '!' || IsEscaped(value, index))
+        {
+            return false;
+        }
+
+        importantStartIndex = index;
+        return true;
+    }
+
+    private static bool IsEscaped(string value, int index)
+    {
+        var backslashCount = 0;
+        for (var i = index - 1; i >= 0 && value[i] == '\\'; i--)
+        {
+            backslashCount++;
+        }
+
+        return backslashCount % 2 != 0;
+    }
+
+    private static CustomPropertyRule GetWinningRule(List<CustomPropertyRule> rules)
+    {
+        var winningRule = rules[0];
+        for (var i = 1; i < rules.Count; i++)
+        {
+            var candidate = rules[i];
+            if (CompareCascade(candidate, winningRule) > 0)
+            {
+                winningRule = candidate;
+            }
+        }
+
+        return winningRule;
+    }
+
+    private static int CompareCascade(CustomPropertyRule left, CustomPropertyRule right)
+    {
+        if (left.Important != right.Important)
+        {
+            return left.Important ? 1 : -1;
+        }
+
+        var specificityComparison = left.Specificity.CompareTo(right.Specificity);
+        if (specificityComparison != 0)
+        {
+            return specificityComparison;
+        }
+
+        return left.SourceOrder.CompareTo(right.SourceOrder);
+    }
+
     private static bool TryFindTopLevelComma(string value, out int commaIndex)
     {
         commaIndex = -1;
@@ -343,5 +431,24 @@ internal static class SvgCssVariableResolver
         }
 
         return false;
+    }
+
+    private readonly struct CustomPropertyRule
+    {
+        public CustomPropertyRule(string value, int specificity, bool important, long sourceOrder)
+        {
+            Value = value;
+            Specificity = specificity;
+            Important = important;
+            SourceOrder = sourceOrder;
+        }
+
+        public string Value { get; }
+
+        public int Specificity { get; }
+
+        public bool Important { get; }
+
+        public long SourceOrder { get; }
     }
 }
