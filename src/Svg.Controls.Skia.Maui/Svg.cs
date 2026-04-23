@@ -512,7 +512,7 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
 
     private void OnLoaded(object? sender, EventArgs e)
     {
-        TrackAnimationSvg(_svg?.Svg);
+        TrackAnimationSvg(_svg?.Svg, forceUpdate: true);
 
         if (HasSource() && (_svg is null || _reloadOnLoaded))
         {
@@ -635,6 +635,11 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
         var source = await SvgSource.LoadAsync(path, parameters: parameters, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
         ApplyRenderOptions(source, Wireframe, DisableFilters);
+
+        if (source.Picture is null)
+        {
+            return new LoadResult(source, false);
+        }
 
         if (EnableCache)
         {
@@ -860,10 +865,15 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
 
     private readonly record struct LoadResult(SvgSource? Source, bool IsCacheEntry);
 
-    private void TrackAnimationSvg(SKSvg? skSvg)
+    private void TrackAnimationSvg(SKSvg? skSvg, bool forceUpdate = false)
     {
         if (ReferenceEquals(_trackedAnimationSvg, skSvg))
         {
+            if (forceUpdate)
+            {
+                UpdateAnimationPlayback();
+            }
+
             return;
         }
 
