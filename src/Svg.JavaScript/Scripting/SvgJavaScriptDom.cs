@@ -366,6 +366,7 @@ internal static class SvgJavaScriptDomConstants
     {
         var domException = runtime.CreatePlainObject();
         domException.FastSetDataProperty("INDEX_SIZE_ERR", JsNumber.Create(1));
+        domException.FastSetDataProperty("HIERARCHY_REQUEST_ERR", JsNumber.Create(3));
         domException.FastSetDataProperty("NO_MODIFICATION_ALLOWED_ERR", JsNumber.Create(7));
         domException.FastSetDataProperty("INVALID_STATE_ERR", JsNumber.Create(11));
         domException.FastSetDataProperty("SYNTAX_ERR", JsNumber.Create(12));

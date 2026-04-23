@@ -780,38 +780,32 @@ public sealed class SvgAnimationController : IDisposable
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(binding.Animation.OnBeginScript))
+        for (var index = 0; index < intervals.Count; index++)
         {
-            for (var index = 0; index < intervals.Count; index++)
+            var beginTime = intervals[index].BeginInstance.Time;
+            if (ShouldDispatchTimelineEvent(beginTime, previousTime, currentTime))
             {
-                var beginTime = intervals[index].BeginInstance.Time;
-                if (ShouldDispatchTimelineEvent(beginTime, previousTime, currentTime))
-                {
-                    callbacks.Add(new SvgAnimationTimelineCallback(
-                        binding.AnimationAddress,
-                        "beginEvent",
-                        "onbegin",
-                        beginTime));
-                }
+                callbacks.Add(new SvgAnimationTimelineCallback(
+                    binding.AnimationAddress,
+                    "beginEvent",
+                    "onbegin",
+                    beginTime));
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(binding.Animation.OnEndScript))
+        for (var index = 0; index < intervals.Count; index++)
         {
-            for (var index = 0; index < intervals.Count; index++)
+            if (intervals[index].ActiveEnd is not { } endTime ||
+                !ShouldDispatchTimelineEvent(endTime, previousTime, currentTime))
             {
-                if (intervals[index].ActiveEnd is not { } endTime ||
-                    !ShouldDispatchTimelineEvent(endTime, previousTime, currentTime))
-                {
-                    continue;
-                }
-
-                callbacks.Add(new SvgAnimationTimelineCallback(
-                    binding.AnimationAddress,
-                    "endEvent",
-                    "onend",
-                    endTime));
+                continue;
             }
+
+            callbacks.Add(new SvgAnimationTimelineCallback(
+                binding.AnimationAddress,
+                "endEvent",
+                "onend",
+                endTime));
         }
     }
 
@@ -937,11 +931,7 @@ public sealed class SvgAnimationController : IDisposable
 
         foreach (var binding in bindings)
         {
-            if (!string.IsNullOrWhiteSpace(binding.Animation.OnBeginScript) ||
-                !string.IsNullOrWhiteSpace(binding.Animation.OnEndScript))
-            {
-                trackedBindings.Add(binding);
-            }
+            trackedBindings.Add(binding);
         }
 
         return trackedBindings;

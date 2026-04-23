@@ -85,6 +85,221 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void FromSvg_RootLoadEventDispatchesRegisteredListeners()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="10" height="10" fill="red" />
+              <script><![CDATA[
+                document.documentElement.addEventListener('load', function (evt) {
+                  var passed = evt.target === document.documentElement
+                    && evt.currentTarget === document.documentElement;
+                  document.getElementById('target').setAttribute('fill', passed ? 'green' : 'red');
+                }, false);
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_ReusedInstanceLoadScriptsApplyPendingAnimationTime()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <animate attributeName="display" values="inline;inline" begin="0s" dur="10s" />
+            </svg>
+            """);
+        svg.SetAnimationTime(TimeSpan.FromSeconds(7));
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="10" height="10" fill="red" />
+              <animate attributeName="display" values="inline;inline" begin="0s" dur="10s" />
+              <script><![CDATA[
+                var root = document.documentElement;
+                var initialTime = root.getCurrentTime();
+                root.setCurrentTime(2);
+                var passed = initialTime === 0 && root.getCurrentTime() === 0;
+                document.getElementById('target').setAttribute('fill', passed ? 'green' : 'red');
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+        Assert.Equal(TimeSpan.FromSeconds(2), svg.AnimationTime);
+    }
+
+    [Fact]
+    public void FromSvg_AnimationTimelineDispatchesRegisteredListenersWithoutInlineHandlers()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="beginResult" width="10" height="10" fill="red" />
+              <rect id="endResult" x="10" width="10" height="10" fill="red" />
+              <animate id="subject" attributeName="display" values="inline;inline" begin="0s" dur="1s" />
+              <script><![CDATA[
+                var animation = document.getElementById('subject');
+                animation.addEventListener('beginEvent', function (evt) {
+                  document.getElementById('beginResult').setAttribute(
+                    'fill',
+                    evt.currentTarget === animation ? 'green' : 'red');
+                }, false);
+                animation.addEventListener('endEvent', function (evt) {
+                  document.getElementById('endResult').setAttribute(
+                    'fill',
+                    evt.currentTarget === animation ? 'green' : 'red');
+                }, false);
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "beginResult", Color.Green);
+
+        svg.SetAnimationTime(TimeSpan.FromSeconds(1));
+
+        AssertFill(svg, "endResult", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_DocumentTagNameQueriesIncludeRootElement()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="10" height="10" fill="red" />
+              <script><![CDATA[
+                var svgElements = document.getElementsByTagName('svg');
+                var allElements = document.getElementsByTagName('*');
+                var passed = svgElements.length === 1
+                  && svgElements.item(0) === document.documentElement
+                  && allElements.length === 3
+                  && allElements.item(0) === document.documentElement;
+                document.getElementById('target').setAttribute('fill', passed ? 'green' : 'red');
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_ReplaceChildWithSameNodeIsNoOp()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g id="parent">
+                <rect id="target" width="10" height="10" fill="red" />
+              </g>
+              <script><![CDATA[
+                var parent = document.getElementById('parent');
+                var target = document.getElementById('target');
+                var returned = parent.replaceChild(target, target);
+                var passed = returned === target
+                  && target.parentNode === parent
+                  && parent.children.length === 1
+                  && parent.children.item(0) === target;
+                target.setAttribute('fill', passed ? 'green' : 'red');
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_InsertBeforeRejectsCyclesAndPreservesExistingDomNodes()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g id="parent">
+                <rect id="first" width="4" height="4" fill="blue" />
+                <g id="child">
+                  <rect id="nested" width="4" height="4" fill="blue" />
+                </g>
+              </g>
+              <rect id="target" y="10" width="10" height="10" fill="red" />
+              <script><![CDATA[
+                var parent = document.getElementById('parent');
+                var child = document.getElementById('child');
+                var target = document.getElementById('target');
+
+                var appended = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                appended.setAttribute('id', 'appended');
+                parent.appendChild(appended);
+
+                var selfBlocked = false;
+                try {
+                  parent.appendChild(parent);
+                } catch (e) {
+                  selfBlocked = e.code === DOMException.HIERARCHY_REQUEST_ERR;
+                }
+
+                var ancestorBlocked = false;
+                try {
+                  child.appendChild(parent);
+                } catch (e) {
+                  ancestorBlocked = e.code === DOMException.HIERARCHY_REQUEST_ERR;
+                }
+
+                var firstNodeIndex = -1;
+                var childNodeIndex = -1;
+                var appendedNodeIndex = -1;
+                for (var i = 0; i < parent.childNodes.length; i++) {
+                  var node = parent.childNodes.item(i);
+                  if (node && node.nodeType === Node.ELEMENT_NODE) {
+                    if (node.id === 'first') {
+                      firstNodeIndex = i;
+                    } else if (node.id === 'child') {
+                      childNodeIndex = i;
+                    } else if (node.id === 'appended') {
+                      appendedNodeIndex = i;
+                    }
+                  }
+                }
+
+                var passed = selfBlocked
+                  && ancestorBlocked
+                  && parent.children.length === 3
+                  && parent.children.item(0).id === 'first'
+                  && parent.children.item(1).id === 'child'
+                  && parent.children.item(2).id === 'appended'
+                  && firstNodeIndex >= 0
+                  && childNodeIndex > firstNodeIndex
+                  && appendedNodeIndex > childNodeIndex;
+                target.setAttribute('fill', passed ? 'green' : 'red');
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
     public void Runtime_StyleRemoveProperty_RestoresUpdatedUnderlyingAttribute()
     {
         var document = SvgService.FromSvg("""
@@ -450,6 +665,42 @@ public class SvgJavaScriptRuntimeTests
         var result = dispatcher.DispatchPointerReleased(svg, input);
 
         Assert.True(result.Handled);
+    }
+
+    [Fact]
+    public void DispatchPointerReleased_ReusesEventAcrossInlineHandlerAndListeners()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="20" height="20" fill="red" onclick="evt.preventDefault();" />
+              <script><![CDATA[
+                document.getElementById('target').addEventListener('click', function (evt) {
+                  this.setAttribute('fill', evt.defaultPrevented ? 'green' : 'red');
+                }, false);
+              ]]></script>
+            </svg>
+            """);
+
+        var dispatcher = new SvgInteractionDispatcher();
+        var input = new SvgPointerInput(
+            new SKPoint(5, 5),
+            SvgPointerDeviceType.Mouse,
+            SvgMouseButton.Left,
+            1,
+            0,
+            altKey: false,
+            shiftKey: false,
+            ctrlKey: false,
+            sessionId: "test");
+
+        dispatcher.DispatchPointerPressed(svg, input);
+        var result = dispatcher.DispatchPointerReleased(svg, input);
+
+        Assert.True(result.Handled);
+        AssertFill(svg, "target", Color.Green);
     }
 
     [Fact]
@@ -1094,6 +1345,45 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void Runtime_PathSegListMutationsNotifyPathAndMarkRuntimeDirty()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <path id="target" d="M 0 0" />
+            </svg>
+            """)!;
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings
+        {
+            ThrowOnError = true
+        });
+        var path = Assert.IsType<SvgPath>(document.GetElementById("target")!);
+        var target = runtime.GetElement(path);
+        var changed = 0;
+        path.AttributeChanged += (_, args) =>
+        {
+            if (args.Attribute == "d")
+            {
+                changed++;
+            }
+        };
+
+        var initialMutationVersion = runtime.MutationVersion;
+        var move = target.createSVGPathSegMovetoAbs(5, 5);
+        target.pathSegList.appendItem(move);
+
+        Assert.Equal(1, changed);
+        Assert.True(runtime.MutationVersion > initialMutationVersion);
+        Assert.Equal(2, path.PathData.Count);
+
+        target.pathSegList.clear();
+
+        Assert.Equal(2, changed);
+        Assert.True(runtime.MutationVersion > initialMutationVersion + 1);
+        Assert.Empty(path.PathData);
+    }
+
+    [Fact]
     public void Runtime_EventListeners_CanRegisterDispatchAndRemove()
     {
         var document = SvgDocument.Open<SvgDocument>(GetW3CSvgPath("interact-dom-01-b"));
@@ -1117,6 +1407,45 @@ public class SvgJavaScriptRuntimeTests
         secondClick.initMouseEvent("click", true, true, null, 1, 0f, 0f, 0f, 0f, false, false, false, false, 0, null);
         Assert.True(startButton.dispatchEvent(secondClick));
         Assert.Equal(1, document.Descendants().OfType<SvgText>().Count(text => text.Text == "Event Listeners supported"));
+    }
+
+    [Fact]
+    public void FromSvg_DispatchEventRunsCaptureListenersAndPreservesEventState()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g id="parent">
+                <rect id="target" width="20" height="20" fill="red"
+                      onclick="if (window.listenerSawDefaultPrevented &amp;&amp; evt.defaultPrevented) this.setAttribute('fill', 'green')" />
+              </g>
+              <script><![CDATA[
+                var parent = document.getElementById('parent');
+                var target = document.getElementById('target');
+                parent.addEventListener('click', function (evt) {
+                  if (evt.target === target && evt.currentTarget === parent) {
+                    evt.preventDefault();
+                    window.captureRan = true;
+                  }
+                }, true);
+                target.addEventListener('click', function (evt) {
+                  window.listenerSawDefaultPrevented = window.captureRan && evt.defaultPrevented;
+                }, false);
+
+                var click = document.createEvent('MouseEvents');
+                click.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
+                window.dispatchResult = target.dispatchEvent(click);
+                if (window.dispatchResult !== false) {
+                  target.setAttribute('fill', 'red');
+                }
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
     }
 
     [Fact]

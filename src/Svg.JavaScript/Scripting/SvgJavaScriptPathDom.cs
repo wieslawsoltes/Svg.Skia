@@ -54,8 +54,9 @@ public sealed class SvgJavaScriptPathSegList
         }
 
         var segment = newItem.CloneSegment();
-        GetSegments().Add(segment);
-        _runtime.MarkMutation();
+        var segments = GetSegments();
+        segments.Add(segment);
+        MarkPathMutation(ReferenceEquals(segments.Owner, _path));
         return new SvgJavaScriptPathSeg(_runtime, _path, segment);
     }
 
@@ -78,7 +79,7 @@ public sealed class SvgJavaScriptPathSegList
 
         var segment = newItem.CloneSegment();
         segments.Insert(index, segment);
-        _runtime.MarkMutation();
+        MarkPathMutation(ReferenceEquals(segments.Owner, _path));
         return new SvgJavaScriptPathSeg(_runtime, _path, segment);
     }
 
@@ -92,15 +93,14 @@ public sealed class SvgJavaScriptPathSegList
 
         var removed = segments[index];
         segments.RemoveAt(index);
-        _runtime.MarkMutation();
+        MarkPathMutation(ReferenceEquals(segments.Owner, _path));
         return new SvgJavaScriptPathSeg(_runtime, _path, removed);
     }
 
     public void clear()
     {
         GetSegments().Clear();
-        _path.OnPathUpdated();
-        _runtime.MarkMutation();
+        MarkPathMutation(pathAlreadyNotified: false);
     }
 
     private SvgPathSegmentList GetSegments()
@@ -113,6 +113,16 @@ public sealed class SvgJavaScriptPathSegList
         var created = new SvgPathSegmentList();
         _path.PathData = created;
         return created;
+    }
+
+    private void MarkPathMutation(bool pathAlreadyNotified)
+    {
+        if (!pathAlreadyNotified)
+        {
+            _path.OnPathUpdated();
+        }
+
+        _runtime.MarkMutation();
     }
 }
 
@@ -151,7 +161,7 @@ public sealed class SvgJavaScriptPathSeg
     {
         get
         {
-            var text = _segment.ToString();
+            var text = _segment.ToString() ?? string.Empty;
             return text.Length > 0 ? text.Substring(0, 1) : string.Empty;
         }
     }
@@ -354,6 +364,20 @@ public sealed partial class SvgJavaScriptElement
         object? relatedTargetNode,
         SvgJavaScriptEventInput? input)
     {
+        var eventFacade = new SvgJavaScriptEvent(
+            NormalizeListenerEventType(eventType),
+            targetNode,
+            this,
+            relatedTargetNode,
+            input);
+        return DispatchRegisteredEventListeners(eventType, eventFacade, useCapture: false);
+    }
+
+    internal SvgJavaScriptEventResult DispatchRegisteredEventListeners(
+        string eventType,
+        SvgJavaScriptEvent eventFacade,
+        bool useCapture)
+    {
         var normalizedType = NormalizeListenerEventType(eventType);
         if (normalizedType.Length == 0 ||
             _eventListeners is null ||
@@ -364,23 +388,18 @@ public sealed partial class SvgJavaScriptElement
         }
 
         var before = _runtime.MutationVersion;
-        var eventFacade = new SvgJavaScriptEvent(
-            normalizedType,
-            targetNode,
-            this,
-            relatedTargetNode,
-            input);
         var snapshot = registrations.ToArray();
         var executed = false;
 
         foreach (var registration in snapshot)
         {
-            if (registration.UseCapture)
+            if (registration.UseCapture != useCapture)
             {
                 continue;
             }
 
             executed = true;
+            eventFacade.SetCurrentTarget(this);
             _runtime.ExecuteEventListener(registration.Listener, this, eventFacade);
             if (eventFacade.cancelBubble || !eventFacade.bubbles)
             {
@@ -425,7 +444,7 @@ public sealed partial class SvgJavaScriptElement
             return string.Empty;
         }
 
-        var normalized = type.Trim();
+        var normalized = (type ?? string.Empty).Trim();
         return normalized.StartsWith("on", StringComparison.OrdinalIgnoreCase)
             ? normalized.Substring(2)
             : normalized;

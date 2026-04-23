@@ -542,6 +542,7 @@ public partial class SKSvg : IDisposable
 
         SourceDocument = svgDocument;
         ClearAnimationRenderState();
+        ReplaceAnimationController(null);
         InitializeJavaScriptRuntime(svgDocument);
         InvalidateRetainedSceneGraph();
 
@@ -1014,26 +1015,13 @@ public partial class SKSvg : IDisposable
         var resolvedTargetNode = ResolveJavaScriptEventTarget(runtime, sourceTargetElement, input.PicturePoint);
         var resolvedRelatedTargetNode = sourceRelatedElement is null ? null : runtime.GetElement(sourceRelatedElement);
         var mutationVersion = runtime.MutationVersion;
-        var handlerResult = runtime.ExecuteEventHandler(
+        var result = runtime.ExecuteEventHandlerAndListeners(
             handlerElement,
             resolvedTargetNode,
             resolvedRelatedTargetNode,
             eventType,
             attributeName,
             CreateJavaScriptEventInput(input));
-        var listenerResult = runtime.ExecuteEventListeners(
-            handlerElement,
-            resolvedTargetNode,
-            resolvedRelatedTargetNode,
-            eventType,
-            CreateJavaScriptEventInput(input));
-        var result = handlerResult.Executed || listenerResult.Executed
-            ? new SvgJavaScriptEventResult(
-                executed: true,
-                mutated: handlerResult.Mutated || listenerResult.Mutated,
-                cancelBubble: handlerResult.CancelBubble || listenerResult.CancelBubble,
-                defaultPrevented: handlerResult.DefaultPrevented || listenerResult.DefaultPrevented)
-            : SvgJavaScriptEventResult.NotExecuted;
         if (runtime.MutationVersion == mutationVersion)
         {
             return result;
@@ -1308,10 +1296,10 @@ public partial class SKSvg : IDisposable
                 _animationTimelineCallbackTime = callback.Time;
                 try
                 {
-                    var result = runtime.ExecuteEventHandler(
+                    var result = runtime.ExecuteEventHandlerAndListeners(
                         animation,
-                        animation,
-                        relatedElement: null,
+                        runtime.GetElement(animation),
+                        relatedTargetNode: null,
                         callback.EventType,
                         callback.AttributeName,
                         input: null);

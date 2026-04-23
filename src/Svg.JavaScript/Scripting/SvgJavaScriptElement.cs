@@ -318,6 +318,13 @@ public sealed partial class SvgJavaScriptElement
 
     public object replaceChild(object newChild, object oldChild)
     {
+        var newNode = UnwrapNode(newChild);
+        var oldNode = UnwrapNode(oldChild);
+        if (newNode is not null && ReferenceEquals(newNode, oldNode))
+        {
+            return oldChild;
+        }
+
         insertBefore(newChild, oldChild);
         return removeChild(oldChild);
     }
@@ -690,6 +697,12 @@ public sealed partial class SvgJavaScriptElement
 
     private void InsertElement(SvgElement childElement, object? referenceChild)
     {
+        if (ReferenceEquals(childElement, Element) || IsAncestorOf(childElement, Element))
+        {
+            _runtime.ThrowDomException(3, "Cannot insert an element into itself or its descendant.");
+        }
+
+        SvgJavaScriptDocument.EnsureDomNodesInitialized(Element);
         RemoveElementFromParent(childElement);
 
         var nodes = Element.Nodes;
@@ -721,6 +734,7 @@ public sealed partial class SvgJavaScriptElement
 
     private void InsertText(SvgJavaScriptTextNode textNode, object? referenceChild)
     {
+        SvgJavaScriptDocument.EnsureDomNodesInitialized(Element);
         textNode.DetachFromParent();
         var referenceNode = UnwrapNode(referenceChild);
         var nodeIndex = referenceNode is null ? Element.Nodes.Count : Element.Nodes.IndexOf(referenceNode);
@@ -748,6 +762,19 @@ public sealed partial class SvgJavaScriptElement
 
         parent.Children.Remove(element);
         parent.Nodes.Remove(element);
+    }
+
+    private static bool IsAncestorOf(SvgElement candidateAncestor, SvgElement element)
+    {
+        for (var current = element.Parent; current is not null; current = current.Parent)
+        {
+            if (ReferenceEquals(current, candidateAncestor))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private ISvgNode? UnwrapNode(object? node)

@@ -72,10 +72,10 @@ public sealed class SvgJavaScriptDocument
     {
         if (tagName is null || tagName == "*")
         {
-            return new SvgJavaScriptNodeList(_document.Descendants().Select(GetOrCreateElement).Cast<object>());
+            return new SvgJavaScriptNodeList(GetDocumentAndDescendants().Select(GetOrCreateElement).Cast<object>());
         }
 
-        return new SvgJavaScriptNodeList(_document.Descendants()
+        return new SvgJavaScriptNodeList(GetDocumentAndDescendants()
             .Where(element => string.Equals(GetElementName(element), tagName, StringComparison.OrdinalIgnoreCase))
             .Select(GetOrCreateElement)
             .Cast<object>());
@@ -147,7 +147,7 @@ public sealed class SvgJavaScriptDocument
         return textNode;
     }
 
-    private static void EnsureDomNodesInitialized(SvgElement element)
+    internal static void EnsureDomNodesInitialized(SvgElement element)
     {
         if (element.Nodes.Count > 0 || element.Children.Count == 0)
         {
@@ -162,6 +162,15 @@ public sealed class SvgJavaScriptDocument
             {
                 element.Nodes.Add(new SvgContentNode { Content = "\n" });
             }
+        }
+    }
+
+    private IEnumerable<SvgElement> GetDocumentAndDescendants()
+    {
+        yield return _document;
+        foreach (var element in _document.Descendants())
+        {
+            yield return element;
         }
     }
 

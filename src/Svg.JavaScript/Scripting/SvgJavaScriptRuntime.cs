@@ -120,7 +120,13 @@ public sealed partial class SvgJavaScriptRuntime
 
         if (dispatchLoadEvent)
         {
-            ExecuteEventHandler(_document, _document, null, "load", "onload", null);
+            ExecuteEventHandlerAndListeners(
+                _document,
+                GetElement(_document),
+                relatedTargetNode: null,
+                "load",
+                "onload",
+                input: null);
         }
 
         DrainPendingTimeouts();
@@ -158,6 +164,31 @@ public sealed partial class SvgJavaScriptRuntime
             relatedTargetNode,
             input);
         return ExecuteEventHandlerCore(element, attributeName, eventFacade);
+    }
+
+    internal SvgJavaScriptEventResult ExecuteEventHandlerAndListeners(
+        SvgElement element,
+        object targetNode,
+        object? relatedTargetNode,
+        string eventType,
+        string attributeName,
+        SvgJavaScriptEventInput? input)
+    {
+        var eventFacade = new SvgJavaScriptEvent(
+            eventType,
+            targetNode,
+            GetElement(element),
+            relatedTargetNode,
+            input);
+        var handlerResult = ExecuteEventHandlerCore(element, attributeName, eventFacade);
+        var listenerResult = GetElement(element).DispatchRegisteredEventListeners(eventType, eventFacade, useCapture: false);
+        return handlerResult.Executed || listenerResult.Executed
+            ? new SvgJavaScriptEventResult(
+                executed: true,
+                mutated: handlerResult.Mutated || listenerResult.Mutated,
+                cancelBubble: handlerResult.CancelBubble || listenerResult.CancelBubble,
+                defaultPrevented: eventFacade.defaultPrevented)
+            : SvgJavaScriptEventResult.NotExecuted;
     }
 
     internal SvgJavaScriptElementInstance? GetUseInstanceRoot(SvgUse use)
@@ -220,14 +251,34 @@ public sealed partial class SvgJavaScriptRuntime
             return true;
         }
 
-        evt.BeginDispatch(eventType, getFacade(target), evt.relatedTarget);
+        var eventPath = new List<TTarget>();
         for (var current = target; current is not null; current = getParent(current))
         {
+            eventPath.Add(current);
+        }
+
+        evt.BeginDispatch(eventType, getFacade(target), evt.relatedTarget);
+        for (var index = eventPath.Count - 1; index > 0; index--)
+        {
+            if (DispatchRegisteredEventListeners(eventPath[index], useCapture: true).CancelBubble ||
+                evt.cancelBubble)
+            {
+                return !evt.defaultPrevented;
+            }
+        }
+
+        _ = DispatchRegisteredEventListeners(eventPath[0], useCapture: true);
+        if (evt.cancelBubble)
+        {
+            return !evt.defaultPrevented;
+        }
+
+        for (var index = 0; index < eventPath.Count; index++)
+        {
+            var current = eventPath[index];
+            var listenerResult = DispatchRegisteredEventListeners(current, useCapture: false);
             var currentFacade = getFacade(current);
             evt.SetCurrentTarget(currentFacade);
-            var listenerResult = currentFacade is SvgJavaScriptElement elementFacade
-                ? elementFacade.DispatchRegisteredEventListeners(eventType, evt.target!, evt.relatedTarget, null)
-                : SvgJavaScriptEventResult.NotExecuted;
             var handlerResult = ExecuteEventHandlerCore(getHandlerElement(current), "on" + eventType, evt);
             if (listenerResult.CancelBubble ||
                 handlerResult.CancelBubble ||
@@ -238,6 +289,15 @@ public sealed partial class SvgJavaScriptRuntime
         }
 
         return !evt.defaultPrevented;
+
+        SvgJavaScriptEventResult DispatchRegisteredEventListeners(TTarget current, bool useCapture)
+        {
+            var currentFacade = getFacade(current);
+            evt.SetCurrentTarget(currentFacade);
+            return currentFacade is SvgJavaScriptElement elementFacade
+                ? elementFacade.DispatchRegisteredEventListeners(eventType, evt, useCapture)
+                : SvgJavaScriptEventResult.NotExecuted;
+        }
     }
 
     private SvgJavaScriptEventResult ExecuteEventHandlerCore(
