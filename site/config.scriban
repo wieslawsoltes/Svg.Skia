@@ -82,7 +82,6 @@ with api.dotnet
         { name: "Svg.Controls.Skia.Avalonia", path: "../src/Svg.Controls.Skia.Avalonia/Svg.Controls.Skia.Avalonia.csproj", properties: { TargetFramework: "net8.0" } },
         { name: "Skia.Controls.Avalonia", path: "../src/Skia.Controls.Avalonia/Skia.Controls.Avalonia.csproj", properties: { TargetFramework: "net8.0" } },
         { name: "Svg.Controls.Skia.Uno", path: "../src/Svg.Controls.Skia.Uno/Svg.Controls.Skia.Uno.csproj", properties: { TargetFramework: "net10.0" } },
-        { name: "Svg.Controls.Skia.Maui", path: "../src/Svg.Controls.Skia.Maui/Svg.Controls.Skia.Maui.csproj", properties: { TargetFramework: "net10.0-maccatalyst" } },
         { name: "SvgML.Avalonia", path: "../src/SvgML.Avalonia/SvgML.Avalonia.csproj", properties: { TargetFramework: "net8.0" } },
         { name: "Svg.Editor.Core", path: "../src/Svg.Editor.Core/Svg.Editor.Core.csproj" },
         { name: "Svg.Editor.Svg", path: "../src/Svg.Editor.Svg/Svg.Editor.Svg.csproj" },
