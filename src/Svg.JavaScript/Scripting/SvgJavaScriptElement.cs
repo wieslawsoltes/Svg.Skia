@@ -184,6 +184,7 @@ public sealed class SvgJavaScriptElement
 
     private void AppendText(SvgJavaScriptTextNode textNode)
     {
+        textNode.DetachFromParent();
         Element.Nodes.Add(textNode.Node);
         textNode.SetParent(Element);
         SyncContentFromNodes();

@@ -360,6 +360,8 @@ public partial class SKSvg : IDisposable
         {
             clone.SourceDocument = sourceDocumentClone;
 
+            clone.InitializeJavaScriptRuntime(sourceDocumentClone, executeDocumentScripts: false);
+
             if (HasAnimations)
             {
                 clone.ReplaceAnimationController(new SvgAnimationController(sourceDocumentClone));
@@ -920,7 +922,7 @@ public partial class SKSvg : IDisposable
         LastAnimationDirtyTargetCount = 0;
     }
 
-    private void InitializeJavaScriptRuntime(SvgDocument svgDocument)
+    private void InitializeJavaScriptRuntime(SvgDocument svgDocument, bool executeDocumentScripts = true)
     {
         _javaScriptRuntime = null;
         if (!Settings.EnableJavaScript)
@@ -930,7 +932,10 @@ public partial class SKSvg : IDisposable
 
         var runtime = new SvgJavaScriptRuntime(svgDocument, CreateJavaScriptSettings());
         _javaScriptRuntime = runtime;
-        runtime.ExecuteDocumentScripts();
+        if (executeDocumentScripts)
+        {
+            runtime.ExecuteDocumentScripts();
+        }
     }
 
     internal SvgJavaScriptEventResult DispatchJavaScriptEvent(

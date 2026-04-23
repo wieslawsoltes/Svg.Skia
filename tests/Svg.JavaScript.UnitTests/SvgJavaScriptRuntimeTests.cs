@@ -103,6 +103,33 @@ public class SvgJavaScriptRuntimeTests
         AssertFill(document, "target", Color.Green);
     }
 
+    [Fact]
+    public void AppendChild_MovesTextNodeOutOfPreviousParent()
+    {
+        var document = LoadDocument("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <text id="source">hello</text>
+              <text id="target"></text>
+              <script>
+                var source = document.getElementById('source');
+                var target = document.getElementById('target');
+                target.appendChild(source.firstChild);
+              </script>
+            </svg>
+            """);
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings { ThrowOnError = true });
+
+        runtime.ExecuteDocumentScripts();
+
+        var source = Assert.IsType<SvgText>(document.Descendants().Single(element => element.ID == "source"));
+        var target = Assert.IsType<SvgText>(document.Descendants().Single(element => element.ID == "target"));
+        Assert.Equal(string.Empty, source.Content);
+        Assert.Empty(source.Nodes);
+        Assert.Equal("hello", target.Content);
+        Assert.Single(target.Nodes);
+    }
+
     private static SvgDocument LoadDocument(string svg)
     {
         var xmlDocument = new XmlDocument();

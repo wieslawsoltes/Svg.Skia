@@ -49,6 +49,19 @@ public sealed class SvgJavaScriptTextNode
         _parent = parent;
     }
 
+    internal void DetachFromParent()
+    {
+        if (_parent is null)
+        {
+            return;
+        }
+
+        var oldParent = _parent;
+        oldParent.Nodes.Remove(Node);
+        SyncParentContent(oldParent);
+        _parent = null;
+    }
+
     private object? GetSibling(int offset)
     {
         if (_parent is null)
@@ -71,6 +84,11 @@ public sealed class SvgJavaScriptTextNode
             return;
         }
 
-        _parent.Content = string.Concat(_parent.Nodes.OfType<SvgContentNode>().Select(node => node.Content));
+        SyncParentContent(_parent);
+    }
+
+    private static void SyncParentContent(SvgElement parent)
+    {
+        parent.Content = string.Concat(parent.Nodes.OfType<SvgContentNode>().Select(node => node.Content));
     }
 }

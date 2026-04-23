@@ -207,6 +207,39 @@ public class SvgJavaScriptRuntimeTests
         Assert.True(result.Handled);
     }
 
+    [Fact]
+    public void Clone_DispatchPointerReleased_ExecutesClickHandler()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="20" height="20" fill="red"
+                    onclick="this.setAttribute('fill', 'green')" />
+            </svg>
+            """);
+
+        using var clone = svg.Clone();
+        var dispatcher = new SvgInteractionDispatcher();
+        var input = new SvgPointerInput(
+            new SKPoint(5, 5),
+            SvgPointerDeviceType.Mouse,
+            SvgMouseButton.Left,
+            1,
+            0,
+            altKey: false,
+            shiftKey: false,
+            ctrlKey: false,
+            sessionId: "test");
+
+        dispatcher.DispatchPointerPressed(clone, input);
+        dispatcher.DispatchPointerReleased(clone, input);
+
+        AssertFill(svg, "target", Color.Red);
+        AssertFill(clone, "target", Color.Green);
+    }
+
     private static void AssertFill(SKSvg svg, string id, Color expected)
     {
         var rect = Assert.IsType<SvgRectangle>(svg.SourceDocument!.Descendants().Single(element => element.ID == id));
