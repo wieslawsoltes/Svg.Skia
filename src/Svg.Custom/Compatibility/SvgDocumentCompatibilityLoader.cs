@@ -124,8 +124,8 @@ public static class SvgDocumentCompatibilityLoader
             styles.Add(new SvgCssStyleSource(normalizedCss, baseUri));
         }
 
-        SvgCssCompatibilityProcessor.Apply(svgDocument!, styles, elementFactory);
-        svgDocument?.FlushStyles(true);
+        svgDocument?.SetCompatibilityStyleSources(styles);
+        svgDocument?.ApplyCompatibilityStyles();
         return svgDocument!;
     }
 

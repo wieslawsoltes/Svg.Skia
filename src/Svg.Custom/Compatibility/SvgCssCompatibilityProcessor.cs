@@ -49,7 +49,11 @@ internal static class SvgCssCompatibilityProcessor
     private const string PortraitOrientation = "portrait";
     private const int MaxStringBuilderCapacity = int.MaxValue - 1;
 
-    public static void Apply(SvgDocument svgDocument, IReadOnlyCollection<SvgCssStyleSource> styles, SvgElementFactory elementFactory)
+    public static void Apply(
+        SvgDocument svgDocument,
+        IReadOnlyCollection<SvgCssStyleSource> styles,
+        SvgElementFactory elementFactory,
+        SvgElement? scopeRoot = null)
     {
         if (styles.Count == 0)
         {
@@ -83,6 +87,13 @@ internal static class SvgCssCompatibilityProcessor
 
                     foreach (var elem in elemsToStyle)
                     {
+                        if (scopeRoot is not null &&
+                            !ReferenceEquals(elem, scopeRoot) &&
+                            !IsDescendantOf(scopeRoot, elem))
+                        {
+                            continue;
+                        }
+
                         declarations ??= CreateAppliedDeclarations();
 
                         SvgTextBase? textContainer = null;
@@ -126,6 +137,19 @@ internal static class SvgCssCompatibilityProcessor
             // extra level, which makes CreateAnimatedDocument fail to resolve targets on clones.
             _ = rootNode.Children.Remove(svgDocument);
         }
+    }
+
+    private static bool IsDescendantOf(SvgElement root, SvgElement element)
+    {
+        for (var current = element.Parent; current is not null; current = current.Parent)
+        {
+            if (ReferenceEquals(current, root))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static bool ShouldApplyStyleElement(SvgUnknownElement styleElement)
