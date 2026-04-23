@@ -6,7 +6,7 @@
              Title="Svg.Controls.Skia.Maui">
 
     <ContentPage.Resources>
-        <svg:SvgSource x:Key="TigerSource" Path="Assets/tiger.svg" />
+        <svg:SvgSource x:Key="TigerSource" Path="Assets/__tiger.svg" />
     </ContentPage.Resources>
 
     <ScrollView>
@@ -28,7 +28,7 @@
                     <Label Text="Asset Load via Path"
                            FontSize="18"
                            FontAttributes="Bold" />
-                    <svg:Svg Path="Assets/tiger.svg"
+                    <svg:Svg Path="Assets/__tiger.svg"
                              HeightRequest="240"
                              Stretch="Uniform"
                              EnableCache="True" />
@@ -104,7 +104,7 @@
                            FontSize="18"
                            FontAttributes="Bold" />
                     <svg:Svg x:Name="InteractiveSvg"
-                             Path="Assets/camera.svg"
+                             Path="Assets/__AJ_Digital_Camera.svg"
                              HeightRequest="260"
                              Stretch="Uniform">
                         <svg:Svg.GestureRecognizers>

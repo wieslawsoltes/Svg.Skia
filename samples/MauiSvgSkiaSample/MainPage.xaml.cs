@@ -21,7 +21,7 @@ public partial class MainPage : ContentPage
         FilterSvg.Source = FilterSvgMarkup;
 
         CssStatusLabel.Text = "Current theme: cobalt";
-        HitTestStatusLabel.Text = "Tap the camera SVG to inspect hit-tested parts.";
+        HitTestStatusLabel.Text = "Tap the camera SVG to inspect hit-tested elements.";
     }
 
     private static Point GetViewCenter(VisualElement element)
@@ -97,7 +97,7 @@ public partial class MainPage : ContentPage
         InteractiveSvg.Zoom = 1.0;
         InteractiveSvg.PanX = 0.0;
         InteractiveSvg.PanY = 0.0;
-        HitTestStatusLabel.Text = "Tap the camera SVG to inspect hit-tested parts.";
+        HitTestStatusLabel.Text = "Tap the camera SVG to inspect hit-tested elements.";
     }
 
     private void OnInteractiveSvgTapped(object? sender, TappedEventArgs e)
