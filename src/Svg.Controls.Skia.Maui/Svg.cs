@@ -18,10 +18,13 @@ namespace Maui.Svg.Skia;
 [ContentProperty(nameof(Path))]
 public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
 {
+    private readonly object _cacheLock = new();
     private SvgSource? _svg;
     private Dictionary<string, SvgSource>? _cache;
     private CancellationTokenSource? _pendingLoadCts;
     private long _loadVersion;
+    private SvgSize _lastRenderViewportSize;
+    private bool _reloadOnLoaded;
     private SKSvg? _trackedAnimationSvg;
     private readonly Stopwatch _animationPlaybackStopwatch = new();
     private IDispatcherTimer? _animationDispatcherTimer;
@@ -296,7 +299,7 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
             return false;
         }
 
-        if (!renderInfo.TryMapToPicture(new SvgPoint(point.X, point.Y), out var mappedPoint))
+        if (!renderInfo.TryMapToPicture(ToRenderPoint(point, renderInfo.ViewportSize), out var mappedPoint))
         {
             return false;
         }
@@ -384,10 +387,14 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
         var control = (Svg)bindable;
         if ((bool)newValue)
         {
-            control._cache ??= new Dictionary<string, SvgSource>(StringComparer.Ordinal);
+            lock (control._cacheLock)
+            {
+                control._cache ??= new Dictionary<string, SvgSource>(StringComparer.Ordinal);
+            }
         }
         else
         {
+            control.CancelPendingLoad();
             control.DisposeCache();
         }
     }
@@ -448,6 +455,7 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
 
     private void OnPaintSurface(object? sender, SkiaSharp.Views.Maui.SKPaintSurfaceEventArgs e)
     {
+        _lastRenderViewportSize = new SvgSize(e.Info.Width, e.Info.Height);
         Render(e.Surface.Canvas, e.Info.Width, e.Info.Height);
     }
 
@@ -505,26 +513,37 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
     private void OnLoaded(object? sender, EventArgs e)
     {
         TrackAnimationSvg(_svg?.Svg);
-        QueueSourceReload();
+
+        if (HasSource() && (_svg is null || _reloadOnLoaded))
+        {
+            QueueSourceReload();
+        }
     }
 
     private void OnUnloaded(object? sender, EventArgs e)
     {
+        if (_pendingLoadCts is not null && HasSource())
+        {
+            _reloadOnLoaded = true;
+        }
+
         CancelPendingLoad();
         TrackAnimationSvg(null);
     }
 
     private void OnSizeChanged(object? sender, EventArgs e)
     {
+        _lastRenderViewportSize = default;
         InvalidateSurface();
     }
 
     private void QueueSourceReload()
     {
         var loadVersion = Interlocked.Increment(ref _loadVersion);
+        _reloadOnLoaded = false;
         CancelPendingLoad();
 
-        if (SvgSource is null && string.IsNullOrWhiteSpace(Path) && string.IsNullOrWhiteSpace(Source))
+        if (!HasSource())
         {
             ClearSource();
             return;
@@ -593,7 +612,7 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
             }
 
             ApplyRenderOptions(clone, Wireframe, DisableFilters);
-            return new LoadResult(clone);
+            return new LoadResult(clone, false);
         }
         catch
         {
@@ -607,28 +626,32 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
         var parameters = BuildParameters(null, Css, CurrentCss);
         var normalizedPath = SvgSource.NormalizePath(path).ToString();
         var cacheKey = SvgCacheKey.Create(normalizedPath, parameters);
-        var cache = EnableCache ? (_cache ??= new Dictionary<string, SvgSource>(StringComparer.Ordinal)) : null;
 
-        if (cache is { } && cache.TryGetValue(cacheKey, out var cached))
+        if (TryCreateCachedLoadResult(cacheKey, out var cachedResult))
         {
-            var workingSource = CreateWorkingSource(cached);
-            ApplyRenderOptions(workingSource, Wireframe, DisableFilters);
-            return new LoadResult(workingSource);
+            return cachedResult;
         }
 
         var source = await SvgSource.LoadAsync(path, parameters: parameters, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
         ApplyRenderOptions(source, Wireframe, DisableFilters);
 
-        cache = EnableCache ? (_cache ??= new Dictionary<string, SvgSource>(StringComparer.Ordinal)) : null;
-        if (cache is { })
+        if (EnableCache)
         {
             var cacheEntry = CreateWorkingSource(source);
-            cache[cacheKey] = cacheEntry;
-            return new LoadResult(source);
+            if (TryStoreCachedSource(cacheKey, cacheEntry, out var previousCached))
+            {
+                DisposeReplacedCachedSource(previousCached);
+                return new LoadResult(source, ReferenceEquals(source, cacheEntry));
+            }
+
+            if (!ReferenceEquals(cacheEntry, source))
+            {
+                cacheEntry.Dispose();
+            }
         }
 
-        return new LoadResult(source);
+        return new LoadResult(source, false);
     }
 
     private LoadResult LoadInlineSource(string sourceText)
@@ -636,7 +659,7 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
         var parameters = BuildParameters(null, Css, CurrentCss);
         var source = SvgSource.LoadFromSvg(sourceText, parameters);
         ApplyRenderOptions(source, Wireframe, DisableFilters);
-        return new LoadResult(source);
+        return new LoadResult(source, false);
     }
 
     private bool TryGetRenderInfo(out SvgRenderInfo renderInfo)
@@ -650,7 +673,7 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
         }
 
         return SvgRenderLayout.TryCreateRenderInfo(
-            new SvgSize(Width, Height),
+            GetRenderViewportSize(),
             new SvgRect(picture.CullRect.Left, picture.CullRect.Top, picture.CullRect.Width, picture.CullRect.Height),
             Stretch,
             StretchDirection,
@@ -716,20 +739,25 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
 
     private void DisposeCache()
     {
-        if (_cache is null)
+        SvgSource[] cachedSources;
+        lock (_cacheLock)
         {
-            return;
+            if (_cache is null)
+            {
+                return;
+            }
+
+            cachedSources = _cache.Values.ToArray();
+            _cache = null;
         }
 
-        foreach (var cached in _cache.Values)
+        foreach (var cached in cachedSources)
         {
             if (!ReferenceEquals(cached, _svg))
             {
                 cached.Dispose();
             }
         }
-
-        _cache = null;
     }
 
     private static SvgSource CreateWorkingSource(SvgSource source)
@@ -739,18 +767,98 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
 
     private bool IsCached(SvgSource source)
     {
-        return _cache is { } cache && cache.Values.Any(value => ReferenceEquals(value, source));
+        lock (_cacheLock)
+        {
+            return _cache is { } cache && cache.Values.Any(value => ReferenceEquals(value, source));
+        }
     }
 
     private void DisposeResultIfOwned(LoadResult result)
     {
-        if (result.Source is not null && !IsCached(result.Source))
+        if (result.Source is not null && !result.IsCacheEntry)
         {
             result.Source.Dispose();
         }
     }
 
-    private readonly record struct LoadResult(SvgSource? Source);
+    private bool HasSource()
+    {
+        return SvgSource is not null || !string.IsNullOrWhiteSpace(Path) || !string.IsNullOrWhiteSpace(Source);
+    }
+
+    private bool TryCreateCachedLoadResult(string cacheKey, out LoadResult result)
+    {
+        lock (_cacheLock)
+        {
+            if (EnableCache && _cache is { } cache && cache.TryGetValue(cacheKey, out var cached))
+            {
+                var workingSource = CreateWorkingSource(cached);
+                ApplyRenderOptions(workingSource, Wireframe, DisableFilters);
+                result = new LoadResult(workingSource, ReferenceEquals(workingSource, cached));
+                return true;
+            }
+        }
+
+        result = default;
+        return false;
+    }
+
+    private bool TryStoreCachedSource(string cacheKey, SvgSource source, out SvgSource? previous)
+    {
+        lock (_cacheLock)
+        {
+            if (!EnableCache)
+            {
+                previous = null;
+                return false;
+            }
+
+            _cache ??= new Dictionary<string, SvgSource>(StringComparer.Ordinal);
+            _cache.TryGetValue(cacheKey, out previous);
+            _cache[cacheKey] = source;
+            return true;
+        }
+    }
+
+    private void DisposeReplacedCachedSource(SvgSource? source)
+    {
+        if (source is not null && !ReferenceEquals(source, _svg) && !IsCached(source))
+        {
+            source.Dispose();
+        }
+    }
+
+    private SvgSize GetRenderViewportSize()
+    {
+        if (!_lastRenderViewportSize.IsEmpty)
+        {
+            return _lastRenderViewportSize;
+        }
+
+        var canvasSize = CanvasSize;
+        if (canvasSize.Width > 0 && canvasSize.Height > 0)
+        {
+            return new SvgSize(canvasSize.Width, canvasSize.Height);
+        }
+
+        return new SvgSize(Width, Height);
+    }
+
+    private SvgPoint ToRenderPoint(Microsoft.Maui.Graphics.Point point, SvgSize viewportSize)
+    {
+        var logicalWidth = Width;
+        var logicalHeight = Height;
+        if (logicalWidth <= 0 || logicalHeight <= 0 || viewportSize.IsEmpty)
+        {
+            return new SvgPoint(point.X, point.Y);
+        }
+
+        return new SvgPoint(
+            point.X * (viewportSize.Width / logicalWidth),
+            point.Y * (viewportSize.Height / logicalHeight));
+    }
+
+    private readonly record struct LoadResult(SvgSource? Source, bool IsCacheEntry);
 
     private void TrackAnimationSvg(SKSvg? skSvg)
     {

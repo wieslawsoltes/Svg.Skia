@@ -39,7 +39,11 @@ internal readonly record struct SvgRect(double X, double Y, double Width, double
     }
 }
 
-internal readonly record struct SvgRenderInfo(SvgRect DestinationRect, SvgRect SourceRect, Matrix3x2 Matrix)
+internal readonly record struct SvgRenderInfo(
+    SvgSize ViewportSize,
+    SvgRect DestinationRect,
+    SvgRect SourceRect,
+    Matrix3x2 Matrix)
 {
     public bool TryMapToPicture(SvgPoint point, out SvgPoint picturePoint)
     {
@@ -128,7 +132,7 @@ internal static class SvgRenderLayout
             Matrix3x2.CreateScale((float)zoom)
             * Matrix3x2.CreateTranslation((float)panX, (float)panY);
 
-        renderInfo = new SvgRenderInfo(destinationRect, sourceRect, baseMatrix * userMatrix);
+        renderInfo = new SvgRenderInfo(viewportSize, destinationRect, sourceRect, baseMatrix * userMatrix);
         return true;
     }
 
