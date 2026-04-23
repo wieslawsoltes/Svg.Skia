@@ -395,8 +395,14 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
         }
         else
         {
+            var reloadAfterCancel = control._pendingLoadCts is not null && control.HasSource();
             control.CancelPendingLoad();
             control.DisposeCache();
+
+            if (reloadAfterCancel)
+            {
+                control.QueueSourceReload();
+            }
         }
     }
 
@@ -614,6 +620,12 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
             }
 
             ApplyRenderOptions(clone, Wireframe, DisableFilters);
+            if (clone.Picture is null)
+            {
+                clone.Dispose();
+                return default;
+            }
+
             return new LoadResult(clone, false);
         }
         catch
