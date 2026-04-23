@@ -190,7 +190,12 @@ internal static class SvgSceneHitTestService
     {
         if (node.HitTestPath is { } hitTestPath)
         {
-            return GeometryHitTestService.ContainsStroke(hitTestPath, point, node.TotalTransform, node.StrokeWidth);
+            return GeometryHitTestService.ContainsStroke(
+                hitTestPath,
+                point,
+                node.TotalTransform,
+                node.StrokeWidth,
+                node.IsStrokeNonScaling);
         }
 
         return node.StrokeWidth > 0f && GetDirectStrokeBounds(node).Contains(point);
@@ -334,7 +339,7 @@ internal static class SvgSceneHitTestService
     private static SKRect GetRectHitBounds(SvgSceneNode node)
     {
         var bounds = UsesStructuralBounds(node)
-            ? GetStructuralBounds(node)
+            ? SvgSceneNodeBoundsService.GetRenderablePaintBounds(node)
             : GetDirectFillBounds(node);
 
         return SvgSceneNodeBoundsService.GetInflatedBounds(node, bounds);
