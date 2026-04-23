@@ -638,7 +638,8 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
 
         if (source.Picture is null)
         {
-            return new LoadResult(source, false);
+            source.Dispose();
+            return default;
         }
 
         if (EnableCache)

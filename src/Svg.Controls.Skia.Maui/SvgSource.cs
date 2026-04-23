@@ -112,15 +112,7 @@ public sealed class SvgSource : IDisposable
         if (System.IO.Path.IsPathRooted(path))
         {
             var fullPath = System.IO.Path.GetFullPath(path);
-            if (File.Exists(fullPath))
-            {
-                return new Uri(fullPath);
-            }
-
-            if (!path.StartsWith("/", StringComparison.Ordinal))
-            {
-                return new Uri(fullPath);
-            }
+            return new Uri(fullPath);
         }
 
         if (baseUri is not null && baseUri.IsAbsoluteUri)
