@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
-using Svg.FilterEffects;
 using Xunit;
 
 namespace Svg.Skia.UnitTests;
@@ -940,79 +939,38 @@ public class SvgDocumentCompatibilityLoaderTests
     }
 
     [Fact]
-    public void FromSvg_ParsesPercentageOpacityPresentationAttributes()
+    public void FromSvg_TreatsOpacity100PercentPresentationAttributeAsDefaultOpacity()
     {
         const string svg = """
             <svg xmlns="http://www.w3.org/2000/svg" opacity="100%">
-              <defs>
-                <linearGradient id="gradient">
-                  <stop id="stop" offset="0%" stop-color="#ffffff" stop-opacity="25%" />
-                </linearGradient>
-                <filter id="filter">
-                  <feFlood id="flood" flood-color="#000000" flood-opacity="75%" />
-                </filter>
-              </defs>
-              <rect id="target"
-                    width="10"
-                    height="10"
-                    fill="url(#gradient)"
-                    fill-opacity="50%"
-                    stroke="#000000"
-                    stroke-opacity="25%"
-                    filter="url(#filter)" />
+              <rect width="10" height="10" fill="green" />
             </svg>
             """;
 
         var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
 
-        AssertParsedOpacityValues(document, 1f, 0.5f, 0.25f, 0.25f, 0.75f);
+        Assert.Equal(1f, document.Opacity, 3);
     }
 
     [Fact]
-    public void FromSvg_ParsesPercentageOpacityInlineStyles()
+    public void FromSvg_IgnoresInvalidPercentageOpacityInlineStyles()
     {
         const string svg = """
-            <svg xmlns="http://www.w3.org/2000/svg" style="opacity: 100%">
-              <defs>
-                <linearGradient id="gradient">
-                  <stop id="stop" offset="0%" stop-color="#ffffff" style="stop-opacity: 25%" />
-                </linearGradient>
-                <filter id="filter">
-                  <feFlood id="flood" flood-color="#000000" style="flood-opacity: 75%" />
-                </filter>
-              </defs>
+            <svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.1%">
               <rect id="target"
                     width="10"
                     height="10"
-                    fill="url(#gradient)"
                     stroke="#000000"
-                    filter="url(#filter)"
                     style="fill-opacity: 50%; stroke-opacity: 25%" />
             </svg>
             """;
 
         var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
-
-        AssertParsedOpacityValues(document, 1f, 0.5f, 0.25f, 0.25f, 0.75f);
-    }
-
-    private static void AssertParsedOpacityValues(
-        SvgDocument document,
-        float expectedDocumentOpacity,
-        float expectedFillOpacity,
-        float expectedStrokeOpacity,
-        float expectedStopOpacity,
-        float expectedFloodOpacity)
-    {
         var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
-        var stop = document.Descendants().OfType<SvgGradientStop>().Single(static element => element.ID == "stop");
-        var flood = document.Descendants().OfType<SvgFlood>().Single(static element => element.ID == "flood");
 
-        Assert.Equal(expectedDocumentOpacity, document.Opacity, 3);
-        Assert.Equal(expectedFillOpacity, rect.FillOpacity, 3);
-        Assert.Equal(expectedStrokeOpacity, rect.StrokeOpacity, 3);
-        Assert.Equal(expectedStopOpacity, stop.StopOpacity, 3);
-        Assert.Equal(expectedFloodOpacity, flood.FloodOpacity, 3);
+        Assert.Equal(1f, document.Opacity, 3);
+        Assert.Equal(1f, rect.FillOpacity, 3);
+        Assert.Equal(1f, rect.StrokeOpacity, 3);
     }
 
     private static LoadResult CaptureLoad(Func<SvgDocument> load)

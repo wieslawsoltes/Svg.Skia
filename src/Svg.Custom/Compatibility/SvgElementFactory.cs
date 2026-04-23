@@ -259,6 +259,7 @@ namespace Svg
 
         private static ReadOnlySpan<char> TrimWhitespace(ReadOnlySpan<char> value)
         {
+#if NETSTANDARD20
             var start = 0;
             while (start < value.Length && char.IsWhiteSpace(value[start]))
             {
@@ -272,6 +273,9 @@ namespace Svg
             }
 
             return value.Slice(start, end - start);
+#else
+            return value.Trim();
+#endif
         }
 
         private static bool TryParseInvariantFloat(ReadOnlySpan<char> value, out float parsed)
@@ -283,26 +287,34 @@ namespace Svg
 #endif
         }
 
-        private static string NormalizeOpacityAttributeValue(string attributeName, string attributeValue)
+        private static bool TryHandlePercentageOpacityAttribute(string attributeName, string attributeValue, out string normalizedValue)
         {
+            normalizedValue = attributeValue;
+
             if (!IsOpacityAttribute(attributeName) || string.IsNullOrWhiteSpace(attributeValue))
             {
-                return attributeValue;
+                return false;
             }
 
             var trimmedValue = TrimWhitespace(attributeValue.AsSpan());
             if (trimmedValue.Length == 0 || trimmedValue[trimmedValue.Length - 1] != '%')
             {
-                return attributeValue;
+                return false;
             }
 
             var percentageValue = TrimWhitespace(trimmedValue.Slice(0, trimmedValue.Length - 1));
             if (percentageValue.Length == 0 || !TryParseInvariantFloat(percentageValue, out var parsedPercentage))
             {
-                return attributeValue;
+                return true;
             }
 
-            return (parsedPercentage / 100f).ToString("R", CultureInfo.InvariantCulture);
+            if (parsedPercentage == 100f)
+            {
+                normalizedValue = "1";
+                return false;
+            }
+
+            return true;
         }
 
         internal static bool SetPropertyValue(SvgElement element, string ns, string attributeName, string attributeValue, SvgDocument document, bool isStyle = false)
@@ -334,7 +346,16 @@ namespace Svg
                 attributeValue = "1";
             }
 
-            attributeValue = NormalizeOpacityAttributeValue(attributeName, attributeValue);
+            if (TryHandlePercentageOpacityAttribute(attributeName, attributeValue, out var normalizedOpacityValue))
+            {
+                // SVG 1.1 opacity properties are numeric, not percentages. Treat percentage tokens
+                // as invalid declarations, except for the browser-authored "100%" case where
+                // normalizing to the default value avoids a load-time exception without changing
+                // the rendered result.
+                return true;
+            }
+
+            attributeValue = normalizedOpacityValue;
 
             var setValueResult = element.SetValue(attributeName, document, CultureInfo.InvariantCulture, attributeValue);
             if (setValueResult)
