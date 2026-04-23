@@ -36,8 +36,7 @@ public sealed class SvgJavaScriptWindow
 
     public int setTimeout(object? handler, object? delay)
     {
-        _ = delay;
-        return _runtime.SetTimeout(handler);
+        return _runtime.SetTimeout(handler, delay);
     }
 
     public void clearTimeout(int id)

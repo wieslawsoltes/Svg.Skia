@@ -15,7 +15,7 @@ using Svg.Skia;
 
 namespace Svg.JavaScript;
 
-public sealed class SvgJavaScriptRuntime
+public sealed partial class SvgJavaScriptRuntime
 {
     private static readonly HashSet<string> s_supportedScriptTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -37,12 +37,17 @@ public sealed class SvgJavaScriptRuntime
     private readonly SvgJavaScriptWindow _windowFacade;
     private readonly SvgJavaScriptAssetLoader _assetLoader;
     private readonly Dictionary<SvgUse, SvgJavaScriptElementInstance?> _useInstanceRoots = new();
+    private readonly List<SvgJavaScriptTimeoutEntry> _pendingTimeouts = new();
     private int _mutationVersion;
     private SvgSceneDocument? _sceneDocument;
     private int _sceneDocumentMutationVersion = -1;
     private int _nextTimeoutId;
+    private long _nextTimeoutSequence;
     private ISvgJavaScriptAnimationHost? _animationHost;
+    private ISvgJavaScriptTextContentHost? _textContentHost;
     private TimeSpan? _pendingAnimationTime;
+    private double _virtualTimerMilliseconds;
+    private bool _drainingTimeouts;
 
     public SvgJavaScriptRuntime(SvgDocument document, SvgJavaScriptSettings settings)
     {
@@ -87,6 +92,12 @@ public sealed class SvgJavaScriptRuntime
         }
     }
 
+    public ISvgJavaScriptTextContentHost? TextContentHost
+    {
+        get => _textContentHost;
+        set => _textContentHost = value;
+    }
+
     public SvgJavaScriptElement GetElement(SvgElement element)
     {
         return _documentFacade.GetOrCreateElement(element);
@@ -111,6 +122,8 @@ public sealed class SvgJavaScriptRuntime
         {
             ExecuteEventHandler(_document, _document, null, "load", "onload", null);
         }
+
+        DrainPendingTimeouts();
     }
 
     public SvgJavaScriptEventResult ExecuteEventHandler(
@@ -210,9 +223,15 @@ public sealed class SvgJavaScriptRuntime
         evt.BeginDispatch(eventType, getFacade(target), evt.relatedTarget);
         for (var current = target; current is not null; current = getParent(current))
         {
-            evt.SetCurrentTarget(getFacade(current));
-            var result = ExecuteEventHandlerCore(getHandlerElement(current), "on" + eventType, evt);
-            if (result.CancelBubble || !evt.bubbles)
+            var currentFacade = getFacade(current);
+            evt.SetCurrentTarget(currentFacade);
+            var listenerResult = currentFacade is SvgJavaScriptElement elementFacade
+                ? elementFacade.DispatchRegisteredEventListeners(eventType, evt.target!, evt.relatedTarget, null)
+                : SvgJavaScriptEventResult.NotExecuted;
+            var handlerResult = ExecuteEventHandlerCore(getHandlerElement(current), "on" + eventType, evt);
+            if (listenerResult.CancelBubble ||
+                handlerResult.CancelBubble ||
+                !evt.bubbles)
             {
                 break;
             }
@@ -246,6 +265,8 @@ public sealed class SvgJavaScriptRuntime
             {
                 eventFacade.preventDefault();
             }
+
+            DrainPendingTimeouts();
         }
         finally
         {
@@ -314,25 +335,36 @@ public sealed class SvgJavaScriptRuntime
             return id;
         }
 
-        switch (handler)
-        {
-            case string code when !string.IsNullOrWhiteSpace(code):
-                ExecuteScript(code, "window.setTimeout");
-                break;
-            case Func<JsValue, JsValue[], JsValue> callback:
-                callback(JsValue.FromObject(_engine, _windowFacade), Array.Empty<JsValue>());
-                break;
-            default:
-                ExecuteScript(handler.ToString() ?? string.Empty, "window.setTimeout");
-                break;
-        }
-
+        _pendingTimeouts.Add(new SvgJavaScriptTimeoutEntry(id, _virtualTimerMilliseconds, ++_nextTimeoutSequence, handler));
         return id;
     }
 
     internal void ClearTimeout(int id)
     {
-        _ = id;
+        for (var i = _pendingTimeouts.Count - 1; i >= 0; i--)
+        {
+            if (_pendingTimeouts[i].Id == id)
+            {
+                _pendingTimeouts.RemoveAt(i);
+            }
+        }
+    }
+
+    internal int SetTimeout(object? handler, object? delay)
+    {
+        var id = ++_nextTimeoutId;
+
+        if (handler is null)
+        {
+            return id;
+        }
+
+        _pendingTimeouts.Add(new SvgJavaScriptTimeoutEntry(
+            id,
+            _virtualTimerMilliseconds + ParseTimeoutDelay(delay),
+            ++_nextTimeoutSequence,
+            handler));
+        return id;
     }
 
     internal bool TryGetSceneNode(SvgElement element, out SvgSceneNode? node)
@@ -405,6 +437,137 @@ public sealed class SvgJavaScriptRuntime
         }
 
         _pendingAnimationTime = time;
+    }
+
+    internal void BeginElement(SvgAnimationElement animation, TimeSpan offset)
+    {
+        _ = _animationHost?.BeginElement(animation, offset);
+    }
+
+    internal void EndElement(SvgAnimationElement animation, TimeSpan offset)
+    {
+        _ = _animationHost?.EndElement(animation, offset);
+    }
+
+    internal bool TryGetBaseAttributeValue(SvgElement element, string attributeName, out string value)
+    {
+        value = string.Empty;
+        return _animationHost is not null && _animationHost.TryGetBaseAttributeValue(element, attributeName, out value);
+    }
+
+    internal double GetAnimationStartTimeSeconds(SvgAnimationElement animation)
+    {
+        if (_animationHost is not null &&
+            _animationHost.TryGetStartTime(animation, out var startTime))
+        {
+            return startTime.TotalSeconds;
+        }
+
+        ThrowDomException(11, "The animation element has no current or future interval.");
+        return 0d;
+    }
+
+    internal double GetComputedTextLength(SvgTextBase textContentElement)
+    {
+        return RequireTextContentHost().GetComputedTextLength(textContentElement);
+    }
+
+    internal int GetNumberOfChars(SvgTextBase textContentElement)
+    {
+        return RequireTextContentHost().GetNumberOfChars(textContentElement);
+    }
+
+    internal double GetSubStringLength(SvgTextBase textContentElement, int charnum, int nchars)
+    {
+        try
+        {
+            return RequireTextContentHost().GetSubStringLength(textContentElement, charnum, nchars);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            ThrowDomException(1, "The character index is out of range.");
+            return 0d;
+        }
+    }
+
+    internal SvgJavaScriptPoint GetStartPositionOfChar(SvgTextBase textContentElement, int charnum)
+    {
+        try
+        {
+            return RequireTextContentHost().GetStartPositionOfChar(textContentElement, charnum);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            ThrowDomException(1, "The character index is out of range.");
+            return new SvgJavaScriptPoint();
+        }
+    }
+
+    internal SvgJavaScriptPoint GetEndPositionOfChar(SvgTextBase textContentElement, int charnum)
+    {
+        try
+        {
+            return RequireTextContentHost().GetEndPositionOfChar(textContentElement, charnum);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            ThrowDomException(1, "The character index is out of range.");
+            return new SvgJavaScriptPoint();
+        }
+    }
+
+    internal SvgJavaScriptRect GetExtentOfChar(SvgTextBase textContentElement, int charnum)
+    {
+        try
+        {
+            return RequireTextContentHost().GetExtentOfChar(textContentElement, charnum);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            ThrowDomException(1, "The character index is out of range.");
+            return new SvgJavaScriptRect(0f, 0f, 0f, 0f);
+        }
+    }
+
+    internal double GetRotationOfChar(SvgTextBase textContentElement, int charnum)
+    {
+        try
+        {
+            return RequireTextContentHost().GetRotationOfChar(textContentElement, charnum);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            ThrowDomException(1, "The character index is out of range.");
+            return 0d;
+        }
+    }
+
+    internal int GetCharNumAtPosition(SvgTextBase textContentElement, SvgJavaScriptPoint point)
+    {
+        return RequireTextContentHost().GetCharNumAtPosition(textContentElement, point);
+    }
+
+    internal void SelectSubString(SvgTextBase textContentElement, int charnum, int nchars)
+    {
+        try
+        {
+            RequireTextContentHost().SelectSubString(textContentElement, charnum, nchars);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            ThrowDomException(1, "The character index is out of range.");
+        }
+    }
+
+    private ISvgJavaScriptTextContentHost RequireTextContentHost()
+    {
+        if (_textContentHost is not null)
+        {
+            return _textContentHost;
+        }
+
+        ThrowDomException(11, "The text content element is not available in the current host.");
+        return null!;
     }
 
     private void ExecuteScriptElement(SvgScript script)
@@ -560,6 +723,83 @@ public sealed class SvgJavaScriptRuntime
         return true;
     }
 
+    private void DrainPendingTimeouts()
+    {
+        if (_drainingTimeouts || _pendingTimeouts.Count == 0)
+        {
+            return;
+        }
+
+        _drainingTimeouts = true;
+        try
+        {
+            while (true)
+            {
+                var nextIndex = -1;
+                for (var i = 0; i < _pendingTimeouts.Count; i++)
+                {
+                    if (nextIndex < 0 ||
+                        _pendingTimeouts[i].DueMilliseconds < _pendingTimeouts[nextIndex].DueMilliseconds ||
+                        (_pendingTimeouts[i].DueMilliseconds == _pendingTimeouts[nextIndex].DueMilliseconds &&
+                         _pendingTimeouts[i].Sequence < _pendingTimeouts[nextIndex].Sequence))
+                    {
+                        nextIndex = i;
+                    }
+                }
+
+                if (nextIndex < 0)
+                {
+                    break;
+                }
+
+                var entry = _pendingTimeouts[nextIndex];
+                _pendingTimeouts.RemoveAt(nextIndex);
+                if (entry.DueMilliseconds > _virtualTimerMilliseconds)
+                {
+                    _virtualTimerMilliseconds = entry.DueMilliseconds;
+                }
+
+                ExecuteTimeoutHandler(entry.Handler);
+            }
+        }
+        finally
+        {
+            _drainingTimeouts = false;
+        }
+    }
+
+    private void ExecuteTimeoutHandler(object handler)
+    {
+        switch (handler)
+        {
+            case string code when !string.IsNullOrWhiteSpace(code):
+                ExecuteScript(code, "window.setTimeout");
+                break;
+            case JsValue callback:
+                _engine.Call(callback, JsValue.FromObject(_engine, _windowFacade), Array.Empty<JsValue>());
+                break;
+            case Func<JsValue, JsValue[], JsValue> callback:
+                callback(JsValue.FromObject(_engine, _windowFacade), Array.Empty<JsValue>());
+                break;
+            default:
+                ExecuteScript(handler.ToString() ?? string.Empty, "window.setTimeout");
+                break;
+        }
+    }
+
+    private static double ParseTimeoutDelay(object? delay)
+    {
+        try
+        {
+            var value = Convert.ToDouble(delay, System.Globalization.CultureInfo.InvariantCulture);
+            return double.IsNaN(value) || double.IsInfinity(value) || value < 0d ? 0d : value;
+        }
+        catch
+        {
+            return 0d;
+        }
+    }
+
     private void ExecuteScript(string script, string sourceDescription)
     {
         try
@@ -636,6 +876,25 @@ public sealed class SvgJavaScriptRuntime
     private static string NormalizeEventType(string? eventType)
     {
         return eventType?.Trim().ToLowerInvariant() ?? string.Empty;
+    }
+
+    private sealed class SvgJavaScriptTimeoutEntry
+    {
+        public SvgJavaScriptTimeoutEntry(int id, double dueMilliseconds, long sequence, object handler)
+        {
+            Id = id;
+            DueMilliseconds = dueMilliseconds;
+            Sequence = sequence;
+            Handler = handler;
+        }
+
+        public int Id { get; }
+
+        public double DueMilliseconds { get; }
+
+        public long Sequence { get; }
+
+        public object Handler { get; }
     }
 }
 

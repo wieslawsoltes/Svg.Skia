@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using ShimSkiaSharp;
 using Svg;
 using Svg.JavaScript;
 using Svg.Model.Services;
+using Svg.Pathing;
 using Xunit;
 
 namespace Svg.Skia.UnitTests;
@@ -195,6 +199,126 @@ public class SvgJavaScriptRuntimeTests
             """);
 
         AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_SetTimeoutDelayAndClearTimeout_UseDeterministicDueOrder()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="10" height="10" fill="red" />
+              <script><![CDATA[
+                window.order = '';
+                setTimeout("window.order += 'a';", 10);
+                var cancelled = setTimeout("window.order += 'x';", 15);
+                clearTimeout(cancelled);
+                setTimeout("window.order += 'b';", 20);
+                setTimeout(function () {
+                  document.getElementById('target').setAttribute('fill', window.order === 'ab' ? 'green' : 'red');
+                }, 30);
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_ElementTimeControlMethodsReturnUndefinedDuringTimelineBeginCallbacks()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="result" width="10" height="10" fill="red" />
+              <animate id="subject" attributeName="display" values="inline; inline" begin="indefinite" dur="10s" />
+              <animate attributeName="display" values="inline; inline" dur="10s" onbegin="verify()" />
+              <script><![CDATA[
+                function verify() {
+                  var animation = document.getElementById('subject');
+                  var passed = typeof animation.beginElement() == 'undefined'
+                    && typeof animation.beginElementAt(1) == 'undefined'
+                    && typeof animation.endElement() == 'undefined'
+                    && typeof animation.endElementAt(2) == 'undefined';
+                  document.getElementById('result').setAttribute('fill', passed ? 'green' : 'red');
+                }
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "result", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_GetStartTimeSupportsFutureActiveSyncbaseAndInvalidStateSemantics()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="before" x="0" y="0" width="2" height="2" fill="red" />
+              <rect id="during" x="3" y="0" width="2" height="2" fill="red" />
+              <rect id="after" x="6" y="0" width="2" height="2" fill="red" />
+              <rect id="indefinite" x="9" y="0" width="2" height="2" fill="red" />
+              <rect id="syncbase" x="12" y="0" width="2" height="2" fill="red" />
+
+              <animate id="a1" attributeName="display" values="inline; inline" begin="1s" dur="1s" />
+              <animate id="a3" attributeName="display" values="inline; inline" begin="indefinite" dur="1s" />
+              <animate id="dep" attributeName="display" values="inline; inline" begin="5s" dur="1s" />
+              <animate id="sync" attributeName="display" values="inline; inline" begin="dep.begin+2s" dur="1s" />
+
+              <animate attributeName="display" values="inline; inline" begin="0.5s" dur="1s" onbegin="beforeCheck()" />
+              <animate attributeName="display" values="inline; inline" begin="1.5s" dur="1s" onbegin="duringCheck()" />
+              <animate attributeName="display" values="inline; inline" begin="2.5s" dur="1s" onbegin="afterCheck()" />
+
+              <script><![CDATA[
+                function pass(id, ok) {
+                  document.getElementById(id).setAttribute('fill', ok ? 'green' : 'red');
+                }
+
+                function beforeCheck() {
+                  pass('before', document.getElementById('a1').getStartTime() == 1);
+
+                  try {
+                    document.getElementById('a3').getStartTime();
+                    pass('indefinite', false);
+                  } catch (e) {
+                    pass('indefinite', e.code == DOMException.INVALID_STATE_ERR);
+                  }
+
+                  pass('syncbase', document.getElementById('sync').getStartTime() == 7);
+                }
+
+                function duringCheck() {
+                  pass('during', document.getElementById('a1').getStartTime() == 1);
+                }
+
+                function afterCheck() {
+                  try {
+                    document.getElementById('a1').getStartTime();
+                    pass('after', false);
+                  } catch (e) {
+                    pass('after', e.code == DOMException.INVALID_STATE_ERR);
+                  }
+                }
+              ]]></script>
+            </svg>
+            """);
+
+        svg.SetAnimationTime(TimeSpan.FromSeconds(2.5));
+
+        AssertFill(svg, "before", Color.Green);
+        AssertFill(svg, "during", Color.Green);
+        AssertFill(svg, "after", Color.Green);
+        AssertFill(svg, "indefinite", Color.Green);
+        AssertFill(svg, "syncbase", Color.Green);
     }
 
     [Fact]
@@ -572,6 +696,7 @@ public class SvgJavaScriptRuntimeTests
         using var svg = new SKSvg();
         svg.Settings.EnableJavaScript = true;
         svg.Settings.ThrowOnJavaScriptError = true;
+        svg.Settings.JavaScriptTimeoutMilliseconds = 3000;
         svg.Load(GetW3CSvgPath("struct-dom-13-f"));
 
         var body = Assert.IsType<SvgGroup>(svg.SourceDocument!.GetElementById("test-body-content")!);
@@ -879,6 +1004,256 @@ public class SvgJavaScriptRuntimeTests
         Assert.Equal(2, r1.requiredFeatures.numberOfItems);
     }
 
+    [Fact]
+    public void Load_SvgDomOverviewFixture_UsesSvgDefaultDomValues()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.Load(GetW3CSvgPath("svgdom-over-01-f"));
+
+        var tt = GetJavaScriptRuntime(svg).GetElement(svg.SourceDocument!.GetElementById("tt")!);
+        Assert.Equal(tt.getComputedTextLength(), tt.textLength.baseVal.value);
+
+        var body = Assert.IsType<SvgGroup>(svg.SourceDocument!.GetElementById("test-body-content")!);
+        var failedChecks = body.Children
+            .OfType<SvgGroup>()
+            .Select(group => new
+            {
+                Rect = group.Children.OfType<SvgRectangle>().FirstOrDefault(),
+                Text = group.Children.OfType<SvgText>().FirstOrDefault()?.Text
+            })
+            .Where(entry => entry.Rect is not null && entry.Text is not null)
+            .Where(entry => entry.Rect!.Fill is SvgColourServer fill && fill.Colour.ToArgb() == Color.Red.ToArgb())
+            .Select(entry => entry.Text!)
+            .ToArray();
+
+        Assert.Empty(failedChecks);
+    }
+
+    [Fact]
+    public void Load_AnimateScriptElem01Fixture_KeepsScriptHrefAnimValAtBaseValue()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.Load(GetW3CSvgPath("animate-script-elem-01-b"));
+
+        svg.SetAnimationTime(TimeSpan.FromSeconds(1.1));
+
+        var runtime = GetJavaScriptRuntime(svg);
+        var script = runtime.GetElement(svg.SourceDocument!.GetElementById("s")!);
+        Assert.Contains("empty", script.href.baseVal);
+        Assert.Contains("empty", script.href.animVal);
+        AssertRectFill(svg.SourceDocument!, "r1", Color.Green);
+        AssertRectFill(svg.SourceDocument!, "r2", Color.Green);
+    }
+
+    [Fact]
+    public void Load_PathsDom01Fixture_ExposesPathMetricsAndSegments()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.Settings.EnableSvgFonts = false;
+        svg.Settings.EnableTextReferences = false;
+        svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 480f, 360f);
+        svg.Load(GetW3CSvgPath("paths-dom-01-f"));
+
+        var document = svg.SourceDocument!;
+        Assert.Equal(300, ParseTrailingInteger(GetText(document, "tl1")));
+        Assert.Equal(300, ParseTrailingInteger(GetText(document, "tl2")));
+        Assert.Equal("(60, 80)", GetText(document, "tp1"));
+        Assert.Equal("(300, 80)", GetText(document, "tp2"));
+        Assert.Equal(0, ParseTrailingInteger(GetText(document, "ts1")));
+        Assert.Equal(0, ParseTrailingInteger(GetText(document, "ts2")));
+        Assert.Equal("m 60 80", Assert.IsAssignableFrom<SvgTextBase>(document.GetElementById("tss1")!).Text);
+        Assert.Equal("m 300 80", Assert.IsAssignableFrom<SvgTextBase>(document.GetElementById("tss2")!).Text);
+    }
+
+    [Fact]
+    public void Load_PathsDom02Fixture_CreatesFlowerPathSegments()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.Load(GetW3CSvgPath("paths-dom-02-f"));
+
+        var path = Assert.IsType<SvgPath>(svg.SourceDocument!.GetElementById("mypath")!);
+        Assert.NotNull(path.PathData);
+        Assert.True(path.PathData.Count >= 8);
+
+        var move = Assert.IsType<SvgMoveToSegment>(path.PathData[0]);
+        Assert.InRange(move.End.X, 210f, 270f);
+        Assert.InRange(move.End.Y, 140f, 220f);
+
+        var cubic = Assert.IsType<SvgCubicCurveSegment>(path.PathData[1]);
+        Assert.InRange(cubic.End.X, 150f, 330f);
+        Assert.InRange(cubic.End.Y, 60f, 300f);
+    }
+
+    [Fact]
+    public void Runtime_EventListeners_CanRegisterDispatchAndRemove()
+    {
+        var document = SvgDocument.Open<SvgDocument>(GetW3CSvgPath("interact-dom-01-b"));
+
+        var runtime = new SvgJavaScriptRuntime(document!, new SvgJavaScriptSettings
+        {
+            ThrowOnError = true
+        });
+
+        runtime.ExecuteDocumentScripts();
+
+        var startButton = runtime.GetElement(document.GetElementById("startButton")!);
+        var firstClick = new SvgJavaScriptEvent();
+        firstClick.initMouseEvent("click", true, true, null, 1, 0f, 0f, 0f, 0f, false, false, false, false, 0, null);
+        Assert.True(startButton.dispatchEvent(firstClick));
+
+        AssertRectFill(document, "buttonRect", ColorTranslator.FromHtml("#88ff88"));
+        Assert.Equal(1, document.Descendants().OfType<SvgText>().Count(text => text.Text == "Event Listeners supported"));
+
+        var secondClick = new SvgJavaScriptEvent();
+        secondClick.initMouseEvent("click", true, true, null, 1, 0f, 0f, 0f, 0f, false, false, false, false, 0, null);
+        Assert.True(startButton.dispatchEvent(secondClick));
+        Assert.Equal(1, document.Descendants().OfType<SvgText>().Count(text => text.Text == "Event Listeners supported"));
+    }
+
+    [Fact]
+    public void DispatchEvent_RefreshFromSourceDocument_UpdatesRenderedPicture()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="20" height="20" fill="red"
+                    onclick="this.setAttribute('fill', 'green')" />
+            </svg>
+            """);
+
+        var runtime = GetJavaScriptRuntime(svg);
+        var target = runtime.GetElement(svg.SourceDocument!.GetElementById("target")!);
+        var click = new SvgJavaScriptEvent();
+        click.initMouseEvent("click", true, true, null, 1, 0f, 0f, 0f, 0f, false, false, false, false, 0, null);
+        Assert.True(target.dispatchEvent(click));
+
+        AssertFill(svg, "target", Color.Green);
+
+        using (var staleBitmap = RenderBitmap(svg))
+        {
+            var stalePixel = staleBitmap.GetPixel(10, 10);
+            Assert.Equal((byte)255, stalePixel.Red);
+            Assert.Equal((byte)0, stalePixel.Green);
+            Assert.Equal((byte)0, stalePixel.Blue);
+        }
+
+        _ = svg.RefreshFromSourceDocument();
+
+        using var refreshedBitmap = RenderBitmap(svg);
+        var refreshedPixel = refreshedBitmap.GetPixel(10, 10);
+        Assert.Equal((byte)0, refreshedPixel.Red);
+        Assert.Equal((byte)128, refreshedPixel.Green);
+        Assert.Equal((byte)0, refreshedPixel.Blue);
+    }
+
+    [Fact]
+    public void Load_TextDom01Fixture_BrowserPath_ExposesTextContentMetricsAndAnimatedValues()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.Settings.EnableSvgFonts = false;
+        svg.Settings.EnableTextReferences = false;
+        svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 480f, 360f);
+        svg.Load(GetW3CSvgPath("text-dom-01-f"));
+
+        var document = svg.SourceDocument!;
+        Assert.Equal(30, ParseTrailingInteger(GetText(document, "text1")));
+        var roundedComputedTextLength = ParseTrailingInteger(GetText(document, "text2"));
+        Assert.InRange(roundedComputedTextLength, 362, 364);
+
+        var endPosition = ParseTrailingPair(GetText(document, "text3"));
+        Assert.InRange(endPosition.x, 130, 132);
+        Assert.Equal(30, endPosition.y);
+
+        var extent = ParseTrailingQuad(GetText(document, "text4"));
+        Assert.InRange(extent.x, 122, 124);
+        Assert.InRange(extent.y, 15, 17);
+        Assert.InRange(extent.width, 7, 9);
+        Assert.InRange(extent.height, 16, 18);
+
+        Assert.Equal(54, ParseTrailingInteger(GetText(document, "text5")));
+        Assert.Equal(45, ParseTrailingInteger(GetText(document, "text6")));
+
+        var startPosition = ParseTrailingPair(GetText(document, "text7"));
+        Assert.InRange(startPosition.x, 122, 124);
+        Assert.Equal(30, startPosition.y);
+
+        Assert.InRange(ParseTrailingInteger(GetText(document, "text8")), 57, 59);
+        Assert.Contains("the word 'the' should be selected", GetText(document, "text9"));
+        Assert.Equal(roundedComputedTextLength, ParseTrailingInteger(GetText(document, "text10")));
+        Assert.Equal(roundedComputedTextLength, ParseTrailingInteger(GetText(document, "text11")));
+        Assert.Equal((1, 1), ParseTrailingPair(GetText(document, "text12")));
+    }
+
+    [Fact]
+    public void Load_TextDom02Fixture_UsesUtf16CodeUnitCountingAndSubstringLength()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.Load(GetW3CSvgPath("text-dom-02-f"));
+
+        AssertRectFill(svg.SourceDocument!, "r1", Color.Green);
+        AssertRectFill(svg.SourceDocument!, "r2", Color.Green);
+    }
+
+    [Fact]
+    public void Load_TextDom03Fixture_SpecPath_UsesIndexSizeErrorSubstringSemantics()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.Load(GetW3CSvgPath("text-dom-03-f"));
+
+        AssertRectFill(svg.SourceDocument!, "r1", Color.Green);
+        AssertRectFill(svg.SourceDocument!, "r2", Color.Green);
+        AssertRectFill(svg.SourceDocument!, "r3", Color.Green);
+        AssertRectFill(svg.SourceDocument!, "r4", Color.Green);
+        AssertRectFill(svg.SourceDocument!, "r5", Color.Green);
+    }
+
+    [Fact]
+    public void Load_TextDom04Fixture_SpecPath_UsesLigatureAwareSubstringSemantics()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.Load(GetW3CSvgPath("text-dom-04-f"));
+
+        var result = Assert.IsType<SvgText>(svg.SourceDocument!.GetElementById("res")!);
+        Assert.True(string.IsNullOrEmpty(result.Text), result.Text);
+
+        var indicator = Assert.IsType<SvgRectangle>(svg.SourceDocument.GetElementById("r")!);
+        Assert.True(indicator.Fill is not SvgColourServer fill || fill.Colour.ToArgb() != Color.Red.ToArgb());
+    }
+
+    [Fact]
+    public void Load_TextDom05Fixture_UsesClusterPositionsExtentsAndHitTesting()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.Load(GetW3CSvgPath("text-dom-05-f"));
+
+        var document = svg.SourceDocument!;
+        AssertRectFill(document, "r3", Color.Green);
+        AssertRectFill(document, "r4", Color.Green);
+        AssertRectFill(document, "r5", Color.Green);
+        AssertRectFill(document, "r6", Color.Green);
+        AssertRectFill(document, "r7", Color.Green);
+    }
+
     private static void AssertFill(SKSvg svg, string id, Color expected)
     {
         var rect = Assert.IsType<SvgRectangle>(svg.SourceDocument!.Descendants().Single(element => element.ID == id));
@@ -896,6 +1271,13 @@ public class SvgJavaScriptRuntimeTests
     private static void AssertFill(SvgDocument document, string id, Color expected)
     {
         var element = Assert.IsType<SvgCircle>(document.Descendants().Single(node => node.ID == id));
+        var fill = Assert.IsType<SvgColourServer>(element.Fill);
+        Assert.Equal(expected.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    private static void AssertRectFill(SvgDocument document, string id, Color expected)
+    {
+        var element = Assert.IsType<SvgRectangle>(document.Descendants().Single(node => node.ID == id));
         var fill = Assert.IsType<SvgColourServer>(element.Fill);
         Assert.Equal(expected.ToArgb(), fill.Colour.ToArgb());
     }
@@ -928,6 +1310,38 @@ public class SvgJavaScriptRuntimeTests
         Assert.InRange(rect.height, height - epsilon, height + epsilon);
     }
 
+    private static string GetText(SvgDocument document, string id)
+    {
+        return Assert.IsType<SvgText>(document.GetElementById(id)!).Text;
+    }
+
+    private static int ParseTrailingInteger(string text)
+    {
+        var match = Regex.Match(text, @"(-?\d+)\s*$");
+        Assert.True(match.Success, $"Expected trailing integer in '{text}'.");
+        return int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+    }
+
+    private static (int x, int y) ParseTrailingPair(string text)
+    {
+        var match = Regex.Match(text, @"(-?\d+)\s*,\s*(-?\d+)\s*$");
+        Assert.True(match.Success, $"Expected trailing pair in '{text}'.");
+        return (
+            int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
+            int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture));
+    }
+
+    private static (int x, int y, int width, int height) ParseTrailingQuad(string text)
+    {
+        var match = Regex.Match(text, @"(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*$");
+        Assert.True(match.Success, $"Expected trailing quad in '{text}'.");
+        return (
+            int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
+            int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture),
+            int.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture),
+            int.Parse(match.Groups[4].Value, CultureInfo.InvariantCulture));
+    }
+
     private static SkiaSharp.SKBitmap RenderBitmap(SKSvg svg)
     {
         Assert.NotNull(svg.Picture);
@@ -940,5 +1354,13 @@ public class SvgJavaScriptRuntimeTests
             svg.Settings.Srgb);
 
         return Assert.IsType<SkiaSharp.SKBitmap>(bitmap);
+    }
+
+    private static SvgJavaScriptRuntime GetJavaScriptRuntime(SKSvg svg)
+    {
+        var field = typeof(SKSvg).GetField("_javaScriptRuntime", BindingFlags.Instance | BindingFlags.NonPublic)
+                    ?? throw new InvalidOperationException("Unable to access SVG JavaScript runtime.");
+        return (SvgJavaScriptRuntime?)field.GetValue(svg)
+               ?? throw new InvalidOperationException("SVG JavaScript runtime is not initialized.");
     }
 }

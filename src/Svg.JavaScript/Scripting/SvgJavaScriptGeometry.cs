@@ -264,6 +264,33 @@ public sealed class SvgJavaScriptPoint
     }
 }
 
+public sealed class SvgJavaScriptPointList
+{
+    private readonly SvgJavaScriptRuntime _runtime;
+    private readonly Func<List<SvgJavaScriptPoint>> _getter;
+
+    internal SvgJavaScriptPointList(SvgJavaScriptRuntime runtime, Func<List<SvgJavaScriptPoint>> getter)
+    {
+        _runtime = runtime;
+        _getter = getter;
+    }
+
+    public int numberOfItems => _getter().Count;
+
+    public int length => numberOfItems;
+
+    public SvgJavaScriptPoint getItem(int index)
+    {
+        var points = _getter();
+        if (index < 0 || index >= points.Count)
+        {
+            _runtime.ThrowDomException(1, "Point index is out of range.");
+        }
+
+        return points[index];
+    }
+}
+
 public sealed class SvgJavaScriptMatrix
 {
     private readonly SvgJavaScriptRuntime? _runtime;

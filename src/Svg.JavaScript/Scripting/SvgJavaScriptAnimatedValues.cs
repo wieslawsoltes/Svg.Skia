@@ -9,20 +9,22 @@ public sealed class SvgJavaScriptAnimatedString
 {
     private readonly SvgJavaScriptElement _element;
     private readonly string _attributeName;
+    private readonly bool _isAnimatable;
 
-    internal SvgJavaScriptAnimatedString(SvgJavaScriptElement element, string attributeName)
+    internal SvgJavaScriptAnimatedString(SvgJavaScriptElement element, string attributeName, bool isAnimatable = true)
     {
         _element = element;
         _attributeName = attributeName;
+        _isAnimatable = isAnimatable;
     }
 
     public string baseVal
     {
-        get => _element.getAttribute(_attributeName);
+        get => _element.GetBaseAttributeValue(_attributeName);
         set => _element.setAttribute(_attributeName, value);
     }
 
-    public string animVal => _element.getAttribute(_attributeName);
+    public string animVal => _isAnimatable ? _element.getAttribute(_attributeName) : baseVal;
 }
 
 public sealed class SvgJavaScriptAnimatedLength
@@ -36,6 +38,12 @@ public sealed class SvgJavaScriptAnimatedLength
         _animVal = new SvgJavaScriptLength(element, attributeName, true);
     }
 
+    internal SvgJavaScriptAnimatedLength(SvgJavaScriptRuntime runtime, Func<string> getter, Action<string>? setter)
+    {
+        _baseVal = new SvgJavaScriptLength(runtime, getter, setter, false);
+        _animVal = new SvgJavaScriptLength(runtime, getter, null, true);
+    }
+
     public SvgJavaScriptLength baseVal => _baseVal;
 
     public SvgJavaScriptLength animVal => _animVal;
@@ -46,6 +54,8 @@ public sealed class SvgJavaScriptLength
     private readonly SvgJavaScriptElement? _element;
     private readonly SvgJavaScriptRuntime? _runtime;
     private readonly string _attributeName;
+    private readonly Func<string>? _getter;
+    private readonly Action<string>? _setter;
     private readonly bool _readOnly;
     private string? _detachedValue;
 
@@ -63,6 +73,15 @@ public sealed class SvgJavaScriptLength
         _attributeName = "__detachedLength";
         _readOnly = readOnly;
         _detachedValue = "0";
+    }
+
+    internal SvgJavaScriptLength(SvgJavaScriptRuntime runtime, Func<string> getter, Action<string>? setter, bool readOnly)
+    {
+        _runtime = runtime;
+        _attributeName = "__dynamicLength";
+        _getter = getter;
+        _setter = setter;
+        _readOnly = readOnly;
     }
 
     public string valueAsString
@@ -92,6 +111,11 @@ public sealed class SvgJavaScriptLength
             return _detachedValue;
         }
 
+        if (_getter is not null)
+        {
+            return _getter();
+        }
+
         var rawValue = _element?.getAttribute(_attributeName);
         if (!string.IsNullOrEmpty(rawValue))
         {
@@ -112,6 +136,10 @@ public sealed class SvgJavaScriptLength
         if (_detachedValue is not null)
         {
             _detachedValue = normalized;
+        }
+        else if (_setter is not null)
+        {
+            _setter(normalized);
         }
         else
         {
@@ -379,6 +407,13 @@ public sealed class SvgJavaScriptAnimatedInteger
         _ = runtime;
         _getter = () => int.TryParse(element.getAttribute(attributeName), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? parsed : 0;
         _setter = value => element.setAttribute(attributeName, value);
+    }
+
+    internal SvgJavaScriptAnimatedInteger(SvgJavaScriptRuntime runtime, Func<int> getter, Action<int> setter)
+    {
+        _ = runtime;
+        _getter = getter;
+        _setter = setter;
     }
 
     public int baseVal

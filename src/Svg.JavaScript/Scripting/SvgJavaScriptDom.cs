@@ -6,6 +6,7 @@ using Jint.Native;
 using Jint.Native.Object;
 using Jint.Runtime;
 using ShimSkiaSharp;
+using Svg;
 using Svg.Model;
 
 namespace Svg.JavaScript;
@@ -14,6 +15,23 @@ public interface ISvgJavaScriptAnimationHost
 {
     TimeSpan CurrentTime { get; }
     void Seek(TimeSpan time);
+    bool BeginElement(SvgAnimationElement animation, TimeSpan offset);
+    bool EndElement(SvgAnimationElement animation, TimeSpan offset);
+    bool TryGetStartTime(SvgAnimationElement animation, out TimeSpan startTime);
+    bool TryGetBaseAttributeValue(SvgElement element, string attributeName, out string value);
+}
+
+public interface ISvgJavaScriptTextContentHost
+{
+    double GetComputedTextLength(SvgTextBase textContentElement);
+    int GetNumberOfChars(SvgTextBase textContentElement);
+    double GetSubStringLength(SvgTextBase textContentElement, int charnum, int nchars);
+    SvgJavaScriptPoint GetStartPositionOfChar(SvgTextBase textContentElement, int charnum);
+    SvgJavaScriptPoint GetEndPositionOfChar(SvgTextBase textContentElement, int charnum);
+    SvgJavaScriptRect GetExtentOfChar(SvgTextBase textContentElement, int charnum);
+    double GetRotationOfChar(SvgTextBase textContentElement, int charnum);
+    int GetCharNumAtPosition(SvgTextBase textContentElement, SvgJavaScriptPoint point);
+    void SelectSubString(SvgTextBase textContentElement, int charnum, int nchars);
 }
 
 public sealed class SvgJavaScriptNodeList
@@ -349,6 +367,7 @@ internal static class SvgJavaScriptDomConstants
         var domException = runtime.CreatePlainObject();
         domException.FastSetDataProperty("INDEX_SIZE_ERR", JsNumber.Create(1));
         domException.FastSetDataProperty("NO_MODIFICATION_ALLOWED_ERR", JsNumber.Create(7));
+        domException.FastSetDataProperty("INVALID_STATE_ERR", JsNumber.Create(11));
         domException.FastSetDataProperty("SYNTAX_ERR", JsNumber.Create(12));
         return domException;
     }

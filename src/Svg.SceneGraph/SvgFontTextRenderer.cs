@@ -255,6 +255,8 @@ namespace Svg.Skia
 
             public float Advance { get; }
 
+            public IReadOnlyList<SvgGlyphPlacementResult> GlyphPlacements => _glyphs;
+
             public SKRect GetBounds(float startX, float baselineY)
             {
                 if (_relativeBounds.IsEmpty)
@@ -297,7 +299,7 @@ namespace Svg.Skia
 
         }
 
-        internal sealed record SvgGlyphPlacementResult(SvgGlyphDefinition? Glyph, float RelativeX, float Advance, SKPath? RelativePath, SKRect RelativeBounds);
+        internal sealed record SvgGlyphPlacementResult(string Text, SvgGlyphDefinition? Glyph, float RelativeX, float Advance, SKPath? RelativePath, SKRect RelativeBounds);
 
         private sealed class SvgFontRegistry
         {
@@ -733,7 +735,7 @@ namespace Svg.Skia
                     }
 
                     bounds = bounds.IsEmpty ? glyphBounds : SKRect.Union(bounds, glyphBounds);
-                    placements.Add(new SvgGlyphPlacementResult(glyphDefinition, currentX, advance, relativePath, glyphBounds));
+                    placements.Add(new SvgGlyphPlacementResult(resolvedItem.Text, glyphDefinition, currentX, advance, relativePath, glyphBounds));
                     previousAdvance = advance;
                     hasPrevious = true;
                 }
@@ -762,7 +764,7 @@ namespace Svg.Skia
                     var fallbackBounds = relativePath.IsEmpty
                         ? new SKRect(currentX, measuredBounds.Top, currentX + totalAdvance, measuredBounds.Bottom)
                         : relativePath.Bounds;
-                    return new SvgGlyphPlacementResult(null, currentX, totalAdvance, relativePath.IsEmpty ? null : relativePath, fallbackBounds);
+                    return new SvgGlyphPlacementResult(text, null, currentX, totalAdvance, relativePath.IsEmpty ? null : relativePath, fallbackBounds);
                 }
 
                 for (var i = 0; i < spans.Count; i++)
@@ -779,7 +781,7 @@ namespace Svg.Skia
                 var bounds = relativePath.IsEmpty
                     ? new SKRect(currentX, metrics.Ascent, currentX + totalAdvance, metrics.Descent)
                     : relativePath.Bounds;
-                return new SvgGlyphPlacementResult(null, currentX, totalAdvance, relativePath.IsEmpty ? null : relativePath, bounds);
+                return new SvgGlyphPlacementResult(text, null, currentX, totalAdvance, relativePath.IsEmpty ? null : relativePath, bounds);
             }
 
             private float GetKerning(SvgResolvedGlyph left, SvgResolvedGlyph right)

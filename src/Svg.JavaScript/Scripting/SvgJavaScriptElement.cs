@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Jint.Native;
 using ShimSkiaSharp;
 using Svg;
 using Svg.Model.Services;
@@ -9,7 +10,7 @@ using Svg.Skia;
 
 namespace Svg.JavaScript;
 
-public sealed class SvgJavaScriptElement
+public sealed partial class SvgJavaScriptElement
 {
     private readonly SvgJavaScriptRuntime _runtime;
     private readonly SvgJavaScriptDocument _document;
@@ -85,7 +86,7 @@ public sealed class SvgJavaScriptElement
         set => textContent = value;
     }
 
-    public SvgJavaScriptAnimatedString href => new(this, "href");
+    public SvgJavaScriptAnimatedString href => new(this, "xlink:href", IsAnimatedStringAttributeAnimatable("xlink:href"));
 
     public SvgJavaScriptAnimatedString className => new(this, "class");
 
@@ -103,6 +104,9 @@ public sealed class SvgJavaScriptElement
 
     public SvgJavaScriptAnimatedNumberList rotate => new(_runtime, this, "rotate");
 
+    public SvgJavaScriptAnimatedNumber offset =>
+        new(_runtime, this, () => getAttribute("offset"), value => setAttribute("offset", SvgJavaScriptParsing.FormatNumber(value)));
+
     public SvgJavaScriptAnimatedTransformList transform => new(_runtime, this);
 
     public SvgJavaScriptAnimatedRect viewBox => new(_runtime, this, "viewBox");
@@ -111,19 +115,40 @@ public sealed class SvgJavaScriptElement
 
     public SvgJavaScriptAnimatedBoolean externalResourcesRequired => new(_runtime, this, "externalResourcesRequired");
 
+    public SvgJavaScriptAnimatedBoolean preserveAlpha => new(_runtime, this, "preserveAlpha");
+
     public SvgJavaScriptAnimatedEnumeration lengthAdjust =>
         new(_runtime, this, "lengthAdjust", ParseLengthAdjust, FormatLengthAdjust);
 
+    public SvgJavaScriptAnimatedEnumeration gradientUnits =>
+        new(_runtime, this, "gradientUnits", ParseGradientUnits, FormatGradientUnits);
+
+    public SvgJavaScriptAnimatedLength textLength =>
+        new(_runtime, GetTextLengthValue, SetTextLengthValue);
+
     public SvgJavaScriptAnimatedInteger numOctaves => new(_runtime, this, "numOctaves");
+
+    public SvgJavaScriptAnimatedInteger filterResX =>
+        new(_runtime, () => GetIntegerToken("filterRes", 0), value => SetIntegerToken("filterRes", 0, value));
 
     public SvgJavaScriptAnimatedNumber baseFrequencyY =>
         new(_runtime, this, () => GetNumberToken("baseFrequency", 1), value => SetNumberToken("baseFrequency", 1, value));
+
+    public SvgJavaScriptAnimatedNumberList kernelMatrix => new(_runtime, this, "kernelMatrix");
 
     public SvgJavaScriptStringList requiredFeatures =>
         new(_runtime, () => ParseTokenList("requiredFeatures"), values => SetTokenList("requiredFeatures", values));
 
     public SvgJavaScriptStringList requiredExtensions =>
         new(_runtime, () => ParseTokenList("requiredExtensions"), values => SetTokenList("requiredExtensions", values));
+
+    public SvgJavaScriptPointList points => new(_runtime, ParsePoints);
+
+    public int zoomAndPan
+    {
+        get => ParseZoomAndPan(getAttribute("zoomAndPan"));
+        set => setAttribute("zoomAndPan", FormatZoomAndPan(value));
+    }
 
     public string getAttribute(string name)
     {
@@ -132,17 +157,57 @@ public sealed class SvgJavaScriptElement
             return string.Empty;
         }
 
-        if (TryGetSpecialAttributeValue(name, out var specialValue))
+        var normalizedName = NormalizeAttributeStorageName(name);
+        if (TryGetSpecialAttributeValue(normalizedName, out var specialValue))
         {
             return specialValue;
         }
 
-        if (Element.TryGetAttribute(name, out var value))
+        if (Element.TryGetAttribute(normalizedName, out var value))
         {
             return value ?? string.Empty;
         }
 
-        return Element.CustomAttributes.TryGetValue(name, out value) ? value ?? string.Empty : string.Empty;
+        return Element.CustomAttributes.TryGetValue(normalizedName, out value) ? value ?? string.Empty : string.Empty;
+    }
+
+    internal string GetBaseAttributeValue(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return string.Empty;
+        }
+
+        var normalizedName = NormalizeAttributeStorageName(name);
+        if (string.Equals(normalizedName, "href", StringComparison.OrdinalIgnoreCase) &&
+            Element is SvgScript)
+        {
+            if (TryGetRawXLinkHrefValue(out var rawXLinkHref))
+            {
+                return rawXLinkHref;
+            }
+
+            var scriptHref = getAttribute(normalizedName);
+            if (!string.IsNullOrWhiteSpace(scriptHref))
+            {
+                return scriptHref;
+            }
+        }
+
+        return _runtime.TryGetBaseAttributeValue(Element, normalizedName, out var baseValue)
+            ? baseValue
+            : getAttribute(normalizedName);
+    }
+
+    private bool IsAnimatedStringAttributeAnimatable(string attributeName)
+    {
+        if (string.Equals(attributeName, "xlink:href", StringComparison.OrdinalIgnoreCase) &&
+            Element is SvgScript)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public string getAttributeNS(string? namespaceUri, string localName)
@@ -160,6 +225,7 @@ public sealed class SvgJavaScriptElement
         }
 
         var normalizedName = name.Trim();
+        normalizedName = NormalizeAttributeStorageName(normalizedName);
         var text = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
         if (string.Equals(normalizedName, "style", StringComparison.OrdinalIgnoreCase))
         {
@@ -188,6 +254,7 @@ public sealed class SvgJavaScriptElement
         }
 
         var normalizedName = name.Trim();
+        normalizedName = NormalizeAttributeStorageName(normalizedName);
         if (string.Equals(normalizedName, "style", StringComparison.OrdinalIgnoreCase))
         {
             SetInlineStyleText(string.Empty);
@@ -210,8 +277,8 @@ public sealed class SvgJavaScriptElement
     public bool hasAttribute(string name)
     {
         return !string.IsNullOrWhiteSpace(name)
-               && (Element.TryGetAttribute(name, out _)
-                   || Element.CustomAttributes.ContainsKey(name));
+               && (Element.TryGetAttribute(NormalizeAttributeStorageName(name), out _)
+                   || Element.CustomAttributes.ContainsKey(NormalizeAttributeStorageName(name)));
     }
 
     public bool hasAttributeNS(string? namespaceUri, string localName)
@@ -343,6 +410,92 @@ public sealed class SvgJavaScriptElement
         _runtime.SetCurrentTimeSeconds(seconds);
     }
 
+    public double getComputedTextLength()
+    {
+        return _runtime.GetComputedTextLength(RequireTextContentElement());
+    }
+
+    public int getNumberOfChars()
+    {
+        return _runtime.GetNumberOfChars(RequireTextContentElement());
+    }
+
+    public double getSubStringLength(int charnum, int nchars)
+    {
+        return _runtime.GetSubStringLength(RequireTextContentElement(), charnum, nchars);
+    }
+
+    public SvgJavaScriptPoint getStartPositionOfChar(int charnum)
+    {
+        return _runtime.GetStartPositionOfChar(RequireTextContentElement(), charnum);
+    }
+
+    public SvgJavaScriptPoint getEndPositionOfChar(int charnum)
+    {
+        return _runtime.GetEndPositionOfChar(RequireTextContentElement(), charnum);
+    }
+
+    public SvgJavaScriptRect getExtentOfChar(int charnum)
+    {
+        return _runtime.GetExtentOfChar(RequireTextContentElement(), charnum);
+    }
+
+    public double getRotationOfChar(int charnum)
+    {
+        return _runtime.GetRotationOfChar(RequireTextContentElement(), charnum);
+    }
+
+    public int getCharNumAtPosition(SvgJavaScriptPoint point)
+    {
+        if (point is null)
+        {
+            throw new ArgumentNullException(nameof(point));
+        }
+
+        return _runtime.GetCharNumAtPosition(RequireTextContentElement(), point);
+    }
+
+    public JsValue selectSubString(int charnum, int nchars)
+    {
+        _runtime.SelectSubString(RequireTextContentElement(), charnum, nchars);
+        return JsValue.Undefined;
+    }
+
+    public JsValue beginElement()
+    {
+        BeginTimedElement(TimeSpan.Zero);
+        return JsValue.Undefined;
+    }
+
+    public JsValue beginElementAt(double offset)
+    {
+        BeginTimedElement(CreateOffset(offset));
+        return JsValue.Undefined;
+    }
+
+    public JsValue endElement()
+    {
+        EndTimedElement(TimeSpan.Zero);
+        return JsValue.Undefined;
+    }
+
+    public JsValue endElementAt(double offset)
+    {
+        EndTimedElement(CreateOffset(offset));
+        return JsValue.Undefined;
+    }
+
+    public double getStartTime()
+    {
+        if (Element is SvgAnimationElement animation)
+        {
+            return _runtime.GetAnimationStartTimeSeconds(animation);
+        }
+
+        _runtime.ThrowDomException(11, "The element does not implement SVGAnimationElement.");
+        return 0d;
+    }
+
     public SvgJavaScriptNumber createSVGNumber()
     {
         return new SvgJavaScriptNumber();
@@ -377,6 +530,59 @@ public sealed class SvgJavaScriptElement
     public SvgJavaScriptTransform createSVGTransform()
     {
         return new SvgJavaScriptTransform(_runtime, SvgJavaScriptMatrixHelpers.FromSkMatrix(SKMatrix.Identity), null, false);
+    }
+
+    private void BeginTimedElement(TimeSpan offset)
+    {
+        if (Element is SvgAnimationElement animation)
+        {
+            _runtime.BeginElement(animation, offset);
+        }
+    }
+
+    private void EndTimedElement(TimeSpan offset)
+    {
+        if (Element is SvgAnimationElement animation)
+        {
+            _runtime.EndElement(animation, offset);
+        }
+    }
+
+    private static TimeSpan CreateOffset(double seconds)
+    {
+        return double.IsNaN(seconds) || double.IsInfinity(seconds)
+            ? TimeSpan.Zero
+            : TimeSpan.FromSeconds(seconds);
+    }
+
+    private SvgTextBase RequireTextContentElement()
+    {
+        if (Element is SvgTextBase textContentElement)
+        {
+            return textContentElement;
+        }
+
+        _runtime.ThrowDomException(11, "The element does not implement SVGTextContentElement.");
+        return null!;
+    }
+
+    private string GetTextLengthValue()
+    {
+        if (Element.TryGetAttribute("textLength", out var rawValue) &&
+            !string.IsNullOrWhiteSpace(rawValue))
+        {
+            return rawValue;
+        }
+
+        var computedTextLength = _runtime.GetComputedTextLength(RequireTextContentElement());
+        return !double.IsNaN(computedTextLength) && !double.IsInfinity(computedTextLength)
+            ? computedTextLength.ToString("R", CultureInfo.InvariantCulture)
+            : "0";
+    }
+
+    private void SetTextLengthValue(string value)
+    {
+        setAttribute("textLength", value);
     }
 
     public SvgJavaScriptTransform createSVGTransformFromMatrix(SvgJavaScriptMatrix matrix)
@@ -893,6 +1099,16 @@ public sealed class SvgJavaScriptElement
         return index >= 0 && index < tokens.Length ? tokens[index] : tokens.LastOrDefault() ?? "0";
     }
 
+    private int GetIntegerToken(string attributeName, int index)
+    {
+        var tokens = SvgJavaScriptParsing.ParseTokenList(getAttribute(attributeName));
+        return index >= 0 &&
+               index < tokens.Length &&
+               int.TryParse(tokens[index], NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : 0;
+    }
+
     private void SetNumberToken(string attributeName, int index, double value)
     {
         var tokens = SvgJavaScriptParsing.ParseTokenList(getAttribute(attributeName)).ToList();
@@ -903,6 +1119,32 @@ public sealed class SvgJavaScriptElement
 
         tokens[index] = SvgJavaScriptParsing.FormatNumber(value);
         setAttribute(attributeName, string.Join(" ", tokens));
+    }
+
+    private void SetIntegerToken(string attributeName, int index, int value)
+    {
+        var tokens = SvgJavaScriptParsing.ParseTokenList(getAttribute(attributeName)).ToList();
+        while (tokens.Count <= index)
+        {
+            tokens.Add("0");
+        }
+
+        tokens[index] = value.ToString(CultureInfo.InvariantCulture);
+        setAttribute(attributeName, string.Join(" ", tokens));
+    }
+
+    private List<SvgJavaScriptPoint> ParsePoints()
+    {
+        var tokens = SvgJavaScriptParsing.ParseTokenList(getAttribute("points"));
+        var points = new List<SvgJavaScriptPoint>();
+        for (var i = 0; i + 1 < tokens.Length; i += 2)
+        {
+            var x = float.TryParse(tokens[i], NumberStyles.Float, CultureInfo.InvariantCulture, out var parsedX) ? parsedX : 0f;
+            var y = float.TryParse(tokens[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out var parsedY) ? parsedY : 0f;
+            points.Add(new SvgJavaScriptPoint(x, y));
+        }
+
+        return points;
     }
 
     private static int ParseLengthAdjust(string value)
@@ -918,6 +1160,26 @@ public sealed class SvgJavaScriptElement
     private static string FormatLengthAdjust(int value)
     {
         return value == 2 ? "spacingAndGlyphs" : "spacing";
+    }
+
+    private static int ParseGradientUnits(string value)
+    {
+        return (value ?? string.Empty).Trim().Equals("userSpaceOnUse", StringComparison.OrdinalIgnoreCase) ? 1 : 2;
+    }
+
+    private static string FormatGradientUnits(int value)
+    {
+        return value == 1 ? "userSpaceOnUse" : "objectBoundingBox";
+    }
+
+    private static int ParseZoomAndPan(string value)
+    {
+        return (value ?? string.Empty).Trim().Equals("disable", StringComparison.OrdinalIgnoreCase) ? 1 : 2;
+    }
+
+    private static string FormatZoomAndPan(int value)
+    {
+        return value == 1 ? "disable" : "magnify";
     }
 
     private bool UsesLengthList(string attributeName)
@@ -1108,6 +1370,12 @@ public sealed class SvgJavaScriptElement
 
     private bool TryGetSpecialAttributeValue(string name, out string value)
     {
+        if (string.Equals(name, "href", StringComparison.Ordinal) &&
+            TryGetHrefAttributeValue(out value))
+        {
+            return true;
+        }
+
         if (string.Equals(name, "viewBox", StringComparison.Ordinal) &&
             Element is SvgFragment svgFragment &&
             svgFragment.ViewBox != SvgViewBox.Empty)
@@ -1144,6 +1412,69 @@ public sealed class SvgJavaScriptElement
                 value = orient.ToString();
                 return true;
             }
+        }
+
+        value = string.Empty;
+        return false;
+    }
+
+    private bool TryGetHrefAttributeValue(out string value)
+    {
+        switch (Element)
+        {
+            case SvgScript when TryGetRawXLinkHrefValue(out value):
+                return true;
+            case SvgScript script when !string.IsNullOrWhiteSpace(script.Href):
+                value = script.Href;
+                return true;
+            case SvgAnchor anchor when !string.IsNullOrWhiteSpace(anchor.Href):
+                value = anchor.Href;
+                return true;
+            case SvgImage image when !string.IsNullOrWhiteSpace(image.Href):
+                value = image.Href;
+                return true;
+            case SvgUse use when use.ReferencedElement is { } referencedElement:
+                value = referencedElement.OriginalString;
+                return true;
+            case SvgTextPath textPath when textPath.ReferencedPath is { } referencedPath:
+                value = referencedPath.OriginalString;
+                return true;
+            case SvgTextRef textRef when textRef.ReferencedElement is { } referencedText:
+                value = referencedText.OriginalString;
+                return true;
+            case SvgFontFaceUri fontFaceUri when fontFaceUri.ReferencedElement is { } referencedFont:
+                value = referencedFont.OriginalString;
+                return true;
+            case SvgMPath motionPath when motionPath.ReferencedPath is { } motionReference:
+                value = motionReference.OriginalString;
+                return true;
+            case SvgAnimationElement animationElement when animationElement.ReferencedElement is { } animationReference:
+                value = animationReference.OriginalString;
+                return true;
+            case Svg.FilterEffects.SvgFilter filter when filter.Href is { } filterReference:
+                value = filterReference.OriginalString;
+                return true;
+            default:
+                value = string.Empty;
+                return false;
+        }
+    }
+
+    private bool TryGetRawXLinkHrefValue(out string value)
+    {
+        if (Element.CustomAttributes.TryGetValue("xlink:href", out var xlinkHref) &&
+            !string.IsNullOrWhiteSpace(xlinkHref))
+        {
+            value = xlinkHref;
+            return true;
+        }
+
+        var namespacedKey = string.Concat(SvgNamespaces.XLinkNamespace, ":href");
+        if (Element.CustomAttributes.TryGetValue(namespacedKey, out xlinkHref) &&
+            !string.IsNullOrWhiteSpace(xlinkHref))
+        {
+            value = xlinkHref;
+            return true;
         }
 
         value = string.Empty;
@@ -1284,6 +1615,13 @@ public sealed class SvgJavaScriptElement
         return string.Equals(namespaceUri, SvgNamespaces.XLinkNamespace, StringComparison.Ordinal)
             ? $"xlink:{localName}"
             : localName;
+    }
+
+    private static string NormalizeAttributeStorageName(string name)
+    {
+        return string.Equals(name, "xlink:href", StringComparison.OrdinalIgnoreCase)
+            ? "href"
+            : name;
     }
 
     private sealed class ReferenceEqualityComparer : IEqualityComparer<SvgElement>
