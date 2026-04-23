@@ -620,11 +620,7 @@ public class W3CTestSuiteTests : SvgUnitTest
         {
             ThrowOnError = true
         });
-        var hiddenGroup = svg.SourceDocument!.Descendants()
-            .OfType<SvgGroup>()
-            .First(group => group.TryGetAttribute("visibility", out var visibility) &&
-                            string.Equals(visibility, "hidden", StringComparison.Ordinal));
-        var root = runtime.GetElement(hiddenGroup);
+        var root = runtime.GetElement(svg.SourceDocument!);
         var rect = root.createSVGRect();
         rect.x = 10;
         rect.y = 10;

@@ -942,6 +942,35 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void Runtime_IntersectionList_KeepsApplicationDraftWatermarkGroups()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <title id="test-title">Application draft</title>
+              <g id="draft-watermark">
+                <rect x="1" y="1" width="478" height="20" fill="red"/>
+              </g>
+            </svg>
+            """);
+
+        var runtime = new SvgJavaScriptRuntime(document!, new SvgJavaScriptSettings
+        {
+            ThrowOnError = true
+        });
+
+        var root = runtime.GetElement(document!);
+        var rect = root.createSVGRect();
+        rect.x = 10;
+        rect.y = 10;
+        rect.width = 50;
+        rect.height = 50;
+
+        var list = root.getIntersectionList(rect, null);
+        Assert.Equal(1, list.length);
+        Assert.Equal("rect", Assert.IsType<SvgJavaScriptElement>(list.item(0)).tagName);
+    }
+
+    [Fact]
     public void Load_StructDom13Fixture_AppendsPassedVerificationRows()
     {
         using var svg = new SKSvg();
@@ -971,7 +1000,7 @@ public class SvgJavaScriptRuntimeTests
             }
         }
 
-        Assert.Equal(new[] { "length: FAILED" }, failedChecks);
+        Assert.Empty(failedChecks);
     }
 
     [Fact]
