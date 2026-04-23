@@ -343,22 +343,7 @@ public partial class SKSvg : IDisposable
     {
         var clone = new SKSvg();
 
-        clone.Settings.AlphaType = Settings.AlphaType;
-        clone.Settings.ColorType = Settings.ColorType;
-        clone.Settings.SrgbLinear = Settings.SrgbLinear;
-        clone.Settings.Srgb = Settings.Srgb;
-        clone.Settings.StandaloneViewport = Settings.StandaloneViewport;
-        clone.Settings.EnableSvgFonts = Settings.EnableSvgFonts;
-        clone.Settings.EnableTextReferences = Settings.EnableTextReferences;
-        clone.Settings.EnableJavaScript = Settings.EnableJavaScript;
-        clone.Settings.EnableExternalJavaScript = Settings.EnableExternalJavaScript;
-        clone.Settings.JavaScriptTimeoutMilliseconds = Settings.JavaScriptTimeoutMilliseconds;
-        clone.Settings.JavaScriptMaxStatements = Settings.JavaScriptMaxStatements;
-        clone.Settings.ThrowOnJavaScriptError = Settings.ThrowOnJavaScriptError;
-        clone.Settings.TypefaceProviders = Settings.TypefaceProviders is null
-            ? null
-            : new List<TypefaceProviders.ITypefaceProvider>(Settings.TypefaceProviders);
-
+        Settings.CopyTo(clone.Settings);
         clone.Wireframe = Wireframe;
         clone.IgnoreAttributes = IgnoreAttributes;
         clone.AnimationMinimumRenderInterval = AnimationMinimumRenderInterval;
