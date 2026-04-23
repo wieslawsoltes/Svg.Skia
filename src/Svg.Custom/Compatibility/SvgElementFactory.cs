@@ -257,6 +257,11 @@ namespace Svg
             return false;
         }
 
+        private static bool IsNonInheritedOpacityAttribute(string name)
+        {
+            return name == "opacity";
+        }
+
         private static ReadOnlySpan<char> TrimWhitespace(ReadOnlySpan<char> value)
         {
 #if NETSTANDARD20
@@ -308,7 +313,7 @@ namespace Svg
                 return true;
             }
 
-            if (parsedPercentage == 100f)
+            if (parsedPercentage == 100f && IsNonInheritedOpacityAttribute(attributeName))
             {
                 normalizedValue = "1";
                 return false;
@@ -349,9 +354,9 @@ namespace Svg
             if (TryHandlePercentageOpacityAttribute(attributeName, attributeValue, out var normalizedOpacityValue))
             {
                 // SVG 1.1 opacity properties are numeric, not percentages. Treat percentage tokens
-                // as invalid declarations, except for the browser-authored "100%" case where
-                // normalizing to the default value avoids a load-time exception without changing
-                // the rendered result.
+                // as invalid declarations, except for the non-inherited "opacity" property where
+                // the browser-authored "100%" case can be normalized to the default value without
+                // overriding inherited paint-opacity state.
                 return true;
             }
 

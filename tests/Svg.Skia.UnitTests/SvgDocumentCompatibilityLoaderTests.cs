@@ -973,6 +973,29 @@ public class SvgDocumentCompatibilityLoaderTests
         Assert.Equal(1f, rect.StrokeOpacity, 3);
     }
 
+    [Fact]
+    public void FromSvg_IgnoresPercentagePaintOpacityAttributesAndPreservesInheritance()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <g fill-opacity="0.3" stroke-opacity="0.4">
+                <rect id="target"
+                      width="10"
+                      height="10"
+                      stroke="#000000"
+                      fill-opacity="100%"
+                      stroke-opacity="100%" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+
+        Assert.Equal(0.3f, rect.FillOpacity, 3);
+        Assert.Equal(0.4f, rect.StrokeOpacity, 3);
+    }
+
     private static LoadResult CaptureLoad(Func<SvgDocument> load)
     {
         try
