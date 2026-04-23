@@ -257,6 +257,32 @@ namespace Svg
             return false;
         }
 
+        private static ReadOnlySpan<char> TrimWhitespace(ReadOnlySpan<char> value)
+        {
+            var start = 0;
+            while (start < value.Length && char.IsWhiteSpace(value[start]))
+            {
+                start++;
+            }
+
+            var end = value.Length;
+            while (end > start && char.IsWhiteSpace(value[end - 1]))
+            {
+                end--;
+            }
+
+            return value.Slice(start, end - start);
+        }
+
+        private static bool TryParseInvariantFloat(ReadOnlySpan<char> value, out float parsed)
+        {
+#if NETSTANDARD20
+            return float.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out parsed);
+#else
+            return float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out parsed);
+#endif
+        }
+
         private static string NormalizeOpacityAttributeValue(string attributeName, string attributeValue)
         {
             if (!IsOpacityAttribute(attributeName) || string.IsNullOrWhiteSpace(attributeValue))
@@ -264,14 +290,14 @@ namespace Svg
                 return attributeValue;
             }
 
-            var trimmedValue = attributeValue.Trim();
-            if (!trimmedValue.EndsWith("%", StringComparison.Ordinal))
+            var trimmedValue = TrimWhitespace(attributeValue.AsSpan());
+            if (trimmedValue.Length == 0 || trimmedValue[trimmedValue.Length - 1] != '%')
             {
                 return attributeValue;
             }
 
-            var percentageValue = trimmedValue.Substring(0, trimmedValue.Length - 1).Trim();
-            if (!float.TryParse(percentageValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsedPercentage))
+            var percentageValue = TrimWhitespace(trimmedValue.Slice(0, trimmedValue.Length - 1));
+            if (percentageValue.Length == 0 || !TryParseInvariantFloat(percentageValue, out var parsedPercentage))
             {
                 return attributeValue;
             }
