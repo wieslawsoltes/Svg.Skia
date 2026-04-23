@@ -177,11 +177,50 @@ public class SKSvgTests : SvgUnitTest
         Assert.Equal(1, drawCount);
     }
 
+    [Fact]
+    public void Draw_AnimationLayerCachingWithNonScalingStroke_PreservesStrokeWidth()
+    {
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(CreateAnimationLayerNonScalingStrokeSvgMarkup()));
+        using var _ = svg.Load(input);
+        using var bitmap = new SkiaSharp.SKBitmap(new SkiaSharp.SKImageInfo(50, 20, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul));
+        using var canvas = new SkiaSharp.SKCanvas(bitmap);
+
+        Assert.True(svg.UsesAnimationLayerCaching);
+
+        canvas.Clear(SkiaSharp.SKColors.Transparent);
+        canvas.Scale(0.5f, 0.5f);
+        svg.Draw(canvas);
+
+        using var skImage = SkiaSharp.SKImage.FromBitmap(bitmap);
+        using var data = skImage.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+        Assert.NotNull(data);
+
+        using var output = new MemoryStream(data.ToArray());
+        using var image = Image.Load<Rgba32>(output);
+        var opaquePixels = CountOpaquePixelsInColumn(image, 25);
+        Assert.InRange(opaquePixels, 3, 6);
+    }
+
     private static string CreateNonScalingStrokeSvgMarkup(string vectorEffect)
     {
         return $$"""
             <svg xmlns="http://www.w3.org/2000/svg" width="100" height="40" viewBox="0 0 100 40">
               <line x1="10" y1="20" x2="90" y2="20" stroke="black" stroke-width="4" {{vectorEffect}} />
+            </svg>
+            """;
+    }
+
+    private static string CreateAnimationLayerNonScalingStrokeSvgMarkup()
+    {
+        return """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="40" viewBox="0 0 100 40">
+              <line x1="10" y1="20" x2="90" y2="20" stroke="black" stroke-width="4" vector-effect="non-scaling-stroke" />
+              <g id="animated-root">
+                <rect id="moving" x="0" y="34" width="5" height="4" fill="red">
+                  <animate attributeName="x" from="0" to="10" dur="1s" fill="freeze" />
+                </rect>
+              </g>
             </svg>
             """;
     }

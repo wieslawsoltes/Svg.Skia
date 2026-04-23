@@ -308,30 +308,50 @@ public partial class SKSvg
             return false;
         }
 
+        SKPicture? staticLayerModel;
+        SKPicture? dynamicLayerModel;
         SkiaSharp.SKPicture? staticLayerPicture;
         SkiaSharp.SKPicture? dynamicLayerPicture;
         lock (Sync)
         {
+            staticLayerModel = _staticAnimationLayerModel;
+            dynamicLayerModel = _dynamicAnimationLayerModel;
             staticLayerPicture = _staticAnimationLayerPicture;
             dynamicLayerPicture = _dynamicAnimationLayerPicture;
         }
 
-        if (staticLayerPicture is null && dynamicLayerPicture is null)
+        if (staticLayerModel is null &&
+            dynamicLayerModel is null &&
+            staticLayerPicture is null &&
+            dynamicLayerPicture is null)
         {
             return false;
         }
 
-        if (staticLayerPicture is { })
-        {
-            canvas.DrawPicture(staticLayerPicture);
-        }
-
-        if (dynamicLayerPicture is { })
-        {
-            canvas.DrawPicture(dynamicLayerPicture);
-        }
+        DrawAnimationLayer(staticLayerModel, staticLayerPicture, canvas);
+        DrawAnimationLayer(dynamicLayerModel, dynamicLayerPicture, canvas);
 
         return true;
+    }
+
+    private void DrawAnimationLayer(SKPicture? model, SkiaSharp.SKPicture? picture, SkiaSharp.SKCanvas canvas)
+    {
+        if (model is { } && ContainsNonScalingStroke(model))
+        {
+            SkiaModel.Draw(model, canvas);
+            return;
+        }
+
+        if (picture is { })
+        {
+            canvas.DrawPicture(picture);
+            return;
+        }
+
+        if (model is { })
+        {
+            SkiaModel.Draw(model, canvas);
+        }
     }
 
     private bool TryRefreshAnimationLayerEntries(
