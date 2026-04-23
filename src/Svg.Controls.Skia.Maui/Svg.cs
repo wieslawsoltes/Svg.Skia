@@ -278,12 +278,13 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
 
     public void ZoomToPoint(double newZoom, Microsoft.Maui.Graphics.Point point)
     {
+        var renderPoint = ToRenderPoint(point, GetRenderViewportSize());
         var result = SvgRenderLayout.ZoomToPoint(
             Zoom,
             PanX,
             PanY,
             newZoom,
-            new SvgPoint(point.X, point.Y));
+            renderPoint);
 
         PanX = result.PanX;
         PanY = result.PanY;
@@ -551,11 +552,12 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
 
         var cancellationTokenSource = new CancellationTokenSource();
         _pendingLoadCts = cancellationTokenSource;
-        _ = ReloadSourceAsync(loadVersion, cancellationTokenSource.Token);
+        _ = ReloadSourceAsync(loadVersion, cancellationTokenSource);
     }
 
-    private async Task ReloadSourceAsync(long loadVersion, CancellationToken cancellationToken)
+    private async Task ReloadSourceAsync(long loadVersion, CancellationTokenSource cancellationTokenSource)
     {
+        var cancellationToken = cancellationTokenSource.Token;
         LoadResult result = default;
 
         try
@@ -573,7 +575,7 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
                 result = LoadInlineSource(Source!);
             }
 
-            ApplyLoadResult(loadVersion, result, cancellationToken);
+            ApplyLoadResult(loadVersion, result, cancellationToken, cancellationTokenSource);
         }
         catch (OperationCanceledException)
         {
@@ -689,7 +691,11 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
             out renderInfo);
     }
 
-    private void ApplyLoadResult(long loadVersion, LoadResult result, CancellationToken cancellationToken)
+    private void ApplyLoadResult(
+        long loadVersion,
+        LoadResult result,
+        CancellationToken cancellationToken,
+        CancellationTokenSource cancellationTokenSource)
     {
         void Apply()
         {
@@ -699,6 +705,7 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
                 return;
             }
 
+            ClearCompletedPendingLoad(cancellationTokenSource);
             SetCurrentSource(result);
         }
 
@@ -741,6 +748,15 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
         _pendingLoadCts?.Cancel();
         _pendingLoadCts?.Dispose();
         _pendingLoadCts = null;
+    }
+
+    private void ClearCompletedPendingLoad(CancellationTokenSource cancellationTokenSource)
+    {
+        if (ReferenceEquals(_pendingLoadCts, cancellationTokenSource))
+        {
+            _pendingLoadCts = null;
+            cancellationTokenSource.Dispose();
+        }
     }
 
     private void DisposeCache()
