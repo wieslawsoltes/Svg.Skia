@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:svg="https://github.com/svgskia/maui"
+             x:Class="MauiSvgSkiaSample.MainPage"
+             Title="Svg.Controls.Skia.Maui">
+
+    <ContentPage.Resources>
+        <svg:SvgSource x:Key="TigerSource" Path="Assets/tiger.svg" />
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="18">
+            <Label Text="Svg.Controls.Skia.Maui"
+                   FontSize="28"
+                   FontAttributes="Bold" />
+            <Label Text="This sample mirrors the Uno SVG control sample for .NET MAUI, covering path-based assets, inline SVG markup, reusable SvgSource resources, CSS restyling, zoom and pan, hit testing, and render toggles."
+                   LineBreakMode="WordWrap" />
+
+            <Border Padding="18"
+                    Stroke="#330F172A"
+                    StrokeThickness="1"
+                    BackgroundColor="#FCFCFD">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Asset Load via Path"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+                    <svg:Svg Path="Assets/tiger.svg"
+                             HeightRequest="240"
+                             Stretch="Uniform"
+                             EnableCache="True" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Padding="18"
+                    Stroke="#330F172A"
+                    StrokeThickness="1"
+                    BackgroundColor="#FCFCFD">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Inline SVG via Source"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+                    <svg:Svg x:Name="InlineSvgView"
+                             HeightRequest="140"
+                             Stretch="Uniform" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Padding="18"
+                    Stroke="#330F172A"
+                    StrokeThickness="1"
+                    BackgroundColor="#FCFCFD">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Reusable SvgSource Resource"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+                    <svg:Svg SvgSource="{StaticResource TigerSource}"
+                             HeightRequest="200"
+                             Stretch="UniformToFill" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Padding="18"
+                    Stroke="#330F172A"
+                    StrokeThickness="1"
+                    BackgroundColor="#FCFCFD">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Runtime CSS Restyling"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+                    <svg:Svg x:Name="StyledSvg"
+                             HeightRequest="180"
+                             Stretch="Uniform" />
+                    <HorizontalStackLayout Spacing="12">
+                        <Button Text="Swap Theme"
+                                Clicked="OnSwapThemeClick" />
+                        <Label x:Name="CssStatusLabel"
+                               VerticalTextAlignment="Center" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Padding="18"
+                    Stroke="#330F172A"
+                    StrokeThickness="1"
+                    BackgroundColor="#FCFCFD">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Zoom, Pan, and Hit Testing"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+                    <svg:Svg x:Name="InteractiveSvg"
+                             Path="Assets/camera.svg"
+                             HeightRequest="260"
+                             Stretch="Uniform">
+                        <svg:Svg.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnInteractiveSvgTapped" />
+                        </svg:Svg.GestureRecognizers>
+                    </svg:Svg>
+
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Zoom In" Clicked="OnZoomInClick" />
+                        <Button Text="Zoom Out" Clicked="OnZoomOutClick" />
+                        <Button Text="Reset View" Clicked="OnResetViewClick" />
+                    </HorizontalStackLayout>
+
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Pan Left" Clicked="OnPanLeftClick" />
+                        <Button Text="Pan Right" Clicked="OnPanRightClick" />
+                        <Button Text="Pan Up" Clicked="OnPanUpClick" />
+                        <Button Text="Pan Down" Clicked="OnPanDownClick" />
+                    </HorizontalStackLayout>
+
+                    <Label x:Name="HitTestStatusLabel"
+                           LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Padding="18"
+                    Stroke="#330F172A"
+                    StrokeThickness="1"
+                    BackgroundColor="#FCFCFD">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Wireframe and Filter Toggle"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+                    <svg:Svg x:Name="FilterSvg"
+                             HeightRequest="180"
+                             Stretch="Uniform" />
+                    <HorizontalStackLayout Spacing="18">
+                        <CheckBox CheckedChanged="OnWireframeChanged" />
+                        <Label Text="Wireframe"
+                               VerticalTextAlignment="Center" />
+                        <CheckBox CheckedChanged="OnDisableFiltersChanged" />
+                        <Label Text="Disable Filters"
+                               VerticalTextAlignment="Center" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

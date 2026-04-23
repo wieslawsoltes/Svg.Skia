@@ -1,0 +1,12 @@
+<svg width="320" height="220" viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+  <rect id="camera-shadow" x="22" y="34" width="276" height="164" rx="28" fill="#0F172A" opacity="0.16" />
+  <rect id="camera-body" x="18" y="28" width="284" height="164" rx="28" fill="#1F2937" />
+  <rect id="camera-top" x="68" y="14" width="62" height="28" rx="12" fill="#334155" />
+  <rect id="flash" x="226" y="52" width="44" height="18" rx="9" fill="#F59E0B" />
+  <circle id="lens-outer" cx="160" cy="110" r="56" fill="#CBD5E1" />
+  <circle id="lens-ring" cx="160" cy="110" r="44" fill="#475569" />
+  <circle id="lens-core" cx="160" cy="110" r="28" fill="#0EA5E9" />
+  <circle id="lens-highlight" cx="148" cy="96" r="10" fill="#E0F2FE" opacity="0.9" />
+  <rect id="grip" x="42" y="62" width="22" height="92" rx="11" fill="#111827" />
+  <rect id="viewfinder" x="214" y="78" width="42" height="22" rx="8" fill="#94A3B8" />
+</svg>
