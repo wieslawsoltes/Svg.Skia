@@ -600,7 +600,8 @@ For inline SvgML authoring, scope the SVG subtree to the SvgML XML namespace:
 The MAUI packages currently target Android, iOS, and Mac Catalyst. See the
 [Svg.Controls.Skia.Maui package guide](site/articles/packages/svg-controls-skia-maui.md),
 [SvgML.Maui package guide](site/articles/packages/svgml-maui.md), and
-[sample app](samples/SvgML.Maui.Demo) for the full MAUI flow.
+[MauiSvgSkiaSample](samples/MauiSvgSkiaSample) for the control flow and
+[SvgML.Maui.Demo](samples/SvgML.Maui.Demo) for the inline SvgML flow.
 
 ### Avalonia SkiaSharp Controls
 

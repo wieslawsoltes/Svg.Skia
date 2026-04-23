@@ -67,3 +67,14 @@ dotnet publish samples/UnoSvgSkiaSample/UnoSvgSkiaSample.csproj -c Release -f ne
 dotnet build samples/UnoSvgSkiaSample/UnoSvgSkiaSample.csproj -c Release -f net10.0-android
 dotnet build samples/UnoSvgSkiaSample/UnoSvgSkiaSample.csproj -c Release -f net10.0-ios
 ```
+
+## MAUI sample validation
+
+Use the standalone MAUI control sample when validating `Svg.Controls.Skia.Maui` end to end:
+
+```bash
+dotnet workload install maui
+dotnet build samples/MauiSvgSkiaSample/MauiSvgSkiaSample.csproj -c Release -f net10.0-android
+dotnet build samples/MauiSvgSkiaSample/MauiSvgSkiaSample.csproj -c Release -f net10.0-ios
+dotnet build samples/MauiSvgSkiaSample/MauiSvgSkiaSample.csproj -c Release -f net10.0-maccatalyst
+```

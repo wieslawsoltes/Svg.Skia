@@ -123,6 +123,7 @@ MAUI currently resolves automatic playback to `DispatcherTimer`. `RenderLoop` an
 
 ## Related docs
 
+- [MauiSvgSkiaSample](../../../samples/MauiSvgSkiaSample)
 - [SvgML.Maui](svgml-maui)
 - [SvgML.Maui Inline SVG](../xaml/svgml-maui-inline-svg)
 - [Interaction and Animation](../guides/interaction-and-animation)

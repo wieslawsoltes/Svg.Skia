@@ -117,6 +117,7 @@ cd src/SvgML.Maui
 dotnet workload install maui
 dotnet build ../Svg.Controls.Skia.Maui/Svg.Controls.Skia.Maui.csproj -c Release
 dotnet build SvgML.Maui.csproj -c Release
+dotnet build ../../samples/MauiSvgSkiaSample/MauiSvgSkiaSample.csproj -c Release
 dotnet build ../../samples/SvgML.Maui.Demo/SvgML.Maui.Demo.csproj -c Release
 ```
 
