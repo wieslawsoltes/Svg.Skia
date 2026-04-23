@@ -2646,6 +2646,14 @@ public sealed class SvgAnimationController : IDisposable
 
     private static bool TryGetColor(SvgPaintServer? paintServer, out Color color)
     {
+        if (paintServer == SvgPaintServer.None ||
+            paintServer == SvgPaintServer.Inherit ||
+            paintServer == SvgPaintServer.NotSet)
+        {
+            color = default;
+            return false;
+        }
+
         if (paintServer is SvgColourServer colourServer)
         {
             color = colourServer.Colour;
