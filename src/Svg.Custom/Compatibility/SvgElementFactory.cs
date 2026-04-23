@@ -241,6 +241,44 @@ namespace Svg
             }
             return false;
         }
+
+        private static bool IsOpacityAttribute(string name)
+        {
+            switch (name)
+            {
+                case "fill-opacity":
+                case "flood-opacity":
+                case "opacity":
+                case "stop-opacity":
+                case "stroke-opacity":
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static string NormalizeOpacityAttributeValue(string attributeName, string attributeValue)
+        {
+            if (!IsOpacityAttribute(attributeName) || string.IsNullOrWhiteSpace(attributeValue))
+            {
+                return attributeValue;
+            }
+
+            var trimmedValue = attributeValue.Trim();
+            if (!trimmedValue.EndsWith("%", StringComparison.Ordinal))
+            {
+                return attributeValue;
+            }
+
+            var percentageValue = trimmedValue.Substring(0, trimmedValue.Length - 1).Trim();
+            if (!float.TryParse(percentageValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsedPercentage))
+            {
+                return attributeValue;
+            }
+
+            return (parsedPercentage / 100f).ToString("R", CultureInfo.InvariantCulture);
+        }
+
         internal static bool SetPropertyValue(SvgElement element, string ns, string attributeName, string attributeValue, SvgDocument document, bool isStyle = false)
         {
             if (attributeName == "text-decoration" && !string.IsNullOrWhiteSpace(attributeValue))
@@ -269,6 +307,9 @@ namespace Svg
             {
                 attributeValue = "1";
             }
+
+            attributeValue = NormalizeOpacityAttributeValue(attributeName, attributeValue);
+
             var setValueResult = element.SetValue(attributeName, document, CultureInfo.InvariantCulture, attributeValue);
             if (setValueResult)
             {
