@@ -7,7 +7,11 @@ using System.Net;
 using System.Text;
 using Jint;
 using Jint.Native;
+using Jint.Native.Object;
+using Jint.Runtime;
 using Svg;
+using Svg.Model;
+using Svg.Skia;
 
 namespace Svg.JavaScript;
 
@@ -31,12 +35,20 @@ public sealed class SvgJavaScriptRuntime
     private readonly Engine _engine;
     private readonly SvgJavaScriptDocument _documentFacade;
     private readonly SvgJavaScriptWindow _windowFacade;
+    private readonly SvgJavaScriptAssetLoader _assetLoader;
+    private readonly Dictionary<SvgUse, SvgJavaScriptElementInstance?> _useInstanceRoots = new();
     private int _mutationVersion;
+    private SvgSceneDocument? _sceneDocument;
+    private int _sceneDocumentMutationVersion = -1;
+    private int _nextTimeoutId;
+    private ISvgJavaScriptAnimationHost? _animationHost;
+    private TimeSpan? _pendingAnimationTime;
 
     public SvgJavaScriptRuntime(SvgDocument document, SvgJavaScriptSettings settings)
     {
         _document = document ?? throw new ArgumentNullException(nameof(document));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _assetLoader = new SvgJavaScriptAssetLoader();
         _documentFacade = new SvgJavaScriptDocument(this, document);
         _windowFacade = _documentFacade.defaultView;
         _engine = CreateEngine(settings);
@@ -46,9 +58,34 @@ public sealed class SvgJavaScriptRuntime
         _engine.SetValue("console", new SvgJavaScriptConsole());
         _engine.SetValue("evt", JsValue.Null);
         _engine.SetValue("event", JsValue.Null);
+        _engine.SetValue("Node", SvgJavaScriptDomConstants.CreateNodeObject(this));
+        _engine.SetValue("DOMException", SvgJavaScriptDomConstants.CreateDomExceptionObject(this));
+        _engine.SetValue("SVGTransform", SvgJavaScriptDomConstants.CreateSvgTransformObject(this));
+        _engine.SetValue("SVGLength", SvgJavaScriptDomConstants.CreateSvgLengthObject(this));
+        _engine.SetValue("SVGAngle", SvgJavaScriptDomConstants.CreateSvgAngleObject(this));
+        _engine.SetValue("SVGPreserveAspectRatio", SvgJavaScriptDomConstants.CreateSvgPreserveAspectRatioObject(this));
+        _engine.SetValue("alert", new Action<object?>(_windowFacade.alert));
+        _engine.SetValue("setTimeout", new Func<object?, object?, int>(_windowFacade.setTimeout));
+        _engine.SetValue("clearTimeout", new Action<int>(_windowFacade.clearTimeout));
     }
 
     public int MutationVersion => _mutationVersion;
+
+    internal SvgJavaScriptDocument DocumentFacade => _documentFacade;
+
+    public ISvgJavaScriptAnimationHost? AnimationHost
+    {
+        get => _animationHost;
+        set
+        {
+            _animationHost = value;
+            if (_animationHost is not null && _pendingAnimationTime is { } pendingTime)
+            {
+                _animationHost.Seek(pendingTime);
+                _pendingAnimationTime = null;
+            }
+        }
+    }
 
     public SvgJavaScriptElement GetElement(SvgElement element)
     {
@@ -58,6 +95,9 @@ public sealed class SvgJavaScriptRuntime
     internal void MarkMutation()
     {
         _mutationVersion++;
+        _sceneDocument = null;
+        _sceneDocumentMutationVersion = -1;
+        _useInstanceRoots.Clear();
     }
 
     public void ExecuteDocumentScripts()
@@ -78,6 +118,111 @@ public sealed class SvgJavaScriptRuntime
         string attributeName,
         SvgJavaScriptEventInput? input)
     {
+        return ExecuteEventHandler(
+            element,
+            GetElement(targetElement),
+            relatedElement is null ? null : GetElement(relatedElement),
+            eventType,
+            attributeName,
+            input);
+    }
+
+    internal SvgJavaScriptEventResult ExecuteEventHandler(
+        SvgElement element,
+        object targetNode,
+        object? relatedTargetNode,
+        string eventType,
+        string attributeName,
+        SvgJavaScriptEventInput? input)
+    {
+        var eventFacade = new SvgJavaScriptEvent(
+            eventType,
+            targetNode,
+            GetElement(element),
+            relatedTargetNode,
+            input);
+        return ExecuteEventHandlerCore(element, attributeName, eventFacade);
+    }
+
+    internal SvgJavaScriptElementInstance? GetUseInstanceRoot(SvgUse use)
+    {
+        if (!_useInstanceRoots.TryGetValue(use, out var root))
+        {
+            root = SvgJavaScriptElementInstance.CreateTree(this, _documentFacade, use);
+            _useInstanceRoots[use] = root;
+        }
+
+        return root;
+    }
+
+    internal SvgJavaScriptElementInstance? FindUseInstance(SvgUse use, SvgElement correspondingElement)
+    {
+        return GetUseInstanceRoot(use)?.FindFirst(correspondingElement);
+    }
+
+    internal bool DispatchEvent(SvgJavaScriptElement target, SvgJavaScriptEvent evt)
+    {
+        if (evt is null)
+        {
+            throw new ArgumentNullException(nameof(evt));
+        }
+
+        return DispatchEventCore(
+            evt,
+            target,
+            static current => current.parentElement,
+            static current => current.Element,
+            static current => current);
+    }
+
+    internal bool DispatchEvent(SvgJavaScriptElementInstance target, SvgJavaScriptEvent evt)
+    {
+        if (evt is null)
+        {
+            throw new ArgumentNullException(nameof(evt));
+        }
+
+        return DispatchEventCore(
+            evt,
+            target,
+            static current => current.parentNode,
+            static current => current.CorrespondingEventElementRaw,
+            static current => (object)current);
+    }
+
+    private bool DispatchEventCore<TTarget>(
+        SvgJavaScriptEvent evt,
+        TTarget target,
+        Func<TTarget, TTarget?> getParent,
+        Func<TTarget, SvgElement> getHandlerElement,
+        Func<TTarget, object> getFacade)
+        where TTarget : class
+    {
+        var eventType = NormalizeEventType(evt.type);
+        if (string.IsNullOrWhiteSpace(eventType))
+        {
+            return true;
+        }
+
+        evt.BeginDispatch(eventType, getFacade(target), evt.relatedTarget);
+        for (var current = target; current is not null; current = getParent(current))
+        {
+            evt.SetCurrentTarget(getFacade(current));
+            var result = ExecuteEventHandlerCore(getHandlerElement(current), "on" + eventType, evt);
+            if (result.CancelBubble || !evt.bubbles)
+            {
+                break;
+            }
+        }
+
+        return !evt.defaultPrevented;
+    }
+
+    private SvgJavaScriptEventResult ExecuteEventHandlerCore(
+        SvgElement element,
+        string attributeName,
+        SvgJavaScriptEvent eventFacade)
+    {
         if (!IsSupportedDefaultScriptType())
         {
             return SvgJavaScriptEventResult.NotExecuted;
@@ -89,18 +234,7 @@ public sealed class SvgJavaScriptRuntime
         }
 
         var before = _mutationVersion;
-        var currentTarget = GetElement(element);
-        var eventFacade = new SvgJavaScriptEvent(
-            eventType,
-            GetElement(targetElement),
-            currentTarget,
-            relatedElement is null ? null : GetElement(relatedElement),
-            input);
-
-        _engine.SetValue("evt", eventFacade);
-        _engine.SetValue("event", eventFacade);
-        _engine.SetValue("__svgSkiaCurrentTarget", currentTarget);
-        _engine.SetValue("__svgSkiaEvent", eventFacade);
+        BindEventValues(eventFacade);
 
         try
         {
@@ -112,10 +246,7 @@ public sealed class SvgJavaScriptRuntime
         }
         finally
         {
-            _engine.SetValue("evt", JsValue.Null);
-            _engine.SetValue("event", JsValue.Null);
-            _engine.SetValue("__svgSkiaCurrentTarget", JsValue.Null);
-            _engine.SetValue("__svgSkiaEvent", JsValue.Null);
+            ClearEventValues();
         }
 
         return new SvgJavaScriptEventResult(
@@ -123,6 +254,22 @@ public sealed class SvgJavaScriptRuntime
             mutated: _mutationVersion != before,
             cancelBubble: eventFacade.cancelBubble,
             defaultPrevented: eventFacade.defaultPrevented);
+    }
+
+    private void BindEventValues(SvgJavaScriptEvent eventFacade)
+    {
+        _engine.SetValue("evt", eventFacade);
+        _engine.SetValue("event", eventFacade);
+        _engine.SetValue("__svgSkiaCurrentTarget", eventFacade.currentTarget ?? JsValue.Null);
+        _engine.SetValue("__svgSkiaEvent", eventFacade);
+    }
+
+    private void ClearEventValues()
+    {
+        _engine.SetValue("evt", JsValue.Null);
+        _engine.SetValue("event", JsValue.Null);
+        _engine.SetValue("__svgSkiaCurrentTarget", JsValue.Null);
+        _engine.SetValue("__svgSkiaEvent", JsValue.Null);
     }
 
     private static Engine CreateEngine(SvgJavaScriptSettings settings)
@@ -139,6 +286,122 @@ public sealed class SvgJavaScriptRuntime
                 options.MaxStatements(settings.MaxStatements);
             }
         });
+    }
+
+    internal ObjectInstance CreatePlainObject()
+    {
+        return _engine.Intrinsics.Object.Construct(Array.Empty<JsValue>());
+    }
+
+    internal void ThrowDomException(int code, string message)
+    {
+        var domException = CreatePlainObject();
+        domException.FastSetDataProperty("name", JsValue.FromObject(_engine, "DOMException"));
+        domException.FastSetDataProperty("message", JsValue.FromObject(_engine, message));
+        domException.FastSetDataProperty("code", JsNumber.Create(code));
+        throw new JavaScriptException(domException);
+    }
+
+    internal int SetTimeout(object? handler)
+    {
+        var id = ++_nextTimeoutId;
+
+        if (handler is null)
+        {
+            return id;
+        }
+
+        switch (handler)
+        {
+            case string code when !string.IsNullOrWhiteSpace(code):
+                ExecuteScript(code, "window.setTimeout");
+                break;
+            case Func<JsValue, JsValue[], JsValue> callback:
+                callback(JsValue.FromObject(_engine, _windowFacade), Array.Empty<JsValue>());
+                break;
+            default:
+                ExecuteScript(handler.ToString() ?? string.Empty, "window.setTimeout");
+                break;
+        }
+
+        return id;
+    }
+
+    internal void ClearTimeout(int id)
+    {
+        _ = id;
+    }
+
+    internal bool TryGetSceneNode(SvgElement element, out SvgSceneNode? node)
+    {
+        var sceneDocument = GetSceneDocument();
+        if (sceneDocument is null)
+        {
+            node = null;
+            return false;
+        }
+
+        if (sceneDocument.TryGetNode(element, out node) && node is not null)
+        {
+            return true;
+        }
+
+        SvgSceneNode? fallback = null;
+        foreach (var candidate in sceneDocument.Traverse())
+        {
+            if (!ReferenceEquals(candidate.Element, element) &&
+                !ReferenceEquals(candidate.HitTestTargetElement, element))
+            {
+                continue;
+            }
+
+            fallback ??= candidate;
+            if (candidate.IsRenderable && !candidate.TransformedBounds.IsEmpty)
+            {
+                node = candidate;
+                return true;
+            }
+        }
+
+        if (fallback is not null)
+        {
+            node = fallback;
+            return true;
+        }
+
+        node = null;
+        return false;
+    }
+
+    internal SvgSceneDocument? GetSceneDocument()
+    {
+        if (_sceneDocument is not null && _sceneDocumentMutationVersion == _mutationVersion)
+        {
+            return _sceneDocument;
+        }
+
+        _sceneDocument = SvgSceneRuntime.TryCompile(_document, _assetLoader, DrawAttributes.None, out var sceneDocument)
+            ? sceneDocument
+            : null;
+        _sceneDocumentMutationVersion = _mutationVersion;
+        return _sceneDocument;
+    }
+
+    internal double GetCurrentTimeSeconds()
+    {
+        return (_animationHost?.CurrentTime ?? TimeSpan.Zero).TotalSeconds;
+    }
+
+    internal void SetCurrentTimeSeconds(double seconds)
+    {
+        var time = TimeSpan.FromSeconds(seconds);
+        if (_animationHost is not null)
+        {
+            _animationHost.Seek(time);
+            return;
+        }
+
+        _pendingAnimationTime = time;
     }
 
     private void ExecuteScriptElement(SvgScript script)
@@ -298,7 +561,7 @@ public sealed class SvgJavaScriptRuntime
     {
         try
         {
-            _engine.Execute(script);
+            _engine.Execute(script, sourceDescription);
         }
         catch (Exception ex)
         {
@@ -365,6 +628,11 @@ public sealed class SvgJavaScriptRuntime
         return trimmed.StartsWith("javascript:", StringComparison.OrdinalIgnoreCase)
             ? trimmed.Substring("javascript:".Length)
             : script;
+    }
+
+    private static string NormalizeEventType(string? eventType)
+    {
+        return eventType?.Trim().ToLowerInvariant() ?? string.Empty;
     }
 }
 

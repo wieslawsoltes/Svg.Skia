@@ -54,12 +54,11 @@ public sealed class SvgJavaScriptStyleDeclaration
 
     public string removeProperty(string name)
     {
-        var previous = getPropertyValue(name);
         if (!string.IsNullOrWhiteSpace(name))
         {
-            _element.removeAttribute(name);
+            return _element.RemoveStyleProperty(name);
         }
 
-        return previous;
+        return string.Empty;
     }
 }

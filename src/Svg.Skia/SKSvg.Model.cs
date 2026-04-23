@@ -522,7 +522,7 @@ public partial class SKSvg : IDisposable
         if (animationController.HasAnimations)
         {
             ReplaceAnimationController(animationController);
-            _ = RenderAnimationFrame(animationController.EvaluateFrameState(TimeSpan.Zero), raiseInvalidation: false, bypassThrottle: true);
+            _ = RenderAnimationFrame(animationController.EvaluateFrameState(animationController.Clock.CurrentTime), raiseInvalidation: false, bypassThrottle: true);
             return Picture;
         }
 
@@ -884,6 +884,10 @@ public partial class SKSvg : IDisposable
         }
 
         AnimationController = controller;
+        if (_javaScriptRuntime is { } runtime)
+        {
+            runtime.AnimationHost = controller is null ? null : new SvgJavaScriptAnimationHostAdapter(controller);
+        }
 
         if (controller is { })
         {
@@ -932,6 +936,11 @@ public partial class SKSvg : IDisposable
 
         var runtime = new SvgJavaScriptRuntime(svgDocument, CreateJavaScriptSettings());
         _javaScriptRuntime = runtime;
+        if (AnimationController is { } controller)
+        {
+            runtime.AnimationHost = new SvgJavaScriptAnimationHostAdapter(controller);
+        }
+
         if (executeDocumentScripts)
         {
             runtime.ExecuteDocumentScripts();
@@ -953,7 +962,13 @@ public partial class SKSvg : IDisposable
         }
 
         var mutationVersion = runtime.MutationVersion;
-        var result = runtime.ExecuteEventHandler(element, targetElement, relatedElement, eventType, attributeName, CreateJavaScriptEventInput(input));
+        var result = runtime.ExecuteEventHandler(
+            element,
+            ResolveJavaScriptEventTarget(runtime, targetElement, input.PicturePoint),
+            relatedElement is null ? null : runtime.GetElement(relatedElement),
+            eventType,
+            attributeName,
+            CreateJavaScriptEventInput(input));
         if (runtime.MutationVersion == mutationVersion)
         {
             return result;
@@ -970,6 +985,24 @@ public partial class SKSvg : IDisposable
         }
 
         return result;
+    }
+
+    private object ResolveJavaScriptEventTarget(SvgJavaScriptRuntime runtime, SvgElement targetElement, SKPoint picturePoint)
+    {
+        if (targetElement is SvgUse use &&
+            HitTestTopmostSceneNode(picturePoint) is { } hitNode &&
+            ReferenceEquals(hitNode.HitTestTargetElement, targetElement) &&
+            hitNode.Element is SvgElement correspondingElement &&
+            !ReferenceEquals(correspondingElement, targetElement))
+        {
+            var instance = runtime.FindUseInstance(use, correspondingElement);
+            if (instance is not null)
+            {
+                return instance;
+            }
+        }
+
+        return runtime.GetElement(targetElement);
     }
 
     private SvgJavaScriptSettings CreateJavaScriptSettings()
@@ -1007,6 +1040,23 @@ public partial class SKSvg : IDisposable
             SvgMouseButton.XButton2 => SvgJavaScriptMouseButton.XButton2,
             _ => SvgJavaScriptMouseButton.None
         };
+    }
+
+    private sealed class SvgJavaScriptAnimationHostAdapter : ISvgJavaScriptAnimationHost
+    {
+        private readonly SvgAnimationController _controller;
+
+        public SvgJavaScriptAnimationHostAdapter(SvgAnimationController controller)
+        {
+            _controller = controller;
+        }
+
+        public TimeSpan CurrentTime => _controller.Clock.CurrentTime;
+
+        public void Seek(TimeSpan time)
+        {
+            _controller.Clock.Seek(time);
+        }
     }
 
     private bool RenderAnimationFrame(TimeSpan time, bool raiseInvalidation, bool bypassThrottle)

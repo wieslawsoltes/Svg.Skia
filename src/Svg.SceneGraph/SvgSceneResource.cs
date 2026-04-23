@@ -262,18 +262,18 @@ public sealed class SvgSceneResource
             TotalTransform = SKMatrix.Identity,
             TransformedBounds = SKRect.Empty
         };
-        
+
         var maskType = GetMaskType(svgMask);
 
         SvgSceneCompiler.AssignRetainedVisualState(maskNode, svgMask);
         SvgSceneCompiler.AssignRetainedResourceKeys(maskNode, svgMask);
         return new SvgSceneMaskPayload(maskNode, CreateMaskPaint(), CreateMaskDstInPaint(maskType));
     }
-    
+
     private static MaskType GetMaskType(SvgMask mask)
     {
         var maskType = MaskType.Luminance;
-        
+
         if (mask.TryGetAttribute("mask-type", out var maskTypeStr)
             && !string.IsNullOrWhiteSpace(maskTypeStr))
         {
@@ -281,7 +281,7 @@ public sealed class SvgSceneResource
                 ? MaskType.Alpha
                 : MaskType.Luminance;
         }
-        
+
         return maskType;
     }
 

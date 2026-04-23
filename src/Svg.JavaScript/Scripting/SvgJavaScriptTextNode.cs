@@ -32,6 +32,12 @@ public sealed class SvgJavaScriptTextNode
         }
     }
 
+    public string nodeValue
+    {
+        get => textContent;
+        set => textContent = value;
+    }
+
     public string data
     {
         get => textContent;
@@ -69,10 +75,19 @@ public sealed class SvgJavaScriptTextNode
             return null;
         }
 
-        var nodes = _parent.Nodes.Count > 0 ? _parent.Nodes.ToArray() : _parent.Children.Cast<ISvgNode>().ToArray();
-        var index = System.Array.IndexOf(nodes, Node);
+        var nodes = _document.GetDomNodes(_parent);
+        var index = -1;
+        for (var i = 0; i < nodes.Count; i++)
+        {
+            if (ReferenceEquals(nodes[i], Node))
+            {
+                index = i;
+                break;
+            }
+        }
+
         var siblingIndex = index + offset;
-        return index < 0 || siblingIndex < 0 || siblingIndex >= nodes.Length
+        return index < 0 || siblingIndex < 0 || siblingIndex >= nodes.Count
             ? null
             : _document.WrapNode(nodes[siblingIndex], _parent);
     }

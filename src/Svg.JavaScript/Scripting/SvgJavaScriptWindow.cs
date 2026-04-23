@@ -2,10 +2,12 @@ namespace Svg.JavaScript;
 
 public sealed class SvgJavaScriptWindow
 {
+    private readonly SvgJavaScriptRuntime _runtime;
     private readonly SvgJavaScriptDocument _document;
 
-    internal SvgJavaScriptWindow(SvgJavaScriptDocument document)
+    internal SvgJavaScriptWindow(SvgJavaScriptRuntime runtime, SvgJavaScriptDocument document)
     {
+        _runtime = runtime;
         _document = document;
     }
 
@@ -21,6 +23,27 @@ public sealed class SvgJavaScriptWindow
         _ = pseudoElement;
         return new SvgJavaScriptComputedStyle(element);
     }
+
+    public void alert(object? message)
+    {
+        _ = message;
+    }
+
+    public int setTimeout(object? handler)
+    {
+        return setTimeout(handler, null);
+    }
+
+    public int setTimeout(object? handler, object? delay)
+    {
+        _ = delay;
+        return _runtime.SetTimeout(handler);
+    }
+
+    public void clearTimeout(int id)
+    {
+        _runtime.ClearTimeout(id);
+    }
 }
 
 public sealed class SvgJavaScriptComputedStyle
@@ -34,6 +57,6 @@ public sealed class SvgJavaScriptComputedStyle
 
     public string getPropertyValue(string name)
     {
-        return string.IsNullOrWhiteSpace(name) ? string.Empty : _element.getAttribute(name);
+        return string.IsNullOrWhiteSpace(name) ? string.Empty : _element.GetComputedStyleProperty(name);
     }
 }

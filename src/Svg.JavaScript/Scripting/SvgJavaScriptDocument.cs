@@ -9,6 +9,7 @@ public sealed class SvgJavaScriptDocument
 {
     private static readonly string SvgNamespace = SvgNamespaces.SvgNamespace;
     private readonly Dictionary<SvgElement, SvgJavaScriptElement> _elements = new(new SvgElementReferenceComparer());
+    private readonly Dictionary<SvgContentNode, SvgJavaScriptTextNode> _textNodes = new(new SvgContentNodeReferenceComparer());
     private readonly SvgJavaScriptRuntime _runtime;
     private readonly SvgDocument _document;
 
@@ -16,10 +17,13 @@ public sealed class SvgJavaScriptDocument
     {
         _runtime = runtime;
         _document = document;
-        defaultView = new SvgJavaScriptWindow(this);
+        defaultView = new SvgJavaScriptWindow(runtime, this);
+        implementation = new SvgJavaScriptDomImplementation();
     }
 
     public SvgJavaScriptWindow defaultView { get; }
+
+    public SvgJavaScriptDomImplementation implementation { get; }
 
     public SvgJavaScriptElement documentElement => GetOrCreateElement(_document);
 
@@ -55,22 +59,31 @@ public sealed class SvgJavaScriptDocument
 
     public SvgJavaScriptTextNode createTextNode(string? text)
     {
-        return new SvgJavaScriptTextNode(this, new SvgContentNode { Content = text ?? string.Empty }, null);
+        return GetOrCreateTextNode(new SvgContentNode { Content = text ?? string.Empty }, null);
     }
 
-    public object[] getElementsByTagName(string tagName)
+    public SvgJavaScriptEvent createEvent(string? eventInterface)
+    {
+        _ = eventInterface;
+        return new SvgJavaScriptEvent();
+    }
+
+    public SvgJavaScriptNodeList getElementsByTagName(string tagName)
     {
         if (tagName is null || tagName == "*")
         {
-            return _document.Descendants().Select(GetOrCreateElement).Cast<object>().ToArray();
+            return new SvgJavaScriptNodeList(_document.Descendants().Select(GetOrCreateElement).Cast<object>());
         }
 
-        return _document.Descendants()
+        return new SvgJavaScriptNodeList(_document.Descendants()
             .Where(element => string.Equals(GetElementName(element), tagName, StringComparison.OrdinalIgnoreCase))
             .Select(GetOrCreateElement)
-            .Cast<object>()
-            .ToArray();
+            .Cast<object>());
     }
+
+    internal SvgJavaScriptRuntime Runtime => _runtime;
+
+    internal SvgDocument RawDocument => _document;
 
     internal SvgJavaScriptElement GetOrCreateElement(SvgElement element)
     {
@@ -89,14 +102,67 @@ public sealed class SvgJavaScriptDocument
         {
             null => null,
             SvgElement element => GetOrCreateElement(element),
-            SvgContentNode contentNode => new SvgJavaScriptTextNode(this, contentNode, parent),
+            SvgContentNode contentNode => GetOrCreateTextNode(contentNode, parent),
             _ => new SvgJavaScriptTextNode(this, new SvgContentNode { Content = node.Content ?? string.Empty }, parent)
         };
+    }
+
+    internal IReadOnlyList<ISvgNode> GetDomNodes(SvgElement element)
+    {
+        EnsureDomNodesInitialized(element);
+        return element.Nodes.Count > 0 ? element.Nodes.ToArray() : element.Children.Cast<ISvgNode>().ToArray();
     }
 
     internal void MarkMutation()
     {
         _runtime.MarkMutation();
+    }
+
+    internal SvgJavaScriptElement? GetElementByIdWithinSubtree(SvgElement root, string id)
+    {
+        if (string.IsNullOrEmpty(id))
+        {
+            return null;
+        }
+
+        if (string.Equals(root.ID, id, StringComparison.Ordinal))
+        {
+            return GetOrCreateElement(root);
+        }
+
+        var match = root.Descendants().FirstOrDefault(element => !ReferenceEquals(element, root) && string.Equals(element.ID, id, StringComparison.Ordinal));
+        return match is null ? null : GetOrCreateElement(match);
+    }
+
+    internal SvgJavaScriptTextNode GetOrCreateTextNode(SvgContentNode node, SvgElement? parent)
+    {
+        if (!_textNodes.TryGetValue(node, out var textNode))
+        {
+            textNode = new SvgJavaScriptTextNode(this, node, parent);
+            _textNodes[node] = textNode;
+            return textNode;
+        }
+
+        textNode.SetParent(parent);
+        return textNode;
+    }
+
+    private static void EnsureDomNodesInitialized(SvgElement element)
+    {
+        if (element.Nodes.Count > 0 || element.Children.Count == 0)
+        {
+            return;
+        }
+
+        element.Nodes.Add(new SvgContentNode { Content = "\n" });
+        for (var i = 0; i < element.Children.Count; i++)
+        {
+            element.Nodes.Add(element.Children[i]);
+            if (i + 1 < element.Children.Count)
+            {
+                element.Nodes.Add(new SvgContentNode { Content = "\n" });
+            }
+        }
     }
 
     internal static string GetElementName(SvgElement element)
@@ -195,6 +261,19 @@ public sealed class SvgJavaScriptDocument
         }
 
         public int GetHashCode(SvgElement obj)
+        {
+            return obj.GetHashCode();
+        }
+    }
+
+    private sealed class SvgContentNodeReferenceComparer : IEqualityComparer<SvgContentNode>
+    {
+        public bool Equals(SvgContentNode? x, SvgContentNode? y)
+        {
+            return ReferenceEquals(x, y);
+        }
+
+        public int GetHashCode(SvgContentNode obj)
         {
             return obj.GetHashCode();
         }

@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using ShimSkiaSharp;
 using Svg;
+using Svg.Model.Services;
+using Svg.Skia;
 
 namespace Svg.JavaScript;
 
@@ -9,6 +13,7 @@ public sealed class SvgJavaScriptElement
 {
     private readonly SvgJavaScriptRuntime _runtime;
     private readonly SvgJavaScriptDocument _document;
+    private readonly Dictionary<string, string?> _inlineStyleFallbacks = new(StringComparer.OrdinalIgnoreCase);
 
     internal SvgJavaScriptElement(SvgJavaScriptRuntime runtime, SvgJavaScriptDocument document, SvgElement element)
     {
@@ -20,9 +25,17 @@ public sealed class SvgJavaScriptElement
 
     internal SvgElement Element { get; }
 
+    internal SvgJavaScriptRuntime Runtime => _runtime;
+
     public string nodeName => tagName;
 
     public int nodeType => 1;
+
+    public string? nodeValue
+    {
+        get => null;
+        set { }
+    }
 
     public string tagName => SvgJavaScriptDocument.GetElementName(Element);
 
@@ -38,6 +51,16 @@ public sealed class SvgJavaScriptElement
 
     public SvgJavaScriptElement? parentElement => parentNode;
 
+    public SvgJavaScriptElement? ownerSVGElement => FindOwnerSvgElement();
+
+    public SvgJavaScriptElement? viewportElement => nearestViewportElement;
+
+    public SvgJavaScriptElement? nearestViewportElement => FindViewportElement(outermost: false);
+
+    public SvgJavaScriptElement? farthestViewportElement => FindViewportElement(outermost: true);
+
+    public SvgJavaScriptElementInstance? instanceRoot => Element is SvgUse use ? _runtime.GetUseInstanceRoot(use) : null;
+
     public SvgJavaScriptStyleDeclaration style { get; }
 
     public object? firstChild => _document.WrapNode(GetNodes().FirstOrDefault(), Element);
@@ -46,9 +69,9 @@ public sealed class SvgJavaScriptElement
 
     public object? previousSibling => GetSibling(-1);
 
-    public object[] childNodes => GetNodes().Select(node => _document.WrapNode(node, Element)!).ToArray();
+    public SvgJavaScriptNodeList childNodes => new(GetNodes().Select(node => _document.WrapNode(node, Element)));
 
-    public object[] children => Element.Children.Select(child => (object)_document.GetOrCreateElement(child)).ToArray();
+    public SvgJavaScriptNodeList children => new(Element.Children.Select(child => (object)_document.GetOrCreateElement(child)));
 
     public string textContent
     {
@@ -66,19 +89,52 @@ public sealed class SvgJavaScriptElement
 
     public SvgJavaScriptAnimatedString className => new(this, "class");
 
-    public SvgJavaScriptAnimatedLength x => new(this, "x");
+    public object x => UsesLengthList("x") ? new SvgJavaScriptAnimatedLengthList(_runtime, this, "x") : new SvgJavaScriptAnimatedLength(this, "x");
 
-    public SvgJavaScriptAnimatedLength y => new(this, "y");
+    public object y => UsesLengthList("y") ? new SvgJavaScriptAnimatedLengthList(_runtime, this, "y") : new SvgJavaScriptAnimatedLength(this, "y");
 
-    public SvgJavaScriptAnimatedLength width => new(this, "width");
+    public object width => new SvgJavaScriptAnimatedLength(this, "width");
 
-    public SvgJavaScriptAnimatedLength height => new(this, "height");
+    public object height => new SvgJavaScriptAnimatedLength(this, "height");
+
+    public SvgJavaScriptAnimatedLength r => new(this, "r");
+
+    public SvgJavaScriptAnimatedAngle orientAngle => new(_runtime, GetOrientValue, value => setAttribute("orient", value));
+
+    public SvgJavaScriptAnimatedNumberList rotate => new(_runtime, this, "rotate");
+
+    public SvgJavaScriptAnimatedTransformList transform => new(_runtime, this);
+
+    public SvgJavaScriptAnimatedRect viewBox => new(_runtime, this, "viewBox");
+
+    public SvgJavaScriptAnimatedPreserveAspectRatio preserveAspectRatio => new(_runtime, this, "preserveAspectRatio");
+
+    public SvgJavaScriptAnimatedBoolean externalResourcesRequired => new(_runtime, this, "externalResourcesRequired");
+
+    public SvgJavaScriptAnimatedEnumeration lengthAdjust =>
+        new(_runtime, this, "lengthAdjust", ParseLengthAdjust, FormatLengthAdjust);
+
+    public SvgJavaScriptAnimatedInteger numOctaves => new(_runtime, this, "numOctaves");
+
+    public SvgJavaScriptAnimatedNumber baseFrequencyY =>
+        new(_runtime, this, () => GetNumberToken("baseFrequency", 1), value => SetNumberToken("baseFrequency", 1, value));
+
+    public SvgJavaScriptStringList requiredFeatures =>
+        new(_runtime, () => ParseTokenList("requiredFeatures"), values => SetTokenList("requiredFeatures", values));
+
+    public SvgJavaScriptStringList requiredExtensions =>
+        new(_runtime, () => ParseTokenList("requiredExtensions"), values => SetTokenList("requiredExtensions", values));
 
     public string getAttribute(string name)
     {
-        if (name is null)
+        if (string.IsNullOrWhiteSpace(name))
         {
             return string.Empty;
+        }
+
+        if (TryGetSpecialAttributeValue(name, out var specialValue))
+        {
+            return specialValue;
         }
 
         if (Element.TryGetAttribute(name, out var value))
@@ -89,6 +145,13 @@ public sealed class SvgJavaScriptElement
         return Element.CustomAttributes.TryGetValue(name, out value) ? value ?? string.Empty : string.Empty;
     }
 
+    public string getAttributeNS(string? namespaceUri, string localName)
+    {
+        var qualifiedName = QualifyAttributeName(namespaceUri, localName);
+        var value = getAttribute(qualifiedName);
+        return value.Length > 0 || namespaceUri is not null ? value : getAttribute(localName);
+    }
+
     public void setAttribute(string name, object? value)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -96,13 +159,24 @@ public sealed class SvgJavaScriptElement
             return;
         }
 
+        var normalizedName = name.Trim();
         var text = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
-        if (!Element.TrySetAnimationValue(name, text))
+        if (string.Equals(normalizedName, "style", StringComparison.OrdinalIgnoreCase))
         {
-            Element.CustomAttributes[name] = text;
+            SetInlineStyleText(text);
+            _runtime.MarkMutation();
+            return;
         }
 
+        SetAttributeValue(normalizedName, text);
+        UpdateInlineStyleFallback(normalizedName, text);
+        _document.RawDocument.ApplyCompatibilityStyles(Element);
         _runtime.MarkMutation();
+    }
+
+    public void setAttributeNS(string? namespaceUri, string localName, object? value)
+    {
+        setAttribute(QualifyAttributeName(namespaceUri, localName), value);
     }
 
     public void removeAttribute(string name)
@@ -112,29 +186,71 @@ public sealed class SvgJavaScriptElement
             return;
         }
 
-        Element.ClearAnimationValue(name);
-        Element.CustomAttributes.Remove(name);
+        var normalizedName = name.Trim();
+        if (string.Equals(normalizedName, "style", StringComparison.OrdinalIgnoreCase))
+        {
+            SetInlineStyleText(string.Empty);
+            _runtime.MarkMutation();
+            return;
+        }
+
+        RemoveAttributeValue(normalizedName);
+        UpdateInlineStyleFallback(normalizedName, null);
+        _document.RawDocument.ApplyCompatibilityStyles(Element);
         _runtime.MarkMutation();
+    }
+
+    public void removeAttributeNS(string? namespaceUri, string localName)
+    {
+        removeAttribute(QualifyAttributeName(namespaceUri, localName));
     }
 
     public bool hasAttribute(string name)
     {
-        return !string.IsNullOrWhiteSpace(name) && Element.ContainsAttribute(name);
+        return !string.IsNullOrWhiteSpace(name)
+               && (Element.TryGetAttribute(name, out _)
+                   || Element.CustomAttributes.ContainsKey(name));
+    }
+
+    public bool hasAttributeNS(string? namespaceUri, string localName)
+    {
+        return hasAttribute(QualifyAttributeName(namespaceUri, localName));
+    }
+
+    public SvgJavaScriptElement? getElementById(string? id)
+    {
+        if (id is not { Length: > 0 } elementId)
+        {
+            return null;
+        }
+
+        return _document.GetElementByIdWithinSubtree(Element, elementId);
     }
 
     public object appendChild(object child)
     {
+        return insertBefore(child, null);
+    }
+
+    public object insertBefore(object child, object? referenceChild)
+    {
         switch (child)
         {
             case SvgJavaScriptElement childElement:
-                AppendElement(childElement);
+                InsertElement(childElement.Element, referenceChild);
                 return childElement;
             case SvgJavaScriptTextNode textNode:
-                AppendText(textNode);
+                InsertText(textNode, referenceChild);
                 return textNode;
             default:
                 return child;
         }
+    }
+
+    public object replaceChild(object newChild, object oldChild)
+    {
+        insertBefore(newChild, oldChild);
+        return removeChild(oldChild);
     }
 
     public object removeChild(object child)
@@ -142,7 +258,9 @@ public sealed class SvgJavaScriptElement
         switch (child)
         {
             case SvgJavaScriptElement childElement:
-                RemoveElement(childElement.Element);
+                Element.Children.Remove(childElement.Element);
+                Element.Nodes.Remove(childElement.Element);
+                _runtime.MarkMutation();
                 return childElement;
             case SvgJavaScriptTextNode textNode:
                 Element.Nodes.Remove(textNode.Node);
@@ -155,46 +273,258 @@ public sealed class SvgJavaScriptElement
         }
     }
 
-    public SvgJavaScriptRect getBBox()
+    public SvgJavaScriptRect? getBBox()
     {
-        return GetElementBounds(Element) ?? SvgJavaScriptRect.Empty;
+        return GetElementBounds(Element);
+    }
+
+    public bool dispatchEvent(SvgJavaScriptEvent evt)
+    {
+        return _runtime.DispatchEvent(this, evt);
+    }
+
+    public SvgJavaScriptMatrix? getCTM()
+    {
+        return TryGetElementMatrix(Element, out var matrix) ? new SvgJavaScriptMatrix(matrix) : null;
+    }
+
+    public SvgJavaScriptMatrix? getScreenCTM()
+    {
+        return getCTM();
+    }
+
+    public SvgJavaScriptMatrix? getTransformToElement(SvgJavaScriptElement targetElement)
+    {
+        if (targetElement is null)
+        {
+            throw new ArgumentNullException(nameof(targetElement));
+        }
+
+        if (!TryGetElementMatrix(Element, out var source) || !TryGetElementMatrix(targetElement.Element, out var target))
+        {
+            return null;
+        }
+
+        return target.TryInvert(out var inverse) ? new SvgJavaScriptMatrix(source.PreConcat(inverse)) : null;
+    }
+
+    public SvgJavaScriptNodeList getIntersectionList(SvgJavaScriptRect rect, object? referenceElement)
+    {
+        _ = referenceElement;
+        return new SvgJavaScriptNodeList(GetMatchingSceneElements(rect, enclosure: false));
+    }
+
+    public SvgJavaScriptNodeList getEnclosureList(SvgJavaScriptRect rect, object? referenceElement)
+    {
+        _ = referenceElement;
+        return new SvgJavaScriptNodeList(GetMatchingSceneElements(rect, enclosure: true));
+    }
+
+    public bool checkIntersection(SvgJavaScriptElement element, SvgJavaScriptRect rect)
+    {
+        return CheckSceneRectMatch(element, rect, enclosure: false);
+    }
+
+    public bool checkEnclosure(SvgJavaScriptElement element, SvgJavaScriptRect rect)
+    {
+        return CheckSceneRectMatch(element, rect, enclosure: true);
+    }
+
+    public double getCurrentTime()
+    {
+        return _runtime.GetCurrentTimeSeconds();
+    }
+
+    public void setCurrentTime(double seconds)
+    {
+        _runtime.SetCurrentTimeSeconds(seconds);
+    }
+
+    public SvgJavaScriptNumber createSVGNumber()
+    {
+        return new SvgJavaScriptNumber();
+    }
+
+    public SvgJavaScriptLength createSVGLength()
+    {
+        return new SvgJavaScriptLength(_runtime, false);
+    }
+
+    public SvgJavaScriptAngle createSVGAngle()
+    {
+        var state = "0";
+        return new SvgJavaScriptAngle(_runtime, () => state, value => state = value, false);
+    }
+
+    public SvgJavaScriptPoint createSVGPoint()
+    {
+        return new SvgJavaScriptPoint();
+    }
+
+    public SvgJavaScriptMatrix createSVGMatrix()
+    {
+        return new SvgJavaScriptMatrix();
+    }
+
+    public SvgJavaScriptRect createSVGRect()
+    {
+        return new SvgJavaScriptRect(0f, 0f, 0f, 0f);
+    }
+
+    public SvgJavaScriptTransform createSVGTransform()
+    {
+        return new SvgJavaScriptTransform(_runtime, SvgJavaScriptMatrixHelpers.FromSkMatrix(SKMatrix.Identity), null, false);
+    }
+
+    public SvgJavaScriptTransform createSVGTransformFromMatrix(SvgJavaScriptMatrix matrix)
+    {
+        if (matrix is null)
+        {
+            throw new ArgumentNullException(nameof(matrix));
+        }
+
+        return new SvgJavaScriptTransform(_runtime, SvgJavaScriptMatrixHelpers.FromSkMatrix(matrix.ToSkMatrix()), null, false);
+    }
+
+    public int suspendRedraw(int maxWaitMilliseconds)
+    {
+        _ = maxWaitMilliseconds;
+        return _runtime.SetTimeout(null);
+    }
+
+    public void unsuspendRedraw(int suspendHandleId)
+    {
+        _runtime.ClearTimeout(suspendHandleId);
+    }
+
+    public void unsuspendRedrawAll()
+    {
+    }
+
+    public void forceRedraw()
+    {
+    }
+
+    internal string GetComputedStyleProperty(string name)
+    {
+        for (SvgElement? current = Element; current is not null; current = current.Parent)
+        {
+            if (TryGetInlineStyleProperty(current, name, out var inlineValue))
+            {
+                if (!string.Equals(inlineValue, "inherit", StringComparison.OrdinalIgnoreCase))
+                {
+                    return inlineValue;
+                }
+            }
+
+            if (current.CustomAttributes.TryGetValue(name, out var value) && !string.IsNullOrWhiteSpace(value))
+            {
+                if (!string.Equals(value, "inherit", StringComparison.OrdinalIgnoreCase))
+                {
+                    return value;
+                }
+            }
+
+            if (current.TryGetAttribute(name, out value) && !string.IsNullOrWhiteSpace(value))
+            {
+                if (!string.Equals(value, "inherit", StringComparison.OrdinalIgnoreCase))
+                {
+                    return NormalizeComputedStyleValue(name, value);
+                }
+            }
+        }
+
+        return string.Empty;
     }
 
     internal string GetStyleProperty(string name)
     {
-        return getAttribute(name);
+        return TryGetInlineStyleProperty(Element, name, out var value)
+            ? value
+            : string.Empty;
     }
 
     internal void SetStyleProperty(string name, object? value)
     {
-        setAttribute(name, value);
-    }
-
-    private void AppendElement(SvgJavaScriptElement childElement)
-    {
-        RemoveElementFromParent(childElement.Element);
-        Element.Children.Add(childElement.Element);
-        if (!Element.Nodes.Contains(childElement.Element))
+        if (string.IsNullOrWhiteSpace(name))
         {
-            Element.Nodes.Add(childElement.Element);
+            return;
         }
 
+        var normalizedName = name.Trim();
+        var text = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
+        var declarations = ParseInlineStyle(GetRawStyleText(Element));
+        declarations[normalizedName] = text;
+        SetInlineStyleText(SerializeInlineStyle(declarations), declarations);
         _runtime.MarkMutation();
     }
 
-    private void AppendText(SvgJavaScriptTextNode textNode)
+    internal string RemoveStyleProperty(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return string.Empty;
+        }
+
+        var normalizedName = name.Trim();
+        var declarations = ParseInlineStyle(GetRawStyleText(Element));
+        if (!declarations.TryGetValue(normalizedName, out var previous))
+        {
+            previous = string.Empty;
+        }
+
+        declarations.Remove(normalizedName);
+        SetInlineStyleText(SerializeInlineStyle(declarations), declarations);
+        _runtime.MarkMutation();
+        return previous;
+    }
+
+    private void InsertElement(SvgElement childElement, object? referenceChild)
+    {
+        RemoveElementFromParent(childElement);
+
+        var nodes = Element.Nodes;
+        var referenceNode = UnwrapNode(referenceChild);
+        var nodeIndex = referenceNode is null ? nodes.Count : nodes.IndexOf(referenceNode);
+        if (nodeIndex < 0)
+        {
+            nodes.Add(childElement);
+        }
+        else
+        {
+            nodes.Insert(nodeIndex, childElement);
+        }
+
+        var childIndex = GetElementInsertIndex(referenceNode, nodeIndex);
+        if (childIndex >= Element.Children.Count)
+        {
+            Element.Children.Add(childElement);
+        }
+        else
+        {
+            Element.Children.Insert(childIndex, childElement);
+        }
+
+        _document.RawDocument.ApplyCompatibilityStyles(childElement);
+        _runtime.MarkMutation();
+    }
+
+    private void InsertText(SvgJavaScriptTextNode textNode, object? referenceChild)
     {
         textNode.DetachFromParent();
-        Element.Nodes.Add(textNode.Node);
+        var referenceNode = UnwrapNode(referenceChild);
+        var nodeIndex = referenceNode is null ? Element.Nodes.Count : Element.Nodes.IndexOf(referenceNode);
+        if (nodeIndex < 0)
+        {
+            Element.Nodes.Add(textNode.Node);
+        }
+        else
+        {
+            Element.Nodes.Insert(nodeIndex, textNode.Node);
+        }
+
         textNode.SetParent(Element);
         SyncContentFromNodes();
-        _runtime.MarkMutation();
-    }
-
-    private void RemoveElement(SvgElement childElement)
-    {
-        Element.Children.Remove(childElement);
-        Element.Nodes.Remove(childElement);
         _runtime.MarkMutation();
     }
 
@@ -208,6 +538,41 @@ public sealed class SvgJavaScriptElement
 
         parent.Children.Remove(element);
         parent.Nodes.Remove(element);
+    }
+
+    private ISvgNode? UnwrapNode(object? node)
+    {
+        return node switch
+        {
+            SvgJavaScriptElement element => element.Element,
+            SvgJavaScriptTextNode textNode => textNode.Node,
+            _ => null
+        };
+    }
+
+    private int GetElementInsertIndex(ISvgNode? referenceNode, int fallbackNodeIndex)
+    {
+        if (referenceNode is SvgElement referenceElement)
+        {
+            var index = Element.Children.IndexOf(referenceElement);
+            return index >= 0 ? index : Element.Children.Count;
+        }
+
+        if (referenceNode is null)
+        {
+            return Element.Children.Count;
+        }
+
+        var nodes = Element.Nodes;
+        for (var i = 0; i < Element.Children.Count; i++)
+        {
+            if (nodes.IndexOf(Element.Children[i]) >= fallbackNodeIndex)
+            {
+                return i;
+            }
+        }
+
+        return Element.Children.Count;
     }
 
     private void SetTextContent(string? value)
@@ -228,6 +593,20 @@ public sealed class SvgJavaScriptElement
         Element.Content = string.Concat(Element.Nodes.OfType<SvgContentNode>().Select(node => node.Content));
     }
 
+    private static string NormalizeComputedStyleValue(string name, string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        return name switch
+        {
+            "font-variant" when string.Equals(value, "SmallCaps", StringComparison.Ordinal) => "small-caps",
+            _ => value
+        };
+    }
+
     private object? GetSibling(int offset)
     {
         var parent = Element.Parent;
@@ -236,94 +615,326 @@ public sealed class SvgJavaScriptElement
             return null;
         }
 
-        var nodes = parent.Nodes.Count > 0 ? parent.Nodes : parent.Children.Cast<ISvgNode>().ToList();
-        var index = nodes.IndexOf(Element);
+        var nodes = _document.GetDomNodes(parent);
+        var index = -1;
+        for (var i = 0; i < nodes.Count; i++)
+        {
+            if (ReferenceEquals(nodes[i], Element))
+            {
+                index = i;
+                break;
+            }
+        }
+
         var siblingIndex = index + offset;
         return index < 0 || siblingIndex < 0 || siblingIndex >= nodes.Count
             ? null
             : _document.WrapNode(nodes[siblingIndex], parent);
     }
 
-    private System.Collections.Generic.IReadOnlyList<ISvgNode> GetNodes()
+    private IReadOnlyList<ISvgNode> GetNodes()
     {
-        if (Element.Nodes.Count > 0)
-        {
-            return Element.Nodes.ToArray();
-        }
-
-        return Element.Children.Cast<ISvgNode>().ToArray();
+        return _document.GetDomNodes(Element);
     }
 
-    private static string GetTextContent(SvgElement element)
+    private SvgJavaScriptElement? FindOwnerSvgElement()
     {
-        if (!string.IsNullOrEmpty(element.Content))
+        for (var parent = Element.Parent; parent is not null; parent = parent.Parent)
         {
-            return element.Content;
+            if (parent is SvgFragment || parent is SvgDocument)
+            {
+                return _document.GetOrCreateElement(parent);
+            }
         }
 
-        if (element.Nodes.Count > 0)
-        {
-            return string.Concat(element.Nodes.Select(static node =>
-                node is SvgElement childElement ? GetTextContent(childElement) : node.Content));
-        }
-
-        return string.Concat(element.Children.Select(GetTextContent));
+        return null;
     }
 
-    private static SvgJavaScriptRect? GetElementBounds(SvgElement element)
+    private SvgJavaScriptElement? FindViewportElement(bool outermost)
     {
-        if (element is SvgRectangle)
+        SvgElement? match = null;
+        for (var current = Element; current is not null; current = current.Parent)
         {
-            var x = GetFloatAttribute(element, "x");
-            var y = GetFloatAttribute(element, "y");
-            return new SvgJavaScriptRect(
-                x,
-                y,
-                GetFloatAttribute(element, "width"),
-                GetFloatAttribute(element, "height"));
+            if (current is SvgFragment || current is SvgDocument)
+            {
+                match = current;
+                if (!outermost)
+                {
+                    break;
+                }
+            }
         }
 
-        if (element is SvgCircle)
+        if (match is null || ReferenceEquals(match, Element))
         {
-            var cx = GetFloatAttribute(element, "cx");
-            var cy = GetFloatAttribute(element, "cy");
-            var r = GetFloatAttribute(element, "r");
-            return new SvgJavaScriptRect(cx - r, cy - r, r + r, r + r);
+            return null;
         }
 
-        if (element is SvgEllipse)
+        return _document.GetOrCreateElement(match);
+    }
+
+    private IEnumerable<object> GetMatchingSceneElements(SvgJavaScriptRect rect, bool enclosure)
+    {
+        var sceneDocument = _runtime.GetSceneDocument();
+        if (sceneDocument is null)
         {
-            var cx = GetFloatAttribute(element, "cx");
-            var cy = GetFloatAttribute(element, "cy");
-            var rx = GetFloatAttribute(element, "rx");
-            var ry = GetFloatAttribute(element, "ry");
-            return new SvgJavaScriptRect(cx - rx, cy - ry, rx + rx, ry + ry);
+            return Array.Empty<object>();
         }
 
-        if (element is SvgLine)
+        var targetRect = rect.ToSkRect();
+        var results = new List<object>();
+        var seen = new HashSet<object>();
+        foreach (var node in sceneDocument.Traverse())
         {
-            var x1 = GetFloatAttribute(element, "x1");
-            var y1 = GetFloatAttribute(element, "y1");
-            var x2 = GetFloatAttribute(element, "x2");
-            var y2 = GetFloatAttribute(element, "y2");
-            var left = Math.Min(x1, x2);
-            var top = Math.Min(y1, y2);
-            return new SvgJavaScriptRect(left, top, Math.Abs(x2 - x1), Math.Abs(y2 - y1));
+            var targetElement = node.HitTestTargetElement;
+            if (targetElement is null || !BelongsToSubtree(targetElement))
+            {
+                continue;
+            }
+
+            if (!MatchesSceneRect(node, targetRect, enclosure))
+            {
+                continue;
+            }
+
+            if (targetElement is SvgUse use &&
+                node.Element is { } correspondingElement &&
+                !ReferenceEquals(correspondingElement, targetElement))
+            {
+                var instance = _runtime.FindUseInstance(use, correspondingElement);
+                if (instance is not null && seen.Add(instance))
+                {
+                    results.Add(instance);
+                }
+
+                continue;
+            }
+
+            if (targetElement is SvgUse && ReferenceEquals(node.Element, targetElement))
+            {
+                continue;
+            }
+
+            var element = _document.GetOrCreateElement(targetElement);
+            if (seen.Add(element))
+            {
+                results.Add(element);
+            }
+        }
+
+        return results;
+    }
+
+    private bool CheckSceneRectMatch(SvgJavaScriptElement element, SvgJavaScriptRect rect, bool enclosure)
+    {
+        if (element is null)
+        {
+            throw new ArgumentNullException(nameof(element));
+        }
+
+        if (!_runtime.TryGetSceneNode(element.Element, out var node) || node is null)
+        {
+            return false;
+        }
+
+        return MatchesSceneRect(node, rect.ToSkRect(), enclosure);
+    }
+
+    private bool BelongsToSubtree(SvgElement element)
+    {
+        for (var current = element; current is not null; current = current.Parent)
+        {
+            if (ReferenceEquals(current, Element))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool TryGetElementMatrix(SvgElement element, out SKMatrix matrix)
+    {
+        if (_runtime.TryGetSceneNode(element, out var node) && node is not null)
+        {
+            matrix = node.TotalTransform;
+            return true;
+        }
+
+        matrix = ComputeFallbackMatrix(element);
+        return true;
+    }
+
+    private static SKMatrix ComputeFallbackMatrix(SvgElement element)
+    {
+        var transforms = new Stack<SvgElement>();
+        for (var current = element; current is not null; current = current.Parent)
+        {
+            transforms.Push(current);
+        }
+
+        var total = SKMatrix.Identity;
+        while (transforms.Count > 0)
+        {
+            total = total.PreConcat(SvgJavaScriptMatrixHelpers.ToSkMatrix(transforms.Pop().Transforms));
+        }
+
+        return total;
+    }
+
+    private SvgJavaScriptRect? GetElementBounds(SvgElement element)
+    {
+        if (_runtime.TryGetSceneNode(element, out var node) && node is not null)
+        {
+            if (ShouldReturnNullBoundingBox(element, node))
+            {
+                return null;
+            }
+
+            if (element is SvgUse)
+            {
+                return SvgJavaScriptRect.From(node.Transform.MapRect(node.GeometryBounds));
+            }
+
+            if (!node.GeometryBounds.IsEmpty)
+            {
+                return SvgJavaScriptRect.From(node.GeometryBounds);
+            }
+        }
+
+        return GetDetachedBounds(element);
+    }
+
+    private static bool ShouldReturnNullBoundingBox(SvgElement element, SvgSceneNode node)
+    {
+        if (!node.GeometryBounds.IsEmpty)
+        {
+            return false;
+        }
+
+        return element is SvgGroup or SvgFragment or SvgDocument or SvgAnchor or SvgSwitch or SvgSymbol or SvgDefinitionList;
+    }
+
+    private static SvgJavaScriptRect? GetDetachedBounds(SvgElement element)
+    {
+        switch (element)
+        {
+            case SvgRectangle:
+                return new SvgJavaScriptRect(
+                    GetFloatAttribute(element, "x"),
+                    GetFloatAttribute(element, "y"),
+                    GetFloatAttribute(element, "width"),
+                    GetFloatAttribute(element, "height"));
+            case SvgCircle:
+                {
+                    var cx = GetFloatAttribute(element, "cx");
+                    var cy = GetFloatAttribute(element, "cy");
+                    var r = GetFloatAttribute(element, "r");
+                    return new SvgJavaScriptRect(cx - r, cy - r, 2 * r, 2 * r);
+                }
+            case SvgEllipse:
+                {
+                    var cx = GetFloatAttribute(element, "cx");
+                    var cy = GetFloatAttribute(element, "cy");
+                    var rx = GetFloatAttribute(element, "rx");
+                    var ry = GetFloatAttribute(element, "ry");
+                    return new SvgJavaScriptRect(cx - rx, cy - ry, 2 * rx, 2 * ry);
+                }
+            case SvgLine:
+                {
+                    var x1 = GetFloatAttribute(element, "x1");
+                    var y1 = GetFloatAttribute(element, "y1");
+                    var x2 = GetFloatAttribute(element, "x2");
+                    var y2 = GetFloatAttribute(element, "y2");
+                    return new SvgJavaScriptRect(Math.Min(x1, x2), Math.Min(y1, y2), Math.Abs(x2 - x1), Math.Abs(y2 - y1));
+                }
+            case SvgImage:
+                return new SvgJavaScriptRect(
+                    GetFloatAttribute(element, "x"),
+                    GetFloatAttribute(element, "y"),
+                    GetFloatAttribute(element, "width"),
+                    GetFloatAttribute(element, "height"));
         }
 
         SvgJavaScriptRect? bounds = null;
         foreach (var child in element.Children)
         {
-            var childBounds = GetElementBounds(child);
+            var childBounds = GetDetachedBounds(child);
             if (childBounds is null)
             {
                 continue;
             }
 
-            bounds = bounds is null ? childBounds : Union(bounds, childBounds);
+            var transformed = SvgJavaScriptMatrixHelpers.ToSkMatrix(child.Transforms).MapRect(childBounds.ToSkRect());
+            var childRect = SvgJavaScriptRect.From(transformed);
+            bounds = bounds is null ? childRect : Union(bounds, childRect);
         }
 
         return bounds;
+    }
+
+    private List<string> ParseTokenList(string attributeName)
+    {
+        return SvgJavaScriptParsing.ParseTokenList(getAttribute(attributeName)).ToList();
+    }
+
+    private void SetTokenList(string attributeName, IEnumerable<string> values)
+    {
+        setAttribute(attributeName, string.Join(" ", values));
+    }
+
+    private string GetNumberToken(string attributeName, int index)
+    {
+        var tokens = SvgJavaScriptParsing.ParseTokenList(getAttribute(attributeName));
+        return index >= 0 && index < tokens.Length ? tokens[index] : tokens.LastOrDefault() ?? "0";
+    }
+
+    private void SetNumberToken(string attributeName, int index, double value)
+    {
+        var tokens = SvgJavaScriptParsing.ParseTokenList(getAttribute(attributeName)).ToList();
+        while (tokens.Count <= index)
+        {
+            tokens.Add("0");
+        }
+
+        tokens[index] = SvgJavaScriptParsing.FormatNumber(value);
+        setAttribute(attributeName, string.Join(" ", tokens));
+    }
+
+    private static int ParseLengthAdjust(string value)
+    {
+        return (value ?? string.Empty).Trim() switch
+        {
+            var text when text.Equals("spacing", StringComparison.OrdinalIgnoreCase) => 1,
+            var text when text.Equals("spacingAndGlyphs", StringComparison.OrdinalIgnoreCase) => 2,
+            _ => 1
+        };
+    }
+
+    private static string FormatLengthAdjust(int value)
+    {
+        return value == 2 ? "spacingAndGlyphs" : "spacing";
+    }
+
+    private bool UsesLengthList(string attributeName)
+    {
+        return (attributeName == "x" || attributeName == "y") && Element is SvgTextBase;
+    }
+
+    private static bool Contains(SKRect outer, SKRect inner)
+    {
+        return outer.Left <= inner.Left &&
+               outer.Top <= inner.Top &&
+               outer.Right >= inner.Right &&
+               outer.Bottom >= inner.Bottom;
+    }
+
+    private static bool Intersects(SKRect first, SKRect second)
+    {
+        return !(first.Right < second.Left ||
+                 first.Left > second.Right ||
+                 first.Bottom < second.Top ||
+                 first.Top > second.Bottom);
     }
 
     private static SvgJavaScriptRect Union(SvgJavaScriptRect first, SvgJavaScriptRect second)
@@ -335,6 +946,21 @@ public sealed class SvgJavaScriptElement
         return new SvgJavaScriptRect(left, top, right - left, bottom - top);
     }
 
+    private static string GetTextContent(SvgElement element)
+    {
+        if (!string.IsNullOrEmpty(element.Content))
+        {
+            return element.Content;
+        }
+
+        if (element.Nodes.Count > 0)
+        {
+            return string.Concat(element.Nodes.Select(node => node is SvgElement childElement ? GetTextContent(childElement) : node.Content));
+        }
+
+        return string.Concat(element.Children.Select(GetTextContent));
+    }
+
     private static float GetFloatAttribute(SvgElement element, string name)
     {
         if (!element.TryGetAttribute(name, out var value) || string.IsNullOrWhiteSpace(value))
@@ -343,8 +969,14 @@ public sealed class SvgJavaScriptElement
         }
 
         var text = value.Trim();
-        while (text.Length > 0 && !char.IsDigit(text[text.Length - 1]) && text[text.Length - 1] != '.')
+        while (text.Length > 0)
         {
+            var lastCharacter = text[text.Length - 1];
+            if (char.IsDigit(lastCharacter) || lastCharacter == '.' || lastCharacter == '-')
+            {
+                break;
+            }
+
             text = text.Substring(0, text.Length - 1);
         }
 
@@ -352,25 +984,370 @@ public sealed class SvgJavaScriptElement
             ? result
             : 0f;
     }
-}
 
-public sealed class SvgJavaScriptRect
-{
-    public static readonly SvgJavaScriptRect Empty = new(0, 0, 0, 0);
-
-    public SvgJavaScriptRect(float x, float y, float width, float height)
+    private void SetAttributeValue(string name, string value)
     {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        if (!Element.TrySetAnimationValue(name, _document.RawDocument, CultureInfo.InvariantCulture, value))
+        {
+            Element.CustomAttributes[name] = value;
+        }
     }
 
-    public float x { get; }
+    private void RemoveAttributeValue(string name)
+    {
+        Element.ClearAnimationValue(name);
+        Element.CustomAttributes.Remove(name);
+    }
 
-    public float y { get; }
+    private void SetInlineStyleText(string styleText, Dictionary<string, string>? declarations = null)
+    {
+        var previousDeclarations = ParseInlineStyle(GetRawStyleText(Element));
+        declarations ??= ParseInlineStyle(styleText);
+        CaptureInlineStyleFallbacks(previousDeclarations, declarations);
+        SetRawStyleText(Element, styleText);
+        RestoreRemovedInlineStyleFallbacks(previousDeclarations, declarations);
+        _document.RawDocument.ApplyCompatibilityStyles(Element);
+    }
 
-    public float width { get; }
+    private void CaptureInlineStyleFallbacks(
+        IReadOnlyDictionary<string, string> previousDeclarations,
+        IReadOnlyDictionary<string, string> nextDeclarations)
+    {
+        foreach (var propertyName in nextDeclarations.Keys)
+        {
+            if (previousDeclarations.ContainsKey(propertyName) || _inlineStyleFallbacks.ContainsKey(propertyName))
+            {
+                continue;
+            }
 
-    public float height { get; }
+            _inlineStyleFallbacks[propertyName] = TryGetRawAttributeValue(propertyName, out var rawValue)
+                ? rawValue
+                : null;
+        }
+    }
+
+    private void RestoreRemovedInlineStyleFallbacks(
+        IReadOnlyDictionary<string, string> previousDeclarations,
+        IReadOnlyDictionary<string, string> nextDeclarations)
+    {
+        foreach (var propertyName in previousDeclarations.Keys)
+        {
+            if (nextDeclarations.ContainsKey(propertyName))
+            {
+                continue;
+            }
+
+            RestoreInlineStyleFallback(propertyName);
+        }
+    }
+
+    private void RestoreInlineStyleFallback(string propertyName)
+    {
+        if (_inlineStyleFallbacks.TryGetValue(propertyName, out var fallbackValue))
+        {
+            if (fallbackValue is null)
+            {
+                RemoveAttributeValue(propertyName);
+            }
+            else
+            {
+                SetAttributeValue(propertyName, fallbackValue);
+            }
+
+            _inlineStyleFallbacks.Remove(propertyName);
+            return;
+        }
+
+        RemoveAttributeValue(propertyName);
+    }
+
+    private void UpdateInlineStyleFallback(string name, string? value)
+    {
+        if (!TryGetInlineStyleProperty(Element, name, out _))
+        {
+            return;
+        }
+
+        _inlineStyleFallbacks[name] = string.IsNullOrWhiteSpace(value) ? null : value;
+    }
+
+    private static bool TryGetInlineStyleProperty(SvgElement element, string name, out string value)
+    {
+        value = string.Empty;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return false;
+        }
+
+        var declarations = ParseInlineStyle(GetRawStyleText(element));
+        if (!declarations.TryGetValue(name.Trim(), out var inlineValue) || string.IsNullOrWhiteSpace(inlineValue))
+        {
+            return false;
+        }
+
+        value = inlineValue;
+        return true;
+    }
+
+    private string GetOrientValue()
+    {
+        if (TryGetRawAttributeValue("orient", out var rawValue))
+        {
+            return rawValue;
+        }
+
+        return Element is SvgMarker marker
+            ? marker.Orient?.ToString() ?? string.Empty
+            : getAttribute("orient");
+    }
+
+    private bool TryGetSpecialAttributeValue(string name, out string value)
+    {
+        if (string.Equals(name, "viewBox", StringComparison.Ordinal) &&
+            Element is SvgFragment svgFragment &&
+            svgFragment.ViewBox != SvgViewBox.Empty)
+        {
+            value = string.Join(" ", new[]
+            {
+                SvgJavaScriptParsing.FormatNumber(svgFragment.ViewBox.MinX),
+                SvgJavaScriptParsing.FormatNumber(svgFragment.ViewBox.MinY),
+                SvgJavaScriptParsing.FormatNumber(svgFragment.ViewBox.Width),
+                SvgJavaScriptParsing.FormatNumber(svgFragment.ViewBox.Height)
+            });
+            return true;
+        }
+
+        if (string.Equals(name, "preserveAspectRatio", StringComparison.Ordinal) &&
+            Element is SvgFragment fragment &&
+            fragment.AspectRatio is { } aspectRatio)
+        {
+            value = aspectRatio.ToString();
+            return true;
+        }
+
+        if (string.Equals(name, "orient", StringComparison.Ordinal) &&
+            Element is SvgMarker marker)
+        {
+            if (TryGetRawAttributeValue(name, out var rawValue))
+            {
+                value = rawValue;
+                return true;
+            }
+
+            if (marker.Orient is { } orient)
+            {
+                value = orient.ToString();
+                return true;
+            }
+        }
+
+        value = string.Empty;
+        return false;
+    }
+
+    private bool TryGetRawAttributeValue(string name, out string value)
+    {
+        if (Element.CustomAttributes.TryGetValue(name, out var customValue) && !string.IsNullOrWhiteSpace(customValue))
+        {
+            value = customValue ?? string.Empty;
+            return true;
+        }
+
+        if (Element.TryGetAttribute(name, out var attributeValue) && !string.IsNullOrWhiteSpace(attributeValue))
+        {
+            value = attributeValue ?? string.Empty;
+            return true;
+        }
+
+        value = string.Empty;
+        return false;
+    }
+
+    private static bool MatchesSceneRect(SvgSceneNode node, SKRect rect, bool enclosure)
+    {
+        var bounds = node.TransformedBounds;
+        if (bounds.IsEmpty)
+        {
+            return false;
+        }
+
+        if (enclosure)
+        {
+            return Contains(rect, bounds);
+        }
+
+        if (!Intersects(rect, bounds))
+        {
+            return false;
+        }
+
+        if (node.HitTestPath is not { } hitTestPath)
+        {
+            return true;
+        }
+
+        if (node.SupportsFillHitTest && GeometryHitTestService.IntersectsFill(hitTestPath, rect, node.TotalTransform))
+        {
+            return true;
+        }
+
+        if (node.SupportsStrokeHitTest)
+        {
+            if (GeometryHitTestService.IntersectsStroke(hitTestPath, rect, node.TotalTransform, node.StrokeWidth))
+            {
+                return true;
+            }
+
+            if (!node.SupportsFillHitTest &&
+                bounds.Width <= rect.Width &&
+                bounds.Height <= rect.Height)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string GetRawStyleText(SvgElement element)
+    {
+        return element.CustomAttributes.TryGetValue("style", out var style)
+            ? style ?? string.Empty
+            : string.Empty;
+    }
+
+    private static void SetRawStyleText(SvgElement element, string styleText)
+    {
+        if (string.IsNullOrWhiteSpace(styleText))
+        {
+            element.CustomAttributes.Remove("style");
+        }
+        else
+        {
+            element.CustomAttributes["style"] = styleText;
+        }
+    }
+
+    private static Dictionary<string, string> ParseInlineStyle(string? styleText)
+    {
+        var declarations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (string.IsNullOrWhiteSpace(styleText))
+        {
+            return declarations;
+        }
+
+        var text = styleText ?? string.Empty;
+        foreach (var declaration in text.Split(';'))
+        {
+            if (string.IsNullOrWhiteSpace(declaration))
+            {
+                continue;
+            }
+
+            var separatorIndex = declaration.IndexOf(':');
+            if (separatorIndex <= 0)
+            {
+                continue;
+            }
+
+            var propertyName = declaration.Substring(0, separatorIndex).Trim();
+            if (propertyName.Length == 0)
+            {
+                continue;
+            }
+
+            declarations[propertyName] = declaration.Substring(separatorIndex + 1).Trim();
+        }
+
+        return declarations;
+    }
+
+    private static string SerializeInlineStyle(Dictionary<string, string> declarations)
+    {
+        return string.Join("; ", declarations
+            .Where(pair => !string.IsNullOrWhiteSpace(pair.Key))
+            .Select(pair => string.Concat(pair.Key, ": ", pair.Value)));
+    }
+
+    private static string QualifyAttributeName(string? namespaceUri, string localName)
+    {
+        if (string.IsNullOrWhiteSpace(namespaceUri))
+        {
+            return localName;
+        }
+
+        return string.Equals(namespaceUri, SvgNamespaces.XLinkNamespace, StringComparison.Ordinal)
+            ? $"xlink:{localName}"
+            : localName;
+    }
+
+    private sealed class ReferenceEqualityComparer : IEqualityComparer<SvgElement>
+    {
+        public static readonly ReferenceEqualityComparer Instance = new();
+
+        public bool Equals(SvgElement? x, SvgElement? y)
+        {
+            return ReferenceEquals(x, y);
+        }
+
+        public int GetHashCode(SvgElement obj)
+        {
+            return obj.GetHashCode();
+        }
+    }
+}
+
+public sealed class SvgJavaScriptAnimatedTransformList
+{
+    private readonly SvgJavaScriptTransformList _baseVal;
+    private readonly SvgJavaScriptTransformList _animVal;
+
+    internal SvgJavaScriptAnimatedTransformList(SvgJavaScriptRuntime runtime, SvgJavaScriptElement element)
+    {
+        _baseVal = new SvgJavaScriptTransformList(runtime, element, false);
+        _animVal = new SvgJavaScriptTransformList(runtime, element, true);
+    }
+
+    public SvgJavaScriptTransformList baseVal => _baseVal;
+
+    public SvgJavaScriptTransformList animVal => _animVal;
+}
+
+public sealed class SvgJavaScriptAnimatedRect
+{
+    private readonly SvgJavaScriptRect _baseVal;
+    private readonly SvgJavaScriptRect _animVal;
+
+    internal SvgJavaScriptAnimatedRect(SvgJavaScriptRuntime runtime, SvgJavaScriptElement element, string attributeName)
+    {
+        _baseVal = new SvgJavaScriptRect(runtime, () => ParseRect(element.getAttribute(attributeName)), state => element.setAttribute(attributeName, FormatRect(state)), false);
+        _animVal = new SvgJavaScriptRect(runtime, () => ParseRect(element.getAttribute(attributeName)), null, true);
+    }
+
+    public SvgJavaScriptRect baseVal => _baseVal;
+
+    public SvgJavaScriptRect animVal => _animVal;
+
+    private static SvgJavaScriptRect.SvgJavaScriptRectState ParseRect(string? value)
+    {
+        var parts = SvgJavaScriptParsing.ParseTokenList(value);
+        var values = new float[4];
+        for (var i = 0; i < values.Length && i < parts.Length; i++)
+        {
+            _ = float.TryParse(parts[i], NumberStyles.Float, CultureInfo.InvariantCulture, out values[i]);
+        }
+
+        return new SvgJavaScriptRect.SvgJavaScriptRectState(values[0], values[1], values[2], values[3]);
+    }
+
+    private static string FormatRect(SvgJavaScriptRect.SvgJavaScriptRectState state)
+    {
+        return string.Join(" ", new[]
+        {
+            SvgJavaScriptParsing.FormatNumber(state.X),
+            SvgJavaScriptParsing.FormatNumber(state.Y),
+            SvgJavaScriptParsing.FormatNumber(state.Width),
+            SvgJavaScriptParsing.FormatNumber(state.Height)
+        });
+    }
 }

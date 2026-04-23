@@ -14,7 +14,7 @@ public enum MaskType
     ///     White (high luminance) = fully visible, Black (zero luminance) = fully masked.
     /// </summary>
     Luminance,
-    
+
     /// <summary>
     ///     The alpha channel of the mask content determines the mask.
     ///     Opaque pixels = fully visible, transparent pixels = fully masked.
