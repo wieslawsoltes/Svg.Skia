@@ -125,6 +125,7 @@ public static class SvgDocumentCompatibilityLoader
         }
 
         svgDocument?.SetCompatibilityStyleSources(styles);
+        svgDocument?.CaptureCompatibilityStyleState();
         svgDocument?.ApplyCompatibilityStyles();
         return svgDocument!;
     }

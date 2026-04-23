@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -127,6 +128,53 @@ public class SvgJavaScriptRuntimeTests
 
         target.removeAttribute("style");
         AssertVisualFill(document, "target", Color.Blue);
+    }
+
+    [Fact]
+    public void Runtime_ClassMutation_ReappliesCompatibilityCssFromRawBaseline()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <style>.active { fill: green; }</style>
+              <rect id="target" class="active" width="10" height="10" fill="red" />
+            </svg>
+            """)!;
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings
+        {
+            ThrowOnError = true
+        });
+
+        AssertVisualFill(document, "target", Color.Green);
+
+        var target = runtime.GetElement(document.GetElementById("target")!);
+        target.setAttribute("class", string.Empty);
+
+        AssertVisualFill(document, "target", Color.Red);
+    }
+
+    [Fact]
+    public void Runtime_IdMutation_ReappliesCompatibilityCssAcrossSiblingSelectors()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <style>#trigger + rect { fill: green; }</style>
+              <rect id="trigger" width="10" height="10" />
+              <rect id="target" x="10" width="10" height="10" fill="red" />
+            </svg>
+            """)!;
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings
+        {
+            ThrowOnError = true
+        });
+
+        AssertVisualFill(document, "target", Color.Green);
+
+        var trigger = runtime.GetElement(document.GetElementById("trigger")!);
+        trigger.setAttribute("id", "updated-trigger");
+
+        AssertVisualFill(document, "target", Color.Red);
     }
 
     [Fact]
@@ -311,6 +359,95 @@ public class SvgJavaScriptRuntimeTests
 
         AssertFill(svg, "target", Color.Red);
         AssertFill(clone, "target", Color.Green);
+    }
+
+    [Fact]
+    public void Clone_DispatchPointerReleased_ExecutesScriptDefinedGlobalHandler()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="20" height="20" fill="red" onclick="setGreen()" />
+              <script><![CDATA[
+                function setGreen() {
+                  document.getElementById('target').setAttribute('fill', 'green');
+                }
+              ]]></script>
+            </svg>
+            """);
+
+        using var clone = svg.Clone();
+        var dispatcher = new SvgInteractionDispatcher();
+        var input = new SvgPointerInput(
+            new SKPoint(5, 5),
+            SvgPointerDeviceType.Mouse,
+            SvgMouseButton.Left,
+            1,
+            0,
+            altKey: false,
+            shiftKey: false,
+            ctrlKey: false,
+            sessionId: "test");
+
+        dispatcher.DispatchPointerPressed(clone, input);
+        dispatcher.DispatchPointerReleased(clone, input);
+
+        AssertFill(svg, "target", Color.Red);
+        AssertFill(clone, "target", Color.Green);
+    }
+
+    [Fact]
+    public void DispatchPointerReleased_AnimatedHitTargetsMutateSourceDocumentAndRebuildRenderedFrame()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="20">
+              <rect id="target"
+                    x="0"
+                    y="0"
+                    width="10"
+                    height="10"
+                    fill="red"
+                    onclick="evt.target.setAttribute('stroke', 'black'); document.getElementById('target').setAttribute('fill', 'green')">
+                <animate attributeName="x" from="0" to="10" dur="1s" fill="freeze" />
+              </rect>
+            </svg>
+            """);
+
+        Assert.True(svg.HasAnimations);
+        svg.SetAnimationTime(TimeSpan.FromSeconds(1));
+
+        var dispatcher = new SvgInteractionDispatcher();
+        var input = new SvgPointerInput(
+            new SKPoint(15, 5),
+            SvgPointerDeviceType.Mouse,
+            SvgMouseButton.Left,
+            1,
+            0,
+            altKey: false,
+            shiftKey: false,
+            ctrlKey: false,
+            sessionId: "animated");
+
+        Assert.Equal("target", svg.HitTestTopmostElement(input.PicturePoint)?.ID);
+
+        dispatcher.DispatchPointerPressed(svg, input);
+        dispatcher.DispatchPointerReleased(svg, input);
+
+        var target = Assert.IsType<SvgRectangle>(svg.SourceDocument!.GetElementById("target")!);
+        Assert.Equal(Color.Green.ToArgb(), Assert.IsType<SvgColourServer>(target.Fill).Colour.ToArgb());
+        Assert.Equal(Color.Black.ToArgb(), Assert.IsType<SvgColourServer>(target.Stroke).Colour.ToArgb());
+
+        using var bitmap = RenderBitmap(svg);
+        var pixel = bitmap.GetPixel(15, 5);
+        Assert.True(pixel.Alpha > 200);
+        Assert.True(pixel.Green > 100);
+        Assert.True(pixel.Red < 80);
+        Assert.True(pixel.Blue < 80);
     }
 
     [Fact]
@@ -789,5 +926,19 @@ public class SvgJavaScriptRuntimeTests
         Assert.InRange(rect.y, y - epsilon, y + epsilon);
         Assert.InRange(rect.width, width - epsilon, width + epsilon);
         Assert.InRange(rect.height, height - epsilon, height + epsilon);
+    }
+
+    private static SkiaSharp.SKBitmap RenderBitmap(SKSvg svg)
+    {
+        Assert.NotNull(svg.Picture);
+        var bitmap = svg.Picture!.ToBitmap(
+            SkiaSharp.SKColors.Transparent,
+            1f,
+            1f,
+            SkiaSharp.SKColorType.Rgba8888,
+            SkiaSharp.SKAlphaType.Unpremul,
+            svg.Settings.Srgb);
+
+        return Assert.IsType<SkiaSharp.SKBitmap>(bitmap);
     }
 }

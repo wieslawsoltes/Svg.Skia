@@ -100,14 +100,17 @@ public sealed class SvgJavaScriptRuntime
         _useInstanceRoots.Clear();
     }
 
-    public void ExecuteDocumentScripts()
+    public void ExecuteDocumentScripts(bool dispatchLoadEvent = true)
     {
         foreach (var script in _document.Descendants().OfType<SvgScript>().ToArray())
         {
             ExecuteScriptElement(script);
         }
 
-        ExecuteEventHandler(_document, _document, null, "load", "onload", null);
+        if (dispatchLoadEvent)
+        {
+            ExecuteEventHandler(_document, _document, null, "load", "onload", null);
+        }
     }
 
     public SvgJavaScriptEventResult ExecuteEventHandler(

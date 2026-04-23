@@ -360,7 +360,7 @@ public partial class SKSvg : IDisposable
         {
             clone.SourceDocument = sourceDocumentClone;
 
-            clone.InitializeJavaScriptRuntime(sourceDocumentClone, executeDocumentScripts: false);
+            clone.InitializeJavaScriptRuntime(sourceDocumentClone, executeDocumentScripts: true, dispatchLoadEvent: false);
 
             if (HasAnimations)
             {
@@ -926,7 +926,10 @@ public partial class SKSvg : IDisposable
         LastAnimationDirtyTargetCount = 0;
     }
 
-    private void InitializeJavaScriptRuntime(SvgDocument svgDocument, bool executeDocumentScripts = true)
+    private void InitializeJavaScriptRuntime(
+        SvgDocument svgDocument,
+        bool executeDocumentScripts = true,
+        bool dispatchLoadEvent = true)
     {
         _javaScriptRuntime = null;
         if (!Settings.EnableJavaScript)
@@ -943,7 +946,7 @@ public partial class SKSvg : IDisposable
 
         if (executeDocumentScripts)
         {
-            runtime.ExecuteDocumentScripts();
+            runtime.ExecuteDocumentScripts(dispatchLoadEvent);
         }
     }
 
@@ -961,11 +964,14 @@ public partial class SKSvg : IDisposable
             return SvgJavaScriptEventResult.NotExecuted;
         }
 
+        var handlerElement = NormalizeJavaScriptEventElement(element);
+        var sourceTargetElement = NormalizeJavaScriptEventElement(targetElement);
+        var sourceRelatedElement = relatedElement is null ? null : NormalizeJavaScriptEventElement(relatedElement);
         var mutationVersion = runtime.MutationVersion;
         var result = runtime.ExecuteEventHandler(
-            element,
-            ResolveJavaScriptEventTarget(runtime, targetElement, input.PicturePoint),
-            relatedElement is null ? null : runtime.GetElement(relatedElement),
+            handlerElement,
+            ResolveJavaScriptEventTarget(runtime, sourceTargetElement, input.PicturePoint),
+            sourceRelatedElement is null ? null : runtime.GetElement(sourceRelatedElement),
             eventType,
             attributeName,
             CreateJavaScriptEventInput(input));
@@ -977,6 +983,7 @@ public partial class SKSvg : IDisposable
         InvalidateRetainedSceneGraph();
         if (AnimationController is { })
         {
+            ClearAnimationRenderState();
             RefreshCurrentAnimationFrame(bypassThrottle: true);
         }
         else
@@ -990,19 +997,40 @@ public partial class SKSvg : IDisposable
     private object ResolveJavaScriptEventTarget(SvgJavaScriptRuntime runtime, SvgElement targetElement, SKPoint picturePoint)
     {
         if (targetElement is SvgUse use &&
-            HitTestTopmostSceneNode(picturePoint) is { } hitNode &&
-            ReferenceEquals(hitNode.HitTestTargetElement, targetElement) &&
-            hitNode.Element is SvgElement correspondingElement &&
-            !ReferenceEquals(correspondingElement, targetElement))
+            HitTestTopmostSceneNode(picturePoint) is { } hitNode)
         {
-            var instance = runtime.FindUseInstance(use, correspondingElement);
-            if (instance is not null)
+            var hitTargetElement = hitNode.HitTestTargetElement is null
+                ? null
+                : NormalizeJavaScriptEventElement(hitNode.HitTestTargetElement);
+            var correspondingElement = hitNode.Element is SvgElement element
+                ? NormalizeJavaScriptEventElement(element)
+                : null;
+
+            if (ReferenceEquals(hitTargetElement, targetElement) &&
+                correspondingElement is not null &&
+                !ReferenceEquals(correspondingElement, targetElement))
             {
-                return instance;
+                var instance = runtime.FindUseInstance(use, correspondingElement);
+                if (instance is not null)
+                {
+                    return instance;
+                }
             }
         }
 
         return runtime.GetElement(targetElement);
+    }
+
+    private SvgElement NormalizeJavaScriptEventElement(SvgElement element)
+    {
+        if (SourceDocument is null ||
+            ReferenceEquals(element.OwnerDocument, SourceDocument))
+        {
+            return element;
+        }
+
+        var resolved = SvgElementAddress.Create(element).Resolve(SourceDocument);
+        return resolved ?? element;
     }
 
     private SvgJavaScriptSettings CreateJavaScriptSettings()

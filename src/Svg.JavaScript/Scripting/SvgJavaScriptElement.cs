@@ -169,8 +169,9 @@ public sealed class SvgJavaScriptElement
         }
 
         SetAttributeValue(normalizedName, text);
+        _document.RawDocument.UpdateCompatibilityStyleAttribute(Element, normalizedName, text);
         UpdateInlineStyleFallback(normalizedName, text);
-        _document.RawDocument.ApplyCompatibilityStyles(Element);
+        _document.RawDocument.ReapplyCompatibilityStyles();
         _runtime.MarkMutation();
     }
 
@@ -195,8 +196,9 @@ public sealed class SvgJavaScriptElement
         }
 
         RemoveAttributeValue(normalizedName);
+        _document.RawDocument.UpdateCompatibilityStyleAttribute(Element, normalizedName, null);
         UpdateInlineStyleFallback(normalizedName, null);
-        _document.RawDocument.ApplyCompatibilityStyles(Element);
+        _document.RawDocument.ReapplyCompatibilityStyles();
         _runtime.MarkMutation();
     }
 
@@ -260,6 +262,7 @@ public sealed class SvgJavaScriptElement
             case SvgJavaScriptElement childElement:
                 Element.Children.Remove(childElement.Element);
                 Element.Nodes.Remove(childElement.Element);
+                _document.RawDocument.ReapplyCompatibilityStyles();
                 _runtime.MarkMutation();
                 return childElement;
             case SvgJavaScriptTextNode textNode:
@@ -505,7 +508,8 @@ public sealed class SvgJavaScriptElement
             Element.Children.Insert(childIndex, childElement);
         }
 
-        _document.RawDocument.ApplyCompatibilityStyles(childElement);
+        _document.RawDocument.EnsureCompatibilityStyleState(childElement);
+        _document.RawDocument.ReapplyCompatibilityStyles();
         _runtime.MarkMutation();
     }
 
@@ -1005,8 +1009,9 @@ public sealed class SvgJavaScriptElement
         declarations ??= ParseInlineStyle(styleText);
         CaptureInlineStyleFallbacks(previousDeclarations, declarations);
         SetRawStyleText(Element, styleText);
+        _document.RawDocument.UpdateCompatibilityStyleText(Element, styleText);
         RestoreRemovedInlineStyleFallbacks(previousDeclarations, declarations);
-        _document.RawDocument.ApplyCompatibilityStyles(Element);
+        _document.RawDocument.ReapplyCompatibilityStyles();
     }
 
     private void CaptureInlineStyleFallbacks(
