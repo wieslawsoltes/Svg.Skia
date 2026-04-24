@@ -27,6 +27,11 @@ public static class SvgDocumentCompatibilityLoader
 {
     public static T Open<T>(string path, SvgOptions svgOptions) where T : SvgDocument, new()
     {
+        return Open<T>(path, svgOptions, captureCompatibilityStyleState: false);
+    }
+
+    public static T Open<T>(string path, SvgOptions svgOptions, bool captureCompatibilityStyleState) where T : SvgDocument, new()
+    {
         if (path is null)
         {
             throw new ArgumentNullException(nameof(path));
@@ -36,15 +41,20 @@ public static class SvgDocumentCompatibilityLoader
         // expand relative @import/file references exactly as the browser would relative to the SVG.
         var baseUri = new Uri(Path.GetFullPath(path), UriKind.Absolute);
         using var stream = File.OpenRead(path);
-        return Open<T>(stream, svgOptions, baseUri);
+        return Open<T>(stream, svgOptions, baseUri, captureCompatibilityStyleState);
     }
 
     public static T Open<T>(Stream stream, SvgOptions svgOptions) where T : SvgDocument, new()
     {
-        return Open<T>(stream, svgOptions, null);
+        return Open<T>(stream, svgOptions, captureCompatibilityStyleState: false);
     }
 
-    private static T Open<T>(Stream stream, SvgOptions svgOptions, Uri? baseUri) where T : SvgDocument, new()
+    public static T Open<T>(Stream stream, SvgOptions svgOptions, bool captureCompatibilityStyleState) where T : SvgDocument, new()
+    {
+        return Open<T>(stream, svgOptions, null, captureCompatibilityStyleState);
+    }
+
+    private static T Open<T>(Stream stream, SvgOptions svgOptions, Uri? baseUri, bool captureCompatibilityStyleState) where T : SvgDocument, new()
     {
         if (stream is null)
         {
@@ -58,10 +68,15 @@ public static class SvgDocumentCompatibilityLoader
             DtdProcessing = SvgDocument.DisableDtdProcessing ? DtdProcessing.Ignore : DtdProcessing.Parse,
         };
 
-        return Create<T>(reader, svgOptions.Css, baseUri);
+        return Create<T>(reader, svgOptions.Css, baseUri, captureCompatibilityStyleState);
     }
 
     public static T FromSvg<T>(string svg) where T : SvgDocument, new()
+    {
+        return FromSvg<T>(svg, captureCompatibilityStyleState: false);
+    }
+
+    public static T FromSvg<T>(string svg, bool captureCompatibilityStyleState) where T : SvgDocument, new()
     {
         if (string.IsNullOrEmpty(svg))
         {
@@ -76,10 +91,15 @@ public static class SvgDocumentCompatibilityLoader
             DtdProcessing = SvgDocument.DisableDtdProcessing ? DtdProcessing.Ignore : DtdProcessing.Parse,
         };
 
-        return Create<T>(reader);
+        return Create<T>(reader, captureCompatibilityStyleState: captureCompatibilityStyleState);
     }
 
     public static T Open<T>(XmlReader reader) where T : SvgDocument, new()
+    {
+        return Open<T>(reader, captureCompatibilityStyleState: false);
+    }
+
+    public static T Open<T>(XmlReader reader, bool captureCompatibilityStyleState) where T : SvgDocument, new()
     {
         if (reader is null)
         {
@@ -101,17 +121,25 @@ public static class SvgDocumentCompatibilityLoader
             IgnoreWhitespace = false,
         });
 
-        return Create<T>(svgReader, baseUri: baseUri);
+        return Create<T>(svgReader, baseUri: baseUri, captureCompatibilityStyleState: captureCompatibilityStyleState);
     }
 
-    private static T Create<T>(XmlReader reader, string? css = null, Uri? baseUri = null) where T : SvgDocument, new()
+    private static T Create<T>(
+        XmlReader reader,
+        string? css = null,
+        Uri? baseUri = null,
+        bool captureCompatibilityStyleState = false)
+        where T : SvgDocument, new()
     {
         // Keep each stylesheet fragment together with the URI it should resolve against. That lets
         // inline CSS from the SVG document, externally supplied CSS, and recursively imported CSS
         // all share one merge/apply path without losing origin information.
-        var styles = new List<SvgCssStyleSource>();
-        var elementFactory = new SvgElementFactory();
-        var svgDocument = Create<T>(reader, elementFactory, styles, baseUri);
+        List<SvgCssStyleSource>? styles = null;
+        var elementFactory = new SvgElementFactory
+        {
+            PreserveJavaScriptDomState = captureCompatibilityStyleState
+        };
+        var svgDocument = Create<T>(reader, elementFactory, ref styles, baseUri);
 
         // Avalonia and other hosts can concatenate optional CSS inputs into a whitespace-only
         // string (for example " ") even when no actual stylesheet content is present. Treat that
@@ -121,16 +149,29 @@ public static class SvgDocumentCompatibilityLoader
         var normalizedCss = string.IsNullOrWhiteSpace(css) ? null : css;
         if (normalizedCss is not null)
         {
-            styles.Add(new SvgCssStyleSource(normalizedCss, baseUri));
+            (styles ??= new List<SvgCssStyleSource>()).Add(new SvgCssStyleSource(normalizedCss, baseUri));
         }
 
-        svgDocument?.SetCompatibilityStyleSources(styles);
-        svgDocument?.CaptureCompatibilityStyleState();
-        svgDocument?.ApplyCompatibilityStyles();
+        if (svgDocument is { })
+        {
+            if (styles is { Count: > 0 })
+            {
+                if (captureCompatibilityStyleState)
+                {
+                    svgDocument.SetCompatibilityStyleSources(styles);
+                    svgDocument.CaptureCompatibilityStyleState();
+                }
+
+                SvgCssCompatibilityProcessor.Apply(svgDocument, styles, elementFactory);
+            }
+
+            svgDocument.FlushStyles(true);
+        }
+
         return svgDocument!;
     }
 
-    private static T Create<T>(XmlReader reader, SvgElementFactory elementFactory, List<SvgCssStyleSource> styles, Uri? baseUri)
+    private static T Create<T>(XmlReader reader, SvgElementFactory elementFactory, ref List<SvgCssStyleSource>? styles, Uri? baseUri)
         where T : SvgDocument, new()
     {
         var elementStack = new Stack<SvgElement>();
@@ -195,7 +236,7 @@ public static class SvgDocumentCompatibilityLoader
                             // Preserve the document base URI with every collected <style> block so
                             // any nested @import inside that block resolves relative to the SVG file
                             // that declared it, not to the current process working directory.
-                            styles.Add(new SvgCssStyleSource(unknown.Content ?? string.Empty, svgDocument?.BaseUri));
+                            (styles ??= new List<SvgCssStyleSource>()).Add(new SvgCssStyleSource(unknown.Content ?? string.Empty, svgDocument?.BaseUri));
                         }
 
                         break;

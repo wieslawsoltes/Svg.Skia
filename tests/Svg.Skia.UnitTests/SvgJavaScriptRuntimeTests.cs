@@ -350,6 +350,28 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void Runtime_FirstStyleMutation_PreservesUnchangedSiblingPresentationAttributes()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="10" height="10" fill="red" />
+              <rect id="sibling" x="10" width="10" height="10" fill="blue" />
+            </svg>
+            """)!;
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings
+        {
+            ThrowOnError = true
+        });
+
+        var target = runtime.GetElement(document.GetElementById("target")!);
+        target.setAttribute("fill", "green");
+
+        AssertVisualFill(document, "target", Color.Green);
+        AssertVisualFill(document, "sibling", Color.Blue);
+    }
+
+    [Fact]
     public void Runtime_ClassMutation_ReappliesCompatibilityCssFromRawBaseline()
     {
         var document = SvgService.FromSvg("""
@@ -357,7 +379,7 @@ public class SvgJavaScriptRuntimeTests
               <style>.active { fill: green; }</style>
               <rect id="target" class="active" width="10" height="10" fill="red" />
             </svg>
-            """)!;
+            """, captureCompatibilityStyleState: true)!;
 
         var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings
         {
@@ -381,7 +403,7 @@ public class SvgJavaScriptRuntimeTests
               <rect id="trigger" width="10" height="10" />
               <rect id="target" x="10" width="10" height="10" fill="red" />
             </svg>
-            """)!;
+            """, captureCompatibilityStyleState: true)!;
 
         var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings
         {

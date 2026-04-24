@@ -9,47 +9,93 @@ public partial class SvgDocument
 {
     private List<SvgCssStyleSource>? _compatibilityStyleSources;
     private Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>? _compatibilityStyleState;
+    private bool _compatibilityStyleStateInitialized;
 
     internal void SetCompatibilityStyleSources(IEnumerable<SvgCssStyleSource> styles)
     {
-        _compatibilityStyleSources = styles is null
-            ? null
-            : styles.Select(style => new SvgCssStyleSource(style.Content, style.BaseUri)).ToList();
+        if (styles is null)
+        {
+            _compatibilityStyleSources = null;
+            return;
+        }
+
+        var styleSources = styles as IReadOnlyCollection<SvgCssStyleSource> ?? styles.ToArray();
+        if (styleSources.Count == 0)
+        {
+            _compatibilityStyleSources = null;
+            return;
+        }
+
+        _compatibilityStyleSources = new List<SvgCssStyleSource>(styleSources.Count);
+        foreach (var style in styleSources)
+        {
+            _compatibilityStyleSources.Add(new SvgCssStyleSource(style.Content, style.BaseUri));
+        }
     }
 
     internal void CopyCompatibilityStyleSourcesTo(SvgDocument target)
     {
-        target.SetCompatibilityStyleSources(_compatibilityStyleSources ?? Enumerable.Empty<SvgCssStyleSource>());
+        if (_compatibilityStyleSources is null)
+        {
+            target._compatibilityStyleSources = null;
+            return;
+        }
+
+        target.SetCompatibilityStyleSources(_compatibilityStyleSources);
     }
 
     internal void CaptureCompatibilityStyleState()
     {
         _compatibilityStyleState = CreateCompatibilityStyleStateMap();
+        _compatibilityStyleStateInitialized = true;
     }
 
     internal void CaptureCompatibilityStyleState(SvgElement root)
     {
-        _compatibilityStyleState ??= CreateCompatibilityStyleStateMap();
+        EnsureCompatibilityStyleStateInitialized();
         foreach (var element in EnumerateElements(root))
         {
-            _compatibilityStyleState[element] = SvgCompatibilityStyleSnapshot.Create(element);
+            var snapshot = element.CreateCompatibilityStyleSnapshot();
+            if (snapshot.HasState)
+            {
+                _compatibilityStyleState![element] = snapshot;
+            }
+            else
+            {
+                _compatibilityStyleState?.Remove(element);
+            }
         }
     }
 
     internal void EnsureCompatibilityStyleState(SvgElement root)
     {
-        _compatibilityStyleState ??= CreateCompatibilityStyleStateMap();
+        EnsureCompatibilityStyleStateInitialized();
         foreach (var element in EnumerateElements(root))
         {
-            if (!_compatibilityStyleState.ContainsKey(element))
+            if (_compatibilityStyleState?.ContainsKey(element) == true)
             {
-                _compatibilityStyleState[element] = SvgCompatibilityStyleSnapshot.Create(element);
+                continue;
+            }
+
+            var snapshot = element.CreateCompatibilityStyleSnapshot();
+            if (snapshot.HasState)
+            {
+                _compatibilityStyleState ??= new Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>(SvgElementReferenceComparer.Instance);
+                _compatibilityStyleState[element] = snapshot;
             }
         }
     }
 
     internal void CopyCompatibilityStyleStateTo(SvgDocument target)
     {
+        if (!_compatibilityStyleStateInitialized)
+        {
+            target._compatibilityStyleState = null;
+            target._compatibilityStyleStateInitialized = false;
+            return;
+        }
+
+        target._compatibilityStyleStateInitialized = true;
         if (_compatibilityStyleState is null || _compatibilityStyleState.Count == 0)
         {
             target._compatibilityStyleState = null;
@@ -61,17 +107,19 @@ public partial class SvgDocument
         if (sourceElements.Length != targetElements.Length)
         {
             target._compatibilityStyleState = null;
+            target._compatibilityStyleStateInitialized = false;
             return;
         }
 
-        var state = new Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>(targetElements.Length, SvgElementReferenceComparer.Instance);
+        var state = new Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>(_compatibilityStyleState.Count, SvgElementReferenceComparer.Instance);
         for (var i = 0; i < sourceElements.Length; i++)
         {
             var sourceElement = sourceElements[i];
             var targetElement = targetElements[i];
-            state[targetElement] = _compatibilityStyleState.TryGetValue(sourceElement, out var snapshot)
-                ? snapshot.Clone()
-                : SvgCompatibilityStyleSnapshot.Create(targetElement);
+            if (_compatibilityStyleState.TryGetValue(sourceElement, out var snapshot))
+            {
+                state[targetElement] = snapshot.Clone();
+            }
         }
 
         target._compatibilityStyleState = state;
@@ -119,17 +167,22 @@ public partial class SvgDocument
 
     private void RestoreCompatibilityStyleState()
     {
-        if (_compatibilityStyleState is null)
+        if (!_compatibilityStyleStateInitialized)
         {
             return;
         }
 
         foreach (var element in EnumerateElements())
         {
-            if (!_compatibilityStyleState.TryGetValue(element, out var snapshot))
+            var snapshot = _compatibilityStyleState is not null &&
+                           _compatibilityStyleState.TryGetValue(element, out var storedSnapshot)
+                ? storedSnapshot
+                : SvgCompatibilityStyleSnapshot.Empty;
+
+            if (ReferenceEquals(snapshot, SvgCompatibilityStyleSnapshot.Empty))
             {
-                snapshot = SvgCompatibilityStyleSnapshot.Create(element);
-                _compatibilityStyleState[element] = snapshot;
+                element.RestoreCompatibilityStyleState(snapshot);
+                continue;
             }
 
             element.RestoreCompatibilityStyleState(snapshot);
@@ -138,22 +191,43 @@ public partial class SvgDocument
 
     private SvgCompatibilityStyleSnapshot GetOrCreateCompatibilityStyleSnapshot(SvgElement element)
     {
-        _compatibilityStyleState ??= CreateCompatibilityStyleStateMap();
-        if (!_compatibilityStyleState.TryGetValue(element, out var snapshot))
+        EnsureCompatibilityStyleStateInitialized();
+        if (_compatibilityStyleState is null ||
+            !_compatibilityStyleState.TryGetValue(element, out var snapshot))
         {
-            snapshot = SvgCompatibilityStyleSnapshot.Create(element);
+            snapshot = element.CreateCompatibilityStyleSnapshot();
+            _compatibilityStyleState ??= new Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>(SvgElementReferenceComparer.Instance);
             _compatibilityStyleState[element] = snapshot;
         }
 
         return snapshot;
     }
 
-    private Dictionary<SvgElement, SvgCompatibilityStyleSnapshot> CreateCompatibilityStyleStateMap()
+    private void EnsureCompatibilityStyleStateInitialized()
     {
-        var state = new Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>(SvgElementReferenceComparer.Instance);
+        if (_compatibilityStyleStateInitialized)
+        {
+            _compatibilityStyleState ??= new Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>(SvgElementReferenceComparer.Instance);
+            return;
+        }
+
+        _compatibilityStyleState = CreateCompatibilityStyleStateMap();
+        _compatibilityStyleStateInitialized = true;
+    }
+
+    private Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>? CreateCompatibilityStyleStateMap()
+    {
+        Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>? state = null;
         foreach (var element in EnumerateElements())
         {
-            state[element] = SvgCompatibilityStyleSnapshot.Create(element);
+            var snapshot = element.CreateCompatibilityStyleSnapshot();
+            if (!snapshot.HasState)
+            {
+                continue;
+            }
+
+            state ??= new Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>(SvgElementReferenceComparer.Instance);
+            state[element] = snapshot;
         }
 
         return state;
@@ -210,6 +284,8 @@ public partial class SvgDocument
 
 internal sealed class SvgCompatibilityStyleSnapshot
 {
+    public static readonly SvgCompatibilityStyleSnapshot Empty = new(string.Empty, new Dictionary<string, string>(0, StringComparer.OrdinalIgnoreCase));
+
     public SvgCompatibilityStyleSnapshot(string inlineStyleText, Dictionary<string, string> presentationAttributes)
     {
         InlineStyleText = inlineStyleText;
@@ -220,26 +296,10 @@ internal sealed class SvgCompatibilityStyleSnapshot
 
     public Dictionary<string, string> PresentationAttributes { get; }
 
+    public bool HasState => InlineStyleText.Length > 0 || PresentationAttributes.Count > 0;
+
     public SvgCompatibilityStyleSnapshot Clone()
     {
         return new SvgCompatibilityStyleSnapshot(InlineStyleText, new Dictionary<string, string>(PresentationAttributes, StringComparer.OrdinalIgnoreCase));
-    }
-
-    public static SvgCompatibilityStyleSnapshot Create(SvgElement element)
-    {
-        var presentationAttributes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var name in SvgStyleAttributeNames.All)
-        {
-            if (element.TryGetAttribute(name, out var value) && !string.IsNullOrWhiteSpace(value))
-            {
-                presentationAttributes[name] = value;
-            }
-        }
-
-        var inlineStyleText = element.CustomAttributes.TryGetValue("style", out var styleText)
-            ? styleText ?? string.Empty
-            : string.Empty;
-
-        return new SvgCompatibilityStyleSnapshot(inlineStyleText, presentationAttributes);
     }
 }

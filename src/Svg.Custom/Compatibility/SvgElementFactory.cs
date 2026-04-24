@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -21,7 +22,11 @@ namespace Svg
     [ElementFactory]
     internal partial class SvgElementFactory
     {
+        private static readonly ConcurrentDictionary<Type, HashSet<string>> s_eventDescriptorAttributeNamesByType = new();
+
         private readonly SvgInlineStyleAttributeParser inlineStyleAttributeParser = new();
+
+        internal bool PreserveJavaScriptDomState { get; set; }
 
         /// <summary>
         /// Gets a list of available types that can be used when creating an <see cref="SvgElement"/>.
@@ -144,7 +149,11 @@ namespace Svg
                     }
                     if (localName.Equals("style") && !(element is NonSvgElement))
                     {
-                        element.CustomAttributes["style"] = reader.Value;
+                        if (PreserveJavaScriptDomState)
+                        {
+                            element.CustomAttributes["style"] = reader.Value;
+                        }
+
                         inlineStyleAttributeParser.ApplyStyles(element, reader.Value);
                     }
                     else if (prefix.Length == 0 && localName.Equals("marker"))
@@ -173,14 +182,85 @@ namespace Svg
 
         private static bool IsStyleAttribute(string name)
         {
-            return SvgStyleAttributeNames.Contains(name);
+            switch (name)
+            {
+                case "alignment-baseline":
+                case "baseline-shift":
+                case "clip":
+                case "clip-path":
+                case "clip-rule":
+                case "color":
+                case "color-interpolation":
+                case "color-interpolation-filters":
+                case "color-profile":
+                case "color-rendering":
+                case "cursor":
+                case "direction":
+                case "display":
+                case "dominant-baseline":
+                case "enable-background":
+                case "fill":
+                case "fill-opacity":
+                case "fill-rule":
+                case "filter":
+                case "flood-color":
+                case "flood-opacity":
+                case "font":
+                case "font-family":
+                case "font-size":
+                case "font-size-adjust":
+                case "font-stretch":
+                case "font-style":
+                case "font-variant":
+                case "font-weight":
+                case "glyph-orientation-horizontal":
+                case "glyph-orientation-vertical":
+                case "image-rendering":
+                case "kerning":
+                case "letter-spacing":
+                case "lighting-color":
+                case "marker":
+                case "marker-end":
+                case "marker-mid":
+                case "marker-start":
+                case "mask":
+                case "opacity":
+                case "overflow":
+                case "pointer-events":
+                case "shape-rendering":
+                case "stop-color":
+                case "stop-opacity":
+                case "stroke":
+                case "stroke-dasharray":
+                case "stroke-dashoffset":
+                case "stroke-linecap":
+                case "stroke-linejoin":
+                case "stroke-miterlimit":
+                case "stroke-opacity":
+                case "stroke-width":
+                case "text-anchor":
+                case "text-decoration":
+                case "text-rendering":
+                case "text-transform":
+                case "unicode-bidi":
+                case "visibility":
+                case "word-spacing":
+                case "writing-mode":
+                    return true;
+            }
+
+            return false;
         }
-        internal static bool SetPropertyValue(SvgElement element, string ns, string attributeName, string attributeValue, SvgDocument document, bool isStyle = false)
+        internal static bool SetPropertyValue(
+            SvgElement element,
+            string ns,
+            string attributeName,
+            string attributeValue,
+            SvgDocument document,
+            bool isStyle = false)
         {
             if (ns.Length == 0 &&
-                element.GetProperties().Any(property =>
-                    property.DescriptorType == DescriptorType.Event &&
-                    property.AttributeName == attributeName))
+                IsEventDescriptorAttribute(element, attributeName))
             {
                 element.CustomAttributes[attributeName] = attributeValue;
             }
@@ -224,6 +304,93 @@ namespace Svg
                 element.CustomAttributes[ns.Length == 0 ? attributeName : $"{ns}:{attributeName}"] = attributeValue;
             }
             return true;
+        }
+
+        private static bool IsEventDescriptorAttribute(SvgElement element, string attributeName)
+        {
+            if (!IsKnownScriptAttributeName(attributeName))
+            {
+                return false;
+            }
+
+            var eventAttributeNames = s_eventDescriptorAttributeNamesByType.GetOrAdd(
+                element.GetType(),
+                _ => CreateEventDescriptorAttributeNameSet(element));
+
+            return eventAttributeNames.Contains(attributeName);
+        }
+
+        private static bool IsKnownScriptAttributeName(string attributeName)
+        {
+            if (attributeName.Length < 4 ||
+                (attributeName[0] != 'o' && attributeName[0] != 'O') ||
+                (attributeName[1] != 'n' && attributeName[1] != 'N'))
+            {
+                return false;
+            }
+
+            switch (attributeName)
+            {
+                case "onabort":
+                case "onactivate":
+                case "onbegin":
+                case "onchange":
+                case "onclick":
+                case "onend":
+                case "onerror":
+                case "onfocusin":
+                case "onfocusout":
+                case "onload":
+                case "onmousedown":
+                case "onmousemove":
+                case "onmouseout":
+                case "onmouseover":
+                case "onmouseup":
+                case "onmousescroll":
+                case "onrepeat":
+                case "onresize":
+                case "onscroll":
+                case "onunload":
+                case "onzoom":
+                    return true;
+            }
+
+            return attributeName.Equals("onabort", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onactivate", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onbegin", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onchange", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onclick", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onend", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onerror", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onfocusin", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onfocusout", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onload", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onmousedown", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onmousemove", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onmouseout", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onmouseover", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onmouseup", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onmousescroll", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onrepeat", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onresize", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onscroll", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onunload", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("onzoom", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static HashSet<string> CreateEventDescriptorAttributeNameSet(SvgElement element)
+        {
+            var eventAttributeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var property in element.GetProperties())
+            {
+                if (property.DescriptorType == DescriptorType.Event &&
+                    !string.IsNullOrEmpty(property.AttributeName))
+                {
+                    eventAttributeNames.Add(property.AttributeName);
+                }
+            }
+
+            return eventAttributeNames;
         }
 
         /// <summary>
