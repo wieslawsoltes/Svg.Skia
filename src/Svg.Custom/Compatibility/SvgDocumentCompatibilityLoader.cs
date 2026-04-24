@@ -159,7 +159,6 @@ public static class SvgDocumentCompatibilityLoader
                 if (captureCompatibilityStyleState)
                 {
                     svgDocument.SetCompatibilityStyleSources(styles);
-                    svgDocument.CaptureCompatibilityStyleState();
                 }
 
                 SvgCssCompatibilityProcessor.Apply(svgDocument, styles, elementFactory);

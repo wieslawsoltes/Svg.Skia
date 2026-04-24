@@ -167,6 +167,11 @@ namespace Svg
                     }
                     else if (prefix.Length == 0 && IsStyleAttribute(localName))
                     {
+                        if (PreserveJavaScriptDomState)
+                        {
+                            element.PreserveCompatibilityPresentationAttribute(localName, reader.Value);
+                        }
+
                         element.AddStyle(localName, reader.Value, SvgElement.StyleSpecificity_PresAttribute);
                     }
                     else

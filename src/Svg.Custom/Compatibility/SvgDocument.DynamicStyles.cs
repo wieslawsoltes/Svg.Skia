@@ -150,6 +150,7 @@ public partial class SvgDocument
 
     internal void ReapplyCompatibilityStyles()
     {
+        EnsureCompatibilityStyleStateInitialized();
         RestoreCompatibilityStyleState();
         ApplyCompatibilityStyles();
     }

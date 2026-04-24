@@ -381,6 +381,8 @@ public class SvgJavaScriptRuntimeTests
             </svg>
             """, captureCompatibilityStyleState: true)!;
 
+        Assert.False(IsCompatibilityStyleStateInitialized(document));
+
         var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings
         {
             ThrowOnError = true
@@ -391,6 +393,7 @@ public class SvgJavaScriptRuntimeTests
         var target = runtime.GetElement(document.GetElementById("target")!);
         target.setAttribute("class", string.Empty);
 
+        Assert.True(IsCompatibilityStyleStateInitialized(document));
         AssertVisualFill(document, "target", Color.Red);
     }
 
@@ -1752,5 +1755,12 @@ public class SvgJavaScriptRuntimeTests
                     ?? throw new InvalidOperationException("Unable to access SVG JavaScript runtime.");
         return (SvgJavaScriptRuntime?)field.GetValue(svg)
                ?? throw new InvalidOperationException("SVG JavaScript runtime is not initialized.");
+    }
+
+    private static bool IsCompatibilityStyleStateInitialized(SvgDocument document)
+    {
+        var field = typeof(SvgDocument).GetField("_compatibilityStyleStateInitialized", BindingFlags.Instance | BindingFlags.NonPublic)
+                    ?? throw new InvalidOperationException("Unable to access SVG compatibility style state.");
+        return (bool)field.GetValue(document)!;
     }
 }

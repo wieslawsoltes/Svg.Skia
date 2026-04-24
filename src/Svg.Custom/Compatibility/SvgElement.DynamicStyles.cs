@@ -8,40 +8,66 @@ namespace Svg;
 
 public abstract partial class SvgElement
 {
+    private Dictionary<string, string>? _compatibilityPresentationAttributes;
+
+    internal void PreserveCompatibilityPresentationAttribute(string name, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        _compatibilityPresentationAttributes ??= new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
+        if (!_compatibilityPresentationAttributes.ContainsKey(name))
+        {
+            _compatibilityPresentationAttributes[name] = value!;
+        }
+    }
+
     internal SvgCompatibilityStyleSnapshot CreateCompatibilityStyleSnapshot()
     {
         Dictionary<string, string>? presentationAttributes = null;
 
-        foreach (var style in _styles)
+        if (_compatibilityPresentationAttributes is { Count: > 0 })
         {
-            if (!SvgStyleAttributeNames.Contains(style.Key))
-            {
-                continue;
-            }
-
-            if (style.Value.TryGetValue(StyleSpecificity_PresAttribute, out var presentationValue))
-            {
-                AddCompatibilityStyleSnapshotValue(ref presentationAttributes, style.Key, presentationValue);
-            }
-        }
-
-        foreach (var attribute in Attributes)
-        {
-            if (SvgStyleAttributeNames.Contains(attribute.Key) &&
-                attribute.Value is not null)
-            {
-                AddCompatibilityStyleSnapshotValue(
-                    ref presentationAttributes,
-                    attribute.Key,
-                    Convert.ToString(attribute.Value, CultureInfo.InvariantCulture));
-            }
-        }
-
-        foreach (var attribute in CustomAttributes)
-        {
-            if (SvgStyleAttributeNames.Contains(attribute.Key))
+            foreach (var attribute in _compatibilityPresentationAttributes)
             {
                 AddCompatibilityStyleSnapshotValue(ref presentationAttributes, attribute.Key, attribute.Value);
+            }
+        }
+        else
+        {
+            foreach (var style in _styles)
+            {
+                if (!SvgStyleAttributeNames.Contains(style.Key))
+                {
+                    continue;
+                }
+
+                if (style.Value.TryGetValue(StyleSpecificity_PresAttribute, out var presentationValue))
+                {
+                    AddCompatibilityStyleSnapshotValue(ref presentationAttributes, style.Key, presentationValue);
+                }
+            }
+
+            foreach (var attribute in Attributes)
+            {
+                if (SvgStyleAttributeNames.Contains(attribute.Key) &&
+                    attribute.Value is not null)
+                {
+                    AddCompatibilityStyleSnapshotValue(
+                        ref presentationAttributes,
+                        attribute.Key,
+                        Convert.ToString(attribute.Value, CultureInfo.InvariantCulture));
+                }
+            }
+
+            foreach (var attribute in CustomAttributes)
+            {
+                if (SvgStyleAttributeNames.Contains(attribute.Key))
+                {
+                    AddCompatibilityStyleSnapshotValue(ref presentationAttributes, attribute.Key, attribute.Value);
+                }
             }
         }
 
