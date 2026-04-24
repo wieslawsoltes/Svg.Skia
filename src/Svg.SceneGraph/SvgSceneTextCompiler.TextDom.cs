@@ -857,14 +857,15 @@ internal static partial class SvgSceneTextCompiler
     {
         sources = Array.Empty<TextDomClusterSource>();
         totalAdvance = 0f;
-        if (!SvgFontTextRenderer.TryGetLayout(svgTextBase, text, paint, assetLoader, out var svgFontLayout) ||
+        if (!SvgFontTextRenderer.TryGetLayout(svgTextBase, text, paint, assetLoader, includeGlyphTexts: true, out var svgFontLayout) ||
             svgFontLayout is null)
         {
             return false;
         }
 
         var placements = svgFontLayout.GlyphPlacements;
-        if (placements.Count == 0)
+        var placementTexts = svgFontLayout.GlyphTexts;
+        if (placements.Count == 0 || placementTexts is null || placementTexts.Count != placements.Count)
         {
             return false;
         }
@@ -878,10 +879,10 @@ internal static partial class SvgSceneTextCompiler
                 : svgFontLayout.Advance;
             clusterSources[i] = new TextDomClusterSource(
                 codepointIndex,
-                placements[i].Text,
+                placementTexts[i],
                 placements[i].RelativeX,
                 Math.Max(0f, nextRelativeOffset - placements[i].RelativeX));
-            codepointIndex += CountCodepoints(placements[i].Text);
+            codepointIndex += CountCodepoints(placementTexts[i]);
         }
 
         sources = clusterSources;

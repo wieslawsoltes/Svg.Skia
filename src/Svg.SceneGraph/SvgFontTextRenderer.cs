@@ -32,6 +32,15 @@ namespace Svg.Skia
             SKPaint paint,
             ISvgAssetLoader? assetLoader,
             out SvgFontLayout? layout)
+            => TryGetLayout(svgTextBase, text, paint, assetLoader, includeGlyphTexts: false, out layout);
+
+        internal static bool TryGetLayout(
+            SvgTextBase svgTextBase,
+            string text,
+            SKPaint paint,
+            ISvgAssetLoader? assetLoader,
+            bool includeGlyphTexts,
+            out SvgFontLayout? layout)
         {
             layout = null;
 
@@ -80,7 +89,7 @@ namespace Svg.Skia
                         continue;
                     }
 
-                    if (entry.TryCreateLayout(request, paint, assetLoader, out layout) && layout is not null)
+                    if (entry.TryCreateLayout(request, paint, assetLoader, includeGlyphTexts, out layout) && layout is not null)
                     {
                         return true;
                     }
@@ -244,11 +253,17 @@ namespace Svg.Skia
         internal sealed class SvgFontLayout
         {
             private readonly IReadOnlyList<SvgGlyphPlacementResult> _glyphs;
+            private readonly IReadOnlyList<string>? _glyphTexts;
             private readonly SKRect _relativeBounds;
 
-            internal SvgFontLayout(IReadOnlyList<SvgGlyphPlacementResult> glyphs, float advance, SKRect relativeBounds)
+            internal SvgFontLayout(
+                IReadOnlyList<SvgGlyphPlacementResult> glyphs,
+                float advance,
+                SKRect relativeBounds,
+                IReadOnlyList<string>? glyphTexts = null)
             {
                 _glyphs = glyphs;
+                _glyphTexts = glyphTexts;
                 Advance = advance;
                 _relativeBounds = relativeBounds;
             }
@@ -256,6 +271,8 @@ namespace Svg.Skia
             public float Advance { get; }
 
             public IReadOnlyList<SvgGlyphPlacementResult> GlyphPlacements => _glyphs;
+
+            public IReadOnlyList<string>? GlyphTexts => _glyphTexts;
 
             public SKRect GetBounds(float startX, float baselineY)
             {
@@ -299,7 +316,7 @@ namespace Svg.Skia
 
         }
 
-        internal sealed record SvgGlyphPlacementResult(string Text, SvgGlyphDefinition? Glyph, float RelativeX, float Advance, SKPath? RelativePath, SKRect RelativeBounds);
+        internal sealed record SvgGlyphPlacementResult(SvgGlyphDefinition? Glyph, float RelativeX, float Advance, SKPath? RelativePath, SKRect RelativeBounds);
 
         private sealed class SvgFontRegistry
         {
@@ -565,7 +582,12 @@ namespace Svg.Skia
                 return Math.Abs(Descriptor.Weight - request.Weight);
             }
 
-            public bool TryCreateLayout(SvgFontRequest request, SKPaint paint, ISvgAssetLoader? assetLoader, out SvgFontLayout? layout)
+            public bool TryCreateLayout(
+                SvgFontRequest request,
+                SKPaint paint,
+                ISvgAssetLoader? assetLoader,
+                bool includeGlyphTexts,
+                out SvgFontLayout? layout)
             {
                 layout = null;
 
@@ -620,7 +642,7 @@ namespace Svg.Skia
                 var visualItems = request.Direction == SvgTextDirection.RightToLeft
                     ? logicalItems.AsEnumerable().Reverse().ToList()
                     : logicalItems;
-                layout = CreateLayout(visualItems, request.TextSize, paint, assetLoader);
+                layout = CreateLayout(visualItems, request.TextSize, paint, assetLoader, includeGlyphTexts);
                 return true;
             }
 
@@ -653,13 +675,19 @@ namespace Svg.Skia
                 return false;
             }
 
-            private SvgFontLayout CreateLayout(IReadOnlyList<SvgResolvedItem> resolvedItems, float textSize, SKPaint paint, ISvgAssetLoader? assetLoader)
+            private SvgFontLayout CreateLayout(
+                IReadOnlyList<SvgResolvedItem> resolvedItems,
+                float textSize,
+                SKPaint paint,
+                ISvgAssetLoader? assetLoader,
+                bool includeGlyphTexts)
             {
                 var scale = textSize / UnitsPerEm;
                 var ascent = Ascent * scale;
                 var descent = Descent * scale;
                 var alphabetic = Alphabetic * scale;
                 var placements = new List<SvgGlyphPlacementResult>(resolvedItems.Count);
+                List<string>? placementTexts = includeGlyphTexts ? new List<string>(resolvedItems.Count) : null;
                 var bounds = SKRect.Empty;
                 var currentX = 0f;
                 SvgResolvedGlyphItem? previousSvgGlyph = null;
@@ -721,10 +749,10 @@ namespace Svg.Skia
                             if (placements.Count > 0)
                             {
                                 var lastPlacement = placements[placements.Count - 1];
-                                return new SvgFontLayout(placements, lastPlacement.RelativeX + lastPlacement.Advance, bounds);
+                                return new SvgFontLayout(placements, lastPlacement.RelativeX + lastPlacement.Advance, bounds, placementTexts);
                             }
 
-                            return new SvgFontLayout(placements, 0f, bounds);
+                            return new SvgFontLayout(placements, 0f, bounds, placementTexts);
                         }
 
                         var fallbackPlacement = CreateFallbackPlacement(resolvedItem.Text, currentX, paint, assetLoader);
@@ -735,7 +763,8 @@ namespace Svg.Skia
                     }
 
                     bounds = bounds.IsEmpty ? glyphBounds : SKRect.Union(bounds, glyphBounds);
-                    placements.Add(new SvgGlyphPlacementResult(resolvedItem.Text, glyphDefinition, currentX, advance, relativePath, glyphBounds));
+                    placements.Add(new SvgGlyphPlacementResult(glyphDefinition, currentX, advance, relativePath, glyphBounds));
+                    placementTexts?.Add(resolvedItem.Text);
                     previousAdvance = advance;
                     hasPrevious = true;
                 }
@@ -747,7 +776,7 @@ namespace Svg.Skia
                     totalAdvance = lastPlacement.RelativeX + lastPlacement.Advance;
                 }
 
-                return new SvgFontLayout(placements, totalAdvance, bounds);
+                return new SvgFontLayout(placements, totalAdvance, bounds, placementTexts);
             }
 
             private static SvgGlyphPlacementResult CreateFallbackPlacement(string text, float currentX, SKPaint paint, ISvgAssetLoader assetLoader)
@@ -764,7 +793,7 @@ namespace Svg.Skia
                     var fallbackBounds = relativePath.IsEmpty
                         ? new SKRect(currentX, measuredBounds.Top, currentX + totalAdvance, measuredBounds.Bottom)
                         : relativePath.Bounds;
-                    return new SvgGlyphPlacementResult(text, null, currentX, totalAdvance, relativePath.IsEmpty ? null : relativePath, fallbackBounds);
+                    return new SvgGlyphPlacementResult(null, currentX, totalAdvance, relativePath.IsEmpty ? null : relativePath, fallbackBounds);
                 }
 
                 for (var i = 0; i < spans.Count; i++)
@@ -781,7 +810,7 @@ namespace Svg.Skia
                 var bounds = relativePath.IsEmpty
                     ? new SKRect(currentX, metrics.Ascent, currentX + totalAdvance, metrics.Descent)
                     : relativePath.Bounds;
-                return new SvgGlyphPlacementResult(text, null, currentX, totalAdvance, relativePath.IsEmpty ? null : relativePath, bounds);
+                return new SvgGlyphPlacementResult(null, currentX, totalAdvance, relativePath.IsEmpty ? null : relativePath, bounds);
             }
 
             private float GetKerning(SvgResolvedGlyph left, SvgResolvedGlyph right)
