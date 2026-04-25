@@ -149,9 +149,10 @@ namespace Svg
                     }
                     if (localName.Equals("style") && !(element is NonSvgElement))
                     {
-                        if (PreserveJavaScriptDomState)
+                        if (PreserveJavaScriptDomState && !string.IsNullOrWhiteSpace(reader.Value))
                         {
                             element.CustomAttributes["style"] = reader.Value;
+                            TrackCompatibilityStyleStateCandidate(document, element);
                         }
 
                         inlineStyleAttributeParser.ApplyStyles(element, reader.Value);
@@ -169,7 +170,10 @@ namespace Svg
                     {
                         if (PreserveJavaScriptDomState)
                         {
-                            element.PreserveCompatibilityPresentationAttribute(localName, reader.Value);
+                            if (element.PreserveCompatibilityPresentationAttribute(localName, reader.Value))
+                            {
+                                TrackCompatibilityStyleStateCandidate(document, element);
+                            }
                         }
 
                         element.AddStyle(localName, reader.Value, SvgElement.StyleSpecificity_PresAttribute);
@@ -183,6 +187,12 @@ namespace Svg
             }
 
             //Trace.TraceInformation("End SetAttributes");
+        }
+
+        private static void TrackCompatibilityStyleStateCandidate(SvgDocument document, SvgElement element)
+        {
+            var ownerDocument = document ?? element as SvgDocument;
+            ownerDocument?.TrackCompatibilityStyleStateCandidate(element);
         }
 
         private static bool IsStyleAttribute(string name)

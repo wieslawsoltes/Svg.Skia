@@ -422,6 +422,31 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void FromSvg_InsertInlineStyledElement_ReappliesInlineStyleAfterCss()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <style>rect { fill: red; }</style>
+              <g id="parent" />
+              <script><![CDATA[
+                var rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('id', 'target');
+                rect.setAttribute('width', '10');
+                rect.setAttribute('height', '10');
+                rect.setAttribute('style', 'fill: green');
+                document.getElementById('parent').appendChild(rect);
+              ]]></script>
+            </svg>
+            """);
+
+        AssertVisualFill(svg.SourceDocument!, "target", Color.Green);
+    }
+
+    [Fact]
     public void FromSvg_SetTimeoutFunctionCallback_ExecutesHandler()
     {
         using var svg = new SKSvg();

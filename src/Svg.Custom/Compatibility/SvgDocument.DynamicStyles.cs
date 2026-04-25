@@ -9,7 +9,10 @@ public partial class SvgDocument
 {
     private List<SvgCssStyleSource>? _compatibilityStyleSources;
     private Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>? _compatibilityStyleState;
+    private List<SvgElement>? _compatibilityStyleStateCandidates;
+    private List<SvgElement>? _compatibilityStyleRestoreCandidates;
     private bool _compatibilityStyleStateInitialized;
+    private bool _compatibilityStyleStateTrackingEnabled;
 
     internal void SetCompatibilityStyleSources(IEnumerable<SvgCssStyleSource> styles)
     {
@@ -26,6 +29,7 @@ public partial class SvgDocument
             return;
         }
 
+        _compatibilityStyleStateTrackingEnabled = true;
         _compatibilityStyleSources = new List<SvgCssStyleSource>(styleSources.Count);
         foreach (var style in styleSources)
         {
@@ -44,6 +48,28 @@ public partial class SvgDocument
         target.SetCompatibilityStyleSources(_compatibilityStyleSources);
     }
 
+    internal void TrackCompatibilityStyleStateCandidate(SvgElement element)
+    {
+        _compatibilityStyleStateTrackingEnabled = true;
+        if (element.MarkCompatibilityStyleStateCandidate())
+        {
+            (_compatibilityStyleStateCandidates ??= new List<SvgElement>()).Add(element);
+        }
+    }
+
+    internal void TrackCompatibilityStyleApplication(SvgElement element)
+    {
+        if (!_compatibilityStyleStateTrackingEnabled)
+        {
+            return;
+        }
+
+        if (element.MarkCompatibilityStyleRestoreCandidate())
+        {
+            (_compatibilityStyleRestoreCandidates ??= new List<SvgElement>()).Add(element);
+        }
+    }
+
     internal void CaptureCompatibilityStyleState()
     {
         _compatibilityStyleState = CreateCompatibilityStyleStateMap();
@@ -55,6 +81,11 @@ public partial class SvgDocument
         EnsureCompatibilityStyleStateInitialized();
         foreach (var element in EnumerateElements(root))
         {
+            if (HasCompatibilityInlineStyle(element))
+            {
+                TrackCompatibilityStyleStateCandidate(element);
+            }
+
             var snapshot = element.CreateCompatibilityStyleSnapshot();
             if (snapshot.HasState)
             {
@@ -72,6 +103,11 @@ public partial class SvgDocument
         EnsureCompatibilityStyleStateInitialized();
         foreach (var element in EnumerateElements(root))
         {
+            if (HasCompatibilityInlineStyle(element))
+            {
+                TrackCompatibilityStyleStateCandidate(element);
+            }
+
             if (_compatibilityStyleState?.ContainsKey(element) == true)
             {
                 continue;
@@ -92,9 +128,11 @@ public partial class SvgDocument
         {
             target._compatibilityStyleState = null;
             target._compatibilityStyleStateInitialized = false;
+            CopyCompatibilityStyleTrackingTo(target);
             return;
         }
 
+        CopyCompatibilityStyleTrackingTo(target);
         target._compatibilityStyleStateInitialized = true;
         if (_compatibilityStyleState is null || _compatibilityStyleState.Count == 0)
         {
@@ -125,26 +163,35 @@ public partial class SvgDocument
         target._compatibilityStyleState = state;
     }
 
-    internal void UpdateCompatibilityStyleAttribute(SvgElement element, string name, string? value)
+    internal bool HasCompatibilityStyleSources => _compatibilityStyleSources is { Count: > 0 };
+
+    internal bool UpdateCompatibilityStyleAttribute(SvgElement element, string name, string? value)
     {
         if (!SvgStyleAttributeNames.Contains(name))
         {
-            return;
+            return false;
         }
 
         var snapshot = GetOrCreateCompatibilityStyleSnapshot(element);
         if (string.IsNullOrWhiteSpace(value))
         {
-            snapshot.PresentationAttributes.Remove(name);
+            snapshot.RemovePresentationAttribute(name);
         }
         else
         {
-            snapshot.PresentationAttributes[name] = value!;
+            snapshot.SetPresentationAttribute(name, value!);
         }
+
+        return true;
     }
 
     internal void UpdateCompatibilityStyleText(SvgElement element, string? styleText)
     {
+        if (!string.IsNullOrWhiteSpace(styleText))
+        {
+            TrackCompatibilityStyleStateCandidate(element);
+        }
+
         GetOrCreateCompatibilityStyleSnapshot(element).InlineStyleText = styleText ?? string.Empty;
     }
 
@@ -173,20 +220,43 @@ public partial class SvgDocument
             return;
         }
 
-        foreach (var element in EnumerateElements())
+        if (!_compatibilityStyleStateTrackingEnabled)
         {
-            var snapshot = _compatibilityStyleState is not null &&
-                           _compatibilityStyleState.TryGetValue(element, out var storedSnapshot)
-                ? storedSnapshot
-                : SvgCompatibilityStyleSnapshot.Empty;
-
-            if (ReferenceEquals(snapshot, SvgCompatibilityStyleSnapshot.Empty))
+            foreach (var element in EnumerateElements())
             {
+                var snapshot = _compatibilityStyleState is not null &&
+                               _compatibilityStyleState.TryGetValue(element, out var storedSnapshot)
+                    ? storedSnapshot
+                    : SvgCompatibilityStyleSnapshot.Empty;
+
                 element.RestoreCompatibilityStyleState(snapshot);
+            }
+
+            return;
+        }
+
+        if (_compatibilityStyleState is not null)
+        {
+            foreach (var entry in _compatibilityStyleState)
+            {
+                entry.Key.RestoreCompatibilityStyleState(entry.Value);
+            }
+        }
+
+        if (_compatibilityStyleRestoreCandidates is null)
+        {
+            return;
+        }
+
+        for (var i = 0; i < _compatibilityStyleRestoreCandidates.Count; i++)
+        {
+            var element = _compatibilityStyleRestoreCandidates[i];
+            if (_compatibilityStyleState?.ContainsKey(element) == true)
+            {
                 continue;
             }
 
-            element.RestoreCompatibilityStyleState(snapshot);
+            element.RestoreCompatibilityStyleState(SvgCompatibilityStyleSnapshot.Empty);
         }
     }
 
@@ -197,6 +267,11 @@ public partial class SvgDocument
             !_compatibilityStyleState.TryGetValue(element, out var snapshot))
         {
             snapshot = element.CreateCompatibilityStyleSnapshot();
+            if (ReferenceEquals(snapshot, SvgCompatibilityStyleSnapshot.Empty))
+            {
+                snapshot = SvgCompatibilityStyleSnapshot.CreateEmpty();
+            }
+
             _compatibilityStyleState ??= new Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>(SvgElementReferenceComparer.Instance);
             _compatibilityStyleState[element] = snapshot;
         }
@@ -218,8 +293,16 @@ public partial class SvgDocument
 
     private Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>? CreateCompatibilityStyleStateMap()
     {
+        if (_compatibilityStyleStateTrackingEnabled && _compatibilityStyleStateCandidates is null)
+        {
+            return null;
+        }
+
         Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>? state = null;
-        foreach (var element in EnumerateElements())
+        var elements = _compatibilityStyleStateTrackingEnabled && _compatibilityStyleStateCandidates is not null
+            ? _compatibilityStyleStateCandidates
+            : EnumerateElements();
+        foreach (var element in elements)
         {
             var snapshot = element.CreateCompatibilityStyleSnapshot();
             if (!snapshot.HasState)
@@ -234,17 +317,94 @@ public partial class SvgDocument
         return state;
     }
 
+    private void CopyCompatibilityStyleTrackingTo(SvgDocument target)
+    {
+        target._compatibilityStyleStateTrackingEnabled = _compatibilityStyleStateTrackingEnabled;
+        target._compatibilityStyleStateCandidates = null;
+        target._compatibilityStyleRestoreCandidates = null;
+
+        if (!_compatibilityStyleStateTrackingEnabled)
+        {
+            return;
+        }
+
+        var sourceElements = EnumerateElements().ToArray();
+        var targetElements = target.EnumerateElements().ToArray();
+        if (sourceElements.Length != targetElements.Length)
+        {
+            target._compatibilityStyleStateTrackingEnabled = false;
+            return;
+        }
+
+        var targetBySource = new Dictionary<SvgElement, SvgElement>(sourceElements.Length, SvgElementReferenceComparer.Instance);
+        for (var i = 0; i < sourceElements.Length; i++)
+        {
+            targetBySource[sourceElements[i]] = targetElements[i];
+        }
+
+        CopyTrackedElements(_compatibilityStyleStateCandidates, target._compatibilityStyleStateCandidates = new List<SvgElement>());
+        CopyTrackedElements(_compatibilityStyleRestoreCandidates, target._compatibilityStyleRestoreCandidates = new List<SvgElement>());
+
+        if (target._compatibilityStyleStateCandidates.Count == 0)
+        {
+            target._compatibilityStyleStateCandidates = null;
+        }
+
+        if (target._compatibilityStyleRestoreCandidates.Count == 0)
+        {
+            target._compatibilityStyleRestoreCandidates = null;
+        }
+
+        void CopyTrackedElements(List<SvgElement>? sourceList, List<SvgElement> targetList)
+        {
+            if (sourceList is null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < sourceList.Count; i++)
+            {
+                if (!targetBySource.TryGetValue(sourceList[i], out var targetElement))
+                {
+                    continue;
+                }
+
+                if (ReferenceEquals(sourceList, _compatibilityStyleStateCandidates))
+                {
+                    sourceList[i].CopyCompatibilityRawStyleStateTo(targetElement);
+                    if (targetElement.MarkCompatibilityStyleStateCandidate())
+                    {
+                        targetList.Add(targetElement);
+                    }
+                }
+                else if (targetElement.MarkCompatibilityStyleRestoreCandidate())
+                {
+                    targetList.Add(targetElement);
+                }
+            }
+        }
+    }
+
     private void ApplyInlineStyles()
     {
         var parser = new SvgInlineStyleAttributeParser();
-        foreach (var element in EnumerateElements())
+        var elements = _compatibilityStyleStateTrackingEnabled && _compatibilityStyleStateCandidates is not null
+            ? _compatibilityStyleStateCandidates
+            : EnumerateElements();
+        foreach (var element in elements)
         {
-            if (element.CustomAttributes.TryGetValue("style", out var styleText) &&
-                !string.IsNullOrWhiteSpace(styleText))
+            if (HasCompatibilityInlineStyle(element))
             {
+                var styleText = element.CustomAttributes["style"];
                 parser.ApplyStyles(element, styleText);
             }
         }
+    }
+
+    private static bool HasCompatibilityInlineStyle(SvgElement element)
+    {
+        return element.CustomAttributes.TryGetValue("style", out var styleText) &&
+               !string.IsNullOrWhiteSpace(styleText);
     }
 
     private IEnumerable<SvgElement> EnumerateElements(SvgElement? scopeRoot = null)
@@ -285,22 +445,137 @@ public partial class SvgDocument
 
 internal sealed class SvgCompatibilityStyleSnapshot
 {
-    public static readonly SvgCompatibilityStyleSnapshot Empty = new(string.Empty, new Dictionary<string, string>(0, StringComparer.OrdinalIgnoreCase));
+    public static readonly SvgCompatibilityStyleSnapshot Empty = new(string.Empty);
 
-    public SvgCompatibilityStyleSnapshot(string inlineStyleText, Dictionary<string, string> presentationAttributes)
+    private string? _presentationAttributeName;
+    private string? _presentationAttributeValue;
+    private Dictionary<string, string>? _presentationAttributes;
+
+    public SvgCompatibilityStyleSnapshot(string inlineStyleText)
     {
         InlineStyleText = inlineStyleText;
-        PresentationAttributes = presentationAttributes;
     }
 
     public string InlineStyleText { get; set; }
 
-    public Dictionary<string, string> PresentationAttributes { get; }
+    public bool HasState =>
+        InlineStyleText.Length > 0 ||
+        _presentationAttributeName is not null ||
+        _presentationAttributes?.Count > 0;
 
-    public bool HasState => InlineStyleText.Length > 0 || PresentationAttributes.Count > 0;
+    public static SvgCompatibilityStyleSnapshot CreateEmpty()
+    {
+        return new SvgCompatibilityStyleSnapshot(string.Empty);
+    }
+
+    public void AddPresentationAttributeIfAbsent(string name, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        if (_presentationAttributes is not null)
+        {
+            if (!_presentationAttributes.ContainsKey(name))
+            {
+                _presentationAttributes[name] = value!;
+            }
+
+            return;
+        }
+
+        if (_presentationAttributeName is null)
+        {
+            _presentationAttributeName = name;
+            _presentationAttributeValue = value!;
+            return;
+        }
+
+        if (string.Equals(_presentationAttributeName, name, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _presentationAttributes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            [_presentationAttributeName] = _presentationAttributeValue!
+        };
+        _presentationAttributeName = null;
+        _presentationAttributeValue = null;
+        if (!_presentationAttributes.ContainsKey(name))
+        {
+            _presentationAttributes[name] = value!;
+        }
+    }
+
+    public void SetPresentationAttribute(string name, string value)
+    {
+        if (_presentationAttributes is not null)
+        {
+            _presentationAttributes[name] = value;
+            return;
+        }
+
+        if (_presentationAttributeName is null ||
+            string.Equals(_presentationAttributeName, name, StringComparison.OrdinalIgnoreCase))
+        {
+            _presentationAttributeName = name;
+            _presentationAttributeValue = value;
+            return;
+        }
+
+        _presentationAttributes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            [_presentationAttributeName] = _presentationAttributeValue!,
+            [name] = value
+        };
+        _presentationAttributeName = null;
+        _presentationAttributeValue = null;
+    }
+
+    public void RemovePresentationAttribute(string name)
+    {
+        if (_presentationAttributes is not null)
+        {
+            _presentationAttributes.Remove(name);
+            return;
+        }
+
+        if (string.Equals(_presentationAttributeName, name, StringComparison.OrdinalIgnoreCase))
+        {
+            _presentationAttributeName = null;
+            _presentationAttributeValue = null;
+        }
+    }
+
+    public void ApplyPresentationAttributesTo(SvgElement element)
+    {
+        if (_presentationAttributeName is not null)
+        {
+            element.AddStyle(_presentationAttributeName, _presentationAttributeValue!, SvgElement.StyleSpecificity_PresAttribute);
+            return;
+        }
+
+        if (_presentationAttributes is null)
+        {
+            return;
+        }
+
+        foreach (var attribute in _presentationAttributes)
+        {
+            element.AddStyle(attribute.Key, attribute.Value, SvgElement.StyleSpecificity_PresAttribute);
+        }
+    }
 
     public SvgCompatibilityStyleSnapshot Clone()
     {
-        return new SvgCompatibilityStyleSnapshot(InlineStyleText, new Dictionary<string, string>(PresentationAttributes, StringComparer.OrdinalIgnoreCase));
+        var clone = new SvgCompatibilityStyleSnapshot(InlineStyleText);
+        clone._presentationAttributeName = _presentationAttributeName;
+        clone._presentationAttributeValue = _presentationAttributeValue;
+        clone._presentationAttributes = _presentationAttributes is null
+            ? null
+            : new Dictionary<string, string>(_presentationAttributes, StringComparer.OrdinalIgnoreCase);
+        return clone;
     }
 }

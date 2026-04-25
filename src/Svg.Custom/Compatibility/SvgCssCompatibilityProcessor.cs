@@ -101,6 +101,12 @@ internal static class SvgCssCompatibilityProcessor
                                 textContainer!.AddStyle(declaration.Name, declaration.Value, specificity);
                             }
                         }
+
+                        svgDocument.TrackCompatibilityStyleApplication(elem);
+                        if (projectsToTextContainer)
+                        {
+                            svgDocument.TrackCompatibilityStyleApplication(textContainer!);
+                        }
                     }
 
                     List<AppliedDeclaration> CreateAppliedDeclarations()

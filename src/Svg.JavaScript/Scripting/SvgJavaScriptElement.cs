@@ -235,9 +235,15 @@ public sealed partial class SvgJavaScriptElement
         }
 
         SetAttributeValue(normalizedName, text);
-        _document.RawDocument.UpdateCompatibilityStyleAttribute(Element, normalizedName, text);
+        var requiresStyleReapply =
+            _document.RawDocument.UpdateCompatibilityStyleAttribute(Element, normalizedName, text) ||
+            _document.RawDocument.HasCompatibilityStyleSources;
         UpdateInlineStyleFallback(normalizedName, text);
-        _document.RawDocument.ReapplyCompatibilityStyles();
+        if (requiresStyleReapply && IsConnectedToDocument())
+        {
+            _document.RawDocument.ReapplyCompatibilityStyles();
+        }
+
         _runtime.MarkMutation();
     }
 
@@ -263,9 +269,15 @@ public sealed partial class SvgJavaScriptElement
         }
 
         RemoveAttributeValue(normalizedName);
-        _document.RawDocument.UpdateCompatibilityStyleAttribute(Element, normalizedName, null);
+        var requiresStyleReapply =
+            _document.RawDocument.UpdateCompatibilityStyleAttribute(Element, normalizedName, null) ||
+            _document.RawDocument.HasCompatibilityStyleSources;
         UpdateInlineStyleFallback(normalizedName, null);
-        _document.RawDocument.ReapplyCompatibilityStyles();
+        if (requiresStyleReapply && IsConnectedToDocument())
+        {
+            _document.RawDocument.ReapplyCompatibilityStyles();
+        }
+
         _runtime.MarkMutation();
     }
 
@@ -336,7 +348,11 @@ public sealed partial class SvgJavaScriptElement
             case SvgJavaScriptElement childElement:
                 Element.Children.Remove(childElement.Element);
                 Element.Nodes.Remove(childElement.Element);
-                _document.RawDocument.ReapplyCompatibilityStyles();
+                if (_document.RawDocument.HasCompatibilityStyleSources)
+                {
+                    _document.RawDocument.ReapplyCompatibilityStyles();
+                }
+
                 _runtime.MarkMutation();
                 return childElement;
             case SvgJavaScriptTextNode textNode:
@@ -727,8 +743,12 @@ public sealed partial class SvgJavaScriptElement
             Element.Children.Insert(childIndex, childElement);
         }
 
-        _document.RawDocument.EnsureCompatibilityStyleState(childElement);
-        _document.RawDocument.ReapplyCompatibilityStyles();
+        if (_document.RawDocument.HasCompatibilityStyleSources)
+        {
+            _document.RawDocument.EnsureCompatibilityStyleState(childElement);
+            _document.RawDocument.ReapplyCompatibilityStyles();
+        }
+
         _runtime.MarkMutation();
     }
 
@@ -1245,6 +1265,19 @@ public sealed partial class SvgJavaScriptElement
     private bool UsesLengthList(string attributeName)
     {
         return (attributeName == "x" || attributeName == "y") && Element is SvgTextBase;
+    }
+
+    private bool IsConnectedToDocument()
+    {
+        for (SvgElement? current = Element; current is not null; current = current.Parent)
+        {
+            if (ReferenceEquals(current, _document.RawDocument))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool Contains(SKRect outer, SKRect inner)
