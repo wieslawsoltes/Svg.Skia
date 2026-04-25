@@ -8,11 +8,7 @@ namespace Svg;
 
 public abstract partial class SvgElement
 {
-    private string? _compatibilityPresentationAttributeName;
-    private string? _compatibilityPresentationAttributeValue;
-    private List<KeyValuePair<string, string>>? _compatibilityPresentationAttributes;
-    private bool _compatibilityStyleStateCandidateTracked;
-    private bool _compatibilityStyleRestoreCandidateTracked;
+    private SvgCompatibilityElementStyleState? _compatibilityStyleState;
 
     internal bool PreserveCompatibilityPresentationAttribute(string name, string? value)
     {
@@ -21,86 +17,40 @@ public abstract partial class SvgElement
             return false;
         }
 
-        if (_compatibilityPresentationAttributeName is null)
-        {
-            _compatibilityPresentationAttributeName = name;
-            _compatibilityPresentationAttributeValue = value!;
-            return true;
-        }
-
-        if (string.Equals(_compatibilityPresentationAttributeName, name, StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        if (_compatibilityPresentationAttributes is not null)
-        {
-            for (var i = 0; i < _compatibilityPresentationAttributes.Count; i++)
-            {
-                if (string.Equals(_compatibilityPresentationAttributes[i].Key, name, StringComparison.OrdinalIgnoreCase))
-                {
-                    return false;
-                }
-            }
-        }
-
-        (_compatibilityPresentationAttributes ??= new List<KeyValuePair<string, string>>(2))
-            .Add(new KeyValuePair<string, string>(name, value!));
-        return false;
+        return (_compatibilityStyleState ??= new SvgCompatibilityElementStyleState())
+            .PreservePresentationAttribute(name, value!);
     }
 
     internal bool MarkCompatibilityStyleStateCandidate()
     {
-        if (_compatibilityStyleStateCandidateTracked)
-        {
-            return false;
-        }
-
-        _compatibilityStyleStateCandidateTracked = true;
-        return true;
+        return (_compatibilityStyleState ??= new SvgCompatibilityElementStyleState())
+            .MarkStateCandidate();
     }
 
     internal bool MarkCompatibilityStyleRestoreCandidate()
     {
-        if (_compatibilityStyleRestoreCandidateTracked)
-        {
-            return false;
-        }
-
-        _compatibilityStyleRestoreCandidateTracked = true;
-        return true;
+        return (_compatibilityStyleState ??= new SvgCompatibilityElementStyleState())
+            .MarkRestoreCandidate();
     }
 
     internal void CopyCompatibilityRawStyleStateTo(SvgElement target)
     {
-        target._compatibilityPresentationAttributeName = _compatibilityPresentationAttributeName;
-        target._compatibilityPresentationAttributeValue = _compatibilityPresentationAttributeValue;
-        target._compatibilityPresentationAttributes = _compatibilityPresentationAttributes is null
-            ? null
-            : new List<KeyValuePair<string, string>>(_compatibilityPresentationAttributes);
+        if (_compatibilityStyleState is null)
+        {
+            target._compatibilityStyleState = null;
+            return;
+        }
+
+        target._compatibilityStyleState = _compatibilityStyleState.CloneRawPresentationState();
     }
 
     internal SvgCompatibilityStyleSnapshot CreateCompatibilityStyleSnapshot()
     {
         SvgCompatibilityStyleSnapshot? snapshot = null;
 
-        if (_compatibilityPresentationAttributeName is not null)
+        if (_compatibilityStyleState?.HasPresentationAttributes == true)
         {
-            AddCompatibilityStyleSnapshotValue(
-                ref snapshot,
-                _compatibilityPresentationAttributeName,
-                _compatibilityPresentationAttributeValue);
-
-            if (_compatibilityPresentationAttributes is { Count: > 0 })
-            {
-                for (var i = 0; i < _compatibilityPresentationAttributes.Count; i++)
-                {
-                    AddCompatibilityStyleSnapshotValue(
-                        ref snapshot,
-                        _compatibilityPresentationAttributes[i].Key,
-                        _compatibilityPresentationAttributes[i].Value);
-                }
-            }
+            _compatibilityStyleState.AddPresentationAttributesTo(ref snapshot);
         }
         else
         {
@@ -187,5 +137,103 @@ public abstract partial class SvgElement
 
         snapshot ??= SvgCompatibilityStyleSnapshot.CreateEmpty();
         snapshot.AddPresentationAttributeIfAbsent(name, value);
+    }
+
+    private sealed class SvgCompatibilityElementStyleState
+    {
+        private string? _presentationAttributeName;
+        private string? _presentationAttributeValue;
+        private List<KeyValuePair<string, string>>? _presentationAttributes;
+        private bool _styleStateCandidateTracked;
+        private bool _styleRestoreCandidateTracked;
+
+        public bool HasPresentationAttributes =>
+            _presentationAttributeName is not null ||
+            _presentationAttributes?.Count > 0;
+
+        public bool PreservePresentationAttribute(string name, string value)
+        {
+            if (_presentationAttributeName is null)
+            {
+                _presentationAttributeName = name;
+                _presentationAttributeValue = value;
+                return true;
+            }
+
+            if (string.Equals(_presentationAttributeName, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (_presentationAttributes is not null)
+            {
+                for (var i = 0; i < _presentationAttributes.Count; i++)
+                {
+                    if (string.Equals(_presentationAttributes[i].Key, name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            (_presentationAttributes ??= new List<KeyValuePair<string, string>>(2))
+                .Add(new KeyValuePair<string, string>(name, value));
+            return false;
+        }
+
+        public bool MarkStateCandidate()
+        {
+            if (_styleStateCandidateTracked)
+            {
+                return false;
+            }
+
+            _styleStateCandidateTracked = true;
+            return true;
+        }
+
+        public bool MarkRestoreCandidate()
+        {
+            if (_styleRestoreCandidateTracked)
+            {
+                return false;
+            }
+
+            _styleRestoreCandidateTracked = true;
+            return true;
+        }
+
+        public void AddPresentationAttributesTo(ref SvgCompatibilityStyleSnapshot? snapshot)
+        {
+            AddCompatibilityStyleSnapshotValue(
+                ref snapshot,
+                _presentationAttributeName!,
+                _presentationAttributeValue);
+
+            if (_presentationAttributes is not { Count: > 0 })
+            {
+                return;
+            }
+
+            for (var i = 0; i < _presentationAttributes.Count; i++)
+            {
+                AddCompatibilityStyleSnapshotValue(
+                    ref snapshot,
+                    _presentationAttributes[i].Key,
+                    _presentationAttributes[i].Value);
+            }
+        }
+
+        public SvgCompatibilityElementStyleState CloneRawPresentationState()
+        {
+            return new SvgCompatibilityElementStyleState
+            {
+                _presentationAttributeName = _presentationAttributeName,
+                _presentationAttributeValue = _presentationAttributeValue,
+                _presentationAttributes = _presentationAttributes is null
+                    ? null
+                    : new List<KeyValuePair<string, string>>(_presentationAttributes)
+            };
+        }
     }
 }

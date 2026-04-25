@@ -235,10 +235,15 @@ public sealed partial class SvgJavaScriptElement
         }
 
         SetAttributeValue(normalizedName, text);
-        var requiresStyleReapply =
-            _document.RawDocument.UpdateCompatibilityStyleAttribute(Element, normalizedName, text) ||
-            _document.RawDocument.HasCompatibilityStyleSources;
-        UpdateInlineStyleFallback(normalizedName, text);
+        var hasCompatibilityStyleSources = _document.RawDocument.HasCompatibilityStyleSources;
+        var isStyleAttribute = SvgStyleAttributeNames.Contains(normalizedName);
+        var inlineStyleOverridesAttribute = isStyleAttribute && UpdateInlineStyleFallback(normalizedName, text);
+        if (isStyleAttribute && (hasCompatibilityStyleSources || inlineStyleOverridesAttribute))
+        {
+            _document.RawDocument.UpdateCompatibilityStyleAttribute(Element, normalizedName, text);
+        }
+
+        var requiresStyleReapply = hasCompatibilityStyleSources || inlineStyleOverridesAttribute;
         if (requiresStyleReapply && IsConnectedToDocument())
         {
             _document.RawDocument.ReapplyCompatibilityStyles();
@@ -269,10 +274,15 @@ public sealed partial class SvgJavaScriptElement
         }
 
         RemoveAttributeValue(normalizedName);
-        var requiresStyleReapply =
-            _document.RawDocument.UpdateCompatibilityStyleAttribute(Element, normalizedName, null) ||
-            _document.RawDocument.HasCompatibilityStyleSources;
-        UpdateInlineStyleFallback(normalizedName, null);
+        var hasCompatibilityStyleSources = _document.RawDocument.HasCompatibilityStyleSources;
+        var isStyleAttribute = SvgStyleAttributeNames.Contains(normalizedName);
+        var inlineStyleOverridesAttribute = isStyleAttribute && UpdateInlineStyleFallback(normalizedName, null);
+        if (isStyleAttribute && (hasCompatibilityStyleSources || inlineStyleOverridesAttribute))
+        {
+            _document.RawDocument.UpdateCompatibilityStyleAttribute(Element, normalizedName, null);
+        }
+
+        var requiresStyleReapply = hasCompatibilityStyleSources || inlineStyleOverridesAttribute;
         if (requiresStyleReapply && IsConnectedToDocument())
         {
             _document.RawDocument.ReapplyCompatibilityStyles();
@@ -1421,14 +1431,15 @@ public sealed partial class SvgJavaScriptElement
         RemoveAttributeValue(propertyName);
     }
 
-    private void UpdateInlineStyleFallback(string name, string? value)
+    private bool UpdateInlineStyleFallback(string name, string? value)
     {
         if (!TryGetInlineStyleProperty(Element, name, out _))
         {
-            return;
+            return false;
         }
 
         _inlineStyleFallbacks[name] = string.IsNullOrWhiteSpace(value) ? null : value;
+        return true;
     }
 
     private static bool TryGetInlineStyleProperty(SvgElement element, string name, out string value)

@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using ShimSkiaSharp;
 using Svg;
@@ -398,6 +399,56 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void Runtime_ClassMutationFromStream_ReappliesCompatibilityCssFromRawBaseline()
+    {
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <style>.active { fill: green; }</style>
+              <rect id="target" class="active" width="10" height="10" fill="red" />
+            </svg>
+            """));
+        var document = SvgService.Open(stream, parameters: null, captureCompatibilityStyleState: true)!;
+
+        Assert.False(IsCompatibilityStyleStateInitialized(document));
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings
+        {
+            ThrowOnError = true
+        });
+
+        AssertVisualFill(document, "target", Color.Green);
+
+        var target = runtime.GetElement(document.GetElementById("target")!);
+        target.setAttribute("class", string.Empty);
+
+        Assert.True(IsCompatibilityStyleStateInitialized(document));
+        AssertVisualFill(document, "target", Color.Red);
+    }
+
+    [Fact]
+    public void Runtime_PresentationMutationWithoutCss_DoesNotInitializeCompatibilityStyleState()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="10" height="10" fill="red" />
+            </svg>
+            """, captureCompatibilityStyleState: true)!;
+
+        Assert.False(IsCompatibilityStyleStateInitialized(document));
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings
+        {
+            ThrowOnError = true
+        });
+
+        var target = runtime.GetElement(document.GetElementById("target")!);
+        target.setAttribute("fill", "green");
+
+        Assert.False(IsCompatibilityStyleStateInitialized(document));
+        AssertVisualFill(document, "target", Color.Green);
+    }
+
+    [Fact]
     public void Runtime_IdMutation_ReappliesCompatibilityCssAcrossSiblingSelectors()
     {
         var document = SvgService.FromSvg("""
@@ -444,6 +495,30 @@ public class SvgJavaScriptRuntimeTests
             """);
 
         AssertVisualFill(svg.SourceDocument!, "target", Color.Green);
+    }
+
+    [Fact]
+    public void Runtime_ParsedInlineStyleOnlyElement_ReappliesInlineStyleAfterCss()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="20">
+              <style>rect.off { fill: red; }</style>
+              <rect id="candidate" width="10" height="10" fill="blue" />
+              <rect id="target" x="10" width="10" height="10" class="on" style="fill: green" />
+            </svg>
+            """, captureCompatibilityStyleState: true)!;
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings
+        {
+            ThrowOnError = true
+        });
+
+        AssertVisualFill(document, "target", Color.Green);
+
+        var target = runtime.GetElement(document.GetElementById("target")!);
+        target.setAttribute("class", "off");
+
+        AssertVisualFill(document, "target", Color.Green);
     }
 
     [Fact]

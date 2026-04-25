@@ -140,20 +140,27 @@ public partial class SvgDocument
             return;
         }
 
-        var sourceElements = EnumerateElements().ToArray();
-        var targetElements = target.EnumerateElements().ToArray();
-        if (sourceElements.Length != targetElements.Length)
-        {
-            target._compatibilityStyleState = null;
-            target._compatibilityStyleStateInitialized = false;
-            return;
-        }
-
         var state = new Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>(_compatibilityStyleState.Count, SvgElementReferenceComparer.Instance);
-        for (var i = 0; i < sourceElements.Length; i++)
+        using var sourceEnumerator = EnumerateElements().GetEnumerator();
+        using var targetEnumerator = target.EnumerateElements().GetEnumerator();
+        while (true)
         {
-            var sourceElement = sourceElements[i];
-            var targetElement = targetElements[i];
+            var hasSource = sourceEnumerator.MoveNext();
+            var hasTarget = targetEnumerator.MoveNext();
+            if (hasSource != hasTarget)
+            {
+                target._compatibilityStyleState = null;
+                target._compatibilityStyleStateInitialized = false;
+                return;
+            }
+
+            if (!hasSource)
+            {
+                break;
+            }
+
+            var sourceElement = sourceEnumerator.Current;
+            var targetElement = targetEnumerator.Current;
             if (_compatibilityStyleState.TryGetValue(sourceElement, out var snapshot))
             {
                 state[targetElement] = snapshot.Clone();
@@ -328,18 +335,52 @@ public partial class SvgDocument
             return;
         }
 
-        var sourceElements = EnumerateElements().ToArray();
-        var targetElements = target.EnumerateElements().ToArray();
-        if (sourceElements.Length != targetElements.Length)
+        var trackedElementCount =
+            (_compatibilityStyleStateCandidates?.Count ?? 0) +
+            (_compatibilityStyleRestoreCandidates?.Count ?? 0);
+        if (trackedElementCount == 0)
         {
-            target._compatibilityStyleStateTrackingEnabled = false;
             return;
         }
 
-        var targetBySource = new Dictionary<SvgElement, SvgElement>(sourceElements.Length, SvgElementReferenceComparer.Instance);
-        for (var i = 0; i < sourceElements.Length; i++)
+        var trackedElements = new HashSet<SvgElement>(SvgElementReferenceComparer.Instance);
+        AddTrackedElements(_compatibilityStyleStateCandidates);
+        AddTrackedElements(_compatibilityStyleRestoreCandidates);
+
+        var targetBySource = new Dictionary<SvgElement, SvgElement>(trackedElements.Count, SvgElementReferenceComparer.Instance);
+        using (var sourceEnumerator = EnumerateElements().GetEnumerator())
+        using (var targetEnumerator = target.EnumerateElements().GetEnumerator())
         {
-            targetBySource[sourceElements[i]] = targetElements[i];
+            while (true)
+            {
+                var hasSource = sourceEnumerator.MoveNext();
+                var hasTarget = targetEnumerator.MoveNext();
+                if (hasSource != hasTarget)
+                {
+                    target._compatibilityStyleStateTrackingEnabled = false;
+                    return;
+                }
+
+                if (!hasSource)
+                {
+                    break;
+                }
+
+                if (trackedElements.Contains(sourceEnumerator.Current))
+                {
+                    targetBySource[sourceEnumerator.Current] = targetEnumerator.Current;
+                    if (targetBySource.Count == trackedElements.Count)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (targetBySource.Count != trackedElements.Count)
+        {
+            target._compatibilityStyleStateTrackingEnabled = false;
+            return;
         }
 
         CopyTrackedElements(_compatibilityStyleStateCandidates, target._compatibilityStyleStateCandidates = new List<SvgElement>());
@@ -381,6 +422,19 @@ public partial class SvgDocument
                 {
                     targetList.Add(targetElement);
                 }
+            }
+        }
+
+        void AddTrackedElements(List<SvgElement>? sourceList)
+        {
+            if (sourceList is null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < sourceList.Count; i++)
+            {
+                trackedElements.Add(sourceList[i]);
             }
         }
     }
@@ -449,7 +503,7 @@ internal sealed class SvgCompatibilityStyleSnapshot
 
     private string? _presentationAttributeName;
     private string? _presentationAttributeValue;
-    private Dictionary<string, string>? _presentationAttributes;
+    private List<KeyValuePair<string, string>>? _presentationAttributes;
 
     public SvgCompatibilityStyleSnapshot(string inlineStyleText)
     {
@@ -477,9 +531,9 @@ internal sealed class SvgCompatibilityStyleSnapshot
 
         if (_presentationAttributes is not null)
         {
-            if (!_presentationAttributes.ContainsKey(name))
+            if (IndexOfPresentationAttribute(name) < 0)
             {
-                _presentationAttributes[name] = value!;
+                _presentationAttributes.Add(new KeyValuePair<string, string>(name, value!));
             }
 
             return;
@@ -497,23 +551,29 @@ internal sealed class SvgCompatibilityStyleSnapshot
             return;
         }
 
-        _presentationAttributes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        _presentationAttributes = new List<KeyValuePair<string, string>>(2)
         {
-            [_presentationAttributeName] = _presentationAttributeValue!
+            new(_presentationAttributeName, _presentationAttributeValue!)
         };
         _presentationAttributeName = null;
         _presentationAttributeValue = null;
-        if (!_presentationAttributes.ContainsKey(name))
-        {
-            _presentationAttributes[name] = value!;
-        }
+        _presentationAttributes.Add(new KeyValuePair<string, string>(name, value!));
     }
 
     public void SetPresentationAttribute(string name, string value)
     {
         if (_presentationAttributes is not null)
         {
-            _presentationAttributes[name] = value;
+            var index = IndexOfPresentationAttribute(name);
+            if (index >= 0)
+            {
+                _presentationAttributes[index] = new KeyValuePair<string, string>(_presentationAttributes[index].Key, value);
+            }
+            else
+            {
+                _presentationAttributes.Add(new KeyValuePair<string, string>(name, value));
+            }
+
             return;
         }
 
@@ -525,10 +585,10 @@ internal sealed class SvgCompatibilityStyleSnapshot
             return;
         }
 
-        _presentationAttributes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        _presentationAttributes = new List<KeyValuePair<string, string>>(2)
         {
-            [_presentationAttributeName] = _presentationAttributeValue!,
-            [name] = value
+            new(_presentationAttributeName, _presentationAttributeValue!),
+            new(name, value)
         };
         _presentationAttributeName = null;
         _presentationAttributeValue = null;
@@ -538,7 +598,12 @@ internal sealed class SvgCompatibilityStyleSnapshot
     {
         if (_presentationAttributes is not null)
         {
-            _presentationAttributes.Remove(name);
+            var index = IndexOfPresentationAttribute(name);
+            if (index >= 0)
+            {
+                _presentationAttributes.RemoveAt(index);
+            }
+
             return;
         }
 
@@ -575,7 +640,25 @@ internal sealed class SvgCompatibilityStyleSnapshot
         clone._presentationAttributeValue = _presentationAttributeValue;
         clone._presentationAttributes = _presentationAttributes is null
             ? null
-            : new Dictionary<string, string>(_presentationAttributes, StringComparer.OrdinalIgnoreCase);
+            : new List<KeyValuePair<string, string>>(_presentationAttributes);
         return clone;
+    }
+
+    private int IndexOfPresentationAttribute(string name)
+    {
+        if (_presentationAttributes is null)
+        {
+            return -1;
+        }
+
+        for (var i = 0; i < _presentationAttributes.Count; i++)
+        {
+            if (string.Equals(_presentationAttributes[i].Key, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 }

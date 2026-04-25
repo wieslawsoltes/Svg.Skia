@@ -28,6 +28,8 @@ namespace Svg
 
         internal bool PreserveJavaScriptDomState { get; set; }
 
+        internal bool PreserveCompatibilityPresentationAttributes { get; set; }
+
         /// <summary>
         /// Gets a list of available types that can be used when creating an <see cref="SvgElement"/>.
         /// </summary>
@@ -168,7 +170,7 @@ namespace Svg
                     }
                     else if (prefix.Length == 0 && IsStyleAttribute(localName))
                     {
-                        if (PreserveJavaScriptDomState)
+                        if (PreserveCompatibilityPresentationAttributes)
                         {
                             if (element.PreserveCompatibilityPresentationAttribute(localName, reader.Value))
                             {
