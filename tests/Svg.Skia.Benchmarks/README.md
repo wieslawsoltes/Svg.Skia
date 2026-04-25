@@ -39,6 +39,9 @@ BenchmarkDotNet results are emitted under `artifacts/benchmarks/` as HTML and Gi
   - direct `TryCreateTextPathCodepointPlacements(...)` runs from prebuilt path geometry
 - `SvgDomFeatureBenchmarks`
   - JavaScript-enabled DOM style capture load path
+  - JavaScript-enabled no-CSS presentation attribute load path
+  - JavaScript-enabled seekable stream no-CSS presentation attribute load path
+  - JavaScript-enabled compatibility style state clone path
   - class mutation with compatibility style reapply and picture refresh
   - SVG font text DOM first-query and cached-query metric access
 - `SvgShimPictureModelBenchmarks`

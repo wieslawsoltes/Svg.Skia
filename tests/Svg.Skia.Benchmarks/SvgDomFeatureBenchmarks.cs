@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -15,6 +16,8 @@ public class SvgDomFeatureBenchmarks
         ?? throw new InvalidOperationException("Unable to access SVG JavaScript runtime.");
 
     private static readonly string s_styleCaptureSvg = CreateStyleCaptureSvg(elementCount: 1200);
+    private static readonly string s_noCssPresentationSvg = CreateNoCssPresentationSvg(elementCount: 1200);
+    private static readonly byte[] s_noCssPresentationSvgBytes = Encoding.UTF8.GetBytes(s_noCssPresentationSvg);
     private static readonly string s_svgFontTextDomSvg = CreateSvgFontTextDomSvg(repetitionCount: 80);
 
     private SKSvg? styleMutationSvg;
@@ -50,6 +53,30 @@ public class SvgDomFeatureBenchmarks
     }
 
     [Benchmark]
+    [BenchmarkCategory("DOM", "StyleCapture", "Load")]
+    public float LoadJavaScriptNoCssPresentationAttributes()
+    {
+        using var svg = CreateJavaScriptSvg(s_noCssPresentationSvg);
+        return svg.Picture?.CullRect.Width ?? 0f;
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("DOM", "StyleCapture", "Load")]
+    public float LoadJavaScriptNoCssPresentationAttributesFromStream()
+    {
+        using var svg = CreateJavaScriptSvgFromStream(s_noCssPresentationSvgBytes);
+        return svg.Picture?.CullRect.Width ?? 0f;
+    }
+
+    [Benchmark]
+    [BenchmarkCategory("DOM", "StyleCapture", "Clone")]
+    public float CloneJavaScriptStyleCapture()
+    {
+        using var clone = styleMutationSvg!.Clone();
+        return clone.Picture?.CullRect.Width ?? 0f;
+    }
+
+    [Benchmark]
     [BenchmarkCategory("DOM", "StyleCapture", "MutationRender")]
     public float MutateStyleClassAndRefresh()
     {
@@ -82,6 +109,17 @@ public class SvgDomFeatureBenchmarks
         svg.Settings.ThrowOnJavaScriptError = true;
         svg.Settings.EnableSvgFonts = true;
         svg.FromSvg(svgText);
+        return svg;
+    }
+
+    private static SKSvg CreateJavaScriptSvgFromStream(byte[] svgBytes)
+    {
+        var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.Settings.EnableSvgFonts = true;
+        using var stream = new MemoryStream(svgBytes, writable: false);
+        svg.Load(stream);
         return svg;
     }
 
@@ -129,6 +167,23 @@ public class SvgDomFeatureBenchmarks
         }
 
         builder.AppendLine("  </g>");
+        builder.AppendLine("</svg>");
+        return builder.ToString();
+    }
+
+    private static string CreateNoCssPresentationSvg(int elementCount)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("""<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">""");
+        for (var i = 0; i < elementCount; i++)
+        {
+            var x = (i % 60) * 20;
+            var y = (i / 60) * 20;
+            var fill = (i & 1) == 0 ? "#5b8def" : "#d1495b";
+            builder.Append(CultureInfo.InvariantCulture, $"""  <rect id="rect-{i}" x="{x}" y="{y}" width="16" height="16" fill="{fill}" stroke="#203040" stroke-width="1" opacity="{0.55 + ((i % 5) * 0.05):0.00}" />""");
+            builder.AppendLine();
+        }
+
         builder.AppendLine("</svg>");
         return builder.ToString();
     }
