@@ -37,6 +37,10 @@ BenchmarkDotNet results are emitted under `artifacts/benchmarks/` as HTML and Gi
   - midpoint lookup over precomputed glyph offsets
   - final placement emission from resolved midpoints
   - direct `TryCreateTextPathCodepointPlacements(...)` runs from prebuilt path geometry
+- `SvgDomFeatureBenchmarks`
+  - JavaScript-enabled DOM style capture load path
+  - class mutation with compatibility style reapply and picture refresh
+  - SVG font text DOM first-query and cached-query metric access
 - `SvgShimPictureModelBenchmarks`
   - full retained-scene model materialization
   - top-level node and leaf node model materialization
@@ -81,6 +85,7 @@ dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.cs
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgAlignedTextPlacementBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextPathPlacementBenchmarks*"
+dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgDomFeatureBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgShimPictureModelBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRenderBitmapBenchmarks*"
