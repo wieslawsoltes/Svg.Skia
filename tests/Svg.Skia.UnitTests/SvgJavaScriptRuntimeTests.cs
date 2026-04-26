@@ -258,6 +258,98 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void FromSvg_JavaScriptDomPreservesParsedWhitespaceTextNodes()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g id="parent">
+                <rect id="child" width="10" height="10" fill="blue" />
+              </g>
+              <rect id="target" y="10" width="10" height="10" fill="red" />
+              <script><![CDATA[
+                var parent = document.getElementById('parent');
+                var first = parent.firstChild;
+                var child = first.nextSibling;
+                var passed = first.nodeType === Node.TEXT_NODE
+                  && child === document.getElementById('child')
+                  && child.previousSibling === first
+                  && parent.childNodes.length === 3
+                  && parent.children.length === 1;
+                document.getElementById('target').setAttribute('fill', passed ? 'green' : 'red');
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_JavaScriptComputedDisplayInheritsThroughWhitespaceDom()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g display="table">
+                <clipPath id="clip" display="inherit">
+                  <rect width="10" height="10" display="inherit" />
+                </clipPath>
+              </g>
+              <rect id="target" width="10" height="10" fill="red" />
+              <script><![CDATA[
+                var clip = document.getElementById('clip');
+                var child = clip.firstChild.nextSibling;
+                var clipDisplay = document.defaultView.getComputedStyle(clip, null).getPropertyValue('display');
+                var childDisplay = document.defaultView.getComputedStyle(child, null).getPropertyValue('display');
+                var passed = clipDisplay === 'table' && childDisplay === 'table';
+                document.getElementById('target').setAttribute('fill', passed ? 'green' : 'red');
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_JavaScriptIdMutationThroughWhitespaceSiblingUpdatesUseReference()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink"
+                 width="20" height="20">
+              <defs>
+                <g id="test">
+                  <rect width="20" height="20" fill="green" />
+                </g>
+              </defs>
+              <rect width="20" height="20" fill="red" />
+              <use xlink:href="#pass" />
+              <script><![CDATA[
+                var test = document.getElementById('test');
+                var rect = test.firstChild.nextSibling;
+                rect.setAttribute('id', 'pass');
+              ]]></script>
+            </svg>
+            """);
+
+        using var bitmap = RenderBitmap(svg);
+        var pixel = bitmap.GetPixel(10, 10);
+        Assert.Equal((byte)0, pixel.Red);
+        Assert.True(pixel.Green > 100);
+        Assert.Equal((byte)0, pixel.Blue);
+    }
+
+    [Fact]
     public void FromSvg_ReplaceChildWithSameNodeIsNoOp()
     {
         using var svg = new SKSvg();

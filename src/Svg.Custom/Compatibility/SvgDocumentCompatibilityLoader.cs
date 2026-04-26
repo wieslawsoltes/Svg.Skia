@@ -452,7 +452,7 @@ public static class SvgDocumentCompatibilityLoader
                         break;
 
                     case XmlNodeType.Whitespace:
-                        if (elementStack.Count > 0 && ShouldPreserveTextWhitespace(elementStack.Peek()))
+                        if (elementStack.Count > 0 && ShouldPreserveWhitespaceNode(elementStack.Peek(), elementFactory))
                         {
                             elementStack.Peek().Nodes.Add(new SvgContentNode { Content = reader.Value });
                         }
@@ -478,9 +478,9 @@ public static class SvgDocumentCompatibilityLoader
         return svgDocument!;
     }
 
-    private static bool ShouldPreserveTextWhitespace(SvgElement element)
+    private static bool ShouldPreserveWhitespaceNode(SvgElement element, SvgElementFactory elementFactory)
     {
-        return element is SvgTextBase;
+        return elementFactory.PreserveJavaScriptDomState || element is SvgTextBase;
     }
 
     private static bool TryAggregateNodeContent(SvgElement element, out string content)
