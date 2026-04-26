@@ -401,10 +401,6 @@ public sealed partial class SvgJavaScriptElement
             executed = true;
             eventFacade.SetCurrentTarget(this);
             _runtime.ExecuteEventListener(registration.Listener, this, eventFacade);
-            if (eventFacade.cancelBubble || !eventFacade.bubbles)
-            {
-                break;
-            }
         }
 
         return executed

@@ -201,6 +201,63 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void FromSvg_DocumentTagNameQueriesUseSvgElementNamesAndCreateTypedElements()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <defs>
+                <linearGradient id="paint" />
+              </defs>
+              <rect id="target" width="10" height="10" fill="red" />
+              <script><![CDATA[
+                var ns = 'http://www.w3.org/2000/svg';
+                var gradient = document.createElementNS(ns, 'linearGradient');
+                var span = document.createElementNS(ns, 'tspan');
+                var clip = document.createElementNS(ns, 'clipPath');
+                var gradients = document.getElementsByTagName('linearGradient');
+                var passed = gradient.tagName === 'linearGradient'
+                  && span.tagName === 'tspan'
+                  && clip.tagName === 'clipPath'
+                  && gradients.length === 1
+                  && gradients.item(0).tagName === 'linearGradient';
+                document.getElementById('target').setAttribute('fill', passed ? 'green' : 'red');
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_ElementOnlyDomDoesNotFabricateTextNodes()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g id="parent"><rect id="child" width="10" height="10" fill="blue" /></g>
+              <rect id="target" y="10" width="10" height="10" fill="red" />
+              <script><![CDATA[
+                var parent = document.getElementById('parent');
+                var child = document.getElementById('child');
+                var passed = parent.firstChild === child
+                  && parent.childNodes.length === 1
+                  && parent.childNodes.item(0) === child;
+                document.getElementById('target').setAttribute('fill', passed ? 'green' : 'red');
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
     public void FromSvg_ReplaceChildWithSameNodeIsNoOp()
     {
         using var svg = new SKSvg();
@@ -293,6 +350,87 @@ public class SvgJavaScriptRuntimeTests
                   && childNodeIndex > firstNodeIndex
                   && appendedNodeIndex > childNodeIndex;
                 target.setAttribute('fill', passed ? 'green' : 'red');
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_DomMutationRejectsMissingReferencesAndNonChildRemoval()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g id="parent">
+                <rect id="child" width="4" height="4" fill="blue" />
+              </g>
+              <rect id="target" y="10" width="10" height="10" fill="red" />
+              <script><![CDATA[
+                var ns = 'http://www.w3.org/2000/svg';
+                var parent = document.getElementById('parent');
+                var newChild = document.createElementNS(ns, 'rect');
+                var foreignElement = document.createElementNS(ns, 'rect');
+                var foreignText = document.createTextNode('outside');
+                var rejectedReference = false;
+                var rejectedElementRemoval = false;
+                var rejectedTextRemoval = false;
+
+                try {
+                  parent.insertBefore(newChild, foreignElement);
+                } catch (e) {
+                  rejectedReference = e.code === DOMException.NOT_FOUND_ERR;
+                }
+
+                try {
+                  parent.removeChild(foreignElement);
+                } catch (e) {
+                  rejectedElementRemoval = e.code === DOMException.NOT_FOUND_ERR;
+                }
+
+                try {
+                  parent.removeChild(foreignText);
+                } catch (e) {
+                  rejectedTextRemoval = e.code === DOMException.NOT_FOUND_ERR;
+                }
+
+                var passed = rejectedReference
+                  && rejectedElementRemoval
+                  && rejectedTextRemoval
+                  && parent.children.length === 1
+                  && parent.children.item(0).id === 'child';
+                document.getElementById('target').setAttribute('fill', passed ? 'green' : 'red');
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_TextContentResetDetachesOldTextNode()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <text id="text">old</text>
+              <rect id="target" width="10" height="10" fill="red" />
+              <script><![CDATA[
+                var text = document.getElementById('text');
+                var oldText = text.firstChild;
+                text.textContent = 'new';
+                var passed = oldText.parentNode === null
+                  && oldText.nextSibling === null
+                  && text.textContent === 'new'
+                  && text.firstChild !== oldText;
+                document.getElementById('target').setAttribute('fill', passed ? 'green' : 'red');
               ]]></script>
             </svg>
             """);
@@ -856,6 +994,39 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void DispatchPointerReleased_ReusesEventAcrossRouteHandlers()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g onclick="if (evt.defaultPrevented) document.getElementById('target').setAttribute('fill', 'green')">
+                <rect id="target" width="20" height="20" fill="red" onclick="evt.preventDefault();" />
+              </g>
+            </svg>
+            """);
+
+        var dispatcher = new SvgInteractionDispatcher();
+        var input = new SvgPointerInput(
+            new SKPoint(5, 5),
+            SvgPointerDeviceType.Mouse,
+            SvgMouseButton.Left,
+            1,
+            0,
+            altKey: false,
+            shiftKey: false,
+            ctrlKey: false,
+            sessionId: "test");
+
+        dispatcher.DispatchPointerPressed(svg, input);
+        var result = dispatcher.DispatchPointerReleased(svg, input);
+
+        Assert.True(result.Handled);
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
     public void Clone_DispatchPointerReleased_ExecutesClickHandler()
     {
         using var svg = new SKSvg();
@@ -923,6 +1094,39 @@ public class SvgJavaScriptRuntimeTests
 
         AssertFill(svg, "target", Color.Red);
         AssertFill(clone, "target", Color.Green);
+    }
+
+    [Fact]
+    public void Clone_RebuildsModelAfterDocumentScriptsMutateClone()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="20" height="20" fill="red" />
+              <script><![CDATA[
+                var root = document.documentElement;
+                var target = document.getElementById('target');
+                if (root.getAttribute('data-cloned') === '1') {
+                  target.setAttribute('fill', 'green');
+                }
+
+                root.setAttribute('data-cloned', '1');
+              ]]></script>
+            </svg>
+            """);
+
+        using var clone = svg.Clone();
+
+        AssertFill(svg, "target", Color.Red);
+        AssertFill(clone, "target", Color.Green);
+
+        using var bitmap = RenderBitmap(clone);
+        var pixel = bitmap.GetPixel(10, 10);
+        Assert.Equal((byte)0, pixel.Red);
+        Assert.Equal((byte)128, pixel.Green);
+        Assert.Equal((byte)0, pixel.Blue);
     }
 
     [Fact]
@@ -1622,6 +1826,84 @@ public class SvgJavaScriptRuntimeTests
                 if (window.dispatchResult !== false) {
                   target.setAttribute('fill', 'red');
                 }
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_NonBubblingEventInvokesAllTargetListeners()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g id="parent">
+                <rect id="target" width="20" height="20" fill="red" />
+              </g>
+              <script><![CDATA[
+                var parent = document.getElementById('parent');
+                var target = document.getElementById('target');
+                var first = false;
+                var second = false;
+                var parentRan = false;
+
+                target.addEventListener('custom', function () { first = true; }, false);
+                target.addEventListener('custom', function () { second = true; }, false);
+                parent.addEventListener('custom', function () { parentRan = true; }, false);
+
+                var evt = document.createEvent('Event');
+                evt.initEvent('custom', false, true);
+                target.dispatchEvent(evt);
+
+                target.setAttribute('fill', first && second && !parentRan ? 'green' : 'red');
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+    }
+
+    [Fact]
+    public void FromSvg_TargetCaptureStopPropagationPreservesTargetBubbleAndInlineHandlers()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <g id="parent">
+                <rect id="target" width="20" height="20" fill="red"
+                      onclick="window.inlineRan = window.bubbleRan &amp;&amp; evt.cancelBubble;" />
+              </g>
+              <script><![CDATA[
+                var parent = document.getElementById('parent');
+                var target = document.getElementById('target');
+                window.captureRan = false;
+                window.bubbleRan = false;
+                window.inlineRan = false;
+                window.parentRan = false;
+
+                target.addEventListener('click', function (evt) {
+                  window.captureRan = true;
+                  evt.stopPropagation();
+                }, true);
+                target.addEventListener('click', function (evt) {
+                  window.bubbleRan = window.captureRan && evt.cancelBubble;
+                }, false);
+                parent.addEventListener('click', function () {
+                  window.parentRan = true;
+                }, false);
+
+                var click = document.createEvent('MouseEvents');
+                click.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
+                target.dispatchEvent(click);
+                target.setAttribute('fill', window.captureRan && window.bubbleRan && window.inlineRan && !window.parentRan ? 'green' : 'red');
               ]]></script>
             </svg>
             """);

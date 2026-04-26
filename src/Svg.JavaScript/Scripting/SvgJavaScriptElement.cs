@@ -356,8 +356,15 @@ public sealed partial class SvgJavaScriptElement
         switch (child)
         {
             case SvgJavaScriptElement childElement:
-                Element.Children.Remove(childElement.Element);
-                Element.Nodes.Remove(childElement.Element);
+                SvgJavaScriptDocument.EnsureDomNodesInitialized(Element);
+                if (!Element.Children.Contains(childElement.Element) ||
+                    !Element.Nodes.Contains(childElement.Element))
+                {
+                    ThrowNotFound("The element is not a child of this node.");
+                }
+
+                _ = Element.Children.Remove(childElement.Element);
+                _ = Element.Nodes.Remove(childElement.Element);
                 if (_document.RawDocument.HasCompatibilityStyleSources)
                 {
                     _document.RawDocument.ReapplyCompatibilityStyles();
@@ -366,7 +373,13 @@ public sealed partial class SvgJavaScriptElement
                 _runtime.MarkMutation();
                 return childElement;
             case SvgJavaScriptTextNode textNode:
-                Element.Nodes.Remove(textNode.Node);
+                SvgJavaScriptDocument.EnsureDomNodesInitialized(Element);
+                if (!Element.Nodes.Contains(textNode.Node))
+                {
+                    ThrowNotFound("The text node is not a child of this node.");
+                }
+
+                _ = Element.Nodes.Remove(textNode.Node);
                 textNode.SetParent(null);
                 SyncContentFromNodes();
                 _runtime.MarkMutation();
@@ -729,18 +742,24 @@ public sealed partial class SvgJavaScriptElement
         }
 
         SvgJavaScriptDocument.EnsureDomNodesInitialized(Element);
+        var referenceNode = ValidateReferenceChild(referenceChild);
+        if (ReferenceEquals(referenceNode, childElement))
+        {
+            return;
+        }
+
         RemoveElementFromParent(childElement);
 
         var nodes = Element.Nodes;
-        var referenceNode = UnwrapNode(referenceChild);
         var nodeIndex = referenceNode is null ? nodes.Count : nodes.IndexOf(referenceNode);
-        if (nodeIndex < 0)
+
+        if (referenceNode is not null && nodeIndex >= 0)
         {
-            nodes.Add(childElement);
+            nodes.Insert(nodeIndex, childElement);
         }
         else
         {
-            nodes.Insert(nodeIndex, childElement);
+            nodes.Add(childElement);
         }
 
         var childIndex = GetElementInsertIndex(referenceNode, nodeIndex);
@@ -765,16 +784,22 @@ public sealed partial class SvgJavaScriptElement
     private void InsertText(SvgJavaScriptTextNode textNode, object? referenceChild)
     {
         SvgJavaScriptDocument.EnsureDomNodesInitialized(Element);
-        textNode.DetachFromParent();
-        var referenceNode = UnwrapNode(referenceChild);
-        var nodeIndex = referenceNode is null ? Element.Nodes.Count : Element.Nodes.IndexOf(referenceNode);
-        if (nodeIndex < 0)
+        var referenceNode = ValidateReferenceChild(referenceChild);
+        if (ReferenceEquals(referenceNode, textNode.Node))
         {
-            Element.Nodes.Add(textNode.Node);
+            return;
+        }
+
+        textNode.DetachFromParent();
+        var nodeIndex = referenceNode is null ? Element.Nodes.Count : Element.Nodes.IndexOf(referenceNode);
+
+        if (referenceNode is not null && nodeIndex >= 0)
+        {
+            Element.Nodes.Insert(nodeIndex, textNode.Node);
         }
         else
         {
-            Element.Nodes.Insert(nodeIndex, textNode.Node);
+            Element.Nodes.Add(textNode.Node);
         }
 
         textNode.SetParent(Element);
@@ -817,6 +842,27 @@ public sealed partial class SvgJavaScriptElement
         };
     }
 
+    private ISvgNode? ValidateReferenceChild(object? referenceChild)
+    {
+        if (referenceChild is null)
+        {
+            return null;
+        }
+
+        var referenceNode = UnwrapNode(referenceChild);
+        if (referenceNode is null || !Element.Nodes.Contains(referenceNode))
+        {
+            ThrowNotFound("The reference node is not a child of this node.");
+        }
+
+        return referenceNode;
+    }
+
+    private void ThrowNotFound(string message)
+    {
+        _runtime.ThrowDomException(8, message);
+    }
+
     private int GetElementInsertIndex(ISvgNode? referenceNode, int fallbackNodeIndex)
     {
         if (referenceNode is SvgElement referenceElement)
@@ -844,6 +890,7 @@ public sealed partial class SvgJavaScriptElement
 
     private void SetTextContent(string? value)
     {
+        _document.DetachTextNodes(Element);
         Element.Children.Clear();
         Element.Nodes.Clear();
         Element.Content = value ?? string.Empty;

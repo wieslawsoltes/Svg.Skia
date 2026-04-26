@@ -157,13 +157,23 @@ public sealed partial class SvgJavaScriptRuntime
         string attributeName,
         SvgJavaScriptEventInput? input)
     {
-        var eventFacade = new SvgJavaScriptEvent(
+        var eventFacade = CreateEvent(eventType, targetNode, relatedTargetNode, input);
+        eventFacade.SetCurrentTarget(GetElement(element));
+        return ExecuteEventHandlerCore(element, attributeName, eventFacade);
+    }
+
+    internal SvgJavaScriptEvent CreateEvent(
+        string eventType,
+        object targetNode,
+        object? relatedTargetNode,
+        SvgJavaScriptEventInput? input)
+    {
+        return new SvgJavaScriptEvent(
             eventType,
             targetNode,
-            GetElement(element),
+            targetNode,
             relatedTargetNode,
             input);
-        return ExecuteEventHandlerCore(element, attributeName, eventFacade);
     }
 
     internal SvgJavaScriptEventResult ExecuteEventHandlerAndListeners(
@@ -174,12 +184,17 @@ public sealed partial class SvgJavaScriptRuntime
         string attributeName,
         SvgJavaScriptEventInput? input)
     {
-        var eventFacade = new SvgJavaScriptEvent(
-            eventType,
-            targetNode,
-            GetElement(element),
-            relatedTargetNode,
-            input);
+        var eventFacade = CreateEvent(eventType, targetNode, relatedTargetNode, input);
+        return ExecuteEventHandlerAndListeners(element, eventFacade, eventType, attributeName);
+    }
+
+    internal SvgJavaScriptEventResult ExecuteEventHandlerAndListeners(
+        SvgElement element,
+        SvgJavaScriptEvent eventFacade,
+        string eventType,
+        string attributeName)
+    {
+        eventFacade.SetCurrentTarget(GetElement(element));
         var handlerResult = ExecuteEventHandlerCore(element, attributeName, eventFacade);
         var listenerResult = GetElement(element).DispatchRegisteredEventListeners(eventType, eventFacade, useCapture: false);
         return handlerResult.Executed || listenerResult.Executed
@@ -268,10 +283,6 @@ public sealed partial class SvgJavaScriptRuntime
         }
 
         _ = DispatchRegisteredEventListeners(eventPath[0], useCapture: true);
-        if (evt.cancelBubble)
-        {
-            return !evt.defaultPrevented;
-        }
 
         for (var index = 0; index < eventPath.Count; index++)
         {

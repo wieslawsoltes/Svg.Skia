@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ShimSkiaSharp;
+using Svg.JavaScript;
 
 namespace Svg.Skia;
 
@@ -375,10 +376,11 @@ public sealed class SvgInteractionDispatcher
         }
 
         var handled = false;
+        SvgJavaScriptEvent? javaScriptEvent = null;
         foreach (var element in BuildRoute(target))
         {
             animationFrameDirty |= svg?.RecordAnimationPointerEvent(element, SvgPointerEventType.Wheel) == true;
-            var javaScriptResult = svg?.DispatchJavaScriptEvent(element, target, null, "mousescroll", "onmousescroll", input);
+            var javaScriptResult = svg?.DispatchJavaScriptEvent(element, target, null, "mousescroll", "onmousescroll", input, ref javaScriptEvent);
             handled |= javaScriptResult?.DefaultPrevented == true;
             DispatchSvgMouseScroll(element, input);
             var routePhase = ReferenceEquals(element, target)
@@ -428,10 +430,11 @@ public sealed class SvgInteractionDispatcher
         }
 
         var handled = false;
+        SvgJavaScriptEvent? javaScriptEvent = null;
         foreach (var element in BuildRoute(target))
         {
             animationFrameDirty |= svg?.RecordAnimationPointerEvent(element, eventType) == true;
-            var javaScriptResult = svg?.DispatchJavaScriptEvent(element, target, relatedElement, ToJavaScriptEventType(svgEventName), svgEventName, input);
+            var javaScriptResult = svg?.DispatchJavaScriptEvent(element, target, relatedElement, ToJavaScriptEventType(svgEventName), svgEventName, input, ref javaScriptEvent);
             handled |= javaScriptResult?.DefaultPrevented == true;
             DispatchSvgMouseEvent(element, svgEventName, input);
             var routePhase = ReferenceEquals(element, target)

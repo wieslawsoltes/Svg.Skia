@@ -379,6 +379,10 @@ public partial class SKSvg : IDisposable
                 clone.ReplaceAnimationController(new SvgAnimationController(sourceDocumentClone));
                 clone.SetAnimationTime(AnimationTime);
             }
+            else if (clone._javaScriptRuntime?.MutationVersion > 0)
+            {
+                _ = clone.RenderSvgDocument(sourceDocumentClone);
+            }
         }
 
         clone.InvalidateRetainedSceneGraph();
@@ -1055,6 +1059,26 @@ public partial class SKSvg : IDisposable
         string attributeName,
         SvgPointerInput input)
     {
+        SvgJavaScriptEvent? eventFacade = null;
+        return DispatchJavaScriptEvent(
+            element,
+            targetElement,
+            relatedElement,
+            eventType,
+            attributeName,
+            input,
+            ref eventFacade);
+    }
+
+    internal SvgJavaScriptEventResult DispatchJavaScriptEvent(
+        SvgElement element,
+        SvgElement targetElement,
+        SvgElement? relatedElement,
+        string eventType,
+        string attributeName,
+        SvgPointerInput input,
+        ref SvgJavaScriptEvent? eventFacade)
+    {
         var runtime = _javaScriptRuntime;
         if (runtime is null || SourceDocument is null)
         {
@@ -1066,14 +1090,18 @@ public partial class SKSvg : IDisposable
         var sourceRelatedElement = relatedElement is null ? null : NormalizeJavaScriptEventElement(relatedElement);
         var resolvedTargetNode = ResolveJavaScriptEventTarget(runtime, sourceTargetElement, input.PicturePoint);
         var resolvedRelatedTargetNode = sourceRelatedElement is null ? null : runtime.GetElement(sourceRelatedElement);
+        eventFacade ??= runtime.CreateEvent(
+            eventType,
+            resolvedTargetNode,
+            resolvedRelatedTargetNode,
+            CreateJavaScriptEventInput(input));
+
         var mutationVersion = runtime.MutationVersion;
         var result = runtime.ExecuteEventHandlerAndListeners(
             handlerElement,
-            resolvedTargetNode,
-            resolvedRelatedTargetNode,
+            eventFacade,
             eventType,
-            attributeName,
-            CreateJavaScriptEventInput(input));
+            attributeName);
         if (runtime.MutationVersion == mutationVersion)
         {
             return result;

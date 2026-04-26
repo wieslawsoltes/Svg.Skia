@@ -8,6 +8,7 @@ namespace Svg.JavaScript;
 public sealed class SvgJavaScriptDocument
 {
     private static readonly string SvgNamespace = SvgNamespaces.SvgNamespace;
+    private static readonly Lazy<Dictionary<string, Func<SvgElement>>> s_elementFactories = new(CreateElementFactories);
     private readonly Dictionary<SvgElement, SvgJavaScriptElement> _elements = new(new SvgElementReferenceComparer());
     private readonly Dictionary<SvgContentNode, SvgJavaScriptTextNode> _textNodes = new(new SvgContentNodeReferenceComparer());
     private readonly SvgJavaScriptRuntime _runtime;
@@ -147,6 +148,17 @@ public sealed class SvgJavaScriptDocument
         return textNode;
     }
 
+    internal void DetachTextNodes(SvgElement parent)
+    {
+        foreach (var node in parent.Nodes.OfType<SvgContentNode>())
+        {
+            if (_textNodes.TryGetValue(node, out var textNode))
+            {
+                textNode.SetParent(null);
+            }
+        }
+    }
+
     internal static void EnsureDomNodesInitialized(SvgElement element)
     {
         if (element.Nodes.Count > 0 || element.Children.Count == 0)
@@ -154,14 +166,9 @@ public sealed class SvgJavaScriptDocument
             return;
         }
 
-        element.Nodes.Add(new SvgContentNode { Content = "\n" });
         for (var i = 0; i < element.Children.Count; i++)
         {
             element.Nodes.Add(element.Children[i]);
-            if (i + 1 < element.Children.Count)
-            {
-                element.Nodes.Add(new SvgContentNode { Content = "\n" });
-            }
         }
     }
 
@@ -188,23 +195,7 @@ public sealed class SvgJavaScriptDocument
 
         return element switch
         {
-            SvgAnchor _ => "a",
-            SvgCircle _ => "circle",
-            SvgDefinitionList _ => "defs",
-            SvgEllipse _ => "ellipse",
-            SvgGroup _ => "g",
-            SvgImage _ => "image",
-            SvgLine _ => "line",
-            SvgPath _ => "path",
-            SvgPolyline _ => "polyline",
-            SvgPolygon _ => "polygon",
-            SvgRectangle _ => "rect",
-            SvgScript _ => "script",
-            SvgFragment _ => "svg",
-            SvgSwitch _ => "switch",
-            SvgSymbol _ => "symbol",
-            SvgText _ => "text",
-            SvgUse _ => "use",
+            _ when SvgElements.ElementNames.TryGetValue(element.GetType(), out var elementName) => elementName,
             _ => element.GetType().Name
         };
     }
@@ -219,47 +210,25 @@ public sealed class SvgJavaScriptDocument
 
     private static SvgElement CreateSvgElement(string localName)
     {
-        switch (localName)
+        if (s_elementFactories.Value.TryGetValue(localName, out var factory))
         {
-            case "a":
-                return new SvgAnchor();
-            case "circle":
-                return new SvgCircle();
-            case "defs":
-                return new SvgDefinitionList();
-            case "ellipse":
-                return new SvgEllipse();
-            case "g":
-                return new SvgGroup();
-            case "image":
-                return new SvgImage();
-            case "line":
-                return new SvgLine();
-            case "path":
-                return new SvgPath();
-            case "polygon":
-                return new SvgPolygon();
-            case "polyline":
-                return new SvgPolyline();
-            case "rect":
-                return new SvgRectangle();
-            case "script":
-                return new SvgScript();
-            case "svg":
-                return new SvgFragment();
-            case "switch":
-                return new SvgSwitch();
-            case "symbol":
-                return new SvgSymbol();
-            case "text":
-                return new SvgText();
-            case "use":
-                return new SvgUse();
-            default:
-                var unknown = new SvgUnknownElement(localName);
-                unknown.CustomAttributes["tagName"] = localName;
-                return unknown;
+            return factory();
         }
+
+        var unknown = new SvgUnknownElement(localName);
+        unknown.CustomAttributes["tagName"] = localName;
+        return unknown;
+    }
+
+    private static Dictionary<string, Func<SvgElement>> CreateElementFactories()
+    {
+        var factories = new Dictionary<string, Func<SvgElement>>(StringComparer.Ordinal);
+        foreach (var elementInfo in new SvgElementFactory().AvailableElements)
+        {
+            factories[elementInfo.ElementName] = elementInfo.CreateInstance;
+        }
+
+        return factories;
     }
 
     private sealed class SvgElementReferenceComparer : IEqualityComparer<SvgElement>
