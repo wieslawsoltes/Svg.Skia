@@ -8,49 +8,13 @@ namespace Svg;
 
 public abstract partial class SvgElement
 {
-    private SvgCompatibilityElementStyleState? _compatibilityStyleState;
-
-    internal bool PreserveCompatibilityPresentationAttribute(string name, string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        return (_compatibilityStyleState ??= new SvgCompatibilityElementStyleState())
-            .PreservePresentationAttribute(name, value!);
-    }
-
-    internal bool MarkCompatibilityStyleStateCandidate()
-    {
-        return (_compatibilityStyleState ??= new SvgCompatibilityElementStyleState())
-            .MarkStateCandidate();
-    }
-
-    internal bool MarkCompatibilityStyleRestoreCandidate()
-    {
-        return (_compatibilityStyleState ??= new SvgCompatibilityElementStyleState())
-            .MarkRestoreCandidate();
-    }
-
-    internal void CopyCompatibilityRawStyleStateTo(SvgElement target)
-    {
-        if (_compatibilityStyleState is null)
-        {
-            target._compatibilityStyleState = null;
-            return;
-        }
-
-        target._compatibilityStyleState = _compatibilityStyleState.CloneRawPresentationState();
-    }
-
-    internal SvgCompatibilityStyleSnapshot CreateCompatibilityStyleSnapshot()
+    internal SvgCompatibilityStyleSnapshot CreateCompatibilityStyleSnapshot(SvgCompatibilityElementStyleState? compatibilityStyleState)
     {
         SvgCompatibilityStyleSnapshot? snapshot = null;
 
-        if (_compatibilityStyleState?.HasPresentationAttributes == true)
+        if (compatibilityStyleState?.HasPresentationAttributes == true)
         {
-            _compatibilityStyleState.AddPresentationAttributesTo(ref snapshot);
+            compatibilityStyleState.AddPresentationAttributesTo(ref snapshot);
         }
         else
         {
@@ -139,101 +103,116 @@ public abstract partial class SvgElement
         snapshot.AddPresentationAttributeIfAbsent(name, value);
     }
 
-    private sealed class SvgCompatibilityElementStyleState
+}
+
+internal sealed class SvgCompatibilityElementStyleState
+{
+    private string? _presentationAttributeName;
+    private string? _presentationAttributeValue;
+    private List<KeyValuePair<string, string>>? _presentationAttributes;
+    private bool _styleStateCandidateTracked;
+    private bool _styleRestoreCandidateTracked;
+
+    public bool HasPresentationAttributes =>
+        _presentationAttributeName is not null ||
+        _presentationAttributes?.Count > 0;
+
+    public bool PreservePresentationAttribute(string name, string value)
     {
-        private string? _presentationAttributeName;
-        private string? _presentationAttributeValue;
-        private List<KeyValuePair<string, string>>? _presentationAttributes;
-        private bool _styleStateCandidateTracked;
-        private bool _styleRestoreCandidateTracked;
-
-        public bool HasPresentationAttributes =>
-            _presentationAttributeName is not null ||
-            _presentationAttributes?.Count > 0;
-
-        public bool PreservePresentationAttribute(string name, string value)
+        if (_presentationAttributeName is null)
         {
-            if (_presentationAttributeName is null)
-            {
-                _presentationAttributeName = name;
-                _presentationAttributeValue = value;
-                return true;
-            }
+            _presentationAttributeName = name;
+            _presentationAttributeValue = value;
+            return true;
+        }
 
-            if (string.Equals(_presentationAttributeName, name, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (_presentationAttributes is not null)
-            {
-                for (var i = 0; i < _presentationAttributes.Count; i++)
-                {
-                    if (string.Equals(_presentationAttributes[i].Key, name, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            (_presentationAttributes ??= new List<KeyValuePair<string, string>>(2))
-                .Add(new KeyValuePair<string, string>(name, value));
+        if (string.Equals(_presentationAttributeName, name, StringComparison.OrdinalIgnoreCase))
+        {
             return false;
         }
 
-        public bool MarkStateCandidate()
+        if (_presentationAttributes is not null)
         {
-            if (_styleStateCandidateTracked)
+            for (var i = 0; i < _presentationAttributes.Count; i++)
             {
-                return false;
+                if (string.Equals(_presentationAttributes[i].Key, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
             }
-
-            _styleStateCandidateTracked = true;
-            return true;
         }
 
-        public bool MarkRestoreCandidate()
-        {
-            if (_styleRestoreCandidateTracked)
-            {
-                return false;
-            }
+        (_presentationAttributes ??= new List<KeyValuePair<string, string>>(2))
+            .Add(new KeyValuePair<string, string>(name, value));
+        return false;
+    }
 
-            _styleRestoreCandidateTracked = true;
-            return true;
+    public bool MarkStateCandidate()
+    {
+        if (_styleStateCandidateTracked)
+        {
+            return false;
         }
 
-        public void AddPresentationAttributesTo(ref SvgCompatibilityStyleSnapshot? snapshot)
+        _styleStateCandidateTracked = true;
+        return true;
+    }
+
+    public bool MarkRestoreCandidate()
+    {
+        if (_styleRestoreCandidateTracked)
+        {
+            return false;
+        }
+
+        _styleRestoreCandidateTracked = true;
+        return true;
+    }
+
+    public void AddPresentationAttributesTo(ref SvgCompatibilityStyleSnapshot? snapshot)
+    {
+        AddCompatibilityStyleSnapshotValue(
+            ref snapshot,
+            _presentationAttributeName!,
+            _presentationAttributeValue);
+
+        if (_presentationAttributes is not { Count: > 0 })
+        {
+            return;
+        }
+
+        for (var i = 0; i < _presentationAttributes.Count; i++)
         {
             AddCompatibilityStyleSnapshotValue(
                 ref snapshot,
-                _presentationAttributeName!,
-                _presentationAttributeValue);
-
-            if (_presentationAttributes is not { Count: > 0 })
-            {
-                return;
-            }
-
-            for (var i = 0; i < _presentationAttributes.Count; i++)
-            {
-                AddCompatibilityStyleSnapshotValue(
-                    ref snapshot,
-                    _presentationAttributes[i].Key,
-                    _presentationAttributes[i].Value);
-            }
+                _presentationAttributes[i].Key,
+                _presentationAttributes[i].Value);
         }
+    }
 
-        public SvgCompatibilityElementStyleState CloneRawPresentationState()
+    public SvgCompatibilityElementStyleState CloneRawPresentationState()
+    {
+        return new SvgCompatibilityElementStyleState
         {
-            return new SvgCompatibilityElementStyleState
-            {
-                _presentationAttributeName = _presentationAttributeName,
-                _presentationAttributeValue = _presentationAttributeValue,
-                _presentationAttributes = _presentationAttributes is null
-                    ? null
-                    : new List<KeyValuePair<string, string>>(_presentationAttributes)
-            };
+            _presentationAttributeName = _presentationAttributeName,
+            _presentationAttributeValue = _presentationAttributeValue,
+            _presentationAttributes = _presentationAttributes is null
+                ? null
+                : new List<KeyValuePair<string, string>>(_presentationAttributes)
+        };
+    }
+
+    private static void AddCompatibilityStyleSnapshotValue(
+        ref SvgCompatibilityStyleSnapshot? snapshot,
+        string name,
+        string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return;
         }
+
+        snapshot ??= SvgCompatibilityStyleSnapshot.CreateEmpty();
+        snapshot.AddPresentationAttributeIfAbsent(name, value);
     }
 }

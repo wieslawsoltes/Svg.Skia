@@ -426,6 +426,33 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void Runtime_ClassMutationFromTinyReadStream_DetectsCompatibilityCssWithoutEagerSnapshot()
+    {
+        using var stream = new SingleByteReadMemoryStream(Encoding.UTF8.GetBytes("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <style>.active { fill: green; }</style>
+              <rect id="target" class="active" width="10" height="10" fill="red" />
+            </svg>
+            """));
+        var document = SvgService.Open(stream, parameters: null, captureCompatibilityStyleState: true)!;
+
+        Assert.False(IsCompatibilityStyleStateInitialized(document));
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings
+        {
+            ThrowOnError = true
+        });
+
+        AssertVisualFill(document, "target", Color.Green);
+
+        var target = runtime.GetElement(document.GetElementById("target")!);
+        target.setAttribute("class", string.Empty);
+
+        Assert.True(IsCompatibilityStyleStateInitialized(document));
+        AssertVisualFill(document, "target", Color.Red);
+    }
+
+    [Fact]
     public void Runtime_PresentationMutationWithoutCss_DoesNotInitializeCompatibilityStyleState()
     {
         var document = SvgService.FromSvg("""
@@ -1862,5 +1889,13 @@ public class SvgJavaScriptRuntimeTests
         var field = typeof(SvgDocument).GetField("_compatibilityStyleStateInitialized", BindingFlags.Instance | BindingFlags.NonPublic)
                     ?? throw new InvalidOperationException("Unable to access SVG compatibility style state.");
         return (bool)field.GetValue(document)!;
+    }
+
+    private sealed class SingleByteReadMemoryStream(byte[] buffer) : MemoryStream(buffer)
+    {
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            return base.Read(buffer, offset, Math.Min(count, 1));
+        }
     }
 }

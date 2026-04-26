@@ -172,10 +172,7 @@ namespace Svg
                     {
                         if (PreserveCompatibilityPresentationAttributes)
                         {
-                            if (element.PreserveCompatibilityPresentationAttribute(localName, reader.Value))
-                            {
-                                TrackCompatibilityStyleStateCandidate(document, element);
-                            }
+                            PreserveCompatibilityPresentationAttribute(document, element, localName, reader.Value);
                         }
 
                         element.AddStyle(localName, reader.Value, SvgElement.StyleSpecificity_PresAttribute);
@@ -195,6 +192,12 @@ namespace Svg
         {
             var ownerDocument = document ?? element as SvgDocument;
             ownerDocument?.TrackCompatibilityStyleStateCandidate(element);
+        }
+
+        private static void PreserveCompatibilityPresentationAttribute(SvgDocument document, SvgElement element, string name, string value)
+        {
+            var ownerDocument = document ?? element as SvgDocument;
+            ownerDocument?.PreserveCompatibilityPresentationAttribute(element, name, value);
         }
 
         private static bool IsStyleAttribute(string name)
@@ -277,6 +280,9 @@ namespace Svg
             bool isStyle = false)
         {
             if (ns.Length == 0 &&
+                attributeName.Length >= 4 &&
+                (attributeName[0] == 'o' || attributeName[0] == 'O') &&
+                (attributeName[1] == 'n' || attributeName[1] == 'N') &&
                 IsEventDescriptorAttribute(element, attributeName))
             {
                 element.CustomAttributes[attributeName] = attributeValue;

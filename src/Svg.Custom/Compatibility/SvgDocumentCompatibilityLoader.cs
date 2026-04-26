@@ -29,6 +29,8 @@ public static class SvgDocumentCompatibilityLoader
     private static readonly byte[] s_styleElementToken = Encoding.ASCII.GetBytes("<style");
     private static readonly byte[] s_xmlStylesheetToken = Encoding.ASCII.GetBytes("xml-stylesheet");
     private static readonly byte[] s_importToken = Encoding.ASCII.GetBytes("@import");
+    private const int CompatibilityStyleSourceScanBufferSize = 8 * 1024;
+    private const int CompatibilityStyleSourceTokenTailSize = 15;
 
     public static T Open<T>(string path, SvgOptions svgOptions) where T : SvgDocument, new()
     {
@@ -225,25 +227,22 @@ public static class SvgDocumentCompatibilityLoader
 
     private static bool StreamContainsCompatibilityStyleSourceToken(Stream stream)
     {
-        var buffer = ArrayPool<byte>.Shared.Rent(8192);
+        var buffer = ArrayPool<byte>.Shared.Rent(CompatibilityStyleSourceScanBufferSize);
+        Span<byte> tail = stackalloc byte[CompatibilityStyleSourceTokenTailSize];
+        var tailLength = 0;
         try
         {
-            var styleElementMatched = 0;
-            var xmlStylesheetMatched = 0;
-            var importMatched = 0;
             int read;
             while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
             {
-                for (var i = 0; i < read; i++)
+                var span = buffer.AsSpan(0, read);
+                if ((tailLength > 0 && BoundaryContainsCompatibilityStyleSourceToken(tail.Slice(0, tailLength), span)) ||
+                    SpanContainsCompatibilityStyleSourceToken(span))
                 {
-                    var value = ToAsciiLower(buffer[i]);
-                    if (MatchAsciiToken(value, s_styleElementToken, ref styleElementMatched) ||
-                        MatchAsciiToken(value, s_xmlStylesheetToken, ref xmlStylesheetMatched) ||
-                        MatchAsciiToken(value, s_importToken, ref importMatched))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
+
+                tailLength = UpdateCompatibilityStyleSourceScanTail(span, tail, tailLength);
             }
 
             return false;
@@ -254,22 +253,115 @@ public static class SvgDocumentCompatibilityLoader
         }
     }
 
-    private static bool MatchAsciiToken(byte value, byte[] token, ref int matched)
+    private static bool BoundaryContainsCompatibilityStyleSourceToken(ReadOnlySpan<byte> tail, ReadOnlySpan<byte> head)
     {
-        if (value == token[matched])
-        {
-            matched++;
-            if (matched == token.Length)
-            {
-                matched = 0;
-                return true;
-            }
+        return BoundaryContainsAsciiToken(tail, head, s_styleElementToken) ||
+               BoundaryContainsAsciiToken(tail, head, s_xmlStylesheetToken) ||
+               BoundaryContainsAsciiToken(tail, head, s_importToken);
+    }
 
-            return false;
+    private static int UpdateCompatibilityStyleSourceScanTail(ReadOnlySpan<byte> span, Span<byte> tail, int tailLength)
+    {
+        if (span.Length >= tail.Length)
+        {
+            span.Slice(span.Length - tail.Length).CopyTo(tail);
+            return tail.Length;
         }
 
-        matched = value == token[0] ? 1 : 0;
+        var totalLength = tailLength + span.Length;
+        if (totalLength <= tail.Length)
+        {
+            span.CopyTo(tail.Slice(tailLength));
+            return totalLength;
+        }
+
+        var keepFromTail = tail.Length - span.Length;
+        if (keepFromTail > 0)
+        {
+            tail.Slice(tailLength - keepFromTail, keepFromTail).CopyTo(tail);
+        }
+
+        span.CopyTo(tail.Slice(keepFromTail));
+        return tail.Length;
+    }
+
+    private static bool BoundaryContainsAsciiToken(ReadOnlySpan<byte> tail, ReadOnlySpan<byte> head, ReadOnlySpan<byte> token)
+    {
+        var maxSplit = Math.Min(token.Length - 1, tail.Length);
+        for (var split = 1; split <= maxSplit; split++)
+        {
+            var headLength = token.Length - split;
+            if (head.Length < headLength)
+            {
+                continue;
+            }
+
+            if (EndsWithAsciiIgnoreCase(tail, token.Slice(0, split)) &&
+                StartsWithAsciiIgnoreCase(head, token.Slice(split, headLength)))
+            {
+                return true;
+            }
+        }
+
         return false;
+    }
+
+    private static bool SpanContainsCompatibilityStyleSourceToken(ReadOnlySpan<byte> span)
+    {
+        for (var i = 0; i < span.Length; i++)
+        {
+            switch (ToAsciiLower(span[i]))
+            {
+                case (byte)'<':
+                    if (SpanStartsWithAsciiTokenAt(span, i, s_styleElementToken))
+                    {
+                        return true;
+                    }
+
+                    break;
+                case (byte)'x':
+                    if (SpanStartsWithAsciiTokenAt(span, i, s_xmlStylesheetToken))
+                    {
+                        return true;
+                    }
+
+                    break;
+                case (byte)'@':
+                    if (SpanStartsWithAsciiTokenAt(span, i, s_importToken))
+                    {
+                        return true;
+                    }
+
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool SpanStartsWithAsciiTokenAt(ReadOnlySpan<byte> span, int index, ReadOnlySpan<byte> token)
+    {
+        return span.Length - index >= token.Length &&
+               StartsWithAsciiIgnoreCase(span.Slice(index, token.Length), token);
+    }
+
+    private static bool StartsWithAsciiIgnoreCase(ReadOnlySpan<byte> value, ReadOnlySpan<byte> token)
+    {
+        for (var i = 0; i < token.Length; i++)
+        {
+            if (ToAsciiLower(value[i]) != ToAsciiLower(token[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool EndsWithAsciiIgnoreCase(ReadOnlySpan<byte> value, ReadOnlySpan<byte> token)
+    {
+        return value.Length >= token.Length &&
+               StartsWithAsciiIgnoreCase(value.Slice(value.Length - token.Length, token.Length), token);
     }
 
     private static byte ToAsciiLower(byte value)

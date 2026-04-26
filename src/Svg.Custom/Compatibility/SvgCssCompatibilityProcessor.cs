@@ -102,10 +102,13 @@ internal static class SvgCssCompatibilityProcessor
                             }
                         }
 
-                        svgDocument.TrackCompatibilityStyleApplication(elem);
-                        if (projectsToTextContainer)
+                        if (elementFactory.PreserveJavaScriptDomState)
                         {
-                            svgDocument.TrackCompatibilityStyleApplication(textContainer!);
+                            svgDocument.TrackCompatibilityStyleApplication(elem);
+                            if (projectsToTextContainer)
+                            {
+                                svgDocument.TrackCompatibilityStyleApplication(textContainer!);
+                            }
                         }
                     }
 
