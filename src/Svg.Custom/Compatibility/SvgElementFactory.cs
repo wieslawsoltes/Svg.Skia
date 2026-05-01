@@ -271,6 +271,87 @@ namespace Svg
 
             return false;
         }
+
+        private static bool IsOpacityAttribute(string name)
+        {
+            switch (name)
+            {
+                case "fill-opacity":
+                case "flood-opacity":
+                case "opacity":
+                case "stop-opacity":
+                case "stroke-opacity":
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsNonInheritedOpacityAttribute(string name)
+        {
+            return name == "opacity";
+        }
+
+        private static ReadOnlySpan<char> TrimWhitespace(ReadOnlySpan<char> value)
+        {
+#if NETSTANDARD20
+            var start = 0;
+            while (start < value.Length && char.IsWhiteSpace(value[start]))
+            {
+                start++;
+            }
+
+            var end = value.Length;
+            while (end > start && char.IsWhiteSpace(value[end - 1]))
+            {
+                end--;
+            }
+
+            return value.Slice(start, end - start);
+#else
+            return value.Trim();
+#endif
+        }
+
+        private static bool TryParseInvariantFloat(ReadOnlySpan<char> value, out float parsed)
+        {
+#if NETSTANDARD20
+            return float.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out parsed);
+#else
+            return float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out parsed);
+#endif
+        }
+
+        private static bool TryHandlePercentageOpacityAttribute(string attributeName, string attributeValue, out string normalizedValue)
+        {
+            normalizedValue = attributeValue;
+
+            if (!IsOpacityAttribute(attributeName) || string.IsNullOrWhiteSpace(attributeValue))
+            {
+                return false;
+            }
+
+            var trimmedValue = TrimWhitespace(attributeValue.AsSpan());
+            if (trimmedValue.Length == 0 || trimmedValue[trimmedValue.Length - 1] != '%')
+            {
+                return false;
+            }
+
+            var percentageValue = TrimWhitespace(trimmedValue.Slice(0, trimmedValue.Length - 1));
+            if (percentageValue.Length == 0 || !TryParseInvariantFloat(percentageValue, out var parsedPercentage))
+            {
+                return true;
+            }
+
+            if (parsedPercentage == 100f && IsNonInheritedOpacityAttribute(attributeName))
+            {
+                normalizedValue = "1";
+                return false;
+            }
+
+            return true;
+        }
+
         internal static bool SetPropertyValue(
             SvgElement element,
             string ns,
@@ -314,6 +395,18 @@ namespace Svg
             {
                 attributeValue = "1";
             }
+
+            if (TryHandlePercentageOpacityAttribute(attributeName, attributeValue, out var normalizedOpacityValue))
+            {
+                // SVG 1.1 opacity properties are numeric, not percentages. Treat percentage tokens
+                // as invalid declarations, except for the non-inherited "opacity" property where
+                // the browser-authored "100%" case can be normalized to the default value without
+                // overriding inherited paint-opacity state.
+                return true;
+            }
+
+            attributeValue = normalizedOpacityValue;
+
             var setValueResult = element.SetValue(attributeName, document, CultureInfo.InvariantCulture, attributeValue);
             if (setValueResult)
             {
