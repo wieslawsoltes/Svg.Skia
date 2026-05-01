@@ -14,6 +14,7 @@ title: "Packages and Namespaces"
 | [Svg.Model](../packages/svg-model) | `Svg.Model` | Picture model, parameters, and services |
 | [Svg.Custom](../packages/svg-custom) | `Svg` | Vendored SVG document model package |
 | [Svg.Controls.Skia.Uno](../packages/svg-controls-skia-uno) | `Uno.Svg.Skia` | Skia-backed Uno control and reusable `SvgSource` |
+| [Svg.Controls.Skia.Maui](../packages/svg-controls-skia-maui) | `Maui.Svg.Skia` | Skia-backed .NET MAUI control and reusable `SvgSource` |
 | [Svg.Controls.Skia.Avalonia](../packages/svg-controls-skia-avalonia) | `Avalonia.Svg.Skia` | Skia-backed Avalonia controls, images, resources |
 | [Svg.Controls.Avalonia](../packages/svg-controls-avalonia) | `Avalonia.Svg` | Avalonia drawing-stack controls, images, resources |
 | [SvgML.Avalonia](../packages/svgml-avalonia) | `SvgML` | Inline Avalonia XAML SVG element tree and `foreignObject` native-control hosting |
