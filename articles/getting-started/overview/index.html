@@ -200,6 +200,12 @@
 <td><a href="/Svg.Skia/articles/packages/svg-controls-skia-uno">Svg.Controls.Skia.Uno</a></td>
 </tr>
 <tr>
+<td><code>Svg.Controls.Skia.Maui</code></td>
+<td>You want .NET MAUI controls that render external SVG assets through the Skia-backed pipeline.</td>
+<td><code>Svg</code>, <code>SvgSource</code>, hit testing, zoom/pan, animation playback</td>
+<td><a href="/Svg.Skia/articles/packages/svg-controls-skia-maui">Svg.Controls.Skia.Maui</a></td>
+</tr>
+<tr>
 <td><code>Svg.Controls.Skia.Avalonia</code></td>
 <td>You want Avalonia controls that render through the Skia-backed pipeline.</td>
 <td><code>Svg</code>, <code>SvgImage</code>, <code>SvgSource</code>, <code>SvgResource</code>, animation playback, native composition</td>
@@ -275,7 +281,8 @@
 <p>Choose <code>Svg.Controls.Avalonia</code> when you want the same SVG concepts exposed through the Avalonia drawing stack instead.</p>
 <p>Choose <code>SvgML.Avalonia</code> when small icons, diagrams, effect graphs, or native-control overlays should stay inline in XAML resources or templates instead of moving into external <code>.svg</code> files.</p>
 <h3 id="net-maui-application">.NET MAUI application</h3>
-<p>Start with <code>SvgML.Maui</code> when the visual should be authored inline in .NET MAUI XAML instead of loaded from a separate <code>.svg</code> asset file, including cases where SVG <code>foreignObject</code> positions native MAUI controls.</p>
+<p>Start with <code>Svg.Controls.Skia.Maui</code> when the visual already exists as an external <code>.svg</code> asset or source string and should render through a MAUI <code>SKCanvasView</code>.</p>
+<p>Choose <code>SvgML.Maui</code> when the SVG tree should be authored inline in .NET MAUI XAML instead, including cases where SVG <code>foreignObject</code> positions native MAUI controls.</p>
 <h3 id="uno-application">Uno application</h3>
 <p>Start with <code>Svg.Controls.Skia.Uno</code> when the app is on Uno Platform and you want direct <code>SKCanvasElement</code> rendering plus async asset loading, hit testing, viewport controls, and host-driven animation playback.</p>
 <p>Choose <code>SvgML.Uno</code> when that Uno view should be authored inline in XAML instead of loaded from a separate <code>.svg</code> asset file, including cases where SVG <code>foreignObject</code> positions native Uno controls.</p>
@@ -293,6 +300,7 @@
 <li>Android VectorDrawable import and validation coverage.</li>
 <li>Model-level editing, interaction routing, and picture rebuild support.</li>
 <li>Avalonia and Uno controls with host animation backends and resolved-backend diagnostics.</li>
+<li>Skia-backed Avalonia, Uno, and .NET MAUI controls for external SVG assets.</li>
 <li>SvgML inline XAML authoring for Avalonia, .NET MAUI, and Uno with SVG-native <code>foreignObject</code> interop for hosted platform controls.</li>
 <li>Verification through unit tests, UI tests, and W3C test-suite assets.</li>
 </ul>

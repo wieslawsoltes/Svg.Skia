@@ -184,6 +184,8 @@
 <li>default target framework override: <code>netstandard2.0</code></li>
 <li>Avalonia 12 project overrides:
 <code>Svg.Controls.Avalonia</code>, <code>Svg.Controls.Skia.Avalonia</code>, <code>Skia.Controls.Avalonia</code>, <code>Svg.Editor.Avalonia</code>, and <code>Svg.Editor.Skia.Avalonia</code> build API metadata with <code>net8.0</code></li>
+<li>MAUI package coverage:
+<code>Svg.Controls.Skia.Maui</code> is covered by authored package documentation instead of generated API metadata because the docs workflow runs on Ubuntu and does not install MAUI workloads</li>
 <li>output path: <code>/api</code></li>
 </ul>
 <h2 id="why-mixed-target-frameworks">Why mixed target frameworks</h2>
@@ -193,16 +195,16 @@
 <li>shared animation/runtime-host packages,</li>
 <li>retained-scene graph packages,</li>
 <li>multi-target editor packages,</li>
-<li>a <code>net10.0</code> Uno control package,</li>
+<li><code>net10.0</code> Uno and MAUI control packages,</li>
 <li><code>netstandard2.0</code>-only generator packages.</li>
 </ul>
-<p>The docs build keeps <code>netstandard2.0</code> as the default extraction target for the shared runtime and generator-facing packages, while overriding the Avalonia 12 packages to <code>net8.0</code>. The Uno control project uses a per-project override of <code>TargetFramework=net10.0</code> because it does not target <code>netstandard2.0</code>. That keeps a single API site without forcing the Avalonia or Uno projects back onto frameworks they no longer target.</p>
+<p>The docs build keeps <code>netstandard2.0</code> as the default extraction target for the shared runtime and generator-facing packages, while overriding the Avalonia 12 packages to <code>net8.0</code>. The Uno control project uses a per-project override of <code>TargetFramework=net10.0</code> because it does not target <code>netstandard2.0</code>. The MAUI control package is documented in authored package pages and validated by dedicated MAUI workflow jobs, avoiding a MAUI workload dependency in the Ubuntu docs job.</p>
 <h2 id="svgcodegenskia"><code>Svg.CodeGen.Skia</code></h2>
 <p><code>Svg.CodeGen.Skia</code> is described in the authored docs but is not added as a separate <code>api.dotnet</code> project because <code>Svg.SourceGenerator.Skia</code> links the same codegen types into its assembly, which produces duplicate API UIDs during Lunet generation.</p>
 <h2 id="when-a-new-package-is-added">When a new package is added</h2>
 <p>To keep the authored docs and generated API aligned:</p>
 <ol>
-<li>Add the project to <code>site/config.scriban</code> under <code>api.dotnet.projects</code>.</li>
+<li>Add the project to <code>site/config.scriban</code> under <code>api.dotnet.projects</code> when it can build in the Ubuntu docs workflow without extra platform workloads.</li>
 <li>Add any new Avalonia, Uno, or external assembly xrefs under <code>api.dotnet.external_apis</code> if the public API links out to assemblies that are not already covered.</li>
 <li>Update <a href="/Svg.Skia/articles/reference/packages-and-namespaces">Packages and Namespaces</a> and the package article under <code>site/articles/packages/</code>.</li>
 <li>Rebuild the site with <code>./build-docs.sh</code>.</li>
