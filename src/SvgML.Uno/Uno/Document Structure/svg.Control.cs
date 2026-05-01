@@ -21,6 +21,8 @@ namespace SvgML;
 
 public partial class svg
 {
+    public static readonly SkiaModel SkiaModel = new(new SKSvgSettings());
+
     private static readonly TimeSpan s_animationFrameInterval = TimeSpan.FromMilliseconds(16);
 
     private SkiaPicture? _picture;
@@ -498,7 +500,7 @@ public partial class svg
 
     private bool LoadFromStream(Stream stream, SvgParameters? parameters)
     {
-        var skSvg = new SKSvg();
+        var skSvg = CreateSkSvg();
         var picture = skSvg.Load(stream, parameters);
         var svgDocument = skSvg.SourceDocument;
         if (picture is null || svgDocument is null)
@@ -539,6 +541,13 @@ public partial class svg
         previousSvg?.Dispose();
         UpdateElementMappings(null, null);
         UpdateAnimationPlayback();
+    }
+
+    private static SKSvg CreateSkSvg()
+    {
+        var skSvg = new SKSvg();
+        SkiaModel.Settings.CopyTo(skSvg.Settings);
+        return skSvg;
     }
 
     private bool TryGetRenderInfo(out SvgRenderInfo renderInfo)

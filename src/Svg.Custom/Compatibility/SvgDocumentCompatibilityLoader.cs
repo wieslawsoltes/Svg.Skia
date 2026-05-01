@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -25,7 +26,18 @@ namespace Svg;
 /// </summary>
 public static class SvgDocumentCompatibilityLoader
 {
+    private static readonly byte[] s_styleElementToken = Encoding.ASCII.GetBytes("<style");
+    private static readonly byte[] s_xmlStylesheetToken = Encoding.ASCII.GetBytes("xml-stylesheet");
+    private static readonly byte[] s_importToken = Encoding.ASCII.GetBytes("@import");
+    private const int CompatibilityStyleSourceScanBufferSize = 8 * 1024;
+    private const int CompatibilityStyleSourceTokenTailSize = 15;
+
     public static T Open<T>(string path, SvgOptions svgOptions) where T : SvgDocument, new()
+    {
+        return Open<T>(path, svgOptions, captureCompatibilityStyleState: false);
+    }
+
+    public static T Open<T>(string path, SvgOptions svgOptions, bool captureCompatibilityStyleState) where T : SvgDocument, new()
     {
         if (path is null)
         {
@@ -36,21 +48,28 @@ public static class SvgDocumentCompatibilityLoader
         // expand relative @import/file references exactly as the browser would relative to the SVG.
         var baseUri = new Uri(Path.GetFullPath(path), UriKind.Absolute);
         using var stream = File.OpenRead(path);
-        return Open<T>(stream, svgOptions, baseUri);
+        return Open<T>(stream, svgOptions, baseUri, captureCompatibilityStyleState);
     }
 
     public static T Open<T>(Stream stream, SvgOptions svgOptions) where T : SvgDocument, new()
     {
-        return Open<T>(stream, svgOptions, null);
+        return Open<T>(stream, svgOptions, captureCompatibilityStyleState: false);
     }
 
-    private static T Open<T>(Stream stream, SvgOptions svgOptions, Uri? baseUri) where T : SvgDocument, new()
+    public static T Open<T>(Stream stream, SvgOptions svgOptions, bool captureCompatibilityStyleState) where T : SvgDocument, new()
+    {
+        return Open<T>(stream, svgOptions, null, captureCompatibilityStyleState);
+    }
+
+    private static T Open<T>(Stream stream, SvgOptions svgOptions, Uri? baseUri, bool captureCompatibilityStyleState) where T : SvgDocument, new()
     {
         if (stream is null)
         {
             throw new ArgumentNullException(nameof(stream));
         }
 
+        var preserveCompatibilityPresentationAttributes =
+            captureCompatibilityStyleState && MayContainCompatibilityStyleSources(stream, svgOptions.Css);
         var reader = new SvgTextReader(stream, svgOptions.Entities)
         {
             XmlResolver = new SvgDtdResolver(),
@@ -58,10 +77,20 @@ public static class SvgDocumentCompatibilityLoader
             DtdProcessing = SvgDocument.DisableDtdProcessing ? DtdProcessing.Ignore : DtdProcessing.Parse,
         };
 
-        return Create<T>(reader, svgOptions.Css, baseUri);
+        return Create<T>(
+            reader,
+            svgOptions.Css,
+            baseUri,
+            captureCompatibilityStyleState,
+            preserveCompatibilityPresentationAttributes: preserveCompatibilityPresentationAttributes);
     }
 
     public static T FromSvg<T>(string svg) where T : SvgDocument, new()
+    {
+        return FromSvg<T>(svg, captureCompatibilityStyleState: false);
+    }
+
+    public static T FromSvg<T>(string svg, bool captureCompatibilityStyleState) where T : SvgDocument, new()
     {
         if (string.IsNullOrEmpty(svg))
         {
@@ -76,10 +105,18 @@ public static class SvgDocumentCompatibilityLoader
             DtdProcessing = SvgDocument.DisableDtdProcessing ? DtdProcessing.Ignore : DtdProcessing.Parse,
         };
 
-        return Create<T>(reader);
+        return Create<T>(
+            reader,
+            captureCompatibilityStyleState: captureCompatibilityStyleState,
+            preserveCompatibilityPresentationAttributes: captureCompatibilityStyleState && MayContainCompatibilityStyleSources(svg, null));
     }
 
     public static T Open<T>(XmlReader reader) where T : SvgDocument, new()
+    {
+        return Open<T>(reader, captureCompatibilityStyleState: false);
+    }
+
+    public static T Open<T>(XmlReader reader, bool captureCompatibilityStyleState) where T : SvgDocument, new()
     {
         if (reader is null)
         {
@@ -101,17 +138,27 @@ public static class SvgDocumentCompatibilityLoader
             IgnoreWhitespace = false,
         });
 
-        return Create<T>(svgReader, baseUri: baseUri);
+        return Create<T>(svgReader, baseUri: baseUri, captureCompatibilityStyleState: captureCompatibilityStyleState);
     }
 
-    private static T Create<T>(XmlReader reader, string? css = null, Uri? baseUri = null) where T : SvgDocument, new()
+    private static T Create<T>(
+        XmlReader reader,
+        string? css = null,
+        Uri? baseUri = null,
+        bool captureCompatibilityStyleState = false,
+        bool preserveCompatibilityPresentationAttributes = true)
+        where T : SvgDocument, new()
     {
         // Keep each stylesheet fragment together with the URI it should resolve against. That lets
         // inline CSS from the SVG document, externally supplied CSS, and recursively imported CSS
         // all share one merge/apply path without losing origin information.
-        var styles = new List<SvgCssStyleSource>();
-        var elementFactory = new SvgElementFactory();
-        var svgDocument = Create<T>(reader, elementFactory, styles, baseUri);
+        List<SvgCssStyleSource>? styles = null;
+        var elementFactory = new SvgElementFactory
+        {
+            PreserveJavaScriptDomState = captureCompatibilityStyleState,
+            PreserveCompatibilityPresentationAttributes = captureCompatibilityStyleState && preserveCompatibilityPresentationAttributes
+        };
+        var svgDocument = Create<T>(reader, elementFactory, ref styles, baseUri);
 
         // Avalonia and other hosts can concatenate optional CSS inputs into a whitespace-only
         // string (for example " ") even when no actual stylesheet content is present. Treat that
@@ -121,15 +168,210 @@ public static class SvgDocumentCompatibilityLoader
         var normalizedCss = string.IsNullOrWhiteSpace(css) ? null : css;
         if (normalizedCss is not null)
         {
-            styles.Add(new SvgCssStyleSource(normalizedCss, baseUri));
+            (styles ??= new List<SvgCssStyleSource>()).Add(new SvgCssStyleSource(normalizedCss, baseUri));
         }
 
-        SvgCssCompatibilityProcessor.Apply(svgDocument!, styles, elementFactory);
-        svgDocument?.FlushStyles(true);
+        if (svgDocument is { })
+        {
+            if (styles is { Count: > 0 })
+            {
+                if (captureCompatibilityStyleState)
+                {
+                    if (!preserveCompatibilityPresentationAttributes)
+                    {
+                        svgDocument.CaptureCompatibilityStyleState();
+                    }
+
+                    svgDocument.SetCompatibilityStyleSources(styles);
+                }
+
+                SvgCssCompatibilityProcessor.Apply(svgDocument, styles, elementFactory);
+            }
+
+            svgDocument.FlushStyles(true);
+        }
+
         return svgDocument!;
     }
 
-    private static T Create<T>(XmlReader reader, SvgElementFactory elementFactory, List<SvgCssStyleSource> styles, Uri? baseUri)
+    private static bool MayContainCompatibilityStyleSources(string svg, string? css)
+    {
+        return !string.IsNullOrWhiteSpace(css) ||
+               svg.Contains("<style", StringComparison.OrdinalIgnoreCase) ||
+               svg.Contains("xml-stylesheet", StringComparison.OrdinalIgnoreCase) ||
+               svg.Contains("@import", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool MayContainCompatibilityStyleSources(Stream stream, string? css)
+    {
+        if (!string.IsNullOrWhiteSpace(css))
+        {
+            return true;
+        }
+
+        if (!stream.CanSeek)
+        {
+            return true;
+        }
+
+        var originalPosition = stream.Position;
+        try
+        {
+            return StreamContainsCompatibilityStyleSourceToken(stream);
+        }
+        finally
+        {
+            stream.Position = originalPosition;
+        }
+    }
+
+    private static bool StreamContainsCompatibilityStyleSourceToken(Stream stream)
+    {
+        var buffer = ArrayPool<byte>.Shared.Rent(CompatibilityStyleSourceScanBufferSize);
+        Span<byte> tail = stackalloc byte[CompatibilityStyleSourceTokenTailSize];
+        var tailLength = 0;
+        try
+        {
+            int read;
+            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                var span = buffer.AsSpan(0, read);
+                if ((tailLength > 0 && BoundaryContainsCompatibilityStyleSourceToken(tail.Slice(0, tailLength), span)) ||
+                    SpanContainsCompatibilityStyleSourceToken(span))
+                {
+                    return true;
+                }
+
+                tailLength = UpdateCompatibilityStyleSourceScanTail(span, tail, tailLength);
+            }
+
+            return false;
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+    }
+
+    private static bool BoundaryContainsCompatibilityStyleSourceToken(ReadOnlySpan<byte> tail, ReadOnlySpan<byte> head)
+    {
+        return BoundaryContainsAsciiToken(tail, head, s_styleElementToken) ||
+               BoundaryContainsAsciiToken(tail, head, s_xmlStylesheetToken) ||
+               BoundaryContainsAsciiToken(tail, head, s_importToken);
+    }
+
+    private static int UpdateCompatibilityStyleSourceScanTail(ReadOnlySpan<byte> span, Span<byte> tail, int tailLength)
+    {
+        if (span.Length >= tail.Length)
+        {
+            span.Slice(span.Length - tail.Length).CopyTo(tail);
+            return tail.Length;
+        }
+
+        var totalLength = tailLength + span.Length;
+        if (totalLength <= tail.Length)
+        {
+            span.CopyTo(tail.Slice(tailLength));
+            return totalLength;
+        }
+
+        var keepFromTail = tail.Length - span.Length;
+        if (keepFromTail > 0)
+        {
+            tail.Slice(tailLength - keepFromTail, keepFromTail).CopyTo(tail);
+        }
+
+        span.CopyTo(tail.Slice(keepFromTail));
+        return tail.Length;
+    }
+
+    private static bool BoundaryContainsAsciiToken(ReadOnlySpan<byte> tail, ReadOnlySpan<byte> head, ReadOnlySpan<byte> token)
+    {
+        var maxSplit = Math.Min(token.Length - 1, tail.Length);
+        for (var split = 1; split <= maxSplit; split++)
+        {
+            var headLength = token.Length - split;
+            if (head.Length < headLength)
+            {
+                continue;
+            }
+
+            if (EndsWithAsciiIgnoreCase(tail, token.Slice(0, split)) &&
+                StartsWithAsciiIgnoreCase(head, token.Slice(split, headLength)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool SpanContainsCompatibilityStyleSourceToken(ReadOnlySpan<byte> span)
+    {
+        for (var i = 0; i < span.Length; i++)
+        {
+            switch (ToAsciiLower(span[i]))
+            {
+                case (byte)'<':
+                    if (SpanStartsWithAsciiTokenAt(span, i, s_styleElementToken))
+                    {
+                        return true;
+                    }
+
+                    break;
+                case (byte)'x':
+                    if (SpanStartsWithAsciiTokenAt(span, i, s_xmlStylesheetToken))
+                    {
+                        return true;
+                    }
+
+                    break;
+                case (byte)'@':
+                    if (SpanStartsWithAsciiTokenAt(span, i, s_importToken))
+                    {
+                        return true;
+                    }
+
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool SpanStartsWithAsciiTokenAt(ReadOnlySpan<byte> span, int index, ReadOnlySpan<byte> token)
+    {
+        return span.Length - index >= token.Length &&
+               StartsWithAsciiIgnoreCase(span.Slice(index, token.Length), token);
+    }
+
+    private static bool StartsWithAsciiIgnoreCase(ReadOnlySpan<byte> value, ReadOnlySpan<byte> token)
+    {
+        for (var i = 0; i < token.Length; i++)
+        {
+            if (ToAsciiLower(value[i]) != ToAsciiLower(token[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool EndsWithAsciiIgnoreCase(ReadOnlySpan<byte> value, ReadOnlySpan<byte> token)
+    {
+        return value.Length >= token.Length &&
+               StartsWithAsciiIgnoreCase(value.Slice(value.Length - token.Length, token.Length), token);
+    }
+
+    private static byte ToAsciiLower(byte value)
+    {
+        return value is >= (byte)'A' and <= (byte)'Z'
+            ? (byte)(value + 32)
+            : value;
+    }
+
+    private static T Create<T>(XmlReader reader, SvgElementFactory elementFactory, ref List<SvgCssStyleSource>? styles, Uri? baseUri)
         where T : SvgDocument, new()
     {
         var elementStack = new Stack<SvgElement>();
@@ -194,7 +436,7 @@ public static class SvgDocumentCompatibilityLoader
                             // Preserve the document base URI with every collected <style> block so
                             // any nested @import inside that block resolves relative to the SVG file
                             // that declared it, not to the current process working directory.
-                            styles.Add(new SvgCssStyleSource(unknown.Content ?? string.Empty, svgDocument?.BaseUri));
+                            (styles ??= new List<SvgCssStyleSource>()).Add(new SvgCssStyleSource(unknown.Content ?? string.Empty, svgDocument?.BaseUri));
                         }
 
                         break;
@@ -210,7 +452,7 @@ public static class SvgDocumentCompatibilityLoader
                         break;
 
                     case XmlNodeType.Whitespace:
-                        if (elementStack.Count > 0 && ShouldPreserveTextWhitespace(elementStack.Peek()))
+                        if (elementStack.Count > 0 && ShouldPreserveWhitespaceNode(elementStack.Peek(), elementFactory))
                         {
                             elementStack.Peek().Nodes.Add(new SvgContentNode { Content = reader.Value });
                         }
@@ -236,9 +478,9 @@ public static class SvgDocumentCompatibilityLoader
         return svgDocument!;
     }
 
-    private static bool ShouldPreserveTextWhitespace(SvgElement element)
+    private static bool ShouldPreserveWhitespaceNode(SvgElement element, SvgElementFactory elementFactory)
     {
-        return element is SvgTextBase;
+        return elementFactory.PreserveJavaScriptDomState || element is SvgTextBase;
     }
 
     private static bool TryAggregateNodeContent(SvgElement element, out string content)

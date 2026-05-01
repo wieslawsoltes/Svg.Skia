@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -15,6 +16,14 @@ namespace Avalonia.Svg.Skia.UnitTests;
 public class SvgSourceTests
 {
     private const string SampleSvg = "<svg width=\"10\" height=\"10\"><rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"red\" /></svg>";
+    private const string JavaScriptMutationSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+          <rect id="target" width="10" height="10" fill="red" />
+          <script><![CDATA[
+            document.getElementById('target').setAttribute('fill', 'green');
+          ]]></script>
+        </svg>
+        """;
     private const string SvgFontGlyphSvg = """
         <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
           <defs>
@@ -51,8 +60,41 @@ public class SvgSourceTests
         Assert.NotNull(source.Picture);
         Assert.True(source.Svg!.Settings.EnableSvgFonts);
         Assert.NotEmpty(source.Svg.Model!.FindCommands<DrawPathCanvasCommand>());
-        Assert.Empty(source.Svg.Model.FindCommands<DrawTextCanvasCommand>());
-        Assert.Empty(source.Svg.Model.FindCommands<DrawTextBlobCanvasCommand>());
+        Assert.Empty(source.Svg.Model!.FindCommands<DrawTextCanvasCommand>());
+        Assert.Empty(source.Svg.Model!.FindCommands<DrawTextBlobCanvasCommand>());
+    }
+
+    [AvaloniaFact]
+    public void LoadFromSvg_AppliesSharedSkiaModelJavaScriptSettings()
+    {
+        WithSharedJavaScriptEnabled(() =>
+        {
+            using var source = SvgSource.LoadFromSvg(JavaScriptMutationSvg);
+
+            Assert.True(source.Svg!.Settings.EnableJavaScript);
+            AssertTargetFill(source, "green");
+        });
+    }
+
+    [AvaloniaFact]
+    public void Load_AppliesSharedSkiaModelJavaScriptSettings()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.svg");
+        File.WriteAllText(path, JavaScriptMutationSvg);
+        try
+        {
+            WithSharedJavaScriptEnabled(() =>
+            {
+                using var source = SvgSource.Load(path);
+
+                Assert.True(source.Svg!.Settings.EnableJavaScript);
+                AssertTargetFill(source, "green");
+            });
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 
     [AvaloniaFact]
@@ -65,6 +107,21 @@ public class SvgSourceTests
 
         Assert.NotNull(source.Svg);
         Assert.NotNull(source.Picture);
+    }
+
+    [AvaloniaFact]
+    public void LoadFromSvgDocument_AppliesSharedSkiaModelJavaScriptSettings()
+    {
+        var document = SvgService.FromSvg(JavaScriptMutationSvg);
+        Assert.NotNull(document);
+
+        WithSharedJavaScriptEnabled(() =>
+        {
+            using var source = SvgSource.LoadFromSvgDocument(document!);
+
+            Assert.True(source.Svg!.Settings.EnableJavaScript);
+            AssertTargetFill(source, "green");
+        });
     }
 
     [AvaloniaFact]
@@ -161,5 +218,31 @@ public class SvgSourceTests
 
         Assert.True(task.Wait(TimeSpan.FromSeconds(2)));
         Assert.True(task.Result);
+    }
+
+    private static void WithSharedJavaScriptEnabled(Action action)
+    {
+        var settings = SvgSource.s_skiaModel.Settings;
+        var oldEnableJavaScript = settings.EnableJavaScript;
+        var oldThrowOnJavaScriptError = settings.ThrowOnJavaScriptError;
+        try
+        {
+            settings.EnableJavaScript = true;
+            settings.ThrowOnJavaScriptError = true;
+            action();
+        }
+        finally
+        {
+            settings.EnableJavaScript = oldEnableJavaScript;
+            settings.ThrowOnJavaScriptError = oldThrowOnJavaScriptError;
+        }
+    }
+
+    private static void AssertTargetFill(SvgSource source, string expected)
+    {
+        var target = source.Svg?.SourceDocument?.GetElementById("target");
+        Assert.NotNull(target);
+        Assert.True(target!.TryGetAttribute("fill", out var fill));
+        Assert.Equal(expected, fill, ignoreCase: true);
     }
 }
