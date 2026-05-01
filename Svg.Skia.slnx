@@ -90,6 +90,7 @@
     <Project Path="src/Svg.Model/Svg.Model.csproj" />
     <Project Path="src/Svg.Animation/Svg.Animation.csproj" />
     <Project Path="src/Svg.SceneGraph/Svg.SceneGraph.csproj" />
+    <Project Path="src/Svg.JavaScript/Svg.JavaScript.csproj" />
     <Project Path="src/Svg.Skia/Svg.Skia.csproj" />
     <Project Path="src/Svg.SourceGenerator.Skia/Svg.SourceGenerator.Skia.csproj" />
     <Project Path="src/SvgML.Uno/SvgML.Uno.csproj" />
@@ -111,6 +112,7 @@
     <Project Path="tests/Svg.Editor.Skia.UnitTests/Svg.Editor.Skia.UnitTests.csproj" />
     <Project Path="tests/Svg.Editor.Svg.UnitTests/Svg.Editor.Svg.UnitTests.csproj" />
     <Project Path="tests/Svg.Model.UnitTests/Svg.Model.UnitTests.csproj" />
+    <Project Path="tests/Svg.JavaScript.UnitTests/Svg.JavaScript.UnitTests.csproj" />
     <Project Path="tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj" />
   </Folder>
 </Solution>

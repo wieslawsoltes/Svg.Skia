@@ -6,6 +6,8 @@ title: "SvgML.Maui"
 
 `SvgML.Maui` lets you author an SVG element tree directly in .NET MAUI XAML. Instead of loading an external `.svg` file, you declare `svg`, `rect`, `g`, gradients, filters, text, `foreignObject`, and related nodes inline, and the package serializes that tree back through the shared `Svg.Skia` loading pipeline.
 
+Use [Svg.Controls.Skia.Maui](svg-controls-skia-maui) instead when the SVG already exists as an external asset, source string, stream, file, or URL and should render through a reusable MAUI `Svg` control.
+
 ## Package
 
 ```bash
@@ -127,5 +129,6 @@ See [SvgML foreignObject Controls](../xaml/svgml-foreignobject-controls) for siz
 ## Related
 
 - [SvgML.Maui Inline SVG](../xaml/svgml-maui-inline-svg)
+- [Svg.Controls.Skia.Maui](svg-controls-skia-maui)
 - [SvgML foreignObject Controls](../xaml/svgml-foreignobject-controls)
 - [Samples and Tools](../reference/samples-and-tools)

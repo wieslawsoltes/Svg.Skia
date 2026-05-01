@@ -216,7 +216,7 @@ public sealed class SvgSource : IDisposable
         if (parameters is null)
         {
             var originalStream = CreateStream(document);
-            var skSvg = new SKSvg();
+            var skSvg = CreateSkSvg();
             skSvg.FromSvgDocument(document);
             var picture = skSvg.Picture;
 
@@ -443,7 +443,7 @@ public sealed class SvgSource : IDisposable
             return null;
         }
 
-        var skSvg = new SKSvg();
+        var skSvg = CreateSkSvg();
         skSvg.Load(path, parameters);
         var picture = skSvg.Picture;
 
@@ -471,7 +471,7 @@ public sealed class SvgSource : IDisposable
     private static SKPicture? LoadFromCachedStream(SvgSource source, MemoryStream cachedStream, SvgParameters? parameters, Uri? baseUri)
     {
         cachedStream.Position = 0;
-        var skSvg = new SKSvg();
+        var skSvg = CreateSkSvg();
         skSvg.Load(cachedStream, parameters, baseUri);
         var picture = skSvg.Picture;
 
@@ -587,6 +587,13 @@ public sealed class SvgSource : IDisposable
         return EnableThrowOnMissingResource
             ? throw new ArgumentException($"Invalid resource path: {path}", nameof(path))
             : null;
+    }
+
+    private static SKSvg CreateSkSvg()
+    {
+        var skSvg = new SKSvg();
+        SkiaModel.Settings.CopyTo(skSvg.Settings);
+        return skSvg;
     }
 
     private static SvgParameters? CloneParameters(SvgParameters? parameters)
