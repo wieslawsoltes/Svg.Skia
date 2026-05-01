@@ -909,6 +909,17 @@ public class Svg : Control
         ApplyNativeCursor(result.Cursor);
     }
 
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+
+        if (Interaction.CapturedElement is not null || Interaction.PressedElement is not null)
+        {
+            Interaction.Reset();
+            ApplyNativeCursor(null);
+        }
+    }
+
     private void DispatchPointerWheelChanged(PointerWheelEventArgs e)
     {
         if (_svg?.Svg is not { } skSvg || !TryGetPicturePoint(e.GetPosition(this), out _))
