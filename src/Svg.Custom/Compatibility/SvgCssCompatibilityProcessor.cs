@@ -121,6 +121,11 @@ internal static class SvgCssCompatibilityProcessor
                         var result = new List<AppliedDeclaration>();
                         foreach (var declaration in rule.Style)
                         {
+                            if (string.IsNullOrWhiteSpace(declaration.Original))
+                            {
+                                continue;
+                            }
+
                             result.Add(new AppliedDeclaration(declaration.Name, declaration.Original));
                         }
 

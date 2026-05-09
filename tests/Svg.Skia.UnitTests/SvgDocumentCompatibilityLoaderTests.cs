@@ -1017,6 +1017,114 @@ public class SvgDocumentCompatibilityLoaderTests
     }
 
     [Fact]
+    public void FromSvg_IgnoresInlineStyleDeclarationsWithoutValues()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="60">
+              <rect id="top" width="20" height="20" fill="rgb(0,0,255)" stroke="rgb(0,0,0)" style="fill:;stroke:rgb(255,255,255);" />
+              <rect id="middle" y="20" width="20" height="20" fill="rgb(0,0,255)" stroke="rgb(0,0,0)" style="fill:rgb(244,58,32);stroke:rgb(255,255,255);" />
+              <rect id="bottom" y="40" width="20" height="20" fill="rgb(0,0,255)" stroke="rgb(0,0,0)" style="fill: ;stroke:rgb(255,255,255);" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var top = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "top");
+        var middle = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "middle");
+        var bottom = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "bottom");
+        var topFill = Assert.IsType<SvgColourServer>(top.Fill);
+        var middleFill = Assert.IsType<SvgColourServer>(middle.Fill);
+        var bottomFill = Assert.IsType<SvgColourServer>(bottom.Fill);
+        var topStroke = Assert.IsType<SvgColourServer>(top.Stroke);
+        var middleStroke = Assert.IsType<SvgColourServer>(middle.Stroke);
+        var bottomStroke = Assert.IsType<SvgColourServer>(bottom.Stroke);
+
+        Assert.Equal(Color.Blue.ToArgb(), topFill.Colour.ToArgb());
+        Assert.Equal(Color.FromArgb(244, 58, 32).ToArgb(), middleFill.Colour.ToArgb());
+        Assert.Equal(Color.Blue.ToArgb(), bottomFill.Colour.ToArgb());
+        Assert.Equal(Color.White.ToArgb(), topStroke.Colour.ToArgb());
+        Assert.Equal(Color.White.ToArgb(), middleStroke.Colour.ToArgb());
+        Assert.Equal(Color.White.ToArgb(), bottomStroke.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_IgnoresFallbackInlineStyleDeclarationsWithoutValues()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <rect id="target" width="10" height="10" fill="rgb(0,0,255)" stroke="rgb(0,0,0)" style="invalid; fill:; stroke:rgb(255,255,255);" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+        var stroke = Assert.IsType<SvgColourServer>(rect.Stroke);
+
+        Assert.Equal(Color.Blue.ToArgb(), fill.Colour.ToArgb());
+        Assert.Equal(Color.White.ToArgb(), stroke.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_PreservesEmptyInlineCustomPropertyDeclarations()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <g style="--paint:rgb(0,255,0)">
+                <rect id="target" width="10" height="10" fill="rgb(255,0,0)" style="--paint: ; fill:var(--paint, rgb(0,0,255));" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Black.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_PreservesFallbackEmptyInlineCustomPropertyDeclarations()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <g style="--paint:rgb(0,255,0)">
+                <rect id="target" width="10" height="10" fill="rgb(255,0,0)" style="invalid; --paint: ; fill:var(--paint, rgb(0,0,255));" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Black.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_IgnoresStylesheetDeclarationsWithoutValues()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>
+                #target {
+                  fill:;
+                  stroke: rgb(255,255,255);
+                }
+              </style>
+              <rect id="target" width="10" height="10" fill="rgb(0,0,255)" stroke="rgb(0,0,0)" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+        var stroke = Assert.IsType<SvgColourServer>(rect.Stroke);
+
+        Assert.Equal(Color.Blue.ToArgb(), fill.Colour.ToArgb());
+        Assert.Equal(Color.White.ToArgb(), stroke.Colour.ToArgb());
+    }
+
+    [Fact]
     public void FromSvg_ParsesInlineStyleAttributesWithEmptyDeclarationsAndWhitespace()
     {
         const string svg = """
