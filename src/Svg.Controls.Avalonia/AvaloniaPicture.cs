@@ -122,7 +122,7 @@ public sealed class AvaloniaPicture : IDisposable
                 {
                     if (clipPathCanvasCommand.ClipPath is { })
                     {
-                        var path = clipPathCanvasCommand.ClipPath.ToGeometry(false);
+                        var path = clipPathCanvasCommand.ClipPath.ToGeometry(true);
                         if (path is { })
                         {
                             // TODO: clipPathCanvasCommand.Operation;

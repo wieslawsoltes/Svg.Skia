@@ -158,17 +158,23 @@ jobs:
         working-directory: src/SvgML.Maui
         run: dotnet workload install maui --ignore-failed-sources --skip-manifest-update
 
-      - name: Restore library
+      - name: Restore libraries
         working-directory: src/SvgML.Maui
-        run: dotnet restore SvgML.Maui.csproj
+        run: |
+          dotnet restore SvgML.Maui.csproj
+          dotnet restore ../Svg.Controls.Skia.Maui/Svg.Controls.Skia.Maui.csproj
 
-      - name: Build library
+      - name: Build libraries
         working-directory: src/SvgML.Maui
-        run: dotnet build SvgML.Maui.csproj -c Release --no-restore
+        run: |
+          dotnet build SvgML.Maui.csproj -c Release --no-restore
+          dotnet build ../Svg.Controls.Skia.Maui/Svg.Controls.Skia.Maui.csproj -c Release --no-restore
 
       - name: Pack
         working-directory: src/SvgML.Maui
-        run: dotnet pack SvgML.Maui.csproj -c Release --no-restore -o ../../artifacts/maui-packages
+        run: |
+          dotnet pack SvgML.Maui.csproj -c Release --no-restore -o ../../artifacts/maui-packages
+          dotnet pack ../Svg.Controls.Skia.Maui/Svg.Controls.Skia.Maui.csproj -c Release --no-restore -o ../../artifacts/maui-packages
 
       - name: Build sample
         working-directory: src/SvgML.Maui

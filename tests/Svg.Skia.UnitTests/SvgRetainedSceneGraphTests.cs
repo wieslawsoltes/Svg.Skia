@@ -1485,6 +1485,35 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_RendersFilteredGroupWithTransformedChild()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(FilteredTransformedChildGroupSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("a", out var groupNode));
+        Assert.NotNull(groupNode);
+        Assert.Equal(125f, groupNode!.GeometryBounds.Left, 3);
+        Assert.Equal(125f, groupNode.GeometryBounds.Top, 3);
+        Assert.Equal(375f, groupNode.GeometryBounds.Right, 3);
+        Assert.Equal(375f, groupNode.GeometryBounds.Bottom, 3);
+        Assert.NotNull(groupNode.FilterClip);
+        Assert.Equal(100f, groupNode.FilterClip.Value.Left, 3);
+        Assert.Equal(100f, groupNode.FilterClip.Value.Top, 3);
+        Assert.Equal(400f, groupNode.FilterClip.Value.Right, 3);
+        Assert.Equal(400f, groupNode.FilterClip.Value.Bottom, 3);
+
+        Assert.NotNull(svg.Picture);
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+
+        var centerPixel = bitmap.GetPixel(250, 250);
+        Assert.True(
+            centerPixel.Alpha > 200 && centerPixel.Red < 20 && centerPixel.Green < 20 && centerPixel.Blue < 20,
+            $"Expected transformed child inside filtered group to render at the center but was {centerPixel}.");
+    }
+
+    [Fact]
     public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForUseAndMarkerDocument()
     {
         using var svg = new SKSvg();
@@ -2113,6 +2142,19 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
             <rect x="8" y="42" width="56" height="6" fill="#0000ff" opacity="0.5" />
             <rect x="8" y="60" width="56" height="6" fill="#ffff00" opacity="0.5" />
           </g>
+        </svg>
+        """;
+
+    private const string FilteredTransformedChildGroupSvg = """
+        <svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+          <g id="a" filter="url(#f)">
+            <circle cx="0" cy="0" r="125" fill="black" transform="translate(250 250)" />
+          </g>
+          <defs>
+            <filter id="f">
+              <feOffset dx="0" dy="0" />
+            </filter>
+          </defs>
         </svg>
         """;
 

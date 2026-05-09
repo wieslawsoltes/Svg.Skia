@@ -2,8 +2,11 @@
 using System.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Svg.Model;
+using Svg.Model.Services;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
+using DrawingColor = System.Drawing.Color;
 
 namespace Svg.Skia.UnitTests;
 
@@ -154,6 +157,504 @@ public class SKSvgTests : SvgUnitTest
     }
 
     [Fact]
+    public void Load_CurrentColorParameter_ProvidesRootCurrentColor()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <rect x="10" y="10" width="80" height="80" fill="currentColor" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input, new SvgParameters(null, null, DrawingColor.FromArgb(255, 0, 128, 255)));
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)0, pixel.R);
+        Assert.Equal((byte)128, pixel.G);
+        Assert.Equal((byte)255, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Load_CurrentColorParameter_DoesNotOverrideRootColor()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" color="red">
+              <rect x="10" y="10" width="80" height="80" fill="currentColor" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input, new SvgParameters(null, null, DrawingColor.FromArgb(255, 0, 128, 255)));
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)255, pixel.R);
+        Assert.Equal((byte)0, pixel.G);
+        Assert.Equal((byte)0, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Load_CurrentColorParameter_AppliesWhenRootColorIsCurrentColor()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" color="currentColor">
+              <rect x="10" y="10" width="80" height="80" fill="currentColor" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input, new SvgParameters(null, null, DrawingColor.FromArgb(255, 0, 128, 255)));
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)0, pixel.R);
+        Assert.Equal((byte)128, pixel.G);
+        Assert.Equal((byte)255, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Load_CurrentColorParameter_DoesNotOverrideRootStyleColor()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" style="color:red">
+              <rect x="10" y="10" width="80" height="80" fill="currentColor" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input, new SvgParameters(null, null, DrawingColor.FromArgb(255, 0, 128, 255)));
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)255, pixel.R);
+        Assert.Equal((byte)0, pixel.G);
+        Assert.Equal((byte)0, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Save_CssVarFallbackPaint_UsesFallbackColor()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <path d="M10 50h80" style="fill:none;stroke:var(--color-text, #000);stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)0, pixel.R);
+        Assert.Equal((byte)0, pixel.G);
+        Assert.Equal((byte)0, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Save_CssVarPaint_UsesInheritedCustomProperty()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+                svg { --color-text: #00ff00; }
+                path { stroke: var(--color-text, #000); }
+              </style>
+              <path d="M10 50h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)0, pixel.R);
+        Assert.Equal((byte)255, pixel.G);
+        Assert.Equal((byte)0, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Save_CssVarPaint_CssWideInheritAndUnsetUseInheritedCustomProperty()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+                svg { --color-text: #00ff00; }
+                .inherit-target { --color-text: inherit; stroke: var(--color-text, #ff0000); }
+                .unset-target { --color-text: unset; stroke: var(--color-text, #ff0000); }
+              </style>
+              <path class="inherit-target" d="M10 30h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+              <path class="unset-target" d="M10 70h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var inheritPixel = image[50, 30];
+        Assert.Equal((byte)0, inheritPixel.R);
+        Assert.Equal((byte)255, inheritPixel.G);
+        Assert.Equal((byte)0, inheritPixel.B);
+        Assert.Equal((byte)255, inheritPixel.A);
+
+        var unsetPixel = image[50, 70];
+        Assert.Equal((byte)0, unsetPixel.R);
+        Assert.Equal((byte)255, unsetPixel.G);
+        Assert.Equal((byte)0, unsetPixel.B);
+        Assert.Equal((byte)255, unsetPixel.A);
+    }
+
+    [Fact]
+    public void Save_CssVarPaint_CssWideInitialUsesFallback()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+                svg { --color-text: #00ff00; }
+                path { --color-text: initial; stroke: var(--color-text, #0000ff); }
+              </style>
+              <path d="M10 50h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)0, pixel.R);
+        Assert.Equal((byte)0, pixel.G);
+        Assert.Equal((byte)255, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Save_CssVarPaint_AppliesCustomPropertyInsideActiveMediaRule()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+                @media screen {
+                  svg { --color-text: #00ff00; }
+                }
+                path { stroke: var(--color-text, #000); }
+              </style>
+              <path d="M10 50h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)0, pixel.R);
+        Assert.Equal((byte)255, pixel.G);
+        Assert.Equal((byte)0, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Save_CssVarPaint_IgnoresCustomPropertyInsideInactiveMediaRule()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+                @media print {
+                  svg { --color-text: #00ff00; }
+                }
+                path { stroke: var(--color-text, #0000ff); }
+              </style>
+              <path d="M10 50h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)0, pixel.R);
+        Assert.Equal((byte)0, pixel.G);
+        Assert.Equal((byte)255, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Save_CssVarPaint_UsesQualifiedRootCustomProperty()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" class="dark" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+                :root.dark { --color-text: #00ff00; }
+                path { stroke: var(--color-text, #000); }
+              </style>
+              <path d="M10 50h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)0, pixel.R);
+        Assert.Equal((byte)255, pixel.G);
+        Assert.Equal((byte)0, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Save_CssVarPaint_ContinuesAfterMalformedCustomPropertyDeclaration()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+                path { bad; --color-text: #00ff00; }
+                path { stroke: var(--color-text, #000); }
+              </style>
+              <path d="M10 50h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)0, pixel.R);
+        Assert.Equal((byte)255, pixel.G);
+        Assert.Equal((byte)0, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Save_CssVarPaint_UsesLastEqualSpecificityCustomProperty()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+                path { --color-text: #ff0000; }
+                path { --color-text: #00ff00; }
+                path { stroke: var(--color-text, #000); }
+              </style>
+              <path d="M10 50h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)0, pixel.R);
+        Assert.Equal((byte)255, pixel.G);
+        Assert.Equal((byte)0, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Save_CssVarPaint_DoesNotPromoteLowSpecificitySourceOrderTie()
+    {
+        var lowSpecificityRules = new StringBuilder();
+        for (var i = 0; i < 40; i++)
+        {
+            lowSpecificityRules.AppendLine("path { --color-text: #ff0000; }");
+        }
+
+        var svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+            """ + lowSpecificityRules + """
+                g path { --color-text: #00ff00; }
+                path { --color-text: #0000ff; }
+                path { stroke: var(--color-text, #000); }
+              </style>
+              <g>
+                <path d="M10 50h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+              </g>
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)0, pixel.R);
+        Assert.Equal((byte)255, pixel.G);
+        Assert.Equal((byte)0, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Save_CssVarPaint_StripsImportantAndHonorsPriority()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+                path { --color-text: #ff0000 !important; }
+                svg path { --color-text: #00ff00; }
+                path { stroke: var(--color-text, #000); }
+              </style>
+              <path d="M10 50h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)255, pixel.R);
+        Assert.Equal((byte)0, pixel.G);
+        Assert.Equal((byte)0, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Save_CssVarPaint_ResolvesInheritedCustomPropertyAtDeclaringElement()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+                svg {
+                  --theme-color: #00ff00;
+                  --stroke-color: var(--theme-color);
+                }
+                path {
+                  --theme-color: #ff0000;
+                  stroke: var(--stroke-color, #000);
+                }
+              </style>
+              <path d="M10 50h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        var pixel = image[50, 50];
+        Assert.Equal((byte)0, pixel.R);
+        Assert.Equal((byte)255, pixel.G);
+        Assert.Equal((byte)0, pixel.B);
+        Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Write_CssVarPaint_DoesNotSerializeCustomPropertyAttributes()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+                svg { --color-text: #00ff00; }
+                path { stroke: var(--color-text, #000); }
+              </style>
+              <path d="M10 50h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svgMarkup);
+        Assert.NotNull(document);
+        using var output = new MemoryStream();
+
+        document!.Write(output, useBom: false);
+
+        var xml = Encoding.UTF8.GetString(output.ToArray());
+        Assert.DoesNotContain("--color-text=\"", xml);
+        Assert.Contains("--color-text: #00ff00", xml);
+    }
+
+    [Fact]
     public void Load_CssFontFaceWithExternalFontUrl_DoesNotCrash()
     {
         const string svgMarkup = """
@@ -187,5 +688,36 @@ public class SKSvgTests : SvgUnitTest
         using var image = Image.Load<Rgba32>(output);
         Assert.Equal(120, image.Width);
         Assert.Equal(40, image.Height);
+    }
+
+    [Fact]
+    public void Load_RelativeImageHrefWithoutBaseUri_SkipsMissingImage()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink"
+                 width="32px" height="32px" viewBox="0 0 32 32">
+              <rect width="32" height="32" fill="#232B34" />
+              <g opacity="0.1">
+                <image width="99" height="108" xlink:href="6F03BD87.png"
+                       transform="matrix(1 0 0 1 -33.5 -44.6934)" />
+              </g>
+              <circle cx="16" cy="16" r="8" fill="#586871" />
+            </svg>
+            """;
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        Assert.Equal(32, image.Width);
+        Assert.Equal(32, image.Height);
+        Assert.Equal(new Rgba32(0x23, 0x2B, 0x34), image[0, 0]);
+        Assert.Equal(new Rgba32(0x58, 0x68, 0x71), image[16, 16]);
     }
 }

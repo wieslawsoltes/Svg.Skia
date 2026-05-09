@@ -25,6 +25,11 @@ internal static class SvgCacheKey
             }
         }
 
+        if (parameters?.CurrentColor is { } currentColor)
+        {
+            builder.Append("|currentColor:").Append(currentColor.ToArgb().ToString("X8"));
+        }
+
         return builder.ToString();
     }
 }
