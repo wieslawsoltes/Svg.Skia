@@ -52,6 +52,7 @@ internal static class SvgStyleAttributeNames
             "glyph-orientation-horizontal" or
             "glyph-orientation-vertical" or
             "image-rendering" or
+            "isolation" or
             "kerning" or
             "letter-spacing" or
             "lighting-color" or
@@ -60,6 +61,7 @@ internal static class SvgStyleAttributeNames
             "marker-mid" or
             "marker-start" or
             "mask" or
+            "mix-blend-mode" or
             "opacity" or
             "overflow" or
             "pointer-events" or
@@ -133,6 +135,7 @@ internal static class SvgStyleAttributeNames
                name.Equals("glyph-orientation-horizontal", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("glyph-orientation-vertical", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("image-rendering", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("isolation", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("kerning", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("letter-spacing", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("lighting-color", StringComparison.OrdinalIgnoreCase) ||
@@ -141,6 +144,7 @@ internal static class SvgStyleAttributeNames
                name.Equals("marker-mid", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("marker-start", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("mask", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("mix-blend-mode", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("opacity", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("overflow", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("pointer-events", StringComparison.OrdinalIgnoreCase) ||
@@ -201,6 +205,7 @@ internal static class SvgStyleAttributeNames
             "glyph-orientation-horizontal",
             "glyph-orientation-vertical",
             "image-rendering",
+            "isolation",
             "kerning",
             "letter-spacing",
             "lighting-color",
@@ -209,6 +214,7 @@ internal static class SvgStyleAttributeNames
             "marker-mid",
             "marker-start",
             "mask",
+            "mix-blend-mode",
             "opacity",
             "overflow",
             "pointer-events",

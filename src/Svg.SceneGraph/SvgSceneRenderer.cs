@@ -84,7 +84,13 @@ public static class SvgSceneRenderer
         var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask) && !ignoreCurrentMask;
         var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity) && !ignoreCurrentOpacity;
         var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter) && !ignoreCurrentFilter;
-        if (IsStateFreeNode(node, enableTransform, enableClip, enableMask, enableOpacity, enableFilter))
+        var enableBlendMode = node.BlendModePaint is not null;
+        var enableIsolation = node.IsIsolationGroup &&
+            !enableBlendMode &&
+            (node.MaskPaint is null || node.MaskNode is null || !enableMask) &&
+            (node.Opacity is null || !enableOpacity) &&
+            (node.Filter is null || !enableFilter);
+        if (IsStateFreeNode(node, enableTransform, enableClip, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation))
         {
             if (node.IsRenderable)
             {
@@ -121,6 +127,16 @@ public static class SvgSceneRenderer
             canvas.ClipRect(innerClip, SKClipOperation.Intersect);
         }
 
+        if (enableIsolation)
+        {
+            canvas.SaveLayer(new SKPaint());
+        }
+
+        if (enableBlendMode)
+        {
+            canvas.SaveLayer(node.BlendModePaint!);
+        }
+
         if (node.MaskPaint is { } maskPaint && node.MaskNode is not null && enableMask)
         {
             canvas.SaveLayer(maskPaint);
@@ -150,7 +166,7 @@ public static class SvgSceneRenderer
         {
             if (!RenderNodeToCanvas(sceneDocument, node.Children[i], canvas, ignoreAttributes, until))
             {
-                RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter);
+                RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
                 return false;
             }
         }
@@ -162,7 +178,7 @@ public static class SvgSceneRenderer
             canvas.Restore();
         }
 
-        RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter);
+        RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
         return true;
     }
 
@@ -235,6 +251,23 @@ public static class SvgSceneRenderer
         var enableMask = node.MaskPaint is not null && node.MaskNode is not null && !isOnUntilPath;
         var enableOpacity = node.Opacity is not null && !isOnUntilPath;
         var enableFilter = node.Filter is not null && !isOnUntilPath;
+        var enableBlendMode = node.BlendModePaint is not null && !isOnUntilPath;
+        var enableIsolation = node.IsIsolationGroup &&
+            !isOnUntilPath &&
+            !enableBlendMode &&
+            !enableMask &&
+            !enableOpacity &&
+            !enableFilter;
+
+        if (enableIsolation)
+        {
+            canvas.SaveLayer(new SKPaint());
+        }
+
+        if (enableBlendMode)
+        {
+            canvas.SaveLayer(node.BlendModePaint!);
+        }
 
         if (enableMask)
         {
@@ -265,7 +298,7 @@ public static class SvgSceneRenderer
         {
             if (!RenderBackgroundToCanvasCore(sceneDocument, node.Children[i], canvas, until, enableTransform: true))
             {
-                RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter);
+                RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
                 return false;
             }
         }
@@ -277,7 +310,7 @@ public static class SvgSceneRenderer
             canvas.Restore();
         }
 
-        RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter);
+        RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
         return true;
     }
 
@@ -329,7 +362,9 @@ public static class SvgSceneRenderer
         bool enableClip,
         bool enableMask,
         bool enableOpacity,
-        bool enableFilter)
+        bool enableFilter,
+        bool enableBlendMode,
+        bool enableIsolation)
     {
         return node.Overflow is null &&
                (!enableTransform || node.Transform.IsIdentity) &&
@@ -338,7 +373,9 @@ public static class SvgSceneRenderer
                node.InnerClip is null &&
                (node.MaskNode is null || !enableMask) &&
                (node.Opacity is null || !enableOpacity) &&
-               (node.Filter is null || !enableFilter);
+               (node.Filter is null || !enableFilter) &&
+               !enableBlendMode &&
+               !enableIsolation;
     }
 
     private static bool IsSelfOrAncestor(SvgSceneNode node, SvgSceneNode descendant)
@@ -359,7 +396,9 @@ public static class SvgSceneRenderer
         SvgSceneNode node,
         bool enableMask,
         bool enableOpacity,
-        bool enableFilter)
+        bool enableFilter,
+        bool enableBlendMode,
+        bool enableIsolation)
     {
         if (node.Filter is not null && enableFilter)
         {
@@ -372,6 +411,16 @@ public static class SvgSceneRenderer
         }
 
         if (node.MaskNode is not null && enableMask)
+        {
+            canvas.Restore();
+        }
+
+        if (enableBlendMode)
+        {
+            canvas.Restore();
+        }
+
+        if (enableIsolation)
         {
             canvas.Restore();
         }

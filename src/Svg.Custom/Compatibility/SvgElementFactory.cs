@@ -387,6 +387,16 @@ namespace Svg
                 attributeValue = resolvedAttributeValue;
             }
 
+            if (attributeName == "mix-blend-mode" || attributeName == "isolation")
+            {
+                if (isStyle)
+                {
+                    element.CustomAttributes[ns.Length == 0 ? attributeName : $"{ns}:{attributeName}"] = attributeValue;
+                }
+
+                return true;
+            }
+
             if (attributeName == "text-decoration" && !string.IsNullOrWhiteSpace(attributeValue))
             {
                 element.CustomAttributes[SvgStyleAttributeNames.RawTextDecorationAttributeKey] = attributeValue;
