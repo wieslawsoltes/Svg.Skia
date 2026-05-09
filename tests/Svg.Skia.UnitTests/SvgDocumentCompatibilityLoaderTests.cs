@@ -212,6 +212,45 @@ public class SvgDocumentCompatibilityLoaderTests
         Assert.Equal(Color.Lime.ToArgb(), fill.Colour.ToArgb());
     }
 
+    [Theory]
+    [InlineData("style=\"fill: lime; fill: 123\"")]
+    [InlineData("style=\"fill: lime; fill: #12345\"")]
+    public void FromSvg_InvalidInlinePaintDeclarationsDoNotOverrideEarlierFill(string styleAttribute)
+    {
+        var svg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <rect id="target" width="10" height="10" {{styleAttribute}} />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Lime.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Theory]
+    [InlineData("#target { fill: lime; } #target { fill: 123; }")]
+    [InlineData("#target { fill: lime; } #target { fill: #12345; }")]
+    [InlineData("rect { fill: lime; } #target { fill: 123; }")]
+    [InlineData("rect { fill: lime; } #target { fill: #12345; }")]
+    public void FromSvg_InvalidStylesheetPaintDeclarationsDoNotOverrideEarlierFill(string css)
+    {
+        var svg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>{{css}}</style>
+              <rect id="target" width="10" height="10" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Lime.ToArgb(), fill.Colour.ToArgb());
+    }
+
     [Fact]
     public void FromSvg_AggregatesMixedTextAndChildContentInDocumentOrder()
     {
