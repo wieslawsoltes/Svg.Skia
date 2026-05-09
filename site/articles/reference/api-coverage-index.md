@@ -31,6 +31,8 @@ Current API settings:
 - default target framework override: `netstandard2.0`
 - Avalonia 12 project overrides:
   `Svg.Controls.Avalonia`, `Svg.Controls.Skia.Avalonia`, `Skia.Controls.Avalonia`, `Svg.Editor.Avalonia`, and `Svg.Editor.Skia.Avalonia` build API metadata with `net8.0`
+- MAUI package coverage:
+  `Svg.Controls.Skia.Maui` is covered by authored package documentation instead of generated API metadata because the docs workflow runs on Ubuntu and does not install MAUI workloads
 - output path: `/api`
 
 ## Why mixed target frameworks
@@ -41,10 +43,10 @@ This repository mixes:
 - shared animation/runtime-host packages,
 - retained-scene graph packages,
 - multi-target editor packages,
-- a `net10.0` Uno control package,
+- `net10.0` Uno and MAUI control packages,
 - `netstandard2.0`-only generator packages.
 
-The docs build keeps `netstandard2.0` as the default extraction target for the shared runtime and generator-facing packages, while overriding the Avalonia 12 packages to `net8.0`. The Uno control project uses a per-project override of `TargetFramework=net10.0` because it does not target `netstandard2.0`. That keeps a single API site without forcing the Avalonia or Uno projects back onto frameworks they no longer target.
+The docs build keeps `netstandard2.0` as the default extraction target for the shared runtime and generator-facing packages, while overriding the Avalonia 12 packages to `net8.0`. The Uno control project uses a per-project override of `TargetFramework=net10.0` because it does not target `netstandard2.0`. The MAUI control package is documented in authored package pages and validated by dedicated MAUI workflow jobs, avoiding a MAUI workload dependency in the Ubuntu docs job.
 
 ## `Svg.CodeGen.Skia`
 
@@ -54,7 +56,7 @@ The docs build keeps `netstandard2.0` as the default extraction target for the s
 
 To keep the authored docs and generated API aligned:
 
-1. Add the project to `site/config.scriban` under `api.dotnet.projects`.
+1. Add the project to `site/config.scriban` under `api.dotnet.projects` when it can build in the Ubuntu docs workflow without extra platform workloads.
 2. Add any new Avalonia, Uno, or external assembly xrefs under `api.dotnet.external_apis` if the public API links out to assemblies that are not already covered.
 3. Update [Packages and Namespaces](packages-and-namespaces) and the package article under `site/articles/packages/`.
 4. Rebuild the site with `./build-docs.sh`.

@@ -67,9 +67,13 @@ internal static class SvgSceneNodeBoundsService
             return bounds;
         }
 
-        var scaleX = Math.Sqrt((node.TotalTransform.ScaleX * node.TotalTransform.ScaleX) + (node.TotalTransform.SkewY * node.TotalTransform.SkewY));
-        var scaleY = Math.Sqrt((node.TotalTransform.SkewX * node.TotalTransform.SkewX) + (node.TotalTransform.ScaleY * node.TotalTransform.ScaleY));
-        var inflation = (float)(Math.Max(scaleX, scaleY) * node.StrokeWidth / 2f);
+        var inflation = node.StrokeWidth / 2f;
+        if (!node.IsStrokeNonScaling)
+        {
+            var scaleX = Math.Sqrt((node.TotalTransform.ScaleX * node.TotalTransform.ScaleX) + (node.TotalTransform.SkewY * node.TotalTransform.SkewY));
+            var scaleY = Math.Sqrt((node.TotalTransform.SkewX * node.TotalTransform.SkewX) + (node.TotalTransform.ScaleY * node.TotalTransform.ScaleY));
+            inflation = (float)(Math.Max(scaleX, scaleY) * inflation);
+        }
         if (inflation <= 0f)
         {
             return bounds;
