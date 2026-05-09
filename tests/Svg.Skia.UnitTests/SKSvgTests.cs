@@ -257,6 +257,32 @@ public class SKSvgTests : SvgUnitTest
     }
 
     [Fact]
+    public void Save_ParsedTextDecorationNoneThenProgrammaticLineThrough_RendersDecoration()
+    {
+        using var plain = RenderParsedTextDecorationMutation("none", SvgTextDecoration.None);
+        using var decorated = RenderParsedTextDecorationMutation("none", SvgTextDecoration.LineThrough);
+
+        var changedPixels = CountDifferingPixels(plain, decorated);
+
+        Assert.True(
+            changedPixels > 100,
+            $"Expected programmatic line-through to override parsed text-decoration none, but only {changedPixels} pixels changed.");
+    }
+
+    [Fact]
+    public void Save_ParsedTextDecorationLineThroughThenProgrammaticNone_RemovesDecoration()
+    {
+        using var decorated = RenderParsedTextDecorationMutation("line-through", SvgTextDecoration.LineThrough);
+        using var plain = RenderParsedTextDecorationMutation("line-through", SvgTextDecoration.None);
+
+        var changedPixels = CountDifferingPixels(decorated, plain);
+
+        Assert.True(
+            changedPixels > 100,
+            $"Expected programmatic none to override parsed line-through, but only {changedPixels} pixels changed.");
+    }
+
+    [Fact]
     public void Save_InheritedCurrentColor_UsesConsumingElementsColor()
     {
         const string svgMarkup = """
@@ -1018,6 +1044,28 @@ public class SKSvgTests : SvgUnitTest
 
         using var svg = new SKSvg();
         using var _ = svg.FromSvgDocument(document);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        return Image.Load<Rgba32>(output);
+    }
+
+    private static Image<Rgba32> RenderParsedTextDecorationMutation(string initialDecoration, SvgTextDecoration textDecoration)
+    {
+        var svgMarkup = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="260" height="90" viewBox="0 0 260 90">
+              <text id="target" x="12" y="58" font-family="sans-serif" font-size="36" fill="black" text-decoration="{{initialDecoration}}">Text decoration</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        var text = Assert.IsType<SvgText>(svg.SourceDocument!.GetElementById("target")!);
+        text.TextDecoration = textDecoration;
+        Assert.NotNull(svg.RefreshFromSourceDocument());
         using var output = new MemoryStream();
 
         Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
