@@ -449,6 +449,11 @@ public partial class SkiaModel
 
     public SkiaSharp.SKTypeface? ToSKTypeface(SKTypeface? typeface)
     {
+        return ResolveSKTypeface(typeface).Typeface;
+    }
+
+    private TypefaceResolution ResolveSKTypeface(SKTypeface? typeface)
+    {
         var fontFamily = typeface?.FamilyName;
         var fontWeight = ToSKFontStyleWeight(typeface?.FontWeight ?? SKFontStyleWeight.Normal);
         var fontWidth = ToSKFontStyleWidth(typeface?.FontWidth ?? SKFontStyleWidth.Normal);
@@ -460,7 +465,7 @@ public partial class SkiaModel
 
         if (_typefaceCache.TryGetValue(cacheKey, out var cached))
         {
-            if (cached is not null && cached.Handle != IntPtr.Zero)
+            if (cached.Typeface.Handle != IntPtr.Zero)
             {
                 return cached;
             }
@@ -478,9 +483,7 @@ public partial class SkiaModel
                     var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
                     if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                     {
-                        _typefaceCache.TryAdd(cacheKey, providerTypeface);
-                        TrimTypefaceCachesIfNeeded();
-                        return providerTypeface;
+                        return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider));
                     }
                 }
             }
@@ -488,9 +491,7 @@ public partial class SkiaModel
             var resolved = ResolveTypeface(candidate, style);
             if (resolved is { } && resolved.Handle != IntPtr.Zero)
             {
-                _typefaceCache.TryAdd(cacheKey, resolved);
-                TrimTypefaceCachesIfNeeded();
-                return resolved;
+                return CacheTypefaceResolution(cacheKey, resolved, suppressSyntheticBold: false);
             }
         }
 
@@ -505,9 +506,7 @@ public partial class SkiaModel
                         var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
                         if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                         {
-                            _typefaceCache.TryAdd(cacheKey, providerTypeface);
-                            TrimTypefaceCachesIfNeeded();
-                            return providerTypeface;
+                            return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider));
                         }
                     }
                 }
@@ -515,9 +514,7 @@ public partial class SkiaModel
                 var resolved = ResolveTypeface(candidate, style);
                 if (resolved is { } && resolved.Handle != IntPtr.Zero)
                 {
-                    _typefaceCache.TryAdd(cacheKey, resolved);
-                    TrimTypefaceCachesIfNeeded();
-                    return resolved;
+                    return CacheTypefaceResolution(cacheKey, resolved, suppressSyntheticBold: false);
                 }
             }
         }
@@ -529,9 +526,7 @@ public partial class SkiaModel
                 var providerTypeface = ResolveProviderTypeface(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, fontWeight, fontWidth, fontStyle);
                 if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                 {
-                    _typefaceCache.TryAdd(cacheKey, providerTypeface);
-                    TrimTypefaceCachesIfNeeded();
-                    return providerTypeface;
+                    return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider));
                 }
             }
         }
@@ -543,9 +538,20 @@ public partial class SkiaModel
         }
 
         var fallback = defaultTypeface ?? SkiaSharp.SKTypeface.Default;
-        _typefaceCache.TryAdd(cacheKey, fallback);
+        return CacheTypefaceResolution(cacheKey, fallback, suppressSyntheticBold: false);
+    }
+
+    private TypefaceResolution CacheTypefaceResolution(TypefaceKey cacheKey, SkiaSharp.SKTypeface typeface, bool suppressSyntheticBold)
+    {
+        var resolution = new TypefaceResolution(typeface, suppressSyntheticBold);
+        _typefaceCache.TryAdd(cacheKey, resolution);
         TrimTypefaceCachesIfNeeded();
-        return fallback;
+        return resolution;
+    }
+
+    private static bool ShouldSuppressSyntheticBold(ITypefaceProvider typefaceProvider)
+    {
+        return typefaceProvider is not FontManagerTypefaceProvider and not DefaultTypefaceProvider;
     }
 
     private static bool IsGenericFontFamilyName(string candidate)
@@ -1314,7 +1320,8 @@ public partial class SkiaModel
         var strokeCap = ToSKStrokeCap(paint.StrokeCap);
         var strokeJoin = ToSKStrokeJoin(paint.StrokeJoin);
         var textAlign = ToSKTextAlign(paint.TextAlign);
-        var typeface = ToSKTypeface(paint.Typeface);
+        var typefaceResolution = ResolveSKTypeface(paint.Typeface);
+        var typeface = typefaceResolution.Typeface;
         var textEncoding = ToSKTextEncoding(paint.TextEncoding);
         var color = paint.Color is null
             ? SkiaSharp.SKColor.Empty :
@@ -1349,13 +1356,18 @@ public partial class SkiaModel
             FilterQuality = filterQuality
         };
 
-        ApplyTypefaceAdjustments(paint, skPaint);
+        ApplyTypefaceAdjustments(paint, skPaint, typefaceResolution.SuppressSyntheticBold);
 
         return skPaint;
     }
 
-    private void ApplyTypefaceAdjustments(ShimSkiaSharp.SKPaint sourcePaint, SkiaSharp.SKPaint targetPaint)
+    private void ApplyTypefaceAdjustments(ShimSkiaSharp.SKPaint sourcePaint, SkiaSharp.SKPaint targetPaint, bool suppressSyntheticBold)
     {
+        if (suppressSyntheticBold)
+        {
+            return;
+        }
+
         if (sourcePaint.Typeface is null || targetPaint.Typeface is null)
         {
             return;
