@@ -20,6 +20,7 @@ internal static partial class SvgSceneTextCompiler
     private const float FullCircleRadians = 2f * (float)Math.PI;
     private const float SyntheticSmallCapsScale = 0.75f;
     private const float TextLengthTolerance = 1.5f;
+    private const string TextDecorationAttributeName = "text-decoration";
 
     private readonly record struct SequentialTextRun(SvgTextBase StyleSource, string Text);
 
@@ -3984,8 +3985,15 @@ internal static partial class SvgSceneTextCompiler
     private static bool TryGetOwnTextDecoration(SvgElement element, out SvgTextDecoration decorations)
     {
         decorations = SvgTextDecoration.None;
-        return element.CustomAttributes.TryGetValue(SvgStyleAttributeNames.RawTextDecorationAttributeKey, out var rawValue) &&
-               TryParseTextDecorationValue(rawValue, out decorations) &&
+        if (element.CustomAttributes.TryGetValue(SvgStyleAttributeNames.RawTextDecorationAttributeKey, out var rawValue))
+        {
+            return TryParseTextDecorationValue(rawValue, out decorations) &&
+                   HasRenderableDecorations(decorations);
+        }
+
+        return element.TryGetAttribute(TextDecorationAttributeName, out var attributeValue) &&
+               (TryParseTextDecorationValue(attributeValue, out decorations) ||
+                TryParseTextDecorationEnumValue(attributeValue, out decorations)) &&
                HasRenderableDecorations(decorations);
     }
 
@@ -4056,6 +4064,22 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return decorations != SvgTextDecoration.None;
+    }
+
+    private static bool TryParseTextDecorationEnumValue(string? rawValue, out SvgTextDecoration decorations)
+    {
+        decorations = SvgTextDecoration.None;
+        var value = rawValue?.Trim();
+        if (string.IsNullOrEmpty(value) ||
+            char.IsDigit(value[0]) ||
+            value[0] == '+' ||
+            value[0] == '-')
+        {
+            return false;
+        }
+
+        return Enum.TryParse(value, ignoreCase: true, out decorations) &&
+               !decorations.HasFlag(SvgTextDecoration.None);
     }
 
     private static bool HasRenderableDecorations(SvgTextDecoration decorations)

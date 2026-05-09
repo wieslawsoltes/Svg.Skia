@@ -483,7 +483,7 @@ public partial class SkiaModel
                     var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
                     if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                     {
-                        return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider));
+                        return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, candidate, providerTypeface));
                     }
                 }
             }
@@ -506,7 +506,7 @@ public partial class SkiaModel
                         var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
                         if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                         {
-                            return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider));
+                            return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, candidate, providerTypeface));
                         }
                     }
                 }
@@ -526,7 +526,7 @@ public partial class SkiaModel
                 var providerTypeface = ResolveProviderTypeface(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, fontWeight, fontWidth, fontStyle);
                 if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                 {
-                    return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider));
+                    return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, providerTypeface));
                 }
             }
         }
@@ -549,9 +549,14 @@ public partial class SkiaModel
         return resolution;
     }
 
-    private static bool ShouldSuppressSyntheticBold(ITypefaceProvider typefaceProvider)
+    private static bool ShouldSuppressSyntheticBold(ITypefaceProvider typefaceProvider, string candidate, SkiaSharp.SKTypeface providerTypeface)
     {
-        return typefaceProvider is not FontManagerTypefaceProvider and not DefaultTypefaceProvider;
+        if (typefaceProvider is FontManagerTypefaceProvider or DefaultTypefaceProvider)
+        {
+            return false;
+        }
+
+        return !string.Equals(providerTypeface.FamilyName, candidate, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsGenericFontFamilyName(string candidate)

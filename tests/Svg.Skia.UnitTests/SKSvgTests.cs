@@ -2,6 +2,7 @@
 using System.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Svg;
 using Svg.Model;
 using Svg.Model.Services;
 using Svg.Skia.UnitTests.Common;
@@ -240,6 +241,45 @@ public class SKSvgTests : SvgUnitTest
         }
 
         return count;
+    }
+
+    [Fact]
+    public void Save_ProgrammaticTextDecorationLineThrough_RendersDecoration()
+    {
+        using var plain = RenderProgrammaticTextDecoration(SvgTextDecoration.None);
+        using var decorated = RenderProgrammaticTextDecoration(SvgTextDecoration.LineThrough);
+
+        var changedPixels = CountDifferingPixels(plain, decorated);
+
+        Assert.True(
+            changedPixels > 100,
+            $"Expected line-through decoration to alter the rendered text, but only {changedPixels} pixels changed.");
+    }
+
+    [Fact]
+    public void Save_ParsedTextDecorationNoneThenProgrammaticLineThrough_RendersDecoration()
+    {
+        using var plain = RenderParsedTextDecorationMutation("none", SvgTextDecoration.None);
+        using var decorated = RenderParsedTextDecorationMutation("none", SvgTextDecoration.LineThrough);
+
+        var changedPixels = CountDifferingPixels(plain, decorated);
+
+        Assert.True(
+            changedPixels > 100,
+            $"Expected programmatic line-through to override parsed text-decoration none, but only {changedPixels} pixels changed.");
+    }
+
+    [Fact]
+    public void Save_ParsedTextDecorationLineThroughThenProgrammaticNone_RemovesDecoration()
+    {
+        using var decorated = RenderParsedTextDecorationMutation("line-through", SvgTextDecoration.LineThrough);
+        using var plain = RenderParsedTextDecorationMutation("line-through", SvgTextDecoration.None);
+
+        var changedPixels = CountDifferingPixels(decorated, plain);
+
+        Assert.True(
+            changedPixels > 100,
+            $"Expected programmatic none to override parsed line-through, but only {changedPixels} pixels changed.");
     }
 
     [Fact]
@@ -981,5 +1021,76 @@ public class SKSvgTests : SvgUnitTest
         Assert.Equal(32, image.Height);
         Assert.Equal(new Rgba32(0x23, 0x2B, 0x34), image[0, 0]);
         Assert.Equal(new Rgba32(0x58, 0x68, 0x71), image[16, 16]);
+    }
+
+    private static Image<Rgba32> RenderProgrammaticTextDecoration(SvgTextDecoration textDecoration)
+    {
+        var document = new SvgDocument
+        {
+            Width = new SvgUnit(SvgUnitType.User, 260f),
+            Height = new SvgUnit(SvgUnitType.User, 90f),
+            ViewBox = new SvgViewBox(0f, 0f, 260f, 90f)
+        };
+        var text = new SvgText("Text decoration")
+        {
+            X = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, 12f) },
+            Y = new SvgUnitCollection { new SvgUnit(SvgUnitType.User, 58f) },
+            FontFamily = "sans-serif",
+            FontSize = new SvgUnit(SvgUnitType.User, 36f),
+            Fill = new SvgColourServer(System.Drawing.Color.Black),
+            TextDecoration = textDecoration
+        };
+        document.Children.Add(text);
+
+        using var svg = new SKSvg();
+        using var _ = svg.FromSvgDocument(document);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        return Image.Load<Rgba32>(output);
+    }
+
+    private static Image<Rgba32> RenderParsedTextDecorationMutation(string initialDecoration, SvgTextDecoration textDecoration)
+    {
+        var svgMarkup = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="260" height="90" viewBox="0 0 260 90">
+              <text id="target" x="12" y="58" font-family="sans-serif" font-size="36" fill="black" text-decoration="{{initialDecoration}}">Text decoration</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        var text = Assert.IsType<SvgText>(svg.SourceDocument!.GetElementById("target")!);
+        text.TextDecoration = textDecoration;
+        Assert.NotNull(svg.RefreshFromSourceDocument());
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        return Image.Load<Rgba32>(output);
+    }
+
+    private static int CountDifferingPixels(Image<Rgba32> first, Image<Rgba32> second)
+    {
+        Assert.Equal(first.Width, second.Width);
+        Assert.Equal(first.Height, second.Height);
+
+        var count = 0;
+        for (var y = 0; y < first.Height; y++)
+        {
+            for (var x = 0; x < first.Width; x++)
+            {
+                if (!first[x, y].Equals(second[x, y]))
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
 }
