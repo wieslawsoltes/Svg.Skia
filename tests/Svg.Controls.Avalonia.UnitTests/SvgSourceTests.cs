@@ -1,6 +1,8 @@
 using System.Linq;
+using Avalonia;
 using Avalonia.Headless.XUnit;
 using Avalonia.Svg;
+using Avalonia.Svg.Commands;
 using ShimSkiaSharp;
 using ShimSkiaSharp.Editing;
 using Xunit;
@@ -10,6 +12,16 @@ namespace Avalonia.Svg.UnitTests;
 public class SvgSourceTests
 {
     private const string SampleSvg = "<svg width=\"10\" height=\"10\"><rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"red\" /></svg>";
+    private const string ClipPathSvg = """
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <clipPath id="clip">
+              <rect width="10" height="10" />
+            </clipPath>
+          </defs>
+          <rect fill="#F00" width="24" height="24" rx="12" clip-path="url(#clip)" />
+        </svg>
+        """;
     private const string SvgFontGlyphSvg = """
         <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
           <defs>
@@ -68,5 +80,19 @@ public class SvgSourceTests
         Assert.NotEmpty(source.Picture!.FindCommands<DrawPathCanvasCommand>());
         Assert.Empty(source.Picture.FindCommands<DrawTextCanvasCommand>());
         Assert.Empty(source.Picture.FindCommands<DrawTextBlobCanvasCommand>());
+    }
+
+    [AvaloniaFact]
+    public void Record_ConvertsClipPathToGeometryClip()
+    {
+        var source = SvgSource.LoadFromSvg(ClipPathSvg);
+
+        Assert.NotNull(source.Picture);
+        using var picture = AvaloniaPicture.Record(source.Picture!);
+        var geometryClip = Assert.Single(picture.Commands.OfType<GeometryClipDrawCommand>());
+
+        Assert.NotNull(geometryClip.Clip);
+        Assert.Equal(new Rect(0, 0, 10, 10), geometryClip.Clip.Bounds);
+        Assert.Contains(picture.Commands, command => command is RectangleDrawCommand);
     }
 }

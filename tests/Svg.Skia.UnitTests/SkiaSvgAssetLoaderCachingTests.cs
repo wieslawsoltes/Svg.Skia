@@ -1,9 +1,15 @@
 #pragma warning disable CS0618 // Shim paint keeps deprecated SKPaint text/typeface surface for compatibility
 
+using System.Collections.Generic;
 using System.Linq;
 using ShimSkiaSharp;
 using Svg.Skia;
+using Svg.Skia.TypefaceProviders;
 using Xunit;
+using NativeTypeface = SkiaSharp.SKTypeface;
+using NativeTypefaceSlant = SkiaSharp.SKFontStyleSlant;
+using NativeTypefaceWeight = SkiaSharp.SKFontStyleWeight;
+using NativeTypefaceWidth = SkiaSharp.SKFontStyleWidth;
 
 namespace Svg.Skia.UnitTests;
 
@@ -63,6 +69,33 @@ public class SkiaSvgAssetLoaderCachingTests
         Assert.True(mutatedAdvance > repeatedAdvance * 2f);
     }
 
+    [Fact]
+    public void SharedCaches_DoNotBypassCustomTypefaceProvidersAcrossModels()
+    {
+        var firstProvider = new CountingTypefaceProvider();
+        var secondProvider = new CountingTypefaceProvider();
+        var requestedTypeface = SKTypeface.FromFamilyName(
+            "Missing Custom Family",
+            SKFontStyleWeight.Normal,
+            SKFontStyleWidth.Normal,
+            SKFontStyleSlant.Upright);
+
+        var firstModel = new SkiaModel(new SKSvgSettings
+        {
+            TypefaceProviders = new List<ITypefaceProvider> { firstProvider }
+        });
+        var secondModel = new SkiaModel(new SKSvgSettings
+        {
+            TypefaceProviders = new List<ITypefaceProvider> { secondProvider }
+        });
+
+        firstModel.ToSKTypeface(requestedTypeface);
+        secondModel.ToSKTypeface(requestedTypeface);
+
+        Assert.True(firstProvider.CallCount > 0);
+        Assert.True(secondProvider.CallCount > 0);
+    }
+
     private static SKPaint CreateTextPaint(float textSize)
     {
         return new SKPaint
@@ -74,6 +107,21 @@ public class SkiaSvgAssetLoaderCachingTests
                 SKFontStyleWidth.Normal,
                 SKFontStyleSlant.Upright)
         };
+    }
+
+    private sealed class CountingTypefaceProvider : ITypefaceProvider
+    {
+        public int CallCount { get; private set; }
+
+        public NativeTypeface? FromFamilyName(
+            string fontFamily,
+            NativeTypefaceWeight fontWeight,
+            NativeTypefaceWidth fontWidth,
+            NativeTypefaceSlant fontStyle)
+        {
+            CallCount++;
+            return null;
+        }
     }
 }
 

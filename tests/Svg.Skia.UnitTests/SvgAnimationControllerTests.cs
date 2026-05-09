@@ -1549,7 +1549,41 @@ public class SvgAnimationControllerTests
             return commandRangeSignatures;
         }
 
+        var leafCommandSignatures = CollectLeafCommandSignatures(picture);
+        if (leafCommandSignatures.Count > 0)
+        {
+            return leafCommandSignatures;
+        }
+
         return new System.Collections.Generic.List<string> { GetPictureSignature(picture) };
+    }
+
+    private static System.Collections.Generic.List<string> CollectLeafCommandSignatures(ShimSkiaSharp.SKPicture picture)
+    {
+        if (picture.Commands is not { Count: > 0 } commands)
+        {
+            return new System.Collections.Generic.List<string>();
+        }
+
+        var signatures = new System.Collections.Generic.List<string>();
+        for (var i = 0; i < commands.Count; i++)
+        {
+            if (IsLeafDrawCommand(commands[i]))
+            {
+                signatures.Add(GetCommandRangeSignature(picture, commands, i, i));
+            }
+        }
+
+        return signatures;
+    }
+
+    private static bool IsLeafDrawCommand(CanvasCommand command)
+    {
+        return command is DrawPathCanvasCommand or
+            DrawTextCanvasCommand or
+            DrawTextBlobCanvasCommand or
+            DrawTextOnPathCanvasCommand or
+            DrawImageCanvasCommand;
     }
 
     private static System.Collections.Generic.List<string> CollectTopLevelCommandRangeSignatures(ShimSkiaSharp.SKPicture picture)

@@ -19,6 +19,9 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build (${{ matrix.os }})
@@ -42,10 +45,10 @@ jobs:
       - name: Determine version suffix
         shell: bash
         run: |
-          if [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
-            echo "VERSION_SUFFIX=" >> $GITHUB_ENV
+          if [[ "$GITHUB_REF" == refs/heads/release/* ]]; then
+            echo "VERSION_SUFFIX=" >> "$GITHUB_ENV"
           else
-            echo "VERSION_SUFFIX=-build.${{ github.run_number }}" >> $GITHUB_ENV
+            echo "VERSION_SUFFIX=-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
           fi
 
       - name: Restore
@@ -58,6 +61,9 @@ jobs:
     name: Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     needs: build
+    permissions:
+      contents: read
+      checks: write
     strategy:
       fail-fast: false
       matrix:
@@ -76,10 +82,10 @@ jobs:
       - name: Determine version suffix
         shell: bash
         run: |
-          if [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
-            echo "VERSION_SUFFIX=" >> $GITHUB_ENV
+          if [[ "$GITHUB_REF" == refs/heads/release/* ]]; then
+            echo "VERSION_SUFFIX=" >> "$GITHUB_ENV"
           else
-            echo "VERSION_SUFFIX=-build.${{ github.run_number }}" >> $GITHUB_ENV
+            echo "VERSION_SUFFIX=-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
           fi
 
       - name: Restore
@@ -102,7 +108,8 @@ jobs:
 
       - name: Publish test results
         uses: dorny/test-reporter@v1
-        if: always()
+        # Fork and Dependabot PR tokens cannot create check runs; TRX artifacts still upload above.
+        if: ${{ always() && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) }}
         with:
           name: Test Results (${{ matrix.os }})
           path: artifacts/test/**/*.trx
@@ -131,19 +138,23 @@ jobs:
       - name: Determine version suffix
         shell: bash
         run: |
-          if [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
-            echo "VERSION_SUFFIX=" >> $GITHUB_ENV
+          if [[ "$GITHUB_REF" == refs/heads/release/* ]]; then
+            echo "VERSION_SUFFIX=" >> "$GITHUB_ENV"
           else
-            echo "VERSION_SUFFIX=-build.${{ github.run_number }}" >> $GITHUB_ENV
+            echo "VERSION_SUFFIX=-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
           fi
 
-      - name: Restore library
+      - name: Restore libraries
         working-directory: src/SvgML.Maui
-        run: dotnet restore SvgML.Maui.csproj
+        run: |
+          dotnet restore SvgML.Maui.csproj
+          dotnet restore ../Svg.Controls.Skia.Maui/Svg.Controls.Skia.Maui.csproj
 
-      - name: Build library
+      - name: Build libraries
         working-directory: src/SvgML.Maui
-        run: dotnet build SvgML.Maui.csproj -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
+        run: |
+          dotnet build SvgML.Maui.csproj -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
+          dotnet build ../Svg.Controls.Skia.Maui/Svg.Controls.Skia.Maui.csproj -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
 
       - name: Build sample
         working-directory: src/SvgML.Maui
@@ -167,10 +178,10 @@ jobs:
       - name: Determine version suffix
         shell: bash
         run: |
-          if [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
-            echo "VERSION_SUFFIX=" >> $GITHUB_ENV
+          if [[ "$GITHUB_REF" == refs/heads/release/* ]]; then
+            echo "VERSION_SUFFIX=" >> "$GITHUB_ENV"
           else
-            echo "VERSION_SUFFIX=-build.${{ github.run_number }}" >> $GITHUB_ENV
+            echo "VERSION_SUFFIX=-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
           fi
 
       - name: Restore
@@ -211,19 +222,23 @@ jobs:
       - name: Determine version suffix
         shell: bash
         run: |
-          if [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
-            echo "VERSION_SUFFIX=" >> $GITHUB_ENV
+          if [[ "$GITHUB_REF" == refs/heads/release/* ]]; then
+            echo "VERSION_SUFFIX=" >> "$GITHUB_ENV"
           else
-            echo "VERSION_SUFFIX=-build.${{ github.run_number }}" >> $GITHUB_ENV
+            echo "VERSION_SUFFIX=-build.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
           fi
 
       - name: Restore
         working-directory: src/SvgML.Maui
-        run: dotnet restore SvgML.Maui.csproj
+        run: |
+          dotnet restore SvgML.Maui.csproj
+          dotnet restore ../Svg.Controls.Skia.Maui/Svg.Controls.Skia.Maui.csproj
 
       - name: Pack
         working-directory: src/SvgML.Maui
-        run: dotnet pack SvgML.Maui.csproj -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}" -o ../../artifacts/maui-packages
+        run: |
+          dotnet pack SvgML.Maui.csproj -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}" -o ../../artifacts/maui-packages
+          dotnet pack ../Svg.Controls.Skia.Maui/Svg.Controls.Skia.Maui.csproj -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}" -o ../../artifacts/maui-packages
 
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v4

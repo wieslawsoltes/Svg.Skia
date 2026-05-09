@@ -51,6 +51,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
         var preferredTypeface = paintPreferredTypeface.Typeface;
         var weight = _skiaModel.ToSKFontStyleWeight(preferredTypeface?.FontWeight ?? ShimSkiaSharp.SKFontStyleWeight.Normal);
+        var requestedWeight = preferredTypeface is null ? default(SkiaSharp.SKFontStyleWeight?) : weight;
         var width = _skiaModel.ToSKFontStyleWidth(preferredTypeface?.FontWidth ?? ShimSkiaSharp.SKFontStyleWidth.Normal);
         var slant = _skiaModel.ToSKFontStyleSlant(preferredTypeface?.FontSlant ?? ShimSkiaSharp.SKFontStyleSlant.Upright);
         var preferredFamily = preferredTypeface?.FamilyName;
@@ -73,13 +74,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
             ret.Add(new(currentTypefaceText, _skiaModel.GetTextAdvance(currentTypefaceText, runningPaint),
                 runningPaint.Typeface is null
                     ? null
-                    : ShimSkiaSharp.SKTypeface.FromFamilyName(
-                        runningPaint.Typeface.FamilyName,
-                        // SkiaSharp provides int properties here. Let's just assume our
-                        // ShimSkiaSharp defines the same values as SkiaSharp and convert directly
-                        (ShimSkiaSharp.SKFontStyleWeight)runningPaint.Typeface.FontWeight,
-                        (ShimSkiaSharp.SKFontStyleWidth)runningPaint.Typeface.FontWidth,
-                        (ShimSkiaSharp.SKFontStyleSlant)runningPaint.Typeface.FontSlant)
+                    : ToShimTypeface(runningPaint.Typeface, requestedWeight)
             ));
         }
 
@@ -131,7 +126,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
         EnsureTypefaceProviderCaches();
 
-        var codepoints = CollectDistinctRenderableCodepoints(text);
+        var codepoints = CollectDistinctRenderableCodepoints(text!);
         if (codepoints.Count == 0)
         {
             return paintPreferredTypeface.Typeface;
@@ -139,6 +134,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
         var preferredTypeface = paintPreferredTypeface.Typeface;
         var preferredWeight = _skiaModel.ToSKFontStyleWeight(preferredTypeface?.FontWeight ?? ShimSkiaSharp.SKFontStyleWeight.Normal);
+        var requestedWeight = preferredTypeface is null ? default(SkiaSharp.SKFontStyleWeight?) : preferredWeight;
         var preferredWidth = _skiaModel.ToSKFontStyleWidth(preferredTypeface?.FontWidth ?? ShimSkiaSharp.SKFontStyleWidth.Normal);
         var preferredSlant = _skiaModel.ToSKFontStyleSlant(preferredTypeface?.FontSlant ?? ShimSkiaSharp.SKFontStyleSlant.Upright);
         var preferredFamily = preferredTypeface?.FamilyName;
@@ -185,7 +181,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
             var candidate = candidates[i];
             if (CanRenderAllCodepoints(candidate, codepoints))
             {
-                return ToShimTypeface(candidate);
+                return ToShimTypeface(candidate, requestedWeight);
             }
         }
 
@@ -405,7 +401,35 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         }
 
         var typeface = TryMatchCharacterFromCustomProviders(normalizedFamily, weight, width, slant, codepoint);
-        if (typeface is null && normalizedFamily is not null)
+        if (typeface is null)
+        {
+            if (!SharedTypefaceCache.TryGetMatchedCharacter(normalizedFamily, weight, width, slant, codepoint, out typeface))
+            {
+                typeface = MatchPlatformCharacter(normalizedFamily, weight, width, slant, codepoint);
+                SharedTypefaceCache.AddMatchedCharacter(normalizedFamily, weight, width, slant, codepoint, typeface);
+            }
+        }
+
+        if (typeface is { } && typeface.Handle == IntPtr.Zero)
+        {
+            typeface = null;
+        }
+
+        _matchCharacterCache.TryAdd(key, typeface);
+        TrimCachesIfNeeded();
+        return typeface;
+    }
+
+    private static SkiaSharp.SKTypeface? MatchPlatformCharacter(
+        string? normalizedFamily,
+        SkiaSharp.SKFontStyleWeight weight,
+        SkiaSharp.SKFontStyleWidth width,
+        SkiaSharp.SKFontStyleSlant slant,
+        int codepoint)
+    {
+        var typeface = default(SkiaSharp.SKTypeface);
+
+        if (normalizedFamily is not null)
         {
             foreach (var candidate in SkiaModel.EnumerateFontFamilyCandidates(normalizedFamily, browserCompatible: true))
             {
@@ -491,8 +515,6 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
             typeface = null;
         }
 
-        _matchCharacterCache.TryAdd(key, typeface);
-        TrimCachesIfNeeded();
         return typeface;
     }
 
@@ -564,15 +586,25 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         return true;
     }
 
-    private static ShimSkiaSharp.SKTypeface? ToShimTypeface(SkiaSharp.SKTypeface? typeface)
+    private static ShimSkiaSharp.SKTypeface? ToShimTypeface(
+        SkiaSharp.SKTypeface? typeface,
+        SkiaSharp.SKFontStyleWeight? requestedWeight)
     {
-        return typeface is null || typeface.Handle == IntPtr.Zero
-            ? null
-            : ShimSkiaSharp.SKTypeface.FromFamilyName(
-                typeface.FamilyName,
-                (ShimSkiaSharp.SKFontStyleWeight)typeface.FontWeight,
-                (ShimSkiaSharp.SKFontStyleWidth)typeface.FontWidth,
-                (ShimSkiaSharp.SKFontStyleSlant)typeface.FontSlant);
+        if (typeface is null || typeface.Handle == IntPtr.Zero)
+        {
+            return null;
+        }
+
+        var resolvedWeight = (SkiaSharp.SKFontStyleWeight)typeface.FontWeight;
+        var shimWeight = requestedWeight is { } weight && resolvedWeight < weight
+            ? (ShimSkiaSharp.SKFontStyleWeight)weight
+            : (ShimSkiaSharp.SKFontStyleWeight)resolvedWeight;
+
+        return ShimSkiaSharp.SKTypeface.FromFamilyName(
+            typeface.FamilyName,
+            shimWeight,
+            (ShimSkiaSharp.SKFontStyleWidth)typeface.FontWidth,
+            (ShimSkiaSharp.SKFontStyleSlant)typeface.FontSlant);
     }
 
     private SkiaSharp.SKTypeface? GetProviderTypeface(
@@ -593,7 +625,9 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
             _providerTypefaceCache.TryRemove(key, out _);
         }
 
-        var typeface = provider.FromFamilyName(familyName, weight, width, slant);
+        var typeface = SharedTypefaceCache.TryGetOrAddProviderTypeface(provider, familyName, weight, width, slant, out var sharedCached)
+            ? sharedCached
+            : provider.FromFamilyName(familyName, weight, width, slant);
         if (typeface is { } && typeface.Handle == IntPtr.Zero)
         {
             typeface = null;

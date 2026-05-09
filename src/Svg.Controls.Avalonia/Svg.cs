@@ -9,6 +9,7 @@ using Avalonia.Media;
 using Avalonia.Metadata;
 using ShimSkiaSharp;
 using Svg.Model;
+using DrawingColor = System.Drawing.Color;
 
 namespace Avalonia.Svg;
 
@@ -97,6 +98,21 @@ public class Svg : Control
         AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("CurrentCss", inherits: true);
 
     /// <summary>
+    /// Defines the CurrentColor property.
+    /// </summary>
+    public static readonly AttachedProperty<Color?> CurrentColorProperty =
+        AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, Color?>("CurrentColor", inherits: true);
+
+    /// <summary>
+    /// Gets or sets the default SVG currentColor value.
+    /// </summary>
+    public Color? CurrentColor
+    {
+        get => GetCurrentColor(this);
+        set => SetCurrentColor(this, value);
+    }
+
+    /// <summary>
     /// Gets svg model.
     /// </summary>
     public SKPicture? Model => _picture;
@@ -108,6 +124,7 @@ public class Svg : Control
 
         CssProperty.Changed.AddClassHandler<Control>(OnCssPropertyAttachedPropertyChanged);
         CurrentCssProperty.Changed.AddClassHandler<Control>(OnCssPropertyAttachedPropertyChanged);
+        CurrentColorProperty.Changed.AddClassHandler<Control>(OnCssPropertyAttachedPropertyChanged);
     }
 
     public static string? GetCss(AvaloniaObject element)
@@ -128,6 +145,16 @@ public class Svg : Control
     public static void SetCurrentCss(AvaloniaObject element, string? value)
     {
         element.SetValue(CurrentCssProperty, value);
+    }
+
+    public static Color? GetCurrentColor(AvaloniaObject element)
+    {
+        return element.GetValue(CurrentColorProperty);
+    }
+
+    public static void SetCurrentColor(AvaloniaObject element, Color? value)
+    {
+        element.SetValue(CurrentColorProperty, value);
     }
 
     private static void OnCssPropertyAttachedPropertyChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
@@ -236,7 +263,7 @@ public class Svg : Control
             var path = change.GetNewValue<string?>();
             var css = GetCss(this);
             var currentCss = GetCurrentCss(this);
-            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            var parameters = BuildParameters(css, currentCss, CurrentColor);
             LoadFromPath(path, parameters);
             InvalidateVisual();
         }
@@ -245,7 +272,7 @@ public class Svg : Control
         {
             var css = change.GetNewValue<string?>();
             var currentCss = GetCurrentCss(this);
-            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            var parameters = BuildParameters(css, currentCss, CurrentColor);
             var path = Path;
             var source = Source;
 
@@ -265,7 +292,27 @@ public class Svg : Control
         {
             var css = GetCss(this);
             var currentCss = change.GetNewValue<string?>();
-            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            var parameters = BuildParameters(css, currentCss, CurrentColor);
+            var path = Path;
+            var source = Source;
+
+            if (path is { })
+            {
+                LoadFromPath(path, parameters);
+            }
+            else if (source is { })
+            {
+                LoadFromSource(source, parameters);
+            }
+
+            InvalidateVisual();
+        }
+
+        if (change.Property == CurrentColorProperty)
+        {
+            var css = GetCss(this);
+            var currentCss = GetCurrentCss(this);
+            var parameters = BuildParameters(css, currentCss, change.GetNewValue<Color?>());
             var path = Path;
             var source = Source;
 
@@ -285,11 +332,38 @@ public class Svg : Control
         {
             var css = GetCss(this);
             var currentCss = GetCurrentCss(this);
-            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            var parameters = BuildParameters(css, currentCss, CurrentColor);
             var source = change.GetNewValue<string?>();
             LoadFromSource(source, parameters);
             InvalidateVisual();
         }
+    }
+
+    private static SvgParameters BuildParameters(string? css, string? currentCss, Color? currentColor)
+    {
+        return new SvgParameters(null, CombineCss(css, currentCss), ToDrawingColor(currentColor));
+    }
+
+    private static string? CombineCss(string? css, string? currentCss)
+    {
+        if (string.IsNullOrWhiteSpace(css))
+        {
+            return string.IsNullOrWhiteSpace(currentCss) ? null : currentCss;
+        }
+
+        if (string.IsNullOrWhiteSpace(currentCss))
+        {
+            return css;
+        }
+
+        return string.Concat(css, ' ', currentCss);
+    }
+
+    private static DrawingColor? ToDrawingColor(Color? color)
+    {
+        return color is { } value
+            ? DrawingColor.FromArgb(value.A, value.R, value.G, value.B)
+            : null;
     }
 
     private void LoadFromPath(string? path, SvgParameters? parameters = null)
