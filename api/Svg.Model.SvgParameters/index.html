@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="SvgParameters Struct | Svg.Skia">
-<meta name="twitter:description" content="SvgParameters Struct Definition Namespace Svg.Model Assembly Svg.Model.dll Implements IEquatable&lt;SvgParameters> View source Show inherited members (6) System.ValueType.Equals(System.Object) System.ValueType.GetHashCode() System.ValueType.ToString() System.Object.Equals(System.Object, System.Object) System.Object.GetType() System.Object.ReferenceEquals(System.Object, System.Object) public readonly record struct SvgParameters(Dictionary&lt;string, string>? Entities, string? Css) : IEquatable&lt;SvgParameters> Filter members: Tip: use kind:method, kind:property...">
+<meta name="twitter:description" content="SvgParameters Struct Definition Namespace Svg.Model Assembly Svg.Model.dll Implements IEquatable&lt;SvgParameters> View source Show inherited members (6) System.ValueType.Equals(System.Object) System.ValueType.GetHashCode() System.ValueType.ToString() System.Object.Equals(System.Object, System.Object) System.Object.GetType() System.Object.ReferenceEquals(System.Object, System.Object) public readonly record struct SvgParameters(Dictionary&lt;string, string>? Entities, string? Css, Color? CurrentColor = default(Color? )) : IEquatable&lt;SvgParameters> Filter members: Tip: use...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="SvgParameters Struct | Svg.Skia">
 <meta property="og:title" content="SvgParameters Struct | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="SvgParameters Struct Definition Namespace Svg.Model Assembly Svg.Model.dll Implements IEquatable&lt;SvgParameters> View source Show inherited members (6) System.ValueType.Equals(System.Object) System.ValueType.GetHashCode() System.ValueType.ToString() System.Object.Equals(System.Object, System.Object) System.Object.GetType() System.Object.ReferenceEquals(System.Object, System.Object) public readonly record struct SvgParameters(Dictionary&lt;string, string>? Entities, string? Css) : IEquatable&lt;SvgParameters> Filter members: Tip: use kind:method, kind:property...">
+<meta property="og:description" content="SvgParameters Struct Definition Namespace Svg.Model Assembly Svg.Model.dll Implements IEquatable&lt;SvgParameters> View source Show inherited members (6) System.ValueType.Equals(System.Object) System.ValueType.GetHashCode() System.ValueType.ToString() System.Object.Equals(System.Object, System.Object) System.Object.GetType() System.Object.ReferenceEquals(System.Object, System.Object) public readonly record struct SvgParameters(Dictionary&lt;string, string>? Entities, string? Css, Color? CurrentColor = default(Color? )) : IEquatable&lt;SvgParameters> Filter members: Tip: use...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="SvgParameters Struct | Svg.Skia">
   </head>
@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.246670967720a38e5aecba384f981435.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-4202,menu-id-menu-4184' data-lunet-menu-active='menu-item-menu-4202,menu-item-menu-4184,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.7dd9f69bd8a22194d4daf20d6eb28e48.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-4214,menu-id-menu-4196' data-lunet-menu-active='menu-item-menu-4214,menu-item-menu-4196,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -154,7 +154,7 @@
 <div><span class="api-dotnet-label">Implements</span> <span class="api-dotnet-inline-list"><a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1">IEquatable&lt;SvgParameters&gt;</a></span></div>
 </div>
 <div class="api-dotnet-definition-actions">
-<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/src/Svg.Model/SvgParameters.cs#L6" target="_blank" rel="noopener">View source</a>
+<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/src/Svg.Model/SvgParameters.cs#L7" target="_blank" rel="noopener">View source</a>
 </div>
 </div>
 <details class="api-dotnet-inherited">
@@ -169,7 +169,7 @@
 </ul>
 </details>
 </div>
-<pre><code class="language-csharp">public readonly record struct SvgParameters(Dictionary&lt;string, string&gt;? Entities, string? Css) : IEquatable&lt;SvgParameters&gt;
+<pre><code class="language-csharp">public readonly record struct SvgParameters(Dictionary&lt;string, string&gt;? Entities, string? Css, Color? CurrentColor = default(Color? )) : IEquatable&lt;SvgParameters&gt;
 </code></pre>
 <div class="api-dotnet-member-filter" data-api-dotnet-filter>
 <div class="api-dotnet-member-filter-row">
@@ -179,14 +179,20 @@
 </div>
 <div class="form-text api-dotnet-member-filter-help">Tip: use <code>kind:method</code>, <code>kind:property</code>, <code>kind:ctor</code>. Press <kbd>Esc</kbd> to clear.</div>
 </div>
-<h2 id="constructors">Constructors <span class="api-dotnet-count">(1)</span></h2>
+<h2 id="constructors">Constructors <span class="api-dotnet-count">(2)</span></h2>
 <div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="constructors">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Constructor"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.Model.SvgParameters.-ctor-System.Collections.Generic.Dictionary-System.String-S-fa994136dc4f/"><i class="bi bi-hammer api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SvgParameters(Dictionary&lt;String, String&gt;?, String?, Nullable&lt;Color&gt;)</code></a></div>
 <div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Constructor"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.Model.SvgParameters.-ctor-System.Collections.Generic.Dictionary-System.String-S-b4649933d1db/"><i class="bi bi-hammer api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SvgParameters(Dictionary&lt;String, String&gt;?, String?)</code></a></div>
 </div>
-<h2 id="properties">Properties <span class="api-dotnet-count">(2)</span></h2>
+<h2 id="properties">Properties <span class="api-dotnet-count">(3)</span></h2>
 <div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="properties">
 <div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.Model.SvgParameters.Css/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Css</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.Model.SvgParameters.CurrentColor/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">CurrentColor</code></a></div>
 <div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.Model.SvgParameters.Entities/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Entities</code></a></div>
+</div>
+<h2 id="methods">Methods <span class="api-dotnet-count">(1)</span></h2>
+<div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="methods">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Method"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/Svg.Model.SvgParameters.Deconstruct-System.Collections.Generic.Dictionary-System.St-249cbb6acbfd/"><i class="bi bi-gear api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Deconstruct(out Dictionary&lt;String, String&gt;?, out String?)</code></a></div>
 </div>
 </div>
 
