@@ -2504,11 +2504,11 @@ public sealed class SvgAnimationController : IDisposable
             TryGetColor(endValue, out var endColor) &&
             TryGetColor(value, out var currentColor))
         {
-            value = new SvgColourServer(Color.FromArgb(
+            value = FormatColor(Color.FromArgb(
                 ClampToByte(currentColor.A + ((endColor.A - startColor.A) * sample.IterationIndex)),
                 ClampToByte(currentColor.R + ((endColor.R - startColor.R) * sample.IterationIndex)),
                 ClampToByte(currentColor.G + ((endColor.G - startColor.G) * sample.IterationIndex)),
-                ClampToByte(currentColor.B + ((endColor.B - startColor.B) * sample.IterationIndex)))).ToString();
+                ClampToByte(currentColor.B + ((endColor.B - startColor.B) * sample.IterationIndex))));
             return true;
         }
 
@@ -3148,8 +3148,24 @@ public sealed class SvgAnimationController : IDisposable
             ClampToByte(Lerp(fromColor.G, toColor.G, progress)),
             ClampToByte(Lerp(fromColor.B, toColor.B, progress)));
 
-        result = new SvgColourServer(color).ToString();
+        result = FormatColor(color);
         return true;
+    }
+
+    private static string FormatColor(Color color)
+    {
+        if (color.A == byte.MaxValue)
+        {
+            return new SvgColourServer(color).ToString();
+        }
+
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "#{0:x2}{1:x2}{2:x2}{3:x2}",
+            color.R,
+            color.G,
+            color.B,
+            color.A);
     }
 
     private static byte ClampToByte(float value)
@@ -3189,6 +3205,14 @@ public sealed class SvgAnimationController : IDisposable
 
     private static bool TryGetColor(SvgPaintServer? paintServer, out Color color)
     {
+        if (paintServer == SvgPaintServer.None ||
+            paintServer == SvgPaintServer.Inherit ||
+            paintServer == SvgPaintServer.NotSet)
+        {
+            color = default;
+            return false;
+        }
+
         if (paintServer is SvgColourServer colourServer)
         {
             color = colourServer.Colour;
@@ -3232,11 +3256,11 @@ public sealed class SvgAnimationController : IDisposable
         if (TryGetColor(baseValue, out var baseColor) &&
             TryGetColor(byValue, out var byColor))
         {
-            result = new SvgColourServer(Color.FromArgb(
+            result = FormatColor(Color.FromArgb(
                 ClampToByte(baseColor.A + byColor.A),
                 ClampToByte(baseColor.R + byColor.R),
                 ClampToByte(baseColor.G + byColor.G),
-                ClampToByte(baseColor.B + byColor.B))).ToString();
+                ClampToByte(baseColor.B + byColor.B)));
             return true;
         }
 
@@ -3331,11 +3355,11 @@ public sealed class SvgAnimationController : IDisposable
             case SvgPaintServer basePaint when byObject is SvgPaintServer byPaint:
                 if (TryGetColor(basePaint, out var baseColor) && TryGetColor(byPaint, out var byColor))
                 {
-                    result = new SvgColourServer(Color.FromArgb(
+                    result = FormatColor(Color.FromArgb(
                         ClampToByte(baseColor.A + byColor.A),
                         ClampToByte(baseColor.R + byColor.R),
                         ClampToByte(baseColor.G + byColor.G),
-                        ClampToByte(baseColor.B + byColor.B))).ToString();
+                        ClampToByte(baseColor.B + byColor.B)));
                     return true;
                 }
 

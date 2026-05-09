@@ -67,6 +67,11 @@ internal sealed class SvgInlineStyleAttributeParser
             return;
         }
 
+        if (SvgCssPaintDeclarationValidator.ShouldIgnoreInvalidPaintDeclaration(element, name, value))
+        {
+            return;
+        }
+
         element.AddStyle(name, value, specificity);
     }
 

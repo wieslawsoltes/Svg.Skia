@@ -544,6 +544,14 @@ internal static class SvgCssCompatibilityProcessor
             return;
         }
 
+        if (SvgCssPaintDeclarationValidator.ShouldIgnoreInvalidPaintDeclaration(
+                element,
+                declaration.Name,
+                declaration.Value))
+        {
+            return;
+        }
+
         element.AddStyle(declaration.Name, declaration.Value, specificity);
     }
 
