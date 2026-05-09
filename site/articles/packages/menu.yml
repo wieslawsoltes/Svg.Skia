@@ -7,6 +7,7 @@ packages:
   - {path: svg-custom.md, title: "Svg.Custom"}
   - {path: shim-skiasharp.md, title: "ShimSkiaSharp"}
   - {path: svg-controls-skia-uno.md, title: "Svg.Controls.Skia.Uno"}
+  - {path: svg-controls-skia-maui.md, title: "Svg.Controls.Skia.Maui"}
   - {path: svg-controls-skia-avalonia.md, title: "Svg.Controls.Skia.Avalonia"}
   - {path: svg-controls-avalonia.md, title: "Svg.Controls.Avalonia"}
   - {path: svgml-avalonia.md, title: "SvgML.Avalonia"}

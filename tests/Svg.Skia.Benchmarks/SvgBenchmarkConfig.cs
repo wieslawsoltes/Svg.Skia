@@ -28,6 +28,7 @@ internal sealed class SvgBenchmarkConfig : ManualConfig
         AddDiagnoser(MemoryDiagnoser.Default);
         AddExporter(MarkdownExporter.GitHub);
         AddExporter(HtmlExporter.Default);
+        AddColumnProvider(DefaultColumnProviders.Instance);
         AddColumn(RankColumn.Arabic);
         AddColumn(StatisticColumn.P95);
         AddJob(Job.ShortRun

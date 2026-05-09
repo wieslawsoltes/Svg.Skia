@@ -136,6 +136,12 @@ The retained `NativeComposition` path uses one composition child visual per top-
 
 Uno currently falls back away from `NativeComposition` because the active package surface does not provide a working retained child-visual attachment path for this implementation.
 
+### .NET MAUI
+
+`Svg.Controls.Skia.Maui` exposes the same playback-property surface and the same resolved-backend diagnostics.
+
+MAUI currently resolves automatic playback to `DispatcherTimer`. `RenderLoop` and `NativeComposition` requests fall back to `DispatcherTimer` or `Manual` depending on host availability.
+
 ## Benchmarks and sample host
 
 The repository also adds two practical validation paths for this work:
@@ -143,4 +149,4 @@ The repository also adds two practical validation paths for this work:
 - `tests/Svg.Skia.Benchmarks` measures the shared animation renderer and layered redraw behavior.
 - `samples/TestApp` exposes backend selection, playback rate, clock display, play, pause, and restart controls so you can exercise the runtime manually.
 
-For related lower-level guidance, see [Hit Testing and Scene Inspection](hit-testing-and-model-editing), [Svg.Skia](../packages/svg-skia), [Svg.Controls.Skia.Avalonia](../packages/svg-controls-skia-avalonia), and [Svg.Controls.Skia.Uno](../packages/svg-controls-skia-uno).
+For related lower-level guidance, see [Hit Testing and Scene Inspection](hit-testing-and-model-editing), [Svg.Skia](../packages/svg-skia), [Svg.Controls.Skia.Avalonia](../packages/svg-controls-skia-avalonia), [Svg.Controls.Skia.Uno](../packages/svg-controls-skia-uno), and [Svg.Controls.Skia.Maui](../packages/svg-controls-skia-maui).
