@@ -173,7 +173,7 @@ internal static class SvgCssCompatibilityProcessor
                 {
                     var specificity = rule.Selector.GetSpecificity();
                     var elemsToStyle = rootNode.QuerySelectorAll(rule.Selector, elementFactory);
-                    if (SelectorListContainsSvgRoot(selectorText))
+                    if (SelectorListMatchesSvgRoot(selectorText, svgDocument))
                     {
                         elemsToStyle = elemsToStyle.Concat(new[] { svgDocument });
                     }
@@ -183,6 +183,11 @@ internal static class SvgCssCompatibilityProcessor
                         foreach (var declaration in declarations)
                         {
                             SvgCssVariableResolver.AddCustomProperty(elem, declaration.Name, declaration.Value, specificity);
+                        }
+
+                        if (elementFactory.PreserveJavaScriptDomState)
+                        {
+                            svgDocument.TrackCompatibilityStyleApplication(elem);
                         }
                     }
                 }
@@ -194,7 +199,7 @@ internal static class SvgCssCompatibilityProcessor
         }
     }
 
-    private static bool SelectorListContainsSvgRoot(string selectorText)
+    private static bool SelectorListMatchesSvgRoot(string selectorText, SvgDocument svgDocument)
     {
         var segmentStart = 0;
         var index = 0;
@@ -221,7 +226,9 @@ internal static class SvgCssCompatibilityProcessor
                     continue;
 
                 case ',' when parenthesisDepth == 0:
-                    if (SelectorSegmentTargetsSvgRoot(selectorText.AsSpan(segmentStart, index - segmentStart)))
+                    if (SelectorSegmentMatchesSvgRoot(
+                            selectorText.AsSpan(segmentStart, index - segmentStart),
+                            svgDocument))
                     {
                         return true;
                     }
@@ -236,14 +243,272 @@ internal static class SvgCssCompatibilityProcessor
             }
         }
 
-        return SelectorSegmentTargetsSvgRoot(selectorText.AsSpan(segmentStart));
+        return SelectorSegmentMatchesSvgRoot(
+            selectorText.AsSpan(segmentStart),
+            svgDocument);
     }
 
-    private static bool SelectorSegmentTargetsSvgRoot(ReadOnlySpan<char> selector)
+    private static bool SelectorSegmentMatchesSvgRoot(
+        ReadOnlySpan<char> selector,
+        SvgDocument svgDocument)
     {
         var trimmed = TrimWhitespace(selector);
-        return trimmed.Equals("svg".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
-               trimmed.Equals(":root".AsSpan(), StringComparison.OrdinalIgnoreCase);
+        if (trimmed.Equals("svg".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals(":root".AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return TryGetSvgRootSelectorSuffix(trimmed, out var suffix) &&
+               SvgRootSelectorSuffixMatches(svgDocument, suffix);
+    }
+
+    private static bool TryGetSvgRootSelectorSuffix(ReadOnlySpan<char> selector, out ReadOnlySpan<char> suffix)
+    {
+        suffix = default;
+        const string RootPseudoClass = ":root";
+        if (!selector.StartsWith(RootPseudoClass.AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        suffix = selector.Slice(RootPseudoClass.Length);
+        if (suffix.Length > 0 &&
+            suffix[0] is not ('.' or '#' or '['))
+        {
+            return false;
+        }
+
+        return IsSimpleSelectorSuffix(suffix);
+    }
+
+    private static bool IsSimpleSelectorSuffix(ReadOnlySpan<char> selector)
+    {
+        var parenthesisDepth = 0;
+        var bracketDepth = 0;
+        var index = 0;
+        while (index < selector.Length)
+        {
+            var current = selector[index];
+            switch (current)
+            {
+                case '\'':
+                case '"':
+                    SkipQuotedString(selector, ref index, current);
+                    continue;
+
+                case '[':
+                    bracketDepth++;
+                    index++;
+                    continue;
+
+                case ']' when bracketDepth > 0:
+                    bracketDepth--;
+                    index++;
+                    continue;
+
+                case '(':
+                    parenthesisDepth++;
+                    index++;
+                    continue;
+
+                case ')' when parenthesisDepth > 0:
+                    parenthesisDepth--;
+                    index++;
+                    continue;
+
+                case '>' or '+' or '~' or ',' when parenthesisDepth == 0 && bracketDepth == 0:
+                    return false;
+
+                default:
+                    if (char.IsWhiteSpace(current) && parenthesisDepth == 0 && bracketDepth == 0)
+                    {
+                        return false;
+                    }
+
+                    index++;
+                    break;
+            }
+        }
+
+        return parenthesisDepth == 0 && bracketDepth == 0;
+    }
+
+    private static bool SvgRootSelectorSuffixMatches(SvgDocument svgDocument, ReadOnlySpan<char> selector)
+    {
+        var index = 0;
+        while (index < selector.Length)
+        {
+            switch (selector[index])
+            {
+                case '.':
+                    index++;
+                    if (!TryReadSimpleSelectorIdentifier(selector, ref index, out var className) ||
+                        !SvgRootHasClass(svgDocument, className))
+                    {
+                        return false;
+                    }
+
+                    break;
+
+                case '#':
+                    index++;
+                    if (!TryReadSimpleSelectorIdentifier(selector, ref index, out var id) ||
+                        !string.Equals(svgDocument.ID, id, StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+
+                    break;
+
+                case '[':
+                    if (!TryReadAttributeSelector(selector, ref index, out var attributeName, out var attributeValue) ||
+                        !svgDocument.TryGetAttribute(attributeName, out var actualValue))
+                    {
+                        return false;
+                    }
+
+                    if (attributeValue is not null &&
+                        !string.Equals(actualValue, attributeValue, StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+
+                    break;
+
+                default:
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool SvgRootHasClass(SvgDocument svgDocument, string className)
+    {
+        if (!svgDocument.TryGetAttribute("class", out var classAttribute) ||
+            string.IsNullOrWhiteSpace(classAttribute))
+        {
+            return false;
+        }
+
+        foreach (var token in classAttribute.Split(new[] { ' ', '\t', '\r', '\n', '\f' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (string.Equals(token, className, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryReadSimpleSelectorIdentifier(ReadOnlySpan<char> selector, ref int index, out string identifier)
+    {
+        var start = index;
+        while (index < selector.Length && IsSimpleSelectorIdentifierCharacter(selector[index]))
+        {
+            index++;
+        }
+
+        if (index == start)
+        {
+            identifier = string.Empty;
+            return false;
+        }
+
+        identifier = selector.Slice(start, index - start).ToString();
+        return true;
+    }
+
+    private static bool IsSimpleSelectorIdentifierCharacter(char character)
+    {
+        return char.IsLetterOrDigit(character) ||
+               character is '_' or '-';
+    }
+
+    private static bool TryReadAttributeSelector(
+        ReadOnlySpan<char> selector,
+        ref int index,
+        out string name,
+        out string? value)
+    {
+        name = string.Empty;
+        value = null;
+        var start = index;
+        var current = index + 1;
+        var quote = '\0';
+        while (current < selector.Length)
+        {
+            var character = selector[current];
+            if (quote != '\0')
+            {
+                if (character == quote)
+                {
+                    quote = '\0';
+                }
+
+                current++;
+                continue;
+            }
+
+            if (character is '\'' or '"')
+            {
+                quote = character;
+                current++;
+                continue;
+            }
+
+            if (character == ']')
+            {
+                var content = TrimWhitespace(selector.Slice(start + 1, current - start - 1));
+                if (!TryReadAttributeSelectorContent(content, out name, out value))
+                {
+                    return false;
+                }
+
+                index = current + 1;
+                return true;
+            }
+
+            current++;
+        }
+
+        return false;
+    }
+
+    private static bool TryReadAttributeSelectorContent(ReadOnlySpan<char> content, out string name, out string? value)
+    {
+        name = string.Empty;
+        value = null;
+        var separatorIndex = content.IndexOf('=');
+        if (separatorIndex < 0)
+        {
+            name = content.ToString();
+            return name.Length > 0;
+        }
+
+        if (separatorIndex > 0 &&
+            content[separatorIndex - 1] is '~' or '|' or '^' or '$' or '*')
+        {
+            return false;
+        }
+
+        name = TrimWhitespace(content.Slice(0, separatorIndex)).ToString();
+        value = UnquoteCssAttributeValue(TrimWhitespace(content.Slice(separatorIndex + 1)));
+        return name.Length > 0;
+    }
+
+    private static string UnquoteCssAttributeValue(ReadOnlySpan<char> value)
+    {
+        if (value.Length >= 2 &&
+            ((value[0] == '"' && value[value.Length - 1] == '"') ||
+             (value[0] == '\'' && value[value.Length - 1] == '\'')))
+        {
+            return value.Slice(1, value.Length - 2).ToString();
+        }
+
+        return value.ToString();
     }
 
     private static void ApplyDeclaration(SvgElement element, AppliedDeclaration declaration, int specificity)

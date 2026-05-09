@@ -730,6 +730,32 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void Runtime_RootClassMutationClearsCustomPropertyOnlyStyleState()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" class="theme" width="20" height="20">
+              <style>
+                :root.theme { --target-fill: red; }
+                rect { fill: var(--target-fill, blue); }
+              </style>
+              <rect id="target" width="10" height="10" fill="blue" />
+            </svg>
+            """, captureCompatibilityStyleState: true)!;
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings
+        {
+            ThrowOnError = true
+        });
+
+        AssertVisualFill(document, "target", Color.Red);
+
+        var root = runtime.GetElement(document);
+        root.setAttribute("class", string.Empty);
+
+        AssertVisualFill(document, "target", Color.Blue);
+    }
+
+    [Fact]
     public void FromSvg_InsertInlineStyledElement_ReappliesInlineStyleAfterCss()
     {
         using var svg = new SKSvg();
