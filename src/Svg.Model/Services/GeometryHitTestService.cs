@@ -66,6 +66,34 @@ internal static class GeometryHitTestService
             : ContainsTransformedStroke(path, point, transform, tolerance);
     }
 
+    public static bool IntersectsFill(SKPath path, SKRect rect, SKMatrix transform)
+    {
+        if (rect.IsEmpty)
+        {
+            return false;
+        }
+
+        if (ContainsFill(path, rect.TopLeft, transform) ||
+            ContainsFill(path, rect.TopRight, transform) ||
+            ContainsFill(path, rect.BottomLeft, transform) ||
+            ContainsFill(path, rect.BottomRight, transform))
+        {
+            return true;
+        }
+
+        return IntersectsPath(path, rect, transform);
+    }
+
+    public static bool IntersectsStroke(SKPath path, SKRect rect, SKMatrix transform, float strokeWidth)
+    {
+        if (strokeWidth <= 0f || rect.IsEmpty)
+        {
+            return false;
+        }
+
+        return IntersectsPath(path, Inflate(rect, Math.Max(strokeWidth / 2f, MinStrokeTolerance)), transform);
+    }
+
     public static bool Contains(ClipPath clipPath, SKPoint point)
     {
         return ContainsClipPath(clipPath, point);
@@ -162,6 +190,62 @@ internal static class GeometryHitTestService
         }
 
         return ContainsFillLocal(clip.Path, localPoint);
+    }
+
+    private static bool IntersectsPath(SKPath path, SKRect rect, SKMatrix transform)
+    {
+        var contours = FlattenPath(path);
+        if (contours.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (var contour in contours)
+        {
+            var points = contour.Points;
+            if (points.Count == 0)
+            {
+                continue;
+            }
+
+            if (points.Count == 1)
+            {
+                if (rect.Contains(transform.MapPoint(points[0])))
+                {
+                    return true;
+                }
+
+                continue;
+            }
+
+            var previous = transform.MapPoint(points[0]);
+            if (rect.Contains(previous))
+            {
+                return true;
+            }
+
+            for (var i = 1; i < points.Count; i++)
+            {
+                var current = transform.MapPoint(points[i]);
+                if (rect.Contains(current) || SegmentIntersectsRect(previous, current, rect))
+                {
+                    return true;
+                }
+
+                previous = current;
+            }
+
+            if (contour.Closed)
+            {
+                var start = transform.MapPoint(points[0]);
+                if (SegmentIntersectsRect(previous, start, rect))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static bool ContainsFillLocal(SKPath path, SKPoint point)
@@ -858,6 +942,66 @@ internal static class GeometryHitTestService
     {
         return Math.Abs(a.X - b.X) <= 0.001f &&
                Math.Abs(a.Y - b.Y) <= 0.001f;
+    }
+
+    private static SKRect Inflate(SKRect rect, float amount)
+    {
+        return new SKRect(rect.Left - amount, rect.Top - amount, rect.Right + amount, rect.Bottom + amount);
+    }
+
+    private static bool SegmentIntersectsRect(SKPoint a, SKPoint b, SKRect rect)
+    {
+        if (rect.Contains(a) || rect.Contains(b))
+        {
+            return true;
+        }
+
+        var topLeft = rect.TopLeft;
+        var topRight = rect.TopRight;
+        var bottomLeft = rect.BottomLeft;
+        var bottomRight = rect.BottomRight;
+
+        return SegmentsIntersect(a, b, topLeft, topRight) ||
+               SegmentsIntersect(a, b, topRight, bottomRight) ||
+               SegmentsIntersect(a, b, bottomRight, bottomLeft) ||
+               SegmentsIntersect(a, b, bottomLeft, topLeft);
+    }
+
+    private static bool SegmentsIntersect(SKPoint p1, SKPoint p2, SKPoint q1, SKPoint q2)
+    {
+        var o1 = Orientation(p1, p2, q1);
+        var o2 = Orientation(p1, p2, q2);
+        var o3 = Orientation(q1, q2, p1);
+        var o4 = Orientation(q1, q2, p2);
+
+        if (o1 != o2 && o3 != o4)
+        {
+            return true;
+        }
+
+        return o1 == 0 && OnSegment(p1, q1, p2) ||
+               o2 == 0 && OnSegment(p1, q2, p2) ||
+               o3 == 0 && OnSegment(q1, p1, q2) ||
+               o4 == 0 && OnSegment(q1, p2, q2);
+    }
+
+    private static int Orientation(SKPoint a, SKPoint b, SKPoint c)
+    {
+        var value = (b.Y - a.Y) * (c.X - b.X) - (b.X - a.X) * (c.Y - b.Y);
+        if (Math.Abs(value) <= float.Epsilon)
+        {
+            return 0;
+        }
+
+        return value > 0f ? 1 : 2;
+    }
+
+    private static bool OnSegment(SKPoint a, SKPoint b, SKPoint c)
+    {
+        return b.X <= Math.Max(a.X, c.X) &&
+               b.X >= Math.Min(a.X, c.X) &&
+               b.Y <= Math.Max(a.Y, c.Y) &&
+               b.Y >= Math.Min(a.Y, c.Y);
     }
 
     private readonly record struct ArcParameters(

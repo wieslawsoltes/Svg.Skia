@@ -34,6 +34,11 @@ namespace Svg
                 return SvgPaintServer.NotSet;
 
             var colorValue = value.Trim();
+            if (SvgCssVariableResolver.TryResolveFallbacks(colorValue, out var resolvedColorValue))
+            {
+                colorValue = resolvedColorValue.Trim();
+            }
+
             // If it's pointing to a paint server
             if (string.IsNullOrEmpty(colorValue))
                 return SvgPaintServer.NotSet;

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Xml;
 using ShimSkiaSharp;
 using Svg;
+using Svg.JavaScript;
 using Svg.Model;
 using Svg.Model.Services;
 
@@ -136,6 +137,10 @@ public partial class SKSvg : IDisposable
     private SvgAnimationFrameState? _pendingAnimationFrameState;
     private TimeSpan _lastRenderedAnimationTime = TimeSpan.MinValue;
     private TimeSpan _animationMinimumRenderInterval;
+    private SvgJavaScriptRuntime? _javaScriptRuntime;
+    private bool _isDispatchingAnimationTimelineCallbacks;
+    private bool _animationTimelineChangedDuringDispatch;
+    private TimeSpan? _animationTimelineCallbackTime;
 
     public object Sync { get; } = new();
 
@@ -306,6 +311,30 @@ public partial class SKSvg : IDisposable
     }
 
     /// <summary>
+    /// Re-renders the current <see cref="SourceDocument"/> into a fresh model and picture.
+    /// Use this after mutating the source DOM rather than the compiled picture model.
+    /// </summary>
+    /// <returns>The refreshed picture, or <see langword="null"/> when no source document exists.</returns>
+    public SkiaSharp.SKPicture? RefreshFromSourceDocument()
+    {
+        var sourceDocument = SourceDocument;
+        if (sourceDocument is null)
+        {
+            return null;
+        }
+
+        InvalidateRetainedSceneGraph();
+        if (AnimationController is { })
+        {
+            ClearAnimationRenderState();
+            RefreshCurrentAnimationFrame(bypassThrottle: true);
+            return Picture;
+        }
+
+        return RenderSvgDocument(sourceDocument);
+    }
+
+    /// <summary>
     /// Creates a deep clone of the current <see cref="SKSvg"/>, including model and reload data.
     /// </summary>
     /// <returns>A new <see cref="SKSvg"/> instance with independent state.</returns>
@@ -314,17 +343,7 @@ public partial class SKSvg : IDisposable
     {
         var clone = new SKSvg();
 
-        clone.Settings.AlphaType = Settings.AlphaType;
-        clone.Settings.ColorType = Settings.ColorType;
-        clone.Settings.SrgbLinear = Settings.SrgbLinear;
-        clone.Settings.Srgb = Settings.Srgb;
-        clone.Settings.StandaloneViewport = Settings.StandaloneViewport;
-        clone.Settings.EnableSvgFonts = Settings.EnableSvgFonts;
-        clone.Settings.EnableTextReferences = Settings.EnableTextReferences;
-        clone.Settings.TypefaceProviders = Settings.TypefaceProviders is null
-            ? null
-            : new List<TypefaceProviders.ITypefaceProvider>(Settings.TypefaceProviders);
-
+        Settings.CopyTo(clone.Settings);
         clone.Wireframe = Wireframe;
         clone.IgnoreAttributes = IgnoreAttributes;
         clone.AnimationMinimumRenderInterval = AnimationMinimumRenderInterval;
@@ -353,10 +372,16 @@ public partial class SKSvg : IDisposable
         {
             clone.SourceDocument = sourceDocumentClone;
 
+            clone.InitializeJavaScriptRuntime(sourceDocumentClone, executeDocumentScripts: true, dispatchLoadEvent: false);
+
             if (HasAnimations)
             {
                 clone.ReplaceAnimationController(new SvgAnimationController(sourceDocumentClone));
                 clone.SetAnimationTime(AnimationTime);
+            }
+            else if (clone._javaScriptRuntime?.MutationVersion > 0)
+            {
+                _ = clone.RenderSvgDocument(sourceDocumentClone);
             }
         }
 
@@ -367,7 +392,7 @@ public partial class SKSvg : IDisposable
     [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? parameters = null)
     {
-        return LoadInternal(stream, parameters, null, SourceFormat.Svg, SvgService.Open);
+        return LoadSvgInternal(stream, parameters, null);
     }
 
     [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
@@ -376,13 +401,13 @@ public partial class SKSvg : IDisposable
     [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? parameters, Uri? baseUri)
     {
-        return LoadInternal(stream, parameters, baseUri, SourceFormat.Svg, SvgService.Open);
+        return LoadSvgInternal(stream, parameters, baseUri);
     }
 
     [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(string? path, SvgParameters? parameters = null)
     {
-        return LoadPath(path, parameters, SourceFormat.Svg, SvgService.Open);
+        return LoadSvgPath(path, parameters);
     }
 
     [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
@@ -391,7 +416,7 @@ public partial class SKSvg : IDisposable
     [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(XmlReader reader)
     {
-        return LoadReader(reader, SourceFormat.Svg, SvgService.Open);
+        return LoadSvgReader(reader);
     }
 
     [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
@@ -454,6 +479,73 @@ public partial class SKSvg : IDisposable
     }
 
     [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
+    private SkiaSharp.SKPicture? LoadSvgInternal(System.IO.Stream stream, SvgParameters? parameters, Uri? baseUri)
+    {
+        SvgDocument? svgDocument;
+
+        if (CacheOriginalStream)
+        {
+            if (_originalStream != stream)
+            {
+                _originalStream?.Dispose();
+                _originalStream = new System.IO.MemoryStream();
+                stream.CopyTo(_originalStream);
+            }
+
+            _originalPath = null;
+            _originalParameters = parameters;
+            _originalBaseUri = baseUri;
+            _originalSourceFormat = SourceFormat.Svg;
+            _originalStream.Position = 0;
+
+            svgDocument = SvgService.Open(_originalStream, parameters, Settings.EnableJavaScript);
+        }
+        else
+        {
+            _originalPath = null;
+            _originalParameters = parameters;
+            _originalBaseUri = baseUri;
+            _originalSourceFormat = SourceFormat.Svg;
+            _originalStream?.Dispose();
+            _originalStream = null;
+            svgDocument = SvgService.Open(stream, parameters, Settings.EnableJavaScript);
+        }
+
+        return LoadSvgDocument(svgDocument, baseUri);
+    }
+
+    [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
+    private SkiaSharp.SKPicture? LoadSvgPath(string? path, SvgParameters? parameters)
+    {
+        if (path is null)
+        {
+            return null;
+        }
+
+        _originalPath = path;
+        _originalParameters = parameters;
+        _originalBaseUri = null;
+        _originalSourceFormat = SourceFormat.Svg;
+        _originalStream?.Dispose();
+        _originalStream = null;
+
+        return LoadSvgDocument(SvgService.Open(path, parameters, Settings.EnableJavaScript));
+    }
+
+    [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
+    private SkiaSharp.SKPicture? LoadSvgReader(XmlReader reader)
+    {
+        _originalPath = null;
+        _originalParameters = null;
+        _originalBaseUri = null;
+        _originalSourceFormat = SourceFormat.Svg;
+        _originalStream?.Dispose();
+        _originalStream = null;
+
+        return LoadSvgDocument(SvgService.Open(reader, Settings.EnableJavaScript));
+    }
+
+    [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
     private SkiaSharp.SKPicture? LoadPath(
         string? path,
         SvgParameters? parameters,
@@ -506,13 +598,15 @@ public partial class SKSvg : IDisposable
 
         SourceDocument = svgDocument;
         ClearAnimationRenderState();
+        ReplaceAnimationController(null);
+        InitializeJavaScriptRuntime(svgDocument);
         InvalidateRetainedSceneGraph();
 
         var animationController = new SvgAnimationController(svgDocument);
         if (animationController.HasAnimations)
         {
             ReplaceAnimationController(animationController);
-            _ = RenderAnimationFrame(animationController.EvaluateFrameState(TimeSpan.Zero), raiseInvalidation: false, bypassThrottle: true);
+            _ = RenderAnimationFrame(animationController.EvaluateFrameState(animationController.Clock.CurrentTime), raiseInvalidation: false, bypassThrottle: true);
             return Picture;
         }
 
@@ -557,13 +651,13 @@ public partial class SKSvg : IDisposable
 
         return originalSourceFormat == SourceFormat.VectorDrawable
             ? LoadInternal(originalStream, parameters, originalBaseUri, SourceFormat.VectorDrawable, SvgService.OpenVectorDrawable)
-            : LoadInternal(originalStream, parameters, originalBaseUri, SourceFormat.Svg, SvgService.Open);
+            : LoadSvgInternal(originalStream, parameters, originalBaseUri);
     }
 
     [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? FromSvg(string svg)
     {
-        var svgDocument = SvgService.FromSvg(svg);
+        var svgDocument = SvgService.FromSvg(svg, Settings.EnableJavaScript);
         return LoadSvgDocument(svgDocument);
     }
 
@@ -818,6 +912,7 @@ public partial class SKSvg : IDisposable
     {
         ReplaceAnimationController(null);
         SourceDocument = null;
+        _javaScriptRuntime = null;
         ClearAnimationRenderState();
 
         lock (Sync)
@@ -958,6 +1053,10 @@ public partial class SKSvg : IDisposable
         }
 
         AnimationController = controller;
+        if (_javaScriptRuntime is { } runtime)
+        {
+            runtime.AnimationHost = controller is null ? null : new SvgJavaScriptAnimationHostAdapter(this, controller);
+        }
 
         if (controller is { })
         {
@@ -985,6 +1084,22 @@ public partial class SKSvg : IDisposable
         _ = RenderAnimationFrame(AnimationTime, raiseInvalidation: true, bypassThrottle: bypassThrottle);
     }
 
+    private void NotifyAnimationTimelineMutation()
+    {
+        if (AnimationController is null)
+        {
+            return;
+        }
+
+        if (_isDispatchingAnimationTimelineCallbacks)
+        {
+            _animationTimelineChangedDuringDispatch = true;
+            return;
+        }
+
+        RefreshCurrentAnimationFrame(bypassThrottle: true);
+    }
+
     private void ClearAnimationRenderState()
     {
         DisableAnimationLayerCaching();
@@ -994,6 +1109,397 @@ public partial class SKSvg : IDisposable
         _pendingAnimationFrameState = null;
         _lastRenderedAnimationTime = TimeSpan.MinValue;
         LastAnimationDirtyTargetCount = 0;
+    }
+
+    private void InitializeJavaScriptRuntime(
+        SvgDocument svgDocument,
+        bool executeDocumentScripts = true,
+        bool dispatchLoadEvent = true)
+    {
+        _javaScriptRuntime = null;
+        if (!Settings.EnableJavaScript)
+        {
+            return;
+        }
+
+        var runtime = new SvgJavaScriptRuntime(svgDocument, CreateJavaScriptSettings());
+        _javaScriptRuntime = runtime;
+        runtime.TextContentHost = new SvgJavaScriptTextContentHostAdapter(this);
+        if (AnimationController is { } controller)
+        {
+            runtime.AnimationHost = new SvgJavaScriptAnimationHostAdapter(this, controller);
+        }
+
+        if (executeDocumentScripts)
+        {
+            runtime.ExecuteDocumentScripts(dispatchLoadEvent);
+        }
+    }
+
+    internal SvgJavaScriptEventResult DispatchJavaScriptEvent(
+        SvgElement element,
+        SvgElement targetElement,
+        SvgElement? relatedElement,
+        string eventType,
+        string attributeName,
+        SvgPointerInput input)
+    {
+        SvgJavaScriptEvent? eventFacade = null;
+        return DispatchJavaScriptEvent(
+            element,
+            targetElement,
+            relatedElement,
+            eventType,
+            attributeName,
+            input,
+            ref eventFacade);
+    }
+
+    internal SvgJavaScriptEventResult DispatchJavaScriptEvent(
+        SvgElement element,
+        SvgElement targetElement,
+        SvgElement? relatedElement,
+        string eventType,
+        string attributeName,
+        SvgPointerInput input,
+        ref SvgJavaScriptEvent? eventFacade)
+    {
+        var runtime = _javaScriptRuntime;
+        if (runtime is null || SourceDocument is null)
+        {
+            return SvgJavaScriptEventResult.NotExecuted;
+        }
+
+        var handlerElement = NormalizeJavaScriptEventElement(element);
+        var sourceTargetElement = NormalizeJavaScriptEventElement(targetElement);
+        var sourceRelatedElement = relatedElement is null ? null : NormalizeJavaScriptEventElement(relatedElement);
+        var resolvedTargetNode = ResolveJavaScriptEventTarget(runtime, sourceTargetElement, input.PicturePoint);
+        var resolvedRelatedTargetNode = sourceRelatedElement is null ? null : runtime.GetElement(sourceRelatedElement);
+        eventFacade ??= runtime.CreateEvent(
+            eventType,
+            resolvedTargetNode,
+            resolvedRelatedTargetNode,
+            CreateJavaScriptEventInput(input));
+
+        var mutationVersion = runtime.MutationVersion;
+        var result = runtime.ExecuteEventHandlerAndListeners(
+            handlerElement,
+            eventFacade,
+            eventType,
+            attributeName);
+        if (runtime.MutationVersion == mutationVersion)
+        {
+            return result;
+        }
+
+        InvalidateRetainedSceneGraph();
+        if (AnimationController is { })
+        {
+            ClearAnimationRenderState();
+            RefreshCurrentAnimationFrame(bypassThrottle: true);
+        }
+        else
+        {
+            _ = RenderSvgDocument(SourceDocument);
+        }
+
+        return result;
+    }
+
+    private object ResolveJavaScriptEventTarget(SvgJavaScriptRuntime runtime, SvgElement targetElement, SKPoint picturePoint)
+    {
+        if (targetElement is SvgUse use &&
+            HitTestTopmostSceneNode(picturePoint) is { } hitNode)
+        {
+            var hitTargetElement = hitNode.HitTestTargetElement is null
+                ? null
+                : NormalizeJavaScriptEventElement(hitNode.HitTestTargetElement);
+            var correspondingElement = hitNode.Element is SvgElement element
+                ? NormalizeJavaScriptEventElement(element)
+                : null;
+
+            if (ReferenceEquals(hitTargetElement, targetElement) &&
+                correspondingElement is not null &&
+                !ReferenceEquals(correspondingElement, targetElement))
+            {
+                var instance = runtime.FindUseInstance(use, correspondingElement);
+                if (instance is not null)
+                {
+                    return instance;
+                }
+            }
+        }
+
+        return runtime.GetElement(targetElement);
+    }
+
+    private SvgElement NormalizeJavaScriptEventElement(SvgElement element)
+    {
+        if (SourceDocument is null ||
+            ReferenceEquals(element.OwnerDocument, SourceDocument))
+        {
+            return element;
+        }
+
+        var resolved = SvgElementAddress.Create(element).Resolve(SourceDocument);
+        return resolved ?? element;
+    }
+
+    private SvgJavaScriptSettings CreateJavaScriptSettings()
+    {
+        return new SvgJavaScriptSettings
+        {
+            EnableExternalJavaScript = Settings.EnableExternalJavaScript,
+            TimeoutMilliseconds = Settings.JavaScriptTimeoutMilliseconds,
+            MaxStatements = Settings.JavaScriptMaxStatements,
+            ThrowOnError = Settings.ThrowOnJavaScriptError
+        };
+    }
+
+    private static SvgJavaScriptEventInput CreateJavaScriptEventInput(SvgPointerInput input)
+    {
+        return new SvgJavaScriptEventInput(
+            input.PicturePoint.X,
+            input.PicturePoint.Y,
+            ToJavaScriptMouseButton(input.Button),
+            input.ClickCount,
+            input.WheelDelta,
+            input.AltKey,
+            input.ShiftKey,
+            input.CtrlKey);
+    }
+
+    private static SvgJavaScriptMouseButton ToJavaScriptMouseButton(SvgMouseButton button)
+    {
+        return button switch
+        {
+            SvgMouseButton.Left => SvgJavaScriptMouseButton.Left,
+            SvgMouseButton.Middle => SvgJavaScriptMouseButton.Middle,
+            SvgMouseButton.Right => SvgJavaScriptMouseButton.Right,
+            SvgMouseButton.XButton1 => SvgJavaScriptMouseButton.XButton1,
+            SvgMouseButton.XButton2 => SvgJavaScriptMouseButton.XButton2,
+            _ => SvgJavaScriptMouseButton.None
+        };
+    }
+
+    private sealed class SvgJavaScriptAnimationHostAdapter : ISvgJavaScriptAnimationHost
+    {
+        private readonly SKSvg _owner;
+        private readonly SvgAnimationController _controller;
+
+        public SvgJavaScriptAnimationHostAdapter(SKSvg owner, SvgAnimationController controller)
+        {
+            _owner = owner;
+            _controller = controller;
+        }
+
+        public TimeSpan CurrentTime => _owner._animationTimelineCallbackTime ?? _controller.Clock.CurrentTime;
+
+        public void Seek(TimeSpan time)
+        {
+            _controller.Clock.Seek(time);
+        }
+
+        public bool BeginElement(SvgAnimationElement animation, TimeSpan offset)
+        {
+            var scheduled = _controller.BeginElement(animation, TranslateOffset(offset));
+            if (scheduled)
+            {
+                _owner.NotifyAnimationTimelineMutation();
+            }
+
+            return scheduled;
+        }
+
+        public bool EndElement(SvgAnimationElement animation, TimeSpan offset)
+        {
+            var scheduled = _controller.EndElement(animation, TranslateOffset(offset));
+            if (scheduled)
+            {
+                _owner.NotifyAnimationTimelineMutation();
+            }
+
+            return scheduled;
+        }
+
+        public bool TryGetStartTime(SvgAnimationElement animation, out TimeSpan startTime)
+        {
+            return _controller.TryGetStartTime(animation, CurrentTime, out startTime);
+        }
+
+        public bool TryGetBaseAttributeValue(SvgElement element, string attributeName, out string value)
+        {
+            return _controller.TryGetBaseAttributeValue(element, attributeName, out value);
+        }
+
+        private TimeSpan TranslateOffset(TimeSpan offset)
+        {
+            if (_owner._animationTimelineCallbackTime is not { } callbackTime)
+            {
+                return offset;
+            }
+
+            return callbackTime - _controller.Clock.CurrentTime + offset;
+        }
+    }
+
+    private sealed class SvgJavaScriptTextContentHostAdapter : ISvgJavaScriptTextContentHost
+    {
+        private readonly SKSvg _owner;
+        private readonly Dictionary<SvgTextBase, SvgSceneTextCompiler.SvgTextContentMetrics> _metricsByElement = new();
+        private int _mutationVersion = -1;
+
+        public SvgJavaScriptTextContentHostAdapter(SKSvg owner)
+        {
+            _owner = owner;
+        }
+
+        public double GetComputedTextLength(SvgTextBase textContentElement)
+        {
+            return GetMetrics(textContentElement).ComputedTextLength;
+        }
+
+        public int GetNumberOfChars(SvgTextBase textContentElement)
+        {
+            return GetMetrics(textContentElement).NumberOfChars;
+        }
+
+        public double GetSubStringLength(SvgTextBase textContentElement, int charnum, int nchars)
+        {
+            return GetMetrics(textContentElement).GetSubStringLength(charnum, nchars);
+        }
+
+        public SvgJavaScriptPoint GetStartPositionOfChar(SvgTextBase textContentElement, int charnum)
+        {
+            var point = GetMetrics(textContentElement).GetStartPositionOfChar(charnum);
+            return new SvgJavaScriptPoint(point.X, point.Y);
+        }
+
+        public SvgJavaScriptPoint GetEndPositionOfChar(SvgTextBase textContentElement, int charnum)
+        {
+            var point = GetMetrics(textContentElement).GetEndPositionOfChar(charnum);
+            return new SvgJavaScriptPoint(point.X, point.Y);
+        }
+
+        public SvgJavaScriptRect GetExtentOfChar(SvgTextBase textContentElement, int charnum)
+        {
+            var rect = GetMetrics(textContentElement).GetExtentOfChar(charnum);
+            return new SvgJavaScriptRect(rect.Left, rect.Top, rect.Width, rect.Height);
+        }
+
+        public double GetRotationOfChar(SvgTextBase textContentElement, int charnum)
+        {
+            return GetMetrics(textContentElement).GetRotationOfChar(charnum);
+        }
+
+        public int GetCharNumAtPosition(SvgTextBase textContentElement, SvgJavaScriptPoint point)
+        {
+            return GetMetrics(textContentElement).GetCharNumAtPosition(new SKPoint(point.x, point.y));
+        }
+
+        public void SelectSubString(SvgTextBase textContentElement, int charnum, int nchars)
+        {
+            _ = GetMetrics(textContentElement).GetSubStringLength(charnum, nchars);
+        }
+
+        private SvgSceneTextCompiler.SvgTextContentMetrics GetMetrics(SvgTextBase textContentElement)
+        {
+            var mutationVersion = _owner._javaScriptRuntime?.MutationVersion ?? 0;
+            if (_mutationVersion != mutationVersion)
+            {
+                _metricsByElement.Clear();
+                _mutationVersion = mutationVersion;
+            }
+
+            if (_metricsByElement.TryGetValue(textContentElement, out var metrics))
+            {
+                return metrics;
+            }
+
+            if (!SvgSceneTextCompiler.TryCreateTextContentMetrics(textContentElement, _owner.GetStandaloneViewport(), _owner.AssetLoader, out metrics))
+            {
+                metrics = SvgSceneTextCompiler.SvgTextContentMetrics.Empty;
+            }
+
+            _metricsByElement[textContentElement] = metrics;
+            return metrics;
+        }
+
+    }
+
+    private bool DispatchAnimationTimelineCallbacks(ref SvgAnimationFrameState frameState)
+    {
+        if (SourceDocument is null ||
+            AnimationController is null ||
+            _javaScriptRuntime is not { } runtime)
+        {
+            return false;
+        }
+
+        var previousTime = _lastRenderedAnimationTime != TimeSpan.MinValue
+            ? _lastRenderedAnimationTime
+            : (TimeSpan?)null;
+        var callbacks = AnimationController.GetTimelineCallbacks(frameState.Time, previousTime);
+        if (callbacks.Count == 0)
+        {
+            return false;
+        }
+
+        var mutated = false;
+        _animationTimelineChangedDuringDispatch = false;
+        _isDispatchingAnimationTimelineCallbacks = true;
+        try
+        {
+            for (var index = 0; index < callbacks.Count; index++)
+            {
+                var callback = callbacks[index];
+                if (callback.AnimationAddress.Resolve(SourceDocument) is not SvgAnimationElement animation)
+                {
+                    continue;
+                }
+
+                _animationTimelineCallbackTime = callback.Time;
+                try
+                {
+                    var result = runtime.ExecuteEventHandlerAndListeners(
+                        animation,
+                        runtime.GetElement(animation),
+                        relatedTargetNode: null,
+                        callback.EventType,
+                        callback.AttributeName,
+                        input: null);
+                    mutated |= result.Mutated;
+                }
+                finally
+                {
+                    _animationTimelineCallbackTime = null;
+                }
+            }
+        }
+        finally
+        {
+            _isDispatchingAnimationTimelineCallbacks = false;
+            _animationTimelineCallbackTime = null;
+        }
+
+        if (!mutated && !_animationTimelineChangedDuringDispatch)
+        {
+            return false;
+        }
+
+        frameState = AnimationController.EvaluateFrameState(frameState.Time);
+        if (!mutated)
+        {
+            return false;
+        }
+
+        InvalidateRetainedSceneGraph();
+        DisableAnimationLayerCaching();
+        InvalidateNativeCompositionState();
+        _animatedDocument = null;
+        _lastRenderedAnimationFrameState = null;
+        _pendingAnimationFrameState = null;
+        return true;
     }
 
     private bool RenderAnimationFrame(TimeSpan time, bool raiseInvalidation, bool bypassThrottle)
@@ -1013,7 +1519,10 @@ public partial class SKSvg : IDisposable
             return false;
         }
 
-        if (_lastRenderedAnimationFrameState is { } lastRenderedFrameState &&
+        var forceRender = DispatchAnimationTimelineCallbacks(ref frameState);
+
+        if (!forceRender &&
+            _lastRenderedAnimationFrameState is { } lastRenderedFrameState &&
             frameState.IsEquivalentTo(lastRenderedFrameState))
         {
             _pendingAnimationFrameState = null;
