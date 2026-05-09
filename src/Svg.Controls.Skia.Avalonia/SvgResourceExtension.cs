@@ -48,6 +48,11 @@ public class SvgResourceExtension : MarkupExtension
     public string? CurrentCss { get; set; }
 
     /// <summary>
+    /// Gets or sets the default SVG currentColor value.
+    /// </summary>
+    public Color? CurrentColor { get; set; }
+
+    /// <summary>
     /// Gets or sets the base URI used when resolving <see cref="Path"/> outside of XAML.
     /// </summary>
     public Uri? BaseUri { get; set; }
@@ -215,7 +220,8 @@ public class SvgResourceExtension : MarkupExtension
             sourceRect,
             opacity,
             transform,
-            transformOrigin);
+            transformOrigin,
+            null);
     }
 
     /// <summary>
@@ -243,7 +249,8 @@ public class SvgResourceExtension : MarkupExtension
             SourceRect,
             Opacity,
             Transform,
-            TransformOrigin);
+            TransformOrigin,
+            CurrentColor);
     }
 
     /// <inheritdoc/>
@@ -270,15 +277,17 @@ public class SvgResourceExtension : MarkupExtension
         RelativeRect? sourceRect,
         double? opacity,
         Transform? transform,
-        RelativePoint? transformOrigin)
+        RelativePoint? transformOrigin,
+        Color? currentColor)
     {
-        var parameters = CreateParameters(css, currentCss);
+        var parameters = CreateParameters(css, currentCss, currentColor);
         var source = SvgSource.Load(path, baseUri, parameters);
         var image = new SvgImage
         {
-            Source = source,
             Css = css,
-            CurrentCss = currentCss
+            CurrentCss = currentCss,
+            CurrentColor = currentColor,
+            Source = source
         };
 
         return CreateBrush(
@@ -319,12 +328,13 @@ public class SvgResourceExtension : MarkupExtension
         return (Brush)extension.ToBrush();
     }
 
-    private static SvgParameters? CreateParameters(string? css, string? currentCss)
+    private static SvgParameters? CreateParameters(string? css, string? currentCss, Color? currentColor)
     {
         var combined = CombineCss(css, currentCss);
-        return string.IsNullOrWhiteSpace(combined)
+        var drawingColor = ToDrawingColor(currentColor);
+        return string.IsNullOrWhiteSpace(combined) && drawingColor is null
             ? null
-            : new SvgParameters(null, combined);
+            : new SvgParameters(null, combined, drawingColor);
     }
 
     private static string? CombineCss(string? css, string? currentCss)
@@ -340,5 +350,12 @@ public class SvgResourceExtension : MarkupExtension
         }
 
         return string.Concat(css, ' ', currentCss);
+    }
+
+    private static System.Drawing.Color? ToDrawingColor(Color? color)
+    {
+        return color is { } value
+            ? System.Drawing.Color.FromArgb(value.A, value.R, value.G, value.B)
+            : null;
     }
 }

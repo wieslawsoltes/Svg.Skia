@@ -173,6 +173,7 @@ public class CloneCoreTests
         Assert.Equal(original.StrokeCap, clone.StrokeCap);
         Assert.Equal(original.StrokeJoin, clone.StrokeJoin);
         Assert.Equal(original.StrokeMiter, clone.StrokeMiter);
+        Assert.Equal(original.IsStrokeNonScaling, clone.IsStrokeNonScaling);
         Assert.Equal(original.TextSize, clone.TextSize);
         Assert.Equal(original.TextAlign, clone.TextAlign);
         Assert.Equal(original.LcdRenderText, clone.LcdRenderText);

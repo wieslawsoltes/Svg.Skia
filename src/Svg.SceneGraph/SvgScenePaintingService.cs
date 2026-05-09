@@ -146,6 +146,7 @@ internal static class SvgScenePaintingService
 
         skPaint.StrokeMiter = svgVisualElement.StrokeMiterLimit;
         skPaint.StrokeWidth = svgVisualElement.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgVisualElement, skBounds);
+        skPaint.IsStrokeNonScaling = svgVisualElement.VectorEffect == SvgVectorEffect.NonScalingStroke;
 
         if (svgVisualElement.StrokeDashArray is { })
         {
@@ -466,9 +467,8 @@ internal static class SvgScenePaintingService
                     stopColor = ToLinear(stopColor);
                 }
 
-                var offset = ToGradientStopOffset(svgGradientStop.Offset);
                 colors.Add(stopColor);
-                colorPos.Add(offset);
+                colorPos.Add(GetGradientStopOffset(svgGradientStop));
             }
         }
     }
@@ -490,11 +490,19 @@ internal static class SvgScenePaintingService
         }
     }
 
-    private static float ToGradientStopOffset(SvgUnit offset)
+    private static float GetGradientStopOffset(SvgGradientStop svgGradientStop)
     {
-        var value = offset.Type == SvgUnitType.Percentage
-            ? offset.Value / 100f
-            : offset.Value;
+        var offset = svgGradientStop.Offset;
+        var value = offset.Type == SvgUnitType.Percentage ? offset.Value / 100f : offset.Value;
+        if (float.IsNaN(value) || float.IsNegativeInfinity(value))
+        {
+            return 0f;
+        }
+
+        if (float.IsPositiveInfinity(value))
+        {
+            return 1f;
+        }
 
         return Math.Min(Math.Max(value, 0f), 1f);
     }

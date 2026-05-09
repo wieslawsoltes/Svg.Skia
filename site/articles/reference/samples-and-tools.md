@@ -9,6 +9,7 @@ The `samples/` directory covers both end-user scenarios and repository-internal 
 ## UI samples
 
 - `UnoSvgSkiaSample`: standalone Uno Platform sample for `Svg.Controls.Skia.Uno`, including `Path`, `Source`, `SvgSource`, runtime CSS changes, hit testing, zoom/pan, and wireframe/filter toggles.
+- `MauiSvgSkiaSample`: standalone .NET MAUI sample for `Svg.Controls.Skia.Maui`, including `Path`, `Source`, `SvgSource`, runtime CSS changes, hit testing, zoom/pan, and wireframe/filter toggles.
 - `AvaloniaSvgSkiaSample`: end-to-end sample for `Avalonia.Svg.Skia`, including `Svg`, `SvgImage`, `SvgSource`, resource usage, and draw-control integration.
 - `AvaloniaSvgSkiaStylingSample`: CSS-based restyling and pointer-over behavior.
 - `AvaloniaSvgSample`: equivalent non-Skia Avalonia stack sample.
