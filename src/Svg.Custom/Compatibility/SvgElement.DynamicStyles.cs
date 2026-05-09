@@ -68,6 +68,8 @@ public abstract partial class SvgElement
 
     internal void RestoreCompatibilityStyleState(SvgCompatibilityStyleSnapshot snapshot)
     {
+        SvgCssVariableResolver.ClearCustomProperties(this);
+
         foreach (var name in SvgStyleAttributeNames.All)
         {
             _ = Attributes.Remove(name);

@@ -250,7 +250,8 @@ internal static class SvgCssCompatibilityProcessor
     {
         if (SvgCssVariableResolver.IsCustomPropertyName(declaration.Name))
         {
-            SvgCssVariableResolver.AddCustomProperty(element, declaration.Name, declaration.Value, specificity);
+            // Custom properties are already applied from raw CSS text so ExCSS does not
+            // duplicate partial parser output with a newer source order.
             return;
         }
 

@@ -40,7 +40,18 @@ internal static class SvgCssVariableResolver
             specificity,
             important,
             Interlocked.Increment(ref s_customPropertySourceOrder)));
-        element.CustomAttributes[name] = GetWinningRule(rules).Value;
+    }
+
+    public static void ClearCustomProperties(SvgElement element)
+    {
+        s_customPropertyRules.Remove(element);
+    }
+
+    public static bool TryGetCustomPropertyValue(SvgElement? element, string name, out string value)
+    {
+        value = string.Empty;
+        return IsCustomPropertyName(name) &&
+               TryGetCustomPropertyValue(element, name, new HashSet<string>(StringComparer.Ordinal), 0, out value);
     }
 
     private static string NormalizeCustomPropertyValue(string value, out bool important)
@@ -172,11 +183,14 @@ internal static class SvgCssVariableResolver
         {
             foreach (var current in element.ParentsAndSelf)
             {
-                if (!current.CustomAttributes.TryGetValue(name, out var rawValue))
+                if (!s_customPropertyRules.TryGetValue(current, out var propertyRules) ||
+                    !propertyRules.TryGetValue(name, out var rules) ||
+                    rules.Count == 0)
                 {
                     continue;
                 }
 
+                var rawValue = GetWinningRule(rules).Value;
                 return TryResolveValueCore(current, rawValue, resolvingProperties, depth + 1, out value);
             }
 

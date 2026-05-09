@@ -2,6 +2,7 @@
 using System.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Svg.Model.Services;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
 
@@ -339,6 +340,30 @@ public class SKSvgTests : SvgUnitTest
         Assert.Equal((byte)255, pixel.G);
         Assert.Equal((byte)0, pixel.B);
         Assert.Equal((byte)255, pixel.A);
+    }
+
+    [Fact]
+    public void Write_CssVarPaint_DoesNotSerializeCustomPropertyAttributes()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <style>
+                svg { --color-text: #00ff00; }
+                path { stroke: var(--color-text, #000); }
+              </style>
+              <path d="M10 50h80" style="fill:none;stroke-width:10;stroke-linecap:square" />
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svgMarkup);
+        Assert.NotNull(document);
+        using var output = new MemoryStream();
+
+        document!.Write(output, useBom: false);
+
+        var xml = Encoding.UTF8.GetString(output.ToArray());
+        Assert.DoesNotContain("--color-text=\"", xml);
+        Assert.Contains("--color-text: #00ff00", xml);
     }
 
     [Fact]
