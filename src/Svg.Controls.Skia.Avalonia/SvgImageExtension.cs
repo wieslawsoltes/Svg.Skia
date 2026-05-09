@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Svg.Model;
+using DrawingColor = System.Drawing.Color;
 
 namespace Avalonia.Svg.Skia;
 
@@ -58,10 +59,11 @@ public class SvgImageExtension : MarkupExtension
         {
             var css = Svg.GetCss(targetControl);
             var currentCss = Svg.GetCurrentCss(targetControl);
+            var currentColor = Svg.GetCurrentColor(targetControl);
             var source = SvgSource.Load(
                 path,
                 baseUri,
-                new SvgParameters(null, string.Concat(css, ' ', currentCss)));
+                CreateParameters(css, currentCss, currentColor));
 
             return CreateSvgImage(source, targetControl);
         }
@@ -77,22 +79,58 @@ public class SvgImageExtension : MarkupExtension
 
     private static SvgImage CreateSvgImage(SvgSource? source, Control? targetControl)
     {
-        var result = new SvgImage
-        {
-            Source = source
-        };
+        var result = new SvgImage();
 
         if (targetControl == null)
         {
+            result.Source = source;
             return result;
         }
 
+        result.Css = Svg.GetCss(targetControl);
+        result.CurrentCss = Svg.GetCurrentCss(targetControl);
+        result.CurrentColor = Svg.GetCurrentColor(targetControl);
+        result.Source = source;
+
         var styleBinding = targetControl.GetObservable(Svg.CssProperty).ToBinding();
         var currentStyleBinding = targetControl.GetObservable(Svg.CurrentCssProperty).ToBinding();
+        var currentColorBinding = targetControl.GetObservable(Svg.CurrentColorProperty).ToBinding();
 
         result.Bind(SvgImage.CssProperty, styleBinding);
         result.Bind(SvgImage.CurrentCssProperty, currentStyleBinding);
+        result.Bind(SvgImage.CurrentColorProperty, currentColorBinding);
 
         return result;
+    }
+
+    private static SvgParameters? CreateParameters(string? css, string? currentCss, Color? currentColor)
+    {
+        var combinedCss = CombineCss(css, currentCss);
+        var drawingColor = ToDrawingColor(currentColor);
+        return string.IsNullOrWhiteSpace(combinedCss) && drawingColor is null
+            ? null
+            : new SvgParameters(null, combinedCss, drawingColor);
+    }
+
+    private static string? CombineCss(string? css, string? currentCss)
+    {
+        if (string.IsNullOrWhiteSpace(css))
+        {
+            return string.IsNullOrWhiteSpace(currentCss) ? null : currentCss;
+        }
+
+        if (string.IsNullOrWhiteSpace(currentCss))
+        {
+            return css;
+        }
+
+        return string.Concat(css, ' ', currentCss);
+    }
+
+    private static DrawingColor? ToDrawingColor(Color? color)
+    {
+        return color is { } value
+            ? DrawingColor.FromArgb(value.A, value.R, value.G, value.B)
+            : null;
     }
 }

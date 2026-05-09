@@ -16,6 +16,7 @@ dotnet test Svg.Skia.slnx -c Release
 ```
 
 The Uno sample app is intentionally not part of `Svg.Skia.slnx`, so those default commands do not require Uno workloads.
+The MAUI projects are validated and packed by the dedicated MAUI workflow jobs because they require the .NET MAUI workload.
 
 ## CI workflows
 
@@ -34,9 +35,11 @@ The repository ships more than one NuGet package. The main runtime packages are:
 - `Svg.Skia`
 - `Svg.Model`
 - `Svg.Controls.Skia.Uno`
+- `Svg.Controls.Skia.Maui`
 - `Svg.Controls.Avalonia`
 - `Svg.Controls.Skia.Avalonia`
 - `Skia.Controls.Avalonia`
+- `SvgML.Maui`
 - `Svg.SourceGenerator.Skia`
 - `Svg.CodeGen.Skia`
 - `Svg.Custom`
@@ -63,4 +66,15 @@ dotnet build samples/UnoSvgSkiaSample/UnoSvgSkiaSample.csproj -c Release -f net1
 dotnet publish samples/UnoSvgSkiaSample/UnoSvgSkiaSample.csproj -c Release -f net10.0-browserwasm
 dotnet build samples/UnoSvgSkiaSample/UnoSvgSkiaSample.csproj -c Release -f net10.0-android
 dotnet build samples/UnoSvgSkiaSample/UnoSvgSkiaSample.csproj -c Release -f net10.0-ios
+```
+
+## MAUI sample validation
+
+Use the standalone MAUI control sample when validating `Svg.Controls.Skia.Maui` end to end:
+
+```bash
+dotnet workload install maui
+dotnet build samples/MauiSvgSkiaSample/MauiSvgSkiaSample.csproj -c Release -f net10.0-android
+dotnet build samples/MauiSvgSkiaSample/MauiSvgSkiaSample.csproj -c Release -f net10.0-ios
+dotnet build samples/MauiSvgSkiaSample/MauiSvgSkiaSample.csproj -c Release -f net10.0-maccatalyst
 ```

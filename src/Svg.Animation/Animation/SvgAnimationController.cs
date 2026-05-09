@@ -20,30 +20,55 @@ public sealed class SvgAnimationFrameChangedEventArgs : EventArgs
     public TimeSpan Time { get; }
 }
 
+internal readonly struct SvgAnimationTimelineCallback
+{
+    public SvgAnimationTimelineCallback(SvgElementAddress animationAddress, string eventType, string attributeName, TimeSpan time)
+    {
+        AnimationAddress = animationAddress;
+        EventType = eventType;
+        AttributeName = attributeName;
+        Time = time;
+    }
+
+    public SvgElementAddress AnimationAddress { get; }
+
+    public string EventType { get; }
+
+    public string AttributeName { get; }
+
+    public TimeSpan Time { get; }
+}
+
 [RequiresUnreferencedCode("Uses TypeDescriptor-based converters for animated SVG values.")]
 public sealed class SvgAnimationController : IDisposable
 {
+    private static readonly ResolvedTimingInstance[] s_emptyResolvedTimingInstances = Array.Empty<ResolvedTimingInstance>();
+
     private readonly struct TimingSpec
     {
         public TimingSpec(TimeSpan offset)
         {
             IsEvent = false;
             Offset = offset;
-            EventInstanceKey = null;
+            EventAddress = null;
+            EventType = default;
         }
 
-        public TimingSpec(string eventInstanceKey, TimeSpan offset)
+        public TimingSpec(SvgElementAddress eventAddress, SvgAnimationTimingEventType eventType, TimeSpan offset)
         {
             IsEvent = true;
             Offset = offset;
-            EventInstanceKey = eventInstanceKey;
+            EventAddress = eventAddress;
+            EventType = eventType;
         }
 
         public bool IsEvent { get; }
 
         public TimeSpan Offset { get; }
 
-        public string? EventInstanceKey { get; }
+        public SvgElementAddress? EventAddress { get; }
+
+        public SvgAnimationTimingEventType EventType { get; }
     }
 
     private readonly struct MotionSource
@@ -77,15 +102,12 @@ public sealed class SvgAnimationController : IDisposable
 
     private sealed class PointerEventDependency
     {
-        public PointerEventDependency(AnimationBinding binding, bool isBegin)
+        public PointerEventDependency(AnimationBinding binding)
         {
             Binding = binding;
-            IsBegin = isBegin;
         }
 
         public AnimationBinding Binding { get; }
-
-        public bool IsBegin { get; }
     }
 
     private sealed class AnimationBinding
@@ -94,6 +116,7 @@ public sealed class SvgAnimationController : IDisposable
         public AnimationBinding(SvgAnimationElement animation, SvgElement sourceTarget, SvgElementAddress targetAddress, string attributeName)
         {
             Animation = animation;
+            AnimationAddress = SvgElementAddress.Create(animation);
             SourceTarget = sourceTarget;
             TargetAddress = targetAddress;
             AttributeName = attributeName;
@@ -104,9 +127,15 @@ public sealed class SvgAnimationController : IDisposable
             TargetAttributeKey = string.Concat(targetAddress.Key, "|", attributeName);
             BeginSpecs = ParseTimingSpecifications(animation.Begin, animation.OwnerDocument, targetAddress, includeImplicitDocumentBegin: true);
             EndSpecs = ParseTimingSpecifications(animation.End, animation.OwnerDocument, targetAddress, includeImplicitDocumentBegin: false);
+            HasDynamicBeginTiming = ContainsDynamicTiming(BeginSpecs);
+            HasDynamicEndTiming = ContainsDynamicTiming(EndSpecs);
+            StaticBeginInstances = HasDynamicBeginTiming ? s_emptyResolvedTimingInstances : CreateStaticTimingInstances(BeginSpecs);
+            StaticEndInstances = HasDynamicEndTiming ? s_emptyResolvedTimingInstances : CreateStaticTimingInstances(EndSpecs);
         }
 
         public SvgAnimationElement Animation { get; }
+
+        public SvgElementAddress AnimationAddress { get; }
 
         public SvgElement SourceTarget { get; }
 
@@ -127,6 +156,14 @@ public sealed class SvgAnimationController : IDisposable
         public IReadOnlyList<TimingSpec> BeginSpecs { get; }
 
         public IReadOnlyList<TimingSpec> EndSpecs { get; }
+
+        public bool HasDynamicBeginTiming { get; }
+
+        public bool HasDynamicEndTiming { get; }
+
+        public IReadOnlyList<ResolvedTimingInstance> StaticBeginInstances { get; }
+
+        public IReadOnlyList<ResolvedTimingInstance> StaticEndInstances { get; }
 
         private List<string>? _resolvedAnimationValues;
         private bool _resolvedAnimationValuesInitialized;
@@ -187,9 +224,13 @@ public sealed class SvgAnimationController : IDisposable
 
     private readonly List<AnimationBinding> _bindings;
     private readonly Dictionary<string, AnimationBinding> _bindingsByTargetAttributeKey;
+    private readonly Dictionary<string, AnimationBinding> _bindingsByAnimationAddressKey;
     private readonly Dictionary<string, List<TimeSpan>> _pointerEventInstances = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, List<TimeSpan>> _scheduledBeginInstances = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, List<TimeSpan>> _scheduledEndInstances = new(StringComparer.Ordinal);
     private readonly HashSet<string> _pointerEventDependencies;
     private readonly Dictionary<string, List<PointerEventDependency>> _pointerEventDependents;
+    private readonly List<AnimationBinding> _timelineTrackedBindings;
     private readonly int[]? _animatedTopLevelChildIndexes;
     private SvgAnimationFrameState? _cachedFrameState;
     private int _frameStateVersion;
@@ -202,8 +243,10 @@ public sealed class SvgAnimationController : IDisposable
         Clock.TimeChanged += OnClockTimeChanged;
         _bindings = DiscoverBindings(sourceDocument);
         _bindingsByTargetAttributeKey = BuildBindingLookup(_bindings);
+        _bindingsByAnimationAddressKey = BuildAnimationBindingLookup(_bindings);
         _pointerEventDependencies = BuildPointerEventDependencies(_bindings);
         _pointerEventDependents = BuildPointerEventDependents(_bindings);
+        _timelineTrackedBindings = DiscoverTimelineTrackedBindings(_bindings);
         _animatedTopLevelChildIndexes = DiscoverAnimatedTopLevelChildIndexes(sourceDocument, _bindings);
     }
 
@@ -262,6 +305,142 @@ public sealed class SvgAnimationController : IDisposable
         }
 
         return keys;
+    }
+
+    internal bool BeginElement(SvgAnimationElement animation, TimeSpan offset)
+    {
+        ThrowIfDisposed();
+
+        return TryScheduleElementInstance(animation, offset, _scheduledBeginInstances);
+    }
+
+    internal bool EndElement(SvgAnimationElement animation, TimeSpan offset)
+    {
+        ThrowIfDisposed();
+
+        return TryScheduleElementInstance(animation, offset, _scheduledEndInstances);
+    }
+
+    internal bool TryGetStartTime(SvgAnimationElement animation, out TimeSpan startTime)
+    {
+        return TryGetStartTime(animation, Clock.CurrentTime, out startTime);
+    }
+
+    internal bool TryGetBaseAttributeValue(SvgElement element, string attributeName, out string value)
+    {
+        value = string.Empty;
+        if (element is null || string.IsNullOrWhiteSpace(attributeName))
+        {
+            return false;
+        }
+
+        var targetAddress = SvgElementAddress.Create(element);
+        if (!TryGetBindingByAttributeName(targetAddress, attributeName, out var binding))
+        {
+            return false;
+        }
+
+        value = binding.BaseValueString ?? string.Empty;
+        return true;
+    }
+
+    private bool TryGetBindingByAttributeName(SvgElementAddress targetAddress, string attributeName, out AnimationBinding binding)
+    {
+        var key = string.Concat(targetAddress.Key, "|", attributeName);
+        if (_bindingsByTargetAttributeKey.TryGetValue(key, out binding!))
+        {
+            return true;
+        }
+
+        var colonIndex = attributeName.IndexOf(':');
+        if (colonIndex >= 0)
+        {
+            var localName = attributeName.Substring(colonIndex + 1);
+            key = string.Concat(targetAddress.Key, "|", localName);
+            return _bindingsByTargetAttributeKey.TryGetValue(key, out binding!);
+        }
+
+        key = string.Concat(targetAddress.Key, "|xlink:", attributeName);
+        return _bindingsByTargetAttributeKey.TryGetValue(key, out binding!);
+    }
+
+    internal bool TryGetStartTime(SvgAnimationElement animation, TimeSpan currentTime, out TimeSpan startTime)
+    {
+        ThrowIfDisposed();
+
+        startTime = default;
+        if (!TryGetBinding(animation, out var binding))
+        {
+            return false;
+        }
+
+        var beginInstances = ResolveBeginInstances(binding, recursionGuard: null);
+        if (beginInstances.Count == 0)
+        {
+            return false;
+        }
+
+        var endInstances = ResolveEndTimingInstances(binding, recursionGuard: null);
+        var allowIndefiniteDiscrete = binding.Animation is SvgSet;
+
+        if (TryResolveCurrentActiveIntervalDetailed(binding.Animation, currentTime, allowIndefiniteDiscrete, beginInstances, endInstances, out var activeInterval))
+        {
+            startTime = activeInterval.BeginInstance.Time;
+            return true;
+        }
+
+        for (var index = 0; index < beginInstances.Count; index++)
+        {
+            var candidate = beginInstances[index];
+            if (candidate.Time <= currentTime)
+            {
+                continue;
+            }
+
+            if (!TryResolveIntervalEndDetailed(binding.Animation, candidate.Time, endInstances, allowIndefiniteDiscrete, out _, out _))
+            {
+                continue;
+            }
+
+            startTime = candidate.Time;
+            return true;
+        }
+
+        return false;
+    }
+
+    internal IReadOnlyList<SvgAnimationTimelineCallback> GetTimelineCallbacks(TimeSpan currentTime, TimeSpan? previousTime)
+    {
+        ThrowIfDisposed();
+
+        if (_timelineTrackedBindings.Count == 0)
+        {
+            return Array.Empty<SvgAnimationTimelineCallback>();
+        }
+
+        if (previousTime.HasValue && currentTime < previousTime.Value)
+        {
+            return Array.Empty<SvgAnimationTimelineCallback>();
+        }
+
+        var callbacks = new List<SvgAnimationTimelineCallback>();
+        for (var i = 0; i < _timelineTrackedBindings.Count; i++)
+        {
+            CollectTimelineCallbacks(_timelineTrackedBindings[i], previousTime, currentTime, callbacks);
+        }
+
+        callbacks.Sort(static (left, right) =>
+        {
+            var comparison = left.Time.CompareTo(right.Time);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+
+            return string.CompareOrdinal(left.AttributeName, right.AttributeName);
+        });
+
+        return callbacks;
     }
 
     public SvgDocument CreateAnimatedDocument()
@@ -388,7 +567,7 @@ public sealed class SvgAnimationController : IDisposable
             return false;
         }
 
-        var key = CreateEventInstanceKey(SvgElementAddress.Create(element), eventType);
+        var key = CreateEventInstanceKey(SvgElementAddress.Create(element), ToTimingEventType(eventType));
         if (!_pointerEventDependencies.Contains(key))
         {
             return false;
@@ -410,6 +589,8 @@ public sealed class SvgAnimationController : IDisposable
     {
         ThrowIfDisposed();
         _pointerEventInstances.Clear();
+        _scheduledBeginInstances.Clear();
+        _scheduledEndInstances.Clear();
         InvalidateFrameStateCache();
         var currentTime = Clock.CurrentTime;
         Clock.Reset();
@@ -418,6 +599,226 @@ public sealed class SvgAnimationController : IDisposable
         {
             FrameChanged?.Invoke(this, new SvgAnimationFrameChangedEventArgs(TimeSpan.Zero));
         }
+    }
+
+    private bool TryScheduleElementInstance(
+        SvgAnimationElement animation,
+        TimeSpan offset,
+        Dictionary<string, List<TimeSpan>> scheduledInstances)
+    {
+        if (!TryGetBinding(animation, out var binding))
+        {
+            return false;
+        }
+
+        var scheduledTime = Clock.CurrentTime + offset;
+        if (scheduledTime < TimeSpan.Zero)
+        {
+            scheduledTime = TimeSpan.Zero;
+        }
+
+        if (!scheduledInstances.TryGetValue(binding.AnimationAddress.Key, out var times))
+        {
+            times = new List<TimeSpan>();
+            scheduledInstances[binding.AnimationAddress.Key] = times;
+        }
+
+        times.Add(scheduledTime);
+        times.Sort();
+        InvalidateFrameStateCache();
+        return true;
+    }
+
+    private bool TryGetBinding(SvgAnimationElement animation, out AnimationBinding binding)
+    {
+        return _bindingsByAnimationAddressKey.TryGetValue(SvgElementAddress.Create(animation).Key, out binding!);
+    }
+
+    private IReadOnlyList<ResolvedTimingInstance> ResolveBeginInstances(AnimationBinding binding, HashSet<string>? recursionGuard)
+    {
+        if (!binding.HasDynamicBeginTiming &&
+            (!_scheduledBeginInstances.TryGetValue(binding.AnimationAddress.Key, out var scheduledTimes) || scheduledTimes.Count == 0))
+        {
+            return binding.StaticBeginInstances;
+        }
+
+        recursionGuard ??= new HashSet<string>(StringComparer.Ordinal);
+        if (!recursionGuard.Add(binding.AnimationAddress.Key))
+        {
+            return s_emptyResolvedTimingInstances;
+        }
+
+        try
+        {
+            var instances = ResolveTimingInstancesDetailed(binding.BeginSpecs, recursionGuard);
+            AppendScheduledInstances(binding.AnimationAddress, SvgAnimationTimingEventType.Begin, _scheduledBeginInstances, instances);
+            SortAndDeduplicateTimingInstances(instances);
+            return instances.Count == 0 ? s_emptyResolvedTimingInstances : instances;
+        }
+        finally
+        {
+            recursionGuard.Remove(binding.AnimationAddress.Key);
+        }
+    }
+
+    private IReadOnlyList<ResolvedTimingInstance> ResolveEndTimingInstances(AnimationBinding binding, HashSet<string>? recursionGuard)
+    {
+        if (!binding.HasDynamicEndTiming &&
+            (!_scheduledEndInstances.TryGetValue(binding.AnimationAddress.Key, out var scheduledTimes) || scheduledTimes.Count == 0))
+        {
+            return binding.StaticEndInstances;
+        }
+
+        recursionGuard ??= new HashSet<string>(StringComparer.Ordinal);
+        if (!recursionGuard.Add(binding.AnimationAddress.Key))
+        {
+            return s_emptyResolvedTimingInstances;
+        }
+
+        try
+        {
+            var instances = ResolveTimingInstancesDetailed(binding.EndSpecs, recursionGuard);
+            AppendScheduledInstances(binding.AnimationAddress, SvgAnimationTimingEventType.End, _scheduledEndInstances, instances);
+            SortAndDeduplicateTimingInstances(instances);
+            return instances.Count == 0 ? s_emptyResolvedTimingInstances : instances;
+        }
+        finally
+        {
+            recursionGuard.Remove(binding.AnimationAddress.Key);
+        }
+    }
+
+    private static void AppendScheduledInstances(
+        SvgElementAddress animationAddress,
+        SvgAnimationTimingEventType eventType,
+        IReadOnlyDictionary<string, List<TimeSpan>> scheduledInstances,
+        List<ResolvedTimingInstance> target)
+    {
+        if (!scheduledInstances.TryGetValue(animationAddress.Key, out var times) || times.Count == 0)
+        {
+            return;
+        }
+
+        var eventInstanceKey = CreateEventInstanceKey(animationAddress, eventType);
+        for (var index = 0; index < times.Count; index++)
+        {
+            var time = times[index];
+            target.Add(new ResolvedTimingInstance(time, eventInstanceKey, time));
+        }
+    }
+
+    private static void SortAndDeduplicateTimingInstances(List<ResolvedTimingInstance> instances)
+    {
+        if (instances.Count <= 1)
+        {
+            return;
+        }
+
+        instances.Sort(static (left, right) =>
+        {
+            var comparison = left.Time.CompareTo(right.Time);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+
+            comparison = string.CompareOrdinal(left.EventInstanceKey, right.EventInstanceKey);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+
+            return Nullable.Compare(left.SourceEventTime, right.SourceEventTime);
+        });
+
+        var writeIndex = 1;
+        for (var readIndex = 1; readIndex < instances.Count; readIndex++)
+        {
+            var previous = instances[writeIndex - 1];
+            var current = instances[readIndex];
+            if (previous.Time == current.Time &&
+                string.Equals(previous.EventInstanceKey, current.EventInstanceKey, StringComparison.Ordinal) &&
+                previous.SourceEventTime == current.SourceEventTime)
+            {
+                continue;
+            }
+
+            instances[writeIndex++] = current;
+        }
+
+        if (writeIndex < instances.Count)
+        {
+            instances.RemoveRange(writeIndex, instances.Count - writeIndex);
+        }
+    }
+
+    private static bool TryResolveCurrentActiveIntervalDetailed(
+        SvgAnimationElement animation,
+        TimeSpan time,
+        bool allowIndefiniteDiscrete,
+        IReadOnlyList<ResolvedTimingInstance> beginInstances,
+        IReadOnlyList<ResolvedTimingInstance> endInstances,
+        out ResolvedAnimationInterval interval)
+    {
+        if (!TryResolveCurrentIntervalDetailed(animation, time, allowIndefiniteDiscrete, beginInstances, endInstances, out interval))
+        {
+            return false;
+        }
+
+        return interval.IsActive(time);
+    }
+
+    private void CollectTimelineCallbacks(
+        AnimationBinding binding,
+        TimeSpan? previousTime,
+        TimeSpan currentTime,
+        List<SvgAnimationTimelineCallback> callbacks)
+    {
+        var intervals = ResolveAnimationIntervals(binding, recursionGuard: null);
+        if (intervals.Count == 0)
+        {
+            return;
+        }
+
+        for (var index = 0; index < intervals.Count; index++)
+        {
+            var beginTime = intervals[index].BeginInstance.Time;
+            if (ShouldDispatchTimelineEvent(beginTime, previousTime, currentTime))
+            {
+                callbacks.Add(new SvgAnimationTimelineCallback(
+                    binding.AnimationAddress,
+                    "beginEvent",
+                    "onbegin",
+                    beginTime));
+            }
+        }
+
+        for (var index = 0; index < intervals.Count; index++)
+        {
+            if (intervals[index].ActiveEnd is not { } endTime ||
+                !ShouldDispatchTimelineEvent(endTime, previousTime, currentTime))
+            {
+                continue;
+            }
+
+            callbacks.Add(new SvgAnimationTimelineCallback(
+                binding.AnimationAddress,
+                "endEvent",
+                "onend",
+                endTime));
+        }
+    }
+
+    private static bool ShouldDispatchTimelineEvent(TimeSpan eventTime, TimeSpan? previousTime, TimeSpan currentTime)
+    {
+        if (eventTime > currentTime)
+        {
+            return false;
+        }
+
+        return previousTime.HasValue
+            ? eventTime > previousTime.Value
+            : eventTime == currentTime;
     }
 
     public void Dispose()
@@ -460,8 +861,8 @@ public sealed class SvgAnimationController : IDisposable
 
         foreach (var binding in bindings)
         {
-            AddPointerEventDependents(binding, binding.BeginSpecs, isBegin: true, dependents);
-            AddPointerEventDependents(binding, binding.EndSpecs, isBegin: false, dependents);
+            AddPointerEventDependents(binding, binding.BeginSpecs, dependents);
+            AddPointerEventDependents(binding, binding.EndSpecs, dependents);
         }
 
         return dependents;
@@ -470,12 +871,11 @@ public sealed class SvgAnimationController : IDisposable
     private static void AddPointerEventDependents(
         AnimationBinding binding,
         IEnumerable<TimingSpec> specs,
-        bool isBegin,
         Dictionary<string, List<PointerEventDependency>> dependents)
     {
         foreach (var spec in specs)
         {
-            if (!spec.IsEvent || spec.EventInstanceKey is not { Length: > 0 } eventInstanceKey)
+            if (!TryGetPointerEventInstanceKey(spec, out var eventInstanceKey))
             {
                 continue;
             }
@@ -486,12 +886,12 @@ public sealed class SvgAnimationController : IDisposable
                 dependents[eventInstanceKey] = bindingsForKey;
             }
 
-            if (bindingsForKey.Any(existing => ReferenceEquals(existing.Binding, binding) && existing.IsBegin == isBegin))
+            if (bindingsForKey.Any(existing => ReferenceEquals(existing.Binding, binding)))
             {
                 continue;
             }
 
-            bindingsForKey.Add(new PointerEventDependency(binding, isBegin));
+            bindingsForKey.Add(new PointerEventDependency(binding));
         }
     }
 
@@ -508,6 +908,33 @@ public sealed class SvgAnimationController : IDisposable
         }
 
         return lookup;
+    }
+
+    private static Dictionary<string, AnimationBinding> BuildAnimationBindingLookup(IEnumerable<AnimationBinding> bindings)
+    {
+        var lookup = new Dictionary<string, AnimationBinding>(StringComparer.Ordinal);
+
+        foreach (var binding in bindings)
+        {
+            if (!lookup.ContainsKey(binding.AnimationAddress.Key))
+            {
+                lookup.Add(binding.AnimationAddress.Key, binding);
+            }
+        }
+
+        return lookup;
+    }
+
+    private static List<AnimationBinding> DiscoverTimelineTrackedBindings(IEnumerable<AnimationBinding> bindings)
+    {
+        var trackedBindings = new List<AnimationBinding>();
+
+        foreach (var binding in bindings)
+        {
+            trackedBindings.Add(binding);
+        }
+
+        return trackedBindings;
     }
 
     private static int[]? DiscoverAnimatedTopLevelChildIndexes(SvgDocument sourceDocument, IEnumerable<AnimationBinding> bindings)
@@ -543,11 +970,23 @@ public sealed class SvgAnimationController : IDisposable
     {
         foreach (var spec in specs)
         {
-            if (spec.IsEvent && spec.EventInstanceKey is { Length: > 0 } eventInstanceKey)
+            if (TryGetPointerEventInstanceKey(spec, out var eventInstanceKey))
             {
                 dependencies.Add(eventInstanceKey);
             }
         }
+    }
+
+    private static bool TryGetPointerEventInstanceKey(TimingSpec spec, out string key)
+    {
+        if (spec.IsEvent && IsPointerTimingEventType(spec.EventType))
+        {
+            key = CreateEventInstanceKey(spec.EventAddress!, spec.EventType);
+            return true;
+        }
+
+        key = string.Empty;
+        return false;
     }
 
     private static List<AnimationBinding> DiscoverBindings(SvgDocument sourceDocument)
@@ -637,8 +1076,8 @@ public sealed class SvgAnimationController : IDisposable
         TimeSpan currentTime,
         HashSet<long> relevantEventTimes)
     {
-        var beginInstances = ResolveTimingInstancesDetailed(binding.BeginSpecs);
-        var endInstances = ResolveTimingInstancesDetailed(binding.EndSpecs);
+        var beginInstances = ResolveBeginInstances(binding, recursionGuard: null);
+        var endInstances = ResolveEndTimingInstances(binding, recursionGuard: null);
 
         PreserveFutureEventInstances(key, beginInstances, currentTime, relevantEventTimes);
         PreserveFutureEventInstances(key, endInstances, currentTime, relevantEventTimes);
@@ -690,7 +1129,7 @@ public sealed class SvgAnimationController : IDisposable
             return false;
         }
 
-        spec = new TimingSpec(CreateEventInstanceKey(parsedTiming.EventAddress, parsedTiming.EventType), parsedTiming.Offset);
+        spec = new TimingSpec(parsedTiming.EventAddress, parsedTiming.EventType, parsedTiming.Offset);
         return true;
     }
 
@@ -1055,99 +1494,169 @@ public sealed class SvgAnimationController : IDisposable
     {
         interval = default;
 
-        var beginInstances = controller.ResolveTimingInstances(binding.BeginSpecs);
+        var beginInstances = controller.ResolveBeginInstances(binding, recursionGuard: null);
         if (beginInstances.Count == 0)
         {
             return false;
         }
 
-        var endInstances = controller.ResolveTimingInstances(binding.EndSpecs);
-        var selected = default(AnimationInterval?);
-
-        foreach (var begin in beginInstances)
-        {
-            if (begin > time)
-            {
-                break;
-            }
-
-            if (selected.HasValue)
-            {
-                switch (animation.Restart)
-                {
-                    case SvgAnimationRestart.Never:
-                        continue;
-                    case SvgAnimationRestart.WhenNotActive:
-                        if (!selected.Value.ActiveEnd.HasValue || begin < selected.Value.ActiveEnd.Value)
-                        {
-                            continue;
-                        }
-                        break;
-                }
-            }
-
-            if (!TryResolveIntervalEnd(animation, begin, endInstances, allowIndefiniteDiscrete, out var activeEnd))
-            {
-                continue;
-            }
-
-            selected = new AnimationInterval(begin, activeEnd);
-        }
-
-        if (!selected.HasValue)
+        var endInstances = controller.ResolveEndTimingInstances(binding, recursionGuard: null);
+        if (!TryResolveCurrentIntervalDetailed(animation, time, allowIndefiniteDiscrete, beginInstances, endInstances, out var resolved))
         {
             return false;
         }
 
-        var resolved = selected.Value;
         if (resolved.IsActive(time))
         {
-            interval = (true, false, resolved.Begin, resolved.ActiveEnd);
+            interval = (true, false, resolved.BeginInstance.Time, resolved.ActiveEnd);
             return true;
         }
 
         if (animation.AnimationFill == SvgAnimationFill.Freeze)
         {
-            interval = (false, true, resolved.Begin, resolved.ActiveEnd);
+            interval = (false, true, resolved.BeginInstance.Time, resolved.ActiveEnd);
             return true;
         }
 
         return false;
     }
 
-    private List<TimeSpan> ResolveTimingInstances(IReadOnlyList<TimingSpec> specs)
-    {
-        return ResolveTimingInstancesDetailed(specs)
-            .Select(static instance => instance.Time)
-            .ToList();
-    }
-
-    private List<ResolvedTimingInstance> ResolveTimingInstancesDetailed(IReadOnlyList<TimingSpec> specs)
+    private List<ResolvedTimingInstance> ResolveTimingInstancesDetailed(IReadOnlyList<TimingSpec> specs, HashSet<string>? recursionGuard)
     {
         var instances = new List<ResolvedTimingInstance>();
 
         foreach (var spec in specs)
         {
-            if (spec.IsEvent)
+            if (!spec.IsEvent)
             {
-                if (spec.EventInstanceKey is null ||
-                    !_pointerEventInstances.TryGetValue(spec.EventInstanceKey, out var eventTimes))
+                instances.Add(new ResolvedTimingInstance(spec.Offset, eventInstanceKey: null, sourceEventTime: null));
+                continue;
+            }
+
+            if (TryGetPointerEventInstanceKey(spec, out var pointerEventKey))
+            {
+                if (!_pointerEventInstances.TryGetValue(pointerEventKey, out var eventTimes))
                 {
                     continue;
                 }
 
-                instances.AddRange(eventTimes.Select(eventTime => new ResolvedTimingInstance(
-                    eventTime + spec.Offset,
-                    spec.EventInstanceKey,
-                    eventTime)));
+                for (var index = 0; index < eventTimes.Count; index++)
+                {
+                    var eventTime = eventTimes[index];
+                    instances.Add(new ResolvedTimingInstance(
+                        eventTime + spec.Offset,
+                        pointerEventKey,
+                        eventTime));
+                }
+
                 continue;
             }
 
-            instances.Add(new ResolvedTimingInstance(spec.Offset, eventInstanceKey: null, sourceEventTime: null));
+            var dependencyInstances = ResolveAnimationEventInstances(spec, recursionGuard);
+            if (dependencyInstances.Count == 0)
+            {
+                continue;
+            }
+
+            var eventInstanceKey = CreateEventInstanceKey(spec.EventAddress!, spec.EventType);
+            for (var index = 0; index < dependencyInstances.Count; index++)
+            {
+                var dependencyTime = dependencyInstances[index];
+                instances.Add(new ResolvedTimingInstance(
+                    dependencyTime + spec.Offset,
+                    eventInstanceKey,
+                    dependencyTime));
+            }
         }
 
-        instances.Sort(static (left, right) => left.Time.CompareTo(right.Time));
+        SortAndDeduplicateTimingInstances(instances);
         return instances;
+    }
+
+    private List<TimeSpan> ResolveAnimationEventInstances(TimingSpec spec, HashSet<string>? recursionGuard)
+    {
+        if (spec.EventAddress is null ||
+            !_bindingsByAnimationAddressKey.TryGetValue(spec.EventAddress.Key, out var dependencyBinding))
+        {
+            return new List<TimeSpan>();
+        }
+
+        var dependencyIntervals = ResolveAnimationIntervals(dependencyBinding, recursionGuard);
+        if (dependencyIntervals.Count == 0)
+        {
+            return new List<TimeSpan>();
+        }
+
+        var instances = new List<TimeSpan>(dependencyIntervals.Count);
+        for (var index = 0; index < dependencyIntervals.Count; index++)
+        {
+            var interval = dependencyIntervals[index];
+            switch (spec.EventType)
+            {
+                case SvgAnimationTimingEventType.Begin:
+                    instances.Add(interval.BeginInstance.Time);
+                    break;
+                case SvgAnimationTimingEventType.End:
+                    if (interval.ActiveEnd.HasValue)
+                    {
+                        instances.Add(interval.ActiveEnd.Value);
+                    }
+
+                    break;
+            }
+        }
+
+        if (instances.Count > 1)
+        {
+            instances.Sort();
+        }
+
+        return instances;
+    }
+
+    private List<ResolvedAnimationInterval> ResolveAnimationIntervals(AnimationBinding binding, HashSet<string>? recursionGuard)
+    {
+        var beginInstances = ResolveBeginInstances(binding, recursionGuard);
+        if (beginInstances.Count == 0)
+        {
+            return new List<ResolvedAnimationInterval>();
+        }
+
+        var endInstances = ResolveEndTimingInstances(binding, recursionGuard);
+        var allowIndefiniteDiscrete = binding.Animation is SvgSet;
+        var intervals = new List<ResolvedAnimationInterval>();
+        ResolvedAnimationInterval? selected = null;
+
+        for (var index = 0; index < beginInstances.Count; index++)
+        {
+            var begin = beginInstances[index];
+
+            if (selected.HasValue)
+            {
+                switch (binding.Animation.Restart)
+                {
+                    case SvgAnimationRestart.Never:
+                        continue;
+                    case SvgAnimationRestart.WhenNotActive:
+                        if (!selected.Value.ActiveEnd.HasValue || begin.Time < selected.Value.ActiveEnd.Value)
+                        {
+                            continue;
+                        }
+
+                        break;
+                }
+            }
+
+            if (!TryResolveIntervalEndDetailed(binding.Animation, begin.Time, endInstances, allowIndefiniteDiscrete, out var activeEnd, out var endInstance))
+            {
+                continue;
+            }
+
+            selected = new ResolvedAnimationInterval(begin, activeEnd, endInstance);
+            intervals.Add(selected.Value);
+        }
+
+        return intervals;
     }
 
     private static bool TryResolveCurrentIntervalDetailed(
@@ -1212,6 +1721,40 @@ public sealed class SvgAnimationController : IDisposable
         }
 
         return false;
+    }
+
+    private static bool ContainsDynamicTiming(IReadOnlyList<TimingSpec> specs)
+    {
+        for (var index = 0; index < specs.Count; index++)
+        {
+            if (specs[index].IsEvent)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static IReadOnlyList<ResolvedTimingInstance> CreateStaticTimingInstances(IReadOnlyList<TimingSpec> specs)
+    {
+        if (specs.Count == 0)
+        {
+            return s_emptyResolvedTimingInstances;
+        }
+
+        var instances = new ResolvedTimingInstance[specs.Count];
+        for (var index = 0; index < specs.Count; index++)
+        {
+            instances[index] = new ResolvedTimingInstance(specs[index].Offset, eventInstanceKey: null, sourceEventTime: null);
+        }
+
+        if (instances.Length > 1)
+        {
+            Array.Sort(instances, static (left, right) => left.Time.CompareTo(right.Time));
+        }
+
+        return instances;
     }
 
     private static bool TryResolveIntervalEnd(SvgAnimationElement animation, TimeSpan begin, IReadOnlyList<TimeSpan> endInstances, bool allowIndefiniteDiscrete, out TimeSpan? activeEnd)
@@ -2941,7 +3484,33 @@ public sealed class SvgAnimationController : IDisposable
         return false;
     }
 
-    private static string CreateEventInstanceKey(SvgElementAddress address, SvgPointerEventType eventType)
+    private static bool IsPointerTimingEventType(SvgAnimationTimingEventType eventType)
+    {
+        return eventType is SvgAnimationTimingEventType.Move or
+               SvgAnimationTimingEventType.Press or
+               SvgAnimationTimingEventType.Release or
+               SvgAnimationTimingEventType.Enter or
+               SvgAnimationTimingEventType.Leave or
+               SvgAnimationTimingEventType.Wheel or
+               SvgAnimationTimingEventType.Click;
+    }
+
+    private static SvgAnimationTimingEventType ToTimingEventType(SvgPointerEventType eventType)
+    {
+        return eventType switch
+        {
+            SvgPointerEventType.Move => SvgAnimationTimingEventType.Move,
+            SvgPointerEventType.Press => SvgAnimationTimingEventType.Press,
+            SvgPointerEventType.Release => SvgAnimationTimingEventType.Release,
+            SvgPointerEventType.Enter => SvgAnimationTimingEventType.Enter,
+            SvgPointerEventType.Leave => SvgAnimationTimingEventType.Leave,
+            SvgPointerEventType.Wheel => SvgAnimationTimingEventType.Wheel,
+            SvgPointerEventType.Click => SvgAnimationTimingEventType.Click,
+            _ => throw new ArgumentOutOfRangeException(nameof(eventType))
+        };
+    }
+
+    private static string CreateEventInstanceKey(SvgElementAddress address, SvgAnimationTimingEventType eventType)
     {
         return string.Concat(address.Key, "|", ((int)eventType).ToString(CultureInfo.InvariantCulture));
     }

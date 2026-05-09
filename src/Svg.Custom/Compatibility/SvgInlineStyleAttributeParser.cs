@@ -25,7 +25,7 @@ internal sealed class SvgInlineStyleAttributeParser
         {
             foreach (var declaration in rule.Style)
             {
-                element.AddStyle(declaration.Name, declaration.Original, SvgElement.StyleSpecificity_InlineStyle);
+                ApplyDeclaration(element, declaration.Name, declaration.Original, SvgElement.StyleSpecificity_InlineStyle);
             }
         }
     }
@@ -55,8 +55,19 @@ internal sealed class SvgInlineStyleAttributeParser
                 return false;
             }
 
-            element.AddStyle(name, value, SvgElement.StyleSpecificity_InlineStyle);
+            ApplyDeclaration(element, name, value, SvgElement.StyleSpecificity_InlineStyle);
         }
+    }
+
+    private static void ApplyDeclaration(SvgElement element, string name, string value, int specificity)
+    {
+        if (SvgCssVariableResolver.IsCustomPropertyName(name))
+        {
+            SvgCssVariableResolver.AddCustomProperty(element, name, value, specificity);
+            return;
+        }
+
+        element.AddStyle(name, value, specificity);
     }
 
     private static bool TryReadInlineDeclaration(string styleText, ref int index, out string name, out string value)
@@ -338,6 +349,11 @@ internal sealed class SvgInlineStyleAttributeParser
     {
         var normalized = NormalizeInlineDeclarationSegment(styleText, startIndex, length);
         if (string.IsNullOrEmpty(normalized))
+        {
+            return normalized;
+        }
+
+        if (SvgCssVariableResolver.IsCustomPropertyName(normalized))
         {
             return normalized;
         }
