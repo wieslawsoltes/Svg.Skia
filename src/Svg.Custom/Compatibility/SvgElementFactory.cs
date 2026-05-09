@@ -360,13 +360,31 @@ namespace Svg
             SvgDocument document,
             bool isStyle = false)
         {
-            if (ns.Length == 0 &&
-                attributeName.Length >= 4 &&
-                (attributeName[0] == 'o' || attributeName[0] == 'O') &&
-                (attributeName[1] == 'n' || attributeName[1] == 'N') &&
-                IsEventDescriptorAttribute(element, attributeName))
+            var isEventDescriptorAttribute = ns.Length == 0 &&
+                                             attributeName.Length >= 4 &&
+                                             (attributeName[0] == 'o' || attributeName[0] == 'O') &&
+                                             (attributeName[1] == 'n' || attributeName[1] == 'N') &&
+                                             IsEventDescriptorAttribute(element, attributeName);
+            if (isEventDescriptorAttribute)
             {
                 element.CustomAttributes[attributeName] = attributeValue;
+            }
+
+            if (SvgCssVariableResolver.IsCustomPropertyName(attributeName))
+            {
+                SvgCssVariableResolver.AddCustomProperty(
+                    element,
+                    attributeName,
+                    attributeValue,
+                    isStyle ? SvgElement.StyleSpecificity_InlineStyle : SvgElement.StyleSpecificity_PresAttribute);
+                return true;
+            }
+
+            if (!isEventDescriptorAttribute &&
+                !string.IsNullOrEmpty(attributeValue) &&
+                SvgCssVariableResolver.TryResolveValue(element, attributeValue, out var resolvedAttributeValue))
+            {
+                attributeValue = resolvedAttributeValue;
             }
 
             if (attributeName == "text-decoration" && !string.IsNullOrWhiteSpace(attributeValue))

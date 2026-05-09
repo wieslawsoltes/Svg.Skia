@@ -672,6 +672,12 @@ public sealed partial class SvgJavaScriptElement
                 }
             }
 
+            if (SvgCssVariableResolver.TryGetCustomPropertyValue(current, name, out var customPropertyValue) &&
+                !string.IsNullOrWhiteSpace(customPropertyValue))
+            {
+                return customPropertyValue;
+            }
+
             if (current.CustomAttributes.TryGetValue(name, out var value) && !string.IsNullOrWhiteSpace(value))
             {
                 if (!string.Equals(value, "inherit", StringComparison.OrdinalIgnoreCase))
