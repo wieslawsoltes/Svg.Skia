@@ -24,6 +24,7 @@ Packaged tools such as `Svg.Skia.Converter` and `svgc` stay documented under [Sa
 | Package | Start here when | Guide |
 | --- | --- | --- |
 | `Svg.Controls.Skia.Uno` | You want Uno Platform SVG controls backed by `Svg.Skia`, the live Skia canvas, and host-driven animation playback. | [Svg.Controls.Skia.Uno](svg-controls-skia-uno) |
+| `Svg.Controls.Skia.Maui` | You want .NET MAUI SVG controls backed by `Svg.Skia`, `SKCanvasView`, reusable sources, and host-driven animation playback. | [Svg.Controls.Skia.Maui](svg-controls-skia-maui) |
 | `Svg.Controls.Skia.Avalonia` | You want the richest Avalonia SVG integration, backed by `Svg.Skia`, real `SkiaSharp.SKPicture` output, and retained native-composition playback where supported. | [Svg.Controls.Skia.Avalonia](svg-controls-skia-avalonia) |
 | `Svg.Controls.Avalonia` | You want the same high-level Avalonia SVG concepts but rendered through the Avalonia drawing stack. | [Svg.Controls.Avalonia](svg-controls-avalonia) |
 | `SvgML.Avalonia` | You want to author SVG markup inline in Avalonia XAML, including native controls hosted through `foreignObject`, and still render it through the shared `Svg.Skia` pipeline. | [SvgML.Avalonia](svgml-avalonia) |
@@ -55,6 +56,7 @@ Packaged tools such as `Svg.Skia.Converter` and `svgc` stay documented under [Sa
 - Choose `Svg.SceneGraph` when you need retained compiled scene nodes and bounds instead of only the intermediate model or the final Skia output.
 - Choose `Svg.Controls.Skia.Uno` for Uno Platform usage on the Skia-backed path with host-driven animation playback.
 - Choose `SvgML.Uno` when the SVG itself should live in Uno XAML pages or controls instead of an external asset file, including native Uno controls placed by SVG `foreignObject`.
+- Choose `Svg.Controls.Skia.Maui` for .NET MAUI usage when the SVG already exists as an external asset or source string and should render through `SKCanvasView`.
 - Choose `Svg.Controls.Skia.Avalonia` for interactive Avalonia usage on the Skia-backed path, especially when retained native composition matters.
 - Choose `SvgML.Avalonia` when the SVG itself should live in Avalonia XAML resources, templates, or views instead of an external asset file, including native Avalonia controls placed by SVG `foreignObject`.
 - Choose `SvgML.Maui` when the SVG itself should live in .NET MAUI XAML pages or controls instead of an external asset file, including native MAUI controls placed by SVG `foreignObject`.

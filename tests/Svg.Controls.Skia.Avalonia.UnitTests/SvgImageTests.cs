@@ -1,9 +1,13 @@
-﻿using Avalonia;
+﻿using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Svg.Skia;
 using Avalonia.Svg.Skia.UnitTests.Views;
+using ShimSkiaSharp;
+using ShimSkiaSharp.Editing;
+using Svg.Model;
 using Xunit;
 
 namespace Avalonia.Svg.Skia.UnitTests;
@@ -11,6 +15,11 @@ namespace Avalonia.Svg.Skia.UnitTests;
 public class SvgImageTests
 {
     private const string SampleSvg = "<svg width=\"10\" height=\"10\"><rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"red\" /></svg>";
+    private const string CurrentColorSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+          <rect x="0" y="0" width="10" height="10" fill="currentColor" />
+        </svg>
+        """;
 
     [AvaloniaFact]
     public void SvgImage_Load()
@@ -74,7 +83,8 @@ public class SvgImageTests
         {
             Source = source,
             Css = ".Red { fill: #FF0000; }",
-            CurrentCss = ".Blue { fill: #0000FF; }"
+            CurrentCss = ".Blue { fill: #0000FF; }",
+            CurrentColor = Color.FromRgb(0, 128, 255)
         };
 
         var clone = svgImage.Clone();
@@ -83,5 +93,62 @@ public class SvgImageTests
         Assert.NotSame(svgImage.Source, clone.Source);
         Assert.Equal(svgImage.Css, clone.Css);
         Assert.Equal(svgImage.CurrentCss, clone.CurrentCss);
+        Assert.Equal(svgImage.CurrentColor, clone.CurrentColor);
+    }
+
+    [AvaloniaFact]
+    public void SvgImage_CurrentColor_ReloadsSource()
+    {
+        var source = SvgSource.LoadFromSvg(CurrentColorSvg);
+        var svgImage = new SvgImage
+        {
+            Source = source
+        };
+
+        svgImage.CurrentColor = Color.FromRgb(0, 128, 255);
+
+        Assert.Equal(new SKColor(0, 128, 255, 255), GetFirstFillColor(source));
+    }
+
+    [AvaloniaFact]
+    public void SvgImage_CurrentColor_PreservesSourceCssParameters()
+    {
+        const string css = ".accent { stroke: #010203; }";
+        var source = SvgSource.LoadFromSvg(CurrentColorSvg, new SvgParameters(null, css));
+        var svgImage = new SvgImage
+        {
+            Source = source
+        };
+
+        svgImage.CurrentColor = Color.FromRgb(0, 128, 255);
+
+        Assert.Equal(css, source.Parameters?.Css);
+        Assert.Equal(new SKColor(0, 128, 255, 255), GetFirstFillColor(source));
+    }
+
+    [AvaloniaFact]
+    public void SvgImage_Css_PreservesSourceCurrentColorParameter()
+    {
+        var source = SvgSource.LoadFromSvg(
+            CurrentColorSvg,
+            new SvgParameters(null, null, System.Drawing.Color.FromArgb(255, 0, 128, 255)));
+        var svgImage = new SvgImage
+        {
+            Source = source
+        };
+
+        svgImage.Css = "rect { stroke: #010203; }";
+
+        Assert.Equal(new SKColor(0, 128, 255, 255), GetFirstFillColor(source));
+    }
+
+    private static SKColor GetFirstFillColor(SvgSource source)
+    {
+        var command = source.Svg?.Model?
+            .FindCommands<DrawPathCanvasCommand>()
+            .FirstOrDefault(x => x.Paint?.Style == SKPaintStyle.Fill);
+
+        Assert.NotNull(command?.Paint?.Color);
+        return command!.Paint!.Color!.Value;
     }
 }

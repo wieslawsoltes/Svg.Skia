@@ -39,6 +39,7 @@
     <ProjectReference Include="..\Svg.SceneGraph\Svg.SceneGraph.csproj" />
     <ProjectReference Include="..\Svg.Model\Svg.Model.csproj" />
     <ProjectReference Include="..\Svg.Custom\Svg.Custom.csproj" />
+    <ProjectReference Include="..\Svg.JavaScript\Svg.JavaScript.csproj" />
   </ItemGroup>
 
   <ItemGroup>
