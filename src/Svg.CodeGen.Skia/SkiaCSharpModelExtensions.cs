@@ -1911,7 +1911,29 @@ public static class SkiaCSharpModelExtensions
                             drawPathCanvasCommand.Path.ToSKPath(counter, sb, indent);
                             var counterPaint = ++counter.Paint;
                             drawPathCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
-                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawPath({counter.PathVarName}{counterPath}, {counter.PaintVarName}{counterPaint});");
+                            if (drawPathCanvasCommand.Paint.IsStrokeNonScaling &&
+                                drawPathCanvasCommand.Paint.Style == SKPaintStyle.Stroke)
+                            {
+                                var counterNonScalingPath = ++counter.Path;
+                                sb.AppendLine($"{indent}var matrix{counterNonScalingPath} = {counter.CanvasVarName}{counterCanvas}.TotalMatrix;");
+                                sb.AppendLine($"{indent}if (matrix{counterNonScalingPath}.IsIdentity)");
+                                sb.AppendLine($"{indent}{{");
+                                sb.AppendLine($"{indent}    {counter.CanvasVarName}{counterCanvas}.DrawPath({counter.PathVarName}{counterPath}, {counter.PaintVarName}{counterPaint});");
+                                sb.AppendLine($"{indent}}}");
+                                sb.AppendLine($"{indent}else");
+                                sb.AppendLine($"{indent}{{");
+                                sb.AppendLine($"{indent}    using var {counter.PathVarName}{counterNonScalingPath} = new SKPath({counter.PathVarName}{counterPath});");
+                                sb.AppendLine($"{indent}    {counter.PathVarName}{counterNonScalingPath}.Transform(matrix{counterNonScalingPath});");
+                                sb.AppendLine($"{indent}    {counter.CanvasVarName}{counterCanvas}.Save();");
+                                sb.AppendLine($"{indent}    {counter.CanvasVarName}{counterCanvas}.ResetMatrix();");
+                                sb.AppendLine($"{indent}    {counter.CanvasVarName}{counterCanvas}.DrawPath({counter.PathVarName}{counterNonScalingPath}, {counter.PaintVarName}{counterPaint});");
+                                sb.AppendLine($"{indent}    {counter.CanvasVarName}{counterCanvas}.Restore();");
+                                sb.AppendLine($"{indent}}}");
+                            }
+                            else
+                            {
+                                sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawPath({counter.PathVarName}{counterPath}, {counter.PaintVarName}{counterPaint});");
+                            }
 
                             // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE

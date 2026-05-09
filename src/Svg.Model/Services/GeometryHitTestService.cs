@@ -48,6 +48,24 @@ internal static class GeometryHitTestService
         return ContainsStrokeLocal(path, localPoint, Math.Max(strokeWidth / 2f, MinStrokeTolerance));
     }
 
+    public static bool ContainsStroke(SKPath path, SKPoint point, SKMatrix transform, float strokeWidth, bool isStrokeNonScaling)
+    {
+        if (!isStrokeNonScaling)
+        {
+            return ContainsStroke(path, point, transform, strokeWidth);
+        }
+
+        if (strokeWidth <= 0f)
+        {
+            return false;
+        }
+
+        var tolerance = Math.Max(strokeWidth / 2f, MinStrokeTolerance);
+        return transform.IsIdentity
+            ? ContainsStrokeLocal(path, point, tolerance)
+            : ContainsTransformedStroke(path, point, transform, tolerance);
+    }
+
     public static bool IntersectsFill(SKPath path, SKRect rect, SKMatrix transform)
     {
         if (rect.IsEmpty)
@@ -248,6 +266,26 @@ internal static class GeometryHitTestService
     private static bool ContainsStrokeLocal(SKPath path, SKPoint point, float tolerance)
     {
         var contours = FlattenPath(path);
+        return ContainsStroke(contours, point, tolerance);
+    }
+
+    private static bool ContainsTransformedStroke(SKPath path, SKPoint point, SKMatrix transform, float tolerance)
+    {
+        var contours = FlattenPath(path);
+        for (var i = 0; i < contours.Count; i++)
+        {
+            var points = contours[i].Points;
+            for (var j = 0; j < points.Count; j++)
+            {
+                points[j] = transform.MapPoint(points[j]);
+            }
+        }
+
+        return ContainsStroke(contours, point, tolerance);
+    }
+
+    private static bool ContainsStroke(List<FlattenedContour> contours, SKPoint point, float tolerance)
+    {
         if (contours.Count == 0)
         {
             return false;

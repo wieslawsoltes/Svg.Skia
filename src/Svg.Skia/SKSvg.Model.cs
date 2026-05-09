@@ -712,6 +712,18 @@ public partial class SKSvg : IDisposable
 
     public bool Save(System.IO.Stream stream, SkiaSharp.SKColor background, SkiaSharp.SKEncodedImageFormat format = SkiaSharp.SKEncodedImageFormat.Png, int quality = 100, float scaleX = 1f, float scaleY = 1f)
     {
+        SKPicture? model;
+        lock (Sync)
+        {
+            model = Model;
+        }
+
+        if (ContainsNonScalingStroke(model) &&
+            TrySaveModelImage(model, stream, background, format, quality, scaleX, scaleY))
+        {
+            return true;
+        }
+
         if (Picture is { })
         {
             if (Picture.ToImage(stream, background, format, quality, scaleX, scaleY, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, Settings.Srgb))
@@ -771,6 +783,63 @@ public partial class SKSvg : IDisposable
         return true;
     }
 
+    private bool TrySaveModelImage(SKPicture? model, System.IO.Stream stream, SkiaSharp.SKColor background, SkiaSharp.SKEncodedImageFormat format, int quality, float scaleX, float scaleY)
+    {
+        if (model is null)
+        {
+            return false;
+        }
+
+        var width = model.CullRect.Width * scaleX;
+        var height = model.CullRect.Height * scaleY;
+        if (!(width > 0) || !(height > 0))
+        {
+            return false;
+        }
+
+        var imageInfo = new SkiaSharp.SKImageInfo((int)width, (int)height, SkiaSharp.SKColorType.Rgba8888, SkiaSharp.SKAlphaType.Premul, Settings.Srgb);
+        using var bitmap = new SkiaSharp.SKBitmap(imageInfo);
+        using var canvas = new SkiaSharp.SKCanvas(bitmap);
+        canvas.Clear(background);
+        canvas.Save();
+        canvas.Scale(scaleX, scaleY);
+        SkiaModel.Draw(model, canvas);
+        canvas.Restore();
+
+        using var image = SkiaSharp.SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(format, quality);
+        if (data is null)
+        {
+            return false;
+        }
+
+        data.SaveTo(stream);
+        return true;
+    }
+
+    private static bool ContainsNonScalingStroke(SKPicture? model)
+    {
+        if (model?.Commands is not { } commands)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < commands.Count; i++)
+        {
+            switch (commands[i])
+            {
+                case DrawPathCanvasCommand { Paint: { IsStrokeNonScaling: true, Style: SKPaintStyle.Stroke } }:
+                    return true;
+
+                case DrawPictureCanvasCommand { Picture: { } picture }
+                    when ContainsNonScalingStroke(picture):
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
     public void Draw(SkiaSharp.SKCanvas canvas)
     {
         BeginDraw();
@@ -804,14 +873,30 @@ public partial class SKSvg : IDisposable
             }
             else if (!TryDrawAnimationLayers(canvas))
             {
-                var picture = Picture;
-                if (picture is null)
+                SKPicture? model;
+                lock (Sync)
                 {
-                    canvas.Restore();
-                    return;
+                    model = Model;
                 }
 
-                canvas.DrawPicture(picture);
+                if (ContainsNonScalingStroke(model))
+                {
+                    if (model is not null)
+                    {
+                        SkiaModel.Draw(model, canvas);
+                    }
+                }
+                else
+                {
+                    var picture = Picture;
+                    if (picture is null)
+                    {
+                        canvas.Restore();
+                        return;
+                    }
+
+                    canvas.DrawPicture(picture);
+                }
             }
             canvas.Restore();
         }

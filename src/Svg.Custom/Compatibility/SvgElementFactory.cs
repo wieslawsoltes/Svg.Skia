@@ -263,6 +263,7 @@ namespace Svg
                 case "text-rendering":
                 case "text-transform":
                 case "unicode-bidi":
+                case "vector-effect":
                 case "visibility":
                 case "word-spacing":
                 case "writing-mode":

@@ -1854,10 +1854,15 @@ public partial class SkiaModel
                     if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
                     {
                         var path = GetRenderPath(drawPathCanvasCommand.Path);
+                        if (path is null)
+                        {
+                            break;
+                        }
+
                         var paint = wireframe
                             ? ToWireframePaint(drawPathCanvasCommand.Paint)
                             : GetRenderPaint(drawPathCanvasCommand.Paint);
-                        skCanvas.DrawPath(path, paint);
+                        DrawPath(skCanvas, path, paint, drawPathCanvasCommand.Paint);
                     }
                     break;
                 }
@@ -1934,6 +1939,39 @@ public partial class SkiaModel
         {
             Draw(commands[i], skCanvas, wireframe);
         }
+    }
+
+    private static void DrawPath(
+        SkiaSharp.SKCanvas skCanvas,
+        SkiaSharp.SKPath path,
+        SkiaSharp.SKPaint? paint,
+        SKPaint sourcePaint)
+    {
+        if (paint is null)
+        {
+            return;
+        }
+
+        if (!sourcePaint.IsStrokeNonScaling || sourcePaint.Style != SKPaintStyle.Stroke)
+        {
+            skCanvas.DrawPath(path, paint);
+            return;
+        }
+
+        var currentMatrix = skCanvas.TotalMatrix;
+        if (currentMatrix.IsIdentity)
+        {
+            skCanvas.DrawPath(path, paint);
+            return;
+        }
+
+        using var transformedPath = new SkiaSharp.SKPath(path);
+        transformedPath.Transform(currentMatrix);
+
+        skCanvas.Save();
+        skCanvas.ResetMatrix();
+        skCanvas.DrawPath(transformedPath, paint);
+        skCanvas.Restore();
     }
 
     private SkiaSharp.SKPaint ToWireframePaint(SKPaint? paint)
