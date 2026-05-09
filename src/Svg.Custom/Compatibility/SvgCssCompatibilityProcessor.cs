@@ -610,9 +610,15 @@ internal static class SvgCssCompatibilityProcessor
                 return result;
             }
 
+            var declarationStart = index;
             if (!TryReadDeclaration(declarationsText, ref index, out var name, out var value))
             {
-                return result;
+                if (index <= declarationStart)
+                {
+                    return result;
+                }
+
+                continue;
             }
 
             if (SvgCssVariableResolver.IsCustomPropertyName(name))
