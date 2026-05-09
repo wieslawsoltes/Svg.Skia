@@ -27,7 +27,7 @@ internal static class SvgCssVariableResolver
             return;
         }
 
-        var normalizedValue = NormalizeCustomPropertyValue(value, out var important);
+        var normalizedValue = NormalizeCustomPropertyValue(value, out var important, out var valueKind);
         var propertyRules = s_customPropertyRules.GetOrCreateValue(element);
         if (!propertyRules.TryGetValue(name, out var rules))
         {
@@ -37,6 +37,7 @@ internal static class SvgCssVariableResolver
 
         rules.Add(new CustomPropertyRule(
             normalizedValue,
+            valueKind,
             specificity,
             important,
             Interlocked.Increment(ref s_customPropertySourceOrder)));
@@ -54,16 +55,36 @@ internal static class SvgCssVariableResolver
                TryGetCustomPropertyValue(element, name, new HashSet<string>(StringComparer.Ordinal), 0, out value);
     }
 
-    private static string NormalizeCustomPropertyValue(string value, out bool important)
+    private static string NormalizeCustomPropertyValue(string value, out bool important, out CustomPropertyValueKind valueKind)
     {
         if (TryFindTrailingImportant(value, out var importantStartIndex))
         {
             important = true;
-            return value.Substring(0, importantStartIndex).TrimEnd();
+            var normalizedImportantValue = value.Substring(0, importantStartIndex).TrimEnd();
+            valueKind = GetCustomPropertyValueKind(normalizedImportantValue);
+            return normalizedImportantValue;
         }
 
         important = false;
+        valueKind = GetCustomPropertyValueKind(value);
         return value;
+    }
+
+    private static CustomPropertyValueKind GetCustomPropertyValueKind(string value)
+    {
+        var trimmed = value.Trim();
+        if (string.Equals(trimmed, "initial", StringComparison.OrdinalIgnoreCase))
+        {
+            return CustomPropertyValueKind.Initial;
+        }
+
+        if (string.Equals(trimmed, "inherit", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(trimmed, "unset", StringComparison.OrdinalIgnoreCase))
+        {
+            return CustomPropertyValueKind.Inherit;
+        }
+
+        return CustomPropertyValueKind.Value;
     }
 
     public static bool TryResolveValue(SvgElement element, string value, out string resolved)
@@ -181,7 +202,7 @@ internal static class SvgCssVariableResolver
 
         try
         {
-            foreach (var current in element.ParentsAndSelf)
+            for (var current = element; current is not null; current = current.Parent)
             {
                 if (!s_customPropertyRules.TryGetValue(current, out var propertyRules) ||
                     !propertyRules.TryGetValue(name, out var rules) ||
@@ -190,8 +211,18 @@ internal static class SvgCssVariableResolver
                     continue;
                 }
 
-                var rawValue = GetWinningRule(rules).Value;
-                return TryResolveValueCore(current, rawValue, resolvingProperties, depth + 1, out value);
+                var rule = GetWinningRule(rules);
+                switch (rule.ValueKind)
+                {
+                    case CustomPropertyValueKind.Initial:
+                        return false;
+
+                    case CustomPropertyValueKind.Inherit:
+                        continue;
+
+                    default:
+                        return TryResolveValueCore(current, rule.Value, resolvingProperties, depth + 1, out value);
+                }
             }
 
             return false;
@@ -447,17 +478,32 @@ internal static class SvgCssVariableResolver
         return false;
     }
 
+    private enum CustomPropertyValueKind
+    {
+        Value,
+        Inherit,
+        Initial
+    }
+
     private readonly struct CustomPropertyRule
     {
-        public CustomPropertyRule(string value, int specificity, bool important, long sourceOrder)
+        public CustomPropertyRule(
+            string value,
+            CustomPropertyValueKind valueKind,
+            int specificity,
+            bool important,
+            long sourceOrder)
         {
             Value = value;
+            ValueKind = valueKind;
             Specificity = specificity;
             Important = important;
             SourceOrder = sourceOrder;
         }
 
         public string Value { get; }
+
+        public CustomPropertyValueKind ValueKind { get; }
 
         public int Specificity { get; }
 
