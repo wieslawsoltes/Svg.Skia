@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Media;
 using Svg.Model;
 using Svg.Model.Services;
 using Xunit;
+using DrawingColor = System.Drawing.Color;
 
 namespace Uno.Svg.Skia.UnitTests;
 
@@ -255,9 +256,14 @@ public class SvgSourceTests
         var third = SvgCacheKey.Create(path, new SvgParameters(
             new Dictionary<string, string> { ["accent"] = "#ff0000" },
             ".accent { fill: blue; }"));
+        var fourth = SvgCacheKey.Create(path, new SvgParameters(
+            new Dictionary<string, string> { ["accent"] = "#ff0000" },
+            ".accent { fill: red; }",
+            DrawingColor.FromArgb(255, 0, 128, 255)));
 
         Assert.NotEqual(first, second);
         Assert.NotEqual(first, third);
+        Assert.NotEqual(first, fourth);
     }
 
     [Fact]
@@ -280,6 +286,17 @@ public class SvgSourceTests
             ".accent { fill: red; }"));
 
         Assert.Equal(first, second);
+    }
+
+    [Fact]
+    public void BuildParameters_PreservesSourceCurrentColor()
+    {
+        var currentColor = DrawingColor.FromArgb(255, 0, 128, 255);
+        var source = SvgSource.LoadFromSvg(SampleSvg, new SvgParameters(null, null, currentColor));
+
+        var parameters = Svg.BuildParameters(source, ".accent { fill: #000000; }", null);
+
+        Assert.Equal(currentColor, parameters?.CurrentColor);
     }
 
     [Fact]
