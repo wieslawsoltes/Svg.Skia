@@ -484,6 +484,11 @@ public sealed class SvgSceneDocument
 
     internal void RegisterNodeDependencies(SvgElementAddressKeyCache addressKeyCache, bool includeReferencedDependencies)
     {
+        if (_compilationRootsByKey.Count == 0)
+        {
+            return;
+        }
+
         RegisterCompilationRootSubtreeAddresses(addressKeyCache);
         if (!includeReferencedDependencies)
         {
@@ -532,8 +537,8 @@ public sealed class SvgSceneDocument
             return;
         }
 
-        var compilationRootsByElement = BuildCompilationRootLookup();
-        if (compilationRootsByElement.Count == 0)
+        var compilationRootsByElement = BuildCompilationRootLookup(addressKeyCache);
+        if (compilationRootsByElement is null || compilationRootsByElement.Count == 0)
         {
             return;
         }
@@ -581,9 +586,9 @@ public sealed class SvgSceneDocument
         }
     }
 
-    private Dictionary<SvgElement, List<string>> BuildCompilationRootLookup()
+    private Dictionary<SvgElement, List<string>>? BuildCompilationRootLookup(SvgElementAddressKeyCache addressKeyCache)
     {
-        var compilationRootsByElement = new Dictionary<SvgElement, List<string>>(SvgElementReferenceComparer.Instance);
+        Dictionary<SvgElement, List<string>>? compilationRootsByElement = null;
 
         foreach (var node in Traverse())
         {
@@ -594,9 +599,22 @@ public sealed class SvgSceneDocument
                 continue;
             }
 
-            if (!compilationRootsByElement.TryGetValue(node.Element, out var compilationRootKeys))
+            if (node.Element.Children.Count == 0)
+            {
+                var elementAddressKey = node.ElementAddressKey ?? addressKeyCache.GetOrCreate(node.Element);
+                if (!string.IsNullOrWhiteSpace(elementAddressKey))
+                {
+                    RegisterDependentAddress(elementAddressKey!, node.CompilationRootKey!);
+                }
+
+                continue;
+            }
+
+            if (compilationRootsByElement is null ||
+                !compilationRootsByElement.TryGetValue(node.Element, out var compilationRootKeys))
             {
                 compilationRootKeys = new List<string>();
+                compilationRootsByElement ??= new Dictionary<SvgElement, List<string>>(SvgElementReferenceComparer.Instance);
                 compilationRootsByElement.Add(node.Element, compilationRootKeys);
             }
 
@@ -735,6 +753,7 @@ public sealed class SvgSceneDocument
                 ? SvgScenePaintingService.GetStrokePaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes)
                 : null;
             node.StrokeWidth = hasOwnPaintPayload ? node.Stroke?.StrokeWidth ?? 0f : 0f;
+            node.IsStrokeNonScaling = hasOwnPaintPayload && visualElement.VectorEffect == SvgVectorEffect.NonScalingStroke;
             node.SetMask(null);
             node.MaskPaint = null;
             node.MaskDstIn = null;

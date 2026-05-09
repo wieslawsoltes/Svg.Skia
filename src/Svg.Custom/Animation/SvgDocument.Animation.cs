@@ -19,6 +19,8 @@ namespace Svg
             newObj.Ppi = Ppi;
             newObj.BaseUri = BaseUri;
             newObj.ExternalCSSHref = ExternalCSSHref;
+            CopyCompatibilityStyleSourcesTo(newObj);
+            CopyCompatibilityStyleStateTo(newObj);
 
             foreach (var ns in Namespaces)
             {

@@ -11,6 +11,7 @@ class Program
     {
         try
         {
+            SvgSource.s_skiaModel.Settings.EnableJavaScript = true;
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
         catch (Exception e)

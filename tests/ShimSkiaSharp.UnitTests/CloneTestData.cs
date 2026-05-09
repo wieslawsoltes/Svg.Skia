@@ -16,6 +16,7 @@ internal static class CloneTestData
             StrokeCap = SKStrokeCap.Round,
             StrokeJoin = SKStrokeJoin.Bevel,
             StrokeMiter = 3,
+            IsStrokeNonScaling = true,
             Typeface = SKTypeface.FromFamilyName("Test", SKFontStyleWeight.Bold, SKFontStyleWidth.Condensed, SKFontStyleSlant.Italic),
             TextSize = 14,
             TextAlign = SKTextAlign.Center,

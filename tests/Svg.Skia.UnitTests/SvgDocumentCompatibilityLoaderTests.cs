@@ -1010,6 +1010,64 @@ public class SvgDocumentCompatibilityLoaderTests
         Assert.Equal(Color.Blue.ToArgb(), stroke.Colour.ToArgb());
     }
 
+    [Fact]
+    public void FromSvg_TreatsOpacity100PercentPresentationAttributeAsDefaultOpacity()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" opacity="100%">
+              <rect width="10" height="10" fill="green" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+
+        Assert.Equal(1f, document.Opacity, 3);
+    }
+
+    [Fact]
+    public void FromSvg_IgnoresInvalidPercentageOpacityInlineStyles()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.1%">
+              <rect id="target"
+                    width="10"
+                    height="10"
+                    stroke="#000000"
+                    style="fill-opacity: 50%; stroke-opacity: 25%" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+
+        Assert.Equal(1f, document.Opacity, 3);
+        Assert.Equal(1f, rect.FillOpacity, 3);
+        Assert.Equal(1f, rect.StrokeOpacity, 3);
+    }
+
+    [Fact]
+    public void FromSvg_IgnoresPercentagePaintOpacityAttributesAndPreservesInheritance()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <g fill-opacity="0.3" stroke-opacity="0.4">
+                <rect id="target"
+                      width="10"
+                      height="10"
+                      stroke="#000000"
+                      fill-opacity="100%"
+                      stroke-opacity="100%" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+
+        Assert.Equal(0.3f, rect.FillOpacity, 3);
+        Assert.Equal(0.4f, rect.StrokeOpacity, 3);
+    }
+
     private static LoadResult CaptureLoad(Func<SvgDocument> load)
     {
         try

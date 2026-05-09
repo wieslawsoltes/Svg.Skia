@@ -121,7 +121,7 @@ public class SvgSource
     /// <returns>The svg picture.</returns>
     public static SKPicture? LoadPictureFromSvg(string source, SvgParameters? parameters = null)
     {
-        var document = SvgService.FromSvg(source);
+        var document = SvgService.FromSvg(source, parameters);
         return CreateModel(document);
     }
 
