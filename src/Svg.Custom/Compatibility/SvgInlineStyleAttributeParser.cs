@@ -25,7 +25,8 @@ internal sealed class SvgInlineStyleAttributeParser
         {
             foreach (var declaration in rule.Style)
             {
-                if (string.IsNullOrWhiteSpace(declaration.Original))
+                if (string.IsNullOrWhiteSpace(declaration.Original) &&
+                    !SvgCssVariableResolver.IsCustomPropertyName(declaration.Name))
                 {
                     continue;
                 }
@@ -60,7 +61,8 @@ internal sealed class SvgInlineStyleAttributeParser
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrWhiteSpace(value) &&
+                !SvgCssVariableResolver.IsCustomPropertyName(name))
             {
                 continue;
             }

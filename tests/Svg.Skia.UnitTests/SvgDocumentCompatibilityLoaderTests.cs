@@ -969,6 +969,42 @@ public class SvgDocumentCompatibilityLoaderTests
     }
 
     [Fact]
+    public void FromSvg_PreservesEmptyInlineCustomPropertyDeclarations()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <g style="--paint:rgb(0,255,0)">
+                <rect id="target" width="10" height="10" fill="rgb(255,0,0)" style="--paint: ; fill:var(--paint, rgb(0,0,255));" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Black.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_PreservesFallbackEmptyInlineCustomPropertyDeclarations()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <g style="--paint:rgb(0,255,0)">
+                <rect id="target" width="10" height="10" fill="rgb(255,0,0)" style="invalid; --paint: ; fill:var(--paint, rgb(0,0,255));" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Black.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
     public void FromSvg_IgnoresStylesheetDeclarationsWithoutValues()
     {
         const string svg = """
