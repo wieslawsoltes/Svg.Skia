@@ -202,8 +202,18 @@ public class SvgImage : AvaloniaObject, IImage
     private static bool HasSameParameters(SvgParameters? left, SvgParameters? right)
     {
         return ReferenceEquals(left?.Entities, right?.Entities) &&
-               string.Equals(left?.Css, right?.Css, StringComparison.Ordinal) &&
+               HasSameCss(left?.Css, right?.Css) &&
                Nullable.Equals(left?.CurrentColor, right?.CurrentColor);
+    }
+
+    private static bool HasSameCss(string? left, string? right)
+    {
+        if (string.IsNullOrWhiteSpace(left) && string.IsNullOrWhiteSpace(right))
+        {
+            return true;
+        }
+
+        return string.Equals(left, right, StringComparison.Ordinal);
     }
 
     private static string? CombineCss(string? baseCss, string? css, string? currentCss)

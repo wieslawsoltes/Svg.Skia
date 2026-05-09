@@ -193,6 +193,30 @@ public class SvgSourceTests
     }
 
     [AvaloniaFact]
+    public void ReLoad_DuringRender_DefersPreviousResourceDisposal()
+    {
+        using var source = SvgSource.LoadFromSvg(SampleSvg, new SvgParameters(null, " "));
+        var originalPicture = source.Picture;
+
+        Assert.NotNull(originalPicture);
+        Assert.True(BeginRender(source));
+
+        try
+        {
+            source.ReLoad(new SvgParameters(null, "rect { fill: blue; }"));
+
+            Assert.NotSame(originalPicture, source.Picture);
+            Assert.NotEqual(IntPtr.Zero, originalPicture.Handle);
+        }
+        finally
+        {
+            EndRender(source);
+        }
+
+        Assert.Equal(IntPtr.Zero, originalPicture.Handle);
+    }
+
+    [AvaloniaFact]
     public void Clone_DeepClonesModel()
     {
         var source = SvgSource.LoadFromSvg(SampleSvg);
@@ -210,28 +234,38 @@ public class SvgSourceTests
     public void Dispose_DuringRender_DoesNotDeadlock()
     {
         var source = SvgSource.LoadFromSvg(SampleSvg);
-        var beginRender = typeof(SvgSource).GetMethod("BeginRender", BindingFlags.Instance | BindingFlags.NonPublic);
-        var endRender = typeof(SvgSource).GetMethod("EndRender", BindingFlags.Instance | BindingFlags.NonPublic);
-
-        Assert.NotNull(beginRender);
-        Assert.NotNull(endRender);
 
         var task = Task.Run(() =>
         {
-            var started = (bool)(beginRender!.Invoke(source, null) ?? false);
-            if (!started)
+            if (!BeginRender(source))
             {
                 return false;
             }
 
             source.Dispose();
-            endRender!.Invoke(source, null);
+            EndRender(source);
 
             return source.Svg is null && source.Picture is null;
         });
 
         Assert.True(task.Wait(TimeSpan.FromSeconds(2)));
         Assert.True(task.Result);
+    }
+
+    private static bool BeginRender(SvgSource source)
+    {
+        var beginRender = typeof(SvgSource).GetMethod("BeginRender", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.NotNull(beginRender);
+        return (bool)(beginRender.Invoke(source, null) ?? false);
+    }
+
+    private static void EndRender(SvgSource source)
+    {
+        var endRender = typeof(SvgSource).GetMethod("EndRender", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.NotNull(endRender);
+        endRender.Invoke(source, null);
     }
 
     private static void WithSharedJavaScriptEnabled(Action action)
