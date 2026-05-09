@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using ShimSkiaSharp;
+using Svg;
 using Svg.Model;
 using Svg.Model.Services;
 
@@ -19,7 +20,6 @@ internal static partial class SvgSceneTextCompiler
     private const float FullCircleRadians = 2f * (float)Math.PI;
     private const float SyntheticSmallCapsScale = 0.75f;
     private const float TextLengthTolerance = 1.5f;
-    private const string RawTextDecorationAttributeKey = "__svgskia:text-decoration-raw";
 
     private readonly record struct SequentialTextRun(SvgTextBase StyleSource, string Text);
 
@@ -3984,7 +3984,7 @@ internal static partial class SvgSceneTextCompiler
     private static bool TryGetOwnTextDecoration(SvgElement element, out SvgTextDecoration decorations)
     {
         decorations = SvgTextDecoration.None;
-        return element.CustomAttributes.TryGetValue(RawTextDecorationAttributeKey, out var rawValue) &&
+        return element.CustomAttributes.TryGetValue(SvgStyleAttributeNames.RawTextDecorationAttributeKey, out var rawValue) &&
                TryParseTextDecorationValue(rawValue, out decorations) &&
                HasRenderableDecorations(decorations);
     }

@@ -1,7 +1,12 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Svg.Skia;
 using ShimSkiaSharp;
@@ -16,6 +21,18 @@ public class SvgControlTests
     private const string CurrentColorSvg = """
         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
           <rect x="0" y="0" width="10" height="10" fill="currentColor" />
+        </svg>
+        """;
+
+    private const string ButtonSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="44" fill="#3B82F6"/>
+        </svg>
+        """;
+
+    private const string InteractiveSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+            <rect id="hit" x="0" y="0" width="80" height="80" fill="#3B82F6"/>
         </svg>
         """;
 
@@ -90,6 +107,143 @@ public class SvgControlTests
         svg.CurrentColor = Color.FromRgb(0, 128, 255);
 
         Assert.Equal(new SKColor(0, 128, 255, 255), GetFirstFillColor(svg.SkSvg));
+    }
+
+    [AvaloniaFact]
+    public void SvgContent_BubblesPointerEventsToParentButton()
+    {
+        var pressed = 0;
+        var released = 0;
+        var svg = new Svg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"))
+        {
+            Source = ButtonSvg,
+            Width = 80,
+            Height = 80
+        };
+        var button = new Button
+        {
+            Content = svg
+        };
+        button.AddHandler(
+            InputElement.PointerPressedEvent,
+            (_, _) => pressed++,
+            RoutingStrategies.Bubble,
+            handledEventsToo: true);
+        button.AddHandler(
+            InputElement.PointerReleasedEvent,
+            (_, _) => released++,
+            RoutingStrategies.Bubble,
+            handledEventsToo: true);
+        var window = new Window
+        {
+            Width = 160,
+            Height = 160,
+            Content = button
+        };
+
+        window.Show();
+        try
+        {
+            window.MouseMove(new Point(80, 80), RawInputModifiers.None);
+            window.MouseDown(new Point(80, 80), MouseButton.Left, RawInputModifiers.None);
+            Assert.True(button.IsPressed);
+            window.MouseUp(new Point(80, 80), MouseButton.Left, RawInputModifiers.None);
+
+            Assert.Equal(1, pressed);
+            Assert.Equal(1, released);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void SvgInteractionCapture_ClearsWhenReleasedOutsideControl()
+    {
+        var svg = new Svg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"))
+        {
+            Source = InteractiveSvg,
+            Width = 80,
+            Height = 80
+        };
+        var canvas = new Canvas
+        {
+            Width = 220,
+            Height = 180,
+            Children = { svg }
+        };
+        Canvas.SetLeft(svg, 20);
+        Canvas.SetTop(svg, 20);
+        var window = new Window
+        {
+            Width = 220,
+            Height = 180,
+            Content = canvas
+        };
+
+        window.Show();
+        try
+        {
+            window.MouseMove(new Point(40, 40), RawInputModifiers.None);
+            window.MouseDown(new Point(40, 40), MouseButton.Left, RawInputModifiers.None);
+            Assert.NotNull(svg.Interaction.CapturedElement);
+
+            window.MouseUp(new Point(180, 140), MouseButton.Left, RawInputModifiers.None);
+
+            Assert.Null(svg.Interaction.CapturedElement);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void SvgInteractionCapture_ClearsWhenPointerCaptureLost()
+    {
+        var svg = new CaptureLossSvg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"))
+        {
+            Source = InteractiveSvg,
+            Width = 80,
+            Height = 80
+        };
+        var window = new Window
+        {
+            Width = 160,
+            Height = 160,
+            Content = svg
+        };
+
+        window.Show();
+        try
+        {
+            window.MouseMove(new Point(40, 40), RawInputModifiers.None);
+            window.MouseDown(new Point(40, 40), MouseButton.Left, RawInputModifiers.None);
+            Assert.NotNull(svg.Interaction.CapturedElement);
+            Assert.NotNull(svg.Interaction.PressedElement);
+            Assert.NotNull(svg.PressedPointer);
+
+            svg.PressedPointer!.Capture(null);
+
+            Assert.Null(svg.Interaction.CapturedElement);
+            Assert.Null(svg.Interaction.PressedElement);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    private sealed class CaptureLossSvg(Uri baseUri) : Svg(baseUri)
+    {
+        public IPointer? PressedPointer { get; private set; }
+
+        protected override void OnPointerPressed(PointerPressedEventArgs e)
+        {
+            base.OnPointerPressed(e);
+            PressedPointer = e.Pointer;
+        }
     }
 
     private static void InvokeAnimationFrameCallback(Svg svg, long generation)

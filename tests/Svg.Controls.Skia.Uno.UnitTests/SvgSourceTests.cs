@@ -17,6 +17,15 @@ public class SvgSourceTests
     private const string SampleSvg =
         "<svg width=\"10\" height=\"10\"><rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" class=\"accent\" fill=\"red\" /></svg>";
 
+    private const string JavaScriptMutationSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+          <rect id="target" width="10" height="10" fill="red" />
+          <script><![CDATA[
+            document.getElementById('target').setAttribute('fill', 'green');
+          ]]></script>
+        </svg>
+        """;
+
     private const string AnimatedSampleSvg =
         """
         <svg width="100" height="20" viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg">
@@ -36,6 +45,18 @@ public class SvgSourceTests
     }
 
     [Fact]
+    public void LoadFromSvg_AppliesSharedSkiaModelJavaScriptSettings()
+    {
+        WithSharedJavaScriptEnabled(() =>
+        {
+            var source = SvgSource.LoadFromSvg(JavaScriptMutationSvg);
+
+            Assert.True(source.Svg!.Settings.EnableJavaScript);
+            AssertTargetFill(source, "green");
+        });
+    }
+
+    [Fact]
     public void LoadFromSvgDocument_SetsSvg()
     {
         var document = SvgService.FromSvg(SampleSvg);
@@ -46,6 +67,21 @@ public class SvgSourceTests
 
         Assert.NotNull(source.Svg);
         Assert.NotNull(source.Picture);
+    }
+
+    [Fact]
+    public void LoadFromSvgDocument_AppliesSharedSkiaModelJavaScriptSettings()
+    {
+        var document = SvgService.FromSvg(JavaScriptMutationSvg);
+        Assert.NotNull(document);
+
+        WithSharedJavaScriptEnabled(() =>
+        {
+            var source = SvgSource.LoadFromSvgDocument(document!);
+
+            Assert.True(source.Svg!.Settings.EnableJavaScript);
+            AssertTargetFill(source, "green");
+        });
     }
 
     [Fact]
@@ -91,6 +127,27 @@ public class SvgSourceTests
 
             Assert.NotNull(source.Svg);
             Assert.NotNull(source.Picture);
+        }
+        finally
+        {
+            File.Delete(filePath);
+        }
+    }
+
+    [Fact]
+    public async Task LoadAsync_FilePath_AppliesSharedSkiaModelJavaScriptSettings()
+    {
+        var filePath = CreateTempSvgFile(JavaScriptMutationSvg);
+
+        try
+        {
+            await WithSharedJavaScriptEnabledAsync(async () =>
+            {
+                var source = await SvgSource.LoadAsync(filePath);
+
+                Assert.True(source.Svg!.Settings.EnableJavaScript);
+                AssertTargetFill(source, "green");
+            });
         }
         finally
         {
@@ -310,10 +367,54 @@ public class SvgSourceTests
         Assert.Null(sharedSource.Parameters);
     }
 
-    private static string CreateTempSvgFile()
+    private static string CreateTempSvgFile(string? svg = null)
     {
         var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{Guid.NewGuid():N}.svg");
-        File.WriteAllText(path, SampleSvg);
+        File.WriteAllText(path, svg ?? SampleSvg);
         return path;
+    }
+
+    private static void WithSharedJavaScriptEnabled(Action action)
+    {
+        var settings = SvgSource.SkiaModel.Settings;
+        var oldEnableJavaScript = settings.EnableJavaScript;
+        var oldThrowOnJavaScriptError = settings.ThrowOnJavaScriptError;
+        try
+        {
+            settings.EnableJavaScript = true;
+            settings.ThrowOnJavaScriptError = true;
+            action();
+        }
+        finally
+        {
+            settings.EnableJavaScript = oldEnableJavaScript;
+            settings.ThrowOnJavaScriptError = oldThrowOnJavaScriptError;
+        }
+    }
+
+    private static async Task WithSharedJavaScriptEnabledAsync(Func<Task> action)
+    {
+        var settings = SvgSource.SkiaModel.Settings;
+        var oldEnableJavaScript = settings.EnableJavaScript;
+        var oldThrowOnJavaScriptError = settings.ThrowOnJavaScriptError;
+        try
+        {
+            settings.EnableJavaScript = true;
+            settings.ThrowOnJavaScriptError = true;
+            await action();
+        }
+        finally
+        {
+            settings.EnableJavaScript = oldEnableJavaScript;
+            settings.ThrowOnJavaScriptError = oldThrowOnJavaScriptError;
+        }
+    }
+
+    private static void AssertTargetFill(SvgSource source, string expected)
+    {
+        var target = source.Svg?.SourceDocument?.GetElementById("target");
+        Assert.NotNull(target);
+        Assert.True(target!.TryGetAttribute("fill", out var fill));
+        Assert.Equal(expected, fill, ignoreCase: true);
     }
 }

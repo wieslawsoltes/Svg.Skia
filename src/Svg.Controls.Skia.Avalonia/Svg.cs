@@ -979,7 +979,6 @@ public class Svg : Control
             return;
         }
 
-        e.Pointer.Capture(this);
         var currentPoint = e.GetCurrentPoint(this);
         var button = MapPointerUpdateKind(currentPoint.Properties.PointerUpdateKind);
         var result = Interaction.DispatchPointerPressed(skSvg, CreatePointerInput(e, button, e.ClickCount, 0));
@@ -999,7 +998,17 @@ public class Svg : Control
         var result = Interaction.DispatchPointerReleased(skSvg, CreatePointerInput(e, button, 0, 0));
         e.Handled |= result.Handled;
         ApplyNativeCursor(result.Cursor);
-        e.Pointer.Capture(null);
+    }
+
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+
+        if (Interaction.CapturedElement is not null || Interaction.PressedElement is not null)
+        {
+            Interaction.Reset();
+            ApplyNativeCursor(null);
+        }
     }
 
     private void DispatchPointerWheelChanged(PointerWheelEventArgs e)

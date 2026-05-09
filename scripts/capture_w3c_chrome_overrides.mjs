@@ -15,6 +15,32 @@ const repoRoot = path.resolve(__dirname, '..');
 const svgDir = path.join(repoRoot, 'externals', 'W3C_SVG_11_TestSuite', 'W3C_SVG_11_TestSuite', 'svg');
 const outputDir = path.join(repoRoot, 'tests', 'Svg.Skia.UnitTests', 'ChromeReference', 'W3C');
 const wrapperDir = path.join(repoRoot, 'output', 'playwright', 'w3c-capture');
+const animationSeekOverrides = new Map([
+    ['animate-dom-01-f', 2.5],
+]);
+const interactionScripts = new Map([
+    ['interact-dom-01-b', `
+      dispatchMouseEvent(doc, win, 'startButton', 'click');
+    `],
+    ['script-handle-01-b', `
+      dispatchMouseEvent(doc, win, 'target', 'click');
+    `],
+    ['script-handle-02-b', `
+      dispatchEvent(doc, win, 'target', 'focusin');
+      dispatchEvent(doc, win, 'target', 'activate');
+      dispatchEvent(doc, win, 'target', 'focusout');
+    `],
+    ['script-handle-03-b', `
+      dispatchMouseEvent(doc, win, 'target', 'mousedown');
+      dispatchMouseEvent(doc, win, 'target', 'mouseup');
+      dispatchMouseEvent(doc, win, 'target', 'click');
+    `],
+    ['script-handle-04-b', `
+      dispatchMouseEvent(doc, win, 'target', 'mouseover');
+      dispatchMouseEvent(doc, win, 'target', 'mousemove');
+      dispatchMouseEvent(doc, win, 'target', 'mouseout');
+    `],
+]);
 
 const mimeTypes = new Map([
     ['.css', 'text/css; charset=utf-8'],
@@ -92,6 +118,8 @@ async function writeWrapper(name)
 {
     const wrapperPath = path.join(wrapperDir, `${name}.html`);
     const svgUrl = `/externals/W3C_SVG_11_TestSuite/W3C_SVG_11_TestSuite/svg/${encodeURIComponent(name)}.svg`;
+    const animationSeekTime = animationSeekOverrides.get(name) ?? null;
+    const interactionScript = interactionScripts.get(name) ?? '';
     const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -116,6 +144,60 @@ async function writeWrapper(name)
 </head>
 <body>
   <iframe id="capture" src="${svgUrl}" title="${name}"></iframe>
+  <script>
+    const animationSeekTime = ${animationSeekTime === null ? 'null' : JSON.stringify(animationSeekTime)};
+    function dispatchEvent(doc, win, elementId, eventType) {
+      const target = doc.getElementById(elementId);
+      if (!target) {
+        throw new Error('Missing target: ' + elementId);
+      }
+
+      target.dispatchEvent(new win.Event(eventType, { bubbles: true, cancelable: true }));
+    }
+
+    function dispatchMouseEvent(doc, win, elementId, eventType) {
+      const target = doc.getElementById(elementId);
+      if (!target) {
+        throw new Error('Missing target: ' + elementId);
+      }
+
+      target.dispatchEvent(new win.MouseEvent(eventType, {
+        bubbles: true,
+        cancelable: true,
+        view: win,
+        detail: 1,
+        button: 0
+      }));
+    }
+
+    if (animationSeekTime !== null) {
+      const frame = document.getElementById('capture');
+      frame.addEventListener('load', () => {
+        try {
+          const svg = frame.contentDocument?.documentElement;
+          if (svg && typeof svg.setCurrentTime === 'function') {
+            svg.setCurrentTime(animationSeekTime);
+          }
+        } catch {
+        }
+      }, { once: true });
+    }
+
+    const frame = document.getElementById('capture');
+    frame.addEventListener('load', () => {
+      try {
+        const win = frame.contentWindow;
+        const doc = frame.contentDocument;
+        if (!win || !doc) {
+          return;
+        }
+
+        ${interactionScript}
+      } catch (error) {
+        console.error(error);
+      }
+    }, { once: true });
+  </script>
 </body>
 </html>`;
 

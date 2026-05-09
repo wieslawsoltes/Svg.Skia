@@ -49,7 +49,10 @@ internal static class SvgCssCompatibilityProcessor
     private const string PortraitOrientation = "portrait";
     private const int MaxStringBuilderCapacity = int.MaxValue - 1;
 
-    public static void Apply(SvgDocument svgDocument, IReadOnlyCollection<SvgCssStyleSource> styles, SvgElementFactory elementFactory)
+    public static void Apply(
+        SvgDocument svgDocument,
+        IReadOnlyCollection<SvgCssStyleSource> styles,
+        SvgElementFactory elementFactory)
     {
         if (styles.Count == 0)
         {
@@ -96,6 +99,15 @@ internal static class SvgCssCompatibilityProcessor
                             if (projectsToTextContainer)
                             {
                                 textContainer!.AddStyle(declaration.Name, declaration.Value, specificity);
+                            }
+                        }
+
+                        if (elementFactory.PreserveJavaScriptDomState)
+                        {
+                            svgDocument.TrackCompatibilityStyleApplication(elem);
+                            if (projectsToTextContainer)
+                            {
+                                svgDocument.TrackCompatibilityStyleApplication(textContainer!);
                             }
                         }
                     }
