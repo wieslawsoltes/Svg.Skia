@@ -80,7 +80,9 @@ namespace Svg
             }
 
             var converted = _colourConverter.ConvertFrom(colorValue);
-            return converted is Color color ? new SvgColourServer(color) : SvgPaintServer.NotSet;
+            return converted is Color color
+                ? new SvgColourServer(color)
+                : throw new InvalidCastException();
         }
 
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)

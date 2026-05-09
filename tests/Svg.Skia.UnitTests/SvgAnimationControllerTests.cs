@@ -295,6 +295,24 @@ public class SvgAnimationControllerTests
     }
 
     [Fact]
+    public void CreateAnimatedDocument_PreservesAlphaWhenInterpolatingHexAlphaPaint()
+    {
+        var document = SvgService.FromSvg(HexAlphaPaintAnimationSvg);
+        Assert.NotNull(document);
+
+        using var controller = new SvgAnimationController(document!);
+        var animated = controller.CreateAnimatedDocument(TimeSpan.FromSeconds(1));
+        var target = animated.GetElementById<SvgRectangle>("target");
+        Assert.NotNull(target);
+
+        var fill = Assert.IsType<SvgColourServer>(target!.Fill);
+        Assert.Equal((byte)0, fill.Colour.R);
+        Assert.Equal((byte)0, fill.Colour.G);
+        Assert.Equal((byte)0, fill.Colour.B);
+        Assert.Equal((byte)64, fill.Colour.A);
+    }
+
+    [Fact]
     public void SetAnimationTime_RebuildsRootViewBoxAnimations()
     {
         using var svg = new SKSvg();
@@ -1093,6 +1111,17 @@ public class SvgAnimationControllerTests
              viewBox="0 0 40 10">
           <rect id="target" x="0" y="0" width="5" height="5" fill="red">
             <animate attributeName="x" from="0" to="20" begin="2s" dur="2s" fill="freeze" />
+          </rect>
+        </svg>
+        """;
+
+    private const string HexAlphaPaintAnimationSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="10"
+             height="10"
+             viewBox="0 0 10 10">
+          <rect id="target" x="0" y="0" width="10" height="10" fill="#00000000">
+            <animate attributeName="fill" from="#00000000" to="#00000080" dur="2s" fill="freeze" />
           </rect>
         </svg>
         """;

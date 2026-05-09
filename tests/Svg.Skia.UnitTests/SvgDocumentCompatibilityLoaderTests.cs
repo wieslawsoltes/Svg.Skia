@@ -192,6 +192,26 @@ public class SvgDocumentCompatibilityLoaderTests
         Assert.Equal(Color.FromArgb(alpha, red, green, blue).ToArgb(), fill.Colour.ToArgb());
     }
 
+    [Theory]
+    [InlineData("123")]
+    [InlineData("#12345")]
+    public void FromSvg_InvalidPaintValuesDoNotOverrideInheritedFill(string fillValue)
+    {
+        var svg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <g fill="lime">
+                <rect id="target" width="10" height="10" fill="{{fillValue}}" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Lime.ToArgb(), fill.Colour.ToArgb());
+    }
+
     [Fact]
     public void FromSvg_AggregatesMixedTextAndChildContentInDocumentOrder()
     {
