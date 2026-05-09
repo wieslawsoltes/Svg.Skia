@@ -32,6 +32,7 @@ internal static class SvgCssCompatibilityProcessor
     private const string CssMimeType = "text/css";
     private const string ImportAtRule = "@import";
     private const string CharsetAtRule = "@charset";
+    private const string MediaAtRule = "@media";
     private const string UrlKeyword = "url";
     private const string ScreenMediaType = "screen";
     private const string AllMediaType = "all";
@@ -76,7 +77,7 @@ internal static class SvgCssCompatibilityProcessor
         rootNode.Children.Add(svgDocument);
         try
         {
-            ApplyCustomPropertyRules(cssTotal, svgDocument, rootNode, elementFactory, stylesheetParser);
+            ApplyCustomPropertyRules(cssTotal, svgDocument, rootNode, elementFactory, stylesheetParser, mediaContext);
 
             foreach (var rule in stylesheet.StyleRules)
             {
@@ -148,13 +149,36 @@ internal static class SvgCssCompatibilityProcessor
         SvgDocument svgDocument,
         SvgElement rootNode,
         SvgElementFactory elementFactory,
-        StylesheetParser stylesheetParser)
+        StylesheetParser stylesheetParser,
+        CssMediaContext mediaContext)
     {
         var index = 0;
         while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
         {
-            if (statement.Terminator != CssStatementTerminator.Block ||
-                GetAtRuleKind(cssText, statement) != CssAtRuleKind.None ||
+            if (statement.Terminator != CssStatementTerminator.Block)
+            {
+                continue;
+            }
+
+            var atRuleKind = GetAtRuleKind(cssText, statement);
+            if (atRuleKind == CssAtRuleKind.Media)
+            {
+                if (TryGetMediaRuleParts(cssText, statement, out var mediaCondition, out var nestedCssText) &&
+                    ShouldApplyMediaForCurrentContext(mediaCondition, mediaContext))
+                {
+                    ApplyCustomPropertyRules(
+                        nestedCssText,
+                        svgDocument,
+                        rootNode,
+                        elementFactory,
+                        stylesheetParser,
+                        mediaContext);
+                }
+
+                continue;
+            }
+
+            if (atRuleKind != CssAtRuleKind.None ||
                 !TryGetStyleRuleParts(cssText, statement, out var selectorText, out var declarationsText))
             {
                 continue;
@@ -546,6 +570,32 @@ internal static class SvgCssCompatibilityProcessor
         selectorText = TrimWhitespace(cssText.AsSpan(statement.Start, openBraceIndex - statement.Start)).ToString();
         declarationsText = cssText.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
         return !string.IsNullOrWhiteSpace(selectorText);
+    }
+
+    private static bool TryGetMediaRuleParts(
+        string cssText,
+        CssStatement statement,
+        out ReadOnlySpan<char> mediaCondition,
+        out string nestedCssText)
+    {
+        mediaCondition = default;
+        nestedCssText = string.Empty;
+
+        if (!TryFindTopLevelBlockOpen(cssText, statement.Start, statement.EndExclusive, out var openBraceIndex))
+        {
+            return false;
+        }
+
+        var closeBraceIndex = statement.EndExclusive - 1;
+        if (closeBraceIndex <= openBraceIndex || cssText[closeBraceIndex] != '}')
+        {
+            return false;
+        }
+
+        var conditionStart = statement.Start + MediaAtRule.Length;
+        mediaCondition = TrimWhitespace(cssText.AsSpan(conditionStart, openBraceIndex - conditionStart));
+        nestedCssText = cssText.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
+        return true;
     }
 
     private static bool TryFindTopLevelBlockOpen(string cssText, int startIndex, int endExclusive, out int openBraceIndex)
@@ -1098,7 +1148,7 @@ internal static class SvgCssCompatibilityProcessor
             if (isInLeadingImportSection && atRuleKind == CssAtRuleKind.Import)
             {
                 if (TryParseKnownImportRule(cssText, statement, out var href, out var mediaCondition) &&
-                    ShouldApplyImportForCurrentMedia(mediaCondition, mediaContext))
+                    ShouldApplyMediaForCurrentContext(mediaCondition, mediaContext))
                 {
                     var imported = TryLoadImportedStylesheet(href, baseUri, importChain);
                     if (imported is not null)
@@ -1132,7 +1182,7 @@ internal static class SvgCssCompatibilityProcessor
         }
     }
 
-    private static bool ShouldApplyImportForCurrentMedia(ReadOnlySpan<char> mediaCondition, CssMediaContext mediaContext)
+    private static bool ShouldApplyMediaForCurrentContext(ReadOnlySpan<char> mediaCondition, CssMediaContext mediaContext)
     {
         var mediaList = TrimWhitespace(mediaCondition);
         if (mediaList.IsEmpty)
@@ -1540,6 +1590,11 @@ internal static class SvgCssCompatibilityProcessor
         if (HasAtRuleKeyword(statementSpan, CharsetAtRule))
         {
             return CssAtRuleKind.Charset;
+        }
+
+        if (HasAtRuleKeyword(statementSpan, MediaAtRule))
+        {
+            return CssAtRuleKind.Media;
         }
 
         return CssAtRuleKind.Other;
@@ -2061,6 +2116,7 @@ internal static class SvgCssCompatibilityProcessor
         None,
         Import,
         Charset,
+        Media,
         Other,
     }
 
