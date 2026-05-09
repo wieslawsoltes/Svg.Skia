@@ -401,7 +401,35 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         }
 
         var typeface = TryMatchCharacterFromCustomProviders(normalizedFamily, weight, width, slant, codepoint);
-        if (typeface is null && normalizedFamily is not null)
+        if (typeface is null)
+        {
+            if (!SharedTypefaceCache.TryGetMatchedCharacter(normalizedFamily, weight, width, slant, codepoint, out typeface))
+            {
+                typeface = MatchPlatformCharacter(normalizedFamily, weight, width, slant, codepoint);
+                SharedTypefaceCache.AddMatchedCharacter(normalizedFamily, weight, width, slant, codepoint, typeface);
+            }
+        }
+
+        if (typeface is { } && typeface.Handle == IntPtr.Zero)
+        {
+            typeface = null;
+        }
+
+        _matchCharacterCache.TryAdd(key, typeface);
+        TrimCachesIfNeeded();
+        return typeface;
+    }
+
+    private static SkiaSharp.SKTypeface? MatchPlatformCharacter(
+        string? normalizedFamily,
+        SkiaSharp.SKFontStyleWeight weight,
+        SkiaSharp.SKFontStyleWidth width,
+        SkiaSharp.SKFontStyleSlant slant,
+        int codepoint)
+    {
+        var typeface = default(SkiaSharp.SKTypeface);
+
+        if (normalizedFamily is not null)
         {
             foreach (var candidate in SkiaModel.EnumerateFontFamilyCandidates(normalizedFamily, browserCompatible: true))
             {
@@ -487,8 +515,6 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
             typeface = null;
         }
 
-        _matchCharacterCache.TryAdd(key, typeface);
-        TrimCachesIfNeeded();
         return typeface;
     }
 
@@ -599,7 +625,9 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
             _providerTypefaceCache.TryRemove(key, out _);
         }
 
-        var typeface = provider.FromFamilyName(familyName, weight, width, slant);
+        var typeface = SharedTypefaceCache.TryGetOrAddProviderTypeface(provider, familyName, weight, width, slant, out var sharedCached)
+            ? sharedCached
+            : provider.FromFamilyName(familyName, weight, width, slant);
         if (typeface is { } && typeface.Handle == IntPtr.Zero)
         {
             typeface = null;
