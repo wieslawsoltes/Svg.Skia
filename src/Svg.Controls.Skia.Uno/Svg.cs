@@ -447,9 +447,10 @@ public sealed class Svg : SKCanvasElement
                 : null;
 
         var combinedCss = CombineCss(source?.Parameters?.Css ?? source?.Css, css, currentCss);
-        return entities is null && string.IsNullOrWhiteSpace(combinedCss)
+        var currentColor = source?.Parameters?.CurrentColor;
+        return entities is null && string.IsNullOrWhiteSpace(combinedCss) && currentColor is null
             ? null
-            : new SvgParameters(entities, combinedCss);
+            : new SvgParameters(entities, combinedCss, currentColor);
     }
 
     internal static SvgSource PrepareWorkingSource(SvgSource source, string? css, string? currentCss, bool wireframe, bool disableFilters)

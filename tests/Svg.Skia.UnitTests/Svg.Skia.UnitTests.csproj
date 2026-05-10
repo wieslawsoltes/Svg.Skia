@@ -14,6 +14,7 @@
   <Import Project="..\..\build\SkiaSharp.Native.v3.props" />
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Svg.CodeGen.Skia\Svg.CodeGen.Skia.csproj" />
     <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />
   </ItemGroup>
 

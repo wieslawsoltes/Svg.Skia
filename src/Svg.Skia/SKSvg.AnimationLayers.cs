@@ -308,30 +308,50 @@ public partial class SKSvg
             return false;
         }
 
+        SKPicture? staticLayerModel;
+        SKPicture? dynamicLayerModel;
         SkiaSharp.SKPicture? staticLayerPicture;
         SkiaSharp.SKPicture? dynamicLayerPicture;
         lock (Sync)
         {
+            staticLayerModel = _staticAnimationLayerModel;
+            dynamicLayerModel = _dynamicAnimationLayerModel;
             staticLayerPicture = _staticAnimationLayerPicture;
             dynamicLayerPicture = _dynamicAnimationLayerPicture;
         }
 
-        if (staticLayerPicture is null && dynamicLayerPicture is null)
+        if (staticLayerModel is null &&
+            dynamicLayerModel is null &&
+            staticLayerPicture is null &&
+            dynamicLayerPicture is null)
         {
             return false;
         }
 
-        if (staticLayerPicture is { })
-        {
-            canvas.DrawPicture(staticLayerPicture);
-        }
-
-        if (dynamicLayerPicture is { })
-        {
-            canvas.DrawPicture(dynamicLayerPicture);
-        }
+        DrawAnimationLayer(staticLayerModel, staticLayerPicture, canvas);
+        DrawAnimationLayer(dynamicLayerModel, dynamicLayerPicture, canvas);
 
         return true;
+    }
+
+    private void DrawAnimationLayer(SKPicture? model, SkiaSharp.SKPicture? picture, SkiaSharp.SKCanvas canvas)
+    {
+        if (model is { } && ContainsNonScalingStroke(model))
+        {
+            SkiaModel.Draw(model, canvas);
+            return;
+        }
+
+        if (picture is { })
+        {
+            canvas.DrawPicture(picture);
+            return;
+        }
+
+        if (model is { })
+        {
+            SkiaModel.Draw(model, canvas);
+        }
     }
 
     private bool TryRefreshAnimationLayerEntries(
@@ -834,6 +854,22 @@ public partial class SKSvg
         var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask);
         var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity);
         var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter);
+        var enableBlendMode = node.BlendModePaint is not null;
+        var enableIsolation = node.IsIsolationGroup &&
+            !enableBlendMode &&
+            (node.MaskPaint is null || node.MaskNode is null || !enableMask) &&
+            (node.Opacity is null || !enableOpacity) &&
+            (node.Filter is null || !enableFilter);
+
+        if (enableIsolation)
+        {
+            canvas.SaveLayer(new SKPaint());
+        }
+
+        if (enableBlendMode)
+        {
+            canvas.SaveLayer(node.BlendModePaint!);
+        }
 
         if (node.MaskPaint is { } maskPaint && node.MaskNode is not null && enableMask)
         {
@@ -861,7 +897,7 @@ public partial class SKSvg
         {
             if (!RenderStaticNodeToCanvas(node.Children[i], canvas, cutRoots, ignoreAttributes))
             {
-                RestoreStaticNode(canvas, node, enableMask, enableOpacity, enableFilter);
+                RestoreStaticNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
                 return false;
             }
         }
@@ -873,7 +909,7 @@ public partial class SKSvg
             canvas.Restore();
         }
 
-        RestoreStaticNode(canvas, node, enableMask, enableOpacity, enableFilter);
+        RestoreStaticNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
         return true;
     }
 
@@ -882,7 +918,9 @@ public partial class SKSvg
         SvgSceneNode node,
         bool enableMask,
         bool enableOpacity,
-        bool enableFilter)
+        bool enableFilter,
+        bool enableBlendMode,
+        bool enableIsolation)
     {
         if (node.Filter is not null && enableFilter)
         {
@@ -895,6 +933,16 @@ public partial class SKSvg
         }
 
         if (node.MaskNode is not null && enableMask)
+        {
+            canvas.Restore();
+        }
+
+        if (enableBlendMode)
+        {
+            canvas.Restore();
+        }
+
+        if (enableIsolation)
         {
             canvas.Restore();
         }

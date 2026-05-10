@@ -114,6 +114,22 @@ public class HitTestTests : SvgUnitTest
         </svg>
         """;
 
+    private const string NonScalingStrokeHitTestSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+          <g transform="scale(0.5)">
+            <line id="target"
+                  x1="20"
+                  y1="100"
+                  x2="180"
+                  y2="100"
+                  stroke="black"
+                  stroke-width="10"
+                  vector-effect="non-scaling-stroke"
+                  pointer-events="stroke" />
+          </g>
+        </svg>
+        """;
+
     private static string GetSvgPath(string name)
         => Path.Combine("..", "..", "..", "..", "Tests", name);
 
@@ -327,6 +343,20 @@ public class HitTestTests : SvgUnitTest
         Assert.Equal("back", topmostElement!.ID);
         Assert.NotNull(topmostNode);
         Assert.Equal("back", topmostNode!.ElementId);
+    }
+
+    [Fact]
+    public void HitTest_Point_NonScalingStroke_UsesDeviceSpaceStrokeWidth()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(NonScalingStrokeHitTestSvg);
+
+        var strokeElement = svg.HitTestTopmostElement(new SKPoint(50, 54));
+        var outsideElement = svg.HitTestTopmostElement(new SKPoint(50, 56));
+
+        Assert.NotNull(strokeElement);
+        Assert.Equal("target", strokeElement!.ID);
+        Assert.Null(outsideElement);
     }
 
     private static bool IntersectsWith(SKRect a, SKRect b)
