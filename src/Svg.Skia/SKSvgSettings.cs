@@ -23,6 +23,47 @@ public class SKSvgSettings
 
     public bool EnableTextReferences { get; set; }
 
+    public bool EnableJavaScript { get; set; }
+
+    public bool EnableExternalJavaScript { get; set; }
+
+    public int JavaScriptTimeoutMilliseconds { get; set; }
+
+    public int JavaScriptMaxStatements { get; set; }
+
+    public bool ThrowOnJavaScriptError { get; set; }
+
+    public SKSvgSettings Clone()
+    {
+        var clone = new SKSvgSettings();
+        CopyTo(clone);
+        return clone;
+    }
+
+    public void CopyTo(SKSvgSettings target)
+    {
+        if (target is null)
+        {
+            throw new System.ArgumentNullException(nameof(target));
+        }
+
+        target.AlphaType = AlphaType;
+        target.ColorType = ColorType;
+        target.SrgbLinear = SrgbLinear;
+        target.Srgb = Srgb;
+        target.TypefaceProviders = TypefaceProviders is null
+            ? null
+            : new List<ITypefaceProvider>(TypefaceProviders);
+        target.StandaloneViewport = StandaloneViewport;
+        target.EnableSvgFonts = EnableSvgFonts;
+        target.EnableTextReferences = EnableTextReferences;
+        target.EnableJavaScript = EnableJavaScript;
+        target.EnableExternalJavaScript = EnableExternalJavaScript;
+        target.JavaScriptTimeoutMilliseconds = JavaScriptTimeoutMilliseconds;
+        target.JavaScriptMaxStatements = JavaScriptMaxStatements;
+        target.ThrowOnJavaScriptError = ThrowOnJavaScriptError;
+    }
+
     public SKSvgSettings()
     {
         AlphaType = SkiaSharp.SKAlphaType.Unpremul;
@@ -42,5 +83,10 @@ public class SKSvgSettings
         StandaloneViewport = null;
         EnableSvgFonts = true;
         EnableTextReferences = true;
+        EnableJavaScript = false;
+        EnableExternalJavaScript = true;
+        JavaScriptTimeoutMilliseconds = 1000;
+        JavaScriptMaxStatements = 10000;
+        ThrowOnJavaScriptError = false;
     }
 }

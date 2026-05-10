@@ -7,5 +7,6 @@
   <Project Path="../Svg.Model/Svg.Model.csproj" />
   <Project Path="../Svg.SceneGraph/Svg.SceneGraph.csproj" />
   <Project Path="../Svg.Skia/Svg.Skia.csproj" />
+  <Project Path="../Svg.Controls.Skia.Maui/Svg.Controls.Skia.Maui.csproj" />
   <Project Path="SvgML.Maui.csproj" />
 </Solution>

@@ -623,6 +623,38 @@ public static class AvaloniaModelExtensions
             return null;
         }
 
+        if (path.Commands.Count == 1)
+        {
+            switch (path.Commands[0])
+            {
+                case AddRectPathCommand addRectPathCommand:
+                    return new AM.RectangleGeometry(addRectPathCommand.Rect.ToRect());
+
+                case AddRoundRectPathCommand addRoundRectPathCommand:
+                    return new AM.RectangleGeometry(
+                        addRoundRectPathCommand.Rect.ToRect(),
+                        addRoundRectPathCommand.Rx,
+                        addRoundRectPathCommand.Ry);
+
+                case AddOvalPathCommand addOvalPathCommand:
+                    return new AM.EllipseGeometry(addOvalPathCommand.Rect.ToRect());
+
+                case AddCirclePathCommand addCirclePathCommand:
+                    {
+                        var radius = addCirclePathCommand.Radius;
+                        var rect = new A.Rect(
+                            addCirclePathCommand.X - radius,
+                            addCirclePathCommand.Y - radius,
+                            radius + radius,
+                            radius + radius);
+                        return new AM.EllipseGeometry(rect);
+                    }
+
+                case AddPolyPathCommand addPolyPathCommand:
+                    return addPolyPathCommand.Points?.ToGeometry(addPolyPathCommand.Close);
+            }
+        }
+
         var streamGeometry = new AM.StreamGeometry();
 
         using var streamGeometryContext = streamGeometry.Open();
@@ -722,7 +754,90 @@ public static class AvaloniaModelExtensions
 
     public static AM.Geometry? ToGeometry(this ClipPath clipPath, bool isFilled)
     {
-        // TODO: clipPath
-        return null;
+        var geometry = default(AM.Geometry);
+        var referencedGeometry = clipPath.Clip?.ToGeometry(isFilled);
+        var localGeometry = ToGeometry(clipPath.Clips, isFilled);
+
+        if (referencedGeometry is { } && localGeometry is { })
+        {
+            geometry = new AM.CombinedGeometry(AM.GeometryCombineMode.Intersect, referencedGeometry, localGeometry);
+        }
+        else
+        {
+            geometry = referencedGeometry ?? localGeometry;
+        }
+
+        return ApplyTransform(geometry, clipPath.Transform);
+    }
+
+    private static AM.Geometry? ToGeometry(IList<PathClip>? clips, bool isFilled)
+    {
+        if (clips is not { Count: > 0 })
+        {
+            return null;
+        }
+
+        var geometry = default(AM.Geometry);
+
+        foreach (var clip in clips)
+        {
+            var clipGeometry = clip.ToGeometry(isFilled);
+            if (clipGeometry is null)
+            {
+                continue;
+            }
+
+            geometry = geometry is null
+                ? clipGeometry
+                : new AM.CombinedGeometry(AM.GeometryCombineMode.Union, geometry, clipGeometry);
+        }
+
+        return geometry;
+    }
+
+    private static AM.Geometry? ToGeometry(this PathClip clip, bool isFilled)
+    {
+        var geometry = default(AM.Geometry);
+        var nestedGeometry = clip.Clip?.ToGeometry(isFilled);
+
+        if (clip.Path?.Commands is { Count: > 0 })
+        {
+            geometry = clip.Path.ToGeometry(isFilled);
+            if (geometry is { } && nestedGeometry is { })
+            {
+                geometry = new AM.CombinedGeometry(AM.GeometryCombineMode.Intersect, geometry, nestedGeometry);
+            }
+        }
+        else if (nestedGeometry is { })
+        {
+            geometry = nestedGeometry;
+        }
+        else if (clip.Path is { })
+        {
+            geometry = clip.Path.ToGeometry(isFilled);
+        }
+
+        return ApplyTransform(geometry, clip.Transform);
+    }
+
+    private static AM.Geometry? ApplyTransform(AM.Geometry? geometry, SKMatrix? transform)
+    {
+        if (geometry is null || transform is null || transform.Value.IsIdentity)
+        {
+            return geometry;
+        }
+
+        var matrixTransform = new AM.MatrixTransform(transform.Value.ToMatrix());
+        geometry.Transform = geometry.Transform is { } existingTransform
+            ? new AM.TransformGroup
+            {
+                Children =
+                {
+                    existingTransform,
+                    matrixTransform
+                }
+            }
+            : matrixTransform;
+        return geometry;
     }
 }

@@ -26,6 +26,15 @@ This package brings the SVG element tree itself into .NET MAUI XAML. Use it when
 - you want the inline tree to render through the shared `Svg.Skia` backend without loading an external asset file,
 - you are targeting the current MAUI package lane: Android, iOS, or Mac Catalyst.
 
+### `Maui.Svg.Skia`
+
+This package wraps the `Svg.Skia` runtime renderer for .NET MAUI. Use it when:
+
+- you want MAUI XAML integration through `SKCanvasView`,
+- the SVG already exists as an app package asset, file, URL, stream, or source string,
+- you need `SvgSource` resources with async asset loading,
+- you want `HitTestElements(...)`, `TryGetPicturePoint(...)`, zoom, pan, wireframe, filter toggles, or animation playback.
+
 ### `SvgML.Uno`
 
 This package brings the SVG element tree itself into Uno Platform XAML. Use it when:
@@ -63,7 +72,7 @@ This package exposes a similar surface but draws through Avalonia's own drawing 
 
 ## Shared concepts
 
-The Uno and Avalonia Skia-backed packages all provide an `Svg` control, reusable `SvgSource`, shared hit testing, shared interaction dispatch, and the same animation-backend selection model.
+The Uno, MAUI, and Avalonia Skia-backed packages all provide an `Svg` control, reusable `SvgSource`, shared hit testing, and the same animation-backend selection model.
 
 The Avalonia packages additionally provide `SvgImage`, markup extensions, and brush helpers.
 
@@ -80,6 +89,7 @@ The namespaces differ:
 | Package | Namespace |
 | --- | --- |
 | `Svg.Controls.Skia.Uno` | `Uno.Svg.Skia` |
+| `Svg.Controls.Skia.Maui` | `Maui.Svg.Skia` |
 | `Svg.Controls.Skia.Avalonia` | `Avalonia.Svg.Skia` |
 | `Svg.Controls.Avalonia` | `Avalonia.Svg` |
 | `SvgML.Avalonia` | `SvgML` |

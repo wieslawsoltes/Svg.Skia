@@ -354,11 +354,14 @@ public partial class SkiaModel
             return null;
         }
 
+        var weight = (SkiaSharp.SKFontStyleWeight)style.Weight;
+        var width = (SkiaSharp.SKFontStyleWidth)style.Width;
+        var slant = (SkiaSharp.SKFontStyleSlant)style.Slant;
         var cacheKey = new TypefaceKey(
             candidate,
-            (SkiaSharp.SKFontStyleWeight)style.Weight,
-            (SkiaSharp.SKFontStyleWidth)style.Width,
-            (SkiaSharp.SKFontStyleSlant)style.Slant);
+            weight,
+            width,
+            slant);
         if (_resolvedTypefaceCache.TryGetValue(cacheKey, out var cached))
         {
             if (cached is not null && cached.Handle != IntPtr.Zero)
@@ -367,6 +370,17 @@ public partial class SkiaModel
             }
 
             _resolvedTypefaceCache.TryRemove(cacheKey, out _);
+        }
+
+        if (SharedTypefaceCache.TryGetResolvedTypeface(candidate, weight, width, slant, out var sharedCached))
+        {
+            if (sharedCached is not null)
+            {
+                _resolvedTypefaceCache.TryAdd(cacheKey, sharedCached);
+                TrimTypefaceCachesIfNeeded();
+            }
+
+            return sharedCached;
         }
 
         var fontManager = SkiaSharp.SKFontManager.Default;
@@ -406,10 +420,39 @@ public partial class SkiaModel
             _resolvedTypefaceCache.TryAdd(cacheKey, resolved);
             TrimTypefaceCachesIfNeeded();
         }
+
+        SharedTypefaceCache.AddResolvedTypeface(candidate, weight, width, slant, resolved);
         return resolved;
     }
 
+    private static SkiaSharp.SKTypeface? ResolveProviderTypeface(
+        ITypefaceProvider typefaceProvider,
+        string candidate,
+        SkiaSharp.SKFontStyleWeight fontWeight,
+        SkiaSharp.SKFontStyleWidth fontWidth,
+        SkiaSharp.SKFontStyleSlant fontStyle)
+    {
+        var typeface = SharedTypefaceCache.TryGetOrAddProviderTypeface(
+            typefaceProvider,
+            candidate,
+            fontWeight,
+            fontWidth,
+            fontStyle,
+            out var cached)
+            ? cached
+            : typefaceProvider.FromFamilyName(candidate, fontWeight, fontWidth, fontStyle);
+
+        return typeface is { } && typeface.Handle == IntPtr.Zero
+            ? null
+            : typeface;
+    }
+
     public SkiaSharp.SKTypeface? ToSKTypeface(SKTypeface? typeface)
+    {
+        return ResolveSKTypeface(typeface).Typeface;
+    }
+
+    private TypefaceResolution ResolveSKTypeface(SKTypeface? typeface)
     {
         var fontFamily = typeface?.FamilyName;
         var fontWeight = ToSKFontStyleWeight(typeface?.FontWeight ?? SKFontStyleWeight.Normal);
@@ -422,7 +465,7 @@ public partial class SkiaModel
 
         if (_typefaceCache.TryGetValue(cacheKey, out var cached))
         {
-            if (cached is not null && cached.Handle != IntPtr.Zero)
+            if (cached.Typeface.Handle != IntPtr.Zero)
             {
                 return cached;
             }
@@ -437,12 +480,10 @@ public partial class SkiaModel
             {
                 foreach (var typefaceProvider in Settings.TypefaceProviders)
                 {
-                    var providerTypeface = typefaceProvider.FromFamilyName(candidate, fontWeight, fontWidth, fontStyle);
+                    var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
                     if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                     {
-                        _typefaceCache.TryAdd(cacheKey, providerTypeface);
-                        TrimTypefaceCachesIfNeeded();
-                        return providerTypeface;
+                        return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, candidate, providerTypeface));
                     }
                 }
             }
@@ -450,9 +491,7 @@ public partial class SkiaModel
             var resolved = ResolveTypeface(candidate, style);
             if (resolved is { } && resolved.Handle != IntPtr.Zero)
             {
-                _typefaceCache.TryAdd(cacheKey, resolved);
-                TrimTypefaceCachesIfNeeded();
-                return resolved;
+                return CacheTypefaceResolution(cacheKey, resolved, suppressSyntheticBold: false);
             }
         }
 
@@ -464,12 +503,10 @@ public partial class SkiaModel
                 {
                     foreach (var typefaceProvider in Settings.TypefaceProviders)
                     {
-                        var providerTypeface = typefaceProvider.FromFamilyName(candidate, fontWeight, fontWidth, fontStyle);
+                        var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
                         if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                         {
-                            _typefaceCache.TryAdd(cacheKey, providerTypeface);
-                            TrimTypefaceCachesIfNeeded();
-                            return providerTypeface;
+                            return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, candidate, providerTypeface));
                         }
                     }
                 }
@@ -477,9 +514,7 @@ public partial class SkiaModel
                 var resolved = ResolveTypeface(candidate, style);
                 if (resolved is { } && resolved.Handle != IntPtr.Zero)
                 {
-                    _typefaceCache.TryAdd(cacheKey, resolved);
-                    TrimTypefaceCachesIfNeeded();
-                    return resolved;
+                    return CacheTypefaceResolution(cacheKey, resolved, suppressSyntheticBold: false);
                 }
             }
         }
@@ -488,12 +523,10 @@ public partial class SkiaModel
         {
             foreach (var typefaceProvider in Settings.TypefaceProviders)
             {
-                var providerTypeface = typefaceProvider.FromFamilyName(SkiaSharp.SKTypeface.Default.FamilyName, fontWeight, fontWidth, fontStyle);
+                var providerTypeface = ResolveProviderTypeface(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, fontWeight, fontWidth, fontStyle);
                 if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                 {
-                    _typefaceCache.TryAdd(cacheKey, providerTypeface);
-                    TrimTypefaceCachesIfNeeded();
-                    return providerTypeface;
+                    return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, providerTypeface));
                 }
             }
         }
@@ -505,9 +538,25 @@ public partial class SkiaModel
         }
 
         var fallback = defaultTypeface ?? SkiaSharp.SKTypeface.Default;
-        _typefaceCache.TryAdd(cacheKey, fallback);
+        return CacheTypefaceResolution(cacheKey, fallback, suppressSyntheticBold: false);
+    }
+
+    private TypefaceResolution CacheTypefaceResolution(TypefaceKey cacheKey, SkiaSharp.SKTypeface typeface, bool suppressSyntheticBold)
+    {
+        var resolution = new TypefaceResolution(typeface, suppressSyntheticBold);
+        _typefaceCache.TryAdd(cacheKey, resolution);
         TrimTypefaceCachesIfNeeded();
-        return fallback;
+        return resolution;
+    }
+
+    private static bool ShouldSuppressSyntheticBold(ITypefaceProvider typefaceProvider, string candidate, SkiaSharp.SKTypeface providerTypeface)
+    {
+        if (typefaceProvider is FontManagerTypefaceProvider or DefaultTypefaceProvider)
+        {
+            return false;
+        }
+
+        return !string.Equals(providerTypeface.FamilyName, candidate, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsGenericFontFamilyName(string candidate)
@@ -565,6 +614,25 @@ public partial class SkiaModel
         };
     }
 
+    private static float[]? GetGradientColorPositions(float[]? colorPos)
+    {
+        if (colorPos is null)
+        {
+            return null;
+        }
+
+        for (var i = 0; i < colorPos.Length; i++)
+        {
+            var value = colorPos[i];
+            if (float.IsNaN(value) || float.IsNegativeInfinity(value) || float.IsPositiveInfinity(value))
+            {
+                return null;
+            }
+        }
+
+        return colorPos;
+    }
+
     public SkiaSharp.SKShader? ToSKShader(SKShader? shader)
     {
         switch (shader)
@@ -579,11 +647,12 @@ public partial class SkiaModel
                 }
             case LinearGradientShader linearGradientShader:
                 {
-                    if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null)
+                    if (linearGradientShader.Colors is null)
                     {
                         return null;
                     }
 
+                    var colorPos = GetGradientColorPositions(linearGradientShader.ColorPos);
                     if (linearGradientShader.LocalMatrix is { })
                     {
                         return SkiaSharp.SKShader.CreateLinearGradient(
@@ -593,7 +662,7 @@ public partial class SkiaModel
                             linearGradientShader.ColorSpace == SKColorSpace.Srgb
                                 ? Settings.Srgb
                                 : Settings.SrgbLinear,
-                            linearGradientShader.ColorPos,
+                            colorPos,
                             ToSKShaderTileMode(linearGradientShader.Mode),
                             ToSKMatrix(linearGradientShader.LocalMatrix.Value));
                     }
@@ -605,16 +674,17 @@ public partial class SkiaModel
                         linearGradientShader.ColorSpace == SKColorSpace.Srgb
                             ? Settings.Srgb
                             : Settings.SrgbLinear,
-                        linearGradientShader.ColorPos,
+                        colorPos,
                         ToSKShaderTileMode(linearGradientShader.Mode));
                 }
             case RadialGradientShader radialGradientShader:
                 {
-                    if (radialGradientShader.Colors is null || radialGradientShader.ColorPos is null)
+                    if (radialGradientShader.Colors is null)
                     {
                         return null;
                     }
 
+                    var colorPos = GetGradientColorPositions(radialGradientShader.ColorPos);
                     if (radialGradientShader.LocalMatrix is { })
                     {
                         return SkiaSharp.SKShader.CreateRadialGradient(
@@ -624,7 +694,7 @@ public partial class SkiaModel
                             radialGradientShader.ColorSpace == SKColorSpace.Srgb
                                 ? Settings.Srgb
                                 : Settings.SrgbLinear,
-                            radialGradientShader.ColorPos,
+                            colorPos,
                             ToSKShaderTileMode(radialGradientShader.Mode),
                             ToSKMatrix(radialGradientShader.LocalMatrix.Value));
                     }
@@ -636,16 +706,17 @@ public partial class SkiaModel
                         radialGradientShader.ColorSpace == SKColorSpace.Srgb
                             ? Settings.Srgb
                             : Settings.SrgbLinear,
-                        radialGradientShader.ColorPos,
+                        colorPos,
                         ToSKShaderTileMode(radialGradientShader.Mode));
                 }
             case TwoPointConicalGradientShader twoPointConicalGradientShader:
                 {
-                    if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
+                    if (twoPointConicalGradientShader.Colors is null)
                     {
                         return null;
                     }
 
+                    var colorPos = GetGradientColorPositions(twoPointConicalGradientShader.ColorPos);
                     if (twoPointConicalGradientShader.LocalMatrix is { })
                     {
                         return SkiaSharp.SKShader.CreateTwoPointConicalGradient(
@@ -657,7 +728,7 @@ public partial class SkiaModel
                             twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb
                                 ? Settings.Srgb
                                 : Settings.SrgbLinear,
-                            twoPointConicalGradientShader.ColorPos,
+                            colorPos,
                             ToSKShaderTileMode(twoPointConicalGradientShader.Mode),
                             ToSKMatrix(twoPointConicalGradientShader.LocalMatrix.Value));
                     }
@@ -671,7 +742,7 @@ public partial class SkiaModel
                         twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb
                             ? Settings.Srgb
                             : Settings.SrgbLinear,
-                        twoPointConicalGradientShader.ColorPos,
+                        colorPos,
                         ToSKShaderTileMode(twoPointConicalGradientShader.Mode));
                 }
             case PictureShader pictureShader:
@@ -1254,7 +1325,8 @@ public partial class SkiaModel
         var strokeCap = ToSKStrokeCap(paint.StrokeCap);
         var strokeJoin = ToSKStrokeJoin(paint.StrokeJoin);
         var textAlign = ToSKTextAlign(paint.TextAlign);
-        var typeface = ToSKTypeface(paint.Typeface);
+        var typefaceResolution = ResolveSKTypeface(paint.Typeface);
+        var typeface = typefaceResolution.Typeface;
         var textEncoding = ToSKTextEncoding(paint.TextEncoding);
         var color = paint.Color is null
             ? SkiaSharp.SKColor.Empty :
@@ -1289,13 +1361,18 @@ public partial class SkiaModel
             FilterQuality = filterQuality
         };
 
-        ApplyTypefaceAdjustments(paint, skPaint);
+        ApplyTypefaceAdjustments(paint, skPaint, typefaceResolution.SuppressSyntheticBold);
 
         return skPaint;
     }
 
-    private void ApplyTypefaceAdjustments(ShimSkiaSharp.SKPaint sourcePaint, SkiaSharp.SKPaint targetPaint)
+    private void ApplyTypefaceAdjustments(ShimSkiaSharp.SKPaint sourcePaint, SkiaSharp.SKPaint targetPaint, bool suppressSyntheticBold)
     {
+        if (suppressSyntheticBold)
+        {
+            return;
+        }
+
         if (sourcePaint.Typeface is null || targetPaint.Typeface is null)
         {
             return;
@@ -1794,10 +1871,15 @@ public partial class SkiaModel
                     if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
                     {
                         var path = GetRenderPath(drawPathCanvasCommand.Path);
+                        if (path is null)
+                        {
+                            break;
+                        }
+
                         var paint = wireframe
                             ? ToWireframePaint(drawPathCanvasCommand.Paint)
                             : GetRenderPaint(drawPathCanvasCommand.Paint);
-                        skCanvas.DrawPath(path, paint);
+                        DrawPath(skCanvas, path, paint, drawPathCanvasCommand.Paint);
                     }
                     break;
                 }
@@ -1874,6 +1956,39 @@ public partial class SkiaModel
         {
             Draw(commands[i], skCanvas, wireframe);
         }
+    }
+
+    private static void DrawPath(
+        SkiaSharp.SKCanvas skCanvas,
+        SkiaSharp.SKPath path,
+        SkiaSharp.SKPaint? paint,
+        SKPaint sourcePaint)
+    {
+        if (paint is null)
+        {
+            return;
+        }
+
+        if (!sourcePaint.IsStrokeNonScaling || sourcePaint.Style != SKPaintStyle.Stroke)
+        {
+            skCanvas.DrawPath(path, paint);
+            return;
+        }
+
+        var currentMatrix = skCanvas.TotalMatrix;
+        if (currentMatrix.IsIdentity)
+        {
+            skCanvas.DrawPath(path, paint);
+            return;
+        }
+
+        using var transformedPath = new SkiaSharp.SKPath(path);
+        transformedPath.Transform(currentMatrix);
+
+        skCanvas.Save();
+        skCanvas.ResetMatrix();
+        skCanvas.DrawPath(transformedPath, paint);
+        skCanvas.Restore();
     }
 
     private SkiaSharp.SKPaint ToWireframePaint(SKPaint? paint)
