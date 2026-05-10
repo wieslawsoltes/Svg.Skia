@@ -33,9 +33,17 @@ public static class SkiaCSharpModelExtensions
 
     public static string ToFloatString(this float value)
     {
-        if (float.IsNaN(value) || float.IsNegativeInfinity(value) || float.IsPositiveInfinity(value))
+        if (float.IsNaN(value))
         {
-            return string.Concat("float.", value.ToString(s_ci));
+            return "float.NaN";
+        }
+        if (float.IsNegativeInfinity(value))
+        {
+            return "float.NegativeInfinity";
+        }
+        if (float.IsPositiveInfinity(value))
+        {
+            return "float.PositiveInfinity";
         }
         return string.Concat(value.ToString(s_ci), "f");
     }
@@ -67,7 +75,7 @@ public static class SkiaCSharpModelExtensions
 
         for (int i = 0; i < array.Length; i++)
         {
-            sb.AppendFormat(s_ci, "{0:g}f, ", array[i]); // C# allows trailing , on end element
+            sb.Append(array[i].ToFloatString()).Append(", "); // C# allows trailing , on end element
         }
 
         sb.Append(" }");
@@ -81,12 +89,22 @@ public static class SkiaCSharpModelExtensions
 
         for (int i = 0; i < array.Length; i++)
         {
-            sb.AppendFormat(s_ci, "@\"{0}\", ", array[i]); // C# allows trailing , on end element
+            sb.AppendFormat(s_ci, "@\"{0}\", ", array[i].Replace("\"", "\"\"")); // C# allows trailing , on end element
         }
 
         sb.Append(" }");
 
         return sb;
+    }
+
+    private static string ToGradientColorPositions(float[]? array)
+    {
+        if (array is null || array.Any(static value => float.IsNaN(value) || float.IsNegativeInfinity(value) || float.IsPositiveInfinity(value)))
+        {
+            return "null";
+        }
+
+        return array.ToFloatArray().ToString();
     }
 
     public static string ToSKPoint(this SKPoint point)
@@ -434,12 +452,13 @@ public static class SkiaCSharpModelExtensions
                 }
             case LinearGradientShader linearGradientShader:
                 {
-                    if (linearGradientShader.Colors is null || linearGradientShader.ColorPos is null)
+                    if (linearGradientShader.Colors is null)
                     {
                         sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
                         return;
                     }
 
+                    var colorPos = ToGradientColorPositions(linearGradientShader.ColorPos);
                     if (linearGradientShader.LocalMatrix is { })
                     {
                         sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
@@ -448,7 +467,7 @@ public static class SkiaCSharpModelExtensions
                         sb.AppendLine($"{indent}    {linearGradientShader.End.ToSKPoint()},");
                         sb.AppendLine($"{indent}    {linearGradientShader.Colors.ToSKColors()},");
                         sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
-                        sb.AppendLine($"{indent}    {linearGradientShader.ColorPos.ToFloatArray()},");
+                        sb.AppendLine($"{indent}    {colorPos},");
                         sb.AppendLine($"{indent}    {linearGradientShader.Mode.ToSKShaderTileMode()},");
                         sb.AppendLine($"{indent}    {linearGradientShader.LocalMatrix.Value.ToSKMatrix()});");
                         return;
@@ -461,19 +480,20 @@ public static class SkiaCSharpModelExtensions
                         sb.AppendLine($"{indent}    {linearGradientShader.End.ToSKPoint()},");
                         sb.AppendLine($"{indent}    {linearGradientShader.Colors.ToSKColors()},");
                         sb.AppendLine($"{indent}    {(linearGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
-                        sb.AppendLine($"{indent}    {linearGradientShader.ColorPos.ToFloatArray()},");
+                        sb.AppendLine($"{indent}    {colorPos},");
                         sb.AppendLine($"{indent}    {linearGradientShader.Mode.ToSKShaderTileMode()});");
                         return;
                     }
                 }
             case RadialGradientShader radialGradientShader:
                 {
-                    if (radialGradientShader.Colors is null || radialGradientShader.ColorPos is null)
+                    if (radialGradientShader.Colors is null)
                     {
                         sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
                         return;
                     }
 
+                    var colorPos = ToGradientColorPositions(radialGradientShader.ColorPos);
                     if (radialGradientShader.LocalMatrix is { })
                     {
                         sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
@@ -482,7 +502,7 @@ public static class SkiaCSharpModelExtensions
                         sb.AppendLine($"{indent}    {radialGradientShader.Radius.ToFloatString()},");
                         sb.AppendLine($"{indent}    {radialGradientShader.Colors.ToSKColors()},");
                         sb.AppendLine($"{indent}    {(radialGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
-                        sb.AppendLine($"{indent}    {radialGradientShader.ColorPos.ToFloatArray()},");
+                        sb.AppendLine($"{indent}    {colorPos},");
                         sb.AppendLine($"{indent}    {radialGradientShader.Mode.ToSKShaderTileMode()},");
                         sb.AppendLine($"{indent}    {radialGradientShader.LocalMatrix.Value.ToSKMatrix()});");
                         return;
@@ -495,19 +515,20 @@ public static class SkiaCSharpModelExtensions
                         sb.AppendLine($"{indent}    {radialGradientShader.Radius.ToFloatString()},");
                         sb.AppendLine($"{indent}    {radialGradientShader.Colors.ToSKColors()},");
                         sb.AppendLine($"{indent}    {(radialGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
-                        sb.AppendLine($"{indent}    {radialGradientShader.ColorPos.ToFloatArray()},");
+                        sb.AppendLine($"{indent}    {colorPos},");
                         sb.AppendLine($"{indent}    {radialGradientShader.Mode.ToSKShaderTileMode()});");
                         return;
                     }
                 }
             case TwoPointConicalGradientShader twoPointConicalGradientShader:
                 {
-                    if (twoPointConicalGradientShader.Colors is null || twoPointConicalGradientShader.ColorPos is null)
+                    if (twoPointConicalGradientShader.Colors is null)
                     {
                         sb.AppendLine($"{indent}var {counter.ShaderVarName}{counterShader} = default(SKShader);");
                         return;
                     }
 
+                    var colorPos = ToGradientColorPositions(twoPointConicalGradientShader.ColorPos);
                     if (twoPointConicalGradientShader.LocalMatrix is { })
                     {
                         sb.Append($"{indent}var {counter.ShaderVarName}{counterShader} = ");
@@ -518,7 +539,7 @@ public static class SkiaCSharpModelExtensions
                         sb.AppendLine($"{indent}    {twoPointConicalGradientShader.EndRadius.ToFloatString()},");
                         sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Colors.ToSKColors()},");
                         sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
-                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.ColorPos.ToFloatArray()},");
+                        sb.AppendLine($"{indent}    {colorPos},");
                         sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Mode.ToSKShaderTileMode()},");
                         sb.AppendLine($"{indent}    {twoPointConicalGradientShader.LocalMatrix.Value.ToSKMatrix()});");
                         return;
@@ -533,7 +554,7 @@ public static class SkiaCSharpModelExtensions
                         sb.AppendLine($"{indent}    {twoPointConicalGradientShader.EndRadius.ToFloatString()},");
                         sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Colors.ToSKColors()},");
                         sb.AppendLine($"{indent}    {(twoPointConicalGradientShader.ColorSpace == SKColorSpace.Srgb ? s_srgb : s_srgbLinear)},");
-                        sb.AppendLine($"{indent}    {twoPointConicalGradientShader.ColorPos.ToFloatArray()},");
+                        sb.AppendLine($"{indent}    {colorPos},");
                         sb.AppendLine($"{indent}    {twoPointConicalGradientShader.Mode.ToSKShaderTileMode()});");
                         return;
                     }
@@ -1890,7 +1911,29 @@ public static class SkiaCSharpModelExtensions
                             drawPathCanvasCommand.Path.ToSKPath(counter, sb, indent);
                             var counterPaint = ++counter.Paint;
                             drawPathCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
-                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawPath({counter.PathVarName}{counterPath}, {counter.PaintVarName}{counterPaint});");
+                            if (drawPathCanvasCommand.Paint.IsStrokeNonScaling &&
+                                drawPathCanvasCommand.Paint.Style == SKPaintStyle.Stroke)
+                            {
+                                var counterNonScalingPath = ++counter.Path;
+                                sb.AppendLine($"{indent}var matrix{counterNonScalingPath} = {counter.CanvasVarName}{counterCanvas}.TotalMatrix;");
+                                sb.AppendLine($"{indent}if (matrix{counterNonScalingPath}.IsIdentity)");
+                                sb.AppendLine($"{indent}{{");
+                                sb.AppendLine($"{indent}    {counter.CanvasVarName}{counterCanvas}.DrawPath({counter.PathVarName}{counterPath}, {counter.PaintVarName}{counterPaint});");
+                                sb.AppendLine($"{indent}}}");
+                                sb.AppendLine($"{indent}else");
+                                sb.AppendLine($"{indent}{{");
+                                sb.AppendLine($"{indent}    using var {counter.PathVarName}{counterNonScalingPath} = new SKPath({counter.PathVarName}{counterPath});");
+                                sb.AppendLine($"{indent}    {counter.PathVarName}{counterNonScalingPath}.Transform(matrix{counterNonScalingPath});");
+                                sb.AppendLine($"{indent}    {counter.CanvasVarName}{counterCanvas}.Save();");
+                                sb.AppendLine($"{indent}    {counter.CanvasVarName}{counterCanvas}.ResetMatrix();");
+                                sb.AppendLine($"{indent}    {counter.CanvasVarName}{counterCanvas}.DrawPath({counter.PathVarName}{counterNonScalingPath}, {counter.PaintVarName}{counterPaint});");
+                                sb.AppendLine($"{indent}    {counter.CanvasVarName}{counterCanvas}.Restore();");
+                                sb.AppendLine($"{indent}}}");
+                            }
+                            else
+                            {
+                                sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.DrawPath({counter.PathVarName}{counterPath}, {counter.PaintVarName}{counterPaint});");
+                            }
 
                             // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE

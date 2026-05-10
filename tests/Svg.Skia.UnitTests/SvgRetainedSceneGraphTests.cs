@@ -1000,6 +1000,78 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_AppliesInlineMixBlendModeToImageNode()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(InlineMixBlendModeImageSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("blend-image", out var imageNode));
+
+        Assert.NotNull(imageNode!.BlendModePaint);
+        Assert.Equal(SKBlendMode.Overlay, imageNode.BlendModePaint!.BlendMode);
+
+        var model = SvgSceneRenderer.Render(scene);
+        Assert.NotNull(model);
+        Assert.Contains(
+            model!.FindCommands<SaveLayerCanvasCommand>(),
+            static command => command.Paint?.BlendMode == SKBlendMode.Overlay);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_AppliesStylesheetMixBlendModeToShapeNode()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(StylesheetMixBlendModeSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("blend-target", out var blendNode));
+
+        Assert.True(blendNode!.Element!.TryGetAttribute("mix-blend-mode", out var mixBlendMode));
+        Assert.Equal("multiply", mixBlendMode);
+        Assert.NotNull(blendNode.BlendModePaint);
+        Assert.Equal(SKBlendMode.Multiply, blendNode.BlendModePaint!.BlendMode);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_IgnoresPresentationMixBlendModeAttribute()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(PresentationMixBlendModeSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("blend-target", out var blendNode));
+
+        Assert.False(blendNode!.Element!.TryGetAttribute("mix-blend-mode", out _));
+        Assert.Null(blendNode.BlendModePaint);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_AppliesStylesheetIsolationToContainerNode()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(StylesheetIsolationSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("isolated-group", out var isolationNode));
+        Assert.True(scene.TryGetNodeById("blend-target", out var blendNode));
+
+        Assert.True(isolationNode!.IsIsolationGroup);
+        Assert.NotNull(blendNode!.BlendModePaint);
+        Assert.Equal(SKBlendMode.Overlay, blendNode.BlendModePaint!.BlendMode);
+
+        var model = SvgSceneRenderer.Render(scene);
+        Assert.NotNull(model);
+        Assert.Contains(
+            model!.FindCommands<SaveLayerCanvasCommand>(),
+            static command => command.Paint is { BlendMode: SKBlendMode.SrcOver });
+    }
+
+    [Fact]
     public void RetainedSceneGraph_CompilesUseSwitchAndImageWithDirectRetainedStrategy()
     {
         using var svg = new SKSvg();
@@ -1410,6 +1482,35 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
             groupYellow.Red < 200 &&
             groupYellow.Blue == 0,
             $"Expected grouped multiply row to shift away from the unfiltered yellow source, but single={singleYellow} group={groupYellow}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_RendersFilteredGroupWithTransformedChild()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(FilteredTransformedChildGroupSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("a", out var groupNode));
+        Assert.NotNull(groupNode);
+        Assert.Equal(125f, groupNode!.GeometryBounds.Left, 3);
+        Assert.Equal(125f, groupNode.GeometryBounds.Top, 3);
+        Assert.Equal(375f, groupNode.GeometryBounds.Right, 3);
+        Assert.Equal(375f, groupNode.GeometryBounds.Bottom, 3);
+        Assert.NotNull(groupNode.FilterClip);
+        Assert.Equal(100f, groupNode.FilterClip.Value.Left, 3);
+        Assert.Equal(100f, groupNode.FilterClip.Value.Top, 3);
+        Assert.Equal(400f, groupNode.FilterClip.Value.Right, 3);
+        Assert.Equal(400f, groupNode.FilterClip.Value.Bottom, 3);
+
+        Assert.NotNull(svg.Picture);
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+
+        var centerPixel = bitmap.GetPixel(250, 250);
+        Assert.True(
+            centerPixel.Alpha > 200 && centerPixel.Red < 20 && centerPixel.Green < 20 && centerPixel.Blue < 20,
+            $"Expected transformed child inside filtered group to render at the center but was {centerPixel}.");
     }
 
     [Fact]
@@ -2044,6 +2145,19 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         </svg>
         """;
 
+    private const string FilteredTransformedChildGroupSvg = """
+        <svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+          <g id="a" filter="url(#f)">
+            <circle cx="0" cy="0" r="125" fill="black" transform="translate(250 250)" />
+          </g>
+          <defs>
+            <filter id="f">
+              <feOffset dx="0" dy="0" />
+            </filter>
+          </defs>
+        </svg>
+        """;
+
     private const string MaskedSvg = """
         <svg xmlns="http://www.w3.org/2000/svg"
              width="24"
@@ -2178,6 +2292,61 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
                   fill="blue"
                   display="none"
                   visibility="hidden" />
+          </g>
+        </svg>
+        """;
+
+    private static readonly string InlineMixBlendModeImageSvg = $"""
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             viewBox="0 0 24 24">
+          <rect x="0" y="0" width="24" height="24" fill="#808080" />
+          <image id="blend-image"
+                 x="2"
+                 y="2"
+                 width="20"
+                 height="20"
+                 style="mix-blend-mode: overlay;"
+                 href="data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(EmbeddedImageSvg))}" />
+        </svg>
+        """;
+
+    private const string StylesheetMixBlendModeSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             viewBox="0 0 24 24">
+          <style>
+            #blend-target { mix-blend-mode: multiply; }
+          </style>
+          <rect x="0" y="0" width="24" height="24" fill="#808080" />
+          <rect id="blend-target" x="2" y="2" width="20" height="20" fill="#cc3333" />
+        </svg>
+        """;
+
+    private const string PresentationMixBlendModeSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             viewBox="0 0 24 24">
+          <rect x="0" y="0" width="24" height="24" fill="#808080" />
+          <rect id="blend-target" x="2" y="2" width="20" height="20" fill="#cc3333" mix-blend-mode="multiply" />
+        </svg>
+        """;
+
+    private const string StylesheetIsolationSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="24"
+             height="24"
+             viewBox="0 0 24 24">
+          <style>
+            #isolated-group { isolation: isolate; }
+            #blend-target { mix-blend-mode: overlay; }
+          </style>
+          <rect x="0" y="0" width="24" height="24" fill="#008000" />
+          <g id="isolated-group">
+            <rect id="blend-target" x="2" y="2" width="20" height="20" fill="#ffcc00" />
           </g>
         </svg>
         """;

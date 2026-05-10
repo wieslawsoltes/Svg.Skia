@@ -7,7 +7,7 @@ namespace Svg.Skia;
 
 internal readonly struct SvgAnimationEventTimingParseResult
 {
-    public SvgAnimationEventTimingParseResult(SvgElementAddress eventAddress, SvgPointerEventType eventType, TimeSpan offset)
+    public SvgAnimationEventTimingParseResult(SvgElementAddress eventAddress, SvgAnimationTimingEventType eventType, TimeSpan offset)
     {
         EventAddress = eventAddress;
         EventType = eventType;
@@ -16,7 +16,7 @@ internal readonly struct SvgAnimationEventTimingParseResult
 
     public SvgElementAddress EventAddress { get; }
 
-    public SvgPointerEventType EventType { get; }
+    public SvgAnimationTimingEventType EventType { get; }
 
     public TimeSpan Offset { get; }
 }
@@ -530,47 +530,59 @@ internal static class SvgAnimationParser
         return true;
     }
 
-    private static bool TryMapEventName(ReadOnlySpan<char> eventName, out SvgPointerEventType eventType)
+    private static bool TryMapEventName(ReadOnlySpan<char> eventName, out SvgAnimationTimingEventType eventType)
     {
         if (EqualsAsciiIgnoreCase(eventName, "click"))
         {
-            eventType = SvgPointerEventType.Click;
+            eventType = SvgAnimationTimingEventType.Click;
             return true;
         }
 
         if (EqualsAsciiIgnoreCase(eventName, "mousedown"))
         {
-            eventType = SvgPointerEventType.Press;
+            eventType = SvgAnimationTimingEventType.Press;
             return true;
         }
 
         if (EqualsAsciiIgnoreCase(eventName, "mouseup"))
         {
-            eventType = SvgPointerEventType.Release;
+            eventType = SvgAnimationTimingEventType.Release;
             return true;
         }
 
         if (EqualsAsciiIgnoreCase(eventName, "mousemove"))
         {
-            eventType = SvgPointerEventType.Move;
+            eventType = SvgAnimationTimingEventType.Move;
             return true;
         }
 
         if (EqualsAsciiIgnoreCase(eventName, "mouseover"))
         {
-            eventType = SvgPointerEventType.Enter;
+            eventType = SvgAnimationTimingEventType.Enter;
             return true;
         }
 
         if (EqualsAsciiIgnoreCase(eventName, "mouseout"))
         {
-            eventType = SvgPointerEventType.Leave;
+            eventType = SvgAnimationTimingEventType.Leave;
             return true;
         }
 
         if (EqualsAsciiIgnoreCase(eventName, "mousescroll"))
         {
-            eventType = SvgPointerEventType.Wheel;
+            eventType = SvgAnimationTimingEventType.Wheel;
+            return true;
+        }
+
+        if (EqualsAsciiIgnoreCase(eventName, "begin"))
+        {
+            eventType = SvgAnimationTimingEventType.Begin;
+            return true;
+        }
+
+        if (EqualsAsciiIgnoreCase(eventName, "end"))
+        {
+            eventType = SvgAnimationTimingEventType.End;
             return true;
         }
 

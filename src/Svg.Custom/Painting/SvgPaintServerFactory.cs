@@ -34,6 +34,11 @@ namespace Svg
                 return SvgPaintServer.NotSet;
 
             var colorValue = value.Trim();
+            if (SvgCssVariableResolver.TryResolveFallbacks(colorValue, out var resolvedColorValue))
+            {
+                colorValue = resolvedColorValue.Trim();
+            }
+
             // If it's pointing to a paint server
             if (string.IsNullOrEmpty(colorValue))
                 return SvgPaintServer.NotSet;
@@ -66,8 +71,18 @@ namespace Svg
                 return new SvgDeferredPaintServer(document, id, fallbackServer);
             }
 
-            // Otherwise try and parse as colour
-            return new SvgColourServer((Color)_colourConverter.ConvertFrom(colorValue));
+            // Otherwise try and parse as colour. SvgColourConverter only accepts SVG 1.1
+            // hex colours (#RGB/#RRGGBB); support CSS Color 4 alpha forms here because
+            // CSS style declarations can legally feed #RGBA/#RRGGBBAA into this factory.
+            if (TryParseHexColorWithAlpha(colorValue, out var hexColor))
+            {
+                return new SvgColourServer(hexColor);
+            }
+
+            var converted = _colourConverter.ConvertFrom(colorValue);
+            return converted is Color color
+                ? new SvgColourServer(color)
+                : throw new InvalidCastException();
         }
 
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
@@ -109,6 +124,11 @@ namespace Svg
                 var colourServer = value as SvgColourServer;
                 if (colourServer != null)
                 {
+                    if (colourServer.Colour.A != 255)
+                    {
+                        return FormatHexColor(colourServer.Colour);
+                    }
+
                     return new SvgColourConverter().ConvertTo(colourServer.Colour, typeof(string));
                 }
 
@@ -129,6 +149,104 @@ namespace Svg
             }
 
             return base.ConvertTo(context, culture, value, destinationType);
+        }
+
+        private static bool TryParseHexColorWithAlpha(string value, out Color color)
+        {
+            color = Color.Empty;
+
+            if (value.Length != 5 && value.Length != 9)
+            {
+                return false;
+            }
+
+            if (value[0] != '#')
+            {
+                return false;
+            }
+
+            if (value.Length == 5)
+            {
+                var red = FromHex(value[1]);
+                var green = FromHex(value[2]);
+                var blue = FromHex(value[3]);
+                var alpha = FromHex(value[4]);
+
+                if (red < 0 || green < 0 || blue < 0 || alpha < 0)
+                {
+                    return false;
+                }
+
+                color = Color.FromArgb(
+                    ExpandHex(alpha),
+                    ExpandHex(red),
+                    ExpandHex(green),
+                    ExpandHex(blue));
+                return true;
+            }
+
+            if (!TryParseHexByte(value, 1, out var r) ||
+                !TryParseHexByte(value, 3, out var g) ||
+                !TryParseHexByte(value, 5, out var b) ||
+                !TryParseHexByte(value, 7, out var a))
+            {
+                return false;
+            }
+
+            color = Color.FromArgb(a, r, g, b);
+            return true;
+        }
+
+        private static bool TryParseHexByte(string value, int index, out byte component)
+        {
+            component = 0;
+
+            var high = FromHex(value[index]);
+            var low = FromHex(value[index + 1]);
+
+            if (high < 0 || low < 0)
+            {
+                return false;
+            }
+
+            component = (byte)((high << 4) | low);
+            return true;
+        }
+
+        private static byte ExpandHex(int value)
+        {
+            return (byte)((value << 4) | value);
+        }
+
+        private static int FromHex(char value)
+        {
+            if (value >= '0' && value <= '9')
+            {
+                return value - '0';
+            }
+
+            if (value >= 'A' && value <= 'F')
+            {
+                return value - 'A' + 10;
+            }
+
+            if (value >= 'a' && value <= 'f')
+            {
+                return value - 'a' + 10;
+            }
+
+            return -1;
+        }
+
+        private static string FormatHexColor(Color color)
+        {
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "#{0:X2}{1:X2}{2:X2}{3:X2}",
+                color.R,
+                color.G,
+                color.B,
+                color.A);
         }
     }
 }
