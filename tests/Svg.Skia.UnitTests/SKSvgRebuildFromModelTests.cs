@@ -26,6 +26,11 @@ public class SKSvgRebuildFromModelTests
           <rect id="target" x="2" y="2" width="16" height="16" fill="red" stroke="blue" stroke-width="2" />
         </svg>
         """;
+    private const string SourceMappedTextRunsSvg = """
+        <svg width="80" height="24" xmlns="http://www.w3.org/2000/svg">
+          <text id="text-root" x="2" y="18" font-family="sans-serif" font-size="16" fill="black"><tspan id="a">A</tspan><tspan id="b">B</tspan></text>
+        </svg>
+        """;
     private const string GradientSvg = """
         <svg width="10" height="10" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -87,6 +92,34 @@ public class SKSvgRebuildFromModelTests
 
         Assert.Equal(commands.Count, commandsByAddress.Count);
         Assert.All(commandsByAddress, command => Assert.Equal(address, command.SourceElementAddress));
+    }
+
+    [Fact]
+    public void ModelCommands_PreserveChildTextRunSourceMetadata()
+    {
+        var svg = new SKSvg();
+        svg.FromSvg(SourceMappedTextRunsSvg);
+
+        var firstRunCommands = svg.Model!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("a")
+            .ToList();
+        var secondRunCommands = svg.Model!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("b")
+            .ToList();
+        var parentTextRunCommands = svg.Model!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("text-root")
+            .Where(static command => command.Text is "A" or "B")
+            .ToList();
+
+        var firstRunCommand = Assert.Single(firstRunCommands);
+        var secondRunCommand = Assert.Single(secondRunCommands);
+        Assert.Equal("A", firstRunCommand.Text);
+        Assert.Equal("B", secondRunCommand.Text);
+        Assert.Equal("SvgTextSpan", firstRunCommand.SourceElementTypeName);
+        Assert.Equal("SvgTextSpan", secondRunCommand.SourceElementTypeName);
+        Assert.False(string.IsNullOrWhiteSpace(firstRunCommand.SourceElementAddress));
+        Assert.False(string.IsNullOrWhiteSpace(secondRunCommand.SourceElementAddress));
+        Assert.Empty(parentTextRunCommands);
     }
 
     [Fact]

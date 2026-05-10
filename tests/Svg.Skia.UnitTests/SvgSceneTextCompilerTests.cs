@@ -68,7 +68,7 @@ public class SvgSceneTextCompilerTests
         "TryCompileSequentialText",
         BindingFlags.NonPublic | BindingFlags.Static,
         binder: null,
-        [typeof(SvgTextBase), typeof(SKRect), typeof(DrawAttributes), typeof(ISvgAssetLoader), typeof(SKRect).MakeByRefType(), typeof(SKPicture).MakeByRefType()],
+        [typeof(SvgTextBase), typeof(SKRect), typeof(DrawAttributes), typeof(ISvgAssetLoader), typeof(Func<SvgElement?, string?>), typeof(SKRect).MakeByRefType(), typeof(SKPicture).MakeByRefType()],
         modifiers: null)!;
 
     private sealed record PreparedSequentialRunSnapshot(
@@ -611,6 +611,7 @@ public class SvgSceneTextCompilerTests
             viewport,
             DrawAttributes.None,
             assetLoader,
+            null,
             default(SKRect),
             null
         };
