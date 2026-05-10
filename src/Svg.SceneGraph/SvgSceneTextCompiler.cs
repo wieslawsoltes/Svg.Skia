@@ -5299,6 +5299,7 @@ internal static partial class SvgSceneTextCompiler
             return true;
         }
 
+        using var commandSource = PushTextCommandSource(canvas, run.StyleSource, getElementAddressKey);
         if (TryCreateSimpleTextPathRunFilterPaint(visualElement, runBounds, viewport, out var simpleFilterPaint, out var simpleFilterClip))
         {
             if (simpleFilterPaint is null)
