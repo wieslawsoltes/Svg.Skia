@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -19,6 +20,7 @@ using ShimSkiaSharp;
 using Svg;
 using Svg.Model;
 using Svg.Skia;
+using DrawingColor = System.Drawing.Color;
 
 namespace Avalonia.Svg.Skia;
 
@@ -182,6 +184,12 @@ public class Svg : Control
         AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, string?>("CurrentCss", inherits: true);
 
     /// <summary>
+    /// Defines the CurrentColor property.
+    /// </summary>
+    public static readonly AttachedProperty<Color?> CurrentColorProperty =
+        AvaloniaProperty.RegisterAttached<Svg, AvaloniaObject, Color?>("CurrentColor", inherits: true);
+
+    /// <summary>
     /// Gets or sets the Svg path.
     /// </summary>
     [Content]
@@ -198,6 +206,15 @@ public class Svg : Control
     {
         get => GetValue(SourceProperty);
         set => SetValue(SourceProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the default SVG currentColor value.
+    /// </summary>
+    public Color? CurrentColor
+    {
+        get => GetCurrentColor(this);
+        set => SetCurrentColor(this, value);
     }
 
     /// <summary>
@@ -461,6 +478,7 @@ public class Svg : Control
 
         CssProperty.Changed.AddClassHandler<Control>(OnCssPropertyAttachedPropertyChanged);
         CurrentCssProperty.Changed.AddClassHandler<Control>(OnCssPropertyAttachedPropertyChanged);
+        CurrentColorProperty.Changed.AddClassHandler<Control>(OnCssPropertyAttachedPropertyChanged);
     }
 
     public static string? GetCss(AvaloniaObject element)
@@ -481,6 +499,16 @@ public class Svg : Control
     public static void SetCurrentCss(AvaloniaObject element, string? value)
     {
         element.SetValue(CurrentCssProperty, value);
+    }
+
+    public static Color? GetCurrentColor(AvaloniaObject element)
+    {
+        return element.GetValue(CurrentColorProperty);
+    }
+
+    public static void SetCurrentColor(AvaloniaObject element, Color? value)
+    {
+        element.SetValue(CurrentColorProperty, value);
     }
 
     private static void OnCssPropertyAttachedPropertyChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
@@ -608,7 +636,7 @@ public class Svg : Control
         {
             var css = GetCss(this);
             var currentCss = GetCurrentCss(this);
-            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            var parameters = BuildParameters(css, currentCss, CurrentColor);
             var path = change.GetNewValue<string?>();
             LoadFromPath(path, parameters);
             InvalidateVisual();
@@ -618,7 +646,7 @@ public class Svg : Control
         {
             var css = change.GetNewValue<string?>();
             var currentCss = GetCurrentCss(this);
-            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            var parameters = BuildParameters(css, currentCss, CurrentColor);
             var path = Path;
             var source = Source;
 
@@ -638,7 +666,27 @@ public class Svg : Control
         {
             var css = GetCss(this);
             var currentCss = change.GetNewValue<string?>();
-            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            var parameters = BuildParameters(css, currentCss, CurrentColor);
+            var path = Path;
+            var source = Source;
+
+            if (path is { })
+            {
+                LoadFromPath(path, parameters);
+            }
+            else if (source is { })
+            {
+                LoadFromSource(source, parameters);
+            }
+
+            InvalidateVisual();
+        }
+
+        if (change.Property == CurrentColorProperty)
+        {
+            var css = GetCss(this);
+            var currentCss = GetCurrentCss(this);
+            var parameters = BuildParameters(css, currentCss, change.GetNewValue<Color?>());
             var path = Path;
             var source = Source;
 
@@ -659,7 +707,7 @@ public class Svg : Control
             var source = change.GetNewValue<string?>();
             var css = GetCss(this);
             var currentCss = GetCurrentCss(this);
-            var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+            var parameters = BuildParameters(css, currentCss, CurrentColor);
             LoadFromSource(source, parameters);
             InvalidateVisual();
         }
@@ -736,7 +784,8 @@ public class Svg : Control
             return;
         }
 
-        if (_enableCache && _cache is { } && _cache.TryGetValue(path, out var svg))
+        var cacheKey = CreateCacheKey(path, parameters);
+        if (_enableCache && _cache is { } && _cache.TryGetValue(cacheKey, out var svg))
         {
             ReplaceCurrentSource(CreateWorkingSource(svg));
             ApplyRenderOptions(_svg, _wireframe, _disableFilters);
@@ -759,7 +808,7 @@ public class Svg : Control
 
             if (_enableCache && _cache is { } && _svg is { })
             {
-                _cache[path] = CreateWorkingSource(_svg);
+                _cache[cacheKey] = CreateWorkingSource(_svg);
             }
         }
         catch (Exception e)
@@ -884,6 +933,48 @@ public class Svg : Control
         return source.Svg?.HasAnimations == true ? source.Clone() : source;
     }
 
+    private static SvgParameters BuildParameters(string? css, string? currentCss, Color? currentColor)
+    {
+        return new SvgParameters(null, CombineCss(css, currentCss), ToDrawingColor(currentColor));
+    }
+
+    private static string? CombineCss(string? css, string? currentCss)
+    {
+        if (string.IsNullOrWhiteSpace(css))
+        {
+            return string.IsNullOrWhiteSpace(currentCss) ? null : currentCss;
+        }
+
+        if (string.IsNullOrWhiteSpace(currentCss))
+        {
+            return css;
+        }
+
+        return string.Concat(css, ' ', currentCss);
+    }
+
+    private static DrawingColor? ToDrawingColor(Color? color)
+    {
+        return color is { } value
+            ? DrawingColor.FromArgb(value.A, value.R, value.G, value.B)
+            : null;
+    }
+
+    private static string CreateCacheKey(string path, SvgParameters? parameters)
+    {
+        if (string.IsNullOrWhiteSpace(parameters?.Css) && parameters?.CurrentColor is null)
+        {
+            return path;
+        }
+
+        return string.Concat(
+            path,
+            "\ncss:",
+            parameters?.Css,
+            "\ncurrentColor:",
+            parameters?.CurrentColor?.ToArgb().ToString("X8", CultureInfo.InvariantCulture));
+    }
+
     private void ReplaceCurrentSource(SvgSource? source)
     {
         var previous = _svg;
@@ -939,7 +1030,6 @@ public class Svg : Control
             return;
         }
 
-        e.Pointer.Capture(this);
         var currentPoint = e.GetCurrentPoint(this);
         var button = MapPointerUpdateKind(currentPoint.Properties.PointerUpdateKind);
         var result = Interaction.DispatchPointerPressed(skSvg, CreatePointerInput(e, button, e.ClickCount, 0));
@@ -959,7 +1049,17 @@ public class Svg : Control
         var result = Interaction.DispatchPointerReleased(skSvg, CreatePointerInput(e, button, 0, 0));
         e.Handled |= result.Handled;
         ApplyNativeCursor(result.Cursor);
-        e.Pointer.Capture(null);
+    }
+
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+
+        if (Interaction.CapturedElement is not null || Interaction.PressedElement is not null)
+        {
+            Interaction.Reset();
+            ApplyNativeCursor(null);
+        }
     }
 
     private void DispatchPointerWheelChanged(PointerWheelEventArgs e)

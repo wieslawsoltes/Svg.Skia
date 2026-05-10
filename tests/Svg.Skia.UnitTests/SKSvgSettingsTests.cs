@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using SkiaSharp;
 using Svg.Skia.TypefaceProviders;
 using Svg.Skia.UnitTests.Common;
@@ -21,6 +22,66 @@ public class SKSvgSettingsTests : SvgUnitTest
         var settings = new SKSvgSettings();
 
         Assert.True(settings.EnableTextReferences);
+    }
+
+    [Fact]
+    public void CopyTo_CopiesRenderingAndJavaScriptSettings()
+    {
+        var provider = new DefaultTypefaceProvider();
+        var source = new SKSvgSettings
+        {
+            AlphaType = SKAlphaType.Premul,
+            ColorType = SKColorType.Rgba8888,
+            TypefaceProviders = new List<ITypefaceProvider> { provider },
+            StandaloneViewport = new SKRect(1, 2, 3, 4),
+            EnableSvgFonts = false,
+            EnableTextReferences = false,
+            EnableJavaScript = true,
+            EnableExternalJavaScript = false,
+            JavaScriptTimeoutMilliseconds = 123,
+            JavaScriptMaxStatements = 456,
+            ThrowOnJavaScriptError = true
+        };
+        var target = new SKSvgSettings();
+
+        source.CopyTo(target);
+
+        Assert.Equal(source.AlphaType, target.AlphaType);
+        Assert.Equal(source.ColorType, target.ColorType);
+        Assert.Same(source.SrgbLinear, target.SrgbLinear);
+        Assert.Same(source.Srgb, target.Srgb);
+        Assert.Equal(source.StandaloneViewport, target.StandaloneViewport);
+        Assert.False(target.EnableSvgFonts);
+        Assert.False(target.EnableTextReferences);
+        Assert.True(target.EnableJavaScript);
+        Assert.False(target.EnableExternalJavaScript);
+        Assert.Equal(123, target.JavaScriptTimeoutMilliseconds);
+        Assert.Equal(456, target.JavaScriptMaxStatements);
+        Assert.True(target.ThrowOnJavaScriptError);
+        Assert.NotSame(source.TypefaceProviders, target.TypefaceProviders);
+        Assert.Same(provider, Assert.Single(target.TypefaceProviders!));
+    }
+
+    [Fact]
+    public void Clone_CopiesJavaScriptSettings()
+    {
+        var settings = new SKSvgSettings
+        {
+            EnableJavaScript = true,
+            EnableExternalJavaScript = false,
+            JavaScriptTimeoutMilliseconds = 250,
+            JavaScriptMaxStatements = 789,
+            ThrowOnJavaScriptError = true
+        };
+
+        var clone = settings.Clone();
+
+        Assert.NotSame(settings, clone);
+        Assert.True(clone.EnableJavaScript);
+        Assert.False(clone.EnableExternalJavaScript);
+        Assert.Equal(250, clone.JavaScriptTimeoutMilliseconds);
+        Assert.Equal(789, clone.JavaScriptMaxStatements);
+        Assert.True(clone.ThrowOnJavaScriptError);
     }
 
     [Theory]

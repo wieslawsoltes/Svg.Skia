@@ -155,6 +155,102 @@ public class SvgDocumentCompatibilityLoaderTests
         Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
     }
 
+    [Theory]
+    [InlineData("#AABBCC80", 0xAA, 0xBB, 0xCC, 0x80)]
+    [InlineData("#abc8", 0xAA, 0xBB, 0xCC, 0x88)]
+    public void FromSvg_ParsesCssHexAlphaFillColors(string fillValue, int red, int green, int blue, int alpha)
+    {
+        var svg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>#target { fill: {{fillValue}}; }</style>
+              <rect id="target" width="10" height="10" fill="red" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.FromArgb(alpha, red, green, blue).ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Theory]
+    [InlineData("#AABBCC80", 0xAA, 0xBB, 0xCC, 0x80)]
+    [InlineData("#abc8", 0xAA, 0xBB, 0xCC, 0x88)]
+    public void FromSvg_ParsesAttributeHexAlphaFillColors(string fillValue, int red, int green, int blue, int alpha)
+    {
+        var svg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <rect id="target" width="10" height="10" fill="{{fillValue}}" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.FromArgb(alpha, red, green, blue).ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Theory]
+    [InlineData("123")]
+    [InlineData("#12345")]
+    public void FromSvg_InvalidPaintValuesDoNotOverrideInheritedFill(string fillValue)
+    {
+        var svg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <g fill="lime">
+                <rect id="target" width="10" height="10" fill="{{fillValue}}" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Lime.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Theory]
+    [InlineData("style=\"fill: lime; fill: 123\"")]
+    [InlineData("style=\"fill: lime; fill: #12345\"")]
+    public void FromSvg_InvalidInlinePaintDeclarationsDoNotOverrideEarlierFill(string styleAttribute)
+    {
+        var svg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <rect id="target" width="10" height="10" {{styleAttribute}} />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Lime.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Theory]
+    [InlineData("#target { fill: lime; } #target { fill: 123; }")]
+    [InlineData("#target { fill: lime; } #target { fill: #12345; }")]
+    [InlineData("rect { fill: lime; } #target { fill: 123; }")]
+    [InlineData("rect { fill: lime; } #target { fill: #12345; }")]
+    public void FromSvg_InvalidStylesheetPaintDeclarationsDoNotOverrideEarlierFill(string css)
+    {
+        var svg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>{{css}}</style>
+              <rect id="target" width="10" height="10" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Lime.ToArgb(), fill.Colour.ToArgb());
+    }
+
     [Fact]
     public void FromSvg_AggregatesMixedTextAndChildContentInDocumentOrder()
     {
@@ -921,6 +1017,114 @@ public class SvgDocumentCompatibilityLoaderTests
     }
 
     [Fact]
+    public void FromSvg_IgnoresInlineStyleDeclarationsWithoutValues()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="60">
+              <rect id="top" width="20" height="20" fill="rgb(0,0,255)" stroke="rgb(0,0,0)" style="fill:;stroke:rgb(255,255,255);" />
+              <rect id="middle" y="20" width="20" height="20" fill="rgb(0,0,255)" stroke="rgb(0,0,0)" style="fill:rgb(244,58,32);stroke:rgb(255,255,255);" />
+              <rect id="bottom" y="40" width="20" height="20" fill="rgb(0,0,255)" stroke="rgb(0,0,0)" style="fill: ;stroke:rgb(255,255,255);" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var top = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "top");
+        var middle = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "middle");
+        var bottom = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "bottom");
+        var topFill = Assert.IsType<SvgColourServer>(top.Fill);
+        var middleFill = Assert.IsType<SvgColourServer>(middle.Fill);
+        var bottomFill = Assert.IsType<SvgColourServer>(bottom.Fill);
+        var topStroke = Assert.IsType<SvgColourServer>(top.Stroke);
+        var middleStroke = Assert.IsType<SvgColourServer>(middle.Stroke);
+        var bottomStroke = Assert.IsType<SvgColourServer>(bottom.Stroke);
+
+        Assert.Equal(Color.Blue.ToArgb(), topFill.Colour.ToArgb());
+        Assert.Equal(Color.FromArgb(244, 58, 32).ToArgb(), middleFill.Colour.ToArgb());
+        Assert.Equal(Color.Blue.ToArgb(), bottomFill.Colour.ToArgb());
+        Assert.Equal(Color.White.ToArgb(), topStroke.Colour.ToArgb());
+        Assert.Equal(Color.White.ToArgb(), middleStroke.Colour.ToArgb());
+        Assert.Equal(Color.White.ToArgb(), bottomStroke.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_IgnoresFallbackInlineStyleDeclarationsWithoutValues()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <rect id="target" width="10" height="10" fill="rgb(0,0,255)" stroke="rgb(0,0,0)" style="invalid; fill:; stroke:rgb(255,255,255);" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+        var stroke = Assert.IsType<SvgColourServer>(rect.Stroke);
+
+        Assert.Equal(Color.Blue.ToArgb(), fill.Colour.ToArgb());
+        Assert.Equal(Color.White.ToArgb(), stroke.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_PreservesEmptyInlineCustomPropertyDeclarations()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <g style="--paint:rgb(0,255,0)">
+                <rect id="target" width="10" height="10" fill="rgb(255,0,0)" style="--paint: ; fill:var(--paint, rgb(0,0,255));" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Black.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_PreservesFallbackEmptyInlineCustomPropertyDeclarations()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <g style="--paint:rgb(0,255,0)">
+                <rect id="target" width="10" height="10" fill="rgb(255,0,0)" style="invalid; --paint: ; fill:var(--paint, rgb(0,0,255));" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Black.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_IgnoresStylesheetDeclarationsWithoutValues()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>
+                #target {
+                  fill:;
+                  stroke: rgb(255,255,255);
+                }
+              </style>
+              <rect id="target" width="10" height="10" fill="rgb(0,0,255)" stroke="rgb(0,0,0)" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+        var stroke = Assert.IsType<SvgColourServer>(rect.Stroke);
+
+        Assert.Equal(Color.Blue.ToArgb(), fill.Colour.ToArgb());
+        Assert.Equal(Color.White.ToArgb(), stroke.Colour.ToArgb());
+    }
+
+    [Fact]
     public void FromSvg_ParsesInlineStyleAttributesWithEmptyDeclarationsAndWhitespace()
     {
         const string svg = """
@@ -936,6 +1140,64 @@ public class SvgDocumentCompatibilityLoaderTests
 
         Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
         Assert.Equal(Color.Blue.ToArgb(), stroke.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_TreatsOpacity100PercentPresentationAttributeAsDefaultOpacity()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" opacity="100%">
+              <rect width="10" height="10" fill="green" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+
+        Assert.Equal(1f, document.Opacity, 3);
+    }
+
+    [Fact]
+    public void FromSvg_IgnoresInvalidPercentageOpacityInlineStyles()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.1%">
+              <rect id="target"
+                    width="10"
+                    height="10"
+                    stroke="#000000"
+                    style="fill-opacity: 50%; stroke-opacity: 25%" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+
+        Assert.Equal(1f, document.Opacity, 3);
+        Assert.Equal(1f, rect.FillOpacity, 3);
+        Assert.Equal(1f, rect.StrokeOpacity, 3);
+    }
+
+    [Fact]
+    public void FromSvg_IgnoresPercentagePaintOpacityAttributesAndPreservesInheritance()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <g fill-opacity="0.3" stroke-opacity="0.4">
+                <rect id="target"
+                      width="10"
+                      height="10"
+                      stroke="#000000"
+                      fill-opacity="100%"
+                      stroke-opacity="100%" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+
+        Assert.Equal(0.3f, rect.FillOpacity, 3);
+        Assert.Equal(0.4f, rect.StrokeOpacity, 3);
     }
 
     private static LoadResult CaptureLoad(Func<SvgDocument> load)

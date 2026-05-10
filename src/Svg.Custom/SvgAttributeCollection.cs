@@ -117,6 +117,7 @@ namespace Svg
                     if (TryUnboxedCheck(oldVal, value))
                     {
                         base[attributeName] = value;
+                        RemoveStaleRawTextDecoration(attributeName);
                         OnAttributeChanged(attributeName, value);
                     }
                 }
@@ -125,6 +126,14 @@ namespace Svg
                     base[attributeName] = value;
                     OnAttributeChanged(attributeName, value);
                 }
+            }
+        }
+
+        private void RemoveStaleRawTextDecoration(string attributeName)
+        {
+            if (string.Equals(attributeName, "text-decoration", StringComparison.Ordinal))
+            {
+                _owner.CustomAttributes.Remove(SvgStyleAttributeNames.RawTextDecorationAttributeKey);
             }
         }
 

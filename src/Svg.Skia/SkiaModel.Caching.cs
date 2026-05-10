@@ -94,6 +94,18 @@ public partial class SkiaModel
         }
     }
 
+    private readonly struct TypefaceResolution
+    {
+        public TypefaceResolution(SkiaSharp.SKTypeface typeface, bool suppressSyntheticBold)
+        {
+            Typeface = typeface;
+            SuppressSyntheticBold = suppressSyntheticBold;
+        }
+
+        public SkiaSharp.SKTypeface Typeface { get; }
+        public bool SuppressSyntheticBold { get; }
+    }
+
     private readonly struct FontSignature : IEquatable<FontSignature>
     {
         public FontSignature(SkiaSharp.SKPaint paint)
@@ -243,7 +255,7 @@ public partial class SkiaModel
         public SkiaSharp.SKImageFilter ImageFilter { get; }
     }
 
-    private readonly ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?> _typefaceCache = new();
+    private readonly ConcurrentDictionary<TypefaceKey, TypefaceResolution> _typefaceCache = new();
     private readonly ConcurrentDictionary<TypefaceKey, SkiaSharp.SKTypeface?> _resolvedTypefaceCache = new();
     private readonly object _positionedTextCacheLock = new();
     private readonly object _pictureCacheLock = new();
@@ -863,7 +875,8 @@ public partial class SkiaModel
         var strokeCap = ToSKStrokeCap(paint.StrokeCap);
         var strokeJoin = ToSKStrokeJoin(paint.StrokeJoin);
         var textAlign = ToSKTextAlign(paint.TextAlign);
-        var typeface = ToSKTypeface(paint.Typeface);
+        var typefaceResolution = ResolveSKTypeface(paint.Typeface);
+        var typeface = typefaceResolution.Typeface;
         var textEncoding = ToSKTextEncoding(paint.TextEncoding);
         var color = paint.Color is null
             ? SkiaSharp.SKColor.Empty
@@ -898,7 +911,7 @@ public partial class SkiaModel
             FilterQuality = filterQuality
         };
 
-        ApplyTypefaceAdjustments(paint, skPaint);
+        ApplyTypefaceAdjustments(paint, skPaint, typefaceResolution.SuppressSyntheticBold);
         return skPaint;
     }
 

@@ -50,6 +50,8 @@ public sealed class SvgSceneNode
 
     public SKRect? BackgroundClip { get; internal set; }
 
+    public bool IsIsolationGroup { get; internal set; }
+
     public string? ClipResourceKey { get; internal set; }
 
     public string? MaskResourceKey { get; internal set; }
@@ -102,6 +104,8 @@ public sealed class SvgSceneNode
 
     public float OpacityValue { get; internal set; } = 1f;
 
+    public SKPaint? BlendModePaint { get; internal set; }
+
     public SKPaint? Filter { get; internal set; }
 
     public SKRect? FilterClip { get; internal set; }
@@ -115,6 +119,8 @@ public sealed class SvgSceneNode
     public bool SupportsStrokeHitTest { get; internal set; }
 
     public float StrokeWidth { get; internal set; }
+
+    public bool IsStrokeNonScaling { get; internal set; }
 
     public bool IsRenderable { get; internal set; }
 
@@ -159,6 +165,7 @@ public sealed class SvgSceneNode
         Cursor = replacement.Cursor;
         CreatesBackgroundLayer = replacement.CreatesBackgroundLayer;
         BackgroundClip = replacement.BackgroundClip;
+        IsIsolationGroup = replacement.IsIsolationGroup;
         ClipResourceKey = replacement.ClipResourceKey;
         MaskResourceKey = replacement.MaskResourceKey;
         FilterResourceKey = replacement.FilterResourceKey;
@@ -181,6 +188,7 @@ public sealed class SvgSceneNode
         MaskDstIn = replacement.MaskDstIn;
         Opacity = replacement.Opacity;
         OpacityValue = replacement.OpacityValue;
+        BlendModePaint = replacement.BlendModePaint;
         Filter = replacement.Filter;
         FilterClip = replacement.FilterClip;
         Fill = replacement.Fill;
@@ -188,6 +196,7 @@ public sealed class SvgSceneNode
         SupportsFillHitTest = replacement.SupportsFillHitTest;
         SupportsStrokeHitTest = replacement.SupportsStrokeHitTest;
         StrokeWidth = replacement.StrokeWidth;
+        IsStrokeNonScaling = replacement.IsStrokeNonScaling;
         IsRenderable = replacement.IsRenderable;
         IsAntialias = replacement.IsAntialias;
         SuppressSubtreeRendering = replacement.SuppressSubtreeRendering;
