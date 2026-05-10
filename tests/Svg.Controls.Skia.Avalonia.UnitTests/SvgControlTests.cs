@@ -170,7 +170,7 @@ public class SvgControlTests
     }
 
     [AvaloniaFact]
-    public void SvgContent_BubblesPointerEventsToParentButton()
+    public async Task SvgContent_BubblesPointerEventsToParentButton()
     {
         var pressed = 0;
         var released = 0;
@@ -204,6 +204,8 @@ public class SvgControlTests
         window.Show();
         try
         {
+            await WaitForSourceAsync(svg);
+
             window.MouseMove(new Point(80, 80), RawInputModifiers.None);
             window.MouseDown(new Point(80, 80), MouseButton.Left, RawInputModifiers.None);
             Assert.True(button.IsPressed);
@@ -219,7 +221,7 @@ public class SvgControlTests
     }
 
     [AvaloniaFact]
-    public void SvgInteractionCapture_ClearsWhenReleasedOutsideControl()
+    public async Task SvgInteractionCapture_ClearsWhenReleasedOutsideControl()
     {
         var svg = new Svg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"))
         {
@@ -245,6 +247,8 @@ public class SvgControlTests
         window.Show();
         try
         {
+            await WaitForSourceAsync(svg);
+
             window.MouseMove(new Point(40, 40), RawInputModifiers.None);
             window.MouseDown(new Point(40, 40), MouseButton.Left, RawInputModifiers.None);
             Assert.NotNull(svg.Interaction.CapturedElement);
@@ -260,7 +264,7 @@ public class SvgControlTests
     }
 
     [AvaloniaFact]
-    public void SvgInteractionCapture_ClearsWhenPointerCaptureLost()
+    public async Task SvgInteractionCapture_ClearsWhenPointerCaptureLost()
     {
         var svg = new CaptureLossSvg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"))
         {
@@ -278,6 +282,8 @@ public class SvgControlTests
         window.Show();
         try
         {
+            await WaitForSourceAsync(svg);
+
             window.MouseMove(new Point(40, 40), RawInputModifiers.None);
             window.MouseDown(new Point(40, 40), MouseButton.Left, RawInputModifiers.None);
             Assert.NotNull(svg.Interaction.CapturedElement);
