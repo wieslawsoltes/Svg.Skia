@@ -15,6 +15,48 @@ namespace Svg.Skia.UnitTests;
 public class SKSvgRebuildFromModelTests
 {
     private const string SampleSvg = "<svg width=\"10\" height=\"10\"><rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"red\" /></svg>";
+    private const string SourceMappedSvg = """
+        <svg width="20" height="10" xmlns="http://www.w3.org/2000/svg">
+          <rect id="left" x="0" y="0" width="10" height="10" fill="red" />
+          <rect id="right" x="10" y="0" width="10" height="10" fill="blue" />
+        </svg>
+        """;
+    private const string SourceMappedStrokeSvg = """
+        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+          <rect id="target" x="2" y="2" width="16" height="16" fill="red" stroke="blue" stroke-width="2" />
+        </svg>
+        """;
+    private const string SourceMappedTextRunsSvg = """
+        <svg width="80" height="24" xmlns="http://www.w3.org/2000/svg">
+          <text id="text-root" x="2" y="18" font-family="sans-serif" font-size="16" fill="black"><tspan id="a">A</tspan><tspan id="b">B</tspan></text>
+        </svg>
+        """;
+    private const string SourceMappedSimpleFilteredTextPathSvg = """
+        <svg width="100" height="50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <defs>
+            <path id="curve" d="M 5 30 C 25 5 55 55 85 30" />
+            <filter id="blur" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
+            </filter>
+          </defs>
+          <text font-family="sans-serif" font-size="14" fill="black">
+            <textPath id="path-text" xlink:href="#curve" filter="url(#blur)">Arc</textPath>
+          </text>
+        </svg>
+        """;
+    private const string SourceMappedComplexFilteredTextPathSvg = """
+        <svg width="100" height="50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <defs>
+            <path id="curve" d="M 5 30 C 25 5 55 55 85 30" />
+            <filter id="offset" x="-20%" y="-20%" width="140%" height="140%">
+              <feOffset in="SourceGraphic" dx="1" dy="1" />
+            </filter>
+          </defs>
+          <text font-family="sans-serif" font-size="14" fill="black">
+            <textPath id="path-text" xlink:href="#curve" filter="url(#offset)">Arc</textPath>
+          </text>
+        </svg>
+        """;
     private const string GradientSvg = """
         <svg width="10" height="10" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -49,6 +91,128 @@ public class SKSvgRebuildFromModelTests
         Assert.NotNull(rebuilt);
         Assert.NotSame(original, rebuilt);
         Assert.Same(rebuilt, svg.Picture);
+    }
+
+    [Fact]
+    public void ModelCommands_ExposeSourceElementMetadata()
+    {
+        var svg = new SKSvg();
+        svg.FromSvg(SourceMappedStrokeSvg);
+
+        var commands = svg.Model!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("target")
+            .ToList();
+
+        Assert.Equal(2, commands.Count);
+        Assert.All(commands, static command =>
+        {
+            Assert.Equal("target", command.SourceElementId);
+            Assert.Equal("SvgRectangle", command.SourceElementTypeName);
+            Assert.False(string.IsNullOrWhiteSpace(command.SourceElementAddress));
+        });
+
+        var address = commands[0].SourceElementAddress!;
+        var commandsByAddress = svg.Model!
+            .FindCommandsBySourceElementAddress<DrawPathCanvasCommand>(address)
+            .ToList();
+
+        Assert.Equal(commands.Count, commandsByAddress.Count);
+        Assert.All(commandsByAddress, command => Assert.Equal(address, command.SourceElementAddress));
+    }
+
+    [Fact]
+    public void ModelCommands_PreserveChildTextRunSourceMetadata()
+    {
+        var svg = new SKSvg();
+        svg.FromSvg(SourceMappedTextRunsSvg);
+
+        var firstRunCommands = svg.Model!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("a")
+            .ToList();
+        var secondRunCommands = svg.Model!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("b")
+            .ToList();
+        var parentTextRunCommands = svg.Model!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("text-root")
+            .Where(static command => command.Text is "A" or "B")
+            .ToList();
+
+        var firstRunCommand = Assert.Single(firstRunCommands);
+        var secondRunCommand = Assert.Single(secondRunCommands);
+        Assert.Equal("A", firstRunCommand.Text);
+        Assert.Equal("B", secondRunCommand.Text);
+        Assert.Equal("SvgTextSpan", firstRunCommand.SourceElementTypeName);
+        Assert.Equal("SvgTextSpan", secondRunCommand.SourceElementTypeName);
+        Assert.False(string.IsNullOrWhiteSpace(firstRunCommand.SourceElementAddress));
+        Assert.False(string.IsNullOrWhiteSpace(secondRunCommand.SourceElementAddress));
+        Assert.Empty(parentTextRunCommands);
+    }
+
+    [Fact]
+    public void ModelCommands_PreserveSimpleFilteredTextPathWrapperSourceMetadata()
+    {
+        var svg = new SKSvg();
+        svg.FromSvg(SourceMappedSimpleFilteredTextPathSvg);
+
+        var sourceCommands = svg.Model!
+            .FindCommandsBySourceElementId("path-text")
+            .ToList();
+
+        Assert.Contains(sourceCommands, static command => command is SaveCanvasCommand);
+        Assert.Contains(sourceCommands, static command => command is ClipRectCanvasCommand);
+        Assert.Contains(sourceCommands, static command => command is SaveLayerCanvasCommand);
+        Assert.Contains(sourceCommands, static command => command is RestoreCanvasCommand);
+        Assert.All(
+            sourceCommands.Where(static command =>
+                command is SaveCanvasCommand or ClipRectCanvasCommand or SaveLayerCanvasCommand or RestoreCanvasCommand),
+            AssertTextPathCommandSource);
+    }
+
+    [Fact]
+    public void ModelCommands_PreserveComplexFilteredTextPathWrapperSourceMetadata()
+    {
+        var svg = new SKSvg();
+        svg.FromSvg(SourceMappedComplexFilteredTextPathSvg);
+
+        var sourceCommands = svg.Model!
+            .FindCommandsBySourceElementId("path-text")
+            .ToList();
+
+        Assert.Contains(sourceCommands, static command => command is SaveCanvasCommand);
+        Assert.Contains(sourceCommands, static command => command is ClipRectCanvasCommand);
+        Assert.Contains(sourceCommands, static command => command is SaveLayerCanvasCommand);
+        Assert.Contains(sourceCommands, static command => command is DrawPictureCanvasCommand);
+        Assert.Contains(sourceCommands, static command => command is RestoreCanvasCommand);
+        Assert.All(
+            sourceCommands.Where(static command =>
+                command is SaveCanvasCommand or ClipRectCanvasCommand or SaveLayerCanvasCommand or DrawPictureCanvasCommand or RestoreCanvasCommand),
+            AssertTextPathCommandSource);
+    }
+
+    [Fact]
+    public void RebuildFromModel_CanUpdateCommandsForSourceElementId()
+    {
+        var svg = new SKSvg();
+        svg.FromSvg(SourceMappedSvg);
+
+        Assert.NotNull(svg.Picture);
+        using var originalBitmap = RenderBitmap(svg.Picture!);
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), originalBitmap.GetPixel(5, 5));
+        Assert.Equal(new SkiaColor(0, 0, 255, 255), originalBitmap.GetPixel(15, 5));
+
+        var rightCommands = svg.Model!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("right")
+            .ToList();
+        var command = Assert.Single(rightCommands);
+        Assert.NotNull(command.Paint);
+        command.Paint!.Color = new ShimSkiaSharp.SKColor(0, 128, 0, 255);
+
+        var rebuilt = svg.RebuildFromModel();
+
+        Assert.NotNull(rebuilt);
+        using var rebuiltBitmap = RenderBitmap(rebuilt!);
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), rebuiltBitmap.GetPixel(5, 5));
+        Assert.Equal(new SkiaColor(0, 128, 0, 255), rebuiltBitmap.GetPixel(15, 5));
     }
 
     [Fact]
@@ -215,6 +379,13 @@ public class SKSvgRebuildFromModelTests
             SkiaColorSpace.CreateSrgb());
 
         return Assert.IsType<SkiaBitmap>(bitmap);
+    }
+
+    private static void AssertTextPathCommandSource(CanvasCommand command)
+    {
+        Assert.Equal("path-text", command.SourceElementId);
+        Assert.Equal("SvgTextPath", command.SourceElementTypeName);
+        Assert.False(string.IsNullOrWhiteSpace(command.SourceElementAddress));
     }
 
     private static byte[] CreateEncodedSolidBitmap(SkiaColor color)

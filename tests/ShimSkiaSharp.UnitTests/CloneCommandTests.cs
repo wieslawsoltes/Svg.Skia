@@ -67,6 +67,23 @@ public class CloneCommandTests
     }
 
     [Fact]
+    public void CanvasCommand_DeepClone_CopiesSourceMetadata()
+    {
+        CanvasCommand command = new DrawPathCanvasCommand(CloneTestData.CreatePath(), CloneTestData.CreatePaint())
+        {
+            SourceElementId = "target",
+            SourceElementAddress = "0/1",
+            SourceElementTypeName = "SvgPath"
+        };
+
+        var clone = command.DeepClone();
+
+        Assert.Equal("target", clone.SourceElementId);
+        Assert.Equal("0/1", clone.SourceElementAddress);
+        Assert.Equal("SvgPath", clone.SourceElementTypeName);
+    }
+
+    [Fact]
     public void CanvasCommand_DeepClone_ClonesClipPath()
     {
         var clipPath = CloneTestData.CreateClipPath();

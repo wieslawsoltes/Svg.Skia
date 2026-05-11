@@ -52,4 +52,60 @@ public class SKCanvasTests
         var command = Assert.IsType<DrawPictureCanvasCommand>(canvas.Commands!.Single());
         Assert.Same(picture, command.Picture);
     }
+
+    [Fact]
+    public void PushCommandSource_AppliesMetadataAndRestoresNestedScopes()
+    {
+        var canvas = CreateCanvas();
+
+        using (canvas.PushCommandSource("outer", "0", "SvgGroup"))
+        {
+            canvas.Save();
+
+            using (canvas.PushCommandSource("inner", "0/1", "SvgPath"))
+            {
+                canvas.DrawPath(CloneTestData.CreatePath(), CloneTestData.CreatePaint());
+            }
+
+            canvas.Restore();
+        }
+
+        canvas.DrawPath(CloneTestData.CreatePath(), CloneTestData.CreatePaint());
+
+        var save = Assert.IsType<SaveCanvasCommand>(canvas.Commands![0]);
+        Assert.Equal("outer", save.SourceElementId);
+        Assert.Equal("0", save.SourceElementAddress);
+        Assert.Equal("SvgGroup", save.SourceElementTypeName);
+
+        var inner = Assert.IsType<DrawPathCanvasCommand>(canvas.Commands![1]);
+        Assert.Equal("inner", inner.SourceElementId);
+        Assert.Equal("0/1", inner.SourceElementAddress);
+        Assert.Equal("SvgPath", inner.SourceElementTypeName);
+
+        var restore = Assert.IsType<RestoreCanvasCommand>(canvas.Commands![2]);
+        Assert.Equal("outer", restore.SourceElementId);
+        Assert.Equal("0", restore.SourceElementAddress);
+        Assert.Equal("SvgGroup", restore.SourceElementTypeName);
+
+        var unscoped = Assert.IsType<DrawPathCanvasCommand>(canvas.Commands![3]);
+        Assert.Null(unscoped.SourceElementId);
+        Assert.Null(unscoped.SourceElementAddress);
+        Assert.Null(unscoped.SourceElementTypeName);
+    }
+
+    [Fact]
+    public void DeepClone_DoesNotCarryActiveCommandSourceScopeToFutureCommands()
+    {
+        var canvas = CreateCanvas();
+
+        using var _ = canvas.PushCommandSource("target", "0/1", "SvgPath");
+        var clone = canvas.DeepClone();
+
+        clone.DrawPath(CloneTestData.CreatePath(), CloneTestData.CreatePaint());
+
+        var command = Assert.IsType<DrawPathCanvasCommand>(clone.Commands!.Single());
+        Assert.Null(command.SourceElementId);
+        Assert.Null(command.SourceElementAddress);
+        Assert.Null(command.SourceElementTypeName);
+    }
 }

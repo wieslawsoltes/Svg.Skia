@@ -80,6 +80,11 @@ public static class SvgSceneRenderer
             return true;
         }
 
+        using var commandSource = canvas.PushCommandSource(
+            node.ElementId,
+            node.ElementAddressKey,
+            node.ElementTypeName);
+
         var enableClip = !ignoreAttributes.HasFlag(DrawAttributes.ClipPath);
         var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask) && !ignoreCurrentMask;
         var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity) && !ignoreCurrentOpacity;
@@ -221,6 +226,11 @@ public static class SvgSceneRenderer
 
         var isOnUntilPath = IsSelfOrAncestor(node, until);
 
+        using var commandSource = canvas.PushCommandSource(
+            node.ElementId,
+            node.ElementAddressKey,
+            node.ElementTypeName);
+
         canvas.Save();
 
         if (node.Overflow is { } overflow)
@@ -318,6 +328,7 @@ public static class SvgSceneRenderer
     {
         if (node.LocalModel is { } localModel)
         {
+            ApplySourceMetadata(localModel, node, overwrite: false);
             canvas.DrawPicture(localModel);
             return;
         }
@@ -335,6 +346,37 @@ public static class SvgSceneRenderer
         if (node.LocalStroke is { } localStroke)
         {
             canvas.DrawPath(localPath, localStroke);
+        }
+    }
+
+    internal static void ApplySourceMetadata(SKPicture picture, SvgSceneNode node, bool overwrite)
+    {
+        if (picture.Commands is null)
+        {
+            return;
+        }
+
+        for (var i = 0; i < picture.Commands.Count; i++)
+        {
+            ApplySourceMetadata(picture.Commands[i], node, overwrite);
+        }
+    }
+
+    private static void ApplySourceMetadata(CanvasCommand command, SvgSceneNode node, bool overwrite)
+    {
+        if (overwrite ||
+            (command.SourceElementId is null &&
+             command.SourceElementAddress is null &&
+             command.SourceElementTypeName is null))
+        {
+            command.SourceElementId = node.ElementId;
+            command.SourceElementAddress = node.ElementAddressKey;
+            command.SourceElementTypeName = node.ElementTypeName;
+        }
+
+        if (command is DrawPictureCanvasCommand { Picture: { } nestedPicture })
+        {
+            ApplySourceMetadata(nestedPicture, node, overwrite);
         }
     }
 
