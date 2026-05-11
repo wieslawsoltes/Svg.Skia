@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Controls.Skia.Avalonia\Svg.Controls.Skia.Avalonia.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Skia.JavaScript\Svg.Skia.JavaScript.csproj" />
   </ItemGroup>
 
   <ItemGroup>

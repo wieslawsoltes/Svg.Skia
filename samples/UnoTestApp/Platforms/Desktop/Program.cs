@@ -1,3 +1,4 @@
+using Svg.Skia;
 using Uno.Svg.Skia;
 using Uno.UI.Hosting;
 
@@ -8,6 +9,7 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        SKSvgJavaScriptRuntime.Register();
         SvgSource.SkiaModel.Settings.EnableJavaScript = true;
         SvgSource.SkiaModel.Settings.EnableExternalJavaScript = true;
 

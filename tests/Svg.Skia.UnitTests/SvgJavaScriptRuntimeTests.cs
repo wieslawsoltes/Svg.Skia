@@ -2280,8 +2280,9 @@ public class SvgJavaScriptRuntimeTests
     {
         var field = typeof(SKSvg).GetField("_javaScriptRuntime", BindingFlags.Instance | BindingFlags.NonPublic)
                     ?? throw new InvalidOperationException("Unable to access SVG JavaScript runtime.");
-        return (SvgJavaScriptRuntime?)field.GetValue(svg)
-               ?? throw new InvalidOperationException("SVG JavaScript runtime is not initialized.");
+        var runtime = (ISKSvgJavaScriptRuntime?)field.GetValue(svg)
+                      ?? throw new InvalidOperationException("SVG JavaScript runtime is not initialized.");
+        return (SvgJavaScriptRuntime)runtime.Runtime;
     }
 
     private static bool IsCompatibilityStyleStateInitialized(SvgDocument document)

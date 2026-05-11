@@ -7,6 +7,8 @@ namespace Svg.Skia;
 
 public class SKSvgSettings
 {
+    public static ISKSvgJavaScriptRuntimeFactory? DefaultJavaScriptRuntimeFactory { get; set; }
+
     public SkiaSharp.SKAlphaType AlphaType { get; set; }
 
     public SkiaSharp.SKColorType ColorType { get; set; }
@@ -32,6 +34,8 @@ public class SKSvgSettings
     public int JavaScriptMaxStatements { get; set; }
 
     public bool ThrowOnJavaScriptError { get; set; }
+
+    public ISKSvgJavaScriptRuntimeFactory? JavaScriptRuntimeFactory { get; set; }
 
     public SKSvgSettings Clone()
     {
@@ -62,6 +66,7 @@ public class SKSvgSettings
         target.JavaScriptTimeoutMilliseconds = JavaScriptTimeoutMilliseconds;
         target.JavaScriptMaxStatements = JavaScriptMaxStatements;
         target.ThrowOnJavaScriptError = ThrowOnJavaScriptError;
+        target.JavaScriptRuntimeFactory = JavaScriptRuntimeFactory;
     }
 
     public SKSvgSettings()

@@ -91,6 +91,7 @@
     <Project Path="src/Svg.Animation/Svg.Animation.csproj" />
     <Project Path="src/Svg.SceneGraph/Svg.SceneGraph.csproj" />
     <Project Path="src/Svg.JavaScript/Svg.JavaScript.csproj" />
+    <Project Path="src/Svg.Skia.JavaScript/Svg.Skia.JavaScript.csproj" />
     <Project Path="src/Svg.Skia/Svg.Skia.csproj" />
     <Project Path="src/Svg.SourceGenerator.Skia/Svg.SourceGenerator.Skia.csproj" />
     <Project Path="src/SvgML.Uno/SvgML.Uno.csproj" />

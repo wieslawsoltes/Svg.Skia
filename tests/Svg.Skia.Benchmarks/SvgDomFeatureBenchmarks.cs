@@ -27,6 +27,11 @@ public class SvgDomFeatureBenchmarks
     private SKSvg? textDomSvg;
     private SvgJavaScriptElement? textDomElement;
 
+    static SvgDomFeatureBenchmarks()
+    {
+        SKSvgJavaScriptRuntime.Register();
+    }
+
     [GlobalSetup]
     public void GlobalSetup()
     {
@@ -140,8 +145,9 @@ public class SvgDomFeatureBenchmarks
 
     private static SvgJavaScriptRuntime GetRuntime(SKSvg svg)
     {
-        return (SvgJavaScriptRuntime?)s_runtimeField.GetValue(svg)
-               ?? throw new InvalidOperationException("SVG JavaScript runtime is not initialized.");
+        var runtime = (ISKSvgJavaScriptRuntime?)s_runtimeField.GetValue(svg)
+                      ?? throw new InvalidOperationException("SVG JavaScript runtime is not initialized.");
+        return (SvgJavaScriptRuntime)runtime.Runtime;
     }
 
     private static string CreateStyleCaptureSvg(int elementCount)

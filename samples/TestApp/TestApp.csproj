@@ -28,5 +28,6 @@
     <ProjectReference Include="..\TestApp.Shared\TestApp.Shared.csproj" />
     <ProjectReference Include="..\..\src\Svg.Controls.Skia.Avalonia\Svg.Controls.Skia.Avalonia.csproj" />
     <ProjectReference Include="..\..\src\Svg.Skia\Svg.Skia.csproj" />
+    <ProjectReference Include="..\..\src\Svg.Skia.JavaScript\Svg.Skia.JavaScript.csproj" />
   </ItemGroup>
 </Project>
