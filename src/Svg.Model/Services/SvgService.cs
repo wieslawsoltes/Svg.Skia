@@ -730,7 +730,7 @@ public static class SvgService
         if (isWidthperc && svgFragment is SvgDocument)
         {
             var bounds = percentViewport;
-            w = (bounds.Width + bounds.Left) * (svgFragment.Width.Value * 0.01f);
+            w = bounds.Width * (svgFragment.Width.Value * 0.01f);
         }
         else
         {
@@ -740,7 +740,7 @@ public static class SvgService
         if (isHeightperc && svgFragment is SvgDocument)
         {
             var bounds = percentViewport;
-            h = (bounds.Height + bounds.Top) * (svgFragment.Height.Value * 0.01f);
+            h = bounds.Height * (svgFragment.Height.Value * 0.01f);
         }
         else
         {

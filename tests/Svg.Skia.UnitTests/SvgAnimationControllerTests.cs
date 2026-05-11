@@ -330,7 +330,7 @@ public class SvgAnimationControllerTests
         Assert.Equal(50f, renderedDocument.ViewBox.Width, 3);
         Assert.Equal(50f, renderedDocument.ViewBox.Height, 3);
         Assert.Null(svg.HitTestTopmostElement(new SKPoint(65, 65)));
-        Assert.Equal("target", svg.HitTestTopmostElement(new SKPoint(25, 25))?.ID);
+        Assert.Equal("target", svg.HitTestTopmostElement(new SKPoint(15, 15))?.ID);
     }
 
     [Fact]

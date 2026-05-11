@@ -108,6 +108,35 @@ public class SKSvgTests : SvgUnitTest
     }
 
     [Fact]
+    public void Save_StandaloneDocumentWithNegativeViewBoxOrigin_UsesViewBoxSize()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="-10 -20 120 80">
+              <rect x="-10" y="-20" width="120" height="80" fill="red" />
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svgMarkup);
+        Assert.NotNull(document);
+
+        var size = SvgService.GetDimensions(document);
+        Assert.Equal(120f, size.Width);
+        Assert.Equal(80f, size.Height);
+
+        var svg = new SKSvg();
+        using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
+        using var _ = svg.Load(input);
+        using var output = new MemoryStream();
+
+        Assert.True(svg.Save(output, SkiaSharp.SKColors.Transparent));
+
+        output.Position = 0;
+        using var image = Image.Load<Rgba32>(output);
+        Assert.Equal(120, image.Width);
+        Assert.Equal(80, image.Height);
+    }
+
+    [Fact]
     public void Save_StandaloneDocumentWithExplicitPercentSize_UsesConfiguredStandaloneViewport()
     {
         const string svgMarkup = """
