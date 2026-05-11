@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Packages | Svg.Skia">
-<meta name="twitter:description" content="Packages This section gives package-by-package coverage for every shippable library NuGet in the repository. Packaged tools such as Svg.Skia.Converter and svgc stay documented under Samples and Tools. Runtime packages Package Start here when Guide Svg.Skia You want the main SkiaSharp runtime renderer, export helpers, hit testing, shared interaction, animation playback, or Android VectorDrawable support. Svg.Skia Svg.Animation You want the shared SMIL timing engine, animation state evaluation, or host playback backend...">
+<meta name="twitter:description" content="Packages This section gives package-by-package coverage for every shippable library NuGet in the repository. Packaged tools such as Svg.Skia.Converter and svgc stay documented under Samples and Tools. Runtime packages Package Start here when Guide Svg.Skia You want the main SkiaSharp runtime renderer, export helpers, hit testing, shared interaction, animation playback, or Android VectorDrawable support. Svg.Skia Svg.Skia.JavaScript You explicitly want SVG script execution through the optional Jint-backed...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Packages | Svg.Skia">
 <meta property="og:title" content="Packages | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Packages This section gives package-by-package coverage for every shippable library NuGet in the repository. Packaged tools such as Svg.Skia.Converter and svgc stay documented under Samples and Tools. Runtime packages Package Start here when Guide Svg.Skia You want the main SkiaSharp runtime renderer, export helpers, hit testing, shared interaction, animation playback, or Android VectorDrawable support. Svg.Skia Svg.Animation You want the shared SMIL timing engine, animation state evaluation, or host playback backend...">
+<meta property="og:description" content="Packages This section gives package-by-package coverage for every shippable library NuGet in the repository. Packaged tools such as Svg.Skia.Converter and svgc stay documented under Samples and Tools. Runtime packages Package Start here when Guide Svg.Skia You want the main SkiaSharp runtime renderer, export helpers, hit testing, shared interaction, animation playback, or Android VectorDrawable support. Svg.Skia Svg.Skia.JavaScript You explicitly want SVG script execution through the optional Jint-backed...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Packages | Svg.Skia">
   </head>
@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-packages.b13e06756d08d690029ba2b3291e080d.html' data-lunet-menu-open='menu-id-packages-0' data-lunet-menu-active='menu-item-packages-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-packages.a4e641d3a2a1bfa78fc02a0ab7b6fd1b.html' data-lunet-menu-open='menu-id-packages-0' data-lunet-menu-active='menu-item-packages-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -158,6 +158,11 @@
 <td><code>Svg.Skia</code></td>
 <td>You want the main SkiaSharp runtime renderer, export helpers, hit testing, shared interaction, animation playback, or Android VectorDrawable support.</td>
 <td><a href="/Svg.Skia/articles/packages/svg-skia">Svg.Skia</a></td>
+</tr>
+<tr>
+<td><code>Svg.Skia.JavaScript</code></td>
+<td>You explicitly want SVG script execution through the optional Jint-backed <code>SKSvg</code> bridge.</td>
+<td><a href="/Svg.Skia/articles/packages/svg-skia-javascript">Svg.Skia.JavaScript</a></td>
 </tr>
 <tr>
 <td><code>Svg.Animation</code></td>
@@ -300,6 +305,7 @@
 <h2 id="choosing-quickly">Choosing quickly</h2>
 <ul>
 <li>Choose <code>Svg.Skia</code> for direct runtime rendering, export, shared interaction, and animation playback.</li>
+<li>Choose <code>Svg.Skia.JavaScript</code> only when SVG script execution is required; <code>Svg.Skia</code> keeps JavaScript disabled and unreferenced by default.</li>
 <li>Choose <code>Svg.Animation</code> when the main task is SVG timing, host backend selection, or animation-controller integration rather than the full rendering surface.</li>
 <li>Choose <code>Svg.SceneGraph</code> when you need retained compiled scene nodes and bounds instead of only the intermediate model or the final Skia output.</li>
 <li>Choose <code>Svg.Controls.Skia.Uno</code> for Uno Platform usage on the Skia-backed path with host-driven animation playback.</li>
