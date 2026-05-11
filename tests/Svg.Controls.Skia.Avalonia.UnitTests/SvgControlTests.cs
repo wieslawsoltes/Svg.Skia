@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
@@ -9,8 +10,10 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Svg.Skia;
+using Avalonia.Threading;
 using ShimSkiaSharp;
 using ShimSkiaSharp.Editing;
+using Svg.Model;
 using Svg.Skia;
 using Xunit;
 
@@ -18,6 +21,12 @@ namespace Avalonia.Svg.Skia.UnitTests;
 
 public class SvgControlTests
 {
+    private const string SampleSvg =
+        "<svg width=\"10\" height=\"10\"><rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"red\" /></svg>";
+
+    private const string ReplacementSvg =
+        "<svg width=\"20\" height=\"12\"><rect x=\"0\" y=\"0\" width=\"20\" height=\"12\" fill=\"blue\" /></svg>";
+
     private const string CurrentColorSvg = """
         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
           <rect x="0" y="0" width="10" height="10" fill="currentColor" />
@@ -35,6 +44,52 @@ public class SvgControlTests
             <rect id="hit" x="0" y="0" width="80" height="80" fill="#3B82F6"/>
         </svg>
         """;
+
+    [AvaloniaFact]
+    public async Task Source_LoadsInlineSvg()
+    {
+        var svg = new Svg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"));
+
+        svg.Source = SampleSvg;
+
+        await WaitForSourceAsync(svg);
+
+        Assert.NotNull(svg.SkSvg);
+        Assert.NotNull(svg.Picture);
+        Assert.Equal(10, svg.Picture!.CullRect.Width);
+        Assert.Equal(10, svg.Picture.CullRect.Height);
+    }
+
+    [AvaloniaFact]
+    public async Task Source_UsesMostRecentInlineSvg()
+    {
+        var svg = new Svg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"));
+
+        svg.Source = SampleSvg;
+        svg.Source = ReplacementSvg;
+
+        await WaitForSourceAsync(svg);
+
+        Assert.NotNull(svg.Picture);
+        Assert.Equal(20, svg.Picture!.CullRect.Width);
+        Assert.Equal(12, svg.Picture.CullRect.Height);
+    }
+
+    [AvaloniaFact]
+    public async Task Source_AppliesCurrentRenderOptionsWhenLoadCompletes()
+    {
+        var svg = new Svg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"));
+
+        svg.Source = SampleSvg;
+        svg.Wireframe = true;
+        svg.DisableFilters = true;
+
+        await WaitForSourceAsync(svg);
+
+        Assert.NotNull(svg.SkSvg);
+        Assert.True(svg.SkSvg!.Wireframe);
+        Assert.Equal(DrawAttributes.Filter, svg.SkSvg.IgnoreAttributes);
+    }
 
     [AvaloniaFact]
     public void AnimationPlaybackRate_NormalizesNonFiniteValues()
@@ -97,20 +152,25 @@ public class SvgControlTests
     }
 
     [AvaloniaFact]
-    public void CurrentColor_ReloadsInlineSource()
+    public async Task CurrentColor_ReloadsInlineSource()
     {
         var svg = new Svg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"))
         {
             Source = CurrentColorSvg
         };
 
+        await WaitForSourceAsync(svg);
+        var initialPicture = svg.Picture;
+
         svg.CurrentColor = Color.FromRgb(0, 128, 255);
+
+        await WaitForSourceChangeAsync(svg, initialPicture);
 
         Assert.Equal(new SKColor(0, 128, 255, 255), GetFirstFillColor(svg.SkSvg));
     }
 
     [AvaloniaFact]
-    public void SvgContent_BubblesPointerEventsToParentButton()
+    public async Task SvgContent_BubblesPointerEventsToParentButton()
     {
         var pressed = 0;
         var released = 0;
@@ -144,6 +204,8 @@ public class SvgControlTests
         window.Show();
         try
         {
+            await WaitForSourceAsync(svg);
+
             window.MouseMove(new Point(80, 80), RawInputModifiers.None);
             window.MouseDown(new Point(80, 80), MouseButton.Left, RawInputModifiers.None);
             Assert.True(button.IsPressed);
@@ -159,7 +221,7 @@ public class SvgControlTests
     }
 
     [AvaloniaFact]
-    public void SvgInteractionCapture_ClearsWhenReleasedOutsideControl()
+    public async Task SvgInteractionCapture_ClearsWhenReleasedOutsideControl()
     {
         var svg = new Svg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"))
         {
@@ -185,6 +247,8 @@ public class SvgControlTests
         window.Show();
         try
         {
+            await WaitForSourceAsync(svg);
+
             window.MouseMove(new Point(40, 40), RawInputModifiers.None);
             window.MouseDown(new Point(40, 40), MouseButton.Left, RawInputModifiers.None);
             Assert.NotNull(svg.Interaction.CapturedElement);
@@ -200,7 +264,7 @@ public class SvgControlTests
     }
 
     [AvaloniaFact]
-    public void SvgInteractionCapture_ClearsWhenPointerCaptureLost()
+    public async Task SvgInteractionCapture_ClearsWhenPointerCaptureLost()
     {
         var svg = new CaptureLossSvg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"))
         {
@@ -218,6 +282,8 @@ public class SvgControlTests
         window.Show();
         try
         {
+            await WaitForSourceAsync(svg);
+
             window.MouseMove(new Point(40, 40), RawInputModifiers.None);
             window.MouseDown(new Point(40, 40), MouseButton.Left, RawInputModifiers.None);
             Assert.NotNull(svg.Interaction.CapturedElement);
@@ -281,5 +347,37 @@ public class SvgControlTests
         var field = typeof(Svg).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.NotNull(field);
         field.SetValue(svg, value);
+    }
+
+    private static async Task WaitForSourceAsync(Svg svg)
+    {
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+        while (svg.Picture is null)
+        {
+            if (DateTime.UtcNow > deadline)
+            {
+                Assert.NotNull(svg.Picture);
+                return;
+            }
+
+            await Task.Delay(10);
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
+        }
+    }
+
+    private static async Task WaitForSourceChangeAsync(Svg svg, object? previousPicture)
+    {
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+        while (ReferenceEquals(svg.Picture, previousPicture))
+        {
+            if (DateTime.UtcNow > deadline)
+            {
+                Assert.NotSame(previousPicture, svg.Picture);
+                return;
+            }
+
+            await Task.Delay(10);
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
+        }
     }
 }
