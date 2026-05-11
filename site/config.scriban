@@ -74,6 +74,7 @@ with api.dotnet
     }
     projects = [
         { name: "Svg.Skia", path: "../src/Svg.Skia/Svg.Skia.csproj" },
+        { name: "Svg.Skia.JavaScript", path: "../src/Svg.Skia.JavaScript/Svg.Skia.JavaScript.csproj" },
         { name: "Svg.Animation", path: "../src/Svg.Animation/Svg.Animation.csproj" },
         { name: "Svg.SceneGraph", path: "../src/Svg.SceneGraph/Svg.SceneGraph.csproj" },
         { name: "Svg.Model", path: "../src/Svg.Model/Svg.Model.csproj" },

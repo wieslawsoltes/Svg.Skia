@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using SkiaSharp;
+using Svg;
 using Svg.Skia.TypefaceProviders;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
@@ -25,9 +26,18 @@ public class SKSvgSettingsTests : SvgUnitTest
     }
 
     [Fact]
+    public void Defaults_DisableJavaScript()
+    {
+        var settings = new SKSvgSettings();
+
+        Assert.False(settings.EnableJavaScript);
+    }
+
+    [Fact]
     public void CopyTo_CopiesRenderingAndJavaScriptSettings()
     {
         var provider = new DefaultTypefaceProvider();
+        var factory = new TestJavaScriptRuntimeFactory();
         var source = new SKSvgSettings
         {
             AlphaType = SKAlphaType.Premul,
@@ -40,7 +50,8 @@ public class SKSvgSettingsTests : SvgUnitTest
             EnableExternalJavaScript = false,
             JavaScriptTimeoutMilliseconds = 123,
             JavaScriptMaxStatements = 456,
-            ThrowOnJavaScriptError = true
+            ThrowOnJavaScriptError = true,
+            JavaScriptRuntimeFactory = factory
         };
         var target = new SKSvgSettings();
 
@@ -58,6 +69,7 @@ public class SKSvgSettingsTests : SvgUnitTest
         Assert.Equal(123, target.JavaScriptTimeoutMilliseconds);
         Assert.Equal(456, target.JavaScriptMaxStatements);
         Assert.True(target.ThrowOnJavaScriptError);
+        Assert.Same(factory, target.JavaScriptRuntimeFactory);
         Assert.NotSame(source.TypefaceProviders, target.TypefaceProviders);
         Assert.Same(provider, Assert.Single(target.TypefaceProviders!));
     }
@@ -65,13 +77,15 @@ public class SKSvgSettingsTests : SvgUnitTest
     [Fact]
     public void Clone_CopiesJavaScriptSettings()
     {
+        var factory = new TestJavaScriptRuntimeFactory();
         var settings = new SKSvgSettings
         {
             EnableJavaScript = true,
             EnableExternalJavaScript = false,
             JavaScriptTimeoutMilliseconds = 250,
             JavaScriptMaxStatements = 789,
-            ThrowOnJavaScriptError = true
+            ThrowOnJavaScriptError = true,
+            JavaScriptRuntimeFactory = factory
         };
 
         var clone = settings.Clone();
@@ -82,6 +96,7 @@ public class SKSvgSettingsTests : SvgUnitTest
         Assert.Equal(250, clone.JavaScriptTimeoutMilliseconds);
         Assert.Equal(789, clone.JavaScriptMaxStatements);
         Assert.True(clone.ThrowOnJavaScriptError);
+        Assert.Same(factory, clone.JavaScriptRuntimeFactory);
     }
 
     [Theory]
@@ -175,5 +190,13 @@ public class SKSvgSettingsTests : SvgUnitTest
 
         Assert.NotNull(typeface);
         Assert.Equal(familyName, typeface!.FamilyName);
+    }
+
+    private sealed class TestJavaScriptRuntimeFactory : ISKSvgJavaScriptRuntimeFactory
+    {
+        public ISKSvgJavaScriptRuntime Create(SvgDocument document, SKSvgJavaScriptRuntimeSettings settings)
+        {
+            throw new System.NotSupportedException();
+        }
     }
 }

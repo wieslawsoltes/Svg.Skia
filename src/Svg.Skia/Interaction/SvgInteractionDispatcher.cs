@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using ShimSkiaSharp;
-using Svg.JavaScript;
 
 namespace Svg.Skia;
 
@@ -376,7 +375,7 @@ public sealed class SvgInteractionDispatcher
         }
 
         var handled = false;
-        SvgJavaScriptEvent? javaScriptEvent = null;
+        object? javaScriptEvent = null;
         foreach (var element in BuildRoute(target))
         {
             animationFrameDirty |= svg?.RecordAnimationPointerEvent(element, SvgPointerEventType.Wheel) == true;
@@ -430,7 +429,7 @@ public sealed class SvgInteractionDispatcher
         }
 
         var handled = false;
-        SvgJavaScriptEvent? javaScriptEvent = null;
+        object? javaScriptEvent = null;
         foreach (var element in BuildRoute(target))
         {
             animationFrameDirty |= svg?.RecordAnimationPointerEvent(element, eventType) == true;

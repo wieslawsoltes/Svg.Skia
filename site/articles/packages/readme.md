@@ -13,6 +13,7 @@ Packaged tools such as `Svg.Skia.Converter` and `svgc` stay documented under [Sa
 | Package | Start here when | Guide |
 | --- | --- | --- |
 | `Svg.Skia` | You want the main SkiaSharp runtime renderer, export helpers, hit testing, shared interaction, animation playback, or Android VectorDrawable support. | [Svg.Skia](svg-skia) |
+| `Svg.Skia.JavaScript` | You explicitly want SVG script execution through the optional Jint-backed `SKSvg` bridge. | [Svg.Skia.JavaScript](svg-skia-javascript) |
 | `Svg.Animation` | You want the shared SMIL timing engine, animation state evaluation, or host playback backend contracts without taking the full UI package surface. | [Svg.Animation](svg-animation) |
 | `Svg.SceneGraph` | You want the retained scene graph, scene nodes, or lower-level compilation layer that sits between the SVG model and final rendering. | [Svg.SceneGraph](svg-scenegraph) |
 | `Svg.Model` | You need the intermediate drawable and picture model for inspection, mutation, or custom pipelines. | [Svg.Model](svg-model) |
@@ -52,6 +53,7 @@ Packaged tools such as `Svg.Skia.Converter` and `svgc` stay documented under [Sa
 ## Choosing quickly
 
 - Choose `Svg.Skia` for direct runtime rendering, export, shared interaction, and animation playback.
+- Choose `Svg.Skia.JavaScript` only when SVG script execution is required; `Svg.Skia` keeps JavaScript disabled and unreferenced by default.
 - Choose `Svg.Animation` when the main task is SVG timing, host backend selection, or animation-controller integration rather than the full rendering surface.
 - Choose `Svg.SceneGraph` when you need retained compiled scene nodes and bounds instead of only the intermediate model or the final Skia output.
 - Choose `Svg.Controls.Skia.Uno` for Uno Platform usage on the Skia-backed path with host-driven animation playback.

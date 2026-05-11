@@ -9,6 +9,7 @@ title: "Packages and Namespaces"
 | Package | Main namespace | Purpose |
 | --- | --- | --- |
 | [Svg.Skia](../packages/svg-skia) | `Svg.Skia` | Core runtime renderer and export helpers |
+| [Svg.Skia.JavaScript](../packages/svg-skia-javascript) | `Svg.Skia` | Optional Jint-backed JavaScript bridge for `SKSvg` |
 | [Svg.Animation](../packages/svg-animation) | `Svg.Skia` | Shared SVG animation runtime and host playback contracts |
 | [Svg.SceneGraph](../packages/svg-scenegraph) | `Svg.Model.Drawables` | Retained scene graph compilation and scene-node model |
 | [Svg.Model](../packages/svg-model) | `Svg.Model` | Picture model, parameters, and services |

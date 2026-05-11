@@ -7,6 +7,7 @@ title: "API Coverage Index"
 The generated API reference under `/api` is built from these projects:
 
 - `../src/Svg.Skia/Svg.Skia.csproj`
+- `../src/Svg.Skia.JavaScript/Svg.Skia.JavaScript.csproj`
 - `../src/Svg.Animation/Svg.Animation.csproj`
 - `../src/Svg.SceneGraph/Svg.SceneGraph.csproj`
 - `../src/Svg.Model/Svg.Model.csproj`

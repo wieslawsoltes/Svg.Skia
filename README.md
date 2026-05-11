@@ -32,6 +32,7 @@
 | `Svg.Model` | [![NuGet](https://img.shields.io/nuget/v/Svg.Model.svg)](https://www.nuget.org/packages/Svg.Model/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Model.svg)](https://www.nuget.org/packages/Svg.Model/) |
 | `Svg.SceneGraph` | [![NuGet](https://img.shields.io/nuget/v/Svg.SceneGraph.svg)](https://www.nuget.org/packages/Svg.SceneGraph/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.SceneGraph.svg)](https://www.nuget.org/packages/Svg.SceneGraph/) |
 | `Svg.Skia` | [![NuGet](https://img.shields.io/nuget/v/Svg.Skia.svg)](https://www.nuget.org/packages/Svg.Skia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Skia.svg)](https://www.nuget.org/packages/Svg.Skia/) |
+| `Svg.Skia.JavaScript` | [![NuGet](https://img.shields.io/nuget/v/Svg.Skia.JavaScript.svg)](https://www.nuget.org/packages/Svg.Skia.JavaScript/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Skia.JavaScript.svg)](https://www.nuget.org/packages/Svg.Skia.JavaScript/) |
 | `Svg.Skia.Converter` | [![NuGet](https://img.shields.io/nuget/v/Svg.Skia.Converter.svg)](https://www.nuget.org/packages/Svg.Skia.Converter/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.Skia.Converter.svg)](https://www.nuget.org/packages/Svg.Skia.Converter/) |
 | `Svg.SourceGenerator.Skia` | [![NuGet](https://img.shields.io/nuget/v/Svg.SourceGenerator.Skia.svg)](https://www.nuget.org/packages/Svg.SourceGenerator.Skia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/Svg.SourceGenerator.Skia.svg)](https://www.nuget.org/packages/Svg.SourceGenerator.Skia/) |
 | `SvgML.Avalonia` | [![NuGet](https://img.shields.io/nuget/v/SvgML.Avalonia.svg)](https://www.nuget.org/packages/SvgML.Avalonia/) | [![NuGet Downloads](https://img.shields.io/nuget/dt/SvgML.Avalonia.svg)](https://www.nuget.org/packages/SvgML.Avalonia/) |
@@ -65,6 +66,7 @@ and the `Svg.Skia` renderer will provide more complete rendering subsystem imple
 - `Svg.Custom` and `Svg.Skia` now include typed `pointer-events` handling plus geometry-aware topmost hit testing.
 - `Svg.Skia` now includes a shared interaction dispatcher, shared animation clock/controller, and host-driven animation playback APIs.
 - `Svg.Controls.Skia.Avalonia`, `Svg.Controls.Skia.Maui`, and `Svg.Controls.Skia.Uno` now expose animation backend selection, playback rate, frame interval, and resolved-backend diagnostics.
+- JavaScript execution is disabled by default and lives behind the optional `Svg.Skia.JavaScript` package, so `Svg.Skia` does not pull in the Jint runtime for regular rendering or NativeAOT builds.
 - `SvgML.Avalonia`, `SvgML.Maui`, and `SvgML.Uno` now live in the same repository, so inline Avalonia, .NET MAUI, and Uno XAML-authored SVG trees, including native controls hosted through SVG `foreignObject`, build against the local `Svg.Skia` sources and ship from the same release pipeline.
 - Avalonia adds an optional `NativeComposition` animation backend with fallback to `RenderLoop` or `DispatcherTimer` when retained composition is unavailable.
 - `tests/Svg.Skia.Benchmarks` adds a local BenchmarkDotNet harness for the shared animation renderer, and `samples/TestApp` exposes backend and playback controls for manual verification.
@@ -98,6 +100,22 @@ dotnet add package Svg.Skia
 
 ```
 Install-Package Svg.Skia
+```
+
+JavaScript support is opt-in:
+
+```
+dotnet add package Svg.Skia.JavaScript
+```
+
+```C#
+using Svg.Skia;
+
+SKSvgJavaScriptRuntime.Register();
+
+var svg = new SKSvg();
+svg.Settings.EnableJavaScript = true;
+svg.Load("interactive.svg");
 ```
 
 #### Draw on Canvas

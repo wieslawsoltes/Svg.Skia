@@ -8,7 +8,6 @@ using System.Threading;
 using System.Xml;
 using ShimSkiaSharp;
 using Svg;
-using Svg.JavaScript;
 using Svg.Model;
 using Svg.Model.Services;
 
@@ -137,7 +136,7 @@ public partial class SKSvg : IDisposable
     private SvgAnimationFrameState? _pendingAnimationFrameState;
     private TimeSpan _lastRenderedAnimationTime = TimeSpan.MinValue;
     private TimeSpan _animationMinimumRenderInterval;
-    private SvgJavaScriptRuntime? _javaScriptRuntime;
+    private ISKSvgJavaScriptRuntime? _javaScriptRuntime;
     private bool _isDispatchingAnimationTimelineCallbacks;
     private bool _animationTimelineChangedDuringDispatch;
     private TimeSpan? _animationTimelineCallbackTime;
@@ -1055,7 +1054,7 @@ public partial class SKSvg : IDisposable
         AnimationController = controller;
         if (_javaScriptRuntime is { } runtime)
         {
-            runtime.AnimationHost = controller is null ? null : new SvgJavaScriptAnimationHostAdapter(this, controller);
+            runtime.SetAnimationHost(controller is null ? null : new SvgJavaScriptAnimationHostAdapter(this, controller));
         }
 
         if (controller is { })
@@ -1122,12 +1121,19 @@ public partial class SKSvg : IDisposable
             return;
         }
 
-        var runtime = new SvgJavaScriptRuntime(svgDocument, CreateJavaScriptSettings());
+        var factory = Settings.JavaScriptRuntimeFactory ?? SKSvgSettings.DefaultJavaScriptRuntimeFactory;
+        if (factory is null)
+        {
+            throw new InvalidOperationException(
+                "SVG JavaScript support is not registered. Reference the Svg.Skia.JavaScript package and call SKSvgJavaScriptRuntime.Register() before loading JavaScript-enabled SVG content.");
+        }
+
+        var runtime = factory.Create(svgDocument, CreateJavaScriptSettings());
         _javaScriptRuntime = runtime;
-        runtime.TextContentHost = new SvgJavaScriptTextContentHostAdapter(this);
+        runtime.SetTextContentHost(new SvgJavaScriptTextContentHostAdapter(this));
         if (AnimationController is { } controller)
         {
-            runtime.AnimationHost = new SvgJavaScriptAnimationHostAdapter(this, controller);
+            runtime.SetAnimationHost(new SvgJavaScriptAnimationHostAdapter(this, controller));
         }
 
         if (executeDocumentScripts)
@@ -1136,7 +1142,7 @@ public partial class SKSvg : IDisposable
         }
     }
 
-    internal SvgJavaScriptEventResult DispatchJavaScriptEvent(
+    internal SKSvgJavaScriptEventResult DispatchJavaScriptEvent(
         SvgElement element,
         SvgElement targetElement,
         SvgElement? relatedElement,
@@ -1144,7 +1150,7 @@ public partial class SKSvg : IDisposable
         string attributeName,
         SvgPointerInput input)
     {
-        SvgJavaScriptEvent? eventFacade = null;
+        object? eventFacade = null;
         return DispatchJavaScriptEvent(
             element,
             targetElement,
@@ -1155,19 +1161,19 @@ public partial class SKSvg : IDisposable
             ref eventFacade);
     }
 
-    internal SvgJavaScriptEventResult DispatchJavaScriptEvent(
+    internal SKSvgJavaScriptEventResult DispatchJavaScriptEvent(
         SvgElement element,
         SvgElement targetElement,
         SvgElement? relatedElement,
         string eventType,
         string attributeName,
         SvgPointerInput input,
-        ref SvgJavaScriptEvent? eventFacade)
+        ref object? eventFacade)
     {
         var runtime = _javaScriptRuntime;
         if (runtime is null || SourceDocument is null)
         {
-            return SvgJavaScriptEventResult.NotExecuted;
+            return SKSvgJavaScriptEventResult.NotExecuted;
         }
 
         var handlerElement = NormalizeJavaScriptEventElement(element);
@@ -1206,7 +1212,7 @@ public partial class SKSvg : IDisposable
         return result;
     }
 
-    private object ResolveJavaScriptEventTarget(SvgJavaScriptRuntime runtime, SvgElement targetElement, SKPoint picturePoint)
+    private object ResolveJavaScriptEventTarget(ISKSvgJavaScriptRuntime runtime, SvgElement targetElement, SKPoint picturePoint)
     {
         if (targetElement is SvgUse use &&
             HitTestTopmostSceneNode(picturePoint) is { } hitNode)
@@ -1245,9 +1251,9 @@ public partial class SKSvg : IDisposable
         return resolved ?? element;
     }
 
-    private SvgJavaScriptSettings CreateJavaScriptSettings()
+    private SKSvgJavaScriptRuntimeSettings CreateJavaScriptSettings()
     {
-        return new SvgJavaScriptSettings
+        return new SKSvgJavaScriptRuntimeSettings
         {
             EnableExternalJavaScript = Settings.EnableExternalJavaScript,
             TimeoutMilliseconds = Settings.JavaScriptTimeoutMilliseconds,
@@ -1256,9 +1262,9 @@ public partial class SKSvg : IDisposable
         };
     }
 
-    private static SvgJavaScriptEventInput CreateJavaScriptEventInput(SvgPointerInput input)
+    private static SKSvgJavaScriptEventInput CreateJavaScriptEventInput(SvgPointerInput input)
     {
-        return new SvgJavaScriptEventInput(
+        return new SKSvgJavaScriptEventInput(
             input.PicturePoint.X,
             input.PicturePoint.Y,
             ToJavaScriptMouseButton(input.Button),
@@ -1269,20 +1275,20 @@ public partial class SKSvg : IDisposable
             input.CtrlKey);
     }
 
-    private static SvgJavaScriptMouseButton ToJavaScriptMouseButton(SvgMouseButton button)
+    private static SKSvgJavaScriptMouseButton ToJavaScriptMouseButton(SvgMouseButton button)
     {
         return button switch
         {
-            SvgMouseButton.Left => SvgJavaScriptMouseButton.Left,
-            SvgMouseButton.Middle => SvgJavaScriptMouseButton.Middle,
-            SvgMouseButton.Right => SvgJavaScriptMouseButton.Right,
-            SvgMouseButton.XButton1 => SvgJavaScriptMouseButton.XButton1,
-            SvgMouseButton.XButton2 => SvgJavaScriptMouseButton.XButton2,
-            _ => SvgJavaScriptMouseButton.None
+            SvgMouseButton.Left => SKSvgJavaScriptMouseButton.Left,
+            SvgMouseButton.Middle => SKSvgJavaScriptMouseButton.Middle,
+            SvgMouseButton.Right => SKSvgJavaScriptMouseButton.Right,
+            SvgMouseButton.XButton1 => SKSvgJavaScriptMouseButton.XButton1,
+            SvgMouseButton.XButton2 => SKSvgJavaScriptMouseButton.XButton2,
+            _ => SKSvgJavaScriptMouseButton.None
         };
     }
 
-    private sealed class SvgJavaScriptAnimationHostAdapter : ISvgJavaScriptAnimationHost
+    private sealed class SvgJavaScriptAnimationHostAdapter : ISKSvgJavaScriptAnimationHost
     {
         private readonly SKSvg _owner;
         private readonly SvgAnimationController _controller;
@@ -1343,7 +1349,7 @@ public partial class SKSvg : IDisposable
         }
     }
 
-    private sealed class SvgJavaScriptTextContentHostAdapter : ISvgJavaScriptTextContentHost
+    private sealed class SvgJavaScriptTextContentHostAdapter : ISKSvgJavaScriptTextContentHost
     {
         private readonly SKSvg _owner;
         private readonly Dictionary<SvgTextBase, SvgSceneTextCompiler.SvgTextContentMetrics> _metricsByElement = new();
@@ -1369,22 +1375,19 @@ public partial class SKSvg : IDisposable
             return GetMetrics(textContentElement).GetSubStringLength(charnum, nchars);
         }
 
-        public SvgJavaScriptPoint GetStartPositionOfChar(SvgTextBase textContentElement, int charnum)
+        public SKPoint GetStartPositionOfChar(SvgTextBase textContentElement, int charnum)
         {
-            var point = GetMetrics(textContentElement).GetStartPositionOfChar(charnum);
-            return new SvgJavaScriptPoint(point.X, point.Y);
+            return GetMetrics(textContentElement).GetStartPositionOfChar(charnum);
         }
 
-        public SvgJavaScriptPoint GetEndPositionOfChar(SvgTextBase textContentElement, int charnum)
+        public SKPoint GetEndPositionOfChar(SvgTextBase textContentElement, int charnum)
         {
-            var point = GetMetrics(textContentElement).GetEndPositionOfChar(charnum);
-            return new SvgJavaScriptPoint(point.X, point.Y);
+            return GetMetrics(textContentElement).GetEndPositionOfChar(charnum);
         }
 
-        public SvgJavaScriptRect GetExtentOfChar(SvgTextBase textContentElement, int charnum)
+        public SKRect GetExtentOfChar(SvgTextBase textContentElement, int charnum)
         {
-            var rect = GetMetrics(textContentElement).GetExtentOfChar(charnum);
-            return new SvgJavaScriptRect(rect.Left, rect.Top, rect.Width, rect.Height);
+            return GetMetrics(textContentElement).GetExtentOfChar(charnum);
         }
 
         public double GetRotationOfChar(SvgTextBase textContentElement, int charnum)
@@ -1392,9 +1395,9 @@ public partial class SKSvg : IDisposable
             return GetMetrics(textContentElement).GetRotationOfChar(charnum);
         }
 
-        public int GetCharNumAtPosition(SvgTextBase textContentElement, SvgJavaScriptPoint point)
+        public int GetCharNumAtPosition(SvgTextBase textContentElement, SKPoint point)
         {
-            return GetMetrics(textContentElement).GetCharNumAtPosition(new SKPoint(point.x, point.y));
+            return GetMetrics(textContentElement).GetCharNumAtPosition(point);
         }
 
         public void SelectSubString(SvgTextBase textContentElement, int charnum, int nchars)

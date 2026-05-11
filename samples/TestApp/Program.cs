@@ -1,6 +1,7 @@
 ﻿using System;
 using Avalonia;
 using Avalonia.Svg.Skia;
+using Svg.Skia;
 
 namespace TestApp;
 
@@ -11,6 +12,7 @@ class Program
     {
         try
         {
+            SKSvgJavaScriptRuntime.Register();
             SvgSource.s_skiaModel.Settings.EnableJavaScript = true;
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
