@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.08bc46497a0469f3d350dec04ed0829b.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-694,menu-id-menu-510' data-lunet-menu-active='menu-item-menu-694,menu-item-menu-510,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.f430506d31da0588da5849889bc6d132.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-694,menu-id-menu-510' data-lunet-menu-active='menu-item-menu-694,menu-item-menu-510,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -175,7 +175,7 @@
 </ul>
 </details>
 </div>
-<pre><code class="language-csharp">public record DrawImageCanvasCommand(SKImage? Image, SKRect Source, SKRect Dest, SKPaint? Paint = null) : CanvasCommand, IDeepCloneable&lt;CanvasCommand&gt;, IEquatable&lt;CanvasCommand&gt;, IEquatable&lt;DrawImageCanvasCommand&gt;
+<pre><code class="language-csharp">public record DrawImageCanvasCommand(SKImage? Image, SKRect Source, SKRect Dest, SKPaint? Paint = null, SKSamplingOptions? Sampling = default(SKSamplingOptions? )) : CanvasCommand, IDeepCloneable&lt;CanvasCommand&gt;, IEquatable&lt;CanvasCommand&gt;, IEquatable&lt;DrawImageCanvasCommand&gt;
 </code></pre>
 <div class="api-dotnet-member-filter" data-api-dotnet-filter>
 <div class="api-dotnet-member-filter-row">
@@ -187,13 +187,14 @@
 </div>
 <h2 id="constructors">Constructors <span class="api-dotnet-count">(1)</span></h2>
 <div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="constructors">
-<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Constructor"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/ShimSkiaSharp.DrawImageCanvasCommand.-ctor-ShimSkiaSharp.SKImage-ShimSkiaSharp.SKRe-dca628ca67c2/"><i class="bi bi-hammer api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">DrawImageCanvasCommand(SKImage?, SKRect, SKRect, SKPaint?)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Constructor"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/ShimSkiaSharp.DrawImageCanvasCommand.-ctor-ShimSkiaSharp.SKImage-ShimSkiaSharp.SKRe-bd51a0df234b/"><i class="bi bi-hammer api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">DrawImageCanvasCommand(SKImage?, SKRect, SKRect, SKPaint?, Nullable&lt;SKSamplingOptions&gt;)</code></a></div>
 </div>
-<h2 id="properties">Properties <span class="api-dotnet-count">(4)</span></h2>
+<h2 id="properties">Properties <span class="api-dotnet-count">(5)</span></h2>
 <div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="properties">
 <div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/ShimSkiaSharp.DrawImageCanvasCommand.Dest/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Dest</code></a></div>
 <div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/ShimSkiaSharp.DrawImageCanvasCommand.Image/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Image</code></a></div>
 <div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/ShimSkiaSharp.DrawImageCanvasCommand.Paint/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Paint</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/ShimSkiaSharp.DrawImageCanvasCommand.Sampling/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Sampling</code></a></div>
 <div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/ShimSkiaSharp.DrawImageCanvasCommand.Source/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Source</code></a></div>
 </div>
 </div>
