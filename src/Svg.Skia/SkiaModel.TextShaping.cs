@@ -19,20 +19,16 @@ public partial class SkiaModel
         string text,
         float x,
         float y,
+        SkiaSharp.SKTextAlign textAlign,
+        SkiaSharp.SKFont font,
         SkiaSharp.SKPaint paint)
     {
-        if (!TryShapeText(text, x, y, paint, rightToLeft: null, out var result))
+        if (!TryShapeText(text, x, y, font, rightToLeft: null, out var result))
         {
             return false;
         }
 
         using var builder = new SkiaSharp.SKTextBlobBuilder();
-        using var font = paint.ToFont();
-        if (font is null)
-        {
-            return false;
-        }
-
         var glyphs = new ushort[result.Codepoints.Length];
         for (var i = 0; i < result.Codepoints.Length; i++)
         {
@@ -46,7 +42,7 @@ public partial class SkiaModel
             return false;
         }
 
-        var xOffset = paint.TextAlign switch
+        var xOffset = textAlign switch
         {
             SkiaSharp.SKTextAlign.Center => -(result.Width * 0.5f),
             SkiaSharp.SKTextAlign.Right => -result.Width,
@@ -145,6 +141,24 @@ public partial class SkiaModel
 
         using var font = paint.ToFont();
         if (font is null || font.Typeface is null)
+        {
+            result = default;
+            return false;
+        }
+
+        return TryShapeText(text, x, y, font, rightToLeft, out result);
+    }
+
+    private static bool TryShapeText(
+        string text,
+        float x,
+        float y,
+        SkiaSharp.SKFont font,
+        bool? rightToLeft,
+        out ShapedTextResult result)
+    {
+        if (string.IsNullOrEmpty(text) ||
+            font.Typeface is null)
         {
             result = default;
             return false;

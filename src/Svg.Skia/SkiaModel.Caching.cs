@@ -108,34 +108,34 @@ public partial class SkiaModel
 
     private readonly struct FontSignature : IEquatable<FontSignature>
     {
-        public FontSignature(SkiaSharp.SKPaint paint)
+        public FontSignature(SkiaSharp.SKFont font)
         {
-            TypefaceHandle = paint.Typeface?.Handle ?? IntPtr.Zero;
-            TextSize = paint.TextSize;
-            TextScaleX = paint.TextScaleX;
-            TextSkewX = paint.TextSkewX;
-            LcdRenderText = paint.LcdRenderText;
-            SubpixelText = paint.SubpixelText;
-            FakeBoldText = paint.FakeBoldText;
+            TypefaceHandle = font.Typeface?.Handle ?? IntPtr.Zero;
+            Size = font.Size;
+            ScaleX = font.ScaleX;
+            SkewX = font.SkewX;
+            Edging = font.Edging;
+            Subpixel = font.Subpixel;
+            Embolden = font.Embolden;
         }
 
         public IntPtr TypefaceHandle { get; }
-        public float TextSize { get; }
-        public float TextScaleX { get; }
-        public float TextSkewX { get; }
-        public bool LcdRenderText { get; }
-        public bool SubpixelText { get; }
-        public bool FakeBoldText { get; }
+        public float Size { get; }
+        public float ScaleX { get; }
+        public float SkewX { get; }
+        public SkiaSharp.SKFontEdging Edging { get; }
+        public bool Subpixel { get; }
+        public bool Embolden { get; }
 
         public bool Equals(FontSignature other)
         {
             return TypefaceHandle == other.TypefaceHandle
-                && TextSize.Equals(other.TextSize)
-                && TextScaleX.Equals(other.TextScaleX)
-                && TextSkewX.Equals(other.TextSkewX)
-                && LcdRenderText == other.LcdRenderText
-                && SubpixelText == other.SubpixelText
-                && FakeBoldText == other.FakeBoldText;
+                && Size.Equals(other.Size)
+                && ScaleX.Equals(other.ScaleX)
+                && SkewX.Equals(other.SkewX)
+                && Edging == other.Edging
+                && Subpixel == other.Subpixel
+                && Embolden == other.Embolden;
         }
 
         public override bool Equals(object? obj)
@@ -148,12 +148,12 @@ public partial class SkiaModel
             unchecked
             {
                 var hash = TypefaceHandle.GetHashCode();
-                hash = (hash * 397) ^ TextSize.GetHashCode();
-                hash = (hash * 397) ^ TextScaleX.GetHashCode();
-                hash = (hash * 397) ^ TextSkewX.GetHashCode();
-                hash = (hash * 397) ^ LcdRenderText.GetHashCode();
-                hash = (hash * 397) ^ SubpixelText.GetHashCode();
-                hash = (hash * 397) ^ FakeBoldText.GetHashCode();
+                hash = (hash * 397) ^ Size.GetHashCode();
+                hash = (hash * 397) ^ ScaleX.GetHashCode();
+                hash = (hash * 397) ^ SkewX.GetHashCode();
+                hash = (hash * 397) ^ Edging.GetHashCode();
+                hash = (hash * 397) ^ Subpixel.GetHashCode();
+                hash = (hash * 397) ^ Embolden.GetHashCode();
                 return hash;
             }
         }

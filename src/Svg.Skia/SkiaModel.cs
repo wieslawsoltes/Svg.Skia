@@ -153,6 +153,17 @@ public partial class SkiaModel
         };
     }
 
+    public SkiaSharp.SKFontEdging ToSKFontEdging(SKFontEdging edging)
+    {
+        return edging switch
+        {
+            SKFontEdging.Alias => SkiaSharp.SKFontEdging.Alias,
+            SKFontEdging.Antialias => SkiaSharp.SKFontEdging.Antialias,
+            SKFontEdging.SubpixelAntialias => SkiaSharp.SKFontEdging.SubpixelAntialias,
+            _ => SkiaSharp.SKFontEdging.Antialias
+        };
+    }
+
     public SkiaSharp.SKFontStyleWeight ToSKFontStyleWeight(SKFontStyleWeight fontStyleWeight)
     {
         return fontStyleWeight switch
@@ -1314,6 +1325,92 @@ public partial class SkiaModel
         };
     }
 
+    public SkiaSharp.SKFilterQuality ToSKFilterQuality(SKSamplingOptions samplingOptions)
+    {
+        if (samplingOptions.UseCubic)
+        {
+            return SkiaSharp.SKFilterQuality.High;
+        }
+
+        if (samplingOptions.Filter == SKFilterMode.Nearest)
+        {
+            return SkiaSharp.SKFilterQuality.None;
+        }
+
+        return samplingOptions.Mipmap == SKMipmapMode.None
+            ? SkiaSharp.SKFilterQuality.Low
+            : SkiaSharp.SKFilterQuality.Medium;
+    }
+
+    private static SkiaSharp.SKPaint CreateTextRenderPaint(
+        SkiaSharp.SKPaint paint,
+        SkiaSharp.SKTextAlign textAlign,
+        SkiaSharp.SKFont font,
+        bool applyFont)
+    {
+        var textPaint = paint.Clone();
+        textPaint.TextAlign = textAlign;
+
+        if (applyFont)
+        {
+            ApplyFontToPaint(font, textPaint);
+        }
+
+        return textPaint;
+    }
+
+    private static void ApplyFontToPaint(SkiaSharp.SKFont font, SkiaSharp.SKPaint paint)
+    {
+        paint.Typeface = font.Typeface;
+        paint.TextSize = font.Size;
+        paint.TextScaleX = font.ScaleX;
+        paint.TextSkewX = font.SkewX;
+        paint.SubpixelText = font.Subpixel;
+        paint.FakeBoldText = font.Embolden;
+        paint.LcdRenderText = font.Edging == SkiaSharp.SKFontEdging.SubpixelAntialias;
+        paint.IsAntialias = font.Edging != SkiaSharp.SKFontEdging.Alias;
+    }
+
+    private static void DisposeIfCloned(SkiaSharp.SKPaint paint, SkiaSharp.SKPaint sourcePaint)
+    {
+        if (!ReferenceEquals(paint, sourcePaint))
+        {
+            paint.Dispose();
+        }
+    }
+
+    public SkiaSharp.SKFont ToSKFont(SKPaint paint)
+    {
+        var typefaceResolution = ResolveSKTypeface(paint.Typeface);
+        var skFont = new SkiaSharp.SKFont(typefaceResolution.Typeface, paint.TextSize)
+        {
+            Edging = paint.LcdRenderText ? SkiaSharp.SKFontEdging.SubpixelAntialias : SkiaSharp.SKFontEdging.Antialias,
+            Subpixel = paint.SubpixelText
+        };
+
+        ApplyTypefaceAdjustments(paint, skFont, typefaceResolution.SuppressSyntheticBold);
+        return skFont;
+    }
+
+    public SkiaSharp.SKFont? ToSKFont(SKFont? font)
+    {
+        if (font is null)
+        {
+            return null;
+        }
+
+        var typefaceResolution = ResolveSKTypeface(font.Typeface);
+        var skFont = new SkiaSharp.SKFont(typefaceResolution.Typeface, font.Size, font.ScaleX, font.SkewX)
+        {
+            Edging = ToSKFontEdging(font.Edging),
+            Subpixel = font.Subpixel,
+            Embolden = font.Embolden
+        };
+
+        ApplyTypefaceAdjustments(font, skFont, typefaceResolution.SuppressSyntheticBold);
+        return skFont;
+    }
+
     public SkiaSharp.SKPaint? ToSKPaint(SKPaint? paint)
     {
         if (paint is null)
@@ -1368,26 +1465,42 @@ public partial class SkiaModel
 
     private void ApplyTypefaceAdjustments(ShimSkiaSharp.SKPaint sourcePaint, SkiaSharp.SKPaint targetPaint, bool suppressSyntheticBold)
     {
-        if (suppressSyntheticBold)
-        {
-            return;
-        }
-
-        if (sourcePaint.Typeface is null || targetPaint.Typeface is null)
-        {
-            return;
-        }
-
-        var desiredWeight = (int)ToSKFontStyleWeight(sourcePaint.Typeface.FontWeight);
-        if (targetPaint.Typeface.FontWeight < desiredWeight)
+        if (ShouldEmboldenTypeface(sourcePaint.Typeface, targetPaint.Typeface, suppressSyntheticBold))
         {
             targetPaint.FakeBoldText = true;
         }
     }
 
+    private void ApplyTypefaceAdjustments(ShimSkiaSharp.SKPaint sourcePaint, SkiaSharp.SKFont targetFont, bool suppressSyntheticBold)
+    {
+        if (ShouldEmboldenTypeface(sourcePaint.Typeface, targetFont.Typeface, suppressSyntheticBold))
+        {
+            targetFont.Embolden = true;
+        }
+    }
+
+    private void ApplyTypefaceAdjustments(ShimSkiaSharp.SKFont sourceFont, SkiaSharp.SKFont targetFont, bool suppressSyntheticBold)
+    {
+        if (ShouldEmboldenTypeface(sourceFont.Typeface, targetFont.Typeface, suppressSyntheticBold))
+        {
+            targetFont.Embolden = true;
+        }
+    }
+
+    private bool ShouldEmboldenTypeface(SKTypeface? sourceTypeface, SkiaSharp.SKTypeface? targetTypeface, bool suppressSyntheticBold)
+    {
+        if (suppressSyntheticBold || sourceTypeface is null || targetTypeface is null)
+        {
+            return false;
+        }
+
+        var desiredWeight = (int)ToSKFontStyleWeight(sourceTypeface.FontWeight);
+        return targetTypeface.FontWeight < desiredWeight;
+    }
+
     private SkiaSharp.SKTextBlob? GetCachedPositionedTextBlob(
         DrawTextBlobCanvasCommand command,
-        SkiaSharp.SKPaint paint)
+        SkiaSharp.SKFont font)
     {
         var textBlob = command.TextBlob;
         if (textBlob?.Points is null)
@@ -1395,7 +1508,7 @@ public partial class SkiaModel
             return null;
         }
 
-        var signature = new FontSignature(paint);
+        var signature = new FontSignature(font);
         lock (_positionedTextCacheLock)
         {
             PositionedTextCache? cached = null;
@@ -1416,12 +1529,6 @@ public partial class SkiaModel
                 }
 
                 _positionedTextCache.Remove(command);
-            }
-
-            using var font = paint.ToFont();
-            if (font is null)
-            {
-                return null;
             }
 
             var points = ToSKPoints(textBlob.Points);
@@ -1846,7 +1953,24 @@ public partial class SkiaModel
                             var source = ToSKRect(drawImageCanvasCommand.Source);
                             var dest = ToSKRect(drawImageCanvasCommand.Dest);
                             var paint = GetRenderPaint(drawImageCanvasCommand.Paint);
-                            skCanvas.DrawImage(image, source, dest, paint);
+                            var imagePaint = paint;
+                            if (drawImageCanvasCommand.Sampling.HasValue)
+                            {
+                                imagePaint = paint?.Clone() ?? new SkiaSharp.SKPaint();
+                                imagePaint.FilterQuality = ToSKFilterQuality(drawImageCanvasCommand.Sampling.Value);
+                            }
+
+                            try
+                            {
+                                skCanvas.DrawImage(image, source, dest, imagePaint);
+                            }
+                            finally
+                            {
+                                if (imagePaint is not null && !ReferenceEquals(imagePaint, paint))
+                                {
+                                    imagePaint.Dispose();
+                                }
+                            }
                         }
                     }
                     break;
@@ -1896,7 +2020,15 @@ public partial class SkiaModel
                             break;
                         }
 
-                        var textBlob = GetCachedPositionedTextBlob(drawPositionedTextCanvasCommand, paint);
+                        using var font = drawPositionedTextCanvasCommand.TextBlob.Font is { } textBlobFont
+                            ? ToSKFont(textBlobFont)
+                            : ToSKFont(sourcePaint);
+                        if (font is null)
+                        {
+                            break;
+                        }
+
+                        var textBlob = GetCachedPositionedTextBlob(drawPositionedTextCanvasCommand, font);
                         if (textBlob is not null)
                         {
                             skCanvas.DrawText(textBlob, 0, 0, paint);
@@ -1919,9 +2051,29 @@ public partial class SkiaModel
                             break;
                         }
 
-                        if (!TryDrawShapedText(skCanvas, text, x, y, paint))
+                        var textAlign = ToSKTextAlign(drawTextCanvasCommand.TextAlign ?? drawTextCanvasCommand.Paint.TextAlign);
+                        var applyFont = drawTextCanvasCommand.Font is not null;
+                        using var font = drawTextCanvasCommand.Font is { } textFont
+                            ? ToSKFont(textFont)
+                            : ToSKFont(drawTextCanvasCommand.Paint);
+                        if (font is null)
                         {
-                            skCanvas.DrawText(text, x, y, paint);
+                            break;
+                        }
+
+                        var textPaint = applyFont || drawTextCanvasCommand.TextAlign.HasValue
+                            ? CreateTextRenderPaint(paint, textAlign, font, applyFont)
+                            : paint;
+                        try
+                        {
+                            if (!TryDrawShapedText(skCanvas, text, x, y, textAlign, font, textPaint))
+                            {
+                                skCanvas.DrawText(text, x, y, textPaint);
+                            }
+                        }
+                        finally
+                        {
+                            DisposeIfCloned(textPaint, paint);
                         }
                     }
                     break;
@@ -1937,7 +2089,32 @@ public partial class SkiaModel
                         var paint = wireframe
                             ? ToWireframePaint(drawTextOnPathCanvasCommand.Paint)
                             : GetRenderPaint(drawTextOnPathCanvasCommand.Paint);
-                        skCanvas.DrawTextOnPath(text, path, hOffset, vOffset, paint);
+                        if (path is null || paint is null)
+                        {
+                            break;
+                        }
+
+                        var textAlign = ToSKTextAlign(drawTextOnPathCanvasCommand.TextAlign ?? drawTextOnPathCanvasCommand.Paint.TextAlign);
+                        var applyFont = drawTextOnPathCanvasCommand.Font is not null;
+                        using var font = drawTextOnPathCanvasCommand.Font is { } textFont
+                            ? ToSKFont(textFont)
+                            : ToSKFont(drawTextOnPathCanvasCommand.Paint);
+                        if (font is null)
+                        {
+                            break;
+                        }
+
+                        var textPaint = applyFont || drawTextOnPathCanvasCommand.TextAlign.HasValue
+                            ? CreateTextRenderPaint(paint, textAlign, font, applyFont)
+                            : paint;
+                        try
+                        {
+                            skCanvas.DrawTextOnPath(text, path, hOffset, vOffset, textPaint);
+                        }
+                        finally
+                        {
+                            DisposeIfCloned(textPaint, paint);
+                        }
                     }
                     break;
                 }
