@@ -7,6 +7,7 @@
 * Added shared animation playback in `SKSvg`, including animation time control, invalidation events, layered redraw, throttling helpers, and native-composition scene extraction.
 * Added host animation backends for Avalonia and Uno, including resolved-backend diagnostics and Avalonia retained `NativeComposition` playback with fallback.
 * Added an animation benchmark harness in `tests/Svg.Skia.Benchmarks` and exposed animation/backend controls in `samples/TestApp`.
+* Updated HarfBuzzSharp dependencies to `8.3.1.3` so Android consumers restore native assets with 16 KB page-size support.
 
 ## 0.3.0
 
