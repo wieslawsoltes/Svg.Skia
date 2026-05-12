@@ -96,6 +96,69 @@ public class SkiaCSharpCodeGenTests
     }
 
     [Fact]
+    public void Generate_UsesExplicitSamplingOptionsForDrawImage()
+    {
+        var image = new SKImage { Data = new byte[] { 1, 2, 3, 4 }, Width = 1, Height = 1 };
+        var picture = new SKPicture(SKRect.Create(0f, 0f, 1f, 1f), new List<CanvasCommand>
+        {
+            new DrawImageCanvasCommand(
+                image,
+                SKRect.Create(0f, 0f, 1f, 1f),
+                SKRect.Create(0f, 0f, 1f, 1f),
+                null,
+                new SKSamplingOptions(SKCubicResampler.CatmullRom))
+        });
+
+        var code = SkiaCSharpCodeGen.Generate(picture, "Svg", "Generated");
+
+        Assert.Contains("new SKSamplingOptions(SKCubicResampler.CatmullRom)", code);
+        Assert.DoesNotContain("FilterQuality", code);
+    }
+
+    [Fact]
+    public void Generate_MapsLegacyFilterQualityToSamplingOptionsForDrawImage()
+    {
+        var image = new SKImage { Data = new byte[] { 1, 2, 3, 4 }, Width = 1, Height = 1 };
+        var paint = new SKPaint { FilterQuality = SKFilterQuality.Medium };
+        var picture = new SKPicture(SKRect.Create(0f, 0f, 1f, 1f), new List<CanvasCommand>
+        {
+            new DrawImageCanvasCommand(
+                image,
+                SKRect.Create(0f, 0f, 1f, 1f),
+                SKRect.Create(0f, 0f, 1f, 1f),
+                paint)
+        });
+
+        var code = SkiaCSharpCodeGen.Generate(picture, "Svg", "Generated");
+
+        Assert.Contains("new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear)", code);
+        Assert.DoesNotContain(".FilterQuality", code);
+    }
+
+    [Fact]
+    public void Generate_UsesTextBlobFontForPositionedText()
+    {
+        var font = new SKFont(null, 18f)
+        {
+            Edging = SKFontEdging.Alias,
+            Subpixel = true
+        };
+        var textBlob = SKTextBlob.CreatePositioned("Text", font, new[] { new SKPoint(1f, 2f) });
+        var picture = new SKPicture(SKRect.Create(0f, 0f, 10f, 10f), new List<CanvasCommand>
+        {
+            new DrawTextBlobCanvasCommand(textBlob, 3f, 4f, new SKPaint())
+        });
+
+        var code = SkiaCSharpCodeGen.Generate(picture, "Svg", "Generated");
+
+        Assert.Contains("new SKFont(SKTypeface.Default, 18f, 1f, 0f)", code);
+        Assert.Contains(".Edging = SKFontEdging.Alias;", code);
+        Assert.Contains(".Subpixel = true;", code);
+        Assert.Contains("SKTextBlob.CreatePositioned(\"Text\", skFont0", code);
+        Assert.DoesNotContain(".ToFont()", code);
+    }
+
+    [Fact]
     public void SkiaModel_ToSKShader_CreatesGradientsWithOptionalColorPositions()
     {
         var model = new SkiaModel(new SKSvgSettings());
