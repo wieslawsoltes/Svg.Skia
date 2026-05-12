@@ -103,7 +103,8 @@ public class CloneCommandTests
     {
         var image = CloneTestData.CreateImage();
         var paint = CloneTestData.CreatePaint();
-        CanvasCommand command = new DrawImageCanvasCommand(image, SKRect.Create(0, 0, 10, 10), SKRect.Create(1, 1, 5, 5), paint);
+        var sampling = new SKSamplingOptions(SKCubicResampler.CatmullRom);
+        CanvasCommand command = new DrawImageCanvasCommand(image, SKRect.Create(0, 0, 10, 10), SKRect.Create(1, 1, 5, 5), paint, sampling);
 
         var clone = command.DeepClone();
         var typed = Assert.IsType<DrawImageCanvasCommand>(clone);
@@ -113,6 +114,7 @@ public class CloneCommandTests
         Assert.NotSame(image.Data, typed.Image!.Data);
         Assert.Equal(SKRect.Create(0, 0, 10, 10), typed.Source);
         Assert.Equal(SKRect.Create(1, 1, 5, 5), typed.Dest);
+        Assert.Equal(sampling, typed.Sampling);
     }
 
     [Fact]
@@ -161,6 +163,7 @@ public class CloneCommandTests
         Assert.NotSame(textBlob, typed.TextBlob);
         Assert.NotSame(paint, typed.Paint);
         Assert.NotSame(textBlob.Points, typed.TextBlob!.Points);
+        Assert.NotSame(textBlob.Font, typed.TextBlob.Font);
         Assert.Equal(1, typed.X);
         Assert.Equal(2, typed.Y);
     }

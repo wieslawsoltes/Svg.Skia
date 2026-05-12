@@ -326,6 +326,82 @@ public class SKSvgRebuildFromModelTests
     }
 
     [Fact]
+    public void ToSKPicture_UsesRecordedImageSampling()
+    {
+        var image = new ShimSkiaSharp.SKImage
+        {
+            Data = CreateEncodedBitmap(2, 1, static (x, _) => x == 0
+                ? new SkiaColor(255, 0, 0, 255)
+                : new SkiaColor(0, 0, 255, 255)),
+            Width = 2,
+            Height = 1
+        };
+        var picture = new ShimSkiaSharp.SKPicture(
+            ShimSkiaSharp.SKRect.Create(0, 0, 20, 1),
+            new CanvasCommand[]
+            {
+                new DrawImageCanvasCommand(
+                    image,
+                    ShimSkiaSharp.SKRect.Create(0, 0, 2, 1),
+                    ShimSkiaSharp.SKRect.Create(0, 0, 20, 1),
+                    new ShimSkiaSharp.SKPaint { FilterQuality = ShimSkiaSharp.SKFilterQuality.None },
+                    new ShimSkiaSharp.SKSamplingOptions(ShimSkiaSharp.SKFilterMode.Linear, ShimSkiaSharp.SKMipmapMode.None))
+            });
+        var skiaModel = new SkiaModel(new SKSvgSettings());
+
+        using var renderedPicture = skiaModel.ToSKPicture(picture);
+        using var bitmap = RenderBitmap(Assert.IsType<SkiaPicture>(renderedPicture));
+
+        var blendedPixels = CountPixels(bitmap, static color => color.Red > 0 && color.Blue > 0 && color.Green < 16);
+        Assert.True(blendedPixels > 0);
+    }
+
+    [Fact]
+    public void ToSKPicture_UsesRecordedTextFontAndAlignment()
+    {
+        var paint = new ShimSkiaSharp.SKPaint
+        {
+            Color = new ShimSkiaSharp.SKColor(0, 0, 0, 255),
+            IsAntialias = false,
+            TextAlign = ShimSkiaSharp.SKTextAlign.Left,
+            TextSize = 8f
+        };
+        var font = new ShimSkiaSharp.SKFont(null, 32f)
+        {
+            Edging = ShimSkiaSharp.SKFontEdging.Alias
+        };
+        var picture = new ShimSkiaSharp.SKPicture(
+            ShimSkiaSharp.SKRect.Create(0, 0, 80, 45),
+            new CanvasCommand[]
+            {
+                new DrawTextCanvasCommand("MM", 40f, 34f, paint, ShimSkiaSharp.SKTextAlign.Right, font)
+            });
+        var skiaModel = new SkiaModel(new SKSvgSettings());
+
+        using var renderedPicture = skiaModel.ToSKPicture(picture);
+        using var bitmap = RenderBitmap(Assert.IsType<SkiaPicture>(renderedPicture));
+
+        var leftDarkPixels = CountPixels(bitmap, static (x, _, color) => x < 40 && IsDark(color));
+        var rightDarkPixels = CountPixels(bitmap, static (x, _, color) => x >= 40 && IsDark(color));
+        Assert.True(leftDarkPixels > 50);
+        Assert.True(leftDarkPixels > rightDarkPixels * 3);
+    }
+
+    [Fact]
+    public void ToSKFont_MapsAliasedPaintToAliasEdging()
+    {
+        var skiaModel = new SkiaModel(new SKSvgSettings());
+
+        using var font = skiaModel.ToSKFont(new ShimSkiaSharp.SKPaint
+        {
+            IsAntialias = false,
+            LcdRenderText = true
+        });
+
+        Assert.Equal(SkiaSharp.SKFontEdging.Alias, font.Edging);
+    }
+
+    [Fact]
     public void ToSKPicture_ReflectsInPlaceMutatedPolyPointsAfterInitialNativeBuild()
     {
         var points = new List<ShimSkiaSharp.SKPoint>
@@ -381,11 +457,66 @@ public class SKSvgRebuildFromModelTests
         return Assert.IsType<SkiaBitmap>(bitmap);
     }
 
+    private static int CountPixels(SkiaBitmap bitmap, Func<SkiaColor, bool> predicate)
+    {
+        var count = 0;
+        for (var y = 0; y < bitmap.Height; y++)
+        {
+            for (var x = 0; x < bitmap.Width; x++)
+            {
+                if (predicate(bitmap.GetPixel(x, y)))
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
+    }
+
+    private static int CountPixels(SkiaBitmap bitmap, Func<int, int, SkiaColor, bool> predicate)
+    {
+        var count = 0;
+        for (var y = 0; y < bitmap.Height; y++)
+        {
+            for (var x = 0; x < bitmap.Width; x++)
+            {
+                if (predicate(x, y, bitmap.GetPixel(x, y)))
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
+    }
+
+    private static bool IsDark(SkiaColor color)
+    {
+        return color.Red < 128 && color.Green < 128 && color.Blue < 128;
+    }
+
     private static void AssertTextPathCommandSource(CanvasCommand command)
     {
         Assert.Equal("path-text", command.SourceElementId);
         Assert.Equal("SvgTextPath", command.SourceElementTypeName);
         Assert.False(string.IsNullOrWhiteSpace(command.SourceElementAddress));
+    }
+
+    private static byte[] CreateEncodedBitmap(int width, int height, Func<int, int, SkiaColor> getColor)
+    {
+        using var bitmap = new SkiaBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
+        for (var y = 0; y < height; y++)
+        {
+            for (var x = 0; x < width; x++)
+            {
+                bitmap.SetPixel(x, y, getColor(x, y));
+            }
+        }
+
+        using var image = SkiaSharp.SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        return data.ToArray();
     }
 
     private static byte[] CreateEncodedSolidBitmap(SkiaColor color)

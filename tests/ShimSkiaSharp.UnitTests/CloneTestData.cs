@@ -46,8 +46,20 @@ internal static class CloneTestData
     public static SKImage CreateImage()
         => new SKImage { Data = new byte[] { 1, 2, 3, 4 }, Width = 10, Height = 20 };
 
+    public static SKFont CreateFont()
+        => new(
+            SKTypeface.FromFamilyName("Font", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Italic),
+            16,
+            1.25f,
+            0.1f)
+        {
+            Subpixel = true,
+            Embolden = true,
+            Edging = SKFontEdging.SubpixelAntialias
+        };
+
     public static SKTextBlob CreateTextBlob()
-        => SKTextBlob.CreatePositioned("Text", new[] { new SKPoint(1, 2), new SKPoint(3, 4) });
+        => SKTextBlob.CreatePositioned("Text", CreateFont(), new[] { new SKPoint(1, 2), new SKPoint(3, 4) });
 
     public static ClipPath CreateClipPath()
     {

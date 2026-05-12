@@ -153,6 +153,29 @@ public partial class SkiaModel
         };
     }
 
+    public SkiaSharp.SKFontEdging ToSKFontEdging(SKFontEdging edging)
+    {
+        return edging switch
+        {
+            SKFontEdging.Alias => SkiaSharp.SKFontEdging.Alias,
+            SKFontEdging.Antialias => SkiaSharp.SKFontEdging.Antialias,
+            SKFontEdging.SubpixelAntialias => SkiaSharp.SKFontEdging.SubpixelAntialias,
+            _ => SkiaSharp.SKFontEdging.Antialias
+        };
+    }
+
+    private static SkiaSharp.SKFontEdging ToSKFontEdging(SKPaint paint)
+    {
+        if (!paint.IsAntialias)
+        {
+            return SkiaSharp.SKFontEdging.Alias;
+        }
+
+        return paint.LcdRenderText
+            ? SkiaSharp.SKFontEdging.SubpixelAntialias
+            : SkiaSharp.SKFontEdging.Antialias;
+    }
+
     public SkiaSharp.SKFontStyleWeight ToSKFontStyleWeight(SKFontStyleWeight fontStyleWeight)
     {
         return fontStyleWeight switch
@@ -1314,6 +1337,109 @@ public partial class SkiaModel
         };
     }
 
+    private static SkiaSharp.SKFilterQuality ToLegacySKFilterQuality(SKSamplingOptions samplingOptions)
+    {
+        if (samplingOptions.UseCubic)
+        {
+            return SkiaSharp.SKFilterQuality.High;
+        }
+
+        if (samplingOptions.Filter == SKFilterMode.Nearest)
+        {
+            return SkiaSharp.SKFilterQuality.None;
+        }
+
+        return samplingOptions.Mipmap == SKMipmapMode.None
+            ? SkiaSharp.SKFilterQuality.Low
+            : SkiaSharp.SKFilterQuality.Medium;
+    }
+
+    private static bool TryDrawImageWithSamplingOptions(
+        SkiaSharp.SKCanvas skCanvas,
+        SkiaSharp.SKImage image,
+        SkiaSharp.SKRect source,
+        SkiaSharp.SKRect dest,
+        SKSamplingOptions samplingOptions,
+        SkiaSharp.SKPaint? paint)
+    {
+        if (!SkiaSharpSamplingOptionsApi.IsAvailable)
+        {
+            return false;
+        }
+
+        SkiaSharpSamplingOptionsApi.DrawImage(skCanvas, image, source, dest, samplingOptions, paint);
+        return true;
+    }
+
+    private static SkiaSharp.SKPaint CreateTextRenderPaint(
+        SkiaSharp.SKPaint paint,
+        SkiaSharp.SKTextAlign textAlign,
+        SkiaSharp.SKFont font,
+        bool applyFont)
+    {
+        var textPaint = paint.Clone();
+        textPaint.TextAlign = textAlign;
+
+        if (applyFont)
+        {
+            ApplyFontToPaint(font, textPaint);
+        }
+
+        return textPaint;
+    }
+
+    private static void ApplyFontToPaint(SkiaSharp.SKFont font, SkiaSharp.SKPaint paint)
+    {
+        paint.Typeface = font.Typeface;
+        paint.TextSize = font.Size;
+        paint.TextScaleX = font.ScaleX;
+        paint.TextSkewX = font.SkewX;
+        paint.SubpixelText = font.Subpixel;
+        paint.FakeBoldText = font.Embolden;
+        paint.LcdRenderText = font.Edging == SkiaSharp.SKFontEdging.SubpixelAntialias;
+        paint.IsAntialias = font.Edging != SkiaSharp.SKFontEdging.Alias;
+    }
+
+    private static void DisposeIfCloned(SkiaSharp.SKPaint paint, SkiaSharp.SKPaint sourcePaint)
+    {
+        if (!ReferenceEquals(paint, sourcePaint))
+        {
+            paint.Dispose();
+        }
+    }
+
+    public SkiaSharp.SKFont ToSKFont(SKPaint paint)
+    {
+        var typefaceResolution = ResolveSKTypeface(paint.Typeface);
+        var skFont = new SkiaSharp.SKFont(typefaceResolution.Typeface, paint.TextSize)
+        {
+            Edging = ToSKFontEdging(paint),
+            Subpixel = paint.SubpixelText
+        };
+
+        ApplyTypefaceAdjustments(paint, skFont, typefaceResolution.SuppressSyntheticBold);
+        return skFont;
+    }
+
+    public SkiaSharp.SKFont? ToSKFont(SKFont? font)
+    {
+        if (font is null)
+        {
+            return null;
+        }
+
+        var typefaceResolution = ResolveSKTypeface(font.Typeface);
+        var skFont = new SkiaSharp.SKFont(typefaceResolution.Typeface, font.Size, font.ScaleX, font.SkewX)
+        {
+            Edging = ToSKFontEdging(font.Edging),
+            Subpixel = font.Subpixel,
+            Embolden = font.Embolden
+        };
+
+        ApplyTypefaceAdjustments(font, skFont, typefaceResolution.SuppressSyntheticBold);
+        return skFont;
+    }
+
     public SkiaSharp.SKPaint? ToSKPaint(SKPaint? paint)
     {
         if (paint is null)
@@ -1368,26 +1494,42 @@ public partial class SkiaModel
 
     private void ApplyTypefaceAdjustments(ShimSkiaSharp.SKPaint sourcePaint, SkiaSharp.SKPaint targetPaint, bool suppressSyntheticBold)
     {
-        if (suppressSyntheticBold)
-        {
-            return;
-        }
-
-        if (sourcePaint.Typeface is null || targetPaint.Typeface is null)
-        {
-            return;
-        }
-
-        var desiredWeight = (int)ToSKFontStyleWeight(sourcePaint.Typeface.FontWeight);
-        if (targetPaint.Typeface.FontWeight < desiredWeight)
+        if (ShouldEmboldenTypeface(sourcePaint.Typeface, targetPaint.Typeface, suppressSyntheticBold))
         {
             targetPaint.FakeBoldText = true;
         }
     }
 
+    private void ApplyTypefaceAdjustments(ShimSkiaSharp.SKPaint sourcePaint, SkiaSharp.SKFont targetFont, bool suppressSyntheticBold)
+    {
+        if (ShouldEmboldenTypeface(sourcePaint.Typeface, targetFont.Typeface, suppressSyntheticBold))
+        {
+            targetFont.Embolden = true;
+        }
+    }
+
+    private void ApplyTypefaceAdjustments(ShimSkiaSharp.SKFont sourceFont, SkiaSharp.SKFont targetFont, bool suppressSyntheticBold)
+    {
+        if (ShouldEmboldenTypeface(sourceFont.Typeface, targetFont.Typeface, suppressSyntheticBold))
+        {
+            targetFont.Embolden = true;
+        }
+    }
+
+    private bool ShouldEmboldenTypeface(SKTypeface? sourceTypeface, SkiaSharp.SKTypeface? targetTypeface, bool suppressSyntheticBold)
+    {
+        if (suppressSyntheticBold || sourceTypeface is null || targetTypeface is null)
+        {
+            return false;
+        }
+
+        var desiredWeight = (int)ToSKFontStyleWeight(sourceTypeface.FontWeight);
+        return targetTypeface.FontWeight < desiredWeight;
+    }
+
     private SkiaSharp.SKTextBlob? GetCachedPositionedTextBlob(
         DrawTextBlobCanvasCommand command,
-        SkiaSharp.SKPaint paint)
+        SkiaSharp.SKFont font)
     {
         var textBlob = command.TextBlob;
         if (textBlob?.Points is null)
@@ -1395,7 +1537,7 @@ public partial class SkiaModel
             return null;
         }
 
-        var signature = new FontSignature(paint);
+        var signature = new FontSignature(font);
         lock (_positionedTextCacheLock)
         {
             PositionedTextCache? cached = null;
@@ -1416,12 +1558,6 @@ public partial class SkiaModel
                 }
 
                 _positionedTextCache.Remove(command);
-            }
-
-            using var font = paint.ToFont();
-            if (font is null)
-            {
-                return null;
             }
 
             var points = ToSKPoints(textBlob.Points);
@@ -1843,10 +1979,45 @@ public partial class SkiaModel
                         else
                         {
                             var image = GetRenderImage(drawImageCanvasCommand.Image);
+                            if (image is null)
+                            {
+                                break;
+                            }
+
                             var source = ToSKRect(drawImageCanvasCommand.Source);
                             var dest = ToSKRect(drawImageCanvasCommand.Dest);
                             var paint = GetRenderPaint(drawImageCanvasCommand.Paint);
-                            skCanvas.DrawImage(image, source, dest, paint);
+                            var drewWithSampling = drawImageCanvasCommand.Sampling.HasValue &&
+                                TryDrawImageWithSamplingOptions(
+                                    skCanvas,
+                                    image,
+                                    source,
+                                    dest,
+                                    drawImageCanvasCommand.Sampling.Value,
+                                    paint);
+                            if (drewWithSampling)
+                            {
+                                break;
+                            }
+
+                            var imagePaint = paint;
+                            if (drawImageCanvasCommand.Sampling.HasValue)
+                            {
+                                imagePaint = paint?.Clone() ?? new SkiaSharp.SKPaint();
+                                imagePaint.FilterQuality = ToLegacySKFilterQuality(drawImageCanvasCommand.Sampling.Value);
+                            }
+
+                            try
+                            {
+                                skCanvas.DrawImage(image, source, dest, imagePaint);
+                            }
+                            finally
+                            {
+                                if (imagePaint is not null && !ReferenceEquals(imagePaint, paint))
+                                {
+                                    imagePaint.Dispose();
+                                }
+                            }
                         }
                     }
                     break;
@@ -1896,7 +2067,15 @@ public partial class SkiaModel
                             break;
                         }
 
-                        var textBlob = GetCachedPositionedTextBlob(drawPositionedTextCanvasCommand, paint);
+                        using var font = drawPositionedTextCanvasCommand.TextBlob.Font is { } textBlobFont
+                            ? ToSKFont(textBlobFont)
+                            : ToSKFont(sourcePaint);
+                        if (font is null)
+                        {
+                            break;
+                        }
+
+                        var textBlob = GetCachedPositionedTextBlob(drawPositionedTextCanvasCommand, font);
                         if (textBlob is not null)
                         {
                             skCanvas.DrawText(textBlob, 0, 0, paint);
@@ -1919,9 +2098,29 @@ public partial class SkiaModel
                             break;
                         }
 
-                        if (!TryDrawShapedText(skCanvas, text, x, y, paint))
+                        var textAlign = ToSKTextAlign(drawTextCanvasCommand.TextAlign ?? drawTextCanvasCommand.Paint.TextAlign);
+                        var applyFont = drawTextCanvasCommand.Font is not null;
+                        using var font = drawTextCanvasCommand.Font is { } textFont
+                            ? ToSKFont(textFont)
+                            : ToSKFont(drawTextCanvasCommand.Paint);
+                        if (font is null)
                         {
-                            skCanvas.DrawText(text, x, y, paint);
+                            break;
+                        }
+
+                        var textPaint = applyFont || drawTextCanvasCommand.TextAlign.HasValue
+                            ? CreateTextRenderPaint(paint, textAlign, font, applyFont)
+                            : paint;
+                        try
+                        {
+                            if (!TryDrawShapedText(skCanvas, text, x, y, textAlign, font, textPaint))
+                            {
+                                skCanvas.DrawText(text, x, y, textPaint);
+                            }
+                        }
+                        finally
+                        {
+                            DisposeIfCloned(textPaint, paint);
                         }
                     }
                     break;
@@ -1937,7 +2136,32 @@ public partial class SkiaModel
                         var paint = wireframe
                             ? ToWireframePaint(drawTextOnPathCanvasCommand.Paint)
                             : GetRenderPaint(drawTextOnPathCanvasCommand.Paint);
-                        skCanvas.DrawTextOnPath(text, path, hOffset, vOffset, paint);
+                        if (path is null || paint is null)
+                        {
+                            break;
+                        }
+
+                        var textAlign = ToSKTextAlign(drawTextOnPathCanvasCommand.TextAlign ?? drawTextOnPathCanvasCommand.Paint.TextAlign);
+                        var applyFont = drawTextOnPathCanvasCommand.Font is not null;
+                        using var font = drawTextOnPathCanvasCommand.Font is { } textFont
+                            ? ToSKFont(textFont)
+                            : ToSKFont(drawTextOnPathCanvasCommand.Paint);
+                        if (font is null)
+                        {
+                            break;
+                        }
+
+                        var textPaint = applyFont || drawTextOnPathCanvasCommand.TextAlign.HasValue
+                            ? CreateTextRenderPaint(paint, textAlign, font, applyFont)
+                            : paint;
+                        try
+                        {
+                            skCanvas.DrawTextOnPath(text, path, hOffset, vOffset, textPaint);
+                        }
+                        finally
+                        {
+                            DisposeIfCloned(textPaint, paint);
+                        }
                     }
                     break;
                 }
@@ -2030,5 +2254,143 @@ public partial class SkiaModel
     public void DrawWireframe(SKPicture picture, SkiaSharp.SKCanvas skCanvas)
     {
         Draw(picture, skCanvas, true);
+    }
+
+    private static class SkiaSharpSamplingOptionsApi
+    {
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        private static readonly Type? s_samplingOptionsType = Type.GetType("SkiaSharp.SKSamplingOptions, SkiaSharp", throwOnError: false);
+
+        private static readonly Type? s_filterModeType = Type.GetType("SkiaSharp.SKFilterMode, SkiaSharp", throwOnError: false);
+        private static readonly Type? s_mipmapModeType = Type.GetType("SkiaSharp.SKMipmapMode, SkiaSharp", throwOnError: false);
+
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)]
+#endif
+        private static readonly Type? s_cubicResamplerType = Type.GetType("SkiaSharp.SKCubicResampler, SkiaSharp", throwOnError: false);
+
+        private static readonly System.Reflection.ConstructorInfo? s_filterSamplingOptionsConstructor = GetConstructor(s_samplingOptionsType, s_filterModeType, s_mipmapModeType);
+        private static readonly System.Reflection.ConstructorInfo? s_cubicResamplerConstructor = GetConstructor(s_cubicResamplerType, typeof(float), typeof(float));
+        private static readonly System.Reflection.ConstructorInfo? s_cubicSamplingOptionsConstructor = GetConstructor(s_samplingOptionsType, s_cubicResamplerType);
+        private static readonly System.Reflection.MethodInfo? s_drawImageWithSampling = GetDrawImageWithSampling();
+
+        public static bool IsAvailable =>
+            s_samplingOptionsType is not null &&
+            s_filterModeType is not null &&
+            s_mipmapModeType is not null &&
+            s_cubicResamplerType is not null &&
+            s_filterSamplingOptionsConstructor is not null &&
+            s_cubicResamplerConstructor is not null &&
+            s_cubicSamplingOptionsConstructor is not null &&
+            s_drawImageWithSampling is not null;
+
+        public static void DrawImage(
+            SkiaSharp.SKCanvas skCanvas,
+            SkiaSharp.SKImage image,
+            SkiaSharp.SKRect source,
+            SkiaSharp.SKRect dest,
+            SKSamplingOptions samplingOptions,
+            SkiaSharp.SKPaint? paint)
+        {
+            var nativeSamplingOptions = ToNativeSamplingOptions(samplingOptions);
+            if (nativeSamplingOptions is null || s_drawImageWithSampling is null)
+            {
+                return;
+            }
+
+            try
+            {
+                s_drawImageWithSampling.Invoke(skCanvas, new[] { image, source, dest, nativeSamplingOptions, paint });
+            }
+            catch (System.Reflection.TargetInvocationException ex) when (ex.InnerException is not null)
+            {
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            }
+        }
+
+        private static object? ToNativeSamplingOptions(SKSamplingOptions samplingOptions)
+        {
+            if (samplingOptions.UseCubic)
+            {
+                if (s_cubicResamplerType is null || s_cubicResamplerConstructor is null || s_cubicSamplingOptionsConstructor is null)
+                {
+                    return null;
+                }
+
+                var cubic = s_cubicResamplerConstructor.Invoke(new object[] { samplingOptions.Cubic.B, samplingOptions.Cubic.C });
+                return s_cubicSamplingOptionsConstructor.Invoke(new[] { cubic });
+            }
+
+            if (s_filterModeType is null || s_mipmapModeType is null || s_filterSamplingOptionsConstructor is null)
+            {
+                return null;
+            }
+
+            var filterMode = Enum.ToObject(s_filterModeType, (int)samplingOptions.Filter);
+            var mipmapMode = Enum.ToObject(s_mipmapModeType, (int)samplingOptions.Mipmap);
+            return s_filterSamplingOptionsConstructor.Invoke(new[] { filterMode, mipmapMode });
+        }
+
+        private static System.Reflection.ConstructorInfo? GetConstructor(
+#if NET6_0_OR_GREATER
+            [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] Type? type,
+#else
+            Type? type,
+#endif
+            params Type?[] parameterTypes)
+        {
+            if (type is null)
+            {
+                return null;
+            }
+
+            var resolvedParameterTypes = new Type[parameterTypes.Length];
+            for (var i = 0; i < parameterTypes.Length; i++)
+            {
+                if (parameterTypes[i] is not { } parameterType)
+                {
+                    return null;
+                }
+
+                resolvedParameterTypes[i] = parameterType;
+            }
+
+            return type.GetConstructor(resolvedParameterTypes);
+        }
+
+        private static System.Reflection.MethodInfo? GetDrawImageWithSampling()
+        {
+            if (s_samplingOptionsType is null)
+            {
+                return null;
+            }
+
+            var methods = typeof(SkiaSharp.SKCanvas).GetMethods(
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public);
+            for (var i = 0; i < methods.Length; i++)
+            {
+                var method = methods[i];
+                if (method.Name != nameof(SkiaSharp.SKCanvas.DrawImage))
+                {
+                    continue;
+                }
+
+                var parameters = method.GetParameters();
+                if (parameters.Length == 5 &&
+                    parameters[0].ParameterType == typeof(SkiaSharp.SKImage) &&
+                    parameters[1].ParameterType == typeof(SkiaSharp.SKRect) &&
+                    parameters[2].ParameterType == typeof(SkiaSharp.SKRect) &&
+                    parameters[3].ParameterType == s_samplingOptionsType &&
+                    parameters[4].ParameterType == typeof(SkiaSharp.SKPaint))
+                {
+                    return method;
+                }
+            }
+
+            return null;
+        }
     }
 }
