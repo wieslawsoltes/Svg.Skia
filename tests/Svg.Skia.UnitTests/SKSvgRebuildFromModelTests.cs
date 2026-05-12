@@ -388,6 +388,20 @@ public class SKSvgRebuildFromModelTests
     }
 
     [Fact]
+    public void ToSKFont_MapsAliasedPaintToAliasEdging()
+    {
+        var skiaModel = new SkiaModel(new SKSvgSettings());
+
+        using var font = skiaModel.ToSKFont(new ShimSkiaSharp.SKPaint
+        {
+            IsAntialias = false,
+            LcdRenderText = true
+        });
+
+        Assert.Equal(SkiaSharp.SKFontEdging.Alias, font.Edging);
+    }
+
+    [Fact]
     public void ToSKPicture_ReflectsInPlaceMutatedPolyPointsAfterInitialNativeBuild()
     {
         var points = new List<ShimSkiaSharp.SKPoint>

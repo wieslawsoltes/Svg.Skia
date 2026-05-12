@@ -1520,7 +1520,11 @@ public static class SkiaCSharpModelExtensions
 
         sb.AppendLine($"{indent}var {counter.FontVarName}{counterFont} = new SKFont({typefaceExpression}, {paint.TextSize.ToFloatString()});");
 
-        if (paint.LcdRenderText != false)
+        if (!paint.IsAntialias)
+        {
+            sb.AppendLine($"{indent}{counter.FontVarName}{counterFont}.Edging = SKFontEdging.Alias;");
+        }
+        else if (paint.LcdRenderText != false)
         {
             sb.AppendLine($"{indent}{counter.FontVarName}{counterFont}.Edging = SKFontEdging.SubpixelAntialias;");
         }

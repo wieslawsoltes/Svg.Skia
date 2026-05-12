@@ -159,6 +159,26 @@ public class SkiaCSharpCodeGenTests
     }
 
     [Fact]
+    public void Generate_UsesAliasFontEdgingForAliasedTextPaint()
+    {
+        var paint = new SKPaint
+        {
+            IsAntialias = false,
+            LcdRenderText = true,
+            TextSize = 18f
+        };
+        var picture = new SKPicture(SKRect.Create(0f, 0f, 40f, 20f), new List<CanvasCommand>
+        {
+            new DrawTextCanvasCommand("Text", 1f, 18f, paint)
+        });
+
+        var code = SkiaCSharpCodeGen.Generate(picture, "Svg", "Generated");
+
+        Assert.Contains(".Edging = SKFontEdging.Alias;", code);
+        Assert.DoesNotContain(".Edging = SKFontEdging.SubpixelAntialias;", code);
+    }
+
+    [Fact]
     public void SkiaModel_ToSKShader_CreatesGradientsWithOptionalColorPositions()
     {
         var model = new SkiaModel(new SKSvgSettings());

@@ -164,6 +164,18 @@ public partial class SkiaModel
         };
     }
 
+    private static SkiaSharp.SKFontEdging ToSKFontEdging(SKPaint paint)
+    {
+        if (!paint.IsAntialias)
+        {
+            return SkiaSharp.SKFontEdging.Alias;
+        }
+
+        return paint.LcdRenderText
+            ? SkiaSharp.SKFontEdging.SubpixelAntialias
+            : SkiaSharp.SKFontEdging.Antialias;
+    }
+
     public SkiaSharp.SKFontStyleWeight ToSKFontStyleWeight(SKFontStyleWeight fontStyleWeight)
     {
         return fontStyleWeight switch
@@ -1401,7 +1413,7 @@ public partial class SkiaModel
         var typefaceResolution = ResolveSKTypeface(paint.Typeface);
         var skFont = new SkiaSharp.SKFont(typefaceResolution.Typeface, paint.TextSize)
         {
-            Edging = paint.LcdRenderText ? SkiaSharp.SKFontEdging.SubpixelAntialias : SkiaSharp.SKFontEdging.Antialias,
+            Edging = ToSKFontEdging(paint),
             Subpixel = paint.SubpixelText
         };
 
