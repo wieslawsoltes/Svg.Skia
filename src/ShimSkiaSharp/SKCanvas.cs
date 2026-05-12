@@ -30,12 +30,12 @@ public abstract record CanvasCommand : IDeepCloneable<CanvasCommand>
             {
                 ClipPathCanvasCommand clipPathCanvasCommand => new ClipPathCanvasCommand(clipPathCanvasCommand.ClipPath?.DeepClone(context), clipPathCanvasCommand.Operation, clipPathCanvasCommand.Antialias),
                 ClipRectCanvasCommand clipRectCanvasCommand => new ClipRectCanvasCommand(clipRectCanvasCommand.Rect, clipRectCanvasCommand.Operation, clipRectCanvasCommand.Antialias),
-                DrawImageCanvasCommand drawImageCanvasCommand => new DrawImageCanvasCommand(drawImageCanvasCommand.Image?.DeepClone(context), drawImageCanvasCommand.Source, drawImageCanvasCommand.Dest, drawImageCanvasCommand.Paint?.DeepClone(context)),
+                DrawImageCanvasCommand drawImageCanvasCommand => new DrawImageCanvasCommand(drawImageCanvasCommand.Image?.DeepClone(context), drawImageCanvasCommand.Source, drawImageCanvasCommand.Dest, drawImageCanvasCommand.Paint?.DeepClone(context), drawImageCanvasCommand.Sampling),
                 DrawPictureCanvasCommand drawPictureCanvasCommand => new DrawPictureCanvasCommand(drawPictureCanvasCommand.Picture?.DeepClone(context)),
                 DrawPathCanvasCommand drawPathCanvasCommand => new DrawPathCanvasCommand(drawPathCanvasCommand.Path?.DeepClone(context), drawPathCanvasCommand.Paint?.DeepClone(context)),
                 DrawTextBlobCanvasCommand drawTextBlobCanvasCommand => new DrawTextBlobCanvasCommand(drawTextBlobCanvasCommand.TextBlob?.DeepClone(context), drawTextBlobCanvasCommand.X, drawTextBlobCanvasCommand.Y, drawTextBlobCanvasCommand.Paint?.DeepClone(context)),
-                DrawTextCanvasCommand drawTextCanvasCommand => new DrawTextCanvasCommand(drawTextCanvasCommand.Text, drawTextCanvasCommand.X, drawTextCanvasCommand.Y, drawTextCanvasCommand.Paint?.DeepClone(context)),
-                DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand => new DrawTextOnPathCanvasCommand(drawTextOnPathCanvasCommand.Text, drawTextOnPathCanvasCommand.Path?.DeepClone(context), drawTextOnPathCanvasCommand.HOffset, drawTextOnPathCanvasCommand.VOffset, drawTextOnPathCanvasCommand.Paint?.DeepClone(context)),
+                DrawTextCanvasCommand drawTextCanvasCommand => new DrawTextCanvasCommand(drawTextCanvasCommand.Text, drawTextCanvasCommand.X, drawTextCanvasCommand.Y, drawTextCanvasCommand.Paint?.DeepClone(context), drawTextCanvasCommand.TextAlign, drawTextCanvasCommand.Font?.DeepClone(context)),
+                DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand => new DrawTextOnPathCanvasCommand(drawTextOnPathCanvasCommand.Text, drawTextOnPathCanvasCommand.Path?.DeepClone(context), drawTextOnPathCanvasCommand.HOffset, drawTextOnPathCanvasCommand.VOffset, drawTextOnPathCanvasCommand.Paint?.DeepClone(context), drawTextOnPathCanvasCommand.TextAlign, drawTextOnPathCanvasCommand.Font?.DeepClone(context)),
                 RestoreCanvasCommand restoreCanvasCommand => new RestoreCanvasCommand(restoreCanvasCommand.Count),
                 SaveCanvasCommand saveCanvasCommand => new SaveCanvasCommand(saveCanvasCommand.Count),
                 SaveLayerCanvasCommand saveLayerCanvasCommand => new SaveLayerCanvasCommand(saveLayerCanvasCommand.Count, saveLayerCanvasCommand.Paint?.DeepClone(context)),
@@ -65,7 +65,7 @@ public record ClipPathCanvasCommand(ClipPath? ClipPath, SKClipOperation Operatio
 
 public record ClipRectCanvasCommand(SKRect Rect, SKClipOperation Operation, bool Antialias) : CanvasCommand;
 
-public record DrawImageCanvasCommand(SKImage? Image, SKRect Source, SKRect Dest, SKPaint? Paint = null) : CanvasCommand;
+public record DrawImageCanvasCommand(SKImage? Image, SKRect Source, SKRect Dest, SKPaint? Paint = null, SKSamplingOptions? Sampling = null) : CanvasCommand;
 
 public record DrawPictureCanvasCommand(SKPicture? Picture) : CanvasCommand;
 
@@ -73,9 +73,9 @@ public record DrawPathCanvasCommand(SKPath? Path, SKPaint? Paint) : CanvasComman
 
 public record DrawTextBlobCanvasCommand(SKTextBlob? TextBlob, float X, float Y, SKPaint? Paint) : CanvasCommand;
 
-public record DrawTextCanvasCommand(string Text, float X, float Y, SKPaint? Paint) : CanvasCommand;
+public record DrawTextCanvasCommand(string Text, float X, float Y, SKPaint? Paint, SKTextAlign? TextAlign = null, SKFont? Font = null) : CanvasCommand;
 
-public record DrawTextOnPathCanvasCommand(string Text, SKPath? Path, float HOffset, float VOffset, SKPaint? Paint) : CanvasCommand;
+public record DrawTextOnPathCanvasCommand(string Text, SKPath? Path, float HOffset, float VOffset, SKPaint? Paint, SKTextAlign? TextAlign = null, SKFont? Font = null) : CanvasCommand;
 
 public record RestoreCanvasCommand(int Count) : CanvasCommand;
 
@@ -206,6 +206,11 @@ public class SKCanvas : ICloneable, IDeepCloneable<SKCanvas>
         AddCommand(new DrawImageCanvasCommand(image, source, dest, paint));
     }
 
+    public void DrawImage(SKImage image, SKRect source, SKRect dest, SKSamplingOptions sampling, SKPaint? paint = null)
+    {
+        AddCommand(new DrawImageCanvasCommand(image, source, dest, paint, sampling));
+    }
+
     public void DrawPicture(SKPicture picture)
     {
         AddCommand(new DrawPictureCanvasCommand(picture));
@@ -226,9 +231,19 @@ public class SKCanvas : ICloneable, IDeepCloneable<SKCanvas>
         AddCommand(new DrawTextCanvasCommand(text, x, y, paint));
     }
 
+    public void DrawText(string text, float x, float y, SKTextAlign textAlign, SKFont font, SKPaint paint)
+    {
+        AddCommand(new DrawTextCanvasCommand(text, x, y, paint, textAlign, font));
+    }
+
     public void DrawTextOnPath(string text, SKPath path, float hOffset, float vOffset, SKPaint paint)
     {
         AddCommand(new DrawTextOnPathCanvasCommand(text, path, hOffset, vOffset, paint));
+    }
+
+    public void DrawTextOnPath(string text, SKPath path, float hOffset, float vOffset, SKTextAlign textAlign, SKFont font, SKPaint paint)
+    {
+        AddCommand(new DrawTextOnPathCanvasCommand(text, path, hOffset, vOffset, paint, textAlign, font));
     }
 
     public void SetMatrix(SKMatrix deltaMatrix)
