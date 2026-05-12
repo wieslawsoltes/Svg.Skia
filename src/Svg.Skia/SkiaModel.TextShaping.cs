@@ -113,7 +113,7 @@ public partial class SkiaModel
         }
 
         using var skPaint = ToSKPaint(paint);
-        if (skPaint is null || !TryShapeText(text, 0f, 0f, skPaint, rightToLeft, out var result))
+        if (skPaint is null || !TryShapeText(text!, 0f, 0f, skPaint, rightToLeft, out var result))
         {
             return false;
         }

@@ -55,7 +55,7 @@ public class SkiaGeneratorSvgAssetLoader : Model.ISvgAssetLoader
         }
 
         var size = paint.TextSize;
-        var width = text.Length * size * 0.6f;
+        var width = text!.Length * size * 0.6f;
         bounds = new ShimSkiaSharp.SKRect(0, -size * 0.8f, width, size * 0.2f);
         return width;
     }
