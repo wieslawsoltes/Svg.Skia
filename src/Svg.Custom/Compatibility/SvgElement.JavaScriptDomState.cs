@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 #nullable enable
@@ -47,23 +46,9 @@ public abstract partial class SvgElement
 
         _javaScriptDomAttributeValues.Remove(name);
     }
-}
 
-public partial class SvgDocument
-{
-    internal void CopyJavaScriptDomStateTo(SvgDocument target)
+    partial void CopyCustomStateTo(SvgElement target)
     {
-        CopyJavaScriptDomState(this, target);
-    }
-
-    private static void CopyJavaScriptDomState(SvgElement source, SvgElement target)
-    {
-        source.CopyJavaScriptDomAttributeValuesTo(target);
-
-        var count = Math.Min(source.Children.Count, target.Children.Count);
-        for (var i = 0; i < count; i++)
-        {
-            CopyJavaScriptDomState(source.Children[i], target.Children[i]);
-        }
+        CopyJavaScriptDomAttributeValuesTo(target);
     }
 }

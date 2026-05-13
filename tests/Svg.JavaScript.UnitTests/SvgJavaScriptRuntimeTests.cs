@@ -114,7 +114,8 @@ public class SvgJavaScriptRuntimeTests
             """, captureJavaScriptDomState: true);
 
         var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings { ThrowOnError = true });
-        var target = runtime.GetElement(document.Descendants().Single(element => element.ID == "target"));
+        var targetElement = document.Descendants().Single(element => element.ID == "target");
+        var target = runtime.GetElement(targetElement);
 
         Assert.Equal(3, target.orientAngle.baseVal.unitType);
 
@@ -134,6 +135,13 @@ public class SvgJavaScriptRuntimeTests
         Assert.Equal("2grad", cloneTarget.orientAngle.baseVal.valueAsString);
         Assert.Equal(4, cloneTarget.orientAngle.baseVal.unitType);
         Assert.True(cloneTarget.hasAttribute("data-empty"));
+
+        var elementClone = targetElement.DeepCopy();
+        var elementCloneTarget = runtime.GetElement(elementClone);
+
+        Assert.Equal("2grad", elementCloneTarget.orientAngle.baseVal.valueAsString);
+        Assert.Equal(4, elementCloneTarget.orientAngle.baseVal.unitType);
+        Assert.True(elementCloneTarget.hasAttribute("data-empty"));
     }
 
     [Fact]
