@@ -42,4 +42,19 @@ public class SvgMLContentTests
         Assert.Equal(nameof(SvgML.text_base.Text), attribute!.Name);
     }
 
+    [Fact]
+    public void EnumBridge_FormatsSvgEnumsWithoutTypeDescriptor()
+    {
+        Assert.Equal("visiblePainted", new SvgML.SvgPointerEventsValue(global::Svg.SvgPointerEvents.VisiblePainted).ToString());
+        Assert.Equal("whenNotActive", new SvgML.SvgAnimationRestartValue(global::Svg.SvgAnimationRestart.WhenNotActive).ToString());
+        Assert.Equal(global::Svg.SvgPointerEvents.VisiblePainted, SvgML.SvgPointerEventsValue.Parse("visiblePainted").Value);
+    }
+
+    [Fact]
+    public void EnumBridge_FormatsManualEnumsWithoutTypeDescriptor()
+    {
+        Assert.Equal("color-dodge", new SvgML.BlendModeValue(SvgML.blend_mode.color_dodge).ToString());
+        Assert.Equal(SvgML.blend_mode.color_dodge, SvgML.BlendModeValue.Parse("color-dodge").Value);
+        Assert.Equal("hueRotate", new SvgML.TypeFeColorMatrixValue(SvgML.type_feColorMatrix.hueRotate).ToString());
+    }
 }
