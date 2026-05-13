@@ -21,6 +21,7 @@ namespace Svg
             newObj.ExternalCSSHref = ExternalCSSHref;
             CopyCompatibilityStyleSourcesTo(newObj);
             CopyCompatibilityStyleStateTo(newObj);
+            CopyJavaScriptDomStateTo(newObj);
 
             foreach (var ns in Namespaces)
             {

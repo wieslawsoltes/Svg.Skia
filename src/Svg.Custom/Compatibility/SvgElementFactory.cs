@@ -153,6 +153,7 @@ namespace Svg
                     {
                         if (PreserveJavaScriptDomState && !string.IsNullOrWhiteSpace(reader.Value))
                         {
+                            element.SetJavaScriptDomAttributeValue(localName, reader.Value);
                             element.CustomAttributes["style"] = reader.Value;
                             TrackCompatibilityStyleStateCandidate(document, element);
                         }
@@ -170,6 +171,11 @@ namespace Svg
                     }
                     else if (prefix.Length == 0 && IsStyleAttribute(localName))
                     {
+                        if (PreserveJavaScriptDomState && !string.IsNullOrWhiteSpace(reader.Value))
+                        {
+                            element.SetJavaScriptDomAttributeValue(localName, reader.Value);
+                        }
+
                         if (PreserveCompatibilityPresentationAttributes)
                         {
                             PreserveCompatibilityPresentationAttribute(document, element, localName, reader.Value);
@@ -179,6 +185,11 @@ namespace Svg
                     }
                     else
                     {
+                        if (PreserveJavaScriptDomState && !string.IsNullOrWhiteSpace(reader.Value))
+                        {
+                            element.SetJavaScriptDomAttributeValue(GetJavaScriptDomAttributeName(prefix, localName), reader.Value);
+                        }
+
                         var ns = prefix.Length == 0 ? string.Empty : reader.LookupNamespace(prefix);
                         SetPropertyValue(element, ns, localName, reader.Value, document);
                     }
@@ -198,6 +209,17 @@ namespace Svg
         {
             var ownerDocument = document ?? element as SvgDocument;
             ownerDocument?.PreserveCompatibilityPresentationAttribute(element, name, value);
+        }
+
+        private static string GetJavaScriptDomAttributeName(string prefix, string localName)
+        {
+            if (prefix.Equals("xlink", StringComparison.OrdinalIgnoreCase) &&
+                localName.Equals("href", StringComparison.OrdinalIgnoreCase))
+            {
+                return "href";
+            }
+
+            return prefix.Length == 0 ? localName : $"{prefix}:{localName}";
         }
 
         private static bool IsStyleAttribute(string name)

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Xml;
 using Svg;
 using Svg.JavaScript;
+using Svg.Model.Services;
 using Xunit;
 
 namespace Svg.JavaScript.UnitTests;
@@ -104,6 +105,38 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void SvgAngleValueAsString_PreservesAssignedUnitType()
+    {
+        var document = LoadDocument("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <marker id="target" orient="20rad" />
+            </svg>
+            """, captureJavaScriptDomState: true);
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings { ThrowOnError = true });
+        var target = runtime.GetElement(document.Descendants().Single(element => element.ID == "target"));
+
+        Assert.Equal(3, target.orientAngle.baseVal.unitType);
+
+        target.orientAngle.baseVal.valueAsString = "2grad";
+
+        Assert.Equal("2grad", target.orientAngle.baseVal.valueAsString);
+        Assert.Equal(4, target.orientAngle.baseVal.unitType);
+
+        target.setAttribute("data-empty", string.Empty);
+        Assert.True(target.hasAttribute("data-empty"));
+        Assert.Equal(string.Empty, target.getAttribute("data-empty"));
+
+        var clone = Assert.IsType<SvgDocument>(document.DeepCopy());
+        var cloneRuntime = new SvgJavaScriptRuntime(clone, new SvgJavaScriptSettings { ThrowOnError = true });
+        var cloneTarget = cloneRuntime.GetElement(clone.Descendants().Single(element => element.ID == "target"));
+
+        Assert.Equal("2grad", cloneTarget.orientAngle.baseVal.valueAsString);
+        Assert.Equal(4, cloneTarget.orientAngle.baseVal.unitType);
+        Assert.True(cloneTarget.hasAttribute("data-empty"));
+    }
+
+    [Fact]
     public void AppendChild_MovesTextNodeOutOfPreviousParent()
     {
         var document = LoadDocument("""
@@ -130,8 +163,13 @@ public class SvgJavaScriptRuntimeTests
         Assert.Single(target.Nodes);
     }
 
-    private static SvgDocument LoadDocument(string svg)
+    private static SvgDocument LoadDocument(string svg, bool captureJavaScriptDomState = false)
     {
+        if (captureJavaScriptDomState)
+        {
+            return SvgService.FromSvg(svg, captureCompatibilityStyleState: true)!;
+        }
+
         var xmlDocument = new XmlDocument();
         xmlDocument.LoadXml(svg);
         return SvgDocument.Open(xmlDocument);
