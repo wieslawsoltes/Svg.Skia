@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -39,7 +38,6 @@ internal readonly struct SvgAnimationTimelineCallback
     public TimeSpan Time { get; }
 }
 
-[RequiresUnreferencedCode("Uses TypeDescriptor-based converters for animated SVG values.")]
 public sealed class SvgAnimationController : IDisposable
 {
     private static readonly ResolvedTimingInstance[] s_emptyResolvedTimingInstances = Array.Empty<ResolvedTimingInstance>();
@@ -112,7 +110,6 @@ public sealed class SvgAnimationController : IDisposable
 
     private sealed class AnimationBinding
     {
-        [RequiresUnreferencedCode("Calls Svg.Skia.SvgAnimationController.GetAttributeValue(SvgElement, String)")]
         public AnimationBinding(SvgAnimationElement animation, SvgElement sourceTarget, SvgElementAddress targetAddress, string attributeName)
         {
             Animation = animation;
@@ -120,10 +117,13 @@ public sealed class SvgAnimationController : IDisposable
             SourceTarget = sourceTarget;
             TargetAddress = targetAddress;
             AttributeName = attributeName;
+            var propertyDescriptor = GetAttributePropertyDescriptor(sourceTarget, attributeName);
+            ValueConverter = propertyDescriptor?.Converter;
+            ValueContext = sourceTarget.OwnerDocument;
             HasExplicitBaseAttribute = sourceTarget.ContainsAttribute(attributeName);
             BaseValue = GetAttributeValue(sourceTarget, attributeName);
             BaseValueString = ConvertAttributeValueToString(BaseValue);
-            PropertyType = BaseValue?.GetType();
+            PropertyType = propertyDescriptor?.Type ?? BaseValue?.GetType();
             TargetAttributeKey = string.Concat(targetAddress.Key, "|", attributeName);
             BeginSpecs = ParseTimingSpecifications(animation.Begin, animation.OwnerDocument, targetAddress, includeImplicitDocumentBegin: true);
             EndSpecs = ParseTimingSpecifications(animation.End, animation.OwnerDocument, targetAddress, includeImplicitDocumentBegin: false);
@@ -150,6 +150,10 @@ public sealed class SvgAnimationController : IDisposable
         public string? BaseValueString { get; }
 
         public Type? PropertyType { get; }
+
+        public TypeConverter? ValueConverter { get; }
+
+        public ITypeDescriptorContext? ValueContext { get; }
 
         public string TargetAttributeKey { get; }
 
@@ -220,7 +224,7 @@ public sealed class SvgAnimationController : IDisposable
         public int IterationIndex { get; }
     }
 
-    private static readonly TypeConverter s_paintServerConverter = TypeDescriptor.GetConverter(typeof(SvgPaintServer));
+    private static readonly TypeConverter s_paintServerConverter = new SvgPaintServerFactory();
 
     private readonly List<AnimationBinding> _bindings;
     private readonly Dictionary<string, AnimationBinding> _bindingsByTargetAttributeKey;
@@ -2781,7 +2785,6 @@ public sealed class SvgAnimationController : IDisposable
         return false;
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SvgAnimationController.TryConvertStringToType(String, Type, out Object)")]
     private static bool TryResolvePacedDistance(AnimationBinding binding, string fromValue, string toValue, bool forceColorInterpolation, out float distance)
     {
         distance = 0f;
@@ -2795,8 +2798,8 @@ public sealed class SvgAnimationController : IDisposable
         }
 
         if (binding.PropertyType is { } propertyType &&
-            TryConvertStringToType(fromValue, propertyType, out var fromObject) &&
-            TryConvertStringToType(toValue, propertyType, out var toObject) &&
+            TryConvertStringToType(fromValue, propertyType, binding.ValueConverter, binding.ValueContext, out var fromObject) &&
+            TryConvertStringToType(toValue, propertyType, binding.ValueConverter, binding.ValueContext, out var toObject) &&
             TryResolveTypedPacedDistance(fromObject, toObject, out distance))
         {
             return true;
@@ -3013,7 +3016,6 @@ public sealed class SvgAnimationController : IDisposable
                (3f * t * t * (1f - control2));
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SvgAnimationController.TryConvertStringToType(String, Type, out Object)")]
     private static bool TryInterpolateValue(AnimationBinding binding, string fromValue, string toValue, float progress, bool forceColorInterpolation, out string result)
     {
         result = string.Empty;
@@ -3025,8 +3027,8 @@ public sealed class SvgAnimationController : IDisposable
         }
 
         if (binding.PropertyType is { } propertyType &&
-            TryConvertStringToType(fromValue, propertyType, out var fromObject) &&
-            TryConvertStringToType(toValue, propertyType, out var toObject) &&
+            TryConvertStringToType(fromValue, propertyType, binding.ValueConverter, binding.ValueContext, out var fromObject) &&
+            TryConvertStringToType(toValue, propertyType, binding.ValueConverter, binding.ValueContext, out var toObject) &&
             TryInterpolateTypedValue(fromObject, toObject, progress, out result))
         {
             return true;
@@ -3090,13 +3092,12 @@ public sealed class SvgAnimationController : IDisposable
         return true;
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SvgAnimationController.TryConvertStringToType(String, Type, out Object)")]
     private static bool TryInterpolateSvgUnit(string fromValue, string toValue, float progress, out string result)
     {
         result = string.Empty;
 
-        if (!TryConvertStringToType(fromValue, typeof(SvgUnit), out var fromObject) ||
-            !TryConvertStringToType(toValue, typeof(SvgUnit), out var toObject) ||
+        if (!TryConvertStringToType(fromValue, typeof(SvgUnit), converter: null, context: null, out var fromObject) ||
+            !TryConvertStringToType(toValue, typeof(SvgUnit), converter: null, context: null, out var toObject) ||
             fromObject is not SvgUnit fromUnit ||
             toObject is not SvgUnit toUnit)
         {
@@ -3223,21 +3224,20 @@ public sealed class SvgAnimationController : IDisposable
         return false;
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SvgAnimationController.TryConvertStringToType(String, Type, out Object)")]
     private static bool TryAddValue(AnimationBinding binding, string baseValue, string byValue, out string result)
     {
         result = string.Empty;
 
         if (binding.PropertyType is { } propertyType &&
-            TryConvertStringToType(baseValue, propertyType, out var baseObject) &&
-            TryConvertStringToType(byValue, propertyType, out var byObject) &&
+            TryConvertStringToType(baseValue, propertyType, binding.ValueConverter, binding.ValueContext, out var baseObject) &&
+            TryConvertStringToType(byValue, propertyType, binding.ValueConverter, binding.ValueContext, out var byObject) &&
             TryAddTypedValue(baseObject, byObject, out result))
         {
             return true;
         }
 
-        if (TryConvertStringToType(baseValue, typeof(SvgUnit), out var baseUnitObject) &&
-            TryConvertStringToType(byValue, typeof(SvgUnit), out var byUnitObject) &&
+        if (TryConvertStringToType(baseValue, typeof(SvgUnit), converter: null, context: null, out var baseUnitObject) &&
+            TryConvertStringToType(byValue, typeof(SvgUnit), converter: null, context: null, out var byUnitObject) &&
             baseUnitObject is SvgUnit baseUnit &&
             byUnitObject is SvgUnit byUnit &&
             baseUnit.Type == byUnit.Type)
@@ -3267,21 +3267,20 @@ public sealed class SvgAnimationController : IDisposable
         return false;
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SvgAnimationController.TryConvertStringToType(String, Type, out Object)")]
     private static bool TrySubtractValue(AnimationBinding binding, string endValue, string startValue, bool forceColorInterpolation, out string result)
     {
         result = string.Empty;
 
         if (binding.PropertyType is { } propertyType &&
-            TryConvertStringToType(endValue, propertyType, out var endObject) &&
-            TryConvertStringToType(startValue, propertyType, out var startObject) &&
+            TryConvertStringToType(endValue, propertyType, binding.ValueConverter, binding.ValueContext, out var endObject) &&
+            TryConvertStringToType(startValue, propertyType, binding.ValueConverter, binding.ValueContext, out var startObject) &&
             TrySubtractTypedValue(endObject, startObject, out result))
         {
             return true;
         }
 
-        if (TryConvertStringToType(endValue, typeof(SvgUnit), out var endUnitObject) &&
-            TryConvertStringToType(startValue, typeof(SvgUnit), out var startUnitObject) &&
+        if (TryConvertStringToType(endValue, typeof(SvgUnit), converter: null, context: null, out var endUnitObject) &&
+            TryConvertStringToType(startValue, typeof(SvgUnit), converter: null, context: null, out var startUnitObject) &&
             endUnitObject is SvgUnit endUnit &&
             startUnitObject is SvgUnit startUnit &&
             endUnit.Type == startUnit.Type)
@@ -3300,7 +3299,6 @@ public sealed class SvgAnimationController : IDisposable
         return false;
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SvgAnimationController.TryConvertStringToType(String, Type, out Object)")]
     private static bool TryScaleValue(AnimationBinding binding, string value, int factor, bool forceColorInterpolation, out string result)
     {
         result = string.Empty;
@@ -3312,13 +3310,13 @@ public sealed class SvgAnimationController : IDisposable
         }
 
         if (binding.PropertyType is { } propertyType &&
-            TryConvertStringToType(value, propertyType, out var valueObject) &&
+            TryConvertStringToType(value, propertyType, binding.ValueConverter, binding.ValueContext, out var valueObject) &&
             TryScaleTypedValue(valueObject, factor, out result))
         {
             return true;
         }
 
-        if (TryConvertStringToType(value, typeof(SvgUnit), out var unitObject) &&
+        if (TryConvertStringToType(value, typeof(SvgUnit), converter: null, context: null, out var unitObject) &&
             unitObject is SvgUnit unit)
         {
             result = new SvgUnit(unit.Type, unit.Value * factor).ToString();
@@ -3415,8 +3413,12 @@ public sealed class SvgAnimationController : IDisposable
         }
     }
 
-    [RequiresUnreferencedCode("Calls System.ComponentModel.TypeDescriptor.GetConverter(Type)")]
-    private static bool TryConvertStringToType(string value, Type targetType, out object? result)
+    private static bool TryConvertStringToType(
+        string value,
+        Type targetType,
+        TypeConverter? converter,
+        ITypeDescriptorContext? context,
+        out object? result)
     {
         result = null;
 
@@ -3439,10 +3441,42 @@ public sealed class SvgAnimationController : IDisposable
                 return false;
             }
 
-            var converter = TypeDescriptor.GetConverter(targetType);
-            if (converter.CanConvertFrom(typeof(string)))
+            if (targetType == typeof(float))
             {
-                result = converter.ConvertFrom(null, CultureInfo.InvariantCulture, value);
+                if (SvgAnimationParser.TryParseInvariantFloat(value, out var floatValue))
+                {
+                    result = floatValue;
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (targetType == typeof(double))
+            {
+                if (SvgAnimationParser.TryParseInvariantDouble(value.AsSpan(), out var doubleValue))
+                {
+                    result = doubleValue;
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (targetType == typeof(int))
+            {
+                if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
+                {
+                    result = intValue;
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (converter is { } && converter.CanConvertFrom(typeof(string)))
+            {
+                result = converter.ConvertFrom(context, CultureInfo.InvariantCulture, value);
                 return result is not null;
             }
         }
@@ -3534,6 +3568,13 @@ public sealed class SvgAnimationController : IDisposable
     private static object? GetAttributeValue(SvgElement element, string attributeName)
     {
         return element.GetAnimationValue(attributeName);
+    }
+
+    private static ISvgPropertyDescriptor? GetAttributePropertyDescriptor(SvgElement element, string attributeName)
+    {
+        return element.Properties.TryGetValue(attributeName, out var propertyDescriptor)
+            ? propertyDescriptor
+            : null;
     }
 
     private static bool SetAttributeValue(SvgElement element, string attributeName, string value)

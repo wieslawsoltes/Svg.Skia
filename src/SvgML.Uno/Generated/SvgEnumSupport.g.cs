@@ -12,18 +12,22 @@ internal static class SvgEnumBridge
 {
     public static string ToSvgString(global::System.Enum value)
     {
-        var converter = global::System.ComponentModel.TypeDescriptor.GetConverter(value.GetType());
-        if (converter.GetType() != typeof(global::System.ComponentModel.EnumConverter)
-            && converter.CanConvertTo(typeof(string)))
+        var name = value.ToString();
+        if (string.IsNullOrEmpty(name))
         {
-            var converted = converter.ConvertToInvariantString(value);
-            if (!string.IsNullOrWhiteSpace(converted))
-            {
-                return converted;
-            }
+            return string.Empty;
         }
 
-        return value.ToString().Replace("_", "-", global::System.StringComparison.Ordinal);
+        var typeName = value.GetType().FullName;
+        return typeName switch
+        {
+            "Svg.SvgFontWeight" => FormatFontWeight(name),
+            "Svg.XmlSpaceHandling" or "Svg.SvgFillRule" or "Svg.SvgClipRule" => name.ToLowerInvariant(),
+            "Svg.SvgDominantBaseline" or "Svg.SvgFontVariant" or "Svg.SvgTextDecoration" or "Svg.SvgFontStretch" or "Svg.FilterEffects.SvgBlendMode" => ToKebabCase(name),
+            "Svg.FilterEffects.SvgChannelSelector" => name,
+            _ when typeName is not null && typeName.StartsWith("SvgML.", global::System.StringComparison.Ordinal) => name.Replace("_", "-", global::System.StringComparison.Ordinal),
+            _ => ToCamelCase(name),
+        };
     }
 
     public static TEnum Parse<TEnum>(string value)
@@ -34,30 +38,123 @@ internal static class SvgEnumBridge
             return default;
         }
 
-        var converter = global::System.ComponentModel.TypeDescriptor.GetConverter(typeof(TEnum));
-        if (converter.GetType() != typeof(global::System.ComponentModel.EnumConverter)
-            && converter.CanConvertFrom(typeof(string)))
-        {
-            try
-            {
-                var converted = converter.ConvertFromInvariantString(value);
-                if (converted is TEnum typedValue)
-                {
-                    return typedValue;
-                }
-            }
-            catch (global::System.Exception)
-            {
-            }
-        }
-
-        var normalized = value.Replace("-", "_", global::System.StringComparison.Ordinal);
-        if (global::System.Enum.TryParse<TEnum>(normalized, ignoreCase: true, out var parsed))
+        if (TryParseSingle<TEnum>(value, out var parsed))
         {
             return parsed;
         }
 
+        var parts = value.Split([' ', ','], global::System.StringSplitOptions.RemoveEmptyEntries | global::System.StringSplitOptions.TrimEntries);
+        if (parts.Length > 1)
+        {
+            ulong combined = 0;
+            for (var i = 0; i < parts.Length; i++)
+            {
+                if (!TryParseSingle<TEnum>(parts[i], out var part))
+                {
+                    throw new global::System.FormatException($"Unable to convert '{value}' to {typeof(TEnum).FullName}.");
+                }
+
+                combined |= global::System.Convert.ToUInt64(part, global::System.Globalization.CultureInfo.InvariantCulture);
+            }
+
+            return (TEnum)global::System.Enum.ToObject(typeof(TEnum), combined);
+        }
+
         throw new global::System.FormatException($"Unable to convert '{value}' to {typeof(TEnum).FullName}.");
+    }
+
+    private static bool TryParseSingle<TEnum>(string value, out TEnum parsed)
+        where TEnum : struct, global::System.Enum
+    {
+        if (typeof(TEnum).FullName == "Svg.SvgFontWeight" && IsFontWeightLiteral(value))
+        {
+            value = "W" + value;
+        }
+
+        if (global::System.Enum.TryParse(value, ignoreCase: true, out parsed))
+        {
+            return true;
+        }
+
+        var normalized = NormalizeEnumToken(value);
+        var names = global::System.Enum.GetNames<TEnum>();
+        for (var i = 0; i < names.Length; i++)
+        {
+            if (string.Equals(NormalizeEnumToken(names[i]), normalized, global::System.StringComparison.OrdinalIgnoreCase)
+                && global::System.Enum.TryParse(names[i], out parsed))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string FormatFontWeight(string name)
+    {
+        return name.Length == 4 && name[0] == 'W' && IsFontWeightLiteral(name.Substring(1))
+            ? name.Substring(1)
+            : ToCamelCase(name);
+    }
+
+    private static bool IsFontWeightLiteral(string value)
+    {
+        return value.Length == 3
+            && value[0] >= '1' && value[0] <= '9'
+            && value[1] == '0'
+            && value[2] == '0';
+    }
+
+    private static string NormalizeEnumToken(string value)
+    {
+        return value.Replace("-", string.Empty, global::System.StringComparison.Ordinal)
+            .Replace("_", string.Empty, global::System.StringComparison.Ordinal)
+            .Replace(" ", string.Empty, global::System.StringComparison.Ordinal);
+    }
+
+    private static string ToCamelCase(string value)
+    {
+        return value.Length == 0
+            ? value
+            : char.ToLowerInvariant(value[0]) + value.Substring(1);
+    }
+
+    private static string ToKebabCase(string value)
+    {
+        var builder = new global::System.Text.StringBuilder(value.Length + 4);
+        for (var i = 0; i < value.Length; i++)
+        {
+            var c = value[i];
+            if (c == ',')
+            {
+                continue;
+            }
+
+            if (char.IsWhiteSpace(c))
+            {
+                if (builder.Length > 0 && builder[builder.Length - 1] != ' ')
+                {
+                    builder.Append(' ');
+                }
+
+                continue;
+            }
+
+            if (char.IsUpper(c))
+            {
+                if (i > 0 && value[i - 1] != ' ' && value[i - 1] != ',' && !char.IsUpper(value[i - 1]))
+                {
+                    builder.Append('-');
+                }
+
+                builder.Append(char.ToLowerInvariant(c));
+                continue;
+            }
+
+            builder.Append(c == '_' ? '-' : c);
+        }
+
+        return builder.ToString();
     }
 }
 

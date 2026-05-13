@@ -158,6 +158,11 @@ public sealed partial class SvgJavaScriptElement
         }
 
         var normalizedName = NormalizeAttributeStorageName(name);
+        if (Element.TryGetJavaScriptDomAttributeValue(normalizedName, out var scriptSetValue))
+        {
+            return scriptSetValue;
+        }
+
         if (TryGetSpecialAttributeValue(normalizedName, out var specialValue))
         {
             return specialValue;
@@ -268,7 +273,8 @@ public sealed partial class SvgJavaScriptElement
         normalizedName = NormalizeAttributeStorageName(normalizedName);
         if (string.Equals(normalizedName, "style", StringComparison.OrdinalIgnoreCase))
         {
-            SetInlineStyleText(string.Empty);
+            Element.ClearJavaScriptDomAttributeValue(normalizedName);
+            SetInlineStyleText(string.Empty, syncJavaScriptDomAttribute: false);
             _runtime.MarkMutation();
             return;
         }
@@ -298,9 +304,15 @@ public sealed partial class SvgJavaScriptElement
 
     public bool hasAttribute(string name)
     {
-        return !string.IsNullOrWhiteSpace(name)
-               && (Element.TryGetAttribute(NormalizeAttributeStorageName(name), out _)
-                   || Element.CustomAttributes.ContainsKey(NormalizeAttributeStorageName(name)));
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return false;
+        }
+
+        var normalizedName = NormalizeAttributeStorageName(name);
+        return Element.TryGetJavaScriptDomAttributeValue(normalizedName, out _)
+               || Element.TryGetAttribute(normalizedName, out _)
+               || Element.CustomAttributes.ContainsKey(normalizedName);
     }
 
     public bool hasAttributeNS(string? namespaceUri, string localName)
@@ -729,13 +741,14 @@ public sealed partial class SvgJavaScriptElement
 
         var normalizedName = name.Trim();
         var declarations = ParseInlineStyle(GetRawStyleText(Element));
-        if (!declarations.TryGetValue(normalizedName, out var previous))
-        {
-            previous = string.Empty;
-        }
+        var hadProperty = declarations.TryGetValue(normalizedName, out var previous);
+        previous ??= string.Empty;
 
         declarations.Remove(normalizedName);
-        SetInlineStyleText(SerializeInlineStyle(declarations), declarations);
+        SetInlineStyleText(
+            SerializeInlineStyle(declarations),
+            declarations,
+            HasRawStyleAttribute() || hadProperty);
         _runtime.MarkMutation();
         return previous;
     }
@@ -1413,23 +1426,40 @@ public sealed partial class SvgJavaScriptElement
         {
             Element.CustomAttributes[name] = value;
         }
+
+        Element.SetJavaScriptDomAttributeValue(name, value);
     }
 
     private void RemoveAttributeValue(string name)
     {
         Element.ClearAnimationValue(name);
         Element.CustomAttributes.Remove(name);
+        Element.ClearJavaScriptDomAttributeValue(name);
     }
 
-    private void SetInlineStyleText(string styleText, Dictionary<string, string>? declarations = null)
+    private void SetInlineStyleText(
+        string styleText,
+        Dictionary<string, string>? declarations = null,
+        bool syncJavaScriptDomAttribute = true)
     {
         var previousDeclarations = ParseInlineStyle(GetRawStyleText(Element));
         declarations ??= ParseInlineStyle(styleText);
         CaptureInlineStyleFallbacks(previousDeclarations, declarations);
         SetRawStyleText(Element, styleText);
+        if (syncJavaScriptDomAttribute)
+        {
+            Element.SetJavaScriptDomAttributeValue("style", styleText);
+        }
+
         _document.RawDocument.UpdateCompatibilityStyleText(Element, styleText);
         RestoreRemovedInlineStyleFallbacks(previousDeclarations, declarations);
         _document.RawDocument.ReapplyCompatibilityStyles();
+    }
+
+    private bool HasRawStyleAttribute()
+    {
+        return Element.TryGetJavaScriptDomAttributeValue("style", out _) ||
+               Element.CustomAttributes.ContainsKey("style");
     }
 
     private void CaptureInlineStyleFallbacks(
@@ -1640,6 +1670,12 @@ public sealed partial class SvgJavaScriptElement
 
     private bool TryGetRawAttributeValue(string name, out string value)
     {
+        if (Element.TryGetJavaScriptDomAttributeValue(name, out var scriptSetValue))
+        {
+            value = scriptSetValue;
+            return true;
+        }
+
         if (Element.CustomAttributes.TryGetValue(name, out var customValue) && !string.IsNullOrWhiteSpace(customValue))
         {
             value = customValue ?? string.Empty;

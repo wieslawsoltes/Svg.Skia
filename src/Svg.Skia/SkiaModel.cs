@@ -1056,7 +1056,7 @@ public partial class SkiaModel
                         ToSKImage(imageImageFilter.Image),
                         ToSKRect(imageImageFilter.Src),
                         ToSKRect(imageImageFilter.Dst),
-                        SkiaSharp.SKFilterQuality.High);
+                        ToSKSamplingOptions(imageImageFilter.FilterQuality));
                 }
             case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
                 {
@@ -1325,50 +1325,31 @@ public partial class SkiaModel
         };
     }
 
-    public SkiaSharp.SKFilterQuality ToSKFilterQuality(SKFilterQuality filterQuality)
+    public SkiaSharp.SKSamplingOptions ToSKSamplingOptions(SKFilterQuality filterQuality)
     {
         return filterQuality switch
         {
-            SKFilterQuality.None => SkiaSharp.SKFilterQuality.None,
-            SKFilterQuality.Low => SkiaSharp.SKFilterQuality.Low,
-            SKFilterQuality.Medium => SkiaSharp.SKFilterQuality.Medium,
-            SKFilterQuality.High => SkiaSharp.SKFilterQuality.High,
-            _ => SkiaSharp.SKFilterQuality.None
+            SKFilterQuality.None => new SkiaSharp.SKSamplingOptions(SkiaSharp.SKFilterMode.Nearest, SkiaSharp.SKMipmapMode.None),
+            SKFilterQuality.Low => new SkiaSharp.SKSamplingOptions(SkiaSharp.SKFilterMode.Linear, SkiaSharp.SKMipmapMode.None),
+            SKFilterQuality.Medium => new SkiaSharp.SKSamplingOptions(SkiaSharp.SKFilterMode.Linear, SkiaSharp.SKMipmapMode.Linear),
+            SKFilterQuality.High => new SkiaSharp.SKSamplingOptions(SkiaSharp.SKCubicResampler.Mitchell),
+            _ => SkiaSharp.SKSamplingOptions.Default
         };
     }
 
-    private static SkiaSharp.SKFilterQuality ToLegacySKFilterQuality(SKSamplingOptions samplingOptions)
+    private static SkiaSharp.SKSamplingOptions ToSKSamplingOptions(SKSamplingOptions samplingOptions)
     {
         if (samplingOptions.UseCubic)
         {
-            return SkiaSharp.SKFilterQuality.High;
+            return new SkiaSharp.SKSamplingOptions(
+                new SkiaSharp.SKCubicResampler(
+                    samplingOptions.Cubic.B,
+                    samplingOptions.Cubic.C));
         }
 
-        if (samplingOptions.Filter == SKFilterMode.Nearest)
-        {
-            return SkiaSharp.SKFilterQuality.None;
-        }
-
-        return samplingOptions.Mipmap == SKMipmapMode.None
-            ? SkiaSharp.SKFilterQuality.Low
-            : SkiaSharp.SKFilterQuality.Medium;
-    }
-
-    private static bool TryDrawImageWithSamplingOptions(
-        SkiaSharp.SKCanvas skCanvas,
-        SkiaSharp.SKImage image,
-        SkiaSharp.SKRect source,
-        SkiaSharp.SKRect dest,
-        SKSamplingOptions samplingOptions,
-        SkiaSharp.SKPaint? paint)
-    {
-        if (!SkiaSharpSamplingOptionsApi.IsAvailable)
-        {
-            return false;
-        }
-
-        SkiaSharpSamplingOptionsApi.DrawImage(skCanvas, image, source, dest, samplingOptions, paint);
-        return true;
+        return new SkiaSharp.SKSamplingOptions(
+            (SkiaSharp.SKFilterMode)(int)samplingOptions.Filter,
+            (SkiaSharp.SKMipmapMode)(int)samplingOptions.Mipmap);
     }
 
     private static SkiaSharp.SKPaint CreateTextRenderPaint(
@@ -1462,8 +1443,6 @@ public partial class SkiaModel
         var imageFilter = ToSKImageFilter(paint.ImageFilter);
         var pathEffect = ToSKPathEffect(paint.PathEffect);
         var blendMode = ToSKBlendMode(paint.BlendMode);
-        var filterQuality = ToSKFilterQuality(paint.FilterQuality);
-
         var skPaint = new SkiaSharp.SKPaint
         {
             Style = style,
@@ -1483,8 +1462,7 @@ public partial class SkiaModel
             ColorFilter = colorFilter,
             ImageFilter = imageFilter,
             PathEffect = pathEffect,
-            BlendMode = blendMode,
-            FilterQuality = filterQuality
+            BlendMode = blendMode
         };
 
         ApplyTypefaceAdjustments(paint, skPaint, typefaceResolution.SuppressSyntheticBold);
@@ -1987,37 +1965,10 @@ public partial class SkiaModel
                             var source = ToSKRect(drawImageCanvasCommand.Source);
                             var dest = ToSKRect(drawImageCanvasCommand.Dest);
                             var paint = GetRenderPaint(drawImageCanvasCommand.Paint);
-                            var drewWithSampling = drawImageCanvasCommand.Sampling.HasValue &&
-                                TryDrawImageWithSamplingOptions(
-                                    skCanvas,
-                                    image,
-                                    source,
-                                    dest,
-                                    drawImageCanvasCommand.Sampling.Value,
-                                    paint);
-                            if (drewWithSampling)
-                            {
-                                break;
-                            }
-
-                            var imagePaint = paint;
-                            if (drawImageCanvasCommand.Sampling.HasValue)
-                            {
-                                imagePaint = paint?.Clone() ?? new SkiaSharp.SKPaint();
-                                imagePaint.FilterQuality = ToLegacySKFilterQuality(drawImageCanvasCommand.Sampling.Value);
-                            }
-
-                            try
-                            {
-                                skCanvas.DrawImage(image, source, dest, imagePaint);
-                            }
-                            finally
-                            {
-                                if (imagePaint is not null && !ReferenceEquals(imagePaint, paint))
-                                {
-                                    imagePaint.Dispose();
-                                }
-                            }
+                            var samplingOptions = drawImageCanvasCommand.Sampling.HasValue
+                                ? ToSKSamplingOptions(drawImageCanvasCommand.Sampling.Value)
+                                : ToSKSamplingOptions(drawImageCanvasCommand.Paint?.FilterQuality ?? SKFilterQuality.None);
+                            skCanvas.DrawImage(image, source, dest, samplingOptions, paint);
                         }
                     }
                     break;
@@ -2226,8 +2177,6 @@ public partial class SkiaModel
         var imageFilter = paint is null ? null : ToSKImageFilter(paint.ImageFilter);
         var pathEffect = paint is null ? null : ToSKPathEffect(paint.PathEffect);
         var blendMode = paint is null ? SkiaSharp.SKBlendMode.SrcOver : ToSKBlendMode(paint.BlendMode);
-        var filterQuality = paint is null ? SkiaSharp.SKFilterQuality.None : ToSKFilterQuality(paint.FilterQuality);
-
         return new SkiaSharp.SKPaint
         {
             Style = SkiaSharp.SKPaintStyle.Stroke,
@@ -2246,8 +2195,7 @@ public partial class SkiaModel
             ColorFilter = colorFilter,
             ImageFilter = imageFilter,
             PathEffect = pathEffect,
-            BlendMode = blendMode,
-            FilterQuality = filterQuality
+            BlendMode = blendMode
         };
     }
 
@@ -2256,141 +2204,4 @@ public partial class SkiaModel
         Draw(picture, skCanvas, true);
     }
 
-    private static class SkiaSharpSamplingOptionsApi
-    {
-#if NET6_0_OR_GREATER
-        [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)]
-#endif
-        private static readonly Type? s_samplingOptionsType = Type.GetType("SkiaSharp.SKSamplingOptions, SkiaSharp", throwOnError: false);
-
-        private static readonly Type? s_filterModeType = Type.GetType("SkiaSharp.SKFilterMode, SkiaSharp", throwOnError: false);
-        private static readonly Type? s_mipmapModeType = Type.GetType("SkiaSharp.SKMipmapMode, SkiaSharp", throwOnError: false);
-
-#if NET6_0_OR_GREATER
-        [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)]
-#endif
-        private static readonly Type? s_cubicResamplerType = Type.GetType("SkiaSharp.SKCubicResampler, SkiaSharp", throwOnError: false);
-
-        private static readonly System.Reflection.ConstructorInfo? s_filterSamplingOptionsConstructor = GetConstructor(s_samplingOptionsType, s_filterModeType, s_mipmapModeType);
-        private static readonly System.Reflection.ConstructorInfo? s_cubicResamplerConstructor = GetConstructor(s_cubicResamplerType, typeof(float), typeof(float));
-        private static readonly System.Reflection.ConstructorInfo? s_cubicSamplingOptionsConstructor = GetConstructor(s_samplingOptionsType, s_cubicResamplerType);
-        private static readonly System.Reflection.MethodInfo? s_drawImageWithSampling = GetDrawImageWithSampling();
-
-        public static bool IsAvailable =>
-            s_samplingOptionsType is not null &&
-            s_filterModeType is not null &&
-            s_mipmapModeType is not null &&
-            s_cubicResamplerType is not null &&
-            s_filterSamplingOptionsConstructor is not null &&
-            s_cubicResamplerConstructor is not null &&
-            s_cubicSamplingOptionsConstructor is not null &&
-            s_drawImageWithSampling is not null;
-
-        public static void DrawImage(
-            SkiaSharp.SKCanvas skCanvas,
-            SkiaSharp.SKImage image,
-            SkiaSharp.SKRect source,
-            SkiaSharp.SKRect dest,
-            SKSamplingOptions samplingOptions,
-            SkiaSharp.SKPaint? paint)
-        {
-            var nativeSamplingOptions = ToNativeSamplingOptions(samplingOptions);
-            if (nativeSamplingOptions is null || s_drawImageWithSampling is null)
-            {
-                return;
-            }
-
-            try
-            {
-                s_drawImageWithSampling.Invoke(skCanvas, new[] { image, source, dest, nativeSamplingOptions, paint });
-            }
-            catch (System.Reflection.TargetInvocationException ex) when (ex.InnerException is not null)
-            {
-                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-            }
-        }
-
-        private static object? ToNativeSamplingOptions(SKSamplingOptions samplingOptions)
-        {
-            if (samplingOptions.UseCubic)
-            {
-                if (s_cubicResamplerType is null || s_cubicResamplerConstructor is null || s_cubicSamplingOptionsConstructor is null)
-                {
-                    return null;
-                }
-
-                var cubic = s_cubicResamplerConstructor.Invoke(new object[] { samplingOptions.Cubic.B, samplingOptions.Cubic.C });
-                return s_cubicSamplingOptionsConstructor.Invoke(new[] { cubic });
-            }
-
-            if (s_filterModeType is null || s_mipmapModeType is null || s_filterSamplingOptionsConstructor is null)
-            {
-                return null;
-            }
-
-            var filterMode = Enum.ToObject(s_filterModeType, (int)samplingOptions.Filter);
-            var mipmapMode = Enum.ToObject(s_mipmapModeType, (int)samplingOptions.Mipmap);
-            return s_filterSamplingOptionsConstructor.Invoke(new[] { filterMode, mipmapMode });
-        }
-
-        private static System.Reflection.ConstructorInfo? GetConstructor(
-#if NET6_0_OR_GREATER
-            [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] Type? type,
-#else
-            Type? type,
-#endif
-            params Type?[] parameterTypes)
-        {
-            if (type is null)
-            {
-                return null;
-            }
-
-            var resolvedParameterTypes = new Type[parameterTypes.Length];
-            for (var i = 0; i < parameterTypes.Length; i++)
-            {
-                if (parameterTypes[i] is not { } parameterType)
-                {
-                    return null;
-                }
-
-                resolvedParameterTypes[i] = parameterType;
-            }
-
-            return type.GetConstructor(resolvedParameterTypes);
-        }
-
-        private static System.Reflection.MethodInfo? GetDrawImageWithSampling()
-        {
-            if (s_samplingOptionsType is null)
-            {
-                return null;
-            }
-
-            var methods = typeof(SkiaSharp.SKCanvas).GetMethods(
-                System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.Public);
-            for (var i = 0; i < methods.Length; i++)
-            {
-                var method = methods[i];
-                if (method.Name != nameof(SkiaSharp.SKCanvas.DrawImage))
-                {
-                    continue;
-                }
-
-                var parameters = method.GetParameters();
-                if (parameters.Length == 5 &&
-                    parameters[0].ParameterType == typeof(SkiaSharp.SKImage) &&
-                    parameters[1].ParameterType == typeof(SkiaSharp.SKRect) &&
-                    parameters[2].ParameterType == typeof(SkiaSharp.SKRect) &&
-                    parameters[3].ParameterType == s_samplingOptionsType &&
-                    parameters[4].ParameterType == typeof(SkiaSharp.SKPaint))
-                {
-                    return method;
-                }
-            }
-
-            return null;
-        }
-    }
 }

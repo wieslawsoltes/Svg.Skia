@@ -38,10 +38,9 @@
     <File Path="build/ReferenceAssemblies.props" />
     <File Path="build/SignAssembly.props" />
     <File Path="build/SixLabors.ImageSharp.props" />
+    <File Path="build/SkiaSharp.Avalonia.props" />
     <File Path="build/SkiaSharp.Native.props" />
-    <File Path="build/SkiaSharp.Native.v3.props" />
     <File Path="build/SkiaSharp.props" />
-    <File Path="build/SkiaSharp.v3.props" />
     <File Path="build/SourceLink.props" />
     <File Path="build/SvgML.Weaving.targets" />
     <File Path="build/Svg.props" />

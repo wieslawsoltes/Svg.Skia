@@ -291,9 +291,12 @@ public static class SKPictureExtensions
         using var paint = new SkiaSharp.SKPaint
         {
             IsAntialias = true,
-            FilterQuality = SkiaSharp.SKFilterQuality.High,
             BlendMode = SkiaSharp.SKBlendMode.Src
         };
-        targetCanvas.DrawImage(renderImage, SkiaSharp.SKRect.Create(0f, 0f, targetImageInfo.Width, targetImageInfo.Height), paint);
+        targetCanvas.DrawImage(
+            renderImage,
+            SkiaSharp.SKRect.Create(0f, 0f, targetImageInfo.Width, targetImageInfo.Height),
+            new SkiaSharp.SKSamplingOptions(SkiaSharp.SKCubicResampler.Mitchell),
+            paint);
     }
 }

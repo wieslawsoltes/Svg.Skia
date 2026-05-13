@@ -3,6 +3,7 @@ using System.Linq;
 using System.Xml;
 using Svg;
 using Svg.JavaScript;
+using Svg.Model.Services;
 using Xunit;
 
 namespace Svg.JavaScript.UnitTests;
@@ -104,6 +105,96 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void SvgAngleValueAsString_PreservesAssignedUnitType()
+    {
+        var document = LoadDocument("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <marker id="target" orient="20rad" />
+            </svg>
+            """, captureJavaScriptDomState: true);
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings { ThrowOnError = true });
+        var targetElement = document.Descendants().Single(element => element.ID == "target");
+        var target = runtime.GetElement(targetElement);
+
+        Assert.Equal(3, target.orientAngle.baseVal.unitType);
+
+        target.orientAngle.baseVal.valueAsString = "2grad";
+
+        Assert.Equal("2grad", target.orientAngle.baseVal.valueAsString);
+        Assert.Equal(4, target.orientAngle.baseVal.unitType);
+
+        target.setAttribute("data-empty", string.Empty);
+        Assert.True(target.hasAttribute("data-empty"));
+        Assert.Equal(string.Empty, target.getAttribute("data-empty"));
+
+        var clone = Assert.IsType<SvgDocument>(document.DeepCopy());
+        var cloneRuntime = new SvgJavaScriptRuntime(clone, new SvgJavaScriptSettings { ThrowOnError = true });
+        var cloneTarget = cloneRuntime.GetElement(clone.Descendants().Single(element => element.ID == "target"));
+
+        Assert.Equal("2grad", cloneTarget.orientAngle.baseVal.valueAsString);
+        Assert.Equal(4, cloneTarget.orientAngle.baseVal.unitType);
+        Assert.True(cloneTarget.hasAttribute("data-empty"));
+
+        var elementClone = targetElement.DeepCopy();
+        var elementCloneTarget = runtime.GetElement(elementClone);
+
+        Assert.Equal("2grad", elementCloneTarget.orientAngle.baseVal.valueAsString);
+        Assert.Equal(4, elementCloneTarget.orientAngle.baseVal.unitType);
+        Assert.True(elementCloneTarget.hasAttribute("data-empty"));
+    }
+
+    [Fact]
+    public void ParsedEmptyAttributes_PreserveJavaScriptDomState()
+    {
+        var document = LoadDocument("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" style="" data-space="   " />
+              <marker id="marker" orient="" />
+            </svg>
+            """, captureJavaScriptDomState: true);
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings { ThrowOnError = true });
+        var target = runtime.GetElement(document.Descendants().Single(element => element.ID == "target"));
+        var marker = runtime.GetElement(document.Descendants().Single(element => element.ID == "marker"));
+
+        Assert.True(target.hasAttribute("style"));
+        Assert.Equal(string.Empty, target.getAttribute("style"));
+        Assert.True(target.hasAttribute("data-space"));
+        Assert.Equal("   ", target.getAttribute("data-space"));
+        Assert.True(marker.hasAttribute("orient"));
+        Assert.Equal(string.Empty, marker.getAttribute("orient"));
+    }
+
+    [Fact]
+    public void StylePropertyMutations_UpdateRawStyleAttribute()
+    {
+        var document = LoadDocument("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" style="fill: red" />
+            </svg>
+            """, captureJavaScriptDomState: true);
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings { ThrowOnError = true });
+        var target = runtime.GetElement(document.Descendants().Single(element => element.ID == "target"));
+
+        Assert.Equal("fill: red", target.getAttribute("style"));
+
+        target.style.setProperty("fill", "green");
+
+        Assert.Equal("fill: green", target.getAttribute("style"));
+
+        Assert.Equal("green", target.style.removeProperty("fill"));
+        Assert.True(target.hasAttribute("style"));
+        Assert.Equal(string.Empty, target.getAttribute("style"));
+
+        target.removeAttribute("style");
+
+        Assert.False(target.hasAttribute("style"));
+        Assert.Equal(string.Empty, target.getAttribute("style"));
+    }
+
+    [Fact]
     public void AppendChild_MovesTextNodeOutOfPreviousParent()
     {
         var document = LoadDocument("""
@@ -130,8 +221,13 @@ public class SvgJavaScriptRuntimeTests
         Assert.Single(target.Nodes);
     }
 
-    private static SvgDocument LoadDocument(string svg)
+    private static SvgDocument LoadDocument(string svg, bool captureJavaScriptDomState = false)
     {
+        if (captureJavaScriptDomState)
+        {
+            return SvgService.FromSvg(svg, captureCompatibilityStyleState: true)!;
+        }
+
         var xmlDocument = new XmlDocument();
         xmlDocument.LoadXml(svg);
         return SvgDocument.Open(xmlDocument);
