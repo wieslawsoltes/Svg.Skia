@@ -151,7 +151,7 @@ namespace Svg
                     }
                     if (localName.Equals("style") && !(element is NonSvgElement))
                     {
-                        if (PreserveJavaScriptDomState && !string.IsNullOrWhiteSpace(reader.Value))
+                        if (PreserveJavaScriptDomState)
                         {
                             element.SetJavaScriptDomAttributeValue(localName, reader.Value);
                             element.CustomAttributes["style"] = reader.Value;
@@ -171,7 +171,7 @@ namespace Svg
                     }
                     else if (prefix.Length == 0 && IsStyleAttribute(localName))
                     {
-                        if (PreserveJavaScriptDomState && !string.IsNullOrWhiteSpace(reader.Value))
+                        if (PreserveJavaScriptDomState)
                         {
                             element.SetJavaScriptDomAttributeValue(localName, reader.Value);
                         }
@@ -185,7 +185,7 @@ namespace Svg
                     }
                     else
                     {
-                        if (PreserveJavaScriptDomState && !string.IsNullOrWhiteSpace(reader.Value))
+                        if (PreserveJavaScriptDomState)
                         {
                             element.SetJavaScriptDomAttributeValue(GetJavaScriptDomAttributeName(prefix, localName), reader.Value);
                         }

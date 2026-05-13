@@ -145,6 +145,28 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void ParsedEmptyAttributes_PreserveJavaScriptDomState()
+    {
+        var document = LoadDocument("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" style="" data-space="   " />
+              <marker id="marker" orient="" />
+            </svg>
+            """, captureJavaScriptDomState: true);
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings { ThrowOnError = true });
+        var target = runtime.GetElement(document.Descendants().Single(element => element.ID == "target"));
+        var marker = runtime.GetElement(document.Descendants().Single(element => element.ID == "marker"));
+
+        Assert.True(target.hasAttribute("style"));
+        Assert.Equal(string.Empty, target.getAttribute("style"));
+        Assert.True(target.hasAttribute("data-space"));
+        Assert.Equal("   ", target.getAttribute("data-space"));
+        Assert.True(marker.hasAttribute("orient"));
+        Assert.Equal(string.Empty, marker.getAttribute("orient"));
+    }
+
+    [Fact]
     public void AppendChild_MovesTextNodeOutOfPreviousParent()
     {
         var document = LoadDocument("""
