@@ -234,7 +234,6 @@ public sealed partial class SvgJavaScriptElement
         var text = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
         if (string.Equals(normalizedName, "style", StringComparison.OrdinalIgnoreCase))
         {
-            Element.SetJavaScriptDomAttributeValue(normalizedName, text);
             SetInlineStyleText(text);
             _runtime.MarkMutation();
             return;
@@ -275,7 +274,7 @@ public sealed partial class SvgJavaScriptElement
         if (string.Equals(normalizedName, "style", StringComparison.OrdinalIgnoreCase))
         {
             Element.ClearJavaScriptDomAttributeValue(normalizedName);
-            SetInlineStyleText(string.Empty);
+            SetInlineStyleText(string.Empty, syncJavaScriptDomAttribute: false);
             _runtime.MarkMutation();
             return;
         }
@@ -742,13 +741,14 @@ public sealed partial class SvgJavaScriptElement
 
         var normalizedName = name.Trim();
         var declarations = ParseInlineStyle(GetRawStyleText(Element));
-        if (!declarations.TryGetValue(normalizedName, out var previous))
-        {
-            previous = string.Empty;
-        }
+        var hadProperty = declarations.TryGetValue(normalizedName, out var previous);
+        previous ??= string.Empty;
 
         declarations.Remove(normalizedName);
-        SetInlineStyleText(SerializeInlineStyle(declarations), declarations);
+        SetInlineStyleText(
+            SerializeInlineStyle(declarations),
+            declarations,
+            HasRawStyleAttribute() || hadProperty);
         _runtime.MarkMutation();
         return previous;
     }
@@ -1437,15 +1437,29 @@ public sealed partial class SvgJavaScriptElement
         Element.ClearJavaScriptDomAttributeValue(name);
     }
 
-    private void SetInlineStyleText(string styleText, Dictionary<string, string>? declarations = null)
+    private void SetInlineStyleText(
+        string styleText,
+        Dictionary<string, string>? declarations = null,
+        bool syncJavaScriptDomAttribute = true)
     {
         var previousDeclarations = ParseInlineStyle(GetRawStyleText(Element));
         declarations ??= ParseInlineStyle(styleText);
         CaptureInlineStyleFallbacks(previousDeclarations, declarations);
         SetRawStyleText(Element, styleText);
+        if (syncJavaScriptDomAttribute)
+        {
+            Element.SetJavaScriptDomAttributeValue("style", styleText);
+        }
+
         _document.RawDocument.UpdateCompatibilityStyleText(Element, styleText);
         RestoreRemovedInlineStyleFallbacks(previousDeclarations, declarations);
         _document.RawDocument.ReapplyCompatibilityStyles();
+    }
+
+    private bool HasRawStyleAttribute()
+    {
+        return Element.TryGetJavaScriptDomAttributeValue("style", out _) ||
+               Element.CustomAttributes.ContainsKey("style");
     }
 
     private void CaptureInlineStyleFallbacks(

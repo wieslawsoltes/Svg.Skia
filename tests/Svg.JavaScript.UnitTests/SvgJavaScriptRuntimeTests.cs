@@ -167,6 +167,34 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void StylePropertyMutations_UpdateRawStyleAttribute()
+    {
+        var document = LoadDocument("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" style="fill: red" />
+            </svg>
+            """, captureJavaScriptDomState: true);
+
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings { ThrowOnError = true });
+        var target = runtime.GetElement(document.Descendants().Single(element => element.ID == "target"));
+
+        Assert.Equal("fill: red", target.getAttribute("style"));
+
+        target.style.setProperty("fill", "green");
+
+        Assert.Equal("fill: green", target.getAttribute("style"));
+
+        Assert.Equal("green", target.style.removeProperty("fill"));
+        Assert.True(target.hasAttribute("style"));
+        Assert.Equal(string.Empty, target.getAttribute("style"));
+
+        target.removeAttribute("style");
+
+        Assert.False(target.hasAttribute("style"));
+        Assert.Equal(string.Empty, target.getAttribute("style"));
+    }
+
+    [Fact]
     public void AppendChild_MovesTextNodeOutOfPreviousParent()
     {
         var document = LoadDocument("""
