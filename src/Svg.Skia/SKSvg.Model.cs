@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Xml;
@@ -23,7 +22,6 @@ public partial class SKSvg : IDisposable
 
     public static bool CacheOriginalStream { get; set; }
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromStream(System.IO.Stream stream, SvgParameters? parameters = null)
     {
         var skSvg = new SKSvg();
@@ -31,10 +29,8 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromStream(System.IO.Stream stream) => CreateFromStream(stream, null);
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromFile(string path, SvgParameters? parameters = null)
     {
         var skSvg = new SKSvg();
@@ -42,10 +38,8 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromFile(string path) => CreateFromFile(path, null);
 
-    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromVectorDrawable(string path, SvgParameters? parameters = null)
     {
         var skSvg = new SKSvg();
@@ -53,7 +47,6 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
-    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromVectorDrawable(System.IO.Stream stream, SvgParameters? parameters = null)
     {
         var skSvg = new SKSvg();
@@ -61,7 +54,6 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
-    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromVectorDrawable(XmlReader reader)
     {
         var skSvg = new SKSvg();
@@ -69,7 +61,6 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromXmlReader(XmlReader reader)
     {
         var skSvg = new SKSvg();
@@ -77,7 +68,6 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromSvg(string svg)
     {
         var skSvg = new SKSvg();
@@ -85,7 +75,6 @@ public partial class SKSvg : IDisposable
         return skSvg;
     }
 
-    [RequiresUnreferencedCode("Rendering from an SVG document may use trim-unsafe runtime discovery paths.")]
     public static SKSvg CreateFromSvgDocument(SvgDocument svgDocument)
     {
         var skSvg = new SKSvg();
@@ -337,7 +326,6 @@ public partial class SKSvg : IDisposable
     /// Creates a deep clone of the current <see cref="SKSvg"/>, including model and reload data.
     /// </summary>
     /// <returns>A new <see cref="SKSvg"/> instance with independent state.</returns>
-    [RequiresUnreferencedCode("Clone may recreate retained scene and animation state that use TypeDescriptor-based converters.")]
     public SKSvg Clone()
     {
         var clone = new SKSvg();
@@ -388,55 +376,45 @@ public partial class SKSvg : IDisposable
         return clone;
     }
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? parameters = null)
     {
         return LoadSvgInternal(stream, parameters, null);
     }
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream) => Load(stream, null);
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(System.IO.Stream stream, SvgParameters? parameters, Uri? baseUri)
     {
         return LoadSvgInternal(stream, parameters, baseUri);
     }
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(string? path, SvgParameters? parameters = null)
     {
         return LoadSvgPath(path, parameters);
     }
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(string path) => Load(path, null);
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? Load(XmlReader reader)
     {
         return LoadSvgReader(reader);
     }
 
-    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? LoadVectorDrawable(System.IO.Stream stream, SvgParameters? parameters = null)
     {
         return LoadInternal(stream, parameters, null, SourceFormat.VectorDrawable, SvgService.OpenVectorDrawable);
     }
 
-    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? LoadVectorDrawable(string? path, SvgParameters? parameters = null)
     {
         return LoadPath(path, parameters, SourceFormat.VectorDrawable, SvgService.OpenVectorDrawable);
     }
 
-    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? LoadVectorDrawable(XmlReader reader)
     {
         return LoadReader(reader, SourceFormat.VectorDrawable, SvgService.OpenVectorDrawable);
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
     private SkiaSharp.SKPicture? LoadInternal(
         System.IO.Stream stream,
         SvgParameters? parameters,
@@ -477,7 +455,6 @@ public partial class SKSvg : IDisposable
         return LoadSvgDocument(svgDocument, baseUri);
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
     private SkiaSharp.SKPicture? LoadSvgInternal(System.IO.Stream stream, SvgParameters? parameters, Uri? baseUri)
     {
         SvgDocument? svgDocument;
@@ -513,7 +490,6 @@ public partial class SKSvg : IDisposable
         return LoadSvgDocument(svgDocument, baseUri);
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
     private SkiaSharp.SKPicture? LoadSvgPath(string? path, SvgParameters? parameters)
     {
         if (path is null)
@@ -531,7 +507,6 @@ public partial class SKSvg : IDisposable
         return LoadSvgDocument(SvgService.Open(path, parameters, Settings.EnableJavaScript));
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
     private SkiaSharp.SKPicture? LoadSvgReader(XmlReader reader)
     {
         _originalPath = null;
@@ -544,7 +519,6 @@ public partial class SKSvg : IDisposable
         return LoadSvgDocument(SvgService.Open(reader, Settings.EnableJavaScript));
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
     private SkiaSharp.SKPicture? LoadPath(
         string? path,
         SvgParameters? parameters,
@@ -566,7 +540,6 @@ public partial class SKSvg : IDisposable
         return LoadSvgDocument(loader(path, parameters));
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SKSvg.LoadSvgDocument(SvgDocument, Uri)")]
     private SkiaSharp.SKPicture? LoadReader(
         XmlReader reader,
         SourceFormat sourceFormat,
@@ -582,7 +555,6 @@ public partial class SKSvg : IDisposable
         return LoadSvgDocument(loader(reader));
     }
 
-    [RequiresUnreferencedCode("Calls Svg.Skia.SvgAnimationController.SvgAnimationController(SvgDocument)")]
     private SkiaSharp.SKPicture? LoadSvgDocument(SvgDocument? svgDocument, Uri? baseUri = null)
     {
         if (svgDocument is null)
@@ -615,7 +587,6 @@ public partial class SKSvg : IDisposable
         return RenderSvgDocument(svgDocument);
     }
 
-    [RequiresUnreferencedCode("Reloading may reparse cached SVG or VectorDrawable content through trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? ReLoad(SvgParameters? parameters)
     {
         if (!CacheOriginalStream)
@@ -653,21 +624,18 @@ public partial class SKSvg : IDisposable
             : LoadSvgInternal(originalStream, parameters, originalBaseUri);
     }
 
-    [RequiresUnreferencedCode("SVG document parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? FromSvg(string svg)
     {
         var svgDocument = SvgService.FromSvg(svg, Settings.EnableJavaScript);
         return LoadSvgDocument(svgDocument);
     }
 
-    [RequiresUnreferencedCode("VectorDrawable parsing may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? FromVectorDrawable(string xml)
     {
         var svgDocument = SvgService.FromVectorDrawable(xml);
         return LoadSvgDocument(svgDocument);
     }
 
-    [RequiresUnreferencedCode("Rendering from an SVG document may use trim-unsafe runtime discovery paths.")]
     public SkiaSharp.SKPicture? FromSvgDocument(SvgDocument? svgDocument)
     {
         return LoadSvgDocument(svgDocument);

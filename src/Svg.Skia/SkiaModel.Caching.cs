@@ -886,8 +886,6 @@ public partial class SkiaModel
         var imageFilter = GetRenderImageFilter(paint.ImageFilter);
         var pathEffect = GetRenderPathEffect(paint.PathEffect);
         var blendMode = ToSKBlendMode(paint.BlendMode);
-        var filterQuality = ToSKFilterQuality(paint.FilterQuality);
-
         var skPaint = new SkiaSharp.SKPaint
         {
             Style = style,
@@ -907,8 +905,7 @@ public partial class SkiaModel
             ColorFilter = colorFilter,
             ImageFilter = imageFilter,
             PathEffect = pathEffect,
-            BlendMode = blendMode,
-            FilterQuality = filterQuality
+            BlendMode = blendMode
         };
 
         ApplyTypefaceAdjustments(paint, skPaint, typefaceResolution.SuppressSyntheticBold);

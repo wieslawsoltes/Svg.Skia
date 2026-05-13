@@ -962,7 +962,7 @@ public static class SkiaCSharpModelExtensions
                     sb.AppendLine($"{indent}    {counter.ImageVarName}{counterImage},");
                     sb.AppendLine($"{indent}    {imageImageFilter.Src.ToSKRect()},");
                     sb.AppendLine($"{indent}    {imageImageFilter.Dst.ToSKRect()},");
-                    sb.AppendLine($"{indent}    SKFilterQuality.High);");
+                    sb.AppendLine($"{indent}    {imageImageFilter.FilterQuality.ToSKSamplingOptions()});");
                     return;
                 }
             case MatrixConvolutionImageFilter matrixConvolutionImageFilter:
