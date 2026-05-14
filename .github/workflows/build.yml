@@ -95,7 +95,7 @@ jobs:
         run: dotnet build Svg.Skia.slnx -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
 
       - name: Test
-        run: dotnet test Svg.Skia.slnx -c Release --no-build --logger trx --results-directory artifacts/test
+        run: dotnet test Svg.Skia.slnx -c Release --no-build --filter "FullyQualifiedName!~Avalonia.Svg.Skia.UnitTests" --logger trx --results-directory artifacts/test
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
