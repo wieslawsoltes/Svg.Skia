@@ -3,5 +3,7 @@ reference:
   - {path: packages-and-namespaces.md, title: "Packages and Namespaces"}
   - {path: samples-and-tools.md, title: "Samples and Tools"}
   - {path: api-coverage-index.md, title: "API Coverage Index"}
+  - {path: svg-11-static-subset-support.md, title: "SVG 1.1 Static Subset Support"}
+  - {path: svg-2-static-subset-support.md, title: "SVG 2 Static Subset Support"}
   - {path: license.md, title: "License"}
   - {path: lunet-docs-pipeline.md, title: "Lunet Docs Pipeline"}

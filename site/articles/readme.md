@@ -24,7 +24,12 @@ Svg.Skia spans a few related areas:
 4. [Concepts](concepts) to understand how files, models, pictures, and Avalonia resources relate.
 5. [Guides](guides) for scenario-focused tasks such as exporting images, hit testing, interaction, animation playback, or generating code.
 6. [XAML Usage](xaml) when the primary integration point is Avalonia, .NET MAUI, or Uno.
-7. [Reference](reference) for package maps, samples, licensing, and the docs pipeline.
+7. [Reference](reference) for package maps, SVG support matrices, samples, licensing, and the docs pipeline.
+
+## SVG Support
+
+- [SVG 1.1 Static Subset Support](reference/svg-11-static-subset-support) documents the current static renderer surface against SVG 1.1 spec areas.
+- [SVG 2 Static Subset Support](reference/svg-2-static-subset-support) documents implemented, partial, parsed, and deferred SVG 2 static-subset features.
 
 ## Generated API
 
