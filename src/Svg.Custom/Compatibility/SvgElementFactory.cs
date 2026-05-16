@@ -185,15 +185,26 @@ namespace Svg
                     }
                     else
                     {
+                        var ns = prefix.Length == 0 ? string.Empty : reader.LookupNamespace(prefix);
+                        if (localName.Equals("href", StringComparison.Ordinal) &&
+                            (string.IsNullOrEmpty(ns) || string.Equals(ns, SvgNamespaces.XLinkNamespace, StringComparison.Ordinal)))
+                        {
+                            element.SetCompatibilityHrefAttributeValue(ns, reader.Value);
+                        }
+
                         if (PreserveJavaScriptDomState)
                         {
                             element.SetJavaScriptDomAttributeValue(GetJavaScriptDomAttributeName(prefix, localName), reader.Value);
                         }
 
-                        var ns = prefix.Length == 0 ? string.Empty : reader.LookupNamespace(prefix);
                         SetPropertyValue(element, ns, localName, reader.Value, document);
                     }
                 }
+            }
+
+            if (element.HasCompatibilityHrefAttributeValues() && element.Attributes.ContainsKey("href"))
+            {
+                element.SetCompatibilityHrefAttributeValueAfterParse(element.Attributes.GetAttribute<object>("href"));
             }
 
             //Trace.TraceInformation("End SetAttributes");
@@ -224,75 +235,7 @@ namespace Svg
 
         private static bool IsStyleAttribute(string name)
         {
-            switch (name)
-            {
-                case "alignment-baseline":
-                case "baseline-shift":
-                case "clip":
-                case "clip-path":
-                case "clip-rule":
-                case "color":
-                case "color-interpolation":
-                case "color-interpolation-filters":
-                case "color-profile":
-                case "color-rendering":
-                case "cursor":
-                case "direction":
-                case "display":
-                case "dominant-baseline":
-                case "enable-background":
-                case "fill":
-                case "fill-opacity":
-                case "fill-rule":
-                case "filter":
-                case "flood-color":
-                case "flood-opacity":
-                case "font":
-                case "font-family":
-                case "font-size":
-                case "font-size-adjust":
-                case "font-stretch":
-                case "font-style":
-                case "font-variant":
-                case "font-weight":
-                case "glyph-orientation-horizontal":
-                case "glyph-orientation-vertical":
-                case "image-rendering":
-                case "kerning":
-                case "letter-spacing":
-                case "lighting-color":
-                case "marker":
-                case "marker-end":
-                case "marker-mid":
-                case "marker-start":
-                case "mask":
-                case "opacity":
-                case "overflow":
-                case "pointer-events":
-                case "shape-rendering":
-                case "stop-color":
-                case "stop-opacity":
-                case "stroke":
-                case "stroke-dasharray":
-                case "stroke-dashoffset":
-                case "stroke-linecap":
-                case "stroke-linejoin":
-                case "stroke-miterlimit":
-                case "stroke-opacity":
-                case "stroke-width":
-                case "text-anchor":
-                case "text-decoration":
-                case "text-rendering":
-                case "text-transform":
-                case "unicode-bidi":
-                case "vector-effect":
-                case "visibility":
-                case "word-spacing":
-                case "writing-mode":
-                    return true;
-            }
-
-            return false;
+            return SvgStyleAttributeNames.Contains(name) && !SvgStyleAttributeNames.IsCssOnlyProperty(name);
         }
 
         private static bool IsOpacityAttribute(string name)

@@ -39,6 +39,11 @@ public static class SvgDocumentCompatibilityLoader
 
     public static T Open<T>(string path, SvgOptions svgOptions, bool captureCompatibilityStyleState) where T : SvgDocument, new()
     {
+        return Open<T>(path, svgOptions, loadOptions: null, captureCompatibilityStyleState);
+    }
+
+    public static T Open<T>(string path, SvgOptions svgOptions, SvgDocumentLoadOptions? loadOptions, bool captureCompatibilityStyleState) where T : SvgDocument, new()
+    {
         if (path is null)
         {
             throw new ArgumentNullException(nameof(path));
@@ -48,7 +53,7 @@ public static class SvgDocumentCompatibilityLoader
         // expand relative @import/file references exactly as the browser would relative to the SVG.
         var baseUri = new Uri(Path.GetFullPath(path), UriKind.Absolute);
         using var stream = File.OpenRead(path);
-        return Open<T>(stream, svgOptions, baseUri, captureCompatibilityStyleState);
+        return Open<T>(stream, svgOptions, baseUri, loadOptions, captureCompatibilityStyleState);
     }
 
     public static T Open<T>(Stream stream, SvgOptions svgOptions) where T : SvgDocument, new()
@@ -58,10 +63,15 @@ public static class SvgDocumentCompatibilityLoader
 
     public static T Open<T>(Stream stream, SvgOptions svgOptions, bool captureCompatibilityStyleState) where T : SvgDocument, new()
     {
-        return Open<T>(stream, svgOptions, null, captureCompatibilityStyleState);
+        return Open<T>(stream, svgOptions, loadOptions: null, captureCompatibilityStyleState);
     }
 
-    private static T Open<T>(Stream stream, SvgOptions svgOptions, Uri? baseUri, bool captureCompatibilityStyleState) where T : SvgDocument, new()
+    public static T Open<T>(Stream stream, SvgOptions svgOptions, SvgDocumentLoadOptions? loadOptions, bool captureCompatibilityStyleState) where T : SvgDocument, new()
+    {
+        return Open<T>(stream, svgOptions, null, loadOptions, captureCompatibilityStyleState);
+    }
+
+    public static T Open<T>(Stream stream, SvgOptions svgOptions, Uri? baseUri, SvgDocumentLoadOptions? loadOptions, bool captureCompatibilityStyleState) where T : SvgDocument, new()
     {
         if (stream is null)
         {
@@ -81,6 +91,7 @@ public static class SvgDocumentCompatibilityLoader
             reader,
             svgOptions.Css,
             baseUri,
+            loadOptions,
             captureCompatibilityStyleState,
             preserveCompatibilityPresentationAttributes: preserveCompatibilityPresentationAttributes);
     }
@@ -107,6 +118,7 @@ public static class SvgDocumentCompatibilityLoader
 
         return Create<T>(
             reader,
+            loadOptions: null,
             captureCompatibilityStyleState: captureCompatibilityStyleState,
             preserveCompatibilityPresentationAttributes: captureCompatibilityStyleState && MayContainCompatibilityStyleSources(svg, null));
     }
@@ -138,13 +150,14 @@ public static class SvgDocumentCompatibilityLoader
             IgnoreWhitespace = false,
         });
 
-        return Create<T>(svgReader, baseUri: baseUri, captureCompatibilityStyleState: captureCompatibilityStyleState);
+        return Create<T>(svgReader, baseUri: baseUri, loadOptions: null, captureCompatibilityStyleState: captureCompatibilityStyleState);
     }
 
     private static T Create<T>(
         XmlReader reader,
         string? css = null,
         Uri? baseUri = null,
+        SvgDocumentLoadOptions? loadOptions = null,
         bool captureCompatibilityStyleState = false,
         bool preserveCompatibilityPresentationAttributes = true)
         where T : SvgDocument, new()
@@ -159,6 +172,7 @@ public static class SvgDocumentCompatibilityLoader
             PreserveCompatibilityPresentationAttributes = captureCompatibilityStyleState && preserveCompatibilityPresentationAttributes
         };
         var svgDocument = Create<T>(reader, elementFactory, ref styles, baseUri);
+        svgDocument.LoadOptions = loadOptions;
 
         // Avalonia and other hosts can concatenate optional CSS inputs into a whitespace-only
         // string (for example " ") even when no actual stylesheet content is present. Treat that
@@ -185,7 +199,7 @@ public static class SvgDocumentCompatibilityLoader
                     svgDocument.SetCompatibilityStyleSources(styles);
                 }
 
-                SvgCssCompatibilityProcessor.Apply(svgDocument, styles, elementFactory);
+                SvgCssCompatibilityProcessor.Apply(svgDocument, styles, elementFactory, svgDocument.LoadOptions);
             }
 
             svgDocument.FlushStyles(true);

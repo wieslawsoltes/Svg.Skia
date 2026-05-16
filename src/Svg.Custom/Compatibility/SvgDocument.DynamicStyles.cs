@@ -230,7 +230,7 @@ public partial class SvgDocument
     {
         if (_compatibilityStyleSources is { Count: > 0 })
         {
-            SvgCssCompatibilityProcessor.Apply(this, _compatibilityStyleSources, new SvgElementFactory());
+            SvgCssCompatibilityProcessor.Apply(this, _compatibilityStyleSources, new SvgElementFactory(), LoadOptions);
         }
 
         ApplyInlineStyles();

@@ -19,6 +19,7 @@ namespace Svg
             newObj.Ppi = Ppi;
             newObj.BaseUri = BaseUri;
             newObj.ExternalCSSHref = ExternalCSSHref;
+            newObj.LoadOptions = LoadOptions;
             CopyCompatibilityStyleSourcesTo(newObj);
             CopyCompatibilityStyleStateTo(newObj);
 
