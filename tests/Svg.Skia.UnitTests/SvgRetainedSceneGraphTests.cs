@@ -417,6 +417,54 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_TextPathInlinePathWinsOverHref()
+    {
+        const string inlinePathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 120 100">
+              <defs>
+                <path id="href-path" d="M10,80 L110,80" />
+              </defs>
+              <text fill="#0055aa" font-size="12">
+                <textPath href="#href-path" path="M10,20 L110,20">A</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(inlinePathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var drawText = Assert.Single(retainedModel!.FindCommands<DrawTextCanvasCommand>(), static cmd => cmd.Text == "A");
+        Assert.InRange(drawText.Y, 18f, 22f);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathHrefCanTargetBasicShape()
+    {
+        const string shapeTargetSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 120 100">
+              <defs>
+                <line id="target-line" x1="10" y1="45" x2="110" y2="45" />
+              </defs>
+              <text fill="#0055aa" font-size="12">
+                <textPath href="#target-line">B</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(shapeTargetSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var drawText = Assert.Single(retainedModel!.FindCommands<DrawTextCanvasCommand>(), static cmd => cmd.Text == "B");
+        Assert.InRange(drawText.Y, 43f, 47f);
+    }
+
+    [Fact]
     public void RetainedSceneGraph_TextLengthSpacing_PositionsGlyphsAcrossRequestedAdvance()
     {
         const string textLengthSvg = """
@@ -910,6 +958,52 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.NotNull(maskedNode.MaskDstIn);
     }
 
+    [Theory]
+    [InlineData("", false)]
+    [InlineData("mask-type=\"alpha\"", true)]
+    [InlineData("style=\"mask-type:alpha\"", true)]
+    [InlineData("mask-type=\"unexpected\"", false)]
+    [InlineData("style=\"mask-type:unexpected\"", false)]
+    public void RetainedSceneGraph_RendersMaskTypeAlphaAndLuminanceCoverage(
+        string maskTypeAttributes,
+        bool shouldRevealBlackMaskArea)
+    {
+        var maskTypeSvg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <defs>
+                <mask id="black-mask"
+                      maskUnits="userSpaceOnUse"
+                      maskContentUnits="userSpaceOnUse"
+                      x="0" y="0" width="20" height="20"
+                      {{maskTypeAttributes}}>
+                  <rect x="0" y="0" width="20" height="20" fill="black" />
+                </mask>
+              </defs>
+              <rect id="masked-target" x="0" y="0" width="20" height="20" fill="red" mask="url(#black-mask)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(maskTypeSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+        var coveredPixel = bitmap.GetPixel(10, 10);
+
+        if (shouldRevealBlackMaskArea)
+        {
+            Assert.True(
+                coveredPixel.Red > 200 && coveredPixel.Alpha > 200,
+                $"Expected alpha mask-type to reveal opaque black mask content but was {coveredPixel}.");
+        }
+        else
+        {
+            Assert.Equal(0, coveredPixel.Alpha);
+        }
+    }
+
     [Fact]
     public void RetainedSceneGraph_ResolvesRetainedFilterPayloadsForDirectNodes()
     {
@@ -923,6 +1017,64 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.True(scene.TryGetNodeById("filtered-target", out var filteredNode));
         Assert.NotNull(filteredNode);
         Assert.NotNull(filteredNode!.Filter);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_RendersFeDropShadowOutsideSourceBounds()
+    {
+        const string dropShadowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+              <defs>
+                <filter id="shadow" x="-100%" y="-100%" width="500%" height="300%">
+                  <feDropShadow in="SourceGraphic" dx="30" dy="0" stdDeviation="0" flood-color="#123456" flood-opacity="1" color-interpolation-filters="sRGB" />
+                </filter>
+              </defs>
+              <rect id="shadow-target" x="10" y="20" width="10" height="10" fill="red" filter="url(#shadow)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(dropShadowSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+        var sourcePixel = bitmap.GetPixel(15, 25);
+        var shadowPixel = bitmap.GetPixel(45, 25);
+
+        Assert.True(sourcePixel.Red > 200 && sourcePixel.Alpha > 200, $"Expected source pixel to remain red but was {sourcePixel}.");
+        Assert.True(
+            shadowPixel.Red is > 0x08 and < 0x30 &&
+            shadowPixel.Green is > 0x24 and < 0x50 &&
+            shadowPixel.Blue is > 0x46 and < 0x70 &&
+            shadowPixel.Alpha > 200,
+            $"Expected offset shadow pixel to render outside source bounds but was {shadowPixel}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_FeDropShadowWithMissingExplicitInputDoesNotUseSourceGraphic()
+    {
+        const string dropShadowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+              <defs>
+                <filter id="shadow" x="-20%" y="-20%" width="160%" height="160%">
+                  <feDropShadow in="missing-result" dx="3" dy="4" stdDeviation="2" flood-color="#123456" />
+                </filter>
+              </defs>
+              <rect id="shadow-target" x="20" y="20" width="20" height="20" fill="red" filter="url(#shadow)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(dropShadowSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("shadow-target", out var targetNode));
+
+        var colorFilter = Assert.IsType<ColorFilterImageFilter>(targetNode!.Filter!.ImageFilter);
+        Assert.IsType<PictureImageFilter>(colorFilter.Input);
     }
 
     [Fact]
@@ -1091,6 +1243,29 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_ResolvesSvg2HrefForUseElements()
+    {
+        const string useHrefSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="40">
+              <defs>
+                <rect id="template" x="0" y="0" width="20" height="20" fill="red" />
+              </defs>
+              <use id="use-target" href="#template" x="10" y="8" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(useHrefSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("use-target", out var useNode));
+        Assert.NotEmpty(useNode!.Children);
+
+        Assert.NotEmpty(svg.Model!.FindCommandsBySourceElementId<DrawPathCanvasCommand>("template"));
+    }
+
+    [Fact]
     public void RetainedSceneGraph_CompilesMarkerChildrenWithDirectRetainedStrategy()
     {
         using var svg = new SKSvg();
@@ -1105,6 +1280,125 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
 
         Assert.NotEmpty(markerNodes);
         Assert.All(markerNodes, static node => Assert.Equal(SvgSceneCompilationStrategy.DirectRetained, node.CompilationStrategy));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_AppliesPaintOrderToLocalFillAndStroke()
+    {
+        const string paintOrderSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+              <rect id="target" x="10" y="10" width="40" height="40" fill="red" stroke="blue" stroke-width="8" paint-order="stroke fill" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(paintOrderSvg);
+
+        var commands = svg.Model!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("target")
+            .Where(static command => command.Paint?.Style is SKPaintStyle.Fill or SKPaintStyle.Stroke)
+            .ToList();
+
+        Assert.Equal(2, commands.Count);
+        Assert.Equal(SKPaintStyle.Stroke, commands[0].Paint!.Style);
+        Assert.Equal(SKPaintStyle.Fill, commands[1].Paint!.Style);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_AppliesPaintOrderToMarkersAndStroke()
+    {
+        const string paintOrderMarkerSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="40">
+              <defs>
+                <marker id="marker" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                  <path id="marker-shape" d="M0,0 L10,5 L0,10 Z" fill="lime" />
+                </marker>
+              </defs>
+              <path id="target" d="M12 20 L78 20" fill="none" stroke="blue" stroke-width="6" marker-start="url(#marker)" paint-order="markers stroke fill" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(paintOrderMarkerSvg);
+
+        var commands = svg.Model!
+            .FindCommands<DrawPathCanvasCommand>()
+            .Where(static command => command.SourceElementId is "marker-shape" or "target")
+            .ToList();
+
+        Assert.Equal(2, commands.Count);
+        Assert.Equal("marker-shape", commands[0].SourceElementId);
+        Assert.Equal(SKPaintStyle.Fill, commands[0].Paint!.Style);
+        Assert.Equal("target", commands[1].SourceElementId);
+        Assert.Equal(SKPaintStyle.Stroke, commands[1].Paint!.Style);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ResolvesMarkerContextPaintFromReferencingElement()
+    {
+        const string contextPaintMarkerSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="20">
+              <defs>
+                <marker id="marker" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                  <g>
+                    <rect id="marker-fill" x="1" y="1" width="8" height="8" fill="context-stroke" />
+                    <path id="marker-stroke" d="M1 9 L9 1" fill="none" stroke="context-fill" stroke-width="2" />
+                  </g>
+                </marker>
+              </defs>
+              <path id="target" d="M10 10 L30 10" fill="#abcdef" stroke="#123456" stroke-width="1" marker-start="url(#marker)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(contextPaintMarkerSvg);
+
+        var markerFill = Assert.Single(svg.Model!.FindCommandsBySourceElementId<DrawPathCanvasCommand>("marker-fill"));
+        Assert.Equal(SKPaintStyle.Fill, markerFill.Paint!.Style);
+        Assert.Equal(new SKColor(0x12, 0x34, 0x56, 0xff), markerFill.Paint.Color.GetValueOrDefault());
+
+        var markerStroke = Assert.Single(svg.Model!.FindCommandsBySourceElementId<DrawPathCanvasCommand>("marker-stroke"));
+        Assert.Equal(SKPaintStyle.Stroke, markerStroke.Paint!.Style);
+        Assert.Equal(new SKColor(0xab, 0xcd, 0xef, 0xff), markerStroke.Paint.Color.GetValueOrDefault());
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_RendersMarkerContextStrokePixels()
+    {
+        const string contextPaintMarkerSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="20">
+              <defs>
+                <marker id="marker" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                  <rect id="marker-pixel" x="2" y="2" width="6" height="6" fill="context-stroke" />
+                </marker>
+              </defs>
+              <path id="target" d="M10 10 L30 10" fill="none" stroke="#123456" stroke-width="1" marker-start="url(#marker)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(contextPaintMarkerSvg);
+
+        Assert.NotNull(svg.Picture);
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+
+        Assert.Equal(new SkiaColor(0x12, 0x34, 0x56, 0xff), bitmap.GetPixel(10, 7));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ContextPaintWithoutContextDoesNotCrashOrPaint()
+    {
+        const string contextPaintSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" x="2" y="2" width="16" height="16" fill="context-stroke" stroke="none" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(contextPaintSvg);
+
+        Assert.NotNull(svg.Picture);
+        Assert.Empty(svg.Model!.FindCommandsBySourceElementId<DrawPathCanvasCommand>("target"));
     }
 
     [Fact]
@@ -1869,6 +2163,33 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.NotNull(retainedPicture);
         Assert.NotNull(expectedSvg.Picture);
         AssertPicturesEqual(expectedSvg, expectedSvg.Picture!, retainedPicture!);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ApplyMutation_UpdatesLinkedFilterDependents()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="40">
+              <defs>
+                <filter id="base-filter">
+                  <feGaussianBlur id="linked-blur" stdDeviation="0" />
+                </filter>
+                <filter id="child-filter" href="#base-filter" />
+              </defs>
+              <rect id="filtered-target" x="10" y="8" width="24" height="12" fill="red" filter="url(#child-filter)" />
+            </svg>
+            """);
+
+        var sourceDocument = Assert.IsType<SvgDocument>(svg.RetainedSceneGraph!.SourceDocument);
+        var blur = Assert.IsType<SvgGaussianBlur>(sourceDocument.GetElementById("linked-blur"));
+        blur.StdDeviation = new SvgNumberCollection { 2f };
+
+        var result = svg.ApplyRetainedSceneMutationById("linked-blur", new[] { "stdDeviation" });
+
+        Assert.True(result.Succeeded);
+        Assert.True(result.CompilationRootCount >= 1);
+        Assert.True(result.ResourceCount >= 1);
     }
 
     [Fact]
