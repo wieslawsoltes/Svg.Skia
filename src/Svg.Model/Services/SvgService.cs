@@ -311,7 +311,7 @@ public static class SvgService
 
         foreach (var language in languages)
         {
-            if (MatchesSystemLanguage(systemLanguageTag, language.Trim()))
+            if (MatchesSystemLanguage(systemLanguageTag!, language.Trim()))
             {
                 return true;
             }

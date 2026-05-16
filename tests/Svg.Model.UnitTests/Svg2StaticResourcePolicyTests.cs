@@ -9,6 +9,7 @@ using Xunit;
 
 namespace Svg.Model.UnitTests;
 
+[Collection(SvgExternalResourceStateCollection.Name)]
 public class Svg2StaticResourcePolicyTests
 {
     private const string MinimalSvg = """
