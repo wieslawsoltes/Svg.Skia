@@ -182,12 +182,12 @@ internal static class SvgSceneClipCompiler
         ClipPath clipPath,
         SvgClipRule? svgClipPathClipRule)
     {
-        if (SvgService.HasRecursiveReference(svgUse, static e => e.ReferencedElement, new HashSet<Uri>()))
+        if (SvgService.HasRecursiveReference(svgUse, static e => SvgService.GetEffectiveReferenceUri(e, e.ReferencedElement), new HashSet<Uri>()))
         {
             return;
         }
 
-        var referencedVisualElement = SvgService.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
+        var referencedVisualElement = SvgService.GetReference<SvgVisualElement>(svgUse, SvgService.GetEffectiveReferenceUri(svgUse, svgUse.ReferencedElement));
         if (referencedVisualElement is null ||
             referencedVisualElement is SvgSymbol ||
             !MaskingService.CanDraw(referencedVisualElement, DrawAttributes.None))

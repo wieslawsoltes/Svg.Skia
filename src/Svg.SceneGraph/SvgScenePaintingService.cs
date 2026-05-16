@@ -52,7 +52,9 @@ internal static class SvgScenePaintingService
         SvgVisualElement svgVisualElement,
         SKRect skBounds,
         ISvgAssetLoader assetLoader,
-        DrawAttributes ignoreAttributes)
+        DrawAttributes ignoreAttributes,
+        SvgVisualElement? contextPaintElement = null,
+        SKRect contextPaintBounds = default)
     {
         var skPaint = new SKPaint
         {
@@ -61,7 +63,17 @@ internal static class SvgScenePaintingService
         };
 
         var opacity = AdjustSvgOpacity(svgVisualElement.FillOpacity);
-        return TryApplyPaintServer(svgVisualElement, svgVisualElement.Fill, opacity, skBounds, skPaint, forStroke: false, assetLoader, ignoreAttributes)
+        return TryApplyPaintServer(
+                svgVisualElement,
+                svgVisualElement.Fill,
+                opacity,
+                skBounds,
+                skPaint,
+                forStroke: false,
+                assetLoader,
+                ignoreAttributes,
+                contextPaintElement,
+                contextPaintBounds)
             ? skPaint
             : null;
     }
@@ -116,7 +128,9 @@ internal static class SvgScenePaintingService
         SvgVisualElement svgVisualElement,
         SKRect skBounds,
         ISvgAssetLoader assetLoader,
-        DrawAttributes ignoreAttributes)
+        DrawAttributes ignoreAttributes,
+        SvgVisualElement? contextPaintElement = null,
+        SKRect contextPaintBounds = default)
     {
         var skPaint = new SKPaint
         {
@@ -125,7 +139,17 @@ internal static class SvgScenePaintingService
         };
 
         var opacity = AdjustSvgOpacity(svgVisualElement.StrokeOpacity);
-        if (!TryApplyPaintServer(svgVisualElement, svgVisualElement.Stroke, opacity, skBounds, skPaint, forStroke: true, assetLoader, ignoreAttributes))
+        if (!TryApplyPaintServer(
+                svgVisualElement,
+                svgVisualElement.Stroke,
+                opacity,
+                skBounds,
+                skPaint,
+                forStroke: true,
+                assetLoader,
+                ignoreAttributes,
+                contextPaintElement,
+                contextPaintBounds))
         {
             return null;
         }
@@ -164,7 +188,10 @@ internal static class SvgScenePaintingService
         SKPaint skPaint,
         bool forStroke,
         ISvgAssetLoader assetLoader,
-        DrawAttributes ignoreAttributes)
+        DrawAttributes ignoreAttributes,
+        SvgVisualElement? contextPaintElement,
+        SKRect contextPaintBounds,
+        int contextPaintDepth = 0)
     {
         if (server is null)
         {
@@ -190,6 +217,19 @@ internal static class SvgScenePaintingService
 
         switch (server)
         {
+            case SvgContextPaintServer svgContextPaintServer:
+                return TryApplyContextPaintServer(
+                    svgVisualElement,
+                    svgContextPaintServer,
+                    opacity,
+                    skPaint,
+                    forStroke,
+                    assetLoader,
+                    ignoreAttributes,
+                    contextPaintElement,
+                    contextPaintBounds,
+                    contextPaintDepth);
+
             case SvgColourServer svgColourServer:
                 return TryApplyColor(svgVisualElement, svgColourServer, opacity, skPaint, ignoreAttributes);
 
@@ -253,11 +293,59 @@ internal static class SvgScenePaintingService
                 }
 
             case SvgDeferredPaintServer svgDeferredPaintServer:
-                return TryApplyPaintServer(svgVisualElement, svgDeferredPaintServer, opacity, skBounds, skPaint, forStroke, assetLoader, ignoreAttributes);
+                return TryApplyPaintServer(
+                    svgVisualElement,
+                    svgDeferredPaintServer,
+                    opacity,
+                    skBounds,
+                    skPaint,
+                    forStroke,
+                    assetLoader,
+                    ignoreAttributes,
+                    contextPaintElement,
+                    contextPaintBounds,
+                    contextPaintDepth);
 
             default:
                 return false;
         }
+    }
+
+    private static bool TryApplyContextPaintServer(
+        SvgVisualElement svgVisualElement,
+        SvgContextPaintServer svgContextPaintServer,
+        float opacity,
+        SKPaint skPaint,
+        bool forStroke,
+        ISvgAssetLoader assetLoader,
+        DrawAttributes ignoreAttributes,
+        SvgVisualElement? contextPaintElement,
+        SKRect contextPaintBounds,
+        int contextPaintDepth)
+    {
+        if (contextPaintElement is null ||
+            ReferenceEquals(svgVisualElement, contextPaintElement) ||
+            contextPaintDepth >= 8)
+        {
+            return false;
+        }
+
+        var contextServer = svgContextPaintServer.Kind == SvgContextPaintKind.Stroke
+            ? contextPaintElement.Stroke
+            : contextPaintElement.Fill;
+
+        return TryApplyPaintServer(
+            contextPaintElement,
+            contextServer,
+            opacity,
+            contextPaintBounds,
+            skPaint,
+            forStroke,
+            assetLoader,
+            ignoreAttributes,
+            contextPaintElement,
+            contextPaintBounds,
+            contextPaintDepth + 1);
     }
 
     private static bool TryApplyColor(
