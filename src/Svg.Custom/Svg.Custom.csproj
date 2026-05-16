@@ -63,6 +63,7 @@
     <Compile Remove="$(SvgSourcesBasePath)\Source\Painting\SvgDeferredPaintServer.cs" />
     <Compile Remove="$(SvgSourcesBasePath)\Source\Painting\SvgGradientServer.cs" />
     <Compile Remove="$(SvgSourcesBasePath)\Source\Painting\SvgGradientStop.cs" />
+    <Compile Remove="$(SvgSourcesBasePath)\Source\Painting\SvgPatternServer.cs" />
     <Compile Remove="$(SvgSourcesBasePath)\Source\Painting\SvgPaintServerFactory.cs" />
     <Compile Remove="$(SvgSourcesBasePath)\Source\Css\ExCssQuery.cs" />
     <Compile Remove="$(SvgSourcesBasePath)\Source\Resources\svg11.dtd" />

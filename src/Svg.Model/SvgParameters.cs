@@ -5,10 +5,19 @@ using System.Drawing;
 
 namespace Svg.Model;
 
-public readonly record struct SvgParameters(Dictionary<string, string>? Entities, string? Css, Color? CurrentColor = null)
+public readonly record struct SvgParameters(
+    Dictionary<string, string>? Entities,
+    string? Css,
+    Color? CurrentColor = null,
+    SvgDocumentLoadOptions? LoadOptions = null)
 {
     public SvgParameters(Dictionary<string, string>? entities, string? css)
-        : this(entities, css, null)
+        : this(entities, css, null, null)
+    {
+    }
+
+    public SvgParameters(Dictionary<string, string>? entities, string? css, Color? currentColor)
+        : this(entities, css, currentColor, null)
     {
     }
 

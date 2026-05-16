@@ -52,6 +52,7 @@ internal static class SvgStyleAttributeNames
             "glyph-orientation-horizontal" or
             "glyph-orientation-vertical" or
             "image-rendering" or
+            "inline-size" or
             "isolation" or
             "kerning" or
             "letter-spacing" or
@@ -61,11 +62,15 @@ internal static class SvgStyleAttributeNames
             "marker-mid" or
             "marker-start" or
             "mask" or
+            "mask-type" or
             "mix-blend-mode" or
             "opacity" or
             "overflow" or
+            "paint-order" or
             "pointer-events" or
             "shape-rendering" or
+            "shape-inside" or
+            "shape-subtract" or
             "stop-color" or
             "stop-opacity" or
             "stroke" or
@@ -78,14 +83,26 @@ internal static class SvgStyleAttributeNames
             "stroke-width" or
             "text-anchor" or
             "text-decoration" or
+            "text-overflow" or
             "text-rendering" or
             "text-transform" or
+            "transform-box" or
+            "transform-origin" or
             "unicode-bidi" or
+            "vector-effect" or
             "visibility" or
+            "white-space" or
             "word-spacing" or
             "writing-mode" => true,
             _ => ContainsAsciiUppercase(name) && ContainsIgnoreCase(name)
         };
+    }
+
+    public static bool IsCssOnlyProperty(string? name)
+    {
+        return name is not null &&
+               (name.Equals("isolation", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("mix-blend-mode", StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool ContainsAsciiUppercase(string name)
@@ -135,6 +152,7 @@ internal static class SvgStyleAttributeNames
                name.Equals("glyph-orientation-horizontal", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("glyph-orientation-vertical", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("image-rendering", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("inline-size", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("isolation", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("kerning", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("letter-spacing", StringComparison.OrdinalIgnoreCase) ||
@@ -144,11 +162,15 @@ internal static class SvgStyleAttributeNames
                name.Equals("marker-mid", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("marker-start", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("mask", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("mask-type", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("mix-blend-mode", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("opacity", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("overflow", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("paint-order", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("pointer-events", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("shape-rendering", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("shape-inside", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("shape-subtract", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("stop-color", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("stop-opacity", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("stroke", StringComparison.OrdinalIgnoreCase) ||
@@ -161,10 +183,15 @@ internal static class SvgStyleAttributeNames
                name.Equals("stroke-width", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("text-anchor", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("text-decoration", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("text-overflow", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("text-rendering", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("text-transform", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("transform-box", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("transform-origin", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("unicode-bidi", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("vector-effect", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("visibility", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("white-space", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("word-spacing", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("writing-mode", StringComparison.OrdinalIgnoreCase);
     }
@@ -205,6 +232,7 @@ internal static class SvgStyleAttributeNames
             "glyph-orientation-horizontal",
             "glyph-orientation-vertical",
             "image-rendering",
+            "inline-size",
             "isolation",
             "kerning",
             "letter-spacing",
@@ -214,11 +242,15 @@ internal static class SvgStyleAttributeNames
             "marker-mid",
             "marker-start",
             "mask",
+            "mask-type",
             "mix-blend-mode",
             "opacity",
             "overflow",
+            "paint-order",
             "pointer-events",
             "shape-rendering",
+            "shape-inside",
+            "shape-subtract",
             "stop-color",
             "stop-opacity",
             "stroke",
@@ -231,10 +263,15 @@ internal static class SvgStyleAttributeNames
             "stroke-width",
             "text-anchor",
             "text-decoration",
+            "text-overflow",
             "text-rendering",
             "text-transform",
+            "transform-box",
+            "transform-origin",
             "unicode-bidi",
+            "vector-effect",
             "visibility",
+            "white-space",
             "word-spacing",
             "writing-mode"
         };

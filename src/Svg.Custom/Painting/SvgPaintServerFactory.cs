@@ -47,6 +47,10 @@ namespace Svg
             else if (colorValue.Equals("currentColor", StringComparison.OrdinalIgnoreCase))
                 // Keep the parse-time document for consistency with url(...) paint servers.
                 return new SvgDeferredPaintServer(document, "currentColor");
+            else if (colorValue.Equals("context-fill", StringComparison.OrdinalIgnoreCase))
+                return new SvgContextPaintServer(SvgContextPaintKind.Fill);
+            else if (colorValue.Equals("context-stroke", StringComparison.OrdinalIgnoreCase))
+                return new SvgContextPaintServer(SvgContextPaintKind.Stroke);
             else if (colorValue.Equals("inherit", StringComparison.OrdinalIgnoreCase))
                 return SvgPaintServer.Inherit;
             else if (colorValue.StartsWith("url(", StringComparison.OrdinalIgnoreCase))
@@ -136,6 +140,12 @@ namespace Svg
                 if (deferred != null)
                 {
                     return deferred.ToString();
+                }
+
+                var contextPaint = value as SvgContextPaintServer;
+                if (contextPaint != null)
+                {
+                    return contextPaint.ToString();
                 }
 
                 if (value != null)
