@@ -633,7 +633,7 @@ public sealed class SvgSource : IDisposable
 
         var entities = parameters.Value.Entities;
         var entitiesCopy = entities is null ? null : new Dictionary<string, string>(entities);
-        return new SvgParameters(entitiesCopy, parameters.Value.Css);
+        return new SvgParameters(entitiesCopy, parameters.Value.Css, null, parameters.Value.LoadOptions);
     }
 
     private static SKPicture? ClonePicture(SKPicture? picture)
