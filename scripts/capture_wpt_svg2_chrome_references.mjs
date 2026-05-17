@@ -28,10 +28,6 @@ const mimeTypes = new Map([
     ['.txt', 'text/plain; charset=utf-8'],
 ]);
 
-const fontCss = `
-@font-face { font-family: "Ahem"; src: url("/externals/WPT_SVG_2/fonts/Ahem.ttf") format("truetype"); }
-`;
-
 function getContentType(filePath)
 {
     return mimeTypes.get(path.extname(filePath).toLowerCase()) ?? 'application/octet-stream';
@@ -165,20 +161,44 @@ function getViewport(svgMarkup)
     return { width: 300, height: 150 };
 }
 
-function injectFonts(svgMarkup)
+function getMatchReference(svgMarkup, relativeSvgPath)
 {
-    return svgMarkup.replace(/<svg\b[^>]*>/i, match => `${match}\n<style>${fontCss}</style>`);
+    const linkMatches = svgMarkup.matchAll(/<link\b[^>]*>/gi);
+    for (const match of linkMatches)
+    {
+        const tag = match[0];
+        if (!/\brel\s*=\s*["']match["']/i.test(tag))
+        {
+            continue;
+        }
+
+        const href = getAttribute(tag, 'href');
+        if (!href || /^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('/'))
+        {
+            continue;
+        }
+
+        return path.posix.normalize(path.posix.join(path.posix.dirname(relativeSvgPath), href));
+    }
+
+    return relativeSvgPath;
+}
+
+function toUrlPath(relativePath)
+{
+    return relativePath.split('/').map(encodeURIComponent).join('/');
 }
 
 async function writeWrapper(relativeSvgPath)
 {
     const svgPath = path.join(svgRoot, relativeSvgPath);
     const rawSvg = await fs.readFile(svgPath, 'utf8');
-    const svgMarkup = injectFonts(rawSvg);
-    const viewport = getViewport(svgMarkup);
+    const viewport = getViewport(rawSvg);
     const width = Math.max(1, Math.ceil(viewport.width));
     const height = Math.max(1, Math.ceil(viewport.height));
     const wrapperPath = path.join(wrapperRoot, `${relativeSvgPath}.html`);
+    const captureSvgPath = getMatchReference(rawSvg, relativeSvgPath);
+    const svgUrl = `/externals/WPT_SVG_2/svg/${toUrlPath(captureSvgPath)}`;
     const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -197,17 +217,12 @@ async function writeWrapper(relativeSvgPath)
       height: ${height}px;
       display: block;
       background: white;
-    }
-    #capture > svg {
-      width: ${width}px;
-      height: ${height}px;
-      display: block;
-      background: white;
+      border: 0;
     }
   </style>
 </head>
 <body>
-  <div id="capture">${svgMarkup}</div>
+  <iframe id="capture" src="${svgUrl}"></iframe>
 </body>
 </html>`;
 
