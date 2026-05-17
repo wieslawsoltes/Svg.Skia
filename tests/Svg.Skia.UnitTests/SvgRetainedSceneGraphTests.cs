@@ -2183,6 +2183,42 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_ResolvesUseContextPaintForText()
+    {
+        const string contextPaintUseSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="32">
+              <defs>
+                <g id="template">
+                  <text id="text-fill" x="0" y="14" font-family="sans-serif" font-size="12" fill="context-fill">A</text>
+                  <text id="text-stroke" x="16" y="14" font-family="sans-serif" font-size="12" fill="context-stroke">B</text>
+                </g>
+              </defs>
+              <use id="instance" href="#template" x="4" y="4" fill="#123456" stroke="#abcdef" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(contextPaintUseSvg);
+
+        var retainedPicture = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedPicture);
+
+        var fillCommands = retainedPicture!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("text-fill")
+            .Where(static command => command.Paint?.Style == SKPaintStyle.Fill)
+            .ToList();
+        Assert.NotEmpty(fillCommands);
+        Assert.All(fillCommands, static command =>
+            Assert.Equal(new SKColor(0x12, 0x34, 0x56, 0xff), command.Paint!.Color.GetValueOrDefault()));
+
+        var strokeCommands = retainedPicture.FindCommandsBySourceElementId<DrawTextCanvasCommand>("text-stroke")
+            .Where(static command => command.Paint?.Style == SKPaintStyle.Fill)
+            .ToList();
+        Assert.NotEmpty(strokeCommands);
+        Assert.All(strokeCommands, static command =>
+            Assert.Equal(new SKColor(0xab, 0xcd, 0xef, 0xff), command.Paint!.Color.GetValueOrDefault()));
+    }
+
+    [Fact]
     public void RetainedSceneGraph_ResolvesNestedUseContextPaintThroughIntermediateUse()
     {
         const string contextPaintUseSvg = """

@@ -1276,6 +1276,7 @@ public static class SvgSceneCompiler
                 textCompilationRootKey,
                 createOwnCompilationRootBoundary && !string.IsNullOrWhiteSpace(textCompilationRootKey),
                 compileContext.GetElementAddressKey,
+                compileContext.ContextPaint,
                 out node);
         }
 

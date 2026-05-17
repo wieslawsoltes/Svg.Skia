@@ -49,9 +49,9 @@ internal static class SvgGeometryService
     {
         path = element switch
         {
-            SvgPath svgPath => TryGetComputedPathData(svgPath, out var pathData)
+            SvgPath svgPath => TryGetComputedPathData(svgPath, out var pathData, out var hasComputedPathData)
                 ? pathData.ToPath(fillRule)
-                : svgPath.PathData?.ToPath(fillRule),
+                : hasComputedPathData ? null : svgPath.PathData?.ToPath(fillRule),
             SvgRectangle svgRectangle => CreateRectanglePath(svgRectangle, fillRule, viewport),
             SvgCircle svgCircle => CreateCirclePath(svgCircle, fillRule, viewport),
             SvgEllipse svgEllipse => CreateEllipsePath(svgEllipse, fillRule, viewport),
@@ -261,17 +261,20 @@ internal static class SvgGeometryService
     private static SKPathFillType GetFillType(SvgFillRule fillRule)
         => fillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
 
-    private static bool TryGetComputedPathData(SvgPath svgPath, out SvgPathSegmentList pathData)
+    private static bool TryGetComputedPathData(SvgPath svgPath, out SvgPathSegmentList pathData, out bool hasComputedPathData)
     {
         pathData = null!;
+        hasComputedPathData = false;
         if (!svgPath.ComputedStyle.TryGetPropertyValue("d", out var rawValue) ||
             string.IsNullOrWhiteSpace(rawValue))
         {
             return false;
         }
 
+        hasComputedPathData = true;
         var normalized = NormalizeCssPathData(rawValue);
-        if (string.IsNullOrWhiteSpace(normalized))
+        if (string.IsNullOrWhiteSpace(normalized) ||
+            string.Equals(normalized, "none", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }

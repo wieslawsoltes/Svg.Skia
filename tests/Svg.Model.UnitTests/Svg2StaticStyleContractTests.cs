@@ -1,3 +1,4 @@
+using ShimSkiaSharp;
 using Svg.Model.Services;
 using Xunit;
 
@@ -265,5 +266,22 @@ public class Svg2StaticStyleContractTests
         Assert.Equal("url(#start)", shape.MarkerStart?.ToString());
         Assert.Equal("url(#mid)", shape.MarkerMid?.ToString());
         Assert.Equal(Svg.DataTypes.SvgColourInterpolation.SRGB, shape.ColorInterpolationFilters);
+    }
+
+    [Fact]
+    public void ComputedStyle_PathDataNoneSuppressesAttributeGeometry()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <style>#shape { d: none; }</style>
+              <path id="shape" d="M0,0 L10,0" />
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+        var shape = Assert.IsType<SvgPath>(document!.GetElementById("shape"));
+
+        Assert.False(SvgGeometryService.TryCreateEquivalentPath(shape, SKRect.Create(0f, 0f, 100f, 100f), out var path));
+        Assert.Null(path);
     }
 }
