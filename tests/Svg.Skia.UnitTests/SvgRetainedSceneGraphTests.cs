@@ -10,6 +10,7 @@ using ShimSkiaSharp.Editing;
 using Svg;
 using Svg.DataTypes;
 using Svg.FilterEffects;
+using Svg.Model;
 using Svg.Model.Services;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
@@ -1458,6 +1459,123 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.Equal(6f, targetNode.FilterClip.Value.Top, 3);
         Assert.Equal(75f, targetNode.FilterClip.Value.Right, 3);
         Assert.Equal(66f, targetNode.FilterClip.Value.Bottom, 3);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ResolvesExternalFilterReference()
+    {
+        var previousResolveExternalElements = SvgDocument.ResolveExternalElements;
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            SvgDocument.ResolveExternalElements = ExternalType.Local | ExternalType.Remote;
+            var filtersPath = Path.Combine(tempDirectory.FullName, "filters.svg");
+            File.WriteAllText(filtersPath, """
+                <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+                  <defs>
+                    <filter id="external-filter" filterUnits="userSpaceOnUse" x="1" y="2" width="40" height="30">
+                      <feGaussianBlur stdDeviation="1" />
+                    </filter>
+                  </defs>
+                </svg>
+                """);
+
+            var sourcePath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(sourcePath, """
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+                  <rect id="filtered-target" x="4" y="4" width="16" height="16" fill="#3366cc" filter="filters.svg#external-filter" />
+                </svg>
+                """);
+
+            using var svg = new SKSvg();
+            svg.Load(
+                sourcePath,
+                new SvgParameters(
+                    null,
+                    null,
+                    null,
+                    new SvgDocumentLoadOptions
+                    {
+                        ExternalResources = SvgExternalResourcePolicy.SameOrigin
+                    }));
+
+            var scene = svg.RetainedSceneGraph;
+            Assert.NotNull(scene);
+            Assert.True(scene!.TryGetNodeById("filtered-target", out var targetNode));
+            Assert.NotNull(targetNode);
+            Assert.NotNull(targetNode!.Filter);
+            Assert.NotNull(targetNode.FilterClip);
+            Assert.Equal(1f, targetNode.FilterClip.Value.Left, 3);
+            Assert.Equal(2f, targetNode.FilterClip.Value.Top, 3);
+            Assert.Equal(41f, targetNode.FilterClip.Value.Right, 3);
+            Assert.Equal(32f, targetNode.FilterClip.Value.Bottom, 3);
+        }
+        finally
+        {
+            SvgDocument.ResolveExternalElements = previousResolveExternalElements;
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ResolvesExternalLinkedFilterReference()
+    {
+        var previousResolveExternalElements = SvgDocument.ResolveExternalElements;
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            SvgDocument.ResolveExternalElements = ExternalType.Local | ExternalType.Remote;
+            var filtersPath = Path.Combine(tempDirectory.FullName, "filters.svg");
+            File.WriteAllText(filtersPath, """
+                <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+                  <defs>
+                    <filter id="external-filter" filterUnits="userSpaceOnUse" x="3" y="4" width="42" height="28">
+                      <feGaussianBlur stdDeviation="1" />
+                    </filter>
+                  </defs>
+                </svg>
+                """);
+
+            var sourcePath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(sourcePath, """
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+                  <defs>
+                    <filter id="alias-filter" href="filters.svg#external-filter" />
+                  </defs>
+                  <rect id="filtered-target" x="4" y="4" width="16" height="16" fill="#3366cc" filter="url(#alias-filter)" />
+                </svg>
+                """);
+
+            using var svg = new SKSvg();
+            svg.Load(
+                sourcePath,
+                new SvgParameters(
+                    null,
+                    null,
+                    null,
+                    new SvgDocumentLoadOptions
+                    {
+                        ExternalResources = SvgExternalResourcePolicy.SameOrigin
+                    }));
+
+            var scene = svg.RetainedSceneGraph;
+            Assert.NotNull(scene);
+            Assert.True(scene!.TryGetNodeById("filtered-target", out var targetNode));
+            Assert.NotNull(targetNode);
+            Assert.NotNull(targetNode!.Filter);
+            Assert.NotNull(targetNode.FilterClip);
+            Assert.Equal(3f, targetNode.FilterClip.Value.Left, 3);
+            Assert.Equal(4f, targetNode.FilterClip.Value.Top, 3);
+            Assert.Equal(45f, targetNode.FilterClip.Value.Right, 3);
+            Assert.Equal(32f, targetNode.FilterClip.Value.Bottom, 3);
+        }
+        finally
+        {
+            SvgDocument.ResolveExternalElements = previousResolveExternalElements;
+            tempDirectory.Delete(recursive: true);
+        }
     }
 
     [Fact]

@@ -773,14 +773,7 @@ public sealed class SvgSceneDocument
 
             if (!IgnoreAttributes.HasFlag(DrawAttributes.Filter))
             {
-                if (visualElement.Filter is { } filter &&
-                    !FilterEffectsService.IsNone(filter) &&
-                    string.IsNullOrWhiteSpace(node.FilterResourceKey))
-                {
-                    node.Filter = null;
-                    node.FilterClip = null;
-                }
-                else if (ResolveFilterPayload(node) is { } filterPayload)
+                if (ResolveFilterPayload(node) is { } filterPayload)
                 {
                     if (filterPayload.IsValid)
                     {
@@ -832,12 +825,39 @@ public sealed class SvgSceneDocument
     {
         if (string.IsNullOrWhiteSpace(node.FilterResourceKey))
         {
-            return null;
+            return ResolveUntrackedFilterPayload(node);
         }
 
         return _resourcesByKey.TryGetValue(node.FilterResourceKey!, out var resource)
             ? resource.ResolveFilterPayload(this, node)
+            : ResolveUntrackedFilterPayload(node);
+    }
+
+    private SvgSceneFilterPayload? ResolveUntrackedFilterPayload(SvgSceneNode node)
+    {
+        if (node.Element is not SvgVisualElement visualElement ||
+            visualElement.Filter is null ||
+            FilterEffectsService.IsNone(visualElement.Filter) ||
+            SvgSceneFilterContext.ResolveFilterReference(visualElement, visualElement.Filter) is null)
+        {
+            return null;
+        }
+
+        var references = node.Element.OwnerDocument?.BaseUri is { } baseUri
+            ? new HashSet<Uri> { baseUri }
             : null;
+        var filterContext = new SvgSceneFilterContext(
+            this,
+            visualElement,
+            node.GeometryBounds,
+            CompilationViewport,
+            new SvgSceneFilterSource(this, node),
+            AssetLoader,
+            references);
+
+        return filterContext.FilterPaint is { } filterPaint
+            ? new SvgSceneFilterPayload(filterPaint.DeepClone(), filterContext.FilterClip, isValid: true)
+            : SvgSceneFilterPayload.Invalid(filterContext.FilterClip);
     }
 
     private void RegisterDependentAddress(string addressKey, string compilationRootKey)

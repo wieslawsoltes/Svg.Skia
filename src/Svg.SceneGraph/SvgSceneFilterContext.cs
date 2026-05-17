@@ -1001,11 +1001,34 @@ internal sealed class SvgSceneFilterContext
         return svgFilters;
     }
 
-    private static SvgFilter? ResolveFilterReference(SvgElement owner, Uri? uri)
+    internal static SvgFilter? ResolveFilterReference(SvgElement owner, Uri? uri)
     {
-        return uri is null
-            ? null
-            : owner.OwnerDocument?.GetElementById(uri.ToString()) as SvgFilter;
+        return SvgService.GetReference<SvgFilter>(owner, NormalizeFilterReferenceUri(uri));
+    }
+
+    private static Uri? NormalizeFilterReferenceUri(Uri? uri)
+    {
+        if (uri is null)
+        {
+            return null;
+        }
+
+        var text = uri.OriginalString.Trim();
+        if (text.StartsWith("url(", StringComparison.OrdinalIgnoreCase) &&
+            text.EndsWith(")", StringComparison.Ordinal))
+        {
+            text = text.Substring(4, text.Length - 5).Trim();
+            if (text.Length >= 2 &&
+                ((text[0] == '"' && text[text.Length - 1] == '"') ||
+                 (text[0] == '\'' && text[text.Length - 1] == '\'')))
+            {
+                text = text.Substring(1, text.Length - 2).Trim();
+            }
+        }
+
+        return Uri.TryCreate(text, UriKind.RelativeOrAbsolute, out var normalizedUri)
+            ? normalizedUri
+            : uri;
     }
 
     private SKImageFilter? ApplyColourInterpolation(
