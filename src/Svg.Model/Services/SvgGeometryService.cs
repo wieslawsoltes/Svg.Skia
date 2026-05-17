@@ -66,16 +66,34 @@ internal static class SvgGeometryService
 
     internal static SvgUnit GetComputedUnit(SvgElement element, string propertyName, SvgUnit fallback)
     {
+        return GetComputedUnit(element, propertyName, fallback, out _);
+    }
+
+    private static SvgUnit GetComputedUnit(
+        SvgElement element,
+        string propertyName,
+        SvgUnit fallback,
+        out bool isAuto,
+        bool defaultAuto = false)
+    {
         if (!element.ComputedStyle.TryGetPropertyValue(propertyName, out var rawValue) ||
             string.IsNullOrWhiteSpace(rawValue))
         {
+            isAuto = defaultAuto;
             return fallback;
+        }
+
+        if (string.Equals(rawValue.Trim(), "auto", StringComparison.OrdinalIgnoreCase))
+        {
+            isAuto = true;
+            return SvgUnit.None;
         }
 
         try
         {
             if (TypeDescriptor.GetConverter(typeof(SvgUnit)).ConvertFromInvariantString(rawValue) is SvgUnit unit)
             {
+                isAuto = false;
                 return unit;
             }
         }
@@ -83,6 +101,7 @@ internal static class SvgGeometryService
         {
         }
 
+        isAuto = false;
         return fallback;
     }
 
@@ -92,8 +111,8 @@ internal static class SvgGeometryService
         var y = GetComputedUnit(svgRectangle, "y", svgRectangle.Y);
         var width = GetComputedUnit(svgRectangle, "width", svgRectangle.Width);
         var height = GetComputedUnit(svgRectangle, "height", svgRectangle.Height);
-        var rx = GetComputedUnit(svgRectangle, "rx", svgRectangle.CornerRadiusX);
-        var ry = GetComputedUnit(svgRectangle, "ry", svgRectangle.CornerRadiusY);
+        var rx = GetComputedUnit(svgRectangle, "rx", svgRectangle.CornerRadiusX, out var rxAuto, defaultAuto: true);
+        var ry = GetComputedUnit(svgRectangle, "ry", svgRectangle.CornerRadiusY, out var ryAuto, defaultAuto: true);
 
         var deviceX = x.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, viewport);
         var deviceY = y.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, viewport);
@@ -105,6 +124,20 @@ internal static class SvgGeometryService
         if (deviceWidth <= 0f || deviceHeight <= 0f)
         {
             return null;
+        }
+
+        if (rxAuto && ryAuto)
+        {
+            deviceRx = 0f;
+            deviceRy = 0f;
+        }
+        else if (rxAuto)
+        {
+            deviceRx = deviceRy;
+        }
+        else if (ryAuto)
+        {
+            deviceRy = deviceRx;
         }
 
         if (deviceRx < 0f && deviceRy < 0f)
@@ -178,8 +211,24 @@ internal static class SvgGeometryService
     {
         var cx = GetComputedUnit(svgEllipse, "cx", svgEllipse.CenterX).ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, viewport);
         var cy = GetComputedUnit(svgEllipse, "cy", svgEllipse.CenterY).ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, viewport);
-        var rx = GetComputedUnit(svgEllipse, "rx", svgEllipse.RadiusX).ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, viewport);
-        var ry = GetComputedUnit(svgEllipse, "ry", svgEllipse.RadiusY).ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, viewport);
+        var rxUnit = GetComputedUnit(svgEllipse, "rx", svgEllipse.RadiusX, out var rxAuto, defaultAuto: true);
+        var ryUnit = GetComputedUnit(svgEllipse, "ry", svgEllipse.RadiusY, out var ryAuto, defaultAuto: true);
+        var rx = rxUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, viewport);
+        var ry = ryUnit.ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, viewport);
+        if (rxAuto && ryAuto)
+        {
+            return null;
+        }
+
+        if (rxAuto)
+        {
+            rx = ry;
+        }
+        else if (ryAuto)
+        {
+            ry = rx;
+        }
+
         if (rx <= 0f || ry <= 0f)
         {
             return null;

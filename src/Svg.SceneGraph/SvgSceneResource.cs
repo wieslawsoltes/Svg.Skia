@@ -272,8 +272,8 @@ public sealed class SvgSceneResource
 
     private static MaskType GetMaskType(SvgMask mask)
     {
-        if (mask.ComputedStyle.TryGetPropertyValue("mask-type", out var maskTypeStr)
-            && !string.IsNullOrWhiteSpace(maskTypeStr))
+        if (mask.TryGetOwnCascadedStyleValue("mask-type", out var maskTypeStr) &&
+            !string.IsNullOrWhiteSpace(maskTypeStr))
         {
             return string.Equals(maskTypeStr.Trim(), "alpha", StringComparison.OrdinalIgnoreCase)
                 ? MaskType.Alpha

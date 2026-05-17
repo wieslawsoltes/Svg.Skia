@@ -20,22 +20,16 @@ public static class SvgSceneCompiler
         private readonly Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> _solidFillPaintCache = new();
         private readonly Dictionary<SvgFragment, SKSize> _fragmentViewportSizeOverrides = new();
 
-        public SvgVisualElement? ContextPaintElement { get; private set; }
-
-        public SKRect ContextPaintBounds { get; private set; }
+        public SvgSceneContextPaint? ContextPaint { get; private set; }
 
         public IDisposable PushContextPaint(SvgVisualElement contextPaintElement, SKRect contextPaintBounds)
         {
-            var previousContextPaintElement = ContextPaintElement;
-            var previousContextPaintBounds = ContextPaintBounds;
-
-            ContextPaintElement = contextPaintElement;
-            ContextPaintBounds = contextPaintBounds;
+            var previousContextPaint = ContextPaint;
+            ContextPaint = new SvgSceneContextPaint(contextPaintElement, contextPaintBounds, previousContextPaint);
 
             return new ContextPaintScope(
                 this,
-                previousContextPaintElement,
-                previousContextPaintBounds);
+                previousContextPaint);
         }
 
         public IDisposable PushFragmentViewportSizeOverride(SvgFragment svgFragment, SKSize viewportSize)
@@ -114,23 +108,19 @@ public static class SvgSceneCompiler
         private sealed class ContextPaintScope : IDisposable
         {
             private readonly SvgSceneCompileContext _compileContext;
-            private readonly SvgVisualElement? _previousContextPaintElement;
-            private readonly SKRect _previousContextPaintBounds;
+            private readonly SvgSceneContextPaint? _previousContextPaint;
 
             public ContextPaintScope(
                 SvgSceneCompileContext compileContext,
-                SvgVisualElement? previousContextPaintElement,
-                SKRect previousContextPaintBounds)
+                SvgSceneContextPaint? previousContextPaint)
             {
                 _compileContext = compileContext;
-                _previousContextPaintElement = previousContextPaintElement;
-                _previousContextPaintBounds = previousContextPaintBounds;
+                _previousContextPaint = previousContextPaint;
             }
 
             public void Dispose()
             {
-                _compileContext.ContextPaintElement = _previousContextPaintElement;
-                _compileContext.ContextPaintBounds = _previousContextPaintBounds;
+                _compileContext.ContextPaint = _previousContextPaint;
             }
         }
 
@@ -521,7 +511,7 @@ public static class SvgSceneCompiler
         {
             Add(ResolveReference(visualElement, visualElement.ClipPath));
             Add(ResolveReference(visualElement, visualElement.Filter));
-            Add(ResolveReference(visualElement, GetUriAttribute(visualElement, "mask")));
+            Add(ResolveReference(visualElement, GetReferenceUri(visualElement, "mask")));
             Add(GetResolvedPaintServerElement(visualElement, visualElement.Fill));
             Add(GetResolvedPaintServerElement(visualElement, visualElement.Stroke));
             Add(ResolveReference(visualElement, GetEffectiveMarkerReferenceUri(visualElement, "marker-start", static element => element.MarkerStart)));
@@ -1319,7 +1309,7 @@ public static class SvgSceneCompiler
         node.IsRenderable = isRenderable;
         node.IsAntialias = PaintingService.IsAntialias(visualElement);
         node.GeometryBounds = path?.Bounds ?? SKRect.Empty;
-        node.Transform = TransformsService.ToMatrix(visualElement.Transforms);
+        node.Transform = TransformsService.ToMatrix(visualElement.Transforms, visualElement, node.GeometryBounds, viewport);
         node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
         node.TransformedBounds = node.TotalTransform.MapRect(node.GeometryBounds);
         node.HitTestPath = path;
@@ -1469,9 +1459,7 @@ public static class SvgSceneCompiler
         {
             referencedElement.InvalidateChildPaths();
 
-            using var contextPaintScope = ShouldPushUseContextPaint(svgUse, compileContext)
-                ? compileContext.PushContextPaint(svgUse, contextPaintBounds)
-                : null;
+            using var contextPaintScope = compileContext.PushContextPaint(svgUse, contextPaintBounds);
             using var fragmentViewportScope = referencedElement is SvgFragment svgFragment && referencedElement is not SvgSymbol
                 ? compileContext.PushFragmentViewportSizeOverride(svgFragment, new SKSize(width, height))
                 : null;
@@ -1521,17 +1509,6 @@ public static class SvgSceneCompiler
         return SvgService.TryGetAttribute(svgUse, name, out _) ||
                svgUse.ComputedStyle.TryGetPropertyValue(name, out var rawValue) &&
                !string.IsNullOrWhiteSpace(rawValue);
-    }
-
-    private static bool ShouldPushUseContextPaint(SvgUse svgUse, SvgSceneCompileContext compileContext)
-    {
-        if (compileContext.ContextPaintElement is null)
-        {
-            return true;
-        }
-
-        return svgUse.Fill is not SvgContextPaintServer &&
-               svgUse.Stroke is not SvgContextPaintServer;
     }
 
     private static SKRect CreateUseContextPaintBounds(
@@ -1681,9 +1658,6 @@ public static class SvgSceneCompiler
         var x = SvgGeometryService.GetComputedUnit(svgImage, "x", svgImage.Location.X).ToDeviceValue(UnitRenderingType.Horizontal, svgImage, viewport);
         var y = SvgGeometryService.GetComputedUnit(svgImage, "y", svgImage.Location.Y).ToDeviceValue(UnitRenderingType.Vertical, svgImage, viewport);
 
-        node.Transform = TransformsService.ToMatrix(svgImage.Transforms);
-        node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
-
         var href = SvgService.GetEffectiveHrefString(svgImage, svgImage.Href);
         if (!node.IsRenderable || string.IsNullOrWhiteSpace(href))
         {
@@ -1734,6 +1708,8 @@ public static class SvgSceneCompiler
             svgImage.AspectRatio.Align != SvgPreserveAspectRatio.none;
         var geometryBounds = usesReferencedSvgViewport ? destClip : destRect;
         node.GeometryBounds = geometryBounds;
+        node.Transform = TransformsService.ToMatrix(svgImage.Transforms, svgImage, geometryBounds, viewport);
+        node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
         node.TransformedBounds = node.TotalTransform.MapRect(geometryBounds);
         node.Clip = MaskingService.GetClipRect(svgImage.Clip, destClip) ?? destClip;
 
@@ -2212,33 +2188,35 @@ public static class SvgSceneCompiler
                 {
                     var lastIndex = pathLength - 1;
                     var startIndex = GetSubpathStartIndex(pathTypes, lastIndex);
-                    var previousIndex = lastIndex - 1;
-                    while (previousIndex > startIndex &&
-                           pathTypes[previousIndex].Point.X == pathTypes[lastIndex].Point.X &&
-                           pathTypes[previousIndex].Point.Y == pathTypes[lastIndex].Point.Y)
+                    if (!AreSamePoint(pathTypes[lastIndex].Point, pathTypes[startIndex].Point))
                     {
-                        previousIndex--;
-                    }
+                        var previousIndex = lastIndex - 1;
+                        while (previousIndex > startIndex &&
+                               AreSamePoint(pathTypes[previousIndex].Point, pathTypes[lastIndex].Point))
+                        {
+                            previousIndex--;
+                        }
 
-                    if (TryCompileDirectMarkerNode(
-                            marker,
-                            markerElement,
-                            pathTypes[lastIndex].Point,
-                            pathTypes[previousIndex].Point,
-                            pathTypes[lastIndex].Point,
-                            pathTypes[startIndex].Point,
-                            node.GeometryBounds,
-                            viewport,
-                            markerParentTotalTransform,
-                            assetLoader,
-                            ignoreAttributes,
-                            node.CompilationRootKey,
-                            compileContext,
-                            out var closingMidMarkerNode) &&
-                        closingMidMarkerNode is not null)
-                    {
-                        AssignGeneratedHitTestTarget(closingMidMarkerNode, hitTestTarget);
-                        node.AddChild(closingMidMarkerNode);
+                        if (TryCompileDirectMarkerNode(
+                                marker,
+                                markerElement,
+                                pathTypes[lastIndex].Point,
+                                pathTypes[previousIndex].Point,
+                                pathTypes[lastIndex].Point,
+                                pathTypes[startIndex].Point,
+                                node.GeometryBounds,
+                                viewport,
+                                markerParentTotalTransform,
+                                assetLoader,
+                                ignoreAttributes,
+                                node.CompilationRootKey,
+                                compileContext,
+                                out var closingMidMarkerNode) &&
+                            closingMidMarkerNode is not null)
+                        {
+                            AssignGeneratedHitTestTarget(closingMidMarkerNode, hitTestTarget);
+                            node.AddChild(closingMidMarkerNode);
+                        }
                     }
                 }
             }
@@ -2253,6 +2231,7 @@ public static class SvgSceneCompiler
             {
                 var index = pathLength - 1;
                 var refPoint1 = pathTypes[index].Point;
+                var isClosedSubpath = HasCloseSubpath(pathTypes[index].Type);
                 if (HasCloseSubpath(pathTypes[index].Type))
                 {
                     var startIndex = GetSubpathStartIndex(pathTypes, index);
@@ -2263,20 +2242,28 @@ public static class SvgSceneCompiler
                 {
                     index--;
                     while (index > 0 &&
-                           pathTypes[index].Point.X == refPoint1.X &&
-                           pathTypes[index].Point.Y == refPoint1.Y)
+                           AreSamePoint(pathTypes[index].Point, refPoint1))
                     {
                         index--;
                     }
                 }
 
                 var refPoint2 = pathLength == 1 ? refPoint1 : pathTypes[index].Point;
+                var markerPoint1 = refPoint2;
+                var markerPoint2 = pathTypes[pathLength - 1].Point;
+                if (isClosedSubpath &&
+                    !AreSamePoint(pathTypes[pathLength - 1].Point, refPoint1))
+                {
+                    markerPoint1 = pathTypes[pathLength - 1].Point;
+                    markerPoint2 = refPoint1;
+                }
+
                 if (TryCompileDirectMarkerNode(
                         marker,
                         markerElement,
                         refPoint1,
-                        refPoint2,
-                        pathTypes[pathLength - 1].Point,
+                        markerPoint1,
+                        markerPoint2,
                         isStartMarker: false,
                         node.GeometryBounds,
                         viewport,
@@ -2293,6 +2280,12 @@ public static class SvgSceneCompiler
                 }
             }
         }
+    }
+
+    private static bool AreSamePoint(SKPoint point1, SKPoint point2)
+    {
+        return Math.Abs(point1.X - point2.X) <= 0.001f &&
+               Math.Abs(point1.Y - point2.Y) <= 0.001f;
     }
 
     private static bool HasCloseSubpath(byte pathType)
@@ -2758,8 +2751,7 @@ public static class SvgSceneCompiler
                     geometryBounds,
                     assetLoader,
                     ignoreAttributes,
-                    compileContext.ContextPaintElement,
-                    compileContext.ContextPaintBounds);
+                    compileContext.ContextPaint);
             if (fill is null)
             {
                 canDrawFill = false;
@@ -2773,8 +2765,7 @@ public static class SvgSceneCompiler
                 geometryBounds,
                 assetLoader,
                 ignoreAttributes,
-                compileContext.ContextPaintElement,
-                compileContext.ContextPaintBounds,
+                compileContext.ContextPaint,
                 path);
             if (stroke is null)
             {
@@ -2919,19 +2910,19 @@ public static class SvgSceneCompiler
 
     private static string? TryGetMaskResourceKey(SvgElement element, Func<SvgElement?, string?>? getElementAddressKey = null)
     {
-        if (!element.TryGetAttribute("mask", out string maskValue) || string.IsNullOrWhiteSpace(maskValue))
+        var maskUri = GetReferenceUri(element, "mask");
+        if (maskUri is null)
         {
             return null;
         }
 
-        var svgMask = element.GetUriElementReference<SvgMask>("mask", new HashSet<Uri>());
+        var svgMask = SvgService.GetReference<SvgMask>(element, maskUri);
         return (getElementAddressKey ?? TryGetElementAddressKey)(svgMask);
     }
 
     private static bool HasMaskReference(SvgElement element)
     {
-        return element.TryGetAttribute("mask", out string maskValue) &&
-               !string.IsNullOrWhiteSpace(maskValue);
+        return GetReferenceUri(element, "mask") is not null;
     }
 
     internal static void AssignRetainedResourceKeys(SvgSceneNode node, SvgElement? element, Func<SvgElement?, string?>? getElementAddressKey = null)
@@ -3067,9 +3058,19 @@ public static class SvgSceneCompiler
 
     private static Uri? GetUriAttribute(SvgElement element, string name)
     {
-        return element.TryGetAttribute(name, out var value) && !string.IsNullOrWhiteSpace(value)
-            ? new Uri(value, UriKind.RelativeOrAbsolute)
-            : null;
+        return GetReferenceUri(element, name);
+    }
+
+    private static Uri? GetReferenceUri(SvgElement element, string name)
+    {
+        if ((!element.TryGetOwnCascadedStyleValue(name, out var value) &&
+             !element.TryGetAttribute(name, out value)) ||
+            string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return TryCreateMarkerReferenceUri(value);
     }
 
     private static bool TryGetCursorAttribute(SvgElement element, out string? cursor)

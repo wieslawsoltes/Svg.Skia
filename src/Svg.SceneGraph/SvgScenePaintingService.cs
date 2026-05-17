@@ -8,6 +8,22 @@ using Svg.Model.Services;
 
 namespace Svg.Skia;
 
+internal sealed class SvgSceneContextPaint
+{
+    public SvgSceneContextPaint(SvgVisualElement element, SKRect bounds, SvgSceneContextPaint? parent)
+    {
+        Element = element;
+        Bounds = bounds;
+        Parent = parent;
+    }
+
+    public SvgVisualElement Element { get; }
+
+    public SKRect Bounds { get; }
+
+    public SvgSceneContextPaint? Parent { get; }
+}
+
 internal static class SvgScenePaintingService
 {
     internal readonly record struct SolidFillPaintCacheKey(bool IsAntialias, SKColor Color, bool LinearRgb);
@@ -53,8 +69,7 @@ internal static class SvgScenePaintingService
         SKRect skBounds,
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
-        SvgVisualElement? contextPaintElement = null,
-        SKRect contextPaintBounds = default)
+        SvgSceneContextPaint? contextPaint = null)
     {
         var skPaint = new SKPaint
         {
@@ -72,8 +87,7 @@ internal static class SvgScenePaintingService
                 forStroke: false,
                 assetLoader,
                 ignoreAttributes,
-                contextPaintElement,
-                contextPaintBounds)
+                contextPaint)
             ? skPaint
             : null;
     }
@@ -129,8 +143,7 @@ internal static class SvgScenePaintingService
         SKRect skBounds,
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
-        SvgVisualElement? contextPaintElement = null,
-        SKRect contextPaintBounds = default,
+        SvgSceneContextPaint? contextPaint = null,
         SKPath? geometryPath = null)
     {
         var skPaint = new SKPaint
@@ -149,8 +162,7 @@ internal static class SvgScenePaintingService
                 forStroke: true,
                 assetLoader,
                 ignoreAttributes,
-                contextPaintElement,
-                contextPaintBounds))
+                contextPaint))
         {
             return null;
         }
@@ -190,8 +202,7 @@ internal static class SvgScenePaintingService
         bool forStroke,
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
-        SvgVisualElement? contextPaintElement,
-        SKRect contextPaintBounds,
+        SvgSceneContextPaint? contextPaint,
         int contextPaintDepth = 0)
     {
         if (server is null)
@@ -228,8 +239,7 @@ internal static class SvgScenePaintingService
                     forStroke,
                     assetLoader,
                     ignoreAttributes,
-                    contextPaintElement,
-                    contextPaintBounds,
+                    contextPaint,
                     contextPaintDepth);
 
             case SvgColourServer svgColourServer:
@@ -256,8 +266,7 @@ internal static class SvgScenePaintingService
                         forStroke,
                         assetLoader,
                         ignoreAttributes,
-                        contextPaintElement,
-                        contextPaintBounds,
+                        contextPaint,
                         contextPaintDepth,
                         skColorSpace);
                 }
@@ -280,8 +289,7 @@ internal static class SvgScenePaintingService
                             forStroke,
                             assetLoader,
                             ignoreAttributes,
-                            contextPaintElement,
-                            contextPaintBounds,
+                            contextPaint,
                             contextPaintDepth,
                             skColorSpace);
                     }
@@ -298,8 +306,7 @@ internal static class SvgScenePaintingService
                             forStroke,
                             assetLoader,
                             ignoreAttributes,
-                            contextPaintElement,
-                            contextPaintBounds,
+                            contextPaint,
                             contextPaintDepth,
                             skColorSpace);
                     }
@@ -326,8 +333,7 @@ internal static class SvgScenePaintingService
                             forStroke,
                             assetLoader,
                             ignoreAttributes,
-                            contextPaintElement,
-                            contextPaintBounds,
+                            contextPaint,
                             contextPaintDepth,
                             skColorSpace);
                     }
@@ -344,8 +350,7 @@ internal static class SvgScenePaintingService
                             forStroke,
                             assetLoader,
                             ignoreAttributes,
-                            contextPaintElement,
-                            contextPaintBounds,
+                            contextPaint,
                             contextPaintDepth,
                             skColorSpace);
                     }
@@ -364,8 +369,7 @@ internal static class SvgScenePaintingService
                     forStroke,
                     assetLoader,
                     ignoreAttributes,
-                    contextPaintElement,
-                    contextPaintBounds,
+                    contextPaint,
                     contextPaintDepth);
 
             default:
@@ -382,30 +386,26 @@ internal static class SvgScenePaintingService
         bool forStroke,
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
-        SvgVisualElement? contextPaintElement,
-        SKRect contextPaintBounds,
+        SvgSceneContextPaint? contextPaint,
         int contextPaintDepth)
     {
-        if (contextPaintElement is null ||
-            ReferenceEquals(svgVisualElement, contextPaintElement) ||
+        if (contextPaint is null ||
+            ReferenceEquals(svgVisualElement, contextPaint.Element) ||
             contextPaintDepth >= 8)
         {
             return false;
         }
 
         var contextServer = svgContextPaintServer.Kind == SvgContextPaintKind.Stroke
-            ? contextPaintElement.Stroke
-            : contextPaintElement.Fill;
-        var contextServerOwner = IsCurrentColorPaintServer(contextServer)
-            ? svgVisualElement
-            : contextPaintElement;
-        var resolvedContextServer = SvgDeferredPaintServer.TryGet<SvgPaintServer>(contextServer, contextServerOwner);
+            ? contextPaint.Element.Stroke
+            : contextPaint.Element.Fill;
+        var resolvedContextServer = SvgDeferredPaintServer.TryGet<SvgPaintServer>(contextServer, contextPaint.Element);
         var contextServerBounds = resolvedContextServer is SvgPatternServer
-            ? SKRect.Create(0f, 0f, contextPaintBounds.Width, contextPaintBounds.Height)
-            : contextPaintBounds;
+            ? SKRect.Create(0f, 0f, contextPaint.Bounds.Width, contextPaint.Bounds.Height)
+            : contextPaint.Bounds;
 
         return TryApplyPaintServer(
-            contextServerOwner,
+            svgVisualElement,
             contextServer,
             opacity,
             contextServerBounds,
@@ -413,15 +413,8 @@ internal static class SvgScenePaintingService
             forStroke,
             assetLoader,
             ignoreAttributes,
-            contextPaintElement,
-            contextPaintBounds,
+            contextPaint.Parent,
             contextPaintDepth + 1);
-    }
-
-    private static bool IsCurrentColorPaintServer(SvgPaintServer? paintServer)
-    {
-        return paintServer is SvgDeferredPaintServer deferredPaintServer &&
-               string.Equals(deferredPaintServer.DeferredId, "currentColor", StringComparison.Ordinal);
     }
 
     private static bool TryApplyColor(
@@ -502,8 +495,7 @@ internal static class SvgScenePaintingService
         bool forStroke,
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
-        SvgVisualElement? contextPaintElement,
-        SKRect contextPaintBounds,
+        SvgSceneContextPaint? contextPaint,
         int contextPaintDepth,
         SKColorSpace skColorSpace)
     {
@@ -526,8 +518,7 @@ internal static class SvgScenePaintingService
             forStroke,
             assetLoader,
             ignoreAttributes,
-            contextPaintElement,
-            contextPaintBounds,
+            contextPaint,
             contextPaintDepth + 1);
     }
 

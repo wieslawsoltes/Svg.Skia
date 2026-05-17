@@ -8735,8 +8735,30 @@ internal static partial class SvgSceneTextCompiler
 
     private static bool PreservesTextWhitespace(SvgTextBase svgTextBase)
     {
-        return svgTextBase.SpaceHandling == XmlSpaceHandling.Preserve ||
-               svgTextBase.WhiteSpace is SvgWhiteSpace.Pre or SvgWhiteSpace.PreWrap or SvgWhiteSpace.BreakSpaces;
+        return HasDeclaredWhiteSpace(svgTextBase) &&
+               svgTextBase.ComputedStyle.TryGetWhiteSpace(out var whiteSpace)
+            ? PreservesTextWhitespace(whiteSpace)
+            : svgTextBase.SpaceHandling == XmlSpaceHandling.Preserve ||
+              svgTextBase.WhiteSpace is SvgWhiteSpace.Pre or SvgWhiteSpace.PreWrap or SvgWhiteSpace.BreakSpaces;
+    }
+
+    private static bool PreservesTextWhitespace(SvgWhiteSpace whiteSpace)
+    {
+        return whiteSpace is SvgWhiteSpace.Pre or SvgWhiteSpace.PreWrap or SvgWhiteSpace.BreakSpaces;
+    }
+
+    private static bool HasDeclaredWhiteSpace(SvgElement element)
+    {
+        for (var current = element; current is not null; current = current.Parent)
+        {
+            if (current.TryGetOwnCascadedStyleValue("white-space", out var value) &&
+                !string.IsNullOrWhiteSpace(value))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool CollapsesTextWhitespace(SvgTextBase svgTextBase)

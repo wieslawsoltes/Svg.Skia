@@ -66,6 +66,7 @@
     <Compile Remove="$(SvgSourcesBasePath)\Source\Painting\SvgPatternServer.cs" />
     <Compile Remove="$(SvgSourcesBasePath)\Source\Painting\SvgPaintServerFactory.cs" />
     <Compile Remove="$(SvgSourcesBasePath)\Source\Css\ExCssQuery.cs" />
+    <Compile Remove="$(SvgSourcesBasePath)\Source\Paths\SvgPathBuilder.cs" />
     <Compile Remove="$(SvgSourcesBasePath)\Source\Resources\svg11.dtd" />
     <Compile Remove="$(SvgSourcesBasePath)\Source\SvgElementFactory.cs" />
   </ItemGroup>

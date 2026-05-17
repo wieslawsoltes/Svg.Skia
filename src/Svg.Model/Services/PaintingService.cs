@@ -44,7 +44,7 @@ internal static class PaintingService
         return new SKColor(0x00, 0x00, 0x00, 0xFF);
     }
 
-    internal static SKPathEffect? CreateDash(SvgElement svgElement, SKRect skBounds)
+    internal static SKPathEffect? CreateDash(SvgElement svgElement, SKRect skBounds, SKPath? geometryPath = null)
     {
         var strokeDashArray = svgElement.StrokeDashArray;
         var strokeDashOffset = svgElement.StrokeDashOffset;
@@ -54,10 +54,16 @@ internal static class PaintingService
         {
             var isOdd = count % 2 != 0;
             var sum = 0f;
-            float[] intervals = new float[isOdd ? count * 2 : count];
+            var intervals = new float[isOdd ? count * 2 : count];
+            if (geometryPath is null)
+            {
+                _ = SvgGeometryService.TryCreateEquivalentPath(svgElement, skBounds, out geometryPath);
+            }
+
+            var normalization = SvgGeometryService.CreatePathLengthNormalization(svgElement, geometryPath);
             for (var i = 0; i < count; i++)
             {
-                var dash = strokeDashArray[i].ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds);
+                var dash = normalization.ToActualDistance(strokeDashArray[i].ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds));
                 if (dash < 0f)
                 {
                     return default;
@@ -78,7 +84,7 @@ internal static class PaintingService
                 return default;
             }
 
-            var phase = strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds);
+            var phase = normalization.ToActualDistance(strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds));
 
             return SKPathEffect.CreateDash(intervals, phase);
         }

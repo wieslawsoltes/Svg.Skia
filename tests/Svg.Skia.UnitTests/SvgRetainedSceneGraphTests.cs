@@ -509,6 +509,46 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_TextPathSideLeftAndInvalid_MatchDefaultPlacement()
+    {
+        const string sideDefaultSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="140" height="120" viewBox="0 0 140 120">
+              <defs>
+                <path id="default-line" d="M20,25 L120,25" />
+                <path id="left-line" d="M20,55 L120,55" />
+                <path id="invalid-line" d="M20,85 L120,85" />
+              </defs>
+              <text fill="#0055aa" font-size="12">
+                <textPath href="#default-line">A</textPath>
+                <textPath href="#left-line" side="left">B</textPath>
+                <textPath href="#invalid-line" side="sideways">C</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(sideDefaultSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var glyphs = retainedModel!
+            .FindCommands<DrawTextCanvasCommand>()
+            .Where(static command => command.Text is "A" or "B" or "C")
+            .ToDictionary(static command => command.Text, static command => new SKPoint(command.X, command.Y), StringComparer.Ordinal);
+
+        Assert.True(glyphs.TryGetValue("A", out var defaultGlyph), "Expected default side textPath glyph.");
+        Assert.True(glyphs.TryGetValue("B", out var leftGlyph), "Expected side=left textPath glyph.");
+        Assert.True(glyphs.TryGetValue("C", out var invalidGlyph), "Expected invalid side textPath glyph.");
+        Assert.InRange(defaultGlyph.Y, 23f, 27f);
+        Assert.InRange(leftGlyph.Y, 53f, 57f);
+        Assert.InRange(invalidGlyph.Y, 83f, 87f);
+        Assert.InRange(defaultGlyph.X, 18f, 24f);
+        Assert.InRange(leftGlyph.X, 18f, 24f);
+        Assert.InRange(invalidGlyph.X, 18f, 24f);
+    }
+
+    [Fact]
     public void RetainedSceneGraph_TextPathPathLength_ScalesDistanceMapping()
     {
         const string pathLengthSvg = """
@@ -558,6 +598,42 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_TextPathTspanDx_AdvancesAlongPath()
+    {
+        const string dxSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="140" height="160" viewBox="0 0 140 160">
+              <defs>
+                <path id="line" d="M60,20 L60,140" />
+              </defs>
+              <text fill="#0055aa" font-size="10">
+                <textPath href="#line">A<tspan dx="20">B</tspan></textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.Settings.EnableSvgFonts = false;
+        svg.FromSvg(dxSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var glyphPositions = retainedModel!
+            .FindCommands<DrawTextCanvasCommand>()
+            .Where(static command => command.Text is "A" or "B")
+            .ToDictionary(static command => command.Text, static command => new SKPoint(command.X, command.Y), StringComparer.Ordinal);
+
+        Assert.True(glyphPositions.TryGetValue("A", out var a), "Expected textPath to render the first glyph.");
+        Assert.True(glyphPositions.TryGetValue("B", out var b), "Expected textPath to render the second glyph.");
+        Assert.True(
+            Math.Abs(b.X - a.X) < 8f,
+            $"Expected tspan dx to stay on the textPath instead of moving in user space, but A was {a} and B was {b}.");
+        Assert.True(
+            b.Y > a.Y + 15f,
+            $"Expected tspan dx to advance the second textPath glyph along the path, but A was {a} and B was {b}.");
+    }
+
+    [Fact]
     public void RetainedSceneGraph_WhiteSpacePre_PreservesStaticTextRuns()
     {
         const string whiteSpaceSvg = """
@@ -580,6 +656,30 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
 
         Assert.Contains("A B", renderedTexts);
         Assert.Contains("A   B", renderedTexts);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_WhiteSpaceNormal_OverridesXmlSpacePreserve()
+    {
+        const string whiteSpaceSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="50" viewBox="0 0 180 50">
+              <text x="10" y="25" font-size="12" xml:space="preserve" white-space="normal">A   B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(whiteSpaceSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var renderedTexts = retainedModel!
+            .FindCommands<DrawTextCanvasCommand>()
+            .Select(static cmd => cmd.Text)
+            .ToList();
+
+        Assert.Contains("A B", renderedTexts);
+        Assert.DoesNotContain("A   B", renderedTexts);
     }
 
     [Fact]
@@ -1201,6 +1301,74 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
             shadowPixel.Blue is > 0x46 and < 0x70 &&
             shadowPixel.Alpha > 200,
             $"Expected offset shadow pixel to render outside source bounds but was {shadowPixel}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_FeTileUsesFilterRegionForStandardInput()
+    {
+        const string tileSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="40">
+              <defs>
+                <filter id="tile-filter"
+                        filterUnits="userSpaceOnUse"
+                        x="0" y="0" width="80" height="40"
+                        color-interpolation-filters="sRGB">
+                  <feTile in="SourceGraphic" x="30" y="0" width="40" height="20" />
+                </filter>
+              </defs>
+              <rect id="tile-target" x="5" y="5" width="10" height="10" fill="red" filter="url(#tile-filter)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(tileSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("tile-target", out var targetNode));
+        Assert.NotNull(targetNode);
+
+        var tile = Assert.IsType<TileImageFilter>(targetNode!.Filter!.ImageFilter);
+        Assert.Equal(0f, tile.Src.Left, 3);
+        Assert.Equal(0f, tile.Src.Top, 3);
+        Assert.Equal(80f, tile.Src.Right, 3);
+        Assert.Equal(40f, tile.Src.Bottom, 3);
+        Assert.Equal(30f, tile.Dst.Left, 3);
+        Assert.Equal(0f, tile.Dst.Top, 3);
+        Assert.Equal(70f, tile.Dst.Right, 3);
+        Assert.Equal(20f, tile.Dst.Bottom, 3);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_FeImageLocalFragmentCycleSuppressesImageInput()
+    {
+        const string cyclicFeImageSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60">
+              <defs>
+                <filter id="self-filter" filterUnits="userSpaceOnUse" x="0" y="0" width="60" height="60">
+                  <feImage href="#filtered-target" x="0" y="0" width="60" height="60" result="image" />
+                  <feMerge>
+                    <feMergeNode in="image" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <rect id="filtered-target" x="10" y="10" width="20" height="20" fill="red" filter="url(#self-filter)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(cyclicFeImageSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("filtered-target", out var targetNode));
+        Assert.NotNull(targetNode);
+        Assert.False(targetNode!.SuppressSubtreeRendering);
+        Assert.NotNull(targetNode.Filter);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
     }
 
     [Fact]
@@ -1850,6 +2018,51 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.Equal(5, markerNodes.Count);
     }
 
+    [Theory]
+    [InlineData("line", """<line id="target" x1="10" y1="10" x2="50" y2="10" />""", 2, 10f, 10f, 0f, 50f, 10f, 0f)]
+    [InlineData("polyline", """<polyline id="target" points="10,10 50,10 50,30" />""", 3, 10f, 10f, 0f, 50f, 30f, 90f)]
+    [InlineData("polygon", """<polygon id="target" points="10,10 50,10 50,30 10,30" />""", 5, 10f, 10f, 0f, 10f, 10f, 270f)]
+    [InlineData("rect", """<rect id="target" x="10" y="10" width="40" height="20" />""", 5, 10f, 10f, 0f, 10f, 10f, 270f)]
+    [InlineData("circle", """<circle id="target" cx="30" cy="30" r="20" />""", 5, 50f, 30f, 90f, 50f, 30f, 90f)]
+    [InlineData("ellipse", """<ellipse id="target" cx="40" cy="30" rx="30" ry="15" />""", 5, 70f, 30f, 90f, 70f, 30f, 90f)]
+    public void RetainedSceneGraph_AddsMarkersAtShapeVerticesWithAutoOrientation(
+        string _,
+        string shapeMarkup,
+        int expectedMarkerCount,
+        float expectedStartX,
+        float expectedStartY,
+        float expectedStartAngle,
+        float expectedEndX,
+        float expectedEndY,
+        float expectedEndAngle)
+    {
+        var markerSvg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="80">
+              <defs>
+                <marker id="marker" markerWidth="4" markerHeight="4" refX="0" refY="0" orient="auto" markerUnits="userSpaceOnUse">
+                  <path id="marker-tick" d="M0,0 L4,0" fill="none" stroke="red" />
+                </marker>
+              </defs>
+              {{shapeMarkup.Replace("/>", """
+                    fill="none"
+                    stroke="black"
+                    marker-start="url(#marker)"
+                    marker-mid="url(#marker)"
+                    marker-end="url(#marker)" />
+                """, StringComparison.Ordinal)}}
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(markerSvg);
+
+        var markerNodes = GetTargetMarkerNodes(svg.RetainedSceneGraph, "target");
+
+        Assert.Equal(expectedMarkerCount, markerNodes.Count);
+        AssertMarkerTransform(markerNodes[0], expectedStartX, expectedStartY, expectedStartAngle);
+        AssertMarkerTransform(markerNodes[markerNodes.Count - 1], expectedEndX, expectedEndY, expectedEndAngle);
+    }
+
     [Fact]
     public void RetainedSceneGraph_ResolvesMarkerContextPaintFromReferencingElement()
     {
@@ -1942,6 +2155,97 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         using var bitmap = ToBitmap(svg, retainedNativePicture!);
         Assert.Equal(new SkiaColor(0xab, 0xcd, 0xef, 0xff), bitmap.GetPixel(6, 6));
         Assert.Equal(new SkiaColor(0x12, 0x34, 0x56, 0xff), bitmap.GetPixel(18, 6));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ResolvesNestedUseContextPaintThroughIntermediateUse()
+    {
+        const string contextPaintUseSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="12">
+              <defs>
+                <g id="template">
+                  <rect id="nested-context-fill" x="0" y="0" width="10" height="10" fill="context-fill" />
+                  <rect id="nested-context-stroke" x="12" y="0" width="10" height="10" fill="context-stroke" />
+                </g>
+                <use id="inner-instance" href="#template" fill="context-stroke" stroke="context-fill" />
+              </defs>
+              <use id="outer-instance" href="#inner-instance" x="2" y="1" fill="#112233" stroke="#445566" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(contextPaintUseSvg);
+
+        var retainedPicture = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedPicture);
+
+        var fillCommands = retainedPicture!.FindCommandsBySourceElementId<DrawPathCanvasCommand>("nested-context-fill")
+            .Where(static command => command.Paint?.Style == SKPaintStyle.Fill)
+            .ToList();
+        Assert.NotEmpty(fillCommands);
+        Assert.All(fillCommands, static command =>
+            Assert.Equal(new SKColor(0x44, 0x55, 0x66, 0xff), command.Paint!.Color.GetValueOrDefault()));
+
+        var strokeCommands = retainedPicture.FindCommandsBySourceElementId<DrawPathCanvasCommand>("nested-context-stroke")
+            .Where(static command => command.Paint?.Style == SKPaintStyle.Fill)
+            .ToList();
+        Assert.NotEmpty(strokeCommands);
+        Assert.All(strokeCommands, static command =>
+            Assert.Equal(new SKColor(0x11, 0x22, 0x33, 0xff), command.Paint!.Color.GetValueOrDefault()));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ResolvesContextPaintCurrentColorFromConsumerElement()
+    {
+        const string contextPaintUseSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="12">
+              <defs>
+                <g id="template" color="#010203">
+                  <rect id="context-current-color" x="0" y="0" width="10" height="10" fill="context-fill" />
+                </g>
+              </defs>
+              <g color="#abcdef">
+                <use id="instance" href="#template" x="2" y="1" fill="currentColor" />
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(contextPaintUseSvg);
+
+        var retainedPicture = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedPicture);
+
+        var command = Assert.Single(retainedPicture!.FindCommandsBySourceElementId<DrawPathCanvasCommand>("context-current-color")
+, static command => command.Paint?.Style == SKPaintStyle.Fill);
+        Assert.Equal(new SKColor(0x01, 0x02, 0x03, 0xff), command.Paint!.Color.GetValueOrDefault());
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ResolvesContextPaintFromInheritedUseStroke()
+    {
+        const string contextPaintUseSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="12">
+              <defs>
+                <g id="template">
+                  <rect id="inherited-context-stroke" x="0" y="0" width="10" height="10" fill="context-stroke" />
+                </g>
+              </defs>
+              <g stroke="#123456">
+                <use id="instance" href="#template" x="2" y="1" fill="#abcdef" />
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(contextPaintUseSvg);
+
+        var retainedPicture = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedPicture);
+
+        var command = Assert.Single(retainedPicture!.FindCommandsBySourceElementId<DrawPathCanvasCommand>("inherited-context-stroke")
+, static command => command.Paint?.Style == SKPaintStyle.Fill);
+        Assert.Equal(new SKColor(0x12, 0x34, 0x56, 0xff), command.Paint!.Color.GetValueOrDefault());
     }
 
     [Fact]
@@ -2917,6 +3221,34 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
 
         var actual = node.HitTestPath!.Commands!.Select(static command => command.GetType()).ToArray();
         Assert.Equal(commandTypes, actual);
+    }
+
+    private static List<SvgSceneNode> GetTargetMarkerNodes(SvgSceneDocument? scene, string elementId)
+    {
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById(elementId, out var targetNode));
+        Assert.NotNull(targetNode);
+
+        return targetNode!.Children
+            .Where(static node => node.Kind == SvgSceneNodeKind.Marker)
+            .ToList();
+    }
+
+    private static void AssertMarkerTransform(SvgSceneNode markerNode, float expectedX, float expectedY, float expectedAngle)
+    {
+        var origin = markerNode.TotalTransform.MapPoint(new SKPoint(0f, 0f));
+        var unitX = markerNode.TotalTransform.MapPoint(new SKPoint(1f, 0f));
+        var actualAngle = NormalizeAngle((float)(Math.Atan2(unitX.Y - origin.Y, unitX.X - origin.X) * 180.0 / Math.PI));
+
+        AssertApproximately(expectedX, origin.X);
+        AssertApproximately(expectedY, origin.Y);
+        AssertApproximately(NormalizeAngle(expectedAngle), actualAngle);
+    }
+
+    private static float NormalizeAngle(float angle)
+    {
+        angle %= 360f;
+        return angle < 0f ? angle + 360f : angle;
     }
 
     private static void AssertApproximately(float expected, float actual)
