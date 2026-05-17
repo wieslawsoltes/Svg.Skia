@@ -1740,6 +1740,31 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_UsesSvg2SymbolDimensionsWhenUseDimensionsAreOmitted()
+    {
+        const string symbolDimensionSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+              <defs>
+                <symbol id="icon" width="20" height="10">
+                  <rect id="symbol-shape" x="0" y="0" width="100%" height="100%" fill="#ff0000" />
+                </symbol>
+              </defs>
+              <use id="use-target" href="#icon" x="5" y="5" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(symbolDimensionSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+        Assert.Equal(new SkiaColor(0xff, 0x00, 0x00, 0xff), bitmap.GetPixel(24, 14));
+        Assert.Equal(new SkiaColor(0x00, 0x00, 0x00, 0x00), bitmap.GetPixel(30, 20));
+    }
+
+    [Fact]
     public void RetainedSceneGraph_UsesIntrinsicImageSizeWhenWidthAndHeightAreOmitted()
     {
         var autoImageSvg = $"""

@@ -55,6 +55,7 @@ internal static class SvgPatternPaintStateResolver
         SvgPatternServer? firstHeight = null;
         SvgPatternServer? firstPatternUnit = null;
         SvgPatternServer? firstPatternContentUnit = null;
+        SvgPatternServer? firstPatternTransform = null;
         SvgPatternServer? firstViewBox = null;
         SvgPatternServer? firstAspectRatio = null;
 
@@ -95,6 +96,11 @@ internal static class SvgPatternPaintStateResolver
                 firstPatternContentUnit = pattern;
             }
 
+            if (firstPatternTransform is null && SvgService.TryGetAttribute(pattern, "patternTransform", out _))
+            {
+                firstPatternTransform = pattern;
+            }
+
             if (firstViewBox is null && pattern.ViewBox != SvgViewBox.Empty)
             {
                 firstViewBox = pattern;
@@ -121,6 +127,7 @@ internal static class SvgPatternPaintStateResolver
         var heightUnit = firstHeight.Height;
         var patternUnits = firstPatternUnit?.PatternUnits ?? SvgCoordinateUnits.ObjectBoundingBox;
         var patternContentUnits = firstPatternContentUnit?.PatternContentUnits ?? SvgCoordinateUnits.UserSpaceOnUse;
+        var patternTransform = firstPatternTransform?.PatternTransform;
         var viewBox = firstViewBox?.ViewBox ?? SvgViewBox.Empty;
         var aspectRatioValue = firstAspectRatio?.AspectRatio ?? new SvgAspectRatio(SvgPreserveAspectRatio.xMidYMid, false);
 
@@ -131,7 +138,7 @@ internal static class SvgPatternPaintStateResolver
         }
 
         var shaderMatrix = SKMatrix.CreateIdentity();
-        shaderMatrix = shaderMatrix.PreConcat(TransformsService.ToMatrix(svgPatternServer.PatternTransform));
+        shaderMatrix = shaderMatrix.PreConcat(TransformsService.ToMatrix(patternTransform));
         shaderMatrix = shaderMatrix.PreConcat(SKMatrix.CreateTranslation(patternRect.Value.Left, patternRect.Value.Top));
 
         var pictureTransform = SKMatrix.CreateIdentity();
