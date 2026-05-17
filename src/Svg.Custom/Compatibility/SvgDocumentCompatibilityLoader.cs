@@ -171,7 +171,7 @@ public static class SvgDocumentCompatibilityLoader
             PreserveJavaScriptDomState = captureCompatibilityStyleState,
             PreserveCompatibilityPresentationAttributes = captureCompatibilityStyleState && preserveCompatibilityPresentationAttributes
         };
-        var svgDocument = Create<T>(reader, elementFactory, ref styles, baseUri);
+        var svgDocument = Create<T>(reader, elementFactory, ref styles, baseUri, loadOptions);
         svgDocument.LoadOptions = loadOptions;
 
         // Avalonia and other hosts can concatenate optional CSS inputs into a whitespace-only
@@ -385,7 +385,12 @@ public static class SvgDocumentCompatibilityLoader
             : value;
     }
 
-    private static T Create<T>(XmlReader reader, SvgElementFactory elementFactory, ref List<SvgCssStyleSource>? styles, Uri? baseUri)
+    private static T Create<T>(
+        XmlReader reader,
+        SvgElementFactory elementFactory,
+        ref List<SvgCssStyleSource>? styles,
+        Uri? baseUri,
+        SvgDocumentLoadOptions? loadOptions)
         where T : SvgDocument, new()
     {
         var elementStack = new Stack<SvgElement>();
@@ -452,6 +457,13 @@ public static class SvgDocumentCompatibilityLoader
                             // that declared it, not to the current process working directory.
                             (styles ??= new List<SvgCssStyleSource>()).Add(new SvgCssStyleSource(unknown.Content ?? string.Empty, svgDocument?.BaseUri));
                         }
+                        else if (element is SvgUnknownElement link &&
+                                 link.ElementName == "link" &&
+                                 TryGetLinkedStylesheetHref(link, out var href) &&
+                                 SvgCssCompatibilityProcessor.TryLoadLinkedStylesheet(href, svgDocument?.BaseUri ?? baseUri, loadOptions) is { } linkedStylesheet)
+                        {
+                            (styles ??= new List<SvgCssStyleSource>()).Add(linkedStylesheet);
+                        }
 
                         break;
 
@@ -481,6 +493,16 @@ public static class SvgDocumentCompatibilityLoader
                         }
 
                         break;
+
+                    case XmlNodeType.ProcessingInstruction:
+                        if (reader.Name.Equals("xml-stylesheet", StringComparison.OrdinalIgnoreCase) &&
+                            TryGetXmlStylesheetHref(reader.Value, out var stylesheetHref) &&
+                            SvgCssCompatibilityProcessor.TryLoadLinkedStylesheet(stylesheetHref, svgDocument?.BaseUri ?? baseUri, loadOptions) is { } xmlStylesheet)
+                        {
+                            (styles ??= new List<SvgCssStyleSource>()).Add(xmlStylesheet);
+                        }
+
+                        break;
                 }
             }
             catch (Exception ex)
@@ -490,6 +512,149 @@ public static class SvgDocumentCompatibilityLoader
         }
 
         return svgDocument!;
+    }
+
+    private static bool TryGetLinkedStylesheetHref(SvgUnknownElement link, out string href)
+    {
+        href = string.Empty;
+
+        if (!TryGetAttributeIgnoreCase(link, "rel", out var rel) ||
+            !ContainsStylesheetRel(rel))
+        {
+            return false;
+        }
+
+        if (TryGetAttributeIgnoreCase(link, "type", out var type) &&
+            !IsCssStylesheetType(type))
+        {
+            return false;
+        }
+
+        return TryGetAttributeIgnoreCase(link, "href", out href) &&
+               !string.IsNullOrWhiteSpace(href);
+    }
+
+    private static bool TryGetXmlStylesheetHref(string value, out string href)
+    {
+        href = string.Empty;
+        var attributes = ParsePseudoAttributes(value);
+
+        if (attributes.TryGetValue("type", out var type) &&
+            !IsCssStylesheetType(type))
+        {
+            return false;
+        }
+
+        if (!attributes.TryGetValue("href", out var parsedHref) ||
+            string.IsNullOrWhiteSpace(parsedHref))
+        {
+            return false;
+        }
+
+        href = parsedHref;
+        return true;
+    }
+
+    private static bool TryGetAttributeIgnoreCase(SvgElement element, string name, out string value)
+    {
+        if (element.TryGetAttribute(name, out value) && value is not null)
+        {
+            return true;
+        }
+
+        foreach (var attribute in element.CustomAttributes)
+        {
+            if (attribute.Value is not null &&
+                attribute.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
+            {
+                value = attribute.Value;
+                return true;
+            }
+        }
+
+        value = string.Empty;
+        return false;
+    }
+
+    private static bool ContainsStylesheetRel(string rel)
+    {
+        foreach (var token in rel.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (token.Equals("stylesheet", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsCssStylesheetType(string type)
+    {
+        return string.IsNullOrWhiteSpace(type) ||
+               type.Trim().Equals("text/css", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static Dictionary<string, string> ParsePseudoAttributes(string value)
+    {
+        var attributes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var index = 0;
+
+        while (index < value.Length)
+        {
+            SkipWhitespace(value, ref index);
+            var nameStart = index;
+            while (index < value.Length &&
+                   !char.IsWhiteSpace(value[index]) &&
+                   value[index] != '=')
+            {
+                index++;
+            }
+
+            if (index == nameStart)
+            {
+                break;
+            }
+
+            var name = value.Substring(nameStart, index - nameStart);
+            SkipWhitespace(value, ref index);
+            if (index >= value.Length || value[index] != '=')
+            {
+                continue;
+            }
+
+            index++;
+            SkipWhitespace(value, ref index);
+            if (index >= value.Length || value[index] is not ('\'' or '"'))
+            {
+                continue;
+            }
+
+            var quote = value[index++];
+            var valueStart = index;
+            while (index < value.Length && value[index] != quote)
+            {
+                index++;
+            }
+
+            if (index >= value.Length)
+            {
+                break;
+            }
+
+            attributes[name] = value.Substring(valueStart, index - valueStart);
+            index++;
+        }
+
+        return attributes;
+    }
+
+    private static void SkipWhitespace(string value, ref int index)
+    {
+        while (index < value.Length && char.IsWhiteSpace(value[index]))
+        {
+            index++;
+        }
     }
 
     private static bool ShouldPreserveWhitespaceNode(SvgElement element, SvgElementFactory elementFactory)

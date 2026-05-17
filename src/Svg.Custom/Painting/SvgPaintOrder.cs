@@ -133,7 +133,12 @@ namespace Svg
         [SvgAttribute("paint-order")]
         public virtual SvgPaintOrder PaintOrder
         {
-            get { return GetAttribute("paint-order", true, SvgPaintOrder.Normal); }
+            get
+            {
+                return ComputedStyle.TryGetPaintOrder(out var paintOrder)
+                    ? paintOrder
+                    : SvgPaintOrder.Normal;
+            }
             set { Attributes["paint-order"] = value; }
         }
     }

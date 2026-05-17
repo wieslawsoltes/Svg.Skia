@@ -51,18 +51,9 @@ namespace Svg
         {
             get
             {
-                if (TryGetAttribute("isolation", out var value))
-                {
-                    switch (NormalizeCssEnumToken(value))
-                    {
-                        case "isolate":
-                            return SvgIsolation.Isolate;
-                        case "auto":
-                            return SvgIsolation.Auto;
-                    }
-                }
-
-                return GetAttribute("isolation", false, SvgIsolation.Auto);
+                return ComputedStyle.TryGetIsolation(out var isolation)
+                    ? isolation
+                    : SvgIsolation.Auto;
             }
             set { Attributes["isolation"] = value; }
         }
@@ -72,53 +63,11 @@ namespace Svg
         {
             get
             {
-                if (TryGetAttribute("mix-blend-mode", out var value))
-                {
-                    switch (NormalizeCssEnumToken(value))
-                    {
-                        case "multiply":
-                            return SvgMixBlendMode.Multiply;
-                        case "screen":
-                            return SvgMixBlendMode.Screen;
-                        case "overlay":
-                            return SvgMixBlendMode.Overlay;
-                        case "darken":
-                            return SvgMixBlendMode.Darken;
-                        case "lighten":
-                            return SvgMixBlendMode.Lighten;
-                        case "colordodge":
-                            return SvgMixBlendMode.ColorDodge;
-                        case "colorburn":
-                            return SvgMixBlendMode.ColorBurn;
-                        case "hardlight":
-                            return SvgMixBlendMode.HardLight;
-                        case "softlight":
-                            return SvgMixBlendMode.SoftLight;
-                        case "difference":
-                            return SvgMixBlendMode.Difference;
-                        case "exclusion":
-                            return SvgMixBlendMode.Exclusion;
-                        case "hue":
-                            return SvgMixBlendMode.Hue;
-                        case "saturation":
-                            return SvgMixBlendMode.Saturation;
-                        case "color":
-                            return SvgMixBlendMode.Color;
-                        case "luminosity":
-                            return SvgMixBlendMode.Luminosity;
-                        case "normal":
-                            return SvgMixBlendMode.Normal;
-                    }
-                }
-
-                return GetAttribute("mix-blend-mode", false, SvgMixBlendMode.Normal);
+                return ComputedStyle.TryGetMixBlendMode(out var mixBlendMode)
+                    ? mixBlendMode
+                    : SvgMixBlendMode.Normal;
             }
             set { Attributes["mix-blend-mode"] = value; }
-        }
-
-        private static string NormalizeCssEnumToken(string value)
-        {
-            return (value ?? string.Empty).Trim().Replace("-", string.Empty).ToLowerInvariant();
         }
     }
 }

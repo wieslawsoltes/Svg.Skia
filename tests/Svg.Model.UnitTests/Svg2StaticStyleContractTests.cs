@@ -114,4 +114,65 @@ public class Svg2StaticStyleContractTests
 
         Assert.Equal(SvgPaintOrder.StrokeFillMarkers, child.PaintOrder);
     }
+
+    [Fact]
+    public void ComputedStyle_StylesheetOverridesPresentationAttributes()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <style>
+                #shape { paint-order: markers stroke fill; }
+                #label {
+                  white-space: break-spaces;
+                  text-overflow: ellipsis;
+                  inline-size: 48px;
+                  shape-inside: url(#shape);
+                  shape-subtract: none;
+                }
+              </style>
+              <path id="shape" d="M0,0 L10,0" paint-order="stroke fill markers" />
+              <text id="label"
+                    white-space="normal"
+                    text-overflow="clip"
+                    inline-size="12px"
+                    shape-inside="none"
+                    shape-subtract="url(#shape)">hello</text>
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+
+        var shape = Assert.IsType<SvgPath>(document!.GetElementById("shape"));
+        var label = Assert.IsType<SvgText>(document.GetElementById("label"));
+
+        shape.FlushStyles();
+        label.FlushStyles();
+
+        Assert.Equal(SvgPaintOrder.MarkersStrokeFill, shape.PaintOrder);
+        Assert.Equal(SvgWhiteSpace.BreakSpaces, label.WhiteSpace);
+        Assert.Equal("ellipsis", label.TextOverflow);
+        Assert.Equal("48px", label.InlineSize);
+        Assert.Equal("url(\"#shape\")", label.ShapeInside);
+        Assert.Equal("none", label.ShapeSubtract);
+    }
+
+    [Fact]
+    public void ComputedStyle_InvalidStylesheetDeclarationFallsBackToInheritedValue()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <style>#child { paint-order: stroke stroke; }</style>
+              <g id="parent" paint-order="markers stroke fill">
+                <rect id="child" width="10" height="10" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+        var child = Assert.IsType<SvgRectangle>(document!.GetElementById("child"));
+
+        child.FlushStyles();
+
+        Assert.Equal(SvgPaintOrder.MarkersStrokeFill, child.PaintOrder);
+    }
 }

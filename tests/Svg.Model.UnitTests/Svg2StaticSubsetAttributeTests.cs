@@ -1,3 +1,5 @@
+using System.Drawing;
+using System.Linq;
 using Svg.DataTypes;
 using Svg.FilterEffects;
 using Svg.Model.Services;
@@ -7,6 +9,131 @@ namespace Svg.Model.UnitTests;
 
 public class Svg2StaticSubsetAttributeTests
 {
+    [Fact]
+    public void FromSvg_PreservesDeferredSvg2PaintElementsAsUnknownContent()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <defs>
+                <meshgradient id="mesh" gradientUnits="userSpaceOnUse">
+                  <meshrow>
+                    <meshpatch>
+                      <stop path="c 10,0 20,0 30,0" stop-color="#ff0000" />
+                    </meshpatch>
+                  </meshrow>
+                </meshgradient>
+                <hatch id="hatch" pitch="4" rotate="45">
+                  <hatchpath stroke="#000000" stroke-width="1" />
+                </hatch>
+                <solidcolor id="solid" solid-color="#123456" solid-opacity="0.5" />
+              </defs>
+            </svg>
+            """);
+
+        var unknownElements = document!
+            .Descendants()
+            .OfType<SvgUnknownElement>()
+            .ToList();
+
+        Assert.Contains(unknownElements, static element => element.ID == "mesh");
+        Assert.Contains(unknownElements, static element => element.ID == "hatch");
+        Assert.Contains(unknownElements, static element => element.ID == "solid");
+
+        var mesh = Assert.IsType<SvgUnknownElement>(document.GetElementById("mesh"));
+        var hatch = Assert.IsType<SvgUnknownElement>(document.GetElementById("hatch"));
+        var solid = Assert.IsType<SvgUnknownElement>(document.GetElementById("solid"));
+
+        Assert.Equal("userSpaceOnUse", mesh.CustomAttributes["gradientUnits"]);
+        Assert.Equal("4", hatch.CustomAttributes["pitch"]);
+        Assert.Equal("#123456", solid.CustomAttributes["solid-color"]);
+        Assert.NotEmpty(mesh.Children);
+        Assert.NotEmpty(hatch.Children);
+    }
+
+    [Fact]
+    public void FromSvg_PreservesUnknownSvgElementsAsNonRenderingModelContent()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <unknownStatic id="unknown" data-mode="preserve" customAttr="value">
+                <title id="unknown-title">Preserved</title>
+              </unknownStatic>
+            </svg>
+            """);
+
+        var unknown = Assert.IsType<SvgUnknownElement>(document!.GetElementById("unknown"));
+
+        Assert.Equal("preserve", unknown.CustomAttributes["data-mode"]);
+        Assert.Equal("value", unknown.CustomAttributes["customAttr"]);
+        Assert.Single(unknown.Children);
+        Assert.Contains("<unknownStatic", unknown.GetXML(), System.StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("vector-effect=\"fixed-position\"")]
+    [InlineData("style=\"vector-effect: fixed-position\"")]
+    [InlineData("vector-effect=\"non-rotation\"")]
+    public void FromSvg_UnsupportedVectorEffectValuesFallBackToDefault(string vectorEffect)
+    {
+        var document = SvgService.FromSvg($$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <path id="shape" d="M0,0 L10,0" stroke="black" {{vectorEffect}} />
+            </svg>
+            """);
+
+        var shape = Assert.IsType<SvgPath>(document!.GetElementById("shape"));
+        shape.FlushStyles();
+
+        Assert.Equal(SvgVectorEffect.None, shape.VectorEffect);
+    }
+
+    [Fact]
+    public void FromSvg_StrokeLinejoinArcsIsPreservedForCompatibility()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <path id="shape" d="M0,0 L10,10 L20,0" stroke="black" stroke-linejoin="arcs" />
+            </svg>
+            """);
+
+        var shape = Assert.IsType<SvgPath>(document!.GetElementById("shape"));
+        shape.FlushStyles();
+
+        Assert.Equal(SvgStrokeLineJoin.Arcs, shape.StrokeLineJoin);
+    }
+
+    [Fact]
+    public void FromSvg_DynamicInteractiveContentIsPreservedButDoesNotMutateStaticBaseValues()
+    {
+        var parameters = new SvgParameters(
+            null,
+            null,
+            null,
+            new SvgDocumentLoadOptions { ProcessingMode = SvgProcessingMode.DynamicInteractive });
+
+        var parsedDocument = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <script>document.getElementById('shape').setAttribute('fill', 'blue');</script>
+              <rect id="shape" x="0" y="0" width="10" height="10" fill="red" onclick="activate()">
+                <animate id="move" attributeName="x" from="0" to="50" dur="1s" fill="freeze" />
+              </rect>
+            </svg>
+            """, parameters);
+        Assert.NotNull(parsedDocument);
+
+        var document = parsedDocument!;
+        var options = SvgService.GetDocumentLoadOptions(document);
+        var shape = Assert.IsType<SvgRectangle>(document.GetElementById("shape"));
+        var fill = Assert.IsType<SvgColourServer>(shape.Fill);
+
+        Assert.Equal(SvgProcessingMode.DynamicInteractive, options.ProcessingMode);
+        Assert.Single(document.Descendants().OfType<SvgScript>());
+        Assert.IsType<SvgAnimate>(document.GetElementById("move"));
+        Assert.Equal(0f, shape.X.Value);
+        Assert.Equal(Color.Red.ToArgb(), fill.Colour.ToArgb());
+        Assert.Equal("activate()", shape.CustomAttributes["onclick"]);
+    }
+
     [Fact]
     public void FromSvg_ParsesMarkerAutoStartReverseOrient()
     {

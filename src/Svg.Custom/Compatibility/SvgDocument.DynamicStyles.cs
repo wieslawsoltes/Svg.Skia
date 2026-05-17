@@ -222,6 +222,7 @@ public partial class SvgDocument
     internal void ReapplyCompatibilityStyles()
     {
         EnsureCompatibilityStyleStateInitialized();
+        InvalidateComputedStyleCache();
         RestoreCompatibilityStyleState();
         ApplyCompatibilityStyles();
     }
@@ -235,6 +236,7 @@ public partial class SvgDocument
 
         ApplyInlineStyles();
         FlushStyles(children: true);
+        InvalidateComputedStyleCache();
     }
 
     private void RestoreCompatibilityStyleState()

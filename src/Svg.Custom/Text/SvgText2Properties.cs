@@ -40,35 +40,40 @@ namespace Svg
         [SvgAttribute("white-space")]
         public virtual SvgWhiteSpace WhiteSpace
         {
-            get { return GetAttribute("white-space", true, SvgWhiteSpace.Normal); }
+            get
+            {
+                return ComputedStyle.TryGetWhiteSpace(out var whiteSpace)
+                    ? whiteSpace
+                    : SvgWhiteSpace.Normal;
+            }
             set { Attributes["white-space"] = value; IsPathDirty = true; }
         }
 
         [SvgAttribute("text-overflow")]
         public virtual string TextOverflow
         {
-            get { return GetAttribute("text-overflow", false, "clip"); }
+            get { return ComputedStyle.TextOverflow; }
             set { Attributes["text-overflow"] = value; IsPathDirty = true; }
         }
 
         [SvgAttribute("inline-size")]
         public virtual string InlineSize
         {
-            get { return GetAttribute<string>("inline-size", false); }
+            get { return ComputedStyle.InlineSize; }
             set { Attributes["inline-size"] = value; IsPathDirty = true; }
         }
 
         [SvgAttribute("shape-inside")]
         public virtual string ShapeInside
         {
-            get { return GetAttribute<string>("shape-inside", false); }
+            get { return ComputedStyle.ShapeInside; }
             set { Attributes["shape-inside"] = value; IsPathDirty = true; }
         }
 
         [SvgAttribute("shape-subtract")]
         public virtual string ShapeSubtract
         {
-            get { return GetAttribute<string>("shape-subtract", false); }
+            get { return ComputedStyle.ShapeSubtract; }
             set { Attributes["shape-subtract"] = value; IsPathDirty = true; }
         }
     }

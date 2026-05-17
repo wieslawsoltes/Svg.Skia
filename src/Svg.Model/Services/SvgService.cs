@@ -1019,7 +1019,14 @@ public static class SvgService
         gzipStream.CopyTo(memoryStream);
         memoryStream.Position = 0;
 
-        return Open(memoryStream, parameters, captureCompatibilityStyleState);
+        return ApplyParameters(
+            SvgDocumentCompatibilityLoader.Open<SvgDocument>(
+                memoryStream,
+                new SvgOptions(parameters?.Entities, parameters?.Css),
+                new Uri(System.IO.Path.GetFullPath(path), UriKind.Absolute),
+                parameters?.LoadOptions,
+                captureCompatibilityStyleState),
+            parameters);
     }
 
     public static SvgDocument? Open(string path, SvgParameters? parameters = null)

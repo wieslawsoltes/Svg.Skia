@@ -88,6 +88,10 @@ internal static class SvgCssCompatibilityProcessor
                     var specificity = rule.Selector.GetSpecificity();
                     List<AppliedDeclaration>? declarations = null;
                     var elemsToStyle = rootNode.QuerySelectorAll(rule.Selector, elementFactory);
+                    if (SelectorListMatchesSvgRoot(rule.SelectorText, svgDocument))
+                    {
+                        elemsToStyle = elemsToStyle.Concat(new[] { svgDocument }).Distinct();
+                    }
 
                     foreach (var elem in elemsToStyle)
                     {
@@ -2045,22 +2049,57 @@ internal static class SvgCssCompatibilityProcessor
         }
     }
 
+    internal static SvgCssStyleSource? TryLoadLinkedStylesheet(string? href, Uri? baseUri, SvgDocumentLoadOptions? loadOptions)
+    {
+        return TryLoadStylesheetResource(href, baseUri, baseUri, loadOptions, SvgExternalResourcePolicy.SameDocumentAndDataOnly, importChain: null);
+    }
+
     private static SvgCssStyleSource? TryLoadImportedStylesheet(string? href, Uri? baseUri, Uri? policyBaseUri, SvgDocumentLoadOptions? loadOptions, HashSet<string> importChain)
     {
-        if (string.IsNullOrWhiteSpace(href) || baseUri is null)
+        return TryLoadStylesheetResource(href, baseUri, policyBaseUri, loadOptions, SvgExternalResourcePolicy.SameDocumentAndDataOnly, importChain);
+    }
+
+    private static SvgCssStyleSource? TryLoadStylesheetResource(
+        string? href,
+        Uri? baseUri,
+        Uri? policyBaseUri,
+        SvgDocumentLoadOptions? loadOptions,
+        SvgExternalResourcePolicy minimumPolicyForData,
+        HashSet<string>? importChain)
+    {
+        if (string.IsNullOrWhiteSpace(href))
         {
             return null;
         }
 
-        // Keep import resolution intentionally conservative: only file-backed resources relative to
-        // the current SVG/CSS source are loaded here. That matches the scenarios exercised by the
-        // W3C fixtures and avoids inventing new network/resource-loading behavior in Svg.Skia.
-        if (!Uri.TryCreate(baseUri, href, out var stylesheetUri) || !stylesheetUri.IsFile)
+        Uri stylesheetUri;
+        if (baseUri is { })
+        {
+            if (!Uri.TryCreate(baseUri, href, out stylesheetUri!))
+            {
+                return null;
+            }
+        }
+        else if (!Uri.TryCreate(href, UriKind.Absolute, out stylesheetUri!))
         {
             return null;
         }
 
-        if (!AllowsImportedStylesheet(stylesheetUri, policyBaseUri, loadOptions))
+        if (!AllowsStylesheetResource(stylesheetUri, policyBaseUri, loadOptions, minimumPolicyForData))
+        {
+            return null;
+        }
+
+        if (stylesheetUri.IsAbsoluteUri && stylesheetUri.Scheme.Equals("data", StringComparison.OrdinalIgnoreCase))
+        {
+            return TryLoadDataStylesheet(stylesheetUri, importChain);
+        }
+
+        // Keep non-data stylesheet resolution intentionally conservative: only file-backed resources
+        // relative to the current SVG/CSS source are loaded here. That matches the scenarios
+        // exercised by the W3C fixtures and avoids inventing new network/resource-loading behavior
+        // in Svg.Skia.
+        if (!stylesheetUri.IsFile)
         {
             return null;
         }
@@ -2068,7 +2107,7 @@ internal static class SvgCssCompatibilityProcessor
         // Cycle protection is scoped to the currently expanding import chain so repeated imports in
         // separate top-level <style> blocks still participate in cascade order like they do in a
         // browser.
-        if (!importChain.Add(stylesheetUri.AbsoluteUri))
+        if (importChain is { } && !importChain.Add(stylesheetUri.AbsoluteUri))
         {
             return null;
         }
@@ -2076,7 +2115,7 @@ internal static class SvgCssCompatibilityProcessor
         var localPath = stylesheetUri.LocalPath;
         if (!File.Exists(localPath))
         {
-            importChain.Remove(stylesheetUri.AbsoluteUri);
+            importChain?.Remove(stylesheetUri.AbsoluteUri);
             return null;
         }
 
@@ -2086,20 +2125,149 @@ internal static class SvgCssCompatibilityProcessor
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException or System.Security.SecurityException)
         {
-            importChain.Remove(stylesheetUri.AbsoluteUri);
+            importChain?.Remove(stylesheetUri.AbsoluteUri);
             return null;
         }
     }
 
-    private static bool AllowsImportedStylesheet(Uri stylesheetUri, Uri? policyBaseUri, SvgDocumentLoadOptions? loadOptions)
+    private static SvgCssStyleSource? TryLoadDataStylesheet(Uri stylesheetUri, HashSet<string>? importChain)
+    {
+        if (importChain is { } && !importChain.Add(stylesheetUri.AbsoluteUri))
+        {
+            return null;
+        }
+
+        var loaded = false;
+        try
+        {
+            loaded = TryReadDataStylesheet(stylesheetUri.OriginalString, out var css);
+            return loaded ? new SvgCssStyleSource(css, stylesheetUri) : null;
+        }
+        finally
+        {
+            if (!loaded)
+            {
+                importChain?.Remove(stylesheetUri.AbsoluteUri);
+            }
+        }
+    }
+
+    private static bool TryReadDataStylesheet(string dataUri, out string css)
+    {
+        css = string.Empty;
+
+        var headerStartIndex = 5;
+        var headerEndIndex = dataUri.IndexOf(",", headerStartIndex, StringComparison.Ordinal);
+        if (headerEndIndex < 0 || headerEndIndex + 1 > dataUri.Length)
+        {
+            return false;
+        }
+
+        var mimeType = "text/plain";
+        var charset = "US-ASCII";
+        var base64 = false;
+        var headers = dataUri.Substring(headerStartIndex, headerEndIndex - headerStartIndex).Split(';');
+        var headerIndex = 0;
+        if (headers.Length > 0 && headers[0].Contains("/"))
+        {
+            mimeType = headers[0].Trim();
+            charset = string.Empty;
+            headerIndex = 1;
+        }
+
+        if (!mimeType.Equals(CssMimeType, StringComparison.OrdinalIgnoreCase) &&
+            !mimeType.Equals("text/plain", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        for (; headerIndex < headers.Length; headerIndex++)
+        {
+            var header = headers[headerIndex].Trim();
+            if (header.Equals("base64", StringComparison.OrdinalIgnoreCase))
+            {
+                base64 = true;
+                continue;
+            }
+
+            var separatorIndex = header.IndexOf('=');
+            if (separatorIndex <= 0)
+            {
+                continue;
+            }
+
+            var attribute = header.Substring(0, separatorIndex).Trim();
+            if (attribute.Equals("charset", StringComparison.OrdinalIgnoreCase))
+            {
+                charset = header.Substring(separatorIndex + 1).Trim();
+            }
+        }
+
+        var data = dataUri.Substring(headerEndIndex + 1);
+        if (base64)
+        {
+            try
+            {
+                var bytes = Convert.FromBase64String(data);
+                var encoding = string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset);
+                css = encoding.GetString(bytes);
+                return true;
+            }
+            catch (Exception ex) when (ex is FormatException or ArgumentException)
+            {
+                return false;
+            }
+        }
+
+        try
+        {
+            css = Uri.UnescapeDataString(data);
+            return true;
+        }
+        catch (UriFormatException)
+        {
+            return false;
+        }
+    }
+
+    private static bool AllowsStylesheetResource(
+        Uri stylesheetUri,
+        Uri? policyBaseUri,
+        SvgDocumentLoadOptions? loadOptions,
+        SvgExternalResourcePolicy minimumPolicyForData)
     {
         return loadOptions?.ExternalResources switch
         {
             SvgExternalResourcePolicy.Disabled => false,
-            SvgExternalResourcePolicy.SameDocumentAndDataOnly => false,
-            SvgExternalResourcePolicy.SameOrigin => IsFileResourceUnderBaseDirectory(stylesheetUri, policyBaseUri),
+            SvgExternalResourcePolicy.SameDocumentAndDataOnly => IsDataUri(stylesheetUri) &&
+                                                                 minimumPolicyForData == SvgExternalResourcePolicy.SameDocumentAndDataOnly,
+            SvgExternalResourcePolicy.SameOrigin => IsDataUri(stylesheetUri) ||
+                                                    IsSameOriginStylesheet(stylesheetUri, policyBaseUri),
             _ => true
         };
+    }
+
+    private static bool IsDataUri(Uri uri)
+    {
+        return uri.IsAbsoluteUri &&
+               uri.Scheme.Equals("data", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsSameOriginStylesheet(Uri resourceUri, Uri? baseUri)
+    {
+        if (baseUri is not { IsAbsoluteUri: true } || !resourceUri.IsAbsoluteUri)
+        {
+            return false;
+        }
+
+        if (resourceUri.IsFile || baseUri.IsFile)
+        {
+            return IsFileResourceUnderBaseDirectory(resourceUri, baseUri);
+        }
+
+        return resourceUri.Scheme.Equals(baseUri.Scheme, StringComparison.OrdinalIgnoreCase) &&
+               resourceUri.Host.Equals(baseUri.Host, StringComparison.OrdinalIgnoreCase) &&
+               resourceUri.Port == baseUri.Port;
     }
 
     private static bool IsFileResourceUnderBaseDirectory(Uri resourceUri, Uri? baseUri)

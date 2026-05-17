@@ -245,6 +245,154 @@ public class Svg2StaticResourcePolicyTests
     }
 
     [Fact]
+    public void OpenSvg_SameDocumentAndDataOnlyResourcePolicyAllowsDataCssImports()
+    {
+        const string cssDataUri = "data:text/css,%23shape%20%7B%20fill%3A%20%23ff0000%3B%20%7D";
+        var svg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+              <style>@import "{{cssDataUri}}";</style>
+              <rect id="shape" width="16" height="16" fill="#000000" />
+            </svg>
+            """;
+        var parameters = new SvgParameters(
+            null,
+            null,
+            null,
+            CreateLoadOptions(SvgExternalResourcePolicy.SameDocumentAndDataOnly));
+
+        var document = SvgService.FromSvg(svg, parameters);
+        var shape = Assert.IsType<SvgRectangle>(document!.GetElementById("shape"));
+        var fill = Assert.IsType<SvgColourServer>(shape.Fill);
+
+        Assert.Equal(Color.Red.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void OpenSvg_SameOriginResourcePolicyAllowsXmlStylesheetUnderDocumentDirectory()
+    {
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            var cssPath = Path.Combine(tempDirectory.FullName, "linked.css");
+            File.WriteAllText(cssPath, "#shape { fill: #ff0000; }");
+            var svgPath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(svgPath, """
+                <?xml-stylesheet type="text/css" href="linked.css"?>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                  <rect id="shape" width="16" height="16" fill="#000000" />
+                </svg>
+                """);
+            var parameters = new SvgParameters(
+                null,
+                null,
+                null,
+                CreateLoadOptions(SvgExternalResourcePolicy.SameOrigin));
+
+            var document = SvgService.OpenSvg(svgPath, parameters);
+            var shape = Assert.IsType<SvgRectangle>(document!.GetElementById("shape"));
+            var fill = Assert.IsType<SvgColourServer>(shape.Fill);
+
+            Assert.Equal(Color.Red.ToArgb(), fill.Colour.ToArgb());
+        }
+        finally
+        {
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void OpenSvg_DisabledResourcePolicyBlocksXmlStylesheetDuringParse()
+    {
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            var cssPath = Path.Combine(tempDirectory.FullName, "linked.css");
+            File.WriteAllText(cssPath, "#shape { fill: #ff0000; }");
+            var svgPath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(svgPath, """
+                <?xml-stylesheet type="text/css" href="linked.css"?>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                  <rect id="shape" width="16" height="16" fill="#000000" />
+                </svg>
+                """);
+            var parameters = new SvgParameters(
+                null,
+                null,
+                null,
+                CreateLoadOptions(SvgExternalResourcePolicy.Disabled));
+
+            var document = SvgService.OpenSvg(svgPath, parameters);
+            var shape = Assert.IsType<SvgRectangle>(document!.GetElementById("shape"));
+            var fill = Assert.IsType<SvgColourServer>(shape.Fill);
+
+            Assert.Equal(Color.Black.ToArgb(), fill.Colour.ToArgb());
+        }
+        finally
+        {
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void OpenSvg_SameOriginResourcePolicyAllowsLinkStylesheetUnderDocumentDirectory()
+    {
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            var cssPath = Path.Combine(tempDirectory.FullName, "linked.css");
+            File.WriteAllText(cssPath, "#shape { fill: #ff0000; }");
+            var svgPath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(svgPath, """
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                  <link rel="stylesheet" type="text/css" href="linked.css" />
+                  <rect id="shape" width="16" height="16" fill="#000000" />
+                </svg>
+                """);
+            var parameters = new SvgParameters(
+                null,
+                null,
+                null,
+                CreateLoadOptions(SvgExternalResourcePolicy.SameOrigin));
+
+            var document = SvgService.OpenSvg(svgPath, parameters);
+            var shape = Assert.IsType<SvgRectangle>(document!.GetElementById("shape"));
+            var fill = Assert.IsType<SvgColourServer>(shape.Fill);
+
+            Assert.Equal(Color.Red.ToArgb(), fill.Colour.ToArgb());
+        }
+        finally
+        {
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void OpenSvg_SameDocumentAndDataOnlyResourcePolicyAllowsDataLinkStylesheet()
+    {
+        const string cssDataUri = "data:text/css,%23shape%20%7B%20fill%3A%20%23ff0000%3B%20%7D";
+        var svg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+              <link rel="stylesheet" type="text/css" href="{{cssDataUri}}" />
+              <rect id="shape" width="16" height="16" fill="#000000" />
+            </svg>
+            """;
+        var parameters = new SvgParameters(
+            null,
+            null,
+            null,
+            CreateLoadOptions(SvgExternalResourcePolicy.SameDocumentAndDataOnly));
+
+        var document = SvgService.FromSvg(svg, parameters);
+        var shape = Assert.IsType<SvgRectangle>(document!.GetElementById("shape"));
+        var fill = Assert.IsType<SvgColourServer>(shape.Fill);
+
+        Assert.Equal(Color.Red.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
     public void GetImage_SameOriginSvgResourceResolvesCssImportAgainstNestedSvgBaseUri()
     {
         var tempDirectory = Directory.CreateTempSubdirectory();
@@ -284,6 +432,54 @@ public class Svg2StaticResourcePolicyTests
             var fill = Assert.IsType<SvgColourServer>(shape.Fill);
 
             Assert.Equal(Color.Red.ToArgb(), fill.Colour.ToArgb());
+        }
+        finally
+        {
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void GetImage_NestedDataSvgInheritsResourcePolicy()
+    {
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            var imagePath = Path.Combine(tempDirectory.FullName, "nested.png");
+            File.WriteAllBytes(imagePath, new byte[] { 1, 2, 3, 4 });
+            var imageUri = new Uri(Path.GetFullPath(imagePath)).AbsoluteUri;
+            var nestedSvg = $$"""
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                  <image id="nested-asset" href="{{imageUri}}" width="16" height="16" />
+                </svg>
+                """;
+            var nestedDataUri = "data:image/svg+xml;base64," + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(nestedSvg));
+            var parentSvg = $$"""
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                  <image id="asset" href="{{nestedDataUri}}" width="16" height="16" />
+                </svg>
+                """;
+            var parameters = new SvgParameters(
+                null,
+                null,
+                null,
+                CreateLoadOptions(SvgExternalResourcePolicy.SameDocumentAndDataOnly));
+
+            var parentDocument = SvgService.FromSvg(parentSvg, parameters);
+            var parentImage = Assert.IsType<SvgImage>(parentDocument!.GetElementById("asset"));
+            Assert.True(parentImage.TryGetEffectiveHrefString(out var parentHref));
+
+            var nestedDocument = Assert.IsType<SvgDocument>(SvgService.GetImage(parentHref, parentImage, new CountingAssetLoader()));
+            var nestedImage = Assert.IsType<SvgImage>(nestedDocument.GetElementById("nested-asset"));
+            Assert.True(nestedImage.TryGetEffectiveHrefString(out var nestedHref));
+            var assetLoader = new CountingAssetLoader();
+
+            var nestedRaster = SvgService.GetImage(nestedHref, nestedImage, assetLoader);
+
+            Assert.Null(nestedRaster);
+            Assert.Equal(0, assetLoader.LoadImageCallCount);
+            Assert.Equal(SvgExternalResourcePolicy.SameDocumentAndDataOnly, SvgService.GetDocumentLoadOptions(nestedDocument).ExternalResources);
         }
         finally
         {
