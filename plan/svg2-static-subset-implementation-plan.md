@@ -3,15 +3,15 @@
 ## Status
 
 Created: 2026-05-16
-Updated: 2026-05-16
+Updated: 2026-05-17
 
-This is a living planning and API contract artifact. The first implementation tranche now covers project boundary guards, SVG 2 load/href contracts, the partial `SvgParameters` load-options bridge, document state, runtime image policy, style/property scaffolding, selected SVG 2 element attributes, retained path/text `paint-order`, retained marker context paint rendering, effective unnamespaced href resolution for common static resources, `mask-type` coverage, linked filter/`feImage` dependency handling, and focused `feDropShadow` filter compilation fixes. Rows below still describe the full target state, not a claim that every SVG 2 static feature is complete.
+This is a living planning and API contract artifact. The first implementation tranche now covers project boundary guards, SVG 2 load/href contracts, the partial `SvgParameters` load-options bridge, document state, runtime image policy, style/property scaffolding, a computed-style cache for selected SVG 2 properties, selected SVG 2 element attributes, retained path/text `paint-order`, retained marker and focused use-context paint rendering, effective unnamespaced href resolution for common static resources, `mask-type` coverage, linked filter/`feImage` dependency handling, focused `feDropShadow` filter compilation fixes, shared geometry service coverage for focused shape/path consumers, CSS geometry percentages with viewBox, SVG 2 `use` dimension override semantics, focused context-paint marker/use parity, verified `radialGradient fr` rendering through conical shaders, focused textPath SVG 2 placement, and validation/spec-status coverage for preserve-only and deferred static-subset boundaries. The focused WPT SVG 2 static subset now runs 27 active rows with no deferred rows. Rows below still describe the full target state, not a claim that every SVG 2 static feature is complete.
 
 The intent is to move SVG 2 feature work into `Svg.Custom` and the shared renderer stack rather than carrying local edits in `externals/SVG`. Existing examples of this direction are the animation element model, pointer-events, vector-effect, compatibility CSS handling, and paint-server overrides already under `src/Svg.Custom`.
 
 ## Current Progress Review
 
-Reviewed: 2026-05-16
+Reviewed: 2026-05-17
 
 | Status | Area | Notes |
 |---|---|---|
@@ -20,19 +20,21 @@ Reviewed: 2026-05-16
 | Complete in current tranche | Effective `href` precedence | Added raw parsed href tracking so unnamespaced `href` wins over `xlink:href`, including empty/whitespace `href`; renderer call sites now use effective href for `use`, text refs/textPath, image, `feImage`, filters, clip paths, and masks. |
 | Complete in current tranche | Programmatic href changes | Effective href detects typed `href` property changes after parse and uses the new value instead of stale parsed compatibility state. |
 | Complete in current tranche | Gradient and pattern href templating | Gradient/pattern inheritance now uses effective SVG 2 href, so XML attribute order cannot make `xlink:href` override unnamespaced `href`. |
+| Complete in current tranche | Validation/spec-status lane | SVG 1.1 and SVG 2 static-subset support docs now use supported/partial/deferred terminology consistently, and focused tests cover preserve-only/deferred behavior for unknown SVG elements, mesh/hatch/solidcolor, unsupported vector-effect values, `stroke-linejoin: arcs`, and dynamic/interactive content boundaries. |
 | Complete in current tranche | SVG 2 style/model scaffolding | Added parser/style contracts for `paint-order`, compositing CSS properties, selected transform/text properties, `pathLength`, symbol geometry/ref attrs, and `feDropShadow`. |
 | Complete in current tranche | CSS-only compositing API | `isolation` and `mix-blend-mode` remain CSS-only for bare presentation attributes, while typed getters now reflect CSS/custom values after style parsing. |
 | Complete in current tranche | `orient=auto-start-reverse` | Existing parser/runtime support is covered by new model tests; start markers are flipped in scene compilation. |
 | Complete in current tranche | Retained `paint-order` | Shape/path fill, stroke, and markers are ordered in the retained renderer; retained text now orders fill, stroke, and decoration-as-marker phases. |
 | Partial | `feDropShadow` model and scene filter | Added `feDropShadow` model contract, retained filter expansion, explicit missing-input handling, deep-copy preservation for parsed/programmatic offsets, and a focused outside-source-bounds pixel fix. Broader Filter Effects parity remains open. |
 | Partial | Processing modes and resource policies | Contracts exist and the `SvgParameters` bridge/resource policy path is partially implemented. CSS imports are blocked for `Disabled` and `SameDocumentAndDataOnly`, same-origin file access is confined under the document directory, and runtime image policy/document state/nested SVG inheritance are wired in part; secure static enforcement, linked stylesheet policy, fonts, and complete host exposure still need implementation. |
-| Partial | Computed style foundation | SVG 2 properties are parsed/preserved and some typed getters read effective CSS values, but there is not yet a centralized computed style snapshot/cache. |
-| Partial | `pathLength` | Parsed on selected path-based elements, but dash/textPath/marker normalization and shared length services remain open. |
-| Partial | Symbol geometry/ref attrs | Parsed on `SvgSymbol`; `use`/symbol viewport and reference-point layout semantics still need renderer integration. |
-| Partial | Text SVG 2 work | Retained text `paint-order`, inline textPath `path`, and href-to-basic-shape textPath support are implemented. `white-space`, `side=right`, closed-loop text, `pathLength` scaling for textPath, and wrapping properties remain later work. |
+| Partial | Computed style foundation | A centralized computed style snapshot/cache now backs selected SVG 2 properties, including paint-order, white-space/text properties, marker refs, mask-type, isolation, and mix-blend-mode. Full migration of all geometry, paint, filter, text, and context-paint reads remains open. |
+| Partial | `pathLength` | Parsed on selected path-based elements, and focused retained paths normalize dash distances and textPath distance mapping. Marker normalization and shared length services remain open. |
+| Complete in current tranche | Symbol geometry/ref attrs | Parsed on `SvgSymbol`; retained `use`/symbol viewport sizing and `refX`/`refY` reference-point layout are now integrated for focused static paths. |
+| Complete in current tranche | Focused WPT SVG 2 static subset | The active WPT SVG 2 rows now cover CSS geometry percentages with viewBox, context paint marker/use cases, `use` symbol/svg dimension overrides, and the standalone `textPath side=right` row. The focused suite passes 27/27 with no skips. |
+| Partial | Text SVG 2 work | Retained text `paint-order`, inline textPath `path`, href-to-basic-shape textPath support, focused `white-space: pre`, `side=right`, closed-loop text, and textPath `pathLength` scaling are implemented. Wrapping properties, complete CSS Text integration, and broader textPath parity remain later work. |
 | Partial | Masking/filter semantics | Effective href, `mask-type` coverage, linked filter/filter `feImage` dependency handling, and focused `feDropShadow` compilation fixes are implemented. Full `feDropShadow` parity, filter region/color-interpolation audits, and broader masking/filter behavior remain. |
-| Partial | Context paint | `context-fill` and `context-stroke` parser/model support and retained marker rendering are implemented. Broader use/resource context-paint propagation, fallback-chain auditing, inheritance edge cases, and pixel parity remain open. |
-| Not started | Shared geometry abstraction | Marker-on-all-shapes, bbox options, textPath targets, hit testing, and pathLength normalization still need a single geometry service. |
+| Partial | Context paint | `context-fill` and `context-stroke` parser/model support, retained marker rendering, focused use propagation, and selected fallback-chain behavior are implemented. Broader resource context-paint propagation, inheritance edge cases, and pixel parity remain open. |
+| Partial | Shared geometry abstraction | `SvgGeometryService` now centralizes focused equivalent-path creation, CSS geometry reads, pathLength normalization, retained clipping/rendering paths, shape textPath targets, and selected marker extraction. BBox options, full hit testing, and marker-on-all-shapes parity remain open. |
 
 ## Review Findings Fixed
 
@@ -54,15 +56,16 @@ Reviewed: 2026-05-16
 | `SameOrigin` policy allowed broad file-backed CSS imports. | CSS imports and shared file resource checks now confine same-origin file access under the document directory. |
 | `SvgParameters` load-options overload made `new SvgParameters(null, null, null)` ambiguous. | Removed the competing 3-argument load-options overload; load options use the 4-argument or named-argument record form. |
 | Linked SVG documents set `BaseUri` after parse, too late for CSS `@import` policy checks. | Stream-based nested SVG/SVGZ loads now pass the resource URI into the compatibility loader before parsing, and a same-origin nested SVG CSS import regression covers the behavior. |
+| Preserve-only/deferred SVG 2 features were not covered by contract tests. | Added focused tests for mesh gradients, hatches, `solidcolor`, unknown SVG elements, unsupported vector-effect values, `stroke-linejoin: arcs`, and dynamic/interactive content preservation without static mutation. |
 
 ## Remaining Work Snapshot
 
 - Finish secure/static resource policy enforcement beyond the current `SvgParameters` bridge: linked stylesheet and font policy, remaining external SVG/image policy parity, host-control exposure, and complete inheritance through nested SVG documents.
 - Complete computed style consolidation so SVG 2 styleable geometry, text, marker, mask, filter, and context-paint reads do not depend on scattered raw-attribute access.
-- Finish context paint beyond the retained marker path: broader referenced-content propagation, fallback-chain behavior, inheritance edge cases, and browser-reference pixel coverage.
-- Finish textPath SVG 2 behavior: `side=right`, closed-loop placement, `pathLength` scaling, whitespace integration, and later wrapping properties.
+- Finish context paint beyond the retained marker and focused use paths: broader referenced-content propagation, inheritance edge cases, and additional browser-reference pixel coverage outside the focused WPT rows.
+- Finish textPath SVG 2 behavior beyond focused retained paths: broader baseline/offset parity, graphics effects on text content, complete CSS Text integration, and later wrapping properties.
 - Finish mask/filter audits: broader `feDropShadow` parity, filter primitive regions, `color-interpolation-filters`, alpha/luminance mask parity, and dependency/cycle coverage for linked filters and `feImage`.
-- Build the shared geometry abstraction needed for marker-on-all-shapes, bbox options, hit testing, textPath targets, and pathLength normalization.
+- Expand the shared geometry abstraction for marker-on-all-shapes parity, bbox options, full hit testing, and remaining pathLength normalization consumers.
 - Continue focused semantic and browser-reference tests for each completed slice before broad W3C/resvg runs.
 
 ## Primary References
@@ -98,6 +101,14 @@ Out of scope for this plan:
 - implementing removed SVG 1.1 features as new SVG 2 work, such as SVG Fonts and `tref`
 - draft/deferred SVG 2 features removed before Candidate Recommendation, such as mesh gradients, hatches, and `solidcolor`, except preserving unknown markup
 
+## Validation Lane Status
+
+- [x] Align SVG 1.1 and SVG 2 support articles with supported/partial/deferred terminology for the current branch.
+- [x] Add model tests for preserve-only/deferred SVG 2 elements and dynamic/interactive out-of-static-subset behavior.
+- [x] Add renderer contract tests for unknown SVG element preservation, unsupported vector-effect fallback, and `stroke-linejoin: arcs` fallback.
+- [ ] Add generated spec-status snapshots for every feature-matrix row; current coverage is still prose plus focused semantic tests.
+- [ ] Run full docs/build/test gates after the shared worktree build blocker in `SvgGeometryService` is resolved.
+
 ## Architecture Rule
 
 SVG 2 work should use this ownership split:
@@ -125,7 +136,7 @@ Any upstream SVG parser behavior that must diverge for Svg.Skia should be implem
 | Renderer IR | `ShimSkiaSharp` has path, paint, shader, filter, save-layer, clip, image, picture, text, and text-on-path commands with source metadata. |
 | Scene graph | `Svg.SceneGraph` compiles the DOM to retained shim nodes and commands. |
 | Skia adapter | `Svg.Skia` converts shim commands and model objects into native SkiaSharp objects. |
-| Browser references | W3C and resvg Chrome override capture scripts already enforce HTTP-based browser captures. |
+| Browser references | W3C, resvg, and WPT SVG 2 Chrome reference capture scripts enforce HTTP-based/browser-compatible captures. |
 
 ## Proposed Cross-Cutting API Contracts
 
@@ -190,7 +201,7 @@ Legend:
 | Stacking contexts, opacity, isolation, blend mode | Keep/Add | Typed `SvgIsolation`, `SvgMixBlendMode` values for code contracts; parser accepts `isolation` and `mix-blend-mode` from CSS style sources only, not bare presentation attributes. | SaveLayer decisions centralized; group opacity/isolation/blend handled at scene nodes. | Existing `SaveLayerCanvasCommand` and `SKPaint.BlendMode`; maybe add isolation metadata if needed. | `SkiaModel` maps blend modes and layer paints. | P1 |
 | `display`, `visibility`, `overflow` | Keep/Add | Ensure SVG 2 defaults through UA stylesheet. | Render tree inclusion and clipping semantics centralized. | Existing clip/save commands enough. | No direct change. | P0 |
 | `<paint>` grammar and fallback | Keep/Add | Extend paint parser for `context-fill`, `context-stroke`, `currentColor`, URL fallback chains, `none`. | Paint resolver receives context paint and fallback chain. | Existing shader/color plus maybe context paint record is compile-time only. | No direct change. | P0 |
-| `context-fill`, `context-stroke` | Partial | Parser/model support exists through context paint server/property handling. | Retained marker rendering supplies context fill/stroke from the referencing element; use/resource propagation and fallback-chain parity remain open. | No new command if resolved before paint creation. | No direct change. | P0 |
+| `context-fill`, `context-stroke` | Partial | Parser/model support exists through context paint server/property handling. | Retained marker rendering and focused `use` cases supply context fill/stroke from the referencing element; broader resource propagation and fallback-chain parity remain open. | No new command if resolved before paint creation. | No direct change. | P0 |
 | `paint-order` | Partial | `SvgPaintOrder` converter/property is implemented for retained rendering paths; invalid inheritance handling has been fixed. | Shape/path/text compiler emits fill, stroke, and marker phases in computed order in current retained paths. Broader computed-style integration and pixel coverage remain open. | Existing draw commands enough. | No direct change. | P0 |
 | Stroke algorithm clarifications | Keep/Add | Accept SVG 2 value grammar, non-negative miterlimit. | Normalize stroke joins, dashes, zero-length subpaths, caps, marker positions. | Existing path effect maybe enough; add command tests. | Skia differences documented with focused thresholds. | P1 |
 | `stroke-linejoin: arcs` | Defer | Preserve raw value in custom attributes if encountered. | Treat unsupported as fallback per CSS parsing rules. | No change. | No change. | P3 |
@@ -212,7 +223,7 @@ Legend:
 | `text-overflow` | Add later | Add property and converter. | Needs clipped inline layout and ellipsis insertion. | Existing clip/text commands enough. | No direct change. | P2 |
 | `textPath path` attribute | Partial | Inline `path` property on `SvgTextPath` is implemented. | Text compiler uses inline path before href path in the implemented retained path. | Existing `DrawTextOnPathCanvasCommand`. | Existing adapter if command supports path. | P1 |
 | `textPath` href to basic shape | Partial | Effective href may target basic shapes, not only `SvgPath`. | Implemented for basic-shape targets; shared geometry service and pathLength normalization remain open. | Existing text-on-path command. | No direct change. | P1 |
-| `textPath side` | Add | Add `SvgTextPathSide` enum with `left`, `right`. | Text-on-path placement flips side/orientation where supported. | Existing command may need side/normal metadata if not precomputed. | Skia adapter may need path reversal or baseline offset fallback. | P2 |
+| `textPath side` | Partial | `SvgTextPathSide` accepts `left` and `right`. | Focused static placement now preserves the path direction for `side=right` and passes the standalone WPT row; broader normal-side/baseline offset parity remains open. | Existing text commands remain sufficient for current retained path. | Skia adapter may still need baseline offset fallback for broader parity. | P2 |
 | Closed-path text loop and `startOffset` clarification | Add | Existing `startOffset`; no public API change. | Measure one closed loop and normalize start offsets with pathLength. | Existing command enough if positions precomputed. | No direct change. | P2 |
 | Removed text/font elements: `tref`, `altGlyph*`, SVG Fonts | Compat | Keep legacy parser support where present; mark not SVG 2 core. | Existing SVG font support remains compatibility setting, not SVG 2 requirement. | Existing path/text commands. | `EnableSvgFonts` remains compatibility flag. | P3 |
 | WOFF/CSS font loading | Add later | Parse `@font-face` URLs through CSS compatibility processor. | Asset loader/font provider resolves WOFF when policy allows. | No new command. | Typeface providers load/register fonts if supported. | P2 |
@@ -366,18 +377,15 @@ Acceptance:
 Progress:
 
 - Complete in current retained path: text `paint-order`.
-- Partial: inline textPath `path` is implemented.
-- Partial: textPath href-to-basic-shape support is implemented.
+- Complete in focused retained paths: inline textPath `path`, href-to-basic-shape support, closed-loop placement, `pathLength` scaling, focused `white-space: pre`, and the WPT `side=right` standalone row.
 
 1. Add `white-space` handling and map legacy `xml:space`.
 2. Ensure text, tspan, and textPath can receive graphics effects through the same scene pipeline as shapes.
-3. Finish textPath SVG 2 deltas:
-   - inline `path` parity tests
-   - href to basic shapes through shared geometry
-   - closed path loop behavior
-   - `pathLength` scaling
-4. Add `side=right` after the textPath geometry abstraction is stable.
-5. Add auto-wrapped text in a later tranche:
+3. Finish broader textPath SVG 2 parity:
+   - baseline/offset parity across curved and transformed paths
+   - additional side/normal placement coverage beyond the standalone WPT row
+   - graphics effects and computed-style integration on textPath content
+4. Add auto-wrapped text in a later tranche:
    - `inline-size`
    - `shape-inside`
    - `shape-subtract`
@@ -430,12 +438,14 @@ Use semantic tests first, browser pixels second.
 | Scene graph focused | `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests"` |
 | W3C focused | `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~W3CTestSuiteTests.Tests"` |
 | resvg focused | `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~resvgTests"` |
+| WPT SVG 2 focused | `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~WptSvg2StaticSubsetTests"` |
 | Full pre-merge | `dotnet format Svg.Skia.slnx --no-restore && dotnet build Svg.Skia.slnx -c Release && dotnet test Svg.Skia.slnx -c Release` |
 
 Chrome override policy:
 
 - Generate W3C overrides with `node scripts/capture_w3c_chrome_overrides.mjs <comma-separated-tests>`.
 - Generate resvg overrides with `node scripts/capture_resvg_chrome_overrides.mjs <comma-separated-tests>`.
+- Generate WPT SVG 2 references with `node scripts/capture_wpt_svg2_chrome_references.mjs <comma-separated-svg-paths>`.
 - Do not use `file://` for W3C fixtures.
 - Do not reintroduce W3C footer exclusion regions.
 - Keep skipped rows skipped when they require scripting, live DOM, browser runtime behavior, or unsupported dynamic media.

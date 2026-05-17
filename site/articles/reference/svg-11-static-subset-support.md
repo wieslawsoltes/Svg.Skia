@@ -24,9 +24,9 @@ The normative reference is the W3C [SVG 1.1 Second Edition Recommendation](https
 |---|---|
 | Supported | Implemented in parser/model and exercised by static renderer paths. |
 | Partial | Implemented for common or focused cases, with known conformance gaps. |
+| Deferred | Preserved or skipped because the static Skia pipeline does not currently render the feature. |
 | Compatibility | Parsed or preserved for SVG compatibility, but not a primary static rendering feature. |
 | Runtime | Available only through runtime/interactive APIs or opt-in settings. |
-| Not supported | Not rendered by the static Skia pipeline. |
 
 ## Core SVG 1.1 Matrix
 
@@ -39,7 +39,7 @@ The normative reference is the W3C [SVG 1.1 Second Edition Recommendation](https
 | Paths | Supported | Supports moveto, lineto, horizontal/vertical lineto, cubic/smooth cubic curves, quadratic/smooth quadratic curves, elliptical arcs, closepath, relative commands, fill rules, and marker point extraction. |
 | Basic shapes | Supported | Supports `<rect>`, `<circle>`, `<ellipse>`, `<line>`, `<polyline>`, `<polygon>`, rounded rectangles, point lists, and shape-to-path conversion. |
 | Text | Partial | Supports `<text>`, `<tspan>`, `<tref>`, `<textPath>`, x/y/dx/dy/rotate positioning, `textLength`, `lengthAdjust`, bidi direction, writing mode, text decoration, and fill/stroke text painting. Browser-complete baseline, vertical layout, textPath, shaping, and glyph fallback behavior remain partial. |
-| SVG 1.1 altGlyph text | Not supported | `altGlyph`, `altGlyphDef`, `altGlyphItem`, and `glyphRef` are not implemented. W3C `text-altglyph-*` rows remain skipped with explicit reasons. |
+| SVG 1.1 altGlyph text | Deferred | `altGlyph`, `altGlyphDef`, `altGlyphItem`, and `glyphRef` are not implemented. W3C `text-altglyph-*` rows remain skipped with explicit reasons. |
 | Fill and stroke painting | Supported | Supports `fill`, `stroke`, opacity values, fill and clip rules, stroke width, dash array, dash offset, line cap, line join, miter limit, visibility, display, `currentColor`, and `shape-rendering`. |
 | Markers | Partial | Supports `marker-start`, `marker-mid`, `marker-end`, marker geometry, marker units, and orientation for common path-like content. Broader marker-on-all-shapes behavior belongs to the SVG 2 workstream. |
 | Color | Partial | Supports CSS color names, hex colors, rgb forms, opacity, `currentColor`, `color-interpolation`, and `color-interpolation-filters` in supported paint/filter paths. ICC `color-profile` behavior is compatibility-only and not a static target. |
@@ -60,7 +60,7 @@ The normative reference is the W3C [SVG 1.1 Second Edition Recommendation](https
 | Root and containers | Partial | `svg`, `g`, `defs`, `symbol`, `switch`, and `a` render or preserve expected static structure. `symbol` and `use` cover common static references; advanced reference-point semantics are SVG 2 work. |
 | Descriptive and metadata | Supported | `title`, `desc`, and `metadata` are parsed and preserved as non-rendering content. |
 | Graphics shapes | Supported | `path`, `rect`, `circle`, `ellipse`, `line`, `polyline`, and `polygon` render through retained path/shape compilation. |
-| Text | Partial | `text`, `tspan`, `tref`, and `textPath` render for many static cases. `altGlyph`, `altGlyphDef`, `altGlyphItem`, and `glyphRef` are not implemented. |
+| Text | Partial | `text`, `tspan`, `tref`, and `textPath` render for many static cases. `altGlyph`, `altGlyphDef`, `altGlyphItem`, and `glyphRef` are deferred. |
 | Paint servers | Supported | `linearGradient`, `radialGradient`, `stop`, and `pattern` support template inheritance, transforms, and current static paint paths. |
 | Markers | Partial | `marker` renders for common path-like content. Complete SVG 2 marker broadening is separate. |
 | Clipping and masking | Partial | `clipPath` and `mask` support common static paths; object-bounding-box and referenced-content edge cases remain partial. |
