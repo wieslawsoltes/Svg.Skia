@@ -235,7 +235,28 @@ namespace Svg
 
         private static bool IsStyleAttribute(string name)
         {
-            return SvgStyleAttributeNames.Contains(name) && !SvgStyleAttributeNames.IsCssOnlyProperty(name);
+            return SvgStyleAttributeNames.Contains(name) &&
+                   !SvgStyleAttributeNames.IsCssOnlyProperty(name) &&
+                   !IsSvg2GeometryAttribute(name);
+        }
+
+        private static bool IsSvg2GeometryAttribute(string name)
+        {
+            return name is
+                "cx" or
+                "cy" or
+                "d" or
+                "height" or
+                "r" or
+                "rx" or
+                "ry" or
+                "width" or
+                "x" or
+                "x1" or
+                "x2" or
+                "y" or
+                "y1" or
+                "y2";
         }
 
         private static bool IsOpacityAttribute(string name)

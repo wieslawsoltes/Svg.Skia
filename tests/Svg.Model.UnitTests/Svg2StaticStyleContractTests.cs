@@ -175,4 +175,95 @@ public class Svg2StaticStyleContractTests
 
         Assert.Equal(SvgPaintOrder.MarkersStrokeFill, child.PaintOrder);
     }
+
+    [Fact]
+    public void ComputedStyle_InvalidInlineSvg2DeclarationsDoNotOverrideFallbacks()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <defs>
+                <clipPath id="clip"><rect width="10" height="10" /></clipPath>
+                <filter id="shadow"><feDropShadow dx="1" dy="1" /></filter>
+                <mask id="fade"><rect width="10" height="10" fill="white" /></mask>
+                <marker id="start" markerWidth="4" markerHeight="4"><path d="M0,0 L4,2 L0,4 Z" /></marker>
+                <marker id="end" markerWidth="4" markerHeight="4"><path d="M0,0 L4,2 L0,4 Z" /></marker>
+              </defs>
+              <text id="label"
+                    white-space="pre-wrap"
+                    text-overflow="ellipsis"
+                    inline-size="32px"
+                    style="white-space: sideways; text-overflow: overflow; inline-size: definitely-not-a-length">hello</text>
+              <rect id="box" x="5" y="6" width="10" height="12"
+                    style="x: not-a-length; y: 18px; width: bogus; height: 20px" />
+              <path id="shape"
+                    d="M0,0 L10,0"
+                    clip-path="url(#clip)"
+                    marker-start="url(#start)"
+                    style="clip-path: url(); filter: url(#shadow); mask: url(#fade); marker-start: url(); marker-end: url(#end)" />
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+
+        var label = Assert.IsType<SvgText>(document!.GetElementById("label"));
+        var box = Assert.IsType<SvgRectangle>(document.GetElementById("box"));
+        var shape = Assert.IsType<SvgPath>(document.GetElementById("shape"));
+
+        label.FlushStyles();
+        box.FlushStyles();
+        shape.FlushStyles();
+
+        Assert.Equal(SvgWhiteSpace.PreWrap, label.WhiteSpace);
+        Assert.Equal("ellipsis", label.TextOverflow);
+        Assert.Equal("32px", label.InlineSize);
+        Assert.Equal(5f, box.X.Value);
+        Assert.Equal(18f, box.Y.Value);
+        Assert.Equal(10f, box.Width.Value);
+        Assert.Equal(20f, box.Height.Value);
+        Assert.Equal("url(#clip)", shape.ClipPath?.ToString());
+        Assert.Equal("url(#shadow)", shape.Filter?.ToString());
+        Assert.True(shape.TryGetAttribute("mask", out var mask));
+        Assert.Equal("url(#fade)", mask);
+        Assert.Equal("url(#start)", shape.MarkerStart?.ToString());
+        Assert.Equal("url(#end)", shape.MarkerEnd?.ToString());
+    }
+
+    [Fact]
+    public void ComputedStyle_StylesheetReferenceAndPathFallbacksAreValidatedBeforeFlush()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <style>
+                #shape {
+                  d: path("this is not path data");
+                  clip-path: url();
+                  marker-start: url();
+                  marker-mid: url(#mid);
+                  color-interpolation-filters: sideways;
+                }
+              </style>
+              <defs>
+                <clipPath id="clip"><rect width="10" height="10" /></clipPath>
+                <marker id="start" markerWidth="4" markerHeight="4"><path d="M0,0 L4,2 L0,4 Z" /></marker>
+                <marker id="mid" markerWidth="4" markerHeight="4"><path d="M0,0 L4,2 L0,4 Z" /></marker>
+              </defs>
+              <path id="shape"
+                    d="M0,0 L10,0"
+                    clip-path="url(#clip)"
+                    marker-start="url(#start)"
+                    color-interpolation-filters="sRGB" />
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+        var shape = Assert.IsType<SvgPath>(document!.GetElementById("shape"));
+
+        shape.FlushStyles();
+
+        Assert.Equal(2, shape.PathData.Count);
+        Assert.Equal("url(#clip)", shape.ClipPath?.ToString());
+        Assert.Equal("url(#start)", shape.MarkerStart?.ToString());
+        Assert.Equal("url(#mid)", shape.MarkerMid?.ToString());
+        Assert.Equal(Svg.DataTypes.SvgColourInterpolation.SRGB, shape.ColorInterpolationFilters);
+    }
 }

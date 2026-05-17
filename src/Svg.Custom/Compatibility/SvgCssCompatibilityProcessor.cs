@@ -79,6 +79,7 @@ internal static class SvgCssCompatibilityProcessor
         try
         {
             ApplyCustomPropertyRules(cssTotal, svgDocument, rootNode, elementFactory, stylesheetParser, mediaContext);
+            ApplyRawSvgStaticPropertyRules(cssTotal, svgDocument, rootNode, elementFactory, stylesheetParser, mediaContext);
 
             foreach (var rule in stylesheet.StyleRules)
             {
@@ -217,6 +218,85 @@ internal static class SvgCssCompatibilityProcessor
                         foreach (var declaration in declarations)
                         {
                             SvgCssVariableResolver.AddCustomProperty(elem, declaration.Name, declaration.Value, specificity);
+                        }
+
+                        if (elementFactory.PreserveJavaScriptDomState)
+                        {
+                            svgDocument.TrackCompatibilityStyleApplication(elem);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning(ex.Message);
+            }
+        }
+    }
+
+    private static void ApplyRawSvgStaticPropertyRules(
+        string cssText,
+        SvgDocument svgDocument,
+        SvgElement rootNode,
+        SvgElementFactory elementFactory,
+        StylesheetParser stylesheetParser,
+        CssMediaContext mediaContext)
+    {
+        var index = 0;
+        while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
+        {
+            if (statement.Terminator != CssStatementTerminator.Block)
+            {
+                continue;
+            }
+
+            var atRuleKind = GetAtRuleKind(cssText, statement);
+            if (atRuleKind == CssAtRuleKind.Media)
+            {
+                if (TryGetMediaRuleParts(cssText, statement, out var mediaCondition, out var nestedCssText) &&
+                    ShouldApplyMediaForCurrentContext(mediaCondition, mediaContext))
+                {
+                    ApplyRawSvgStaticPropertyRules(
+                        nestedCssText,
+                        svgDocument,
+                        rootNode,
+                        elementFactory,
+                        stylesheetParser,
+                        mediaContext);
+                }
+
+                continue;
+            }
+
+            if (atRuleKind != CssAtRuleKind.None ||
+                !TryGetStyleRuleParts(cssText, statement, out var selectorText, out var declarationsText))
+            {
+                continue;
+            }
+
+            var declarations = CreateRawSvgStaticPropertyDeclarations(declarationsText);
+            if (declarations.Count == 0)
+            {
+                continue;
+            }
+
+            try
+            {
+                var selectorSheet = stylesheetParser.Parse(selectorText + "{fill:inherit}");
+                foreach (var rule in selectorSheet.StyleRules)
+                {
+                    var specificity = rule.Selector.GetSpecificity();
+                    var elemsToStyle = rootNode.QuerySelectorAll(rule.Selector, elementFactory);
+                    if (SelectorListMatchesSvgRoot(selectorText, svgDocument))
+                    {
+                        elemsToStyle = elemsToStyle.Concat(new[] { svgDocument });
+                    }
+
+                    foreach (var elem in elemsToStyle.Distinct())
+                    {
+                        foreach (var declaration in declarations)
+                        {
+                            ApplyDeclaration(elem, declaration, specificity);
                         }
 
                         if (elementFactory.PreserveJavaScriptDomState)
@@ -562,7 +642,47 @@ internal static class SvgCssCompatibilityProcessor
             return;
         }
 
-        element.AddStyle(declaration.Name, declaration.Value, specificity);
+        if (SvgComputedStyleMetadata.ShouldIgnoreInvalidDeclaration(declaration.Name, declaration.Value))
+        {
+            return;
+        }
+
+        element.AddStyle(declaration.Name, NormalizeReferenceUrl(declaration.Name, declaration.Value), specificity);
+    }
+
+    private static string NormalizeReferenceUrl(string name, string value)
+    {
+        if (!IsReferenceStyleProperty(name))
+        {
+            return value;
+        }
+
+        var trimmed = value.Trim();
+        if (trimmed.Length >= 8 &&
+            trimmed.StartsWith("url(", StringComparison.OrdinalIgnoreCase) &&
+            trimmed.EndsWith(")", StringComparison.Ordinal))
+        {
+            var inner = trimmed.Substring(4, trimmed.Length - 5).Trim();
+            if (inner.Length >= 2 &&
+                ((inner[0] == '"' && inner[inner.Length - 1] == '"') ||
+                 (inner[0] == '\'' && inner[inner.Length - 1] == '\'')))
+            {
+                return "url(" + inner.Substring(1, inner.Length - 2) + ")";
+            }
+        }
+
+        return value;
+    }
+
+    private static bool IsReferenceStyleProperty(string name)
+    {
+        return name.Equals("clip-path", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("filter", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("marker", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("marker-end", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("marker-mid", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("marker-start", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("mask", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool TryGetStyleRuleParts(
@@ -694,6 +814,61 @@ internal static class SvgCssCompatibilityProcessor
                 result.Add(new AppliedDeclaration(name, value));
             }
         }
+    }
+
+    private static List<AppliedDeclaration> CreateRawSvgStaticPropertyDeclarations(string declarationsText)
+    {
+        var result = new List<AppliedDeclaration>();
+        var index = 0;
+
+        while (true)
+        {
+            if (!SkipIgnorableDeclarationContent(declarationsText, ref index))
+            {
+                return result;
+            }
+
+            if (index >= declarationsText.Length)
+            {
+                return result;
+            }
+
+            var declarationStart = index;
+            if (!TryReadDeclaration(declarationsText, ref index, out var name, out var value))
+            {
+                if (index <= declarationStart)
+                {
+                    return result;
+                }
+
+                continue;
+            }
+
+            if (IsRawSvgStaticPropertyName(name))
+            {
+                result.Add(new AppliedDeclaration(name, value));
+            }
+        }
+    }
+
+    private static bool IsRawSvgStaticPropertyName(string name)
+    {
+        return name.Equals("cx", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("cy", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("d", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("height", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("r", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("rx", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("ry", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("transform-box", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("transform-origin", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("width", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("x", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("x1", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("x2", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("y", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("y1", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("y2", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool TryReadDeclaration(string declarationsText, ref int index, out string name, out string value)

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Svg.Pathing;
 
 namespace Svg;
 
@@ -94,6 +95,18 @@ internal sealed class SvgComputedStyleSnapshot
 
     public string? ShapeSubtract => GetPropertyValueOrNull(SvgComputedStyleMetadata.ShapeSubtract);
 
+    public string? ClipPath => GetPropertyValueOrNull(SvgComputedStyleMetadata.ClipPath);
+
+    public string? Filter => GetPropertyValueOrNull(SvgComputedStyleMetadata.Filter);
+
+    public string? Mask => GetPropertyValueOrNull(SvgComputedStyleMetadata.Mask);
+
+    public string? MarkerStart => GetPropertyValueOrNull(SvgComputedStyleMetadata.MarkerStart);
+
+    public string? MarkerMid => GetPropertyValueOrNull(SvgComputedStyleMetadata.MarkerMid);
+
+    public string? MarkerEnd => GetPropertyValueOrNull(SvgComputedStyleMetadata.MarkerEnd);
+
     public bool TryGetIsolation(out SvgIsolation isolation)
     {
         isolation = SvgIsolation.Auto;
@@ -174,6 +187,34 @@ internal sealed class SvgComputedStyleSnapshot
             }
         }
 
+        if (metadata.ShorthandName is not null &&
+            _element.TryGetOwnCascadedStyleValue(metadata.ShorthandName, out var rawShorthandValue))
+        {
+            var normalizedShorthandValue = Normalize(rawShorthandValue);
+            if (normalizedShorthandValue.Length > 0)
+            {
+                if (string.Equals(normalizedShorthandValue, "inherit", StringComparison.OrdinalIgnoreCase))
+                {
+                    return ResolveInheritedProperty(metadata);
+                }
+
+                if (string.Equals(normalizedShorthandValue, "initial", StringComparison.OrdinalIgnoreCase))
+                {
+                    return metadata.InitialValue;
+                }
+
+                if (string.Equals(normalizedShorthandValue, "unset", StringComparison.OrdinalIgnoreCase))
+                {
+                    return metadata.Inherited ? ResolveInheritedProperty(metadata) : metadata.InitialValue;
+                }
+
+                if (metadata.IsValid(normalizedShorthandValue))
+                {
+                    return normalizedShorthandValue;
+                }
+            }
+        }
+
         return metadata.Inherited ? ResolveInheritedProperty(metadata) : metadata.InitialValue;
     }
 
@@ -194,6 +235,8 @@ internal sealed class SvgComputedStyleSnapshot
 
 internal sealed class SvgComputedStyleMetadata
 {
+    private const string MarkerShorthandName = "marker";
+
     public static readonly SvgComputedStyleMetadata PaintOrder = new(
         "paint-order",
         inherited: true,
@@ -210,13 +253,13 @@ internal sealed class SvgComputedStyleMetadata
         "text-overflow",
         inherited: false,
         initialValue: "clip",
-        static value => !string.IsNullOrWhiteSpace(value));
+        IsValidTextOverflow);
 
     public static readonly SvgComputedStyleMetadata InlineSize = new(
         "inline-size",
         inherited: false,
         initialValue: null,
-        static value => !string.IsNullOrWhiteSpace(value));
+        IsValidInlineSize);
 
     public static readonly SvgComputedStyleMetadata ShapeInside = new(
         "shape-inside",
@@ -230,29 +273,80 @@ internal sealed class SvgComputedStyleMetadata
         initialValue: null,
         static value => !string.IsNullOrWhiteSpace(value));
 
+    public static readonly SvgComputedStyleMetadata GeometryUnit = new(
+        string.Empty,
+        inherited: false,
+        initialValue: null,
+        IsValidSvgUnit);
+
+    public static readonly SvgComputedStyleMetadata PathData = new(
+        "d",
+        inherited: false,
+        initialValue: null,
+        IsValidPathData);
+
+    public static readonly SvgComputedStyleMetadata ClipPath = new(
+        "clip-path",
+        inherited: false,
+        initialValue: "none",
+        IsValidReferenceOrNone);
+
+    public static readonly SvgComputedStyleMetadata Filter = new(
+        "filter",
+        inherited: false,
+        initialValue: "none",
+        IsValidReferenceOrNone);
+
+    public static readonly SvgComputedStyleMetadata Mask = new(
+        "mask",
+        inherited: false,
+        initialValue: "none",
+        IsValidReferenceOrNone);
+
+    public static readonly SvgComputedStyleMetadata Marker = new(
+        MarkerShorthandName,
+        inherited: true,
+        initialValue: "none",
+        IsValidMarkerReference);
+
     public static readonly SvgComputedStyleMetadata MarkerStart = new(
         "marker-start",
         inherited: true,
         initialValue: "none",
-        IsValidMarkerReference);
+        IsValidMarkerReference,
+        MarkerShorthandName);
 
     public static readonly SvgComputedStyleMetadata MarkerMid = new(
         "marker-mid",
         inherited: true,
         initialValue: "none",
-        IsValidMarkerReference);
+        IsValidMarkerReference,
+        MarkerShorthandName);
 
     public static readonly SvgComputedStyleMetadata MarkerEnd = new(
         "marker-end",
         inherited: true,
         initialValue: "none",
-        IsValidMarkerReference);
+        IsValidMarkerReference,
+        MarkerShorthandName);
 
     public static readonly SvgComputedStyleMetadata MaskType = new(
         "mask-type",
         inherited: false,
         initialValue: "luminance",
         static value => IsCssIdentifier(value, "luminance", "alpha"));
+
+    public static readonly SvgComputedStyleMetadata ColorInterpolation = new(
+        "color-interpolation",
+        inherited: true,
+        initialValue: "sRGB",
+        IsValidColorInterpolation);
+
+    public static readonly SvgComputedStyleMetadata ColorInterpolationFilters = new(
+        "color-interpolation-filters",
+        inherited: true,
+        initialValue: "linearRGB",
+        IsValidColorInterpolation);
 
     public static readonly SvgComputedStyleMetadata Isolation = new(
         "isolation",
@@ -270,11 +364,15 @@ internal sealed class SvgComputedStyleMetadata
         string name,
         bool inherited,
         string? initialValue,
-        Func<string, bool> validator)
+        Func<string, bool> validator,
+        string? shorthandName = null,
+        bool knownProperty = true)
     {
         Name = name;
         Inherited = inherited;
         InitialValue = initialValue;
+        ShorthandName = shorthandName;
+        IsKnownProperty = knownProperty;
         _validator = validator;
     }
 
@@ -286,6 +384,10 @@ internal sealed class SvgComputedStyleMetadata
 
     public string? InitialValue { get; }
 
+    public string? ShorthandName { get; }
+
+    public bool IsKnownProperty { get; }
+
     public static SvgComputedStyleMetadata For(string propertyName)
     {
         return propertyName.ToLowerInvariant() switch
@@ -296,23 +398,129 @@ internal sealed class SvgComputedStyleMetadata
             "inline-size" => InlineSize,
             "shape-inside" => ShapeInside,
             "shape-subtract" => ShapeSubtract,
+            "d" => PathData,
+            "x" or
+            "y" or
+            "x1" or
+            "y1" or
+            "x2" or
+            "y2" or
+            "cx" or
+            "cy" or
+            "r" or
+            "width" or
+            "height" => new SvgComputedStyleMetadata(
+                propertyName,
+                GeometryUnit.Inherited,
+                GeometryUnit.InitialValue,
+                IsValidSvgUnit),
+            "rx" or
+            "ry" => new SvgComputedStyleMetadata(
+                propertyName,
+                GeometryUnit.Inherited,
+                GeometryUnit.InitialValue,
+                IsValidSvgUnitOrAuto),
+            "clip-path" => ClipPath,
+            "filter" => Filter,
+            "mask" => Mask,
+            "marker" => Marker,
             "marker-start" => MarkerStart,
             "marker-mid" => MarkerMid,
             "marker-end" => MarkerEnd,
             "mask-type" => MaskType,
+            "color-interpolation" => ColorInterpolation,
+            "color-interpolation-filters" => ColorInterpolationFilters,
             "isolation" => Isolation,
             "mix-blend-mode" => MixBlendMode,
             _ => new SvgComputedStyleMetadata(
                 propertyName,
                 inherited: false,
                 initialValue: null,
-                static value => !string.IsNullOrWhiteSpace(value))
+                static value => !string.IsNullOrWhiteSpace(value),
+                knownProperty: false)
         };
+    }
+
+    public static bool ShouldIgnoreInvalidDeclaration(string propertyName, string value)
+    {
+        var metadata = For(propertyName);
+        if (!metadata.IsKnownProperty ||
+            ContainsVarFunction(value) ||
+            IsCssWideKeyword(value))
+        {
+            return false;
+        }
+
+        var normalizedValue = value.Trim();
+        return normalizedValue.Length == 0 || !metadata.IsValid(normalizedValue);
     }
 
     public bool IsValid(string value)
     {
         return _validator(value);
+    }
+
+    private static bool IsValidTextOverflow(string value)
+    {
+        if (IsCssIdentifier(value, "clip", "ellipsis"))
+        {
+            return true;
+        }
+
+        return IsQuotedString(value);
+    }
+
+    private static bool IsValidInlineSize(string value)
+    {
+        return IsCssIdentifier(value, "auto") ||
+               IsValidSvgUnit(value) ||
+               IsKnownLengthFunction(value);
+    }
+
+    private static bool IsValidSvgUnit(string value)
+    {
+        try
+        {
+            _ = SvgUnitConverter.Parse(value.AsSpan());
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsValidSvgUnitOrAuto(string value)
+    {
+        return IsCssIdentifier(value, "auto") || IsValidSvgUnit(value);
+    }
+
+    private static bool IsValidPathData(string value)
+    {
+        if (IsCssIdentifier(value, "none"))
+        {
+            return true;
+        }
+
+        var normalized = NormalizeCssPathData(value);
+        if (normalized.Length == 0)
+        {
+            return false;
+        }
+
+        try
+        {
+            return SvgPathBuilder.Parse(normalized).Count > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsValidReferenceOrNone(string value)
+    {
+        return IsCssIdentifier(value, "none") || IsValidUrlReference(value);
     }
 
     private static bool IsValidPaintOrder(string value)
@@ -332,13 +540,40 @@ internal sealed class SvgComputedStyleMetadata
             return true;
         }
 
-        if (value.StartsWith("url(", StringComparison.OrdinalIgnoreCase) &&
-            value.EndsWith(")", StringComparison.Ordinal))
+        if (IsValidUrlReference(value))
         {
             return true;
         }
 
-        return Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out _);
+        if (value.StartsWith("url(", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return !ContainsCssWhitespace(value) &&
+               Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out _);
+    }
+
+    private static bool IsValidUrlReference(string value)
+    {
+        if (!value.StartsWith("url(", StringComparison.OrdinalIgnoreCase) ||
+            !value.EndsWith(")", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var inner = value.Substring(4, value.Length - 5).Trim();
+        if (IsQuotedString(inner))
+        {
+            inner = inner.Substring(1, inner.Length - 2).Trim();
+        }
+
+        return inner.Length > 0 && Uri.TryCreate(inner, UriKind.RelativeOrAbsolute, out _);
+    }
+
+    private static bool IsValidColorInterpolation(string value)
+    {
+        return IsCssIdentifier(value, "auto", "sRGB", "linearRGB");
     }
 
     private static bool IsValidMixBlendMode(string value)
@@ -374,6 +609,64 @@ internal sealed class SvgComputedStyleMetadata
         }
 
         return false;
+    }
+
+    private static bool ContainsVarFunction(string value)
+    {
+        return value.IndexOf("var(", StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    private static bool IsCssWideKeyword(string value)
+    {
+        var trimmed = value.Trim();
+        return trimmed.Equals("initial", StringComparison.OrdinalIgnoreCase) ||
+               trimmed.Equals("inherit", StringComparison.OrdinalIgnoreCase) ||
+               trimmed.Equals("unset", StringComparison.OrdinalIgnoreCase) ||
+               trimmed.Equals("revert", StringComparison.OrdinalIgnoreCase) ||
+               trimmed.Equals("revert-layer", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsKnownLengthFunction(string value)
+    {
+        return value.StartsWith("calc(", StringComparison.OrdinalIgnoreCase) ||
+               value.StartsWith("min(", StringComparison.OrdinalIgnoreCase) ||
+               value.StartsWith("max(", StringComparison.OrdinalIgnoreCase) ||
+               value.StartsWith("clamp(", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsQuotedString(string value)
+    {
+        return value.Length >= 2 &&
+               ((value[0] == '\'' && value[value.Length - 1] == '\'') ||
+                (value[0] == '"' && value[value.Length - 1] == '"'));
+    }
+
+    private static bool ContainsCssWhitespace(string value)
+    {
+        for (var i = 0; i < value.Length; i++)
+        {
+            if (char.IsWhiteSpace(value[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string NormalizeCssPathData(string value)
+    {
+        var trimmed = value.Trim();
+        if (!trimmed.StartsWith("path(", StringComparison.OrdinalIgnoreCase) ||
+            !trimmed.EndsWith(")", StringComparison.Ordinal))
+        {
+            return trimmed;
+        }
+
+        var inner = trimmed.Substring(5, trimmed.Length - 6).Trim();
+        return IsQuotedString(inner)
+            ? inner.Substring(1, inner.Length - 2)
+            : inner;
     }
 
     internal static bool TryParsePaintOrder(string value, out SvgPaintOrder paintOrder)
