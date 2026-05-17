@@ -2677,6 +2677,7 @@ internal static partial class SvgSceneTextCompiler
         var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
         var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
         var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
+        hOffset = ApplyTextPathSideOffset(svgTextPath, hOffset, pathLength, totalAdvance);
 
         if (!TryCreateTextPathRunPlacements(runs, pathSamples, isClosedLoop, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
         {
@@ -2716,6 +2717,7 @@ internal static partial class SvgSceneTextCompiler
         var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
         var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
         var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
+        hOffset = ApplyTextPathSideOffset(svgTextPath, hOffset, pathLength, totalAdvance);
 
         if (!TryCreateTextPathRunPlacements(runs, pathSamples, isClosedLoop, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
         {
@@ -3122,6 +3124,7 @@ internal static partial class SvgSceneTextCompiler
         var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
         var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
         var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
+        hOffset = ApplyTextPathSideOffset(svgTextPath, hOffset, pathLength, totalAdvance);
 
         if (!TryCreateTextPathRunPlacements(runs, pathSamples, isClosedLoop, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
         {
@@ -6636,8 +6639,6 @@ internal static partial class SvgSceneTextCompiler
             pathSamples = TransformPathSamples(pathSamples, transform);
         }
 
-        isClosedLoop = IsSingleClosedSubpath(pathSamples);
-        geometryBounds = GetPathSampleBounds(pathSamples);
         pathLength = pathSamples[pathSamples.Count - 1].Distance;
         if (TryGetAuthorPathLength(svgPath ?? referencedVisualElement, out var authorPathLength))
         {
@@ -6645,6 +6646,14 @@ internal static partial class SvgSceneTextCompiler
             pathLength = authorPathLength;
         }
 
+        if (svgTextPath.Side == SvgTextPathSide.Right)
+        {
+            pathSamples = ReversePathSamples(pathSamples);
+            pathLength = pathSamples[pathSamples.Count - 1].Distance;
+        }
+
+        isClosedLoop = IsSingleClosedSubpath(pathSamples);
+        geometryBounds = GetPathSampleBounds(pathSamples);
         return pathLength > 0f;
     }
 
@@ -8347,6 +8356,16 @@ internal static partial class SvgSceneTextCompiler
     private static float ApplyTextAnchor(SvgTextBase svgTextBase, float anchorCoordinate, SKRect geometryBounds, float totalAdvance)
     {
         return GetAlignedStartCoordinate(anchorCoordinate, totalAdvance, GetTextAnchorAlign(svgTextBase, geometryBounds));
+    }
+
+    private static float ApplyTextPathSideOffset(SvgTextPath svgTextPath, float hOffset, float pathLength, float totalAdvance)
+    {
+        if (svgTextPath.Side != SvgTextPathSide.Right || pathLength <= 0f)
+        {
+            return hOffset;
+        }
+
+        return pathLength - hOffset - totalAdvance;
     }
 
     private static SKTextAlign GetTextAnchorAlign(SvgTextBase svgTextBase, SKRect geometryBounds)

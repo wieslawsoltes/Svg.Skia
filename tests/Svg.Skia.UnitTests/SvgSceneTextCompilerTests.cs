@@ -17,6 +17,9 @@ public class SvgSceneTextCompilerTests
     private static readonly Type s_svgSceneTextCompilerType =
         typeof(SvgSceneNode).Assembly.GetType("Svg.Skia.SvgSceneTextCompiler")
         ?? throw new InvalidOperationException("Could not locate Svg.Skia.SvgSceneTextCompiler.");
+    private static readonly Type s_svgSceneContextPaintType =
+        typeof(SvgSceneNode).Assembly.GetType("Svg.Skia.SvgSceneContextPaint")
+        ?? throw new InvalidOperationException("Could not locate Svg.Skia.SvgSceneContextPaint.");
 
     private static readonly MethodInfo s_splitCodepointsMethod = s_svgSceneTextCompilerType.GetMethod("SplitCodepoints", BindingFlags.NonPublic | BindingFlags.Static)!;
     private static readonly MethodInfo s_measureNaturalTextAdvanceMethod = s_svgSceneTextCompilerType.GetMethod(
@@ -68,7 +71,7 @@ public class SvgSceneTextCompilerTests
         "TryCompileSequentialText",
         BindingFlags.NonPublic | BindingFlags.Static,
         binder: null,
-        [typeof(SvgTextBase), typeof(SKRect), typeof(DrawAttributes), typeof(ISvgAssetLoader), typeof(Func<SvgElement?, string?>), typeof(SKRect).MakeByRefType(), typeof(SKPicture).MakeByRefType()],
+        [typeof(SvgTextBase), typeof(SKRect), typeof(DrawAttributes), typeof(ISvgAssetLoader), typeof(Func<SvgElement?, string?>), s_svgSceneContextPaintType, typeof(SKRect).MakeByRefType(), typeof(SKPicture).MakeByRefType()],
         modifiers: null)!;
 
     private sealed record PreparedSequentialRunSnapshot(
@@ -611,6 +614,7 @@ public class SvgSceneTextCompilerTests
             viewport,
             DrawAttributes.None,
             assetLoader,
+            null,
             null,
             default(SKRect),
             null

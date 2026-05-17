@@ -313,6 +313,11 @@ internal static class TransformsService
                     isHorizontal ? UnitRenderingType.HorizontalOffset : UnitRenderingType.VerticalOffset,
                     svgElement,
                     referenceBox);
+                if (unit.Type != SvgUnitType.Percentage)
+                {
+                    value += isHorizontal ? referenceBox.Left : referenceBox.Top;
+                }
+
                 return true;
             }
         }
