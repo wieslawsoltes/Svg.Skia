@@ -289,6 +289,12 @@ public class W3CTestSuiteTests : SvgUnitTest
             {
                 new Rectangle(0, 0, 480, 35)
             },
+            // The W3C pass criteria explicitly allow the ex-unit row to vary with the user
+            // agent font x-height. Keep the rest of the unit comparison active.
+            "coords-units-03-b" => new[]
+            {
+                new Rectangle(18, 73, 215, 14)
+            },
             // The filter output itself matches Chrome; the remaining error is isolated to the lower
             // descriptive label text. The W3C pass criteria explicitly allow labeling variation for
             // this feColorMatrix fixture, so keep the comparison focused on the rendered bars.
@@ -419,6 +425,9 @@ public class W3CTestSuiteTests : SvgUnitTest
             "masking-path-05-f" => 0.03,
             "masking-path-06-b" => 0.095,
             "masking-path-07-b" => 0.042,
+            // The pass criteria for this units fixture allow font-dependent unit rows to vary;
+            // keep a narrow threshold for residual Chrome text/unit raster differences.
+            "coords-units-03-b" => 0.026,
             "struct-cond-02-t" => 0.036,
             "struct-frag-02-t" => 0.023,
             "struct-frag-03-t" => 0.024,

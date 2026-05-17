@@ -48,7 +48,7 @@ internal static partial class SvgSceneTextCompiler
 
     private readonly record struct PositionedCodepointRun(SvgTextBase StyleSource, string Text, PositionedCodepointPlacement[] Placements);
 
-    private readonly record struct PathSample(SKPoint Point, float Distance, bool StartsSubpath);
+    private readonly record struct PathSample(SKPoint Point, float Distance, bool StartsSubpath, bool ClosesSubpath);
 
     private readonly record struct ResolvedFallbackCodepoint(string Text, SKPaint Paint, float Advance);
 
@@ -921,7 +921,7 @@ internal static partial class SvgSceneTextCompiler
                         trimLeadingWhitespace: trimLeadingWhitespace,
                         trimTrailingWhitespace: IsTerminalContentNode(contentNodeList, nodeIndex));
                     if (previousEndedWithSpace &&
-                        svgTextBase.SpaceHandling != XmlSpaceHandling.Preserve &&
+                        CollapsesTextWhitespace(svgTextBase) &&
                         !string.IsNullOrEmpty(text) &&
                         text![0] == ' ')
                     {
@@ -930,7 +930,7 @@ internal static partial class SvgSceneTextCompiler
 
                     if (string.IsNullOrEmpty(text) &&
                         !string.IsNullOrWhiteSpace(rawContent) &&
-                        svgTextBase.SpaceHandling != XmlSpaceHandling.Preserve &&
+                        CollapsesTextWhitespace(svgTextBase) &&
                         !previousEndedWithSpace &&
                         HasRenderableTextContentBefore(contentNodeList, nodeIndex) &&
                         HasRenderableTextContentAfter(contentNodeList, nodeIndex))
@@ -1200,7 +1200,7 @@ internal static partial class SvgSceneTextCompiler
                         trimLeadingWhitespace: trimLeadingWhitespace,
                         trimTrailingWhitespace: IsTerminalContentNode(contentNodeList, nodeIndex));
                     if (previousEndedWithSpace &&
-                        svgTextBase.SpaceHandling != XmlSpaceHandling.Preserve &&
+                        CollapsesTextWhitespace(svgTextBase) &&
                         !string.IsNullOrEmpty(text) &&
                         text![0] == ' ')
                     {
@@ -1209,7 +1209,7 @@ internal static partial class SvgSceneTextCompiler
 
                     if (string.IsNullOrEmpty(text) &&
                         !string.IsNullOrWhiteSpace(rawContent) &&
-                        svgTextBase.SpaceHandling != XmlSpaceHandling.Preserve &&
+                        CollapsesTextWhitespace(svgTextBase) &&
                         !previousEndedWithSpace &&
                         HasRenderableTextContentBefore(contentNodeList, nodeIndex) &&
                         HasRenderableTextContentAfter(contentNodeList, nodeIndex))
@@ -2647,7 +2647,7 @@ internal static partial class SvgSceneTextCompiler
             return TextPathRenderResult.NotRendered;
         }
 
-        if (!TryResolveTextPathGeometry(svgTextPath, viewport, out var svgPath, out var skPath, out var geometryBounds, out var pathSamples, out var pathLength))
+        if (!TryResolveTextPathGeometry(svgTextPath, viewport, out _, out var skPath, out var geometryBounds, out var pathSamples, out var pathLength, out var isClosedLoop))
         {
             return TextPathRenderResult.MissingGeometry;
         }
@@ -2658,11 +2658,11 @@ internal static partial class SvgSceneTextCompiler
         }
 
         ResolveTextPathChunkOffsets(svgTextPath, useCurrentPositionOffset, currentX, currentY, viewport, assetLoader, pathSamples, out var horizontalOffset, out var verticalOffset);
-        var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, svgPath, skPath, viewport, pathLength);
+        var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
         var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
         var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
 
-        if (!TryCreateTextPathRunPlacements(runs, pathSamples, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
+        if (!TryCreateTextPathRunPlacements(runs, pathSamples, isClosedLoop, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
         {
             return TextPathRenderResult.NotRendered;
         }
@@ -2686,7 +2686,7 @@ internal static partial class SvgSceneTextCompiler
             return TextPathRenderResult.NotRendered;
         }
 
-        if (!TryResolveTextPathGeometry(svgTextPath, viewport, out var svgPath, out var skPath, out var geometryBounds, out var pathSamples, out var pathLength))
+        if (!TryResolveTextPathGeometry(svgTextPath, viewport, out _, out var skPath, out var geometryBounds, out var pathSamples, out var pathLength, out var isClosedLoop))
         {
             return TextPathRenderResult.MissingGeometry;
         }
@@ -2697,11 +2697,11 @@ internal static partial class SvgSceneTextCompiler
         }
 
         ResolveTextPathChunkOffsets(svgTextPath, useCurrentPositionOffset, currentX, currentY, viewport, assetLoader, pathSamples, out var horizontalOffset, out var verticalOffset);
-        var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, svgPath, skPath, viewport, pathLength);
+        var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
         var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
         var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
 
-        if (!TryCreateTextPathRunPlacements(runs, pathSamples, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
+        if (!TryCreateTextPathRunPlacements(runs, pathSamples, isClosedLoop, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
         {
             return TextPathRenderResult.NotRendered;
         }
@@ -2874,7 +2874,7 @@ internal static partial class SvgSceneTextCompiler
                         trimLeadingWhitespace: trimLeadingWhitespace,
                         trimTrailingWhitespace: IsTerminalContentNode(contentNodeList, nodeIndex));
                     if (previousEndedWithSpace &&
-                        svgTextBase.SpaceHandling != XmlSpaceHandling.Preserve &&
+                        CollapsesTextWhitespace(svgTextBase) &&
                         !string.IsNullOrEmpty(text) &&
                         text![0] == ' ')
                     {
@@ -2883,7 +2883,7 @@ internal static partial class SvgSceneTextCompiler
 
                     if (string.IsNullOrEmpty(text) &&
                         !string.IsNullOrWhiteSpace(rawContent) &&
-                        svgTextBase.SpaceHandling != XmlSpaceHandling.Preserve &&
+                        CollapsesTextWhitespace(svgTextBase) &&
                         !previousEndedWithSpace &&
                         HasRenderableTextContentBefore(contentNodeList, nodeIndex) &&
                         HasRenderableTextContentAfter(contentNodeList, nodeIndex))
@@ -3092,7 +3092,7 @@ internal static partial class SvgSceneTextCompiler
             return TextPathRenderResult.NotRendered;
         }
 
-        if (!TryResolveTextPathGeometry(svgTextPath, viewport, out var svgPath, out var skPath, out var geometryBounds, out var pathSamples, out var pathLength))
+        if (!TryResolveTextPathGeometry(svgTextPath, viewport, out _, out var skPath, out var geometryBounds, out var pathSamples, out var pathLength, out var isClosedLoop))
         {
             return TextPathRenderResult.MissingGeometry;
         }
@@ -3103,11 +3103,11 @@ internal static partial class SvgSceneTextCompiler
         }
 
         ResolveTextPathChunkOffsets(svgTextPath, useCurrentPositionOffset, currentX, currentY, viewport, assetLoader, pathSamples, out var horizontalOffset, out var verticalOffset);
-        var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, svgPath, skPath, viewport, pathLength);
+        var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
         var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
         var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
 
-        if (!TryCreateTextPathRunPlacements(runs, pathSamples, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
+        if (!TryCreateTextPathRunPlacements(runs, pathSamples, isClosedLoop, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
         {
             return TextPathRenderResult.NotRendered;
         }
@@ -5232,7 +5232,7 @@ internal static partial class SvgSceneTextCompiler
                     if (!string.IsNullOrEmpty(text))
                     {
                         if (previousEndedWithSpace &&
-                            styleSource.SpaceHandling != XmlSpaceHandling.Preserve &&
+                            CollapsesTextWhitespace(styleSource) &&
                             text![0] == ' ')
                         {
                             text = text.TrimStart(' ');
@@ -5343,7 +5343,7 @@ internal static partial class SvgSceneTextCompiler
                     if (!string.IsNullOrEmpty(text))
                     {
                         if (previousEndedWithSpace &&
-                            styleSource.SpaceHandling != XmlSpaceHandling.Preserve &&
+                            CollapsesTextWhitespace(styleSource) &&
                             text![0] == ' ')
                         {
                             text = text.TrimStart(' ');
@@ -5794,6 +5794,7 @@ internal static partial class SvgSceneTextCompiler
     private static bool TryCreateTextPathRunPlacements(
         IReadOnlyList<TextPathRun> runs,
         IReadOnlyList<PathSample> pathSamples,
+        bool isClosedLoop,
         float startOffset,
         float baseVOffset,
         SKRect viewport,
@@ -5820,7 +5821,7 @@ internal static partial class SvgSceneTextCompiler
             currentOffset += run.Dx;
             currentVOffset += run.Dy;
 
-            if (TryCreateTextPathCodepointPlacements(run.StyleSource, run.Text, currentOffset, currentVOffset, pathSamples, viewport, geometryBounds, assetLoader, out var renderedText, out var placements, out var advance))
+            if (TryCreateTextPathCodepointPlacements(run.StyleSource, run.Text, currentOffset, currentVOffset, pathSamples, isClosedLoop, viewport, geometryBounds, assetLoader, out var renderedText, out var placements, out var advance))
             {
                 positionedRuns.Add(new PositionedTextPathRun(run.StyleSource, renderedText, placements));
             }
@@ -5870,6 +5871,7 @@ internal static partial class SvgSceneTextCompiler
         float startOffset,
         float baseVOffset,
         IReadOnlyList<PathSample> pathSamples,
+        bool isClosedLoop,
         SKRect viewport,
         SKRect geometryBounds,
         ISvgAssetLoader assetLoader,
@@ -5957,8 +5959,11 @@ internal static partial class SvgSceneTextCompiler
         var currentOffset = startOffset;
         var currentVOffset = baseVOffset + GetBaselineShift(svgTextBase, viewport);
         var pathLength = pathSamples[pathSamples.Count - 1].Distance;
+        var closedLoopEndOffset = isClosedLoop && pathLength > 0f
+            ? startOffset + pathLength
+            : float.PositiveInfinity;
         var pathSegmentIndex = 1;
-        var previousGlyphMidOffset = float.NegativeInfinity;
+        var previousSampleOffset = float.NegativeInfinity;
         var visibleText = new StringBuilder();
         var visiblePlacements = new List<PositionedCodepointPlacement>(codepoints.Count);
         for (var i = 0; i < codepoints.Count; i++)
@@ -5997,25 +6002,35 @@ internal static partial class SvgSceneTextCompiler
             }
 
             var glyphMidOffset = currentOffset + (glyphAdvance * 0.5f);
-            if (glyphMidOffset <= 0f)
+            if (glyphMidOffset >= closedLoopEndOffset)
+            {
+                break;
+            }
+
+            var sampleOffset = glyphMidOffset;
+            if (isClosedLoop && pathLength > 0f)
+            {
+                sampleOffset = NormalizeClosedPathDistance(glyphMidOffset, pathLength);
+            }
+            else if (glyphMidOffset <= 0f)
             {
                 currentOffset += clusterAdvance;
                 continue;
             }
 
-            if (glyphMidOffset >= pathLength)
+            if (!isClosedLoop && glyphMidOffset >= pathLength)
             {
                 break;
             }
 
-            if (glyphMidOffset < previousGlyphMidOffset)
+            if (sampleOffset < previousSampleOffset)
             {
                 pathSegmentIndex = 1;
             }
 
-            previousGlyphMidOffset = glyphMidOffset;
+            previousSampleOffset = sampleOffset;
 
-            if (!TryGetPathPointAndTangent(pathSamples, glyphMidOffset, ref pathSegmentIndex, out var rawPoint, out var tangent))
+            if (!TryGetPathPointAndTangent(pathSamples, sampleOffset, ref pathSegmentIndex, out var rawPoint, out var tangent))
             {
                 return false;
             }
@@ -6213,6 +6228,19 @@ internal static partial class SvgSceneTextCompiler
         return TryGetTextPathPoint(distance, vOffset, pathSamples, out point, out _);
     }
 
+    private static float NormalizeClosedPathDistance(float distance, float pathLength)
+    {
+        if (pathLength <= 0f)
+        {
+            return distance;
+        }
+
+        var normalized = distance % pathLength;
+        return normalized < 0f
+            ? normalized + pathLength
+            : normalized;
+    }
+
     private static void ResolveTextPathChunkOffsets(
         SvgTextPath svgTextPath,
         bool useCurrentPositionOffset,
@@ -6261,14 +6289,14 @@ internal static partial class SvgSceneTextCompiler
             {
                 current = next;
                 figureStart = next;
-                samples.Add(new PathSample(next, totalDistance, false));
+                samples.Add(new PathSample(next, totalDistance, false, false));
                 hasCurrent = true;
                 return;
             }
 
             totalDistance += Distance(current, next);
             current = next;
-            samples.Add(new PathSample(next, totalDistance, false));
+            samples.Add(new PathSample(next, totalDistance, false, false));
         }
 
         for (var i = 0; i < path.Commands.Count; i++)
@@ -6278,7 +6306,7 @@ internal static partial class SvgSceneTextCompiler
                 case MoveToPathCommand moveTo:
                     current = new SKPoint(moveTo.X, moveTo.Y);
                     figureStart = current;
-                    samples.Add(new PathSample(current, totalDistance, true));
+                    samples.Add(new PathSample(current, totalDistance, true, false));
                     hasCurrent = true;
                     break;
 
@@ -6322,7 +6350,9 @@ internal static partial class SvgSceneTextCompiler
                     break;
 
                 case ClosePathCommand _ when hasCurrent:
-                    AppendSample(figureStart);
+                    totalDistance += Distance(current, figureStart);
+                    current = figureStart;
+                    samples.Add(new PathSample(figureStart, totalDistance, false, true));
                     break;
             }
         }
@@ -6510,7 +6540,7 @@ internal static partial class SvgSceneTextCompiler
         return pathSamples.Count - 1;
     }
 
-    private static float ResolveTextPathStartOffset(SvgTextPath svgTextPath, SvgPath? svgPath, SKPath skPath, SKRect viewport, float transformedPathLength)
+    private static float ResolveTextPathStartOffset(SvgTextPath svgTextPath, SKPath skPath, SKRect viewport, float pathLength)
     {
         var startOffset = svgTextPath.StartOffset;
         if (startOffset == SvgUnit.None || startOffset == SvgUnit.Empty)
@@ -6520,12 +6550,10 @@ internal static partial class SvgSceneTextCompiler
 
         if (IsPercentageStartOffset(svgTextPath, startOffset))
         {
-            var pathLength = svgPath is { PathLength: > 0f }
-                ? svgPath.PathLength
-                : transformedPathLength > 0f
-                    ? transformedPathLength
-                    : EstimatePathLength(skPath);
-            return pathLength * (startOffset.Value / 100f);
+            var effectivePathLength = pathLength > 0f
+                ? pathLength
+                : EstimatePathLength(skPath);
+            return effectivePathLength * (startOffset.Value / 100f);
         }
 
         return startOffset.ToDeviceValue(UnitRenderingType.Other, svgTextPath, viewport);
@@ -6538,7 +6566,8 @@ internal static partial class SvgSceneTextCompiler
         out SKPath skPath,
         out SKRect geometryBounds,
         out List<PathSample> pathSamples,
-        out float pathLength)
+        out float pathLength,
+        out bool isClosedLoop)
     {
         svgPath = null;
         SvgVisualElement? referencedVisualElement = null;
@@ -6561,6 +6590,7 @@ internal static partial class SvgSceneTextCompiler
         geometryBounds = SKRect.Empty;
         pathSamples = new List<PathSample>();
         pathLength = 0f;
+        isClosedLoop = false;
         if (skPath.IsEmpty)
         {
             return false;
@@ -6578,8 +6608,15 @@ internal static partial class SvgSceneTextCompiler
             pathSamples = TransformPathSamples(pathSamples, transform);
         }
 
+        isClosedLoop = IsSingleClosedSubpath(pathSamples);
         geometryBounds = GetPathSampleBounds(pathSamples);
         pathLength = pathSamples[pathSamples.Count - 1].Distance;
+        if (TryGetAuthorPathLength(svgPath ?? referencedVisualElement, out var authorPathLength))
+        {
+            pathSamples = ScalePathSampleDistances(pathSamples, authorPathLength);
+            pathLength = authorPathLength;
+        }
+
         return pathLength > 0f;
     }
 
@@ -6615,10 +6652,96 @@ internal static partial class SvgSceneTextCompiler
                 totalDistance += Distance(transformed[i - 1].Point, mappedPoint);
             }
 
-            transformed.Add(new PathSample(mappedPoint, totalDistance, pathSamples[i].StartsSubpath));
+            transformed.Add(new PathSample(mappedPoint, totalDistance, pathSamples[i].StartsSubpath, pathSamples[i].ClosesSubpath));
         }
 
         return transformed;
+    }
+
+    private static List<PathSample> ReversePathSamples(IReadOnlyList<PathSample> pathSamples)
+    {
+        var reversed = new List<PathSample>(pathSamples.Count);
+        if (pathSamples.Count == 0)
+        {
+            return reversed;
+        }
+
+        var totalDistance = pathSamples[pathSamples.Count - 1].Distance;
+        var isClosedLoop = IsSingleClosedSubpath(pathSamples);
+        for (var i = pathSamples.Count - 1; i >= 0; i--)
+        {
+            var startsSubpath = i < pathSamples.Count - 1 && pathSamples[i + 1].StartsSubpath;
+            var closesSubpath = isClosedLoop && i == 0;
+            reversed.Add(new PathSample(
+                pathSamples[i].Point,
+                totalDistance - pathSamples[i].Distance,
+                startsSubpath,
+                closesSubpath));
+        }
+
+        return reversed;
+    }
+
+    private static List<PathSample> ScalePathSampleDistances(IReadOnlyList<PathSample> pathSamples, float pathLength)
+    {
+        var scaled = new List<PathSample>(pathSamples.Count);
+        if (pathSamples.Count == 0)
+        {
+            return scaled;
+        }
+
+        var measuredLength = pathSamples[pathSamples.Count - 1].Distance;
+        if (measuredLength <= 0f || pathLength <= 0f)
+        {
+            scaled.AddRange(pathSamples);
+            return scaled;
+        }
+
+        var scale = pathLength / measuredLength;
+        for (var i = 0; i < pathSamples.Count; i++)
+        {
+            scaled.Add(pathSamples[i] with
+            {
+                Distance = pathSamples[i].Distance * scale
+            });
+        }
+
+        return scaled;
+    }
+
+    private static bool IsSingleClosedSubpath(IReadOnlyList<PathSample> pathSamples)
+    {
+        if (pathSamples.Count < 2 || !pathSamples[pathSamples.Count - 1].ClosesSubpath)
+        {
+            return false;
+        }
+
+        for (var i = 1; i < pathSamples.Count; i++)
+        {
+            if (pathSamples[i].StartsSubpath)
+            {
+                return false;
+            }
+        }
+
+        return Distance(pathSamples[0].Point, pathSamples[pathSamples.Count - 1].Point) <= 0.001f;
+    }
+
+    private static bool TryGetAuthorPathLength(SvgElement? element, out float pathLength)
+    {
+        pathLength = element switch
+        {
+            SvgPath { PathLength: > 0f } path => path.PathLength,
+            SvgCircle { PathLength: > 0f } circle => circle.PathLength,
+            SvgEllipse { PathLength: > 0f } ellipse => ellipse.PathLength,
+            SvgLine { PathLength: > 0f } line => line.PathLength,
+            SvgPolyline { PathLength: > 0f } polyline => polyline.PathLength,
+            SvgPolygon { PathLength: > 0f } polygon => polygon.PathLength,
+            SvgRectangle { PathLength: > 0f } rectangle => rectangle.PathLength,
+            _ => 0f
+        };
+
+        return pathLength > 0f;
     }
 
     private static SKPoint GetPathStartTangent(IReadOnlyList<PathSample> pathSamples)
@@ -8578,6 +8701,7 @@ internal static partial class SvgSceneTextCompiler
         bool trimLeadingWhitespace = true,
         bool trimTrailingWhitespace = false)
     {
+        // SVG 2 wrapping properties are preserved on the model; retained static text still uses the pre-formatted layout path.
         value = ApplyTransformation(svgTextBase, value);
         if (value is null)
         {
@@ -8591,7 +8715,7 @@ internal static partial class SvgSceneTextCompiler
             .Replace('\t', ' ')
             .ToString();
 
-        if (svgTextBase.SpaceHandling == XmlSpaceHandling.Preserve)
+        if (PreservesTextWhitespace(svgTextBase))
         {
             return value;
         }
@@ -8609,11 +8733,22 @@ internal static partial class SvgSceneTextCompiler
         return s_multipleSpaces.Replace(normalizedValue, " ");
     }
 
+    private static bool PreservesTextWhitespace(SvgTextBase svgTextBase)
+    {
+        return svgTextBase.SpaceHandling == XmlSpaceHandling.Preserve ||
+               svgTextBase.WhiteSpace is SvgWhiteSpace.Pre or SvgWhiteSpace.PreWrap or SvgWhiteSpace.BreakSpaces;
+    }
+
+    private static bool CollapsesTextWhitespace(SvgTextBase svgTextBase)
+    {
+        return !PreservesTextWhitespace(svgTextBase);
+    }
+
     private static string? PrepareResolvedContent(SvgTextBase svgTextBase, string? value, bool trimLeadingWhitespace, bool previousEndedWithSpace)
     {
         var prepared = PrepareText(svgTextBase, value, trimLeadingWhitespace);
         if (previousEndedWithSpace &&
-            svgTextBase.SpaceHandling != XmlSpaceHandling.Preserve &&
+            CollapsesTextWhitespace(svgTextBase) &&
             !string.IsNullOrEmpty(prepared) &&
             prepared![0] == ' ')
         {
@@ -8860,12 +8995,12 @@ internal static partial class SvgSceneTextCompiler
                     if (!string.IsNullOrWhiteSpace(rawContent) &&
                         HasRenderableTextBaseSibling(contentNodeList, nodeIndex, -1) &&
                         HasRenderableTextBaseSibling(contentNodeList, nodeIndex, 1) &&
-                        styleSource.SpaceHandling != XmlSpaceHandling.Preserve)
+                        CollapsesTextWhitespace(styleSource))
                     {
                         text = " ";
                     }
                     else if (!string.IsNullOrWhiteSpace(rawContent) &&
-                        styleSource.SpaceHandling != XmlSpaceHandling.Preserve &&
+                        CollapsesTextWhitespace(styleSource) &&
                         HasRenderableTextContentBefore(contentNodeList, nodeIndex) &&
                         HasRenderableTextContentAfter(contentNodeList, nodeIndex))
                     {
@@ -8881,7 +9016,7 @@ internal static partial class SvgSceneTextCompiler
                     }
 
                     if (previousEndedWithSpace &&
-                        styleSource.SpaceHandling != XmlSpaceHandling.Preserve &&
+                        CollapsesTextWhitespace(styleSource) &&
                         !string.IsNullOrEmpty(text) &&
                         text![0] == ' ')
                     {
@@ -8910,7 +9045,7 @@ internal static partial class SvgSceneTextCompiler
 
     private static void InjectCollapsedSiblingSpaces(SvgTextBase svgTextBase, List<FlattenedTextCodepoint> codepoints)
     {
-        if (svgTextBase.SpaceHandling == XmlSpaceHandling.Preserve)
+        if (PreservesTextWhitespace(svgTextBase))
         {
             return;
         }
@@ -9076,7 +9211,7 @@ internal static partial class SvgSceneTextCompiler
                         trimLeadingWhitespace: trimLeadingWhitespace,
                         trimTrailingWhitespace: IsTerminalContentNode(contentNodeList, nodeIndex));
                     if (previousEndedWithSpace &&
-                        svgTextBase.SpaceHandling != XmlSpaceHandling.Preserve &&
+                        CollapsesTextWhitespace(svgTextBase) &&
                         !string.IsNullOrEmpty(text) &&
                         text![0] == ' ')
                     {

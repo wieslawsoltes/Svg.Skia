@@ -53,6 +53,7 @@ internal static partial class SvgSceneTextCompiler
         internal readonly SKPoint[] ResolvedTangents;
         internal readonly float PlacementScaleX;
         internal readonly float CurrentVOffset;
+        internal readonly bool IsClosedLoop;
 
         internal TextPathCodepointPlacementBenchmarkInput(
             SvgTextBase styleSource,
@@ -68,7 +69,8 @@ internal static partial class SvgSceneTextCompiler
             SKPoint[] resolvedRawPoints,
             SKPoint[] resolvedTangents,
             float placementScaleX,
-            float currentVOffset)
+            float currentVOffset,
+            bool isClosedLoop)
         {
             StyleSource = styleSource;
             Text = text;
@@ -84,6 +86,7 @@ internal static partial class SvgSceneTextCompiler
             ResolvedTangents = resolvedTangents;
             PlacementScaleX = placementScaleX;
             CurrentVOffset = currentVOffset;
+            IsClosedLoop = isClosedLoop;
         }
 
         public SvgTextBase StyleSource { get; }
@@ -148,12 +151,12 @@ internal static partial class SvgSceneTextCompiler
         SKRect viewport,
         ISvgAssetLoader assetLoader)
     {
-        if (!TryResolveTextPathGeometry(svgTextPath, viewport, out var svgPath, out var skPath, out var geometryBounds, out var pathSamples, out var pathLength))
+        if (!TryResolveTextPathGeometry(svgTextPath, viewport, out _, out var skPath, out var geometryBounds, out var pathSamples, out var pathLength, out var isClosedLoop))
         {
             throw new InvalidOperationException($"Failed to resolve textPath geometry for '{svgTextPath.ID ?? text}'.");
         }
 
-        var resolvedStartOffset = ResolveTextPathStartOffset(svgTextPath, svgPath, skPath, viewport, pathLength);
+        var resolvedStartOffset = ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
         BuildTextPathBenchmarkPlacementPlan(
             svgTextPath,
             text,
@@ -162,6 +165,7 @@ internal static partial class SvgSceneTextCompiler
             viewport,
             geometryBounds,
             pathSamples,
+            isClosedLoop,
             assetLoader,
             out var visibleGlyphMidOffsets,
             out var visibleGlyphAdvances,
@@ -194,12 +198,13 @@ internal static partial class SvgSceneTextCompiler
             resolvedRawPoints,
             resolvedTangents,
             placementScaleX,
-            currentVOffset);
+            currentVOffset,
+            isClosedLoop);
     }
 
     internal static int BenchmarkResolveTextPathGeometry(SvgTextPath svgTextPath, SKRect viewport)
     {
-        return TryResolveTextPathGeometry(svgTextPath, viewport, out _, out _, out _, out var pathSamples, out _)
+        return TryResolveTextPathGeometry(svgTextPath, viewport, out _, out _, out _, out var pathSamples, out _, out _)
             ? pathSamples.Count
             : 0;
     }
@@ -216,6 +221,7 @@ internal static partial class SvgSceneTextCompiler
             input.StartOffset,
             input.BaseVOffset,
             (IReadOnlyList<PathSample>)input.PathSamples,
+            input.IsClosedLoop,
             input.Viewport,
             input.GeometryBounds,
             assetLoader,
@@ -292,6 +298,7 @@ internal static partial class SvgSceneTextCompiler
         SKRect viewport,
         SKRect geometryBounds,
         IReadOnlyList<PathSample> pathSamples,
+        bool isClosedLoop,
         ISvgAssetLoader assetLoader,
         out float[] visibleGlyphMidOffsets,
         out float[] visibleGlyphAdvances,
@@ -415,18 +422,23 @@ internal static partial class SvgSceneTextCompiler
             }
 
             var glyphMidOffset = currentOffset + (glyphAdvance * 0.5f);
-            if (glyphMidOffset <= 0f)
+            var sampleOffset = glyphMidOffset;
+            if (isClosedLoop && pathLength > 0f)
+            {
+                sampleOffset = NormalizeClosedPathDistance(glyphMidOffset, pathLength);
+            }
+            else if (glyphMidOffset <= 0f)
             {
                 currentOffset += clusterAdvance;
                 continue;
             }
 
-            if (glyphMidOffset >= pathLength)
+            if (!isClosedLoop && glyphMidOffset >= pathLength)
             {
                 break;
             }
 
-            midOffsets.Add(glyphMidOffset);
+            midOffsets.Add(sampleOffset);
             advances.Add(glyphAdvance);
             rotationDegrees.Add(GetCodepointRotationDegrees(svgTextBase, codepoints[i], rotations, i));
 

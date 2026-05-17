@@ -109,12 +109,111 @@ internal static class PathingService
                         }
                         break;
                     }
+                case AddRectPathCommand addRectPathCommand:
+                    {
+                        var rect = addRectPathCommand.Rect;
+                        pathTypes.Add((rect.TopLeft, (byte)PathPointType.Start));
+                        pathTypes.Add((new SKPoint(rect.Right, rect.Top), (byte)PathPointType.Line));
+                        pathTypes.Add((rect.BottomRight, (byte)PathPointType.Line));
+                        lastPoint = (new SKPoint(rect.Left, rect.Bottom), (byte)((byte)PathPointType.Line | (byte)PathPointType.CloseSubpath));
+                        pathTypes.Add(lastPoint);
+                        break;
+                    }
+                case AddRoundRectPathCommand addRoundRectPathCommand:
+                    {
+                        AppendRoundRectPathTypes(pathTypes, addRoundRectPathCommand.Rect, addRoundRectPathCommand.Rx, addRoundRectPathCommand.Ry);
+                        lastPoint = pathTypes[pathTypes.Count - 1];
+                        break;
+                    }
+                case AddOvalPathCommand addOvalPathCommand:
+                    {
+                        var previousCount = pathTypes.Count;
+                        AppendOvalPathTypes(pathTypes, addOvalPathCommand.Rect);
+                        if (pathTypes.Count > previousCount)
+                        {
+                            lastPoint = pathTypes[pathTypes.Count - 1];
+                        }
+                        break;
+                    }
+                case AddCirclePathCommand addCirclePathCommand:
+                    {
+                        var radius = addCirclePathCommand.Radius;
+                        var previousCount = pathTypes.Count;
+                        AppendOvalPathTypes(
+                            pathTypes,
+                            SKRect.Create(
+                                addCirclePathCommand.X - radius,
+                                addCirclePathCommand.Y - radius,
+                                radius * 2f,
+                                radius * 2f));
+                        if (pathTypes.Count > previousCount)
+                        {
+                            lastPoint = pathTypes[pathTypes.Count - 1];
+                        }
+                        break;
+                    }
                 default:
                     break;
             }
         }
 
         return pathTypes;
+    }
+
+    private static void AppendRoundRectPathTypes(List<(SKPoint Point, byte Type)> pathTypes, SKRect rect, float rx, float ry)
+    {
+        rx = Math.Min(Math.Abs(rx), rect.Width / 2f);
+        ry = Math.Min(Math.Abs(ry), rect.Height / 2f);
+        if (rx <= 0f || ry <= 0f)
+        {
+            pathTypes.Add((rect.TopLeft, (byte)PathPointType.Start));
+            pathTypes.Add((new SKPoint(rect.Right, rect.Top), (byte)PathPointType.Line));
+            pathTypes.Add((rect.BottomRight, (byte)PathPointType.Line));
+            pathTypes.Add((new SKPoint(rect.Left, rect.Bottom), (byte)((byte)PathPointType.Line | (byte)PathPointType.CloseSubpath)));
+            return;
+        }
+
+        var kx = rx * 0.55228475f;
+        var ky = ry * 0.55228475f;
+        pathTypes.Add((new SKPoint(rect.Left + rx, rect.Top), (byte)PathPointType.Start));
+        pathTypes.Add((new SKPoint(rect.Right - rx, rect.Top), (byte)PathPointType.Line));
+        AppendCubicPathTypes(pathTypes, new SKPoint(rect.Right - rx + kx, rect.Top), new SKPoint(rect.Right, rect.Top + ry - ky), new SKPoint(rect.Right, rect.Top + ry));
+        pathTypes.Add((new SKPoint(rect.Right, rect.Bottom - ry), (byte)PathPointType.Line));
+        AppendCubicPathTypes(pathTypes, new SKPoint(rect.Right, rect.Bottom - ry + ky), new SKPoint(rect.Right - rx + kx, rect.Bottom), new SKPoint(rect.Right - rx, rect.Bottom));
+        pathTypes.Add((new SKPoint(rect.Left + rx, rect.Bottom), (byte)PathPointType.Line));
+        AppendCubicPathTypes(pathTypes, new SKPoint(rect.Left + rx - kx, rect.Bottom), new SKPoint(rect.Left, rect.Bottom - ry + ky), new SKPoint(rect.Left, rect.Bottom - ry));
+        pathTypes.Add((new SKPoint(rect.Left, rect.Top + ry), (byte)PathPointType.Line));
+        AppendCubicPathTypes(pathTypes, new SKPoint(rect.Left, rect.Top + ry - ky), new SKPoint(rect.Left + rx - kx, rect.Top), new SKPoint(rect.Left + rx, rect.Top));
+        pathTypes[pathTypes.Count - 1] = (pathTypes[pathTypes.Count - 1].Point, (byte)(pathTypes[pathTypes.Count - 1].Type | (byte)PathPointType.CloseSubpath));
+    }
+
+    private static void AppendOvalPathTypes(List<(SKPoint Point, byte Type)> pathTypes, SKRect rect)
+    {
+        if (rect.Width <= 0f || rect.Height <= 0f)
+        {
+            return;
+        }
+
+        var cx = (rect.Left + rect.Right) / 2f;
+        var cy = (rect.Top + rect.Bottom) / 2f;
+        var rx = rect.Width / 2f;
+        var ry = rect.Height / 2f;
+        var kx = rx * 0.55228475f;
+        var ky = ry * 0.55228475f;
+
+        pathTypes.Add((new SKPoint(cx + rx, cy), (byte)PathPointType.Start));
+        AppendCubicPathTypes(pathTypes, new SKPoint(cx + rx, cy + ky), new SKPoint(cx + kx, cy + ry), new SKPoint(cx, cy + ry));
+        AppendCubicPathTypes(pathTypes, new SKPoint(cx - kx, cy + ry), new SKPoint(cx - rx, cy + ky), new SKPoint(cx - rx, cy));
+        AppendCubicPathTypes(pathTypes, new SKPoint(cx - rx, cy - ky), new SKPoint(cx - kx, cy - ry), new SKPoint(cx, cy - ry));
+        AppendCubicPathTypes(pathTypes, new SKPoint(cx + kx, cy - ry), new SKPoint(cx + rx, cy - ky), new SKPoint(cx + rx, cy));
+        pathTypes[pathTypes.Count - 1] = (pathTypes[pathTypes.Count - 1].Point, (byte)(pathTypes[pathTypes.Count - 1].Type | (byte)PathPointType.CloseSubpath));
+    }
+
+    private static void AppendCubicPathTypes(List<(SKPoint Point, byte Type)> pathTypes, SKPoint control1, SKPoint control2, SKPoint end)
+    {
+        pathTypes.Add((control1, (byte)PathPointType.Bezier));
+        pathTypes.Add((control2, (byte)PathPointType.Bezier));
+        pathTypes.Add((end, (byte)PathPointType.Bezier));
     }
 
     internal static System.Drawing.PointF Reflect(System.Drawing.PointF point, System.Drawing.PointF mirror)

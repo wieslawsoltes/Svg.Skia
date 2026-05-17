@@ -18,6 +18,7 @@ public static class SvgSceneCompiler
         private readonly HashSet<string> _activeDocumentKeys = new(StringComparer.Ordinal);
         private readonly SvgElementAddressKeyCache _addressKeys = new();
         private readonly Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> _solidFillPaintCache = new();
+        private readonly Dictionary<SvgFragment, SKSize> _fragmentViewportSizeOverrides = new();
 
         public SvgVisualElement? ContextPaintElement { get; private set; }
 
@@ -35,6 +36,23 @@ public static class SvgSceneCompiler
                 this,
                 previousContextPaintElement,
                 previousContextPaintBounds);
+        }
+
+        public IDisposable PushFragmentViewportSizeOverride(SvgFragment svgFragment, SKSize viewportSize)
+        {
+            var hadPreviousOverride = _fragmentViewportSizeOverrides.TryGetValue(svgFragment, out var previousViewportSize);
+            _fragmentViewportSizeOverrides[svgFragment] = viewportSize;
+
+            return new FragmentViewportSizeOverrideScope(
+                this,
+                svgFragment,
+                hadPreviousOverride,
+                previousViewportSize);
+        }
+
+        public bool TryGetFragmentViewportSizeOverride(SvgFragment svgFragment, out SKSize viewportSize)
+        {
+            return _fragmentViewportSizeOverrides.TryGetValue(svgFragment, out viewportSize);
         }
 
         public bool TryEnter(SvgDocument? document, out string? documentKey)
@@ -113,6 +131,38 @@ public static class SvgSceneCompiler
             {
                 _compileContext.ContextPaintElement = _previousContextPaintElement;
                 _compileContext.ContextPaintBounds = _previousContextPaintBounds;
+            }
+        }
+
+        private sealed class FragmentViewportSizeOverrideScope : IDisposable
+        {
+            private readonly SvgSceneCompileContext _compileContext;
+            private readonly SvgFragment _svgFragment;
+            private readonly bool _hadPreviousOverride;
+            private readonly SKSize _previousViewportSize;
+
+            public FragmentViewportSizeOverrideScope(
+                SvgSceneCompileContext compileContext,
+                SvgFragment svgFragment,
+                bool hadPreviousOverride,
+                SKSize previousViewportSize)
+            {
+                _compileContext = compileContext;
+                _svgFragment = svgFragment;
+                _hadPreviousOverride = hadPreviousOverride;
+                _previousViewportSize = previousViewportSize;
+            }
+
+            public void Dispose()
+            {
+                if (_hadPreviousOverride)
+                {
+                    _compileContext._fragmentViewportSizeOverrides[_svgFragment] = _previousViewportSize;
+                }
+                else
+                {
+                    _compileContext._fragmentViewportSizeOverrides.Remove(_svgFragment);
+                }
             }
         }
     }
@@ -474,13 +524,16 @@ public static class SvgSceneCompiler
             Add(ResolveReference(visualElement, GetUriAttribute(visualElement, "mask")));
             Add(GetResolvedPaintServerElement(visualElement, visualElement.Fill));
             Add(GetResolvedPaintServerElement(visualElement, visualElement.Stroke));
+            Add(ResolveReference(visualElement, GetEffectiveMarkerReferenceUri(visualElement, "marker-start", static element => element.MarkerStart)));
+            Add(ResolveReference(visualElement, GetEffectiveMarkerReferenceUri(visualElement, "marker-mid", static element => element.MarkerMid)));
+            Add(ResolveReference(visualElement, GetEffectiveMarkerReferenceUri(visualElement, "marker-end", static element => element.MarkerEnd)));
         }
 
         if (element is SvgMarkerElement markerElement)
         {
-            Add(ResolveReference(markerElement, markerElement.MarkerStart));
-            Add(ResolveReference(markerElement, markerElement.MarkerMid));
-            Add(ResolveReference(markerElement, markerElement.MarkerEnd));
+            Add(ResolveReference(markerElement, GetComputedMarkerReferenceUri(markerElement, "marker-start")));
+            Add(ResolveReference(markerElement, GetComputedMarkerReferenceUri(markerElement, "marker-mid")));
+            Add(ResolveReference(markerElement, GetComputedMarkerReferenceUri(markerElement, "marker-end")));
         }
 
         if (element is SvgUse svgUse)
@@ -527,7 +580,8 @@ public static class SvgSceneCompiler
                 visualElement.Filter is not null ||
                 HasMaskReference(element) ||
                 HasPaintServerReference(element, visualElement.Fill) ||
-                HasPaintServerReference(element, visualElement.Stroke))
+                HasPaintServerReference(element, visualElement.Stroke) ||
+                HasMarkerReference(visualElement))
             {
                 return true;
             }
@@ -535,9 +589,9 @@ public static class SvgSceneCompiler
 
         return element switch
         {
-            SvgMarkerElement markerElement => markerElement.MarkerStart is not null ||
-                                              markerElement.MarkerMid is not null ||
-                                              markerElement.MarkerEnd is not null,
+            SvgMarkerElement markerElement => GetComputedMarkerReferenceUri(markerElement, "marker-start") is not null ||
+                                              GetComputedMarkerReferenceUri(markerElement, "marker-mid") is not null ||
+                                              GetComputedMarkerReferenceUri(markerElement, "marker-end") is not null,
             SvgUse svgUse => SvgService.GetEffectiveReferenceUri(svgUse, svgUse.ReferencedElement) is not null,
             SvgGradientServer gradientServer => gradientServer.InheritGradient is not null,
             SvgPatternServer patternServer => patternServer.InheritGradient is not null,
@@ -631,13 +685,14 @@ public static class SvgSceneCompiler
             return null;
         }
 
+        var childViewport = GetChildViewport(element, viewport, compileContext);
         if (ShouldCompileDomChildren(element))
         {
             for (var i = 0; i < element.Children.Count; i++)
             {
                 if (CompileElementNode(
                         element.Children[i],
-                        viewport,
+                        childViewport,
                         node.TotalTransform.IsIdentity ? parentTotalTransform : node.TotalTransform,
                         assetLoader,
                         ignoreAttributes,
@@ -655,7 +710,7 @@ public static class SvgSceneCompiler
                  activeSwitchChild is not null &&
                  CompileElementNode(
                      activeSwitchChild,
-                     viewport,
+                     childViewport,
                      node.TotalTransform.IsIdentity ? parentTotalTransform : node.TotalTransform,
                      assetLoader,
                      ignoreAttributes,
@@ -764,7 +819,7 @@ public static class SvgSceneCompiler
                         return true;
                     }
 
-                    var fragmentViewport = GetFragmentViewport(svgDocument, viewport, out var x, out var y, out var size);
+                    var fragmentViewport = GetFragmentViewport(svgDocument, viewport, compileContext, out var x, out var y, out var size);
                     var transform = TransformsService.ToMatrix(svgDocument.Transforms);
                     var viewBoxTransform = TransformsService.ToMatrix(svgDocument.ViewBox, svgDocument.AspectRatio, x, y, size.Width, size.Height);
                     transform = transform.PreConcat(viewBoxTransform);
@@ -865,7 +920,7 @@ public static class SvgSceneCompiler
                         return true;
                     }
 
-                    var fragmentViewport = GetFragmentViewport(svgFragment, viewport, out var x, out var y, out var size);
+                    var fragmentViewport = GetFragmentViewport(svgFragment, viewport, compileContext, out var x, out var y, out var size);
                     var transform = TransformsService.ToMatrix(svgFragment.Transforms);
                     var viewBoxTransform = TransformsService.ToMatrix(svgFragment.ViewBox, svgFragment.AspectRatio, x, y, size.Width, size.Height);
                     transform = transform.PreConcat(viewBoxTransform);
@@ -1122,6 +1177,7 @@ public static class SvgSceneCompiler
     private static SKRect GetFragmentViewport(
         SvgFragment svgFragment,
         SKRect viewport,
+        SvgSceneCompileContext compileContext,
         out float x,
         out float y,
         out SKSize size)
@@ -1130,7 +1186,9 @@ public static class SvgSceneCompiler
 
         x = svgFragmentParent is null ? 0f : svgFragment.X.ToDeviceValue(UnitRenderingType.Horizontal, svgFragment, viewport);
         y = svgFragmentParent is null ? 0f : svgFragment.Y.ToDeviceValue(UnitRenderingType.Vertical, svgFragment, viewport);
-        size = SvgService.GetDimensions(svgFragment, viewport);
+        size = compileContext.TryGetFragmentViewportSizeOverride(svgFragment, out var viewportSizeOverride)
+            ? viewportSizeOverride
+            : SvgService.GetDimensions(svgFragment, viewport);
 
         if (size.Width > 0f && size.Height > 0f)
         {
@@ -1138,6 +1196,35 @@ public static class SvgSceneCompiler
         }
 
         return viewport.IsEmpty ? SKRect.Empty : viewport;
+    }
+
+    private static SKRect GetChildViewport(
+        SvgElement element,
+        SKRect viewport,
+        SvgSceneCompileContext compileContext)
+    {
+        if (element is not SvgFragment svgFragment)
+        {
+            return viewport;
+        }
+
+        if (svgFragment.ViewBox != SvgViewBox.Empty &&
+            svgFragment.ViewBox.Width > 0f &&
+            svgFragment.ViewBox.Height > 0f)
+        {
+            return SKRect.Create(
+                svgFragment.ViewBox.MinX,
+                svgFragment.ViewBox.MinY,
+                svgFragment.ViewBox.Width,
+                svgFragment.ViewBox.Height);
+        }
+
+        var size = compileContext.TryGetFragmentViewportSizeOverride(svgFragment, out var viewportSizeOverride)
+            ? viewportSizeOverride
+            : SvgService.GetDimensions(svgFragment, viewport);
+        return size.Width > 0f && size.Height > 0f
+            ? SKRect.Create(0f, 0f, size.Width, size.Height)
+            : viewport;
     }
 
     private static bool TryCompileDirectElementNode(
@@ -1242,7 +1329,7 @@ public static class SvgSceneCompiler
         node.HitTestTargetElement = GetDefaultHitTestTargetElement(node, element);
         AssignRetainedVisualState(node, element);
         AssignRetainedResourceKeys(node, element, compileContext.GetElementAddressKey);
-        var markerElement = visualElement as SvgMarkerElement;
+        var markerElement = HasMarkerReference(visualElement) ? visualElement : null;
 
         if (!isRenderable || path is null || path.IsEmpty)
         {
@@ -1344,20 +1431,12 @@ public static class SvgSceneCompiler
         AssignRetainedResourceKeys(useNode, svgUse, compileContext.GetElementAddressKey);
         AssignRetainedVisualState(useNode, svgUse);
 
-        var x = svgUse.X.ToDeviceValue(UnitRenderingType.Horizontal, svgUse, viewport);
-        var y = svgUse.Y.ToDeviceValue(UnitRenderingType.Vertical, svgUse, viewport);
-        var width = svgUse.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgUse, viewport);
-        var height = svgUse.Height.ToDeviceValue(UnitRenderingType.Vertical, svgUse, viewport);
-
-        if (width <= 0f)
-        {
-            width = new SvgUnit(SvgUnitType.Percentage, 100f).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, viewport);
-        }
-
-        if (height <= 0f)
-        {
-            height = new SvgUnit(SvgUnitType.Percentage, 100f).ToDeviceValue(UnitRenderingType.Vertical, svgUse, viewport);
-        }
+        var x = SvgGeometryService.GetComputedUnit(svgUse, "x", svgUse.X).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, viewport);
+        var y = SvgGeometryService.GetComputedUnit(svgUse, "y", svgUse.Y).ToDeviceValue(UnitRenderingType.Vertical, svgUse, viewport);
+        var hasExplicitWidth = HasExplicitUseDimension(svgUse, "width");
+        var hasExplicitHeight = HasExplicitUseDimension(svgUse, "height");
+        var width = SvgGeometryService.GetComputedUnit(svgUse, "width", svgUse.Width).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, viewport);
+        var height = SvgGeometryService.GetComputedUnit(svgUse, "height", svgUse.Height).ToDeviceValue(UnitRenderingType.Vertical, svgUse, viewport);
 
         var referencedElementUri = SvgService.GetEffectiveReferenceUri(svgUse, svgUse.ReferencedElement);
         var hasRecursiveReference = SvgService.HasRecursiveReference(svgUse, static element => SvgService.GetEffectiveReferenceUri(element, element.ReferencedElement), new HashSet<Uri>());
@@ -1365,16 +1444,13 @@ public static class SvgSceneCompiler
             ? null
             : SvgService.GetReference<SvgElement>(svgUse, referencedElementUri);
 
+        width = ResolveUseDimension(svgUse, referencedElement, hasExplicitWidth, width, UnitRenderingType.Horizontal, viewport);
+        height = ResolveUseDimension(svgUse, referencedElement, hasExplicitHeight, height, UnitRenderingType.Vertical, viewport);
+
         var useTransform = TransformsService.ToMatrix(svgUse.Transforms);
         if (referencedElement is not SvgSymbol)
         {
             useTransform = useTransform.PreConcat(SKMatrix.CreateTranslation(x, y));
-        }
-
-        if (referencedElement is SvgFragment svgFragment &&
-            TryCreateUseFragmentScaleTransform(svgFragment, width, height, out var fragmentScaleTransform))
-        {
-            useTransform = useTransform.PreConcat(fragmentScaleTransform);
         }
 
         useNode.Transform = useTransform;
@@ -1388,10 +1464,17 @@ public static class SvgSceneCompiler
             return true;
         }
 
+        var contextPaintBounds = CreateUseContextPaintBounds(referencedElement, x, y, width, height, viewport);
         var referencedNode = WithTemporaryParent(referencedElement, svgUse, () =>
         {
             referencedElement.InvalidateChildPaths();
 
+            using var contextPaintScope = ShouldPushUseContextPaint(svgUse, compileContext)
+                ? compileContext.PushContextPaint(svgUse, contextPaintBounds)
+                : null;
+            using var fragmentViewportScope = referencedElement is SvgFragment svgFragment && referencedElement is not SvgSymbol
+                ? compileContext.PushFragmentViewportSizeOverride(svgFragment, new SKSize(width, height))
+                : null;
             return referencedElement switch
             {
                 SvgSymbol svgSymbol => CompileDirectSymbolReferenceNode(
@@ -1433,26 +1516,127 @@ public static class SvgSceneCompiler
         return true;
     }
 
-    private static bool TryCreateUseFragmentScaleTransform(
-        SvgFragment svgFragment,
-        float width,
-        float height,
-        out SKMatrix transform)
+    private static bool HasExplicitUseDimension(SvgUse svgUse, string name)
     {
-        transform = SKMatrix.Identity;
+        return SvgService.TryGetAttribute(svgUse, name, out _) ||
+               svgUse.ComputedStyle.TryGetPropertyValue(name, out var rawValue) &&
+               !string.IsNullOrWhiteSpace(rawValue);
+    }
 
-        var viewBox = svgFragment.ViewBox;
-        if (viewBox == SvgViewBox.Empty ||
-            Math.Abs(viewBox.Width) <= float.Epsilon ||
-            Math.Abs(viewBox.Height) <= float.Epsilon ||
-            Math.Abs(width - viewBox.Width) <= float.Epsilon ||
-            Math.Abs(height - viewBox.Height) <= float.Epsilon)
+    private static bool ShouldPushUseContextPaint(SvgUse svgUse, SvgSceneCompileContext compileContext)
+    {
+        if (compileContext.ContextPaintElement is null)
         {
-            return false;
+            return true;
         }
 
-        transform = SKMatrix.CreateScale(width / viewBox.Width, height / viewBox.Height);
-        return true;
+        return svgUse.Fill is not SvgContextPaintServer &&
+               svgUse.Stroke is not SvgContextPaintServer;
+    }
+
+    private static SKRect CreateUseContextPaintBounds(
+        SvgElement referencedElement,
+        float x,
+        float y,
+        float width,
+        float height,
+        SKRect viewport)
+    {
+        if (referencedElement is not SvgSymbol and not SvgFragment &&
+            TryGetElementGeometryBounds(referencedElement, viewport, out var referencedBounds) &&
+            !referencedBounds.IsEmpty)
+        {
+            return SKRect.Create(
+                x + referencedBounds.Left,
+                y + referencedBounds.Top,
+                referencedBounds.Width,
+                referencedBounds.Height);
+        }
+
+        return SKRect.Create(x, y, width, height);
+    }
+
+    private static bool TryGetElementGeometryBounds(SvgElement element, SKRect viewport, out SKRect bounds)
+    {
+        bounds = SKRect.Empty;
+
+        if (TryGetDirectVisualPath(element, viewport, out var path) && path is not null)
+        {
+            bounds = path.Bounds;
+            return !bounds.IsEmpty;
+        }
+
+        for (var i = 0; i < element.Children.Count; i++)
+        {
+            if (!TryGetElementGeometryBounds(element.Children[i], viewport, out var childBounds) ||
+                childBounds.IsEmpty)
+            {
+                continue;
+            }
+
+            if (element.Children[i] is SvgVisualElement { Transforms.Count: > 0 } childVisual)
+            {
+                childBounds = TransformsService.ToMatrix(childVisual.Transforms).MapRect(childBounds);
+            }
+
+            bounds = bounds.IsEmpty
+                ? childBounds
+                : SKRect.Union(bounds, childBounds);
+        }
+
+        return !bounds.IsEmpty;
+    }
+
+    private static float ResolveUseDimension(
+        SvgUse svgUse,
+        SvgElement? referencedElement,
+        bool hasExplicitDimension,
+        float deviceValue,
+        UnitRenderingType renderingType,
+        SKRect viewport)
+    {
+        if ((!hasExplicitDimension || deviceValue <= 0f) &&
+            TryGetReferencedUseDimension(referencedElement, renderingType, viewport, out var referencedDimension) &&
+            referencedDimension > 0f)
+        {
+            return referencedDimension;
+        }
+
+        return deviceValue > 0f
+            ? deviceValue
+            : new SvgUnit(SvgUnitType.Percentage, 100f).ToDeviceValue(renderingType, svgUse, viewport);
+    }
+
+    private static bool TryGetReferencedUseDimension(
+        SvgElement? referencedElement,
+        UnitRenderingType renderingType,
+        SKRect viewport,
+        out float dimension)
+    {
+        dimension = 0f;
+
+        switch (referencedElement)
+        {
+            case SvgSymbol svgSymbol:
+                var symbolDimension = renderingType == UnitRenderingType.Horizontal
+                    ? svgSymbol.Width
+                    : svgSymbol.Height;
+                if (symbolDimension == SvgUnit.None || symbolDimension == SvgUnit.Empty)
+                {
+                    return false;
+                }
+
+                dimension = symbolDimension.ToDeviceValue(renderingType, svgSymbol, viewport);
+                return dimension > 0f;
+
+            case SvgFragment svgFragment:
+                var size = SvgService.GetDimensions(svgFragment, viewport);
+                dimension = renderingType == UnitRenderingType.Horizontal ? size.Width : size.Height;
+                return dimension > 0f;
+
+            default:
+                return false;
+        }
     }
 
     private static bool TryCompileDirectImageNode(
@@ -1490,16 +1674,18 @@ public static class SvgSceneCompiler
         AssignRetainedResourceKeys(node, svgImage, compileContext.GetElementAddressKey);
         AssignRetainedVisualState(node, svgImage);
 
-        var width = svgImage.Width.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, viewport);
-        var height = svgImage.Height.ToDeviceValue(UnitRenderingType.Vertical, svgImage, viewport);
-        var x = svgImage.Location.X.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, viewport);
-        var y = svgImage.Location.Y.ToDeviceValue(UnitRenderingType.Vertical, svgImage, viewport);
+        var hasExplicitWidth = SvgService.TryGetAttribute(svgImage, "width", out _);
+        var hasExplicitHeight = SvgService.TryGetAttribute(svgImage, "height", out _);
+        var width = SvgGeometryService.GetComputedUnit(svgImage, "width", svgImage.Width).ToDeviceValue(UnitRenderingType.Horizontal, svgImage, viewport);
+        var height = SvgGeometryService.GetComputedUnit(svgImage, "height", svgImage.Height).ToDeviceValue(UnitRenderingType.Vertical, svgImage, viewport);
+        var x = SvgGeometryService.GetComputedUnit(svgImage, "x", svgImage.Location.X).ToDeviceValue(UnitRenderingType.Horizontal, svgImage, viewport);
+        var y = SvgGeometryService.GetComputedUnit(svgImage, "y", svgImage.Location.Y).ToDeviceValue(UnitRenderingType.Vertical, svgImage, viewport);
 
         node.Transform = TransformsService.ToMatrix(svgImage.Transforms);
         node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
 
         var href = SvgService.GetEffectiveHrefString(svgImage, svgImage.Href);
-        if (!node.IsRenderable || width <= 0f || height <= 0f || string.IsNullOrWhiteSpace(href))
+        if (!node.IsRenderable || string.IsNullOrWhiteSpace(href))
         {
             node.IsRenderable = false;
             return true;
@@ -1528,6 +1714,13 @@ public static class SvgSceneCompiler
         };
 
         if (srcRect.IsEmpty)
+        {
+            node.IsRenderable = false;
+            return true;
+        }
+
+        ResolveImageAutoSize(srcRect, hasExplicitWidth, hasExplicitHeight, ref width, ref height);
+        if (width <= 0f || height <= 0f)
         {
             node.IsRenderable = false;
             return true;
@@ -1606,18 +1799,6 @@ public static class SvgSceneCompiler
             return null;
         }
 
-        if (svgSymbol.CustomAttributes.TryGetValue("width", out var widthString) &&
-            new SvgUnitConverter().ConvertFromString(widthString) is SvgUnit symbolWidth)
-        {
-            width = symbolWidth.ToDeviceValue(UnitRenderingType.Horizontal, svgSymbol, viewport);
-        }
-
-        if (svgSymbol.CustomAttributes.TryGetValue("height", out var heightString) &&
-            new SvgUnitConverter().ConvertFromString(heightString) is SvgUnit symbolHeight)
-        {
-            height = symbolHeight.ToDeviceValue(UnitRenderingType.Vertical, svgSymbol, viewport);
-        }
-
         var node = new SvgSceneNode(
             SvgSceneNodeKind.Fragment,
             svgSymbol,
@@ -1638,6 +1819,8 @@ public static class SvgSceneCompiler
 
         var transform = TransformsService.ToMatrix(svgSymbol.Transforms);
         var viewBoxTransform = TransformsService.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+        var symbolViewport = SKRect.Create(x, y, width, height);
+        viewBoxTransform = ApplySymbolReferencePoint(svgSymbol, viewBoxTransform, x, y, viewport, ref symbolViewport);
         transform = transform.PreConcat(viewBoxTransform);
         node.Transform = transform;
         node.TotalTransform = parentTotalTransform.PreConcat(transform);
@@ -1651,14 +1834,15 @@ public static class SvgSceneCompiler
 
         if (svgOverflow is not SvgOverflow.Auto and not SvgOverflow.Visible and not SvgOverflow.Inherit)
         {
-            node.Overflow = SKRect.Create(x, y, width, height);
+            node.Overflow = symbolViewport;
         }
 
+        var childViewport = GetSymbolChildViewport(svgSymbol, width, height);
         for (var i = 0; i < svgSymbol.Children.Count; i++)
         {
             if (CompileElementNode(
                     svgSymbol.Children[i],
-                    viewport,
+                    childViewport,
                     node.TotalTransform,
                     assetLoader,
                     ignoreAttributes,
@@ -1672,6 +1856,52 @@ public static class SvgSceneCompiler
 
         FinalizeDirectStructuralBounds(node, parentTotalTransform);
         return node;
+    }
+
+    private static SKRect GetSymbolChildViewport(SvgSymbol svgSymbol, float width, float height)
+    {
+        if (svgSymbol.ViewBox != SvgViewBox.Empty &&
+            svgSymbol.ViewBox.Width > 0f &&
+            svgSymbol.ViewBox.Height > 0f)
+        {
+            return SKRect.Create(
+                svgSymbol.ViewBox.MinX,
+                svgSymbol.ViewBox.MinY,
+                svgSymbol.ViewBox.Width,
+                svgSymbol.ViewBox.Height);
+        }
+
+        return width > 0f && height > 0f
+            ? SKRect.Create(0f, 0f, width, height)
+            : SKRect.Empty;
+    }
+
+    private static SKMatrix ApplySymbolReferencePoint(
+        SvgSymbol svgSymbol,
+        SKMatrix viewBoxTransform,
+        float x,
+        float y,
+        SKRect viewport,
+        ref SKRect symbolViewport)
+    {
+        if (!SvgService.TryGetAttribute(svgSymbol, "refX", out _) &&
+            !SvgService.TryGetAttribute(svgSymbol, "refY", out _))
+        {
+            return viewBoxTransform;
+        }
+
+        var refX = svgSymbol.RefX.ToDeviceValue(UnitRenderingType.Horizontal, svgSymbol, viewport);
+        var refY = svgSymbol.RefY.ToDeviceValue(UnitRenderingType.Vertical, svgSymbol, viewport);
+        var mappedReferencePoint = viewBoxTransform.MapPoint(new SKPoint(refX, refY));
+        var deltaX = x - mappedReferencePoint.X;
+        var deltaY = y - mappedReferencePoint.Y;
+        if (Math.Abs(deltaX) <= float.Epsilon && Math.Abs(deltaY) <= float.Epsilon)
+        {
+            return viewBoxTransform;
+        }
+
+        symbolViewport = SKRect.Create(symbolViewport.Left + deltaX, symbolViewport.Top + deltaY, symbolViewport.Width, symbolViewport.Height);
+        return SKMatrix.CreateTranslation(deltaX, deltaY).PreConcat(viewBoxTransform);
     }
 
     private static SvgSceneNode? CompileEmbeddedImageSceneNode(
@@ -1788,6 +2018,32 @@ public static class SvgSceneCompiler
                Math.Abs(imageDocument.Height.Value - 100f) <= float.Epsilon;
     }
 
+    private static void ResolveImageAutoSize(SKRect srcRect, bool hasExplicitWidth, bool hasExplicitHeight, ref float width, ref float height)
+    {
+        if (srcRect.Width <= 0f || srcRect.Height <= 0f)
+        {
+            return;
+        }
+
+        if (!hasExplicitWidth && !hasExplicitHeight)
+        {
+            width = srcRect.Width;
+            height = srcRect.Height;
+            return;
+        }
+
+        if (!hasExplicitWidth && height > 0f)
+        {
+            width = height * srcRect.Width / srcRect.Height;
+            return;
+        }
+
+        if (!hasExplicitHeight && width > 0f)
+        {
+            height = width * srcRect.Height / srcRect.Width;
+        }
+    }
+
     private static SKPicture? CreateDirectImageModel(SKImage image, SKRect srcRect, SKRect destRect)
     {
         var cullRect = CreateLocalCullRect(destRect);
@@ -1847,7 +2103,7 @@ public static class SvgSceneCompiler
 
     private static void AppendDirectMarkers(
         SvgSceneNode node,
-        SvgMarkerElement markerElement,
+        SvgVisualElement markerElement,
         SKPath path,
         SKRect viewport,
         SKMatrix parentTotalTransform,
@@ -1867,7 +2123,7 @@ public static class SvgSceneCompiler
 
         var markerStart = GetEffectiveMarkerReferenceUri(markerElement, "marker-start", static element => element.MarkerStart);
         if (markerStart is not null &&
-            !SvgService.HasRecursiveReference(markerElement, static element => element.MarkerStart, new HashSet<Uri>()))
+            !HasRecursiveMarkerReference(markerElement, static element => element.MarkerStart))
         {
             var marker = SvgService.GetReference<SvgMarker>(markerElement, markerStart);
             if (marker is not null)
@@ -1908,7 +2164,7 @@ public static class SvgSceneCompiler
         var markerMid = GetEffectiveMarkerReferenceUri(markerElement, "marker-mid", static element => element.MarkerMid);
         if (markerMid is not null &&
             pathLength > 1 &&
-            !SvgService.HasRecursiveReference(markerElement, static element => element.MarkerMid, new HashSet<Uri>()))
+            !HasRecursiveMarkerReference(markerElement, static element => element.MarkerMid))
         {
             var marker = SvgService.GetReference<SvgMarker>(markerElement, markerMid);
             if (marker is not null)
@@ -1990,7 +2246,7 @@ public static class SvgSceneCompiler
 
         var markerEnd = GetEffectiveMarkerReferenceUri(markerElement, "marker-end", static element => element.MarkerEnd);
         if (markerEnd is not null &&
-            !SvgService.HasRecursiveReference(markerElement, static element => element.MarkerEnd, new HashSet<Uri>()))
+            !HasRecursiveMarkerReference(markerElement, static element => element.MarkerEnd))
         {
             var marker = SvgService.GetReference<SvgMarker>(markerElement, markerEnd);
             if (marker is not null)
@@ -2283,24 +2539,43 @@ public static class SvgSceneCompiler
     }
 
     private static Uri? GetEffectiveMarkerReferenceUri(
-        SvgMarkerElement markerElement,
+        SvgVisualElement markerElement,
         string attributeName,
         Func<SvgMarkerElement, Uri?> localSelector)
     {
-        if (localSelector(markerElement) is { } localValue)
+        if (GetComputedMarkerReferenceUri(markerElement, attributeName) is { } computedReference)
         {
-            return localValue;
+            return computedReference;
         }
 
-        for (var current = markerElement.Parent; current is not null; current = current.Parent)
+        if (markerElement is SvgMarkerElement svgMarkerElement && localSelector(svgMarkerElement) is { } localReference)
         {
-            if (TryGetUriAttribute(current, attributeName) is { } inheritedSpecific)
-            {
-                return inheritedSpecific;
-            }
+            return localReference;
         }
 
-        return null;
+        return TryGetUriAttribute(markerElement, attributeName);
+    }
+
+    private static Uri? GetComputedMarkerReferenceUri(SvgElement markerElement, string attributeName)
+    {
+        return markerElement.ComputedStyle.TryGetPropertyValue(attributeName, out var rawValue)
+            ? TryCreateMarkerReferenceUri(rawValue)
+            : null;
+    }
+
+    private static bool HasMarkerReference(SvgVisualElement markerElement)
+    {
+        return GetEffectiveMarkerReferenceUri(markerElement, "marker-start", static element => element.MarkerStart) is not null ||
+               GetEffectiveMarkerReferenceUri(markerElement, "marker-mid", static element => element.MarkerMid) is not null ||
+               GetEffectiveMarkerReferenceUri(markerElement, "marker-end", static element => element.MarkerEnd) is not null;
+    }
+
+    private static bool HasRecursiveMarkerReference(
+        SvgVisualElement markerElement,
+        Func<SvgMarkerElement, Uri?> localSelector)
+    {
+        return markerElement is SvgMarkerElement svgMarkerElement &&
+               SvgService.HasRecursiveReference(svgMarkerElement, localSelector, new HashSet<Uri>());
     }
 
     private static Uri? TryGetUriAttribute(SvgElement element, string attributeName)
@@ -2311,6 +2586,11 @@ public static class SvgSceneCompiler
             return null;
         }
 
+        return TryCreateMarkerReferenceUri(rawValue);
+    }
+
+    private static Uri? TryCreateMarkerReferenceUri(string rawValue)
+    {
         var normalizedValue = rawValue.Trim();
         if (string.Equals(normalizedValue, "none", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(normalizedValue, "inherit", StringComparison.OrdinalIgnoreCase))
@@ -2431,19 +2711,7 @@ public static class SvgSceneCompiler
 
     internal static bool TryGetDirectVisualPath(SvgElement element, SKRect viewport, out SKPath? path)
     {
-        path = element switch
-        {
-            SvgPath svgPath => svgPath.PathData?.ToPath(svgPath.FillRule),
-            SvgRectangle svgRectangle => svgRectangle.ToPath(svgRectangle.FillRule, viewport),
-            SvgCircle svgCircle => svgCircle.ToPath(svgCircle.FillRule, viewport),
-            SvgEllipse svgEllipse => svgEllipse.ToPath(svgEllipse.FillRule, viewport),
-            SvgLine svgLine => svgLine.ToPath(svgLine.FillRule, viewport),
-            SvgPolyline svgPolyline => svgPolyline.Points?.ToPath(svgPolyline.FillRule, false, viewport),
-            SvgPolygon svgPolygon => svgPolygon.Points?.ToPath(svgPolygon.FillRule, true, viewport),
-            _ => null
-        };
-
-        return path is not null;
+        return SvgGeometryService.TryCreateEquivalentPath(element, viewport, out path);
     }
 
     private static bool TryGetDirectVisualElement(SvgElement element, out SvgVisualElement? visualElement)
@@ -2506,14 +2774,15 @@ public static class SvgSceneCompiler
                 assetLoader,
                 ignoreAttributes,
                 compileContext.ContextPaintElement,
-                compileContext.ContextPaintBounds);
+                compileContext.ContextPaintBounds,
+                path);
             if (stroke is null)
             {
                 canDrawStroke = false;
             }
         }
 
-        if (canDrawFill && !canDrawStroke)
+        if (canDrawFill && !canDrawStroke && visualElement.Stroke is not SvgContextPaintServer)
         {
             canKeepRenderable = false;
             return null;
@@ -2732,64 +3001,63 @@ public static class SvgSceneCompiler
 
     private static bool TryParseIsolation(SvgElement element)
     {
-        return element.TryGetAttribute("isolation", out var value) &&
-               string.Equals(value?.Trim(), "isolate", StringComparison.OrdinalIgnoreCase);
+        return element.ComputedStyle.TryGetIsolation(out var isolation) &&
+               isolation == SvgIsolation.Isolate;
     }
 
     private static bool TryParseMixBlendMode(SvgElement element, out SKBlendMode blendMode)
     {
         blendMode = SKBlendMode.SrcOver;
-        if (!element.TryGetAttribute("mix-blend-mode", out var value) ||
-            string.IsNullOrWhiteSpace(value))
+        if (!element.ComputedStyle.TryGetMixBlendMode(out var value))
         {
             return false;
         }
 
-        switch (value.Trim())
+        switch (value)
         {
-            case var mode when string.Equals(mode, "multiply", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.Multiply:
                 blendMode = SKBlendMode.Multiply;
                 return true;
-            case var mode when string.Equals(mode, "screen", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.Screen:
                 blendMode = SKBlendMode.Screen;
                 return true;
-            case var mode when string.Equals(mode, "overlay", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.Overlay:
                 blendMode = SKBlendMode.Overlay;
                 return true;
-            case var mode when string.Equals(mode, "darken", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.Darken:
                 blendMode = SKBlendMode.Darken;
                 return true;
-            case var mode when string.Equals(mode, "lighten", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.Lighten:
                 blendMode = SKBlendMode.Lighten;
                 return true;
-            case var mode when string.Equals(mode, "color-dodge", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.ColorDodge:
                 blendMode = SKBlendMode.ColorDodge;
                 return true;
-            case var mode when string.Equals(mode, "color-burn", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.ColorBurn:
                 blendMode = SKBlendMode.ColorBurn;
                 return true;
-            case var mode when string.Equals(mode, "hard-light", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.HardLight:
                 blendMode = SKBlendMode.HardLight;
                 return true;
-            case var mode when string.Equals(mode, "soft-light", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.SoftLight:
                 blendMode = SKBlendMode.SoftLight;
                 return true;
-            case var mode when string.Equals(mode, "difference", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.Difference:
                 blendMode = SKBlendMode.Difference;
                 return true;
-            case var mode when string.Equals(mode, "exclusion", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.Exclusion:
                 blendMode = SKBlendMode.Exclusion;
                 return true;
-            case var mode when string.Equals(mode, "hue", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.Hue:
                 blendMode = SKBlendMode.Hue;
                 return true;
-            case var mode when string.Equals(mode, "saturation", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.Saturation:
                 blendMode = SKBlendMode.Saturation;
                 return true;
-            case var mode when string.Equals(mode, "color", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.Color:
                 blendMode = SKBlendMode.Color;
                 return true;
-            case var mode when string.Equals(mode, "luminosity", StringComparison.OrdinalIgnoreCase):
+            case SvgMixBlendMode.Luminosity:
                 blendMode = SKBlendMode.Luminosity;
                 return true;
             default:

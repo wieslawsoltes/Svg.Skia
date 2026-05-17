@@ -118,26 +118,15 @@ internal static class SvgSceneClipCompiler
     {
         switch (visualElement)
         {
-            case SvgPath svgPath:
-                AddVisualPathClip(svgPath, svgPath.PathData?.ToPath(ToFillRule(svgPath, svgClipPathClipRule)), assetLoader, uris, clipPath);
-                break;
-            case SvgRectangle svgRectangle:
-                AddVisualPathClip(svgRectangle, svgRectangle.ToPath(ToFillRule(svgRectangle, svgClipPathClipRule), targetBounds), assetLoader, uris, clipPath);
-                break;
-            case SvgCircle svgCircle:
-                AddVisualPathClip(svgCircle, svgCircle.ToPath(ToFillRule(svgCircle, svgClipPathClipRule), targetBounds), assetLoader, uris, clipPath);
-                break;
-            case SvgEllipse svgEllipse:
-                AddVisualPathClip(svgEllipse, svgEllipse.ToPath(ToFillRule(svgEllipse, svgClipPathClipRule), targetBounds), assetLoader, uris, clipPath);
-                break;
-            case SvgLine svgLine:
-                AddVisualPathClip(svgLine, svgLine.ToPath(ToFillRule(svgLine, svgClipPathClipRule), targetBounds), assetLoader, uris, clipPath);
-                break;
-            case SvgPolyline svgPolyline:
-                AddVisualPathClip(svgPolyline, svgPolyline.Points?.ToPath(ToFillRule(svgPolyline, svgClipPathClipRule), false, targetBounds), assetLoader, uris, clipPath);
-                break;
-            case SvgPolygon svgPolygon:
-                AddVisualPathClip(svgPolygon, svgPolygon.Points?.ToPath(ToFillRule(svgPolygon, svgClipPathClipRule), true, targetBounds), assetLoader, uris, clipPath);
+            case SvgPath:
+            case SvgRectangle:
+            case SvgCircle:
+            case SvgEllipse:
+            case SvgLine:
+            case SvgPolyline:
+            case SvgPolygon:
+                SvgGeometryService.TryCreateEquivalentPath(visualElement, ToFillRule(visualElement, svgClipPathClipRule), targetBounds, out var path);
+                AddVisualPathClip(visualElement, path, assetLoader, uris, clipPath);
                 break;
             case SvgUse svgUse:
                 PopulateUseClip(svgUse, targetBounds, assetLoader, uris, clipPath, svgClipPathClipRule);

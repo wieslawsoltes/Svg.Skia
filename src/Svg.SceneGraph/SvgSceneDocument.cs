@@ -750,7 +750,7 @@ public sealed class SvgSceneDocument
                 ? SvgScenePaintingService.GetFillPaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes)
                 : null;
             node.Stroke = hasOwnPaintPayload && SvgScenePaintingService.IsValidStroke(visualElement, node.GeometryBounds)
-                ? SvgScenePaintingService.GetStrokePaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes)
+                ? SvgScenePaintingService.GetStrokePaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes, geometryPath: node.HitTestPath)
                 : null;
             node.StrokeWidth = hasOwnPaintPayload ? node.Stroke?.StrokeWidth ?? 0f : 0f;
             node.IsStrokeNonScaling = hasOwnPaintPayload && visualElement.VectorEffect == SvgVectorEffect.NonScalingStroke;

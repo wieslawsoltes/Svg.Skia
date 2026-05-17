@@ -130,7 +130,8 @@ internal static class SvgScenePaintingService
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
         SvgVisualElement? contextPaintElement = null,
-        SKRect contextPaintBounds = default)
+        SKRect contextPaintBounds = default,
+        SKPath? geometryPath = null)
     {
         var skPaint = new SKPaint
         {
@@ -174,7 +175,7 @@ internal static class SvgScenePaintingService
 
         if (svgVisualElement.StrokeDashArray is { })
         {
-            SetDash(svgVisualElement, skPaint, skBounds);
+            SetDash(svgVisualElement, skPaint, skBounds, geometryPath);
         }
 
         return skPaint;
@@ -222,6 +223,7 @@ internal static class SvgScenePaintingService
                     svgVisualElement,
                     svgContextPaintServer,
                     opacity,
+                    skBounds,
                     skPaint,
                     forStroke,
                     assetLoader,
@@ -245,7 +247,19 @@ internal static class SvgScenePaintingService
                         return true;
                     }
 
-                    return TryApplyFallbackColor(fallbackServer, opacity, skPaint, ignoreAttributes, skColorSpace);
+                    return TryApplyFallbackPaintServer(
+                        svgVisualElement,
+                        fallbackServer,
+                        opacity,
+                        skBounds,
+                        skPaint,
+                        forStroke,
+                        assetLoader,
+                        ignoreAttributes,
+                        contextPaintElement,
+                        contextPaintBounds,
+                        contextPaintDepth,
+                        skColorSpace);
                 }
 
             case SvgLinearGradientServer svgLinearGradientServer:
@@ -257,13 +271,37 @@ internal static class SvgScenePaintingService
                     if (svgLinearGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox &&
                         (skBounds.Width == 0f || skBounds.Height == 0f))
                     {
-                        return TryApplyFallbackColor(fallbackServer, opacity, skPaint, ignoreAttributes, skColorSpace);
+                        return TryApplyFallbackPaintServer(
+                            svgVisualElement,
+                            fallbackServer,
+                            opacity,
+                            skBounds,
+                            skPaint,
+                            forStroke,
+                            assetLoader,
+                            ignoreAttributes,
+                            contextPaintElement,
+                            contextPaintBounds,
+                            contextPaintDepth,
+                            skColorSpace);
                     }
 
                     var shader = CreateLinearGradient(svgLinearGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes, skColorSpace);
                     if (shader is null)
                     {
-                        return false;
+                        return TryApplyFallbackPaintServer(
+                            svgVisualElement,
+                            fallbackServer,
+                            opacity,
+                            skBounds,
+                            skPaint,
+                            forStroke,
+                            assetLoader,
+                            ignoreAttributes,
+                            contextPaintElement,
+                            contextPaintBounds,
+                            contextPaintDepth,
+                            skColorSpace);
                     }
 
                     skPaint.Shader = shader;
@@ -279,13 +317,37 @@ internal static class SvgScenePaintingService
                     if (svgRadialGradientServer.GradientUnits == SvgCoordinateUnits.ObjectBoundingBox &&
                         (skBounds.Width == 0f || skBounds.Height == 0f))
                     {
-                        return TryApplyFallbackColor(fallbackServer, opacity, skPaint, ignoreAttributes, skColorSpace);
+                        return TryApplyFallbackPaintServer(
+                            svgVisualElement,
+                            fallbackServer,
+                            opacity,
+                            skBounds,
+                            skPaint,
+                            forStroke,
+                            assetLoader,
+                            ignoreAttributes,
+                            contextPaintElement,
+                            contextPaintBounds,
+                            contextPaintDepth,
+                            skColorSpace);
                     }
 
                     var shader = CreateTwoPointConicalGradient(svgRadialGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes, skColorSpace);
                     if (shader is null)
                     {
-                        return false;
+                        return TryApplyFallbackPaintServer(
+                            svgVisualElement,
+                            fallbackServer,
+                            opacity,
+                            skBounds,
+                            skPaint,
+                            forStroke,
+                            assetLoader,
+                            ignoreAttributes,
+                            contextPaintElement,
+                            contextPaintBounds,
+                            contextPaintDepth,
+                            skColorSpace);
                     }
 
                     skPaint.Shader = shader;
@@ -315,6 +377,7 @@ internal static class SvgScenePaintingService
         SvgVisualElement svgVisualElement,
         SvgContextPaintServer svgContextPaintServer,
         float opacity,
+        SKRect skBounds,
         SKPaint skPaint,
         bool forStroke,
         ISvgAssetLoader assetLoader,
@@ -333,12 +396,19 @@ internal static class SvgScenePaintingService
         var contextServer = svgContextPaintServer.Kind == SvgContextPaintKind.Stroke
             ? contextPaintElement.Stroke
             : contextPaintElement.Fill;
+        var contextServerOwner = IsCurrentColorPaintServer(contextServer)
+            ? svgVisualElement
+            : contextPaintElement;
+        var resolvedContextServer = SvgDeferredPaintServer.TryGet<SvgPaintServer>(contextServer, contextServerOwner);
+        var contextServerBounds = resolvedContextServer is SvgPatternServer
+            ? SKRect.Create(0f, 0f, contextPaintBounds.Width, contextPaintBounds.Height)
+            : contextPaintBounds;
 
         return TryApplyPaintServer(
-            contextPaintElement,
+            contextServerOwner,
             contextServer,
             opacity,
-            contextPaintBounds,
+            contextServerBounds,
             skPaint,
             forStroke,
             assetLoader,
@@ -346,6 +416,12 @@ internal static class SvgScenePaintingService
             contextPaintElement,
             contextPaintBounds,
             contextPaintDepth + 1);
+    }
+
+    private static bool IsCurrentColorPaintServer(SvgPaintServer? paintServer)
+    {
+        return paintServer is SvgDeferredPaintServer deferredPaintServer &&
+               string.Equals(deferredPaintServer.DeferredId, "currentColor", StringComparison.Ordinal);
     }
 
     private static bool TryApplyColor(
@@ -417,6 +493,44 @@ internal static class SvgScenePaintingService
         return true;
     }
 
+    private static bool TryApplyFallbackPaintServer(
+        SvgVisualElement svgVisualElement,
+        SvgPaintServer? fallbackServer,
+        float opacity,
+        SKRect skBounds,
+        SKPaint skPaint,
+        bool forStroke,
+        ISvgAssetLoader assetLoader,
+        DrawAttributes ignoreAttributes,
+        SvgVisualElement? contextPaintElement,
+        SKRect contextPaintBounds,
+        int contextPaintDepth,
+        SKColorSpace skColorSpace)
+    {
+        if (fallbackServer is null || fallbackServer == SvgPaintServer.None || fallbackServer == SvgPaintServer.NotSet)
+        {
+            return false;
+        }
+
+        if (fallbackServer is SvgColourServer)
+        {
+            return TryApplyFallbackColor(fallbackServer, opacity, skPaint, ignoreAttributes, skColorSpace);
+        }
+
+        return TryApplyPaintServer(
+            svgVisualElement,
+            fallbackServer,
+            opacity,
+            skBounds,
+            skPaint,
+            forStroke,
+            assetLoader,
+            ignoreAttributes,
+            contextPaintElement,
+            contextPaintBounds,
+            contextPaintDepth + 1);
+    }
+
     private static SKColor GetColor(SvgColourServer svgColourServer, float opacity, DrawAttributes ignoreAttributes)
     {
         var colour = svgColourServer.Colour;
@@ -450,7 +564,7 @@ internal static class SvgScenePaintingService
         };
     }
 
-    private static SKPathEffect? CreateDash(SvgElement svgElement, SKRect skBounds)
+    private static SKPathEffect? CreateDash(SvgElement svgElement, SKRect skBounds, SKPath? geometryPath)
     {
         var strokeDashArray = svgElement.StrokeDashArray;
         var strokeDashOffset = svgElement.StrokeDashOffset;
@@ -464,9 +578,10 @@ internal static class SvgScenePaintingService
         var isOdd = count % 2 != 0;
         var sum = 0f;
         var intervals = new float[isOdd ? count * 2 : count];
+        var normalization = SvgGeometryService.CreatePathLengthNormalization(svgElement, geometryPath);
         for (var i = 0; i < count; i++)
         {
-            var dash = strokeDashArray[i].ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds);
+            var dash = normalization.ToActualDistance(strokeDashArray[i].ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds));
             if (dash < 0f)
             {
                 return null;
@@ -486,13 +601,13 @@ internal static class SvgScenePaintingService
             return null;
         }
 
-        var phase = strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds);
+        var phase = normalization.ToActualDistance(strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds));
         return SKPathEffect.CreateDash(intervals, phase);
     }
 
-    private static void SetDash(SvgVisualElement svgVisualElement, SKPaint skPaint, SKRect skBounds)
+    private static void SetDash(SvgVisualElement svgVisualElement, SKPaint skPaint, SKRect skBounds, SKPath? geometryPath)
     {
-        if (CreateDash(svgVisualElement, skBounds) is { } dash)
+        if (CreateDash(svgVisualElement, skBounds, geometryPath) is { } dash)
         {
             skPaint.PathEffect = dash;
         }
@@ -606,7 +721,7 @@ internal static class SvgScenePaintingService
         return skColorsF;
     }
 
-    private static SKShader CreateLinearGradient(
+    private static SKShader? CreateLinearGradient(
         SvgLinearGradientServer svgLinearGradientServer,
         SKRect skBounds,
         SvgVisualElement svgVisualElement,
@@ -701,7 +816,7 @@ internal static class SvgScenePaintingService
 
         if (colors.Count == 0)
         {
-            return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
+            return null;
         }
 
         if (colors.Count == 1)
@@ -741,7 +856,7 @@ internal static class SvgScenePaintingService
         return SKShader.CreateLinearGradient(skStart, skEnd, skColorsF, skColorSpace, skColorPos, shaderTileMode);
     }
 
-    private static SKShader CreateTwoPointConicalGradient(
+    private static SKShader? CreateTwoPointConicalGradient(
         SvgRadialGradientServer svgRadialGradientServer,
         SKRect skBounds,
         SvgVisualElement svgVisualElement,
@@ -759,6 +874,7 @@ internal static class SvgScenePaintingService
         SvgRadialGradientServer? firstRadius = null;
         SvgRadialGradientServer? firstFocalX = null;
         SvgRadialGradientServer? firstFocalY = null;
+        SvgRadialGradientServer? firstFocalRadius = null;
 
         foreach (var p in svgReferencedGradientServers)
         {
@@ -806,6 +922,11 @@ internal static class SvgScenePaintingService
             {
                 firstFocalY = gradientServerHref;
             }
+
+            if (firstFocalRadius is null && gradientServerHref.FocalRadius != SvgUnit.None && SvgService.TryGetAttribute(gradientServerHref, "fr", out _))
+            {
+                firstFocalRadius = gradientServerHref;
+            }
         }
 
         var svgSpreadMethod = firstSpreadMethod?.SpreadMethod ?? SvgGradientSpreadMethod.Pad;
@@ -816,12 +937,14 @@ internal static class SvgScenePaintingService
         var radiusUnit = firstRadius?.Radius ?? new SvgUnit(SvgUnitType.Percentage, 50f);
         var focalXUnit = firstFocalX?.FocalX ?? centerXUnit;
         var focalYUnit = firstFocalY?.FocalY ?? centerYUnit;
+        var focalRadiusUnit = firstFocalRadius?.FocalRadius ?? new SvgUnit(SvgUnitType.Percentage, 0f);
 
         var centerX = centerXUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
         var centerY = centerYUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
         var radius = radiusUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
         var focalX = focalXUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
         var focalY = focalYUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
+        var focalRadius = focalRadiusUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
 
         var colors = new List<SKColor>();
         var colorPos = new List<float>();
@@ -838,7 +961,7 @@ internal static class SvgScenePaintingService
 
         if (colors.Count == 0)
         {
-            return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
+            return null;
         }
 
         if (colors.Count == 1)
@@ -855,7 +978,8 @@ internal static class SvgScenePaintingService
         var skColorPos = colorPos.ToArray();
         var skCenter = new SKPoint(centerX, centerY);
         var skFocal = new SKPoint(focalX, focalY);
-        var isRadialGradient = skCenter.X == skFocal.X && skCenter.Y == skFocal.Y;
+        focalRadius = Math.Max(0f, focalRadius);
+        var isRadialGradient = focalRadius == 0f && skCenter.X == skFocal.X && skCenter.Y == skFocal.Y;
 
         if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
         {
@@ -875,7 +999,7 @@ internal static class SvgScenePaintingService
 
             return isRadialGradient
                 ? SKShader.CreateRadialGradient(skCenter, radius, skColorsF, skColorSpace, skColorPos, shaderTileMode, skBoundingBoxTransform)
-                : SKShader.CreateTwoPointConicalGradient(skFocal, 0f, skCenter, radius, skColorsF, skColorSpace, skColorPos, shaderTileMode, skBoundingBoxTransform);
+                : SKShader.CreateTwoPointConicalGradient(skFocal, focalRadius, skCenter, radius, skColorsF, skColorSpace, skColorPos, shaderTileMode, skBoundingBoxTransform);
         }
 
         if (svgGradientTransform is { Count: > 0 })
@@ -883,12 +1007,12 @@ internal static class SvgScenePaintingService
             var gradientTransform = TransformsService.ToMatrix(svgGradientTransform);
             return isRadialGradient
                 ? SKShader.CreateRadialGradient(skCenter, radius, skColorsF, skColorSpace, skColorPos, shaderTileMode, gradientTransform)
-                : SKShader.CreateTwoPointConicalGradient(skFocal, 0f, skCenter, radius, skColorsF, skColorSpace, skColorPos, shaderTileMode, gradientTransform);
+                : SKShader.CreateTwoPointConicalGradient(skFocal, focalRadius, skCenter, radius, skColorsF, skColorSpace, skColorPos, shaderTileMode, gradientTransform);
         }
 
         return isRadialGradient
             ? SKShader.CreateRadialGradient(skCenter, radius, skColorsF, skColorSpace, skColorPos, shaderTileMode)
-            : SKShader.CreateTwoPointConicalGradient(skFocal, 0f, skCenter, radius, skColorsF, skColorSpace, skColorPos, shaderTileMode);
+            : SKShader.CreateTwoPointConicalGradient(skFocal, focalRadius, skCenter, radius, skColorsF, skColorSpace, skColorPos, shaderTileMode);
     }
 
     private static SKShader? CreatePatternShader(

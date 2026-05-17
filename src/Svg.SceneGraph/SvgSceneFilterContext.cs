@@ -511,7 +511,7 @@ internal sealed class SvgSceneFilterContext
                     var skCropRect = skFilterPrimitiveRegion;
                     var input = ApplyColourInterpolation(inputFilterResult, colorInterpolationFilters, allowImplicitSourceGraphic: true);
                     var mergeInput = ApplyColourInterpolation(inputFilterResult, colorInterpolationFilters);
-                    var skImageFilter = CreateDropShadow(svgDropShadow, input, mergeInput, skCropRect);
+                    var skImageFilter = CreateDropShadow(svgDropShadow, colorInterpolationFilters, input, mergeInput, skCropRect);
                     _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
                     if (skImageFilter is { })
                     {
@@ -524,7 +524,7 @@ internal sealed class SvgSceneFilterContext
                 {
                     var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
                     var skCropRect = skFilterPrimitiveRegion;
-                    var skImageFilter = CreateFlood(svgFlood, _svgVisualElement, null, skCropRect);
+                    var skImageFilter = CreateFlood(svgFlood, null, skCropRect);
                     _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, SvgColourInterpolation.SRGB);
                     if (skImageFilter is { })
                     {
@@ -1485,7 +1485,7 @@ internal sealed class SvgSceneFilterContext
 
     private SKImageFilter? CreateDiffuseLighting(SvgDiffuseLighting svgDiffuseLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKRect? cropRect = default)
     {
-        var lightColor = PaintingService.GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
+        var lightColor = GetFilterPrimitiveColor(svgDiffuseLighting, svgDiffuseLighting.LightingColor);
         if (lightColor is null)
         {
             return default;
@@ -1562,7 +1562,41 @@ internal sealed class SvgSceneFilterContext
         return SKImageFilter.CreateDisplacementMapEffect(xChannelSelector, yChannelSelector, scale, displacement, input, cropRect);
     }
 
-    private SKImageFilter? CreateDropShadow(SvgDropShadow svgDropShadow, SKImageFilter? input = default, SKImageFilter? mergeInput = default, SKRect? cropRect = default)
+    private static SKColor ConvertToFilterColorSpace(SKColor color, SvgColourInterpolation colorSpace)
+    {
+        if (colorSpace != SvgColourInterpolation.LinearRGB)
+        {
+            return color;
+        }
+
+        return new SKColor(
+            ToByte(FilterEffectsService.SRGBToLinear(color.Red / 255f)),
+            ToByte(FilterEffectsService.SRGBToLinear(color.Green / 255f)),
+            ToByte(FilterEffectsService.SRGBToLinear(color.Blue / 255f)),
+            color.Alpha);
+
+        static byte ToByte(float value)
+        {
+            return (byte)Math.Round(Math.Min(Math.Max(value, 0f), 1f) * 255f);
+        }
+    }
+
+    private static SKColor? GetFilterPrimitiveColor(SvgElement svgElement, SvgPaintServer server)
+    {
+        if (server is SvgDeferredPaintServer svgDeferredPaintServer)
+        {
+            server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgElement);
+        }
+
+        if (server is SvgColourServer svgColourServer)
+        {
+            return PaintingService.GetColor(svgColourServer, 1f, DrawAttributes.None);
+        }
+
+        return new SKColor(0x00, 0x00, 0x00, 0xFF);
+    }
+
+    private SKImageFilter? CreateDropShadow(SvgDropShadow svgDropShadow, SvgColourInterpolation colorInterpolationFilters, SKImageFilter? input = default, SKImageFilter? mergeInput = default, SKRect? cropRect = default)
     {
         TransformsService.GetOptionalNumbers(svgDropShadow.StdDeviation, 2f, 2f, out var sigmaX, out var sigmaY);
         if (_primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
@@ -1577,13 +1611,14 @@ internal sealed class SvgSceneFilterContext
             return default;
         }
 
-        var floodColor = PaintingService.GetColor(_svgVisualElement, svgDropShadow.FloodColor);
+        var floodColor = GetFilterPrimitiveColor(svgDropShadow, svgDropShadow.FloodColor);
         if (floodColor is null)
         {
             return default;
         }
 
         var floodAlpha = PaintingService.CombineWithOpacity(floodColor.Value.Alpha, svgDropShadow.FloodOpacity);
+        var filterFloodColor = ConvertToFilterColorSpace(floodColor.Value, colorInterpolationFilters);
         var dx = CalculateHorizontal(svgDropShadow, svgDropShadow.Dx);
         var dy = CalculateVertical(svgDropShadow, svgDropShadow.Dy);
 
@@ -1600,9 +1635,9 @@ internal sealed class SvgSceneFilterContext
 
         var colorizeMatrix = new float[]
         {
-            0f, 0f, 0f, floodColor.Value.Red / 255f, 0f,
-            0f, 0f, 0f, floodColor.Value.Green / 255f, 0f,
-            0f, 0f, 0f, floodColor.Value.Blue / 255f, 0f,
+            0f, 0f, 0f, filterFloodColor.Red / 255f, 0f,
+            0f, 0f, 0f, filterFloodColor.Green / 255f, 0f,
+            0f, 0f, 0f, filterFloodColor.Blue / 255f, 0f,
             0f, 0f, 0f, floodAlpha / 255f, 0f
         };
         var shadow = SKImageFilter.CreateColorFilter(SKColorFilter.CreateColorMatrix(colorizeMatrix), offsetAlpha, cropRect);
@@ -1612,9 +1647,9 @@ internal sealed class SvgSceneFilterContext
             : SKImageFilter.CreateMerge(new[] { shadow, mergeInput }, cropRect);
     }
 
-    private SKImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKRect? cropRect = default)
+    private SKImageFilter? CreateFlood(SvgFlood svgFlood, SKImageFilter? input = default, SKRect? cropRect = default)
     {
-        var floodColor = PaintingService.GetColor(svgVisualElement, svgFlood.FloodColor);
+        var floodColor = GetFilterPrimitiveColor(svgFlood, svgFlood.FloodColor);
         if (floodColor is null)
         {
             return default;
@@ -1981,7 +2016,7 @@ internal sealed class SvgSceneFilterContext
 
     private SKImageFilter? CreateSpecularLighting(SvgSpecularLighting svgSpecularLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKRect? cropRect = default)
     {
-        var lightColor = PaintingService.GetColor(svgVisualElement, svgSpecularLighting.LightingColor);
+        var lightColor = GetFilterPrimitiveColor(svgSpecularLighting, svgSpecularLighting.LightingColor);
         if (lightColor is null)
         {
             return default;
