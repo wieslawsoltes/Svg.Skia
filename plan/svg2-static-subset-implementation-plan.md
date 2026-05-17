@@ -5,7 +5,7 @@
 Created: 2026-05-16
 Updated: 2026-05-17
 
-This is a living planning and API contract artifact. The first implementation tranche now covers project boundary guards, SVG 2 load/href contracts, the partial `SvgParameters` load-options bridge, document state, runtime image policy, style/property scaffolding, a computed-style cache for selected SVG 2 properties, selected SVG 2 element attributes, retained path/text `paint-order`, retained marker and focused use-context paint rendering, effective unnamespaced href resolution for common static resources, `mask-type` coverage, linked filter/`feImage` dependency handling, focused `feDropShadow` filter compilation fixes, shared geometry service coverage for focused shape/path consumers, CSS geometry percentages with viewBox, SVG 2 `use` dimension override semantics, focused context-paint marker/use parity, verified `radialGradient fr` rendering through conical shaders, focused textPath SVG 2 placement, and validation/spec-status coverage for preserve-only and deferred static-subset boundaries. The focused WPT SVG 2 static subset now runs 27 active rows with no deferred rows. Rows below still describe the full target state, not a claim that every SVG 2 static feature is complete.
+This is a living planning and API contract artifact. The first implementation tranche now covers project boundary guards, SVG 2 load/href contracts, the partial `SvgParameters` load-options bridge, document state, runtime image policy, style/property scaffolding, a computed-style cache for selected SVG 2 properties, selected SVG 2 element attributes, retained path/text `paint-order`, retained marker and focused use-context paint rendering, effective unnamespaced href resolution for common static resources, `mask-type` coverage, linked filter/`feImage` dependency handling, focused `feDropShadow` filter compilation fixes, shared geometry service coverage for focused shape/path consumers, CSS geometry percentages with viewBox, SVG 2 `use` dimension override semantics, focused context-paint marker/use parity, verified `radialGradient fr` rendering through conical shaders, focused textPath SVG 2 placement, and validation/spec-status coverage for preserve-only and deferred static-subset boundaries. The focused WPT SVG 2 static subset now contains 46 active SVG-only rows with no `DeferredRows` list; active failures are treated as implementation gaps, while browser-runtime WPT rows remain outside the static scope. Rows below still describe the full target state, not a claim that every SVG 2 static feature is complete.
 
 The intent is to move SVG 2 feature work into `Svg.Custom` and the shared renderer stack rather than carrying local edits in `externals/SVG`. Existing examples of this direction are the animation element model, pointer-events, vector-effect, compatibility CSS handling, and paint-server overrides already under `src/Svg.Custom`.
 
@@ -30,7 +30,7 @@ Reviewed: 2026-05-17
 | Partial | Computed style foundation | A centralized computed style snapshot/cache now backs selected SVG 2 properties, including paint-order, white-space/text properties, marker refs, mask-type, isolation, and mix-blend-mode. Full migration of all geometry, paint, filter, text, and context-paint reads remains open. |
 | Partial | `pathLength` | Parsed on selected path-based elements, and focused retained paths normalize dash distances and textPath distance mapping. Marker normalization and shared length services remain open. |
 | Complete in current tranche | Symbol geometry/ref attrs | Parsed on `SvgSymbol`; retained `use`/symbol viewport sizing and `refX`/`refY` reference-point layout are now integrated for focused static paths. |
-| Complete in current tranche | Focused WPT SVG 2 static subset | The active WPT SVG 2 rows now cover CSS geometry percentages with viewBox, context paint marker/use cases, `use` symbol/svg dimension overrides, and the standalone `textPath side=right` row. The focused suite passes 27/27 with no skips. |
+| Complete in current tranche | Focused WPT SVG 2 static subset | The active WPT SVG 2 manifest now covers CSS geometry percentages with viewBox, context paint marker/use cases, paint-server fallback/currentColor cases, path bearing commands, selected shape/style rows, `use` symbol/svg dimension overrides, and focused textPath rows. The manifest contains 46 active SVG-only rows and no `DeferredRows` list; active rows should remain enabled and any failures should be fixed as renderer/model gaps. |
 | Partial | Text SVG 2 work | Retained text `paint-order`, inline textPath `path`, href-to-basic-shape textPath support, focused `white-space: pre`, `side=right`, closed-loop text, and textPath `pathLength` scaling are implemented. Wrapping properties, complete CSS Text integration, and broader textPath parity remain later work. |
 | Partial | Masking/filter semantics | Effective href, `mask-type` coverage, linked filter/filter `feImage` dependency handling, and focused `feDropShadow` compilation fixes are implemented. Full `feDropShadow` parity, filter region/color-interpolation audits, and broader masking/filter behavior remain. |
 | Partial | Context paint | `context-fill` and `context-stroke` parser/model support, retained marker rendering, focused use propagation, and selected fallback-chain behavior are implemented. Broader resource context-paint propagation, inheritance edge cases, and pixel parity remain open. |
@@ -108,6 +108,25 @@ Out of scope for this plan:
 - [x] Add renderer contract tests for unknown SVG element preservation, unsupported vector-effect fallback, and `stroke-linejoin: arcs` fallback.
 - [ ] Add generated spec-status snapshots for every feature-matrix row; current coverage is still prose plus focused semantic tests.
 - [ ] Run full docs/build/test gates after the shared worktree build blocker in `SvgGeometryService` is resolved.
+
+## Generated Spec-Status Snapshot Proposal
+
+Keep the first snapshot mechanism documentation-only until the active renderer
+gaps stabilize. A low-risk path is a small generator that reads this plan's
+feature matrix, `site/articles/reference/svg-2-static-subset-support.md`, and
+`WptSvg2StaticSubsetTests.StaticSubsetRows`, then writes a checked
+`plan/svg2-static-subset-spec-status.generated.md` file with:
+
+- one row per feature-matrix item with the documented status and owning test signal
+- the active WPT SVG 2 row count and row paths
+- the explicit static-scope exclusions for scripting, live DOM, CSSOM,
+  interaction, navigation, media, and broad animation timelines
+- a stale-file check for CI or pre-commit use once the output is stable
+
+The generator should not infer pass/fail status from skipped metadata because
+the WPT SVG 2 static subset no longer carries a `DeferredRows` list. Test
+results should come from the focused WPT test run, and any active-row failure
+should remain visible as an implementation gap.
 
 ## Architecture Rule
 

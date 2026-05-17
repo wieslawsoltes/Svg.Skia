@@ -17,11 +17,17 @@ Web Platform Tests, where static rendering cases are primarily SVG/HTML
 reftests. Svg.Skia checks these selected rows against Chrome-generated PNG
 references in `tests/Svg.Skia.UnitTests/ChromeReference/WPT`.
 
-The subset intentionally starts with static SVG files that map to Svg.Skia's
+The subset intentionally contains static SVG files that map to Svg.Skia's
 renderer-only scope. Rows that are active today live in
-`WptSvg2StaticSubsetTests.StaticSubsetRows`; rows that expose known remaining
-SVG 2 gaps live in `WptSvg2StaticSubsetTests.DeferredRows` with an explicit
-skip reason.
+`WptSvg2StaticSubsetTests.StaticSubsetRows` and compare against checked
+Chrome-generated references. Active rows are not used as skips or deferrals:
+if an active row fails, that failure represents an implementation gap to fix
+while keeping the row enabled.
+
+Browser-runtime WPT coverage that depends on scripting, live DOM APIs, CSSOM,
+interactive state, navigation, media playback, or other dynamic browser
+behavior is outside this static SVG-only subset and is not represented by a
+`DeferredRows` list.
 
 The checked corpus covers:
 
@@ -33,5 +39,6 @@ The checked corpus covers:
 - SVG 2 radial gradient `fr`.
 - SVG 2 `textPath path` and `textPath side`.
 - SVG 2 `<use>` sizing semantics for referenced `svg` and `symbol` nodes.
+- SVG 2 path bearing commands and selected style-origin rendering rows.
 
 The checked WPT license is preserved in `LICENSE.md`.

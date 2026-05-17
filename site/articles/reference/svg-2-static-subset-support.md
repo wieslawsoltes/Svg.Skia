@@ -51,7 +51,7 @@ The normative reference is the W3C [SVG 2 Candidate Recommendation](https://www.
 
 | Feature | Status | Current contract |
 |---|---|---|
-| SVG 2 style recognition | Partial | `SvgStyleAttributeNames` includes SVG 2 static properties and keeps `isolation` and `mix-blend-mode` CSS-only. The CSS processor applies recognized static style properties; a centralized computed-style snapshot is still deferred. |
+| SVG 2 style recognition | Partial | `SvgStyleAttributeNames` includes SVG 2 static properties and keeps `isolation` and `mix-blend-mode` CSS-only. The CSS processor applies recognized static style properties, and the centralized computed-style snapshot backs selected SVG 2 properties. Full migration of geometry, paint, filter, text, and context-paint reads remains open. |
 | CSS custom properties | Partial | CSS variables are applied during load for supported properties, including media-qualified rules in covered paths. Full CSS cascade/CSSOM behavior is out of scope. |
 | `@media` and media imports | Partial | `@media` blocks and media-qualified `@import` rules are evaluated against a screen-like static SVG viewport context. Unsupported or non-matching media are ignored. |
 | Static pseudo-classes | Partial | Static forms such as `:root`, `:link`, and `:lang()` have focused handling. Interactive pseudo-classes such as `:hover`, `:active`, `:focus`, and `:visited` never match because there is no live event state during loading. |
@@ -118,9 +118,9 @@ The normative reference is the W3C [SVG 2 Candidate Recommendation](https://www.
 | Secure static processing completeness | Contracts exist; linked stylesheets, fonts, host exposure, and complete nested-resource inheritance need more work. |
 | Central computed style cache | Not finished. Some typed getters read effective CSS values, but style resolution remains scattered. |
 | Shared geometry service | Needed for marker-on-all-shapes, bbox options, hit testing, complete textPath targets, and pathLength normalization. |
-| Full SVG 2 text layout | Wrapping, `side=right`, closed-loop textPath, `pathLength` text scaling, ellipsis, and shape exclusion are not complete. |
+| Full SVG 2 text layout | Auto-wrapping, baseline/offset parity, graphics effects on text content, complete CSS Text integration, ellipsis, and shape exclusion are not complete. Focused `side=right`, closed-loop textPath, and `pathLength` textPath rows are covered separately. |
 | Full symbol reference-point semantics | `refX` and `refY` are parsed but not fully rendered. |
-| Complete context paint | Marker context paint works; general reuse/resource context paint and fallback chains remain open. |
+| Complete context paint | Marker and focused `<use>` context paint paths work; broader reuse/resource context paint, inheritance edge cases, and fallback chains remain open. |
 | Full masking/filter parity | Focused `mask-type`, `feDropShadow`, and `feImage` paths exist; full CSS Masking and Filter Effects parity is not complete. |
 | Mesh gradients, hatches, `solidcolor` | Deferred or preserve-only. |
 | `stroke-linejoin: arcs` | Deferred; current rendering falls back to existing line-join behavior. |
@@ -148,7 +148,7 @@ The normative reference is the W3C [SVG 2 Candidate Recommendation](https://www.
 | `Svg2StaticSubsetAttributeTests` | SVG 2 parser/model attributes, preserve-only/deferred element contracts, dynamic/interactive preservation boundaries, unsupported vector-effect fallback, and stroke-linejoin compatibility. |
 | `SvgContextPaintServerTests` and retained scene tests | Context paint, paint order, marker behavior, masks, filters, `feDropShadow`, `feImage`, and dependency tracking in focused renderer paths. |
 | `Svg2StaticSubsetRenderingContractTests` | Renderer fallback contracts for unknown SVG elements, unsupported vector-effect values, and deferred `stroke-linejoin: arcs`. |
-| WPT SVG 2 static subset | Focused Web Platform Tests rows for geometry properties, the `d` property, `pathLength`, context paint, paint order, paint-server fallbacks, radial gradient `fr`, textPath additions, and `use` sizing. Passing rows compare against checked Chrome references; remaining rows are explicitly skipped with reasons. |
+| WPT SVG 2 static subset | Focused Web Platform Tests rows for geometry properties, the `d` property, `pathLength`, context paint, paint order, paint-server fallbacks, radial gradient `fr`, textPath additions, `use` sizing, path bearing commands, and selected style-origin rendering. The active SVG-only rows compare against checked Chrome references and stay enabled; unsupported browser-runtime rows are outside the static subset instead of being tracked as skipped WPT rows. |
 | W3C/resvg rows | Broader static rendering references. Browser-only, dynamic, or not-yet-supported rows remain skipped with explicit reasons. |
 
 ## Related Articles
