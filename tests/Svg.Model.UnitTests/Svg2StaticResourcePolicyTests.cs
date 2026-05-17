@@ -177,6 +177,32 @@ public class Svg2StaticResourcePolicyTests
     }
 
     [Fact]
+    public void GetImage_ResourcePolicyPassesCrossoriginToContextAssetLoader()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+              <image id="asset" href="data:image/png;base64,AQIDBA==" crossorigin="use-credentials" width="16" height="16" />
+            </svg>
+            """;
+        var document = SvgService.FromSvg(
+            svg,
+            new SvgParameters(null, null, null, CreateLoadOptions(SvgExternalResourcePolicy.SameDocumentAndDataOnly)));
+        var image = Assert.IsType<SvgImage>(document!.GetElementById("asset"));
+        Assert.True(image.TryGetEffectiveHrefString(out var href));
+
+        var assetLoader = new CountingAssetLoader();
+        var loadedImage = SvgService.GetImage(href, image, assetLoader);
+
+        Assert.IsType<SKImage>(loadedImage);
+        Assert.Equal(1, assetLoader.LoadImageCallCount);
+        var context = Assert.NotNull(assetLoader.LastImageLoadContext);
+        Assert.Equal("use-credentials", context.CrossOrigin);
+        Assert.Same(image, context.OwnerElement);
+        Assert.True(context.ResourceUri.IsAbsoluteUri);
+        Assert.Equal("data", context.ResourceUri.Scheme);
+    }
+
+    [Fact]
     public void OpenSvg_DisabledResourcePolicyBlocksCssImportsDuringParse()
     {
         var tempDirectory = Directory.CreateTempSubdirectory();
@@ -488,6 +514,145 @@ public class Svg2StaticResourcePolicyTests
     }
 
     [Fact]
+    public void GetReference_SameDocumentAndDataOnlyBlocksExternalSvgElementReference()
+    {
+        var previousResolveExternalElements = SvgDocument.ResolveExternalElements;
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            SvgDocument.ResolveExternalElements = ExternalType.Local | ExternalType.Remote;
+            var externalSvgPath = Path.Combine(tempDirectory.FullName, "external.svg");
+            File.WriteAllText(externalSvgPath, """
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                  <rect id="external-shape" width="16" height="16" />
+                </svg>
+                """);
+            var documentPath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(documentPath, MinimalSvg);
+            var document = SvgService.OpenSvg(
+                documentPath,
+                new SvgParameters(null, null, null, CreateLoadOptions(SvgExternalResourcePolicy.SameDocumentAndDataOnly)));
+
+            var referenced = SvgService.GetReference<SvgElement>(
+                document!,
+                new Uri("external.svg#external-shape", UriKind.RelativeOrAbsolute));
+
+            Assert.Null(referenced);
+        }
+        finally
+        {
+            SvgDocument.ResolveExternalElements = previousResolveExternalElements;
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void GetReference_SameOriginExternalSvgInheritsResourcePolicy()
+    {
+        var previousResolveExternalElements = SvgDocument.ResolveExternalElements;
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            SvgDocument.ResolveExternalElements = ExternalType.Local | ExternalType.Remote;
+            var externalSvgPath = Path.Combine(tempDirectory.FullName, "external.svg");
+            File.WriteAllText(externalSvgPath, """
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                  <rect id="external-shape" width="16" height="16" />
+                </svg>
+                """);
+            var documentPath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(documentPath, MinimalSvg);
+            var document = SvgService.OpenSvg(
+                documentPath,
+                new SvgParameters(null, null, null, CreateLoadOptions(SvgExternalResourcePolicy.SameOrigin)));
+            var resolvedReferenceUri = new Uri(new Uri(document!.BaseUri!, "external.svg").AbsoluteUri + "#external-shape");
+
+            Assert.True(SvgService.AllowsExternalResource(document, resolvedReferenceUri));
+
+            var referenced = SvgService.GetReference<SvgElement>(
+                document,
+                new Uri("external.svg#external-shape", UriKind.RelativeOrAbsolute));
+
+            Assert.NotNull(referenced);
+            Assert.Equal(
+                SvgExternalResourcePolicy.SameOrigin,
+                SvgService.GetDocumentLoadOptions(referenced.OwnerDocument).ExternalResources);
+        }
+        finally
+        {
+            SvgDocument.ResolveExternalElements = previousResolveExternalElements;
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void GetReference_ExternalSvgFragmentDoesNotApplyLinkedStylesheets()
+    {
+        var previousResolveExternalElements = SvgDocument.ResolveExternalElements;
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            SvgDocument.ResolveExternalElements = ExternalType.Local | ExternalType.Remote;
+            var cssPath = Path.Combine(tempDirectory.FullName, "external.css");
+            File.WriteAllText(cssPath, "#external-shape { fill: #ff0000; }");
+            var externalSvgPath = Path.Combine(tempDirectory.FullName, "external.svg");
+            File.WriteAllText(externalSvgPath, """
+                <?xml-stylesheet type="text/css" href="external.css"?>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                  <rect id="external-shape" width="16" height="16" fill="#000000" />
+                </svg>
+                """);
+            var documentPath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(documentPath, MinimalSvg);
+            var document = SvgService.OpenSvg(
+                documentPath,
+                new SvgParameters(null, null, null, CreateLoadOptions(SvgExternalResourcePolicy.SameOrigin)));
+
+            var referenced = Assert.IsType<SvgRectangle>(SvgService.GetReference<SvgElement>(
+                document!,
+                new Uri("external.svg#external-shape", UriKind.RelativeOrAbsolute)));
+            var fill = Assert.IsType<SvgColourServer>(referenced.Fill);
+
+            Assert.Equal(Color.Black.ToArgb(), fill.Colour.ToArgb());
+            Assert.Equal(
+                SvgExternalResourcePolicy.SameOrigin,
+                SvgService.GetDocumentLoadOptions(referenced.OwnerDocument).ExternalResources);
+        }
+        finally
+        {
+            SvgDocument.ResolveExternalElements = previousResolveExternalElements;
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void GetReference_DisabledResourcePolicyAllowsAbsoluteSameDocumentReference()
+    {
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            var documentPath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(documentPath, MinimalSvg);
+            var document = SvgService.OpenSvg(
+                documentPath,
+                new SvgParameters(null, null, null, CreateLoadOptions(SvgExternalResourcePolicy.Disabled)));
+            var referenceUri = new Uri(new Uri(Path.GetFullPath(documentPath)).AbsoluteUri + "#shape");
+
+            var referenced = SvgService.GetReference<SvgElement>(document!, referenceUri);
+
+            Assert.Same(document!.GetElementById("shape"), referenced);
+        }
+        finally
+        {
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
     public void OpenSvg_SameOriginResourcePolicyBlocksCssImportsOutsideDocumentDirectory()
     {
         var tempDirectory = Directory.CreateTempSubdirectory();
@@ -537,9 +702,11 @@ public class Svg2StaticResourcePolicyTests
         };
     }
 
-    private sealed class CountingAssetLoader : ISvgAssetLoader
+    private sealed class CountingAssetLoader : ISvgAssetLoader, ISvgImageAssetLoader
     {
         public int LoadImageCallCount { get; private set; }
+
+        public SvgImageLoadContext? LastImageLoadContext { get; private set; }
 
         public bool EnableSvgFonts => false;
 
@@ -552,6 +719,12 @@ public class Svg2StaticResourcePolicyTests
                 Width = 1f,
                 Height = 1f
             };
+        }
+
+        public SKImage LoadImage(Stream stream, SvgImageLoadContext context)
+        {
+            LastImageLoadContext = context;
+            return LoadImage(stream);
         }
 
         public List<TypefaceSpan> FindTypefaces(string? text, SKPaint paintPreferredTypeface)

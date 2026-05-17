@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
+using System;
 using System.Collections.Generic;
 using System.IO;
 using ShimSkiaSharp;
@@ -8,6 +9,7 @@ namespace Svg.Model;
 
 public record struct TypefaceSpan(string Text, float Advance, SKTypeface? Typeface);
 public readonly record struct ShapedGlyphRun(ushort[] Glyphs, SKPoint[] Points, int[] Clusters, float Advance);
+public readonly record struct SvgImageLoadContext(Uri ResourceUri, string? CrossOrigin, SvgElement? OwnerElement);
 
 public interface ISvgAssetLoader
 {
@@ -17,6 +19,11 @@ public interface ISvgAssetLoader
     SKFontMetrics GetFontMetrics(SKPaint paint);
     float MeasureText(string? text, SKPaint paint, ref SKRect bounds);
     SKPath? GetTextPath(string? text, SKPaint paint, float x, float y);
+}
+
+public interface ISvgImageAssetLoader
+{
+    SKImage LoadImage(Stream stream, SvgImageLoadContext context);
 }
 
 public interface ISvgTextReferenceRenderingOptions

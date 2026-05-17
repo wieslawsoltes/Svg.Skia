@@ -103,13 +103,155 @@ public static class SvgService
             return default;
         }
 
-        var svgElementById = svgElement.OwnerDocument?.GetElementById(uri);
+        var resourceUri = GetReferenceUri(uri, svgElement);
+        if (!AllowsExternalResource(svgElement, resourceUri))
+        {
+            Trace.TraceWarning("Trying to resolve element reference from '{0}', but the document resource policy blocks it.", resourceUri);
+            return default;
+        }
+
+        if (!IsSameDocumentResource(svgElement, resourceUri))
+        {
+            return GetExternalSvgReference<T>(resourceUri, svgElement);
+        }
+
+        var svgElementById = GetSameDocumentReference(svgElement, resourceUri);
         if (svgElementById is { })
         {
             return svgElementById as T;
         }
 
         return default;
+    }
+
+    private static SvgElement? GetSameDocumentReference(SvgElement svgElement, Uri uri)
+    {
+        var svgDocument = svgElement as SvgDocument ?? svgElement.OwnerDocument;
+        if (!uri.IsAbsoluteUri)
+        {
+            return svgDocument?.GetElementById(uri);
+        }
+
+        return string.IsNullOrWhiteSpace(uri.Fragment)
+            ? null
+            : svgDocument?.IdManager.GetElementById(uri.Fragment);
+    }
+
+    private static T? GetExternalSvgReference<T>(Uri uri, SvgElement svgOwnerElement) where T : SvgElement
+    {
+        if (!uri.IsAbsoluteUri || string.IsNullOrWhiteSpace(uri.Fragment))
+        {
+            return default;
+        }
+
+        var documentUri = GetImageDocumentUri(uri);
+        if (!SvgDocument.ResolveExternalElements.AllowsResolving(documentUri))
+        {
+            Trace.TraceWarning("Trying to resolve element reference from '{0}', but resolving external resources of that type is disabled.", documentUri);
+            return default;
+        }
+
+        var svgDocument = LoadExternalSvgReferenceDocument(documentUri, GetEffectiveDocumentLoadOptions(svgOwnerElement));
+        var fragment = uri.Fragment;
+        if (fragment.Length > 0 && fragment[0] == '#')
+        {
+            fragment = fragment.Substring(1);
+        }
+
+        return svgDocument?.GetElementById(fragment) as T;
+    }
+
+    private static SvgDocument? LoadExternalSvgReferenceDocument(Uri documentUri, SvgDocumentLoadOptions? loadOptions)
+    {
+        try
+        {
+            if (documentUri.IsFile)
+            {
+                using var fileStream = System.IO.File.OpenRead(documentUri.LocalPath);
+                return documentUri.LocalPath.EndsWith(".svgz", StringComparison.OrdinalIgnoreCase)
+                    ? LoadSvgz(fileStream, documentUri, loadOptions, loadLinkedStylesheets: false)
+                    : LoadSvg(fileStream, documentUri, loadOptions, loadLinkedStylesheets: false);
+            }
+
+#pragma warning disable 618, SYSLIB0014
+            var request = WebRequest.Create(documentUri);
+#pragma warning restore 618, SYSLIB0014
+            using var response = request.GetResponse();
+            using var stream = response.GetResponseStream();
+            if (stream is null)
+            {
+                return default;
+            }
+
+            if (stream.CanSeek)
+            {
+                stream.Position = 0;
+            }
+
+            var contentType = response.ContentType ?? string.Empty;
+            var isSvgMimeType = contentType.StartsWith(MimeTypeSvg, StringComparison.OrdinalIgnoreCase);
+            var isSvg = documentUri.LocalPath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase);
+            var isSvgz = documentUri.LocalPath.EndsWith(".svgz", StringComparison.OrdinalIgnoreCase);
+
+            if (isSvgMimeType || isSvg)
+            {
+                return LoadSvg(stream, documentUri, loadOptions, loadLinkedStylesheets: false);
+            }
+
+            if (isSvgz)
+            {
+                return LoadSvgz(stream, documentUri, loadOptions, loadLinkedStylesheets: false);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+            Debug.WriteLine(ex.StackTrace);
+        }
+
+        return default;
+    }
+
+    private static Uri GetReferenceUri(Uri uri, SvgElement svgOwnerElement)
+    {
+        if (uri.IsAbsoluteUri)
+        {
+            return uri;
+        }
+
+        var uriString = uri.OriginalString;
+        if (string.IsNullOrEmpty(uriString) || uriString[0] == '#')
+        {
+            return uri;
+        }
+
+        if (svgOwnerElement is SvgDocument { BaseUri: { } documentBaseUri })
+        {
+            return ResolveRelativeUri(documentBaseUri, uriString);
+        }
+
+        return TryGetBaseUri(svgOwnerElement, out var baseUri)
+            ? ResolveRelativeUri(baseUri, uriString)
+            : uri;
+    }
+
+    private static Uri ResolveRelativeUri(Uri baseUri, string uriString)
+    {
+        var fragmentIndex = uriString.IndexOf('#');
+        if (fragmentIndex < 0)
+        {
+            return new Uri(baseUri, uriString);
+        }
+
+        var path = uriString.Substring(0, fragmentIndex);
+        var fragment = uriString.Substring(fragmentIndex);
+        if (string.IsNullOrEmpty(path))
+        {
+            return new Uri(baseUri.AbsoluteUri + fragment);
+        }
+
+        var resolvedPath = new Uri(baseUri, path);
+        return new Uri(resolvedPath.AbsoluteUri + fragment);
     }
 
     internal static Uri? GetEffectiveReferenceUri(SvgElement svgElement, Uri? fallback)
@@ -446,7 +588,7 @@ public static class SvgService
             }
         }
 
-        var resolvedBaseUri = svgOwnerElement.OwnerDocument?.BaseUri;
+        var resolvedBaseUri = (svgOwnerElement as SvgDocument)?.BaseUri ?? svgOwnerElement.OwnerDocument?.BaseUri;
         while (baseUriFragments.Count > 0)
         {
             var nextBaseUri = new Uri(baseUriFragments.Pop(), UriKind.RelativeOrAbsolute);
@@ -601,7 +743,7 @@ public static class SvgService
             return LoadSvgz(stream, uri, GetEffectiveDocumentLoadOptions(svgOwnerElement));
         }
 
-        return assetLoader.LoadImage(stream);
+        return LoadImage(assetLoader, stream, uri, svgOwnerElement);
     }
 
     internal static object? GetImageFromDataUri(string? uriString, SvgElement svgOwnerElement, ISvgAssetLoader assetLoader)
@@ -696,17 +838,45 @@ public static class SvgService
                 }
 
                 using var stream = new System.IO.MemoryStream(bytes);
-                return assetLoader.LoadImage(stream);
+                return LoadImage(assetLoader, stream, imageBaseUri, svgOwnerElement);
             }
             else
             {
                 var bytes = Encoding.Default.GetBytes(data);
                 using var stream = new System.IO.MemoryStream(bytes);
-                return assetLoader.LoadImage(stream);
+                return LoadImage(assetLoader, stream, imageBaseUri, svgOwnerElement);
             }
         }
 
         return default;
+    }
+
+    private static SKImage LoadImage(
+        ISvgAssetLoader assetLoader,
+        System.IO.Stream stream,
+        Uri resourceUri,
+        SvgElement? svgOwnerElement)
+    {
+        if (assetLoader is ISvgImageAssetLoader imageAssetLoader)
+        {
+            return imageAssetLoader.LoadImage(
+                stream,
+                new SvgImageLoadContext(
+                    resourceUri,
+                    GetCrossOrigin(svgOwnerElement),
+                    svgOwnerElement));
+        }
+
+        return assetLoader.LoadImage(stream);
+    }
+
+    private static string? GetCrossOrigin(SvgElement? svgOwnerElement)
+    {
+        return svgOwnerElement is { } &&
+               svgOwnerElement.TryGetAttribute("crossorigin", out var crossOrigin) &&
+               !string.IsNullOrWhiteSpace(crossOrigin)
+            ? crossOrigin
+            : null;
     }
 
     internal static SvgDocument LoadSvg(System.IO.Stream stream, Uri baseUri)
@@ -714,14 +884,15 @@ public static class SvgService
         return LoadSvg(stream, baseUri, loadOptions: null);
     }
 
-    private static SvgDocument LoadSvg(System.IO.Stream stream, Uri baseUri, SvgDocumentLoadOptions? loadOptions)
+    private static SvgDocument LoadSvg(System.IO.Stream stream, Uri baseUri, SvgDocumentLoadOptions? loadOptions, bool loadLinkedStylesheets = true)
     {
         return SvgDocumentCompatibilityLoader.Open<SvgDocument>(
             stream,
             new SvgOptions(),
             baseUri,
             loadOptions,
-            captureCompatibilityStyleState: false);
+            captureCompatibilityStyleState: false,
+            loadLinkedStylesheets);
     }
 
     internal static SvgDocument LoadSvgz(System.IO.Stream stream, Uri baseUri)
@@ -729,7 +900,7 @@ public static class SvgService
         return LoadSvgz(stream, baseUri, loadOptions: null);
     }
 
-    private static SvgDocument LoadSvgz(System.IO.Stream stream, Uri baseUri, SvgDocumentLoadOptions? loadOptions)
+    private static SvgDocument LoadSvgz(System.IO.Stream stream, Uri baseUri, SvgDocumentLoadOptions? loadOptions, bool loadLinkedStylesheets = true)
     {
         using var gzipStream = new GZipStream(stream, CompressionMode.Decompress);
         using var memoryStream = new System.IO.MemoryStream();
@@ -741,7 +912,8 @@ public static class SvgService
             new SvgOptions(),
             baseUri,
             loadOptions,
-            captureCompatibilityStyleState: false);
+            captureCompatibilityStyleState: false,
+            loadLinkedStylesheets);
     }
 
     private static SvgDocument? ApplyParameters(SvgDocument? svgDocument, SvgParameters? parameters)

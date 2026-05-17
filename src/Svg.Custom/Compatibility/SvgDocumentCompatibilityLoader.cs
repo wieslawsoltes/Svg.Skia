@@ -73,6 +73,11 @@ public static class SvgDocumentCompatibilityLoader
 
     public static T Open<T>(Stream stream, SvgOptions svgOptions, Uri? baseUri, SvgDocumentLoadOptions? loadOptions, bool captureCompatibilityStyleState) where T : SvgDocument, new()
     {
+        return Open<T>(stream, svgOptions, baseUri, loadOptions, captureCompatibilityStyleState, loadLinkedStylesheets: true);
+    }
+
+    public static T Open<T>(Stream stream, SvgOptions svgOptions, Uri? baseUri, SvgDocumentLoadOptions? loadOptions, bool captureCompatibilityStyleState, bool loadLinkedStylesheets) where T : SvgDocument, new()
+    {
         if (stream is null)
         {
             throw new ArgumentNullException(nameof(stream));
@@ -93,7 +98,8 @@ public static class SvgDocumentCompatibilityLoader
             baseUri,
             loadOptions,
             captureCompatibilityStyleState,
-            preserveCompatibilityPresentationAttributes: preserveCompatibilityPresentationAttributes);
+            preserveCompatibilityPresentationAttributes: preserveCompatibilityPresentationAttributes,
+            loadLinkedStylesheets: loadLinkedStylesheets);
     }
 
     public static T FromSvg<T>(string svg) where T : SvgDocument, new()
@@ -159,7 +165,8 @@ public static class SvgDocumentCompatibilityLoader
         Uri? baseUri = null,
         SvgDocumentLoadOptions? loadOptions = null,
         bool captureCompatibilityStyleState = false,
-        bool preserveCompatibilityPresentationAttributes = true)
+        bool preserveCompatibilityPresentationAttributes = true,
+        bool loadLinkedStylesheets = true)
         where T : SvgDocument, new()
     {
         // Keep each stylesheet fragment together with the URI it should resolve against. That lets
@@ -171,7 +178,7 @@ public static class SvgDocumentCompatibilityLoader
             PreserveJavaScriptDomState = captureCompatibilityStyleState,
             PreserveCompatibilityPresentationAttributes = captureCompatibilityStyleState && preserveCompatibilityPresentationAttributes
         };
-        var svgDocument = Create<T>(reader, elementFactory, ref styles, baseUri, loadOptions);
+        var svgDocument = Create<T>(reader, elementFactory, ref styles, baseUri, loadOptions, loadLinkedStylesheets);
         svgDocument.LoadOptions = loadOptions;
 
         // Avalonia and other hosts can concatenate optional CSS inputs into a whitespace-only
@@ -390,7 +397,8 @@ public static class SvgDocumentCompatibilityLoader
         SvgElementFactory elementFactory,
         ref List<SvgCssStyleSource>? styles,
         Uri? baseUri,
-        SvgDocumentLoadOptions? loadOptions)
+        SvgDocumentLoadOptions? loadOptions,
+        bool loadLinkedStylesheets)
         where T : SvgDocument, new()
     {
         var elementStack = new Stack<SvgElement>();
@@ -457,7 +465,8 @@ public static class SvgDocumentCompatibilityLoader
                             // that declared it, not to the current process working directory.
                             (styles ??= new List<SvgCssStyleSource>()).Add(new SvgCssStyleSource(unknown.Content ?? string.Empty, svgDocument?.BaseUri));
                         }
-                        else if (element is SvgUnknownElement link &&
+                        else if (loadLinkedStylesheets &&
+                                 element is SvgUnknownElement link &&
                                  link.ElementName == "link" &&
                                  TryGetLinkedStylesheetHref(link, out var href) &&
                                  SvgCssCompatibilityProcessor.TryLoadLinkedStylesheet(href, svgDocument?.BaseUri ?? baseUri, loadOptions) is { } linkedStylesheet)
@@ -495,7 +504,8 @@ public static class SvgDocumentCompatibilityLoader
                         break;
 
                     case XmlNodeType.ProcessingInstruction:
-                        if (reader.Name.Equals("xml-stylesheet", StringComparison.OrdinalIgnoreCase) &&
+                        if (loadLinkedStylesheets &&
+                            reader.Name.Equals("xml-stylesheet", StringComparison.OrdinalIgnoreCase) &&
                             TryGetXmlStylesheetHref(reader.Value, out var stylesheetHref) &&
                             SvgCssCompatibilityProcessor.TryLoadLinkedStylesheet(stylesheetHref, svgDocument?.BaseUri ?? baseUri, loadOptions) is { } xmlStylesheet)
                         {
