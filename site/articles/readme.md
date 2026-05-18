@@ -10,7 +10,7 @@ Svg.Skia spans a few related areas:
 - `Svg.Controls.Avalonia` and `Svg.Controls.Skia.Avalonia` expose Avalonia controls, images, and brush helpers.
 - `Svg.Controls.Skia.Uno` exposes a Skia-backed Uno control and reusable `SvgSource` resources.
 - `Svg.Controls.Skia.Maui` exposes a Skia-backed .NET MAUI control and reusable `SvgSource` resources.
-- `SvgML.Maui` exposes .NET MAUI XAML-authored SVG trees and `foreignObject` control hosting.
+- `SvgML.Avalonia`, `SvgML.Maui`, and `SvgML.Uno` expose XAML-authored SVG trees, `foreignObject` control hosting, and the supported SVG 2 static subset authoring surface.
 - `Svg.Editor.*` exposes the reusable AvalonDraw editor stack, from document/session services up to the interactive Avalonia workspace.
 - `Skia.Controls.Avalonia` hosts general-purpose Skia controls for Avalonia.
 - `Svg.CodeGen.Skia`, `Svg.SourceGenerator.Skia`, `svgc`, and `Svg.Skia.Converter` cover generated code and CLI workflows.

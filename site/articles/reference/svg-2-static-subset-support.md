@@ -4,7 +4,7 @@ title: "SVG 2 Static Subset Support"
 
 # SVG 2 Static Subset Support
 
-This article documents the current SVG 2 static subset implemented in `Svg.Custom`, `Svg.Model`, `Svg.SceneGraph`, `ShimSkiaSharp`, and `Svg.Skia`. It focuses on features that are parsed, preserved, or rendered for static output, and it calls out SVG 2 features that are scaffolded or explicitly deferred.
+This article documents the current SVG 2 static subset implemented in `Svg.Custom`, `Svg.Model`, `Svg.SceneGraph`, `ShimSkiaSharp`, `Svg.Skia`, and the inline `SvgML.Avalonia`, `SvgML.Maui`, and `SvgML.Uno` authoring packages. It focuses on features that are parsed, preserved, authored, or rendered for static output, and it calls out SVG 2 features that are scaffolded or explicitly deferred.
 
 The normative reference is the W3C [SVG 2 Candidate Recommendation](https://www.w3.org/TR/SVG2/). SVG 2 builds on [SVG 1.1 Second Edition](https://www.w3.org/TR/SVG11/) and changes several areas relevant to static rendering, including processing modes, href handling, geometry properties, painting, text, and the split of masking/filter behavior into related CSS specifications.
 
@@ -36,7 +36,7 @@ The normative reference is the W3C [SVG 2 Candidate Recommendation](https://www.
 | External resource policy | Supported for static subset | `SvgExternalResourcePolicy` supports `Enabled`, `SameOrigin`, `SameDocumentAndDataOnly`, and `Disabled`. Image, nested SVG/SVGZ, data URI, CSS `@import`, and external SVG reference paths use policy checks in covered paths. |
 | Unknown elements and attributes | Partial | `PreserveUnknownElements` exists on load options, custom attributes remain preserved, and unknown SVG content is retained as model data rather than rendered as SVG graphics. The option is a contract surface, not a complete policy switch across every load path yet. |
 | Removed/deprecated SVG 1.1 switches | Compatibility | `version`, `baseProfile`, `requiredFeatures`, and `externalResourcesRequired` can be parsed or preserved for compatibility. SVG 2 static rendering is not blocked by `requiredFeatures`. |
-| Host/load-option surface | Partial | Core loaders accept `SvgParameters` and `SvgDocumentLoadOptions`. Avalonia and other host wrappers preserve options through selected source/cache paths and expose CSS/current-color conveniences, but not every host control exposes the full load-option contract yet. |
+| Host/load-option surface | Partial | Core loaders accept `SvgParameters` and `SvgDocumentLoadOptions`. `SvgML.Avalonia`, `SvgML.Maui`, and `SvgML.Uno` root controls expose `ProcessingMode`, `ExternalResources`, `PreserveUnknownElements`, and `PreferSvg2Href`, and pass them through the shared load pipeline. Avalonia and other source-based host wrappers preserve options through selected source/cache paths and expose CSS/current-color conveniences, but not every host control exposes the full load-option contract yet. |
 
 ## Href And Linking
 
@@ -72,7 +72,7 @@ The normative reference is the W3C [SVG 2 Candidate Recommendation](https://www.
 | Marker `orient="auto-start-reverse"` | Supported | Retained marker compilation applies SVG 2 start-marker reversal for supported marker paths. |
 | `ellipse` auto radii | Deferred | Numeric SVG 1.1 radii render. SVG 2 `auto` radius resolution is not complete. |
 | `svg` and `image` auto sizing | Partial | Explicit sizes, viewBox behavior, CSS-authored image dimensions, and intrinsic fallback are supported in covered paths. Full SVG 2 `auto` sizing semantics for every viewport/resource variant remain open. |
-| `foreignObject` geometry | Partial | Geometry is preserved and SvgML packages provide platform integrations. Core Skia rendering does not lay out browser HTML/CSS. |
+| `foreignObject` geometry | Partial | Geometry is preserved and SvgML packages provide platform native-control integrations. Core Skia rendering does not lay out browser HTML/CSS. |
 
 ## Text Features
 
@@ -132,10 +132,11 @@ The normative reference is the W3C [SVG 2 Candidate Recommendation](https://www.
 | Layer | Main contracts |
 |---|---|
 | `Svg.Custom` | `SvgDocumentLoadOptions`, `SvgProcessingMode`, `SvgExternalResourcePolicy`, `SvgElementHrefExtensions`, `SvgPaintOrder`, `SvgContextPaintServer`, `SvgDropShadow`, `SvgText2Properties`, `SvgTransform2Properties`, `SvgSymbol.Svg2`, `SvgPathBasedElement.Svg2`, and expanded style attribute recognition. |
-| `Svg.Model` | `SvgParameters` load-option bridge, resource policy checks, URI/image loading, path/paint/mask/filter helpers, generated SvgML property surfaces, and `MaskType`. |
+| `Svg.Model` | `SvgParameters` load-option bridge, resource policy checks, URI/image loading, path/paint/mask/filter helpers, and `MaskType`. |
 | `Svg.SceneGraph` | Retained use/resource expansion, effective href dependency tracking, textPath additions, paint-order rendering, context-paint marker state, retained masks, retained filters, `feDropShadow`, linked filter and `feImage` dependency handling. |
 | `ShimSkiaSharp` | Renderer-neutral path, paint, shader, image, filter, save-layer, clip, and text commands used by current SVG 2 slices. |
 | `Svg.Skia` | Converts shim commands to SkiaSharp, hosts `SKSvg` picture/model lifecycle, and provides interaction dispatch around retained static content. |
+| SvgML packages | `SvgML.Avalonia`, `SvgML.Maui`, and `SvgML.Uno` expose inline XAML authoring for the SVG 2 static subset, including root load options, shape `pathLength`, symbol geometry, `paint-order`, `vector-effect`, transform properties, `white-space`, preserve-only text properties, `mask-type`, `feDropShadow`, `textPath path`, and `textPath side`. |
 | Host controls | Preserve and clone load options through current source/cache paths and expose selected CSS/current-color/runtime conveniences; broader public host exposure remains planned. |
 
 ## Test Coverage

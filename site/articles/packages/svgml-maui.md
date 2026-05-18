@@ -109,6 +109,19 @@ The MAUI package is self-weaved during normal builds so MAUI XamlC can resolve S
 
 See [SvgML foreignObject Controls](../xaml/svgml-foreignobject-controls) for sizing and layout rules.
 
+## SVG 2 static subset authoring
+
+The generated MAUI SvgML surface is kept aligned with the shared `Svg.Skia` SVG 2 static subset. Dash-named members should be authored with the SVG names because the package is self-weaved before MAUI XamlC compiles consuming XAML.
+
+| Area | SvgML.Maui contract |
+| --- | --- |
+| Root load options | `ProcessingMode`, `ExternalResources`, `PreserveUnknownElements`, and `PreferSvg2Href` are bindable properties on `svg`. Changing them reloads the inline SVG tree. |
+| Geometry | Basic shapes expose `pathLength`; `symbol` exposes SVG 2 `x`, `y`, `width`, `height`, `refX`, and `refY`. |
+| Paint and transforms | Visual elements expose `paint-order`, `vector-effect`, `transform-box`, and `transform-origin`. |
+| Text | `textPath` exposes inline `path` data and `side`; visual/text elements expose `white-space`, `text-overflow`, `inline-size`, `shape-inside`, and `shape-subtract` for supported or preserve-only text contracts. |
+| Filters and masks | `mask` exposes `mask-type`, and the SVG 2 `feDropShadow` filter primitive is available for inline filter graphs. |
+| CSS-only features | `mix-blend-mode`, `isolation`, CSS `d`, CSS geometry, and CSS custom properties should be authored through `style`, `Css`, or `CurrentCss` rather than as direct SvgML properties. |
+
 ## Repository layout
 
 - Library source: `src/SvgML.Maui`
