@@ -17,6 +17,7 @@ namespace Svg
             }
 
             var originalParent = _parent;
+            OwnerDocument?.InvalidateComputedStyleCache();
             try
             {
                 _parent = temporaryParent;
@@ -25,6 +26,7 @@ namespace Svg
             finally
             {
                 _parent = originalParent;
+                OwnerDocument?.InvalidateComputedStyleCache();
             }
         }
     }

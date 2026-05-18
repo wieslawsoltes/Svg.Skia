@@ -2195,6 +2195,35 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.Equal(5, markerNodes.Count);
     }
 
+    [Fact]
+    public void RetainedSceneGraph_DoesNotReuseComputedStylesAcrossTemporaryUseParents()
+    {
+        const string useMarkerInheritanceSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="44">
+              <defs>
+                <marker id="red-marker" markerWidth="8" markerHeight="8" refX="4" refY="4" markerUnits="userSpaceOnUse">
+                  <rect x="0" y="0" width="8" height="8" fill="#ff0000" />
+                </marker>
+                <marker id="blue-marker" markerWidth="8" markerHeight="8" refX="4" refY="4" markerUnits="userSpaceOnUse">
+                  <rect x="0" y="0" width="8" height="8" fill="#0000ff" />
+                </marker>
+                <path id="segment" d="M10 10 L34 10" fill="none" stroke="black" stroke-width="1" />
+              </defs>
+              <use id="red-use" href="#segment" style="marker-start:url(#red-marker)" />
+              <use id="blue-use" href="#segment" y="20" style="marker-start:url(#blue-marker)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(useMarkerInheritanceSvg);
+
+        Assert.NotNull(svg.Picture);
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+
+        Assert.Equal(SkiaColors.Red, bitmap.GetPixel(10, 10));
+        Assert.Equal(SkiaColors.Blue, bitmap.GetPixel(10, 30));
+    }
+
     [Theory]
     [InlineData("line", """<line id="target" x1="10" y1="10" x2="50" y2="10" />""", 2, 10f, 10f, 0f, 50f, 10f, 0f)]
     [InlineData("polyline", """<polyline id="target" points="10,10 50,10 50,30" />""", 3, 10f, 10f, 0f, 50f, 30f, 90f)]
