@@ -2156,17 +2156,29 @@ public static class SvgSceneCompiler
         SKRect viewport,
         ref SKRect symbolViewport)
     {
-        if (!SvgService.TryGetAttribute(svgSymbol, "refX", out _) &&
-            !SvgService.TryGetAttribute(svgSymbol, "refY", out _))
+        var hasRefX = SvgService.TryGetAttribute(svgSymbol, "refX", out _);
+        var hasRefY = SvgService.TryGetAttribute(svgSymbol, "refY", out _);
+        if (!hasRefX && !hasRefY)
         {
             return viewBoxTransform;
         }
 
-        var refX = svgSymbol.RefX.ToDeviceValue(UnitRenderingType.Horizontal, svgSymbol, viewport);
-        var refY = svgSymbol.RefY.ToDeviceValue(UnitRenderingType.Vertical, svgSymbol, viewport);
-        var mappedReferencePoint = viewBoxTransform.MapPoint(new SKPoint(refX, refY));
-        var deltaX = x - mappedReferencePoint.X;
-        var deltaY = y - mappedReferencePoint.Y;
+        var deltaX = 0f;
+        var deltaY = 0f;
+        if (hasRefX)
+        {
+            var refX = svgSymbol.RefX.ToDeviceValue(UnitRenderingType.Horizontal, svgSymbol, viewport);
+            var mappedReferencePoint = viewBoxTransform.MapPoint(new SKPoint(refX, 0f));
+            deltaX = x - mappedReferencePoint.X;
+        }
+
+        if (hasRefY)
+        {
+            var refY = svgSymbol.RefY.ToDeviceValue(UnitRenderingType.Vertical, svgSymbol, viewport);
+            var mappedReferencePoint = viewBoxTransform.MapPoint(new SKPoint(0f, refY));
+            deltaY = y - mappedReferencePoint.Y;
+        }
+
         if (Math.Abs(deltaX) <= float.Epsilon && Math.Abs(deltaY) <= float.Epsilon)
         {
             return viewBoxTransform;

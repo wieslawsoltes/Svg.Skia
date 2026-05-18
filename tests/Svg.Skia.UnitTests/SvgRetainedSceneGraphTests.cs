@@ -2094,6 +2094,56 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_SymbolRefXDoesNotAdjustOmittedRefY()
+    {
+        const string symbolRefSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+              <defs>
+                <symbol id="icon" viewBox="10 20 20 20" refX="10">
+                  <rect id="symbol-shape" x="10" y="20" width="20" height="20" fill="#ff0000" />
+                </symbol>
+              </defs>
+              <use id="use-target" href="#icon" x="30" y="30" width="20" height="20" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(symbolRefSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+        Assert.Equal(new SkiaColor(0xff, 0x00, 0x00, 0xff), bitmap.GetPixel(35, 35));
+        Assert.Equal(new SkiaColor(0x00, 0x00, 0x00, 0x00), bitmap.GetPixel(35, 55));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_SymbolRefYDoesNotAdjustOmittedRefX()
+    {
+        const string symbolRefSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+              <defs>
+                <symbol id="icon" viewBox="10 20 20 20" refY="20">
+                  <rect id="symbol-shape" x="10" y="20" width="20" height="20" fill="#ff0000" />
+                </symbol>
+              </defs>
+              <use id="use-target" href="#icon" x="30" y="30" width="20" height="20" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(symbolRefSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+        Assert.Equal(new SkiaColor(0xff, 0x00, 0x00, 0xff), bitmap.GetPixel(35, 35));
+        Assert.Equal(new SkiaColor(0x00, 0x00, 0x00, 0x00), bitmap.GetPixel(55, 35));
+    }
+
+    [Fact]
     public void RetainedSceneGraph_UsesSvg2SymbolDimensionsWhenUseDimensionsAreOmitted()
     {
         const string symbolDimensionSvg = """
