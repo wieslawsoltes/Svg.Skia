@@ -6378,6 +6378,50 @@ internal static partial class SvgSceneTextCompiler
             };
         }
 
+        void AppendRoundRectSamples(SKRect rect, float rx, float ry)
+        {
+            if (rect.Width <= 0f || rect.Height <= 0f)
+            {
+                return;
+            }
+
+            rx = Math.Min(Math.Abs(rx), rect.Width / 2f);
+            ry = Math.Min(Math.Abs(ry), rect.Height / 2f);
+            if (rx <= 0f || ry <= 0f)
+            {
+                MoveToSample(rect.TopLeft);
+                AppendSample(rect.TopRight);
+                AppendSample(rect.BottomRight);
+                AppendSample(rect.BottomLeft);
+                CloseCurrentSample();
+                return;
+            }
+
+            const int arcSteps = 32;
+
+            void AppendCorner(float cx, float cy, float startRadians, float sweepRadians)
+            {
+                for (var step = 1; step <= arcSteps; step++)
+                {
+                    var radians = startRadians + (sweepRadians * step / arcSteps);
+                    AppendSample(new SKPoint(
+                        cx + (rx * (float)Math.Cos(radians)),
+                        cy + (ry * (float)Math.Sin(radians))));
+                }
+            }
+
+            MoveToSample(new SKPoint(rect.Left + rx, rect.Top));
+            AppendSample(new SKPoint(rect.Right - rx, rect.Top));
+            AppendCorner(rect.Right - rx, rect.Top + ry, -0.5f * (float)Math.PI, 0.5f * (float)Math.PI);
+            AppendSample(new SKPoint(rect.Right, rect.Bottom - ry));
+            AppendCorner(rect.Right - rx, rect.Bottom - ry, 0f, 0.5f * (float)Math.PI);
+            AppendSample(new SKPoint(rect.Left + rx, rect.Bottom));
+            AppendCorner(rect.Left + rx, rect.Bottom - ry, 0.5f * (float)Math.PI, 0.5f * (float)Math.PI);
+            AppendSample(new SKPoint(rect.Left, rect.Top + ry));
+            AppendCorner(rect.Left + rx, rect.Top + ry, (float)Math.PI, 0.5f * (float)Math.PI);
+            CloseCurrentSample();
+        }
+
         for (var i = 0; i < path.Commands.Count; i++)
         {
             switch (path.Commands[i])
@@ -6442,6 +6486,10 @@ internal static partial class SvgSceneTextCompiler
                         CloseCurrentSample();
                     }
 
+                    break;
+
+                case AddRoundRectPathCommand addRoundRect:
+                    AppendRoundRectSamples(addRoundRect.Rect, addRoundRect.Rx, addRoundRect.Ry);
                     break;
 
                 case AddOvalPathCommand addOval:

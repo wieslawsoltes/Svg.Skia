@@ -508,6 +508,31 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_TextPathHrefCanTargetRoundedRectangle()
+    {
+        const string shapeTargetSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="140" height="120" viewBox="0 0 140 120">
+              <defs>
+                <rect id="target-round-rect" x="30" y="30" width="80" height="60" rx="10" ry="15" />
+              </defs>
+              <text fill="#0055aa" font-size="8">
+                <textPath href="#target-round-rect">R</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(shapeTargetSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var drawText = Assert.Single(retainedModel!.FindCommands<DrawTextCanvasCommand>(), static cmd => cmd.Text == "R");
+        Assert.InRange(drawText.X, 38f, 46f);
+        Assert.InRange(drawText.Y, 28f, 34f);
+    }
+
+    [Fact]
     public void RetainedSceneGraph_TextPathHrefWinsOverXlinkHref()
     {
         const string hrefPrecedenceSvg = """
