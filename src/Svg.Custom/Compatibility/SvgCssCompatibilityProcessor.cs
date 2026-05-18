@@ -2411,7 +2411,18 @@ internal static class SvgCssCompatibilityProcessor
         SvgDocumentLoadOptions? loadOptions,
         SvgExternalResourcePolicy minimumPolicyForData)
     {
-        return loadOptions?.ExternalResources switch
+        var effectivePolicy = SvgExternalResourceResolver.GetEffectiveExternalResourcePolicy(
+            loadOptions ?? new SvgDocumentLoadOptions());
+        if (policyBaseUri is not null)
+        {
+            return SvgExternalResourceResolver.AllowsStylesheetResource(
+                stylesheetUri,
+                policyBaseUri,
+                loadOptions ?? new SvgDocumentLoadOptions(),
+                minimumPolicyForData);
+        }
+
+        return effectivePolicy switch
         {
             SvgExternalResourcePolicy.Disabled => false,
             SvgExternalResourcePolicy.SameDocumentAndDataOnly => IsDataUri(stylesheetUri) &&

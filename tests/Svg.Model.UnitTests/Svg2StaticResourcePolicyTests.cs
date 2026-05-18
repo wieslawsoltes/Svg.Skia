@@ -53,6 +53,29 @@ public class Svg2StaticResourcePolicyTests
     }
 
     [Fact]
+    public void AllowsExternalResource_SecureStaticCapsEnabledPolicyToSameDocumentAndDataOnly()
+    {
+        var document = SvgService.FromSvg(
+            MinimalSvg,
+            new SvgParameters(
+                null,
+                null,
+                null,
+                new SvgDocumentLoadOptions
+                {
+                    ProcessingMode = SvgProcessingMode.SecureStatic,
+                    ExternalResources = SvgExternalResourcePolicy.Enabled
+                }))!;
+        document.BaseUri = new Uri("https://example.test/assets/source.svg");
+
+        Assert.True(SvgService.AllowsExternalResource(document, new Uri("#shape", UriKind.RelativeOrAbsolute)));
+        Assert.True(SvgService.AllowsExternalResource(document, new Uri("data:image/png;base64,AQIDBA==", UriKind.Absolute)));
+        Assert.True(SvgService.AllowsExternalResource(document, new Uri("https://example.test/assets/source.svg#shape")));
+        Assert.False(SvgService.AllowsExternalResource(document, new Uri("https://example.test/assets/other.svg#shape")));
+        Assert.False(SvgService.AllowsExternalResource(document, new Uri("https://example.test/assets/image.png")));
+    }
+
+    [Fact]
     public void AllowsExternalResource_SameDocumentAndDataOnlyAllowsSameDocumentAndDataUris()
     {
         var document = CreateDocument(SvgExternalResourcePolicy.SameDocumentAndDataOnly);
@@ -223,6 +246,44 @@ public class Svg2StaticResourcePolicyTests
                 null,
                 null,
                 CreateLoadOptions(SvgExternalResourcePolicy.Disabled));
+
+            var document = SvgService.OpenSvg(svgPath, parameters);
+            var shape = Assert.IsType<SvgRectangle>(document!.GetElementById("shape"));
+            var fill = Assert.IsType<SvgColourServer>(shape.Fill);
+
+            Assert.Equal(Color.Black.ToArgb(), fill.Colour.ToArgb());
+        }
+        finally
+        {
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void OpenSvg_SecureStaticCapsEnabledPolicyAndBlocksCssImportsDuringParse()
+    {
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            var cssPath = Path.Combine(tempDirectory.FullName, "imported.css");
+            File.WriteAllText(cssPath, "#shape { fill: #ff0000; }");
+            var svgPath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(svgPath, """
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                  <style>@import "imported.css";</style>
+                  <rect id="shape" width="16" height="16" fill="#000000" />
+                </svg>
+                """);
+            var parameters = new SvgParameters(
+                null,
+                null,
+                null,
+                new SvgDocumentLoadOptions
+                {
+                    ProcessingMode = SvgProcessingMode.SecureStatic,
+                    ExternalResources = SvgExternalResourcePolicy.Enabled
+                });
 
             var document = SvgService.OpenSvg(svgPath, parameters);
             var shape = Assert.IsType<SvgRectangle>(document!.GetElementById("shape"));

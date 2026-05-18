@@ -132,9 +132,10 @@ public static class SvgService
             return svgDocument?.GetElementById(uri);
         }
 
-        return string.IsNullOrWhiteSpace(uri.Fragment)
+        var fragment = uri.Fragment;
+        return string.IsNullOrWhiteSpace(fragment)
             ? null
-            : svgDocument?.IdManager.GetElementById(uri.Fragment);
+            : svgDocument?.IdManager.GetElementById(fragment[0] == '#' ? fragment.Substring(1) : fragment);
     }
 
     private static T? GetExternalSvgReference<T>(Uri uri, SvgElement svgOwnerElement) where T : SvgElement
@@ -214,44 +215,7 @@ public static class SvgService
 
     private static Uri GetReferenceUri(Uri uri, SvgElement svgOwnerElement)
     {
-        if (uri.IsAbsoluteUri)
-        {
-            return uri;
-        }
-
-        var uriString = uri.OriginalString;
-        if (string.IsNullOrEmpty(uriString) || uriString[0] == '#')
-        {
-            return uri;
-        }
-
-        if (svgOwnerElement is SvgDocument { BaseUri: { } documentBaseUri })
-        {
-            return ResolveRelativeUri(documentBaseUri, uriString);
-        }
-
-        return TryGetBaseUri(svgOwnerElement, out var baseUri)
-            ? ResolveRelativeUri(baseUri, uriString)
-            : uri;
-    }
-
-    private static Uri ResolveRelativeUri(Uri baseUri, string uriString)
-    {
-        var fragmentIndex = uriString.IndexOf('#');
-        if (fragmentIndex < 0)
-        {
-            return new Uri(baseUri, uriString);
-        }
-
-        var path = uriString.Substring(0, fragmentIndex);
-        var fragment = uriString.Substring(fragmentIndex);
-        if (string.IsNullOrEmpty(path))
-        {
-            return new Uri(baseUri.AbsoluteUri + fragment);
-        }
-
-        var resolvedPath = new Uri(baseUri, path);
-        return new Uri(resolvedPath.AbsoluteUri + fragment);
+        return SvgExternalResourceResolver.ResolveResourceUri(svgOwnerElement, uri);
     }
 
     internal static Uri? GetEffectiveReferenceUri(SvgElement svgElement, Uri? fallback)
@@ -558,79 +522,7 @@ public static class SvgService
             return uri;
         }
 
-        if (!uri.IsAbsoluteUri)
-        {
-            if (TryGetBaseUri(svgOwnerElement, out var baseUri))
-            {
-                uri = new Uri(baseUri, uri);
-            }
-        }
-
-        return uri;
-    }
-
-    private static bool TryGetBaseUri(SvgElement? svgOwnerElement, out Uri baseUri)
-    {
-        baseUri = default!;
-
-        if (svgOwnerElement is null)
-        {
-            return false;
-        }
-
-        var baseUriFragments = new Stack<string>();
-        for (var current = svgOwnerElement; current is not null; current = current.Parent)
-        {
-            if (TryGetXmlBase(current, out var baseUriFragment) &&
-                !string.IsNullOrWhiteSpace(baseUriFragment))
-            {
-                baseUriFragments.Push(baseUriFragment.Trim());
-            }
-        }
-
-        var resolvedBaseUri = (svgOwnerElement as SvgDocument)?.BaseUri ?? svgOwnerElement.OwnerDocument?.BaseUri;
-        while (baseUriFragments.Count > 0)
-        {
-            var nextBaseUri = new Uri(baseUriFragments.Pop(), UriKind.RelativeOrAbsolute);
-            if (!nextBaseUri.IsAbsoluteUri)
-            {
-                if (resolvedBaseUri is null)
-                {
-                    return false;
-                }
-
-                nextBaseUri = new Uri(resolvedBaseUri, nextBaseUri);
-            }
-
-            resolvedBaseUri = nextBaseUri;
-        }
-
-        if (resolvedBaseUri is null)
-        {
-            return false;
-        }
-
-        baseUri = resolvedBaseUri;
-        return true;
-    }
-
-    private static bool TryGetXmlBase(SvgElement element, out string value)
-    {
-        if (element.TryGetAttribute("base", out var baseValue) && baseValue is not null)
-        {
-            value = baseValue;
-            return true;
-        }
-
-        if (element.CustomAttributes.TryGetValue($"{SvgNamespaces.XmlNamespace}:base", out var xmlBaseValue)
-            && xmlBaseValue is not null)
-        {
-            value = xmlBaseValue;
-            return true;
-        }
-
-        value = string.Empty;
-        return false;
+        return SvgExternalResourceResolver.ResolveResourceUri(svgOwnerElement, uri);
     }
 
     internal static Uri GetImageDocumentUri(Uri uri)
@@ -955,7 +847,10 @@ public static class SvgService
             throw new ArgumentNullException(nameof(uri));
         }
 
-        return AllowsExternalResource(svgOwnerElement, uri, GetEffectiveDocumentLoadOptions(svgOwnerElement).ExternalResources);
+        return AllowsExternalResource(
+            svgOwnerElement,
+            uri,
+            SvgExternalResourceResolver.GetEffectiveExternalResourcePolicy(GetEffectiveDocumentLoadOptions(svgOwnerElement)));
     }
 
     private static bool AllowsExternalResource(
@@ -963,17 +858,7 @@ public static class SvgService
         Uri uri,
         SvgExternalResourcePolicy externalResourcePolicy)
     {
-        return externalResourcePolicy switch
-        {
-            SvgExternalResourcePolicy.Enabled => true,
-            SvgExternalResourcePolicy.SameOrigin => IsDataUri(uri) ||
-                                                    IsSameDocumentResource(svgOwnerElement, uri) ||
-                                                    IsSameOriginResource(svgOwnerElement, uri),
-            SvgExternalResourcePolicy.SameDocumentAndDataOnly => IsDataUri(uri) ||
-                                                                 IsSameDocumentResource(svgOwnerElement, uri),
-            SvgExternalResourcePolicy.Disabled => IsSameDocumentResource(svgOwnerElement, uri),
-            _ => false
-        };
+        return SvgExternalResourceResolver.AllowsExternalResource(svgOwnerElement, uri, externalResourcePolicy);
     }
 
     private static SvgDocumentLoadOptions GetEffectiveDocumentLoadOptions(SvgElement? svgElement)

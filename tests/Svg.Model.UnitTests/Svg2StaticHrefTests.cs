@@ -212,6 +212,48 @@ public class Svg2StaticHrefTests
     }
 
     [Fact]
+    public void FilterInheritance_UsesSvg2HrefPrecedenceWhenXlinkHrefAppearsLast()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink">
+              <defs>
+                <filter id="modern" />
+                <filter id="legacy" />
+                <filter id="target" href="#modern" xlink:href="#legacy" />
+              </defs>
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg);
+        var target = Assert.IsType<Svg.FilterEffects.SvgFilter>(document!.GetElementById("target"));
+
+        Assert.True(target.TryGetEffectiveHrefString(out var hrefText));
+        Assert.Equal("#modern", hrefText);
+        Assert.Equal("#modern", SvgService.GetEffectiveReferenceUri(target, target.Href)?.OriginalString);
+    }
+
+    [Fact]
+    public void FilterImage_UsesSvg2HrefPrecedenceWhenXlinkHrefAppearsLast()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink">
+              <filter id="filter">
+                <feImage id="target" href="modern.png" xlink:href="legacy.png" />
+              </filter>
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg);
+        var target = Assert.IsType<Svg.FilterEffects.SvgImage>(document!.GetElementById("target"));
+
+        Assert.True(target.TryGetEffectiveHrefString(out var hrefText));
+        Assert.Equal("modern.png", hrefText);
+        Assert.Equal("modern.png", SvgService.GetEffectiveReferenceUri(target, target.Href)?.OriginalString);
+    }
+
+    [Fact]
     public void SvgParameters_ThreeArgumentNullCallRemainsCurrentColorCompatible()
     {
         var parameters = new SvgParameters(null, null, null);
