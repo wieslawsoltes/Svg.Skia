@@ -565,6 +565,12 @@ public partial class SkiaModel
         return CacheTypefaceResolution(cacheKey, fallback, suppressSyntheticBold: false);
     }
 
+    private TypefaceResolution? ResolvePaintTypeface(SKPaint paint)
+    {
+        var typeface = paint.Typeface;
+        return typeface is null ? null : ResolveSKTypeface(typeface);
+    }
+
     private TypefaceResolution CacheTypefaceResolution(TypefaceKey cacheKey, SkiaSharp.SKTypeface typeface, bool suppressSyntheticBold)
     {
         var resolution = new TypefaceResolution(typeface, suppressSyntheticBold);
@@ -1433,8 +1439,8 @@ public partial class SkiaModel
         var strokeCap = ToSKStrokeCap(paint.StrokeCap);
         var strokeJoin = ToSKStrokeJoin(paint.StrokeJoin);
         var textAlign = ToSKTextAlign(paint.TextAlign);
-        var typefaceResolution = ResolveSKTypeface(paint.Typeface);
-        var typeface = typefaceResolution.Typeface;
+        var typefaceResolution = ResolvePaintTypeface(paint);
+        var typeface = typefaceResolution?.Typeface;
         var textEncoding = ToSKTextEncoding(paint.TextEncoding);
         var color = paint.Color is null
             ? SkiaSharp.SKColor.Empty :
@@ -1466,7 +1472,7 @@ public partial class SkiaModel
             BlendMode = blendMode
         };
 
-        ApplyTypefaceAdjustments(paint, skPaint, typefaceResolution.SuppressSyntheticBold);
+        ApplyTypefaceAdjustments(paint, skPaint, typefaceResolution?.SuppressSyntheticBold ?? false);
 
         return skPaint;
     }
@@ -2172,7 +2178,7 @@ public partial class SkiaModel
         var strokeCap = paint is null ? SkiaSharp.SKStrokeCap.Butt : ToSKStrokeCap(paint.StrokeCap);
         var strokeJoin = paint is null ? SkiaSharp.SKStrokeJoin.Miter : ToSKStrokeJoin(paint.StrokeJoin);
         var textAlign = paint is null ? SkiaSharp.SKTextAlign.Left : ToSKTextAlign(paint.TextAlign);
-        var typeface = paint is null ? null : ToSKTypeface(paint.Typeface);
+        var typeface = paint?.Typeface is null ? null : ToSKTypeface(paint.Typeface);
         var textEncoding = paint is null ? SkiaSharp.SKTextEncoding.Utf8 : ToSKTextEncoding(paint.TextEncoding);
         var colorFilter = paint is null ? null : ToSKColorFilter(paint.ColorFilter);
         var imageFilter = paint is null ? null : ToSKImageFilter(paint.ImageFilter);
