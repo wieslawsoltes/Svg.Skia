@@ -244,15 +244,39 @@ internal static class TransformsService
         out SKPoint origin)
     {
         origin = default;
-        var rawOrigin = svgElement.ComputedStyle.TryGetPropertyValue("transform-origin", out var computedOrigin)
-            ? computedOrigin
-            : svgElement.TransformOrigin;
-        if (string.IsNullOrWhiteSpace(rawOrigin))
+        string? rawOrigin;
+        if (svgElement.TryGetOwnCascadedStyleDeclarationValue("transform-origin", out var declaredOrigin) &&
+            !string.IsNullOrWhiteSpace(declaredOrigin))
+        {
+            var normalizedOrigin = declaredOrigin.Trim();
+            if (string.Equals(normalizedOrigin, "inherit", StringComparison.OrdinalIgnoreCase))
+            {
+                rawOrigin = svgElement.ComputedStyle.TryGetPropertyValue("transform-origin", out var computedOrigin)
+                    ? computedOrigin
+                    : null;
+            }
+            else if (!string.Equals(normalizedOrigin, "initial", StringComparison.OrdinalIgnoreCase) &&
+                     !string.Equals(normalizedOrigin, "unset", StringComparison.OrdinalIgnoreCase))
+            {
+                rawOrigin = declaredOrigin;
+            }
+            else
+            {
+                rawOrigin = null;
+            }
+        }
+        else if (!svgElement.TryGetAttribute("transform-origin", out rawOrigin))
+        {
+            rawOrigin = null;
+        }
+
+        var originText = (rawOrigin ?? string.Empty).Trim();
+        if (originText.Length == 0)
         {
             return false;
         }
 
-        var tokens = rawOrigin
+        var tokens = originText
             .Replace(',', ' ')
             .Split(new[] { ' ', '\t', '\r', '\n', '\f' }, StringSplitOptions.RemoveEmptyEntries);
         if (tokens.Length == 0)

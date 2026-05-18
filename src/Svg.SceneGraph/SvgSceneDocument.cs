@@ -29,7 +29,8 @@ public sealed class SvgSceneDocument
         SKRect compilationViewport,
         SvgSceneNode root,
         ISvgAssetLoader assetLoader,
-        DrawAttributes ignoreAttributes)
+        DrawAttributes ignoreAttributes,
+        bool? mayContainMarkerReferenceDeclarations = null)
     {
         SourceDocument = sourceDocument;
         CullRect = cullRect;
@@ -39,7 +40,7 @@ public sealed class SvgSceneDocument
         IgnoreAttributes = ignoreAttributes;
         _readOnlyNodesById = new ReadOnlyDictionary<string, SvgSceneNode>(_nodesById);
         _readOnlyResourcesById = new ReadOnlyDictionary<string, SvgSceneResource>(_resourcesById);
-        RebuildIndexesAndDependencies();
+        RebuildIndexesAndDependencies(mayContainMarkerReferenceDeclarations);
     }
 
     public SvgDocument? SourceDocument { get; }
@@ -323,16 +324,21 @@ public sealed class SvgSceneDocument
 
     internal void RebuildIndexesAndDependencies()
     {
+        RebuildIndexesAndDependencies(knownMarkerReferenceDeclarations: null);
+    }
+
+    private void RebuildIndexesAndDependencies(bool? knownMarkerReferenceDeclarations)
+    {
         var addressKeyCache = new SvgElementAddressKeyCache();
-        var (hasResourceElements, hasReferenceDependencies) = AnalyzeDependencyRequirements();
+        var (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations) = AnalyzeDependencyRequirements(knownMarkerReferenceDeclarations);
         ClearIndexesAndDependencies();
         ReindexNodes();
         if (hasResourceElements)
         {
-            RebuildResourceGraph(addressKeyCache);
+            RebuildResourceGraph(addressKeyCache, hasMarkerReferenceDeclarations);
         }
 
-        RegisterNodeDependencies(addressKeyCache, hasReferenceDependencies);
+        RegisterNodeDependencies(addressKeyCache, hasReferenceDependencies, hasMarkerReferenceDeclarations);
         ResolveRuntimePayloads(addressKeyCache);
         Revision++;
     }
@@ -376,6 +382,13 @@ public sealed class SvgSceneDocument
     }
 
     internal void RebuildResourceGraph(SvgElementAddressKeyCache addressKeyCache)
+    {
+        RebuildResourceGraph(
+            addressKeyCache,
+            SvgSceneCompiler.SubtreeMayContainMarkerReferenceDeclarations(SourceDocument));
+    }
+
+    private void RebuildResourceGraph(SvgElementAddressKeyCache addressKeyCache, bool includeMarkerReferences)
     {
         if (SourceDocument is null)
         {
@@ -449,6 +462,7 @@ public sealed class SvgSceneDocument
                             state.PendingDependencyKeysByResource[state.ActiveResources[i].Key].Add(dependencyAddressKey);
                         }
                     },
+                    includeMarkerReferences,
                     addressKeyCache.GetOrCreate,
                     (ActiveResources: activeResources, PendingDependencyKeysByResource: pendingDependencyKeysByResource));
             }
@@ -484,6 +498,17 @@ public sealed class SvgSceneDocument
 
     internal void RegisterNodeDependencies(SvgElementAddressKeyCache addressKeyCache, bool includeReferencedDependencies)
     {
+        RegisterNodeDependencies(
+            addressKeyCache,
+            includeReferencedDependencies,
+            SvgSceneCompiler.SubtreeMayContainMarkerReferenceDeclarations(SourceDocument));
+    }
+
+    private void RegisterNodeDependencies(
+        SvgElementAddressKeyCache addressKeyCache,
+        bool includeReferencedDependencies,
+        bool includeMarkerReferences)
+    {
         if (_compilationRootsByKey.Count == 0)
         {
             return;
@@ -495,18 +520,19 @@ public sealed class SvgSceneDocument
             return;
         }
 
-        RegisterNodeDependencies(Root, new List<string>(), addressKeyCache);
+        RegisterNodeDependencies(Root, new List<string>(), addressKeyCache, includeMarkerReferences);
     }
 
-    private (bool HasResourceElements, bool HasReferenceDependencies) AnalyzeDependencyRequirements()
+    private (bool HasResourceElements, bool HasReferenceDependencies, bool HasMarkerReferenceDeclarations) AnalyzeDependencyRequirements(bool? knownMarkerReferenceDeclarations)
     {
         if (SourceDocument is null)
         {
-            return (false, false);
+            return (false, false, false);
         }
 
         var hasResourceElements = false;
         var hasReferenceDependencies = false;
+        var hasMarkerReferenceDeclarations = knownMarkerReferenceDeclarations.GetValueOrDefault();
         foreach (var element in TraverseElements(SourceDocument))
         {
             if (!hasResourceElements &&
@@ -515,19 +541,28 @@ public sealed class SvgSceneDocument
                 hasResourceElements = true;
             }
 
+            if (!knownMarkerReferenceDeclarations.HasValue &&
+                !hasMarkerReferenceDeclarations &&
+                SvgSceneCompiler.HasOwnMarkerReferenceDeclarationCandidate(element))
+            {
+                hasMarkerReferenceDeclarations = true;
+            }
+
             if (!hasReferenceDependencies &&
-                SvgSceneCompiler.MayReferenceOtherElements(element))
+                SvgSceneCompiler.MayReferenceOtherElements(element, hasMarkerReferenceDeclarations))
             {
                 hasReferenceDependencies = true;
             }
 
-            if (hasResourceElements && hasReferenceDependencies)
+            if (hasResourceElements &&
+                hasReferenceDependencies &&
+                (knownMarkerReferenceDeclarations.HasValue || hasMarkerReferenceDeclarations))
             {
                 break;
             }
         }
 
-        return (hasResourceElements, hasReferenceDependencies);
+        return (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations);
     }
 
     private void RegisterCompilationRootSubtreeAddresses(SvgElementAddressKeyCache addressKeyCache)
@@ -627,7 +662,11 @@ public sealed class SvgSceneDocument
         return compilationRootsByElement;
     }
 
-    private void RegisterNodeDependencies(SvgSceneNode node, List<string> activeCompilationRootKeys, SvgElementAddressKeyCache addressKeyCache)
+    private void RegisterNodeDependencies(
+        SvgSceneNode node,
+        List<string> activeCompilationRootKeys,
+        SvgElementAddressKeyCache addressKeyCache,
+        bool includeMarkerReferences)
     {
         var addedCompilationRootKey = false;
         if (node.IsCompilationRootBoundary && !string.IsNullOrWhiteSpace(node.CompilationRootKey))
@@ -665,6 +704,7 @@ public sealed class SvgSceneDocument
                             }
                         }
                     },
+                    includeMarkerReferences,
                     addressKeyCache.GetOrCreate,
                     (SceneDocument: this, ResourcesByKey: _resourcesByKey, ActiveCompilationRootKeys: activeCompilationRootKeys));
             }
@@ -672,12 +712,12 @@ public sealed class SvgSceneDocument
 
         if (node.MaskNode is { } maskNode)
         {
-            RegisterNodeDependencies(maskNode, activeCompilationRootKeys, addressKeyCache);
+            RegisterNodeDependencies(maskNode, activeCompilationRootKeys, addressKeyCache, includeMarkerReferences);
         }
 
         for (var i = 0; i < node.Children.Count; i++)
         {
-            RegisterNodeDependencies(node.Children[i], activeCompilationRootKeys, addressKeyCache);
+            RegisterNodeDependencies(node.Children[i], activeCompilationRootKeys, addressKeyCache, includeMarkerReferences);
         }
 
         if (addedCompilationRootKey)

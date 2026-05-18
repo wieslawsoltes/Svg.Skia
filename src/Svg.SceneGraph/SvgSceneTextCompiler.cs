@@ -224,6 +224,8 @@ internal static partial class SvgSceneTextCompiler
         string? compilationRootKey,
         bool isCompilationRootBoundary,
         Func<SvgElement?, string?>? getElementAddressKey,
+        bool mayContainMixBlendModeDeclaration,
+        bool mayContainIsolationDeclaration,
         SvgSceneContextPaint? contextPaint,
         out SvgSceneNode? node)
     {
@@ -243,7 +245,11 @@ internal static partial class SvgSceneTextCompiler
         node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
         node.IsRenderable = HasFeatures(svgTextBase, ignoreAttributes) && MaskingService.CanDraw(svgTextBase, ignoreAttributes);
         node.HitTestTargetElement = svgTextBase;
-        SvgSceneCompiler.AssignRetainedVisualState(node, svgTextBase);
+        SvgSceneCompiler.AssignRetainedVisualState(
+            node,
+            svgTextBase,
+            mayContainMixBlendModeDeclaration,
+            mayContainIsolationDeclaration);
         SvgSceneCompiler.AssignRetainedResourceKeys(node, svgTextBase, getElementAddressKey);
         node.SupportsFillHitTest = SvgScenePaintingService.IsValidFill(svgTextBase);
         node.SupportsStrokeHitTest = SvgScenePaintingService.IsValidStroke(svgTextBase, SKRect.Empty);
@@ -2677,7 +2683,6 @@ internal static partial class SvgSceneTextCompiler
         var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
         var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
         var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
-        hOffset = ApplyTextPathSideOffset(svgTextPath, hOffset, pathLength, totalAdvance);
 
         if (!TryCreateTextPathRunPlacements(runs, pathSamples, isClosedLoop, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
         {
@@ -2717,7 +2722,6 @@ internal static partial class SvgSceneTextCompiler
         var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
         var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
         var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
-        hOffset = ApplyTextPathSideOffset(svgTextPath, hOffset, pathLength, totalAdvance);
 
         if (!TryCreateTextPathRunPlacements(runs, pathSamples, isClosedLoop, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
         {
@@ -3124,7 +3128,6 @@ internal static partial class SvgSceneTextCompiler
         var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
         var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
         var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
-        hOffset = ApplyTextPathSideOffset(svgTextPath, hOffset, pathLength, totalAdvance);
 
         if (!TryCreateTextPathRunPlacements(runs, pathSamples, isClosedLoop, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
         {
@@ -6330,6 +6333,44 @@ internal static partial class SvgSceneTextCompiler
             samples.Add(new PathSample(next, totalDistance, false, false));
         }
 
+        void MoveToSample(SKPoint next)
+        {
+            current = next;
+            figureStart = next;
+            samples.Add(new PathSample(current, totalDistance, samples.Count > 0, false));
+            hasCurrent = true;
+        }
+
+        void CloseCurrentSample()
+        {
+            totalDistance += Distance(current, figureStart);
+            current = figureStart;
+            samples.Add(new PathSample(figureStart, totalDistance, false, true));
+        }
+
+        void AppendEllipseSamples(float cx, float cy, float rx, float ry)
+        {
+            if (rx <= 0f || ry <= 0f)
+            {
+                return;
+            }
+
+            const int steps = 128;
+            MoveToSample(new SKPoint(cx + rx, cy));
+            for (var step = 1; step <= steps; step++)
+            {
+                var radians = step * (2f * (float)Math.PI / steps);
+                AppendSample(new SKPoint(
+                    cx + (rx * (float)Math.Cos(radians)),
+                    cy + (ry * (float)Math.Sin(radians))));
+            }
+
+            samples[samples.Count - 1] = samples[samples.Count - 1] with
+            {
+                ClosesSubpath = true
+            };
+        }
+
         for (var i = 0; i < path.Commands.Count; i++)
         {
             switch (path.Commands[i])
@@ -6381,9 +6422,45 @@ internal static partial class SvgSceneTextCompiler
                     break;
 
                 case ClosePathCommand _ when hasCurrent:
-                    totalDistance += Distance(current, figureStart);
-                    current = figureStart;
-                    samples.Add(new PathSample(figureStart, totalDistance, false, true));
+                    CloseCurrentSample();
+                    break;
+
+                case AddRectPathCommand addRect:
+                    if (addRect.Rect.Width > 0f && addRect.Rect.Height > 0f)
+                    {
+                        MoveToSample(addRect.Rect.TopLeft);
+                        AppendSample(addRect.Rect.TopRight);
+                        AppendSample(addRect.Rect.BottomRight);
+                        AppendSample(addRect.Rect.BottomLeft);
+                        CloseCurrentSample();
+                    }
+
+                    break;
+
+                case AddOvalPathCommand addOval:
+                    AppendEllipseSamples(
+                        (addOval.Rect.Left + addOval.Rect.Right) / 2f,
+                        (addOval.Rect.Top + addOval.Rect.Bottom) / 2f,
+                        addOval.Rect.Width / 2f,
+                        addOval.Rect.Height / 2f);
+                    break;
+
+                case AddCirclePathCommand addCircle:
+                    AppendEllipseSamples(addCircle.X, addCircle.Y, Math.Abs(addCircle.Radius), Math.Abs(addCircle.Radius));
+                    break;
+
+                case AddPolyPathCommand addPoly when addPoly.Points is { Count: > 0 } points:
+                    MoveToSample(points[0]);
+                    for (var pointIndex = 1; pointIndex < points.Count; pointIndex++)
+                    {
+                        AppendSample(points[pointIndex]);
+                    }
+
+                    if (addPoly.Close)
+                    {
+                        CloseCurrentSample();
+                    }
+
                     break;
             }
         }
@@ -6646,12 +6723,6 @@ internal static partial class SvgSceneTextCompiler
             pathLength = authorPathLength;
         }
 
-        if (svgTextPath.Side == SvgTextPathSide.Right)
-        {
-            pathSamples = ReversePathSamples(pathSamples);
-            pathLength = pathSamples[pathSamples.Count - 1].Distance;
-        }
-
         isClosedLoop = IsSingleClosedSubpath(pathSamples);
         geometryBounds = GetPathSampleBounds(pathSamples);
         return pathLength > 0f;
@@ -6693,30 +6764,6 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return transformed;
-    }
-
-    private static List<PathSample> ReversePathSamples(IReadOnlyList<PathSample> pathSamples)
-    {
-        var reversed = new List<PathSample>(pathSamples.Count);
-        if (pathSamples.Count == 0)
-        {
-            return reversed;
-        }
-
-        var totalDistance = pathSamples[pathSamples.Count - 1].Distance;
-        var isClosedLoop = IsSingleClosedSubpath(pathSamples);
-        for (var i = pathSamples.Count - 1; i >= 0; i--)
-        {
-            var startsSubpath = i < pathSamples.Count - 1 && pathSamples[i + 1].StartsSubpath;
-            var closesSubpath = isClosedLoop && i == 0;
-            reversed.Add(new PathSample(
-                pathSamples[i].Point,
-                totalDistance - pathSamples[i].Distance,
-                startsSubpath,
-                closesSubpath));
-        }
-
-        return reversed;
     }
 
     private static List<PathSample> ScalePathSampleDistances(IReadOnlyList<PathSample> pathSamples, float pathLength)
@@ -8356,16 +8403,6 @@ internal static partial class SvgSceneTextCompiler
     private static float ApplyTextAnchor(SvgTextBase svgTextBase, float anchorCoordinate, SKRect geometryBounds, float totalAdvance)
     {
         return GetAlignedStartCoordinate(anchorCoordinate, totalAdvance, GetTextAnchorAlign(svgTextBase, geometryBounds));
-    }
-
-    private static float ApplyTextPathSideOffset(SvgTextPath svgTextPath, float hOffset, float pathLength, float totalAdvance)
-    {
-        if (svgTextPath.Side != SvgTextPathSide.Right || pathLength <= 0f)
-        {
-            return hOffset;
-        }
-
-        return pathLength - hOffset - totalAdvance;
     }
 
     private static SKTextAlign GetTextAnchorAlign(SvgTextBase svgTextBase, SKRect geometryBounds)
