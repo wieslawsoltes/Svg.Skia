@@ -4,6 +4,7 @@ using Svg;
 using Svg.Skia.TypefaceProviders;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
+using ShimPaint = ShimSkiaSharp.SKPaint;
 
 namespace Svg.Skia.UnitTests;
 
@@ -181,6 +182,18 @@ public class SKSvgSettingsTests : SvgUnitTest
     }
 
     [Fact]
+    public void FontManagerTypefaceProvider_DoesNotLoadDefaultFontManagerInConstructor()
+    {
+        var provider = new FontManagerTypefaceProvider();
+        var field = typeof(FontManagerTypefaceProvider).GetField(
+            "_fontManager",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        Assert.NotNull(field);
+        Assert.Null(field!.GetValue(provider));
+    }
+
+    [Fact]
     public void FontManagerTypefaceProvider_AllowsExplicitDefaultFamilyRequest()
     {
         var provider = new FontManagerTypefaceProvider();
@@ -190,6 +203,34 @@ public class SKSvgSettingsTests : SvgUnitTest
 
         Assert.NotNull(typeface);
         Assert.Equal(familyName, typeface!.FamilyName);
+    }
+
+    [Fact]
+    public void ToSKPaint_WithoutTypeface_DoesNotResolveDefaultTypeface()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+
+        using var paint = model.ToSKPaint(new ShimPaint());
+
+        Assert.NotNull(paint);
+#pragma warning disable CS0618 // SKPaint.Typeface is verified here to avoid loading the default platform typeface.
+        Assert.Null(paint!.Typeface);
+#pragma warning restore CS0618
+    }
+
+    [Fact]
+    public void GetRenderPaint_WithoutTypeface_DoesNotResolveDefaultTypeface()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var method = typeof(SkiaModel).GetMethod(
+            "GetRenderPaint",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        using var paint = Assert.IsType<SKPaint>(method!.Invoke(model, new object?[] { new ShimPaint() }));
+
+#pragma warning disable CS0618 // SKPaint.Typeface is verified here to avoid loading the default platform typeface.
+        Assert.Null(paint.Typeface);
+#pragma warning restore CS0618
     }
 
     private sealed class TestJavaScriptRuntimeFactory : ISKSvgJavaScriptRuntimeFactory
