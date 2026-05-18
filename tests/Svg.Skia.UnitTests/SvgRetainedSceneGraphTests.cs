@@ -573,7 +573,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
-    public void RetainedSceneGraph_TextPathSideRight_PreservesPathDirection()
+    public void RetainedSceneGraph_TextPathSideRight_UsesOppositePathSide()
     {
         const string sideRightSvg = """
             <svg xmlns="http://www.w3.org/2000/svg" width="140" height="80" viewBox="0 0 140 80">
@@ -592,10 +592,10 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         var retainedModel = svg.CreateRetainedSceneGraphModel();
         Assert.NotNull(retainedModel);
 
-        Assert.Empty(retainedModel!.FindCommands<SetMatrixCanvasCommand>());
+        Assert.NotEmpty(retainedModel!.FindCommands<SetMatrixCanvasCommand>());
         var drawText = Assert.Single(retainedModel.FindCommands<DrawTextCanvasCommand>(), static cmd => cmd.Text == "A");
 
-        Assert.InRange(drawText.X, 18f, 24f);
+        Assert.InRange(drawText.X, 24f, 32f);
         Assert.InRange(drawText.Y, 38f, 42f);
     }
 
@@ -667,6 +667,67 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
 
         var expectedOrigin = new SKPoint(110f, 25f);
         var actualOrigin = targetNode.Transform.MapPoint(expectedOrigin);
+
+        AssertApproximately(expectedOrigin.X, actualOrigin.X);
+        AssertApproximately(expectedOrigin.Y, actualOrigin.Y);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_StructuralTransformOriginAppliesToGroup()
+    {
+        const string transformOriginSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <g id="group" transform-origin="50 50" transform="rotate(90)">
+                <rect id="target" x="10" y="20" width="10" height="10" fill="#0055aa" />
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(transformOriginSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("group", out var groupNode));
+        Assert.True(scene.TryGetNodeById("target", out var targetNode));
+        Assert.NotNull(groupNode);
+        Assert.NotNull(targetNode);
+
+        var expectedOrigin = new SKPoint(50f, 50f);
+        var actualOrigin = groupNode!.Transform.MapPoint(expectedOrigin);
+
+        AssertApproximately(expectedOrigin.X, actualOrigin.X);
+        AssertApproximately(expectedOrigin.Y, actualOrigin.Y);
+        AssertApproximately(expectedOrigin.X, targetNode!.TotalTransform.MapPoint(expectedOrigin).X);
+        AssertApproximately(expectedOrigin.Y, targetNode.TotalTransform.MapPoint(expectedOrigin).Y);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_UseTransformOriginUsesReferencedFillBox()
+    {
+        const string transformOriginSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+              <defs>
+                <rect id="shape" x="20" y="20" width="20" height="10" fill="#0055aa" />
+              </defs>
+              <use id="use-target"
+                   href="#shape"
+                   transform-box="fill-box"
+                   transform-origin="center"
+                   transform="rotate(90)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(transformOriginSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("use-target", out var useNode));
+        Assert.NotNull(useNode);
+
+        var expectedOrigin = new SKPoint(30f, 25f);
+        var actualOrigin = useNode!.Transform.MapPoint(expectedOrigin);
 
         AssertApproximately(expectedOrigin.X, actualOrigin.X);
         AssertApproximately(expectedOrigin.Y, actualOrigin.Y);

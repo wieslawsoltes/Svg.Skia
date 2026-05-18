@@ -101,6 +101,7 @@ public class resvgTests : SvgUnitTest
             "e-textPath-031" => 0.045,
             "e-textPath-034" => 0.026,
             "e-textPath-038" => 0.054,
+            "e-textPath-041" => 0.10,
             /*
              * These rows intentionally compare against checked Chrome captures because the upstream
              * resvg PNGs disagree with browser behavior for nested tspans and decoration placement.
