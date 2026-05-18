@@ -47,7 +47,8 @@
 
 *Svg.Skia* can be used as a .NET library or as a CLI application
 to render SVG files based on the [SVG Full 1.1](https://www.w3.org/TR/SVG11/)
-document model to raster images or to a backend's canvas.
+document model plus the supported [SVG 2](https://www.w3.org/TR/SVG2/)
+static subset to raster images or to a backend's canvas.
 
 The `Svg.Skia` is using [SVG](https://github.com/vvvv/SVG) library to load `Svg` object model. 
 
@@ -60,8 +61,31 @@ The `Svg.Skia` can be used in same way as the [SkiaSharp.Extended.Svg](https://g
 The `Svg` library has a more complete implementation of the `Svg` document model than [SkiaSharp.Extended.Svg](https://github.com/mono/SkiaSharp.Extended/tree/main/source/SkiaSharp.Extended.Svg)
 and the `Svg.Skia` renderer will provide more complete rendering subsystem implementation.
 
+## SVG standards support
+
+The static renderer treats SVG 1.1 as the compatibility baseline and layers
+browser-compatible SVG 2 static features on top. Detailed reference articles
+are available for [SVG 1.1 static subset support](site/articles/reference/svg-11-static-subset-support.md)
+and [SVG 2 static subset support](site/articles/reference/svg-2-static-subset-support.md).
+
+| Area | SVG 1.1 static support | SVG 2 static subset support |
+| --- | --- | --- |
+| Document model and loading | Parses and preserves core SVG documents, nested fragments, groups, definitions, symbols, use references, images, metadata, and compatibility attributes. | Adds processing mode and external-resource policy contracts through `SvgDocumentLoadOptions` and `SvgParameters`, including secure static resource behavior in covered paths. |
+| References and resources | Supports `xlink:href`, `xml:base`, data URLs, SVG/SVGZ image resources, raster images, local/file/HTTP resources, and asset-loader controlled resolution. | Supports unnamespaced `href` with SVG 2 precedence by default, empty/invalid href fail-closed behavior, and `PreferSvg2Href = false` for strict legacy mixed-href imports. |
+| Geometry and paths | Supports path commands, relative commands, arcs, close paths, rectangles, circles, ellipses, lines, polylines, polygons, rounded rectangles, point lists, and shape-to-path conversion. | Supports styleable geometry for covered elements, CSS `d` on paths, `d: none`, basic-shape `pathLength` normalization, equivalent paths for shared rendering consumers, and selected image intrinsic sizing behavior. |
+| Viewports and coordinate systems | Supports `viewBox`, `preserveAspectRatio`, nested viewports, object-bounding-box units, user units, percentages, font-relative units, physical units, and transform lists. | Adds SVG 2 symbol geometry fields, origin-aware transform handling for covered retained nodes, and static processing contracts that preserve deprecated profile/version switches without using them to block rendering. |
+| Paint and stroke | Supports fill, stroke, opacity, fill/clip rules, stroke width, dash arrays, line caps, line joins, miter limits, visibility, display, `currentColor`, and shape rendering. | Supports `paint-order` in covered paths, context paint in selected marker/use/text/fallback chains, `vector-effect` fallback behavior, and CSS Color/static paint extensions in supported renderer paths. |
+| Gradients and patterns | Supports linear gradients, radial gradients, stops, patterns, paint-server inheritance, units, transforms, spread methods, stop color, and stop opacity. | Adds SVG 2 radial gradient `fr` mapping in verified static paths and broader URL paint fallback/context-paint contracts where covered. |
+| Markers | Supports `marker-start`, `marker-mid`, `marker-end`, marker geometry, marker units, and marker orientation for common path-like content. | Adds `orient="auto-start-reverse"` and broader path/basic-shape marker placement coverage, with exhaustive marker edge cases still tracked as partial. |
+| Text and text paths | Supports practical static text rendering with font family, size, style, weight, stretch, anchor, baseline, direction, writing mode, decorations, spacing, `textLength`, and `lengthAdjust`. | Adds inline `textPath path`, textPath references to basic shapes, `textPath side`, pathLength-aware textPath distance mapping, closed-loop/open-path handling, and focused `white-space` preservation. |
+| Styling and CSS | Supports `class`, `style`, presentation attributes, stylesheets, `@import`, media-qualified imports, and `@media` for common static cases. | Adds SVG 2 style-property recognition, CSS custom properties in covered paths, static pseudo-class handling, CSS geometry, CSS-only `mix-blend-mode` and `isolation`, and screen-like static media evaluation. |
+| Filters, masks, and compositing | Supports many SVG 1.1 filter primitives, filter regions, primitive units, primitive chaining, light sources, linked filters, clip paths, and masks in common static paths. | Adds focused SVG 2/CSS masking and filter behavior such as `mask-type`, `feDropShadow`, `feImage` policy handling, CSS blending, and isolation save-layer behavior where supported. |
+| Animation, scripting, and interaction | Preserves animation and script object-model data; JavaScript execution is opt-in through `Svg.Skia.JavaScript`; static rendering does not provide a browser DOM, CSSOM, event loop, or navigation UI. | SVG 2 dynamic/interactive behavior is represented only where it matters to parsing, preservation, or host-driven APIs; the default renderer remains a static subset renderer. |
+| Test coverage | Uses W3C SVG 1.1, resvg, model, retained scene graph, host, and renderer tests with explicit skips for browser-only/runtime rows. | Adds focused WPT SVG 2 static rows and unit coverage for href precedence, CSS geometry, CSS `d`, paint-order, radial gradient `fr`, context paint, textPath additions, resource policy, and compatibility defaults. |
+
 ## Highlights
 
+- `Svg.Custom`, `Svg.Model`, `Svg.SceneGraph`, `ShimSkiaSharp`, and `Svg.Skia` now support a documented SVG 2 static subset on top of the SVG 1.1 compatibility baseline.
 - `Svg.Custom` now exposes the SVG 1.1 animation object model for `animate`, `set`, `animateMotion`, `animateColor`, `animateTransform`, and `mpath`.
 - `Svg.Custom` and `Svg.Skia` now include typed `pointer-events` handling plus geometry-aware topmost hit testing.
 - `Svg.Skia` now includes a shared interaction dispatcher, shared animation clock/controller, and host-driven animation playback APIs.
