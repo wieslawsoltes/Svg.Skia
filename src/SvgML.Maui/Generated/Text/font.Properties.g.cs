@@ -7,22 +7,22 @@ public partial class font : element
 {
     protected override string SvgTag => "font";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty horiz_adv_xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty horiz_adv_xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("horiz-adv-x", typeof(float), typeof(font));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty horiz_origin_xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty horiz_origin_xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("horiz-origin-x", typeof(float), typeof(font));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty horiz_origin_yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty horiz_origin_yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("horiz-origin-y", typeof(float), typeof(font));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty vert_adv_yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty vert_adv_yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("vert-adv-y", typeof(float), typeof(font));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty vert_origin_xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty vert_origin_xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("vert-origin-x", typeof(float), typeof(font));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty vert_origin_yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty vert_origin_yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("vert-origin-y", typeof(float), typeof(font));
 
     public float horiz_adv_x

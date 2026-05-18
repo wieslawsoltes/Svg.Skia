@@ -44,6 +44,31 @@ public partial class svg
         return stream;
     }
 
+    private SvgParameters BuildParameters(string? css, string? currentCss)
+    {
+        return new SvgParameters(
+            null,
+            CombineCss(css, currentCss),
+            null,
+            new SvgDocumentLoadOptions
+            {
+                ProcessingMode = ProcessingMode,
+                ExternalResources = ExternalResources,
+                PreserveUnknownElements = PreserveUnknownElements,
+                PreferSvg2Href = PreferSvg2Href
+            });
+    }
+
+    private static string? CombineCss(params string?[] values)
+    {
+        var filtered = values
+            .Where(static value => !string.IsNullOrWhiteSpace(value))
+            .Select(static value => value!.Trim())
+            .ToArray();
+
+        return filtered.Length == 0 ? null : string.Join(" ", filtered);
+    }
+
     private bool Load(svg? source, SvgParameters parameters)
     {
         if (source is null)

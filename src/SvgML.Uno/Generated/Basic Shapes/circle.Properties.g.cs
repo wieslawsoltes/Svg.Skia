@@ -28,6 +28,13 @@ public partial class circle : path_based
             typeof(circle),
             new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
 
+    public static readonly Microsoft.UI.Xaml.DependencyProperty pathLengthProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "pathLength",
+            typeof(float),
+            typeof(circle),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(float), OnSvgPropertyChanged));
+
     public Svg.SvgUnit cx
     {
         get => (Svg.SvgUnit)GetValue(cxProperty);
@@ -44,5 +51,11 @@ public partial class circle : path_based
     {
         get => (Svg.SvgUnit)GetValue(rProperty);
         set => SetValue(rProperty, value);
+    }
+
+    public float pathLength
+    {
+        get => (float)GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

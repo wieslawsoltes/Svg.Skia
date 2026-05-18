@@ -317,6 +317,15 @@ public partial class svg
             return;
         }
 
+        if (propertyName == nameof(ProcessingMode) ||
+            propertyName == nameof(ExternalResources) ||
+            propertyName == nameof(PreserveUnknownElements) ||
+            propertyName == nameof(PreferSvg2Href))
+        {
+            ReloadAndInvalidate();
+            return;
+        }
+
         if (propertyName == nameof(Stretch) || propertyName == nameof(StretchDirection))
         {
             InvalidateMeasure();

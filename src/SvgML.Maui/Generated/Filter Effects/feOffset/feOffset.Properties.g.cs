@@ -7,10 +7,10 @@ public partial class feOffset : filter_primitive
 {
     protected override string SvgTag => "feOffset";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty dxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty dxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("dx", typeof(Svg.SvgUnit), typeof(feOffset));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty dyProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty dyProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("dy", typeof(Svg.SvgUnit), typeof(feOffset));
 
     public Svg.SvgUnit dx

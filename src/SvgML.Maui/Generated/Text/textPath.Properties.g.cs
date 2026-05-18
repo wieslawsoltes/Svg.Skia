@@ -7,17 +7,23 @@ public partial class textPath : text_base
 {
     protected override string SvgTag => "textPath";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty startOffsetProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty startOffsetProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("startOffset", typeof(Svg.SvgUnit), typeof(textPath));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty methodProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty methodProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("method", typeof(string), typeof(textPath));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty spacingProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty spacingProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("spacing", typeof(string), typeof(textPath));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("href", typeof(string), typeof(textPath));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty pathProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("path", typeof(string), typeof(textPath));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty sideProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("side", typeof(SvgTextPathSideValue), typeof(textPath));
 
     public Svg.SvgUnit startOffset
     {
@@ -41,5 +47,17 @@ public partial class textPath : text_base
     {
         get => (string)GetValue(hrefProperty);
         set => SetValue(hrefProperty, value);
+    }
+
+    public string path
+    {
+        get => (string)GetValue(pathProperty);
+        set => SetValue(pathProperty, value);
+    }
+
+    public SvgTextPathSideValue side
+    {
+        get => (SvgTextPathSideValue)GetValue(sideProperty);
+        set => SetValue(sideProperty, value);
     }
 }

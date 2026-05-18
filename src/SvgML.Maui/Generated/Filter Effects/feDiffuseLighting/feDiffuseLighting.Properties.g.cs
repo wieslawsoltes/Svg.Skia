@@ -7,16 +7,16 @@ public partial class feDiffuseLighting : filter_primitive
 {
     protected override string SvgTag => "feDiffuseLighting";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty surfaceScaleProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty surfaceScaleProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("surfaceScale", typeof(float), typeof(feDiffuseLighting));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty diffuseConstantProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty diffuseConstantProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("diffuseConstant", typeof(float), typeof(feDiffuseLighting));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty kernelUnitLengthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty kernelUnitLengthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("kernelUnitLength", typeof(numbers), typeof(feDiffuseLighting));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty lighting_colorProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty lighting_colorProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("lighting-color", typeof(string), typeof(feDiffuseLighting));
 
     public float surfaceScale

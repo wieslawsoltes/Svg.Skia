@@ -7,19 +7,19 @@ public partial class feTurbulence : filter_primitive
 {
     protected override string SvgTag => "feTurbulence";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty baseFrequencyProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty baseFrequencyProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("baseFrequency", typeof(numbers), typeof(feTurbulence));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty numOctavesProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty numOctavesProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("numOctaves", typeof(int), typeof(feTurbulence));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty seedProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty seedProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("seed", typeof(float), typeof(feTurbulence));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stitchTilesProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stitchTilesProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stitchTiles", typeof(string), typeof(feTurbulence));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty typeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty typeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("type", typeof(string), typeof(feTurbulence));
 
     public numbers baseFrequency

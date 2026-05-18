@@ -38,5 +38,10 @@ public partial class mask
         {
             writer.WriteLine($"height=\"{ToSvgString(height)}\"");
         }
+
+        if (ReadLocalValue(mask_typeProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"mask-type=\"{ToSvgString(mask_type)}\"");
+        }
     }
 }

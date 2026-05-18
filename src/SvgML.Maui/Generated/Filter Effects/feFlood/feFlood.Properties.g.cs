@@ -7,10 +7,10 @@ public partial class feFlood : filter_primitive
 {
     protected override string SvgTag => "feFlood";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty flood_colorProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty flood_colorProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("flood-color", typeof(string), typeof(feFlood));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty flood_opacityProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty flood_opacityProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("flood-opacity", typeof(string), typeof(feFlood));
 
     public string flood_color

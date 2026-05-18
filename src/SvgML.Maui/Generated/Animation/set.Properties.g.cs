@@ -7,7 +7,7 @@ public partial class set : animation_attribute_element
 {
     protected override string SvgTag => "set";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty toProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty toProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("to", typeof(string), typeof(set));
 
     public string to

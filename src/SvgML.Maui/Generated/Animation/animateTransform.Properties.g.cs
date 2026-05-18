@@ -7,7 +7,7 @@ public partial class animateTransform : animation_value_element
 {
     protected override string SvgTag => "animateTransform";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty typeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty typeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("type", typeof(SvgAnimateTransformTypeValue), typeof(animateTransform));
 
     public SvgAnimateTransformTypeValue type

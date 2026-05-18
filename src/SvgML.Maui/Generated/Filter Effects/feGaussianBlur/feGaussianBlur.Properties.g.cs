@@ -7,7 +7,7 @@ public partial class feGaussianBlur : filter_primitive
 {
     protected override string SvgTag => "feGaussianBlur";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stdDeviationProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stdDeviationProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stdDeviation", typeof(numbers), typeof(feGaussianBlur));
 
     public numbers stdDeviation

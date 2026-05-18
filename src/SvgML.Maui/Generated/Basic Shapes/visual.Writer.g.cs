@@ -34,9 +34,54 @@ public abstract partial class visual
             writer.WriteLine($"pointer-events=\"{ToSvgString(pointer_events)}\"");
         }
 
+        if (this.IsSet(paint_orderProperty))
+        {
+            writer.WriteLine($"paint-order=\"{ToSvgString(paint_order)}\"");
+        }
+
+        if (this.IsSet(vector_effectProperty))
+        {
+            writer.WriteLine($"vector-effect=\"{ToSvgString(vector_effect)}\"");
+        }
+
+        if (this.IsSet(transform_boxProperty))
+        {
+            writer.WriteLine($"transform-box=\"{ToSvgString(transform_box)}\"");
+        }
+
+        if (this.IsSet(transform_originProperty))
+        {
+            writer.WriteLine($"transform-origin=\"{ToSvgString(transform_origin)}\"");
+        }
+
         if (this.IsSet(enable_backgroundProperty))
         {
             writer.WriteLine($"enable-background=\"{ToSvgString(enable_background)}\"");
+        }
+
+        if (this.IsSet(white_spaceProperty))
+        {
+            writer.WriteLine($"white-space=\"{ToSvgString(white_space)}\"");
+        }
+
+        if (this.IsSet(text_overflowProperty))
+        {
+            writer.WriteLine($"text-overflow=\"{ToSvgString(text_overflow)}\"");
+        }
+
+        if (this.IsSet(inline_sizeProperty))
+        {
+            writer.WriteLine($"inline-size=\"{ToSvgString(inline_size)}\"");
+        }
+
+        if (this.IsSet(shape_insideProperty))
+        {
+            writer.WriteLine($"shape-inside=\"{ToSvgString(shape_inside)}\"");
+        }
+
+        if (this.IsSet(shape_subtractProperty))
+        {
+            writer.WriteLine($"shape-subtract=\"{ToSvgString(shape_subtract)}\"");
         }
     }
 }

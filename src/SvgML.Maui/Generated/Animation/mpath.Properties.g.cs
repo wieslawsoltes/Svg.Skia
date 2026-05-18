@@ -7,10 +7,10 @@ public partial class mpath : element
 {
     protected override string SvgTag => "mpath";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("href", typeof(string), typeof(mpath));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty externalResourcesRequiredProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty externalResourcesRequiredProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("externalResourcesRequired", typeof(bool), typeof(mpath));
 
     public string href

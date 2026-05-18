@@ -29,7 +29,7 @@ public abstract partial class element
 
         if (ReadLocalValue(spProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
         {
-            writer.WriteLine($"sp=\"{ToSvgString(sp)}\"");
+            writer.WriteLine($"xml:space=\"{ToSvgString(sp)}\"");
         }
 
         if (ReadLocalValue(onclickProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)

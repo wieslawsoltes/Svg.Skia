@@ -35,6 +35,13 @@ public partial class ellipse : path_based
             typeof(ellipse),
             new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
 
+    public static readonly Microsoft.UI.Xaml.DependencyProperty pathLengthProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "pathLength",
+            typeof(float),
+            typeof(ellipse),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(float), OnSvgPropertyChanged));
+
     public Svg.SvgUnit cx
     {
         get => (Svg.SvgUnit)GetValue(cxProperty);
@@ -57,5 +64,11 @@ public partial class ellipse : path_based
     {
         get => (Svg.SvgUnit)GetValue(ryProperty);
         set => SetValue(ryProperty, value);
+    }
+
+    public float pathLength
+    {
+        get => (float)GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

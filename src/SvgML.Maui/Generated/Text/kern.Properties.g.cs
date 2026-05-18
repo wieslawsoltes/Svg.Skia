@@ -5,19 +5,19 @@ namespace SvgML;
 
 public abstract partial class kern : element
 {
-    public static readonly Microsoft.Maui.Controls.BindableProperty g1Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty g1Property =
         Microsoft.Maui.Controls.BindableProperty.Create("g1", typeof(string), typeof(kern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty g2Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty g2Property =
         Microsoft.Maui.Controls.BindableProperty.Create("g2", typeof(string), typeof(kern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty u1Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty u1Property =
         Microsoft.Maui.Controls.BindableProperty.Create("u1", typeof(string), typeof(kern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty u2Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty u2Property =
         Microsoft.Maui.Controls.BindableProperty.Create("u2", typeof(string), typeof(kern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty kProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty kProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("k", typeof(float), typeof(kern));
 
     public string g1

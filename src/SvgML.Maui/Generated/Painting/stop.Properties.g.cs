@@ -7,13 +7,13 @@ public partial class stop : element
 {
     protected override string SvgTag => "stop";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty offsetProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty offsetProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("offset", typeof(Svg.SvgUnit), typeof(stop));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stop_colorProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stop_colorProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stop-color", typeof(string), typeof(stop));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stop_opacityProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stop_opacityProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stop-opacity", typeof(string), typeof(stop));
 
     public Svg.SvgUnit offset

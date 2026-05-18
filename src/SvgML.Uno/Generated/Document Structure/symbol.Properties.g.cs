@@ -7,6 +7,48 @@ public partial class symbol : visual
 {
     protected override string SvgTag => "symbol";
 
+    public static readonly Microsoft.UI.Xaml.DependencyProperty xProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "x",
+            typeof(Svg.SvgUnit),
+            typeof(symbol),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty yProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "y",
+            typeof(Svg.SvgUnit),
+            typeof(symbol),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty widthProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "width",
+            typeof(Svg.SvgUnit),
+            typeof(symbol),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty heightProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "height",
+            typeof(Svg.SvgUnit),
+            typeof(symbol),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty refXProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "refX",
+            typeof(Svg.SvgUnit),
+            typeof(symbol),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty refYProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "refY",
+            typeof(Svg.SvgUnit),
+            typeof(symbol),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
+
     public static readonly Microsoft.UI.Xaml.DependencyProperty viewBoxProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "viewBox",
@@ -20,6 +62,42 @@ public partial class symbol : visual
             typeof(string),
             typeof(symbol),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
+
+    public Svg.SvgUnit x
+    {
+        get => (Svg.SvgUnit)GetValue(xProperty);
+        set => SetValue(xProperty, value);
+    }
+
+    public Svg.SvgUnit y
+    {
+        get => (Svg.SvgUnit)GetValue(yProperty);
+        set => SetValue(yProperty, value);
+    }
+
+    public Svg.SvgUnit width
+    {
+        get => (Svg.SvgUnit)GetValue(widthProperty);
+        set => SetValue(widthProperty, value);
+    }
+
+    public Svg.SvgUnit height
+    {
+        get => (Svg.SvgUnit)GetValue(heightProperty);
+        set => SetValue(heightProperty, value);
+    }
+
+    public Svg.SvgUnit refX
+    {
+        get => (Svg.SvgUnit)GetValue(refXProperty);
+        set => SetValue(refXProperty, value);
+    }
+
+    public Svg.SvgUnit refY
+    {
+        get => (Svg.SvgUnit)GetValue(refYProperty);
+        set => SetValue(refYProperty, value);
+    }
 
     public string viewBox
     {

@@ -5,16 +5,16 @@ namespace SvgML;
 
 public abstract partial class marker_element : path_based
 {
-    public static readonly Microsoft.Maui.Controls.BindableProperty markerProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty markerProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("marker", typeof(string), typeof(marker_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty marker_endProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty marker_endProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("marker-end", typeof(string), typeof(marker_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty marker_midProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty marker_midProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("marker-mid", typeof(string), typeof(marker_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty marker_startProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty marker_startProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("marker-start", typeof(string), typeof(marker_element));
 
     public string marker

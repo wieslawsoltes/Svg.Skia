@@ -7,11 +7,65 @@ public partial class symbol : visual
 {
     protected override string SvgTag => "symbol";
 
+    public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> xProperty =
+        Avalonia.AvaloniaProperty.Register<symbol, Svg.SvgUnit?>("x");
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> yProperty =
+        Avalonia.AvaloniaProperty.Register<symbol, Svg.SvgUnit?>("y");
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> widthProperty =
+        Avalonia.AvaloniaProperty.Register<symbol, Svg.SvgUnit?>("width");
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> heightProperty =
+        Avalonia.AvaloniaProperty.Register<symbol, Svg.SvgUnit?>("height");
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> refXProperty =
+        Avalonia.AvaloniaProperty.Register<symbol, Svg.SvgUnit?>("refX");
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> refYProperty =
+        Avalonia.AvaloniaProperty.Register<symbol, Svg.SvgUnit?>("refY");
+
     public static readonly Avalonia.StyledProperty<string?> viewBoxProperty =
         Avalonia.AvaloniaProperty.Register<symbol, string?>("viewBox");
 
     public static readonly Avalonia.StyledProperty<string?> preserveAspectRatioProperty =
         Avalonia.AvaloniaProperty.Register<symbol, string?>("preserveAspectRatio");
+
+    public Svg.SvgUnit? x
+    {
+        get => GetValue(xProperty);
+        set => SetValue(xProperty, value);
+    }
+
+    public Svg.SvgUnit? y
+    {
+        get => GetValue(yProperty);
+        set => SetValue(yProperty, value);
+    }
+
+    public Svg.SvgUnit? width
+    {
+        get => GetValue(widthProperty);
+        set => SetValue(widthProperty, value);
+    }
+
+    public Svg.SvgUnit? height
+    {
+        get => GetValue(heightProperty);
+        set => SetValue(heightProperty, value);
+    }
+
+    public Svg.SvgUnit? refX
+    {
+        get => GetValue(refXProperty);
+        set => SetValue(refXProperty, value);
+    }
+
+    public Svg.SvgUnit? refY
+    {
+        get => GetValue(refYProperty);
+        set => SetValue(refYProperty, value);
+    }
 
     public string? viewBox
     {

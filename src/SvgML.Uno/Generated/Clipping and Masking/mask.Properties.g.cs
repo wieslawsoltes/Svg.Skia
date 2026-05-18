@@ -49,6 +49,13 @@ public partial class mask : element
             typeof(mask),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
 
+    public static readonly Microsoft.UI.Xaml.DependencyProperty mask_typeProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "mask-type",
+            typeof(ModelMaskTypeValue),
+            typeof(mask),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(ModelMaskTypeValue), OnSvgPropertyChanged));
+
     public string maskUnits
     {
         get => (string)GetValue(maskUnitsProperty);
@@ -83,5 +90,11 @@ public partial class mask : element
     {
         get => (string)GetValue(heightProperty);
         set => SetValue(heightProperty, value);
+    }
+
+    public ModelMaskTypeValue mask_type
+    {
+        get => (ModelMaskTypeValue)GetValue(mask_typeProperty);
+        set => SetValue(mask_typeProperty, value);
     }
 }

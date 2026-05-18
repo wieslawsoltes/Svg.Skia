@@ -7,37 +7,37 @@ public partial class pattern : paint
 {
     protected override string SvgTag => "pattern";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("x", typeof(Svg.SvgUnit), typeof(pattern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("y", typeof(Svg.SvgUnit), typeof(pattern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("width", typeof(Svg.SvgUnit), typeof(pattern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("height", typeof(Svg.SvgUnit), typeof(pattern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty patternUnitsProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty patternUnitsProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("patternUnits", typeof(string), typeof(pattern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty patternContentUnitsProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty patternContentUnitsProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("patternContentUnits", typeof(string), typeof(pattern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty viewBoxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty viewBoxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("viewBox", typeof(string), typeof(pattern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("href", typeof(string), typeof(pattern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty overflowProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty overflowProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("overflow", typeof(string), typeof(pattern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("preserveAspectRatio", typeof(string), typeof(pattern));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty patternTransformProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty patternTransformProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("patternTransform", typeof(string), typeof(pattern));
 
     public Svg.SvgUnit x

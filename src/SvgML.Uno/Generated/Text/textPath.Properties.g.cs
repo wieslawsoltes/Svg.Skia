@@ -35,6 +35,20 @@ public partial class textPath : text_base
             typeof(textPath),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
 
+    public static readonly Microsoft.UI.Xaml.DependencyProperty pathProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "path",
+            typeof(string),
+            typeof(textPath),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty sideProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "side",
+            typeof(SvgTextPathSideValue),
+            typeof(textPath),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(SvgTextPathSideValue), OnSvgPropertyChanged));
+
     public Svg.SvgUnit startOffset
     {
         get => (Svg.SvgUnit)GetValue(startOffsetProperty);
@@ -57,5 +71,17 @@ public partial class textPath : text_base
     {
         get => (string)GetValue(hrefProperty);
         set => SetValue(hrefProperty, value);
+    }
+
+    public string path
+    {
+        get => (string)GetValue(pathProperty);
+        set => SetValue(pathProperty, value);
+    }
+
+    public SvgTextPathSideValue side
+    {
+        get => (SvgTextPathSideValue)GetValue(sideProperty);
+        set => SetValue(sideProperty, value);
     }
 }

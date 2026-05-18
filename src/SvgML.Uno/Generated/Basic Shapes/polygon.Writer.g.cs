@@ -13,5 +13,10 @@ public partial class polygon
         {
             writer.WriteLine($"points=\"{ToSvgString(points)}\"");
         }
+
+        if (ReadLocalValue(pathLengthProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"pathLength=\"{ToSvgString(pathLength)}\"");
+        }
     }
 }

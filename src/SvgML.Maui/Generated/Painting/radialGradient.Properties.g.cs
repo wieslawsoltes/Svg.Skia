@@ -7,22 +7,22 @@ public partial class radialGradient : gradient
 {
     protected override string SvgTag => "radialGradient";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty cxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty cxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("cx", typeof(Svg.SvgUnit), typeof(radialGradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty cyProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty cyProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("cy", typeof(Svg.SvgUnit), typeof(radialGradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty rProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty rProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("r", typeof(Svg.SvgUnit), typeof(radialGradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty fxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty fxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("fx", typeof(Svg.SvgUnit), typeof(radialGradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty fyProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty fyProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("fy", typeof(Svg.SvgUnit), typeof(radialGradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty frProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty frProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("fr", typeof(Svg.SvgUnit), typeof(radialGradient));
 
     public Svg.SvgUnit cx

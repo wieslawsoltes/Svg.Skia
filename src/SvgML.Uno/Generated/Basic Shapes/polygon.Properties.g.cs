@@ -14,9 +14,22 @@ public partial class polygon : marker_element
             typeof(polygon),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
 
+    public static readonly Microsoft.UI.Xaml.DependencyProperty pathLengthProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "pathLength",
+            typeof(float),
+            typeof(polygon),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(float), OnSvgPropertyChanged));
+
     public string points
     {
         get => (string)GetValue(pointsProperty);
         set => SetValue(pointsProperty, value);
+    }
+
+    public float pathLength
+    {
+        get => (float)GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

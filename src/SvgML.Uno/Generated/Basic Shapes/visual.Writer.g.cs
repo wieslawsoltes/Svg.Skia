@@ -34,9 +34,54 @@ public abstract partial class visual
             writer.WriteLine($"pointer-events=\"{ToSvgString(pointer_events)}\"");
         }
 
+        if (ReadLocalValue(paint_orderProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"paint-order=\"{ToSvgString(paint_order)}\"");
+        }
+
+        if (ReadLocalValue(vector_effectProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"vector-effect=\"{ToSvgString(vector_effect)}\"");
+        }
+
+        if (ReadLocalValue(transform_boxProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"transform-box=\"{ToSvgString(transform_box)}\"");
+        }
+
+        if (ReadLocalValue(transform_originProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"transform-origin=\"{ToSvgString(transform_origin)}\"");
+        }
+
         if (ReadLocalValue(enable_backgroundProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
         {
             writer.WriteLine($"enable-background=\"{ToSvgString(enable_background)}\"");
+        }
+
+        if (ReadLocalValue(white_spaceProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"white-space=\"{ToSvgString(white_space)}\"");
+        }
+
+        if (ReadLocalValue(text_overflowProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"text-overflow=\"{ToSvgString(text_overflow)}\"");
+        }
+
+        if (ReadLocalValue(inline_sizeProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"inline-size=\"{ToSvgString(inline_size)}\"");
+        }
+
+        if (ReadLocalValue(shape_insideProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"shape-inside=\"{ToSvgString(shape_inside)}\"");
+        }
+
+        if (ReadLocalValue(shape_subtractProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"shape-subtract=\"{ToSvgString(shape_subtract)}\"");
         }
     }
 }

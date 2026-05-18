@@ -34,9 +34,54 @@ public abstract partial class visual
             writer.WriteLine($"pointer-events=\"{ToSvgString(pointer_events)}\"");
         }
 
+        if (paint_order is not null)
+        {
+            writer.WriteLine($"paint-order=\"{ToSvgString(paint_order)}\"");
+        }
+
+        if (vector_effect is not null)
+        {
+            writer.WriteLine($"vector-effect=\"{ToSvgString(vector_effect)}\"");
+        }
+
+        if (transform_box is not null)
+        {
+            writer.WriteLine($"transform-box=\"{ToSvgString(transform_box)}\"");
+        }
+
+        if (transform_origin is not null)
+        {
+            writer.WriteLine($"transform-origin=\"{ToSvgString(transform_origin)}\"");
+        }
+
         if (enable_background is not null)
         {
             writer.WriteLine($"enable-background=\"{ToSvgString(enable_background)}\"");
+        }
+
+        if (white_space is not null)
+        {
+            writer.WriteLine($"white-space=\"{ToSvgString(white_space)}\"");
+        }
+
+        if (text_overflow is not null)
+        {
+            writer.WriteLine($"text-overflow=\"{ToSvgString(text_overflow)}\"");
+        }
+
+        if (inline_size is not null)
+        {
+            writer.WriteLine($"inline-size=\"{ToSvgString(inline_size)}\"");
+        }
+
+        if (shape_inside is not null)
+        {
+            writer.WriteLine($"shape-inside=\"{ToSvgString(shape_inside)}\"");
+        }
+
+        if (shape_subtract is not null)
+        {
+            writer.WriteLine($"shape-subtract=\"{ToSvgString(shape_subtract)}\"");
         }
     }
 }

@@ -7,13 +7,13 @@ public partial class script : element
 {
     protected override string SvgTag => "script";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty typeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty typeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("type", typeof(string), typeof(script));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty crossoriginProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty crossoriginProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("crossorigin", typeof(string), typeof(script));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("href", typeof(string), typeof(script));
 
     public string type

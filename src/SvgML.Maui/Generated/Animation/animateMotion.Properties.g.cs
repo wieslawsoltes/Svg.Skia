@@ -7,43 +7,43 @@ public partial class animateMotion : animation_element
 {
     protected override string SvgTag => "animateMotion";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty calcModeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty calcModeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("calcMode", typeof(SvgAnimationCalcModeValue), typeof(animateMotion));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty valuesProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty valuesProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("values", typeof(string), typeof(animateMotion));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty keyTimesProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty keyTimesProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("keyTimes", typeof(numbers), typeof(animateMotion));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty keySplinesProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty keySplinesProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("keySplines", typeof(string), typeof(animateMotion));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty fromProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty fromProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("from", typeof(string), typeof(animateMotion));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty toProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty toProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("to", typeof(string), typeof(animateMotion));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty byProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty byProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("by", typeof(string), typeof(animateMotion));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty additiveProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty additiveProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("additive", typeof(SvgAnimationAdditiveValue), typeof(animateMotion));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty accumulateProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty accumulateProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("accumulate", typeof(SvgAnimationAccumulateValue), typeof(animateMotion));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty pathProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty pathProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("path", typeof(string), typeof(animateMotion));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty keyPointsProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty keyPointsProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("keyPoints", typeof(numbers), typeof(animateMotion));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty rotateProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty rotateProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("rotate", typeof(string), typeof(animateMotion));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty originProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty originProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("origin", typeof(string), typeof(animateMotion));
 
     public SvgAnimationCalcModeValue calcMode

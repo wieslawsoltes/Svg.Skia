@@ -7,10 +7,10 @@ public partial class feMorphology : filter_primitive
 {
     protected override string SvgTag => "feMorphology";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty operatorProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty operatorProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("operator", typeof(string), typeof(feMorphology));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty radiusProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty radiusProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("radius", typeof(numbers), typeof(feMorphology));
 
     public string @operator

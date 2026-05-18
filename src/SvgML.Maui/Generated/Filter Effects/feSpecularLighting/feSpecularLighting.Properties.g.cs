@@ -7,19 +7,19 @@ public partial class feSpecularLighting : filter_primitive
 {
     protected override string SvgTag => "feSpecularLighting";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty surfaceScaleProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty surfaceScaleProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("surfaceScale", typeof(float), typeof(feSpecularLighting));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty specularConstantProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty specularConstantProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("specularConstant", typeof(float), typeof(feSpecularLighting));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty specularExponentProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty specularExponentProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("specularExponent", typeof(float), typeof(feSpecularLighting));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty kernelUnitLengthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty kernelUnitLengthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("kernelUnitLength", typeof(numbers), typeof(feSpecularLighting));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty lighting_colorProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty lighting_colorProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("lighting-color", typeof(string), typeof(feSpecularLighting));
 
     public float surfaceScale

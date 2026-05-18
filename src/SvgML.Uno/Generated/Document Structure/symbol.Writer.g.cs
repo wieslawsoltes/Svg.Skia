@@ -9,6 +9,36 @@ public partial class symbol
     {
         base.WriteAttributes(writer, parent);
 
+        if (ReadLocalValue(xProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"x=\"{ToSvgString(x)}\"");
+        }
+
+        if (ReadLocalValue(yProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"y=\"{ToSvgString(y)}\"");
+        }
+
+        if (ReadLocalValue(widthProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"width=\"{ToSvgString(width)}\"");
+        }
+
+        if (ReadLocalValue(heightProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"height=\"{ToSvgString(height)}\"");
+        }
+
+        if (ReadLocalValue(refXProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"refX=\"{ToSvgString(refX)}\"");
+        }
+
+        if (ReadLocalValue(refYProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"refY=\"{ToSvgString(refY)}\"");
+        }
+
         if (ReadLocalValue(viewBoxProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
         {
             writer.WriteLine($"viewBox=\"{ToSvgString(viewBox)}\"");

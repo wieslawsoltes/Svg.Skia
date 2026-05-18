@@ -5,23 +5,50 @@ namespace SvgML;
 
 public abstract partial class visual : element
 {
-    public static readonly Microsoft.Maui.Controls.BindableProperty clipProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty clipProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("clip", typeof(string), typeof(visual));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty clip_pathProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty clip_pathProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("clip-path", typeof(string), typeof(visual));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty clip_ruleProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty clip_ruleProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("clip-rule", typeof(string), typeof(visual));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty filterProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty filterProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("filter", typeof(string), typeof(visual));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty pointer_eventsProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty pointer_eventsProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("pointer-events", typeof(SvgPointerEventsValue), typeof(visual));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty enable_backgroundProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty paint_orderProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("paint-order", typeof(string), typeof(visual));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty vector_effectProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("vector-effect", typeof(SvgVectorEffectValue), typeof(visual));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty transform_boxProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("transform-box", typeof(SvgTransformBoxValue), typeof(visual));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty transform_originProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("transform-origin", typeof(string), typeof(visual));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty enable_backgroundProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("enable-background", typeof(string), typeof(visual));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty white_spaceProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("white-space", typeof(SvgWhiteSpaceValue), typeof(visual));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty text_overflowProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("text-overflow", typeof(string), typeof(visual));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty inline_sizeProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("inline-size", typeof(string), typeof(visual));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty shape_insideProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("shape-inside", typeof(string), typeof(visual));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty shape_subtractProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("shape-subtract", typeof(string), typeof(visual));
 
     public string clip
     {
@@ -53,9 +80,63 @@ public abstract partial class visual : element
         set => SetValue(pointer_eventsProperty, value);
     }
 
+    public string paint_order
+    {
+        get => (string)GetValue(paint_orderProperty);
+        set => SetValue(paint_orderProperty, value);
+    }
+
+    public SvgVectorEffectValue vector_effect
+    {
+        get => (SvgVectorEffectValue)GetValue(vector_effectProperty);
+        set => SetValue(vector_effectProperty, value);
+    }
+
+    public SvgTransformBoxValue transform_box
+    {
+        get => (SvgTransformBoxValue)GetValue(transform_boxProperty);
+        set => SetValue(transform_boxProperty, value);
+    }
+
+    public string transform_origin
+    {
+        get => (string)GetValue(transform_originProperty);
+        set => SetValue(transform_originProperty, value);
+    }
+
     public string enable_background
     {
         get => (string)GetValue(enable_backgroundProperty);
         set => SetValue(enable_backgroundProperty, value);
+    }
+
+    public SvgWhiteSpaceValue white_space
+    {
+        get => (SvgWhiteSpaceValue)GetValue(white_spaceProperty);
+        set => SetValue(white_spaceProperty, value);
+    }
+
+    public string text_overflow
+    {
+        get => (string)GetValue(text_overflowProperty);
+        set => SetValue(text_overflowProperty, value);
+    }
+
+    public string inline_size
+    {
+        get => (string)GetValue(inline_sizeProperty);
+        set => SetValue(inline_sizeProperty, value);
+    }
+
+    public string shape_inside
+    {
+        get => (string)GetValue(shape_insideProperty);
+        set => SetValue(shape_insideProperty, value);
+    }
+
+    public string shape_subtract
+    {
+        get => (string)GetValue(shape_subtractProperty);
+        set => SetValue(shape_subtractProperty, value);
     }
 }

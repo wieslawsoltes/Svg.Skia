@@ -23,5 +23,10 @@ public partial class circle
         {
             writer.WriteLine($"r=\"{ToSvgString(r)}\"");
         }
+
+        if (this.IsSet(pathLengthProperty))
+        {
+            writer.WriteLine($"pathLength=\"{ToSvgString(pathLength)}\"");
+        }
     }
 }

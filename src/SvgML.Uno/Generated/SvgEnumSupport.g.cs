@@ -23,7 +23,9 @@ internal static class SvgEnumBridge
         {
             "Svg.SvgFontWeight" => FormatFontWeight(name),
             "Svg.XmlSpaceHandling" or "Svg.SvgFillRule" or "Svg.SvgClipRule" => name.ToLowerInvariant(),
-            "Svg.SvgDominantBaseline" or "Svg.SvgFontVariant" or "Svg.SvgTextDecoration" or "Svg.SvgFontStretch" or "Svg.FilterEffects.SvgBlendMode" => ToKebabCase(name),
+            "Svg.SvgDominantBaseline" or "Svg.SvgFontVariant" or "Svg.SvgTextDecoration" or "Svg.SvgFontStretch" or "Svg.SvgVectorEffect" or "Svg.SvgTransformBox" or "Svg.SvgMixBlendMode" or "Svg.FilterEffects.SvgBlendMode" => ToKebabCase(name),
+            "Svg.SvgPaintOrder" => FormatPaintOrder(name),
+            "Svg.SvgWhiteSpace" => FormatWhiteSpace(name),
             "Svg.FilterEffects.SvgChannelSelector" => name,
             _ when typeName is not null && typeName.StartsWith("SvgML.", global::System.StringComparison.Ordinal) => name.Replace("_", "-", global::System.StringComparison.Ordinal),
             _ => ToCamelCase(name),
@@ -97,6 +99,25 @@ internal static class SvgEnumBridge
             : ToCamelCase(name);
     }
 
+    private static string FormatPaintOrder(string name)
+    {
+        return name switch
+        {
+            "FillStrokeMarkers" => "fill stroke markers",
+            "FillMarkersStroke" => "fill markers stroke",
+            "StrokeFillMarkers" => "stroke fill markers",
+            "StrokeMarkersFill" => "stroke markers fill",
+            "MarkersFillStroke" => "markers fill stroke",
+            "MarkersStrokeFill" => "markers stroke fill",
+            _ => ToCamelCase(name)
+        };
+    }
+
+    private static string FormatWhiteSpace(string name)
+    {
+        return name == "NoWrap" ? "nowrap" : ToKebabCase(name);
+    }
+
     private static bool IsFontWeightLiteral(string value)
     {
         return value.Length == 3
@@ -155,6 +176,112 @@ internal static class SvgEnumBridge
         }
 
         return builder.ToString();
+    }
+}
+
+[global::System.ComponentModel.TypeConverter(typeof(ModelMaskTypeValueConverter))]
+[global::Windows.Foundation.Metadata.CreateFromString(MethodName = nameof(Parse))]
+public readonly partial struct ModelMaskTypeValue : global::System.IEquatable<ModelMaskTypeValue>, ISvgEnumBridge
+{
+    private readonly Svg.Model.MaskType _value;
+
+    public ModelMaskTypeValue(Svg.Model.MaskType value)
+    {
+        _value = value;
+    }
+
+    public Svg.Model.MaskType Value => _value;
+
+    object ISvgEnumBridge.RawValue => _value;
+
+    public static ModelMaskTypeValue Parse(string value)
+    {
+        return new ModelMaskTypeValue(SvgEnumBridge.Parse<Svg.Model.MaskType>(value));
+    }
+
+    public override string ToString()
+    {
+        return SvgEnumBridge.ToSvgString(_value);
+    }
+
+    public bool Equals(ModelMaskTypeValue other)
+    {
+        return _value.Equals(other._value);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is ModelMaskTypeValue other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return _value.GetHashCode();
+    }
+
+    public static implicit operator ModelMaskTypeValue(Svg.Model.MaskType value)
+    {
+        return new ModelMaskTypeValue(value);
+    }
+
+    public static implicit operator Svg.Model.MaskType(ModelMaskTypeValue value)
+    {
+        return value._value;
+    }
+
+    public static bool operator ==(ModelMaskTypeValue left, ModelMaskTypeValue right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(ModelMaskTypeValue left, ModelMaskTypeValue right)
+    {
+        return !left.Equals(right);
+    }
+}
+
+public sealed class ModelMaskTypeValueConverter : global::System.ComponentModel.TypeConverter
+{
+    public override bool CanConvertFrom(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Type sourceType)
+    {
+        return sourceType == typeof(string)
+            || sourceType == typeof(Svg.Model.MaskType)
+            || base.CanConvertFrom(context, sourceType);
+    }
+
+    public override object? ConvertFrom(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Globalization.CultureInfo? culture, object value)
+    {
+        return value switch
+        {
+            string svgValue => ModelMaskTypeValue.Parse(svgValue),
+            Svg.Model.MaskType enumValue => new ModelMaskTypeValue(enumValue),
+            _ => base.ConvertFrom(context, culture, value)
+        };
+    }
+
+    public override bool CanConvertTo(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Type? destinationType)
+    {
+        return destinationType == typeof(string)
+            || destinationType == typeof(Svg.Model.MaskType)
+            || base.CanConvertTo(context, destinationType);
+    }
+
+    public override object? ConvertTo(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Globalization.CultureInfo? culture, object? value, global::System.Type destinationType)
+    {
+        if (value is ModelMaskTypeValue bridgedValue)
+        {
+            if (destinationType == typeof(string))
+            {
+                return bridgedValue.ToString();
+            }
+
+            if (destinationType == typeof(Svg.Model.MaskType))
+            {
+                return bridgedValue.Value;
+            }
+        }
+
+        return base.ConvertTo(context, culture, value, destinationType);
     }
 }
 
@@ -997,6 +1124,430 @@ public sealed class SvgPointerEventsValueConverter : global::System.ComponentMod
             }
 
             if (destinationType == typeof(Svg.SvgPointerEvents))
+            {
+                return bridgedValue.Value;
+            }
+        }
+
+        return base.ConvertTo(context, culture, value, destinationType);
+    }
+}
+
+[global::System.ComponentModel.TypeConverter(typeof(SvgTextPathSideValueConverter))]
+[global::Windows.Foundation.Metadata.CreateFromString(MethodName = nameof(Parse))]
+public readonly partial struct SvgTextPathSideValue : global::System.IEquatable<SvgTextPathSideValue>, ISvgEnumBridge
+{
+    private readonly Svg.SvgTextPathSide _value;
+
+    public SvgTextPathSideValue(Svg.SvgTextPathSide value)
+    {
+        _value = value;
+    }
+
+    public Svg.SvgTextPathSide Value => _value;
+
+    object ISvgEnumBridge.RawValue => _value;
+
+    public static SvgTextPathSideValue Parse(string value)
+    {
+        return new SvgTextPathSideValue(SvgEnumBridge.Parse<Svg.SvgTextPathSide>(value));
+    }
+
+    public override string ToString()
+    {
+        return SvgEnumBridge.ToSvgString(_value);
+    }
+
+    public bool Equals(SvgTextPathSideValue other)
+    {
+        return _value.Equals(other._value);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is SvgTextPathSideValue other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return _value.GetHashCode();
+    }
+
+    public static implicit operator SvgTextPathSideValue(Svg.SvgTextPathSide value)
+    {
+        return new SvgTextPathSideValue(value);
+    }
+
+    public static implicit operator Svg.SvgTextPathSide(SvgTextPathSideValue value)
+    {
+        return value._value;
+    }
+
+    public static bool operator ==(SvgTextPathSideValue left, SvgTextPathSideValue right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(SvgTextPathSideValue left, SvgTextPathSideValue right)
+    {
+        return !left.Equals(right);
+    }
+}
+
+public sealed class SvgTextPathSideValueConverter : global::System.ComponentModel.TypeConverter
+{
+    public override bool CanConvertFrom(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Type sourceType)
+    {
+        return sourceType == typeof(string)
+            || sourceType == typeof(Svg.SvgTextPathSide)
+            || base.CanConvertFrom(context, sourceType);
+    }
+
+    public override object? ConvertFrom(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Globalization.CultureInfo? culture, object value)
+    {
+        return value switch
+        {
+            string svgValue => SvgTextPathSideValue.Parse(svgValue),
+            Svg.SvgTextPathSide enumValue => new SvgTextPathSideValue(enumValue),
+            _ => base.ConvertFrom(context, culture, value)
+        };
+    }
+
+    public override bool CanConvertTo(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Type? destinationType)
+    {
+        return destinationType == typeof(string)
+            || destinationType == typeof(Svg.SvgTextPathSide)
+            || base.CanConvertTo(context, destinationType);
+    }
+
+    public override object? ConvertTo(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Globalization.CultureInfo? culture, object? value, global::System.Type destinationType)
+    {
+        if (value is SvgTextPathSideValue bridgedValue)
+        {
+            if (destinationType == typeof(string))
+            {
+                return bridgedValue.ToString();
+            }
+
+            if (destinationType == typeof(Svg.SvgTextPathSide))
+            {
+                return bridgedValue.Value;
+            }
+        }
+
+        return base.ConvertTo(context, culture, value, destinationType);
+    }
+}
+
+[global::System.ComponentModel.TypeConverter(typeof(SvgTransformBoxValueConverter))]
+[global::Windows.Foundation.Metadata.CreateFromString(MethodName = nameof(Parse))]
+public readonly partial struct SvgTransformBoxValue : global::System.IEquatable<SvgTransformBoxValue>, ISvgEnumBridge
+{
+    private readonly Svg.SvgTransformBox _value;
+
+    public SvgTransformBoxValue(Svg.SvgTransformBox value)
+    {
+        _value = value;
+    }
+
+    public Svg.SvgTransformBox Value => _value;
+
+    object ISvgEnumBridge.RawValue => _value;
+
+    public static SvgTransformBoxValue Parse(string value)
+    {
+        return new SvgTransformBoxValue(SvgEnumBridge.Parse<Svg.SvgTransformBox>(value));
+    }
+
+    public override string ToString()
+    {
+        return SvgEnumBridge.ToSvgString(_value);
+    }
+
+    public bool Equals(SvgTransformBoxValue other)
+    {
+        return _value.Equals(other._value);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is SvgTransformBoxValue other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return _value.GetHashCode();
+    }
+
+    public static implicit operator SvgTransformBoxValue(Svg.SvgTransformBox value)
+    {
+        return new SvgTransformBoxValue(value);
+    }
+
+    public static implicit operator Svg.SvgTransformBox(SvgTransformBoxValue value)
+    {
+        return value._value;
+    }
+
+    public static bool operator ==(SvgTransformBoxValue left, SvgTransformBoxValue right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(SvgTransformBoxValue left, SvgTransformBoxValue right)
+    {
+        return !left.Equals(right);
+    }
+}
+
+public sealed class SvgTransformBoxValueConverter : global::System.ComponentModel.TypeConverter
+{
+    public override bool CanConvertFrom(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Type sourceType)
+    {
+        return sourceType == typeof(string)
+            || sourceType == typeof(Svg.SvgTransformBox)
+            || base.CanConvertFrom(context, sourceType);
+    }
+
+    public override object? ConvertFrom(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Globalization.CultureInfo? culture, object value)
+    {
+        return value switch
+        {
+            string svgValue => SvgTransformBoxValue.Parse(svgValue),
+            Svg.SvgTransformBox enumValue => new SvgTransformBoxValue(enumValue),
+            _ => base.ConvertFrom(context, culture, value)
+        };
+    }
+
+    public override bool CanConvertTo(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Type? destinationType)
+    {
+        return destinationType == typeof(string)
+            || destinationType == typeof(Svg.SvgTransformBox)
+            || base.CanConvertTo(context, destinationType);
+    }
+
+    public override object? ConvertTo(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Globalization.CultureInfo? culture, object? value, global::System.Type destinationType)
+    {
+        if (value is SvgTransformBoxValue bridgedValue)
+        {
+            if (destinationType == typeof(string))
+            {
+                return bridgedValue.ToString();
+            }
+
+            if (destinationType == typeof(Svg.SvgTransformBox))
+            {
+                return bridgedValue.Value;
+            }
+        }
+
+        return base.ConvertTo(context, culture, value, destinationType);
+    }
+}
+
+[global::System.ComponentModel.TypeConverter(typeof(SvgVectorEffectValueConverter))]
+[global::Windows.Foundation.Metadata.CreateFromString(MethodName = nameof(Parse))]
+public readonly partial struct SvgVectorEffectValue : global::System.IEquatable<SvgVectorEffectValue>, ISvgEnumBridge
+{
+    private readonly Svg.SvgVectorEffect _value;
+
+    public SvgVectorEffectValue(Svg.SvgVectorEffect value)
+    {
+        _value = value;
+    }
+
+    public Svg.SvgVectorEffect Value => _value;
+
+    object ISvgEnumBridge.RawValue => _value;
+
+    public static SvgVectorEffectValue Parse(string value)
+    {
+        return new SvgVectorEffectValue(SvgEnumBridge.Parse<Svg.SvgVectorEffect>(value));
+    }
+
+    public override string ToString()
+    {
+        return SvgEnumBridge.ToSvgString(_value);
+    }
+
+    public bool Equals(SvgVectorEffectValue other)
+    {
+        return _value.Equals(other._value);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is SvgVectorEffectValue other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return _value.GetHashCode();
+    }
+
+    public static implicit operator SvgVectorEffectValue(Svg.SvgVectorEffect value)
+    {
+        return new SvgVectorEffectValue(value);
+    }
+
+    public static implicit operator Svg.SvgVectorEffect(SvgVectorEffectValue value)
+    {
+        return value._value;
+    }
+
+    public static bool operator ==(SvgVectorEffectValue left, SvgVectorEffectValue right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(SvgVectorEffectValue left, SvgVectorEffectValue right)
+    {
+        return !left.Equals(right);
+    }
+}
+
+public sealed class SvgVectorEffectValueConverter : global::System.ComponentModel.TypeConverter
+{
+    public override bool CanConvertFrom(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Type sourceType)
+    {
+        return sourceType == typeof(string)
+            || sourceType == typeof(Svg.SvgVectorEffect)
+            || base.CanConvertFrom(context, sourceType);
+    }
+
+    public override object? ConvertFrom(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Globalization.CultureInfo? culture, object value)
+    {
+        return value switch
+        {
+            string svgValue => SvgVectorEffectValue.Parse(svgValue),
+            Svg.SvgVectorEffect enumValue => new SvgVectorEffectValue(enumValue),
+            _ => base.ConvertFrom(context, culture, value)
+        };
+    }
+
+    public override bool CanConvertTo(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Type? destinationType)
+    {
+        return destinationType == typeof(string)
+            || destinationType == typeof(Svg.SvgVectorEffect)
+            || base.CanConvertTo(context, destinationType);
+    }
+
+    public override object? ConvertTo(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Globalization.CultureInfo? culture, object? value, global::System.Type destinationType)
+    {
+        if (value is SvgVectorEffectValue bridgedValue)
+        {
+            if (destinationType == typeof(string))
+            {
+                return bridgedValue.ToString();
+            }
+
+            if (destinationType == typeof(Svg.SvgVectorEffect))
+            {
+                return bridgedValue.Value;
+            }
+        }
+
+        return base.ConvertTo(context, culture, value, destinationType);
+    }
+}
+
+[global::System.ComponentModel.TypeConverter(typeof(SvgWhiteSpaceValueConverter))]
+[global::Windows.Foundation.Metadata.CreateFromString(MethodName = nameof(Parse))]
+public readonly partial struct SvgWhiteSpaceValue : global::System.IEquatable<SvgWhiteSpaceValue>, ISvgEnumBridge
+{
+    private readonly Svg.SvgWhiteSpace _value;
+
+    public SvgWhiteSpaceValue(Svg.SvgWhiteSpace value)
+    {
+        _value = value;
+    }
+
+    public Svg.SvgWhiteSpace Value => _value;
+
+    object ISvgEnumBridge.RawValue => _value;
+
+    public static SvgWhiteSpaceValue Parse(string value)
+    {
+        return new SvgWhiteSpaceValue(SvgEnumBridge.Parse<Svg.SvgWhiteSpace>(value));
+    }
+
+    public override string ToString()
+    {
+        return SvgEnumBridge.ToSvgString(_value);
+    }
+
+    public bool Equals(SvgWhiteSpaceValue other)
+    {
+        return _value.Equals(other._value);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is SvgWhiteSpaceValue other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return _value.GetHashCode();
+    }
+
+    public static implicit operator SvgWhiteSpaceValue(Svg.SvgWhiteSpace value)
+    {
+        return new SvgWhiteSpaceValue(value);
+    }
+
+    public static implicit operator Svg.SvgWhiteSpace(SvgWhiteSpaceValue value)
+    {
+        return value._value;
+    }
+
+    public static bool operator ==(SvgWhiteSpaceValue left, SvgWhiteSpaceValue right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(SvgWhiteSpaceValue left, SvgWhiteSpaceValue right)
+    {
+        return !left.Equals(right);
+    }
+}
+
+public sealed class SvgWhiteSpaceValueConverter : global::System.ComponentModel.TypeConverter
+{
+    public override bool CanConvertFrom(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Type sourceType)
+    {
+        return sourceType == typeof(string)
+            || sourceType == typeof(Svg.SvgWhiteSpace)
+            || base.CanConvertFrom(context, sourceType);
+    }
+
+    public override object? ConvertFrom(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Globalization.CultureInfo? culture, object value)
+    {
+        return value switch
+        {
+            string svgValue => SvgWhiteSpaceValue.Parse(svgValue),
+            Svg.SvgWhiteSpace enumValue => new SvgWhiteSpaceValue(enumValue),
+            _ => base.ConvertFrom(context, culture, value)
+        };
+    }
+
+    public override bool CanConvertTo(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Type? destinationType)
+    {
+        return destinationType == typeof(string)
+            || destinationType == typeof(Svg.SvgWhiteSpace)
+            || base.CanConvertTo(context, destinationType);
+    }
+
+    public override object? ConvertTo(global::System.ComponentModel.ITypeDescriptorContext? context, global::System.Globalization.CultureInfo? culture, object? value, global::System.Type destinationType)
+    {
+        if (value is SvgWhiteSpaceValue bridgedValue)
+        {
+            if (destinationType == typeof(string))
+            {
+                return bridgedValue.ToString();
+            }
+
+            if (destinationType == typeof(Svg.SvgWhiteSpace))
             {
                 return bridgedValue.Value;
             }

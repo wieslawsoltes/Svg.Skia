@@ -7,19 +7,19 @@ public partial class use : visual
 {
     protected override string SvgTag => "use";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("href", typeof(string), typeof(use));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("x", typeof(Svg.SvgUnit), typeof(use));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("y", typeof(Svg.SvgUnit), typeof(use));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("width", typeof(Svg.SvgUnit), typeof(use));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("height", typeof(Svg.SvgUnit), typeof(use));
 
     public string href

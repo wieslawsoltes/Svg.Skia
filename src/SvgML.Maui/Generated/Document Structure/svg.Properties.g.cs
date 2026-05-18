@@ -7,31 +7,31 @@ public partial class svg : element
 {
     protected override string SvgTag => "svg";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("x", typeof(Svg.SvgUnit), typeof(svg));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("y", typeof(Svg.SvgUnit), typeof(svg));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("width", typeof(Svg.SvgUnit), typeof(svg));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("height", typeof(Svg.SvgUnit), typeof(svg));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty overflowProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty overflowProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("overflow", typeof(string), typeof(svg));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty viewBoxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty viewBoxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("viewBox", typeof(string), typeof(svg));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("preserveAspectRatio", typeof(string), typeof(svg));
 
-    public new static readonly Microsoft.Maui.Controls.BindableProperty font_sizeProperty = 
+    public new static readonly Microsoft.Maui.Controls.BindableProperty font_sizeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("font-size", typeof(Svg.SvgUnit), typeof(svg));
 
-    public new static readonly Microsoft.Maui.Controls.BindableProperty font_familyProperty = 
+    public new static readonly Microsoft.Maui.Controls.BindableProperty font_familyProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("font-family", typeof(string), typeof(svg));
 
     public Svg.SvgUnit x

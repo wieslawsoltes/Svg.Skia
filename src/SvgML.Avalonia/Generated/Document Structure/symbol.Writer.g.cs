@@ -9,6 +9,36 @@ public partial class symbol
     {
         base.WriteAttributes(writer, parent);
 
+        if (x is not null)
+        {
+            writer.WriteLine($"x=\"{ToSvgString(x)}\"");
+        }
+
+        if (y is not null)
+        {
+            writer.WriteLine($"y=\"{ToSvgString(y)}\"");
+        }
+
+        if (width is not null)
+        {
+            writer.WriteLine($"width=\"{ToSvgString(width)}\"");
+        }
+
+        if (height is not null)
+        {
+            writer.WriteLine($"height=\"{ToSvgString(height)}\"");
+        }
+
+        if (refX is not null)
+        {
+            writer.WriteLine($"refX=\"{ToSvgString(refX)}\"");
+        }
+
+        if (refY is not null)
+        {
+            writer.WriteLine($"refY=\"{ToSvgString(refY)}\"");
+        }
+
         if (viewBox is not null)
         {
             writer.WriteLine($"viewBox=\"{ToSvgString(viewBox)}\"");

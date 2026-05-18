@@ -7,7 +7,7 @@ public partial class tref : text_base
 {
     protected override string SvgTag => "tref";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("href", typeof(string), typeof(tref));
 
     public string href

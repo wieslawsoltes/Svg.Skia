@@ -38,5 +38,10 @@ public partial class rect
         {
             writer.WriteLine($"ry=\"{ToSvgString(ry)}\"");
         }
+
+        if (this.IsSet(pathLengthProperty))
+        {
+            writer.WriteLine($"pathLength=\"{ToSvgString(pathLength)}\"");
+        }
     }
 }

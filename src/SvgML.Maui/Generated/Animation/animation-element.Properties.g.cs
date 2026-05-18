@@ -5,58 +5,58 @@ namespace SvgML;
 
 public abstract partial class animation_element : element
 {
-    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("href", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty requiredFeaturesProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty requiredFeaturesProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("requiredFeatures", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty requiredExtensionsProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty requiredExtensionsProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("requiredExtensions", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty systemLanguageProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty systemLanguageProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("systemLanguage", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty externalResourcesRequiredProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty externalResourcesRequiredProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("externalResourcesRequired", typeof(bool), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty beginProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty beginProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("begin", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty durProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty durProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("dur", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty endProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty endProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("end", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty minProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty minProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("min", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty maxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty maxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("max", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty restartProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty restartProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("restart", typeof(SvgAnimationRestartValue), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty repeatCountProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty repeatCountProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("repeatCount", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty repeatDurProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty repeatDurProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("repeatDur", typeof(string), typeof(animation_element));
 
-    public new static readonly Microsoft.Maui.Controls.BindableProperty fillProperty = 
+    public new static readonly Microsoft.Maui.Controls.BindableProperty fillProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("fill", typeof(SvgAnimationFillValue), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty onbeginProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty onbeginProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("onbegin", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty onendProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty onendProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("onend", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty onrepeatProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty onrepeatProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("onrepeat", typeof(string), typeof(animation_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty onloadProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty onloadProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("onload", typeof(string), typeof(animation_element));
 
     public string href

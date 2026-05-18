@@ -1,3 +1,5 @@
+using Svg;
+
 namespace SvgML;
 
 public enum StretchDirection
@@ -23,6 +25,18 @@ public partial class svg
     public static readonly BindableProperty CurrentCssProperty = 
         BindableProperty.CreateAttached("CurrentCss", typeof(string), typeof(svg), null, propertyChanged: OnCssPropertyAttachedPropertyChanged);
 
+    public static readonly BindableProperty ProcessingModeProperty =
+        BindableProperty.Create(nameof(ProcessingMode), typeof(SvgProcessingMode), typeof(svg), SvgProcessingMode.Static);
+
+    public static readonly BindableProperty ExternalResourcesProperty =
+        BindableProperty.Create(nameof(ExternalResources), typeof(SvgExternalResourcePolicy), typeof(svg), SvgExternalResourcePolicy.Enabled);
+
+    public static readonly BindableProperty PreserveUnknownElementsProperty =
+        BindableProperty.Create(nameof(PreserveUnknownElements), typeof(bool), typeof(svg), true);
+
+    public static readonly BindableProperty PreferSvg2HrefProperty =
+        BindableProperty.Create(nameof(PreferSvg2Href), typeof(bool), typeof(svg), true);
+
     public Stretch Stretch
     {
         get { return (Stretch)GetValue(StretchProperty); }
@@ -45,6 +59,30 @@ public partial class svg
     {
         get { return GetCurrentCss(this); }
         set { SetCurrentCss(this, value); }
+    }
+
+    public SvgProcessingMode ProcessingMode
+    {
+        get { return (SvgProcessingMode)GetValue(ProcessingModeProperty); }
+        set { SetValue(ProcessingModeProperty, value); }
+    }
+
+    public SvgExternalResourcePolicy ExternalResources
+    {
+        get { return (SvgExternalResourcePolicy)GetValue(ExternalResourcesProperty); }
+        set { SetValue(ExternalResourcesProperty, value); }
+    }
+
+    public bool PreserveUnknownElements
+    {
+        get { return (bool)GetValue(PreserveUnknownElementsProperty); }
+        set { SetValue(PreserveUnknownElementsProperty, value); }
+    }
+
+    public bool PreferSvg2Href
+    {
+        get { return (bool)GetValue(PreferSvg2HrefProperty); }
+        set { SetValue(PreferSvg2HrefProperty, value); }
     }
 
     public static string? GetCss(BindableObject element)

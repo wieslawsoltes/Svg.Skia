@@ -7,31 +7,31 @@ public partial class marker : path_based
 {
     protected override string SvgTag => "marker";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty refXProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty refXProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("refX", typeof(Svg.SvgUnit), typeof(marker));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty refYProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty refYProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("refY", typeof(Svg.SvgUnit), typeof(marker));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty orientProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty orientProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("orient", typeof(string), typeof(marker));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty overflowProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty overflowProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("overflow", typeof(string), typeof(marker));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty viewBoxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty viewBoxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("viewBox", typeof(string), typeof(marker));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("preserveAspectRatio", typeof(string), typeof(marker));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty markerWidthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty markerWidthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("markerWidth", typeof(Svg.SvgUnit), typeof(marker));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty markerHeightProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty markerHeightProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("markerHeight", typeof(Svg.SvgUnit), typeof(marker));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty markerUnitsProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty markerUnitsProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("markerUnits", typeof(string), typeof(marker));
 
     public Svg.SvgUnit refX

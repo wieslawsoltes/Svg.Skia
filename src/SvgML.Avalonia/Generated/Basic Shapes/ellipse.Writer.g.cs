@@ -28,5 +28,10 @@ public partial class ellipse
         {
             writer.WriteLine($"ry=\"{ToSvgString(ry)}\"");
         }
+
+        if (pathLength is not null)
+        {
+            writer.WriteLine($"pathLength=\"{ToSvgString(pathLength)}\"");
+        }
     }
 }
