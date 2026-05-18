@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using ShimSkiaSharp;
 using Svg.Model.Services;
 using Xunit;
@@ -6,6 +7,16 @@ namespace Svg.Model.UnitTests;
 
 public class Svg2StaticStyleContractTests
 {
+    [Fact]
+    public void SvgWhiteSpaceConverter_FormatsNoWrapAsCssKeyword()
+    {
+        var converter = TypeDescriptor.GetConverter(typeof(SvgWhiteSpace));
+
+        Assert.Equal("nowrap", converter.ConvertToInvariantString(SvgWhiteSpace.NoWrap));
+        Assert.Equal(SvgWhiteSpace.NoWrap, converter.ConvertFromInvariantString("nowrap"));
+        Assert.Equal(SvgWhiteSpace.NoWrap, converter.ConvertFromInvariantString("no-wrap"));
+    }
+
     [Fact]
     public void PresentationAttributes_ParseSvg2StaticStyleProperties()
     {

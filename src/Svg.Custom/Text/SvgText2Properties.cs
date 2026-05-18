@@ -1,4 +1,6 @@
+using System;
 using System.ComponentModel;
+using System.Globalization;
 using Svg.Pathing;
 
 namespace Svg
@@ -18,6 +20,16 @@ namespace Svg
     {
         public SvgWhiteSpaceConverter() : base(CaseHandling.KebabCase)
         {
+        }
+
+        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
+        {
+            if (destinationType == typeof(string) && value is SvgWhiteSpace.NoWrap)
+            {
+                return "nowrap";
+            }
+
+            return base.ConvertTo(context, culture, value, destinationType);
         }
     }
 
