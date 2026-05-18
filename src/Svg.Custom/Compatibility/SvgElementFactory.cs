@@ -421,6 +421,10 @@ namespace Svg
             }
 
             attributeValue = normalizedOpacityValue;
+            if (isStyle && ShouldKeepComputedStyleDeclaration(attributeName, attributeValue))
+            {
+                return false;
+            }
 
             var setValueResult = element.SetValue(attributeName, document, CultureInfo.InvariantCulture, attributeValue);
             if (setValueResult)
@@ -435,6 +439,37 @@ namespace Svg
                 element.CustomAttributes[ns.Length == 0 ? attributeName : $"{ns}:{attributeName}"] = attributeValue;
             }
             return true;
+        }
+
+        private static bool ShouldKeepComputedStyleDeclaration(string attributeName, string attributeValue)
+        {
+            return IsGeometryAttribute(attributeName) &&
+                   (IsCssIdentifier(attributeValue, "auto") ||
+                    IsCssIdentifier(attributeValue, "inherit") ||
+                    IsCssIdentifier(attributeValue, "initial") ||
+                    IsCssIdentifier(attributeValue, "unset"));
+        }
+
+        private static bool IsGeometryAttribute(string attributeName)
+        {
+            return attributeName.Equals("x", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("y", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("x1", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("y1", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("x2", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("y2", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("cx", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("cy", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("r", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("rx", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("ry", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("width", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("height", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsCssIdentifier(string value, string identifier)
+        {
+            return value.AsSpan().Trim().Equals(identifier.AsSpan(), StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsEventDescriptorAttribute(SvgElement element, string attributeName)

@@ -14,7 +14,7 @@ public class Svg2StaticImageFontResourcePolicyTests
     {
         var document = SvgService.FromSvg("""
             <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
-              <image id="asset" href="data:image/png;base64,AQIDBA==" />
+              <image id="asset" href="data:image/png;base64,AQIDBA==" preserveAspectRatio="none" />
             </svg>
             """);
         var assetLoader = new IntrinsicImageAssetLoader(width: 12f, height: 8f);
@@ -53,6 +53,80 @@ public class Svg2StaticImageFontResourcePolicyTests
         Assert.NotNull(sceneDocument);
         Assert.True(sceneDocument!.TryGetNodeById("asset", out var imageNode));
         Assert.Equal(SKRect.Create(0f, 0f, 24f, 16f), imageNode!.GeometryBounds);
+    }
+
+    [Fact]
+    public void ImageFontResourcePolicy_ImageStylesheetPercentageDimensionsOverrideIntrinsicSize()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="80">
+              <style>
+                #asset { width: 50%; height: 25%; }
+              </style>
+              <image id="asset" href="data:image/png;base64,AQIDBA==" preserveAspectRatio="none" />
+            </svg>
+            """);
+        var assetLoader = new IntrinsicImageAssetLoader(width: 12f, height: 8f);
+
+        var compiled = SvgSceneCompiler.TryCompile(
+            document,
+            SKRect.Create(0f, 0f, 100f, 80f),
+            assetLoader,
+            DrawAttributes.None,
+            out var sceneDocument);
+
+        Assert.True(compiled);
+        Assert.NotNull(sceneDocument);
+        Assert.True(sceneDocument!.TryGetNodeById("asset", out var imageNode));
+        Assert.Equal(SKRect.Create(0f, 0f, 50f, 20f), imageNode!.GeometryBounds);
+    }
+
+    [Fact]
+    public void ImageFontResourcePolicy_ImageCssAutoDimensionsOverrideXmlDimensions()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <image id="asset" href="data:image/png;base64,AQIDBA==" width="24" height="16" style="width:auto;height:auto" />
+            </svg>
+            """);
+        var assetLoader = new IntrinsicImageAssetLoader(width: 12f, height: 8f);
+
+        var compiled = SvgSceneCompiler.TryCompile(
+            document,
+            SKRect.Create(0f, 0f, 100f, 100f),
+            assetLoader,
+            DrawAttributes.None,
+            out var sceneDocument);
+
+        Assert.True(compiled);
+        Assert.NotNull(sceneDocument);
+        Assert.True(sceneDocument!.TryGetNodeById("asset", out var imageNode));
+        Assert.Equal(SKRect.Create(0f, 0f, 12f, 8f), imageNode!.GeometryBounds);
+    }
+
+    [Theory]
+    [InlineData("initial")]
+    [InlineData("unset")]
+    public void ImageFontResourcePolicy_ImageCssWideDimensionResetsOverrideXmlDimensions(string cssWideValue)
+    {
+        var document = SvgService.FromSvg($$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <image id="asset" href="data:image/png;base64,AQIDBA==" width="24" height="16" style="width:{{cssWideValue}};height:{{cssWideValue}}" />
+            </svg>
+            """);
+        var assetLoader = new IntrinsicImageAssetLoader(width: 12f, height: 8f);
+
+        var compiled = SvgSceneCompiler.TryCompile(
+            document,
+            SKRect.Create(0f, 0f, 100f, 100f),
+            assetLoader,
+            DrawAttributes.None,
+            out var sceneDocument);
+
+        Assert.True(compiled);
+        Assert.NotNull(sceneDocument);
+        Assert.True(sceneDocument!.TryGetNodeById("asset", out var imageNode));
+        Assert.Equal(SKRect.Create(0f, 0f, 12f, 8f), imageNode!.GeometryBounds);
     }
 
     [Fact]

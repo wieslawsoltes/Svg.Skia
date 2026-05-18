@@ -69,6 +69,16 @@ internal static class SvgGeometryService
         return GetComputedUnit(element, propertyName, fallback, out _);
     }
 
+    internal static SvgUnit GetComputedUnit(
+        SvgElement element,
+        string propertyName,
+        SvgUnit fallback,
+        out bool isAuto,
+        out bool isAuthorSpecified)
+    {
+        return GetComputedUnit(element, propertyName, fallback, out isAuto, out isAuthorSpecified, defaultAuto: false);
+    }
+
     private static SvgUnit GetComputedUnit(
         SvgElement element,
         string propertyName,
@@ -76,16 +86,53 @@ internal static class SvgGeometryService
         out bool isAuto,
         bool defaultAuto = false)
     {
-        if (!element.ComputedStyle.TryGetPropertyValue(propertyName, out var rawValue) ||
+        return GetComputedUnit(element, propertyName, fallback, out isAuto, out _, defaultAuto);
+    }
+
+    private static SvgUnit GetComputedUnit(
+        SvgElement element,
+        string propertyName,
+        SvgUnit fallback,
+        out bool isAuto,
+        out bool isAuthorSpecified,
+        bool defaultAuto = false)
+    {
+        isAuthorSpecified = false;
+        if (!element.TryGetOwnCascadedCssDeclarationValue(propertyName, out var rawValue) ||
             string.IsNullOrWhiteSpace(rawValue))
         {
-            isAuto = defaultAuto;
+            isAuto = defaultAuto && !element.ContainsAttribute(propertyName);
+            isAuthorSpecified = element.ContainsAttribute(propertyName);
             return fallback;
         }
 
-        if (string.Equals(rawValue.Trim(), "auto", StringComparison.OrdinalIgnoreCase))
+        rawValue = rawValue.Trim();
+        if (string.Equals(rawValue, "inherit", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(rawValue, "unset", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!element.ComputedStyle.TryGetPropertyValue(propertyName, out rawValue) ||
+                string.IsNullOrWhiteSpace(rawValue))
+            {
+                isAuthorSpecified = false;
+                isAuto = defaultAuto;
+                return SvgUnit.None;
+            }
+
+            rawValue = rawValue.Trim();
+            isAuthorSpecified = true;
+        }
+
+        if (string.Equals(rawValue, "initial", StringComparison.OrdinalIgnoreCase))
+        {
+            isAuto = defaultAuto;
+            isAuthorSpecified = false;
+            return SvgUnit.None;
+        }
+
+        if (string.Equals(rawValue, "auto", StringComparison.OrdinalIgnoreCase))
         {
             isAuto = true;
+            isAuthorSpecified = true;
             return SvgUnit.None;
         }
 
@@ -94,6 +141,7 @@ internal static class SvgGeometryService
             if (TypeDescriptor.GetConverter(typeof(SvgUnit)).ConvertFromInvariantString(rawValue) is SvgUnit unit)
             {
                 isAuto = false;
+                isAuthorSpecified = true;
                 return unit;
             }
         }
@@ -102,6 +150,7 @@ internal static class SvgGeometryService
         }
 
         isAuto = false;
+        isAuthorSpecified = element.ContainsAttribute(propertyName);
         return fallback;
     }
 

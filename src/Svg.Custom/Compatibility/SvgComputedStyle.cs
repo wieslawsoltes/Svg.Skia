@@ -8,6 +8,15 @@ using Svg.Pathing;
 
 namespace Svg;
 
+[Flags]
+internal enum SvgCascadedStyleFeatureFlags
+{
+    None = 0,
+    MarkerReference = 1,
+    MixBlendMode = 2,
+    Isolation = 4
+}
+
 internal sealed class SvgComputedStyleCache
 {
     private readonly Dictionary<SvgElement, SvgComputedStyleSnapshot> _snapshots =
@@ -413,7 +422,7 @@ internal sealed class SvgComputedStyleMetadata
                 propertyName,
                 GeometryUnit.Inherited,
                 GeometryUnit.InitialValue,
-                IsValidSvgUnit),
+                IsValidSvgUnitOrAuto),
             "rx" or
             "ry" => new SvgComputedStyleMetadata(
                 propertyName,
@@ -905,6 +914,11 @@ internal sealed class SvgComputedStyleMetadata
 
 public abstract partial class SvgElement
 {
+    private const SvgCascadedStyleFeatureFlags AllCascadedStyleFeatureFlags =
+        SvgCascadedStyleFeatureFlags.MarkerReference |
+        SvgCascadedStyleFeatureFlags.MixBlendMode |
+        SvgCascadedStyleFeatureFlags.Isolation;
+
     internal SvgComputedStyleSnapshot ComputedStyle =>
         OwnerDocument is not null
             ? OwnerDocument.GetComputedStyle(this)
@@ -946,6 +960,282 @@ public abstract partial class SvgElement
         return false;
     }
 
+    internal bool TryGetOwnCascadedStyleDeclarationValue(string propertyName, out string value)
+    {
+        if (_styles.TryGetValue(propertyName, out var rules) && rules.Count > 0)
+        {
+            value = rules.Last().Value;
+            return true;
+        }
+
+        foreach (var style in _styles)
+        {
+            if (string.Equals(style.Key, propertyName, StringComparison.OrdinalIgnoreCase) &&
+                style.Value.Count > 0)
+            {
+                value = style.Value.Last().Value;
+                return true;
+            }
+        }
+
+        value = string.Empty;
+        return false;
+    }
+
+    internal bool TryGetOwnCascadedCssDeclarationValue(string propertyName, out string value)
+    {
+        if (_styles.TryGetValue(propertyName, out var rules) && TryGetHighestCssDeclaration(rules, out value))
+        {
+            return true;
+        }
+
+        foreach (var style in _styles)
+        {
+            if (string.Equals(style.Key, propertyName, StringComparison.OrdinalIgnoreCase) &&
+                TryGetHighestCssDeclaration(style.Value, out value))
+            {
+                return true;
+            }
+        }
+
+        value = string.Empty;
+        return false;
+    }
+
+    private static bool TryGetHighestCssDeclaration(SortedDictionary<int, string> rules, out string value)
+    {
+        foreach (var rule in rules.Reverse())
+        {
+            if (rule.Key != StyleSpecificity_PresAttribute)
+            {
+                value = rule.Value;
+                return true;
+            }
+        }
+
+        value = string.Empty;
+        return false;
+    }
+
+    internal SvgCascadedStyleFeatureFlags GetOwnCascadedStyleFeatureFlags(
+        SvgCascadedStyleFeatureFlags requestedFlags = AllCascadedStyleFeatureFlags)
+    {
+        if (requestedFlags == SvgCascadedStyleFeatureFlags.None)
+        {
+            return SvgCascadedStyleFeatureFlags.None;
+        }
+
+        var flags = SvgCascadedStyleFeatureFlags.None;
+
+        if (_styles.Count > 0)
+        {
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.MarkerReference))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "marker");
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "marker-start");
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "marker-mid");
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "marker-end");
+            }
+
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.MixBlendMode))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "mix-blend-mode");
+            }
+
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Isolation))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "isolation");
+            }
+
+            if (flags == requestedFlags)
+            {
+                return flags;
+            }
+
+            if (flags != requestedFlags)
+            {
+                foreach (var style in _styles)
+                {
+                    if (style.Value.Count > 0)
+                    {
+                        flags = AddCascadedStyleFeatureFlag(flags, requestedFlags, style.Key, style.Value.Last().Value);
+                        if (flags == requestedFlags)
+                        {
+                            return flags;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.MarkerReference))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "marker");
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "marker-start");
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "marker-mid");
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "marker-end");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.MixBlendMode))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "mix-blend-mode");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Isolation))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "isolation");
+        }
+
+        if (flags == requestedFlags)
+        {
+            return flags;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.MarkerReference))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "marker");
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "marker-start");
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "marker-mid");
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "marker-end");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.MixBlendMode))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "mix-blend-mode");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Isolation))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "isolation");
+        }
+
+        return flags;
+    }
+
+    internal SvgCascadedStyleFeatureFlags GetSubtreeCascadedStyleFeatureFlags(
+        SvgCascadedStyleFeatureFlags requestedFlags = AllCascadedStyleFeatureFlags)
+    {
+        if (requestedFlags == SvgCascadedStyleFeatureFlags.None)
+        {
+            return SvgCascadedStyleFeatureFlags.None;
+        }
+
+        var flags = GetOwnCascadedStyleFeatureFlags(requestedFlags);
+        if (flags == requestedFlags)
+        {
+            return flags;
+        }
+
+        for (var i = 0; i < Children.Count; i++)
+        {
+            var remainingFlags = requestedFlags & ~flags;
+            flags |= Children[i].GetSubtreeCascadedStyleFeatureFlags(remainingFlags);
+            if (flags == requestedFlags)
+            {
+                return flags;
+            }
+        }
+
+        return flags;
+    }
+
+    private SvgCascadedStyleFeatureFlags AddStyleRulesFeatureFlag(
+        SvgCascadedStyleFeatureFlags flags,
+        SvgCascadedStyleFeatureFlags requestedFlags,
+        string propertyName)
+    {
+        return _styles.TryGetValue(propertyName, out var rules) && rules.Count > 0
+            ? AddCascadedStyleFeatureFlag(flags, requestedFlags, propertyName, rules.Last().Value)
+            : flags;
+    }
+
+    private SvgCascadedStyleFeatureFlags AddAttributeFeatureFlag(
+        SvgCascadedStyleFeatureFlags flags,
+        SvgCascadedStyleFeatureFlags requestedFlags,
+        string propertyName)
+    {
+        return Attributes.TryGetValue(propertyName, out var attributeValue) && attributeValue is not null
+            ? AddCascadedStyleFeatureFlag(flags, requestedFlags, propertyName, ConvertAttributeValueToStyleText(attributeValue))
+            : flags;
+    }
+
+    private SvgCascadedStyleFeatureFlags AddCustomAttributeFeatureFlag(
+        SvgCascadedStyleFeatureFlags flags,
+        SvgCascadedStyleFeatureFlags requestedFlags,
+        string propertyName)
+    {
+        return CustomAttributes.TryGetValue(propertyName, out var customValue) && customValue is not null
+            ? AddCascadedStyleFeatureFlag(flags, requestedFlags, propertyName, customValue)
+            : flags;
+    }
+
+    private static SvgCascadedStyleFeatureFlags AddCascadedStyleFeatureFlag(
+        SvgCascadedStyleFeatureFlags flags,
+        SvgCascadedStyleFeatureFlags requestedFlags,
+        string propertyName,
+        string value)
+    {
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.MarkerReference) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.MarkerReference) &&
+            IsMarkerReferenceProperty(propertyName) &&
+            IsMarkerReferenceDeclarationCandidateValue(value))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.MarkerReference;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.MixBlendMode) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.MixBlendMode) &&
+            string.Equals(propertyName, "mix-blend-mode", StringComparison.OrdinalIgnoreCase) &&
+            IsDeclaredComputedStyleFeatureCandidate(value, "normal"))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.MixBlendMode;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Isolation) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.Isolation) &&
+            string.Equals(propertyName, "isolation", StringComparison.OrdinalIgnoreCase) &&
+            IsDeclaredComputedStyleFeatureCandidate(value, "auto"))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.Isolation;
+        }
+
+        return flags;
+    }
+
+    private static bool HasFeatureFlag(
+        SvgCascadedStyleFeatureFlags flags,
+        SvgCascadedStyleFeatureFlags flag)
+    {
+        return (flags & flag) != 0;
+    }
+
+    private static bool IsMarkerReferenceProperty(string propertyName)
+    {
+        return string.Equals(propertyName, "marker", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "marker-start", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "marker-mid", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "marker-end", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsMarkerReferenceDeclarationCandidateValue(string value)
+    {
+        var normalizedValue = value.Trim();
+        return normalizedValue.Length > 0 &&
+               !string.Equals(normalizedValue, "none", StringComparison.OrdinalIgnoreCase) &&
+               !string.Equals(normalizedValue, "initial", StringComparison.OrdinalIgnoreCase) &&
+               !string.Equals(normalizedValue, "inherit", StringComparison.OrdinalIgnoreCase) &&
+               !string.Equals(normalizedValue, "unset", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsDeclaredComputedStyleFeatureCandidate(string value, string initialValue)
+    {
+        var normalizedValue = value.Trim();
+        return normalizedValue.Length > 0 &&
+               !string.Equals(normalizedValue, "initial", StringComparison.OrdinalIgnoreCase) &&
+               !string.Equals(normalizedValue, "unset", StringComparison.OrdinalIgnoreCase) &&
+               !string.Equals(normalizedValue, initialValue, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static string ConvertAttributeValueToStyleText(object attributeValue)
     {
         switch (attributeValue)
@@ -967,15 +1257,71 @@ public abstract partial class SvgElement
 public partial class SvgDocument
 {
     private SvgComputedStyleCache? _computedStyleCache;
+    private SvgComputedStyleCache? _temporaryParentComputedStyleCache;
+    private SvgCascadedStyleFeatureFlags? _cascadedStyleFeatureFlags;
+    private int _temporaryParentComputedStyleScopeDepth;
 
     internal SvgComputedStyleSnapshot GetComputedStyle(SvgElement element)
     {
+        if (_temporaryParentComputedStyleScopeDepth > 0)
+        {
+            _temporaryParentComputedStyleCache ??= new SvgComputedStyleCache();
+            return _temporaryParentComputedStyleCache.GetOrCreate(element);
+        }
+
         _computedStyleCache ??= new SvgComputedStyleCache();
         return _computedStyleCache.GetOrCreate(element);
+    }
+
+    internal IDisposable BeginComputedStyleTemporaryParentScope()
+    {
+        _temporaryParentComputedStyleScopeDepth++;
+        _temporaryParentComputedStyleCache = null;
+        return new SvgComputedStyleTemporaryParentScope(this);
     }
 
     internal void InvalidateComputedStyleCache()
     {
         _computedStyleCache = null;
+        _temporaryParentComputedStyleCache = null;
+        _cascadedStyleFeatureFlags = null;
+    }
+
+    internal SvgCascadedStyleFeatureFlags GetCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags requestedFlags)
+    {
+        _cascadedStyleFeatureFlags ??= GetSubtreeCascadedStyleFeatureFlags();
+        return _cascadedStyleFeatureFlags.Value & requestedFlags;
+    }
+
+    private void EndComputedStyleTemporaryParentScope()
+    {
+        if (_temporaryParentComputedStyleScopeDepth > 0)
+        {
+            _temporaryParentComputedStyleScopeDepth--;
+        }
+
+        _temporaryParentComputedStyleCache = null;
+    }
+
+    private sealed class SvgComputedStyleTemporaryParentScope : IDisposable
+    {
+        private SvgDocument? _document;
+
+        public SvgComputedStyleTemporaryParentScope(SvgDocument document)
+        {
+            _document = document;
+        }
+
+        public void Dispose()
+        {
+            var document = _document;
+            if (document is null)
+            {
+                return;
+            }
+
+            _document = null;
+            document.EndComputedStyleTemporaryParentScope();
+        }
     }
 }
