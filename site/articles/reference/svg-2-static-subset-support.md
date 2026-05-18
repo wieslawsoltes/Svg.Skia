@@ -32,8 +32,8 @@ The normative reference is the W3C [SVG 2 Candidate Recommendation](https://www.
 
 | Feature | Status | Current contract |
 |---|---|---|
-| Processing modes | Partial | `SvgProcessingMode` and `SvgDocumentLoadOptions` represent static, secure static, animated, secure animated, and dynamic interactive modes. `SvgParameters` carries load options into document state and resource loading paths. Secure-static enforcement and host exposure remain incomplete. |
-| External resource policy | Partial | `SvgExternalResourcePolicy` supports `Enabled`, `SameOrigin`, `SameDocumentAndDataOnly`, and `Disabled`. Image, nested SVG/SVGZ, data URI, and CSS `@import` paths use policy checks in covered paths. |
+| Processing modes | Supported for static subset | `SvgProcessingMode` and `SvgDocumentLoadOptions` represent static, secure static, animated, secure animated, and dynamic interactive modes. `SvgParameters` carries load options into document state and resource loading paths. Secure static caps broad external-resource policies to same-document/data behavior in covered static paths. |
+| External resource policy | Supported for static subset | `SvgExternalResourcePolicy` supports `Enabled`, `SameOrigin`, `SameDocumentAndDataOnly`, and `Disabled`. Image, nested SVG/SVGZ, data URI, CSS `@import`, and external SVG reference paths use policy checks in covered paths. |
 | Unknown elements and attributes | Partial | `PreserveUnknownElements` exists on load options, custom attributes remain preserved, and unknown SVG content is retained as model data rather than rendered as SVG graphics. The option is a contract surface, not a complete policy switch across every load path yet. |
 | Removed/deprecated SVG 1.1 switches | Compatibility | `version`, `baseProfile`, `requiredFeatures`, and `externalResourcesRequired` can be parsed or preserved for compatibility. SVG 2 static rendering is not blocked by `requiredFeatures`. |
 | Host/load-option surface | Partial | Core loaders accept `SvgParameters` and `SvgDocumentLoadOptions`. Avalonia and other host wrappers preserve options through selected source/cache paths and expose CSS/current-color conveniences, but not every host control exposes the full load-option contract yet. |
@@ -51,27 +51,27 @@ The normative reference is the W3C [SVG 2 Candidate Recommendation](https://www.
 
 | Feature | Status | Current contract |
 |---|---|---|
-| SVG 2 style recognition | Partial | `SvgStyleAttributeNames` includes SVG 2 static properties and keeps `isolation` and `mix-blend-mode` CSS-only. The CSS processor applies recognized static style properties, and the centralized computed-style snapshot backs selected SVG 2 properties. Full migration of geometry, paint, filter, text, and context-paint reads remains open. |
+| SVG 2 style recognition | Partial | `SvgStyleAttributeNames` includes SVG 2 static properties and keeps `isolation` and `mix-blend-mode` CSS-only. The CSS processor applies recognized static style properties, and the centralized computed-style snapshot backs selected SVG 2 properties used by the static renderer. |
 | CSS custom properties | Partial | CSS variables are applied during load for supported properties, including media-qualified rules in covered paths. Full CSS cascade/CSSOM behavior is out of scope. |
 | `@media` and media imports | Partial | `@media` blocks and media-qualified `@import` rules are evaluated against a screen-like static SVG viewport context. Unsupported or non-matching media are ignored. |
 | Static pseudo-classes | Partial | Static forms such as `:root`, `:link`, and `:lang()` have focused handling. Interactive pseudo-classes such as `:hover`, `:active`, `:focus`, and `:visited` never match because there is no live event state during loading. |
 | CSS-only compositing properties | Partial | `SvgIsolation` and `SvgMixBlendMode` expose typed values from CSS style sources. Retained scene nodes create save layers and blend paints for supported CSS paths. Bare presentation-attribute forms are intentionally ignored. |
-| `paint-order` | Partial | `SvgPaintOrder` parses `normal` and fill/stroke/markers orders and rejects invalid duplicates. Retained paths and text use paint order in focused renderer paths, but broader computed-style integration and pixel coverage remain open. |
-| CSS transform properties | Partial | `transform-box` and `transform-origin` are recognized/preserved as SVG 2 transform style properties. Attribute `transform` remains the reliable rendered path; full CSS transform integration is future work. |
+| `paint-order` | Supported for static subset | `SvgPaintOrder` parses `normal` and fill/stroke/markers orders and rejects invalid duplicates. Retained paths, shapes, markers, and text use paint order in covered static renderer paths. |
+| CSS transform properties | Partial | `transform-box` and `transform-origin` are recognized/preserved as SVG 2 transform style properties. Origin-aware transforms are applied for covered retained leaf nodes, text nodes, structural nodes, symbol references, and `<use>` references when geometry/reference bounds are available. Full standalone CSS transform property integration is future work. |
 
 ## Geometry And Document Features
 
 | Feature | Status | Current contract |
 |---|---|---|
 | `symbol` geometry | Partial | `SvgSymbol` has `x`, `y`, `width`, `height`, `refX`, and `refY`. Direct symbol reference paths use width/height in retained compilation; full `refX`/`refY` reference-point semantics remain open. |
-| Basic shape `pathLength` | Partial | `pathLength` is available on path-based shapes. Focused retained paths normalize dash distances and textPath distance mapping; marker and shared length-service coverage are still incomplete. |
-| Styleable geometry properties | Deferred | Parser/style names are partially represented, but SVG 1.1 attribute geometry remains the reliable rendered path. CSS geometry properties need computed-style consolidation. |
-| `d` as a CSS property | Deferred | Path `d` attributes render normally. A complete computed `d` pipeline, geometry invalidation, and CSS parsing contract are not finished. |
+| Basic shape `pathLength` | Supported for static subset | `pathLength` is available on path-based shapes. Covered retained paths normalize dash distances for paths/basic shapes and use author path lengths for textPath distance mapping. |
+| Styleable geometry properties | Supported for covered geometry | Computed `x`, `y`, `width`, `height`, `cx`, `cy`, `r`, `rx`, `ry`, and line coordinate properties feed covered retained geometry and image sizing paths. Invalid declarations are ignored so attribute fallbacks remain in effect. |
+| `d` as a CSS property | Supported for covered paths | CSS `d` values, including `d: none`, are treated as authoritative when authored. Invalid computed `d` values fail closed instead of falling back to the attribute. |
 | Equivalent path geometry for shapes | Partial | Shape-to-path conversion exists in shared services and is used by rendering, clipping, hit testing, focused marker paths, and selected textPath shape support. A shared geometry abstraction for all consumers is not complete. |
-| Marker support on all shapes | Partial | Marker properties exist and common path-like cases render. Focused retained coverage includes rectangle vertices; complete marker vertices/orientation for every basic shape remains open. |
+| Marker support on all shapes | Partial | Marker properties exist and common path-like cases render. Focused retained coverage includes path and basic-shape equivalent geometry; exhaustive marker vertices/orientation for every shape edge case remains open. |
 | Marker `orient="auto-start-reverse"` | Supported | Retained marker compilation applies SVG 2 start-marker reversal for supported marker paths. |
 | `ellipse` auto radii | Deferred | Numeric SVG 1.1 radii render. SVG 2 `auto` radius resolution is not complete. |
-| `svg` and `image` auto sizing | Deferred | Explicit sizes and viewBox behavior are supported. SVG 2 `auto` intrinsic sizing semantics remain open. |
+| `svg` and `image` auto sizing | Partial | Explicit sizes, viewBox behavior, CSS-authored image dimensions, and intrinsic fallback are supported in covered paths. Full SVG 2 `auto` sizing semantics for every viewport/resource variant remain open. |
 | `foreignObject` geometry | Partial | Geometry is preserved and SvgML packages provide platform integrations. Core Skia rendering does not lay out browser HTML/CSS. |
 
 ## Text Features
@@ -79,9 +79,9 @@ The normative reference is the W3C [SVG 2 Candidate Recommendation](https://www.
 | Feature | Status | Current contract |
 |---|---|---|
 | `paint-order` on text | Partial | Text elements inherit/use `SvgPaintOrder`, and retained text orders fill, stroke, and decorations in focused paths. More pixel coverage for complex styled runs is still useful. |
-| `textPath path` | Partial | `SvgTextPath.PathData` parses inline path data, and inline path data wins over href in retained textPath rendering. Focused retained paths cover pathLength distance scaling and closed-loop start offsets; full textPath parity remains open. |
-| `textPath` href to basic shapes | Partial | Effective href can resolve direct visual shape targets, and focused support converts basic shape targets for text-on-path rendering. Complete coverage needs the shared geometry abstraction. |
-| `textPath side` | Partial | `SvgTextPathSide` supports `left` and `right`, and focused retained rendering reverses path direction for `side=right`. Full baseline/offset parity remains open. |
+| `textPath path` | Supported for static subset | `SvgTextPath.PathData` parses inline path data, and inline path data wins over href in retained textPath rendering. Covered retained paths handle pathLength distance scaling, closed-loop start offsets, and open-path clipping. |
+| `textPath` href to basic shapes | Supported for static subset | Effective href can resolve direct visual shape targets, and covered retained support converts basic shape targets for text-on-path rendering. |
+| `textPath side` | Supported for static subset | `SvgTextPathSide` supports `left` and `right`; retained draw, clip, and measure paths reverse sampled geometry and mirror offsets for `side="right"`. |
 | `white-space` | Partial | `SvgWhiteSpace` parses SVG 2 whitespace values, and focused retained text preserves `white-space: pre` runs. Full CSS Text integration remains open. |
 | `inline-size`, `shape-inside`, `shape-subtract` | Deferred | Typed properties exist on `SvgElement` and are preserved for model/style contracts. Auto-wrapped text and shape exclusion layout are not implemented. |
 | `text-overflow` | Deferred | The typed property exists and is preserved for model/style contracts. Ellipsis/clipped inline layout is not implemented. |
@@ -116,11 +116,11 @@ The normative reference is the W3C [SVG 2 Candidate Recommendation](https://www.
 | Area | Current disposition |
 |---|---|
 | Secure static processing completeness | Contracts exist; linked stylesheets, fonts, host exposure, and complete nested-resource inheritance need more work. |
-| Central computed style cache | Not finished. Some typed getters read effective CSS values, but style resolution remains scattered. |
-| Shared geometry service | Needed for marker-on-all-shapes, bbox options, hit testing, complete textPath targets, and pathLength normalization. |
+| Central computed style cache | Active for selected static properties. Broader cleanup can still consolidate remaining geometry, paint, filter, and text reads. |
+| Shared geometry service | Expanded for CSS geometry, equivalent paths, marker placement, textPath targets, and pathLength normalization. Bbox options and exhaustive geometry consumers remain future work. |
 | Full SVG 2 text layout | Auto-wrapping, baseline/offset parity, graphics effects on text content, complete CSS Text integration, ellipsis, and shape exclusion are not complete. Focused `side=right`, closed-loop textPath, and `pathLength` textPath rows are covered separately. |
 | Full symbol reference-point semantics | `refX` and `refY` are parsed but not fully rendered. |
-| Complete context paint | Marker and focused `<use>` context paint paths work; broader reuse/resource context paint, inheritance edge cases, and fallback chains remain open. |
+| Complete context paint | Marker, `<use>`, text, currentColor, and selected fallback chains work in covered static paths; broader resource/context inheritance edge cases remain open. |
 | Full masking/filter parity | Focused `mask-type`, `feDropShadow`, and `feImage` paths exist; full CSS Masking and Filter Effects parity is not complete. |
 | Mesh gradients, hatches, `solidcolor` | Deferred or preserve-only. |
 | `stroke-linejoin: arcs` | Deferred; current rendering falls back to existing line-join behavior. |

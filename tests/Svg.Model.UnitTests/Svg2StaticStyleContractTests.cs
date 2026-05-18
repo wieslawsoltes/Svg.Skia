@@ -98,6 +98,21 @@ public class Svg2StaticStyleContractTests
     }
 
     [Fact]
+    public void Svg11_PresentationMixBlendModeAttribute_RemainsIgnoredOnVisualElement()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="10" height="10" fill="red" mix-blend-mode="multiply" />
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+
+        var rect = Assert.IsType<SvgRectangle>(document!.GetElementById("target"));
+        Assert.False(rect.TryGetAttribute("mix-blend-mode", out _));
+    }
+
+    [Fact]
     public void PaintOrder_InvalidChildDeclarationDoesNotOverrideInheritedValue()
     {
         const string svg = """

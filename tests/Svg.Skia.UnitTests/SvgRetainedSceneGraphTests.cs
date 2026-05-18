@@ -2045,6 +2045,30 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void Svg11_XLinkHrefOnly_StillResolvesUse()
+    {
+        const string xlinkHrefSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink"
+                 width="20" height="20">
+              <defs>
+                <rect id="template" width="10" height="10" fill="red" />
+              </defs>
+              <use id="target" xlink:href="#template" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(xlinkHrefSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("target", out var useNode));
+        Assert.NotEmpty(useNode!.Children);
+        Assert.NotEmpty(svg.Model!.FindCommandsBySourceElementId<DrawPathCanvasCommand>("template"));
+    }
+
+    [Fact]
     public void RetainedSceneGraph_AlignsUseSymbolViewportToSymbolReferencePoint()
     {
         const string symbolRefSvg = """

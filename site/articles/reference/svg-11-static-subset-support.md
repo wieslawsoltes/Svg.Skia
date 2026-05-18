@@ -13,10 +13,35 @@ The normative reference is the W3C [SVG 1.1 Second Edition Recommendation](https
 | Topic | Contract |
 |---|---|
 | Static SVG | This page covers markup that affects pixels, resources, metadata, or retained inspection in a loaded SVG document. |
-| SVG 2 and CSS extensions | Unnamespaced `href`, CSS custom properties, `paint-order`, context paint, `vector-effect`, `mix-blend-mode`, and `isolation` are compatibility extensions and are documented in [SVG 2 Static Subset Support](svg-2-static-subset-support). |
+| SVG 2 and CSS extensions | Unnamespaced `href`, CSS geometry, CSS `d`, CSS custom properties, `paint-order`, context paint, `transform-origin`, basic-shape `pathLength`, textPath `side`, marker `auto-start-reverse`, `vector-effect`, `mix-blend-mode`, and `isolation` are compatibility extensions and are documented in [SVG 2 Static Subset Support](svg-2-static-subset-support). |
 | Runtime behavior | Pointer dispatch, cursor resolution, scripts, and animation playback are runtime APIs. Static loading does not provide a browser DOM, CSSOM, event loop, or navigation UI. |
 | Retained scene graph | `Svg.SceneGraph` is the implementation/API surface used to render, inspect, hit-test, and incrementally refresh static SVG content. It is not a separate SVG language feature. |
 | Non-SVG inputs | Android VectorDrawable XML is supported through separate import/conversion APIs. Its Android attribute contract is not part of SVG 1.1 static support. |
+
+## SVG 1.1 Compatibility Defaults
+
+| Topic | Default behavior | Compatibility note |
+|---|---|---|
+| Loading profile | `SvgDocumentLoadOptions` defaults to `ProcessingMode = Static` and `ExternalResources = Enabled`. | This is the legacy-compatible static rendering profile. `SecureStatic`, `SameDocumentAndDataOnly`, and `Disabled` are safer but can block external SVG 1.1 assets. |
+| Mixed `href` / `xlink:href` | `PreferSvg2Href = true`, so unnamespaced SVG 2 `href` wins when both attributes are present. | Pure SVG 1.1 `xlink:href` still resolves. Consumers that need legacy precedence can set `PreferSvg2Href = false`. |
+| CSS geometry | Supported CSS geometry and CSS `d` declarations can override SVG 1.1 geometry attributes. | This is browser/SVG 2 compatibility behavior. Invalid declarations are ignored so valid SVG 1.1 fallbacks remain in effect. |
+| CSS-only properties | `mix-blend-mode` and `isolation` apply from CSS style sources, not from bare XML presentation attributes. | This avoids accidentally changing SVG 1.1 documents that carry unsupported custom attributes. |
+| Conditional processing | `requiredExtensions` and `systemLanguage` can suppress rendering. `requiredFeatures` is preserved but intentionally does not gate static rendering. | This follows the current browser-compatible static rendering policy rather than strict SVG 1.1 validation semantics. |
+
+Strict legacy importers that need `xlink:href` precedence can load with:
+
+```csharp
+var parameters = new SvgParameters(
+    Entities: null,
+    Css: null,
+    CurrentColor: null,
+    LoadOptions: new SvgDocumentLoadOptions
+    {
+        ProcessingMode = SvgProcessingMode.Static,
+        ExternalResources = SvgExternalResourcePolicy.Enabled,
+        PreferSvg2Href = false
+    });
+```
 
 ## Status Legend
 
@@ -74,13 +99,13 @@ The normative reference is the W3C [SVG 1.1 Second Edition Recommendation](https
 
 | Category | Status | Supported examples and caveats |
 |---|---|---|
-| Geometry | Supported | `x`, `y`, `width`, `height`, `cx`, `cy`, `r`, `rx`, `ry`, `x1`, `y1`, `x2`, `y2`, `points`, and `d` are supported as SVG 1.1 attributes. SVG 2 styleable geometry is documented separately. |
+| Geometry | Supported | `x`, `y`, `width`, `height`, `cx`, `cy`, `r`, `rx`, `ry`, `x1`, `y1`, `x2`, `y2`, `points`, and `d` are supported as SVG 1.1 attributes. SVG 2 styleable geometry is documented separately and can override attributes when authored as CSS. |
 | Viewport and alignment | Supported | `viewBox`, `preserveAspectRatio`, and `overflow` are used by root SVG, nested SVG, patterns, symbols, images, and viewports where implemented. |
 | Paint | Supported | `fill`, `stroke`, `color`, `fill-opacity`, `stroke-opacity`, `opacity`, `fill-rule`, and `clip-rule` include `currentColor` and paint-server references. |
 | Stroke | Supported | `stroke-width`, `stroke-linecap`, `stroke-linejoin`, `stroke-miterlimit`, `stroke-dasharray`, and `stroke-dashoffset` render through Skia; tiny antialiasing differences from browser engines are expected. |
 | Markers | Partial | `marker-start`, `marker-mid`, `marker-end`, marker geometry, and marker orientation attributes render for common path marker cases. |
 | Text | Partial | `font-family`, `font-size`, `font-style`, `font-weight`, `font-stretch`, `text-anchor`, `dominant-baseline`, `baseline-shift`, `direction`, `writing-mode`, `text-decoration`, `letter-spacing`, `word-spacing`, `textLength`, and `lengthAdjust` are supported for practical static text paths. |
-| Resources | Partial | `xlink:href`, `xml:base`, data URLs, and local/file/HTTP resources are controlled by load options, `SvgParameters`, asset loaders, and resolver settings. SVG 2 unnamespaced `href` precedence is documented in the SVG 2 article. |
+| Resources | Partial | `xlink:href`, `xml:base`, data URLs, and local/file/HTTP resources are controlled by load options, `SvgParameters`, asset loaders, and resolver settings. SVG 2 unnamespaced `href` precedence is enabled by default, and `PreferSvg2Href = false` restores legacy `xlink:href` precedence for mixed files. |
 | Styling | Partial | `class`, `style`, presentation attributes, style sheets, `@import`, media-qualified imports, and `@media` are supported for common static cases. CSS custom properties are a compatibility extension documented in the SVG 2 article. |
 | Transforms | Supported | `transform`, `gradientTransform`, and `patternTransform` map to retained matrices. |
 | Filters | Partial | Filter primitive attributes, `filter`, `filterUnits`, `primitiveUnits`, `result`, `in`, `in2`, `color-interpolation`, and `color-interpolation-filters` are used by supported filter paths. |
@@ -111,7 +136,7 @@ The normative reference is the W3C [SVG 1.1 Second Edition Recommendation](https
 
 | Surface | Current support |
 |---|---|
-| Core loaders | `SvgParameters` and `SvgDocumentLoadOptions` carry processing mode, external resource policy, unknown-element preservation, and SVG 2 href preference into document loading paths. |
+| Core loaders | `SvgParameters` and `SvgDocumentLoadOptions` carry processing mode, external resource policy, unknown-element preservation, and SVG 2 href preference into document loading paths. `Static + Enabled` preserves legacy external-resource behavior; secure or restricted policies intentionally block more loads. |
 | Host wrappers | Avalonia, Uno, MAUI, and SvgML wrappers preserve options through selected source/cache paths and expose host-specific conveniences. Not every host control exposes the full load-option contract yet. |
 | Resource security | Static resource behavior depends on load options, resolver settings, asset loaders, and the current path being exercised. Secure-static parity is broader than the current implementation. |
 

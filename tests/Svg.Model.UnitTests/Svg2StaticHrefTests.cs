@@ -59,6 +59,32 @@ public class Svg2StaticHrefTests
     }
 
     [Fact]
+    public void Svg11_LegacyHrefMode_PrefersXLinkHrefWhenBothArePresent()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink"
+                 width="20" height="20">
+              <defs>
+                <rect id="legacy" width="10" height="10" fill="red" />
+                <rect id="modern" width="10" height="10" fill="blue" />
+              </defs>
+              <use id="target" href="#modern" xlink:href="#legacy" />
+            </svg>
+            """;
+        var parameters = new SvgParameters(
+            null,
+            null,
+            null,
+            new SvgDocumentLoadOptions { PreferSvg2Href = false });
+
+        var document = SvgService.FromSvg(svg, parameters);
+        var use = Assert.IsType<SvgUse>(document!.GetElementById("target"));
+
+        Assert.Equal("#legacy", SvgService.GetEffectiveReferenceUri(use, use.ReferencedElement)!.OriginalString);
+    }
+
+    [Fact]
     public void TryGetEffectiveHref_FallsBackToXlinkHref()
     {
         const string svg = """
