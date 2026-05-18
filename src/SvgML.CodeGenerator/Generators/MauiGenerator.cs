@@ -16,12 +16,12 @@ internal class MauiGenerator(GeneratorSettings settings) : Generator(settings)
         // TODO: Nullable value types are broken in maui
         // sb.AppendLine(
         //     value: $"""
-        //                 public {newModifier}static readonly Microsoft.Maui.Controls.BindableProperty {ReplaceDash(p: p.Name)}Property = 
+        //                 public {newModifier}static readonly Microsoft.Maui.Controls.BindableProperty {ReplaceDash(p: p.Name)}Property =
         //                     Microsoft.Maui.Controls.BindableProperty.Create("{p.Name}", typeof({t}?), typeof({classType}));
         //             """);
         sb.AppendLine(
             value: $"""
-                        public {newModifier}static readonly Microsoft.Maui.Controls.BindableProperty {ReplaceDash(p: p.Name)}Property = 
+                        public {newModifier}static readonly Microsoft.Maui.Controls.BindableProperty {ReplaceDash(p: p.Name)}Property =
                             Microsoft.Maui.Controls.BindableProperty.Create("{p.Name}", typeof({t}), typeof({classType}));
                     """);
     }

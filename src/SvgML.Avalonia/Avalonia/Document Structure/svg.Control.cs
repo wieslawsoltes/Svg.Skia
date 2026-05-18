@@ -358,6 +358,14 @@ public partial class svg
             OnCurrentCssChanged(currentCss);
         }
 
+        if (change.Property == ProcessingModeProperty ||
+            change.Property == ExternalResourcesProperty ||
+            change.Property == PreserveUnknownElementsProperty ||
+            change.Property == PreferSvg2HrefProperty)
+        {
+            OnSourceChanged(this);
+        }
+
         if (change.Property == ClipToBoundsProperty)
         {
             InvalidateVisual();
@@ -375,7 +383,7 @@ public partial class svg
     {
         var source = this;
         var currentCss = GetCurrentCss(this);
-        var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+        var parameters = BuildParameters(css, currentCss);
 
         if (!Load(source, parameters))
         {
@@ -390,7 +398,7 @@ public partial class svg
     {
         var source = this;
         var css = GetCss(this);
-        var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+        var parameters = BuildParameters(css, currentCss);
 
         if (!Load(source, parameters))
         {
@@ -405,7 +413,7 @@ public partial class svg
     {
         var css = GetCss(this);
         var currentCss = GetCurrentCss(this);
-        var parameters = new SvgParameters(null, string.Concat(css, ' ', currentCss));
+        var parameters = BuildParameters(css, currentCss);
 
         if (!Load(source, parameters))
         {

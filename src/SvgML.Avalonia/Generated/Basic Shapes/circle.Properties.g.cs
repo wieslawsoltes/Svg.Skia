@@ -16,6 +16,9 @@ public partial class circle : path_based
     public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> rProperty =
         Avalonia.AvaloniaProperty.Register<circle, Svg.SvgUnit?>("r");
 
+    public static readonly Avalonia.StyledProperty<float?> pathLengthProperty =
+        Avalonia.AvaloniaProperty.Register<circle, float?>("pathLength");
+
     public Svg.SvgUnit? cx
     {
         get => GetValue(cxProperty);
@@ -32,5 +35,11 @@ public partial class circle : path_based
     {
         get => GetValue(rProperty);
         set => SetValue(rProperty, value);
+    }
+
+    public float? pathLength
+    {
+        get => GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

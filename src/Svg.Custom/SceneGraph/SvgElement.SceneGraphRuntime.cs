@@ -17,6 +17,12 @@ namespace Svg
             }
 
             var originalParent = _parent;
+            var originalDocument = OwnerDocument;
+            var temporaryParentDocument = temporaryParent.OwnerDocument;
+            using var originalComputedStyleScope = originalDocument?.BeginComputedStyleTemporaryParentScope();
+            using var temporaryParentComputedStyleScope = ReferenceEquals(temporaryParentDocument, originalDocument)
+                ? null
+                : temporaryParentDocument?.BeginComputedStyleTemporaryParentScope();
             try
             {
                 _parent = temporaryParent;

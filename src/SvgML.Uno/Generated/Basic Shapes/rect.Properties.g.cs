@@ -49,6 +49,13 @@ public partial class rect : path_based
             typeof(rect),
             new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
 
+    public static readonly Microsoft.UI.Xaml.DependencyProperty pathLengthProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "pathLength",
+            typeof(float),
+            typeof(rect),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(float), OnSvgPropertyChanged));
+
     public Svg.SvgUnit x
     {
         get => (Svg.SvgUnit)GetValue(xProperty);
@@ -83,5 +90,11 @@ public partial class rect : path_based
     {
         get => (Svg.SvgUnit)GetValue(ryProperty);
         set => SetValue(ryProperty, value);
+    }
+
+    public float pathLength
+    {
+        get => (float)GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

@@ -7,124 +7,124 @@ public abstract partial class element : Microsoft.Maui.Controls.ContentView
 {
     protected abstract string SvgTag { get; }
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty styleProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty styleProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("style", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty colorProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty colorProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("color", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty transformProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty transformProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("transform", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty idProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty idProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("id", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty spProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty spProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("sp", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty onclickProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty onclickProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("onclick", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty onmousedownProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty onmousedownProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("onmousedown", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty onmouseupProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty onmouseupProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("onmouseup", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty onmousemoveProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty onmousemoveProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("onmousemove", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty onmousescrollProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty onmousescrollProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("onmousescroll", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty onmouseoverProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty onmouseoverProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("onmouseover", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty onmouseoutProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty onmouseoutProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("onmouseout", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty fillProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty fillProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("fill", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty strokeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty strokeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stroke", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty fill_ruleProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty fill_ruleProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("fill-rule", typeof(FillRuleValue), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty fill_opacityProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty fill_opacityProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("fill-opacity", typeof(float), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_widthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_widthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stroke-width", typeof(Svg.SvgUnit), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_linecapProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_linecapProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stroke-linecap", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_linejoinProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_linejoinProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stroke-linejoin", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_miterlimitProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_miterlimitProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stroke-miterlimit", typeof(float), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_dasharrayProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_dasharrayProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stroke-dasharray", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_dashoffsetProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_dashoffsetProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stroke-dashoffset", typeof(Svg.SvgUnit), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_opacityProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stroke_opacityProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stroke-opacity", typeof(float), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty opacityProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty opacityProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("opacity", typeof(float), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty shape_renderingProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty shape_renderingProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("shape-rendering", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty color_interpolationProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty color_interpolationProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("color-interpolation", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty color_interpolation_filtersProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty color_interpolation_filtersProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("color-interpolation-filters", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty visibilityProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty visibilityProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("visibility", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty displayProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty displayProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("display", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty text_anchorProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty text_anchorProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("text-anchor", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty baseline_shiftProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty baseline_shiftProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("baseline-shift", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty font_familyProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty font_familyProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("font-family", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty font_sizeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty font_sizeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("font-size", typeof(Svg.SvgUnit), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty font_styleProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty font_styleProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("font-style", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty font_variantProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty font_variantProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("font-variant", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty text_decorationProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty text_decorationProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("text-decoration", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty font_weightProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty font_weightProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("font-weight", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty font_stretchProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty font_stretchProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("font-stretch", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty text_transformProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty text_transformProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("text-transform", typeof(string), typeof(element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty fontProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty fontProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("font", typeof(string), typeof(element));
 
     public string style

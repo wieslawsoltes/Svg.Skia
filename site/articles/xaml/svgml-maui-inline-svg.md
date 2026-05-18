@@ -61,6 +61,48 @@ builder
 - Dash-named SVG attributes such as `stroke-width`, `fill-opacity`, and `font-size` are supported by the built MAUI package. The assembly is self-weaved before MAUI XamlC compiles consuming XAML, so authored markup should use the SVG names rather than underscore aliases.
 - Text or control bindings can feed attribute values directly, which makes small interactive diagrams practical inside MAUI pages.
 
+## SVG 2 authoring notes
+
+SvgML.Maui exposes the supported SVG 2 static subset directly on the inline tree. The root `svg` control can set loader options, and generated elements include the SVG 2 properties used by the shared renderer.
+
+```xml
+<svg xmlns="https://github.com/svgml"
+     ProcessingMode="SecureStatic"
+     ExternalResources="SameDocumentAndDataOnly"
+     PreferSvg2Href="True"
+     viewBox="0 0 160 90">
+  <defs>
+    <filter id="shadow">
+      <feDropShadow dx="2"
+                    dy="2"
+                    stdDeviation="2"
+                    flood-color="#0F172A"
+                    flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <rect x="16"
+        y="14"
+        width="128"
+        height="44"
+        pathLength="400"
+        fill="#E0F2FE"
+        stroke="#0369A1"
+        stroke-width="4"
+        paint-order="stroke fill"
+        vector-effect="non-scaling-stroke"
+        transform-box="fill-box"
+        transform-origin="50% 50%"
+        filter="url(#shadow)" />
+
+  <text fill="#0F172A" white-space="pre">
+    <textPath path="M18 76 H142" side="right">SvgML SVG 2</textPath>
+  </text>
+</svg>
+```
+
+CSS-only SVG 2 features such as `mix-blend-mode`, `isolation`, CSS `d`, and CSS geometry should be authored through `style`, `Css`, or `CurrentCss`.
+
 ## Namespace note
 
 Scope each inline SVG subtree with `xmlns="https://github.com/svgml"` so SVG nodes can be authored without prefixes. Keep native MAUI controls in the MAUI namespace when they are hosted by `foreignObject`.

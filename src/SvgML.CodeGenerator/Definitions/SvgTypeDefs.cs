@@ -16,6 +16,7 @@ internal static class SvgTypeDefs
                 new ("cx", "Svg.SvgUnit"),
                 new ("cy", "Svg.SvgUnit"),
                 new ("r", "Svg.SvgUnit"),
+                new ("pathLength", "float"),
             ]),
 
         new(TargetTpe: "ellipse",
@@ -28,6 +29,7 @@ internal static class SvgTypeDefs
                 new ("cy", "Svg.SvgUnit"),
                 new ("rx", "Svg.SvgUnit"),
                 new ("ry", "Svg.SvgUnit"),
+                new ("pathLength", "float"),
             ]),
 
         new(TargetTpe: "line",
@@ -40,6 +42,7 @@ internal static class SvgTypeDefs
                 new ("y1", "Svg.SvgUnit"),
                 new ("x2", "Svg.SvgUnit"),
                 new ("y2", "Svg.SvgUnit"),
+                new ("pathLength", "float"),
             ]),
 
         new(TargetTpe: "marker-element",
@@ -69,6 +72,7 @@ internal static class SvgTypeDefs
             Properties:
             [
                 new ("points"),
+                new ("pathLength", "float"),
             ]),
 
         new(TargetTpe: "polyline",
@@ -91,6 +95,7 @@ internal static class SvgTypeDefs
                 new ("height", "Svg.SvgUnit"),
                 new ("rx", "Svg.SvgUnit"),
                 new ("ry", "Svg.SvgUnit"),
+                new ("pathLength", "float"),
             ]),
 
         new(TargetTpe: "visual",
@@ -105,8 +110,17 @@ internal static class SvgTypeDefs
                 new ("clip-rule"),
                 new ("filter"),
                 new ("pointer-events", "Svg.SvgPointerEvents"),
+                new ("paint-order"),
+                new ("vector-effect", "Svg.SvgVectorEffect"),
+                new ("transform-box", "Svg.SvgTransformBox"),
+                new ("transform-origin"),
                 // style
                 new ("enable-background"),
+                new ("white-space", "Svg.SvgWhiteSpace"),
+                new ("text-overflow"),
+                new ("inline-size"),
+                new ("shape-inside"),
+                new ("shape-subtract"),
             ]),
 
         #endregion
@@ -134,6 +148,7 @@ internal static class SvgTypeDefs
                 new ("y"),
                 new ("width"),
                 new ("height"),
+                new ("mask-type", "Svg.Model.MaskType"),
             ]),
         
         #endregion
@@ -209,6 +224,12 @@ internal static class SvgTypeDefs
             FilePath: "Document Structure",
             Properties:
             [
+                new ("x", "Svg.SvgUnit"),
+                new ("y", "Svg.SvgUnit"),
+                new ("width", "Svg.SvgUnit"),
+                new ("height", "Svg.SvgUnit"),
+                new ("refX", "Svg.SvgUnit"),
+                new ("refY", "Svg.SvgUnit"),
                 new ("viewBox"),
                 new ("preserveAspectRatio"),
             ]),
@@ -492,6 +513,19 @@ internal static class SvgTypeDefs
             [
                 new ("flood-color"),
                 new ("flood-opacity"),
+            ]),
+
+        new(TargetTpe: "feDropShadow",
+            IsAbstract: false,
+            BaseType: "filter-primitive",
+            FilePath: "Filter Effects/feDropShadow",
+            Properties:
+            [
+                new ("dx", "Svg.SvgUnit"),
+                new ("dy", "Svg.SvgUnit"),
+                new ("stdDeviation", "numbers"),
+                new ("flood-color"),
+                new ("flood-opacity", "float"),
             ]),
 
         new(TargetTpe: "feFuncA",
@@ -959,6 +993,8 @@ internal static class SvgTypeDefs
                 new ("method"),
                 new ("spacing"),
                 new ("href"),
+                new ("path"),
+                new ("side", "Svg.SvgTextPathSide"),
             ]),
 
         new(TargetTpe: "tref",

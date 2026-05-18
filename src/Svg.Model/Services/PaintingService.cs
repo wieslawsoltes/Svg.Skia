@@ -44,7 +44,7 @@ internal static class PaintingService
         return new SKColor(0x00, 0x00, 0x00, 0xFF);
     }
 
-    internal static SKPathEffect? CreateDash(SvgElement svgElement, SKRect skBounds)
+    internal static SKPathEffect? CreateDash(SvgElement svgElement, SKRect skBounds, SKPath? geometryPath = null)
     {
         var strokeDashArray = svgElement.StrokeDashArray;
         var strokeDashOffset = svgElement.StrokeDashOffset;
@@ -54,10 +54,16 @@ internal static class PaintingService
         {
             var isOdd = count % 2 != 0;
             var sum = 0f;
-            float[] intervals = new float[isOdd ? count * 2 : count];
+            var intervals = new float[isOdd ? count * 2 : count];
+            if (geometryPath is null)
+            {
+                _ = SvgGeometryService.TryCreateEquivalentPath(svgElement, skBounds, out geometryPath);
+            }
+
+            var normalization = SvgGeometryService.CreatePathLengthNormalization(svgElement, geometryPath);
             for (var i = 0; i < count; i++)
             {
-                var dash = strokeDashArray[i].ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds);
+                var dash = normalization.ToActualDistance(strokeDashArray[i].ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds));
                 if (dash < 0f)
                 {
                     return default;
@@ -78,7 +84,7 @@ internal static class PaintingService
                 return default;
             }
 
-            var phase = strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds);
+            var phase = normalization.ToActualDistance(strokeDashOffset.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds));
 
             return SKPathEffect.CreateDash(intervals, phase);
         }
@@ -401,6 +407,7 @@ internal static class PaintingService
         SvgRadialGradientServer? firstRadius = default;
         SvgRadialGradientServer? firstFocalX = default;
         SvgRadialGradientServer? firstFocalY = default;
+        SvgRadialGradientServer? firstFocalRadius = default;
 
         foreach (var p in svgReferencedGradientServers)
         {
@@ -470,6 +477,14 @@ internal static class PaintingService
                         firstFocalY = svgRadialGradientServerHref;
                     }
                 }
+                if (firstFocalRadius is null)
+                {
+                    var pFocalRadius = svgRadialGradientServerHref.FocalRadius;
+                    if (pFocalRadius != SvgUnit.None && SvgService.TryGetAttribute(svgRadialGradientServerHref, "fr", out _))
+                    {
+                        firstFocalRadius = svgRadialGradientServerHref;
+                    }
+                }
             }
         }
 
@@ -481,6 +496,7 @@ internal static class PaintingService
         var radiusUnit = firstRadius?.Radius ?? new SvgUnit(SvgUnitType.Percentage, 50f);
         var focalXUnit = firstFocalX?.FocalX ?? centerXUnit;
         var focalYUnit = firstFocalY?.FocalY ?? centerYUnit;
+        var focalRadiusUnit = firstFocalRadius?.FocalRadius ?? new SvgUnit(SvgUnitType.Percentage, 0f);
 
         var normalizedCenterX = centerXUnit.Normalize(svgGradientUnits);
         var normalizedCenterY = centerYUnit.Normalize(svgGradientUnits);
@@ -495,6 +511,7 @@ internal static class PaintingService
 
         var focalX = normalizedFocalX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
         var focalY = normalizedFocalY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
+        var focalRadius = focalRadiusUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
 
         var skCenter = new SKPoint(centerX, centerY);
         var skFocal = new SKPoint(focalX, focalY);
@@ -531,7 +548,8 @@ internal static class PaintingService
                 skColorSpace);
         }
 
-        var isRadialGradient = skCenter.X == skFocal.X && skCenter.Y == skFocal.Y;
+        focalRadius = Math.Max(0f, focalRadius);
+        var isRadialGradient = focalRadius == 0f && skCenter.X == skFocal.X && skCenter.Y == skFocal.Y;
 
         if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
         {
@@ -567,7 +585,7 @@ internal static class PaintingService
             else
             {
                 return SKShader.CreateTwoPointConicalGradient(
-                    skFocal, 0,
+                    skFocal, focalRadius,
                     skCenter, radius,
                     skColorsF, skColorSpace, skColorPos,
                     shaderTileMode,
@@ -591,7 +609,7 @@ internal static class PaintingService
                 else
                 {
                     return SKShader.CreateTwoPointConicalGradient(
-                        skFocal, 0,
+                        skFocal, focalRadius,
                         skCenter, radius,
                         skColorsF, skColorSpace, skColorPos,
                         shaderTileMode, gradientTransform);
@@ -610,7 +628,7 @@ internal static class PaintingService
                 else
                 {
                     return SKShader.CreateTwoPointConicalGradient(
-                        skFocal, 0,
+                        skFocal, focalRadius,
                         skCenter, radius,
                         skColorsF, skColorSpace, skColorPos,
                         shaderTileMode);

@@ -52,4 +52,38 @@ public class SvgPatternPaintStateResolverTests
         Assert.Equal(2f, state.PictureTransform.ScaleX);
         Assert.Equal(2f, state.PictureTransform.ScaleY);
     }
+
+    [Fact]
+    public void TryCreate_InheritsPatternTransformFromReferencedPattern()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="80">
+              <defs>
+                <pattern id="base" width="10" height="20" patternUnits="userSpaceOnUse" patternTransform="translate(5 7)">
+                  <rect id="pattern-rect" x="0" y="0" width="10" height="20" fill="red" />
+                </pattern>
+                <pattern id="derived" x="3" y="4" href="#base" />
+              </defs>
+              <rect id="target" x="0" y="0" width="50" height="40" fill="url(#derived)" />
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg);
+        Assert.NotNull(document);
+
+        var target = Assert.IsType<SvgRectangle>(document!.GetElementById("target"));
+        var derived = Assert.IsType<SvgPatternServer>(document.GetElementById("derived"));
+
+        var resolved = SvgPatternPaintStateResolver.TryCreate(
+            derived,
+            target,
+            SKRect.Create(0f, 0f, 50f, 40f),
+            out var state);
+
+        Assert.True(resolved);
+        Assert.NotNull(state);
+        Assert.Equal("base", state!.ContentSource.ID);
+        Assert.Equal(8f, state.ShaderMatrix.TransX);
+        Assert.Equal(11f, state.ShaderMatrix.TransY);
+    }
 }

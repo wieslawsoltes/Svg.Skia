@@ -8,6 +8,7 @@ using Avalonia.Svg.Skia;
 using Avalonia.Svg.Skia.UnitTests.Views;
 using ShimSkiaSharp;
 using ShimSkiaSharp.Editing;
+using Svg;
 using Svg.Model;
 using Xunit;
 
@@ -141,6 +142,26 @@ public class SvgImageTests
         svgImage.Css = "rect { stroke: #010203; }";
 
         Assert.Equal(new SKColor(0, 128, 255, 255), GetFirstFillColor(source));
+    }
+
+    [AvaloniaFact]
+    public void SvgImage_Css_PreservesSourceLoadOptionsParameter()
+    {
+        var loadOptions = new SvgDocumentLoadOptions
+        {
+            ExternalResources = SvgExternalResourcePolicy.SameDocumentAndDataOnly
+        };
+        var source = SvgSource.LoadFromSvg(
+            CurrentColorSvg,
+            new SvgParameters(null, null, null, loadOptions));
+        var svgImage = new SvgImage
+        {
+            Source = source
+        };
+
+        svgImage.Css = "rect { stroke: #010203; }";
+
+        Assert.Equal(SvgExternalResourcePolicy.SameDocumentAndDataOnly, source.Parameters?.LoadOptions?.ExternalResources);
     }
 
     private static SKColor GetFirstFillColor(SvgSource source)

@@ -10,7 +10,7 @@ Svg.Skia spans a few related areas:
 - `Svg.Controls.Avalonia` and `Svg.Controls.Skia.Avalonia` expose Avalonia controls, images, and brush helpers.
 - `Svg.Controls.Skia.Uno` exposes a Skia-backed Uno control and reusable `SvgSource` resources.
 - `Svg.Controls.Skia.Maui` exposes a Skia-backed .NET MAUI control and reusable `SvgSource` resources.
-- `SvgML.Maui` exposes .NET MAUI XAML-authored SVG trees and `foreignObject` control hosting.
+- `SvgML.Avalonia`, `SvgML.Maui`, and `SvgML.Uno` expose XAML-authored SVG trees, `foreignObject` control hosting, and the supported SVG 2 static subset authoring surface.
 - `Svg.Editor.*` exposes the reusable AvalonDraw editor stack, from document/session services up to the interactive Avalonia workspace.
 - `Skia.Controls.Avalonia` hosts general-purpose Skia controls for Avalonia.
 - `Svg.CodeGen.Skia`, `Svg.SourceGenerator.Skia`, `svgc`, and `Svg.Skia.Converter` cover generated code and CLI workflows.
@@ -24,7 +24,12 @@ Svg.Skia spans a few related areas:
 4. [Concepts](concepts) to understand how files, models, pictures, and Avalonia resources relate.
 5. [Guides](guides) for scenario-focused tasks such as exporting images, hit testing, interaction, animation playback, or generating code.
 6. [XAML Usage](xaml) when the primary integration point is Avalonia, .NET MAUI, or Uno.
-7. [Reference](reference) for package maps, samples, licensing, and the docs pipeline.
+7. [Reference](reference) for package maps, SVG support matrices, samples, licensing, and the docs pipeline.
+
+## SVG Support
+
+- [SVG 1.1 Static Subset Support](reference/svg-11-static-subset-support) documents the current static renderer surface against SVG 1.1 spec areas.
+- [SVG 2 Static Subset Support](reference/svg-2-static-subset-support) documents implemented, partial, parsed, and deferred SVG 2 static-subset features.
 
 ## Generated API
 

@@ -7,22 +7,22 @@ public partial class image : visual
 {
     protected override string SvgTag => "image";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("preserveAspectRatio", typeof(string), typeof(image));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("x", typeof(string), typeof(image));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("y", typeof(string), typeof(image));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("width", typeof(string), typeof(image));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("height", typeof(string), typeof(image));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("href", typeof(string), typeof(image));
 
     public string preserveAspectRatio

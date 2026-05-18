@@ -77,4 +77,26 @@ internal sealed class UnoGenerator(GeneratorSettings settings) : Generator(setti
                              }
                      """);
     }
+
+    protected override void AppendAdditionalWriterAttributes(StringBuilder sb, TypeDef typeDef)
+    {
+        if (!string.Equals(typeDef.TargetTpe, "text-base", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (typeDef.Properties.Length > 0)
+        {
+            sb.AppendLine();
+        }
+
+        sb.AppendLine(
+            """
+                    if (ReadLocalValue(spaceProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue
+                        && !string.IsNullOrEmpty(space))
+                    {
+                        writer.WriteLine($"xml:space=\"{ToSvgString(space)}\"");
+                    }
+            """);
+    }
 }

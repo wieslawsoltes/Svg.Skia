@@ -68,7 +68,7 @@ namespace Svg
         [SvgAttribute("href", SvgAttributeAttribute.XLinkNamespace)]
         public SvgDeferredPaintServer InheritGradient
         {
-            get { return GetAttribute<SvgDeferredPaintServer>("href", false); }
+            get { return this.GetEffectiveDeferredPaintServer(GetAttribute<SvgDeferredPaintServer>("href", false)); }
             set { Attributes["href"] = value; }
         }
 

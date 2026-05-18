@@ -7,22 +7,22 @@ public partial class feComposite : filter_primitive
 {
     protected override string SvgTag => "feComposite";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty operatorProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty operatorProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("operator", typeof(OperatorValue), typeof(feComposite));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty k1Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty k1Property =
         Microsoft.Maui.Controls.BindableProperty.Create("k1", typeof(float), typeof(feComposite));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty k2Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty k2Property =
         Microsoft.Maui.Controls.BindableProperty.Create("k2", typeof(float), typeof(feComposite));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty k3Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty k3Property =
         Microsoft.Maui.Controls.BindableProperty.Create("k3", typeof(float), typeof(feComposite));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty k4Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty k4Property =
         Microsoft.Maui.Controls.BindableProperty.Create("k4", typeof(float), typeof(feComposite));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty in2Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty in2Property =
         Microsoft.Maui.Controls.BindableProperty.Create("in2", typeof(string), typeof(feComposite));
 
     public OperatorValue @operator

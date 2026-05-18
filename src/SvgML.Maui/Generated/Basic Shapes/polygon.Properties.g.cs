@@ -7,12 +7,21 @@ public partial class polygon : marker_element
 {
     protected override string SvgTag => "polygon";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty pointsProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty pointsProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("points", typeof(string), typeof(polygon));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty pathLengthProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("pathLength", typeof(float), typeof(polygon));
 
     public string points
     {
         get => (string)GetValue(pointsProperty);
         set => SetValue(pointsProperty, value);
+    }
+
+    public float pathLength
+    {
+        get => (float)GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

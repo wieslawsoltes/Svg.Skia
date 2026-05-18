@@ -1,5 +1,6 @@
 using System;
 using ShimSkiaSharp;
+using Svg;
 using Svg.Model;
 using Svg.Model.Services;
 
@@ -7,6 +8,13 @@ namespace Svg.Skia;
 
 public static class SvgSceneRenderer
 {
+    private enum SvgScenePaintPhase
+    {
+        Fill,
+        Stroke,
+        Markers
+    }
+
     public static SKPicture? Render(SvgSceneDocument? sceneDocument)
     {
         if (sceneDocument is null)
@@ -97,12 +105,7 @@ public static class SvgSceneRenderer
             (node.Filter is null || !enableFilter);
         if (IsStateFreeNode(node, enableTransform, enableClip, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation))
         {
-            if (node.IsRenderable)
-            {
-                DrawNodeLocalVisuals(node, canvas);
-            }
-
-            return RenderChildrenToCanvas(sceneDocument, node, canvas, ignoreAttributes, until);
+            return RenderNodeContentToCanvas(sceneDocument, node, canvas, ignoreAttributes, until);
         }
 
         canvas.Save();
@@ -162,18 +165,10 @@ public static class SvgSceneRenderer
             canvas.SaveLayer(filter);
         }
 
-        if (node.IsRenderable)
+        if (!RenderNodeContentToCanvas(sceneDocument, node, canvas, ignoreAttributes, until))
         {
-            DrawNodeLocalVisuals(node, canvas);
-        }
-
-        for (var i = 0; i < node.Children.Count; i++)
-        {
-            if (!RenderNodeToCanvas(sceneDocument, node.Children[i], canvas, ignoreAttributes, until))
-            {
-                RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
-                return false;
-            }
+            RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
+            return false;
         }
 
         if (node.MaskNode is { } maskNode && node.MaskDstIn is { } maskDstIn && enableMask)
@@ -299,18 +294,10 @@ public static class SvgSceneRenderer
             canvas.SaveLayer(node.Filter!);
         }
 
-        if (node.IsRenderable)
+        if (!RenderBackgroundNodeContentToCanvas(sceneDocument, node, canvas, until))
         {
-            DrawNodeLocalVisuals(node, canvas);
-        }
-
-        for (var i = 0; i < node.Children.Count; i++)
-        {
-            if (!RenderBackgroundToCanvasCore(sceneDocument, node.Children[i], canvas, until, enableTransform: true))
-            {
-                RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
-                return false;
-            }
+            RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
+            return false;
         }
 
         if (enableMask && node.MaskNode is { } maskNode && node.MaskDstIn is { } maskDstIn)
@@ -347,6 +334,195 @@ public static class SvgSceneRenderer
         {
             canvas.DrawPath(localPath, localStroke);
         }
+    }
+
+    private static bool RenderNodeContentToCanvas(
+        SvgSceneDocument sceneDocument,
+        SvgSceneNode node,
+        SKCanvas canvas,
+        DrawAttributes ignoreAttributes,
+        SvgSceneNode? until)
+    {
+        if (!ShouldApplyPaintOrder(node))
+        {
+            if (node.IsRenderable)
+            {
+                DrawNodeLocalVisuals(node, canvas);
+            }
+
+            return RenderChildrenToCanvas(sceneDocument, node, canvas, ignoreAttributes, until);
+        }
+
+        if (!RenderNodePaintOrderPhases(sceneDocument, node, canvas, ignoreAttributes, until))
+        {
+            return false;
+        }
+
+        return RenderNonMarkerChildrenToCanvas(sceneDocument, node, canvas, ignoreAttributes, until);
+    }
+
+    private static bool RenderBackgroundNodeContentToCanvas(
+        SvgSceneDocument sceneDocument,
+        SvgSceneNode node,
+        SKCanvas canvas,
+        SvgSceneNode until)
+    {
+        if (!ShouldApplyPaintOrder(node))
+        {
+            if (node.IsRenderable)
+            {
+                DrawNodeLocalVisuals(node, canvas);
+            }
+
+            return RenderBackgroundChildrenToCanvas(sceneDocument, node, canvas, until);
+        }
+
+        if (!RenderBackgroundNodePaintOrderPhases(sceneDocument, node, canvas, until))
+        {
+            return false;
+        }
+
+        return RenderBackgroundNonMarkerChildrenToCanvas(sceneDocument, node, canvas, until);
+    }
+
+    private static bool RenderNodePaintOrderPhases(
+        SvgSceneDocument sceneDocument,
+        SvgSceneNode node,
+        SKCanvas canvas,
+        DrawAttributes ignoreAttributes,
+        SvgSceneNode? until)
+    {
+        return GetEffectivePaintOrder(node) switch
+        {
+            SvgPaintOrder.FillMarkersStroke =>
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Fill) &&
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Markers) &&
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Stroke),
+            SvgPaintOrder.StrokeFillMarkers =>
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Stroke) &&
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Fill) &&
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Markers),
+            SvgPaintOrder.StrokeMarkersFill =>
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Stroke) &&
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Markers) &&
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Fill),
+            SvgPaintOrder.MarkersFillStroke =>
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Markers) &&
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Fill) &&
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Stroke),
+            SvgPaintOrder.MarkersStrokeFill =>
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Markers) &&
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Stroke) &&
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Fill),
+            _ =>
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Fill) &&
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Stroke) &&
+                RenderNodePaintPhase(sceneDocument, node, canvas, ignoreAttributes, until, SvgScenePaintPhase.Markers)
+        };
+    }
+
+    private static bool RenderBackgroundNodePaintOrderPhases(
+        SvgSceneDocument sceneDocument,
+        SvgSceneNode node,
+        SKCanvas canvas,
+        SvgSceneNode until)
+    {
+        return GetEffectivePaintOrder(node) switch
+        {
+            SvgPaintOrder.FillMarkersStroke =>
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Fill) &&
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Markers) &&
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Stroke),
+            SvgPaintOrder.StrokeFillMarkers =>
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Stroke) &&
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Fill) &&
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Markers),
+            SvgPaintOrder.StrokeMarkersFill =>
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Stroke) &&
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Markers) &&
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Fill),
+            SvgPaintOrder.MarkersFillStroke =>
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Markers) &&
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Fill) &&
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Stroke),
+            SvgPaintOrder.MarkersStrokeFill =>
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Markers) &&
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Stroke) &&
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Fill),
+            _ =>
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Fill) &&
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Stroke) &&
+                RenderBackgroundNodePaintPhase(sceneDocument, node, canvas, until, SvgScenePaintPhase.Markers)
+        };
+    }
+
+    private static bool RenderNodePaintPhase(
+        SvgSceneDocument sceneDocument,
+        SvgSceneNode node,
+        SKCanvas canvas,
+        DrawAttributes ignoreAttributes,
+        SvgSceneNode? until,
+        SvgScenePaintPhase phase)
+    {
+        switch (phase)
+        {
+            case SvgScenePaintPhase.Fill:
+                DrawNodeLocalFill(node, canvas);
+                return true;
+            case SvgScenePaintPhase.Stroke:
+                DrawNodeLocalStroke(node, canvas);
+                return true;
+            case SvgScenePaintPhase.Markers:
+                return RenderMarkerChildrenToCanvas(sceneDocument, node, canvas, ignoreAttributes, until);
+            default:
+                return true;
+        }
+    }
+
+    private static bool RenderBackgroundNodePaintPhase(
+        SvgSceneDocument sceneDocument,
+        SvgSceneNode node,
+        SKCanvas canvas,
+        SvgSceneNode until,
+        SvgScenePaintPhase phase)
+    {
+        switch (phase)
+        {
+            case SvgScenePaintPhase.Fill:
+                DrawNodeLocalFill(node, canvas);
+                return true;
+            case SvgScenePaintPhase.Stroke:
+                DrawNodeLocalStroke(node, canvas);
+                return true;
+            case SvgScenePaintPhase.Markers:
+                return RenderBackgroundMarkerChildrenToCanvas(sceneDocument, node, canvas, until);
+            default:
+                return true;
+        }
+    }
+
+    private static void DrawNodeLocalFill(SvgSceneNode node, SKCanvas canvas)
+    {
+        if (!node.IsRenderable ||
+            node.LocalPath is not { } localPath ||
+            node.LocalFill is not { } localFill)
+        {
+            return;
+        }
+
+        canvas.DrawPath(localPath, localFill);
+    }
+
+    private static void DrawNodeLocalStroke(SvgSceneNode node, SKCanvas canvas)
+    {
+        if (!node.IsRenderable ||
+            node.LocalPath is not { } localPath ||
+            node.LocalStroke is not { } localStroke)
+        {
+            return;
+        }
+
+        canvas.DrawPath(localPath, localStroke);
     }
 
     internal static void ApplySourceMetadata(SKPicture picture, SvgSceneNode node, bool overwrite)
@@ -396,6 +572,151 @@ public static class SvgSceneRenderer
         }
 
         return true;
+    }
+
+    private static bool RenderMarkerChildrenToCanvas(
+        SvgSceneDocument sceneDocument,
+        SvgSceneNode node,
+        SKCanvas canvas,
+        DrawAttributes ignoreAttributes,
+        SvgSceneNode? until)
+    {
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            var child = node.Children[i];
+            if (child.Kind != SvgSceneNodeKind.Marker)
+            {
+                continue;
+            }
+
+            if (!RenderNodeToCanvas(sceneDocument, child, canvas, ignoreAttributes, until))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool RenderNonMarkerChildrenToCanvas(
+        SvgSceneDocument sceneDocument,
+        SvgSceneNode node,
+        SKCanvas canvas,
+        DrawAttributes ignoreAttributes,
+        SvgSceneNode? until)
+    {
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            var child = node.Children[i];
+            if (child.Kind == SvgSceneNodeKind.Marker)
+            {
+                continue;
+            }
+
+            if (!RenderNodeToCanvas(sceneDocument, child, canvas, ignoreAttributes, until))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool RenderBackgroundChildrenToCanvas(
+        SvgSceneDocument sceneDocument,
+        SvgSceneNode node,
+        SKCanvas canvas,
+        SvgSceneNode until)
+    {
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            if (!RenderBackgroundToCanvasCore(sceneDocument, node.Children[i], canvas, until, enableTransform: true))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool RenderBackgroundMarkerChildrenToCanvas(
+        SvgSceneDocument sceneDocument,
+        SvgSceneNode node,
+        SKCanvas canvas,
+        SvgSceneNode until)
+    {
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            var child = node.Children[i];
+            if (child.Kind != SvgSceneNodeKind.Marker)
+            {
+                continue;
+            }
+
+            if (!RenderBackgroundToCanvasCore(sceneDocument, child, canvas, until, enableTransform: true))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool RenderBackgroundNonMarkerChildrenToCanvas(
+        SvgSceneDocument sceneDocument,
+        SvgSceneNode node,
+        SKCanvas canvas,
+        SvgSceneNode until)
+    {
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            var child = node.Children[i];
+            if (child.Kind == SvgSceneNodeKind.Marker)
+            {
+                continue;
+            }
+
+            if (!RenderBackgroundToCanvasCore(sceneDocument, child, canvas, until, enableTransform: true))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool ShouldApplyPaintOrder(SvgSceneNode node)
+    {
+        if (node.LocalModel is not null ||
+            node.Element is not SvgVisualElement visualElement)
+        {
+            return false;
+        }
+
+        var paintOrder = visualElement.PaintOrder;
+        return paintOrder != SvgPaintOrder.Normal &&
+               paintOrder != SvgPaintOrder.FillStrokeMarkers &&
+               (node.LocalPath is not null || HasMarkerChildren(node));
+    }
+
+    private static SvgPaintOrder GetEffectivePaintOrder(SvgSceneNode node)
+    {
+        return node.Element is SvgVisualElement visualElement
+            ? visualElement.PaintOrder
+            : SvgPaintOrder.Normal;
+    }
+
+    private static bool HasMarkerChildren(SvgSceneNode node)
+    {
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            if (node.Children[i].Kind == SvgSceneNodeKind.Marker)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool IsStateFreeNode(

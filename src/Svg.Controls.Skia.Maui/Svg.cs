@@ -345,9 +345,10 @@ public sealed class Svg : SkiaSharp.Views.Maui.Controls.SKCanvasView
                 : null;
 
         var combinedCss = CombineCss(source?.Parameters?.Css ?? source?.Css, css, currentCss);
-        return entities is null && string.IsNullOrWhiteSpace(combinedCss)
+        var loadOptions = source?.Parameters?.LoadOptions;
+        return entities is null && string.IsNullOrWhiteSpace(combinedCss) && loadOptions is null
             ? null
-            : new SvgParameters(entities, combinedCss);
+            : new SvgParameters(entities, combinedCss, null, loadOptions);
     }
 
     internal static SvgSource PrepareWorkingSource(SvgSource source, string? css, string? currentCss, bool wireframe, bool disableFilters)

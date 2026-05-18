@@ -7,7 +7,7 @@ public partial class font_face_uri : element
 {
     protected override string SvgTag => "font-face-uri";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("href", typeof(string), typeof(font_face_uri));
 
     public string href

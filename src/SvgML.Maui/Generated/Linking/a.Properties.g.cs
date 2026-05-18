@@ -7,16 +7,16 @@ public partial class a : element
 {
     protected override string SvgTag => "a";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("href", typeof(string), typeof(a));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty showProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty showProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("show", typeof(string), typeof(a));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty titleProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty titleProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("title", typeof(string), typeof(a));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty targetProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty targetProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("target", typeof(string), typeof(a));
 
     public string href

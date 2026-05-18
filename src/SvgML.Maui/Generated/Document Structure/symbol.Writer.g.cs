@@ -9,6 +9,36 @@ public partial class symbol
     {
         base.WriteAttributes(writer, parent);
 
+        if (this.IsSet(xProperty))
+        {
+            writer.WriteLine($"x=\"{ToSvgString(x)}\"");
+        }
+
+        if (this.IsSet(yProperty))
+        {
+            writer.WriteLine($"y=\"{ToSvgString(y)}\"");
+        }
+
+        if (this.IsSet(widthProperty))
+        {
+            writer.WriteLine($"width=\"{ToSvgString(width)}\"");
+        }
+
+        if (this.IsSet(heightProperty))
+        {
+            writer.WriteLine($"height=\"{ToSvgString(height)}\"");
+        }
+
+        if (this.IsSet(refXProperty))
+        {
+            writer.WriteLine($"refX=\"{ToSvgString(refX)}\"");
+        }
+
+        if (this.IsSet(refYProperty))
+        {
+            writer.WriteLine($"refY=\"{ToSvgString(refY)}\"");
+        }
+
         if (this.IsSet(viewBoxProperty))
         {
             writer.WriteLine($"viewBox=\"{ToSvgString(viewBox)}\"");

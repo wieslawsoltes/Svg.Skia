@@ -29,7 +29,7 @@ public abstract partial class element
 
         if (sp is not null)
         {
-            writer.WriteLine($"sp=\"{ToSvgString(sp)}\"");
+            writer.WriteLine($"xml:space=\"{ToSvgString(sp)}\"");
         }
 
         if (onclick is not null)

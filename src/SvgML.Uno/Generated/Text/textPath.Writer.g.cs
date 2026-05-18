@@ -28,5 +28,15 @@ public partial class textPath
         {
             writer.WriteLine($"xlink:href=\"{ToSvgString(href)}\"");
         }
+
+        if (ReadLocalValue(pathProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"path=\"{ToSvgString(path)}\"");
+        }
+
+        if (ReadLocalValue(sideProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"side=\"{ToSvgString(side)}\"");
+        }
     }
 }

@@ -42,10 +42,19 @@ public partial class svg
         return stream;
     }
 
-    private static SvgParameters? BuildParameters(string? css, string? currentCss)
+    private SvgParameters BuildParameters(string? css, string? currentCss)
     {
-        var combinedCss = CombineCss(css, currentCss);
-        return string.IsNullOrWhiteSpace(combinedCss) ? null : new SvgParameters(null, combinedCss);
+        return new SvgParameters(
+            null,
+            CombineCss(css, currentCss),
+            null,
+            new SvgDocumentLoadOptions
+            {
+                ProcessingMode = ProcessingMode,
+                ExternalResources = ExternalResources,
+                PreserveUnknownElements = PreserveUnknownElements,
+                PreferSvg2Href = PreferSvg2Href
+            });
     }
 
     private static string? CombineCss(params string?[] values)

@@ -10,9 +10,18 @@ public partial class polygon : marker_element
     public static readonly Avalonia.StyledProperty<string?> pointsProperty =
         Avalonia.AvaloniaProperty.Register<polygon, string?>("points");
 
+    public static readonly Avalonia.StyledProperty<float?> pathLengthProperty =
+        Avalonia.AvaloniaProperty.Register<polygon, float?>("pathLength");
+
     public string? points
     {
         get => GetValue(pointsProperty);
         set => SetValue(pointsProperty, value);
+    }
+
+    public float? pathLength
+    {
+        get => GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

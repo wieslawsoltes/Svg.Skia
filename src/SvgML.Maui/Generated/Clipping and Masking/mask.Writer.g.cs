@@ -38,5 +38,10 @@ public partial class mask
         {
             writer.WriteLine($"height=\"{ToSvgString(height)}\"");
         }
+
+        if (this.IsSet(mask_typeProperty))
+        {
+            writer.WriteLine($"mask-type=\"{ToSvgString(mask_type)}\"");
+        }
     }
 }

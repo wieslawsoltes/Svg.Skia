@@ -3,6 +3,7 @@
 using System;
 using Avalonia.Media;
 using Avalonia.Metadata;
+using Svg;
 using Svg.Model;
 using DrawingColor = System.Drawing.Color;
 
@@ -194,16 +195,31 @@ public class SvgImage : AvaloniaObject, IImage
             : null;
         var combinedCss = CombineCss(baseCss, css, currentCss);
         var drawingColor = ToDrawingColor(currentColor) ?? source.Parameters?.CurrentColor ?? ToDrawingColor(source.CurrentColor);
-        return entities is null && string.IsNullOrWhiteSpace(combinedCss) && drawingColor is null
+        var loadOptions = source.Parameters?.LoadOptions;
+        return entities is null && string.IsNullOrWhiteSpace(combinedCss) && drawingColor is null && loadOptions is null
             ? null
-            : new SvgParameters(entities, combinedCss, drawingColor);
+            : new SvgParameters(entities, combinedCss, drawingColor, loadOptions);
     }
 
     private static bool HasSameParameters(SvgParameters? left, SvgParameters? right)
     {
         return ReferenceEquals(left?.Entities, right?.Entities) &&
                HasSameCss(left?.Css, right?.Css) &&
-               Nullable.Equals(left?.CurrentColor, right?.CurrentColor);
+               Nullable.Equals(left?.CurrentColor, right?.CurrentColor) &&
+               HasSameLoadOptions(left?.LoadOptions, right?.LoadOptions);
+    }
+
+    private static bool HasSameLoadOptions(SvgDocumentLoadOptions? left, SvgDocumentLoadOptions? right)
+    {
+        if (left is null || right is null)
+        {
+            return left is null && right is null;
+        }
+
+        return left.ProcessingMode == right.ProcessingMode &&
+               left.ExternalResources == right.ExternalResources &&
+               left.PreserveUnknownElements == right.PreserveUnknownElements &&
+               left.PreferSvg2Href == right.PreferSvg2Href;
     }
 
     private static bool HasSameCss(string? left, string? right)

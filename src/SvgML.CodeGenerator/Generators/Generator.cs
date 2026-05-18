@@ -156,6 +156,10 @@ internal abstract class Generator(GeneratorSettings settings)
                      """);
     }
 
+    protected virtual void AppendAdditionalWriterAttributes(StringBuilder sb, TypeDef typeDef)
+    {
+    }
+
     private void GenerateProperties(TypeDef typeDef)
     {
         var sb = new StringBuilder();
@@ -321,15 +325,18 @@ internal abstract class Generator(GeneratorSettings settings)
         {
             var p = typeDef.Properties[k];
             var propertyName = HandleReserved(ReplaceDash(p: p.Name));
-            var pns = p.Name == "href" ? "xlink:" : "";
+            var pns = p.Name == "href" ? "xlink:" : p.Name == "sp" ? "xml:" : "";
+            var attributeName = p.Name == "sp" ? "space" : p.Name;
 
-            ToSetProperty(sb, propertyName, pns, p.Name);
+            ToSetProperty(sb, propertyName, pns, attributeName);
 
             if (k < typeDef.Properties.Length - 1)
             {
                 sb.AppendLine(value: "");
             }
         }
+
+        AppendAdditionalWriterAttributes(sb, typeDef);
 
         sb.AppendLine(
             value: $$"""
@@ -397,7 +404,9 @@ internal abstract class Generator(GeneratorSettings settings)
                     {
                         "Svg.SvgFontWeight" => FormatFontWeight(name),
                         "Svg.XmlSpaceHandling" or "Svg.SvgFillRule" or "Svg.SvgClipRule" => name.ToLowerInvariant(),
-                        "Svg.SvgDominantBaseline" or "Svg.SvgFontVariant" or "Svg.SvgTextDecoration" or "Svg.SvgFontStretch" or "Svg.FilterEffects.SvgBlendMode" => ToKebabCase(name),
+                        "Svg.SvgDominantBaseline" or "Svg.SvgFontVariant" or "Svg.SvgTextDecoration" or "Svg.SvgFontStretch" or "Svg.SvgVectorEffect" or "Svg.SvgTransformBox" or "Svg.SvgMixBlendMode" or "Svg.FilterEffects.SvgBlendMode" => ToKebabCase(name),
+                        "Svg.SvgPaintOrder" => FormatPaintOrder(name),
+                        "Svg.SvgWhiteSpace" => FormatWhiteSpace(name),
                         "Svg.FilterEffects.SvgChannelSelector" => name,
                         _ when typeName is not null && typeName.StartsWith("SvgML.", global::System.StringComparison.Ordinal) => name.Replace("_", "-", global::System.StringComparison.Ordinal),
                         _ => ToCamelCase(name),
@@ -469,6 +478,25 @@ internal abstract class Generator(GeneratorSettings settings)
                     return name.Length == 4 && name[0] == 'W' && IsFontWeightLiteral(name.Substring(1))
                         ? name.Substring(1)
                         : ToCamelCase(name);
+                }
+
+                private static string FormatPaintOrder(string name)
+                {
+                    return name switch
+                    {
+                        "FillStrokeMarkers" => "fill stroke markers",
+                        "FillMarkersStroke" => "fill markers stroke",
+                        "StrokeFillMarkers" => "stroke fill markers",
+                        "StrokeMarkersFill" => "stroke markers fill",
+                        "MarkersFillStroke" => "markers fill stroke",
+                        "MarkersStrokeFill" => "markers stroke fill",
+                        _ => ToCamelCase(name)
+                    };
+                }
+
+                private static string FormatWhiteSpace(string name)
+                {
+                    return name == "NoWrap" ? "nowrap" : ToKebabCase(name);
                 }
 
                 private static bool IsFontWeightLiteral(string value)

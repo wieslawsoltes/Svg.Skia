@@ -185,15 +185,26 @@ namespace Svg
                     }
                     else
                     {
+                        var ns = prefix.Length == 0 ? string.Empty : reader.LookupNamespace(prefix);
+                        if (localName.Equals("href", StringComparison.Ordinal) &&
+                            (string.IsNullOrEmpty(ns) || string.Equals(ns, SvgNamespaces.XLinkNamespace, StringComparison.Ordinal)))
+                        {
+                            element.SetCompatibilityHrefAttributeValue(ns, reader.Value);
+                        }
+
                         if (PreserveJavaScriptDomState)
                         {
                             element.SetJavaScriptDomAttributeValue(GetJavaScriptDomAttributeName(prefix, localName), reader.Value);
                         }
 
-                        var ns = prefix.Length == 0 ? string.Empty : reader.LookupNamespace(prefix);
                         SetPropertyValue(element, ns, localName, reader.Value, document);
                     }
                 }
+            }
+
+            if (element.HasCompatibilityHrefAttributeValues() && element.Attributes.ContainsKey("href"))
+            {
+                element.SetCompatibilityHrefAttributeValueAfterParse(element.Attributes.GetAttribute<object>("href"));
             }
 
             //Trace.TraceInformation("End SetAttributes");
@@ -224,75 +235,28 @@ namespace Svg
 
         private static bool IsStyleAttribute(string name)
         {
-            switch (name)
-            {
-                case "alignment-baseline":
-                case "baseline-shift":
-                case "clip":
-                case "clip-path":
-                case "clip-rule":
-                case "color":
-                case "color-interpolation":
-                case "color-interpolation-filters":
-                case "color-profile":
-                case "color-rendering":
-                case "cursor":
-                case "direction":
-                case "display":
-                case "dominant-baseline":
-                case "enable-background":
-                case "fill":
-                case "fill-opacity":
-                case "fill-rule":
-                case "filter":
-                case "flood-color":
-                case "flood-opacity":
-                case "font":
-                case "font-family":
-                case "font-size":
-                case "font-size-adjust":
-                case "font-stretch":
-                case "font-style":
-                case "font-variant":
-                case "font-weight":
-                case "glyph-orientation-horizontal":
-                case "glyph-orientation-vertical":
-                case "image-rendering":
-                case "kerning":
-                case "letter-spacing":
-                case "lighting-color":
-                case "marker":
-                case "marker-end":
-                case "marker-mid":
-                case "marker-start":
-                case "mask":
-                case "opacity":
-                case "overflow":
-                case "pointer-events":
-                case "shape-rendering":
-                case "stop-color":
-                case "stop-opacity":
-                case "stroke":
-                case "stroke-dasharray":
-                case "stroke-dashoffset":
-                case "stroke-linecap":
-                case "stroke-linejoin":
-                case "stroke-miterlimit":
-                case "stroke-opacity":
-                case "stroke-width":
-                case "text-anchor":
-                case "text-decoration":
-                case "text-rendering":
-                case "text-transform":
-                case "unicode-bidi":
-                case "vector-effect":
-                case "visibility":
-                case "word-spacing":
-                case "writing-mode":
-                    return true;
-            }
+            return SvgStyleAttributeNames.Contains(name) &&
+                   !SvgStyleAttributeNames.IsCssOnlyProperty(name) &&
+                   !IsSvg2GeometryAttribute(name);
+        }
 
-            return false;
+        private static bool IsSvg2GeometryAttribute(string name)
+        {
+            return name is
+                "cx" or
+                "cy" or
+                "d" or
+                "height" or
+                "r" or
+                "rx" or
+                "ry" or
+                "width" or
+                "x" or
+                "x1" or
+                "x2" or
+                "y" or
+                "y1" or
+                "y2";
         }
 
         private static bool IsOpacityAttribute(string name)
@@ -457,6 +421,10 @@ namespace Svg
             }
 
             attributeValue = normalizedOpacityValue;
+            if (isStyle && ShouldKeepComputedStyleDeclaration(attributeName, attributeValue))
+            {
+                return false;
+            }
 
             var setValueResult = element.SetValue(attributeName, document, CultureInfo.InvariantCulture, attributeValue);
             if (setValueResult)
@@ -471,6 +439,37 @@ namespace Svg
                 element.CustomAttributes[ns.Length == 0 ? attributeName : $"{ns}:{attributeName}"] = attributeValue;
             }
             return true;
+        }
+
+        private static bool ShouldKeepComputedStyleDeclaration(string attributeName, string attributeValue)
+        {
+            return IsGeometryAttribute(attributeName) &&
+                   (IsCssIdentifier(attributeValue, "auto") ||
+                    IsCssIdentifier(attributeValue, "inherit") ||
+                    IsCssIdentifier(attributeValue, "initial") ||
+                    IsCssIdentifier(attributeValue, "unset"));
+        }
+
+        private static bool IsGeometryAttribute(string attributeName)
+        {
+            return attributeName.Equals("x", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("y", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("x1", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("y1", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("x2", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("y2", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("cx", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("cy", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("r", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("rx", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("ry", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("width", StringComparison.OrdinalIgnoreCase) ||
+                   attributeName.Equals("height", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsCssIdentifier(string value, string identifier)
+        {
+            return value.AsSpan().Trim().Equals(identifier.AsSpan(), StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsEventDescriptorAttribute(SvgElement element, string attributeName)

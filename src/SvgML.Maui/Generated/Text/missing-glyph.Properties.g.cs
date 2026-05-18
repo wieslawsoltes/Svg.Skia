@@ -7,7 +7,7 @@ public partial class missing_glyph : glyph
 {
     protected override string SvgTag => "missing-glyph";
 
-    public new static readonly Microsoft.Maui.Controls.BindableProperty glyph_nameProperty = 
+    public new static readonly Microsoft.Maui.Controls.BindableProperty glyph_nameProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("glyph-name", typeof(string), typeof(missing_glyph));
 
     public new string glyph_name

@@ -230,12 +230,12 @@ internal static class MaskingService
 
             case SvgUse svgUse:
                 {
-                    if (SvgService.HasRecursiveReference(svgUse, (e) => e.ReferencedElement, new HashSet<Uri>()))
+                    if (SvgService.HasRecursiveReference(svgUse, static e => SvgService.GetEffectiveReferenceUri(e, e.ReferencedElement), new HashSet<Uri>()))
                     {
                         break;
                     }
 
-                    var svgReferencedVisualElement = SvgService.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
+                    var svgReferencedVisualElement = SvgService.GetReference<SvgVisualElement>(svgUse, SvgService.GetEffectiveReferenceUri(svgUse, svgUse.ReferencedElement));
                     if (svgReferencedVisualElement is null || svgReferencedVisualElement is SvgSymbol)
                     {
                         break;

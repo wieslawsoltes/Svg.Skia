@@ -44,6 +44,48 @@ Uno's current XAML source generator still expects third-party controls to arrive
 - Dash-named SVG declarations can also be placed in `style`, for example `style="stroke-width:2;stroke-linecap:round;"`.
 - Text or control bindings can feed attribute values directly, which makes small interactive diagrams practical inside Uno pages.
 
+## SVG 2 authoring notes
+
+SvgML.Uno exposes the supported SVG 2 static subset on the inline tree. Root load options use normal CLR property names, and dash-named SVG properties use underscore member names unless they are authored through `style`.
+
+```xml
+<svg xmlns="using:SvgML"
+     ProcessingMode="SecureStatic"
+     ExternalResources="SameDocumentAndDataOnly"
+     PreferSvg2Href="True"
+     viewBox="0 0 160 90">
+  <defs>
+    <filter id="shadow">
+      <feDropShadow dx="2"
+                    dy="2"
+                    stdDeviation="2"
+                    flood_color="#0F172A"
+                    flood_opacity="0.35" />
+    </filter>
+  </defs>
+
+  <rect x="16"
+        y="14"
+        width="128"
+        height="44"
+        pathLength="400"
+        fill="#E0F2FE"
+        stroke="#0369A1"
+        stroke_width="4"
+        paint_order="stroke fill"
+        vector_effect="non-scaling-stroke"
+        transform_box="fill-box"
+        transform_origin="50% 50%"
+        filter="url(#shadow)" />
+
+  <text fill="#0F172A" white_space="pre">
+    <textPath path="M18 76 H142" side="right">SvgML SVG 2</textPath>
+  </text>
+</svg>
+```
+
+CSS-only SVG 2 features such as `mix-blend-mode`, `isolation`, CSS `d`, and CSS geometry should be authored through `style`, `Css`, or `CurrentCss`.
+
 ## Native controls with foreignObject
 
 `foreignObject` hosts a native Uno `UIElement` child. It can reserve text flow inside `text` and `tspan`, or it can place native controls in the SVG scene:

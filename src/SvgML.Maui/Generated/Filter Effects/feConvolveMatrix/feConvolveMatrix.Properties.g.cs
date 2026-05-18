@@ -7,31 +7,31 @@ public partial class feConvolveMatrix : filter_primitive
 {
     protected override string SvgTag => "feConvolveMatrix";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty orderProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty orderProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("order", typeof(numbers), typeof(feConvolveMatrix));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty kernelMatrixProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty kernelMatrixProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("kernelMatrix", typeof(numbers), typeof(feConvolveMatrix));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty divisorProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty divisorProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("divisor", typeof(float), typeof(feConvolveMatrix));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty biasProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty biasProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("bias", typeof(float), typeof(feConvolveMatrix));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty targetXProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty targetXProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("targetX", typeof(int), typeof(feConvolveMatrix));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty targetYProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty targetYProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("targetY", typeof(int), typeof(feConvolveMatrix));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty edgeModeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty edgeModeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("edgeMode", typeof(string), typeof(feConvolveMatrix));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty kernelUnitLengthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty kernelUnitLengthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("kernelUnitLength", typeof(numbers), typeof(feConvolveMatrix));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAlphaProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAlphaProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("preserveAlpha", typeof(string), typeof(feConvolveMatrix));
 
     public numbers order

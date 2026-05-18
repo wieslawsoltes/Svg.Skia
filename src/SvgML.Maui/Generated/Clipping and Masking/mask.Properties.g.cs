@@ -7,23 +7,26 @@ public partial class mask : element
 {
     protected override string SvgTag => "mask";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty maskUnitsProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty maskUnitsProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("maskUnits", typeof(string), typeof(mask));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty maskContentUnitsProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty maskContentUnitsProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("maskContentUnits", typeof(string), typeof(mask));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("x", typeof(string), typeof(mask));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("y", typeof(string), typeof(mask));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("width", typeof(string), typeof(mask));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("height", typeof(string), typeof(mask));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty mask_typeProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("mask-type", typeof(ModelMaskTypeValue), typeof(mask));
 
     public string maskUnits
     {
@@ -59,5 +62,11 @@ public partial class mask : element
     {
         get => (string)GetValue(heightProperty);
         set => SetValue(heightProperty, value);
+    }
+
+    public ModelMaskTypeValue mask_type
+    {
+        get => (ModelMaskTypeValue)GetValue(mask_typeProperty);
+        set => SetValue(mask_typeProperty, value);
     }
 }

@@ -7,28 +7,28 @@ public partial class feSpotLight : element
 {
     protected override string SvgTag => "feSpotLight";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("x", typeof(float), typeof(feSpotLight));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("y", typeof(float), typeof(feSpotLight));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty zProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty zProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("z", typeof(float), typeof(feSpotLight));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty pointsAtXProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty pointsAtXProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("pointsAtX", typeof(float), typeof(feSpotLight));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty pointsAtYProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty pointsAtYProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("pointsAtY", typeof(float), typeof(feSpotLight));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty pointsAtZProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty pointsAtZProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("pointsAtZ", typeof(float), typeof(feSpotLight));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty specularExponentProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty specularExponentProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("specularExponent", typeof(float), typeof(feSpotLight));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty limitingConeAngleProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty limitingConeAngleProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("limitingConeAngle", typeof(float), typeof(feSpotLight));
 
     public float x

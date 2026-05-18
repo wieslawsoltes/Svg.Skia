@@ -13,5 +13,10 @@ public partial class polygon
         {
             writer.WriteLine($"points=\"{ToSvgString(points)}\"");
         }
+
+        if (this.IsSet(pathLengthProperty))
+        {
+            writer.WriteLine($"pathLength=\"{ToSvgString(pathLength)}\"");
+        }
     }
 }

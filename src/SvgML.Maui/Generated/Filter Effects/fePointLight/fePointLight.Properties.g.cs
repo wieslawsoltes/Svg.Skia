@@ -7,13 +7,13 @@ public partial class fePointLight : element
 {
     protected override string SvgTag => "fePointLight";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("x", typeof(float), typeof(fePointLight));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("y", typeof(float), typeof(fePointLight));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty zProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty zProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("z", typeof(float), typeof(fePointLight));
 
     public float x

@@ -63,6 +63,11 @@ BenchmarkDotNet results are emitted under `artifacts/benchmarks/` as HTML and Gi
   - render native picture to bitmap
   - encode native picture to PNG
   - load via `SKSvg`
+- `Svg2StaticFeatureBenchmarks`
+  - SVG 2 CSS geometry property parsing, retained-scene compilation, and end-to-end load
+  - repeated `<use>` expansion with inherited marker styles through temporary parents
+  - SVG 2 symbol `width` / `height` viewport dimensions
+  - `textPath side="right"` placement
 
 The benchmark project uses a tuned short-run BenchmarkDotNet job by default so it stays practical for local iteration while still producing stable exported summaries.
 
@@ -92,6 +97,7 @@ dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.cs
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgShimPictureModelBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRenderBitmapBenchmarks*"
+dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*Svg2StaticFeatureBenchmarks*"
 ```
 
 You can also filter by category when focusing on a single stage:

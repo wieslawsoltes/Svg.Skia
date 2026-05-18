@@ -7,17 +7,20 @@ public partial class line : marker_element
 {
     protected override string SvgTag => "line";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty x1Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty x1Property =
         Microsoft.Maui.Controls.BindableProperty.Create("x1", typeof(Svg.SvgUnit), typeof(line));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty y1Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty y1Property =
         Microsoft.Maui.Controls.BindableProperty.Create("y1", typeof(Svg.SvgUnit), typeof(line));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty x2Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty x2Property =
         Microsoft.Maui.Controls.BindableProperty.Create("x2", typeof(Svg.SvgUnit), typeof(line));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty y2Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty y2Property =
         Microsoft.Maui.Controls.BindableProperty.Create("y2", typeof(Svg.SvgUnit), typeof(line));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty pathLengthProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("pathLength", typeof(float), typeof(line));
 
     public Svg.SvgUnit x1
     {
@@ -41,5 +44,11 @@ public partial class line : marker_element
     {
         get => (Svg.SvgUnit)GetValue(y2Property);
         set => SetValue(y2Property, value);
+    }
+
+    public float pathLength
+    {
+        get => (float)GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

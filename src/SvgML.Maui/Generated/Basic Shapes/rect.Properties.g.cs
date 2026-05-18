@@ -7,23 +7,26 @@ public partial class rect : path_based
 {
     protected override string SvgTag => "rect";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("x", typeof(Svg.SvgUnit), typeof(rect));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("y", typeof(Svg.SvgUnit), typeof(rect));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("width", typeof(Svg.SvgUnit), typeof(rect));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("height", typeof(Svg.SvgUnit), typeof(rect));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty rxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty rxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("rx", typeof(Svg.SvgUnit), typeof(rect));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty ryProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty ryProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("ry", typeof(Svg.SvgUnit), typeof(rect));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty pathLengthProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("pathLength", typeof(float), typeof(rect));
 
     public Svg.SvgUnit x
     {
@@ -59,5 +62,11 @@ public partial class rect : path_based
     {
         get => (Svg.SvgUnit)GetValue(ryProperty);
         set => SetValue(ryProperty, value);
+    }
+
+    public float pathLength
+    {
+        get => (float)GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

@@ -20,8 +20,35 @@ public abstract partial class visual : element
     public static readonly Avalonia.StyledProperty<Svg.SvgPointerEvents?> pointer_eventsProperty =
         Avalonia.AvaloniaProperty.Register<visual, Svg.SvgPointerEvents?>("pointer-events");
 
+    public static readonly Avalonia.StyledProperty<string?> paint_orderProperty =
+        Avalonia.AvaloniaProperty.Register<visual, string?>("paint-order");
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgVectorEffect?> vector_effectProperty =
+        Avalonia.AvaloniaProperty.Register<visual, Svg.SvgVectorEffect?>("vector-effect");
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgTransformBox?> transform_boxProperty =
+        Avalonia.AvaloniaProperty.Register<visual, Svg.SvgTransformBox?>("transform-box");
+
+    public static readonly Avalonia.StyledProperty<string?> transform_originProperty =
+        Avalonia.AvaloniaProperty.Register<visual, string?>("transform-origin");
+
     public static readonly Avalonia.StyledProperty<string?> enable_backgroundProperty =
         Avalonia.AvaloniaProperty.Register<visual, string?>("enable-background");
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgWhiteSpace?> white_spaceProperty =
+        Avalonia.AvaloniaProperty.Register<visual, Svg.SvgWhiteSpace?>("white-space");
+
+    public static readonly Avalonia.StyledProperty<string?> text_overflowProperty =
+        Avalonia.AvaloniaProperty.Register<visual, string?>("text-overflow");
+
+    public static readonly Avalonia.StyledProperty<string?> inline_sizeProperty =
+        Avalonia.AvaloniaProperty.Register<visual, string?>("inline-size");
+
+    public static readonly Avalonia.StyledProperty<string?> shape_insideProperty =
+        Avalonia.AvaloniaProperty.Register<visual, string?>("shape-inside");
+
+    public static readonly Avalonia.StyledProperty<string?> shape_subtractProperty =
+        Avalonia.AvaloniaProperty.Register<visual, string?>("shape-subtract");
 
     public string? clip
     {
@@ -53,9 +80,63 @@ public abstract partial class visual : element
         set => SetValue(pointer_eventsProperty, value);
     }
 
+    public string? paint_order
+    {
+        get => GetValue(paint_orderProperty);
+        set => SetValue(paint_orderProperty, value);
+    }
+
+    public Svg.SvgVectorEffect? vector_effect
+    {
+        get => GetValue(vector_effectProperty);
+        set => SetValue(vector_effectProperty, value);
+    }
+
+    public Svg.SvgTransformBox? transform_box
+    {
+        get => GetValue(transform_boxProperty);
+        set => SetValue(transform_boxProperty, value);
+    }
+
+    public string? transform_origin
+    {
+        get => GetValue(transform_originProperty);
+        set => SetValue(transform_originProperty, value);
+    }
+
     public string? enable_background
     {
         get => GetValue(enable_backgroundProperty);
         set => SetValue(enable_backgroundProperty, value);
+    }
+
+    public Svg.SvgWhiteSpace? white_space
+    {
+        get => GetValue(white_spaceProperty);
+        set => SetValue(white_spaceProperty, value);
+    }
+
+    public string? text_overflow
+    {
+        get => GetValue(text_overflowProperty);
+        set => SetValue(text_overflowProperty, value);
+    }
+
+    public string? inline_size
+    {
+        get => GetValue(inline_sizeProperty);
+        set => SetValue(inline_sizeProperty, value);
+    }
+
+    public string? shape_inside
+    {
+        get => GetValue(shape_insideProperty);
+        set => SetValue(shape_insideProperty, value);
+    }
+
+    public string? shape_subtract
+    {
+        get => GetValue(shape_subtractProperty);
+        set => SetValue(shape_subtractProperty, value);
     }
 }

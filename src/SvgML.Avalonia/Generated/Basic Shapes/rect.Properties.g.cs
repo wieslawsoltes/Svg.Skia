@@ -25,6 +25,9 @@ public partial class rect : path_based
     public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> ryProperty =
         Avalonia.AvaloniaProperty.Register<rect, Svg.SvgUnit?>("ry");
 
+    public static readonly Avalonia.StyledProperty<float?> pathLengthProperty =
+        Avalonia.AvaloniaProperty.Register<rect, float?>("pathLength");
+
     public Svg.SvgUnit? x
     {
         get => GetValue(xProperty);
@@ -59,5 +62,11 @@ public partial class rect : path_based
     {
         get => GetValue(ryProperty);
         set => SetValue(ryProperty, value);
+    }
+
+    public float? pathLength
+    {
+        get => GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }
