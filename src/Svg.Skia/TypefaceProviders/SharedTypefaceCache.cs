@@ -270,9 +270,14 @@ internal static class SharedTypefaceCache
                 key = new ProviderTypefaceKey(ProviderKind.Default, IntPtr.Zero, familyName, weight, width, slant);
                 return true;
             case FontManagerTypefaceProvider fontManagerProvider:
-                var handle = fontManagerProvider.FontManager?.Handle ?? IntPtr.Zero;
+                if (!fontManagerProvider.TryGetFontManagerHandle(out var handle))
+                {
+                    key = default;
+                    return false;
+                }
+
                 key = new ProviderTypefaceKey(ProviderKind.FontManager, handle, familyName, weight, width, slant);
-                return handle != IntPtr.Zero;
+                return true;
             default:
                 key = default;
                 return false;

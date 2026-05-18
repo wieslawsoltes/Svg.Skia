@@ -293,9 +293,10 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
                 {
                     hash = (hash * 397) ^ (custom.Typeface?.Handle.GetHashCode() ?? 0);
                 }
-                else if (provider is FontManagerTypefaceProvider fontManagerProvider)
+                else if (provider is FontManagerTypefaceProvider fontManagerProvider &&
+                         fontManagerProvider.TryGetFontManagerHandle(out var handle))
                 {
-                    hash = (hash * 397) ^ (fontManagerProvider.FontManager?.Handle.GetHashCode() ?? 0);
+                    hash = (hash * 397) ^ handle.GetHashCode();
                 }
             }
 
