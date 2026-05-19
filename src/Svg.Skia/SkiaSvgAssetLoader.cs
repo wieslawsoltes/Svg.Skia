@@ -49,20 +49,21 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
         EnsureTypefaceProviderCaches();
 
+        using var runningPaint = _skiaModel.ToSKTextPaint(paintPreferredTypeface);
+        if (runningPaint is null)
+        {
+            return ret;
+        }
+
         var preferredTypeface = paintPreferredTypeface.Typeface;
         var weight = _skiaModel.ToSKFontStyleWeight(preferredTypeface?.FontWeight ?? ShimSkiaSharp.SKFontStyleWeight.Normal);
         var requestedWeight = preferredTypeface is null ? default(SkiaSharp.SKFontStyleWeight?) : weight;
         var width = _skiaModel.ToSKFontStyleWidth(preferredTypeface?.FontWidth ?? ShimSkiaSharp.SKFontStyleWidth.Normal);
         var slant = _skiaModel.ToSKFontStyleSlant(preferredTypeface?.FontSlant ?? ShimSkiaSharp.SKFontStyleSlant.Upright);
-        var preferredFamily = GetExplicitFamilyName(preferredTypeface);
+        var preferredFamily = GetExplicitFamilyName(preferredTypeface) ??
+                              (preferredTypeface is null ? null : runningPaint.Typeface?.FamilyName);
         System.Func<int, SkiaSharp.SKTypeface?> matchCharacter = codepoint =>
             MatchCharacter(preferredFamily, weight, width, slant, codepoint);
-
-        using var runningPaint = _skiaModel.ToSKPaint(paintPreferredTypeface);
-        if (runningPaint is null)
-        {
-            return ret;
-        }
 
         var currentTypefaceStartIndex = 0;
         var i = 0;
@@ -132,12 +133,14 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
             return paintPreferredTypeface.Typeface;
         }
 
+        using var preferredPaint = _skiaModel.ToSKTextPaint(paintPreferredTypeface);
         var preferredTypeface = paintPreferredTypeface.Typeface;
         var preferredWeight = _skiaModel.ToSKFontStyleWeight(preferredTypeface?.FontWeight ?? ShimSkiaSharp.SKFontStyleWeight.Normal);
         var requestedWeight = preferredTypeface is null ? default(SkiaSharp.SKFontStyleWeight?) : preferredWeight;
         var preferredWidth = _skiaModel.ToSKFontStyleWidth(preferredTypeface?.FontWidth ?? ShimSkiaSharp.SKFontStyleWidth.Normal);
         var preferredSlant = _skiaModel.ToSKFontStyleSlant(preferredTypeface?.FontSlant ?? ShimSkiaSharp.SKFontStyleSlant.Upright);
-        var preferredFamily = GetExplicitFamilyName(preferredTypeface);
+        var preferredFamily = GetExplicitFamilyName(preferredTypeface) ??
+                              (preferredTypeface is null ? null : preferredPaint?.Typeface?.FamilyName);
 
         var candidates = new List<SkiaSharp.SKTypeface?>();
         void AddCandidate(SkiaSharp.SKTypeface? candidate)
@@ -161,7 +164,6 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
             candidates.Add(candidate);
         }
 
-        using var preferredPaint = _skiaModel.ToSKPaint(paintPreferredTypeface);
         AddCandidate(preferredPaint?.Typeface);
 
         var spans = FindTypefaces(text, paintPreferredTypeface);

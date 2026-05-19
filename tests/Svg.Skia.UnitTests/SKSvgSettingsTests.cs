@@ -363,6 +363,44 @@ public class SKSvgSettingsTests : SvgUnitTest
     }
 
     [Fact]
+    public void FindTypefaces_WithImplicitItalicTypeface_MatchesResolvedTextTypeface()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var assetLoader = new SkiaSvgAssetLoader(model);
+        var sourceTypeface = CreateImplicitTypeface(fontSlant: ShimSkiaSharp.SKFontStyleSlant.Italic);
+        var source = new ShimPaint
+        {
+            Typeface = sourceTypeface
+        };
+        var expectedTypeface = model.ToSKTypeface(sourceTypeface);
+
+        var span = Assert.Single(assetLoader.FindTypefaces("ABC", source));
+
+        Assert.NotNull(expectedTypeface);
+        Assert.NotNull(span.Typeface);
+        Assert.Equal((ShimSkiaSharp.SKFontStyleSlant)expectedTypeface!.FontSlant, span.Typeface!.FontSlant);
+    }
+
+    [Fact]
+    public void FindRunTypeface_WithImplicitCondensedTypeface_MatchesResolvedTextTypeface()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var assetLoader = new SkiaSvgAssetLoader(model);
+        var sourceTypeface = CreateImplicitTypeface(fontWidth: ShimSkiaSharp.SKFontStyleWidth.Condensed);
+        var source = new ShimPaint
+        {
+            Typeface = sourceTypeface
+        };
+        var expectedTypeface = model.ToSKTypeface(sourceTypeface);
+
+        var runTypeface = assetLoader.FindRunTypeface("ABC", source);
+
+        Assert.NotNull(expectedTypeface);
+        Assert.NotNull(runTypeface);
+        Assert.Equal((ShimSkiaSharp.SKFontStyleWidth)expectedTypeface!.FontWidth, runTypeface!.FontWidth);
+    }
+
+    [Fact]
     public void GetRenderPaint_WithoutTypeface_DoesNotResolveDefaultTypeface()
     {
         var model = new SkiaModel(new SKSvgSettings());
