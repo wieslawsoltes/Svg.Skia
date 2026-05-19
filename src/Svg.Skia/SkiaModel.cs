@@ -565,10 +565,19 @@ public partial class SkiaModel
         return CacheTypefaceResolution(cacheKey, fallback, suppressSyntheticBold: false);
     }
 
+    internal static bool HasExplicitTypeface(SKTypeface? typeface)
+    {
+        return !string.IsNullOrWhiteSpace(typeface?.FamilyName);
+    }
+
+    private TypefaceResolution? ResolveExplicitTypeface(SKTypeface? typeface)
+    {
+        return HasExplicitTypeface(typeface) ? ResolveSKTypeface(typeface) : null;
+    }
+
     private TypefaceResolution? ResolvePaintTypeface(SKPaint paint)
     {
-        var typeface = paint.Typeface;
-        return typeface is null ? null : ResolveSKTypeface(typeface);
+        return ResolveExplicitTypeface(paint.Typeface);
     }
 
     private TypefaceResolution CacheTypefaceResolution(TypefaceKey cacheKey, SkiaSharp.SKTypeface typeface, bool suppressSyntheticBold)
@@ -1398,14 +1407,14 @@ public partial class SkiaModel
 
     public SkiaSharp.SKFont ToSKFont(SKPaint paint)
     {
-        var typefaceResolution = ResolveSKTypeface(paint.Typeface);
-        var skFont = new SkiaSharp.SKFont(typefaceResolution.Typeface, paint.TextSize)
+        var typefaceResolution = ResolveExplicitTypeface(paint.Typeface);
+        var skFont = new SkiaSharp.SKFont(typefaceResolution?.Typeface, paint.TextSize)
         {
             Edging = ToSKFontEdging(paint),
             Subpixel = paint.SubpixelText
         };
 
-        ApplyTypefaceAdjustments(paint, skFont, typefaceResolution.SuppressSyntheticBold);
+        ApplyTypefaceAdjustments(paint, skFont, typefaceResolution?.SuppressSyntheticBold ?? false);
         return skFont;
     }
 
@@ -1416,15 +1425,15 @@ public partial class SkiaModel
             return null;
         }
 
-        var typefaceResolution = ResolveSKTypeface(font.Typeface);
-        var skFont = new SkiaSharp.SKFont(typefaceResolution.Typeface, font.Size, font.ScaleX, font.SkewX)
+        var typefaceResolution = ResolveExplicitTypeface(font.Typeface);
+        var skFont = new SkiaSharp.SKFont(typefaceResolution?.Typeface, font.Size, font.ScaleX, font.SkewX)
         {
             Edging = ToSKFontEdging(font.Edging),
             Subpixel = font.Subpixel,
             Embolden = font.Embolden
         };
 
-        ApplyTypefaceAdjustments(font, skFont, typefaceResolution.SuppressSyntheticBold);
+        ApplyTypefaceAdjustments(font, skFont, typefaceResolution?.SuppressSyntheticBold ?? false);
         return skFont;
     }
 
@@ -2178,7 +2187,7 @@ public partial class SkiaModel
         var strokeCap = paint is null ? SkiaSharp.SKStrokeCap.Butt : ToSKStrokeCap(paint.StrokeCap);
         var strokeJoin = paint is null ? SkiaSharp.SKStrokeJoin.Miter : ToSKStrokeJoin(paint.StrokeJoin);
         var textAlign = paint is null ? SkiaSharp.SKTextAlign.Left : ToSKTextAlign(paint.TextAlign);
-        var typeface = paint?.Typeface is null ? null : ToSKTypeface(paint.Typeface);
+        var typeface = paint is null ? null : ResolveExplicitTypeface(paint.Typeface)?.Typeface;
         var textEncoding = paint is null ? SkiaSharp.SKTextEncoding.Utf8 : ToSKTextEncoding(paint.TextEncoding);
         var colorFilter = paint is null ? null : ToSKColorFilter(paint.ColorFilter);
         var imageFilter = paint is null ? null : ToSKImageFilter(paint.ImageFilter);

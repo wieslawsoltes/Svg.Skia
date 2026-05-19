@@ -167,7 +167,10 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         var spans = FindTypefaces(text, paintPreferredTypeface);
         for (var i = 0; i < spans.Count; i++)
         {
-            AddCandidate(_skiaModel.ToSKTypeface(spans[i].Typeface));
+            if (spans[i].Typeface is { } spanTypeface)
+            {
+                AddCandidate(_skiaModel.ToSKTypeface(spanTypeface));
+            }
         }
 
         for (var i = 0; i < codepoints.Count; i++)
@@ -402,7 +405,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         }
 
         var typeface = TryMatchCharacterFromCustomProviders(normalizedFamily, weight, width, slant, codepoint);
-        if (typeface is null)
+        if (typeface is null && ShouldUsePlatformCharacterFallback(normalizedFamily, codepoint))
         {
             if (!SharedTypefaceCache.TryGetMatchedCharacter(normalizedFamily, weight, width, slant, codepoint, out typeface))
             {
@@ -419,6 +422,30 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         _matchCharacterCache.TryAdd(key, typeface);
         TrimCachesIfNeeded();
         return typeface;
+    }
+
+    private bool ShouldUsePlatformCharacterFallback(string? familyName, int codepoint)
+    {
+        return familyName is not null || codepoint > 0x007F || HasNonPlatformTypefaceProviders();
+    }
+
+    private bool HasNonPlatformTypefaceProviders()
+    {
+        var providers = _skiaModel.Settings.TypefaceProviders;
+        if (providers is null)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < providers.Count; i++)
+        {
+            if (providers[i] is not FontManagerTypefaceProvider and not DefaultTypefaceProvider)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static SkiaSharp.SKTypeface? MatchPlatformCharacter(
@@ -657,6 +684,12 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         var familyKey = familyName ?? "Default";
         foreach (var provider in _skiaModel.Settings.TypefaceProviders)
         {
+            if (familyName is null &&
+                provider is FontManagerTypefaceProvider or DefaultTypefaceProvider)
+            {
+                continue;
+            }
+
             var typeface = GetProviderTypeface(provider, familyKey, weight, width, slant);
             if (typeface is { } && typeface.ContainsGlyph(codepoint))
             {
