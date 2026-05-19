@@ -1512,12 +1512,18 @@ public partial class SkiaModel
 
     private bool ShouldEmboldenTypeface(SKTypeface? sourceTypeface, SkiaSharp.SKTypeface? targetTypeface, bool suppressSyntheticBold)
     {
-        if (suppressSyntheticBold || sourceTypeface is null || targetTypeface is null)
+        if (suppressSyntheticBold || sourceTypeface is null)
         {
             return false;
         }
 
         var desiredWeight = (int)ToSKFontStyleWeight(sourceTypeface.FontWeight);
+        if (targetTypeface is null)
+        {
+            return !HasExplicitTypeface(sourceTypeface) &&
+                   desiredWeight > (int)SkiaSharp.SKFontStyleWeight.Normal;
+        }
+
         return targetTypeface.FontWeight < desiredWeight;
     }
 

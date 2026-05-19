@@ -54,7 +54,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         var requestedWeight = preferredTypeface is null ? default(SkiaSharp.SKFontStyleWeight?) : weight;
         var width = _skiaModel.ToSKFontStyleWidth(preferredTypeface?.FontWidth ?? ShimSkiaSharp.SKFontStyleWidth.Normal);
         var slant = _skiaModel.ToSKFontStyleSlant(preferredTypeface?.FontSlant ?? ShimSkiaSharp.SKFontStyleSlant.Upright);
-        var preferredFamily = preferredTypeface?.FamilyName;
+        var preferredFamily = GetExplicitFamilyName(preferredTypeface);
         System.Func<int, SkiaSharp.SKTypeface?> matchCharacter = codepoint =>
             MatchCharacter(preferredFamily, weight, width, slant, codepoint);
 
@@ -137,7 +137,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         var requestedWeight = preferredTypeface is null ? default(SkiaSharp.SKFontStyleWeight?) : preferredWeight;
         var preferredWidth = _skiaModel.ToSKFontStyleWidth(preferredTypeface?.FontWidth ?? ShimSkiaSharp.SKFontStyleWidth.Normal);
         var preferredSlant = _skiaModel.ToSKFontStyleSlant(preferredTypeface?.FontSlant ?? ShimSkiaSharp.SKFontStyleSlant.Upright);
-        var preferredFamily = preferredTypeface?.FamilyName;
+        var preferredFamily = GetExplicitFamilyName(preferredTypeface);
 
         var candidates = new List<SkiaSharp.SKTypeface?>();
         void AddCandidate(SkiaSharp.SKTypeface? candidate)
@@ -427,6 +427,11 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
     private bool ShouldUsePlatformCharacterFallback(string? familyName, int codepoint)
     {
         return familyName is not null || codepoint > 0x007F || HasNonPlatformTypefaceProviders();
+    }
+
+    private static string? GetExplicitFamilyName(ShimSkiaSharp.SKTypeface? typeface)
+    {
+        return SkiaModel.HasExplicitTypeface(typeface) ? typeface!.FamilyName : null;
     }
 
     private bool HasNonPlatformTypefaceProviders()
