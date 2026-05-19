@@ -2078,7 +2078,7 @@ public partial class SkiaModel
                         var text = drawTextCanvasCommand.Text;
                         var x = drawTextCanvasCommand.X;
                         var y = drawTextCanvasCommand.Y;
-                        var paint = wireframe
+                        using var paint = wireframe
                             ? ToWireframePaint(drawTextCanvasCommand.Paint)
                             : ToSKTextPaint(drawTextCanvasCommand.Paint);
                         if (paint is null)
@@ -2121,7 +2121,7 @@ public partial class SkiaModel
                         var path = GetRenderPath(drawTextOnPathCanvasCommand.Path);
                         var hOffset = drawTextOnPathCanvasCommand.HOffset;
                         var vOffset = drawTextOnPathCanvasCommand.VOffset;
-                        var paint = wireframe
+                        using var paint = wireframe
                             ? ToWireframePaint(drawTextOnPathCanvasCommand.Paint)
                             : ToSKTextPaint(drawTextOnPathCanvasCommand.Paint);
                         if (path is null || paint is null)
