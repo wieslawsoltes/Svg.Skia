@@ -316,6 +316,23 @@ public class SKSvgSettingsTests : SvgUnitTest
     }
 
     [Fact]
+    public void ToSKFont_WithImplicitCondensedTypeface_PreservesWidthForText()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var sourceTypeface = CreateImplicitTypeface(fontWidth: ShimSkiaSharp.SKFontStyleWidth.Condensed);
+        var source = new ShimPaint
+        {
+            Typeface = sourceTypeface
+        };
+        var expectedTypeface = model.ToSKTypeface(sourceTypeface);
+
+        using var font = model.ToSKFont(source);
+
+        Assert.NotNull(font.Typeface);
+        Assert.Equal(expectedTypeface?.FontWidth, font.Typeface!.FontWidth);
+    }
+
+    [Fact]
     public void ToSKFont_FontWithImplicitTypeface_ResolvesDefaultTypefaceForText()
     {
         var model = new SkiaModel(new SKSvgSettings());
@@ -400,12 +417,13 @@ public class SKSvgSettingsTests : SvgUnitTest
 
     private static ShimSkiaSharp.SKTypeface CreateImplicitTypeface(
         ShimSkiaSharp.SKFontStyleWeight fontWeight = ShimSkiaSharp.SKFontStyleWeight.Normal,
+        ShimSkiaSharp.SKFontStyleWidth fontWidth = ShimSkiaSharp.SKFontStyleWidth.Normal,
         ShimSkiaSharp.SKFontStyleSlant fontSlant = ShimSkiaSharp.SKFontStyleSlant.Upright)
     {
         return ShimSkiaSharp.SKTypeface.FromFamilyName(
             null!,
             fontWeight,
-            ShimSkiaSharp.SKFontStyleWidth.Normal,
+            fontWidth,
             fontSlant);
     }
 
