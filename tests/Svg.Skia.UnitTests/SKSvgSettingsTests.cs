@@ -251,28 +251,28 @@ public class SKSvgSettingsTests : SvgUnitTest
     }
 
     [Fact]
-    public void ToSKFont_WithoutTypeface_DoesNotResolveDefaultTypeface()
+    public void ToSKFont_WithoutTypeface_ResolvesDefaultTypefaceForText()
     {
         var model = new SkiaModel(new SKSvgSettings());
 
         using var font = model.ToSKFont(new ShimPaint());
 
-        Assert.Null(font.Typeface);
+        Assert.NotNull(font.Typeface);
     }
 
     [Fact]
-    public void ToSKFont_FontWithoutTypeface_DoesNotResolveDefaultTypeface()
+    public void ToSKFont_FontWithoutTypeface_ResolvesDefaultTypefaceForText()
     {
         var model = new SkiaModel(new SKSvgSettings());
 
         using var font = model.ToSKFont(new ShimSkiaSharp.SKFont());
 
         Assert.NotNull(font);
-        Assert.Null(font!.Typeface);
+        Assert.NotNull(font!.Typeface);
     }
 
     [Fact]
-    public void ToSKFont_WithImplicitTypeface_DoesNotResolveDefaultTypeface()
+    public void ToSKFont_WithImplicitTypeface_ResolvesDefaultTypefaceForText()
     {
         var model = new SkiaModel(new SKSvgSettings());
         var source = new ShimPaint
@@ -282,11 +282,11 @@ public class SKSvgSettingsTests : SvgUnitTest
 
         using var font = model.ToSKFont(source);
 
-        Assert.Null(font.Typeface);
+        Assert.NotNull(font.Typeface);
     }
 
     [Fact]
-    public void ToSKFont_WithImplicitBoldTypeface_EmboldensWithoutResolvingDefaultTypeface()
+    public void ToSKFont_WithImplicitBoldTypeface_PreservesBoldForText()
     {
         var model = new SkiaModel(new SKSvgSettings());
         var source = new ShimPaint
@@ -296,12 +296,27 @@ public class SKSvgSettingsTests : SvgUnitTest
 
         using var font = model.ToSKFont(source);
 
-        Assert.Null(font.Typeface);
-        Assert.True(font.Embolden);
+        Assert.NotNull(font.Typeface);
+        Assert.True(font.Embolden || font.Typeface!.FontWeight >= (int)SKFontStyleWeight.Bold);
     }
 
     [Fact]
-    public void ToSKFont_FontWithImplicitTypeface_DoesNotResolveDefaultTypeface()
+    public void ToSKFont_WithImplicitItalicTypeface_PreservesSlantForText()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var source = new ShimPaint
+        {
+            Typeface = CreateImplicitTypeface(fontSlant: ShimSkiaSharp.SKFontStyleSlant.Italic)
+        };
+
+        using var font = model.ToSKFont(source);
+
+        Assert.NotNull(font.Typeface);
+        Assert.NotEqual(SKFontStyleSlant.Upright, font.Typeface!.FontSlant);
+    }
+
+    [Fact]
+    public void ToSKFont_FontWithImplicitTypeface_ResolvesDefaultTypefaceForText()
     {
         var model = new SkiaModel(new SKSvgSettings());
         var source = new ShimSkiaSharp.SKFont
@@ -312,7 +327,22 @@ public class SKSvgSettingsTests : SvgUnitTest
         using var font = model.ToSKFont(source);
 
         Assert.NotNull(font);
-        Assert.Null(font!.Typeface);
+        Assert.NotNull(font!.Typeface);
+    }
+
+    [Fact]
+    public void TryShapeGlyphRun_WithImplicitTypeface_UsesDefaultTextTypeface()
+    {
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        var source = new ShimPaint
+        {
+            Typeface = CreateImplicitTypeface()
+        };
+
+        var shaped = assetLoader.TryShapeGlyphRun("ABC", source, out var shapedRun);
+
+        Assert.True(shaped);
+        Assert.NotEmpty(shapedRun.Glyphs);
     }
 
     [Fact]
@@ -369,13 +399,14 @@ public class SKSvgSettingsTests : SvgUnitTest
     }
 
     private static ShimSkiaSharp.SKTypeface CreateImplicitTypeface(
-        ShimSkiaSharp.SKFontStyleWeight fontWeight = ShimSkiaSharp.SKFontStyleWeight.Normal)
+        ShimSkiaSharp.SKFontStyleWeight fontWeight = ShimSkiaSharp.SKFontStyleWeight.Normal,
+        ShimSkiaSharp.SKFontStyleSlant fontSlant = ShimSkiaSharp.SKFontStyleSlant.Upright)
     {
         return ShimSkiaSharp.SKTypeface.FromFamilyName(
             null!,
             fontWeight,
             ShimSkiaSharp.SKFontStyleWidth.Normal,
-            ShimSkiaSharp.SKFontStyleSlant.Upright);
+            fontSlant);
     }
 
     private static object? GetFontManager(FontManagerTypefaceProvider provider)

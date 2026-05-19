@@ -108,7 +108,7 @@ public partial class SkiaModel
             return false;
         }
 
-        using var skPaint = ToSKPaint(paint);
+        using var skPaint = ToSKTextPaint(paint);
         if (skPaint is null || !TryShapeText(text!, 0f, 0f, skPaint, rightToLeft, out var result))
         {
             return false;

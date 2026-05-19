@@ -194,7 +194,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
     /// <inheritdoc />
     public ShimSkiaSharp.SKFontMetrics GetFontMetrics(ShimSkiaSharp.SKPaint paint)
     {
-        using var skPaint = _skiaModel.ToSKPaint(paint);
+        using var skPaint = _skiaModel.ToSKTextPaint(paint);
         if (skPaint is null)
         {
             return default;
@@ -218,7 +218,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
     /// <inheritdoc />
     public float MeasureText(string? text, ShimSkiaSharp.SKPaint paint, ref ShimSkiaSharp.SKRect bounds)
     {
-        var skPaint = GetCachedPaint(paint);
+        using var skPaint = _skiaModel.ToSKTextPaint(paint);
         if (skPaint is null || text is null)
         {
             bounds = default;
@@ -247,7 +247,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
     /// <inheritdoc />
     public ShimSkiaSharp.SKPath? GetTextPath(string? text, ShimSkiaSharp.SKPaint paint, float x, float y)
     {
-        var skPaint = GetCachedPaint(paint);
+        using var skPaint = _skiaModel.ToSKTextPaint(paint);
         if (skPaint is null || text is null)
         {
             return null;
