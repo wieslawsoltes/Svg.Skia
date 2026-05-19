@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Reflection;
 using SkiaSharp;
 using Svg;
 using Svg.Skia.TypefaceProviders;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
+using ShimPaint = ShimSkiaSharp.SKPaint;
 
 namespace Svg.Skia.UnitTests;
 
@@ -181,6 +183,14 @@ public class SKSvgSettingsTests : SvgUnitTest
     }
 
     [Fact]
+    public void FontManagerTypefaceProvider_DoesNotLoadDefaultFontManagerInConstructor()
+    {
+        var provider = new FontManagerTypefaceProvider();
+
+        Assert.Null(GetFontManager(provider));
+    }
+
+    [Fact]
     public void FontManagerTypefaceProvider_AllowsExplicitDefaultFamilyRequest()
     {
         var provider = new FontManagerTypefaceProvider();
@@ -190,6 +200,279 @@ public class SKSvgSettingsTests : SvgUnitTest
 
         Assert.NotNull(typeface);
         Assert.Equal(familyName, typeface!.FamilyName);
+    }
+
+    [Fact]
+    public void ToSKPaint_WithoutTypeface_DoesNotResolveDefaultTypeface()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+
+        using var paint = model.ToSKPaint(new ShimPaint());
+
+        Assert.NotNull(paint);
+#pragma warning disable CS0618 // SKPaint.Typeface is verified here to avoid loading the default platform typeface.
+        Assert.Null(paint!.Typeface);
+#pragma warning restore CS0618
+    }
+
+    [Fact]
+    public void ToSKPaint_WithImplicitTypeface_DoesNotResolveDefaultTypeface()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var source = new ShimPaint
+        {
+            Typeface = CreateImplicitTypeface()
+        };
+
+        using var paint = model.ToSKPaint(source);
+
+        Assert.NotNull(paint);
+#pragma warning disable CS0618 // SKPaint.Typeface is verified here to avoid loading the default platform typeface.
+        Assert.Null(paint!.Typeface);
+#pragma warning restore CS0618
+    }
+
+    [Fact]
+    public void ToSKPaint_WithImplicitBoldTypeface_EmboldensWithoutResolvingDefaultTypeface()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var source = new ShimPaint
+        {
+            Typeface = CreateImplicitTypeface(fontWeight: ShimSkiaSharp.SKFontStyleWeight.Bold)
+        };
+
+        using var paint = model.ToSKPaint(source);
+
+        Assert.NotNull(paint);
+#pragma warning disable CS0618 // SKPaint.Typeface and FakeBoldText are verified here to avoid loading the default platform typeface.
+        Assert.Null(paint!.Typeface);
+        Assert.True(paint.FakeBoldText);
+#pragma warning restore CS0618
+    }
+
+    [Fact]
+    public void ToSKFont_WithoutTypeface_ResolvesDefaultTypefaceForText()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+
+        using var font = model.ToSKFont(new ShimPaint());
+
+        Assert.NotNull(font.Typeface);
+    }
+
+    [Fact]
+    public void ToSKFont_FontWithoutTypeface_ResolvesDefaultTypefaceForText()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+
+        using var font = model.ToSKFont(new ShimSkiaSharp.SKFont());
+
+        Assert.NotNull(font);
+        Assert.NotNull(font!.Typeface);
+    }
+
+    [Fact]
+    public void ToSKFont_WithImplicitTypeface_ResolvesDefaultTypefaceForText()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var source = new ShimPaint
+        {
+            Typeface = CreateImplicitTypeface()
+        };
+
+        using var font = model.ToSKFont(source);
+
+        Assert.NotNull(font.Typeface);
+    }
+
+    [Fact]
+    public void ToSKFont_WithImplicitBoldTypeface_PreservesBoldForText()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var source = new ShimPaint
+        {
+            Typeface = CreateImplicitTypeface(fontWeight: ShimSkiaSharp.SKFontStyleWeight.Bold)
+        };
+
+        using var font = model.ToSKFont(source);
+
+        Assert.NotNull(font.Typeface);
+        Assert.True(font.Embolden || font.Typeface!.FontWeight >= (int)SKFontStyleWeight.Bold);
+    }
+
+    [Fact]
+    public void ToSKFont_WithImplicitItalicTypeface_PreservesSlantForText()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var source = new ShimPaint
+        {
+            Typeface = CreateImplicitTypeface(fontSlant: ShimSkiaSharp.SKFontStyleSlant.Italic)
+        };
+
+        using var font = model.ToSKFont(source);
+
+        Assert.NotNull(font.Typeface);
+        Assert.NotEqual(SKFontStyleSlant.Upright, font.Typeface!.FontSlant);
+    }
+
+    [Fact]
+    public void ToSKFont_WithImplicitCondensedTypeface_PreservesWidthForText()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var sourceTypeface = CreateImplicitTypeface(fontWidth: ShimSkiaSharp.SKFontStyleWidth.Condensed);
+        var source = new ShimPaint
+        {
+            Typeface = sourceTypeface
+        };
+        var expectedTypeface = model.ToSKTypeface(sourceTypeface);
+
+        using var font = model.ToSKFont(source);
+
+        Assert.NotNull(font.Typeface);
+        Assert.Equal(expectedTypeface?.FontWidth, font.Typeface!.FontWidth);
+    }
+
+    [Fact]
+    public void ToSKFont_FontWithImplicitTypeface_ResolvesDefaultTypefaceForText()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var source = new ShimSkiaSharp.SKFont
+        {
+            Typeface = CreateImplicitTypeface()
+        };
+
+        using var font = model.ToSKFont(source);
+
+        Assert.NotNull(font);
+        Assert.NotNull(font!.Typeface);
+    }
+
+    [Fact]
+    public void TryShapeGlyphRun_WithImplicitTypeface_UsesDefaultTextTypeface()
+    {
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        var source = new ShimPaint
+        {
+            Typeface = CreateImplicitTypeface()
+        };
+
+        var shaped = assetLoader.TryShapeGlyphRun("ABC", source, out var shapedRun);
+
+        Assert.True(shaped);
+        Assert.NotEmpty(shapedRun.Glyphs);
+    }
+
+    [Fact]
+    public void FindTypefaces_WithImplicitItalicTypeface_MatchesResolvedTextTypeface()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var assetLoader = new SkiaSvgAssetLoader(model);
+        var sourceTypeface = CreateImplicitTypeface(fontSlant: ShimSkiaSharp.SKFontStyleSlant.Italic);
+        var source = new ShimPaint
+        {
+            Typeface = sourceTypeface
+        };
+        var expectedTypeface = model.ToSKTypeface(sourceTypeface);
+
+        var span = Assert.Single(assetLoader.FindTypefaces("ABC", source));
+
+        Assert.NotNull(expectedTypeface);
+        Assert.NotNull(span.Typeface);
+        Assert.Equal((ShimSkiaSharp.SKFontStyleSlant)expectedTypeface!.FontSlant, span.Typeface!.FontSlant);
+    }
+
+    [Fact]
+    public void FindRunTypeface_WithImplicitCondensedTypeface_MatchesResolvedTextTypeface()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var assetLoader = new SkiaSvgAssetLoader(model);
+        var sourceTypeface = CreateImplicitTypeface(fontWidth: ShimSkiaSharp.SKFontStyleWidth.Condensed);
+        var source = new ShimPaint
+        {
+            Typeface = sourceTypeface
+        };
+        var expectedTypeface = model.ToSKTypeface(sourceTypeface);
+
+        var runTypeface = assetLoader.FindRunTypeface("ABC", source);
+
+        Assert.NotNull(expectedTypeface);
+        Assert.NotNull(runTypeface);
+        Assert.Equal((ShimSkiaSharp.SKFontStyleWidth)expectedTypeface!.FontWidth, runTypeface!.FontWidth);
+    }
+
+    [Fact]
+    public void GetRenderPaint_WithoutTypeface_DoesNotResolveDefaultTypeface()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var method = typeof(SkiaModel).GetMethod(
+            "GetRenderPaint",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        using var paint = Assert.IsType<SKPaint>(method!.Invoke(model, new object?[] { new ShimPaint() }));
+
+#pragma warning disable CS0618 // SKPaint.Typeface is verified here to avoid loading the default platform typeface.
+        Assert.Null(paint.Typeface);
+#pragma warning restore CS0618
+    }
+
+    [Fact]
+    public void GetRenderPaint_WithImplicitTypeface_DoesNotResolveDefaultTypeface()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var method = typeof(SkiaModel).GetMethod(
+            "GetRenderPaint",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        var source = new ShimPaint
+        {
+            Typeface = CreateImplicitTypeface()
+        };
+
+        using var paint = Assert.IsType<SKPaint>(method!.Invoke(model, new object?[] { source }));
+
+#pragma warning disable CS0618 // SKPaint.Typeface is verified here to avoid loading the default platform typeface.
+        Assert.Null(paint.Typeface);
+#pragma warning restore CS0618
+    }
+
+    [Fact]
+    public void ToWireframePaint_WithImplicitTypeface_DoesNotResolveDefaultTypeface()
+    {
+        var model = new SkiaModel(new SKSvgSettings());
+        var method = typeof(SkiaModel).GetMethod(
+            "ToWireframePaint",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        var source = new ShimPaint
+        {
+            Typeface = CreateImplicitTypeface()
+        };
+
+        using var paint = Assert.IsType<SKPaint>(method!.Invoke(model, new object?[] { source }));
+
+#pragma warning disable CS0618 // SKPaint.Typeface is verified here to avoid loading the default platform typeface.
+        Assert.Null(paint.Typeface);
+#pragma warning restore CS0618
+    }
+
+    private static ShimSkiaSharp.SKTypeface CreateImplicitTypeface(
+        ShimSkiaSharp.SKFontStyleWeight fontWeight = ShimSkiaSharp.SKFontStyleWeight.Normal,
+        ShimSkiaSharp.SKFontStyleWidth fontWidth = ShimSkiaSharp.SKFontStyleWidth.Normal,
+        ShimSkiaSharp.SKFontStyleSlant fontSlant = ShimSkiaSharp.SKFontStyleSlant.Upright)
+    {
+        return ShimSkiaSharp.SKTypeface.FromFamilyName(
+            null!,
+            fontWeight,
+            fontWidth,
+            fontSlant);
+    }
+
+    private static object? GetFontManager(FontManagerTypefaceProvider provider)
+    {
+        var field = typeof(FontManagerTypefaceProvider).GetField(
+            "_fontManager",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.NotNull(field);
+        return field!.GetValue(provider);
     }
 
     private sealed class TestJavaScriptRuntimeFactory : ISKSvgJavaScriptRuntimeFactory

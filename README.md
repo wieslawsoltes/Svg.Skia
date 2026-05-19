@@ -102,6 +102,40 @@ dotnet add package Svg.Skia
 Install-Package Svg.Skia
 ```
 
+#### Linux native assets
+
+Linux applications must also deploy the SkiaSharp native library that matches
+the target distribution. On Alpine Linux and other small container images,
+prefer `SkiaSharp.NativeAssets.Linux.NoDependencies` instead of
+`SkiaSharp.NativeAssets.Linux`:
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Svg.Skia" Version="..." />
+  <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="..." />
+</ItemGroup>
+```
+
+Do not reference both Linux native asset packages in the same application. If
+the application already references `SkiaSharp.NativeAssets.Linux`, replace that
+reference with `SkiaSharp.NativeAssets.Linux.NoDependencies` for Alpine-style
+deployments.
+
+The `NoDependencies` package contains a `libSkiaSharp.so` build that does not
+depend on third-party Linux libraries such as Fontconfig. This reduces native
+library assumptions in Alpine/musl and minimal container images. It still does
+not provide the operating system font configuration or fonts. Install
+`fontconfig` and at least one font package in the runtime image so text and SVG
+font fallback can work:
+
+```dockerfile
+RUN apk add --no-cache fontconfig ttf-dejavu
+```
+
+Add any other font packages required by the SVG content. When publishing
+RID-specific applications for Alpine Linux, use a musl RID such as
+`linux-musl-x64` or `linux-musl-arm64`.
+
 JavaScript support is opt-in:
 
 ```
