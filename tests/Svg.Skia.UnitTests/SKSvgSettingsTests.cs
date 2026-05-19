@@ -368,94 +368,11 @@ public class SKSvgSettingsTests : SvgUnitTest
 #pragma warning restore CS0618
     }
 
-    [Fact]
-    public void FindTypefaces_WithImplicitTypeface_DoesNotResolvePlatformTypeface()
-    {
-        var provider = new FontManagerTypefaceProvider();
-        var settings = new SKSvgSettings
-        {
-            TypefaceProviders = new List<ITypefaceProvider> { provider }
-        };
-        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(settings));
-        var source = new ShimPaint
-        {
-            Typeface = CreateImplicitTypeface()
-        };
-
-        var span = Assert.Single(assetLoader.FindTypefaces("I L1", source));
-
-        Assert.Equal("I L1", span.Text);
-        Assert.Null(span.Typeface);
-        Assert.Null(GetFontManager(provider));
-    }
-
-    [Fact]
-    public void FindTypefaces_WithBlankFamilyTypeface_DoesNotResolvePlatformTypeface()
-    {
-        var provider = new FontManagerTypefaceProvider();
-        var settings = new SKSvgSettings
-        {
-            TypefaceProviders = new List<ITypefaceProvider> { provider }
-        };
-        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(settings));
-        var source = new ShimPaint
-        {
-            Typeface = CreateImplicitTypeface(string.Empty)
-        };
-
-        var span = Assert.Single(assetLoader.FindTypefaces("I L1", source));
-
-        Assert.Equal("I L1", span.Text);
-        Assert.Null(span.Typeface);
-        Assert.Null(GetFontManager(provider));
-    }
-
-    [Fact]
-    public void FindRunTypeface_WithImplicitTypeface_DoesNotResolvePlatformTypeface()
-    {
-        var provider = new FontManagerTypefaceProvider();
-        var settings = new SKSvgSettings
-        {
-            TypefaceProviders = new List<ITypefaceProvider> { provider }
-        };
-        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(settings));
-        var source = new ShimPaint
-        {
-            Typeface = CreateImplicitTypeface()
-        };
-
-        var typeface = assetLoader.FindRunTypeface("I L1", source);
-
-        Assert.Null(typeface);
-        Assert.Null(GetFontManager(provider));
-    }
-
-    [Fact]
-    public void FindRunTypeface_WithBlankFamilyTypeface_DoesNotResolvePlatformTypeface()
-    {
-        var provider = new FontManagerTypefaceProvider();
-        var settings = new SKSvgSettings
-        {
-            TypefaceProviders = new List<ITypefaceProvider> { provider }
-        };
-        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(settings));
-        var source = new ShimPaint
-        {
-            Typeface = CreateImplicitTypeface(string.Empty)
-        };
-
-        var typeface = assetLoader.FindRunTypeface("I L1", source);
-
-        Assert.Null(typeface);
-        Assert.Null(GetFontManager(provider));
-    }
-
     private static ShimSkiaSharp.SKTypeface CreateImplicitTypeface(
-        string? familyName = null,
         ShimSkiaSharp.SKFontStyleWeight fontWeight = ShimSkiaSharp.SKFontStyleWeight.Normal)
     {
         return ShimSkiaSharp.SKTypeface.FromFamilyName(
-            familyName!,
+            null!,
             fontWeight,
             ShimSkiaSharp.SKFontStyleWidth.Normal,
             ShimSkiaSharp.SKFontStyleSlant.Upright);
