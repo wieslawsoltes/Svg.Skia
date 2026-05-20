@@ -9,6 +9,7 @@ namespace Svg.Skia.TypefaceProviders;
 public sealed class FontManagerTypefaceProvider : ITypefaceProvider
 {
     public static readonly char[] s_fontFamilyTrim = { '\'' };
+    private SkiaSharp.SKFontManager? _fontManager;
 
     private static bool IsGenericFamilyName(string familyName)
     {
@@ -19,11 +20,20 @@ public sealed class FontManagerTypefaceProvider : ITypefaceProvider
                familyName.Equals("fantasy", StringComparison.OrdinalIgnoreCase);
     }
 
-    public SkiaSharp.SKFontManager FontManager { get; set; }
+    public SkiaSharp.SKFontManager FontManager
+    {
+        get => _fontManager ??= SkiaSharp.SKFontManager.Default;
+        set => _fontManager = value ?? throw new ArgumentNullException(nameof(value));
+    }
 
     public FontManagerTypefaceProvider()
     {
-        FontManager = SkiaSharp.SKFontManager.Default;
+    }
+
+    internal bool TryGetFontManagerHandle(out IntPtr handle)
+    {
+        handle = _fontManager?.Handle ?? IntPtr.Zero;
+        return handle != IntPtr.Zero;
     }
 
     public SkiaSharp.SKTypeface CreateTypeface(Stream stream, int index = 0)

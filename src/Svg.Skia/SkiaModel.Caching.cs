@@ -875,8 +875,8 @@ public partial class SkiaModel
         var strokeCap = ToSKStrokeCap(paint.StrokeCap);
         var strokeJoin = ToSKStrokeJoin(paint.StrokeJoin);
         var textAlign = ToSKTextAlign(paint.TextAlign);
-        var typefaceResolution = ResolveSKTypeface(paint.Typeface);
-        var typeface = typefaceResolution.Typeface;
+        var typefaceResolution = ResolvePaintTypeface(paint);
+        var typeface = typefaceResolution?.Typeface;
         var textEncoding = ToSKTextEncoding(paint.TextEncoding);
         var color = paint.Color is null
             ? SkiaSharp.SKColor.Empty
@@ -908,7 +908,7 @@ public partial class SkiaModel
             BlendMode = blendMode
         };
 
-        ApplyTypefaceAdjustments(paint, skPaint, typefaceResolution.SuppressSyntheticBold);
+        ApplyTypefaceAdjustments(paint, skPaint, typefaceResolution?.SuppressSyntheticBold ?? false);
         return skPaint;
     }
 
