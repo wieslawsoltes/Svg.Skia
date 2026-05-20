@@ -962,7 +962,9 @@ public class Svg : Control
 
     private static string CreateCacheKey(string path, SvgParameters? parameters)
     {
-        if (string.IsNullOrWhiteSpace(parameters?.Css) && parameters?.CurrentColor is null)
+        if (string.IsNullOrWhiteSpace(parameters?.Css) &&
+            parameters?.CurrentColor is null &&
+            parameters?.LoadOptions is null)
         {
             return path;
         }
@@ -972,7 +974,15 @@ public class Svg : Control
             "\ncss:",
             parameters?.Css,
             "\ncurrentColor:",
-            parameters?.CurrentColor?.ToArgb().ToString("X8", CultureInfo.InvariantCulture));
+            parameters?.CurrentColor?.ToArgb().ToString("X8", CultureInfo.InvariantCulture),
+            "\nprocessingMode:",
+            parameters?.LoadOptions?.ProcessingMode,
+            "\nexternalResources:",
+            parameters?.LoadOptions?.ExternalResources,
+            "\npreserveUnknownElements:",
+            parameters?.LoadOptions?.PreserveUnknownElements,
+            "\npreferSvg2Href:",
+            parameters?.LoadOptions?.PreferSvg2Href);
     }
 
     private void ReplaceCurrentSource(SvgSource? source)

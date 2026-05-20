@@ -7,16 +7,16 @@ public partial class feDisplacementMap : filter_primitive
 {
     protected override string SvgTag => "feDisplacementMap";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty scaleProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty scaleProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("scale", typeof(float), typeof(feDisplacementMap));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty xChannelSelectorProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty xChannelSelectorProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("xChannelSelector", typeof(string), typeof(feDisplacementMap));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty yChannelSelectorProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty yChannelSelectorProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("yChannelSelector", typeof(string), typeof(feDisplacementMap));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty in2Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty in2Property =
         Microsoft.Maui.Controls.BindableProperty.Create("in2", typeof(string), typeof(feDisplacementMap));
 
     public float scale

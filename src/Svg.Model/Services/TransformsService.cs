@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
+using System.ComponentModel;
 using ShimSkiaSharp;
 using Svg.Transforms;
 
@@ -216,6 +217,187 @@ internal static class TransformsService
         }
 
         return skMatrixTotal;
+    }
+
+    internal static SKMatrix ToMatrix(
+        SvgTransformCollection? svgTransformCollection,
+        SvgElement svgElement,
+        SKRect geometryBounds,
+        SKRect viewport)
+    {
+        var transform = ToMatrix(svgTransformCollection);
+        if (transform.IsIdentity ||
+            !TryResolveTransformOrigin(svgElement, geometryBounds, viewport, out var origin))
+        {
+            return transform;
+        }
+
+        return SKMatrix.CreateTranslation(origin.X, origin.Y)
+            .PreConcat(transform)
+            .PreConcat(SKMatrix.CreateTranslation(-origin.X, -origin.Y));
+    }
+
+    private static bool TryResolveTransformOrigin(
+        SvgElement svgElement,
+        SKRect geometryBounds,
+        SKRect viewport,
+        out SKPoint origin)
+    {
+        origin = default;
+        string? rawOrigin;
+        if (svgElement.TryGetOwnCascadedStyleDeclarationValue("transform-origin", out var declaredOrigin) &&
+            !string.IsNullOrWhiteSpace(declaredOrigin))
+        {
+            var normalizedOrigin = declaredOrigin.Trim();
+            if (string.Equals(normalizedOrigin, "inherit", StringComparison.OrdinalIgnoreCase))
+            {
+                rawOrigin = svgElement.ComputedStyle.TryGetPropertyValue("transform-origin", out var computedOrigin)
+                    ? computedOrigin
+                    : null;
+            }
+            else if (!string.Equals(normalizedOrigin, "initial", StringComparison.OrdinalIgnoreCase) &&
+                     !string.Equals(normalizedOrigin, "unset", StringComparison.OrdinalIgnoreCase))
+            {
+                rawOrigin = declaredOrigin;
+            }
+            else
+            {
+                rawOrigin = null;
+            }
+        }
+        else if (!svgElement.TryGetAttribute("transform-origin", out rawOrigin))
+        {
+            rawOrigin = null;
+        }
+
+        var originText = (rawOrigin ?? string.Empty).Trim();
+        if (originText.Length == 0)
+        {
+            return false;
+        }
+
+        var tokens = originText
+            .Replace(',', ' ')
+            .Split(new[] { ' ', '\t', '\r', '\n', '\f' }, StringSplitOptions.RemoveEmptyEntries);
+        if (tokens.Length == 0)
+        {
+            return false;
+        }
+
+        var referenceBox = ResolveTransformReferenceBox(svgElement, geometryBounds, viewport);
+        var xToken = tokens[0];
+        var yToken = tokens.Length > 1 ? tokens[1] : "50%";
+        if (IsVerticalOriginKeyword(xToken) && !IsVerticalOriginKeyword(yToken))
+        {
+            xToken = tokens.Length > 1 ? tokens[1] : "50%";
+            yToken = tokens[0];
+        }
+
+        if (!TryResolveTransformOriginComponent(xToken, true, svgElement, referenceBox, out var x) ||
+            !TryResolveTransformOriginComponent(yToken, false, svgElement, referenceBox, out var y))
+        {
+            return false;
+        }
+
+        origin = new SKPoint(x, y);
+        return Math.Abs(origin.X) > float.Epsilon || Math.Abs(origin.Y) > float.Epsilon;
+    }
+
+    private static SKRect ResolveTransformReferenceBox(SvgElement svgElement, SKRect geometryBounds, SKRect viewport)
+    {
+        if (svgElement.TransformBox is SvgTransformBox.FillBox or SvgTransformBox.StrokeBox)
+        {
+            return geometryBounds.IsEmpty ? viewport : geometryBounds;
+        }
+
+        return viewport.IsEmpty ? geometryBounds : viewport;
+    }
+
+    private static bool TryResolveTransformOriginComponent(
+        string token,
+        bool isHorizontal,
+        SvgElement svgElement,
+        SKRect referenceBox,
+        out float value)
+    {
+        if (TryGetTransformOriginKeywordUnit(token, isHorizontal, out var keywordUnit))
+        {
+            value = keywordUnit.ToDeviceValue(
+                isHorizontal ? UnitRenderingType.HorizontalOffset : UnitRenderingType.VerticalOffset,
+                svgElement,
+                referenceBox);
+            return true;
+        }
+
+        try
+        {
+            if (TypeDescriptor.GetConverter(typeof(SvgUnit)).ConvertFromInvariantString(token) is SvgUnit unit)
+            {
+                value = unit.ToDeviceValue(
+                    isHorizontal ? UnitRenderingType.HorizontalOffset : UnitRenderingType.VerticalOffset,
+                    svgElement,
+                    referenceBox);
+                if (unit.Type != SvgUnitType.Percentage)
+                {
+                    value += isHorizontal ? referenceBox.Left : referenceBox.Top;
+                }
+
+                return true;
+            }
+        }
+        catch
+        {
+        }
+
+        value = 0f;
+        return false;
+    }
+
+    private static bool TryGetTransformOriginKeywordUnit(string token, bool isHorizontal, out SvgUnit unit)
+    {
+        if (token.Equals("center", StringComparison.OrdinalIgnoreCase))
+        {
+            unit = new SvgUnit(SvgUnitType.Percentage, 50f);
+            return true;
+        }
+
+        if (isHorizontal)
+        {
+            if (token.Equals("left", StringComparison.OrdinalIgnoreCase))
+            {
+                unit = new SvgUnit(SvgUnitType.Percentage, 0f);
+                return true;
+            }
+
+            if (token.Equals("right", StringComparison.OrdinalIgnoreCase))
+            {
+                unit = new SvgUnit(SvgUnitType.Percentage, 100f);
+                return true;
+            }
+        }
+        else
+        {
+            if (token.Equals("top", StringComparison.OrdinalIgnoreCase))
+            {
+                unit = new SvgUnit(SvgUnitType.Percentage, 0f);
+                return true;
+            }
+
+            if (token.Equals("bottom", StringComparison.OrdinalIgnoreCase))
+            {
+                unit = new SvgUnit(SvgUnitType.Percentage, 100f);
+                return true;
+            }
+        }
+
+        unit = default;
+        return false;
+    }
+
+    private static bool IsVerticalOriginKeyword(string token)
+    {
+        return token.Equals("top", StringComparison.OrdinalIgnoreCase) ||
+               token.Equals("bottom", StringComparison.OrdinalIgnoreCase);
     }
 
     internal static SKMatrix ToMatrix(this SvgViewBox svgViewBox, SvgAspectRatio? svgAspectRatio, float x, float y, float width, float height)

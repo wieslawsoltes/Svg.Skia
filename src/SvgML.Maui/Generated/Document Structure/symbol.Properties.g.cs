@@ -7,11 +7,65 @@ public partial class symbol : visual
 {
     protected override string SvgTag => "symbol";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty viewBoxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("x", typeof(Svg.SvgUnit), typeof(symbol));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("y", typeof(Svg.SvgUnit), typeof(symbol));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("width", typeof(Svg.SvgUnit), typeof(symbol));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("height", typeof(Svg.SvgUnit), typeof(symbol));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty refXProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("refX", typeof(Svg.SvgUnit), typeof(symbol));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty refYProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("refY", typeof(Svg.SvgUnit), typeof(symbol));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty viewBoxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("viewBox", typeof(string), typeof(symbol));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("preserveAspectRatio", typeof(string), typeof(symbol));
+
+    public Svg.SvgUnit x
+    {
+        get => (Svg.SvgUnit)GetValue(xProperty);
+        set => SetValue(xProperty, value);
+    }
+
+    public Svg.SvgUnit y
+    {
+        get => (Svg.SvgUnit)GetValue(yProperty);
+        set => SetValue(yProperty, value);
+    }
+
+    public Svg.SvgUnit width
+    {
+        get => (Svg.SvgUnit)GetValue(widthProperty);
+        set => SetValue(widthProperty, value);
+    }
+
+    public Svg.SvgUnit height
+    {
+        get => (Svg.SvgUnit)GetValue(heightProperty);
+        set => SetValue(heightProperty, value);
+    }
+
+    public Svg.SvgUnit refX
+    {
+        get => (Svg.SvgUnit)GetValue(refXProperty);
+        set => SetValue(refXProperty, value);
+    }
+
+    public Svg.SvgUnit refY
+    {
+        get => (Svg.SvgUnit)GetValue(refYProperty);
+        set => SetValue(refYProperty, value);
+    }
 
     public string viewBox
     {

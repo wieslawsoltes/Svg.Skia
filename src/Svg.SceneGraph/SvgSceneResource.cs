@@ -272,17 +272,15 @@ public sealed class SvgSceneResource
 
     private static MaskType GetMaskType(SvgMask mask)
     {
-        var maskType = MaskType.Luminance;
-
-        if (mask.TryGetAttribute("mask-type", out var maskTypeStr)
-            && !string.IsNullOrWhiteSpace(maskTypeStr))
+        if (mask.TryGetOwnCascadedStyleValue("mask-type", out var maskTypeStr) &&
+            !string.IsNullOrWhiteSpace(maskTypeStr))
         {
             return string.Equals(maskTypeStr.Trim(), "alpha", StringComparison.OrdinalIgnoreCase)
                 ? MaskType.Alpha
                 : MaskType.Luminance;
         }
 
-        return maskType;
+        return MaskType.Luminance;
     }
 
     private sealed class ReadOnlySetView<T> : IReadOnlyCollection<T> where T : notnull

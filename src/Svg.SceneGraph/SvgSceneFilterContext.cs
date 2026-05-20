@@ -491,11 +491,40 @@ internal sealed class SvgSceneFilterContext
 
                     break;
                 }
+            case SvgDropShadow svgDropShadow:
+                {
+                    var inputKey = svgDropShadow.Input;
+                    var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, _skFilterRegion, isFirst);
+                    if (IsExplicitUnresolvedInput(inputKey, inputFilterResult))
+                    {
+                        var transparentImageFilter = GetTransparentBlackImage();
+                        _lastResult = GetFilterResult(svgFilterPrimitive, transparentImageFilter, colorInterpolationFilters);
+                        if (transparentImageFilter is { })
+                        {
+                            _regions[transparentImageFilter] = _skFilterRegion;
+                        }
+
+                        break;
+                    }
+
+                    var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
+                    var skCropRect = skFilterPrimitiveRegion;
+                    var input = ApplyColourInterpolation(inputFilterResult, colorInterpolationFilters, allowImplicitSourceGraphic: true);
+                    var mergeInput = ApplyColourInterpolation(inputFilterResult, colorInterpolationFilters);
+                    var skImageFilter = CreateDropShadow(svgDropShadow, colorInterpolationFilters, input, mergeInput, skCropRect);
+                    _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
+                    if (skImageFilter is { })
+                    {
+                        _regions[skImageFilter] = skFilterPrimitiveRegion;
+                    }
+
+                    break;
+                }
             case SvgFlood svgFlood:
                 {
                     var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
                     var skCropRect = skFilterPrimitiveRegion;
-                    var skImageFilter = CreateFlood(svgFlood, _svgVisualElement, null, skCropRect);
+                    var skImageFilter = CreateFlood(svgFlood, null, skCropRect);
                     _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, SvgColourInterpolation.SRGB);
                     if (skImageFilter is { })
                     {
@@ -605,7 +634,7 @@ internal sealed class SvgSceneFilterContext
                     }
 
                     var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, null);
-                    var tileBounds = _regions[inputFilterResult.Filter];
+                    var tileBounds = GetFilterResultRegion(inputFilterResult);
                     var cropBounds = skFilterPrimitiveRegion;
                     var skCropRect = cropBounds;
                     var input = inputFilterResult.Filter;
@@ -636,16 +665,7 @@ internal sealed class SvgSceneFilterContext
 
     private SKRect GetFilterPrimitiveRegion(SvgSceneFilterPrimitiveContext primitiveContext, SvgSceneFilterResult? inputFilterResult)
     {
-        var defaultSubregion = SKRect.Empty;
-
-        if (inputFilterResult is null || IsStandardInput(inputFilterResult))
-        {
-            defaultSubregion = _skFilterRegion;
-        }
-        else
-        {
-            defaultSubregion = _regions[inputFilterResult.Filter];
-        }
+        var defaultSubregion = GetFilterResultRegion(inputFilterResult);
 
         var skFilterPrimitiveRegion = SKRect.Create(
             primitiveContext.IsXValid ? primitiveContext.Boundaries.Left : defaultSubregion.Left,
@@ -658,18 +678,9 @@ internal sealed class SvgSceneFilterContext
 
     private SKRect GetFilterPrimitiveRegion(SvgSceneFilterPrimitiveContext primitiveContext, SvgSceneFilterResult? input1FilterResult, SvgSceneFilterResult input2FilterResult, string input1Key, string input2Key)
     {
-        var defaultSubregion = SKRect.Empty;
-
-        if (IsStandardInput(input1FilterResult) || IsStandardInput(input2FilterResult))
-        {
-            defaultSubregion = _skFilterRegion;
-        }
-        else
-        {
-            defaultSubregion = SKRect.Union(
-                input1FilterResult is null ? SKRect.Empty : _regions[input1FilterResult.Filter],
-                _regions[input2FilterResult.Filter]);
-        }
+        var defaultSubregion = SKRect.Union(
+            input1FilterResult is null ? SKRect.Empty : GetFilterResultRegion(input1FilterResult),
+            GetFilterResultRegion(input2FilterResult));
 
         var skFilterPrimitiveRegion = SKRect.Create(
             primitiveContext.IsXValid ? primitiveContext.Boundaries.Left : defaultSubregion.Left,
@@ -678,6 +689,18 @@ internal sealed class SvgSceneFilterContext
             primitiveContext.IsHeightValid ? primitiveContext.Boundaries.Height : defaultSubregion.Height);
 
         return skFilterPrimitiveRegion;
+    }
+
+    private SKRect GetFilterResultRegion(SvgSceneFilterResult? inputFilterResult)
+    {
+        if (inputFilterResult is null || IsStandardInput(inputFilterResult))
+        {
+            return _skFilterRegion;
+        }
+
+        return _regions.TryGetValue(inputFilterResult.Filter, out var region)
+            ? region
+            : _skFilterRegion;
     }
 
     private static SvgColourInterpolation GetColorInterpolationFilters(SvgFilterPrimitive svgFilterPrimitive)
@@ -723,11 +746,14 @@ internal sealed class SvgSceneFilterContext
     }
 
     private SKImageFilter GetTransparentBlackImage()
+        => GetTransparentBlackImage(_skFilterRegion);
+
+    private static SKImageFilter GetTransparentBlackImage(SKRect region)
     {
         var recorder = new SKPictureRecorder();
-        recorder.BeginRecording(_skFilterRegion);
+        recorder.BeginRecording(region);
         var picture = recorder.EndRecording();
-        return SKImageFilter.CreatePicture(picture, _skFilterRegion);
+        return SKImageFilter.CreatePicture(picture, region);
     }
 
     private SKImageFilter GetTransparentBlackAlpha()
@@ -928,6 +954,11 @@ internal sealed class SvgSceneFilterContext
         return default;
     }
 
+    private static bool IsExplicitUnresolvedInput(string? inputKey, SvgSceneFilterResult? inputFilterResult)
+    {
+        return !string.IsNullOrWhiteSpace(inputKey) && inputFilterResult is null;
+    }
+
     private SvgSceneFilterResult? GetFilterResult(SvgFilterPrimitive svgFilterPrimitive, SKImageFilter? skImageFilter, SvgColourInterpolation colorSpace)
     {
         if (skImageFilter is { })
@@ -945,7 +976,7 @@ internal sealed class SvgSceneFilterContext
 
     private List<SvgFilter>? GetLinkedFilter(SvgVisualElement svgVisualElement, HashSet<Uri> uris)
     {
-        var currentFilter = SvgService.GetReference<SvgFilter>(svgVisualElement, svgVisualElement.Filter);
+        var currentFilter = ResolveFilterReference(svgVisualElement, svgVisualElement.Filter);
         if (currentFilter is null)
         {
             return default;
@@ -957,15 +988,47 @@ internal sealed class SvgSceneFilterContext
             if (currentFilter is { })
             {
                 svgFilters.Add(currentFilter);
-                if (SvgService.HasRecursiveReference(currentFilter, (e) => e.Href, uris))
+                if (SvgService.HasRecursiveReference(currentFilter, static e => SvgService.GetEffectiveReferenceUri(e, e.Href), uris))
                 {
                     return svgFilters;
                 }
-                currentFilter = SvgService.GetReference<SvgFilter>(currentFilter, currentFilter.Href);
+
+                var currentFilterHref = SvgService.GetEffectiveReferenceUri(currentFilter, currentFilter.Href);
+                currentFilter = ResolveFilterReference(currentFilter, currentFilterHref);
             }
         } while (currentFilter is { });
 
         return svgFilters;
+    }
+
+    internal static SvgFilter? ResolveFilterReference(SvgElement owner, Uri? uri)
+    {
+        return SvgService.GetReference<SvgFilter>(owner, NormalizeFilterReferenceUri(uri));
+    }
+
+    private static Uri? NormalizeFilterReferenceUri(Uri? uri)
+    {
+        if (uri is null)
+        {
+            return null;
+        }
+
+        var text = uri.OriginalString.Trim();
+        if (text.StartsWith("url(", StringComparison.OrdinalIgnoreCase) &&
+            text.EndsWith(")", StringComparison.Ordinal))
+        {
+            text = text.Substring(4, text.Length - 5).Trim();
+            if (text.Length >= 2 &&
+                ((text[0] == '"' && text[text.Length - 1] == '"') ||
+                 (text[0] == '\'' && text[text.Length - 1] == '\'')))
+            {
+                text = text.Substring(1, text.Length - 2).Trim();
+            }
+        }
+
+        return Uri.TryCreate(text, UriKind.RelativeOrAbsolute, out var normalizedUri)
+            ? normalizedUri
+            : uri;
     }
 
     private SKImageFilter? ApplyColourInterpolation(
@@ -1018,7 +1081,7 @@ internal sealed class SvgSceneFilterContext
         };
     }
 
-    private float CalculateHorizontal(SvgOffset svgElement, SvgUnit unit)
+    private float CalculateHorizontal(SvgElement svgElement, SvgUnit unit)
     {
         var useBoundingBox = _primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox;
         var type = useBoundingBox ? UnitRenderingType.Horizontal : UnitRenderingType.HorizontalOffset;
@@ -1449,7 +1512,7 @@ internal sealed class SvgSceneFilterContext
 
     private SKImageFilter? CreateDiffuseLighting(SvgDiffuseLighting svgDiffuseLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKRect? cropRect = default)
     {
-        var lightColor = PaintingService.GetColor(svgVisualElement, svgDiffuseLighting.LightingColor);
+        var lightColor = GetFilterPrimitiveColor(svgDiffuseLighting, svgDiffuseLighting.LightingColor);
         if (lightColor is null)
         {
             return default;
@@ -1526,9 +1589,94 @@ internal sealed class SvgSceneFilterContext
         return SKImageFilter.CreateDisplacementMapEffect(xChannelSelector, yChannelSelector, scale, displacement, input, cropRect);
     }
 
-    private SKImageFilter? CreateFlood(SvgFlood svgFlood, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKRect? cropRect = default)
+    private static SKColor ConvertToFilterColorSpace(SKColor color, SvgColourInterpolation colorSpace)
     {
-        var floodColor = PaintingService.GetColor(svgVisualElement, svgFlood.FloodColor);
+        if (colorSpace != SvgColourInterpolation.LinearRGB)
+        {
+            return color;
+        }
+
+        return new SKColor(
+            ToByte(FilterEffectsService.SRGBToLinear(color.Red / 255f)),
+            ToByte(FilterEffectsService.SRGBToLinear(color.Green / 255f)),
+            ToByte(FilterEffectsService.SRGBToLinear(color.Blue / 255f)),
+            color.Alpha);
+
+        static byte ToByte(float value)
+        {
+            return (byte)Math.Round(Math.Min(Math.Max(value, 0f), 1f) * 255f);
+        }
+    }
+
+    private static SKColor? GetFilterPrimitiveColor(SvgElement svgElement, SvgPaintServer server)
+    {
+        if (server is SvgDeferredPaintServer svgDeferredPaintServer)
+        {
+            server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgElement);
+        }
+
+        if (server is SvgColourServer svgColourServer)
+        {
+            return PaintingService.GetColor(svgColourServer, 1f, DrawAttributes.None);
+        }
+
+        return new SKColor(0x00, 0x00, 0x00, 0xFF);
+    }
+
+    private SKImageFilter? CreateDropShadow(SvgDropShadow svgDropShadow, SvgColourInterpolation colorInterpolationFilters, SKImageFilter? input = default, SKImageFilter? mergeInput = default, SKRect? cropRect = default)
+    {
+        TransformsService.GetOptionalNumbers(svgDropShadow.StdDeviation, 2f, 2f, out var sigmaX, out var sigmaY);
+        if (_primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+        {
+            var value = TransformsService.CalculateOtherPercentageValue(_skBounds);
+            sigmaX *= value;
+            sigmaY *= value;
+        }
+
+        if (sigmaX < 0f || sigmaY < 0f)
+        {
+            return default;
+        }
+
+        var floodColor = GetFilterPrimitiveColor(svgDropShadow, svgDropShadow.FloodColor);
+        if (floodColor is null)
+        {
+            return default;
+        }
+
+        var floodAlpha = PaintingService.CombineWithOpacity(floodColor.Value.Alpha, svgDropShadow.FloodOpacity);
+        var filterFloodColor = ConvertToFilterColorSpace(floodColor.Value, colorInterpolationFilters);
+        var dx = CalculateHorizontal(svgDropShadow, svgDropShadow.Dx);
+        var dy = CalculateVertical(svgDropShadow, svgDropShadow.Dy);
+
+        var alphaMatrix = new float[]
+        {
+            0f, 0f, 0f, 0f, 0f,
+            0f, 0f, 0f, 0f, 0f,
+            0f, 0f, 0f, 0f, 0f,
+            0f, 0f, 0f, 1f, 0f
+        };
+        var alpha = SKImageFilter.CreateColorFilter(SKColorFilter.CreateColorMatrix(alphaMatrix), input);
+        var blurredAlpha = SKImageFilter.CreateBlur(sigmaX, sigmaY, alpha, cropRect);
+        var offsetAlpha = SKImageFilter.CreateOffset(dx, dy, blurredAlpha, cropRect);
+
+        var colorizeMatrix = new float[]
+        {
+            0f, 0f, 0f, filterFloodColor.Red / 255f, 0f,
+            0f, 0f, 0f, filterFloodColor.Green / 255f, 0f,
+            0f, 0f, 0f, filterFloodColor.Blue / 255f, 0f,
+            0f, 0f, 0f, floodAlpha / 255f, 0f
+        };
+        var shadow = SKImageFilter.CreateColorFilter(SKColorFilter.CreateColorMatrix(colorizeMatrix), offsetAlpha, cropRect);
+
+        return mergeInput is null
+            ? shadow
+            : SKImageFilter.CreateMerge(new[] { shadow, mergeInput }, cropRect);
+    }
+
+    private SKImageFilter? CreateFlood(SvgFlood svgFlood, SKImageFilter? input = default, SKRect? cropRect = default)
+    {
+        var floodColor = GetFilterPrimitiveColor(svgFlood, svgFlood.FloodColor);
         if (floodColor is null)
         {
             return default;
@@ -1580,10 +1728,16 @@ internal sealed class SvgSceneFilterContext
 
     private SKImageFilter? CreateImage(FilterEffects.SvgImage svgImage, ISvgAssetLoader assetLoader, HashSet<Uri>? references, SKRect skFilterPrimitiveRegion, SKRect? cropRect = default)
     {
-        var imageUri = SvgService.GetImageUri(svgImage.Href, svgImage);
-        if (TryCreateLocalFragmentImage(svgImage, imageUri, assetLoader, skFilterPrimitiveRegion, out var localFragmentImageFilter))
+        var href = SvgService.GetEffectiveHrefString(svgImage, svgImage.Href);
+        if (string.IsNullOrWhiteSpace(href))
         {
-            return localFragmentImageFilter;
+            return default;
+        }
+
+        var imageUri = SvgService.GetImageUri(href!, svgImage);
+        if (TryCreateLocalFragmentImage(svgImage, href!, imageUri, assetLoader, skFilterPrimitiveRegion, out var localFragmentImageFilter))
+        {
+            return localFragmentImageFilter ?? GetTransparentBlackImage(skFilterPrimitiveRegion);
         }
 
         var uri = SvgService.GetImageDocumentUri(imageUri);
@@ -1592,7 +1746,7 @@ internal sealed class SvgSceneFilterContext
             return default;
         }
 
-        var image = SvgService.GetImage(svgImage.Href, svgImage, assetLoader);
+        var image = SvgService.GetImage(href!, svgImage, assetLoader);
         var skImage = image as SKImage;
         var svgDocument = image as SvgDocument;
         if (skImage is null && svgDocument is null)
@@ -1642,17 +1796,17 @@ internal sealed class SvgSceneFilterContext
         return default;
     }
 
-    private bool TryCreateLocalFragmentImage(FilterEffects.SvgImage svgImage, Uri imageUri, ISvgAssetLoader assetLoader, SKRect skFilterPrimitiveRegion, out SKImageFilter? imageFilter)
+    private bool TryCreateLocalFragmentImage(FilterEffects.SvgImage svgImage, string href, Uri imageUri, ISvgAssetLoader assetLoader, SKRect skFilterPrimitiveRegion, out SKImageFilter? imageFilter)
     {
         imageFilter = default;
 
-        if (string.IsNullOrWhiteSpace(svgImage.Href) || !svgImage.Href.TrimStart().StartsWith("#", StringComparison.Ordinal))
+        if (string.IsNullOrWhiteSpace(href) || !href.TrimStart().StartsWith("#", StringComparison.Ordinal))
         {
             return false;
         }
 
         var measureViewport = _skViewport.IsEmpty ? skFilterPrimitiveRegion : _skViewport;
-        if (!TryCreateLocalFragmentDocument(svgImage, imageUri, measureViewport, out var fragmentDocument, out var measurementElementId) ||
+        if (!TryCreateLocalFragmentDocument(svgImage, href, imageUri, measureViewport, out var fragmentDocument, out var measurementElementId) ||
             fragmentDocument is null)
         {
             return true;
@@ -1693,7 +1847,7 @@ internal sealed class SvgSceneFilterContext
         return true;
     }
 
-    private bool TryCreateLocalFragmentDocument(FilterEffects.SvgImage svgImage, Uri imageUri, SKRect measureViewport, out SvgDocument? fragmentDocument, out string? measurementElementId)
+    private bool TryCreateLocalFragmentDocument(FilterEffects.SvgImage svgImage, string href, Uri imageUri, SKRect measureViewport, out SvgDocument? fragmentDocument, out string? measurementElementId)
     {
         fragmentDocument = default;
         measurementElementId = default;
@@ -1703,9 +1857,14 @@ internal sealed class SvgSceneFilterContext
             return false;
         }
 
-        var referenceId = svgImage.Href.Trim();
+        var referenceId = href.Trim().TrimStart('#');
 
         if (documentClone.GetElementById(referenceId) is not SvgElement referencedElement)
+        {
+            return false;
+        }
+
+        if (ReferencesOwningFilter(referencedElement, svgImage))
         {
             return false;
         }
@@ -1737,6 +1896,81 @@ internal sealed class SvgSceneFilterContext
 
         fragmentDocument = documentClone;
         return true;
+    }
+
+    private static bool ReferencesOwningFilter(SvgElement referencedElement, FilterEffects.SvgImage svgImage)
+    {
+        var owningFilter = GetAncestorFilter(svgImage);
+        if (owningFilter is null || string.IsNullOrWhiteSpace(owningFilter.ID))
+        {
+            return false;
+        }
+
+        var filterId = owningFilter.ID!;
+        var stack = new Stack<SvgElement>();
+        stack.Push(referencedElement);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+            if (current is SvgVisualElement visualElement &&
+                ReferencesFilterId(visualElement, filterId))
+            {
+                return true;
+            }
+
+            for (var i = 0; i < current.Children.Count; i++)
+            {
+                stack.Push(current.Children[i]);
+            }
+        }
+
+        return false;
+    }
+
+    private static SvgFilter? GetAncestorFilter(SvgElement element)
+    {
+        for (var current = element.Parent; current is not null; current = current.Parent)
+        {
+            if (current is SvgFilter svgFilter)
+            {
+                return svgFilter;
+            }
+        }
+
+        return null;
+    }
+
+    private static bool ReferencesFilterId(SvgVisualElement visualElement, string filterId)
+    {
+        var filterUri = SvgService.GetEffectiveReferenceUri(visualElement, visualElement.Filter);
+        if (filterUri is null ||
+            !TryGetReferenceFragment(filterUri, out var fragment))
+        {
+            return false;
+        }
+
+        return string.Equals(fragment, filterId, StringComparison.Ordinal);
+    }
+
+    private static bool TryGetReferenceFragment(Uri uri, out string fragment)
+    {
+        fragment = string.Empty;
+        var value = uri.OriginalString.Trim();
+        if (value.StartsWith("url(", StringComparison.OrdinalIgnoreCase) &&
+            value.EndsWith(")", StringComparison.Ordinal))
+        {
+            value = value.Substring(4, value.Length - 5).Trim().Trim('\'', '"');
+        }
+
+        var fragmentIndex = value.LastIndexOf('#');
+        if (fragmentIndex < 0 || fragmentIndex + 1 >= value.Length)
+        {
+            return false;
+        }
+
+        fragment = value.Substring(fragmentIndex + 1);
+        return !string.IsNullOrWhiteSpace(fragment);
     }
 
     private static void ApplyFragmentDocumentBounds(SvgDocument fragmentDocument, SKRect bounds)
@@ -1889,7 +2123,7 @@ internal sealed class SvgSceneFilterContext
 
     private SKImageFilter? CreateSpecularLighting(SvgSpecularLighting svgSpecularLighting, SvgVisualElement svgVisualElement, SKImageFilter? input = default, SKRect? cropRect = default)
     {
-        var lightColor = PaintingService.GetColor(svgVisualElement, svgSpecularLighting.LightingColor);
+        var lightColor = GetFilterPrimitiveColor(svgSpecularLighting, svgSpecularLighting.LightingColor);
         if (lightColor is null)
         {
             return default;

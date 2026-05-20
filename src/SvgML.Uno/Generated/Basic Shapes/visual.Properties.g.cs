@@ -40,9 +40,72 @@ public abstract partial class visual : element
             typeof(visual),
             new Microsoft.UI.Xaml.PropertyMetadata(default(SvgPointerEventsValue), OnSvgPropertyChanged));
 
+    public static readonly Microsoft.UI.Xaml.DependencyProperty paint_orderProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "paint-order",
+            typeof(string),
+            typeof(visual),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty vector_effectProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "vector-effect",
+            typeof(SvgVectorEffectValue),
+            typeof(visual),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(SvgVectorEffectValue), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty transform_boxProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "transform-box",
+            typeof(SvgTransformBoxValue),
+            typeof(visual),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(SvgTransformBoxValue), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty transform_originProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "transform-origin",
+            typeof(string),
+            typeof(visual),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
+
     public static readonly Microsoft.UI.Xaml.DependencyProperty enable_backgroundProperty =
         Microsoft.UI.Xaml.DependencyProperty.Register(
             "enable-background",
+            typeof(string),
+            typeof(visual),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty white_spaceProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "white-space",
+            typeof(SvgWhiteSpaceValue),
+            typeof(visual),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(SvgWhiteSpaceValue), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty text_overflowProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "text-overflow",
+            typeof(string),
+            typeof(visual),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty inline_sizeProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "inline-size",
+            typeof(string),
+            typeof(visual),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty shape_insideProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "shape-inside",
+            typeof(string),
+            typeof(visual),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
+
+    public static readonly Microsoft.UI.Xaml.DependencyProperty shape_subtractProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "shape-subtract",
             typeof(string),
             typeof(visual),
             new Microsoft.UI.Xaml.PropertyMetadata(default(string), OnSvgPropertyChanged));
@@ -77,9 +140,63 @@ public abstract partial class visual : element
         set => SetValue(pointer_eventsProperty, value);
     }
 
+    public string paint_order
+    {
+        get => (string)GetValue(paint_orderProperty);
+        set => SetValue(paint_orderProperty, value);
+    }
+
+    public SvgVectorEffectValue vector_effect
+    {
+        get => (SvgVectorEffectValue)GetValue(vector_effectProperty);
+        set => SetValue(vector_effectProperty, value);
+    }
+
+    public SvgTransformBoxValue transform_box
+    {
+        get => (SvgTransformBoxValue)GetValue(transform_boxProperty);
+        set => SetValue(transform_boxProperty, value);
+    }
+
+    public string transform_origin
+    {
+        get => (string)GetValue(transform_originProperty);
+        set => SetValue(transform_originProperty, value);
+    }
+
     public string enable_background
     {
         get => (string)GetValue(enable_backgroundProperty);
         set => SetValue(enable_backgroundProperty, value);
+    }
+
+    public SvgWhiteSpaceValue white_space
+    {
+        get => (SvgWhiteSpaceValue)GetValue(white_spaceProperty);
+        set => SetValue(white_spaceProperty, value);
+    }
+
+    public string text_overflow
+    {
+        get => (string)GetValue(text_overflowProperty);
+        set => SetValue(text_overflowProperty, value);
+    }
+
+    public string inline_size
+    {
+        get => (string)GetValue(inline_sizeProperty);
+        set => SetValue(inline_sizeProperty, value);
+    }
+
+    public string shape_inside
+    {
+        get => (string)GetValue(shape_insideProperty);
+        set => SetValue(shape_insideProperty, value);
+    }
+
+    public string shape_subtract
+    {
+        get => (string)GetValue(shape_subtractProperty);
+        set => SetValue(shape_subtractProperty, value);
     }
 }

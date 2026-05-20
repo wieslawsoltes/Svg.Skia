@@ -30,7 +30,10 @@ internal static class SvgStyleAttributeNames
             "color-interpolation-filters" or
             "color-profile" or
             "color-rendering" or
+            "cx" or
+            "cy" or
             "cursor" or
+            "d" or
             "direction" or
             "display" or
             "dominant-baseline" or
@@ -51,7 +54,9 @@ internal static class SvgStyleAttributeNames
             "font-weight" or
             "glyph-orientation-horizontal" or
             "glyph-orientation-vertical" or
+            "height" or
             "image-rendering" or
+            "inline-size" or
             "isolation" or
             "kerning" or
             "letter-spacing" or
@@ -61,11 +66,18 @@ internal static class SvgStyleAttributeNames
             "marker-mid" or
             "marker-start" or
             "mask" or
+            "mask-type" or
             "mix-blend-mode" or
             "opacity" or
             "overflow" or
+            "paint-order" or
             "pointer-events" or
+            "r" or
+            "rx" or
+            "ry" or
             "shape-rendering" or
+            "shape-inside" or
+            "shape-subtract" or
             "stop-color" or
             "stop-opacity" or
             "stroke" or
@@ -78,14 +90,33 @@ internal static class SvgStyleAttributeNames
             "stroke-width" or
             "text-anchor" or
             "text-decoration" or
+            "text-overflow" or
             "text-rendering" or
             "text-transform" or
+            "transform-box" or
+            "transform-origin" or
             "unicode-bidi" or
+            "vector-effect" or
             "visibility" or
+            "white-space" or
+            "width" or
             "word-spacing" or
-            "writing-mode" => true,
+            "writing-mode" or
+            "x" or
+            "x1" or
+            "x2" or
+            "y" or
+            "y1" or
+            "y2" => true,
             _ => ContainsAsciiUppercase(name) && ContainsIgnoreCase(name)
         };
+    }
+
+    public static bool IsCssOnlyProperty(string? name)
+    {
+        return name is not null &&
+               (name.Equals("isolation", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("mix-blend-mode", StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool ContainsAsciiUppercase(string name)
@@ -113,7 +144,10 @@ internal static class SvgStyleAttributeNames
                name.Equals("color-interpolation-filters", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("color-profile", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("color-rendering", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("cx", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("cy", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("cursor", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("d", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("direction", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("display", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("dominant-baseline", StringComparison.OrdinalIgnoreCase) ||
@@ -134,7 +168,9 @@ internal static class SvgStyleAttributeNames
                name.Equals("font-weight", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("glyph-orientation-horizontal", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("glyph-orientation-vertical", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("height", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("image-rendering", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("inline-size", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("isolation", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("kerning", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("letter-spacing", StringComparison.OrdinalIgnoreCase) ||
@@ -144,11 +180,18 @@ internal static class SvgStyleAttributeNames
                name.Equals("marker-mid", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("marker-start", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("mask", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("mask-type", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("mix-blend-mode", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("opacity", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("overflow", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("paint-order", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("pointer-events", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("r", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("rx", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("ry", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("shape-rendering", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("shape-inside", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("shape-subtract", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("stop-color", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("stop-opacity", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("stroke", StringComparison.OrdinalIgnoreCase) ||
@@ -161,12 +204,24 @@ internal static class SvgStyleAttributeNames
                name.Equals("stroke-width", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("text-anchor", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("text-decoration", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("text-overflow", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("text-rendering", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("text-transform", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("transform-box", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("transform-origin", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("unicode-bidi", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("vector-effect", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("visibility", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("white-space", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("width", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("word-spacing", StringComparison.OrdinalIgnoreCase) ||
-               name.Equals("writing-mode", StringComparison.OrdinalIgnoreCase);
+               name.Equals("writing-mode", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("x", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("x1", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("x2", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("y", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("y1", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("y2", StringComparison.OrdinalIgnoreCase);
     }
 
     private static class Names
@@ -183,7 +238,10 @@ internal static class SvgStyleAttributeNames
             "color-interpolation-filters",
             "color-profile",
             "color-rendering",
+            "cx",
+            "cy",
             "cursor",
+            "d",
             "direction",
             "display",
             "dominant-baseline",
@@ -204,7 +262,9 @@ internal static class SvgStyleAttributeNames
             "font-weight",
             "glyph-orientation-horizontal",
             "glyph-orientation-vertical",
+            "height",
             "image-rendering",
+            "inline-size",
             "isolation",
             "kerning",
             "letter-spacing",
@@ -214,11 +274,18 @@ internal static class SvgStyleAttributeNames
             "marker-mid",
             "marker-start",
             "mask",
+            "mask-type",
             "mix-blend-mode",
             "opacity",
             "overflow",
+            "paint-order",
             "pointer-events",
+            "r",
+            "rx",
+            "ry",
             "shape-rendering",
+            "shape-inside",
+            "shape-subtract",
             "stop-color",
             "stop-opacity",
             "stroke",
@@ -231,12 +298,24 @@ internal static class SvgStyleAttributeNames
             "stroke-width",
             "text-anchor",
             "text-decoration",
+            "text-overflow",
             "text-rendering",
             "text-transform",
+            "transform-box",
+            "transform-origin",
             "unicode-bidi",
+            "vector-effect",
             "visibility",
+            "white-space",
+            "width",
             "word-spacing",
-            "writing-mode"
+            "writing-mode",
+            "x",
+            "x1",
+            "x2",
+            "y",
+            "y1",
+            "y2"
         };
     }
 }

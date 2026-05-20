@@ -5,25 +5,25 @@ namespace SvgML;
 
 public abstract partial class component_transfer_function : element
 {
-    public static readonly Microsoft.Maui.Controls.BindableProperty typeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty typeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("type", typeof(TypeComponentTransferFunctionValue), typeof(component_transfer_function));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty tableValuesProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty tableValuesProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("tableValues", typeof(numbers), typeof(component_transfer_function));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty slopeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty slopeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("slope", typeof(float), typeof(component_transfer_function));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty interceptProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty interceptProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("intercept", typeof(float), typeof(component_transfer_function));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty amplitudeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty amplitudeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("amplitude", typeof(float), typeof(component_transfer_function));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty exponentProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty exponentProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("exponent", typeof(float), typeof(component_transfer_function));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty offsetProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty offsetProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("offset", typeof(float), typeof(component_transfer_function));
 
     public TypeComponentTransferFunctionValue type

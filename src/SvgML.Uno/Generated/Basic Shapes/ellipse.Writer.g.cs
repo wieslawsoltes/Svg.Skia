@@ -28,5 +28,10 @@ public partial class ellipse
         {
             writer.WriteLine($"ry=\"{ToSvgString(ry)}\"");
         }
+
+        if (ReadLocalValue(pathLengthProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"pathLength=\"{ToSvgString(pathLength)}\"");
+        }
     }
 }

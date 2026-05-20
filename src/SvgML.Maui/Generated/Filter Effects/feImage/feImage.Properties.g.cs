@@ -7,10 +7,10 @@ public partial class feImage : filter_primitive
 {
     protected override string SvgTag => "feImage";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("href", typeof(string), typeof(feImage));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty preserveAspectRatioProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("preserveAspectRatio", typeof(string), typeof(feImage));
 
     public string href

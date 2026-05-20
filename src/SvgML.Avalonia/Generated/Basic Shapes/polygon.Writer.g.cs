@@ -13,5 +13,10 @@ public partial class polygon
         {
             writer.WriteLine($"points=\"{ToSvgString(points)}\"");
         }
+
+        if (pathLength is not null)
+        {
+            writer.WriteLine($"pathLength=\"{ToSvgString(pathLength)}\"");
+        }
     }
 }

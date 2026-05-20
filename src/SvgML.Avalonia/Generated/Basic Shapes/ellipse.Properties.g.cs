@@ -19,6 +19,9 @@ public partial class ellipse : path_based
     public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> ryProperty =
         Avalonia.AvaloniaProperty.Register<ellipse, Svg.SvgUnit?>("ry");
 
+    public static readonly Avalonia.StyledProperty<float?> pathLengthProperty =
+        Avalonia.AvaloniaProperty.Register<ellipse, float?>("pathLength");
+
     public Svg.SvgUnit? cx
     {
         get => GetValue(cxProperty);
@@ -41,5 +44,11 @@ public partial class ellipse : path_based
     {
         get => GetValue(ryProperty);
         set => SetValue(ryProperty, value);
+    }
+
+    public float? pathLength
+    {
+        get => GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

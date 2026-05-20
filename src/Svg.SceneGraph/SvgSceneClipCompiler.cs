@@ -69,7 +69,15 @@ internal static class SvgSceneClipCompiler
             clipPath.Clip = new ClipPath();
         }
 
-        var referencedClipPath = svgClipPath.GetUriElementReference<SvgClipPath>("clip-path", uris);
+        var referenceUri = GetReferenceUri(svgClipPath, "clip-path");
+        if (referenceUri is not null && !uris.Add(referenceUri))
+        {
+            return;
+        }
+
+        var referencedClipPath = referenceUri is null
+            ? null
+            : SvgService.GetReference<SvgClipPath>(svgClipPath, referenceUri);
         if (referencedClipPath?.Children is null)
         {
             return;
@@ -88,6 +96,40 @@ internal static class SvgSceneClipCompiler
         clipPath.Clip.Transform = transform;
     }
 
+    private static Uri? GetReferenceUri(SvgElement element, string name)
+    {
+        if ((!element.TryGetOwnCascadedStyleValue(name, out var value) &&
+             !element.TryGetAttribute(name, out value)) ||
+            string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalizedValue = value.Trim();
+        if (string.Equals(normalizedValue, "none", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(normalizedValue, "inherit", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        if (normalizedValue.StartsWith("url(", StringComparison.OrdinalIgnoreCase) &&
+            normalizedValue.EndsWith(")", StringComparison.Ordinal))
+        {
+            normalizedValue = normalizedValue.Substring(4, normalizedValue.Length - 5).Trim();
+        }
+
+        if (normalizedValue.Length >= 2 &&
+            ((normalizedValue[0] == '\'' && normalizedValue[normalizedValue.Length - 1] == '\'') ||
+             (normalizedValue[0] == '"' && normalizedValue[normalizedValue.Length - 1] == '"')))
+        {
+            normalizedValue = normalizedValue.Substring(1, normalizedValue.Length - 2);
+        }
+
+        return string.IsNullOrWhiteSpace(normalizedValue)
+            ? null
+            : new Uri(normalizedValue, UriKind.RelativeOrAbsolute);
+    }
+
     private static void PopulateClipChildren(
         SvgElementCollection children,
         SKRect targetBounds,
@@ -104,7 +146,7 @@ internal static class SvgSceneClipCompiler
                 continue;
             }
 
-            PopulateVisualClip(visualChild, targetBounds, assetLoader, uris, clipPath, svgClipPathClipRule);
+            PopulateVisualClip(visualChild, targetBounds, assetLoader, new HashSet<Uri>(uris), clipPath, svgClipPathClipRule);
         }
     }
 
@@ -182,12 +224,12 @@ internal static class SvgSceneClipCompiler
         ClipPath clipPath,
         SvgClipRule? svgClipPathClipRule)
     {
-        if (SvgService.HasRecursiveReference(svgUse, static e => e.ReferencedElement, new HashSet<Uri>()))
+        if (SvgService.HasRecursiveReference(svgUse, static e => SvgService.GetEffectiveReferenceUri(e, e.ReferencedElement), new HashSet<Uri>()))
         {
             return;
         }
 
-        var referencedVisualElement = SvgService.GetReference<SvgVisualElement>(svgUse, svgUse.ReferencedElement);
+        var referencedVisualElement = SvgService.GetReference<SvgVisualElement>(svgUse, SvgService.GetEffectiveReferenceUri(svgUse, svgUse.ReferencedElement));
         if (referencedVisualElement is null ||
             referencedVisualElement is SvgSymbol ||
             !MaskingService.CanDraw(referencedVisualElement, DrawAttributes.None))
@@ -239,13 +281,14 @@ internal static class SvgSceneClipCompiler
         HashSet<Uri> uris,
         ClipPath clipPath)
     {
-        if (visualElement.ClipPath is null ||
-            SvgService.HasRecursiveReference(visualElement, static e => e.ClipPath, uris))
+        var referenceUri = GetReferenceUri(visualElement, "clip-path");
+        if (referenceUri is null ||
+            !uris.Add(referenceUri))
         {
             return;
         }
 
-        var referencedClipPath = SvgService.GetReference<SvgClipPath>(visualElement, visualElement.ClipPath);
+        var referencedClipPath = SvgService.GetReference<SvgClipPath>(visualElement, referenceUri);
         if (referencedClipPath?.Children is null)
         {
             return;

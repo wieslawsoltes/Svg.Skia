@@ -7,25 +7,25 @@ public partial class font_face : element
 {
     protected override string SvgTag => "font-face";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty alphabeticProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty alphabeticProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("alphabetic", typeof(float), typeof(font_face));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty ascentProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty ascentProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("ascent", typeof(float), typeof(font_face));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty ascent_heightProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty ascent_heightProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("ascent-height", typeof(float), typeof(font_face));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty descentProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty descentProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("descent", typeof(float), typeof(font_face));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty panose_1Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty panose_1Property =
         Microsoft.Maui.Controls.BindableProperty.Create("panose-1", typeof(string), typeof(font_face));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty units_per_emProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty units_per_emProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("units-per-em", typeof(float), typeof(font_face));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty x_heightProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty x_heightProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("x-height", typeof(float), typeof(font_face));
 
     public float alphabetic

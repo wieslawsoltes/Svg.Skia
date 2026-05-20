@@ -23,7 +23,9 @@ internal static class SvgEnumBridge
         {
             "Svg.SvgFontWeight" => FormatFontWeight(name),
             "Svg.XmlSpaceHandling" or "Svg.SvgFillRule" or "Svg.SvgClipRule" => name.ToLowerInvariant(),
-            "Svg.SvgDominantBaseline" or "Svg.SvgFontVariant" or "Svg.SvgTextDecoration" or "Svg.SvgFontStretch" or "Svg.FilterEffects.SvgBlendMode" => ToKebabCase(name),
+            "Svg.SvgDominantBaseline" or "Svg.SvgFontVariant" or "Svg.SvgTextDecoration" or "Svg.SvgFontStretch" or "Svg.SvgVectorEffect" or "Svg.SvgTransformBox" or "Svg.SvgMixBlendMode" or "Svg.FilterEffects.SvgBlendMode" => ToKebabCase(name),
+            "Svg.SvgPaintOrder" => FormatPaintOrder(name),
+            "Svg.SvgWhiteSpace" => FormatWhiteSpace(name),
             "Svg.FilterEffects.SvgChannelSelector" => name,
             _ when typeName is not null && typeName.StartsWith("SvgML.", global::System.StringComparison.Ordinal) => name.Replace("_", "-", global::System.StringComparison.Ordinal),
             _ => ToCamelCase(name),
@@ -95,6 +97,25 @@ internal static class SvgEnumBridge
         return name.Length == 4 && name[0] == 'W' && IsFontWeightLiteral(name.Substring(1))
             ? name.Substring(1)
             : ToCamelCase(name);
+    }
+
+    private static string FormatPaintOrder(string name)
+    {
+        return name switch
+        {
+            "FillStrokeMarkers" => "fill stroke markers",
+            "FillMarkersStroke" => "fill markers stroke",
+            "StrokeFillMarkers" => "stroke fill markers",
+            "StrokeMarkersFill" => "stroke markers fill",
+            "MarkersFillStroke" => "markers fill stroke",
+            "MarkersStrokeFill" => "markers stroke fill",
+            _ => ToCamelCase(name)
+        };
+    }
+
+    private static string FormatWhiteSpace(string name)
+    {
+        return name == "NoWrap" ? "nowrap" : ToKebabCase(name);
     }
 
     private static bool IsFontWeightLiteral(string value)

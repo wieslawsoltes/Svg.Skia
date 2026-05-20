@@ -442,7 +442,7 @@ internal static partial class SvgSceneTextCompiler
                         trimTrailingWhitespace: IsTerminalContentNode(contentNodeList, nodeIndex));
                     if (!string.IsNullOrEmpty(text) &&
                         previousEndedWithSpace &&
-                        styleSource.SpaceHandling != XmlSpaceHandling.Preserve &&
+                        CollapsesTextWhitespace(styleSource) &&
                         text![0] == ' ')
                     {
                         text = text.TrimStart(' ');
@@ -559,7 +559,7 @@ internal static partial class SvgSceneTextCompiler
                         trimLeadingWhitespace: trimLeadingWhitespace,
                         trimTrailingWhitespace: IsTerminalContentNode(contentNodeList, nodeIndex));
                     if (previousEndedWithSpace &&
-                        svgTextBase.SpaceHandling != XmlSpaceHandling.Preserve &&
+                        CollapsesTextWhitespace(svgTextBase) &&
                         !string.IsNullOrEmpty(text) &&
                         text![0] == ' ')
                     {
@@ -568,7 +568,7 @@ internal static partial class SvgSceneTextCompiler
 
                     if (string.IsNullOrEmpty(text) &&
                         !string.IsNullOrWhiteSpace(rawContent) &&
-                        svgTextBase.SpaceHandling != XmlSpaceHandling.Preserve &&
+                        CollapsesTextWhitespace(svgTextBase) &&
                         !previousEndedWithSpace &&
                         HasRenderableTextContentBefore(contentNodeList, nodeIndex) &&
                         HasRenderableTextContentAfter(contentNodeList, nodeIndex))

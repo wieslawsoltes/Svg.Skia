@@ -25,6 +25,14 @@ internal static class SvgCacheKey
             }
         }
 
+        if (parameters?.LoadOptions is { } loadOptions)
+        {
+            builder.Append("|processingMode:").Append(loadOptions.ProcessingMode)
+                .Append("|externalResources:").Append(loadOptions.ExternalResources)
+                .Append("|preserveUnknownElements:").Append(loadOptions.PreserveUnknownElements)
+                .Append("|preferSvg2Href:").Append(loadOptions.PreferSvg2Href);
+        }
+
         return builder.ToString();
     }
 }

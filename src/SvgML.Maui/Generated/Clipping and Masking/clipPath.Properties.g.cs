@@ -7,7 +7,7 @@ public partial class clipPath : element
 {
     protected override string SvgTag => "clipPath";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty clipPathUnitsProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty clipPathUnitsProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("clipPathUnits", typeof(string), typeof(clipPath));
 
     public string clipPathUnits

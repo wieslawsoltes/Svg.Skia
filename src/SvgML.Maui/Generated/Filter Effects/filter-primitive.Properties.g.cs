@@ -5,22 +5,22 @@ namespace SvgML;
 
 public abstract partial class filter_primitive : element
 {
-    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("x", typeof(Svg.SvgUnit), typeof(filter_primitive));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("y", typeof(Svg.SvgUnit), typeof(filter_primitive));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty widthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("width", typeof(Svg.SvgUnit), typeof(filter_primitive));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty heightProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("height", typeof(Svg.SvgUnit), typeof(filter_primitive));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty inProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty inProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("in", typeof(string), typeof(filter_primitive));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty resultProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty resultProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("result", typeof(string), typeof(filter_primitive));
 
     public Svg.SvgUnit x

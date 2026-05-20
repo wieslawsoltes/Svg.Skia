@@ -5,22 +5,22 @@ namespace SvgML;
 
 public abstract partial class gradient : paint
 {
-    public static readonly Microsoft.Maui.Controls.BindableProperty spreadMethodProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty spreadMethodProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("spreadMethod", typeof(string), typeof(gradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty gradientUnitsProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty gradientUnitsProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("gradientUnits", typeof(string), typeof(gradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty hrefProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("href", typeof(string), typeof(gradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty gradientTransformProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty gradientTransformProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("gradientTransform", typeof(string), typeof(gradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stop_colorProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stop_colorProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stop-color", typeof(string), typeof(gradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty stop_opacityProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty stop_opacityProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("stop-opacity", typeof(string), typeof(gradient));
 
     public string spreadMethod

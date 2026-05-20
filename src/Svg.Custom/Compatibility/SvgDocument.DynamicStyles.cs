@@ -222,6 +222,7 @@ public partial class SvgDocument
     internal void ReapplyCompatibilityStyles()
     {
         EnsureCompatibilityStyleStateInitialized();
+        InvalidateComputedStyleCache();
         RestoreCompatibilityStyleState();
         ApplyCompatibilityStyles();
     }
@@ -230,11 +231,12 @@ public partial class SvgDocument
     {
         if (_compatibilityStyleSources is { Count: > 0 })
         {
-            SvgCssCompatibilityProcessor.Apply(this, _compatibilityStyleSources, new SvgElementFactory());
+            SvgCssCompatibilityProcessor.Apply(this, _compatibilityStyleSources, new SvgElementFactory(), LoadOptions);
         }
 
         ApplyInlineStyles();
         FlushStyles(children: true);
+        InvalidateComputedStyleCache();
     }
 
     private void RestoreCompatibilityStyleState()

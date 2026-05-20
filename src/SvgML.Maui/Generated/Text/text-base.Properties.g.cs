@@ -5,34 +5,34 @@ namespace SvgML;
 
 public abstract partial class text_base : visual
 {
-    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("x", typeof(string), typeof(text_base));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty dxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty dxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("dx", typeof(string), typeof(text_base));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("y", typeof(string), typeof(text_base));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty dyProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty dyProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("dy", typeof(string), typeof(text_base));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty rotateProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty rotateProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("rotate", typeof(string), typeof(text_base));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty textLengthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty textLengthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("textLength", typeof(Svg.SvgUnit), typeof(text_base));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty lengthAdjustProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty lengthAdjustProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("lengthAdjust", typeof(string), typeof(text_base));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty letter_spacingProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty letter_spacingProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("letter-spacing", typeof(Svg.SvgUnit), typeof(text_base));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty word_spacingProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty word_spacingProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("word-spacing", typeof(Svg.SvgUnit), typeof(text_base));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty onchangeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty onchangeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("onchange", typeof(string), typeof(text_base));
 
     public string x

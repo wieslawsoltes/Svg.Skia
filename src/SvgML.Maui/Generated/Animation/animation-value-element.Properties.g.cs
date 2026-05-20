@@ -5,31 +5,31 @@ namespace SvgML;
 
 public abstract partial class animation_value_element : animation_attribute_element
 {
-    public static readonly Microsoft.Maui.Controls.BindableProperty calcModeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty calcModeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("calcMode", typeof(SvgAnimationCalcModeValue), typeof(animation_value_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty valuesProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty valuesProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("values", typeof(string), typeof(animation_value_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty keyTimesProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty keyTimesProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("keyTimes", typeof(numbers), typeof(animation_value_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty keySplinesProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty keySplinesProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("keySplines", typeof(string), typeof(animation_value_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty fromProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty fromProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("from", typeof(string), typeof(animation_value_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty toProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty toProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("to", typeof(string), typeof(animation_value_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty byProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty byProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("by", typeof(string), typeof(animation_value_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty additiveProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty additiveProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("additive", typeof(SvgAnimationAdditiveValue), typeof(animation_value_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty accumulateProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty accumulateProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("accumulate", typeof(SvgAnimationAccumulateValue), typeof(animation_value_element));
 
     public SvgAnimationCalcModeValue calcMode

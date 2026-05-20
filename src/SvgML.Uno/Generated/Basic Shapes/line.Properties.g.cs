@@ -35,6 +35,13 @@ public partial class line : marker_element
             typeof(line),
             new Microsoft.UI.Xaml.PropertyMetadata(default(Svg.SvgUnit), OnSvgPropertyChanged));
 
+    public static readonly Microsoft.UI.Xaml.DependencyProperty pathLengthProperty =
+        Microsoft.UI.Xaml.DependencyProperty.Register(
+            "pathLength",
+            typeof(float),
+            typeof(line),
+            new Microsoft.UI.Xaml.PropertyMetadata(default(float), OnSvgPropertyChanged));
+
     public Svg.SvgUnit x1
     {
         get => (Svg.SvgUnit)GetValue(x1Property);
@@ -57,5 +64,11 @@ public partial class line : marker_element
     {
         get => (Svg.SvgUnit)GetValue(y2Property);
         set => SetValue(y2Property, value);
+    }
+
+    public float pathLength
+    {
+        get => (float)GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

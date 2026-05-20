@@ -19,6 +19,12 @@ public partial class textPath : text_base
     public static readonly Avalonia.StyledProperty<string?> hrefProperty =
         Avalonia.AvaloniaProperty.Register<textPath, string?>("href");
 
+    public static readonly Avalonia.StyledProperty<string?> pathProperty =
+        Avalonia.AvaloniaProperty.Register<textPath, string?>("path");
+
+    public static readonly Avalonia.StyledProperty<Svg.SvgTextPathSide?> sideProperty =
+        Avalonia.AvaloniaProperty.Register<textPath, Svg.SvgTextPathSide?>("side");
+
     public Svg.SvgUnit? startOffset
     {
         get => GetValue(startOffsetProperty);
@@ -41,5 +47,17 @@ public partial class textPath : text_base
     {
         get => GetValue(hrefProperty);
         set => SetValue(hrefProperty, value);
+    }
+
+    public string? path
+    {
+        get => GetValue(pathProperty);
+        set => SetValue(pathProperty, value);
+    }
+
+    public Svg.SvgTextPathSide? side
+    {
+        get => GetValue(sideProperty);
+        set => SetValue(sideProperty, value);
     }
 }

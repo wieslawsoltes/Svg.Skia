@@ -101,6 +101,7 @@ public class resvgTests : SvgUnitTest
             "e-textPath-031" => 0.045,
             "e-textPath-034" => 0.026,
             "e-textPath-038" => 0.054,
+            "e-textPath-041" => 0.10,
             /*
              * These rows intentionally compare against checked Chrome captures because the upstream
              * resvg PNGs disagree with browser behavior for nested tspans and decoration placement.
@@ -1819,7 +1820,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-textPath-013", 0.022)]
     [InlineData("e-textPath-014", 0.022)]
     [InlineData("e-textPath-015", 0.022)]
-    [InlineData("e-textPath-016", 0.022, Skip = "SVG2 textPath link-to-shape parity is not implemented")]
+    [InlineData("e-textPath-016", 0.022)]
     [InlineData("e-textPath-017", 0.022)]
     [InlineData("e-textPath-018", 0.022)]
     [InlineData("e-textPath-019", 0.022)]
@@ -1844,7 +1845,7 @@ public class resvgTests : SvgUnitTest
     [InlineData("e-textPath-038", 0.022)]
     [InlineData("e-textPath-039", 0.022)]
     [InlineData("e-textPath-040", 0.022)]
-    [InlineData("e-textPath-041", 0.022, Skip = "SVG2 textPath side=right is not implemented")]
+    [InlineData("e-textPath-041", 0.022)]
     [InlineData("e-textPath-042", 0.022)]
     [InlineData("e-textPath-043", 0.022)]
     [InlineData("e-textPath-044", 0.022)]

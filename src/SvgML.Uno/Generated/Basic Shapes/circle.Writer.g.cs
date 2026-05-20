@@ -23,5 +23,10 @@ public partial class circle
         {
             writer.WriteLine($"r=\"{ToSvgString(r)}\"");
         }
+
+        if (ReadLocalValue(pathLengthProperty) != Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+        {
+            writer.WriteLine($"pathLength=\"{ToSvgString(pathLength)}\"");
+        }
     }
 }

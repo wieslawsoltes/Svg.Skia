@@ -89,6 +89,19 @@ Uno's XAML source generator still resolves third-party controls through explicit
 
 Uno currently works best when hosted-control size is supplied by the native child (`Width`, `Height`, `MinWidth`, and related properties). See [SvgML foreignObject Controls](../xaml/svgml-foreignobject-controls) for the shared layout model and Uno-specific authoring notes.
 
+## SVG 2 static subset authoring
+
+The generated Uno SvgML surface is kept aligned with the shared `Svg.Skia` SVG 2 static subset. CLR-safe SVG names are available directly; dash-named members use underscore property names in Uno XAML or can be written through `style`.
+
+| Area | SvgML.Uno contract |
+| --- | --- |
+| Root load options | `ProcessingMode`, `ExternalResources`, `PreserveUnknownElements`, and `PreferSvg2Href` are dependency properties on `svg`. Changing them reloads the inline SVG tree. |
+| Geometry | Basic shapes expose `pathLength`; `symbol` exposes SVG 2 `x`, `y`, `width`, `height`, `refX`, and `refY`. |
+| Paint and transforms | Visual elements expose `paint_order`, `vector_effect`, `transform_box`, and `transform_origin`, with serialized SVG names preserved as `paint-order`, `vector-effect`, `transform-box`, and `transform-origin`. |
+| Text | `textPath` exposes inline `path` data and `side`; visual/text elements expose `white_space`, `text_overflow`, `inline_size`, `shape_inside`, and `shape_subtract` for supported or preserve-only text contracts. |
+| Filters and masks | `mask` exposes `mask_type`, and the SVG 2 `feDropShadow` filter primitive is available for inline filter graphs. |
+| CSS-only features | `mix-blend-mode`, `isolation`, CSS `d`, CSS geometry, and CSS custom properties should be authored through `style`, `Css`, or `CurrentCss` rather than as direct SvgML properties. |
+
 ## Notes
 
 - `SvgML.Uno` builds on `Uno.Sdk` with `SkiaRenderer`, so it stays aligned with the same rendering stack as `Svg.Controls.Skia.Uno`.

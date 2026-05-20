@@ -7,14 +7,17 @@ public partial class circle : path_based
 {
     protected override string SvgTag => "circle";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty cxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty cxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("cx", typeof(Svg.SvgUnit), typeof(circle));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty cyProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty cyProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("cy", typeof(Svg.SvgUnit), typeof(circle));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty rProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty rProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("r", typeof(Svg.SvgUnit), typeof(circle));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty pathLengthProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("pathLength", typeof(float), typeof(circle));
 
     public Svg.SvgUnit cx
     {
@@ -32,5 +35,11 @@ public partial class circle : path_based
     {
         get => (Svg.SvgUnit)GetValue(rProperty);
         set => SetValue(rProperty, value);
+    }
+
+    public float pathLength
+    {
+        get => (float)GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

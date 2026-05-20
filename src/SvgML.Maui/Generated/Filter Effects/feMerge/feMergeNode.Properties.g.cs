@@ -7,7 +7,7 @@ public partial class feMergeNode : element
 {
     protected override string SvgTag => "feMergeNode";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty inProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty inProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("in", typeof(string), typeof(feMergeNode));
 
     public string @in

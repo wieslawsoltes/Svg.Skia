@@ -12,6 +12,7 @@ This package brings the SVG element tree itself into Avalonia XAML. Use it when:
 
 - you want inline `svg`, `rect`, `g`, filter, or text elements inside resources or templates,
 - you want SVG attribute names such as `fill-opacity`, `stroke-width`, or `viewBox` to stay close to authored markup,
+- you want to author the supported SVG 2 static subset inline, including root load options, shape `pathLength`, `paint-order`, `vector-effect`, `mask-type`, and `feDropShadow`,
 - you want SVG `foreignObject` to host native Avalonia controls inside text flow or scene geometry,
 - you want Avalonia style selectors and animations to target the inline SVG tree,
 - you are happy to render through the shared `Svg.Skia` backend behind the scenes.
@@ -22,6 +23,7 @@ This package brings the SVG element tree itself into .NET MAUI XAML. Use it when
 
 - you want inline `svg`, `rect`, `g`, filter, or text elements directly inside a MAUI page,
 - you want SVG attribute names such as `fill-opacity`, `stroke-width`, or `viewBox` to stay close to authored markup,
+- you want to author the supported SVG 2 static subset inline, including root load options, shape `pathLength`, `paint-order`, `vector-effect`, `mask-type`, and `feDropShadow`,
 - you want SVG `foreignObject` to host native MAUI controls inside text flow or scene geometry,
 - you want the inline tree to render through the shared `Svg.Skia` backend without loading an external asset file,
 - you are targeting the current MAUI package lane: Android, iOS, or Mac Catalyst.
@@ -41,6 +43,7 @@ This package brings the SVG element tree itself into Uno Platform XAML. Use it w
 
 - you want inline `svg`, `path`, `g`, filter, or text elements directly inside a Uno page,
 - you want SVG attribute names such as `fill`, `opacity`, or `viewBox` to stay close to authored markup, with dash-named declarations available through `style` or Uno-safe member names,
+- you want to author the supported SVG 2 static subset inline, including root load options, shape `pathLength`, `paint_order`, `vector_effect`, `mask_type`, and `feDropShadow`,
 - you want SVG `foreignObject` to host native Uno controls inside text flow or scene geometry,
 - you want the inline tree to render through the shared `Svg.Skia` backend without loading an external asset file,
 - you are already on the Uno `SkiaRenderer` path and want the authored markup to stay in XAML instead of a separate asset file.

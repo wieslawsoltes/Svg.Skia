@@ -29,7 +29,7 @@ public abstract partial class element
 
         if (this.IsSet(spProperty))
         {
-            writer.WriteLine($"sp=\"{ToSvgString(sp)}\"");
+            writer.WriteLine($"xml:space=\"{ToSvgString(sp)}\"");
         }
 
         if (this.IsSet(onclickProperty))

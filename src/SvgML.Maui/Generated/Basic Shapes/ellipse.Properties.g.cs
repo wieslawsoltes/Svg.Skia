@@ -7,17 +7,20 @@ public partial class ellipse : path_based
 {
     protected override string SvgTag => "ellipse";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty cxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty cxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("cx", typeof(Svg.SvgUnit), typeof(ellipse));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty cyProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty cyProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("cy", typeof(Svg.SvgUnit), typeof(ellipse));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty rxProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty rxProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("rx", typeof(Svg.SvgUnit), typeof(ellipse));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty ryProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty ryProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("ry", typeof(Svg.SvgUnit), typeof(ellipse));
+
+    public static readonly Microsoft.Maui.Controls.BindableProperty pathLengthProperty =
+        Microsoft.Maui.Controls.BindableProperty.Create("pathLength", typeof(float), typeof(ellipse));
 
     public Svg.SvgUnit cx
     {
@@ -41,5 +44,11 @@ public partial class ellipse : path_based
     {
         get => (Svg.SvgUnit)GetValue(ryProperty);
         set => SetValue(ryProperty, value);
+    }
+
+    public float pathLength
+    {
+        get => (float)GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }

@@ -299,3 +299,4 @@ __pycache__/
 /.playwright-cli
 TestApp.json
 /run-artifacts
+/plan

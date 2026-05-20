@@ -28,5 +28,10 @@ public partial class line
         {
             writer.WriteLine($"y2=\"{ToSvgString(y2)}\"");
         }
+
+        if (this.IsSet(pathLengthProperty))
+        {
+            writer.WriteLine($"pathLength=\"{ToSvgString(pathLength)}\"");
+        }
     }
 }

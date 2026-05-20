@@ -25,6 +25,9 @@ public partial class mask : element
     public static readonly Avalonia.StyledProperty<string?> heightProperty =
         Avalonia.AvaloniaProperty.Register<mask, string?>("height");
 
+    public static readonly Avalonia.StyledProperty<Svg.Model.MaskType?> mask_typeProperty =
+        Avalonia.AvaloniaProperty.Register<mask, Svg.Model.MaskType?>("mask-type");
+
     public string? maskUnits
     {
         get => GetValue(maskUnitsProperty);
@@ -59,5 +62,11 @@ public partial class mask : element
     {
         get => GetValue(heightProperty);
         set => SetValue(heightProperty, value);
+    }
+
+    public Svg.Model.MaskType? mask_type
+    {
+        get => GetValue(mask_typeProperty);
+        set => SetValue(mask_typeProperty, value);
     }
 }

@@ -28,5 +28,15 @@ public partial class textPath
         {
             writer.WriteLine($"xlink:href=\"{ToSvgString(href)}\"");
         }
+
+        if (this.IsSet(pathProperty))
+        {
+            writer.WriteLine($"path=\"{ToSvgString(path)}\"");
+        }
+
+        if (this.IsSet(sideProperty))
+        {
+            writer.WriteLine($"side=\"{ToSvgString(side)}\"");
+        }
     }
 }

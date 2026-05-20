@@ -7,25 +7,25 @@ public partial class glyph : path_based
 {
     protected override string SvgTag => "glyph";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty dProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty dProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("d", typeof(string), typeof(glyph));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty glyph_nameProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty glyph_nameProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("glyph-name", typeof(string), typeof(glyph));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty horiz_adv_xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty horiz_adv_xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("horiz-adv-x", typeof(float), typeof(glyph));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty unicodeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty unicodeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("unicode", typeof(string), typeof(glyph));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty vert_adv_yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty vert_adv_yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("vert-adv-y", typeof(float), typeof(glyph));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty vert_origin_xProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty vert_origin_xProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("vert-origin-x", typeof(float), typeof(glyph));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty vert_origin_yProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty vert_origin_yProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("vert-origin-y", typeof(float), typeof(glyph));
 
     public string d

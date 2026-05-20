@@ -7,16 +7,16 @@ public partial class linearGradient : gradient
 {
     protected override string SvgTag => "linearGradient";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty x1Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty x1Property =
         Microsoft.Maui.Controls.BindableProperty.Create("x1", typeof(Svg.SvgUnit), typeof(linearGradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty y1Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty y1Property =
         Microsoft.Maui.Controls.BindableProperty.Create("y1", typeof(Svg.SvgUnit), typeof(linearGradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty x2Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty x2Property =
         Microsoft.Maui.Controls.BindableProperty.Create("x2", typeof(Svg.SvgUnit), typeof(linearGradient));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty y2Property = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty y2Property =
         Microsoft.Maui.Controls.BindableProperty.Create("y2", typeof(Svg.SvgUnit), typeof(linearGradient));
 
     public Svg.SvgUnit x1

@@ -7,10 +7,10 @@ public partial class feColorMatrix : filter_primitive
 {
     protected override string SvgTag => "feColorMatrix";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty typeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty typeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("type", typeof(TypeFeColorMatrixValue), typeof(feColorMatrix));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty valuesProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty valuesProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("values", typeof(string), typeof(feColorMatrix));
 
     public TypeFeColorMatrixValue type

@@ -5,10 +5,10 @@ namespace SvgML;
 
 public abstract partial class animation_attribute_element : animation_element
 {
-    public static readonly Microsoft.Maui.Controls.BindableProperty attributeNameProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty attributeNameProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("attributeName", typeof(string), typeof(animation_attribute_element));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty attributeTypeProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty attributeTypeProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("attributeType", typeof(SvgAnimationAttributeTypeValue), typeof(animation_attribute_element));
 
     public string attributeName

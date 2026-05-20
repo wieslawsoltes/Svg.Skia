@@ -7,10 +7,10 @@ public partial class feDistantLight : element
 {
     protected override string SvgTag => "feDistantLight";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty azimuthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty azimuthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("azimuth", typeof(string), typeof(feDistantLight));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty elevationProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty elevationProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("elevation", typeof(string), typeof(feDistantLight));
 
     public string azimuth

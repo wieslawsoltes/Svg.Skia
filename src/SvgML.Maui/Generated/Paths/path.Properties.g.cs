@@ -7,10 +7,10 @@ public partial class path : marker_element
 {
     protected override string SvgTag => "path";
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty dProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty dProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("d", typeof(string), typeof(path));
 
-    public static readonly Microsoft.Maui.Controls.BindableProperty pathLengthProperty = 
+    public static readonly Microsoft.Maui.Controls.BindableProperty pathLengthProperty =
         Microsoft.Maui.Controls.BindableProperty.Create("pathLength", typeof(float), typeof(path));
 
     public string d

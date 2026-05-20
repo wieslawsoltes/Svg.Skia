@@ -56,6 +56,19 @@ dotnet add package SvgML.Avalonia
 
 The element/property naming stays close to SVG authoring, so attributes such as `stroke-width`, `fill-opacity`, and `viewBox` can stay readable in XAML.
 
+## SVG 2 static subset authoring
+
+The generated SvgML surface is kept aligned with the shared `Svg.Skia` SVG 2 static subset. The root `svg` control also forwards load options into the document loader.
+
+| Area | SvgML.Avalonia contract |
+| --- | --- |
+| Root load options | `ProcessingMode`, `ExternalResources`, `PreserveUnknownElements`, and `PreferSvg2Href` are Avalonia styled properties on `svg`. Changing them reloads the inline SVG tree. |
+| Geometry | Basic shapes expose `pathLength`; `symbol` exposes SVG 2 `x`, `y`, `width`, `height`, `refX`, and `refY`. |
+| Paint and transforms | Visual elements expose `paint-order`, `vector-effect`, `transform-box`, and `transform-origin`. |
+| Text | `textPath` exposes inline `path` data and `side`; visual/text elements expose `white-space`, `text-overflow`, `inline-size`, `shape-inside`, and `shape-subtract` for supported or preserve-only text contracts. |
+| Filters and masks | `mask` exposes `mask-type`, and the SVG 2 `feDropShadow` filter primitive is available for inline filter graphs. |
+| CSS-only features | `mix-blend-mode`, `isolation`, CSS `d`, CSS geometry, and CSS custom properties should be authored through `style`, `Css`, or `CurrentCss` rather than as direct SvgML properties. |
+
 ## Runtime behavior
 
 The root `svg` control:

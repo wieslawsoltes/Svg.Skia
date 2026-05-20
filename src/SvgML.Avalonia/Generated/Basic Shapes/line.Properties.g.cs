@@ -19,6 +19,9 @@ public partial class line : marker_element
     public static readonly Avalonia.StyledProperty<Svg.SvgUnit?> y2Property =
         Avalonia.AvaloniaProperty.Register<line, Svg.SvgUnit?>("y2");
 
+    public static readonly Avalonia.StyledProperty<float?> pathLengthProperty =
+        Avalonia.AvaloniaProperty.Register<line, float?>("pathLength");
+
     public Svg.SvgUnit? x1
     {
         get => GetValue(x1Property);
@@ -41,5 +44,11 @@ public partial class line : marker_element
     {
         get => GetValue(y2Property);
         set => SetValue(y2Property, value);
+    }
+
+    public float? pathLength
+    {
+        get => GetValue(pathLengthProperty);
+        set => SetValue(pathLengthProperty, value);
     }
 }
