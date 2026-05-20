@@ -1,12 +1,12 @@
 ﻿<Project>
   <PropertyGroup>
-    <VersionPrefix>4.9.0</VersionPrefix>
+    <VersionPrefix>4.9.1</VersionPrefix>
     <VersionSuffix></VersionSuffix>
-    <AvaloniaVersionPrefix>12.0.0.9</AvaloniaVersionPrefix>
+    <AvaloniaVersionPrefix>12.0.0.10</AvaloniaVersionPrefix>
     <AvaloniaVersionSuffix>$(VersionSuffix)</AvaloniaVersionSuffix>
-    <UnoVersionPrefix>6.5.31.10</UnoVersionPrefix>
+    <UnoVersionPrefix>6.5.31.11</UnoVersionPrefix>
     <UnoVersionSuffix>$(VersionSuffix)</UnoVersionSuffix>
-    <MauiVersionPrefix>10.0.0.5</MauiVersionPrefix>
+    <MauiVersionPrefix>10.0.0.6</MauiVersionPrefix>
     <MauiVersionSuffix>$(VersionSuffix)</MauiVersionSuffix>
     <Authors>Wiesław Šoltés</Authors>
     <Company>Wiesław Šoltés</Company>
