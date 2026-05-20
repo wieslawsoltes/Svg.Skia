@@ -219,20 +219,20 @@
 </tr>
 <tr>
 <td><code>SvgML.Avalonia</code></td>
-<td>You want the SVG tree itself to be authored inline in Avalonia XAML, including native controls hosted through SVG <code>foreignObject</code>.</td>
-<td><code>svg</code>, <code>rect</code>, <code>g</code>, filters, text nodes, <code>foreignObject</code>, Avalonia-styled SVG element tree</td>
+<td>You want the SVG tree itself to be authored inline in Avalonia XAML, including SVG 2 static subset attributes and native controls hosted through SVG <code>foreignObject</code>.</td>
+<td><code>svg</code>, <code>rect</code>, <code>g</code>, filters, text nodes, <code>foreignObject</code>, SVG 2 load options, Avalonia-styled SVG element tree</td>
 <td><a href="/Svg.Skia/articles/packages/svgml-avalonia">SvgML.Avalonia</a></td>
 </tr>
 <tr>
 <td><code>SvgML.Maui</code></td>
-<td>You want the SVG tree itself to be authored inline in .NET MAUI XAML, including native controls hosted through SVG <code>foreignObject</code>.</td>
-<td><code>svg</code>, <code>rect</code>, <code>g</code>, filters, text nodes, <code>foreignObject</code>, MAUI-styled SVG element tree</td>
+<td>You want the SVG tree itself to be authored inline in .NET MAUI XAML, including SVG 2 static subset attributes and native controls hosted through SVG <code>foreignObject</code>.</td>
+<td><code>svg</code>, <code>rect</code>, <code>g</code>, filters, text nodes, <code>foreignObject</code>, SVG 2 load options, MAUI-styled SVG element tree</td>
 <td><a href="/Svg.Skia/articles/packages/svgml-maui">SvgML.Maui</a></td>
 </tr>
 <tr>
 <td><code>SvgML.Uno</code></td>
-<td>You want the SVG tree itself to be authored inline in Uno Platform XAML, including native controls hosted through SVG <code>foreignObject</code>.</td>
-<td><code>svg</code>, <code>path</code>, <code>g</code>, filters, text nodes, <code>foreignObject</code>, Uno-styled SVG element tree</td>
+<td>You want the SVG tree itself to be authored inline in Uno Platform XAML, including SVG 2 static subset attributes and native controls hosted through SVG <code>foreignObject</code>.</td>
+<td><code>svg</code>, <code>path</code>, <code>g</code>, filters, text nodes, <code>foreignObject</code>, SVG 2 load options, Uno-styled SVG element tree</td>
 <td><a href="/Svg.Skia/articles/packages/svgml-uno">SvgML.Uno</a></td>
 </tr>
 <tr>
@@ -279,13 +279,13 @@
 <h3 id="avalonia-application">Avalonia application</h3>
 <p>Start with <code>Svg.Controls.Skia.Avalonia</code> when the app is already on Avalonia plus Skia and you want the richest interaction and animation surface, including native-composition playback where supported.</p>
 <p>Choose <code>Svg.Controls.Avalonia</code> when you want the same SVG concepts exposed through the Avalonia drawing stack instead.</p>
-<p>Choose <code>SvgML.Avalonia</code> when small icons, diagrams, effect graphs, or native-control overlays should stay inline in XAML resources or templates instead of moving into external <code>.svg</code> files.</p>
+<p>Choose <code>SvgML.Avalonia</code> when small icons, diagrams, SVG 2 static filter/paint/text graphs, or native-control overlays should stay inline in XAML resources or templates instead of moving into external <code>.svg</code> files.</p>
 <h3 id="net-maui-application">.NET MAUI application</h3>
 <p>Start with <code>Svg.Controls.Skia.Maui</code> when the visual already exists as an external <code>.svg</code> asset or source string and should render through a MAUI <code>SKCanvasView</code>.</p>
-<p>Choose <code>SvgML.Maui</code> when the SVG tree should be authored inline in .NET MAUI XAML instead, including cases where SVG <code>foreignObject</code> positions native MAUI controls.</p>
+<p>Choose <code>SvgML.Maui</code> when the SVG tree should be authored inline in .NET MAUI XAML instead, including SVG 2 static subset attributes and cases where SVG <code>foreignObject</code> positions native MAUI controls.</p>
 <h3 id="uno-application">Uno application</h3>
 <p>Start with <code>Svg.Controls.Skia.Uno</code> when the app is on Uno Platform and you want direct <code>SKCanvasElement</code> rendering plus async asset loading, hit testing, viewport controls, and host-driven animation playback.</p>
-<p>Choose <code>SvgML.Uno</code> when that Uno view should be authored inline in XAML instead of loaded from a separate <code>.svg</code> asset file, including cases where SVG <code>foreignObject</code> positions native Uno controls.</p>
+<p>Choose <code>SvgML.Uno</code> when that Uno view should be authored inline in XAML instead of loaded from a separate <code>.svg</code> asset file, including SVG 2 static subset attributes and cases where SVG <code>foreignObject</code> positions native Uno controls.</p>
 <h3 id="embedded-editor">Embedded editor</h3>
 <p>Start with <code>Svg.Editor.Skia.Avalonia</code> when the target is an editable SVG workspace rather than a viewer-only control.</p>
 <p>Move down to the other <code>Svg.Editor.*</code> packages when the host needs only panels, dialogs, SVG mutation services, or low-level interaction helpers.</p>
@@ -301,7 +301,7 @@
 <li>Model-level editing, interaction routing, and picture rebuild support.</li>
 <li>Avalonia and Uno controls with host animation backends and resolved-backend diagnostics.</li>
 <li>Skia-backed Avalonia, Uno, and .NET MAUI controls for external SVG assets.</li>
-<li>SvgML inline XAML authoring for Avalonia, .NET MAUI, and Uno with SVG-native <code>foreignObject</code> interop for hosted platform controls.</li>
+<li>SvgML inline XAML authoring for Avalonia, .NET MAUI, and Uno with SVG 2 static subset attributes and SVG-native <code>foreignObject</code> interop for hosted platform controls.</li>
 <li>Verification through unit tests, UI tests, and W3C test-suite assets.</li>
 </ul>
 <p>For extensive package-by-package coverage, continue with <a href="/Svg.Skia/articles/packages">Packages</a>.</p>

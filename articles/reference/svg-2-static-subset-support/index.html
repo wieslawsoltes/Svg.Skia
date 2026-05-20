@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>SVG 2 Static Subset Support | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="SVG 2 Static Subset Support | Svg.Skia">
+<meta name="twitter:description" content="SVG 2 Static Subset Support This article documents the current SVG 2 static subset implemented in Svg.Custom, Svg.Model, Svg.SceneGraph, ShimSkiaSharp, Svg.Skia, and the inline SvgML.Avalonia, SvgML.Maui, and SvgML.Uno authoring packages. It focuses on features that are parsed, preserved, authored, or rendered for static output, and it calls out SVG 2 features that are scaffolded or explicitly deferred. The normative reference is the W3C...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="SVG 2 Static Subset Support | Svg.Skia">
+<meta property="og:title" content="SVG 2 Static Subset Support | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="SVG 2 Static Subset Support This article documents the current SVG 2 static subset implemented in Svg.Custom, Svg.Model, Svg.SceneGraph, ShimSkiaSharp, Svg.Skia, and the inline SvgML.Avalonia, SvgML.Maui, and SvgML.Uno authoring packages. It focuses on features that are parsed, preserved, authored, or rendered for static output, and it calls out SVG 2 features that are scaffolded or explicitly deferred. The normative reference is the W3C...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="SVG 2 Static Subset Support | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ol id='menu-id-reference-0' class='menu menu-level0 show '>
+            <li id='menu-item-reference-1' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/' class='menu-link  '>Reference</a></span>  </li>
+            <li id='menu-item-reference-2' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/packages-and-namespaces/' class='menu-link  '>Packages and Namespaces</a></span>  </li>
+            <li id='menu-item-reference-3' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/samples-and-tools/' class='menu-link  '>Samples and Tools</a></span>  </li>
+            <li id='menu-item-reference-4' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/api-coverage-index/' class='menu-link  '>API Coverage Index</a></span>  </li>
+            <li id='menu-item-reference-5' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/svg-11-static-subset-support/' class='menu-link  '>SVG 1.1 Static Subset Support</a></span>  </li>
+            <li id='menu-item-reference-6' class='menu-item  active'>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/svg-2-static-subset-support/' class='menu-link  '>SVG 2 Static Subset Support</a></span>  </li>
+            <li id='menu-item-reference-7' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/license/' class='menu-link  '>License</a></span>  </li>
+            <li id='menu-item-reference-8' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/lunet-docs-pipeline/' class='menu-link  '>Lunet Docs Pipeline</a></span>  </li>
+          </ol>
+
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/reference/' class='breadcrumb-link  '>Reference</a>  </li>
+          <li class='breadcrumb-item  active'>
+            SVG 2 Static Subset Support  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="svg-2-static-subset-support">SVG 2 Static Subset Support</h1>
+<p>This article documents the current SVG 2 static subset implemented in <code>Svg.Custom</code>, <code>Svg.Model</code>, <code>Svg.SceneGraph</code>, <code>ShimSkiaSharp</code>, <code>Svg.Skia</code>, and the inline <code>SvgML.Avalonia</code>, <code>SvgML.Maui</code>, and <code>SvgML.Uno</code> authoring packages. It focuses on features that are parsed, preserved, authored, or rendered for static output, and it calls out SVG 2 features that are scaffolded or explicitly deferred.</p>
+<p>The normative reference is the W3C <a href="https://www.w3.org/TR/SVG2/">SVG 2 Candidate Recommendation</a>. SVG 2 builds on <a href="https://www.w3.org/TR/SVG11/">SVG 1.1 Second Edition</a> and changes several areas relevant to static rendering, including processing modes, href handling, geometry properties, painting, text, and the split of masking/filter behavior into related CSS specifications.</p>
+<h2 id="scope-notes">Scope Notes</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Topic</th>
+<th>Contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Static SVG 2</td>
+<td>This page covers SVG 2 additions that affect static pixels, resource loading, metadata, or retained inspection in a loaded SVG document.</td>
+</tr>
+<tr>
+<td>SVG 1.1 baseline</td>
+<td>SVG 1.1 support remains documented in <a href="/Svg.Skia/articles/reference/svg-11-static-subset-support">SVG 1.1 Static Subset Support</a>. This page only records deltas and compatibility behavior that matter for SVG 2.</td>
+</tr>
+<tr>
+<td>Runtime behavior</td>
+<td>Dynamic interactive processing, live DOM APIs, CSSOM, selection/editing, browser navigation, script execution, media playback, and broad animation timelines are outside the static subset.</td>
+</tr>
+<tr>
+<td>Retained scene graph</td>
+<td><code>Svg.SceneGraph</code> is the implementation/API surface used to render, inspect, hit-test, and incrementally refresh static SVG content. It is not a separate SVG language feature.</td>
+</tr>
+<tr>
+<td>Non-SVG inputs</td>
+<td>Android VectorDrawable XML is supported through separate import/conversion APIs. Its Android attribute contract is not part of SVG 2 static support.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="status-legend">Status Legend</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Supported</td>
+<td>Implemented and used by static rendering paths.</td>
+</tr>
+<tr>
+<td>Partial</td>
+<td>Implemented for selected paths or parser/model contracts, with known gaps.</td>
+</tr>
+<tr>
+<td>Compatibility</td>
+<td>Parsed or preserved for compatibility with older SVG content, but not a new SVG 2 rendering requirement.</td>
+</tr>
+<tr>
+<td>Deferred</td>
+<td>Explicitly not implemented in the current static subset.</td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td>Belongs to scripting, animation, interaction, or host behavior rather than static rendering.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="processing-and-resource-contracts">Processing And Resource Contracts</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Feature</th>
+<th>Status</th>
+<th>Current contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Processing modes</td>
+<td>Supported for static subset</td>
+<td><code>SvgProcessingMode</code> and <code>SvgDocumentLoadOptions</code> represent static, secure static, animated, secure animated, and dynamic interactive modes. <code>SvgParameters</code> carries load options into document state and resource loading paths. Secure static caps broad external-resource policies to same-document/data behavior in covered static paths.</td>
+</tr>
+<tr>
+<td>External resource policy</td>
+<td>Supported for static subset</td>
+<td><code>SvgExternalResourcePolicy</code> supports <code>Enabled</code>, <code>SameOrigin</code>, <code>SameDocumentAndDataOnly</code>, and <code>Disabled</code>. Image, nested SVG/SVGZ, data URI, CSS <code>@import</code>, and external SVG reference paths use policy checks in covered paths.</td>
+</tr>
+<tr>
+<td>Unknown elements and attributes</td>
+<td>Partial</td>
+<td><code>PreserveUnknownElements</code> exists on load options, custom attributes remain preserved, and unknown SVG content is retained as model data rather than rendered as SVG graphics. The option is a contract surface, not a complete policy switch across every load path yet.</td>
+</tr>
+<tr>
+<td>Removed/deprecated SVG 1.1 switches</td>
+<td>Compatibility</td>
+<td><code>version</code>, <code>baseProfile</code>, <code>requiredFeatures</code>, and <code>externalResourcesRequired</code> can be parsed or preserved for compatibility. SVG 2 static rendering is not blocked by <code>requiredFeatures</code>.</td>
+</tr>
+<tr>
+<td>Host/load-option surface</td>
+<td>Partial</td>
+<td>Core loaders accept <code>SvgParameters</code> and <code>SvgDocumentLoadOptions</code>. <code>SvgML.Avalonia</code>, <code>SvgML.Maui</code>, and <code>SvgML.Uno</code> root controls expose <code>ProcessingMode</code>, <code>ExternalResources</code>, <code>PreserveUnknownElements</code>, and <code>PreferSvg2Href</code>, and pass them through the shared load pipeline. Avalonia and other source-based host wrappers preserve options through selected source/cache paths and expose CSS/current-color conveniences, but not every host control exposes the full load-option contract yet.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="href-and-linking">Href And Linking</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Feature</th>
+<th>Status</th>
+<th>Current contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Effective <code>href</code></td>
+<td>Supported</td>
+<td><code>TryGetEffectiveHref</code> and <code>TryGetEffectiveHrefString</code> make unnamespaced <code>href</code> win over <code>xlink:href</code> by default. Reviewed static paths use effective href for use, text refs/textPath, images, gradients, patterns, filters, filter images, clips, and masks.</td>
+</tr>
+<tr>
+<td>Empty and invalid <code>href</code></td>
+<td>Supported</td>
+<td>Empty unnamespaced <code>href</code> remains authoritative and does not fall back to <code>xlink:href</code>. Invalid URI conversion uses <code>Try*</code> APIs and reviewed paths fail closed instead of throwing.</td>
+</tr>
+<tr>
+<td>Programmatic href changes</td>
+<td>Supported</td>
+<td>Parsed raw href state is compared against typed property state, and typed property edits after parse are reflected by effective href lookup.</td>
+</tr>
+<tr>
+<td>Link navigation</td>
+<td>Runtime</td>
+<td><code>&lt;a&gt;</code> can preserve link metadata and group content, but navigation is host-owned and not part of static rendering.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="css-and-style-features">CSS And Style Features</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Feature</th>
+<th>Status</th>
+<th>Current contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SVG 2 style recognition</td>
+<td>Partial</td>
+<td><code>SvgStyleAttributeNames</code> includes SVG 2 static properties and keeps <code>isolation</code> and <code>mix-blend-mode</code> CSS-only. The CSS processor applies recognized static style properties, and the centralized computed-style snapshot backs selected SVG 2 properties used by the static renderer.</td>
+</tr>
+<tr>
+<td>CSS custom properties</td>
+<td>Partial</td>
+<td>CSS variables are applied during load for supported properties, including media-qualified rules in covered paths. Full CSS cascade/CSSOM behavior is out of scope.</td>
+</tr>
+<tr>
+<td><code>@media</code> and media imports</td>
+<td>Partial</td>
+<td><code>@media</code> blocks and media-qualified <code>@import</code> rules are evaluated against a screen-like static SVG viewport context. Unsupported or non-matching media are ignored.</td>
+</tr>
+<tr>
+<td>Static pseudo-classes</td>
+<td>Partial</td>
+<td>Static forms such as <code>:root</code>, <code>:link</code>, and <code>:lang()</code> have focused handling. Interactive pseudo-classes such as <code>:hover</code>, <code>:active</code>, <code>:focus</code>, and <code>:visited</code> never match because there is no live event state during loading.</td>
+</tr>
+<tr>
+<td>CSS-only compositing properties</td>
+<td>Partial</td>
+<td><code>SvgIsolation</code> and <code>SvgMixBlendMode</code> expose typed values from CSS style sources. Retained scene nodes create save layers and blend paints for supported CSS paths. Bare presentation-attribute forms are intentionally ignored.</td>
+</tr>
+<tr>
+<td><code>paint-order</code></td>
+<td>Supported for static subset</td>
+<td><code>SvgPaintOrder</code> parses <code>normal</code> and fill/stroke/markers orders and rejects invalid duplicates. Retained paths, shapes, markers, and text use paint order in covered static renderer paths.</td>
+</tr>
+<tr>
+<td>CSS transform properties</td>
+<td>Partial</td>
+<td><code>transform-box</code> and <code>transform-origin</code> are recognized/preserved as SVG 2 transform style properties. Origin-aware transforms are applied for covered retained leaf nodes, text nodes, structural nodes, symbol references, and <code>&lt;use&gt;</code> references when geometry/reference bounds are available. Full standalone CSS transform property integration is future work.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="geometry-and-document-features">Geometry And Document Features</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Feature</th>
+<th>Status</th>
+<th>Current contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>symbol</code> geometry</td>
+<td>Partial</td>
+<td><code>SvgSymbol</code> has <code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>, <code>refX</code>, and <code>refY</code>. Direct symbol reference paths use width/height in retained compilation; full <code>refX</code>/<code>refY</code> reference-point semantics remain open.</td>
+</tr>
+<tr>
+<td>Basic shape <code>pathLength</code></td>
+<td>Supported for static subset</td>
+<td><code>pathLength</code> is available on path-based shapes. Covered retained paths normalize dash distances for paths/basic shapes and use author path lengths for textPath distance mapping.</td>
+</tr>
+<tr>
+<td>Styleable geometry properties</td>
+<td>Supported for covered geometry</td>
+<td>Computed <code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>, <code>cx</code>, <code>cy</code>, <code>r</code>, <code>rx</code>, <code>ry</code>, and line coordinate properties feed covered retained geometry and image sizing paths. Invalid declarations are ignored so attribute fallbacks remain in effect.</td>
+</tr>
+<tr>
+<td><code>d</code> as a CSS property</td>
+<td>Supported for covered paths</td>
+<td>CSS <code>d</code> values, including <code>d: none</code>, are treated as authoritative when authored. Invalid computed <code>d</code> values fail closed instead of falling back to the attribute.</td>
+</tr>
+<tr>
+<td>Equivalent path geometry for shapes</td>
+<td>Partial</td>
+<td>Shape-to-path conversion exists in shared services and is used by rendering, clipping, hit testing, focused marker paths, and selected textPath shape support. A shared geometry abstraction for all consumers is not complete.</td>
+</tr>
+<tr>
+<td>Marker support on all shapes</td>
+<td>Partial</td>
+<td>Marker properties exist and common path-like cases render. Focused retained coverage includes path and basic-shape equivalent geometry; exhaustive marker vertices/orientation for every shape edge case remains open.</td>
+</tr>
+<tr>
+<td>Marker <code>orient=&quot;auto-start-reverse&quot;</code></td>
+<td>Supported</td>
+<td>Retained marker compilation applies SVG 2 start-marker reversal for supported marker paths.</td>
+</tr>
+<tr>
+<td><code>ellipse</code> auto radii</td>
+<td>Deferred</td>
+<td>Numeric SVG 1.1 radii render. SVG 2 <code>auto</code> radius resolution is not complete.</td>
+</tr>
+<tr>
+<td><code>svg</code> and <code>image</code> auto sizing</td>
+<td>Partial</td>
+<td>Explicit sizes, viewBox behavior, CSS-authored image dimensions, and intrinsic fallback are supported in covered paths. Full SVG 2 <code>auto</code> sizing semantics for every viewport/resource variant remain open.</td>
+</tr>
+<tr>
+<td><code>foreignObject</code> geometry</td>
+<td>Partial</td>
+<td>Geometry is preserved and SvgML packages provide platform native-control integrations. Core Skia rendering does not lay out browser HTML/CSS.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="text-features">Text Features</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Feature</th>
+<th>Status</th>
+<th>Current contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>paint-order</code> on text</td>
+<td>Partial</td>
+<td>Text elements inherit/use <code>SvgPaintOrder</code>, and retained text orders fill, stroke, and decorations in focused paths. More pixel coverage for complex styled runs is still useful.</td>
+</tr>
+<tr>
+<td><code>textPath path</code></td>
+<td>Supported for static subset</td>
+<td><code>SvgTextPath.PathData</code> parses inline path data, and inline path data wins over href in retained textPath rendering. Covered retained paths handle pathLength distance scaling, closed-loop start offsets, and open-path clipping.</td>
+</tr>
+<tr>
+<td><code>textPath</code> href to basic shapes</td>
+<td>Supported for static subset</td>
+<td>Effective href can resolve direct visual shape targets, and covered retained support converts basic shape targets for text-on-path rendering.</td>
+</tr>
+<tr>
+<td><code>textPath side</code></td>
+<td>Supported for static subset</td>
+<td><code>SvgTextPathSide</code> supports <code>left</code> and <code>right</code>; retained draw, clip, and measure paths reverse sampled geometry and mirror offsets for <code>side=&quot;right&quot;</code>.</td>
+</tr>
+<tr>
+<td><code>white-space</code></td>
+<td>Partial</td>
+<td><code>SvgWhiteSpace</code> parses SVG 2 whitespace values, and focused retained text preserves <code>white-space: pre</code> runs. Full CSS Text integration remains open.</td>
+</tr>
+<tr>
+<td><code>inline-size</code>, <code>shape-inside</code>, <code>shape-subtract</code></td>
+<td>Deferred</td>
+<td>Typed properties exist on <code>SvgElement</code> and are preserved for model/style contracts. Auto-wrapped text and shape exclusion layout are not implemented.</td>
+</tr>
+<tr>
+<td><code>text-overflow</code></td>
+<td>Deferred</td>
+<td>The typed property exists and is preserved for model/style contracts. Ellipsis/clipped inline layout is not implemented.</td>
+</tr>
+<tr>
+<td>Removed SVG 1.1 text features</td>
+<td>Compatibility</td>
+<td><code>tref</code> and SVG font-related features can remain for compatibility where already supported. They are not new SVG 2 core requirements.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="paint-masking-and-filter-features">Paint, Masking, And Filter Features</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Feature</th>
+<th>Status</th>
+<th>Current contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;paint&gt;</code> grammar additions</td>
+<td>Partial</td>
+<td><code>context-fill</code> and <code>context-stroke</code> parse as paint servers. Retained marker and focused <code>&lt;use&gt;</code> paths resolve context paint, including selected URL fallback chains; broader referenced-content parity remains open.</td>
+</tr>
+<tr>
+<td><code>currentColor</code></td>
+<td>Supported</td>
+<td>Paint server and color handling support inherited current color in fill/stroke/paint paths. Continued coverage with CSS variables and inherited color combinations is useful.</td>
+</tr>
+<tr>
+<td>URL paint fallback</td>
+<td>Partial</td>
+<td>Deferred and fallback paint-server types exist, common URL paint references work, and selected context-paint fallback chains are covered. Complex SVG 2 fallback-chain behavior still needs audit.</td>
+</tr>
+<tr>
+<td><code>radialGradient fr</code></td>
+<td>Partial</td>
+<td>The property is exposed by generated/model surfaces, and retained/model gradient creation maps non-zero focal radius to two-point conical shaders in verified Chrome-backed rows. Broader inheritance, transform, and CSS coverage still needs audit before marking full support.</td>
+</tr>
+<tr>
+<td><code>mask-type</code></td>
+<td>Partial</td>
+<td><code>MaskType</code> supports alpha and luminance, retained masks choose alpha or luminance conversion in focused paths, and stylesheet <code>mask-type</code> can override presentation attributes. Broader CSS Masking parity and object-bounding-box tests remain open.</td>
+</tr>
+<tr>
+<td>Linked filters</td>
+<td>Partial</td>
+<td>Effective href applies to filters, retained resource dependency tracking includes linked filters, and focused coverage includes region inheritance, dependency refresh, and cycle handling. Full filter parity still needs audit.</td>
+</tr>
+<tr>
+<td><code>feImage</code> href and dependencies</td>
+<td>Partial</td>
+<td>Focused retained <code>feImage</code> paths cover data SVG and selected local/external raster or SVG inputs with nested scene compilation and cycle guards. Broader <code>feImage</code> parity remains incomplete, with multiple resvg cases intentionally skipped.</td>
+</tr>
+<tr>
+<td><code>feDropShadow</code></td>
+<td>Partial</td>
+<td><code>SvgDropShadow</code> models <code>dx</code>, <code>dy</code>, <code>stdDeviation</code>, <code>flood-color</code>, <code>flood-opacity</code>, and inherited primitive attributes. Retained filters expand drop shadow through alpha, blur, offset, colorization, and merge in supported paths.</td>
+</tr>
+<tr>
+<td>CSS compositing and blending</td>
+<td>Partial</td>
+<td><code>mix-blend-mode</code> and <code>isolation</code> parse from CSS style sources. Retained rendering uses save layers and blend modes in supported paths.</td>
+</tr>
+<tr>
+<td>CSS Color beyond SVG 1.1</td>
+<td>Partial</td>
+<td>Current color parsing covers practical SVG/CSS color forms and sRGB/linear RGB behavior in supported paint/filter paths. CSS Color 4 and full color management are not part of this tranche.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="resource-loading-policies">Resource Loading Policies</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Policy</th>
+<th>Current behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Enabled</code></td>
+<td>Allows supported external resources subject to existing resolver and asset loader behavior. This is the default.</td>
+</tr>
+<tr>
+<td><code>SameOrigin</code></td>
+<td>Allows same-document references, data URIs, same-origin network resources, and local file resources under the SVG document directory. Local file confinement avoids treating all <code>file:</code> URLs as one broad origin.</td>
+</tr>
+<tr>
+<td><code>SameDocumentAndDataOnly</code></td>
+<td>Allows fragment references and data URIs; blocks external files/network resources in covered paths, including CSS imports and image loads before asset loading.</td>
+</tr>
+<tr>
+<td><code>Disabled</code></td>
+<td>Allows same-document references; blocks data/external fetches in covered paths. Secure-static parity is broader than the current implementation.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="deferred-svg-2-areas">Deferred SVG 2 Areas</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Area</th>
+<th>Current disposition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Secure static processing completeness</td>
+<td>Contracts exist; linked stylesheets, fonts, host exposure, and complete nested-resource inheritance need more work.</td>
+</tr>
+<tr>
+<td>Central computed style cache</td>
+<td>Active for selected static properties. Broader cleanup can still consolidate remaining geometry, paint, filter, and text reads.</td>
+</tr>
+<tr>
+<td>Shared geometry service</td>
+<td>Expanded for CSS geometry, equivalent paths, marker placement, textPath targets, and pathLength normalization. Bbox options and exhaustive geometry consumers remain future work.</td>
+</tr>
+<tr>
+<td>Full SVG 2 text layout</td>
+<td>Auto-wrapping, baseline/offset parity, graphics effects on text content, complete CSS Text integration, ellipsis, and shape exclusion are not complete. Focused <code>side=right</code>, closed-loop textPath, and <code>pathLength</code> textPath rows are covered separately.</td>
+</tr>
+<tr>
+<td>Full symbol reference-point semantics</td>
+<td><code>refX</code> and <code>refY</code> are parsed but not fully rendered.</td>
+</tr>
+<tr>
+<td>Complete context paint</td>
+<td>Marker, <code>&lt;use&gt;</code>, text, currentColor, and selected fallback chains work in covered static paths; broader resource/context inheritance edge cases remain open.</td>
+</tr>
+<tr>
+<td>Full masking/filter parity</td>
+<td>Focused <code>mask-type</code>, <code>feDropShadow</code>, and <code>feImage</code> paths exist; full CSS Masking and Filter Effects parity is not complete.</td>
+</tr>
+<tr>
+<td>Mesh gradients, hatches, <code>solidcolor</code></td>
+<td>Deferred or preserve-only.</td>
+</tr>
+<tr>
+<td><code>stroke-linejoin: arcs</code></td>
+<td>Deferred; current rendering falls back to existing line-join behavior.</td>
+</tr>
+<tr>
+<td>Other at-risk <code>vector-effect</code> values</td>
+<td>Deferred; unsupported values fall back to existing stroke behavior.</td>
+</tr>
+<tr>
+<td>Dynamic interactive behavior</td>
+<td>Scripting, live DOM APIs, CSSOM, event processing, selection/editing, runtime media, and broad animation timelines are outside this static subset.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="implementation-evidence">Implementation Evidence</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Layer</th>
+<th>Main contracts</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Svg.Custom</code></td>
+<td><code>SvgDocumentLoadOptions</code>, <code>SvgProcessingMode</code>, <code>SvgExternalResourcePolicy</code>, <code>SvgElementHrefExtensions</code>, <code>SvgPaintOrder</code>, <code>SvgContextPaintServer</code>, <code>SvgDropShadow</code>, <code>SvgText2Properties</code>, <code>SvgTransform2Properties</code>, <code>SvgSymbol.Svg2</code>, <code>SvgPathBasedElement.Svg2</code>, and expanded style attribute recognition.</td>
+</tr>
+<tr>
+<td><code>Svg.Model</code></td>
+<td><code>SvgParameters</code> load-option bridge, resource policy checks, URI/image loading, path/paint/mask/filter helpers, and <code>MaskType</code>.</td>
+</tr>
+<tr>
+<td><code>Svg.SceneGraph</code></td>
+<td>Retained use/resource expansion, effective href dependency tracking, textPath additions, paint-order rendering, context-paint marker state, retained masks, retained filters, <code>feDropShadow</code>, linked filter and <code>feImage</code> dependency handling.</td>
+</tr>
+<tr>
+<td><code>ShimSkiaSharp</code></td>
+<td>Renderer-neutral path, paint, shader, image, filter, save-layer, clip, and text commands used by current SVG 2 slices.</td>
+</tr>
+<tr>
+<td><code>Svg.Skia</code></td>
+<td>Converts shim commands to SkiaSharp, hosts <code>SKSvg</code> picture/model lifecycle, and provides interaction dispatch around retained static content.</td>
+</tr>
+<tr>
+<td>SvgML packages</td>
+<td><code>SvgML.Avalonia</code>, <code>SvgML.Maui</code>, and <code>SvgML.Uno</code> expose inline XAML authoring for the SVG 2 static subset, including root load options, shape <code>pathLength</code>, symbol geometry, <code>paint-order</code>, <code>vector-effect</code>, transform properties, <code>white-space</code>, preserve-only text properties, <code>mask-type</code>, <code>feDropShadow</code>, <code>textPath path</code>, and <code>textPath side</code>.</td>
+</tr>
+<tr>
+<td>Host controls</td>
+<td>Preserve and clone load options through current source/cache paths and expose selected CSS/current-color/runtime conveniences; broader public host exposure remains planned.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="test-coverage">Test Coverage</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Test source</th>
+<th>Coverage signal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Svg2StaticHrefTests</code></td>
+<td>Effective href precedence, empty href behavior, invalid URI handling, and programmatic href updates.</td>
+</tr>
+<tr>
+<td><code>Svg2StaticResourcePolicyTests</code></td>
+<td>External resource policies for covered image, nested SVG, SVGZ, data URI, and CSS import paths.</td>
+</tr>
+<tr>
+<td><code>Svg2StaticStyleContractTests</code></td>
+<td>SVG 2 style recognition, CSS-only property behavior, and style contract expectations.</td>
+</tr>
+<tr>
+<td><code>Svg2StaticSubsetAttributeTests</code></td>
+<td>SVG 2 parser/model attributes, preserve-only/deferred element contracts, dynamic/interactive preservation boundaries, unsupported vector-effect fallback, and stroke-linejoin compatibility.</td>
+</tr>
+<tr>
+<td><code>SvgContextPaintServerTests</code> and retained scene tests</td>
+<td>Context paint, paint order, marker behavior, masks, filters, <code>feDropShadow</code>, <code>feImage</code>, and dependency tracking in focused renderer paths.</td>
+</tr>
+<tr>
+<td><code>Svg2StaticSubsetRenderingContractTests</code></td>
+<td>Renderer fallback contracts for unknown SVG elements, unsupported vector-effect values, and deferred <code>stroke-linejoin: arcs</code>.</td>
+</tr>
+<tr>
+<td>WPT SVG 2 static subset</td>
+<td>Focused Web Platform Tests rows for geometry properties, the <code>d</code> property, <code>pathLength</code>, context paint, paint order, paint-server fallbacks, radial gradient <code>fr</code>, textPath additions, <code>use</code> sizing, path bearing commands, and selected style-origin rendering. The active SVG-only rows compare against checked Chrome references and stay enabled; unsupported browser-runtime rows are outside the static subset instead of being tracked as skipped WPT rows.</td>
+</tr>
+<tr>
+<td>W3C/resvg rows</td>
+<td>Broader static rendering references. Browser-only, dynamic, or not-yet-supported rows remain skipped with explicit reasons.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="related-articles">Related Articles</h2>
+<ul>
+<li><a href="/Svg.Skia/articles/reference/svg-11-static-subset-support">SVG 1.1 Static Subset Support</a></li>
+<li><a href="/Svg.Skia/articles/concepts/rendering-pipeline">Rendering Pipeline</a></li>
+<li><a href="/Svg.Skia/articles/concepts/source-formats-and-assets">Source Formats and Assets</a></li>
+<li><a href="/Svg.Skia/articles/reference/api-coverage-index">API Coverage Index</a></li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

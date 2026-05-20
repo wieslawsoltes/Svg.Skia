@@ -223,17 +223,17 @@
 </tr>
 <tr>
 <td><code>SvgML.Avalonia</code></td>
-<td>You want to author SVG markup inline in Avalonia XAML, including native controls hosted through <code>foreignObject</code>, and still render it through the shared <code>Svg.Skia</code> pipeline.</td>
+<td>You want to author SVG markup inline in Avalonia XAML, including the supported SVG 2 static subset and native controls hosted through <code>foreignObject</code>, and still render it through the shared <code>Svg.Skia</code> pipeline.</td>
 <td><a href="/Svg.Skia/articles/packages/svgml-avalonia">SvgML.Avalonia</a></td>
 </tr>
 <tr>
 <td><code>SvgML.Maui</code></td>
-<td>You want to author SVG markup inline in .NET MAUI XAML, including native controls hosted through <code>foreignObject</code>, and render it through the shared <code>Svg.Skia</code> pipeline.</td>
+<td>You want to author SVG markup inline in .NET MAUI XAML, including the supported SVG 2 static subset and native controls hosted through <code>foreignObject</code>, and render it through the shared <code>Svg.Skia</code> pipeline.</td>
 <td><a href="/Svg.Skia/articles/packages/svgml-maui">SvgML.Maui</a></td>
 </tr>
 <tr>
 <td><code>SvgML.Uno</code></td>
-<td>You want to author SVG markup inline in Uno Platform XAML, including native controls hosted through <code>foreignObject</code>, and render it through the shared <code>Svg.Skia</code> pipeline.</td>
+<td>You want to author SVG markup inline in Uno Platform XAML, including the supported SVG 2 static subset and native controls hosted through <code>foreignObject</code>, and render it through the shared <code>Svg.Skia</code> pipeline.</td>
 <td><a href="/Svg.Skia/articles/packages/svgml-uno">SvgML.Uno</a></td>
 </tr>
 <tr>
@@ -309,11 +309,11 @@
 <li>Choose <code>Svg.Animation</code> when the main task is SVG timing, host backend selection, or animation-controller integration rather than the full rendering surface.</li>
 <li>Choose <code>Svg.SceneGraph</code> when you need retained compiled scene nodes and bounds instead of only the intermediate model or the final Skia output.</li>
 <li>Choose <code>Svg.Controls.Skia.Uno</code> for Uno Platform usage on the Skia-backed path with host-driven animation playback.</li>
-<li>Choose <code>SvgML.Uno</code> when the SVG itself should live in Uno XAML pages or controls instead of an external asset file, including native Uno controls placed by SVG <code>foreignObject</code>.</li>
+<li>Choose <code>SvgML.Uno</code> when the SVG itself should live in Uno XAML pages or controls instead of an external asset file, including SVG 2 static subset attributes and native Uno controls placed by SVG <code>foreignObject</code>.</li>
 <li>Choose <code>Svg.Controls.Skia.Maui</code> for .NET MAUI usage when the SVG already exists as an external asset or source string and should render through <code>SKCanvasView</code>.</li>
 <li>Choose <code>Svg.Controls.Skia.Avalonia</code> for interactive Avalonia usage on the Skia-backed path, especially when retained native composition matters.</li>
-<li>Choose <code>SvgML.Avalonia</code> when the SVG itself should live in Avalonia XAML resources, templates, or views instead of an external asset file, including native Avalonia controls placed by SVG <code>foreignObject</code>.</li>
-<li>Choose <code>SvgML.Maui</code> when the SVG itself should live in .NET MAUI XAML pages or controls instead of an external asset file, including native MAUI controls placed by SVG <code>foreignObject</code>.</li>
+<li>Choose <code>SvgML.Avalonia</code> when the SVG itself should live in Avalonia XAML resources, templates, or views instead of an external asset file, including SVG 2 static subset attributes and native Avalonia controls placed by SVG <code>foreignObject</code>.</li>
+<li>Choose <code>SvgML.Maui</code> when the SVG itself should live in .NET MAUI XAML pages or controls instead of an external asset file, including SVG 2 static subset attributes and native MAUI controls placed by SVG <code>foreignObject</code>.</li>
 <li>Choose <code>Svg.Editor.Skia.Avalonia</code> when you want a reusable SVG editor instead of only a viewer/control package.</li>
 <li>Choose <code>Svg.Editor.Avalonia</code>, <code>Svg.Editor.Skia</code>, <code>Svg.Editor.Svg</code>, and <code>Svg.Editor.Core</code> when you need only parts of that editor stack.</li>
 <li>Choose <code>Svg.Controls.Avalonia</code> for Avalonia drawing-context integration without the <code>SKSvg</code> runtime surface.</li>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>SVG 1.1 Static Subset Support | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="SVG 1.1 Static Subset Support | Svg.Skia">
+<meta name="twitter:description" content="SVG 1.1 Static Subset Support This article documents the SVG 1.1 Second Edition features supported by the current static rendering pipeline. The scope follows a document from Svg.Custom parsing, through shared services in Svg.Model, retained compilation in Svg.SceneGraph, shim output in ShimSkiaSharp, and final Skia output in Svg.Skia. The normative reference is the W3C SVG 1.1 Second Edition Recommendation. Scope Notes Topic Contract...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="SVG 1.1 Static Subset Support | Svg.Skia">
+<meta property="og:title" content="SVG 1.1 Static Subset Support | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="SVG 1.1 Static Subset Support This article documents the SVG 1.1 Second Edition features supported by the current static rendering pipeline. The scope follows a document from Svg.Custom parsing, through shared services in Svg.Model, retained compilation in Svg.SceneGraph, shim output in ShimSkiaSharp, and final Skia output in Svg.Skia. The normative reference is the W3C SVG 1.1 Second Edition Recommendation. Scope Notes Topic Contract...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="SVG 1.1 Static Subset Support | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ol id='menu-id-reference-0' class='menu menu-level0 show '>
+            <li id='menu-item-reference-1' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/' class='menu-link  '>Reference</a></span>  </li>
+            <li id='menu-item-reference-2' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/packages-and-namespaces/' class='menu-link  '>Packages and Namespaces</a></span>  </li>
+            <li id='menu-item-reference-3' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/samples-and-tools/' class='menu-link  '>Samples and Tools</a></span>  </li>
+            <li id='menu-item-reference-4' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/api-coverage-index/' class='menu-link  '>API Coverage Index</a></span>  </li>
+            <li id='menu-item-reference-5' class='menu-item  active'>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/svg-11-static-subset-support/' class='menu-link  '>SVG 1.1 Static Subset Support</a></span>  </li>
+            <li id='menu-item-reference-6' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/svg-2-static-subset-support/' class='menu-link  '>SVG 2 Static Subset Support</a></span>  </li>
+            <li id='menu-item-reference-7' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/license/' class='menu-link  '>License</a></span>  </li>
+            <li id='menu-item-reference-8' class='menu-item '>
+              <span class='menu-item-row'><a href='/Svg.Skia/articles/reference/lunet-docs-pipeline/' class='menu-link  '>Lunet Docs Pipeline</a></span>  </li>
+          </ol>
+
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/reference/' class='breadcrumb-link  '>Reference</a>  </li>
+          <li class='breadcrumb-item  active'>
+            SVG 1.1 Static Subset Support  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="svg-11-static-subset-support">SVG 1.1 Static Subset Support</h1>
+<p>This article documents the SVG 1.1 Second Edition features supported by the current static rendering pipeline. The scope follows a document from <code>Svg.Custom</code> parsing, through shared services in <code>Svg.Model</code>, retained compilation in <code>Svg.SceneGraph</code>, shim output in <code>ShimSkiaSharp</code>, and final Skia output in <code>Svg.Skia</code>.</p>
+<p>The normative reference is the W3C <a href="https://www.w3.org/TR/SVG11/">SVG 1.1 Second Edition Recommendation</a>.</p>
+<h2 id="scope-notes">Scope Notes</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Topic</th>
+<th>Contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Static SVG</td>
+<td>This page covers markup that affects pixels, resources, metadata, or retained inspection in a loaded SVG document.</td>
+</tr>
+<tr>
+<td>SVG 2 and CSS extensions</td>
+<td>Unnamespaced <code>href</code>, CSS geometry, CSS <code>d</code>, CSS custom properties, <code>paint-order</code>, context paint, <code>transform-origin</code>, basic-shape <code>pathLength</code>, textPath <code>side</code>, marker <code>auto-start-reverse</code>, <code>vector-effect</code>, <code>mix-blend-mode</code>, and <code>isolation</code> are compatibility extensions and are documented in <a href="/Svg.Skia/articles/reference/svg-2-static-subset-support">SVG 2 Static Subset Support</a>.</td>
+</tr>
+<tr>
+<td>Runtime behavior</td>
+<td>Pointer dispatch, cursor resolution, scripts, and animation playback are runtime APIs. Static loading does not provide a browser DOM, CSSOM, event loop, or navigation UI.</td>
+</tr>
+<tr>
+<td>Retained scene graph</td>
+<td><code>Svg.SceneGraph</code> is the implementation/API surface used to render, inspect, hit-test, and incrementally refresh static SVG content. It is not a separate SVG language feature.</td>
+</tr>
+<tr>
+<td>Non-SVG inputs</td>
+<td>Android VectorDrawable XML is supported through separate import/conversion APIs. Its Android attribute contract is not part of SVG 1.1 static support.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="svg-11-compatibility-defaults">SVG 1.1 Compatibility Defaults</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Topic</th>
+<th>Default behavior</th>
+<th>Compatibility note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Loading profile</td>
+<td><code>SvgDocumentLoadOptions</code> defaults to <code>ProcessingMode = Static</code> and <code>ExternalResources = Enabled</code>.</td>
+<td>This is the legacy-compatible static rendering profile. <code>SecureStatic</code>, <code>SameDocumentAndDataOnly</code>, and <code>Disabled</code> are safer but can block external SVG 1.1 assets.</td>
+</tr>
+<tr>
+<td>Mixed <code>href</code> / <code>xlink:href</code></td>
+<td><code>PreferSvg2Href = true</code>, so unnamespaced SVG 2 <code>href</code> wins when both attributes are present.</td>
+<td>Pure SVG 1.1 <code>xlink:href</code> still resolves. Consumers that need legacy precedence can set <code>PreferSvg2Href = false</code>.</td>
+</tr>
+<tr>
+<td>CSS geometry</td>
+<td>Supported CSS geometry and CSS <code>d</code> declarations can override SVG 1.1 geometry attributes.</td>
+<td>This is browser/SVG 2 compatibility behavior. Invalid declarations are ignored so valid SVG 1.1 fallbacks remain in effect.</td>
+</tr>
+<tr>
+<td>CSS-only properties</td>
+<td><code>mix-blend-mode</code> and <code>isolation</code> apply from CSS style sources, not from bare XML presentation attributes.</td>
+<td>This avoids accidentally changing SVG 1.1 documents that carry unsupported custom attributes.</td>
+</tr>
+<tr>
+<td>Conditional processing</td>
+<td><code>requiredExtensions</code> and <code>systemLanguage</code> can suppress rendering. <code>requiredFeatures</code> is preserved but intentionally does not gate static rendering.</td>
+<td>This follows the current browser-compatible static rendering policy rather than strict SVG 1.1 validation semantics.</td>
+</tr>
+</tbody>
+</table>
+<p>Strict legacy importers that need <code>xlink:href</code> precedence can load with:</p>
+<pre><code class="language-csharp">var parameters = new SvgParameters(
+    Entities: null,
+    Css: null,
+    CurrentColor: null,
+    LoadOptions: new SvgDocumentLoadOptions
+    {
+        ProcessingMode = SvgProcessingMode.Static,
+        ExternalResources = SvgExternalResourcePolicy.Enabled,
+        PreferSvg2Href = false
+    });
+</code></pre>
+<h2 id="status-legend">Status Legend</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Supported</td>
+<td>Implemented in parser/model and exercised by static renderer paths.</td>
+</tr>
+<tr>
+<td>Partial</td>
+<td>Implemented for common or focused cases, with known conformance gaps.</td>
+</tr>
+<tr>
+<td>Deferred</td>
+<td>Preserved or skipped because the static Skia pipeline does not currently render the feature.</td>
+</tr>
+<tr>
+<td>Compatibility</td>
+<td>Parsed or preserved for SVG compatibility, but not a primary static rendering feature.</td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td>Available only through runtime/interactive APIs or opt-in settings.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="core-svg-11-matrix">Core SVG 1.1 Matrix</h2>
+<table class="table">
+<thead>
+<tr>
+<th>SVG 1.1 area</th>
+<th>Status</th>
+<th>Static subset contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Document structure</td>
+<td>Partial</td>
+<td>Supports <code>&lt;svg&gt;</code>, nested fragments, <code>&lt;g&gt;</code>, <code>&lt;defs&gt;</code>, <code>&lt;symbol&gt;</code>, <code>&lt;use&gt;</code>, <code>&lt;switch&gt;</code>, <code>&lt;a&gt;</code>, <code>&lt;image&gt;</code>, <code>&lt;title&gt;</code>, <code>&lt;desc&gt;</code>, and metadata containers. <code>requiredExtensions</code> and <code>systemLanguage</code> are evaluated; <code>requiredFeatures</code> is kept for compatibility and does not gate rendering.</td>
+</tr>
+<tr>
+<td>Styling</td>
+<td>Partial</td>
+<td>Supports presentation attributes, inline <code>style</code>, <code>&lt;style&gt;</code>, <code>xml-stylesheet</code>, CSS <code>@import</code>, media-qualified imports, <code>@media</code> blocks, and common selector forms. The loader treats the static stylesheet context as screen-like and does not implement CSSOM.</td>
+</tr>
+<tr>
+<td>CSS selector runtime boundary</td>
+<td>Partial</td>
+<td>Static selector handling covers common structural/class/id selectors plus static forms such as <code>:root</code>, <code>:link</code>, and <code>:lang()</code>. Interactive pseudo-classes such as <code>:hover</code>, <code>:active</code>, <code>:focus</code>, and <code>:visited</code> never match during static load.</td>
+</tr>
+<tr>
+<td>Coordinate systems and units</td>
+<td>Supported</td>
+<td>Supports <code>transform</code>, transform lists, viewBox transforms, nested viewports, object bounding box units, user units, percentages, <code>em</code>, <code>ex</code>, <code>px</code>, <code>in</code>, <code>cm</code>, <code>mm</code>, <code>pt</code>, and <code>pc</code>. Physical units follow the repository SVG pixel assumptions.</td>
+</tr>
+<tr>
+<td>Paths</td>
+<td>Supported</td>
+<td>Supports moveto, lineto, horizontal/vertical lineto, cubic/smooth cubic curves, quadratic/smooth quadratic curves, elliptical arcs, closepath, relative commands, fill rules, and marker point extraction.</td>
+</tr>
+<tr>
+<td>Basic shapes</td>
+<td>Supported</td>
+<td>Supports <code>&lt;rect&gt;</code>, <code>&lt;circle&gt;</code>, <code>&lt;ellipse&gt;</code>, <code>&lt;line&gt;</code>, <code>&lt;polyline&gt;</code>, <code>&lt;polygon&gt;</code>, rounded rectangles, point lists, and shape-to-path conversion.</td>
+</tr>
+<tr>
+<td>Text</td>
+<td>Partial</td>
+<td>Supports <code>&lt;text&gt;</code>, <code>&lt;tspan&gt;</code>, <code>&lt;tref&gt;</code>, <code>&lt;textPath&gt;</code>, x/y/dx/dy/rotate positioning, <code>textLength</code>, <code>lengthAdjust</code>, bidi direction, writing mode, text decoration, and fill/stroke text painting. Browser-complete baseline, vertical layout, textPath, shaping, and glyph fallback behavior remain partial.</td>
+</tr>
+<tr>
+<td>SVG 1.1 altGlyph text</td>
+<td>Deferred</td>
+<td><code>altGlyph</code>, <code>altGlyphDef</code>, <code>altGlyphItem</code>, and <code>glyphRef</code> are not implemented. W3C <code>text-altglyph-*</code> rows remain skipped with explicit reasons.</td>
+</tr>
+<tr>
+<td>Fill and stroke painting</td>
+<td>Supported</td>
+<td>Supports <code>fill</code>, <code>stroke</code>, opacity values, fill and clip rules, stroke width, dash array, dash offset, line cap, line join, miter limit, visibility, display, <code>currentColor</code>, and <code>shape-rendering</code>.</td>
+</tr>
+<tr>
+<td>Markers</td>
+<td>Partial</td>
+<td>Supports <code>marker-start</code>, <code>marker-mid</code>, <code>marker-end</code>, marker geometry, marker units, and orientation for common path-like content. Broader marker-on-all-shapes behavior belongs to the SVG 2 workstream.</td>
+</tr>
+<tr>
+<td>Color</td>
+<td>Partial</td>
+<td>Supports CSS color names, hex colors, rgb forms, opacity, <code>currentColor</code>, <code>color-interpolation</code>, and <code>color-interpolation-filters</code> in supported paint/filter paths. ICC <code>color-profile</code> behavior is compatibility-only and not a static target.</td>
+</tr>
+<tr>
+<td>Gradients and patterns</td>
+<td>Supported</td>
+<td>Supports <code>&lt;linearGradient&gt;</code>, <code>&lt;radialGradient&gt;</code>, <code>&lt;stop&gt;</code>, <code>&lt;pattern&gt;</code>, gradient units, pattern units, pattern content units, transforms, spread methods, stop color/opacity, and linked paint servers.</td>
+</tr>
+<tr>
+<td>Clipping, masking, compositing</td>
+<td>Partial</td>
+<td>Supports <code>&lt;clipPath&gt;</code>, <code>clipPathUnits</code>, <code>clip: rect(...)</code>, nested/referenced clips, path/basic-shape/text/use clipping, masks with focused alpha/luminance behavior, opacity, and layer compositing. Object-bounding-box and referenced-content edge cases still need focused coverage.</td>
+</tr>
+<tr>
+<td>Filter effects</td>
+<td>Partial</td>
+<td>Supports many SVG 1.1 primitives, filter regions, primitive units, primitive chaining, light sources, linked filters, and selected color-interpolation behavior. Exact browser parity varies by primitive and input chain.</td>
+</tr>
+<tr>
+<td>Linking</td>
+<td>Partial</td>
+<td>Supports same-document references, data URLs, external image references, <code>xlink:href</code>, <code>xml:base</code>, and references from use, gradients, patterns, filters, filter images, text, masks, and clips. Host navigation from <code>&lt;a&gt;</code> is not part of static rendering.</td>
+</tr>
+<tr>
+<td>Interactivity</td>
+<td>Runtime</td>
+<td><code>pointer-events</code> can affect hit testing and <code>cursor</code> is captured for retained/runtime dispatch and Avalonia/Uno host cursor mapping. Static rendering does not dispatch browser events.</td>
+</tr>
+<tr>
+<td>Scripting</td>
+<td>Runtime</td>
+<td>Script elements and script attributes are runtime concerns. JavaScript support lives in the optional JavaScript package and is disabled by default.</td>
+</tr>
+<tr>
+<td>Animation</td>
+<td>Runtime</td>
+<td>Animation elements are represented in <code>Svg.Custom</code>, and runtime APIs can seek or advance animation state. SMIL timeline playback is not part of static rendering.</td>
+</tr>
+<tr>
+<td>Fonts</td>
+<td>Partial</td>
+<td>Supports system fonts, typeface provider hooks, family/style/weight/stretch, relative weights, and optional SVG font compatibility through settings. <code>@font-face</code>/WOFF policy and full browser font fallback remain limited.</td>
+</tr>
+<tr>
+<td>Extensibility</td>
+<td>Partial</td>
+<td>Unknown SVG elements/attributes and non-SVG nodes can be preserved. <code>foreignObject</code> has bounds handling and SvgML host-control integrations, but core Skia rendering is not an HTML/CSS layout engine.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="element-support-matrix">Element Support Matrix</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Element group</th>
+<th>Status</th>
+<th>Elements and notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Root and containers</td>
+<td>Partial</td>
+<td><code>svg</code>, <code>g</code>, <code>defs</code>, <code>symbol</code>, <code>switch</code>, and <code>a</code> render or preserve expected static structure. <code>symbol</code> and <code>use</code> cover common static references; advanced reference-point semantics are SVG 2 work.</td>
+</tr>
+<tr>
+<td>Descriptive and metadata</td>
+<td>Supported</td>
+<td><code>title</code>, <code>desc</code>, and <code>metadata</code> are parsed and preserved as non-rendering content.</td>
+</tr>
+<tr>
+<td>Graphics shapes</td>
+<td>Supported</td>
+<td><code>path</code>, <code>rect</code>, <code>circle</code>, <code>ellipse</code>, <code>line</code>, <code>polyline</code>, and <code>polygon</code> render through retained path/shape compilation.</td>
+</tr>
+<tr>
+<td>Text</td>
+<td>Partial</td>
+<td><code>text</code>, <code>tspan</code>, <code>tref</code>, and <code>textPath</code> render for many static cases. <code>altGlyph</code>, <code>altGlyphDef</code>, <code>altGlyphItem</code>, and <code>glyphRef</code> are deferred.</td>
+</tr>
+<tr>
+<td>Paint servers</td>
+<td>Supported</td>
+<td><code>linearGradient</code>, <code>radialGradient</code>, <code>stop</code>, and <code>pattern</code> support template inheritance, transforms, and current static paint paths.</td>
+</tr>
+<tr>
+<td>Markers</td>
+<td>Partial</td>
+<td><code>marker</code> renders for common path-like content. Complete SVG 2 marker broadening is separate.</td>
+</tr>
+<tr>
+<td>Clipping and masking</td>
+<td>Partial</td>
+<td><code>clipPath</code> and <code>mask</code> support common static paths; object-bounding-box and referenced-content edge cases remain partial.</td>
+</tr>
+<tr>
+<td>Filters</td>
+<td>Partial</td>
+<td><code>filter</code>, filter primitive children, and light source children are implemented for many practical static paths.</td>
+</tr>
+<tr>
+<td>Images</td>
+<td>Partial</td>
+<td><code>image</code> supports raster, SVG, SVGZ, and data URI paths subject to resource policy and asset loader behavior.</td>
+</tr>
+<tr>
+<td>Scripting and animation</td>
+<td>Runtime</td>
+<td><code>script</code>, <code>animate</code>, <code>set</code>, <code>animateMotion</code>, <code>animateColor</code>, <code>animateTransform</code>, and <code>mpath</code> are runtime features, not static feature coverage.</td>
+</tr>
+<tr>
+<td>Legacy SVG fonts</td>
+<td>Partial</td>
+<td><code>font</code>, <code>font-face</code>, <code>glyph</code>, <code>missing-glyph</code>, <code>hkern</code>, and related SVG font nodes are optional compatibility support through <code>EnableSvgFonts</code>.</td>
+</tr>
+<tr>
+<td>Extensibility</td>
+<td>Partial</td>
+<td><code>foreignObject</code>, unknown SVG elements, and non-SVG nodes can be preserved or hosted through platform-specific integrations.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="attribute-and-property-matrix">Attribute And Property Matrix</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Category</th>
+<th>Status</th>
+<th>Supported examples and caveats</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Geometry</td>
+<td>Supported</td>
+<td><code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>, <code>cx</code>, <code>cy</code>, <code>r</code>, <code>rx</code>, <code>ry</code>, <code>x1</code>, <code>y1</code>, <code>x2</code>, <code>y2</code>, <code>points</code>, and <code>d</code> are supported as SVG 1.1 attributes. SVG 2 styleable geometry is documented separately and can override attributes when authored as CSS.</td>
+</tr>
+<tr>
+<td>Viewport and alignment</td>
+<td>Supported</td>
+<td><code>viewBox</code>, <code>preserveAspectRatio</code>, and <code>overflow</code> are used by root SVG, nested SVG, patterns, symbols, images, and viewports where implemented.</td>
+</tr>
+<tr>
+<td>Paint</td>
+<td>Supported</td>
+<td><code>fill</code>, <code>stroke</code>, <code>color</code>, <code>fill-opacity</code>, <code>stroke-opacity</code>, <code>opacity</code>, <code>fill-rule</code>, and <code>clip-rule</code> include <code>currentColor</code> and paint-server references.</td>
+</tr>
+<tr>
+<td>Stroke</td>
+<td>Supported</td>
+<td><code>stroke-width</code>, <code>stroke-linecap</code>, <code>stroke-linejoin</code>, <code>stroke-miterlimit</code>, <code>stroke-dasharray</code>, and <code>stroke-dashoffset</code> render through Skia; tiny antialiasing differences from browser engines are expected.</td>
+</tr>
+<tr>
+<td>Markers</td>
+<td>Partial</td>
+<td><code>marker-start</code>, <code>marker-mid</code>, <code>marker-end</code>, marker geometry, and marker orientation attributes render for common path marker cases.</td>
+</tr>
+<tr>
+<td>Text</td>
+<td>Partial</td>
+<td><code>font-family</code>, <code>font-size</code>, <code>font-style</code>, <code>font-weight</code>, <code>font-stretch</code>, <code>text-anchor</code>, <code>dominant-baseline</code>, <code>baseline-shift</code>, <code>direction</code>, <code>writing-mode</code>, <code>text-decoration</code>, <code>letter-spacing</code>, <code>word-spacing</code>, <code>textLength</code>, and <code>lengthAdjust</code> are supported for practical static text paths.</td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>Partial</td>
+<td><code>xlink:href</code>, <code>xml:base</code>, data URLs, and local/file/HTTP resources are controlled by load options, <code>SvgParameters</code>, asset loaders, and resolver settings. SVG 2 unnamespaced <code>href</code> precedence is enabled by default, and <code>PreferSvg2Href = false</code> restores legacy <code>xlink:href</code> precedence for mixed files.</td>
+</tr>
+<tr>
+<td>Styling</td>
+<td>Partial</td>
+<td><code>class</code>, <code>style</code>, presentation attributes, style sheets, <code>@import</code>, media-qualified imports, and <code>@media</code> are supported for common static cases. CSS custom properties are a compatibility extension documented in the SVG 2 article.</td>
+</tr>
+<tr>
+<td>Transforms</td>
+<td>Supported</td>
+<td><code>transform</code>, <code>gradientTransform</code>, and <code>patternTransform</code> map to retained matrices.</td>
+</tr>
+<tr>
+<td>Filters</td>
+<td>Partial</td>
+<td>Filter primitive attributes, <code>filter</code>, <code>filterUnits</code>, <code>primitiveUnits</code>, <code>result</code>, <code>in</code>, <code>in2</code>, <code>color-interpolation</code>, and <code>color-interpolation-filters</code> are used by supported filter paths.</td>
+</tr>
+<tr>
+<td>Conditional processing</td>
+<td>Partial</td>
+<td><code>requiredExtensions</code> and <code>systemLanguage</code> are evaluated. <code>requiredFeatures</code> is preserved but intentionally does not block static rendering.</td>
+</tr>
+<tr>
+<td>Events, cursor, and scripts</td>
+<td>Runtime</td>
+<td>Event attributes and script href/type are runtime concerns. <code>cursor</code> is available to retained interaction dispatch and host controls, not to static pixels.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="implementation-evidence">Implementation Evidence</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Layer</th>
+<th>Main contracts used by SVG 1.1 support</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Svg.Custom</code></td>
+<td>Compatibility document loading, CSS/style preprocessing, element preservation, local paint-server overrides, animation and script representation, and SVG 1.1 parser/model integration.</td>
+</tr>
+<tr>
+<td><code>Svg.Model</code></td>
+<td><code>SvgParameters</code>, unit/transform/path/paint/filter services, image loading, resource resolution, typeface provider hooks, and optional SVG font settings.</td>
+</tr>
+<tr>
+<td><code>Svg.SceneGraph</code></td>
+<td>Retained structural compilation, shape/text/image/resource nodes, clip/mask/filter composition, hit testing, cursor metadata, dependency tracking, and subtree refresh.</td>
+</tr>
+<tr>
+<td><code>ShimSkiaSharp</code></td>
+<td>Renderer-neutral path, paint, shader, image, filter, save-layer, clip, and text command surface.</td>
+</tr>
+<tr>
+<td><code>Svg.Skia</code></td>
+<td>SkiaSharp picture/model lifecycle, static drawing, interaction dispatcher, and host-facing <code>SKSvg</code> APIs.</td>
+</tr>
+<tr>
+<td>Host controls</td>
+<td>Avalonia and Uno controls expose selected runtime surfaces such as hit testing, pointer routing, cursor mapping, source caches, and current-color/CSS conveniences.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="testing-and-reference-coverage">Testing And Reference Coverage</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Test source</th>
+<th>What it covers</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W3C SVG 1.1 suite</td>
+<td>Broad rendering, styling, paths, shapes, filters, text, linking, and interaction fixtures.</td>
+<td>Browser-only rows remain skipped with explicit reasons. Chrome overrides are used where the repository tracks browser behavior instead of legacy references.</td>
+</tr>
+<tr>
+<td>resvg fixture suite</td>
+<td>Large static rendering corpus for SVG features and edge cases.</td>
+<td>Some rows are skipped for features outside the current renderer scope.</td>
+</tr>
+<tr>
+<td>Model unit tests</td>
+<td>Parser, resource policy, CSS, paint, pattern, href, VectorDrawable, and contract behavior.</td>
+<td>VectorDrawable coverage belongs to separate import/conversion behavior, not SVG 1.1 static support.</td>
+</tr>
+<tr>
+<td>Retained scene graph tests</td>
+<td>Static rendering behavior, mutation/dependency refresh, retained text, filters, masks, interaction metadata, and resource expansion.</td>
+<td>Used to verify renderer behavior without relying only on image diff baselines.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="host-and-load-options">Host And Load Options</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Surface</th>
+<th>Current support</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Core loaders</td>
+<td><code>SvgParameters</code> and <code>SvgDocumentLoadOptions</code> carry processing mode, external resource policy, unknown-element preservation, and SVG 2 href preference into document loading paths. <code>Static + Enabled</code> preserves legacy external-resource behavior; secure or restricted policies intentionally block more loads.</td>
+</tr>
+<tr>
+<td>Host wrappers</td>
+<td>Avalonia, Uno, MAUI, and SvgML wrappers preserve options through selected source/cache paths and expose host-specific conveniences. Not every host control exposes the full load-option contract yet.</td>
+</tr>
+<tr>
+<td>Resource security</td>
+<td>Static resource behavior depends on load options, resolver settings, asset loaders, and the current path being exercised. Secure-static parity is broader than the current implementation.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="known-non-goals">Known Non-Goals</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Area</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full browser DOM and CSSOM</td>
+<td>The renderer is a document-to-picture pipeline, not a browser engine.</td>
+</tr>
+<tr>
+<td>Browser navigation from <code>&lt;a&gt;</code></td>
+<td>Hosts can consume link metadata, but static rendering does not navigate.</td>
+</tr>
+<tr>
+<td>Script execution by default</td>
+<td>JavaScript is optional and disabled by default.</td>
+</tr>
+<tr>
+<td>SMIL as static rendering</td>
+<td>Animation can be driven through runtime APIs; static loading renders the selected document state.</td>
+</tr>
+<tr>
+<td>HTML/CSS layout inside <code>foreignObject</code></td>
+<td>SvgML host-control integrations are platform features, not core Skia SVG static rendering.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="related-articles">Related Articles</h2>
+<ul>
+<li><a href="/Svg.Skia/articles/reference/svg-2-static-subset-support">SVG 2 Static Subset Support</a></li>
+<li><a href="/Svg.Skia/articles/concepts/rendering-pipeline">Rendering Pipeline</a></li>
+<li><a href="/Svg.Skia/articles/concepts/source-formats-and-assets">Source Formats and Assets</a></li>
+<li><a href="/Svg.Skia/articles/advanced/testing-and-w3c-suite">Testing and W3C Suite</a></li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

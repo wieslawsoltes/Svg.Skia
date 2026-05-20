@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Svg.Skia Documentation | Svg.Skia">
-<meta name="twitter:description" content="Documentation Svg.Skia spans a few related areas: Svg.Skia and Svg.Model handle SVG parsing, picture-model generation, SkiaSharp output, and model mutation. Svg.Controls.Avalonia and Svg.Controls.Skia.Avalonia expose Avalonia controls, images, and brush helpers. Svg.Controls.Skia.Uno exposes a Skia-backed Uno control and reusable SvgSource resources. Svg.Controls.Skia.Maui exposes a Skia-backed .NET MAUI control and reusable SvgSource resources. SvgML.Maui...">
+<meta name="twitter:description" content="Documentation Svg.Skia spans a few related areas: Svg.Skia and Svg.Model handle SVG parsing, picture-model generation, SkiaSharp output, and model mutation. Svg.Controls.Avalonia and Svg.Controls.Skia.Avalonia expose Avalonia controls, images, and brush helpers. Svg.Controls.Skia.Uno exposes a Skia-backed Uno control and reusable SvgSource resources. Svg.Controls.Skia.Maui exposes a Skia-backed .NET MAUI control and reusable SvgSource resources. SvgML.Avalonia...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Svg.Skia Documentation | Svg.Skia">
 <meta property="og:title" content="Svg.Skia Documentation | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Documentation Svg.Skia spans a few related areas: Svg.Skia and Svg.Model handle SVG parsing, picture-model generation, SkiaSharp output, and model mutation. Svg.Controls.Avalonia and Svg.Controls.Skia.Avalonia expose Avalonia controls, images, and brush helpers. Svg.Controls.Skia.Uno exposes a Skia-backed Uno control and reusable SvgSource resources. Svg.Controls.Skia.Maui exposes a Skia-backed .NET MAUI control and reusable SvgSource resources. SvgML.Maui...">
+<meta property="og:description" content="Documentation Svg.Skia spans a few related areas: Svg.Skia and Svg.Model handle SVG parsing, picture-model generation, SkiaSharp output, and model mutation. Svg.Controls.Avalonia and Svg.Controls.Skia.Avalonia expose Avalonia controls, images, and brush helpers. Svg.Controls.Skia.Uno exposes a Skia-backed Uno control and reusable SvgSource resources. Svg.Controls.Skia.Maui exposes a Skia-backed .NET MAUI control and reusable SvgSource resources. SvgML.Avalonia...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Svg.Skia Documentation | Svg.Skia">
   </head>
@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-articles.1448cf6a5708253abb839e1bb91bd1b6.html' data-lunet-menu-open='menu-id-articles-0' data-lunet-menu-active='menu-item-articles-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-articles.a6c69437e72d42797112008ae972ec61.html' data-lunet-menu-open='menu-id-articles-0' data-lunet-menu-active='menu-item-articles-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -146,7 +146,7 @@
 <li><code>Svg.Controls.Avalonia</code> and <code>Svg.Controls.Skia.Avalonia</code> expose Avalonia controls, images, and brush helpers.</li>
 <li><code>Svg.Controls.Skia.Uno</code> exposes a Skia-backed Uno control and reusable <code>SvgSource</code> resources.</li>
 <li><code>Svg.Controls.Skia.Maui</code> exposes a Skia-backed .NET MAUI control and reusable <code>SvgSource</code> resources.</li>
-<li><code>SvgML.Maui</code> exposes .NET MAUI XAML-authored SVG trees and <code>foreignObject</code> control hosting.</li>
+<li><code>SvgML.Avalonia</code>, <code>SvgML.Maui</code>, and <code>SvgML.Uno</code> expose XAML-authored SVG trees, <code>foreignObject</code> control hosting, and the supported SVG 2 static subset authoring surface.</li>
 <li><code>Svg.Editor.*</code> exposes the reusable AvalonDraw editor stack, from document/session services up to the interactive Avalonia workspace.</li>
 <li><code>Skia.Controls.Avalonia</code> hosts general-purpose Skia controls for Avalonia.</li>
 <li><code>Svg.CodeGen.Skia</code>, <code>Svg.SourceGenerator.Skia</code>, <code>svgc</code>, and <code>Svg.Skia.Converter</code> cover generated code and CLI workflows.</li>
@@ -160,8 +160,13 @@
 <li><a href="/Svg.Skia/articles/concepts">Concepts</a> to understand how files, models, pictures, and Avalonia resources relate.</li>
 <li><a href="/Svg.Skia/articles/guides">Guides</a> for scenario-focused tasks such as exporting images, hit testing, interaction, animation playback, or generating code.</li>
 <li><a href="/Svg.Skia/articles/xaml">XAML Usage</a> when the primary integration point is Avalonia, .NET MAUI, or Uno.</li>
-<li><a href="/Svg.Skia/articles/reference">Reference</a> for package maps, samples, licensing, and the docs pipeline.</li>
+<li><a href="/Svg.Skia/articles/reference">Reference</a> for package maps, SVG support matrices, samples, licensing, and the docs pipeline.</li>
 </ol>
+<h2 id="svg-support">SVG Support</h2>
+<ul>
+<li><a href="/Svg.Skia/articles/reference/svg-11-static-subset-support">SVG 1.1 Static Subset Support</a> documents the current static renderer surface against SVG 1.1 spec areas.</li>
+<li><a href="/Svg.Skia/articles/reference/svg-2-static-subset-support">SVG 2 Static Subset Support</a> documents implemented, partial, parsed, and deferred SVG 2 static-subset features.</li>
+</ul>
 <h2 id="generated-api">Generated API</h2>
 <ul>
 <li>Use <a href="/Svg.Skia/api">API Reference</a> for the generated surface area across the documented assemblies, including the <code>Svg.Editor.*</code> packages.</li>

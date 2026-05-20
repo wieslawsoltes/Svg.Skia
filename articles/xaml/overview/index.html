@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Overview | Svg.Skia">
-<meta name="twitter:description" content="Overview UI SVG stacks SvgML.Avalonia This package brings the SVG element tree itself into Avalonia XAML. Use it when: you want inline svg, rect, g, filter, or text elements inside resources or templates, you want SVG attribute names such as fill-opacity, stroke-width, or viewBox to stay close to authored markup, you want SVG foreignObject to host native Avalonia controls inside text flow or scene geometry, you want Avalonia style selectors...">
+<meta name="twitter:description" content="Overview UI SVG stacks SvgML.Avalonia This package brings the SVG element tree itself into Avalonia XAML. Use it when: you want inline svg, rect, g, filter, or text elements inside resources or templates, you want SVG attribute names such as fill-opacity, stroke-width, or viewBox to stay close to authored markup, you want to author the supported SVG 2 static subset inline, including root load options, shape pathLength...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Overview | Svg.Skia">
 <meta property="og:title" content="Overview | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Overview UI SVG stacks SvgML.Avalonia This package brings the SVG element tree itself into Avalonia XAML. Use it when: you want inline svg, rect, g, filter, or text elements inside resources or templates, you want SVG attribute names such as fill-opacity, stroke-width, or viewBox to stay close to authored markup, you want SVG foreignObject to host native Avalonia controls inside text flow or scene geometry, you want Avalonia style selectors...">
+<meta property="og:description" content="Overview UI SVG stacks SvgML.Avalonia This package brings the SVG element tree itself into Avalonia XAML. Use it when: you want inline svg, rect, g, filter, or text elements inside resources or templates, you want SVG attribute names such as fill-opacity, stroke-width, or viewBox to stay close to authored markup, you want to author the supported SVG 2 static subset inline, including root load options, shape pathLength...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Overview | Svg.Skia">
   </head>
@@ -150,6 +150,7 @@
 <ul>
 <li>you want inline <code>svg</code>, <code>rect</code>, <code>g</code>, filter, or text elements inside resources or templates,</li>
 <li>you want SVG attribute names such as <code>fill-opacity</code>, <code>stroke-width</code>, or <code>viewBox</code> to stay close to authored markup,</li>
+<li>you want to author the supported SVG 2 static subset inline, including root load options, shape <code>pathLength</code>, <code>paint-order</code>, <code>vector-effect</code>, <code>mask-type</code>, and <code>feDropShadow</code>,</li>
 <li>you want SVG <code>foreignObject</code> to host native Avalonia controls inside text flow or scene geometry,</li>
 <li>you want Avalonia style selectors and animations to target the inline SVG tree,</li>
 <li>you are happy to render through the shared <code>Svg.Skia</code> backend behind the scenes.</li>
@@ -159,6 +160,7 @@
 <ul>
 <li>you want inline <code>svg</code>, <code>rect</code>, <code>g</code>, filter, or text elements directly inside a MAUI page,</li>
 <li>you want SVG attribute names such as <code>fill-opacity</code>, <code>stroke-width</code>, or <code>viewBox</code> to stay close to authored markup,</li>
+<li>you want to author the supported SVG 2 static subset inline, including root load options, shape <code>pathLength</code>, <code>paint-order</code>, <code>vector-effect</code>, <code>mask-type</code>, and <code>feDropShadow</code>,</li>
 <li>you want SVG <code>foreignObject</code> to host native MAUI controls inside text flow or scene geometry,</li>
 <li>you want the inline tree to render through the shared <code>Svg.Skia</code> backend without loading an external asset file,</li>
 <li>you are targeting the current MAUI package lane: Android, iOS, or Mac Catalyst.</li>
@@ -176,6 +178,7 @@
 <ul>
 <li>you want inline <code>svg</code>, <code>path</code>, <code>g</code>, filter, or text elements directly inside a Uno page,</li>
 <li>you want SVG attribute names such as <code>fill</code>, <code>opacity</code>, or <code>viewBox</code> to stay close to authored markup, with dash-named declarations available through <code>style</code> or Uno-safe member names,</li>
+<li>you want to author the supported SVG 2 static subset inline, including root load options, shape <code>pathLength</code>, <code>paint_order</code>, <code>vector_effect</code>, <code>mask_type</code>, and <code>feDropShadow</code>,</li>
 <li>you want SVG <code>foreignObject</code> to host native Uno controls inside text flow or scene geometry,</li>
 <li>you want the inline tree to render through the shared <code>Svg.Skia</code> backend without loading an external asset file,</li>
 <li>you are already on the Uno <code>SkiaRenderer</code> path and want the authored markup to stay in XAML instead of a separate asset file.</li>

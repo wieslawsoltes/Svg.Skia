@@ -208,6 +208,42 @@
 &lt;/Window&gt;
 </code></pre>
 <p>The element/property naming stays close to SVG authoring, so attributes such as <code>stroke-width</code>, <code>fill-opacity</code>, and <code>viewBox</code> can stay readable in XAML.</p>
+<h2 id="svg-2-static-subset-authoring">SVG 2 static subset authoring</h2>
+<p>The generated SvgML surface is kept aligned with the shared <code>Svg.Skia</code> SVG 2 static subset. The root <code>svg</code> control also forwards load options into the document loader.</p>
+<table class="table">
+<thead>
+<tr>
+<th>Area</th>
+<th>SvgML.Avalonia contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Root load options</td>
+<td><code>ProcessingMode</code>, <code>ExternalResources</code>, <code>PreserveUnknownElements</code>, and <code>PreferSvg2Href</code> are Avalonia styled properties on <code>svg</code>. Changing them reloads the inline SVG tree.</td>
+</tr>
+<tr>
+<td>Geometry</td>
+<td>Basic shapes expose <code>pathLength</code>; <code>symbol</code> exposes SVG 2 <code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>, <code>refX</code>, and <code>refY</code>.</td>
+</tr>
+<tr>
+<td>Paint and transforms</td>
+<td>Visual elements expose <code>paint-order</code>, <code>vector-effect</code>, <code>transform-box</code>, and <code>transform-origin</code>.</td>
+</tr>
+<tr>
+<td>Text</td>
+<td><code>textPath</code> exposes inline <code>path</code> data and <code>side</code>; visual/text elements expose <code>white-space</code>, <code>text-overflow</code>, <code>inline-size</code>, <code>shape-inside</code>, and <code>shape-subtract</code> for supported or preserve-only text contracts.</td>
+</tr>
+<tr>
+<td>Filters and masks</td>
+<td><code>mask</code> exposes <code>mask-type</code>, and the SVG 2 <code>feDropShadow</code> filter primitive is available for inline filter graphs.</td>
+</tr>
+<tr>
+<td>CSS-only features</td>
+<td><code>mix-blend-mode</code>, <code>isolation</code>, CSS <code>d</code>, CSS geometry, and CSS custom properties should be authored through <code>style</code>, <code>Css</code>, or <code>CurrentCss</code> rather than as direct SvgML properties.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="runtime-behavior">Runtime behavior</h2>
 <p>The root <code>svg</code> control:</p>
 <ul>

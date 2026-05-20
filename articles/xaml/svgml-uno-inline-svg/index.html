@@ -175,6 +175,43 @@
 <li>Dash-named SVG declarations can also be placed in <code>style</code>, for example <code>style=&quot;stroke-width:2;stroke-linecap:round;&quot;</code>.</li>
 <li>Text or control bindings can feed attribute values directly, which makes small interactive diagrams practical inside Uno pages.</li>
 </ul>
+<h2 id="svg-2-authoring-notes">SVG 2 authoring notes</h2>
+<p>SvgML.Uno exposes the supported SVG 2 static subset on the inline tree. Root load options use normal CLR property names, and dash-named SVG properties use underscore member names unless they are authored through <code>style</code>.</p>
+<pre><code class="language-xml">&lt;svg xmlns=&quot;using:SvgML&quot;
+     ProcessingMode=&quot;SecureStatic&quot;
+     ExternalResources=&quot;SameDocumentAndDataOnly&quot;
+     PreferSvg2Href=&quot;True&quot;
+     viewBox=&quot;0 0 160 90&quot;&gt;
+  &lt;defs&gt;
+    &lt;filter id=&quot;shadow&quot;&gt;
+      &lt;feDropShadow dx=&quot;2&quot;
+                    dy=&quot;2&quot;
+                    stdDeviation=&quot;2&quot;
+                    flood_color=&quot;#0F172A&quot;
+                    flood_opacity=&quot;0.35&quot; /&gt;
+    &lt;/filter&gt;
+  &lt;/defs&gt;
+
+  &lt;rect x=&quot;16&quot;
+        y=&quot;14&quot;
+        width=&quot;128&quot;
+        height=&quot;44&quot;
+        pathLength=&quot;400&quot;
+        fill=&quot;#E0F2FE&quot;
+        stroke=&quot;#0369A1&quot;
+        stroke_width=&quot;4&quot;
+        paint_order=&quot;stroke fill&quot;
+        vector_effect=&quot;non-scaling-stroke&quot;
+        transform_box=&quot;fill-box&quot;
+        transform_origin=&quot;50% 50%&quot;
+        filter=&quot;url(#shadow)&quot; /&gt;
+
+  &lt;text fill=&quot;#0F172A&quot; white_space=&quot;pre&quot;&gt;
+    &lt;textPath path=&quot;M18 76 H142&quot; side=&quot;right&quot;&gt;SvgML SVG 2&lt;/textPath&gt;
+  &lt;/text&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>CSS-only SVG 2 features such as <code>mix-blend-mode</code>, <code>isolation</code>, CSS <code>d</code>, and CSS geometry should be authored through <code>style</code>, <code>Css</code>, or <code>CurrentCss</code>.</p>
 <h2 id="native-controls-with-foreignobject">Native controls with foreignObject</h2>
 <p><code>foreignObject</code> hosts a native Uno <code>UIElement</code> child. It can reserve text flow inside <code>text</code> and <code>tspan</code>, or it can place native controls in the SVG scene:</p>
 <pre><code class="language-xml">&lt;Page xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;

@@ -233,6 +233,42 @@
 &lt;/Page&gt;
 </code></pre>
 <p>Uno currently works best when hosted-control size is supplied by the native child (<code>Width</code>, <code>Height</code>, <code>MinWidth</code>, and related properties). See <a href="/Svg.Skia/articles/xaml/svgml-foreignobject-controls">SvgML foreignObject Controls</a> for the shared layout model and Uno-specific authoring notes.</p>
+<h2 id="svg-2-static-subset-authoring">SVG 2 static subset authoring</h2>
+<p>The generated Uno SvgML surface is kept aligned with the shared <code>Svg.Skia</code> SVG 2 static subset. CLR-safe SVG names are available directly; dash-named members use underscore property names in Uno XAML or can be written through <code>style</code>.</p>
+<table class="table">
+<thead>
+<tr>
+<th>Area</th>
+<th>SvgML.Uno contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Root load options</td>
+<td><code>ProcessingMode</code>, <code>ExternalResources</code>, <code>PreserveUnknownElements</code>, and <code>PreferSvg2Href</code> are dependency properties on <code>svg</code>. Changing them reloads the inline SVG tree.</td>
+</tr>
+<tr>
+<td>Geometry</td>
+<td>Basic shapes expose <code>pathLength</code>; <code>symbol</code> exposes SVG 2 <code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>, <code>refX</code>, and <code>refY</code>.</td>
+</tr>
+<tr>
+<td>Paint and transforms</td>
+<td>Visual elements expose <code>paint_order</code>, <code>vector_effect</code>, <code>transform_box</code>, and <code>transform_origin</code>, with serialized SVG names preserved as <code>paint-order</code>, <code>vector-effect</code>, <code>transform-box</code>, and <code>transform-origin</code>.</td>
+</tr>
+<tr>
+<td>Text</td>
+<td><code>textPath</code> exposes inline <code>path</code> data and <code>side</code>; visual/text elements expose <code>white_space</code>, <code>text_overflow</code>, <code>inline_size</code>, <code>shape_inside</code>, and <code>shape_subtract</code> for supported or preserve-only text contracts.</td>
+</tr>
+<tr>
+<td>Filters and masks</td>
+<td><code>mask</code> exposes <code>mask_type</code>, and the SVG 2 <code>feDropShadow</code> filter primitive is available for inline filter graphs.</td>
+</tr>
+<tr>
+<td>CSS-only features</td>
+<td><code>mix-blend-mode</code>, <code>isolation</code>, CSS <code>d</code>, CSS geometry, and CSS custom properties should be authored through <code>style</code>, <code>Css</code>, or <code>CurrentCss</code> rather than as direct SvgML properties.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="notes">Notes</h2>
 <ul>
 <li><code>SvgML.Uno</code> builds on <code>Uno.Sdk</code> with <code>SkiaRenderer</code>, so it stays aligned with the same rendering stack as <code>Svg.Controls.Skia.Uno</code>.</li>
