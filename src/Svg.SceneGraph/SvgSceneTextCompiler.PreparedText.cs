@@ -420,7 +420,7 @@ internal static partial class SvgSceneTextCompiler
                 usesBrowserCompatibleRunTypeface,
                 out var shapedAdvances))
         {
-            PreserveMissingWhitespaceAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, shapedAdvances);
+            PreserveMeasuredTotalAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, shapedAdvances);
             CacheNaturalCodepointAdvances(cacheKey, shapedAdvances);
             return shapedAdvances;
         }
@@ -435,7 +435,7 @@ internal static partial class SvgSceneTextCompiler
                 usesBrowserCompatibleRunTypeface,
                 out var clusteredAdvances))
         {
-            PreserveMissingWhitespaceAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, clusteredAdvances);
+            PreserveMeasuredTotalAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, clusteredAdvances);
             CacheNaturalCodepointAdvances(cacheKey, clusteredAdvances);
             return clusteredAdvances;
         }
@@ -467,12 +467,12 @@ internal static partial class SvgSceneTextCompiler
             previousAdvance += codepointAdvance;
         }
 
-        PreserveMissingWhitespaceAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, advances);
+        PreserveMeasuredTotalAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, advances);
         CacheNaturalCodepointAdvances(cacheKey, advances);
         return advances;
     }
 
-    private static void PreserveMissingWhitespaceAdvance(
+    private static void PreserveMeasuredTotalAdvance(
         SvgTextBase svgTextBase,
         IReadOnlyList<string> codepoints,
         SKRect geometryBounds,
@@ -484,16 +484,7 @@ internal static partial class SvgSceneTextCompiler
             return;
         }
 
-        var targetIndex = -1;
-        for (var i = codepoints.Count - 1; i >= 0; i--)
-        {
-            if (IsWhitespaceCodepoint(codepoints[i]) && !IsValidPositiveAdvance(advances[i]))
-            {
-                targetIndex = i;
-                break;
-            }
-        }
-
+        var targetIndex = FindAdvanceReconciliationTargetIndex(codepoints, advances);
         if (targetIndex < 0)
         {
             return;
@@ -502,11 +493,39 @@ internal static partial class SvgSceneTextCompiler
         var text = string.Concat(codepoints);
         var measuredAdvance = MeasureNaturalTextAdvanceCore(svgTextBase, text, geometryBounds, assetLoader);
         var distributedAdvance = advances.Sum();
-        var missingAdvance = measuredAdvance - distributedAdvance;
-        if (IsValidPositiveAdvance(missingAdvance))
+        var delta = measuredAdvance - distributedAdvance;
+        const float epsilon = 0.01f;
+        if (Math.Abs(delta) <= epsilon)
         {
-            advances[targetIndex] = missingAdvance;
+            return;
         }
+
+        var adjustedAdvance = advances[targetIndex] + delta;
+        if (!float.IsNaN(adjustedAdvance) && !float.IsInfinity(adjustedAdvance) && adjustedAdvance >= 0f)
+        {
+            advances[targetIndex] = adjustedAdvance;
+        }
+    }
+
+    private static int FindAdvanceReconciliationTargetIndex(IReadOnlyList<string> codepoints, IReadOnlyList<float> advances)
+    {
+        for (var i = codepoints.Count - 1; i >= 0; i--)
+        {
+            if (IsWhitespaceCodepoint(codepoints[i]))
+            {
+                return i;
+            }
+        }
+
+        for (var i = advances.Count - 1; i >= 0; i--)
+        {
+            if (IsValidPositiveAdvance(advances[i]))
+            {
+                return i;
+            }
+        }
+
+        return advances.Count > 0 ? advances.Count - 1 : -1;
     }
 
     private static float MeasureTextAdvanceCore(
