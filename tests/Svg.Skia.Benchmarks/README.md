@@ -68,6 +68,13 @@ BenchmarkDotNet results are emitted under `artifacts/benchmarks/` as HTML and Gi
   - repeated `<use>` expansion with inherited marker styles through temporary parents
   - SVG 2 symbol `width` / `height` viewport dimensions
   - `textPath side="right"` placement
+- `SvgTextRegressionValidationBenchmarks`
+  - generated text layout regression scenes for positioned glyphs, anchors, spacing, textLength, `textPath`, mixed/nested textPath wrapping including guarded mixed-sibling root textLength, vertical text, anchored `inline-size` overflow, rectangular and shape-based `inline-size` wrapping, CSS Text break opportunities, tiny-coordinate `textPath`, vertical RTL layout, vertical/RTL shape layout, root `inline-size` plus flattened and guarded wrapped textLength, positioned descendants, baseline shifts, altGlyph SVG-font substitution/fallback output, complex-script stretch, a combined shared-layout engine integration scene, and pending vertical/RTL/stretch parity coverage
+  - retained compile, required command counts including stretch-generated path output, required text/path/layer source element IDs for supported cases, required DOM-metric source IDs for supported gap scenarios, command-kind coverage checksums, and command/DOM/render/end-to-end checksum generation with non-zero sanity checks for BenchmarkDotNet regression tracking; command-model checksums include source IDs, textPath path geometry, clip-path geometry, save-layer paint signatures, and stretched glyph path geometry, and DOM checksums include vertical writing-mode, guarded CSS Text break opportunities, guarded shape layout, parent metrics for direct and mixed/nested inline-size textPath, baseline and altGlyph fallback metrics, shared bidi/line-break/shape/textPath integration, and flattened/wrapped inline-size textLength
+  - remaining browser-parity scenes for vertical/RTL wrapped `textLength`, positioned-descendant edge cases, vertical/RTL shape input, vertical/multiline textPath wrapping beyond the guarded horizontal mixed-sibling subset, W3C altGlyph raster parity, and complex-script stretch stay in the benchmark surface but only assert the currently supported retained output while exact browser parity remains open
+- `SvgAllAreaRegressionValidationBenchmarks`
+  - one combined generated scene covering text, paths, gradients, patterns, clips, masks, filters, markers, symbols, grouped rendering, shared wrapped text, mixed-direction text, shape-wrapped text, normal `textPath`, and stretched `textPath`
+  - retained compile, text/path/clip/layer command-count validation, command-kind coverage checksums, required text/path source element IDs, required all-area text DOM metric IDs, and command/DOM/render/end-to-end checksum generation with non-zero sanity checks for BenchmarkDotNet regression tracking
 
 The benchmark project uses a tuned short-run BenchmarkDotNet job by default so it stays practical for local iteration while still producing stable exported summaries.
 
@@ -98,6 +105,8 @@ dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.cs
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRenderBitmapBenchmarks*"
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*Svg2StaticFeatureBenchmarks*"
+dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextRegressionValidationBenchmarks*"
+dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgAllAreaRegressionValidationBenchmarks*"
 ```
 
 You can also filter by category when focusing on a single stage:

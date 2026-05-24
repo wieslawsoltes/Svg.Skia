@@ -844,6 +844,2236 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_TextPathTspanAbsolutePosition_ResetsPathOffset()
+    {
+        const string absolutePositionSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="140" height="160" viewBox="0 0 140 160">
+              <defs>
+                <path id="line" d="M10,40 L130,40" />
+              </defs>
+              <text fill="#0055aa" font-size="10">
+                <textPath href="#line">A<tspan x="70" y="120">B</tspan></textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.Settings.EnableSvgFonts = false;
+        svg.FromSvg(absolutePositionSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var glyphPositions = retainedModel!
+            .FindCommands<DrawTextCanvasCommand>()
+            .Where(static command => command.Text is "A" or "B")
+            .ToDictionary(static command => command.Text, static command => new SKPoint(command.X, command.Y), StringComparer.Ordinal);
+
+        Assert.True(glyphPositions.TryGetValue("A", out var a), "Expected textPath to render the first glyph.");
+        Assert.True(glyphPositions.TryGetValue("B", out var b), "Expected textPath to render the absolute-positioned glyph.");
+        Assert.True(
+            b.X > a.X + 50f,
+            $"Expected absolute x on textPath tspan to reset path distance, but A was {a} and B was {b}.");
+        Assert.Equal(a.Y, b.Y, 3);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathRootDyIsIgnored()
+    {
+        const string dySvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="140" height="100" viewBox="0 0 140 100">
+              <defs>
+                <path id="line" d="M10,40 L130,40" />
+              </defs>
+              <text fill="#0055aa" font-size="10">
+                <textPath id="path-run" href="#line" dy="25">A</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.Settings.EnableSvgFonts = false;
+        svg.FromSvg(dySvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var drawText = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("path-run"), static cmd => cmd.Text == "A");
+        Assert.Equal(40f, drawText.Y, 3);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathRootCoordinatesAreIgnored()
+    {
+        const string positionSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="160" height="100" viewBox="0 0 160 100">
+              <defs>
+                <path id="line" d="M10,40 L150,40" />
+              </defs>
+              <text fill="#0055aa" font-size="10">
+                <textPath id="path-run" href="#line" x="50" y="55" dy="7">A</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.Settings.EnableSvgFonts = false;
+        svg.FromSvg(positionSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var drawText = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("path-run"), static cmd => cmd.Text == "A");
+        Assert.InRange(drawText.X, 5f, 20f);
+        Assert.Equal(40f, drawText.Y, 3);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathDrawsGraphemeClusterAsSingleRun()
+    {
+        const string clusterSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="90" viewBox="0 0 180 90">
+              <defs>
+                <path id="line" d="M20,48 L160,48" />
+              </defs>
+              <text fill="#0055aa" font-size="20">
+                <textPath id="cluster-path" href="#line">A&#x0301;B</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.Settings.EnableSvgFonts = false;
+        svg.FromSvg(clusterSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var commands = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("cluster-path")
+            .ToList();
+
+        Assert.Contains(commands, static command => command.Text == "A\u0301");
+        Assert.DoesNotContain(commands, static command => command.Text == "\u0301");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathDistributesTextPathLengthAcrossNestedSpans()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="90" viewBox="0 0 220 90">
+              <defs>
+                <path id="line" d="M20,48 L200,48" />
+              </defs>
+              <text fill="#0055aa" font-size="24">
+                <textPath id="path-run" href="#line" textLength="120"><tspan>A</tspan><tspan>B</tspan></textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.Settings.EnableSvgFonts = false;
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var glyphs = retainedModel!
+            .FindCommands<DrawTextCanvasCommand>()
+            .Where(static command => command.Text is "A" or "B")
+            .ToDictionary(static command => command.Text, static command => command, StringComparer.Ordinal);
+
+        Assert.True(glyphs.TryGetValue("A", out var a), "Expected nested textPath span A.");
+        Assert.True(glyphs.TryGetValue("B", out var b), "Expected nested textPath span B.");
+        Assert.Equal(a.Y, b.Y, 3);
+        Assert.InRange(b.X - a.X, 45f, 95f);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathSpacingAuto_KeepsNaturalGlyphSpacing()
+    {
+        const string spacingAutoSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="140" height="60" viewBox="0 0 140 60">
+              <defs>
+                <path id="line" d="M10,30 L130,30" />
+              </defs>
+              <text fill="#0055aa" font-size="10">
+                <textPath href="#line" spacing="auto">AB</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.Settings.EnableSvgFonts = false;
+        svg.FromSvg(spacingAutoSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var positions = retainedModel!
+            .FindCommands<DrawTextCanvasCommand>()
+            .Where(static command => command.Text is "A" or "B")
+            .ToDictionary(static command => command.Text, static command => command.X, StringComparer.Ordinal);
+
+        Assert.True(positions.TryGetValue("A", out var a), "Expected spacing=auto textPath to render the first glyph.");
+        Assert.True(positions.TryGetValue("B", out var b), "Expected spacing=auto textPath to render the second glyph.");
+        Assert.True(
+            b - a < 30f,
+            $"Expected spacing=auto to keep natural textPath glyph spacing, but A was {a} and B was {b}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_DrawsWarpedGlyphPath()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="100" viewBox="0 0 180 100">
+              <defs>
+                <path id="curve" d="M20 60 C60 20 120 20 160 60" />
+              </defs>
+              <text font-size="24" fill="#0055aa">
+                <textPath id="stretch-path" href="#curve" method="stretch">A</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var stretchedPaths = retainedModel!.FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path").ToList();
+        Assert.NotEmpty(stretchedPaths);
+        Assert.Empty(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("stretch-path"));
+        Assert.Contains(stretchedPaths, static command => command.Path is { IsEmpty: false });
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_AppliesSpacingAndGlyphsTextLength()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="90" viewBox="0 0 220 90">
+              <defs>
+                <path id="line" d="M20 48 L200 48" />
+              </defs>
+              <text font-size="24" fill="#0055aa">
+                <textPath id="stretch-path" href="#line" method="stretch" textLength="120" lengthAdjust="spacingAndGlyphs">A</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var stretchedPaths = retainedModel!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path")
+            .Where(static command => command.Path is { IsEmpty: false })
+            .ToList();
+
+        Assert.NotEmpty(stretchedPaths);
+        Assert.Contains(stretchedPaths, static command => command.Path!.Bounds.Width > 60f);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_AppliesSpacingAndGlyphsTextLengthToGraphemeClusters()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="260" height="90" viewBox="0 0 260 90">
+              <defs>
+                <path id="line" d="M20 48 L240 48" />
+              </defs>
+              <text font-size="28" fill="#0055aa">
+                <textPath id="stretch-path" href="#line" method="stretch" textLength="150" lengthAdjust="spacingAndGlyphs">A&#x0301;B</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var stretchedBounds = retainedModel!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path")
+            .Where(static command => command.Path is { IsEmpty: false })
+            .Select(static command => command.Path!.Bounds)
+            .Aggregate(SKRect.Empty, static (accumulator, bounds) =>
+                accumulator.IsEmpty ? bounds : SKRect.Union(accumulator, bounds));
+
+        Assert.Empty(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("stretch-path"));
+        Assert.False(stretchedBounds.IsEmpty);
+        Assert.True(
+            stretchedBounds.Width > 90f,
+            $"Expected lengthAdjust=spacingAndGlyphs to stretch textPath grapheme clusters across the requested length, but bounds were {stretchedBounds}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_AppliesSpacingTextLengthBetweenClusters()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="90" viewBox="0 0 240 90">
+              <defs>
+                <path id="line" d="M20 48 L220 48" />
+              </defs>
+              <text font-size="28" fill="#0055aa">
+                <textPath id="stretch-path" href="#line" method="stretch" textLength="150" lengthAdjust="spacing">AB</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var stretchedBounds = retainedModel!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path")
+            .Where(static command => command.Path is { IsEmpty: false })
+            .Select(static command => command.Path!.Bounds)
+            .Aggregate(SKRect.Empty, static (accumulator, bounds) =>
+                accumulator.IsEmpty ? bounds : SKRect.Union(accumulator, bounds));
+
+        Assert.False(stretchedBounds.IsEmpty);
+        Assert.True(
+            stretchedBounds.Width > 100f,
+            $"Expected lengthAdjust=spacing to spread stretched textPath clusters across the requested length, but bounds were {stretchedBounds}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_AppliesTextPathTextLengthToNestedSpan()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="90" viewBox="0 0 220 90">
+              <defs>
+                <path id="line" d="M20 48 L200 48" />
+              </defs>
+              <text font-size="24" fill="#0055aa">
+                <textPath id="stretch-path" href="#line" method="stretch" textLength="120" lengthAdjust="spacingAndGlyphs"><tspan fill="#aa5500">A</tspan></textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var stretchedPaths = retainedModel!
+            .FindCommands<DrawPathCanvasCommand>()
+            .Where(static command => command.Path is { IsEmpty: false })
+            .ToList();
+
+        Assert.NotEmpty(stretchedPaths);
+        Assert.Contains(stretchedPaths, static command => command.Path!.Bounds.Width > 60f);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_DrawsComplexScriptAsWarpedPath()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+              <defs>
+                <path id="curve" d="M20 60 C70 20 130 20 180 60" />
+              </defs>
+              <text font-size="24" fill="#0055aa" font-family="Amiri" direction="rtl" unicode-bidi="embed">
+                <textPath id="stretch-path" href="#curve" method="stretch">&#x0633;&#x0644;&#x0627;&#x0645;</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var stretchedPaths = retainedModel!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path")
+            .Where(static command => command.Path is { IsEmpty: false })
+            .ToList();
+
+        Assert.NotEmpty(stretchedPaths);
+        Assert.Empty(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("stretch-path"));
+        Assert.Contains(stretchedPaths, static command => command.Path!.Bounds.Width > 0f && command.Path.Bounds.Height > 0f);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_AppliesSpacingTextLengthToRtlClusters()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="90" viewBox="0 0 240 90">
+              <defs>
+                <path id="line" d="M20 48 L220 48" />
+              </defs>
+              <text font-size="30" fill="#0055aa" font-family="Amiri" direction="rtl" unicode-bidi="embed">
+                <textPath id="stretch-path" href="#line" method="stretch" textLength="150" lengthAdjust="spacing">&#x0633;&#x0644;&#x0627;&#x0645;</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var stretchedBounds = retainedModel!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path")
+            .Where(static command => command.Path is { IsEmpty: false })
+            .Select(static command => command.Path!.Bounds)
+            .Aggregate(SKRect.Empty, static (accumulator, bounds) =>
+                accumulator.IsEmpty ? bounds : SKRect.Union(accumulator, bounds));
+
+        Assert.Empty(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("stretch-path"));
+        Assert.False(stretchedBounds.IsEmpty);
+        Assert.True(
+            stretchedBounds.Width > 25f,
+            $"Expected RTL lengthAdjust=spacing to use renderable clusters instead of collapsing around bidi controls, but bounds were {stretchedBounds}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_ShapesArabicIndicAndEmojiClusters()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="320" height="130" viewBox="0 0 320 130">
+              <defs>
+                <path id="curve" d="M20 80 C90 15 230 15 300 80" />
+              </defs>
+              <text font-size="26" fill="#0055aa" font-family="Amiri, Noto Sans, Noto Emoji" direction="rtl" unicode-bidi="embed">
+                <textPath id="stretch-path" href="#curve" method="stretch">&#x0633;&#x0644;&#x0627;&#x0645; &#x0915;&#x093f; &#x1F469;&#x200D;&#x1F467;</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var stretchedPaths = retainedModel!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path")
+            .Where(static command => command.Path is { IsEmpty: false })
+            .Select(static command => command.Path!)
+            .ToList();
+
+        Assert.NotEmpty(stretchedPaths);
+        Assert.Empty(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("stretch-path"));
+        Assert.All(stretchedPaths, static path =>
+        {
+            Assert.True(float.IsFinite(path.Bounds.Left), $"Expected finite shaped stretch bounds, but got {path.Bounds}.");
+            Assert.True(float.IsFinite(path.Bounds.Top), $"Expected finite shaped stretch bounds, but got {path.Bounds}.");
+            Assert.True(float.IsFinite(path.Bounds.Right), $"Expected finite shaped stretch bounds, but got {path.Bounds}.");
+            Assert.True(float.IsFinite(path.Bounds.Bottom), $"Expected finite shaped stretch bounds, but got {path.Bounds}.");
+        });
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_AppliesLetterAndWordSpacingWithTextLength()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="260" height="100" viewBox="0 0 260 100">
+              <defs>
+                <path id="line" d="M20 55 L240 55" />
+              </defs>
+              <text font-size="28" fill="#0055aa">
+                <textPath id="stretch-path" href="#line" method="stretch"
+                          textLength="190" lengthAdjust="spacing"
+                          letter-spacing="8" word-spacing="24">A B</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var stretchedBounds = retainedModel!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path")
+            .Where(static command => command.Path is { IsEmpty: false })
+            .Select(static command => command.Path!.Bounds)
+            .Aggregate(SKRect.Empty, static (accumulator, bounds) =>
+                accumulator.IsEmpty ? bounds : SKRect.Union(accumulator, bounds));
+
+        Assert.False(stretchedBounds.IsEmpty);
+        Assert.True(
+            stretchedBounds.Width > 145f,
+            $"Expected letter/word spacing plus textLength to spread stretched clusters, but bounds were {stretchedBounds}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_IgnoresNestedTextPathChild()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="260" height="120" viewBox="0 0 260 120">
+              <path id="line1" d="M20 55 L240 55" />
+              <path id="line2" d="M20 90 L240 90" />
+              <text font-size="28" fill="#0055aa">
+                <textPath id="outer" href="#line1" method="stretch">A<textPath id="nested" href="#line2" method="stretch">B</textPath>C</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.NotEmpty(retainedModel!.FindCommandsBySourceElementId<DrawPathCanvasCommand>("outer"));
+        Assert.Empty(retainedModel.FindCommandsBySourceElementId<DrawPathCanvasCommand>("nested"));
+        Assert.Empty(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("nested"));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_ClampsOverhangingOutlineToPathEnd()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="80" viewBox="0 0 180 80">
+              <defs>
+                <path id="line" d="M20 42 L78 42" />
+              </defs>
+              <text font-size="28" fill="#0055aa">
+                <textPath id="stretch-path" href="#line" method="stretch">OVERHANGING</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var stretchedPaths = retainedModel!.FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path").ToList();
+        Assert.NotEmpty(stretchedPaths);
+        Assert.Contains(stretchedPaths, static command => command.Path is { IsEmpty: false });
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_AppliesFillStrokePaintOrder()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="80" viewBox="0 0 180 80">
+              <defs>
+                <path id="line" d="M20 44 L160 44" />
+              </defs>
+              <text font-size="28">
+                <textPath id="stretch-path" href="#line" method="stretch"
+                          fill="#ff0000" stroke="#0000ff" stroke-width="2"
+                          paint-order="stroke fill">A</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var commands = retainedModel!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path")
+            .Where(static command => command.Paint?.Style is SKPaintStyle.Fill or SKPaintStyle.Stroke)
+            .ToList();
+
+        Assert.Equal(2, commands.Count);
+        Assert.Equal(SKPaintStyle.Stroke, commands[0].Paint!.Style);
+        Assert.Equal(new SKColor(0, 0, 255, 255), commands[0].Paint!.Color);
+        Assert.Equal(SKPaintStyle.Fill, commands[1].Paint!.Style);
+        Assert.Equal(new SKColor(255, 0, 0, 255), commands[1].Paint!.Color);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_DrawsWarpedDecorations()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="80" viewBox="0 0 180 80">
+              <defs>
+                <path id="line" d="M20 44 L160 44" />
+              </defs>
+              <text font-size="28" fill="#0055aa">
+                <textPath id="stretch-path" href="#line" method="stretch"
+                          text-decoration="underline">A</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var commands = retainedModel!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path")
+            .Where(static command => command.Path is { IsEmpty: false } && command.Paint?.Style == SKPaintStyle.Fill)
+            .ToList();
+
+        Assert.True(commands.Count >= 2, $"Expected glyph and decoration paths, but saw {commands.Count} path command(s).");
+        Assert.Contains(commands, static command => command.Path!.Bounds.Width > 8f && command.Path.Bounds.Height < 5f);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_DistributesTextPathLengthAcrossNestedSpans()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="320" height="90" viewBox="0 0 320 90">
+              <defs>
+                <path id="line" d="M20 48 L300 48" />
+              </defs>
+              <text font-size="24" fill="#0055aa">
+                <textPath id="stretch-path" href="#line" method="stretch" textLength="120" lengthAdjust="spacingAndGlyphs"><tspan>A</tspan><tspan>B</tspan></textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var stretchedBounds = retainedModel!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path")
+            .Where(static command => command.Path is { IsEmpty: false })
+            .Select(static command => command.Path!.Bounds)
+            .Aggregate(SKRect.Empty, static (accumulator, bounds) =>
+                accumulator.IsEmpty ? bounds : SKRect.Union(accumulator, bounds));
+
+        Assert.False(stretchedBounds.IsEmpty);
+        Assert.True(stretchedBounds.Width > 80f, $"Expected two nested textPath spans to cover the requested textLength, but bounds were {stretchedBounds}.");
+        Assert.True(stretchedBounds.Width < 180f, $"Expected textPath textLength to be distributed across child spans instead of applied once per span, but bounds were {stretchedBounds}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_AppliesFilters()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="90" viewBox="0 0 180 90">
+              <defs>
+                <path id="line" d="M20 48 L160 48" />
+                <filter id="blur" x="-20%" y="-40%" width="140%" height="180%">
+                  <feGaussianBlur stdDeviation="2" />
+                </filter>
+              </defs>
+              <text font-size="28" fill="#0055aa">
+                <textPath id="stretch-path" href="#line" method="stretch" filter="url(#blur)">A</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Contains(
+            retainedModel!.FindCommandsBySourceElementId<SaveLayerCanvasCommand>("stretch-path"),
+            static command => command.Paint?.ImageFilter is not null);
+        Assert.Contains(
+            retainedModel.FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path"),
+            static command => command.Path is { IsEmpty: false });
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathTinyCoordinates_ProducesFiniteGlyphPlacement()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 1 1">
+              <defs>
+                <path id="tiny" d="M0.02 0.50 C0.25 0.05 0.75 0.95 0.98 0.50" />
+              </defs>
+              <text font-size="0.08" fill="#0055aa">
+                <textPath id="tiny-path" href="#tiny" startOffset="0.01" dy="0.02">AB</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var glyphs = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("tiny-path")
+            .Where(static command => command.Text is "A" or "B")
+            .ToList();
+
+        Assert.NotEmpty(glyphs);
+        Assert.All(glyphs, static command =>
+        {
+            Assert.True(float.IsFinite(command.X), $"Expected finite tiny-coordinate textPath X, but got {command.X}.");
+            Assert.True(float.IsFinite(command.Y), $"Expected finite tiny-coordinate textPath Y, but got {command.Y}.");
+        });
+
+        var mappedOrigins = retainedModel
+            .FindCommands<SetMatrixCanvasCommand>()
+            .Select(static command => command.TotalMatrix.MapPoint(new SKPoint(0f, 0f)))
+            .ToList();
+        Assert.NotEmpty(mappedOrigins);
+        Assert.All(mappedOrigins, static point =>
+        {
+            Assert.True(float.IsFinite(point.X), $"Expected finite tiny-coordinate textPath matrix X, but got {point.X}.");
+            Assert.True(float.IsFinite(point.Y), $"Expected finite tiny-coordinate textPath matrix Y, but got {point.Y}.");
+        });
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_FilterAndDecorationParity()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="120" viewBox="0 0 220 120">
+              <defs>
+                <path id="curve" d="M20 70 C80 10 140 10 200 70" />
+                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="2" dy="3" stdDeviation="1" flood-color="#111827" flood-opacity="0.45" />
+                </filter>
+              </defs>
+              <text font-size="24" fill="#0055aa" text-decoration="underline" filter="url(#shadow)">
+                <textPath id="stretch-path" href="#curve" method="stretch">ABC</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+        Assert.NotEmpty(retainedModel!.FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path"));
+        Assert.NotEmpty(retainedModel.FindCommands<SaveLayerCanvasCommand>());
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_FilterBoundsIncludeDecorationsAndStroke()
+    {
+        const string stretchSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120">
+              <defs>
+                <path id="line" d="M20 62 L220 62" />
+                <filter id="blur" x="-10%" y="-50%" width="120%" height="200%">
+                  <feGaussianBlur stdDeviation="2" />
+                </filter>
+              </defs>
+              <text font-size="28" fill="#0055aa" stroke="#aa5500" stroke-width="10" text-decoration="underline">
+                <textPath id="stretch-path" href="#line" method="stretch" filter="url(#blur)">ABC</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(stretchSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var pathBounds = retainedModel!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("stretch-path")
+            .Where(static command => command.Path is { IsEmpty: false })
+            .Select(static command => command.Path!.Bounds)
+            .Aggregate(SKRect.Empty, static (accumulator, bounds) =>
+                accumulator.IsEmpty ? bounds : SKRect.Union(accumulator, bounds));
+
+        Assert.False(pathBounds.IsEmpty);
+        Assert.Contains(
+            retainedModel.FindCommandsBySourceElementId<SaveLayerCanvasCommand>("stretch-path"),
+            static command => command.Paint?.ImageFilter is not null);
+        Assert.True(pathBounds.Height > 10f, $"Expected stroke and decoration paths to participate in retained stretch bounds, but bounds were {pathBounds}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathMethodStretch_TinyCoordinatesProduceFinitePath()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 1 1">
+              <defs>
+                <path id="tiny" d="M0.02 0.50 C0.25 0.05 0.75 0.95 0.98 0.50" />
+              </defs>
+              <text font-size="0.08" fill="#0055aa">
+                <textPath id="tiny-path" href="#tiny" method="stretch" startOffset="0.01">AB</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var paths = retainedModel!
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("tiny-path")
+            .Where(static command => command.Path is { IsEmpty: false })
+            .Select(static command => command.Path!)
+            .ToList();
+
+        Assert.NotEmpty(paths);
+        Assert.All(paths, static path =>
+        {
+            Assert.True(float.IsFinite(path.Bounds.Left), $"Expected finite tiny-coordinate stretch path bounds, but got {path.Bounds}.");
+            Assert.True(float.IsFinite(path.Bounds.Top), $"Expected finite tiny-coordinate stretch path bounds, but got {path.Bounds}.");
+            Assert.True(float.IsFinite(path.Bounds.Right), $"Expected finite tiny-coordinate stretch path bounds, but got {path.Bounds}.");
+            Assert.True(float.IsFinite(path.Bounds.Bottom), $"Expected finite tiny-coordinate stretch path bounds, but got {path.Bounds}.");
+        });
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathCurrentPosition_EndsAtPathEndForFollowingText()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="260" height="80" viewBox="0 0 260 80">
+              <path id="line" d="M20,40 L220,40" />
+              <text id="label" font-size="20"><textPath href="#line">A</textPath><tspan id="after">B</tspan></text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var glyphs = retainedModel!
+            .FindCommands<DrawTextCanvasCommand>()
+            .Where(static command => command.Text is "A" or "B")
+            .ToDictionary(static command => command.Text, static command => command.X, StringComparer.Ordinal);
+
+        Assert.True(glyphs.TryGetValue("A", out var a), "Expected textPath glyph A.");
+        Assert.True(glyphs.TryGetValue("B", out var b), "Expected following inline glyph B.");
+        Assert.True(b > 200f, $"Expected following text to continue after the referenced path end for current suite parity, but B was at {b}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_VerticalTextPathCurrentPosition_ContinuesAfterRenderedRun()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220">
+              <path id="loop" d="M 50 110 A 60 60 0 0 1 110 50 60 60 0 0 1 170 110 60 60 0 0 1 110 170 60 60 0 0 1 50 110 Z" />
+              <text id="label" font-family="Mplus 1p" font-size="22" writing-mode="tb">
+                <textPath id="path-run" href="#loop" startOffset="-10">非常に長いテキ</textPath><tspan id="after">ス</tspan>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.NotEmpty(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("path-run"));
+        var after = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("after"));
+
+        Assert.True(
+            after.X > 120f,
+            $"Expected following vertical text to continue near the rendered textPath run end on the closed path, but X was {after.X}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_NestedTextPath_IgnoresNestedChildAndKeepsOuterText()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="260" height="120" viewBox="0 0 260 120">
+              <path id="line1" d="M20,35 L220,35" />
+              <path id="line2" d="M20,80 L220,80" />
+              <text font-size="20">
+                <textPath id="outer" href="#line1">A<textPath id="nested" href="#line2">B</textPath>C</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var outer = retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("outer").ToList();
+        Assert.Contains(outer, static command => command.Text == "A");
+        Assert.Contains(outer, static command => command.Text == "C");
+        Assert.DoesNotContain(retainedModel.FindCommands<DrawTextCanvasCommand>(), static command => command.Text == "B");
+        Assert.All(outer, static command => Assert.InRange(command.Y, 20f, 50f));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextPathParentDy_AppliesToIndependentSiblingChunks()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="260" height="120" viewBox="0 0 260 120">
+              <path id="line1" d="M20,30 L220,30" />
+              <path id="line2" d="M20,70 L220,70" />
+              <text id="label" font-size="20" dy="12">
+                <textPath id="first" href="#line1">A</textPath>
+                <textPath id="second" href="#line2">B</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var first = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("first"));
+        var second = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("second"));
+
+        Assert.InRange(first.X, 15f, 35f);
+        Assert.InRange(second.X, 15f, 35f);
+        Assert.True(first.Y > 30f, $"Expected parent dy to move first textPath below path baseline, but Y was {first.Y}.");
+        Assert.True(second.Y > 70f, $"Expected parent dy to move sibling textPath below path baseline, but Y was {second.Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextPathOnly_UsesInlineContentStart()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="90" viewBox="0 0 240 90">
+              <path id="line" d="M0,45 L220,45" />
+              <text id="label" x="90" y="45" font-size="20" inline-size="100" text-anchor="middle">
+                <textPath id="path-run" href="#line">AB</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var firstGlyph = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("path-run"), static command => command.Text == "A");
+        Assert.InRange(firstGlyph.X, 35f, 50f);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextPath_AppliesTextPathOwnedTextLength()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="90" viewBox="0 0 240 90">
+              <path id="line" d="M0,45 L220,45" />
+              <text id="label" x="20" y="45" font-size="20" inline-size="120">
+                <textPath id="path-run" href="#line" textLength="100">AB</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var glyphs = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("path-run")
+            .Where(static command => command.Text is "A" or "B")
+            .ToDictionary(static command => command.Text, static command => command, StringComparer.Ordinal);
+
+        Assert.True(glyphs.TryGetValue("A", out var a), "Expected textPath glyph A.");
+        Assert.True(glyphs.TryGetValue("B", out var b), "Expected textPath glyph B.");
+        Assert.Equal(a.Y, b.Y, 3);
+        Assert.True(b.X > a.X + 70f, $"Expected textPath-owned textLength to spread inline-size textPath glyphs, but A was at {a.X} and B was at {b.X}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextPathRootDx_OffsetsContentStart()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="90" viewBox="0 0 240 90">
+              <path id="line" d="M0,45 L220,45" />
+              <text id="label" x="90" y="45" dx="10" font-size="20" inline-size="100" text-anchor="middle">
+                <textPath id="path-run" href="#line">AB</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var firstGlyph = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("path-run"), static command => command.Text == "A");
+        Assert.InRange(firstGlyph.X, 45f, 60f);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextPathWithMixedSiblings_WrapsTrailingText()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="130" viewBox="0 0 240 130">
+              <path id="line" d="M0,45 L220,45" />
+              <text id="label" x="10" y="45" font-size="20" inline-size="45">
+                <tspan id="head">AA</tspan><textPath id="path-run" href="#line">A</textPath><tspan id="tail">BB</tspan>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var pathGlyph = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("path-run"), static command => command.Text == "A");
+        var tail = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("tail"), static command => command.Text == "BB");
+        Assert.True(pathGlyph.X > 25f, $"Expected textPath sibling to keep its inline slot after the leading text, but X was {pathGlyph.X}.");
+        Assert.InRange(tail.X, 5f, 25f);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextPathWithMixedSiblings_AppliesRootTextLength()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="280" height="120" viewBox="0 0 280 120">
+              <path id="line" d="M0,45 L260,45" />
+              <text id="label" x="10" y="45" font-size="20" inline-size="180" textLength="160">
+                <tspan id="head">AA</tspan><textPath id="path-run" href="#line">A</textPath><tspan id="tail">B</tspan>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var head = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("head"), static command => command.Text == "AA");
+        var pathGlyph = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("path-run"), static command => command.Text == "A");
+        var tail = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("tail"), static command => command.Text == "B");
+        Assert.True(pathGlyph.X > head.X + 50f, $"Expected root textLength to widen the plain-text slot before textPath, but head X was {head.X} and path X was {pathGlyph.X}.");
+        Assert.True(tail.X > pathGlyph.X + 20f, $"Expected root textLength to widen the textPath slot before trailing text, but path X was {pathGlyph.X} and tail X was {tail.X}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeStyledWrapperTextPath_WrapsWithSiblings()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="260" height="120" viewBox="0 0 260 120">
+              <path id="line" d="M0,45 L220,45" />
+              <text id="label" x="10" y="45" font-size="20" inline-size="25">
+                <tspan fill="red"><textPath id="path-run" href="#line">A</textPath></tspan><tspan id="tail">B</tspan>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var pathGlyph = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("path-run"), static command => command.Text == "A");
+        var tail = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("tail"), static command => command.Text == "B");
+        Assert.InRange(pathGlyph.X, 5f, 25f);
+        Assert.InRange(tail.X, 5f, 25f);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeVerticalTextPath_UsesExistingFallback()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="160" viewBox="0 0 220 160">
+              <path id="line" d="M20,30 L20,130" />
+              <text id="label" x="20" y="30" font-size="20" inline-size="80" writing-mode="vertical-rl">
+                <textPath id="path-run" href="#line">A</textPath><tspan id="tail">B</tspan>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("path-run"), static command => command.Text == "A");
+        Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("tail"), static command => command.Text == "B");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextPathTinyPathLength_KeepsFinitePlacement()
+    {
+        const string textPathSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="90" viewBox="0 0 120 90">
+              <path id="line" d="M0,45 L0.000000001,45" pathLength="100" />
+              <text id="label" x="10" y="45" font-size="20" inline-size="80">
+                <textPath id="path-run" href="#line" startOffset="50">A</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(textPathSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var pathGlyph = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("path-run"), static command => command.Text == "A");
+        Assert.False(float.IsNaN(pathGlyph.X));
+        Assert.False(float.IsInfinity(pathGlyph.X));
+        Assert.False(float.IsNaN(pathGlyph.Y));
+        Assert.False(float.IsInfinity(pathGlyph.Y));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_DominantBaselineMiddle_AdjustsTextBaseline()
+    {
+        const string baselineSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="100" viewBox="0 0 180 100">
+              <text id="alphabetic" x="10" y="50" font-size="24">A</text>
+              <text id="middle" x="60" y="50" font-size="24" dominant-baseline="middle">A</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(baselineSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var alphabetic = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("alphabetic"));
+        var middle = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("middle"));
+
+        Assert.True(
+            middle.Y > alphabetic.Y + 4f,
+            $"Expected dominant-baseline=middle to move the Skia alphabetic baseline down from {alphabetic.Y}, but got {middle.Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_AlignmentBaselineOverridesDominantBaseline()
+    {
+        const string baselineSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="100" viewBox="0 0 180 100">
+              <text id="alphabetic" x="10" y="50" font-size="24">A</text>
+              <text id="override" x="60" y="50" font-size="24" dominant-baseline="text-before-edge" alignment-baseline="alphabetic">A</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(baselineSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var alphabetic = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("alphabetic"));
+        var baselineOverride = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("override"));
+
+        Assert.Equal(alphabetic.Y, baselineOverride.Y, 3);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_BaselineIdentifiersUseDistinctMetricOffsets()
+    {
+        const string baselineSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="140" viewBox="0 0 240 140">
+              <text id="alphabetic" x="10" y="70" font-size="24">A</text>
+              <text id="hanging" x="60" y="70" font-size="24" alignment-baseline="hanging">A</text>
+              <text id="ideographic" x="110" y="70" font-size="24" alignment-baseline="ideographic">A</text>
+              <text id="before" x="160" y="70" font-size="24" alignment-baseline="text-before-edge">A</text>
+              <text id="after" x="210" y="70" font-size="24" alignment-baseline="text-after-edge">A</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(baselineSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var alphabetic = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("alphabetic"));
+        var hanging = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("hanging"));
+        var ideographic = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("ideographic"));
+        var before = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("before"));
+        var after = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("after"));
+
+        Assert.True(hanging.Y > alphabetic.Y + 8f, $"Expected hanging to move below alphabetic, but was {hanging.Y} vs {alphabetic.Y}.");
+        Assert.True(before.Y > hanging.Y, $"Expected text-before-edge to move below hanging, but was {before.Y} vs {hanging.Y}.");
+        Assert.True(ideographic.Y < alphabetic.Y, $"Expected ideographic to move above alphabetic, but was {ideographic.Y} vs {alphabetic.Y}.");
+        Assert.True(after.Y < ideographic.Y, $"Expected text-after-edge to move above ideographic, but was {after.Y} vs {ideographic.Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_BaselineShiftPercentage_UsesFontSizeBasis()
+    {
+        const string baselineSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="100" viewBox="0 0 180 100">
+              <text id="alphabetic" x="10" y="60" font-size="24">A</text>
+              <text id="shifted" x="60" y="60" font-size="24" baseline-shift="50%">A</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(baselineSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var alphabetic = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("alphabetic"));
+        var shifted = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("shifted"));
+
+        Assert.True(shifted.Y < alphabetic.Y - 8f, $"Expected percentage baseline-shift to move text up from {alphabetic.Y}, but got {shifted.Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_DominantBaselineUseScript_ChoosesIdeographicForCjkText()
+    {
+        const string baselineSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="100" viewBox="0 0 220 100">
+              <text id="latin" x="10" y="60" font-size="24" dominant-baseline="use-script">ABC</text>
+              <text id="cjk" x="90" y="60" font-size="24" dominant-baseline="use-script">漢字</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(baselineSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var latin = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("latin"));
+        var cjk = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("cjk"));
+
+        Assert.True(cjk.Y < latin.Y, $"Expected use-script CJK text to select an ideographic baseline above alphabetic, but was {cjk.Y} vs {latin.Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_AltGlyph_RendersTextContentFallbackAndPreservesSource()
+    {
+        const string altGlyphSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink"
+                 width="180" height="80" viewBox="0 0 180 80">
+              <defs>
+                <altGlyphDef id="alt">
+                  <glyphRef xlink:href="#glyphA" glyphRef="glyphA" />
+                </altGlyphDef>
+              </defs>
+              <text id="label" x="10" y="40" font-size="24">
+                <altGlyph id="ag" xlink:href="#alt" glyphRef="glyphA">A</altGlyph>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(altGlyphSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draw = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("ag"));
+        Assert.Equal("A", draw.Text);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_FontFeatureProperties_FlowIntoTextPaint()
+    {
+        const string featureSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="80" viewBox="0 0 220 80">
+              <text id="features"
+                    x="10"
+                    y="40"
+                    font-size="24"
+                    style="font-feature-settings: 'liga' 0, 'kern' 1; font-kerning: none; font-variant-ligatures: no-common-ligatures discretionary-ligatures">office</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(featureSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draw = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("features"));
+        Assert.NotNull(draw.Paint);
+        Assert.Equal("'liga' 0, 'kern' 1", draw.Paint!.FontFeatureSettings);
+        Assert.Equal("none", draw.Paint.FontKerning);
+        Assert.Equal("no-common-ligatures discretionary-ligatures", draw.Paint.FontVariantLigatures);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextOverflowClip_AddsInlineClip()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="80" viewBox="0 0 180 80">
+              <text id="clip" x="10" y="40" font-size="20" inline-size="48" text-overflow="clip">ABCDEFG</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var clip = Assert.Single(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        Assert.Equal(10f, clip.Rect.Left, 3);
+        Assert.Equal(58f, clip.Rect.Right, 3);
+
+        var draw = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("clip"));
+        Assert.Equal("ABCDEFG", draw.Text);
+        AssertInlineClipCommandOrder(retainedModel, "clip");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextOverflowEllipsis_ReplacesTailWithMarker()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="80" viewBox="0 0 180 80">
+              <text id="ellipsis" x="10" y="40" font-size="20" inline-size="48" text-overflow="ellipsis">ABCDEFG</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Single(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("ellipsis").ToList();
+
+        Assert.Contains(draws, static command => command.Text == "\u2026");
+        Assert.DoesNotContain(draws, static command => command.Text == "ABCDEFG");
+        AssertInlineClipCommandOrder(retainedModel, "ellipsis");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextOverflowCustomMarker_UsesQuotedMarker()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="80" viewBox="0 0 180 80">
+              <text id="marker" x="10" y="40" font-size="20" inline-size="52" text-overflow="'>>'">ABCDEFG</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Single(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("marker").ToList();
+
+        Assert.Contains(draws, static command => command.Text == ">>");
+        Assert.DoesNotContain(draws, static command => command.Text == "ABCDEFG");
+        AssertInlineClipCommandOrder(retainedModel, "marker");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextOverflowMarkerUsesLastRunStyle()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="80" viewBox="0 0 220 80">
+              <text id="styled-marker" x="10" y="40" font-size="20" inline-size="82" text-overflow="ellipsis" white-space="nowrap">
+                <tspan fill="black">ABCDEFG</tspan><tspan fill="#ff0000"> tail</tspan>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var marker = Assert.Single(
+            retainedModel!.FindCommands<DrawTextCanvasCommand>(),
+            static command => command.Text == "\u2026");
+
+        Assert.Equal(new SKColor(0xff, 0x00, 0x00, 0xff), marker.Paint!.Color);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextOverflowMiddleAnchor_CentersInlineClip()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="80" viewBox="0 0 180 80">
+              <text id="middle" x="90" y="40" font-size="20" inline-size="48" text-overflow="ellipsis" text-anchor="middle">ABCDEFG</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var clip = Assert.Single(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        Assert.Equal(66f, clip.Rect.Left, 3);
+        Assert.Equal(114f, clip.Rect.Right, 3);
+
+        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("middle").ToList();
+        Assert.Contains(draws, static command => command.Text == "\u2026");
+        Assert.DoesNotContain(draws, static command => command.Text == "ABCDEFG");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextOverflowEndAnchor_EndsInlineClipAtAnchor()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="80" viewBox="0 0 180 80">
+              <text id="end" x="120" y="40" font-size="20" inline-size="48" text-overflow="ellipsis" text-anchor="end">ABCDEFG</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var clip = Assert.Single(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        Assert.Equal(72f, clip.Rect.Left, 3);
+        Assert.Equal(120f, clip.Rect.Right, 3);
+
+        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("end").ToList();
+        Assert.Contains(draws, static command => command.Text == "\u2026");
+        Assert.DoesNotContain(draws, static command => command.Text == "ABCDEFG");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeMiddleAnchorWithoutOverflow_AnchorsContentArea()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="80" viewBox="0 0 180 80">
+              <text id="middle-fit" x="90" y="40" font-size="20" inline-size="100" text-overflow="ellipsis" text-anchor="middle">A</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draw = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("middle-fit"));
+
+        Assert.Equal("A", draw.Text.Replace("\u202B", string.Empty, StringComparison.Ordinal).Replace("\u202C", string.Empty, StringComparison.Ordinal));
+        Assert.Equal(40f, draw.X, 3);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeEndAnchorWithoutOverflow_AnchorsContentArea()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="80" viewBox="0 0 180 80">
+              <text id="end-fit" x="120" y="40" font-size="20" inline-size="80" text-overflow="ellipsis" text-anchor="end">A</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draw = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("end-fit"));
+
+        Assert.Equal("A", draw.Text);
+        Assert.Equal(40f, draw.X, 3);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithoutOverflow_UsesExistingSequentialPath()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="80" viewBox="0 0 220 80">
+              <text id="fits" x="10" y="40" font-size="20" inline-size="200" text-overflow="ellipsis">ABC</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draw = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("fits"));
+        Assert.Equal("ABC", draw.Text);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWhiteSpaceNormal_WrapsWordsIntoLines()
+    {
+        const string wrapSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
+              <text id="wrap" x="10" y="25" font-size="20" inline-size="22">A B C</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("wrap").ToList();
+
+        Assert.Equal(new[] { "A", "B", "C" }, draws.Select(static command => command.Text).ToArray());
+        Assert.Equal(10f, draws[0].X, 3);
+        Assert.True(draws[1].Y > draws[0].Y + 10f, $"Expected the second word to move to a later line, but Y was {draws[1].Y} vs {draws[0].Y}.");
+        Assert.True(draws[2].Y > draws[1].Y + 10f, $"Expected the third word to move to a later line, but Y was {draws[2].Y} vs {draws[1].Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeVerticalWritingMode_WrapsInlineProgression()
+    {
+        const string wrapSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="140" height="160" viewBox="0 0 140 160">
+              <text id="vertical-wrap" x="90" y="20" font-size="20" inline-size="42" writing-mode="tb">A B C</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("vertical-wrap")
+            .Where(static command => command.Text.Contains('A') || command.Text.Contains('B') || command.Text.Contains('C'))
+            .ToList();
+
+        Assert.Contains(draws, static command => command.Text.Contains('A'));
+        Assert.Contains(draws, static command => command.Text.Contains('B'));
+        Assert.Contains(draws, static command => command.Text.Contains('C'));
+        Assert.True(draws[1].Y > draws[0].Y, "Expected vertical inline progression before wrapping to the next column.");
+        Assert.True(draws[2].X < draws[0].X, "Expected vertical inline-size wrapping to advance to the next line column.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeVerticalDirectionRightToLeft_KeepsColumnWrapping()
+    {
+        const string wrapSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="140" height="160" viewBox="0 0 140 160">
+              <text id="vertical-rtl-wrap" x="90" y="20" font-size="20" inline-size="42" writing-mode="tb" direction="rtl" unicode-bidi="embed">A B C</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("vertical-rtl-wrap")
+            .Where(static command => command.Text.Contains('A') || command.Text.Contains('B') || command.Text.Contains('C'))
+            .ToList();
+
+        Assert.Contains(draws, static command => command.Text.Contains('A'));
+        Assert.Contains(draws, static command => command.Text.Contains('B'));
+        Assert.Contains(draws, static command => command.Text.Contains('C'));
+        Assert.True(draws[1].Y > draws[0].Y, "Expected vertical direction=rtl inline-size text to keep vertical inline progression before wrapping.");
+        Assert.True(draws[2].X < draws[0].X, "Expected vertical direction=rtl inline-size wrapping to continue using right-to-left columns.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeVerticalRlDirectionRightToLeft_AdvancesBottomToTop()
+    {
+        const string wrapSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="160" height="180" viewBox="0 0 160 180">
+              <text id="vertical-rl-rtl-wrap" x="110" y="120" font-size="20" inline-size="45" writing-mode="vertical-rl" direction="rtl" unicode-bidi="embed">AB CD</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("vertical-rl-rtl-wrap")
+            .Where(static command => command.Text.Contains('A') || command.Text.Contains('C'))
+            .ToList();
+
+        Assert.Equal(2, draws.Count);
+        var firstLine = draws[0];
+        var secondLine = draws[1];
+        Assert.True(firstLine.Y > 100f, $"Expected vertical-rl direction=rtl line start near the bottom edge of the inline area, but Y was {firstLine.Y}.");
+        Assert.True(secondLine.X < firstLine.X - 10f, $"Expected vertical-rl wrapped columns to progress right-to-left, but X was {secondLine.X} vs {firstLine.X}.");
+        Assert.True(secondLine.Y > 100f, $"Expected wrapped vertical-rl direction=rtl line start near the bottom edge of the inline area, but Y was {secondLine.Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeVerticalRlShapeInside_UsesResolvedBaselineColumnBand()
+    {
+        const string wrapSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="150" height="160" viewBox="0 0 150 160">
+              <defs>
+                <rect id="shape" x="80" y="20" width="26" height="105" />
+              </defs>
+              <text id="vertical-shape" font-size="20" shape-inside="url(#shape)" writing-mode="vertical-rl" direction="rtl" unicode-bidi="embed">A</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draw = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("vertical-shape"));
+        Assert.Equal("A", draw.Text.Replace("\u202B", string.Empty, StringComparison.Ordinal).Replace("\u202C", string.Empty, StringComparison.Ordinal));
+        Assert.InRange(draw.X, 90f, 98f);
+        Assert.True(draw.Y > 120f, $"Expected vertical-rl direction=rtl shape text to start from the bottom of the shape interval, but Y was {draw.Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeRightToLeft_WrapsFromRightEdge()
+    {
+        const string wrapSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
+              <text id="rtl-wrap" x="150" y="25" font-size="20" inline-size="42" direction="rtl" unicode-bidi="embed">A B C</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("rtl-wrap")
+            .Where(static command => command.Text.Contains('A') || command.Text.Contains('B') || command.Text.Contains('C'))
+            .ToList();
+
+        Assert.Contains(draws, static command => command.Text.Contains('A'));
+        Assert.Contains(draws, static command => command.Text.Contains('B'));
+        Assert.Contains(draws, static command => command.Text.Contains('C'));
+        Assert.All(draws, static command => Assert.True(command.X <= 150f, $"Expected RTL line start at or before the right edge, but X was {command.X}."));
+        Assert.True(draws[2].Y > draws[0].Y + 10f, $"Expected RTL inline-size wrapping to advance lines, but draws were: {string.Join(", ", draws.Select(static command => $"[{command.Text}]@{command.X:F2},{command.Y:F2}"))}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeStyleDirectionRightToLeft_WrapsFromRightEdge()
+    {
+        const string wrapSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
+              <g style="direction: rtl; unicode-bidi: embed">
+                <text id="rtl-wrap" x="150" y="25" font-size="20" inline-size="42">A B C</text>
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("rtl-wrap")
+            .Where(static command => command.Text.Contains('A') || command.Text.Contains('B') || command.Text.Contains('C'))
+            .ToList();
+
+        Assert.Contains(draws, static command => command.Text.Contains('A'));
+        Assert.Contains(draws, static command => command.Text.Contains('B'));
+        Assert.Contains(draws, static command => command.Text.Contains('C'));
+        Assert.All(draws, static command => Assert.True(command.X <= 150f, $"Expected style-driven RTL line start at or before the right edge, but X was {command.X}."));
+        Assert.True(draws[2].Y > draws[0].Y + 10f, $"Expected style-driven RTL inline-size wrapping to advance lines, but draws were: {string.Join(", ", draws.Select(static command => $"[{command.Text}]@{command.X:F2},{command.Y:F2}"))}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeRightToLeftMixedBidi_OrdersRunsPerLine()
+    {
+        const string wrapSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120">
+              <text id="rtl-mixed-wrap" x="210" y="30" font-size="20" inline-size="180" direction="rtl" unicode-bidi="embed">ABC &#x05D0;&#x05D1;&#x05D2; DEF</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("rtl-mixed-wrap")
+            .Select(static command => StripBidiControls(command.Text).Trim())
+            .Where(static text => text.Length > 0)
+            .ToList();
+
+        var visualText = string.Concat(draws);
+        var defIndex = visualText.IndexOf("DEF", StringComparison.Ordinal);
+        var hebrewIndex = visualText.IndexOf("\u05D0\u05D1\u05D2", StringComparison.Ordinal);
+        var abcIndex = visualText.IndexOf("ABC", StringComparison.Ordinal);
+
+        Assert.True(defIndex >= 0, $"Expected DEF draw text, but got: {string.Join(", ", draws)}.");
+        Assert.True(hebrewIndex >= 0, $"Expected Hebrew draw text, but got: {string.Join(", ", draws)}.");
+        Assert.True(abcIndex >= 0, $"Expected ABC draw text, but got: {string.Join(", ", draws)}.");
+        Assert.True(defIndex < hebrewIndex && hebrewIndex < abcIndex, $"Expected RTL visual order DEF, Hebrew, ABC, but got: {string.Join(", ", draws)}.");
+
+        static string StripBidiControls(string text)
+        {
+            return text
+                .Replace("\u061C", string.Empty, StringComparison.Ordinal)
+                .Replace("\u200E", string.Empty, StringComparison.Ordinal)
+                .Replace("\u200F", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202A", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202B", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202C", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202D", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202E", string.Empty, StringComparison.Ordinal)
+                .Replace("\u2066", string.Empty, StringComparison.Ordinal)
+                .Replace("\u2067", string.Empty, StringComparison.Ordinal)
+                .Replace("\u2068", string.Empty, StringComparison.Ordinal)
+                .Replace("\u2069", string.Empty, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeRightToLeftMixedBidiWithIsolate_UsesFallbackPath()
+    {
+        const string wrapSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120">
+              <text id="rtl-isolate-wrap" x="210" y="30" font-size="20" inline-size="180" direction="rtl" unicode-bidi="embed">ABC &#x2067;&#x05D0;&#x05D1;&#x05D2;&#x2069; DEF</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("rtl-isolate-wrap")
+            .Select(static command => command.Text)
+            .ToList();
+        var retainedText = string.Concat(draws);
+
+        Assert.Contains("ABC", retainedText, StringComparison.Ordinal);
+        Assert.Contains("DEF", retainedText, StringComparison.Ordinal);
+        Assert.Contains("\u2067", retainedText, StringComparison.Ordinal);
+        Assert.Contains("\u2069", retainedText, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizePreLine_ForcesLineBreaks()
+    {
+        const string wrapSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
+              <text id="preline" x="10" y="25" font-size="20" inline-size="150" white-space="pre-line">A
+            B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("preline").ToList();
+
+        Assert.Equal(new[] { "A", "B" }, draws.Where(static command => !string.IsNullOrWhiteSpace(command.Text)).Select(static command => command.Text).ToArray());
+        Assert.Equal(10f, draws[0].X, 3);
+        Assert.Equal(10f, draws[1].X, 3);
+        Assert.True(draws[1].Y > draws[0].Y + 10f, $"Expected pre-line newline to advance vertically, but Y was {draws[1].Y} vs {draws[0].Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWrappedOverflowMarkerUsesLineRunStyle()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="140" viewBox="0 0 240 140">
+              <text id="wrapped-marker" x="10" y="35" font-size="20" inline-size="62" text-overflow="ellipsis">
+                <tspan fill="#ff0000">ABCDEFGHIJK</tspan> <tspan id="tail" fill="#0000ff">tail</tspan>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var marker = Assert.Single(
+            retainedModel!.FindCommands<DrawTextCanvasCommand>(),
+            static command => command.Text == "\u2026");
+
+        Assert.Equal(new SKColor(0xff, 0x00, 0x00, 0xff), marker.Paint!.Color);
+        Assert.Contains(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("tail"), static command => command.Text == "tail");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWrap_DoesNotBreakWordAcrossTspans()
+    {
+        const string wrapSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
+              <text id="wrap" x="10" y="25" font-size="20" inline-size="35"><tspan id="first">A</tspan><tspan id="second">B</tspan> C</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var first = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("first"));
+        var second = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("second"));
+        var rootDraws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("wrap").ToList();
+
+        Assert.Equal(first.Y, second.Y, 3);
+        Assert.Contains(rootDraws, command => command.Text == "C" && command.Y > first.Y + 10f);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeMiddleAnchorWrap_AnchorsEveryLineToContentArea()
+    {
+        const string wrapSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
+              <text id="middle-wrap" x="90" y="25" font-size="20" inline-size="22" text-anchor="middle">A B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(wrapSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("middle-wrap").ToList();
+
+        Assert.Equal(new[] { "A", "B" }, draws.Where(static command => !string.IsNullOrWhiteSpace(command.Text)).Select(static command => command.Text).ToArray());
+        Assert.All(draws, static command => Assert.Equal(79f, command.X, 3));
+        Assert.True(draws[1].Y > draws[0].Y + 10f, $"Expected the second line to advance vertically, but Y was {draws[1].Y} vs {draws[0].Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithShapeInside_UsesShapeBoundsForWrappedLayout()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="140" viewBox="0 0 220 140">
+              <defs>
+                <rect id="shape" x="40" y="20" width="26" height="105" />
+              </defs>
+              <text id="shape-text" x="10" y="50" font-size="20" shape-inside="url(#shape)">A B C</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text").ToList();
+
+        Assert.Equal(new[] { "A", "B", "C" }, draws.Select(static command => command.Text).ToArray());
+        Assert.All(draws, static command => Assert.Equal(40f, command.X, 3));
+        Assert.True(draws[0].Y > 20f && draws[0].Y < 80f, $"Expected first shape-inside baseline inside the shape, but Y was {draws[0].Y}.");
+        Assert.True(draws[1].Y > draws[0].Y + 10f, $"Expected shape-inside text to wrap inside the rectangle, but Y was {draws[1].Y} vs {draws[0].Y}.");
+        Assert.True(draws[2].Y > draws[1].Y + 10f, $"Expected third word to wrap to a later shape-inside line, but Y was {draws[2].Y} vs {draws[1].Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithRoundedInsetShapeInside_UsesCurvedLineFragment()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="160" height="140" viewBox="0 0 160 140">
+              <text id="shape-text" font-size="20" shape-inside="inset(20px 60px 20px 20px round 40px)">A</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draw = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text"));
+        Assert.Equal("A", draw.Text);
+        Assert.InRange(draw.X, 50f, 65f);
+        Assert.True(draw.Y > 20f, $"Expected rounded inset baseline to remain inside the shape, but Y was {draw.Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithBasicShapeAndFillBox_UsesBasicShape()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="140" viewBox="0 0 180 140">
+              <text id="shape-text" font-size="20" shape-inside="inset(20px 130px 20px 20px) fill-box">A B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text").ToList();
+
+        Assert.Equal(new[] { "A", "B" }, draws.Select(static command => command.Text).ToArray());
+        Assert.All(draws, static command => Assert.Equal(20f, command.X, 3));
+        Assert.True(draws[1].Y > draws[0].Y + 10f, $"Expected fill-box-qualified shape to wrap text, but Y values were {draws[0].Y} and {draws[1].Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithImageShapeThreshold_UsesAlphaIntervals()
+    {
+        const string alphaPng = "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAE0lEQVR4nGNgYGD4D8UNUEyqAACVLwv51oy5YgAAAABJRU5ErkJggg==";
+        var overflowSvg = $"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="100" viewBox="0 0 80 100">
+              <text id="shape-text" font-size="30" shape-inside="url(data:image/png;base64,{alphaPng}) view-box" shape-image-threshold="0.75">A B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text")
+            .Where(static command => !string.IsNullOrWhiteSpace(command.Text))
+            .ToList();
+
+        Assert.Equal(new[] { "A", "B" }, draws.Select(static command => command.Text).ToArray());
+        Assert.True(draws[1].Y > draws[0].Y + 15f, $"Expected image-derived shape intervals to wrap the second word, but Y values were {draws[0].Y} and {draws[1].Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithJpegImageShape_UsesSkiaDecodedAlpha()
+    {
+        var jpegUri = CreateOpaqueEncodedImageDataUri(SkiaSharp.SKEncodedImageFormat.Jpeg, "image/jpeg");
+        var overflowSvg = $"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="90" viewBox="0 0 120 90">
+              <text id="shape-text" font-size="24" shape-inside="url({jpegUri}) view-box">A B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text")
+            .Where(static command => !string.IsNullOrWhiteSpace(command.Text))
+            .ToList();
+
+        Assert.NotEmpty(draws);
+        Assert.All(draws, static command => Assert.True(command.Y > 10f, $"Expected JPEG shape text to use the shape-derived first baseline, but Y was {command.Y}."));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithShapeInsideRightToLeft_AnchorsLinesToRightEdge()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="140" viewBox="0 0 220 140">
+              <defs>
+                <rect id="shape" x="40" y="20" width="26" height="105" />
+              </defs>
+              <text id="shape-text" font-size="20" shape-inside="url(#shape)" direction="rtl" unicode-bidi="embed">A B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draws = retainedModel
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text")
+            .Where(static command => !string.IsNullOrWhiteSpace(command.Text))
+            .ToList();
+
+        Assert.Equal(new[] { "A", "B" }, draws.Select(static command => StripBidiControls(command.Text)).ToArray());
+        Assert.All(draws, static command => Assert.InRange(command.X, 40f, 66f));
+        Assert.True(draws[0].X > 40f, $"Expected RTL shape-inside line to anchor against the right edge, but X was {draws[0].X}.");
+        Assert.Equal(draws[0].X, draws[1].X, 3);
+        Assert.True(draws[1].Y > draws[0].Y + 10f, $"Expected RTL shape-inside text to wrap inside the rectangle, but Y was {draws[1].Y} vs {draws[0].Y}.");
+
+        static string StripBidiControls(string text)
+        {
+            return text
+                .Replace("\u202A", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202B", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202C", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202D", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202E", string.Empty, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithShapeSubtract_UsesRemainingLineFragment()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="120" viewBox="0 0 220 120">
+              <defs>
+                <rect id="shape" x="10" y="20" width="100" height="80" />
+                <rect id="subtract" x="10" y="20" width="45" height="36" />
+              </defs>
+              <text id="shape-text" font-size="20" shape-inside="url(#shape)" shape-subtract="url(#subtract)">A B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text").ToList();
+
+        Assert.NotEmpty(draws);
+        Assert.All(draws, static command => Assert.True(command.X >= 55f, $"Expected shape-subtract to move the line start after the exclusion rectangle, but X was {command.X}."));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithMultipleShapeSubtract_UsesWidestOpenFragment()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="120" viewBox="0 0 220 120">
+              <defs>
+                <rect id="shape" x="10" y="20" width="140" height="80" />
+                <rect id="left" x="10" y="20" width="50" height="38" />
+                <rect id="right" x="90" y="20" width="60" height="38" />
+              </defs>
+              <text id="shape-text" font-size="20" shape-inside="url(#shape)" shape-subtract="url(#left) url(#right)">A</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draw = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text"));
+        Assert.Equal("A", draw.Text);
+        Assert.True(draw.X >= 60f && draw.X <= 90f, $"Expected multiple shape-subtract regions to leave the center fragment, but X was {draw.X}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithMultipleShapeInside_FlowsOverflowIntoNextShape()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="120" viewBox="0 0 220 120">
+              <defs>
+                <rect id="first" x="10" y="20" width="24" height="42" />
+                <rect id="second" x="90" y="20" width="80" height="42" />
+              </defs>
+              <text id="shape-text" font-size="20" shape-inside="url(#first) url(#second)">A B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text")
+            .Where(static command => !string.IsNullOrWhiteSpace(command.Text))
+            .ToList();
+
+        Assert.Equal(new[] { "A", "B" }, draws.Select(static command => command.Text).ToArray());
+        Assert.Equal(10f, draws[0].X, 3);
+        Assert.Equal(90f, draws[1].X, 3);
+        Assert.Equal(draws[0].Y, draws[1].Y, 3);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithNonRectangularShapeInside_UsesSampledLineFragments()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="160" height="140" viewBox="0 0 160 140">
+              <defs>
+                <path id="shape" d="M60 20 L110 110 L10 110 Z" />
+              </defs>
+              <text id="shape-text" font-size="24" shape-inside="url(#shape)">W W</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text")
+            .Where(static command => !string.IsNullOrWhiteSpace(command.Text))
+            .ToList();
+
+        Assert.Equal(new[] { "W", "W" }, draws.Select(static command => command.Text).ToArray());
+        Assert.True(Math.Abs(draws[0].X - draws[1].X) > 5f, $"Expected sampled non-rectangular shape lines to use different line starts, but X values were {draws[0].X} and {draws[1].X}.");
+        Assert.True(draws[1].Y > draws[0].Y + 10f, $"Expected non-rectangular shape-inside text to wrap to a later row, but Y values were {draws[0].Y} and {draws[1].Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithFullWidthShapeSubtract_FlowsTextBelowExclusion()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="130" viewBox="0 0 220 130">
+              <defs>
+                <rect id="shape" x="10" y="20" width="100" height="90" />
+                <rect id="subtract" x="10" y="20" width="100" height="38" />
+              </defs>
+              <text id="shape-text" font-size="20" shape-inside="url(#shape)" shape-subtract="url(#subtract)">A B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text").ToList();
+
+        var visibleDraws = draws.Where(static command => !string.IsNullOrWhiteSpace(command.Text)).ToList();
+        Assert.Equal(new[] { "A", "B" }, visibleDraws.Select(static command => command.Text).ToArray());
+        Assert.Equal(10f, visibleDraws[0].X, 3);
+        Assert.True(visibleDraws[1].X > visibleDraws[0].X, $"Expected the second word to remain on the available line fragment, but X was {visibleDraws[1].X} vs {visibleDraws[0].X}.");
+        Assert.All(draws, static command => Assert.True(command.Y > 58f, $"Expected text to flow below the full-width exclusion, but Y was {command.Y}."));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithShapeInside_StopsAtShapeBottom()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="100" viewBox="0 0 220 100">
+              <defs>
+                <rect id="shape" x="40" y="20" width="26" height="42" />
+              </defs>
+              <text id="shape-text" font-size="20" shape-inside="url(#shape)">A B C D</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draws = retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text").ToList();
+
+        Assert.NotEmpty(draws);
+        var occupiedLineCount = draws.Select(static command => MathF.Round(command.Y, 3)).Distinct().Count();
+        Assert.True(occupiedLineCount <= 2, $"Expected shape-inside layout to stop at the shape bottom, but rendered {occupiedLineCount} lines.");
+        Assert.All(draws, static command => Assert.True(command.Y <= 62f, $"Expected no shape-inside baseline below the rectangle bottom, but Y was {command.Y}."));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithShapeInsideAuto_UsesInlineOverflowPath()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="100" viewBox="0 0 220 100">
+              <text id="shape-auto" x="10" y="50" font-size="20" inline-size="48" shape-inside="auto" text-overflow="ellipsis">ABCDEFG</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Single(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-auto").ToList();
+        Assert.Contains(draws, static command => command.Text == "\u2026");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithDescendantShapeInside_FallsBack()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="100" viewBox="0 0 220 100">
+              <defs>
+                <rect id="shape" width="80" height="40" />
+              </defs>
+              <text id="root" x="10" y="50" font-size="20" inline-size="48" text-overflow="ellipsis"><tspan id="child-shape" shape-inside="url(#shape)">ABCDEFG</tspan></text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draw = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("child-shape"));
+        Assert.Equal("ABCDEFG", draw.Text);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithPositionedDescendant_FallsBackToPositionedLayout()
+    {
+        const string overflowSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="160" height="110" viewBox="0 0 160 110">
+              <text id="root" x="10" y="25" font-size="20" inline-size="28" text-overflow="ellipsis">A<tspan id="positioned" x="90" y="70">B</tspan>C</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(overflowSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        Assert.DoesNotContain(retainedModel.FindCommands<DrawTextCanvasCommand>(), static command => command.Text == "\u2026");
+
+        var positioned = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("positioned"));
+        Assert.Equal("B", positioned.Text);
+        Assert.Equal(90f, positioned.X, 3);
+        Assert.Equal(70f, positioned.Y, 3);
+
+        var rootTexts = retainedModel
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("root")
+            .Select(static command => command.Text)
+            .ToList();
+        Assert.Contains("A", rootTexts);
+        Assert.Contains("C", rootTexts);
+    }
+
+    [Fact]
     public void RetainedSceneGraph_WhiteSpacePre_PreservesStaticTextRuns()
     {
         const string whiteSpaceSvg = """
@@ -866,6 +3096,77 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
 
         Assert.Contains("A B", renderedTexts);
         Assert.Contains("A   B", renderedTexts);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_WhiteSpacePreserveSpacesShorthandPreservesStaticRuns()
+    {
+        const string whiteSpaceSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="50" viewBox="0 0 180 50">
+              <text id="preserve-spaces" x="10" y="25" font-size="12" style="white-space: preserve-spaces wrap">A   B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(whiteSpaceSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var renderedTexts = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("preserve-spaces")
+            .Select(static cmd => cmd.Text)
+            .ToList();
+
+        Assert.Contains("A   B", renderedTexts);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_WhiteSpaceCollapseDiscardRemovesDocumentWhitespace()
+    {
+        const string whiteSpaceSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="50" viewBox="0 0 180 50">
+              <text id="discard" x="10" y="25" font-size="12" style="white-space-collapse: discard; text-wrap-mode: wrap">A   B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(whiteSpaceSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var renderedTexts = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("discard")
+            .Select(static cmd => cmd.Text)
+            .ToList();
+
+        Assert.Contains("AB", renderedTexts);
+        Assert.DoesNotContain("A B", renderedTexts);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_WhiteSpaceTrimDiscardInnerTrimsPreservedEdges()
+    {
+        const string whiteSpaceSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="50" viewBox="0 0 180 50">
+              <text id="trim" x="10" y="25" font-size="12" style="white-space: preserve nowrap discard-inner">   A   </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(whiteSpaceSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var renderedTexts = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("trim")
+            .Select(static cmd => cmd.Text)
+            .ToList();
+
+        Assert.Contains("A", renderedTexts);
+        Assert.DoesNotContain("   A   ", renderedTexts);
     }
 
     [Fact]
@@ -918,6 +3219,303 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.Equal(4, positions.Length);
         Assert.Equal(20f, positions[0], 1);
         Assert.True(positions[^1] > 120f, $"Expected textLength spacing to spread the glyph origins, but got final X={positions[^1]}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeWithTextLength_DoesNotWrapAdjustedGlyphs()
+    {
+        const string textLengthSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+              <text id="text-length" x="20" y="100" font-family="Noto Sans" font-size="48" inline-size="40" textLength="150">Text</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(textLengthSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var draws = retainedModel
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("text-length")
+            .Where(static cmd => cmd.Y == 100f)
+            .OrderBy(static cmd => cmd.X)
+            .ToArray();
+
+        Assert.Equal(4, draws.Length);
+        Assert.All(draws, static command => Assert.Equal(100f, command.Y, 3));
+        Assert.Equal(20f, draws[0].X, 1);
+        Assert.True(draws[^1].X > 120f, $"Expected inline-size plus textLength to keep textLength spacing instead of wrapping, but final X was {draws[^1].X}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextLength_WrapsBeforeSpacingAdjustment()
+    {
+        const string textLengthSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="180" viewBox="0 0 220 180">
+              <text id="wrapped-length" x="20" y="70" font-family="Noto Sans" font-size="20" inline-size="30" textLength="120">AB CD</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(textLengthSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        var glyphs = retainedModel
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("wrapped-length")
+            .Where(static command => command.Text is "A" or "B" or "C" or "D")
+            .GroupBy(static command => command.Text, StringComparer.Ordinal)
+            .ToDictionary(static group => group.Key, static group => group.First(), StringComparer.Ordinal);
+
+        Assert.True(glyphs.TryGetValue("A", out var a), "Expected wrapped textLength glyph A.");
+        Assert.True(glyphs.TryGetValue("B", out var b), "Expected wrapped textLength glyph B.");
+        Assert.True(glyphs.TryGetValue("C", out var c), "Expected wrapped textLength glyph C.");
+        Assert.True(glyphs.TryGetValue("D", out var d), "Expected wrapped textLength glyph D.");
+        Assert.Equal(a.Y, b.Y, 3);
+        Assert.Equal(c.Y, d.Y, 3);
+        Assert.True(c.Y > a.Y + 8f, $"Expected textLength layout to wrap before spacing adjustment, but A was at {a.Y} and C was at {c.Y}.");
+        Assert.True(b.X > a.X + 20f, $"Expected textLength spacing to spread first wrapped line, but A was at {a.X} and B was at {b.X}.");
+        Assert.True(d.X > c.X + 20f, $"Expected textLength spacing to spread second wrapped line, but C was at {c.X} and D was at {d.X}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextLengthSpacingAndGlyphs_WrapsAndScalesLines()
+    {
+        const string textLengthSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="180" viewBox="0 0 220 180">
+              <text id="wrapped-length" x="20" y="70" font-family="Noto Sans" font-size="20" inline-size="30" textLength="120" lengthAdjust="spacingAndGlyphs">AB CD</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(textLengthSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var glyphs = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("wrapped-length")
+            .Where(static command => command.Text is "A" or "B" or "C" or "D")
+            .GroupBy(static command => command.Text, StringComparer.Ordinal)
+            .ToDictionary(static group => group.Key, static group => group.First(), StringComparer.Ordinal);
+        var scaleMatrices = retainedModel
+            .FindCommands<SetMatrixCanvasCommand>()
+            .Select(static command => command.DeltaMatrix)
+            .Where(static matrix => matrix.ScaleX > 1.1f)
+            .ToArray();
+
+        Assert.NotEmpty(scaleMatrices);
+        Assert.True(glyphs.TryGetValue("A", out var a), "Expected scaled wrapped textLength glyph A.");
+        Assert.True(glyphs.TryGetValue("B", out var b), "Expected scaled wrapped textLength glyph B.");
+        Assert.True(glyphs.TryGetValue("C", out var c), "Expected scaled wrapped textLength glyph C.");
+        Assert.True(glyphs.TryGetValue("D", out var d), "Expected scaled wrapped textLength glyph D.");
+        Assert.Equal(a.Y, b.Y, 3);
+        Assert.Equal(c.Y, d.Y, 3);
+        Assert.True(c.Y > a.Y + 8f, $"Expected spacingAndGlyphs layout to wrap before scaling, but A was at {a.Y} and C was at {c.Y}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextLengthWithRelativePositionedDescendant_WrapsShiftedLine()
+    {
+        const string textLengthSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="180" viewBox="0 0 220 180">
+              <text id="wrapped-length" x="20" y="70" font-family="Noto Sans" font-size="20" inline-size="30" textLength="120">AB <tspan id="shifted-line" dx="8">CD</tspan></text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(textLengthSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var rootGlyphs = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("wrapped-length")
+            .Where(static command => command.Text is "A" or "B")
+            .ToDictionary(static command => command.Text, static command => command, StringComparer.Ordinal);
+        var shiftedGlyphs = retainedModel
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("shifted-line")
+            .Where(static command => command.Text is "C" or "D")
+            .ToDictionary(static command => command.Text, static command => command, StringComparer.Ordinal);
+
+        Assert.True(rootGlyphs.TryGetValue("A", out var a), "Expected wrapped textLength glyph A.");
+        Assert.True(rootGlyphs.TryGetValue("B", out var b), "Expected wrapped textLength glyph B.");
+        Assert.True(shiftedGlyphs.TryGetValue("C", out var c), "Expected shifted wrapped textLength glyph C.");
+        Assert.True(shiftedGlyphs.TryGetValue("D", out var d), "Expected shifted wrapped textLength glyph D.");
+        Assert.Equal(a.Y, b.Y, 3);
+        Assert.Equal(c.Y, d.Y, 3);
+        Assert.True(c.Y > a.Y + 8f, $"Expected shifted descendant to remain on the wrapped second line, but A was at {a.Y} and C was at {c.Y}.");
+        Assert.True(c.X > a.X, $"Expected descendant dx to shift C on its wrapped line, but A was at {a.X} and C was at {c.X}.");
+        Assert.True(d.X > c.X + 10f, $"Expected spacing after shifted C to continue through textLength layout, but C was at {c.X} and D was at {d.X}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_InlineSizeTextLengthWithRelativePositionedDescendant_UsesFlattenedSpacing()
+    {
+        const string textLengthSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="180" viewBox="0 0 220 180">
+              <text id="flattened" x="20" y="90" font-family="Noto Sans" font-size="36" inline-size="34" textLength="150">A<tspan id="shifted" dx="10">B</tspan>C</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(textLengthSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
+        Assert.DoesNotContain(retainedModel.FindCommands<DrawTextCanvasCommand>(), static command => command.Text == "\u2026");
+
+        var glyphs = retainedModel
+            .FindCommands<DrawTextCanvasCommand>()
+            .Where(static command => command.Text is "A" or "B" or "C")
+            .ToDictionary(static command => command.Text, static command => new SKPoint(command.X, command.Y), StringComparer.Ordinal);
+
+        Assert.True(glyphs.TryGetValue("A", out var a), "Expected flattened textLength glyph A.");
+        Assert.True(glyphs.TryGetValue("B", out var b), "Expected flattened textLength glyph B.");
+        Assert.True(glyphs.TryGetValue("C", out var c), "Expected flattened textLength glyph C.");
+        Assert.Equal(a.Y, b.Y, 3);
+        Assert.Equal(a.Y, c.Y, 3);
+        Assert.True(b.X > a.X + 20f, $"Expected inline-size plus textLength to keep dx-positioned B in flattened spacing, but A was {a} and B was {b}.");
+        Assert.True(c.X > b.X + 20f, $"Expected text after dx-positioned B to keep flattened textLength spacing, but B was {b} and C was {c}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextLengthWithPositionedDescendant_IntegratesFlattenedSpacing()
+    {
+        const string textLengthSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="180" viewBox="0 0 220 180">
+              <text id="flattened" x="20" y="90" font-family="Noto Sans" font-size="36" textLength="150">A<tspan id="shifted" dx="10">B</tspan>C</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(textLengthSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var glyphs = retainedModel!
+            .FindCommands<DrawTextCanvasCommand>()
+            .Where(static command => command.Text is "A" or "B" or "C")
+            .ToDictionary(static command => command.Text, static command => new SKPoint(command.X, command.Y), StringComparer.Ordinal);
+
+        Assert.True(glyphs.TryGetValue("A", out var a), "Expected flattened textLength glyph A.");
+        Assert.True(glyphs.TryGetValue("B", out var b), "Expected flattened textLength glyph B.");
+        Assert.True(glyphs.TryGetValue("C", out var c), "Expected flattened textLength glyph C.");
+        Assert.Equal(a.Y, b.Y, 3);
+        Assert.Equal(a.Y, c.Y, 3);
+        Assert.True(b.X > a.X + 20f, $"Expected dx-positioned descendant to participate in flattened textLength spacing, but A was {a} and B was {b}.");
+        Assert.True(c.X > b.X + 20f, $"Expected text after positioned descendant to continue through flattened textLength spacing, but B was {b} and C was {c}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_SharedTextLayoutEngine_CombinesBidiShapeWrappingAndStretchPath()
+    {
+        const string sharedLayoutSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="360" height="240" viewBox="0 0 360 240">
+              <defs>
+                <rect id="shape" x="24" y="24" width="116" height="82" />
+                <rect id="subtract" x="24" y="24" width="54" height="34" />
+                <path id="stretch-curve" d="M178 172 C220 112 286 230 334 170" />
+                <filter id="stretch-shadow" x="-20%" y="-30%" width="140%" height="160%">
+                  <feDropShadow dx="2" dy="3" stdDeviation="1" flood-color="#0f172a" flood-opacity="0.35" />
+                </filter>
+              </defs>
+              <text id="shared-wrap"
+                    font-family="Noto Sans, Arial, sans-serif"
+                    font-size="18"
+                    fill="#111827"
+                    shape-inside="url(#shape)"
+                    shape-subtract="url(#subtract)"
+                    direction="rtl"
+                    unicode-bidi="embed"
+                    line-break="anywhere">A-B &#x05D0;&#x05D1; C</text>
+              <text id="shared-stretch"
+                    font-family="Noto Sans, Arial, sans-serif"
+                    font-size="24"
+                    fill="#2563eb"
+                    stroke="#0f172a"
+                    stroke-width="0.4"
+                    text-decoration="underline"
+                    filter="url(#stretch-shadow)">
+                <textPath id="shared-stretch-path" href="#stretch-curve" method="stretch" textLength="132" lengthAdjust="spacingAndGlyphs">stretch path</textPath>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(sharedLayoutSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+
+        Assert.NotNull(svg.Picture);
+        Assert.NotNull(retainedModel);
+        Assert.NotNull(retainedPicture);
+        AssertPicturesEqual(svg, svg.Picture!, retainedPicture!);
+
+        var wrappedDraws = retainedModel!
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("shared-wrap")
+            .Where(static command => !string.IsNullOrWhiteSpace(StripBidiControls(command.Text)))
+            .ToList();
+        var wrappedText = string.Concat(wrappedDraws.Select(static command => StripBidiControls(command.Text)));
+        Assert.Contains("A", wrappedText, StringComparison.Ordinal);
+        Assert.Contains("B", wrappedText, StringComparison.Ordinal);
+        Assert.Contains("C", wrappedText, StringComparison.Ordinal);
+        Assert.Contains("\u05D0", wrappedText, StringComparison.Ordinal);
+        Assert.Contains("\u05D1", wrappedText, StringComparison.Ordinal);
+        Assert.All(wrappedDraws, static command =>
+        {
+            Assert.True(float.IsFinite(command.X), $"Expected finite shared-wrap X, but got {command.X}.");
+            Assert.True(float.IsFinite(command.Y), $"Expected finite shared-wrap Y, but got {command.Y}.");
+        });
+        Assert.True(
+            wrappedDraws.Select(static command => MathF.Round(command.Y, 2)).Distinct().Count() > 1,
+            $"Expected shared wrapped text to span multiple shape lines, but draws were: {string.Join(", ", wrappedDraws.Select(static command => $"[{command.Text}]@{command.X:F2},{command.Y:F2}"))}.");
+
+        var stretchPaths = retainedModel
+            .FindCommandsBySourceElementId<DrawPathCanvasCommand>("shared-stretch-path")
+            .ToList();
+        Assert.NotEmpty(stretchPaths);
+        Assert.All(stretchPaths, static command =>
+        {
+            Assert.NotNull(command.Path);
+            Assert.False(command.Path!.IsEmpty);
+            Assert.True(float.IsFinite(command.Path.Bounds.Left), $"Expected finite stretch path left bound, but bounds were {command.Path.Bounds}.");
+            Assert.True(float.IsFinite(command.Path.Bounds.Top), $"Expected finite stretch path top bound, but bounds were {command.Path.Bounds}.");
+            Assert.True(float.IsFinite(command.Path.Bounds.Right), $"Expected finite stretch path right bound, but bounds were {command.Path.Bounds}.");
+            Assert.True(float.IsFinite(command.Path.Bounds.Bottom), $"Expected finite stretch path bottom bound, but bounds were {command.Path.Bounds}.");
+        });
+
+        static string StripBidiControls(string text)
+        {
+            return text
+                .Replace("\u061C", string.Empty, StringComparison.Ordinal)
+                .Replace("\u200E", string.Empty, StringComparison.Ordinal)
+                .Replace("\u200F", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202A", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202B", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202C", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202D", string.Empty, StringComparison.Ordinal)
+                .Replace("\u202E", string.Empty, StringComparison.Ordinal)
+                .Replace("\u2066", string.Empty, StringComparison.Ordinal)
+                .Replace("\u2067", string.Empty, StringComparison.Ordinal)
+                .Replace("\u2068", string.Empty, StringComparison.Ordinal)
+                .Replace("\u2069", string.Empty, StringComparison.Ordinal);
+        }
     }
 
     [Fact]
@@ -3029,7 +5627,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     [Fact]
     public void RetainedSceneGraph_CompilesResvgSelfRecursiveMaskDocumentWithoutRecursing()
     {
-        var svgPath = GetResvgSvgPath("e-mask-023.svg");
+        var svgPath = GetResvgSvgPath("tests/masking/mask/self-recursive.svg");
         if (!File.Exists(svgPath))
         {
             return;
@@ -3887,6 +6485,23 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.Equal(expectedStrategy, node!.CompilationStrategy);
     }
 
+    private static void AssertInlineClipCommandOrder(SKPicture picture, string sourceElementId)
+    {
+        var commands = picture
+            .FindCommandsBySourceElementId(sourceElementId)
+            .Where(static command => command is SaveCanvasCommand or ClipRectCanvasCommand or DrawTextCanvasCommand or RestoreCanvasCommand)
+            .ToList();
+
+        var saveIndex = commands.FindIndex(static command => command is SaveCanvasCommand);
+        var clipIndex = commands.FindIndex(static command => command is ClipRectCanvasCommand);
+        var drawIndex = commands.FindIndex(static command => command is DrawTextCanvasCommand);
+        var restoreIndex = commands.FindLastIndex(static command => command is RestoreCanvasCommand);
+
+        Assert.True(
+            saveIndex >= 0 && saveIndex < clipIndex && clipIndex < drawIndex && drawIndex < restoreIndex,
+            $"Expected Save/Clip/Draw/Restore ordering for '{sourceElementId}', but saw: {string.Join(", ", commands.Select(static command => command.GetType().Name))}.");
+    }
+
     private static void AssertPathCommand<TCommand>(
         SvgSceneDocument scene,
         string elementId,
@@ -3980,6 +6595,15 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         return Assert.IsType<SkiaBitmap>(bitmap);
     }
 
+    private static string CreateOpaqueEncodedImageDataUri(SkiaSharp.SKEncodedImageFormat format, string mimeType)
+    {
+        using var bitmap = new SkiaBitmap(new SkiaSharp.SKImageInfo(4, 4, SkiaColorType.Rgba8888, SkiaAlphaType.Premul));
+        bitmap.Erase(new SkiaColor(0x20, 0x80, 0xe0, 0xff));
+        using var image = SkiaSharp.SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(format, 100);
+        return $"data:{mimeType};base64,{Convert.ToBase64String(data.ToArray())}";
+    }
+
     private static string GetW3CTestSvgPath(string fileName)
     {
         return Path.Combine("..", "..", "..", "..", "..", "externals", "W3C_SVG_11_TestSuite", "W3C_SVG_11_TestSuite", "svg", fileName);
@@ -3987,7 +6611,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
 
     private static string GetResvgSvgPath(string fileName)
     {
-        return Path.Combine("..", "..", "..", "..", "..", "externals", "resvg", "tests", "svg", fileName);
+        return Path.Combine("..", "..", "..", "..", "..", "externals", "resvg", "crates", "resvg", "tests", fileName);
     }
 
     private const string SimpleSvg = """

@@ -17,6 +17,121 @@ public class Svg2StaticStyleContractTests
         Assert.Equal(SvgWhiteSpace.NoWrap, converter.ConvertFromInvariantString("no-wrap"));
     }
 
+    [Theory]
+    [InlineData("collapse wrap", SvgWhiteSpace.Normal)]
+    [InlineData("collapse nowrap", SvgWhiteSpace.NoWrap)]
+    [InlineData("preserve nowrap", SvgWhiteSpace.Pre)]
+    [InlineData("preserve wrap", SvgWhiteSpace.PreWrap)]
+    [InlineData("preserve-breaks wrap", SvgWhiteSpace.PreLine)]
+    [InlineData("break-spaces wrap", SvgWhiteSpace.BreakSpaces)]
+    public void ComputedStyle_ParsesCssText4WhiteSpaceShorthand(string whiteSpace, SvgWhiteSpace expected)
+    {
+        var document = SvgService.FromSvg(
+            $$"""
+              <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+                <text id="label" style="white-space: {{whiteSpace}}">hello</text>
+              </svg>
+              """,
+            null);
+
+        var label = Assert.IsType<SvgText>(document!.GetElementById("label"));
+        label.FlushStyles();
+
+        Assert.Equal(expected, label.WhiteSpace);
+    }
+
+    [Fact]
+    public void ComputedStyle_DerivesCssText4WhiteSpaceLonghandsFromShorthand()
+    {
+        var document = SvgService.FromSvg(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <text id="label" style="white-space: preserve-spaces wrap discard-before discard-after">hello</text>
+            </svg>
+            """,
+            null);
+
+        var label = Assert.IsType<SvgText>(document!.GetElementById("label"));
+        label.FlushStyles();
+
+        Assert.Equal(SvgWhiteSpace.Normal, label.WhiteSpace);
+        Assert.Equal("preserve-spaces", label.WhiteSpaceCollapse);
+        Assert.Equal("wrap", label.TextWrapMode);
+        Assert.Equal("discard-before discard-after", label.WhiteSpaceTrim);
+    }
+
+    [Theory]
+    [InlineData("collapse", "nowrap", SvgWhiteSpace.NoWrap)]
+    [InlineData("collapse", "wrap", SvgWhiteSpace.Normal)]
+    [InlineData("preserve", "nowrap", SvgWhiteSpace.Pre)]
+    [InlineData("preserve", "wrap", SvgWhiteSpace.PreWrap)]
+    [InlineData("preserve-breaks", "wrap", SvgWhiteSpace.PreLine)]
+    [InlineData("break-spaces", "wrap", SvgWhiteSpace.BreakSpaces)]
+    public void ComputedStyle_DerivesWhiteSpaceFromCssText4Longhands(
+        string whiteSpaceCollapse,
+        string textWrapMode,
+        SvgWhiteSpace expected)
+    {
+        var document = SvgService.FromSvg(
+            $$"""
+              <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+                <text id="label"
+                      style="white-space-collapse: {{whiteSpaceCollapse}}; text-wrap-mode: {{textWrapMode}}">hello</text>
+              </svg>
+              """,
+            null);
+
+        var label = Assert.IsType<SvgText>(document!.GetElementById("label"));
+        label.FlushStyles();
+
+        Assert.Equal(expected, label.WhiteSpace);
+        Assert.Equal(whiteSpaceCollapse, label.WhiteSpaceCollapse);
+        Assert.Equal(textWrapMode, label.TextWrapMode);
+        Assert.Equal("none", label.WhiteSpaceTrim);
+    }
+
+    [Fact]
+    public void ComputedStyle_CssText4WhiteSpaceLonghandsOverridePresentationAttribute()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <style>
+                #label {
+                  white-space-collapse: preserve;
+                  text-wrap-mode: nowrap;
+                }
+              </style>
+              <text id="label" white-space="normal">hello</text>
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+        var label = Assert.IsType<SvgText>(document!.GetElementById("label"));
+        label.FlushStyles();
+
+        Assert.Equal(SvgWhiteSpace.Pre, label.WhiteSpace);
+        Assert.Equal("preserve", label.WhiteSpaceCollapse);
+        Assert.Equal("nowrap", label.TextWrapMode);
+    }
+
+    [Fact]
+    public void ComputedStyle_UnsupportedWhiteSpaceLonghandCombinationKeepsFallback()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <text id="label"
+                    white-space="pre-wrap"
+                    style="white-space-collapse: break-spaces; text-wrap-mode: nowrap">hello</text>
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+        var label = Assert.IsType<SvgText>(document!.GetElementById("label"));
+        label.FlushStyles();
+
+        Assert.Equal(SvgWhiteSpace.PreWrap, label.WhiteSpace);
+    }
+
     [Fact]
     public void PresentationAttributes_ParseSvg2StaticStyleProperties()
     {
@@ -29,10 +144,17 @@ public class Svg2StaticStyleContractTests
                     transform-origin="50% 50%" />
               <text id="label"
                     white-space="pre-wrap"
+                    white-space-collapse="preserve"
+                    text-wrap-mode="wrap"
+                    white-space-trim="discard-before discard-after"
                     text-overflow="ellipsis"
+                    font-feature-settings="'liga' 0, 'kern' 1"
+                    font-kerning="none"
+                    font-variant-ligatures="no-common-ligatures discretionary-ligatures"
                     inline-size="32px"
                     shape-inside="url(#shape)"
-                    shape-subtract="none">hello</text>
+                    shape-subtract="none"
+                    shape-image-threshold="0.5">hello</text>
               <textPath id="pathText" path="M0 0 L10 0" side="right">hello</textPath>
             </svg>
             """;
@@ -51,13 +173,62 @@ public class Svg2StaticStyleContractTests
         Assert.Equal(SvgTransformBox.FillBox, shape.TransformBox);
         Assert.Equal("50% 50%", shape.TransformOrigin);
         Assert.Equal(SvgWhiteSpace.PreWrap, label.WhiteSpace);
+        Assert.Equal("preserve", label.WhiteSpaceCollapse);
+        Assert.Equal("wrap", label.TextWrapMode);
+        Assert.Equal("discard-before discard-after", label.WhiteSpaceTrim);
         Assert.Equal("ellipsis", label.TextOverflow);
+        Assert.Equal("'liga' 0, 'kern' 1", label.FontFeatureSettings);
+        Assert.Equal("none", label.FontKerning);
+        Assert.Equal("no-common-ligatures discretionary-ligatures", label.FontVariantLigatures);
         Assert.Equal("32px", label.InlineSize);
         Assert.Equal("url(#shape)", label.ShapeInside);
         Assert.Equal("none", label.ShapeSubtract);
+        Assert.Equal("0.5", label.ShapeImageThreshold);
         Assert.NotNull(pathText.PathData);
         Assert.Equal(2, pathText.PathData.Count);
         Assert.Equal(SvgTextPathSide.Right, pathText.Side);
+    }
+
+    [Fact]
+    public void Svg11AltGlyphElements_ArePreservedInModel()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink"
+                 width="100" height="100">
+              <defs>
+                <altGlyphDef id="alt">
+                  <altGlyphItem id="item">
+                    <glyphRef id="ref" xlink:href="#glyphA" glyphRef="glyphA" format="svg" x="1" y="2" dx="3" dy="4" />
+                  </altGlyphItem>
+                </altGlyphDef>
+              </defs>
+              <text id="label" x="10" y="20">
+                <altGlyph id="ag" xlink:href="#alt" glyphRef="glyphA" format="svg">A</altGlyph>
+              </text>
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+
+        var altGlyphDef = Assert.IsType<SvgAltGlyphDef>(document!.GetElementById("alt"));
+        var altGlyphItem = Assert.IsType<SvgAltGlyphItem>(document.GetElementById("item"));
+        var glyphRef = Assert.IsType<SvgGlyphRef>(document.GetElementById("ref"));
+        var altGlyph = Assert.IsType<SvgAltGlyph>(document.GetElementById("ag"));
+
+        Assert.Single(altGlyphDef.Children);
+        Assert.Single(altGlyphItem.Children);
+        Assert.Equal("#glyphA", glyphRef.ReferencedElement.ToString());
+        Assert.Equal("glyphA", glyphRef.GlyphRef);
+        Assert.Equal("svg", glyphRef.Format);
+        Assert.Equal(1f, glyphRef.X.Value);
+        Assert.Equal(2f, glyphRef.Y.Value);
+        Assert.Equal(3f, glyphRef.Dx.Value);
+        Assert.Equal(4f, glyphRef.Dy.Value);
+        Assert.Equal("#alt", altGlyph.ReferencedElement.ToString());
+        Assert.Equal("glyphA", altGlyph.GlyphRef);
+        Assert.Equal("svg", altGlyph.Format);
+        Assert.Equal("A", altGlyph.Text);
     }
 
     [Fact]
@@ -152,9 +323,13 @@ public class Svg2StaticStyleContractTests
                 #label {
                   white-space: break-spaces;
                   text-overflow: ellipsis;
+                  font-feature-settings: "liga" 0, "kern" 1;
+                  font-kerning: none;
+                  font-variant-ligatures: no-common-ligatures discretionary-ligatures;
                   inline-size: 48px;
                   shape-inside: url(#shape);
                   shape-subtract: none;
+                  shape-image-threshold: 0.75;
                 }
               </style>
               <path id="shape" d="M0,0 L10,0" paint-order="stroke fill markers" />
@@ -178,9 +353,13 @@ public class Svg2StaticStyleContractTests
         Assert.Equal(SvgPaintOrder.MarkersStrokeFill, shape.PaintOrder);
         Assert.Equal(SvgWhiteSpace.BreakSpaces, label.WhiteSpace);
         Assert.Equal("ellipsis", label.TextOverflow);
+        Assert.Equal("\"liga\" 0, \"kern\" 1", label.FontFeatureSettings);
+        Assert.Equal("none", label.FontKerning);
+        Assert.Equal("no-common-ligatures discretionary-ligatures", label.FontVariantLigatures);
         Assert.Equal("48px", label.InlineSize);
         Assert.Equal("url(\"#shape\")", label.ShapeInside);
         Assert.Equal("none", label.ShapeSubtract);
+        Assert.Equal("0.75", label.ShapeImageThreshold);
     }
 
     [Fact]
@@ -204,6 +383,40 @@ public class Svg2StaticStyleContractTests
     }
 
     [Fact]
+    public void ComputedStyle_InvalidLineHeightStyleDoesNotOverridePositiveAttributeFallback()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <text id="label" line-height="1.5" style="line-height:0">hello</text>
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+        var label = Assert.IsType<SvgText>(document!.GetElementById("label"));
+
+        label.FlushStyles();
+
+        Assert.Equal("1.5", label.LineHeight);
+    }
+
+    [Fact]
+    public void ComputedStyle_UppercaseLineHeightStyleIsRecognized()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <text id="label" style="LINE-HEIGHT:2">hello</text>
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+        var label = Assert.IsType<SvgText>(document!.GetElementById("label"));
+
+        label.FlushStyles();
+
+        Assert.Equal("2", label.LineHeight);
+    }
+
+    [Fact]
     public void ComputedStyle_InvalidInlineSvg2DeclarationsDoNotOverrideFallbacks()
     {
         const string svg = """
@@ -218,8 +431,11 @@ public class Svg2StaticStyleContractTests
               <text id="label"
                     white-space="pre-wrap"
                     text-overflow="ellipsis"
+                    font-feature-settings="'liga' 0"
+                    font-kerning="normal"
+                    font-variant-ligatures="common-ligatures"
                     inline-size="32px"
-                    style="white-space: sideways; text-overflow: overflow; inline-size: definitely-not-a-length">hello</text>
+                    style="white-space: sideways; text-overflow: overflow; font-feature-settings: 'too-long' 1; font-kerning: sideways; font-variant-ligatures: made-up; inline-size: definitely-not-a-length">hello</text>
               <rect id="box" x="5" y="6" width="10" height="12"
                     style="x: not-a-length; y: 18px; width: bogus; height: 20px" />
               <path id="shape"
@@ -242,6 +458,9 @@ public class Svg2StaticStyleContractTests
 
         Assert.Equal(SvgWhiteSpace.PreWrap, label.WhiteSpace);
         Assert.Equal("ellipsis", label.TextOverflow);
+        Assert.Equal("'liga' 0", label.FontFeatureSettings);
+        Assert.Equal("normal", label.FontKerning);
+        Assert.Equal("common-ligatures", label.FontVariantLigatures);
         Assert.Equal("32px", label.InlineSize);
         Assert.Equal(5f, box.X.Value);
         Assert.Equal(18f, box.Y.Value);
