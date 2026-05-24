@@ -642,7 +642,7 @@ internal sealed class SvgTextDomMetrics
                 break;
             }
 
-            if (cluster.StartCharIndex < charnum)
+            if (clusterEndCharIndex <= charnum)
             {
                 continue;
             }

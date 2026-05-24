@@ -989,12 +989,11 @@ internal static class PaintingService
             return 12f;
         }
 
-        if (!element.Attributes.ContainsKey("font-size"))
+        if (!TryResolveSpecifiedFontSizeUnit(element, out var fontSizeUnit))
         {
             return ResolveParentFontSize(element, skBounds, visited);
         }
 
-        var fontSizeUnit = element.FontSize;
         if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
         {
             return ResolveParentFontSize(element, skBounds, visited);
@@ -1007,6 +1006,36 @@ internal static class PaintingService
             SvgUnitType.Ex => ResolveParentFontSize(element, skBounds, visited) * 0.5f * fontSizeUnit.Value,
             _ => fontSizeUnit.ToDeviceValue(UnitRenderingType.Vertical, element, skBounds)
         };
+    }
+
+    private static bool TryResolveSpecifiedFontSizeUnit(SvgElement element, out SvgUnit fontSizeUnit)
+    {
+        if (element.ComputedStyle.TryGetPropertyValue("font-size", out var rawFontSize) &&
+            TryParseFontSizeUnit(rawFontSize, out fontSizeUnit))
+        {
+            return true;
+        }
+
+        fontSizeUnit = SvgUnit.Empty;
+        return false;
+    }
+
+    private static bool TryParseFontSizeUnit(string? value, out SvgUnit fontSizeUnit)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            try
+            {
+                fontSizeUnit = SvgUnitConverter.Parse(value.AsSpan().Trim());
+                return true;
+            }
+            catch (FormatException)
+            {
+            }
+        }
+
+        fontSizeUnit = SvgUnit.Empty;
+        return false;
     }
 
     private static float ResolveParentFontSize(SvgElement element, SKRect skBounds, ISet<SvgElement> visited)

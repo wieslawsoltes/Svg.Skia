@@ -1959,6 +1959,31 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_DominantBaselineFromStylesheet_AdjustsTextBaseline()
+    {
+        const string baselineSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="100" viewBox="0 0 180 100">
+              <style>#middle { dominant-baseline: middle; }</style>
+              <text id="alphabetic" x="10" y="50" font-size="24">A</text>
+              <text id="middle" x="60" y="50" font-size="24">A</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(baselineSvg);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var alphabetic = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("alphabetic"));
+        var middle = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("middle"));
+
+        Assert.True(
+            middle.Y > alphabetic.Y + 4f,
+            $"Expected stylesheet dominant-baseline=middle to move the Skia alphabetic baseline down from {alphabetic.Y}, but got {middle.Y}.");
+    }
+
+    [Fact]
     public void RetainedSceneGraph_AlignmentBaselineOverridesDominantBaseline()
     {
         const string baselineSvg = """
@@ -2107,6 +2132,26 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.Equal("'liga' 0, 'kern' 1", draw.Paint!.FontFeatureSettings);
         Assert.Equal("none", draw.Paint.FontKerning);
         Assert.Equal("no-common-ligatures discretionary-ligatures", draw.Paint.FontVariantLigatures);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_FontSizeFromStylesheet_FlowsIntoTextPaint()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="180" height="80" viewBox="0 0 180 80">
+              <style>#styled { font-size: 32px; }</style>
+              <text id="styled" x="10" y="40" font-family="sans-serif">A</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(svgMarkup);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var draw = Assert.Single(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("styled"));
+        Assert.Equal(32f, draw.Paint!.TextSize, 3);
     }
 
     [Fact]

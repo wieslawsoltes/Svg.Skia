@@ -191,7 +191,8 @@ namespace Svg.Skia
             SvgAltGlyph altGlyph,
             out IReadOnlyList<SvgGlyphEntry> glyphEntries)
         {
-            if (TryResolveReferencedAltGlyphTarget(registry, request, altGlyph, altGlyph.ReferencedElement, out glyphEntries))
+            var visited = new HashSet<SvgElement>();
+            if (TryResolveReferencedAltGlyphTarget(registry, request, altGlyph, altGlyph.ReferencedElement, visited, out glyphEntries))
             {
                 return true;
             }
@@ -212,6 +213,7 @@ namespace Svg.Skia
             SvgFontRequest request,
             SvgElement owner,
             Uri? reference,
+            ISet<SvgElement> visited,
             out IReadOnlyList<SvgGlyphEntry> glyphEntries)
         {
             glyphEntries = Array.Empty<SvgGlyphEntry>();
@@ -222,14 +224,26 @@ namespace Svg.Skia
             }
 
             var referencedElement = SvgService.GetReference<SvgElement>(owner, uri);
-            return referencedElement switch
+            if (referencedElement is null || !visited.Add(referencedElement))
             {
-                SvgGlyph glyph when registry.TryResolveGlyph(glyph, out var glyphEntry) => ReturnSingle(glyphEntry, out glyphEntries),
-                SvgGlyphRef glyphRef => TryResolveGlyphRef(registry, request, glyphRef, out var glyphRefEntry) && ReturnSingle(glyphRefEntry, out glyphEntries),
-                SvgAltGlyphDef altGlyphDef => TryResolveAltGlyphDef(registry, request, altGlyphDef, out glyphEntries),
-                SvgAltGlyphItem altGlyphItem => TryResolveGlyphRefSequence(registry, request, altGlyphItem.Children.OfType<SvgGlyphRef>(), out glyphEntries),
-                _ => false
-            };
+                return false;
+            }
+
+            try
+            {
+                return referencedElement switch
+                {
+                    SvgGlyph glyph when registry.TryResolveGlyph(glyph, out var glyphEntry) => ReturnSingle(glyphEntry, out glyphEntries),
+                    SvgGlyphRef glyphRef => TryResolveGlyphRef(registry, request, glyphRef, visited, out var glyphRefEntry) && ReturnSingle(glyphRefEntry, out glyphEntries),
+                    SvgAltGlyphDef altGlyphDef => TryResolveAltGlyphDef(registry, request, altGlyphDef, visited, out glyphEntries),
+                    SvgAltGlyphItem altGlyphItem => TryResolveGlyphRefSequence(registry, request, altGlyphItem.Children.OfType<SvgGlyphRef>(), visited, out glyphEntries),
+                    _ => false
+                };
+            }
+            finally
+            {
+                _ = visited.Remove(referencedElement);
+            }
         }
 
         private static bool ReturnSingle(SvgGlyphEntry glyphEntry, out IReadOnlyList<SvgGlyphEntry> glyphEntries)
@@ -242,18 +256,19 @@ namespace Svg.Skia
             SvgFontRegistry registry,
             SvgFontRequest request,
             SvgAltGlyphDef altGlyphDef,
+            ISet<SvgElement> visited,
             out IReadOnlyList<SvgGlyphEntry> glyphEntries)
         {
             var directGlyphRefs = altGlyphDef.Children.OfType<SvgGlyphRef>().ToArray();
             if (directGlyphRefs.Length > 0 &&
-                TryResolveGlyphRefSequence(registry, request, directGlyphRefs, out glyphEntries))
+                TryResolveGlyphRefSequence(registry, request, directGlyphRefs, visited, out glyphEntries))
             {
                 return true;
             }
 
             foreach (var item in altGlyphDef.Children.OfType<SvgAltGlyphItem>())
             {
-                if (TryResolveGlyphRefSequence(registry, request, item.Children.OfType<SvgGlyphRef>(), out glyphEntries))
+                if (TryResolveGlyphRefSequence(registry, request, item.Children.OfType<SvgGlyphRef>(), visited, out glyphEntries))
                 {
                     return true;
                 }
@@ -267,12 +282,13 @@ namespace Svg.Skia
             SvgFontRegistry registry,
             SvgFontRequest request,
             IEnumerable<SvgGlyphRef> glyphRefs,
+            ISet<SvgElement> visited,
             out IReadOnlyList<SvgGlyphEntry> glyphEntries)
         {
             var resolved = new List<SvgGlyphEntry>();
             foreach (var glyphRef in glyphRefs)
             {
-                if (!TryResolveGlyphRef(registry, request, glyphRef, out var glyphEntry))
+                if (!TryResolveGlyphRef(registry, request, glyphRef, visited, out var glyphEntry))
                 {
                     glyphEntries = Array.Empty<SvgGlyphEntry>();
                     return false;
@@ -289,9 +305,10 @@ namespace Svg.Skia
             SvgFontRegistry registry,
             SvgFontRequest request,
             SvgGlyphRef glyphRef,
+            ISet<SvgElement> visited,
             out SvgGlyphEntry glyphEntry)
         {
-            if (TryResolveReferencedAltGlyphTarget(registry, request, glyphRef, glyphRef.ReferencedElement, out var referencedEntries) &&
+            if (TryResolveReferencedAltGlyphTarget(registry, request, glyphRef, glyphRef.ReferencedElement, visited, out var referencedEntries) &&
                 referencedEntries.Count == 1)
             {
                 glyphEntry = referencedEntries[0];
@@ -1276,6 +1293,12 @@ namespace Svg.Skia
 
             private static bool TryReadSpecifiedDominantBaseline(SvgTextBase styleSource, out string value)
             {
+                if (styleSource.ComputedStyle.TryGetPropertyValue("dominant-baseline", out value) &&
+                    !string.IsNullOrWhiteSpace(value))
+                {
+                    return true;
+                }
+
                 if (styleSource.TryGetAttribute("dominant-baseline", out value) &&
                     !string.IsNullOrWhiteSpace(value))
                 {

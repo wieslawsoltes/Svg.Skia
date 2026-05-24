@@ -3972,8 +3972,8 @@ public class SvgSceneTextCompilerTests
         Assert.NotNull(layout);
         Assert.Equal(3, layout!.DomNumberOfChars);
         Assert.Equal(layout.DomComputedTextLength, layout.GetDomSubStringLength(0, layout.DomNumberOfChars), 3);
-        Assert.Equal(0f, layout.GetDomSubStringLength(1, 1), 3);
-        Assert.Equal(layout.GetDomSubStringLength(2, 1), layout.GetDomSubStringLength(1, int.MaxValue), 3);
+        Assert.Equal(layout.GetDomSubStringLength(0, 1), layout.GetDomSubStringLength(1, 1), 3);
+        Assert.Equal(layout.DomComputedTextLength, layout.GetDomSubStringLength(1, int.MaxValue), 3);
     }
 
     [Fact]

@@ -195,6 +195,42 @@ public class SvgAltGlyphRenderingTests
         Assert.InRange(bounds.Width, 9.9f, 10.1f);
     }
 
+    [Fact]
+    public void RetainedSceneGraph_CyclicAltGlyphReferenceFallsBackToOriginalSvgFontGlyph()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 xmlns:xlink="http://www.w3.org/1999/xlink"
+                 width="180" height="80" viewBox="0 0 180 80">
+              <defs>
+                <font id="AltFont" horiz-adv-x="10">
+                  <font-face font-family="AltFont" units-per-em="10" ascent="10" descent="0" alphabetic="0" />
+                  <glyph id="normal-a" unicode="A" horiz-adv-x="10" d="M0 0H10V10H0Z" />
+                </font>
+                <altGlyphDef id="loopDef">
+                  <glyphRef xlink:href="#loopDef" />
+                </altGlyphDef>
+              </defs>
+              <text id="label" x="10" y="40" font-family="AltFont" font-size="10">
+                <altGlyph id="ag" xlink:href="#loopDef">A</altGlyph>
+              </text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(svgMarkup);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        var fallbackPaths = GetVisiblePathCommands(retainedModel!, "ag");
+        var bounds = UnionBounds(fallbackPaths);
+
+        Assert.NotEmpty(fallbackPaths);
+        Assert.Empty(retainedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("ag"));
+        Assert.InRange(bounds.Width, 9.9f, 10.1f);
+    }
+
     private static List<DrawPathCanvasCommand> GetVisiblePathCommands(SKPicture picture, string sourceElementId)
     {
         return picture
