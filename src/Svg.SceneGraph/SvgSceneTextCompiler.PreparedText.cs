@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using ShimSkiaSharp;
@@ -419,6 +420,7 @@ internal static partial class SvgSceneTextCompiler
                 usesBrowserCompatibleRunTypeface,
                 out var shapedAdvances))
         {
+            PreserveMissingWhitespaceAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, shapedAdvances);
             CacheNaturalCodepointAdvances(cacheKey, shapedAdvances);
             return shapedAdvances;
         }
@@ -433,7 +435,7 @@ internal static partial class SvgSceneTextCompiler
                 usesBrowserCompatibleRunTypeface,
                 out var clusteredAdvances))
         {
-            RestoreMissingClusteredWhitespaceAdvances(svgTextBase, codepoints, geometryBounds, assetLoader, clusteredAdvances);
+            PreserveMissingWhitespaceAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, clusteredAdvances);
             CacheNaturalCodepointAdvances(cacheKey, clusteredAdvances);
             return clusteredAdvances;
         }
@@ -465,33 +467,45 @@ internal static partial class SvgSceneTextCompiler
             previousAdvance += codepointAdvance;
         }
 
+        PreserveMissingWhitespaceAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, advances);
         CacheNaturalCodepointAdvances(cacheKey, advances);
         return advances;
     }
 
-    private static void RestoreMissingClusteredWhitespaceAdvances(
+    private static void PreserveMissingWhitespaceAdvance(
         SvgTextBase svgTextBase,
         IReadOnlyList<string> codepoints,
         SKRect geometryBounds,
         ISvgAssetLoader assetLoader,
         float[] advances)
     {
-        var builder = new StringBuilder();
-        for (var i = 0; i < codepoints.Count; i++)
+        if (codepoints.Count == 0 || advances.Length != codepoints.Count)
         {
-            var prefixText = builder.ToString();
-            builder.Append(codepoints[i]);
+            return;
+        }
 
-            if (!IsWhitespaceCodepoint(codepoints[i]) || IsValidPositiveAdvance(advances[i]))
+        var targetIndex = -1;
+        for (var i = codepoints.Count - 1; i >= 0; i--)
+        {
+            if (IsWhitespaceCodepoint(codepoints[i]) && !IsValidPositiveAdvance(advances[i]))
             {
-                continue;
+                targetIndex = i;
+                break;
             }
+        }
 
-            var contextualWhitespaceAdvance = MeasureContextualWhitespaceAdvance(svgTextBase, prefixText, codepoints[i], geometryBounds, assetLoader);
-            if (IsValidPositiveAdvance(contextualWhitespaceAdvance))
-            {
-                advances[i] = contextualWhitespaceAdvance;
-            }
+        if (targetIndex < 0)
+        {
+            return;
+        }
+
+        var text = string.Concat(codepoints);
+        var measuredAdvance = MeasureNaturalTextAdvanceCore(svgTextBase, text, geometryBounds, assetLoader);
+        var distributedAdvance = advances.Sum();
+        var missingAdvance = measuredAdvance - distributedAdvance;
+        if (IsValidPositiveAdvance(missingAdvance))
+        {
+            advances[targetIndex] = missingAdvance;
         }
     }
 

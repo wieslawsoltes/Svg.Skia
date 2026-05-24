@@ -2730,7 +2730,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     {
         const string overflowSvg = """
             <svg xmlns="http://www.w3.org/2000/svg" width="180" height="140" viewBox="0 0 180 140">
-              <text id="shape-text" font-size="20" shape-inside="inset(20px 130px 20px 20px) fill-box">A B</text>
+              <text id="shape-text" font-size="20" shape-inside="inset(20px 130px 20px 20px) fill-box">W W</text>
             </svg>
             """;
 
@@ -2746,7 +2746,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
             .Where(static command => !string.IsNullOrWhiteSpace(command.Text))
             .ToList();
 
-        Assert.Equal(new[] { "A", "B" }, draws.Select(static command => command.Text).ToArray());
+        Assert.Equal(new[] { "W", "W" }, draws.Select(static command => command.Text).ToArray());
         Assert.Equal(20f, draws[0].X, 3);
         Assert.All(draws, static command => Assert.InRange(command.X, 20f, 50f));
         Assert.True(draws[1].Y > draws[0].Y + 10f, $"Expected fill-box-qualified shape to wrap text, but Y values were {draws[0].Y} and {draws[1].Y}.");
