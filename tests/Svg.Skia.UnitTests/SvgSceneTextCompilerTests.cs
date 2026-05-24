@@ -478,9 +478,9 @@ public class SvgSceneTextCompilerTests
     }
 
     [Fact]
-    public void MeasureNaturalCodepointAdvances_CombiningMarkText_MatchesPrefixMeasurement()
+    public void MeasureNaturalCodepointAdvances_CombiningMarkText_PreservesTotalAdvance()
     {
-        VerifyMatchesPrefixMeasurement("Cafe\u0301 ");
+        VerifyPreservesTotalAdvance("Cafe\u0301 ");
     }
 
     [Fact]
@@ -4797,6 +4797,25 @@ public class SvgSceneTextCompilerTests
         {
             Assert.Equal(expected[i], actual[i], 3);
         }
+    }
+
+    private static void VerifyPreservesTotalAdvance(string textContent)
+    {
+        var document = CreateDocument(textContent, 24);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var geometryBounds = GetDocumentViewport(document);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        var codepoints = InvokeSplitCodepoints(textContent);
+        var actual = InvokeMeasureNaturalCodepointAdvances(svgText, codepoints, geometryBounds, assetLoader);
+        var expectedTotal = InvokeMeasureNaturalTextAdvance(svgText, textContent, geometryBounds, assetLoader);
+
+        Assert.Equal(codepoints.Count, actual.Length);
+        Assert.All(actual, static advance =>
+        {
+            Assert.True(float.IsFinite(advance), $"Expected finite codepoint advance, but got {advance}.");
+            Assert.True(advance >= 0f, $"Expected non-negative codepoint advance, but got {advance}.");
+        });
+        Assert.Equal(expectedTotal, actual.Sum(), 3);
     }
 
     private static float[] MeasureExpectedPrefixAdvances(

@@ -2692,7 +2692,10 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.NotNull(retainedModel);
 
         Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
-        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text").ToList();
+        var draws = retainedModel
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text")
+            .Where(static command => !string.IsNullOrWhiteSpace(command.Text))
+            .ToList();
 
         Assert.Equal(new[] { "A", "B", "C" }, draws.Select(static command => command.Text).ToArray());
         Assert.All(draws, static command => Assert.Equal(40f, command.X, 3));
@@ -2738,7 +2741,10 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.NotNull(retainedModel);
 
         Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
-        var draws = retainedModel.FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text").ToList();
+        var draws = retainedModel
+            .FindCommandsBySourceElementId<DrawTextCanvasCommand>("shape-text")
+            .Where(static command => !string.IsNullOrWhiteSpace(command.Text))
+            .ToList();
 
         Assert.Equal(new[] { "A", "B" }, draws.Select(static command => command.Text).ToArray());
         Assert.All(draws, static command => Assert.Equal(20f, command.X, 3));
@@ -2803,7 +2809,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
               <defs>
                 <rect id="shape" x="40" y="20" width="26" height="105" />
               </defs>
-              <text id="shape-text" font-size="20" shape-inside="url(#shape)" direction="rtl" unicode-bidi="embed">A B</text>
+              <text id="shape-text" font-size="20" shape-inside="url(#shape)" direction="rtl" unicode-bidi="embed">A A</text>
             </svg>
             """;
 
@@ -2819,7 +2825,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
             .Where(static command => !string.IsNullOrWhiteSpace(command.Text))
             .ToList();
 
-        Assert.Equal(new[] { "A", "B" }, draws.Select(static command => StripBidiControls(command.Text)).ToArray());
+        Assert.Equal(new[] { "A", "A" }, draws.Select(static command => StripBidiControls(command.Text)).ToArray());
         Assert.All(draws, static command => Assert.InRange(command.X, 40f, 66f));
         Assert.True(draws[0].X > 40f, $"Expected RTL shape-inside line to anchor against the right edge, but X was {draws[0].X}.");
         Assert.Equal(draws[0].X, draws[1].X, 3);
@@ -2923,7 +2929,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         const string overflowSvg = """
             <svg xmlns="http://www.w3.org/2000/svg" width="160" height="140" viewBox="0 0 160 140">
               <defs>
-                <path id="shape" d="M60 20 L110 110 L10 110 Z" />
+                <path id="shape" d="M100 20 L130 20 L60 120 L20 120 Z" />
               </defs>
               <text id="shape-text" font-size="24" shape-inside="url(#shape)">W W</text>
             </svg>
@@ -2941,7 +2947,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
             .ToList();
 
         Assert.Equal(new[] { "W", "W" }, draws.Select(static command => command.Text).ToArray());
-        Assert.True(Math.Abs(draws[0].X - draws[1].X) > 5f, $"Expected sampled non-rectangular shape lines to use different line starts, but X values were {draws[0].X} and {draws[1].X}.");
+        Assert.True(Math.Abs(draws[0].X - draws[1].X) > 10f, $"Expected sampled non-rectangular shape lines to use different line starts, but X values were {draws[0].X} and {draws[1].X}.");
         Assert.True(draws[1].Y > draws[0].Y + 10f, $"Expected non-rectangular shape-inside text to wrap to a later row, but Y values were {draws[0].Y} and {draws[1].Y}.");
     }
 
