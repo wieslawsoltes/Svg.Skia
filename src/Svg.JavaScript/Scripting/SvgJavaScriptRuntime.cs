@@ -623,6 +623,7 @@ public sealed partial class SvgJavaScriptRuntime
         try
         {
             RequireTextContentHost().SelectSubString(textContentElement, charnum, nchars);
+            MarkMutation();
         }
         catch (ArgumentOutOfRangeException)
         {

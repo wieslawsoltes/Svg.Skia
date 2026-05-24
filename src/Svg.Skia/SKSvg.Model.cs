@@ -129,6 +129,8 @@ public partial class SKSvg : IDisposable
     private bool _isDispatchingAnimationTimelineCallbacks;
     private bool _animationTimelineChangedDuringDispatch;
     private TimeSpan? _animationTimelineCallbackTime;
+    private readonly List<SvgTextSelectionRange> _textSelections = new();
+    private bool _suspendTextSelectionRefresh;
 
     public object Sync { get; } = new();
 
@@ -144,6 +146,17 @@ public partial class SKSvg : IDisposable
 
     public SvgAnimationController? AnimationController { get; private set; }
 
+    public SvgTextSelectionRange[] TextSelections
+    {
+        get
+        {
+            lock (Sync)
+            {
+                return _textSelections.ToArray();
+            }
+        }
+    }
+
     public bool HasAnimations => AnimationController?.HasAnimations == true;
 
     public TimeSpan AnimationTime => AnimationController?.Clock.CurrentTime ?? TimeSpan.Zero;
@@ -157,6 +170,54 @@ public partial class SKSvg : IDisposable
     public bool HasPendingAnimationFrame => _pendingAnimationFrameState is not null;
 
     public int LastAnimationDirtyTargetCount { get; private set; }
+
+    public readonly struct SvgTextSelectionRange
+    {
+        public SvgTextSelectionRange(string? elementId, int charnum, int nchars, IReadOnlyList<SKRect> extents)
+            : this(elementId, elementAddress: null, charnum, nchars, extents)
+        {
+        }
+
+        internal SvgTextSelectionRange(string? elementId, string? elementAddress, int charnum, int nchars, IReadOnlyList<SKRect> extents)
+        {
+            ElementId = elementId;
+            ElementAddress = elementAddress;
+            Charnum = charnum;
+            NChars = nchars;
+            Extents = CopySelectionExtents(extents);
+        }
+
+        public string? ElementId { get; }
+
+        public string? ElementAddress { get; }
+
+        public int Charnum { get; }
+
+        public int NChars { get; }
+
+        public IReadOnlyList<SKRect> Extents { get; }
+
+        private static IReadOnlyList<SKRect> CopySelectionExtents(IReadOnlyList<SKRect> extents)
+        {
+            if (extents is null)
+            {
+                throw new ArgumentNullException(nameof(extents));
+            }
+
+            if (extents.Count == 0)
+            {
+                return Array.Empty<SKRect>();
+            }
+
+            var copy = new SKRect[extents.Count];
+            for (var i = 0; i < extents.Count; i++)
+            {
+                copy[i] = extents[i];
+            }
+
+            return Array.AsReadOnly(copy);
+        }
+    }
 
     private SkiaSharp.SKPicture? _picture;
     public virtual SkiaSharp.SKPicture? Picture
@@ -568,10 +629,19 @@ public partial class SKSvg : IDisposable
         }
 
         SourceDocument = svgDocument;
+        ClearTextSelectionCore();
         ClearAnimationRenderState();
         ReplaceAnimationController(null);
-        InitializeJavaScriptRuntime(svgDocument);
         InvalidateRetainedSceneGraph();
+        _suspendTextSelectionRefresh = true;
+        try
+        {
+            InitializeJavaScriptRuntime(svgDocument);
+        }
+        finally
+        {
+            _suspendTextSelectionRefresh = false;
+        }
 
         var animationController = new SvgAnimationController(svgDocument);
         if (animationController.HasAnimations)
@@ -881,6 +951,7 @@ public partial class SKSvg : IDisposable
         SourceDocument = null;
         _javaScriptRuntime = null;
         ClearAnimationRenderState();
+        ClearTextSelectionCore();
 
         lock (Sync)
         {
@@ -960,6 +1031,8 @@ public partial class SKSvg : IDisposable
             return false;
         }
 
+        ApplyTextSelectionRendering(model);
+
         var picture = SkiaModel.ToSKPicture(model);
         if (picture is null)
         {
@@ -980,6 +1053,158 @@ public partial class SKSvg : IDisposable
         }
 
         return true;
+    }
+
+    private void ApplyTextSelectionRendering(SKPicture model)
+    {
+        if (!Settings.EnableTextSelectionRendering)
+        {
+            return;
+        }
+
+        SvgTextSelectionRange[] selections;
+        lock (Sync)
+        {
+            if (_textSelections.Count == 0)
+            {
+                return;
+            }
+
+            selections = _textSelections.ToArray();
+        }
+
+        for (var i = 0; i < selections.Length; i++)
+        {
+            var selection = selections[i];
+            if (!HasTextSelectionTarget(selection) ||
+                !TryCreateTextSelectionCommand(selection, out var command))
+            {
+                continue;
+            }
+
+            _ = InsertTextSelectionCommand(model, selection, command);
+        }
+    }
+
+    private static bool HasTextSelectionTarget(SvgTextSelectionRange selection)
+    {
+        return !string.IsNullOrWhiteSpace(selection.ElementAddress) ||
+               !string.IsNullOrWhiteSpace(selection.ElementId);
+    }
+
+    private bool TryCreateTextSelectionCommand(SvgTextSelectionRange selection, out DrawPathCanvasCommand command)
+    {
+        command = default!;
+        if (selection.Extents.Count == 0)
+        {
+            return false;
+        }
+
+        var path = new SKPath();
+        for (var i = 0; i < selection.Extents.Count; i++)
+        {
+            var extent = selection.Extents[i];
+            if (!IsRenderableSelectionExtent(extent))
+            {
+                continue;
+            }
+
+            path.AddRect(extent);
+        }
+
+        if (path.IsEmpty)
+        {
+            return false;
+        }
+
+        var color = Settings.TextSelectionColor;
+        var paint = new SKPaint
+        {
+            Style = SKPaintStyle.Fill,
+            IsAntialias = false,
+            Color = new SKColor(color.Red, color.Green, color.Blue, color.Alpha)
+        };
+
+        command = new DrawPathCanvasCommand(path, paint)
+        {
+            SourceElementId = selection.ElementId,
+            SourceElementAddress = selection.ElementAddress,
+            SourceElementTypeName = "SvgTextSelection"
+        };
+        return true;
+    }
+
+    private static bool IsRenderableSelectionExtent(SKRect extent)
+    {
+        return IsFinite(extent.Left) &&
+               IsFinite(extent.Top) &&
+               IsFinite(extent.Right) &&
+               IsFinite(extent.Bottom) &&
+               extent.Width > 0f &&
+               extent.Height > 0f;
+    }
+
+    private static bool IsFinite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
+
+    private static bool InsertTextSelectionCommand(SKPicture picture, SvgTextSelectionRange selection, DrawPathCanvasCommand command)
+    {
+        var commands = picture.Commands;
+        if (commands is null)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < commands.Count; i++)
+        {
+            var current = commands[i];
+            if (current is DrawPictureCanvasCommand { Picture: { } nestedPicture } &&
+                InsertTextSelectionCommand(nestedPicture, selection, command))
+            {
+                return true;
+            }
+
+            if (!IsTextDrawingCommand(current) ||
+                !IsSelectionTargetCommand(current, selection))
+            {
+                continue;
+            }
+
+            commands.Insert(i, command);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsTextDrawingCommand(CanvasCommand command)
+    {
+        return command is DrawPathCanvasCommand or
+            DrawTextCanvasCommand or
+            DrawTextBlobCanvasCommand or
+            DrawTextOnPathCanvasCommand;
+    }
+
+    private static bool IsSelectionTargetCommand(CanvasCommand command, SvgTextSelectionRange selection)
+    {
+        if (!string.IsNullOrWhiteSpace(selection.ElementAddress) &&
+            IsSameOrDescendantSelectionAddress(command.SourceElementAddress, selection.ElementAddress!))
+        {
+            return true;
+        }
+
+        return !string.IsNullOrWhiteSpace(selection.ElementId) &&
+               string.Equals(command.SourceElementId, selection.ElementId, StringComparison.Ordinal);
+    }
+
+    private static bool IsSameOrDescendantSelectionAddress(string? candidate, string ancestor)
+    {
+        if (string.IsNullOrWhiteSpace(candidate))
+        {
+            return false;
+        }
+
+        return string.Equals(candidate, ancestor, StringComparison.Ordinal) ||
+               candidate!.StartsWith(ancestor + "/", StringComparison.Ordinal);
     }
 
     private bool TryRenderCurrentAnimatedDocumentRetained()
@@ -1370,7 +1595,9 @@ public partial class SKSvg : IDisposable
 
         public void SelectSubString(SvgTextBase textContentElement, int charnum, int nchars)
         {
-            _ = GetMetrics(textContentElement).GetSubStringLength(charnum, nchars);
+            var metrics = GetMetrics(textContentElement);
+            _ = metrics.GetSubStringLength(charnum, nchars);
+            _owner.SetTextSelection(textContentElement, charnum, nchars, metrics.GetSelectionExtents(charnum, nchars));
         }
 
         private SvgSceneTextCompiler.SvgTextContentMetrics GetMetrics(SvgTextBase textContentElement)
@@ -1396,6 +1623,65 @@ public partial class SKSvg : IDisposable
             return metrics;
         }
 
+    }
+
+    private void SetTextSelection(SvgTextBase textContentElement, int charnum, int nchars, SKRect[] extents)
+    {
+        var shouldRefresh = false;
+        lock (Sync)
+        {
+            _textSelections.Clear();
+            if (nchars > 0)
+            {
+                _textSelections.Add(new SvgTextSelectionRange(
+                    textContentElement.ID,
+                    SvgSceneCompiler.TryGetElementAddressKey(textContentElement),
+                    charnum,
+                    nchars,
+                    extents));
+            }
+
+            shouldRefresh = !_suspendTextSelectionRefresh && Model is not null;
+        }
+
+        if (shouldRefresh)
+        {
+            RefreshTextSelectionRendering();
+        }
+    }
+
+    public void ClearTextSelection()
+    {
+        var hadSelection = false;
+        lock (Sync)
+        {
+            hadSelection = _textSelections.Count > 0;
+            ClearTextSelectionCore();
+        }
+
+        if (hadSelection && TryEnsureRetainedSceneGraph(out var sceneDocument) && sceneDocument is not null)
+        {
+            _ = RenderRetainedSceneDocument(sceneDocument);
+        }
+    }
+
+    private void ClearTextSelectionCore()
+    {
+        _textSelections.Clear();
+    }
+
+    private void RefreshTextSelectionRendering()
+    {
+        if (AnimationController is { })
+        {
+            RefreshCurrentAnimationFrame(bypassThrottle: true);
+            return;
+        }
+
+        if (TryEnsureRetainedSceneGraph(out var sceneDocument) && sceneDocument is not null)
+        {
+            _ = RenderRetainedSceneDocument(sceneDocument);
+        }
     }
 
     private bool DispatchAnimationTimelineCallbacks(ref SvgAnimationFrameState frameState)
