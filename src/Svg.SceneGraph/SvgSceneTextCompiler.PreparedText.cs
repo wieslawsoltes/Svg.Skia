@@ -433,6 +433,7 @@ internal static partial class SvgSceneTextCompiler
                 usesBrowserCompatibleRunTypeface,
                 out var clusteredAdvances))
         {
+            RestoreMissingClusteredWhitespaceAdvances(svgTextBase, codepoints, geometryBounds, assetLoader, clusteredAdvances);
             CacheNaturalCodepointAdvances(cacheKey, clusteredAdvances);
             return clusteredAdvances;
         }
@@ -466,6 +467,32 @@ internal static partial class SvgSceneTextCompiler
 
         CacheNaturalCodepointAdvances(cacheKey, advances);
         return advances;
+    }
+
+    private static void RestoreMissingClusteredWhitespaceAdvances(
+        SvgTextBase svgTextBase,
+        IReadOnlyList<string> codepoints,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        float[] advances)
+    {
+        var builder = new StringBuilder();
+        for (var i = 0; i < codepoints.Count; i++)
+        {
+            var prefixText = builder.ToString();
+            builder.Append(codepoints[i]);
+
+            if (!IsWhitespaceCodepoint(codepoints[i]) || IsValidPositiveAdvance(advances[i]))
+            {
+                continue;
+            }
+
+            var contextualWhitespaceAdvance = MeasureContextualWhitespaceAdvance(svgTextBase, prefixText, codepoints[i], geometryBounds, assetLoader);
+            if (IsValidPositiveAdvance(contextualWhitespaceAdvance))
+            {
+                advances[i] = contextualWhitespaceAdvance;
+            }
+        }
     }
 
     private static float MeasureTextAdvanceCore(

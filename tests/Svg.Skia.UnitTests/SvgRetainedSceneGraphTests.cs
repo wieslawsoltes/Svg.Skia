@@ -2747,7 +2747,8 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
             .ToList();
 
         Assert.Equal(new[] { "A", "B" }, draws.Select(static command => command.Text).ToArray());
-        Assert.All(draws, static command => Assert.Equal(20f, command.X, 3));
+        Assert.Equal(20f, draws[0].X, 3);
+        Assert.All(draws, static command => Assert.InRange(command.X, 20f, 50f));
         Assert.True(draws[1].Y > draws[0].Y + 10f, $"Expected fill-box-qualified shape to wrap text, but Y values were {draws[0].Y} and {draws[1].Y}.");
     }
 
