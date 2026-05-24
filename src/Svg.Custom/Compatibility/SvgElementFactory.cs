@@ -443,11 +443,19 @@ namespace Svg
 
         private static bool ShouldKeepComputedStyleDeclaration(string attributeName, string attributeValue)
         {
-            return IsGeometryAttribute(attributeName) &&
-                   (IsCssIdentifier(attributeValue, "auto") ||
-                    IsCssIdentifier(attributeValue, "inherit") ||
-                    IsCssIdentifier(attributeValue, "initial") ||
-                    IsCssIdentifier(attributeValue, "unset"));
+            return IsMultiKeywordWhiteSpaceDeclaration(attributeName, attributeValue) ||
+                   (IsGeometryAttribute(attributeName) &&
+                    (IsCssIdentifier(attributeValue, "auto") ||
+                     IsCssIdentifier(attributeValue, "inherit") ||
+                     IsCssIdentifier(attributeValue, "initial") ||
+                     IsCssIdentifier(attributeValue, "unset")));
+        }
+
+        private static bool IsMultiKeywordWhiteSpaceDeclaration(string attributeName, string attributeValue)
+        {
+            return attributeName.Equals("white-space", StringComparison.OrdinalIgnoreCase) &&
+                   attributeValue.Split(new[] { ' ', '\t', '\r', '\n', '\f' }, StringSplitOptions.RemoveEmptyEntries).Length > 1 &&
+                   SvgComputedStyleMetadata.TryParseWhiteSpaceShorthandLonghands(attributeValue, out _, out _, out _);
         }
 
         private static bool IsGeometryAttribute(string attributeName)

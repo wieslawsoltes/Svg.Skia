@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using Svg.Skia.TypefaceProviders;
 
@@ -10,7 +11,7 @@ namespace Svg.Skia;
 /// <summary>
 /// Asset loader implementation using SkiaSharp types.
 /// </summary>
-public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextReferenceRenderingOptions, Model.ISvgTextRunTypefaceResolver, Model.ISvgTextGlyphRunResolver, Model.ISvgTextDirectedGlyphRunResolver
+public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImageAlphaProvider, Model.ISvgTextReferenceRenderingOptions, Model.ISvgTextRunTypefaceResolver, Model.ISvgTextGlyphRunResolver, Model.ISvgTextDirectedGlyphRunResolver, Model.ISvgTextGlyphClusterResolver, Model.ISvgTextGlyphRunPathResolver
 {
     private readonly SkiaModel _skiaModel;
 
@@ -35,6 +36,43 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         var data = ShimSkiaSharp.SKImage.FromStream(stream);
         using var image = SkiaSharp.SKImage.FromEncodedData(data);
         return new ShimSkiaSharp.SKImage { Data = data, Width = image.Width, Height = image.Height };
+    }
+
+    /// <inheritdoc />
+    public bool TryGetImageAlpha(ShimSkiaSharp.SKImage image, out int width, out int height, out byte[] alpha)
+    {
+        width = 0;
+        height = 0;
+        alpha = Array.Empty<byte>();
+        if (image.Data is null || image.Data.Length == 0)
+        {
+            return false;
+        }
+
+        using var skImage = SkiaSharp.SKImage.FromEncodedData(image.Data);
+        if (skImage is null)
+        {
+            return false;
+        }
+
+        using var bitmap = SkiaSharp.SKBitmap.FromImage(skImage);
+        if (bitmap is null || bitmap.Width <= 0 || bitmap.Height <= 0)
+        {
+            return false;
+        }
+
+        width = bitmap.Width;
+        height = bitmap.Height;
+        alpha = new byte[width * height];
+        for (var y = 0; y < height; y++)
+        {
+            for (var x = 0; x < width; x++)
+            {
+                alpha[(y * width) + x] = bitmap.GetPixel(x, y).Alpha;
+            }
+        }
+
+        return true;
     }
 
     /// <inheritdoc />
@@ -72,7 +110,12 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         {
             var currentTypefaceText = text.Substring(currentTypefaceStartIndex, i - currentTypefaceStartIndex);
 
-            ret.Add(new(currentTypefaceText, _skiaModel.GetTextAdvance(currentTypefaceText, runningPaint),
+            ret.Add(new(currentTypefaceText, _skiaModel.GetTextAdvance(
+                    currentTypefaceText,
+                    runningPaint,
+                    paintPreferredTypeface.FontFeatureSettings,
+                    paintPreferredTypeface.FontKerning,
+                    paintPreferredTypeface.FontVariantLigatures),
                 runningPaint.Typeface is null
                     ? null
                     : ToShimTypeface(runningPaint.Typeface, requestedWeight)
@@ -81,13 +124,19 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
         for (; i < text.Length; i++)
         {
-            var typeface = matchCharacter(char.ConvertToUtf32(text, i));
+            var ch = text[i];
+            SkiaSharp.SKTypeface? typeface;
             if (runningPaint.Typeface is { } currentTypeface &&
-                char.IsWhiteSpace(text, i))
+                (ch <= ' ' || ch is '\u0085' or '\u00A0' || ch >= '\u0300' && IsNonAsciiTypefaceSpanGlue(text, i, ch)))
             {
-                // Keep whitespace in the active span so bidi/shaping stays attached to the
-                // surrounding script run instead of splitting on a font fallback for spaces.
+                // Keep marks and whitespace in the active span so bidi/shaping stays attached to
+                // the surrounding script run instead of splitting on font fallback for nonspacing
+                // marks, variation selectors, format controls, or spaces.
                 typeface = currentTypeface;
+            }
+            else
+            {
+                typeface = matchCharacter(GetCodepoint(text, i, ch));
             }
 
             if (i == 0)
@@ -229,7 +278,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
 
         var skBounds = new SkiaSharp.SKRect();
         skPaint.MeasureText(text, ref skBounds);
-        var width = _skiaModel.GetTextAdvance(text, skPaint);
+        var width = _skiaModel.GetTextAdvance(text, skPaint, paint.FontFeatureSettings, paint.FontKerning, paint.FontVariantLigatures);
         bounds = new ShimSkiaSharp.SKRect(skBounds.Left, skBounds.Top, skBounds.Right, skBounds.Bottom);
         return width;
     }
@@ -244,6 +293,18 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
     public bool TryShapeGlyphRun(string? text, ShimSkiaSharp.SKPaint paint, bool rightToLeft, out Model.ShapedGlyphRun shapedRun)
     {
         return _skiaModel.TryShapeGlyphRun(text, paint, rightToLeft, out shapedRun);
+    }
+
+    /// <inheritdoc />
+    public bool TryShapeGlyphClusters(string? text, ShimSkiaSharp.SKPaint paint, bool rightToLeft, out Model.ShapedGlyphRun shapedRun, out Model.ShapedTextCluster[] clusters)
+    {
+        return _skiaModel.TryShapeGlyphClusters(text, paint, rightToLeft, out shapedRun, out clusters);
+    }
+
+    /// <inheritdoc />
+    public bool TryGetGlyphRunPath(Model.ShapedGlyphRun shapedRun, ShimSkiaSharp.SKPaint paint, float x, float y, out ShimSkiaSharp.SKPath path)
+    {
+        return _skiaModel.TryGetGlyphRunPath(shapedRun, paint, x, y, out path);
     }
 
     /// <inheritdoc />
@@ -554,8 +615,8 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         var codepoints = new List<int>();
         for (var i = 0; i < text.Length; i++)
         {
-            var codepoint = char.ConvertToUtf32(text, i);
-            if (char.IsWhiteSpace(text, i))
+            var ch = text[i];
+            if (ch <= ' ' || ch is '\u0085' or '\u00A0' || ch >= '\u0300' && IsNonAsciiTypefaceSpanGlue(text, i, ch))
             {
                 if (char.IsHighSurrogate(text[i]))
                 {
@@ -565,6 +626,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
                 continue;
             }
 
+            var codepoint = GetCodepoint(text, i, ch);
             if (!codepoints.Contains(codepoint))
             {
                 codepoints.Add(codepoint);
@@ -577,6 +639,41 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgTextR
         }
 
         return codepoints;
+    }
+
+    private static int GetCodepoint(string text, int index, char ch)
+    {
+        return char.IsSurrogate(ch) ? char.ConvertToUtf32(text, index) : ch;
+    }
+
+    private static bool IsNonAsciiTypefaceSpanGlue(string text, int index, char ch)
+    {
+        if (ch is >= '\u0300' and <= '\u036F' or >= '\uFE00' and <= '\uFE0F')
+        {
+            return true;
+        }
+
+        if (char.IsHighSurrogate(ch))
+        {
+            var codepoint = char.ConvertToUtf32(text, index);
+            if (codepoint is >= 0xE0100 and <= 0xE01EF)
+            {
+                return true;
+            }
+        }
+
+        if (ch is >= '\u200B' and <= '\u200F' or >= '\u202A' and <= '\u202E' or >= '\u2060' and <= '\u206F' or '\uFEFF')
+        {
+            return true;
+        }
+
+        if (char.IsWhiteSpace(text, index))
+        {
+            return true;
+        }
+
+        var category = CharUnicodeInfo.GetUnicodeCategory(text, index);
+        return category is UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or UnicodeCategory.EnclosingMark or UnicodeCategory.Format;
     }
 
     private static bool CanRenderAllCodepoints(SkiaSharp.SKTypeface? typeface, IReadOnlyList<int> codepoints)

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Svg.Pathing;
@@ -88,21 +89,80 @@ internal sealed class SvgComputedStyleSnapshot
     public bool TryGetWhiteSpace(out SvgWhiteSpace whiteSpace)
     {
         whiteSpace = SvgWhiteSpace.Normal;
-        if (!TryGetPropertyValue(SvgComputedStyleMetadata.WhiteSpace, out var value))
+        var hasWhiteSpaceCollapse = TryGetPropertyValue(SvgComputedStyleMetadata.WhiteSpaceCollapse, out var whiteSpaceCollapse);
+        var hasTextWrapMode = TryGetPropertyValue(SvgComputedStyleMetadata.TextWrapMode, out var textWrapMode);
+        var hasWhiteSpaceTrim = TryGetPropertyValue(SvgComputedStyleMetadata.WhiteSpaceTrim, out var whiteSpaceTrim);
+        if ((hasWhiteSpaceCollapse &&
+             !whiteSpaceCollapse.Equals(SvgComputedStyleMetadata.WhiteSpaceCollapse.InitialValue, StringComparison.OrdinalIgnoreCase)) ||
+            (hasTextWrapMode &&
+             !textWrapMode.Equals(SvgComputedStyleMetadata.TextWrapMode.InitialValue, StringComparison.OrdinalIgnoreCase)) ||
+            (hasWhiteSpaceTrim &&
+             !whiteSpaceTrim.Equals(SvgComputedStyleMetadata.WhiteSpaceTrim.InitialValue, StringComparison.OrdinalIgnoreCase)))
+        {
+            if (SvgComputedStyleMetadata.TryParseWhiteSpaceLonghands(
+                hasWhiteSpaceCollapse ? whiteSpaceCollapse : SvgComputedStyleMetadata.WhiteSpaceCollapse.InitialValue!,
+                hasTextWrapMode ? textWrapMode : SvgComputedStyleMetadata.TextWrapMode.InitialValue!,
+                hasWhiteSpaceTrim ? whiteSpaceTrim : SvgComputedStyleMetadata.WhiteSpaceTrim.InitialValue!,
+                out whiteSpace))
+            {
+                return true;
+            }
+        }
+
+        if (TryGetPropertyValue(SvgComputedStyleMetadata.WhiteSpace, out var value))
+        {
+            return SvgComputedStyleMetadata.TryParseWhiteSpace(value, out whiteSpace);
+        }
+
+        if (!hasWhiteSpaceCollapse && !hasTextWrapMode && !hasWhiteSpaceTrim)
         {
             return false;
         }
 
-        return SvgComputedStyleMetadata.TryParseWhiteSpace(value, out whiteSpace);
+        return SvgComputedStyleMetadata.TryParseWhiteSpaceLonghands(
+            hasWhiteSpaceCollapse ? whiteSpaceCollapse : SvgComputedStyleMetadata.WhiteSpaceCollapse.InitialValue!,
+            hasTextWrapMode ? textWrapMode : SvgComputedStyleMetadata.TextWrapMode.InitialValue!,
+            hasWhiteSpaceTrim ? whiteSpaceTrim : SvgComputedStyleMetadata.WhiteSpaceTrim.InitialValue!,
+            out whiteSpace);
     }
 
     public string TextOverflow => GetPropertyValueOrDefault(SvgComputedStyleMetadata.TextOverflow, "clip");
+
+    public string WhiteSpaceCollapse => GetPropertyValueOrDefault(SvgComputedStyleMetadata.WhiteSpaceCollapse, "collapse");
+
+    public string TextWrapMode => GetPropertyValueOrDefault(SvgComputedStyleMetadata.TextWrapMode, "wrap");
+
+    public string WhiteSpaceTrim => GetPropertyValueOrDefault(SvgComputedStyleMetadata.WhiteSpaceTrim, "none");
+
+    public string OverflowWrap => GetPropertyValueOrDefault(SvgComputedStyleMetadata.OverflowWrap, "normal");
+
+    public string WordBreak => GetPropertyValueOrDefault(SvgComputedStyleMetadata.WordBreak, "normal");
+
+    public string LineBreak => GetPropertyValueOrDefault(SvgComputedStyleMetadata.LineBreak, "auto");
+
+    public string LineHeight => GetPropertyValueOrDefault(SvgComputedStyleMetadata.LineHeight, "normal");
+
+    public string FontFeatureSettings => GetPropertyValueOrDefault(SvgComputedStyleMetadata.FontFeatureSettings, "normal");
+
+    public string FontKerning => GetPropertyValueOrDefault(SvgComputedStyleMetadata.FontKerning, "auto");
+
+    public string FontVariantLigatures => GetPropertyValueOrDefault(SvgComputedStyleMetadata.FontVariantLigatures, "normal");
+
+    public string Direction => GetPropertyValueOrDefault(SvgComputedStyleMetadata.Direction, "ltr");
+
+    public string UnicodeBidi => GetPropertyValueOrDefault(SvgComputedStyleMetadata.UnicodeBidi, "normal");
 
     public string? InlineSize => GetPropertyValueOrNull(SvgComputedStyleMetadata.InlineSize);
 
     public string? ShapeInside => GetPropertyValueOrNull(SvgComputedStyleMetadata.ShapeInside);
 
     public string? ShapeSubtract => GetPropertyValueOrNull(SvgComputedStyleMetadata.ShapeSubtract);
+
+    public string? ShapePadding => GetPropertyValueOrNull(SvgComputedStyleMetadata.ShapePadding);
+
+    public string? ShapeMargin => GetPropertyValueOrNull(SvgComputedStyleMetadata.ShapeMargin);
+
+    public string? ShapeImageThreshold => GetPropertyValueOrNull(SvgComputedStyleMetadata.ShapeImageThreshold);
 
     public string? ClipPath => GetPropertyValueOrNull(SvgComputedStyleMetadata.ClipPath);
 
@@ -217,6 +277,11 @@ internal sealed class SvgComputedStyleSnapshot
                     return metadata.Inherited ? ResolveInheritedProperty(metadata) : metadata.InitialValue;
                 }
 
+                if (TryResolveShorthandLonghand(metadata, normalizedShorthandValue, out var longhandValue))
+                {
+                    return longhandValue;
+                }
+
                 if (metadata.IsValid(normalizedShorthandValue))
                 {
                     return normalizedShorthandValue;
@@ -240,6 +305,44 @@ internal sealed class SvgComputedStyleSnapshot
         return value?.Trim() ?? string.Empty;
     }
 
+    private static bool TryResolveShorthandLonghand(
+        SvgComputedStyleMetadata metadata,
+        string shorthandValue,
+        out string value)
+    {
+        value = string.Empty;
+        if (metadata.ShorthandName is null ||
+            !metadata.ShorthandName.Equals(SvgComputedStyleMetadata.WhiteSpace.Name, StringComparison.OrdinalIgnoreCase) ||
+            !SvgComputedStyleMetadata.TryParseWhiteSpaceShorthandLonghands(
+                shorthandValue,
+                out var whiteSpaceCollapse,
+                out var textWrapMode,
+                out var whiteSpaceTrim))
+        {
+            return false;
+        }
+
+        if (metadata.Name.Equals(SvgComputedStyleMetadata.WhiteSpaceCollapse.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            value = whiteSpaceCollapse;
+            return true;
+        }
+
+        if (metadata.Name.Equals(SvgComputedStyleMetadata.TextWrapMode.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            value = textWrapMode;
+            return true;
+        }
+
+        if (metadata.Name.Equals(SvgComputedStyleMetadata.WhiteSpaceTrim.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            value = whiteSpaceTrim;
+            return true;
+        }
+
+        return false;
+    }
+
 }
 
 internal sealed class SvgComputedStyleMetadata
@@ -258,11 +361,86 @@ internal sealed class SvgComputedStyleMetadata
         initialValue: "normal",
         IsValidWhiteSpace);
 
+    public static readonly SvgComputedStyleMetadata WhiteSpaceCollapse = new(
+        "white-space-collapse",
+        inherited: true,
+        initialValue: "collapse",
+        IsValidWhiteSpaceCollapse,
+        "white-space");
+
+    public static readonly SvgComputedStyleMetadata TextWrapMode = new(
+        "text-wrap-mode",
+        inherited: true,
+        initialValue: "wrap",
+        static value => IsCssIdentifier(value, "wrap", "nowrap"),
+        "white-space");
+
+    public static readonly SvgComputedStyleMetadata WhiteSpaceTrim = new(
+        "white-space-trim",
+        inherited: false,
+        initialValue: "none",
+        IsValidWhiteSpaceTrim,
+        "white-space");
+
     public static readonly SvgComputedStyleMetadata TextOverflow = new(
         "text-overflow",
         inherited: false,
         initialValue: "clip",
         IsValidTextOverflow);
+
+    public static readonly SvgComputedStyleMetadata OverflowWrap = new(
+        "overflow-wrap",
+        inherited: true,
+        initialValue: "normal",
+        static value => IsCssIdentifier(value, "normal", "anywhere", "break-word"));
+
+    public static readonly SvgComputedStyleMetadata WordBreak = new(
+        "word-break",
+        inherited: true,
+        initialValue: "normal",
+        static value => IsCssIdentifier(value, "normal", "break-all", "break-word", "keep-all"));
+
+    public static readonly SvgComputedStyleMetadata LineBreak = new(
+        "line-break",
+        inherited: true,
+        initialValue: "auto",
+        static value => IsCssIdentifier(value, "auto", "loose", "normal", "strict", "anywhere"));
+
+    public static readonly SvgComputedStyleMetadata LineHeight = new(
+        "line-height",
+        inherited: true,
+        initialValue: "normal",
+        IsValidLineHeight);
+
+    public static readonly SvgComputedStyleMetadata FontFeatureSettings = new(
+        "font-feature-settings",
+        inherited: true,
+        initialValue: "normal",
+        IsValidFontFeatureSettings);
+
+    public static readonly SvgComputedStyleMetadata FontKerning = new(
+        "font-kerning",
+        inherited: true,
+        initialValue: "auto",
+        static value => IsCssIdentifier(value, "auto", "normal", "none"));
+
+    public static readonly SvgComputedStyleMetadata FontVariantLigatures = new(
+        "font-variant-ligatures",
+        inherited: true,
+        initialValue: "normal",
+        IsValidFontVariantLigatures);
+
+    public static readonly SvgComputedStyleMetadata Direction = new(
+        "direction",
+        inherited: true,
+        initialValue: "ltr",
+        static value => IsCssIdentifier(value, "ltr", "rtl"));
+
+    public static readonly SvgComputedStyleMetadata UnicodeBidi = new(
+        "unicode-bidi",
+        inherited: true,
+        initialValue: "normal",
+        static value => IsCssIdentifier(value, "normal", "embed", "isolate", "bidi-override", "isolate-override", "plaintext"));
 
     public static readonly SvgComputedStyleMetadata InlineSize = new(
         "inline-size",
@@ -281,6 +459,24 @@ internal sealed class SvgComputedStyleMetadata
         inherited: false,
         initialValue: null,
         static value => !string.IsNullOrWhiteSpace(value));
+
+    public static readonly SvgComputedStyleMetadata ShapePadding = new(
+        "shape-padding",
+        inherited: false,
+        initialValue: null,
+        IsValidNonNegativeSvgUnit);
+
+    public static readonly SvgComputedStyleMetadata ShapeMargin = new(
+        "shape-margin",
+        inherited: false,
+        initialValue: null,
+        IsValidNonNegativeSvgUnit);
+
+    public static readonly SvgComputedStyleMetadata ShapeImageThreshold = new(
+        "shape-image-threshold",
+        inherited: false,
+        initialValue: null,
+        IsValidShapeImageThreshold);
 
     public static readonly SvgComputedStyleMetadata GeometryUnit = new(
         string.Empty,
@@ -403,10 +599,25 @@ internal sealed class SvgComputedStyleMetadata
         {
             "paint-order" => PaintOrder,
             "white-space" => WhiteSpace,
+            "white-space-collapse" => WhiteSpaceCollapse,
+            "text-wrap-mode" => TextWrapMode,
+            "white-space-trim" => WhiteSpaceTrim,
             "text-overflow" => TextOverflow,
+            "overflow-wrap" => OverflowWrap,
+            "word-break" => WordBreak,
+            "line-break" => LineBreak,
+            "line-height" => LineHeight,
+            "font-feature-settings" => FontFeatureSettings,
+            "font-kerning" => FontKerning,
+            "font-variant-ligatures" => FontVariantLigatures,
+            "direction" => Direction,
+            "unicode-bidi" => UnicodeBidi,
             "inline-size" => InlineSize,
             "shape-inside" => ShapeInside,
             "shape-subtract" => ShapeSubtract,
+            "shape-padding" => ShapePadding,
+            "shape-margin" => ShapeMargin,
+            "shape-image-threshold" => ShapeImageThreshold,
             "d" => PathData,
             "x" or
             "y" or
@@ -486,12 +697,236 @@ internal sealed class SvgComputedStyleMetadata
                IsKnownLengthFunction(value);
     }
 
+    private static bool IsValidLineHeight(string value)
+    {
+        if (IsCssIdentifier(value, "normal"))
+        {
+            return true;
+        }
+
+        if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
+        {
+            return number > 0f;
+        }
+
+        return IsValidPositiveSvgUnit(value);
+    }
+
+    private static bool IsValidFontFeatureSettings(string value)
+    {
+        if (IsCssIdentifier(value, "normal"))
+        {
+            return true;
+        }
+
+        var parts = SplitCssCommaList(value);
+        if (parts.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < parts.Count; i++)
+        {
+            if (!IsValidFontFeatureSetting(parts[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsValidFontFeatureSetting(string value)
+    {
+        value = value.Trim();
+        if (value.Length < 4)
+        {
+            return false;
+        }
+
+        var cursor = 0;
+        string tag;
+        if (value[0] is '\'' or '"')
+        {
+            var quote = value[0];
+            var endQuote = value.IndexOf(quote, 1);
+            if (endQuote != 5)
+            {
+                return false;
+            }
+
+            tag = value.Substring(1, 4);
+            cursor = endQuote + 1;
+        }
+        else
+        {
+            if (value.Length < 4)
+            {
+                return false;
+            }
+
+            tag = value.Substring(0, 4);
+            cursor = 4;
+        }
+
+        if (!IsOpenTypeFeatureTag(tag))
+        {
+            return false;
+        }
+
+        var suffix = value.Substring(cursor).Trim();
+        if (suffix.Length == 0)
+        {
+            return true;
+        }
+
+        if (suffix.StartsWith("=", StringComparison.Ordinal))
+        {
+            suffix = suffix.Substring(1).Trim();
+        }
+
+        return suffix.Equals("on", StringComparison.OrdinalIgnoreCase) ||
+               suffix.Equals("off", StringComparison.OrdinalIgnoreCase) ||
+               uint.TryParse(suffix, NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
+    }
+
+    private static bool IsOpenTypeFeatureTag(string tag)
+    {
+        if (tag.Length != 4)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < tag.Length; i++)
+        {
+            if (tag[i] < 0x20 || tag[i] > 0x7E)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsValidFontVariantLigatures(string value)
+    {
+        if (IsCssIdentifier(value, "normal", "none"))
+        {
+            return true;
+        }
+
+        var tokens = value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        if (tokens.Length == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < tokens.Length; i++)
+        {
+            if (!IsCssIdentifier(
+                    tokens[i],
+                    "common-ligatures",
+                    "no-common-ligatures",
+                    "discretionary-ligatures",
+                    "no-discretionary-ligatures",
+                    "historical-ligatures",
+                    "no-historical-ligatures",
+                    "contextual",
+                    "no-contextual"))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static List<string> SplitCssCommaList(string value)
+    {
+        var parts = new List<string>();
+        var start = 0;
+        var quote = '\0';
+        for (var i = 0; i < value.Length; i++)
+        {
+            var ch = value[i];
+            if (quote != '\0')
+            {
+                if (ch == quote)
+                {
+                    quote = '\0';
+                }
+
+                continue;
+            }
+
+            if (ch is '\'' or '"')
+            {
+                quote = ch;
+                continue;
+            }
+
+            if (ch != ',')
+            {
+                continue;
+            }
+
+            var part = value.Substring(start, i - start).Trim();
+            if (part.Length > 0)
+            {
+                parts.Add(part);
+            }
+
+            start = i + 1;
+        }
+
+        var lastPart = value.Substring(start).Trim();
+        if (lastPart.Length > 0)
+        {
+            parts.Add(lastPart);
+        }
+
+        return parts;
+    }
+
     private static bool IsValidSvgUnit(string value)
     {
         try
         {
             _ = SvgUnitConverter.Parse(value.AsSpan());
             return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsValidNonNegativeSvgUnit(string value)
+    {
+        try
+        {
+            var unit = SvgUnitConverter.Parse(value.AsSpan());
+            return unit.Value >= 0f;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsValidShapeImageThreshold(string value)
+    {
+        return float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) &&
+               number >= 0f &&
+               number <= 1f;
+    }
+
+    private static bool IsValidPositiveSvgUnit(string value)
+    {
+        try
+        {
+            var unit = SvgUnitConverter.Parse(value.AsSpan());
+            return unit.Value > 0f;
         }
         catch
         {
@@ -539,7 +974,24 @@ internal sealed class SvgComputedStyleMetadata
 
     private static bool IsValidWhiteSpace(string value)
     {
-        return TryParseWhiteSpace(value, out _);
+        return TryParseWhiteSpaceShorthandLonghands(value, out _, out _, out _);
+    }
+
+    private static bool IsValidWhiteSpaceCollapse(string value)
+    {
+        return IsCssIdentifier(
+            value,
+            "collapse",
+            "discard",
+            "preserve",
+            "preserve-breaks",
+            "preserve-spaces",
+            "break-spaces");
+    }
+
+    private static bool IsValidWhiteSpaceTrim(string value)
+    {
+        return TryParseWhiteSpaceTrim(value, out _);
     }
 
     private static bool IsValidMarkerReference(string value)
@@ -746,31 +1198,214 @@ internal sealed class SvgComputedStyleMetadata
 
     internal static bool TryParseWhiteSpace(string value, out SvgWhiteSpace whiteSpace)
     {
-        switch (value.Trim())
+        if (!TryParseWhiteSpaceShorthandLonghands(value, out var collapse, out var wrap, out var trim))
+        {
+            whiteSpace = SvgWhiteSpace.Normal;
+            return false;
+        }
+
+        return TryParseWhiteSpaceLonghands(collapse, wrap, trim, out whiteSpace);
+    }
+
+    internal static bool TryParseWhiteSpaceLonghands(string whiteSpaceCollapse, string textWrapMode, out SvgWhiteSpace whiteSpace)
+    {
+        return TryParseWhiteSpaceLonghands(whiteSpaceCollapse, textWrapMode, WhiteSpaceTrim.InitialValue!, out whiteSpace);
+    }
+
+    internal static bool TryParseWhiteSpaceLonghands(
+        string whiteSpaceCollapse,
+        string textWrapMode,
+        string whiteSpaceTrim,
+        out SvgWhiteSpace whiteSpace)
+    {
+        var collapse = whiteSpaceCollapse.Trim();
+        var wrap = textWrapMode.Trim();
+        var trim = whiteSpaceTrim.Trim();
+        if (!IsValidWhiteSpaceCollapse(collapse) ||
+            !IsCssIdentifier(wrap, "wrap", "nowrap") ||
+            !IsValidWhiteSpaceTrim(trim) ||
+            !IsCssIdentifier(trim, "none"))
+        {
+            whiteSpace = SvgWhiteSpace.Normal;
+            return false;
+        }
+
+        if (IsCssIdentifier(collapse, "collapse"))
+        {
+            whiteSpace = IsCssIdentifier(wrap, "nowrap") ? SvgWhiteSpace.NoWrap : SvgWhiteSpace.Normal;
+            return true;
+        }
+
+        if (IsCssIdentifier(collapse, "preserve"))
+        {
+            whiteSpace = IsCssIdentifier(wrap, "nowrap") ? SvgWhiteSpace.Pre : SvgWhiteSpace.PreWrap;
+            return true;
+        }
+
+        if (IsCssIdentifier(collapse, "preserve-breaks") &&
+            IsCssIdentifier(wrap, "wrap"))
+        {
+            whiteSpace = SvgWhiteSpace.PreLine;
+            return true;
+        }
+
+        if (IsCssIdentifier(collapse, "break-spaces") &&
+            IsCssIdentifier(wrap, "wrap"))
+        {
+            whiteSpace = SvgWhiteSpace.BreakSpaces;
+            return true;
+        }
+
+        whiteSpace = SvgWhiteSpace.Normal;
+        return false;
+    }
+
+    internal static bool TryParseWhiteSpaceShorthandLonghands(
+        string value,
+        out string whiteSpaceCollapse,
+        out string textWrapMode,
+        out string whiteSpaceTrim)
+    {
+        var normalized = value.Trim();
+        switch (normalized)
         {
             case var token when string.Equals(token, "normal", StringComparison.OrdinalIgnoreCase):
-                whiteSpace = SvgWhiteSpace.Normal;
+                whiteSpaceCollapse = "collapse";
+                textWrapMode = "wrap";
+                whiteSpaceTrim = "none";
                 return true;
             case var token when string.Equals(token, "pre", StringComparison.OrdinalIgnoreCase):
-                whiteSpace = SvgWhiteSpace.Pre;
+                whiteSpaceCollapse = "preserve";
+                textWrapMode = "nowrap";
+                whiteSpaceTrim = "none";
                 return true;
             case var token when string.Equals(token, "nowrap", StringComparison.OrdinalIgnoreCase) ||
                                 string.Equals(token, "no-wrap", StringComparison.OrdinalIgnoreCase):
-                whiteSpace = SvgWhiteSpace.NoWrap;
+                whiteSpaceCollapse = "collapse";
+                textWrapMode = "nowrap";
+                whiteSpaceTrim = "none";
                 return true;
             case var token when string.Equals(token, "pre-wrap", StringComparison.OrdinalIgnoreCase):
-                whiteSpace = SvgWhiteSpace.PreWrap;
+                whiteSpaceCollapse = "preserve";
+                textWrapMode = "wrap";
+                whiteSpaceTrim = "none";
                 return true;
             case var token when string.Equals(token, "break-spaces", StringComparison.OrdinalIgnoreCase):
-                whiteSpace = SvgWhiteSpace.BreakSpaces;
+                whiteSpaceCollapse = "break-spaces";
+                textWrapMode = "wrap";
+                whiteSpaceTrim = "none";
                 return true;
             case var token when string.Equals(token, "pre-line", StringComparison.OrdinalIgnoreCase):
-                whiteSpace = SvgWhiteSpace.PreLine;
+                whiteSpaceCollapse = "preserve-breaks";
+                textWrapMode = "wrap";
+                whiteSpaceTrim = "none";
                 return true;
-            default:
-                whiteSpace = SvgWhiteSpace.Normal;
-                return false;
         }
+
+        whiteSpaceCollapse = WhiteSpaceCollapse.InitialValue!;
+        textWrapMode = TextWrapMode.InitialValue!;
+        whiteSpaceTrim = WhiteSpaceTrim.InitialValue!;
+        var tokens = normalized.Split([' ', '\t', '\r', '\n', '\f'], StringSplitOptions.RemoveEmptyEntries);
+        if (tokens.Length is 0 or > 5)
+        {
+            return false;
+        }
+
+        string? collapse = null;
+        string? wrap = null;
+        var trim = SvgWhiteSpaceTrim.None;
+        var hasTrim = false;
+        for (var i = 0; i < tokens.Length; i++)
+        {
+            var token = tokens[i];
+            if (IsValidWhiteSpaceCollapse(token))
+            {
+                if (collapse is not null)
+                {
+                    return false;
+                }
+
+                collapse = token;
+                continue;
+            }
+
+            if (IsCssIdentifier(token, "wrap", "nowrap"))
+            {
+                if (wrap is not null)
+                {
+                    return false;
+                }
+
+                wrap = token;
+                continue;
+            }
+
+            if (TryParseWhiteSpaceTrimToken(token, ref trim, ref hasTrim))
+            {
+                continue;
+            }
+
+            return false;
+        }
+
+        whiteSpaceCollapse = collapse ?? WhiteSpaceCollapse.InitialValue!;
+        textWrapMode = wrap ?? TextWrapMode.InitialValue!;
+        whiteSpaceTrim = ToCssText(trim);
+        return true;
+    }
+
+    private static bool TryParseWhiteSpaceTrim(string value, out SvgWhiteSpaceTrim trim)
+    {
+        trim = SvgWhiteSpaceTrim.None;
+        var tokens = value.Split([' ', '\t', '\r', '\n', '\f'], StringSplitOptions.RemoveEmptyEntries);
+        if (tokens.Length == 0)
+        {
+            return false;
+        }
+
+        var hasTrim = false;
+        for (var i = 0; i < tokens.Length; i++)
+        {
+            if (!TryParseWhiteSpaceTrimToken(tokens[i], ref trim, ref hasTrim))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool TryParseWhiteSpaceTrimToken(string token, ref SvgWhiteSpaceTrim trim, ref bool hasTrim)
+    {
+        if (IsCssIdentifier(token, "none"))
+        {
+            if (hasTrim)
+            {
+                return false;
+            }
+
+            hasTrim = true;
+            trim = SvgWhiteSpaceTrim.None;
+            return true;
+        }
+
+        var flag = IsCssIdentifier(token, "discard-before")
+            ? SvgWhiteSpaceTrim.DiscardBefore
+            : IsCssIdentifier(token, "discard-after")
+                ? SvgWhiteSpaceTrim.DiscardAfter
+                : IsCssIdentifier(token, "discard-inner")
+                    ? SvgWhiteSpaceTrim.DiscardInner
+                    : SvgWhiteSpaceTrim.None;
+        if (flag == SvgWhiteSpaceTrim.None ||
+            trim.HasFlag(flag) ||
+            (hasTrim && trim == SvgWhiteSpaceTrim.None))
+        {
+            return false;
+        }
+
+        hasTrim = true;
+        trim |= flag;
+        return true;
     }
 
     internal static bool TryParseIsolation(string value, out SvgIsolation isolation)
@@ -873,6 +1508,32 @@ internal sealed class SvgComputedStyleMetadata
             SvgWhiteSpace.PreLine => "pre-line",
             _ => "normal"
         };
+    }
+
+    internal static string ToCssText(SvgWhiteSpaceTrim trim)
+    {
+        if (trim == SvgWhiteSpaceTrim.None)
+        {
+            return "none";
+        }
+
+        var parts = new List<string>(3);
+        if (trim.HasFlag(SvgWhiteSpaceTrim.DiscardBefore))
+        {
+            parts.Add("discard-before");
+        }
+
+        if (trim.HasFlag(SvgWhiteSpaceTrim.DiscardAfter))
+        {
+            parts.Add("discard-after");
+        }
+
+        if (trim.HasFlag(SvgWhiteSpaceTrim.DiscardInner))
+        {
+            parts.Add("discard-inner");
+        }
+
+        return string.Join(" ", parts);
     }
 
     internal static string ToCssText(SvgIsolation isolation)

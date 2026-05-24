@@ -866,7 +866,9 @@ internal static class PaintingService
     {
         for (SvgElement? current = svgText; current is not null; current = current.Parent)
         {
-            if (current.TryGetAttribute("direction", out var direction) &&
+            if (current.TryGetOwnCascadedStyleValue("direction", out var rawDirection) &&
+                !string.IsNullOrWhiteSpace(rawDirection) &&
+                current.ComputedStyle.TryGetPropertyValue("direction", out var direction) &&
                 !string.IsNullOrWhiteSpace(direction))
             {
                 return direction.Equals("rtl", StringComparison.OrdinalIgnoreCase);
@@ -948,6 +950,9 @@ internal static class PaintingService
         skPaint.LcdRenderText = true;
         skPaint.SubpixelText = true;
         skPaint.TextEncoding = SKTextEncoding.Utf16;
+        skPaint.FontFeatureSettings = svgText.FontFeatureSettings;
+        skPaint.FontKerning = svgText.FontKerning;
+        skPaint.FontVariantLigatures = svgText.FontVariantLigatures;
 
         var isVertical = IsVerticalWritingMode(svgText);
         skPaint.TextAlign = ToTextAlign(svgText.TextAnchor, isVertical ? false : IsRightToLeft(svgText));
@@ -967,22 +972,50 @@ internal static class PaintingService
             // TODO: Implement SvgTextDecoration.LineThrough
         }
 
-        float fontSize;
-        var fontSizeUnit = svgText.FontSize;
-        if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
-        {
-            // TODO: Do not use implicit float conversion from SvgUnit.ToDeviceValue
-            // fontSize = new SvgUnit(SvgUnitType.Em, 1.0f);
-            // NOTE: Use default SkPaint Font_Size
-            fontSize = 12f;
-        }
-        else
-        {
-            fontSize = fontSizeUnit.ToDeviceValue(UnitRenderingType.Vertical, svgText, skBounds);
-        }
+        var fontSize = ResolveFontSize(svgText, skBounds);
 
         skPaint.TextSize = fontSize;
 
         SetTypeface(svgText, skPaint);
+    }
+
+    private static float ResolveFontSize(SvgElement element, SKRect skBounds)
+        => ResolveFontSize(element, skBounds, new HashSet<SvgElement>());
+
+    private static float ResolveFontSize(SvgElement element, SKRect skBounds, ISet<SvgElement> visited)
+    {
+        if (!visited.Add(element))
+        {
+            return 12f;
+        }
+
+        if (!element.Attributes.ContainsKey("font-size"))
+        {
+            return ResolveParentFontSize(element, skBounds, visited);
+        }
+
+        var fontSizeUnit = element.FontSize;
+        if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
+        {
+            return ResolveParentFontSize(element, skBounds, visited);
+        }
+
+        return fontSizeUnit.Type switch
+        {
+            SvgUnitType.Percentage => ResolveParentFontSize(element, skBounds, visited) * fontSizeUnit.Value / 100f,
+            SvgUnitType.Em => ResolveParentFontSize(element, skBounds, visited) * fontSizeUnit.Value,
+            SvgUnitType.Ex => ResolveParentFontSize(element, skBounds, visited) * 0.5f * fontSizeUnit.Value,
+            _ => fontSizeUnit.ToDeviceValue(UnitRenderingType.Vertical, element, skBounds)
+        };
+    }
+
+    private static float ResolveParentFontSize(SvgElement element, SKRect skBounds, ISet<SvgElement> visited)
+    {
+        if (element.Parent is { } parent)
+        {
+            return ResolveFontSize(parent, skBounds, visited);
+        }
+
+        return 12f;
     }
 }
