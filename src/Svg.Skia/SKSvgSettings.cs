@@ -27,6 +27,10 @@ public class SKSvgSettings
 
     public bool EnableJavaScript { get; set; }
 
+    public bool EnableTextSelectionRendering { get; set; }
+
+    public SkiaSharp.SKColor TextSelectionColor { get; set; }
+
     public bool EnableExternalJavaScript { get; set; }
 
     public int JavaScriptTimeoutMilliseconds { get; set; }
@@ -62,6 +66,8 @@ public class SKSvgSettings
         target.EnableSvgFonts = EnableSvgFonts;
         target.EnableTextReferences = EnableTextReferences;
         target.EnableJavaScript = EnableJavaScript;
+        target.EnableTextSelectionRendering = EnableTextSelectionRendering;
+        target.TextSelectionColor = TextSelectionColor;
         target.EnableExternalJavaScript = EnableExternalJavaScript;
         target.JavaScriptTimeoutMilliseconds = JavaScriptTimeoutMilliseconds;
         target.JavaScriptMaxStatements = JavaScriptMaxStatements;
@@ -89,6 +95,8 @@ public class SKSvgSettings
         EnableSvgFonts = true;
         EnableTextReferences = true;
         EnableJavaScript = false;
+        EnableTextSelectionRendering = true;
+        TextSelectionColor = new SkiaSharp.SKColor(0x00, 0x80, 0x00, 0xFF);
         EnableExternalJavaScript = true;
         JavaScriptTimeoutMilliseconds = 1000;
         JavaScriptMaxStatements = 10000;

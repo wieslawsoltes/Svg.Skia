@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using ShimSkiaSharp;
@@ -23,6 +24,9 @@ internal static partial class SvgSceneTextCompiler
         bool LcdRenderText,
         bool SubpixelText,
         SKTextEncoding TextEncoding,
+        string? FontFeatureSettings,
+        string? FontKerning,
+        string? FontVariantLigatures,
         string? TypefaceFamilyName,
         SKFontStyleWeight TypefaceWeight,
         SKFontStyleWidth TypefaceWidth,
@@ -35,6 +39,9 @@ internal static partial class SvgSceneTextCompiler
         bool LcdRenderText,
         bool SubpixelText,
         SKTextEncoding TextEncoding,
+        string? FontFeatureSettings,
+        string? FontKerning,
+        string? FontVariantLigatures,
         string? TypefaceFamilyName,
         SKFontStyleWeight TypefaceWeight,
         SKFontStyleWidth TypefaceWidth,
@@ -168,7 +175,7 @@ internal static partial class SvgSceneTextCompiler
             ISvgAssetLoader assetLoader,
             out PreparedFlatTextRun preparedText)
         {
-            var naturalCodepointAdvances = MeasureNaturalCodepointAdvancesCore(styleSource, SplitCodepoints(text), geometryBounds, assetLoader);
+            var naturalCodepointAdvances = MeasureNaturalCodepointAdvancesCore(styleSource, text, SplitCodepoints(text), geometryBounds, assetLoader);
             preparedText = new PreparedFlatTextRun(
                 styleSource,
                 text,
@@ -196,6 +203,7 @@ internal static partial class SvgSceneTextCompiler
             {
                 var run = runs[i];
                 var advance = MeasureTextAdvanceCore(run.StyleSource, run.Text, geometryBounds, assetLoader);
+                advance += GetSequentialRunBoundaryAdvance(runs, i, geometryBounds);
                 preparedRuns[i] = new PreparedSequentialRun(run.StyleSource, run.Text, advance);
                 totalAdvance += advance;
             }
@@ -237,7 +245,7 @@ internal static partial class SvgSceneTextCompiler
             SKRect geometryBounds,
             ISvgAssetLoader assetLoader)
         {
-            return MeasureNaturalCodepointAdvancesCore(styleSource, codepoints, geometryBounds, assetLoader);
+            return MeasureNaturalCodepointAdvancesCore(styleSource, text: null, codepoints, geometryBounds, assetLoader);
         }
 
         public void ClearCaches()
@@ -335,10 +343,11 @@ internal static partial class SvgSceneTextCompiler
     private static bool CanPrepareSequentialTextRun(
         SequentialTextRun run,
         SKRect geometryBounds,
-        ISvgAssetLoader assetLoader)
+        ISvgAssetLoader assetLoader,
+        bool ignoreOwnTextLength = false)
     {
         if (IsVerticalWritingMode(run.StyleSource) ||
-            HasOwnTextLengthAdjustment(run.StyleSource))
+            (!ignoreOwnTextLength && HasOwnTextLengthAdjustment(run.StyleSource)))
         {
             return false;
         }
@@ -354,30 +363,31 @@ internal static partial class SvgSceneTextCompiler
 
     private static float[] MeasureNaturalCodepointAdvancesCore(
         SvgTextBase svgTextBase,
+        string? text,
         IReadOnlyList<string> codepoints,
         SKRect geometryBounds,
         ISvgAssetLoader assetLoader)
     {
-        var advances = new float[codepoints.Count];
         if (codepoints.Count == 0)
         {
-            return advances;
+            return Array.Empty<float>();
         }
 
         if (IsVerticalWritingMode(svgTextBase))
         {
+            var verticalAdvances = new float[codepoints.Count];
             for (var i = 0; i < codepoints.Count; i++)
             {
-                advances[i] = MeasureNaturalTextAdvanceCore(svgTextBase, codepoints[i], geometryBounds, assetLoader);
+                verticalAdvances[i] = MeasureNaturalTextAdvanceCore(svgTextBase, codepoints[i], geometryBounds, assetLoader);
             }
 
-            return advances;
+            return verticalAdvances;
         }
 
-        var text = string.Concat(codepoints);
+        text ??= string.Concat(codepoints);
         if (string.IsNullOrEmpty(text))
         {
-            return advances;
+            return Array.Empty<float>();
         }
 
         var paint = new SKPaint();
@@ -386,17 +396,32 @@ internal static partial class SvgSceneTextCompiler
 
         var isRightToLeft = IsRightToLeft(svgTextBase);
         var requiresSyntheticSmallCaps = RequiresSyntheticSmallCaps(svgTextBase, text);
-        var usesBrowserCompatibleRunTypeface = ShouldUseBrowserCompatibleRunTypeface(svgTextBase, text);
         var cacheKey = CreateNaturalCodepointAdvanceCacheKey(
             assetLoader,
             text,
             paint,
             isRightToLeft,
             requiresSyntheticSmallCaps,
-            usesBrowserCompatibleRunTypeface);
+            usesBrowserCompatibleRunTypeface: false);
         if (TryGetCachedNaturalCodepointAdvances(cacheKey, out var cachedAdvances))
         {
             return cachedAdvances;
+        }
+
+        var usesBrowserCompatibleRunTypeface = ShouldUseBrowserCompatibleRunTypeface(svgTextBase, text);
+        if (usesBrowserCompatibleRunTypeface)
+        {
+            cacheKey = CreateNaturalCodepointAdvanceCacheKey(
+                assetLoader,
+                text,
+                paint,
+                isRightToLeft,
+                requiresSyntheticSmallCaps,
+                usesBrowserCompatibleRunTypeface: true);
+            if (TryGetCachedNaturalCodepointAdvances(cacheKey, out cachedAdvances))
+            {
+                return cachedAdvances;
+            }
         }
 
         if (TryMeasureNaturalCodepointAdvancesFromSimpleShapedRun(
@@ -415,6 +440,22 @@ internal static partial class SvgSceneTextCompiler
             return shapedAdvances;
         }
 
+        if (TryMeasureNaturalCodepointAdvancesFromClusteredShapedRun(
+                text,
+                codepoints,
+                paint,
+                assetLoader,
+                isRightToLeft,
+                requiresSyntheticSmallCaps,
+                usesBrowserCompatibleRunTypeface,
+                out var clusteredAdvances))
+        {
+            PreserveMeasuredTotalAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, clusteredAdvances);
+            CacheNaturalCodepointAdvances(cacheKey, clusteredAdvances);
+            return clusteredAdvances;
+        }
+
+        var advances = new float[codepoints.Count];
         var builder = new StringBuilder();
         var previousAdvance = 0f;
 
@@ -442,8 +483,69 @@ internal static partial class SvgSceneTextCompiler
             previousAdvance += codepointAdvance;
         }
 
+        if (MayNeedClusteredNaturalCodepointAdvances(codepoints))
+        {
+            PreserveMeasuredTotalAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, advances);
+        }
+
         CacheNaturalCodepointAdvances(cacheKey, advances);
         return advances;
+    }
+
+    private static void PreserveMeasuredTotalAdvance(
+        SvgTextBase svgTextBase,
+        IReadOnlyList<string> codepoints,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        float[] advances)
+    {
+        if (codepoints.Count == 0 || advances.Length != codepoints.Count)
+        {
+            return;
+        }
+
+        var targetIndex = FindAdvanceReconciliationTargetIndex(codepoints, advances);
+        if (targetIndex < 0)
+        {
+            return;
+        }
+
+        var text = string.Concat(codepoints);
+        var measuredAdvance = MeasureNaturalTextAdvanceCore(svgTextBase, text, geometryBounds, assetLoader);
+        var distributedAdvance = advances.Sum();
+        var delta = measuredAdvance - distributedAdvance;
+        const float epsilon = 0.01f;
+        if (Math.Abs(delta) <= epsilon)
+        {
+            return;
+        }
+
+        var adjustedAdvance = advances[targetIndex] + delta;
+        if (!float.IsNaN(adjustedAdvance) && !float.IsInfinity(adjustedAdvance) && adjustedAdvance >= 0f)
+        {
+            advances[targetIndex] = adjustedAdvance;
+        }
+    }
+
+    private static int FindAdvanceReconciliationTargetIndex(IReadOnlyList<string> codepoints, IReadOnlyList<float> advances)
+    {
+        for (var i = codepoints.Count - 1; i >= 0; i--)
+        {
+            if (IsWhitespaceCodepoint(codepoints[i]))
+            {
+                return i;
+            }
+        }
+
+        for (var i = advances.Count - 1; i >= 0; i--)
+        {
+            if (IsValidPositiveAdvance(advances[i]))
+            {
+                return i;
+            }
+        }
+
+        return advances.Count > 0 ? advances.Count - 1 : -1;
     }
 
     private static float MeasureTextAdvanceCore(
@@ -452,12 +554,25 @@ internal static partial class SvgSceneTextCompiler
         SKRect geometryBounds,
         ISvgAssetLoader assetLoader)
     {
-        if (TryCreateVerticalTextRunPlacements(svgTextBase, text, 0f, 0f, geometryBounds, SKTextAlign.Left, assetLoader, explicitRotations: null, out _, out var verticalAdvance))
+        var isVertical = IsVerticalWritingMode(svgTextBase);
+        if (isVertical &&
+            TryCreateVerticalTextRunPlacements(svgTextBase, text, 0f, 0f, geometryBounds, SKTextAlign.Left, assetLoader, explicitRotations: null, out _, out var verticalAdvance))
         {
             return verticalAdvance;
         }
 
-        if (TryCreateAlignedCodepointPlacements(svgTextBase, text, 0f, 0f, geometryBounds, SKTextAlign.Left, assetLoader, explicitRotations: null, out _, out var totalAdvance))
+        if (CanNeedMixedScriptSpacingRunLayout(svgTextBase, text, assetLoader))
+        {
+            var paint = CreateTextMetricsPaint(svgTextBase, geometryBounds);
+            if (TryCreateMixedScriptSpacingRunLayout(svgTextBase, text, geometryBounds, paint, assetLoader, out var mixedLayout) &&
+                mixedLayout is not null)
+            {
+                return mixedLayout.TotalAdvance;
+            }
+        }
+
+        if ((isVertical || HasPerGlyphLayoutAdjustments(svgTextBase, text)) &&
+            TryCreateAlignedCodepointPlacements(svgTextBase, text, 0f, 0f, geometryBounds, SKTextAlign.Left, assetLoader, explicitRotations: null, out _, out var totalAdvance))
         {
             return totalAdvance;
         }

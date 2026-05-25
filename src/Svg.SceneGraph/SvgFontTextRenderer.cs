@@ -17,6 +17,8 @@ namespace Svg.Skia
     /// </summary>
     internal static class SvgFontTextRenderer
     {
+        private const string EmptyAltGlyphLookupText = "\uFFFC";
+
         private static readonly ConditionalWeakTable<SvgDocument, SvgFontRegistry> s_registryCache = new();
 
         internal static bool TryGetLayout(
@@ -49,7 +51,10 @@ namespace Svg.Skia
                 return false;
             }
 
-            if (string.IsNullOrEmpty(text) || paint.TextSize <= 0f)
+            var isAltGlyph = svgTextBase is SvgAltGlyph;
+            var isEmptyAltGlyph = isAltGlyph && string.IsNullOrEmpty(text);
+            if (paint.TextSize <= 0f ||
+                (string.IsNullOrEmpty(text) && !isEmptyAltGlyph))
             {
                 return false;
             }
@@ -66,7 +71,20 @@ namespace Svg.Skia
                 return false;
             }
 
-            var request = SvgFontRequest.Create(svgTextBase, text, paint.TextSize);
+            var request = SvgFontRequest.Create(
+                svgTextBase,
+                isEmptyAltGlyph ? EmptyAltGlyphLookupText : text,
+                paint.TextSize);
+            if (TryCreateAltGlyphLayout(registry, request, paint, assetLoader, includeGlyphTexts, out layout))
+            {
+                return true;
+            }
+
+            if (isEmptyAltGlyph)
+            {
+                return false;
+            }
+
             foreach (var family in request.Families)
             {
                 if (!registry.TryGetEntries(family, out var familyEntries))
@@ -131,6 +149,182 @@ namespace Svg.Skia
                 : left.Order.CompareTo(right.Order);
         }
 
+        private static bool TryCreateAltGlyphLayout(
+            SvgFontRegistry registry,
+            SvgFontRequest request,
+            SKPaint paint,
+            ISvgAssetLoader? assetLoader,
+            bool includeGlyphTexts,
+            out SvgFontLayout? layout)
+        {
+            layout = null;
+            if (request.StyleSource is not SvgAltGlyph altGlyph)
+            {
+                return false;
+            }
+
+            if (!TryResolveAltGlyphEntries(registry, request, altGlyph, out var glyphEntries) ||
+                glyphEntries.Count == 0)
+            {
+                return false;
+            }
+
+            var entry = glyphEntries[0].Entry;
+            var glyphs = new SvgGlyphDefinition[glyphEntries.Count];
+            for (var i = 0; i < glyphEntries.Count; i++)
+            {
+                if (!ReferenceEquals(glyphEntries[i].Entry, entry))
+                {
+                    return false;
+                }
+
+                glyphs[i] = glyphEntries[i].Glyph;
+            }
+
+            layout = entry.CreateAltGlyphLayout(request, glyphs, paint, assetLoader, includeGlyphTexts);
+            return layout.GlyphPlacements.Count > 0;
+        }
+
+        private static bool TryResolveAltGlyphEntries(
+            SvgFontRegistry registry,
+            SvgFontRequest request,
+            SvgAltGlyph altGlyph,
+            out IReadOnlyList<SvgGlyphEntry> glyphEntries)
+        {
+            var visited = new HashSet<SvgElement>();
+            if (TryResolveReferencedAltGlyphTarget(registry, request, altGlyph, altGlyph.ReferencedElement, visited, out glyphEntries))
+            {
+                return true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(altGlyph.GlyphRef) &&
+                registry.TryResolveGlyphName(request, altGlyph.GlyphRef, out var glyphEntry))
+            {
+                glyphEntries = new[] { glyphEntry };
+                return true;
+            }
+
+            glyphEntries = Array.Empty<SvgGlyphEntry>();
+            return false;
+        }
+
+        private static bool TryResolveReferencedAltGlyphTarget(
+            SvgFontRegistry registry,
+            SvgFontRequest request,
+            SvgElement owner,
+            Uri? reference,
+            ISet<SvgElement> visited,
+            out IReadOnlyList<SvgGlyphEntry> glyphEntries)
+        {
+            glyphEntries = Array.Empty<SvgGlyphEntry>();
+            var uri = SvgService.GetEffectiveReferenceUri(owner, reference);
+            if (uri is null)
+            {
+                return false;
+            }
+
+            var referencedElement = SvgService.GetReference<SvgElement>(owner, uri);
+            if (referencedElement is null || !visited.Add(referencedElement))
+            {
+                return false;
+            }
+
+            try
+            {
+                return referencedElement switch
+                {
+                    SvgGlyph glyph when registry.TryResolveGlyph(glyph, out var glyphEntry) => ReturnSingle(glyphEntry, out glyphEntries),
+                    SvgGlyphRef glyphRef => TryResolveGlyphRef(registry, request, glyphRef, visited, out var glyphRefEntry) && ReturnSingle(glyphRefEntry, out glyphEntries),
+                    SvgAltGlyphDef altGlyphDef => TryResolveAltGlyphDef(registry, request, altGlyphDef, visited, out glyphEntries),
+                    SvgAltGlyphItem altGlyphItem => TryResolveGlyphRefSequence(registry, request, altGlyphItem.Children.OfType<SvgGlyphRef>(), visited, out glyphEntries),
+                    _ => false
+                };
+            }
+            finally
+            {
+                _ = visited.Remove(referencedElement);
+            }
+        }
+
+        private static bool ReturnSingle(SvgGlyphEntry glyphEntry, out IReadOnlyList<SvgGlyphEntry> glyphEntries)
+        {
+            glyphEntries = new[] { glyphEntry };
+            return true;
+        }
+
+        private static bool TryResolveAltGlyphDef(
+            SvgFontRegistry registry,
+            SvgFontRequest request,
+            SvgAltGlyphDef altGlyphDef,
+            ISet<SvgElement> visited,
+            out IReadOnlyList<SvgGlyphEntry> glyphEntries)
+        {
+            var directGlyphRefs = altGlyphDef.Children.OfType<SvgGlyphRef>().ToArray();
+            if (directGlyphRefs.Length > 0 &&
+                TryResolveGlyphRefSequence(registry, request, directGlyphRefs, visited, out glyphEntries))
+            {
+                return true;
+            }
+
+            foreach (var item in altGlyphDef.Children.OfType<SvgAltGlyphItem>())
+            {
+                if (TryResolveGlyphRefSequence(registry, request, item.Children.OfType<SvgGlyphRef>(), visited, out glyphEntries))
+                {
+                    return true;
+                }
+            }
+
+            glyphEntries = Array.Empty<SvgGlyphEntry>();
+            return false;
+        }
+
+        private static bool TryResolveGlyphRefSequence(
+            SvgFontRegistry registry,
+            SvgFontRequest request,
+            IEnumerable<SvgGlyphRef> glyphRefs,
+            ISet<SvgElement> visited,
+            out IReadOnlyList<SvgGlyphEntry> glyphEntries)
+        {
+            var resolved = new List<SvgGlyphEntry>();
+            foreach (var glyphRef in glyphRefs)
+            {
+                if (!TryResolveGlyphRef(registry, request, glyphRef, visited, out var glyphEntry))
+                {
+                    glyphEntries = Array.Empty<SvgGlyphEntry>();
+                    return false;
+                }
+
+                resolved.Add(glyphEntry);
+            }
+
+            glyphEntries = resolved;
+            return resolved.Count > 0;
+        }
+
+        private static bool TryResolveGlyphRef(
+            SvgFontRegistry registry,
+            SvgFontRequest request,
+            SvgGlyphRef glyphRef,
+            ISet<SvgElement> visited,
+            out SvgGlyphEntry glyphEntry)
+        {
+            if (TryResolveReferencedAltGlyphTarget(registry, request, glyphRef, glyphRef.ReferencedElement, visited, out var referencedEntries) &&
+                referencedEntries.Count == 1)
+            {
+                glyphEntry = referencedEntries[0];
+                return true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(glyphRef.GlyphRef) &&
+                registry.TryResolveGlyphName(request, glyphRef.GlyphRef, out glyphEntry))
+            {
+                return true;
+            }
+
+            glyphEntry = default;
+            return false;
+        }
+
         private enum SvgTextDirection
         {
             LeftToRight,
@@ -156,6 +350,7 @@ namespace Svg.Skia
         }
 
         private readonly record struct SvgFontRequest(
+            SvgTextBase StyleSource,
             string Text,
             float TextSize,
             string[] Families,
@@ -168,6 +363,7 @@ namespace Svg.Skia
             public static SvgFontRequest Create(SvgTextBase svgTextBase, string text, float textSize)
             {
                 return new SvgFontRequest(
+                    svgTextBase,
                     text,
                     textSize,
                     SplitFamilies(svgTextBase.FontFamily),
@@ -353,6 +549,7 @@ namespace Svg.Skia
         private sealed class SvgFontRegistry
         {
             private readonly Dictionary<string, List<SvgFontEntry>> _entriesByFamily = new(StringComparer.OrdinalIgnoreCase);
+            private readonly Dictionary<SvgGlyph, SvgGlyphEntry> _entriesByGlyph = new();
             private int _nextOrder;
 
             private SvgFontRegistry()
@@ -370,6 +567,39 @@ namespace Svg.Skia
                 }
 
                 entries = Array.Empty<SvgFontEntry>();
+                return false;
+            }
+
+            public bool TryResolveGlyph(SvgGlyph glyph, out SvgGlyphEntry entry)
+                => _entriesByGlyph.TryGetValue(glyph, out entry);
+
+            public bool TryResolveGlyphName(SvgFontRequest request, string glyphName, out SvgGlyphEntry entry)
+            {
+                foreach (var family in request.Families)
+                {
+                    if (!_entriesByFamily.TryGetValue(family, out var familyEntries))
+                    {
+                        continue;
+                    }
+
+                    for (var i = 0; i < familyEntries.Count; i++)
+                    {
+                        var fontEntry = familyEntries[i];
+                        if (!fontEntry.IsVariantCompatible(request) ||
+                            !fontEntry.IsStyleCompatible(request))
+                        {
+                            continue;
+                        }
+
+                        if (fontEntry.TryResolveGlyphName(glyphName, out var glyph))
+                        {
+                            entry = new SvgGlyphEntry(fontEntry, glyph);
+                            return true;
+                        }
+                    }
+                }
+
+                entry = default;
                 return false;
             }
 
@@ -490,6 +720,14 @@ namespace Svg.Skia
                 }
 
                 list.Add(entry);
+
+                foreach (var glyph in entry.Glyphs)
+                {
+                    if (glyph.SourceGlyph is not null && !_entriesByGlyph.ContainsKey(glyph.SourceGlyph))
+                    {
+                        _entriesByGlyph[glyph.SourceGlyph] = new SvgGlyphEntry(entry, glyph);
+                    }
+                }
             }
 
             private static IEnumerable<SvgFontDescriptor> ParseCssFontFaces(string css)
@@ -566,6 +804,7 @@ namespace Svg.Skia
             public SvgFontFace MetricsFace { get; }
             public SvgFontDescriptor Descriptor { get; }
             public SvgGlyphDefinition? MissingGlyph { get; }
+            public IReadOnlyList<SvgGlyphDefinition> Glyphs => _glyphs;
             public float UnitsPerEm { get; }
             public float Ascent { get; }
             public float Descent { get; }
@@ -579,6 +818,22 @@ namespace Svg.Skia
             public bool SupportsAnyText(string text)
             {
                 return Descriptor.UnicodeRange is null || Descriptor.UnicodeRange.SupportsAny(text);
+            }
+
+            public bool TryResolveGlyphName(string glyphName, out SvgGlyphDefinition glyph)
+            {
+                for (var i = 0; i < _glyphs.Count; i++)
+                {
+                    var candidate = _glyphs[i];
+                    if (candidate.MatchesGlyphName(glyphName))
+                    {
+                        glyph = candidate;
+                        return true;
+                    }
+                }
+
+                glyph = null!;
+                return false;
             }
 
             public bool IsVariantCompatible(SvgFontRequest request)
@@ -663,7 +918,7 @@ namespace Svg.Skia
                         ? codepoints[codepointIndex + consumedCodepoints].CharIndex
                         : request.Text.Length;
                     var consumedText = CreateResolvedGlyphText(request.Text, start.CharIndex, endCharIndex, glyph);
-                    logicalItems.Add(new SvgResolvedGlyphItem(glyph, consumedText));
+                    logicalItems.Add(new SvgResolvedGlyphItem(glyph, consumedText, consumedText));
                     hasSvgGlyph = true;
                     codepointIndex += consumedCodepoints;
                 }
@@ -676,8 +931,57 @@ namespace Svg.Skia
                 var visualItems = request.Direction == SvgTextDirection.RightToLeft
                     ? logicalItems.AsEnumerable().Reverse().ToList()
                     : logicalItems;
-                layout = CreateLayout(visualItems, request.TextSize, paint, assetLoader, includeGlyphTexts);
+                layout = CreateLayout(visualItems, request, paint, assetLoader, includeGlyphTexts);
                 return true;
+            }
+
+            public SvgFontLayout CreateAltGlyphLayout(
+                SvgFontRequest request,
+                IReadOnlyList<SvgGlyphDefinition> glyphs,
+                SKPaint paint,
+                ISvgAssetLoader? assetLoader,
+                bool includeGlyphTexts)
+            {
+                var logicalItems = new List<SvgResolvedItem>(glyphs.Count);
+                IReadOnlyList<SvgGlyphDefinition> orderedGlyphs = request.Direction == SvgTextDirection.RightToLeft
+                    ? glyphs.Reverse().ToArray()
+                    : glyphs;
+                var logicalText = request.Text == EmptyAltGlyphLookupText
+                    ? string.Empty
+                    : request.Text;
+                var baselineText = string.IsNullOrEmpty(logicalText)
+                    ? CreateAltGlyphBaselineText(orderedGlyphs)
+                    : logicalText;
+                for (var i = 0; i < orderedGlyphs.Count; i++)
+                {
+                    logicalItems.Add(new SvgResolvedGlyphItem(
+                        orderedGlyphs[i],
+                        i == 0 ? logicalText : string.Empty,
+                        baselineText));
+                }
+
+                return CreateLayout(logicalItems, request, paint, assetLoader, includeGlyphTexts);
+            }
+
+            private static string CreateAltGlyphBaselineText(IReadOnlyList<SvgGlyphDefinition> glyphs)
+            {
+                for (var i = 0; i < glyphs.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(glyphs[i].Unicode))
+                    {
+                        return glyphs[i].Unicode!;
+                    }
+                }
+
+                for (var i = 0; i < glyphs.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(glyphs[i].GlyphName))
+                    {
+                        return glyphs[i].GlyphName!;
+                    }
+                }
+
+                return string.Empty;
             }
 
             private static bool HasUsableFallbackText(string text, SKPaint paint, ISvgAssetLoader? assetLoader)
@@ -716,15 +1020,15 @@ namespace Svg.Skia
 
             private SvgFontLayout CreateLayout(
                 IReadOnlyList<SvgResolvedItem> resolvedItems,
-                float textSize,
+                SvgFontRequest request,
                 SKPaint paint,
                 ISvgAssetLoader? assetLoader,
                 bool includeGlyphTexts)
             {
+                var textSize = request.TextSize;
                 var scale = textSize / UnitsPerEm;
                 var ascent = Ascent * scale;
                 var descent = Descent * scale;
-                var alphabetic = Alphabetic * scale;
                 var placements = new List<SvgGlyphPlacementResult>(resolvedItems.Count);
                 List<string>? placementTexts = includeGlyphTexts ? new List<string>(resolvedItems.Count) : null;
                 var bounds = SKRect.Empty;
@@ -758,6 +1062,7 @@ namespace Svg.Skia
                         var glyphOriginX = currentX;
                         advance = svgGlyphItem.Definition.HorizAdvX * scale;
                         var pathX = glyphOriginX - (svgGlyphItem.Definition.HorizOriginX * scale);
+                        var transY = GetGlyphTransY(svgGlyphItem.BaselineText, request.StyleSource, textSize);
                         if (svgGlyphItem.Definition.PathTemplate is { IsEmpty: false } pathTemplate)
                         {
                             relativePath = pathTemplate.DeepClone();
@@ -768,7 +1073,7 @@ namespace Svg.Skia
                                 TransX = pathX,
                                 SkewY = 0f,
                                 ScaleY = -scale,
-                                TransY = alphabetic,
+                                TransY = transY,
                                 Persp0 = 0f,
                                 Persp1 = 0f,
                                 Persp2 = 1f
@@ -778,7 +1083,7 @@ namespace Svg.Skia
 
                         glyphBounds = relativePath is { IsEmpty: false }
                             ? relativePath.Bounds
-                            : new SKRect(glyphOriginX, alphabetic - ascent, glyphOriginX + advance, alphabetic + descent);
+                            : new SKRect(glyphOriginX, transY - ascent, glyphOriginX + advance, transY + descent);
                         previousSvgGlyph = svgGlyphItem;
                     }
                     else
@@ -863,6 +1168,285 @@ namespace Svg.Skia
                 }
 
                 return 0f;
+            }
+
+            private float GetGlyphTransY(string text, SvgTextBase styleSource, float textSize)
+            {
+                var scriptBaseline = ResolveScriptBaseline(text);
+                var scriptCoordinate = GetBaselineCoordinate(MetricsFace, scriptBaseline);
+                var dominantCoordinate = GetBaselineCoordinate(MetricsFace, ResolveDominantBaseline(styleSource, text));
+                var tableTextSize = ResolveBaselineTableTextSize(styleSource, textSize);
+                var glyphScale = textSize / UnitsPerEm;
+                var tableScale = tableTextSize / UnitsPerEm;
+                return (scriptCoordinate * glyphScale) + ((dominantCoordinate - scriptCoordinate) * tableScale);
+            }
+
+            private static float ResolveBaselineTableTextSize(SvgTextBase styleSource, float fallbackTextSize)
+            {
+                if (CreatesOwnBaselineTable(styleSource))
+                {
+                    return fallbackTextSize;
+                }
+
+                for (SvgElement? current = styleSource.Parent; current is not null; current = current.Parent)
+                {
+                    if (current is not SvgTextBase parentText)
+                    {
+                        continue;
+                    }
+
+                    return ResolveTextSize(parentText, fallbackTextSize);
+                }
+
+                return fallbackTextSize;
+            }
+
+            private static bool CreatesOwnBaselineTable(SvgTextBase styleSource)
+            {
+                if (!TryReadSpecifiedDominantBaseline(styleSource, out var value))
+                {
+                    return styleSource.Parent is not SvgTextBase;
+                }
+
+                value = value.Trim();
+                return !value.Equals("inherit", StringComparison.OrdinalIgnoreCase) &&
+                       !value.Equals("no-change", StringComparison.OrdinalIgnoreCase);
+            }
+
+            private static float ResolveTextSize(SvgTextBase svgTextBase, float fallbackTextSize)
+            {
+                if (!svgTextBase.FontSize.IsEmpty &&
+                    !svgTextBase.FontSize.IsNone &&
+                    svgTextBase.FontSize.Value > 0f &&
+                    svgTextBase.FontSize.Type is SvgUnitType.User or SvgUnitType.Pixel)
+                {
+                    return svgTextBase.FontSize.Value;
+                }
+
+                var fontSize = svgTextBase.FontSize.ToDeviceValue(UnitRenderingType.Vertical, svgTextBase, SKRect.Empty);
+                if (fontSize > 0f)
+                {
+                    return fontSize;
+                }
+
+                var paint = new SKPaint();
+                PaintingService.SetPaintText(svgTextBase, SKRect.Empty, paint);
+                return paint.TextSize > 0f ? paint.TextSize : fallbackTextSize;
+            }
+
+            private static SvgDominantBaseline ResolveDominantBaseline(SvgTextBase styleSource, string text)
+            {
+                if (TryReadAlignmentBaseline(styleSource, out var alignmentBaseline))
+                {
+                    return alignmentBaseline;
+                }
+
+                if (TryReadSpecifiedDominantBaseline(styleSource, out var value))
+                {
+                    return value.Trim().ToLowerInvariant() switch
+                    {
+                        "ideographic" => SvgDominantBaseline.Ideographic,
+                        "alphabetic" => SvgDominantBaseline.Alphabetic,
+                        "hanging" => SvgDominantBaseline.Hanging,
+                        "mathematical" => SvgDominantBaseline.Mathematical,
+                        "central" => SvgDominantBaseline.Central,
+                        "middle" => SvgDominantBaseline.Middle,
+                        "text-after-edge" or "after-edge" or "text-bottom" => SvgDominantBaseline.TextAfterEdge,
+                        "text-before-edge" or "before-edge" or "text-top" => SvgDominantBaseline.TextBeforeEdge,
+                        "use-script" => ResolveScriptBaseline(text),
+                        "inherit" or "no-change" => ResolveInheritedDominantBaseline(styleSource),
+                        _ => GetDefaultDominantBaseline(styleSource)
+                    };
+                }
+
+                return styleSource.Parent is SvgTextBase
+                    ? ResolveInheritedDominantBaseline(styleSource)
+                    : GetDefaultDominantBaseline(styleSource);
+            }
+
+            private static bool TryReadAlignmentBaseline(SvgTextBase styleSource, out SvgDominantBaseline baseline)
+            {
+                baseline = SvgDominantBaseline.Auto;
+                if ((!styleSource.ComputedStyle.TryGetPropertyValue("alignment-baseline", out var value) ||
+                     string.IsNullOrWhiteSpace(value)) &&
+                    (!styleSource.TryGetAttribute("alignment-baseline", out value) ||
+                     string.IsNullOrWhiteSpace(value)))
+                {
+                    return false;
+                }
+
+                baseline = value.Trim().ToLowerInvariant() switch
+                {
+                    "baseline" or "alphabetic" => SvgDominantBaseline.Alphabetic,
+                    "middle" or "center" => SvgDominantBaseline.Middle,
+                    "central" => SvgDominantBaseline.Central,
+                    "mathematical" => SvgDominantBaseline.Mathematical,
+                    "ideographic" => SvgDominantBaseline.Ideographic,
+                    "hanging" => SvgDominantBaseline.Hanging,
+                    "text-before-edge" or "before-edge" or "text-top" => SvgDominantBaseline.TextBeforeEdge,
+                    "text-after-edge" or "after-edge" or "text-bottom" => SvgDominantBaseline.TextAfterEdge,
+                    "inherit" => ResolveInheritedDominantBaseline(styleSource),
+                    _ => SvgDominantBaseline.Auto
+                };
+                return baseline != SvgDominantBaseline.Auto;
+            }
+
+            private static bool TryReadSpecifiedDominantBaseline(SvgTextBase styleSource, out string value)
+            {
+                if (styleSource.ComputedStyle.TryGetPropertyValue("dominant-baseline", out value) &&
+                    !string.IsNullOrWhiteSpace(value))
+                {
+                    return true;
+                }
+
+                if (styleSource.TryGetAttribute("dominant-baseline", out value) &&
+                    !string.IsNullOrWhiteSpace(value))
+                {
+                    return true;
+                }
+
+                value = string.Empty;
+                return false;
+            }
+
+            private static SvgDominantBaseline ResolveInheritedDominantBaseline(SvgTextBase styleSource)
+            {
+                for (SvgElement? current = styleSource.Parent; current is not null; current = current.Parent)
+                {
+                    if (current is not SvgTextBase parentText)
+                    {
+                        continue;
+                    }
+
+                    return ResolveDominantBaseline(parentText, string.Empty);
+                }
+
+                return GetDefaultDominantBaseline(styleSource);
+            }
+
+            private static SvgDominantBaseline GetDefaultDominantBaseline(SvgTextBase styleSource)
+                => IsVerticalWritingMode(styleSource) ? SvgDominantBaseline.Central : SvgDominantBaseline.Alphabetic;
+
+            private static bool IsVerticalWritingMode(SvgTextBase styleSource)
+            {
+                if ((!styleSource.ComputedStyle.TryGetPropertyValue("writing-mode", out var value) ||
+                     string.IsNullOrWhiteSpace(value)) &&
+                    (!styleSource.TryGetAttribute("writing-mode", out value) ||
+                     string.IsNullOrWhiteSpace(value)))
+                {
+                    return false;
+                }
+
+                return value.IndexOf("vertical", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                       value.IndexOf("tb", StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+
+            private static SvgDominantBaseline ResolveScriptBaseline(string text)
+            {
+                var charIndex = 0;
+                while (TryReadNextCodepoint(text, ref charIndex, out var scalar))
+                {
+                    if (IsCjkBaselineScript(scalar))
+                    {
+                        return SvgDominantBaseline.Ideographic;
+                    }
+
+                    if (IsMathematicalBaselineScript(scalar))
+                    {
+                        return SvgDominantBaseline.Mathematical;
+                    }
+
+                    if (IsHangingBaselineScript(scalar))
+                    {
+                        return SvgDominantBaseline.Hanging;
+                    }
+                }
+
+                return SvgDominantBaseline.Alphabetic;
+            }
+
+            private static bool TryReadNextCodepoint(string text, ref int charIndex, out int scalar)
+            {
+                while (charIndex < text.Length)
+                {
+                    var current = text[charIndex++];
+                    if (char.IsWhiteSpace(current))
+                    {
+                        continue;
+                    }
+
+                    if (char.IsHighSurrogate(current) &&
+                        charIndex < text.Length &&
+                        char.IsLowSurrogate(text[charIndex]))
+                    {
+                        scalar = char.ConvertToUtf32(current, text[charIndex]);
+                        charIndex++;
+                        return true;
+                    }
+
+                    scalar = current;
+                    return true;
+                }
+
+                scalar = 0;
+                return false;
+            }
+
+            private static bool IsCjkBaselineScript(int scalar)
+            {
+                return scalar is >= 0x2E80 and <= 0xA4CF or
+                       >= 0xAC00 and <= 0xD7AF or
+                       >= 0xF900 and <= 0xFAFF or
+                       >= 0xFE30 and <= 0xFE4F or
+                       >= 0x20000 and <= 0x2FA1F;
+            }
+
+            private static bool IsMathematicalBaselineScript(int scalar)
+            {
+                return scalar is >= 0x2200 and <= 0x22FF or
+                       >= 0x27C0 and <= 0x27EF or
+                       >= 0x2980 and <= 0x2AFF or
+                       >= 0x1D400 and <= 0x1D7FF;
+            }
+
+            private static bool IsHangingBaselineScript(int scalar)
+            {
+                return scalar is >= 0x0900 and <= 0x0D7F or
+                       >= 0x0F00 and <= 0x0FFF or
+                       >= 0x1000 and <= 0x109F;
+            }
+
+            private static bool HasBaselineCoordinate(float value)
+            {
+                return value != float.MinValue &&
+                       !float.IsNaN(value) &&
+                       !float.IsInfinity(value);
+            }
+
+            private static float ResolveBaselineCoordinate(float value, float fallback)
+            {
+                return HasBaselineCoordinate(value) ? value : fallback;
+            }
+
+            private static float GetBaselineCoordinate(SvgFontFace fontFace, SvgDominantBaseline baseline)
+            {
+                var ascent = ResolveBaselineCoordinate(fontFace.Ascent, 0f);
+                var descent = ResolveBaselineCoordinate(fontFace.Descent, 0f);
+                var alphabetic = ResolveBaselineCoordinate(fontFace.Alphabetic, 0f);
+                var central = (ascent - descent) * 0.5f;
+
+                return baseline switch
+                {
+                    SvgDominantBaseline.Ideographic => ResolveBaselineCoordinate(fontFace.Ideographic, -Math.Abs(descent)),
+                    SvgDominantBaseline.Hanging => ResolveBaselineCoordinate(fontFace.Hanging, ascent * 0.8f),
+                    SvgDominantBaseline.Mathematical => ResolveBaselineCoordinate(fontFace.Mathematical, central),
+                    SvgDominantBaseline.Middle when HasBaselineCoordinate(fontFace.XHeight) => fontFace.XHeight * 0.5f,
+                    SvgDominantBaseline.Middle when HasBaselineCoordinate(fontFace.CapHeight) => fontFace.CapHeight * 0.5f,
+                    SvgDominantBaseline.Middle or SvgDominantBaseline.Central => central,
+                    SvgDominantBaseline.TextBeforeEdge or SvgDominantBaseline.TextTop => ascent,
+                    SvgDominantBaseline.TextAfterEdge or SvgDominantBaseline.TextBottom => -Math.Abs(descent),
+                    _ => alphabetic
+                };
             }
 
             private bool TryResolveGlyph(
@@ -1098,9 +1682,10 @@ namespace Svg.Skia
         }
 
         private abstract record SvgResolvedItem(string Text);
-        private sealed record SvgResolvedGlyphItem(SvgGlyphDefinition Definition, string Text) : SvgResolvedItem(Text);
+        private sealed record SvgResolvedGlyphItem(SvgGlyphDefinition Definition, string Text, string BaselineText) : SvgResolvedItem(Text);
         private sealed record SvgFallbackTextItem(string Text) : SvgResolvedItem(Text);
         private sealed record SvgResolvedGlyph(SvgGlyphDefinition Definition, string Text);
+        private readonly record struct SvgGlyphEntry(SvgFontEntry Entry, SvgGlyphDefinition Glyph);
 
         private static void AppendPathCommands(SKPath targetPath, SKPath? sourcePath)
         {
@@ -1134,7 +1719,8 @@ namespace Svg.Skia
                 float horizOriginX,
                 string? language,
                 SvgArabicForm arabicForm,
-                SKPath? pathTemplate)
+                SKPath? pathTemplate,
+                SvgGlyph? sourceGlyph)
             {
                 Unicode = unicode ?? string.Empty;
                 GlyphName = glyphName;
@@ -1143,6 +1729,7 @@ namespace Svg.Skia
                 Language = language;
                 ArabicForm = arabicForm;
                 PathTemplate = pathTemplate;
+                SourceGlyph = sourceGlyph;
                 CodepointCount = CountCodepoints(Unicode);
             }
 
@@ -1153,7 +1740,15 @@ namespace Svg.Skia
             public string? Language { get; }
             public SvgArabicForm ArabicForm { get; }
             public SKPath? PathTemplate { get; }
+            public SvgGlyph? SourceGlyph { get; }
             public int CodepointCount { get; }
+
+            public bool MatchesGlyphName(string glyphName)
+            {
+                return !string.IsNullOrWhiteSpace(glyphName) &&
+                       (string.Equals(GlyphName, glyphName, StringComparison.Ordinal) ||
+                        string.Equals(SourceGlyph?.ID, glyphName, StringComparison.Ordinal));
+            }
 
             public static SvgGlyphDefinition Create(SvgGlyph glyph, float defaultHorizOriginX)
             {
@@ -1170,7 +1765,8 @@ namespace Svg.Skia
                     glyphOriginX,
                     language,
                     arabicForm,
-                    glyph.PathData?.ToPath(glyph.FillRule));
+                    glyph.PathData?.ToPath(glyph.FillRule),
+                    glyph);
             }
 
             private static SvgArabicForm ParseArabicForm(string? value)
@@ -1270,13 +1866,13 @@ namespace Svg.Skia
                     return 400;
                 }
 
-                value = value.Trim();
-                if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var numericWeight))
+                var trimmedValue = value!.Trim();
+                if (int.TryParse(trimmedValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var numericWeight))
                 {
                     return numericWeight;
                 }
 
-                return value.Equals("bold", StringComparison.OrdinalIgnoreCase) ? 700 : 400;
+                return trimmedValue.Equals("bold", StringComparison.OrdinalIgnoreCase) ? 700 : 400;
             }
         }
 
@@ -1362,7 +1958,7 @@ namespace Svg.Skia
                     return false;
                 }
 
-                var tokens = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                var tokens = value!.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(token => SvgUnicodeRangeToken.TryCreate(token.Trim(), out var parsed) ? parsed : null)
                     .Where(token => token is not null)
                     .Cast<SvgUnicodeRangeToken>()
@@ -1519,7 +2115,7 @@ namespace Svg.Skia
                 }
 
                 var glyphNames = new HashSet<string>(
-                    value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    value!.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                         .Select(token => token.Trim())
                         .Where(token => !string.IsNullOrWhiteSpace(token)),
                     StringComparer.Ordinal);
@@ -1578,7 +2174,7 @@ namespace Svg.Skia
 
                 var ranges = new List<SvgUnicodeRangeToken>();
                 var literals = new HashSet<string>(StringComparer.Ordinal);
-                foreach (var token in value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                foreach (var token in value!.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
                     var trimmed = token.Trim();
                     if (trimmed.StartsWith("U+", StringComparison.OrdinalIgnoreCase))

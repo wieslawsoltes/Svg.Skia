@@ -12,7 +12,8 @@ const execFileAsync = promisify(execFile);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
-const svgDir = path.join(repoRoot, 'externals', 'resvg', 'tests', 'svg');
+const resvgTestsDir = path.join(repoRoot, 'externals', 'resvg', 'crates', 'resvg', 'tests');
+const svgDir = path.join(resvgTestsDir, 'tests');
 const outputDir = path.join(repoRoot, 'tests', 'Svg.Skia.UnitTests', 'ChromeReference', 'resvg');
 const wrapperDir = path.join(repoRoot, 'output', 'playwright', 'resvg-capture');
 const scale = 1.5;
@@ -28,19 +29,19 @@ const mimeTypes = new Map([
 ]);
 
 const fontCss = `
-@font-face { font-family: "Noto Sans"; src: url("/externals/resvg/tests/fonts/NotoSans-Regular.ttf") format("truetype"); }
-@font-face { font-family: "Noto Sans"; font-weight: 300; src: url("/externals/resvg/tests/fonts/NotoSans-Light.ttf") format("truetype"); }
-@font-face { font-family: "Noto Sans"; font-weight: 700; src: url("/externals/resvg/tests/fonts/NotoSans-Bold.ttf") format("truetype"); }
-@font-face { font-family: "Noto Sans"; font-weight: 900; src: url("/externals/resvg/tests/fonts/NotoSans-Black.ttf") format("truetype"); }
-@font-face { font-family: "Noto Sans"; font-style: italic; src: url("/externals/resvg/tests/fonts/NotoSans-Italic.ttf") format("truetype"); }
-@font-face { font-family: "Noto Serif"; src: url("/externals/resvg/tests/fonts/NotoSerif-Regular.ttf") format("truetype"); }
-@font-face { font-family: "Noto Mono"; src: url("/externals/resvg/tests/fonts/NotoMono-Regular.ttf") format("truetype"); }
-@font-face { font-family: "Amiri"; src: url("/externals/resvg/tests/fonts/Amiri-Regular.ttf") format("truetype"); }
-@font-face { font-family: "M PLUS 1p"; src: url("/externals/resvg/tests/fonts/MPLUS1p-Regular.ttf") format("truetype"); }
-@font-face { font-family: "Noto Emoji"; src: url("/externals/resvg/tests/fonts/NotoEmoji-Regular.ttf") format("truetype"); }
-@font-face { font-family: "Sedgwick Ave Display"; src: url("/externals/resvg/tests/fonts/SedgwickAveDisplay-Regular.ttf") format("truetype"); }
-@font-face { font-family: "Source Sans Pro"; src: url("/externals/resvg/tests/fonts/SourceSansPro-Regular.ttf") format("truetype"); }
-@font-face { font-family: "Yellowtail"; src: url("/externals/resvg/tests/fonts/Yellowtail-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Noto Sans"; src: url("/externals/resvg/crates/resvg/tests/fonts/NotoSans-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Noto Sans"; font-weight: 300; src: url("/externals/resvg/crates/resvg/tests/fonts/NotoSans-Light.ttf") format("truetype"); }
+@font-face { font-family: "Noto Sans"; font-weight: 700; src: url("/externals/resvg/crates/resvg/tests/fonts/NotoSans-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Noto Sans"; font-weight: 900; src: url("/externals/resvg/crates/resvg/tests/fonts/NotoSans-Black.ttf") format("truetype"); }
+@font-face { font-family: "Noto Sans"; font-style: italic; src: url("/externals/resvg/crates/resvg/tests/fonts/NotoSans-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Noto Serif"; src: url("/externals/resvg/crates/resvg/tests/fonts/NotoSerif-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Noto Mono"; src: url("/externals/resvg/crates/resvg/tests/fonts/NotoMono-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Amiri"; src: url("/externals/resvg/crates/resvg/tests/fonts/Amiri-Regular.ttf") format("truetype"); }
+@font-face { font-family: "M PLUS 1p"; src: url("/externals/resvg/crates/resvg/tests/fonts/MPLUS1p-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Noto Color Emoji"; src: url("/externals/resvg/crates/resvg/tests/fonts/NotoColorEmojiCOLR.subset.ttf") format("truetype"); }
+@font-face { font-family: "Sedgwick Ave Display"; src: url("/externals/resvg/crates/resvg/tests/fonts/SedgwickAveDisplay-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Source Sans Pro"; src: url("/externals/resvg/crates/resvg/tests/fonts/SourceSansPro-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Yellowtail"; src: url("/externals/resvg/crates/resvg/tests/fonts/Yellowtail-Regular.ttf") format("truetype"); }
 `;
 
 function getContentType(filePath)
@@ -150,13 +151,13 @@ function injectFonts(svgMarkup)
 
 async function writeWrapper(name)
 {
-    const svgPath = path.join(svgDir, `${name}.svg`);
+    const svgPath = getSvgPath(name);
     const rawSvg = await fs.readFile(svgPath, 'utf8');
     const svgMarkup = injectFonts(rawSvg);
     const viewport = getViewport(svgMarkup);
     const width = Math.max(1, Math.ceil(viewport.width * scale));
     const height = Math.max(1, Math.ceil(viewport.height * scale));
-    const wrapperPath = path.join(wrapperDir, `${name}.html`);
+    const wrapperPath = path.join(wrapperDir, `${getSafeName(name)}.html`);
     const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -196,14 +197,14 @@ async function writeWrapper(name)
 
 async function captureOverride(baseUrl, name)
 {
-    const svgPath = path.join(svgDir, `${name}.svg`);
+    const svgPath = getSvgPath(name);
     const outputPath = path.join(outputDir, `${name}.png`);
     await fs.access(svgPath);
 
     const { wrapperPath, width, height } = await writeWrapper(name);
     const wrapperUrl = `${baseUrl}/${path.relative(repoRoot, wrapperPath).split(path.sep).map(encodeURIComponent).join('/')}`;
 
-    await fs.mkdir(outputDir, { recursive: true });
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
     await execFileAsync(
         'npx',
         [
@@ -223,6 +224,18 @@ async function captureOverride(baseUrl, name)
         { cwd: repoRoot });
 
     return outputPath;
+}
+
+function getSvgPath(name)
+{
+    return name.startsWith('extra/')
+        ? path.join(resvgTestsDir, `${name}.svg`)
+        : path.join(svgDir, `${name}.svg`);
+}
+
+function getSafeName(name)
+{
+    return name.replace(/[\\/:%=]/g, '_');
 }
 
 async function main()

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using ShimSkiaSharp;
 using Svg.DataTypes;
@@ -9,6 +10,9 @@ namespace Svg.Model.Services;
 
 internal static class PaintingService
 {
+    private static readonly ConcurrentDictionary<string, SvgUnit> s_fontSizeUnitCache = new(StringComparer.Ordinal);
+    private const int FontSizeUnitCacheLimit = 512;
+
     internal static float AdjustSvgOpacity(float opacity)
     {
         return Math.Min(Math.Max(opacity, 0), 1);
@@ -866,10 +870,11 @@ internal static class PaintingService
     {
         for (SvgElement? current = svgText; current is not null; current = current.Parent)
         {
-            if (current.TryGetAttribute("direction", out var direction) &&
-                !string.IsNullOrWhiteSpace(direction))
+            if (current.TryGetOwnCascadedStyleValue("direction", out var direction) &&
+                !string.IsNullOrWhiteSpace(direction) &&
+                TryResolveDeclaredDirection(direction, out var isRightToLeft))
             {
-                return direction.Equals("rtl", StringComparison.OrdinalIgnoreCase);
+                return isRightToLeft;
             }
 
             if (current is SvgTextSpan &&
@@ -881,8 +886,7 @@ internal static class PaintingService
             if (current.TryGetAttribute("writing-mode", out var writingMode) &&
                 !string.IsNullOrWhiteSpace(writingMode))
             {
-                var normalized = writingMode.Trim().ToLowerInvariant();
-                if (normalized is "rl" or "rl-tb")
+                if (IsRightToLeftWritingModeValue(writingMode))
                 {
                     return true;
                 }
@@ -908,10 +912,46 @@ internal static class PaintingService
                 continue;
             }
 
-            return writingMode.Trim().ToLowerInvariant() is "tb" or "tb-rl" or "vertical-rl" or "vertical-lr";
+            return IsVerticalWritingModeValue(writingMode);
         }
 
         return false;
+    }
+
+    private static bool TryResolveDeclaredDirection(string direction, out bool isRightToLeft)
+    {
+        var normalized = direction.AsSpan().Trim();
+        if (normalized.Equals("rtl".AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            isRightToLeft = true;
+            return true;
+        }
+
+        if (normalized.Equals("ltr".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("initial".AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            isRightToLeft = false;
+            return true;
+        }
+
+        isRightToLeft = false;
+        return false;
+    }
+
+    private static bool IsRightToLeftWritingModeValue(string writingMode)
+    {
+        var normalized = writingMode.AsSpan().Trim();
+        return normalized.Equals("rl".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+               normalized.Equals("rl-tb".AsSpan(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsVerticalWritingModeValue(string writingMode)
+    {
+        var normalized = writingMode.AsSpan().Trim();
+        return normalized.Equals("tb".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+               normalized.Equals("tb-rl".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+               normalized.Equals("vertical-rl".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+               normalized.Equals("vertical-lr".AsSpan(), StringComparison.OrdinalIgnoreCase);
     }
 
     internal static SKTextAlign ToTextAlign(SvgTextAnchor textAnchor, bool isRightToLeft)
@@ -948,6 +988,18 @@ internal static class PaintingService
         skPaint.LcdRenderText = true;
         skPaint.SubpixelText = true;
         skPaint.TextEncoding = SKTextEncoding.Utf16;
+        if (HasInheritedTextOpenTypePaintProperty(svgText))
+        {
+            skPaint.FontFeatureSettings = ResolveInheritedTextPaintProperty(svgText, "font-feature-settings", "normal");
+            skPaint.FontKerning = ResolveInheritedTextPaintProperty(svgText, "font-kerning", "auto");
+            skPaint.FontVariantLigatures = ResolveInheritedTextPaintProperty(svgText, "font-variant-ligatures", "normal");
+        }
+        else
+        {
+            skPaint.FontFeatureSettings = null;
+            skPaint.FontKerning = null;
+            skPaint.FontVariantLigatures = null;
+        }
 
         var isVertical = IsVerticalWritingMode(svgText);
         skPaint.TextAlign = ToTextAlign(svgText.TextAnchor, isVertical ? false : IsRightToLeft(svgText));
@@ -967,22 +1019,149 @@ internal static class PaintingService
             // TODO: Implement SvgTextDecoration.LineThrough
         }
 
-        float fontSize;
-        var fontSizeUnit = svgText.FontSize;
-        if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
-        {
-            // TODO: Do not use implicit float conversion from SvgUnit.ToDeviceValue
-            // fontSize = new SvgUnit(SvgUnitType.Em, 1.0f);
-            // NOTE: Use default SkPaint Font_Size
-            fontSize = 12f;
-        }
-        else
-        {
-            fontSize = fontSizeUnit.ToDeviceValue(UnitRenderingType.Vertical, svgText, skBounds);
-        }
+        var fontSize = ResolveFontSize(svgText, skBounds);
 
         skPaint.TextSize = fontSize;
 
         SetTypeface(svgText, skPaint);
+    }
+
+    private static bool HasInheritedTextOpenTypePaintProperty(SvgElement element)
+    {
+        for (SvgElement? current = element; current is not null; current = current.Parent)
+        {
+            if ((current.GetOwnCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags.TextOpenType) &
+                 SvgCascadedStyleFeatureFlags.TextOpenType) != 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string? ResolveInheritedTextPaintProperty(
+        SvgElement element,
+        string propertyName,
+        string defaultValue)
+    {
+        for (SvgElement? current = element; current is not null; current = current.Parent)
+        {
+            if (!current.TryGetOwnCascadedStyleValue(propertyName, out var value) ||
+                string.IsNullOrWhiteSpace(value))
+            {
+                continue;
+            }
+
+            var trimmed = value.AsSpan().Trim();
+            if (trimmed.Equals("inherit".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+                trimmed.Equals("unset".AsSpan(), StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (trimmed.Equals("initial".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+                trimmed.Equals(defaultValue.AsSpan(), StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return value;
+        }
+
+        return null;
+    }
+
+    private static float ResolveFontSize(SvgElement element, SKRect skBounds)
+        => ResolveFontSize(element, skBounds, depth: 0);
+
+    private static float ResolveFontSize(SvgElement element, SKRect skBounds, int depth)
+    {
+        const int maxFontSizeInheritanceDepth = 256;
+        if (depth > maxFontSizeInheritanceDepth)
+        {
+            return 12f;
+        }
+
+        if (element is SvgTextBase textBase)
+        {
+            var inheritedFontSize = textBase.FontSize;
+            if (inheritedFontSize != SvgUnit.None &&
+                inheritedFontSize != SvgUnit.Empty &&
+                inheritedFontSize.Type is not SvgUnitType.Percentage and not SvgUnitType.Em and not SvgUnitType.Ex)
+            {
+                return inheritedFontSize.ToDeviceValue(UnitRenderingType.Vertical, element, skBounds);
+            }
+        }
+
+        if (!TryResolveSpecifiedFontSizeUnit(element, out var fontSizeUnit))
+        {
+            return ResolveParentFontSize(element, skBounds, depth);
+        }
+
+        if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)
+        {
+            return ResolveParentFontSize(element, skBounds, depth);
+        }
+
+        return fontSizeUnit.Type switch
+        {
+            SvgUnitType.Percentage => ResolveParentFontSize(element, skBounds, depth) * fontSizeUnit.Value / 100f,
+            SvgUnitType.Em => ResolveParentFontSize(element, skBounds, depth) * fontSizeUnit.Value,
+            SvgUnitType.Ex => ResolveParentFontSize(element, skBounds, depth) * 0.5f * fontSizeUnit.Value,
+            _ => fontSizeUnit.ToDeviceValue(UnitRenderingType.Vertical, element, skBounds)
+        };
+    }
+
+    private static bool TryResolveSpecifiedFontSizeUnit(SvgElement element, out SvgUnit fontSizeUnit)
+    {
+        if (element.ComputedStyle.TryGetPropertyValue("font-size", out var rawFontSize) &&
+            TryParseFontSizeUnit(rawFontSize, out fontSizeUnit))
+        {
+            return true;
+        }
+
+        fontSizeUnit = SvgUnit.Empty;
+        return false;
+    }
+
+    private static bool TryParseFontSizeUnit(string? value, out SvgUnit fontSizeUnit)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            var cacheKey = value!;
+            if (s_fontSizeUnitCache.TryGetValue(cacheKey, out fontSizeUnit))
+            {
+                return true;
+            }
+
+            try
+            {
+                fontSizeUnit = SvgUnitConverter.Parse(cacheKey.AsSpan().Trim());
+                s_fontSizeUnitCache.TryAdd(cacheKey, fontSizeUnit);
+                if (s_fontSizeUnitCache.Count > FontSizeUnitCacheLimit)
+                {
+                    s_fontSizeUnitCache.Clear();
+                }
+
+                return true;
+            }
+            catch (FormatException)
+            {
+            }
+        }
+
+        fontSizeUnit = SvgUnit.Empty;
+        return false;
+    }
+
+    private static float ResolveParentFontSize(SvgElement element, SKRect skBounds, int depth)
+    {
+        if (element.Parent is { } parent)
+        {
+            return ResolveFontSize(parent, skBounds, depth + 1);
+        }
+
+        return 12f;
     }
 }

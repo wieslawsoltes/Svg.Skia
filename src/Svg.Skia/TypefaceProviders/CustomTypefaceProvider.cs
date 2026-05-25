@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -14,28 +15,30 @@ public sealed class CustomTypefaceProvider : ITypefaceProvider, IDisposable
 
     public string FamilyName { get; set; }
 
+    public IList<string> FamilyAliases { get; } = new List<string>();
+
     public CustomTypefaceProvider(Stream stream, int index = 0)
     {
         Typeface = SkiaSharp.SKTypeface.FromStream(stream, index);
-        FamilyName = Typeface.FamilyName;
+        FamilyName = Typeface?.FamilyName ?? string.Empty;
     }
 
     public CustomTypefaceProvider(SkiaSharp.SKStreamAsset stream, int index = 0)
     {
         Typeface = SkiaSharp.SKTypeface.FromStream(stream, index);
-        FamilyName = Typeface.FamilyName;
+        FamilyName = Typeface?.FamilyName ?? string.Empty;
     }
 
     public CustomTypefaceProvider(string path, int index = 0)
     {
         Typeface = SkiaSharp.SKTypeface.FromFile(path, index);
-        FamilyName = Typeface.FamilyName;
+        FamilyName = Typeface?.FamilyName ?? string.Empty;
     }
 
     public CustomTypefaceProvider(SkiaSharp.SKData data, int index = 0)
     {
         Typeface = SkiaSharp.SKTypeface.FromData(data, index);
-        FamilyName = Typeface.FamilyName;
+        FamilyName = Typeface?.FamilyName ?? string.Empty;
     }
 
     public SkiaSharp.SKTypeface? FromFamilyName(string fontFamily, SkiaSharp.SKFontStyleWeight fontWeight, SkiaSharp.SKFontStyleWidth fontWidth, SkiaSharp.SKFontStyleSlant fontStyle)
@@ -50,7 +53,7 @@ public sealed class CustomTypefaceProvider : ITypefaceProvider, IDisposable
         {
             foreach (var fontFamilyName in fontFamilyNames)
             {
-                if (fontFamilyName == FamilyName
+                if ((fontFamilyName == FamilyName || FamilyAliases.Contains(fontFamilyName))
                     && Typeface.FontStyle.Width == (int)fontWidth
                     && Typeface.FontStyle.Weight == (int)fontWeight
                     && Typeface.FontStyle.Slant == fontStyle)

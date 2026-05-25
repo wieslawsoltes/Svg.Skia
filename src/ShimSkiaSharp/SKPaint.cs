@@ -20,6 +20,9 @@ public sealed class SKPaint : ICloneable, IDeepCloneable<SKPaint>
     private bool _lcdRenderText;
     private bool _subpixelText;
     private SKTextEncoding _textEncoding = SKTextEncoding.Utf8;
+    private string? _fontFeatureSettings;
+    private string? _fontKerning;
+    private string? _fontVariantLigatures;
     private SKColor? _color = new SKColor(0x00, 0x00, 0x00, 0xFF);
     private SKShader? _shader;
     private SKColorFilter? _colorFilter;
@@ -241,6 +244,51 @@ public sealed class SKPaint : ICloneable, IDeepCloneable<SKPaint>
         }
     }
 
+    public string? FontFeatureSettings
+    {
+        get => _fontFeatureSettings;
+        set
+        {
+            if (string.Equals(_fontFeatureSettings, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _fontFeatureSettings = value;
+            _version++;
+        }
+    }
+
+    public string? FontKerning
+    {
+        get => _fontKerning;
+        set
+        {
+            if (string.Equals(_fontKerning, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _fontKerning = value;
+            _version++;
+        }
+    }
+
+    public string? FontVariantLigatures
+    {
+        get => _fontVariantLigatures;
+        set
+        {
+            if (string.Equals(_fontVariantLigatures, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _fontVariantLigatures = value;
+            _version++;
+        }
+    }
+
     public SKColor? Color
     {
         get => _color;
@@ -376,6 +424,9 @@ public sealed class SKPaint : ICloneable, IDeepCloneable<SKPaint>
         clone.LcdRenderText = LcdRenderText;
         clone.SubpixelText = SubpixelText;
         clone.TextEncoding = TextEncoding;
+        clone.FontFeatureSettings = FontFeatureSettings;
+        clone.FontKerning = FontKerning;
+        clone.FontVariantLigatures = FontVariantLigatures;
         clone.Color = Color;
         clone.Shader = Shader?.DeepClone(context);
         clone.ColorFilter = ColorFilter?.DeepClone(context);

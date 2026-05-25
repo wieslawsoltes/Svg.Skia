@@ -36,6 +36,15 @@ public class SKSvgSettingsTests : SvgUnitTest
     }
 
     [Fact]
+    public void Defaults_EnableTextSelectionRendering()
+    {
+        var settings = new SKSvgSettings();
+
+        Assert.True(settings.EnableTextSelectionRendering);
+        Assert.Equal(new SKColor(0x00, 0x80, 0x00, 0xFF), settings.TextSelectionColor);
+    }
+
+    [Fact]
     public void CopyTo_CopiesRenderingAndJavaScriptSettings()
     {
         var provider = new DefaultTypefaceProvider();
@@ -49,6 +58,8 @@ public class SKSvgSettingsTests : SvgUnitTest
             EnableSvgFonts = false,
             EnableTextReferences = false,
             EnableJavaScript = true,
+            EnableTextSelectionRendering = false,
+            TextSelectionColor = new SKColor(1, 2, 3, 4),
             EnableExternalJavaScript = false,
             JavaScriptTimeoutMilliseconds = 123,
             JavaScriptMaxStatements = 456,
@@ -67,6 +78,8 @@ public class SKSvgSettingsTests : SvgUnitTest
         Assert.False(target.EnableSvgFonts);
         Assert.False(target.EnableTextReferences);
         Assert.True(target.EnableJavaScript);
+        Assert.False(target.EnableTextSelectionRendering);
+        Assert.Equal(new SKColor(1, 2, 3, 4), target.TextSelectionColor);
         Assert.False(target.EnableExternalJavaScript);
         Assert.Equal(123, target.JavaScriptTimeoutMilliseconds);
         Assert.Equal(456, target.JavaScriptMaxStatements);
@@ -104,7 +117,7 @@ public class SKSvgSettingsTests : SvgUnitTest
     [Theory]
     [InlineData("Amiri", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
     [InlineData("Mplus 1p", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
-    [InlineData("Noto Emoji", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
+    [InlineData("Noto Color Emoji COLR", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
     [InlineData("Noto Mono", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
     [InlineData("Noto Sans", SKFontStyleWeight.Black, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
     [InlineData("Noto Sans", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)]
@@ -360,6 +373,31 @@ public class SKSvgSettingsTests : SvgUnitTest
 
         Assert.True(shaped);
         Assert.NotEmpty(shapedRun.Glyphs);
+    }
+
+    [Fact]
+    public void TryShapeGlyphClusters_WithImplicitTypeface_ExposesClusterAdvances()
+    {
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        var source = new ShimPaint
+        {
+            Typeface = CreateImplicitTypeface()
+        };
+
+        var shaped = assetLoader.TryShapeGlyphClusters("ABC", source, rightToLeft: false, out var shapedRun, out var clusters);
+
+        Assert.True(shaped);
+        Assert.NotEmpty(shapedRun.Glyphs);
+        Assert.NotEmpty(clusters);
+        var clusterAdvance = 0f;
+        for (var i = 0; i < clusters.Length; i++)
+        {
+            Assert.True(clusters[i].CharLength > 0);
+            Assert.True(clusters[i].GlyphCount > 0);
+            clusterAdvance += clusters[i].Advance;
+        }
+
+        Assert.Equal(shapedRun.Advance, clusterAdvance, 1);
     }
 
     [Fact]

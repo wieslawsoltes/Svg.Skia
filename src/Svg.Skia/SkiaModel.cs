@@ -2101,7 +2101,17 @@ public partial class SkiaModel
                             : paint;
                         try
                         {
-                            if (!TryDrawShapedText(skCanvas, text, x, y, textAlign, font, textPaint))
+                            if (!TryDrawShapedText(
+                                    skCanvas,
+                                    text,
+                                    x,
+                                    y,
+                                    textAlign,
+                                    font,
+                                    textPaint,
+                                    drawTextCanvasCommand.Paint.FontFeatureSettings,
+                                    drawTextCanvasCommand.Paint.FontKerning,
+                                    drawTextCanvasCommand.Paint.FontVariantLigatures))
                             {
                                 skCanvas.DrawText(text, x, y, textPaint);
                             }

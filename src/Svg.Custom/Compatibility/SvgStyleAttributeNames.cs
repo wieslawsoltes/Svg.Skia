@@ -46,11 +46,14 @@ internal static class SvgStyleAttributeNames
             "flood-opacity" or
             "font" or
             "font-family" or
+            "font-feature-settings" or
+            "font-kerning" or
             "font-size" or
             "font-size-adjust" or
             "font-stretch" or
             "font-style" or
             "font-variant" or
+            "font-variant-ligatures" or
             "font-weight" or
             "glyph-orientation-horizontal" or
             "glyph-orientation-vertical" or
@@ -60,6 +63,8 @@ internal static class SvgStyleAttributeNames
             "isolation" or
             "kerning" or
             "letter-spacing" or
+            "line-break" or
+            "line-height" or
             "lighting-color" or
             "marker" or
             "marker-end" or
@@ -70,6 +75,7 @@ internal static class SvgStyleAttributeNames
             "mix-blend-mode" or
             "opacity" or
             "overflow" or
+            "overflow-wrap" or
             "paint-order" or
             "pointer-events" or
             "r" or
@@ -78,6 +84,9 @@ internal static class SvgStyleAttributeNames
             "shape-rendering" or
             "shape-inside" or
             "shape-subtract" or
+            "shape-padding" or
+            "shape-margin" or
+            "shape-image-threshold" or
             "stop-color" or
             "stop-opacity" or
             "stroke" or
@@ -93,13 +102,17 @@ internal static class SvgStyleAttributeNames
             "text-overflow" or
             "text-rendering" or
             "text-transform" or
+            "text-wrap-mode" or
             "transform-box" or
             "transform-origin" or
             "unicode-bidi" or
             "vector-effect" or
             "visibility" or
             "white-space" or
+            "white-space-collapse" or
+            "white-space-trim" or
             "width" or
+            "word-break" or
             "word-spacing" or
             "writing-mode" or
             "x" or
@@ -160,11 +173,14 @@ internal static class SvgStyleAttributeNames
                name.Equals("flood-opacity", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("font", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("font-family", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("font-feature-settings", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("font-kerning", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("font-size", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("font-size-adjust", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("font-stretch", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("font-style", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("font-variant", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("font-variant-ligatures", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("font-weight", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("glyph-orientation-horizontal", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("glyph-orientation-vertical", StringComparison.OrdinalIgnoreCase) ||
@@ -174,6 +190,8 @@ internal static class SvgStyleAttributeNames
                name.Equals("isolation", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("kerning", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("letter-spacing", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("line-break", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("line-height", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("lighting-color", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("marker", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("marker-end", StringComparison.OrdinalIgnoreCase) ||
@@ -184,6 +202,7 @@ internal static class SvgStyleAttributeNames
                name.Equals("mix-blend-mode", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("opacity", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("overflow", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("overflow-wrap", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("paint-order", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("pointer-events", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("r", StringComparison.OrdinalIgnoreCase) ||
@@ -192,6 +211,9 @@ internal static class SvgStyleAttributeNames
                name.Equals("shape-rendering", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("shape-inside", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("shape-subtract", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("shape-padding", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("shape-margin", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("shape-image-threshold", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("stop-color", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("stop-opacity", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("stroke", StringComparison.OrdinalIgnoreCase) ||
@@ -207,13 +229,17 @@ internal static class SvgStyleAttributeNames
                name.Equals("text-overflow", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("text-rendering", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("text-transform", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("text-wrap-mode", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("transform-box", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("transform-origin", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("unicode-bidi", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("vector-effect", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("visibility", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("white-space", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("white-space-collapse", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("white-space-trim", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("width", StringComparison.OrdinalIgnoreCase) ||
+               name.Equals("word-break", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("word-spacing", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("writing-mode", StringComparison.OrdinalIgnoreCase) ||
                name.Equals("x", StringComparison.OrdinalIgnoreCase) ||
@@ -254,11 +280,14 @@ internal static class SvgStyleAttributeNames
             "flood-opacity",
             "font",
             "font-family",
+            "font-feature-settings",
+            "font-kerning",
             "font-size",
             "font-size-adjust",
             "font-stretch",
             "font-style",
             "font-variant",
+            "font-variant-ligatures",
             "font-weight",
             "glyph-orientation-horizontal",
             "glyph-orientation-vertical",
@@ -268,6 +297,8 @@ internal static class SvgStyleAttributeNames
             "isolation",
             "kerning",
             "letter-spacing",
+            "line-break",
+            "line-height",
             "lighting-color",
             "marker",
             "marker-end",
@@ -278,6 +309,7 @@ internal static class SvgStyleAttributeNames
             "mix-blend-mode",
             "opacity",
             "overflow",
+            "overflow-wrap",
             "paint-order",
             "pointer-events",
             "r",
@@ -286,6 +318,9 @@ internal static class SvgStyleAttributeNames
             "shape-rendering",
             "shape-inside",
             "shape-subtract",
+            "shape-padding",
+            "shape-margin",
+            "shape-image-threshold",
             "stop-color",
             "stop-opacity",
             "stroke",
@@ -301,13 +336,17 @@ internal static class SvgStyleAttributeNames
             "text-overflow",
             "text-rendering",
             "text-transform",
+            "text-wrap-mode",
             "transform-box",
             "transform-origin",
             "unicode-bidi",
             "vector-effect",
             "visibility",
             "white-space",
+            "white-space-collapse",
+            "white-space-trim",
             "width",
+            "word-break",
             "word-spacing",
             "writing-mode",
             "x",

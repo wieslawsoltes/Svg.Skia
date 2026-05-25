@@ -50,6 +50,7 @@ Completed in the current text tranche:
   - inherited current `x` seeds path distance for the initial chunk
   - a parent `dy` list entry is consumed only by the initial `textPath` chunk instead of being reapplied to every sibling `textPath`
 - This was enough to enable `e-textPath-012` and `e-textPath-023` against checked Chrome captures, but not enough to close `e-textPath-035`
+- Guarded inline-size textPath wrapping now supports root `textLength` distributed across mixed normal-text/textPath siblings for retained output and text DOM metrics. Browser-grade vertical, multiline, and tiny-coordinate textPath parity remains separate.
 - Fresh Chrome captures on 2026-04-10 confirmed another safe enablement batch:
   - `e-text-031`, `e-text-042`, and `e-textPath-003` are now browser-aligned without special thresholds
   - `a-letter-spacing-002/003/006/007` and `a-word-spacing-005` are browser-aligned but still need narrow Chrome-backed thresholds for raster-level differences
@@ -61,23 +62,36 @@ Completed in the current text tranche:
 
 Still open inside the text tranche:
 
-- resvg `a-letter-spacing-*`
-- resvg `a-word-spacing-*`
-- resvg `a-textLength-*`
-- resvg `a-lengthAdjust-*`
-- vertical writing and baseline groups
-- mixed-direction `unicode-bidi`
-- browser-parity Arabic and mixed-script font fallback
-- per-glyph `x/y/dx/dy` list parity in resvg `e-text-*`
-- pure relative `dx/dy` multi-value positioning still differs from resvg/Chrome in `e-text-006/007/008`
-- `tspan` shaping/layout across span boundaries and rotate inheritance
-- advanced `textPath` layout: `text-anchor`, vertical flow, per-child positioning, underline/rotate/baseline-shift, transformed referenced paths
-- consecutive `textPath` current-position parity still differs from Chrome in `e-textPath-035`
-- ancestor `textLength` composition across absolutely positioned `tspan`s still differs from Chrome in `a-textLength-008`
-- Chrome probes on 2026-04-10 confirmed three remaining `letter-spacing` skips are still real implementation gaps, not threshold candidates:
-  - `a-letter-spacing-005`: percentage letter-spacing still differs from Chrome
-  - `a-letter-spacing-008`: nested `tspan` letter-spacing distribution still differs from Chrome
-  - `a-letter-spacing-009`: mixed-script Arabic letter-spacing and bidi parity still differs from Chrome
+- Latest upstream resvg text fixtures are enabled and passing. Remaining resvg text work is no longer an enabled-failure list; it is parity hardening around Chrome/browser behavior and policy rows.
+- Full browser-grade Unicode Bidi/CSS Text: nested `unicode-bidi`, isolates, overrides, `plaintext`, all weak/neutral edge cases, generated Unicode tables, UAX #9/#14/#29 conformance ingestion, CSS white-space trimming/hanging, and dictionary or orthographic segmentation providers.
+- Browser-grade line breaking: generated line-break tables, CSS `line-break`/`word-break`/`overflow-wrap` tailoring, Thai/Lao/Khmer/Myanmar dictionary segmentation, Brahmic syllable boundaries, and evidence-backed browser fixtures.
+- Complete vertical and RTL wrapping: vertical mixed-direction wrapping, vertical/RTL wrapped `textLength`, vertical overflow marker placement, and exact vertical DOM metrics.
+- Positioned descendants plus `textLength` inside wrapping: remove remaining guarded fallbacks across vertical, RTL, shape, textPath, and complex shaped-cluster combinations.
+- Full textPath-in-wrapping and `method="stretch"` parity: nested/mixed/multiline/vertical textPath layout, transformed referenced paths, exact tiny-coordinate/current-position parity, and browser-raster parity for fallback fonts, color fonts, emoji ZWJ clusters, and complex scripts.
+- Complete CSS Shapes text semantics: exact shape-box and image semantics, arbitrary-path shape margin/padding contour offsets, floats where applicable, multiple same-line fragments, holes/fill rules, and browser line-fragment parity.
+- Font, baseline, and `altGlyph` fidelity: mixed-script baseline tables, vertical metrics, browser-like font fallback/OpenType features, and exact W3C/browser raster identity for legacy SVG-font `altGlyph` rows.
+- Text DOM selection and graphics effects: `selectSubString` now records immutable logical selection ranges with layout-backed extents for JavaScript hosts and can render a retained static highlight, but exact browser UI selection behavior, visual-order bidi selection painting, focus/caret policy, text paint/filter/mask/clip/decorations under all shaped and textPath paths, and exact graphics-effect raster parity remain host/runtime and rendering work.
+- Every text-lane change must run focused text tests plus `SvgTextRegressionValidationBenchmarks`; cross-area text changes must also run `SvgAllAreaRegressionValidationBenchmarks` to catch non-text performance regressions.
+- 2026-05-24 text pass:
+  - `a-letter-spacing-007` now keeps pure Arabic/cursive runs out of scalar tracking and preserves shaping while ignoring cursive tracking.
+  - `a-letter-spacing-008` now applies inter-run tracking across inline `tspan` boundaries, including the trailing spacing after the child run before following text.
+  - `a-letter-spacing-009` now uses a narrow mixed-script path: the Latin prefix is tracked, the Arabic suffix is shaped as a run, and trailing neutral punctuation is kept visually after the RTL word. The remaining enabled threshold is a small Chrome-raster delta.
+  - `a-letter-spacing-005` now uses a Chrome-aligned percentage spacing basis and remains enabled with a scoped raster/metric threshold.
+  - `e-tref-004/005` now match resvg semantics: external `tref` and nested `tref` content are suppressed while direct same-document `tref` remains enabled.
+  - Browser-compatible fallback routing is now limited to explicit RTL/unicode-bidi contexts or joining-script tracking runs, so Indic and other non-joining scripts avoid the shaped fallback path while Arabic/Syriac/NKo/Mongolian-style cursive runs keep shaping-safe letter-spacing behavior.
+  - Final validation for this pass covered focused resvg text rows, the full resvg fixture matrix, W3C text/retained regression rows, full solution tests, `SvgTextRegressionValidationBenchmarks`, and `SvgAllAreaRegressionValidationBenchmarks`.
+- 2026-05-24 text review hardening pass:
+  - Reviewed the text lane around public text selection APIs, JavaScript text DOM metrics, shared wrapped-layout DOM metric reuse, and CSS Shapes image sampling.
+  - `SKSvg.SvgTextSelectionRange.Extents` now snapshots incoming extents and exposes an immutable read-only list, so callers cannot mutate recorded selection geometry through retained array references.
+  - `getSubStringLength` and `selectSubString` now clamp very large `nchars` values with long arithmetic before converting back to character indices, preventing integer overflow while preserving browser-style clamping to available text.
+  - Shared layout DOM metrics keep the existing cluster-owned substring behavior for continuation characters while also letting large clamped counts include later owned clusters.
+  - PNG alpha image shape sampling now rejects overflowing image dimensions before allocating buffers or computing scanline indexes.
+  - Validation for this hardening pass covered focused text selection/CSS shape tests, full `SvgSceneTextCompilerTests`, focused text feature rows, `SvgTextRegressionValidationBenchmarks` with 72 executed benchmark cases, and `SvgAllAreaRegressionValidationBenchmarks` with 6 executed benchmark cases.
+- 2026-05-24 legacy text parity pass:
+  - `SKSvgSettings.EnableTextSelectionRendering` and `TextSelectionColor` now control retained static selection highlight painting for JavaScript `selectSubString`; post-load selection calls refresh the retained picture so event-driven selection is visible.
+  - Empty-content `altGlyph` now resolves referenced SVG font glyphs instead of being skipped before SVG-font lookup. The resolver covers direct glyph references, `glyphRef`, `altGlyphDef`, and `altGlyphItem` sequences when they resolve to one SVG font entry.
+  - W3C `text-altglyph-01/02/03-b` rows are enabled with scoped raster thresholds and an ignored draft-banner strip for `text-altglyph-03-b`; remaining deltas are browser/font raster identity, not missing substitution.
+  - W3C `text-tselect-01/02/03` remain explicitly skipped because the legacy fixtures assert browser visual-order selection UI behavior beyond static logical selection highlighting.
 
 Verified probe findings from the remaining skipped W3C text rows on 2026-04-09:
 
@@ -85,7 +99,7 @@ Verified probe findings from the remaining skipped W3C text rows on 2026-04-09:
 - `text-align-08-b` is close in glyph selection but still lacks mixed-script dominant-baseline table handling across Latin, ideographic, and Devanagari glyphs.
 - `text-intro-02-b` and `text-intro-09-b` still fail because mixed-direction Hebrew/Latin rows need browser-parity bidi reordering across fallback font spans. Wrapping each fallback span with bidi controls is insufficient.
 - `text-intro-05-t` and `text-intro-10-f` still fail because Arabic shaping only stays correct when fallback spans are preserved, but preserving spans still leaves non-Chrome anchor/position parity. A probe to force single-run shaping produced tofu glyphs, which confirms the missing piece is mixed-font shaping/fallback support rather than a simple bidi wrapper.
-- `text-altglyph-01/02/03-b` remain a separate feature area. They should not be conflated with text layout fixes because they require parsing and rendering `altGlyph`, `glyphRef`, and alternate glyph selection resources.
+- `text-altglyph-01/02/03-b` now exercise real SVG-font alternate glyph substitution. They remain sensitive to browser/font raster identity and should not be conflated with the remaining bidi/vertical text layout work.
 
 ## Workstreams
 
@@ -115,21 +129,31 @@ Features:
 Primary test impact:
 
 - W3C `text-*`
-- resvg `a-font-*`, `a-text-*`, `a-writing-*`, `a-baseline-*`, `a-textLength-*`, `e-text-*`, `e-textPath-*`, `e-tspan-*`, `e-tref-*`
+- resvg `a-font-*`, `a-text-*`, `a-writing-*`, `a-baseline-*`, `e-text-*`, `e-textPath-*`, `e-tspan-*`, `e-tref-*`, plus scoped threshold review for enabled `a-textLength-*`
 
 Execution order:
 
-1. Spacing, `textLength`, nested rotate inheritance, stale decoration skips
-2. Vertical text flow and baseline tables
-3. `unicode-bidi` mixed-direction parity
-4. Webfont fallback parity
-5. `altGlyph`
+1. Unicode Bidi/CSS Text conformance and generated data
+2. Browser-grade line breaking and boundary providers
+3. Vertical/RTL wrapping and DOM metrics
+4. Positioned descendants plus `textLength` inside wrapping
+5. TextPath-in-wrapping and `method="stretch"` raster parity
+6. CSS Shapes text layout semantics
+7. Font, baseline, webfont fallback, OpenType, and `altGlyph`
+8. Text DOM selection, graphics-effect parity, and text/all-area benchmark validation
+
+Current implementation status:
+
+- The eight text lanes have active shared-engine implementation coverage and focused regression tests. The text implementation now routes guarded bidi, line breaking, vertical/RTL wrapping, shape-inside/shape-subtract, textLength, positioned descendants, direct and mixed textPath wrapping, cluster-aware stretch smoke cases, baseline/font fallback, retained SVG-font altGlyph substitution, and JavaScript `selectSubString` extents/static highlights through the shared layout and DOM metric paths.
+- Remaining text skips must stay explicit when they depend on browser-only runtime behavior or exact browser raster identity that the static renderer does not currently promise, including policy-skipped JavaScript visual selection fixtures and exact SVG font altGlyph/browser fixture raster parity.
+- Text-lane changes require both the focused text regression benchmarks and the combined all-area benchmark before acceptance so text fixes do not hide cross-area performance regressions.
 
 Acceptance criteria:
 
 - Remaining text skips have explicit unsupported-runtime reasons or are enabled and green.
 - W3C Chrome-backed rows use refreshed Chrome captures where needed.
-- Resvg text groups are reduced significantly without introducing threshold-only passes.
+- Latest upstream resvg text rows remain enabled and green.
+- `SvgTextRegressionValidationBenchmarks` and `SvgAllAreaRegressionValidationBenchmarks` are run and reviewed for performance regressions before accepting text-lane changes.
 
 ### 2. SMIL Snapshot Rendering
 
@@ -262,9 +286,9 @@ They require a DOM, script, or interaction runtime rather than renderer-only fix
 
 ## Reference-Suite Constraints
 
-- resvg documents `textLength` and `lengthAdjust` as unsupported in `externals/resvg/docs/unsupported.md`.
-- Those rows should stay explicitly skipped in `tests/Svg.Skia.UnitTests/resvgTests.cs` unless the repository switches them to a Chrome-backed or custom Svg.Skia-native reference.
-- Remaining resvg `letter-spacing` and `%` `word-spacing` failures are not parser gaps anymore; they need cluster-shaped fallback text spacing parity rather than scalar per-codepoint offsets.
+- resvg documents several `textLength` and `lengthAdjust` combinations as unsupported in `externals/resvg/docs/unsupported.md`; rows that now have checked Chrome references are enabled against those browser captures instead of the upstream resvg PNGs.
+- As of 2026-05-24, the previously documented deeper resvg text rows are enabled: color-font/emoji clusters, positioned Arabic coordinate lists, Arabic rotate shaping, vertical textPath, complex vertical textPath, tiny-coordinate textPath sampling, and `a-lengthAdjust-001`.
+- Remaining text fidelity risk is no longer expressed as skipped resvg rows. It is tracked by scoped Chrome-backed raster thresholds for the rows where Skia and Chrome differ at antialiasing, font metric, decoration, vertical textPath, or path-sampling level.
 
 ## Out Of Scope For A Single Renderer Patch
 
