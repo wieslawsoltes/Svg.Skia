@@ -435,24 +435,39 @@
 <td><code>SvgTextPathSide</code> supports <code>left</code> and <code>right</code>; retained draw, clip, and measure paths reverse sampled geometry and mirror offsets for <code>side=&quot;right&quot;</code>.</td>
 </tr>
 <tr>
-<td><code>white-space</code></td>
+<td><code>textPath method</code></td>
 <td>Partial</td>
-<td><code>SvgWhiteSpace</code> parses SVG 2 whitespace values, and focused retained text preserves <code>white-space: pre</code> runs. Full CSS Text integration remains open.</td>
+<td><code>method=&quot;align&quot;</code> uses positioned glyph placement. <code>method=&quot;stretch&quot;</code> has a guarded static retained path that converts text outlines to paths and warps outline points along the sampled textPath, including HarfBuzz-shaped glyph-outline extraction when the Skia asset loader is available, open-path endpoint clamping for overhanging outlines, <code>lengthAdjust=&quot;spacingAndGlyphs&quot;</code> outline scaling, cluster-distributed <code>lengthAdjust=&quot;spacing&quot;</code> over shaped/fallback clusters, letter/word spacing in stretched cluster offsets, textPath-owned textLength applied through nested span content, fill/stroke paint-order, warped decorations, and retained filter save-layer support. Exact browser raster parity for all fallback/color-font/complex-script combinations remains open.</td>
 </tr>
 <tr>
-<td><code>inline-size</code>, <code>shape-inside</code>, <code>shape-subtract</code></td>
-<td>Deferred</td>
-<td>Typed properties exist on <code>SvgElement</code> and are preserved for model/style contracts. Auto-wrapped text and shape exclusion layout are not implemented.</td>
+<td><code>white-space</code></td>
+<td>Partial</td>
+<td><code>SvgWhiteSpace</code> parses SVG 2 whitespace values, focused retained text preserves <code>white-space: pre</code> runs, and guarded inline-size layout resolves whitespace per text run, preserves forced breaks for <code>pre-line</code>, leading/trailing spaces for <code>pre-wrap</code>, break opportunities between preserved spaces for <code>break-spaces</code>, recognizes zero-width space, soft hyphen, CJK, dash and common punctuation break opportunities, honors bounded <code>overflow-wrap</code>, <code>word-break</code>, <code>line-break</code>, and <code>line-height</code> inputs, and suppresses wrapping at NBSP, figure space, narrow NBSP, word joiner, BOM, explicit bidi formatting spans, and no-break format controls. Full UAX #14 and dictionary-based CSS Text line breaking remains open.</td>
+</tr>
+<tr>
+<td><code>inline-size</code></td>
+<td>Partial</td>
+<td>Sequential text supports a guarded static subset: single-line content-area anchoring for start/middle/end, <code>white-space: normal</code>, <code>pre-line</code>, <code>pre-wrap</code>, and <code>break-spaces</code> wrapping inputs, selected CSS Text break opportunities, horizontal LTR/RTL line placement with reusable Unicode-bidi run resolution for inherited CSS <code>direction</code>, <code>unicode-bidi: embed</code>, <code>isolate</code>, <code>bidi-override</code>, <code>isolate-override</code>, <code>plaintext</code>, explicit bidi controls, and mixed-direction DOM metrics, legacy <code>tb</code>/<code>vertical-rl</code> leftward column wrapping, <code>vertical-lr</code> rightward column wrapping, CSS vertical <code>direction=rtl</code> bottom-to-top inline advance, matching text DOM metrics for supported wrapped lines without generated overflow markers, and fallback to the existing text path for unsupported cases. Root horizontal LTR <code>inline-size</code> plus <code>textLength</code> supports guarded flattened placement and line-wrapped <code>lengthAdjust=spacing</code>/<code>spacingAndGlyphs</code> cases, including cumulative relative <code>dx</code>/<code>dy</code> descendants, absolute positioned descendant composition for the enabled horizontal cases, preserved explicit-line textLength spacing, nested textLength ownership, natural-line-proportional root textLength distribution, and DOM metrics. Direct, styled-wrapper, and guarded mixed-sibling <code>textPath</code> content can use the inline content start with matching DOM metrics, a single root <code>dx</code>, textPath-owned <code>textLength</code>, root <code>textLength</code> distributed across mixed normal-text/textPath siblings, and wrapping of following sibling text. URL-referenced and basic-shape <code>shape-inside</code> regions can also provide ordered content areas and take precedence over <code>inline-size</code> when both are present. Full browser-grade Unicode Bidi/CSS Text parity across nested element embeddings, all neutral/weak-class edge cases, vertical mixed-direction wrapping, vertical/RTL wrapped textLength, vertical <code>textPath</code> wrapping, multiline browser textPath parity, and browser-grade layout parity remain open.</td>
+</tr>
+<tr>
+<td><code>shape-inside</code>, <code>shape-subtract</code></td>
+<td>Partial</td>
+<td>Typed <code>shape-inside</code>, <code>shape-subtract</code>, <code>shape-padding</code>, <code>shape-margin</code>, and <code>shape-image-threshold</code> properties exist on <code>SvgElement</code> and are preserved for model/style contracts. Retained rendering supports a guarded sampled subset: ordered URL references and mixed/repeated basic CSS shapes (<code>inset</code>, rounded <code>inset</code>, <code>circle</code>, <code>ellipse</code>, <code>polygon</code>) provide content intervals, overflow moves to the next shape when the current shape is exhausted, finite shape bounds stop wrapped lines, and valid <code>shape-subtract</code> references or basic shapes remove sampled exclusion fragments while invalid subtract entries are ignored. <code>shape-padding</code> and <code>shape-margin</code> are non-inherited non-negative lengths, off-center <code>closest-side</code>/<code>farthest-side</code> circle/ellipse radii are resolved, rounded inset radii use CSS border-radius shorthand including <code>/</code>, polygon fill-rule prefixes are accepted, referenced path fill-rules can create sampled holes, shape-box keywords use SVG text geometry with <code>content-box</code>/<code>padding-box</code> mapping to fill geometry and <code>border-box</code>/<code>margin-box</code>/<code>stroke-box</code> mapping to stroke geometry, viewport fallback remains for oversized basic shapes, image <code>url(...)</code> shapes can derive alpha intervals with <code>shape-image-threshold</code> through Skia-backed decoded images or the PNG fallback sampler including indexed palette transparency, and same-line exclusion fragments remain available to shared wrapped <code>textLength</code> layout. Matching text DOM metrics cover the guarded shape subset, including vertical and RTL line-area resolution. Floats, exact CSS image-rendering semantics, non-SVG CSS layout-box parity, exact browser line breaking, and complete CSS Shapes parity remain open.</td>
 </tr>
 <tr>
 <td><code>text-overflow</code></td>
-<td>Deferred</td>
-<td>The typed property exists and is preserved for model/style contracts. Ellipsis/clipped inline layout is not implemented.</td>
+<td>Partial</td>
+<td>Sequential inline-size text supports <code>clip</code>, <code>ellipsis</code>, and quoted custom marker strings in the guarded path, including overflowing wrapped lines and the supported horizontal shape text area. Text DOM metrics keep source text semantics by avoiding the generated-marker layout path. Full CSS Text overflow semantics, exact RTL marker placement, and vertical marker parity remain open.</td>
+</tr>
+<tr>
+<td><code>selectSubString</code> selection painting</td>
+<td>Partial</td>
+<td>JavaScript text selection APIs validate through the text DOM metrics path, record immutable logical selection extents, and can bake a static selection highlight path into retained output when <code>SKSvgSettings.EnableTextSelectionRendering</code> is enabled. <code>TextSelectionColor</code> controls the highlight fill, and post-load selection calls refresh the retained picture. Exact browser UI selection behavior, visual-order bidi selection painting, interactive selection handles, and browser focus/caret policy remain outside the static subset.</td>
 </tr>
 <tr>
 <td>Removed SVG 1.1 text features</td>
 <td>Compatibility</td>
-<td><code>tref</code> and SVG font-related features can remain for compatibility where already supported. They are not new SVG 2 core requirements.</td>
+<td><code>tref</code>, SVG fonts, and focused <code>altGlyph</code>/<code>glyphRef</code>/<code>altGlyphDef</code> substitution are retained for compatibility where supported. They are not new SVG 2 core requirements. Exact browser raster identity for legacy SVG-font <code>altGlyph</code> rows remains a parity target rather than a core SVG 2 requirement.</td>
 </tr>
 </tbody>
 </table>
@@ -568,7 +583,7 @@
 </tr>
 <tr>
 <td>Full SVG 2 text layout</td>
-<td>Auto-wrapping, baseline/offset parity, graphics effects on text content, complete CSS Text integration, ellipsis, and shape exclusion are not complete. Focused <code>side=right</code>, closed-loop textPath, and <code>pathLength</code> textPath rows are covered separately.</td>
+<td>Full browser-grade Unicode Bidi/CSS Text integration, browser-grade line breaking, complete positioned descendants inside wrapping, mixed/nested/vertical textPath-in-wrapping, complete vertical/RTL shape layout, exact shape DOM metrics, baseline/offset parity, exact browser raster parity, and graphics effects on text content are not complete. The shared text layout engine is active for guarded <code>inline-size</code>, shape, textPath, textLength, bidi, line-break, and DOM-metric paths. Focused guarded <code>inline-size</code> wrapping now covers horizontal LTR/RTL and vertical column progression, selected CSS Text controls, reusable bidi run resolution for inherited CSS <code>direction</code>/<code>unicode-bidi</code> root modes, simple wrapped <code>textLength</code> including <code>spacingAndGlyphs</code> and forced pre-line breaks, relative positioned descendants, direct-child and mixed-sibling <code>textPath</code> starts with guarded textPath-owned/root <code>textLength</code>, and cluster-aware complex-script stretch smoke coverage. <code>side=right</code>, closed-loop textPath, and <code>pathLength</code> textPath rows are covered separately. <code>selectSubString</code> records a logical text selection range with layout-backed extents for JavaScript hosts and can render a configurable retained static highlight; exact browser visual-order selection UI remains runtime parity work. Benchmark scenes track the current retained output of vertical RTL, vertical/RTL shape layout, wrapped <code>textLength</code> plus positioned descendants, and complex-script stretch so regressions are visible while exact browser parity remains open.</td>
 </tr>
 <tr>
 <td>Full symbol reference-point semantics</td>
@@ -619,7 +634,7 @@
 </tr>
 <tr>
 <td><code>Svg.SceneGraph</code></td>
-<td>Retained use/resource expansion, effective href dependency tracking, textPath additions, paint-order rendering, context-paint marker state, retained masks, retained filters, <code>feDropShadow</code>, linked filter and <code>feImage</code> dependency handling.</td>
+<td>Retained use/resource expansion, effective href dependency tracking, textPath additions, SVG 2 inline-size/text-overflow rendering, guarded sampled shape-inside/shape-subtract text layout, paint-order rendering, context-paint marker state, retained masks, retained filters, <code>feDropShadow</code>, linked filter and <code>feImage</code> dependency handling.</td>
 </tr>
 <tr>
 <td><code>ShimSkiaSharp</code></td>
@@ -667,6 +682,22 @@
 <tr>
 <td><code>SvgContextPaintServerTests</code> and retained scene tests</td>
 <td>Context paint, paint order, marker behavior, masks, filters, <code>feDropShadow</code>, <code>feImage</code>, and dependency tracking in focused renderer paths.</td>
+</tr>
+<tr>
+<td><code>SvgRetainedSceneGraphTests</code> SVG 2 text rows</td>
+<td>Focused retained coverage for guarded horizontal LTR/RTL and vertical <code>inline-size</code>, vertical RTL column behavior, <code>text-overflow</code>, normal/pre-line/pre-wrap/break-spaces wrapping inputs, middle/end content-area anchoring, direct inline-size textPath starts/root <code>dx</code>/textPath-owned <code>textLength</code>, mixed-sibling inline-size textPath root <code>textLength</code>, <code>inline-size</code> plus root <code>textLength</code> with flattened and wrapped horizontal LTR spacing/scaling cases including relative positioned descendants, tspan word grouping, nested textPath ignored-child/fallback behavior, sampled <code>shape-inside</code>/<code>shape-subtract</code>, basic CSS shape functions and shape-box keywords, PNG alpha image-shape thresholding, shape padding/margin, multiple exclusions, non-rectangular and vertical/RTL shape intervals, <code>method=&quot;stretch&quot;</code> paint/filter/decoration and <code>spacingAndGlyphs</code> scaling paths, tiny-coordinate textPath stability, and explicit skipped rows for full browser stretch parity.</td>
+</tr>
+<tr>
+<td><code>SvgSceneTextCompilerTests</code> SVG 2 text rows</td>
+<td>Focused compiler coverage for resolved <code>tref</code> text content metrics, wrapped/pre-line/pre-wrap/break-spaces horizontal LTR/RTL and vertical <code>inline-size</code> text DOM metrics, direct, styled-wrapper, and guarded mixed-sibling inline-size textPath DOM metrics with root <code>dx</code>, textPath-owned/root <code>textLength</code>, and root <code>textLength</code> across mixed normal-text/textPath siblings, no-break/figure-space wrapping suppression, CJK, zero-width/soft-hyphen, dash, and explicit bidi/no-break-control wrapping behavior, CSS vertical RTL bottom-to-top positions with absolute X anchoring, descendant/empty <code>pre-line</code> and descendant <code>break-spaces</code> behavior, root <code>textLength</code> DOM metrics under <code>inline-size</code> with flattened and wrapped horizontal LTR spacing/scaling plus relative and absolute positioned descendant coverage, source-character DOM metrics for generated overflow marker cases, conservative vertical writing-mode DOM positions/rotation, and guarded shape layout DOM metrics including mixed basic shape lists, off-center basic-shape radii, invalid subtract entries, non-inherited shape spacing, fill-rule holes, shape-box keyword geometry/fallback behavior, PNG alpha image-shape thresholding, and style-applied shape spacing.</td>
+</tr>
+<tr>
+<td><code>SvgTextRegressionValidationBenchmarks</code></td>
+<td>Generated text benchmark scenes cover existing text layout paths plus remaining-gap inputs for vertical RTL, vertical/RTL shape layout, wrapped <code>textLength</code> with positioned descendants, and complex-script <code>textPath method=&quot;stretch&quot;</code>; validation checks retained command counts, command-kind coverage, required text/path/layer source element IDs, stretch path output from the intended textPath elements, and required DOM-metric source IDs for supported gap scenarios, while recording and non-zero checking command, DOM, render, and end-to-end load/render checksums for BenchmarkDotNet regression tracking. Text command checksums include source IDs, textPath path geometry, clip-path geometry, save-layer paint signatures, and stretched glyph path geometry.</td>
+</tr>
+<tr>
+<td><code>SvgAllAreaRegressionValidationBenchmarks</code></td>
+<td>Generated combined standards-area scene covers text, paths, gradients, patterns, clips, masks, filters, markers, symbols, and grouped rendering; validation checks retained command counts and command-kind coverage for text/path/clip/layer output and required text source element IDs, while recording and non-zero checking command-model checksums that include source IDs, clip-path geometry, save-layer paint signatures, render checksums, and end-to-end checksums.</td>
 </tr>
 <tr>
 <td><code>Svg2StaticSubsetRenderingContractTests</code></td>

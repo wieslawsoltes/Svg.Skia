@@ -318,12 +318,12 @@
 <tr>
 <td>Text</td>
 <td>Partial</td>
-<td>Supports <code>&lt;text&gt;</code>, <code>&lt;tspan&gt;</code>, <code>&lt;tref&gt;</code>, <code>&lt;textPath&gt;</code>, x/y/dx/dy/rotate positioning, <code>textLength</code>, <code>lengthAdjust</code>, bidi direction, writing mode, text decoration, and fill/stroke text painting. Browser-complete baseline, vertical layout, textPath, shaping, and glyph fallback behavior remain partial.</td>
+<td>Supports <code>&lt;text&gt;</code>, <code>&lt;tspan&gt;</code>, <code>&lt;tref&gt;</code>, <code>&lt;textPath&gt;</code>, focused <code>altGlyph</code> substitution, x/y/dx/dy/rotate positioning, <code>textLength</code>, <code>lengthAdjust</code>, bidi direction, writing mode, text decoration, JavaScript text selection extents/static highlights, and fill/stroke text painting. Browser-complete baseline, vertical layout, textPath, shaping, glyph fallback, and exact browser selection UI behavior remain partial.</td>
 </tr>
 <tr>
 <td>SVG 1.1 altGlyph text</td>
-<td>Deferred</td>
-<td><code>altGlyph</code>, <code>altGlyphDef</code>, <code>altGlyphItem</code>, and <code>glyphRef</code> are not implemented. W3C <code>text-altglyph-*</code> rows remain skipped with explicit reasons.</td>
+<td>Partial</td>
+<td>Focused <code>altGlyph</code>, <code>altGlyphDef</code>, <code>altGlyphItem</code>, and <code>glyphRef</code> SVG-font substitution is implemented for references resolving to one SVG font entry, including empty-content <code>altGlyph</code> rows. Exact browser/font raster identity for W3C <code>text-altglyph-*</code> remains thresholded parity work.</td>
 </tr>
 <tr>
 <td>Fill and stroke painting</td>
