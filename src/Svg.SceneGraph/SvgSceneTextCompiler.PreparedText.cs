@@ -395,17 +395,32 @@ internal static partial class SvgSceneTextCompiler
 
         var isRightToLeft = IsRightToLeft(svgTextBase);
         var requiresSyntheticSmallCaps = RequiresSyntheticSmallCaps(svgTextBase, text);
-        var usesBrowserCompatibleRunTypeface = ShouldUseBrowserCompatibleRunTypeface(svgTextBase, text);
         var cacheKey = CreateNaturalCodepointAdvanceCacheKey(
             assetLoader,
             text,
             paint,
             isRightToLeft,
             requiresSyntheticSmallCaps,
-            usesBrowserCompatibleRunTypeface);
+            usesBrowserCompatibleRunTypeface: false);
         if (TryGetCachedNaturalCodepointAdvances(cacheKey, out var cachedAdvances))
         {
             return cachedAdvances;
+        }
+
+        var usesBrowserCompatibleRunTypeface = ShouldUseBrowserCompatibleRunTypeface(svgTextBase, text);
+        if (usesBrowserCompatibleRunTypeface)
+        {
+            cacheKey = CreateNaturalCodepointAdvanceCacheKey(
+                assetLoader,
+                text,
+                paint,
+                isRightToLeft,
+                requiresSyntheticSmallCaps,
+                usesBrowserCompatibleRunTypeface: true);
+            if (TryGetCachedNaturalCodepointAdvances(cacheKey, out cachedAdvances))
+            {
+                return cachedAdvances;
+            }
         }
 
         if (TryMeasureNaturalCodepointAdvancesFromSimpleShapedRun(
@@ -420,7 +435,6 @@ internal static partial class SvgSceneTextCompiler
                 usesBrowserCompatibleRunTypeface,
                 out var shapedAdvances))
         {
-            PreserveMeasuredTotalAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, shapedAdvances);
             CacheNaturalCodepointAdvances(cacheKey, shapedAdvances);
             return shapedAdvances;
         }
@@ -467,7 +481,11 @@ internal static partial class SvgSceneTextCompiler
             previousAdvance += codepointAdvance;
         }
 
-        PreserveMeasuredTotalAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, advances);
+        if (MayNeedClusteredNaturalCodepointAdvances(codepoints))
+        {
+            PreserveMeasuredTotalAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, advances);
+        }
+
         CacheNaturalCodepointAdvances(cacheKey, advances);
         return advances;
     }
@@ -534,19 +552,25 @@ internal static partial class SvgSceneTextCompiler
         SKRect geometryBounds,
         ISvgAssetLoader assetLoader)
     {
-        if (TryCreateVerticalTextRunPlacements(svgTextBase, text, 0f, 0f, geometryBounds, SKTextAlign.Left, assetLoader, explicitRotations: null, out _, out var verticalAdvance))
+        var isVertical = IsVerticalWritingMode(svgTextBase);
+        if (isVertical &&
+            TryCreateVerticalTextRunPlacements(svgTextBase, text, 0f, 0f, geometryBounds, SKTextAlign.Left, assetLoader, explicitRotations: null, out _, out var verticalAdvance))
         {
             return verticalAdvance;
         }
 
-        var paint = CreateTextMetricsPaint(svgTextBase, geometryBounds);
-        if (TryCreateMixedScriptSpacingRunLayout(svgTextBase, text, geometryBounds, paint, assetLoader, out var mixedLayout) &&
-            mixedLayout is not null)
+        if (CanNeedMixedScriptSpacingRunLayout(svgTextBase, text, assetLoader))
         {
-            return mixedLayout.TotalAdvance;
+            var paint = CreateTextMetricsPaint(svgTextBase, geometryBounds);
+            if (TryCreateMixedScriptSpacingRunLayout(svgTextBase, text, geometryBounds, paint, assetLoader, out var mixedLayout) &&
+                mixedLayout is not null)
+            {
+                return mixedLayout.TotalAdvance;
+            }
         }
 
-        if (TryCreateAlignedCodepointPlacements(svgTextBase, text, 0f, 0f, geometryBounds, SKTextAlign.Left, assetLoader, explicitRotations: null, out _, out var totalAdvance))
+        if ((isVertical || HasPerGlyphLayoutAdjustments(svgTextBase, text)) &&
+            TryCreateAlignedCodepointPlacements(svgTextBase, text, 0f, 0f, geometryBounds, SKTextAlign.Left, assetLoader, explicitRotations: null, out _, out var totalAdvance))
         {
             return totalAdvance;
         }

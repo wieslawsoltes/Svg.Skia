@@ -15,7 +15,8 @@ internal enum SvgCascadedStyleFeatureFlags
     None = 0,
     MarkerReference = 1,
     MixBlendMode = 2,
-    Isolation = 4
+    Isolation = 4,
+    TextOpenType = 8
 }
 
 internal sealed class SvgComputedStyleCache
@@ -1686,6 +1687,11 @@ public abstract partial class SvgElement
             return SvgCascadedStyleFeatureFlags.None;
         }
 
+        if (requestedFlags == SvgCascadedStyleFeatureFlags.TextOpenType)
+        {
+            return GetOwnTextOpenTypeCascadedStyleFeatureFlags();
+        }
+
         var flags = SvgCascadedStyleFeatureFlags.None;
 
         if (_styles.Count > 0)
@@ -1706,6 +1712,13 @@ public abstract partial class SvgElement
             if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Isolation))
             {
                 flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "isolation");
+            }
+
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.TextOpenType))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "font-feature-settings");
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "font-kerning");
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "font-variant-ligatures");
             }
 
             if (flags == requestedFlags)
@@ -1747,6 +1760,13 @@ public abstract partial class SvgElement
             flags = AddAttributeFeatureFlag(flags, requestedFlags, "isolation");
         }
 
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.TextOpenType))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "font-feature-settings");
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "font-kerning");
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "font-variant-ligatures");
+        }
+
         if (flags == requestedFlags)
         {
             return flags;
@@ -1770,6 +1790,43 @@ public abstract partial class SvgElement
             flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "isolation");
         }
 
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.TextOpenType))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "font-feature-settings");
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "font-kerning");
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "font-variant-ligatures");
+        }
+
+        return flags;
+    }
+
+    private SvgCascadedStyleFeatureFlags GetOwnTextOpenTypeCascadedStyleFeatureFlags()
+    {
+        var requestedFlags = SvgCascadedStyleFeatureFlags.TextOpenType;
+        var flags = SvgCascadedStyleFeatureFlags.None;
+
+        if (_styles.Count > 0)
+        {
+            flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "font-feature-settings");
+            flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "font-kerning");
+            flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "font-variant-ligatures");
+            if (flags == requestedFlags)
+            {
+                return flags;
+            }
+        }
+
+        flags = AddAttributeFeatureFlag(flags, requestedFlags, "font-feature-settings");
+        flags = AddAttributeFeatureFlag(flags, requestedFlags, "font-kerning");
+        flags = AddAttributeFeatureFlag(flags, requestedFlags, "font-variant-ligatures");
+        if (flags == requestedFlags)
+        {
+            return flags;
+        }
+
+        flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "font-feature-settings");
+        flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "font-kerning");
+        flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "font-variant-ligatures");
         return flags;
     }
 
@@ -1860,7 +1917,34 @@ public abstract partial class SvgElement
             flags |= SvgCascadedStyleFeatureFlags.Isolation;
         }
 
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.TextOpenType) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.TextOpenType) &&
+            IsTextOpenTypeFeatureProperty(propertyName, out var initialValue) &&
+            IsDeclaredComputedStyleFeatureCandidate(value, initialValue))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.TextOpenType;
+        }
+
         return flags;
+    }
+
+    private static bool IsTextOpenTypeFeatureProperty(string propertyName, out string initialValue)
+    {
+        if (string.Equals(propertyName, "font-feature-settings", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(propertyName, "font-variant-ligatures", StringComparison.OrdinalIgnoreCase))
+        {
+            initialValue = "normal";
+            return true;
+        }
+
+        if (string.Equals(propertyName, "font-kerning", StringComparison.OrdinalIgnoreCase))
+        {
+            initialValue = "auto";
+            return true;
+        }
+
+        initialValue = string.Empty;
+        return false;
     }
 
     private static bool HasFeatureFlag(

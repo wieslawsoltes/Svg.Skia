@@ -138,16 +138,13 @@ internal static class SvgTextBidiResolver
 
     public static SvgUnicodeBidiMode ResolveUnicodeBidi(SvgTextBase svgTextBase)
     {
-        var value = ResolveComputedTextProperty(svgTextBase, "unicode-bidi", "normal");
-        return value.Trim().ToLowerInvariant() switch
+        if (!HasDeclaredTextProperty(svgTextBase, "unicode-bidi"))
         {
-            "embed" => SvgUnicodeBidiMode.Embed,
-            "isolate" => SvgUnicodeBidiMode.Isolate,
-            "bidi-override" => SvgUnicodeBidiMode.BidiOverride,
-            "isolate-override" => SvgUnicodeBidiMode.IsolateOverride,
-            "plaintext" => SvgUnicodeBidiMode.PlainText,
-            _ => SvgUnicodeBidiMode.Normal
-        };
+            return SvgUnicodeBidiMode.Normal;
+        }
+
+        var value = ResolveComputedTextProperty(svgTextBase, "unicode-bidi", "normal");
+        return ParseUnicodeBidiMode(value);
     }
 
     public static bool NeedsVisualOrdering(SvgTextBase svgTextBase, string text)
@@ -387,6 +384,34 @@ internal static class SvgTextBidiResolver
             : fallback;
     }
 
+    private static SvgUnicodeBidiMode ParseUnicodeBidiMode(string value)
+    {
+        var normalized = value.AsSpan().Trim();
+        if (normalized.Equals("embed".AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            return SvgUnicodeBidiMode.Embed;
+        }
+
+        if (normalized.Equals("isolate".AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            return SvgUnicodeBidiMode.Isolate;
+        }
+
+        if (normalized.Equals("bidi-override".AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            return SvgUnicodeBidiMode.BidiOverride;
+        }
+
+        if (normalized.Equals("isolate-override".AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            return SvgUnicodeBidiMode.IsolateOverride;
+        }
+
+        return normalized.Equals("plaintext".AsSpan(), StringComparison.OrdinalIgnoreCase)
+            ? SvgUnicodeBidiMode.PlainText
+            : SvgUnicodeBidiMode.Normal;
+    }
+
     private static bool HasDeclaredTextProperty(SvgTextBase svgTextBase, string propertyName)
     {
         for (SvgElement? current = svgTextBase; current is not null; current = current.Parent)
@@ -414,8 +439,9 @@ internal static class SvgTextBidiResolver
             if (current.TryGetOwnCascadedStyleValue("writing-mode", out var writingMode) &&
                 !string.IsNullOrWhiteSpace(writingMode))
             {
-                var normalized = writingMode.Trim().ToLowerInvariant();
-                return normalized is "rl" or "rl-tb";
+                var normalized = writingMode.AsSpan().Trim();
+                return normalized.Equals("rl".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+                       normalized.Equals("rl-tb".AsSpan(), StringComparison.OrdinalIgnoreCase);
             }
         }
 
