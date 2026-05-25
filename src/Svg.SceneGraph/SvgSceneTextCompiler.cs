@@ -4622,7 +4622,7 @@ internal static partial class SvgSceneTextCompiler
         points = new SKPoint[codepointCount];
         var useContextualAdvances = xs.Count <= 1;
         var naturalAdvances = useContextualAdvances
-            ? MeasureNaturalCodepointAdvances(svgTextBase, codepoints, geometryBounds, assetLoader)
+            ? MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, geometryBounds, assetLoader)
             : null;
         var currentX = initialX;
         var currentY = initialY;
@@ -5749,7 +5749,7 @@ internal static partial class SvgSceneTextCompiler
             return;
         }
 
-        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, codepoints, geometryBounds, assetLoader);
+        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, geometryBounds, assetLoader);
         for (var placementIndex = 0; placementIndex < placements.Length; placementIndex++)
         {
             var placement = placements[placementIndex];
@@ -11242,7 +11242,7 @@ internal static partial class SvgSceneTextCompiler
         }
 
         var codepoints = SplitCodepoints(text);
-        var naturalAdvances = MeasureNaturalCodepointAdvances(styleSource, codepoints, geometryBounds, assetLoader);
+        var naturalAdvances = MeasureNaturalCodepointAdvances(styleSource, text, codepoints, geometryBounds, assetLoader);
         var builder = new StringBuilder(text.Length);
         for (var i = 0; i < codepoints.Count; i++)
         {
@@ -11602,7 +11602,7 @@ internal static partial class SvgSceneTextCompiler
             return 0f;
         }
 
-        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, codepoints, geometryBounds, assetLoader);
+        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, geometryBounds, assetLoader);
         var hasLetterSpacing = HasSpacingAdjustment(svgTextBase.LetterSpacing) && !SuppressesLetterSpacingForRun(codepoints);
         var hasWordSpacing = HasSpacingAdjustment(svgTextBase.WordSpacing);
         var totalAdvance = 0f;
@@ -14105,7 +14105,7 @@ internal static partial class SvgSceneTextCompiler
         }
 
         var pathLength = pathSamples[pathSamples.Count - 1].Distance;
-        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, codepoints, geometryBounds, assetLoader);
+        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, geometryBounds, assetLoader);
         var placementAdvances = CreateTextPathPlacementAdvances(text, codepoints, naturalAdvances);
         var letterSpacingUnit = svgTextBase.LetterSpacing;
         var wordSpacingUnit = svgTextBase.WordSpacing;
@@ -16200,6 +16200,16 @@ internal static partial class SvgSceneTextCompiler
         return s_preparedTextEngine.MeasureNaturalCodepointAdvances(svgTextBase, codepoints, geometryBounds, assetLoader);
     }
 
+    private static float[] MeasureNaturalCodepointAdvances(
+        SvgTextBase svgTextBase,
+        string text,
+        IReadOnlyList<string> codepoints,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader)
+    {
+        return MeasureNaturalCodepointAdvancesCore(svgTextBase, text, codepoints, geometryBounds, assetLoader);
+    }
+
     private static bool TryMeasureNaturalCodepointAdvancesFromSimpleShapedRun(
         SvgTextBase svgTextBase,
         string text,
@@ -16327,7 +16337,7 @@ internal static partial class SvgSceneTextCompiler
     {
         if (s_naturalCodepointAdvanceCache.TryGetValue(cacheKey, out var cachedAdvances))
         {
-            advances = (float[])cachedAdvances.Clone();
+            advances = cachedAdvances;
             return true;
         }
 
@@ -16886,7 +16896,7 @@ internal static partial class SvgSceneTextCompiler
             return 0f;
         }
 
-        var advances = MeasureNaturalCodepointAdvances(svgTextBase, codepoints, geometryBounds, assetLoader);
+        var advances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, geometryBounds, assetLoader);
         var lastIndex = advances.Length - 1;
         var start = TransformDecorationPoint(placements[0], 0f, 0f);
         var end = TransformDecorationPoint(placements[lastIndex], advances[lastIndex], 0f);
@@ -16954,7 +16964,7 @@ internal static partial class SvgSceneTextCompiler
 
         var hasEffectiveSpacingAdjustments = HasEffectiveSpacingAdjustments(svgTextBase, codepoints);
 
-        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, codepoints, geometryBounds, assetLoader);
+        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, geometryBounds, assetLoader);
         var letterSpacingUnit = svgTextBase.LetterSpacing;
         var wordSpacingUnit = svgTextBase.WordSpacing;
         var hasLetterSpacingAdjustment = HasSpacingAdjustment(letterSpacingUnit) && !SuppressesLetterSpacingForRun(codepoints);
@@ -17972,7 +17982,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, codepoints, geometryBounds, assetLoader);
+        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, geometryBounds, assetLoader);
         if (naturalAdvances.Length != flattenedCodepoints.Count)
         {
             return false;

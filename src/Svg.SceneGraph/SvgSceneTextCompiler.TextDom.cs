@@ -2265,7 +2265,7 @@ internal static partial class SvgSceneTextCompiler
         out float totalAdvance)
     {
         var codepoints = SplitCodepoints(text);
-        var advances = MeasureNaturalCodepointAdvances(svgTextBase, codepoints, viewport, assetLoader);
+        var advances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, viewport, assetLoader);
         var clusterStarts = SvgTextBoundaryResolver.Default.GetGraphemeClusterStartCharIndexes(text);
         var codepointCharOffsets = CreateCodepointCharOffsets(codepoints);
         if (clusterStarts.Count > 0)

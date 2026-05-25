@@ -175,7 +175,7 @@ internal static partial class SvgSceneTextCompiler
             ISvgAssetLoader assetLoader,
             out PreparedFlatTextRun preparedText)
         {
-            var naturalCodepointAdvances = MeasureNaturalCodepointAdvancesCore(styleSource, SplitCodepoints(text), geometryBounds, assetLoader);
+            var naturalCodepointAdvances = MeasureNaturalCodepointAdvancesCore(styleSource, text, SplitCodepoints(text), geometryBounds, assetLoader);
             preparedText = new PreparedFlatTextRun(
                 styleSource,
                 text,
@@ -245,7 +245,7 @@ internal static partial class SvgSceneTextCompiler
             SKRect geometryBounds,
             ISvgAssetLoader assetLoader)
         {
-            return MeasureNaturalCodepointAdvancesCore(styleSource, codepoints, geometryBounds, assetLoader);
+            return MeasureNaturalCodepointAdvancesCore(styleSource, text: null, codepoints, geometryBounds, assetLoader);
         }
 
         public void ClearCaches()
@@ -363,30 +363,31 @@ internal static partial class SvgSceneTextCompiler
 
     private static float[] MeasureNaturalCodepointAdvancesCore(
         SvgTextBase svgTextBase,
+        string? text,
         IReadOnlyList<string> codepoints,
         SKRect geometryBounds,
         ISvgAssetLoader assetLoader)
     {
-        var advances = new float[codepoints.Count];
         if (codepoints.Count == 0)
         {
-            return advances;
+            return Array.Empty<float>();
         }
 
         if (IsVerticalWritingMode(svgTextBase))
         {
+            var verticalAdvances = new float[codepoints.Count];
             for (var i = 0; i < codepoints.Count; i++)
             {
-                advances[i] = MeasureNaturalTextAdvanceCore(svgTextBase, codepoints[i], geometryBounds, assetLoader);
+                verticalAdvances[i] = MeasureNaturalTextAdvanceCore(svgTextBase, codepoints[i], geometryBounds, assetLoader);
             }
 
-            return advances;
+            return verticalAdvances;
         }
 
-        var text = string.Concat(codepoints);
+        text ??= string.Concat(codepoints);
         if (string.IsNullOrEmpty(text))
         {
-            return advances;
+            return Array.Empty<float>();
         }
 
         var paint = new SKPaint();
@@ -454,6 +455,7 @@ internal static partial class SvgSceneTextCompiler
             return clusteredAdvances;
         }
 
+        var advances = new float[codepoints.Count];
         var builder = new StringBuilder();
         var previousAdvance = 0f;
 

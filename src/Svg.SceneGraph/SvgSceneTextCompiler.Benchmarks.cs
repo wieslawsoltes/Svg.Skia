@@ -318,7 +318,7 @@ internal static partial class SvgSceneTextCompiler
             return;
         }
 
-        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, codepoints, geometryBounds, assetLoader);
+        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, geometryBounds, assetLoader);
         var letterSpacingUnit = svgTextBase.LetterSpacing;
         var wordSpacingUnit = svgTextBase.WordSpacing;
         var hasLetterSpacingAdjustment = HasSpacingAdjustment(letterSpacingUnit) && !SuppressesLetterSpacingForRun(text);
