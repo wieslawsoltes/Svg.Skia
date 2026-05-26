@@ -8,6 +8,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Platform;
@@ -29,6 +30,8 @@ public sealed class SvgSource : IDisposable
 
     public static readonly SkiaModel s_skiaModel;
 
+    private static readonly HttpClient s_httpClient = new();
+
     private SKSvg? _skSvg;
 
     private readonly Uri? _baseUri;
@@ -37,6 +40,7 @@ public sealed class SvgSource : IDisposable
     private string? _originalPath;
     private Stream? _originalStream;
     private Uri? _originalBaseUri;
+    private int _activeDrawOperationReferences;
     private int _activeRenders;
     private readonly ThreadLocal<int> _renderDepth = new(() => 0);
     private List<ResourceDisposal>? _deferredDisposals;
@@ -122,22 +126,9 @@ public sealed class SvgSource : IDisposable
 
             _disposePending = true;
 
-            if (_activeRenders > 0)
+            if (_activeRenders > 0 || _activeDrawOperationReferences > 0)
             {
-                if (_renderDepth.Value > 0)
-                {
-                    return;
-                }
-
-                while (_activeRenders > 0)
-                {
-                    Monitor.Wait(Sync);
-                }
-
-                if (_disposed)
-                {
-                    return;
-                }
+                return;
             }
 
             DisposeCoreLocked(out picture, out skSvg, out originalStream);
@@ -150,6 +141,28 @@ public sealed class SvgSource : IDisposable
     /// Enable throw exception on missing resource.
     /// </summary>
     public static bool EnableThrowOnMissingResource { get; set; }
+
+    internal bool HasPathSource
+    {
+        get
+        {
+            lock (Sync)
+            {
+                return _originalPath is not null || Path is not null;
+            }
+        }
+    }
+
+    internal bool HasLoadedSource
+    {
+        get
+        {
+            lock (Sync)
+            {
+                return _originalStream is not null || _originalPath is not null || _skSvg is not null;
+            }
+        }
+    }
 
     public object Sync { get; } = new();
 
@@ -173,6 +186,37 @@ public sealed class SvgSource : IDisposable
     {
         s_skiaModel = new SkiaModel(new SKSvgSettings());
         s_assetLoader = new SkiaSvgAssetLoader(s_skiaModel);
+    }
+
+    public static Uri NormalizePath(string path, Uri? baseUri = null)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            throw new ArgumentException("Path must not be null or empty.", nameof(path));
+        }
+
+        if (File.Exists(path))
+        {
+            return new Uri(System.IO.Path.GetFullPath(path));
+        }
+
+        if (Uri.TryCreate(path, UriKind.Absolute, out var absoluteUri))
+        {
+            return absoluteUri;
+        }
+
+        if (!path.StartsWith("/", StringComparison.Ordinal) && System.IO.Path.IsPathRooted(path))
+        {
+            return new Uri(System.IO.Path.GetFullPath(path));
+        }
+
+        var relativeUri = path.StartsWith("/", StringComparison.Ordinal)
+            ? new Uri(path, UriKind.Relative)
+            : new Uri(path, UriKind.RelativeOrAbsolute);
+
+        return baseUri is not null && !relativeUri.IsAbsoluteUri
+            ? new Uri(baseUri, relativeUri)
+            : relativeUri;
     }
 
     private static SKPicture? Load(SvgSource source, string? path, SvgParameters? parameters)
@@ -290,7 +334,7 @@ public sealed class SvgSource : IDisposable
         {
             try
             {
-                var response = new HttpClient().GetAsync(uriHttp).Result;
+                using var response = s_httpClient.GetAsync(uriHttp).Result;
                 if (response.IsSuccessStatusCode)
                 {
                     var stream = response.Content.ReadAsStreamAsync().Result;
@@ -324,6 +368,79 @@ public sealed class SvgSource : IDisposable
         }
     }
 
+    private static async Task<SKPicture?> LoadImplAsync(
+        SvgSource source,
+        string path,
+        Uri? baseUri,
+        SvgParameters? parameters,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (File.Exists(path))
+        {
+            return await Task.Run(() => Load(source, path, parameters), cancellationToken).ConfigureAwait(false);
+        }
+
+        var normalizedUri = NormalizePath(path, baseUri);
+        if (normalizedUri.IsAbsoluteUri && normalizedUri.IsFile)
+        {
+            if (!File.Exists(normalizedUri.LocalPath))
+            {
+                ThrowOnMissingResource(path);
+                return null;
+            }
+
+            return await Task.Run(() => Load(source, normalizedUri.LocalPath, parameters), cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        if (normalizedUri.IsAbsoluteUri && normalizedUri.Scheme is "http" or "https")
+        {
+            try
+            {
+                using var response = await s_httpClient
+                    .GetAsync(normalizedUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    ThrowOnMissingResource(path);
+                    return null;
+                }
+
+                await using var httpStream = await response.Content
+                    .ReadAsStreamAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                return await Task.Run(() => Load(source, httpStream, parameters, normalizedUri), cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (HttpRequestException e)
+            {
+                Debug.WriteLine("Failed to connect to " + normalizedUri);
+                Debug.WriteLine(e.ToString());
+                ThrowOnMissingResource(path);
+                return null;
+            }
+        }
+
+        var assetUri = normalizedUri.IsAbsoluteUri
+            ? normalizedUri
+            : path.StartsWith("/", StringComparison.Ordinal)
+                ? new Uri(path, UriKind.Relative)
+                : new Uri(path, UriKind.RelativeOrAbsolute);
+        var assetBaseUri = normalizedUri.IsAbsoluteUri ? null : baseUri;
+        await using var stream = AssetLoader.Open(assetUri, assetBaseUri);
+        if (stream is null)
+        {
+            ThrowOnMissingResource(path);
+            return null;
+        }
+
+        return await Task.Run(() => Load(source, stream, parameters, normalizedUri), cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     /// <summary>t
     /// Loads svg source from file or resource.
     /// </summary>
@@ -335,6 +452,25 @@ public sealed class SvgSource : IDisposable
     {
         var source = new SvgSource(baseUri);
         LoadImpl(source, path, baseUri, parameters);
+        return source;
+    }
+
+    /// <summary>t
+    /// Loads svg source from file or resource asynchronously.
+    /// </summary>
+    /// <param name="path">The path to file or resource.</param>
+    /// <param name="baseUri">The base uri.</param>
+    /// <param name="parameters">The svg parameters.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The svg source.</returns>
+    public static async Task<SvgSource> LoadAsync(
+        string path,
+        Uri? baseUri = default,
+        SvgParameters? parameters = null,
+        CancellationToken cancellationToken = default)
+    {
+        var source = new SvgSource(baseUri) { Path = path };
+        await LoadImplAsync(source, path, baseUri, parameters, cancellationToken).ConfigureAwait(false);
         return source;
     }
 
@@ -612,6 +748,57 @@ public sealed class SvgSource : IDisposable
         }
     }
 
+    public async Task ReLoadAsync(SvgParameters? parameters, CancellationToken cancellationToken = default)
+    {
+        MemoryStream? streamCopy = null;
+        string? originalPath;
+        string? path;
+        Uri? originalBaseUri;
+        Uri? baseUri;
+
+        lock (Sync)
+        {
+            if (_originalStream is null && _originalPath is null && Path is null)
+            {
+                return;
+            }
+
+            if (_originalStream is { } originalStream)
+            {
+                streamCopy = new MemoryStream();
+                var position = originalStream.Position;
+                originalStream.Position = 0;
+                originalStream.CopyTo(streamCopy);
+                streamCopy.Position = 0;
+                originalStream.Position = position;
+            }
+            originalPath = _originalPath;
+            originalBaseUri = _originalBaseUri;
+            path = Path;
+            baseUri = _baseUri;
+        }
+
+        if (streamCopy is { })
+        {
+            await Task.Run(() => LoadFromCachedStream(this, streamCopy, parameters, originalBaseUri), cancellationToken)
+                .ConfigureAwait(false);
+            return;
+        }
+
+        if (originalPath is { })
+        {
+            await LoadImplAsync(this, originalPath, originalBaseUri, parameters, cancellationToken)
+                .ConfigureAwait(false);
+            return;
+        }
+
+        if (path is { })
+        {
+            await LoadImplAsync(this, path, baseUri, parameters, cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
+
     private bool ReplaceResources(
         SKPicture? picture,
         SKSvg? skSvg,
@@ -668,11 +855,51 @@ public sealed class SvgSource : IDisposable
         _deferredDisposals.Add(new ResourceDisposal(picture, skSvg, originalStream));
     }
 
-    internal bool BeginRender()
+    internal bool AddDrawOperationReference()
     {
         lock (Sync)
         {
             if (_disposed || _disposePending)
+            {
+                return false;
+            }
+
+            _activeDrawOperationReferences++;
+            return true;
+        }
+    }
+
+    internal void ReleaseDrawOperationReference()
+    {
+        SKPicture? picture = null;
+        SKSvg? skSvg = null;
+        Stream? originalStream = null;
+
+        lock (Sync)
+        {
+            if (_activeDrawOperationReferences > 0)
+            {
+                _activeDrawOperationReferences--;
+            }
+
+            if (_activeDrawOperationReferences == 0 && _activeRenders == 0 && _disposePending)
+            {
+                DisposeCoreLocked(out picture, out skSvg, out originalStream);
+                Monitor.PulseAll(Sync);
+            }
+        }
+
+        if (picture is not null || skSvg is not null || originalStream is not null)
+        {
+            DisposeResources(picture, skSvg, originalStream);
+        }
+    }
+
+    internal bool BeginRender()
+    {
+        lock (Sync)
+        {
+            if (_disposed || (_disposePending && _activeDrawOperationReferences == 0))
             {
                 return false;
             }
@@ -702,7 +929,7 @@ public sealed class SvgSource : IDisposable
                 deferredDisposals = _deferredDisposals;
                 _deferredDisposals = null;
 
-                if (_disposePending)
+                if (_disposePending && _activeDrawOperationReferences == 0)
                 {
                     DisposeCoreLocked(out picture, out skSvg, out originalStream);
                 }

@@ -9,16 +9,26 @@ namespace Avalonia.Svg.Skia;
 
 public class SvgSourceCustomDrawOperation : ICustomDrawOperation
 {
-    private readonly SvgSource? _svg;
+    private SvgSource? _svg;
+    private bool _disposed;
 
     public SvgSourceCustomDrawOperation(Rect bounds, SvgSource? svg)
     {
-        _svg = svg;
+        _svg = svg?.AddDrawOperationReference() == true ? svg : null;
         Bounds = bounds;
     }
 
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        var svg = _svg;
+        _svg = null;
+        svg?.ReleaseDrawOperationReference();
     }
 
     public Rect Bounds { get; }
