@@ -396,22 +396,75 @@ internal static class MaskingService
 
     internal static SKRect? GetClipRect(string clip, SKRect skRectBounds)
     {
-        if (!string.IsNullOrEmpty(clip) && clip.StartsWith("rect(", StringComparison.Ordinal))
+        if (string.IsNullOrWhiteSpace(clip))
         {
-            clip = clip.Trim();
-            var offsets = new List<float>();
-            foreach (var o in clip.Substring(5, clip.Length - 6).Split(','))
-            {
-                offsets.Add(float.Parse(o.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture));
-            }
-
-            var skClipRect = SKRect.Create(
-                skRectBounds.Left + offsets[3],
-                skRectBounds.Top + offsets[0],
-                skRectBounds.Width - (offsets[3] + offsets[1]),
-                skRectBounds.Height - (offsets[2] + offsets[0]));
-            return skClipRect;
+            return default;
         }
-        return default;
+
+        clip = clip.Trim();
+        if (!clip.StartsWith("rect(", StringComparison.OrdinalIgnoreCase) ||
+            !clip.EndsWith(")", StringComparison.Ordinal))
+        {
+            return default;
+        }
+
+        var value = clip.Substring(5, clip.Length - 6);
+        var parts = value.IndexOf(',') >= 0
+            ? value.Split(',')
+            : value.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length != 4)
+        {
+            return default;
+        }
+
+        if (value.IndexOf(',') >= 0)
+        {
+            return CreateLegacyOffsetClipRect(parts, skRectBounds);
+        }
+
+        if (!TryResolveClipEdge(parts[0], 0f, out var top) ||
+            !TryResolveClipEdge(parts[1], skRectBounds.Width, out var right) ||
+            !TryResolveClipEdge(parts[2], skRectBounds.Height, out var bottom) ||
+            !TryResolveClipEdge(parts[3], 0f, out var left))
+        {
+            return default;
+        }
+
+        var width = Math.Max(0f, right - left);
+        var height = Math.Max(0f, bottom - top);
+        return SKRect.Create(skRectBounds.Left + left, skRectBounds.Top + top, width, height);
+    }
+
+    private static SKRect? CreateLegacyOffsetClipRect(string[] parts, SKRect skRectBounds)
+    {
+        if (!TryResolveClipEdge(parts[0], 0f, out var topOffset) ||
+            !TryResolveClipEdge(parts[1], 0f, out var rightOffset) ||
+            !TryResolveClipEdge(parts[2], 0f, out var bottomOffset) ||
+            !TryResolveClipEdge(parts[3], 0f, out var leftOffset))
+        {
+            return default;
+        }
+
+        var width = Math.Max(0f, skRectBounds.Width - leftOffset - rightOffset);
+        var height = Math.Max(0f, skRectBounds.Height - topOffset - bottomOffset);
+        return SKRect.Create(skRectBounds.Left + leftOffset, skRectBounds.Top + topOffset, width, height);
+    }
+
+    private static bool TryResolveClipEdge(string value, float autoValue, out float edge)
+    {
+        value = value.Trim();
+        if (string.Equals(value, "auto", StringComparison.OrdinalIgnoreCase))
+        {
+            edge = autoValue;
+            return true;
+        }
+
+        if (value.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+        {
+            value = value.Substring(0, value.Length - 2).Trim();
+        }
+
+        return float.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out edge);
     }
 }

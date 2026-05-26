@@ -1247,7 +1247,7 @@ public partial class SkiaModel
                         ? SkiaSharp.SKImageFilter.CreateSpotLitSpecular(
                             ToSKPoint3(spotLitSpecularImageFilter.Location),
                             ToSKPoint3(spotLitSpecularImageFilter.Target),
-                            spotLitSpecularImageFilter.Shininess,
+                            spotLitSpecularImageFilter.SpecularExponent,
                             spotLitSpecularImageFilter.CutoffAngle,
                             ToSKColor(spotLitSpecularImageFilter.LightColor),
                             spotLitSpecularImageFilter.SurfaceScale,
@@ -1263,7 +1263,7 @@ public partial class SkiaModel
                             ToSKColor(spotLitSpecularImageFilter.LightColor),
                             spotLitSpecularImageFilter.SurfaceScale,
                             spotLitSpecularImageFilter.Ks,
-                            spotLitSpecularImageFilter.SpecularExponent,
+                            spotLitSpecularImageFilter.Shininess,
                             ToSKImageFilter(spotLitSpecularImageFilter.Input));
                 }
             case TileImageFilter tileImageFilter:

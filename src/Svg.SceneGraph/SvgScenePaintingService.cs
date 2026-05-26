@@ -28,6 +28,9 @@ internal static class SvgScenePaintingService
 {
     internal readonly record struct SolidFillPaintCacheKey(bool IsAntialias, SKColor Color, bool LinearRgb);
 
+    [ThreadStatic]
+    private static HashSet<SvgPatternServer>? s_activePatternServers;
+
     internal static float AdjustSvgOpacity(float opacity)
     {
         return Math.Min(Math.Max(opacity, 0f), 1f);
@@ -732,7 +735,7 @@ internal static class SvgScenePaintingService
 
         foreach (var p in svgReferencedGradientServers)
         {
-            if (firstSpreadMethod is null && p.SpreadMethod != SvgGradientSpreadMethod.Pad)
+            if (firstSpreadMethod is null && SvgService.TryGetAttribute(p, "spreadMethod", out _))
             {
                 firstSpreadMethod = p;
             }
@@ -742,7 +745,7 @@ internal static class SvgScenePaintingService
                 firstGradientTransform = p;
             }
 
-            if (firstGradientUnits is null && p.GradientUnits != SvgCoordinateUnits.ObjectBoundingBox)
+            if (firstGradientUnits is null && SvgService.TryGetAttribute(p, "gradientUnits", out _))
             {
                 firstGradientUnits = p;
             }
@@ -869,7 +872,7 @@ internal static class SvgScenePaintingService
 
         foreach (var p in svgReferencedGradientServers)
         {
-            if (firstSpreadMethod is null && p.SpreadMethod != SvgGradientSpreadMethod.Pad)
+            if (firstSpreadMethod is null && SvgService.TryGetAttribute(p, "spreadMethod", out _))
             {
                 firstSpreadMethod = p;
             }
@@ -879,7 +882,7 @@ internal static class SvgScenePaintingService
                 firstGradientTransform = p;
             }
 
-            if (firstGradientUnits is null && p.GradientUnits != SvgCoordinateUnits.ObjectBoundingBox)
+            if (firstGradientUnits is null && SvgService.TryGetAttribute(p, "gradientUnits", out _))
             {
                 firstGradientUnits = p;
             }
@@ -936,6 +939,11 @@ internal static class SvgScenePaintingService
         var focalX = focalXUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
         var focalY = focalYUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
         var focalRadius = focalRadiusUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
+
+        if (radius < 0f)
+        {
+            return null;
+        }
 
         var colors = new List<SKColor>();
         var colorPos = new List<float>();
@@ -1019,6 +1027,13 @@ internal static class SvgScenePaintingService
         {
             return null;
         }
+
+        if (IsActivePattern(svgPatternServer) || IsActivePattern(patternState.ContentSource))
+        {
+            return null;
+        }
+
+        using var activePatternScope = PushActivePattern(svgPatternServer, patternState.ContentSource);
         var patternScene = SvgSceneCompiler.CompileTemporaryChildrenScene(
             patternState.ContentSource,
             patternState.Children,
@@ -1037,5 +1052,59 @@ internal static class SvgScenePaintingService
         return picture is null
             ? null
             : SKShader.CreatePicture(picture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, patternState.ShaderMatrix, picture.CullRect);
+    }
+
+    private static bool IsActivePattern(SvgPatternServer svgPatternServer)
+        => s_activePatternServers?.Contains(svgPatternServer) == true;
+
+    private static ActivePatternScope PushActivePattern(SvgPatternServer svgPatternServer, SvgPatternServer contentSource)
+    {
+        s_activePatternServers ??= new HashSet<SvgPatternServer>();
+        var addedPattern = s_activePatternServers.Add(svgPatternServer);
+        var addedContentSource = !ReferenceEquals(svgPatternServer, contentSource) && s_activePatternServers.Add(contentSource);
+        return new ActivePatternScope(svgPatternServer, contentSource, addedPattern, addedContentSource);
+    }
+
+    private readonly struct ActivePatternScope : IDisposable
+    {
+        private readonly SvgPatternServer _svgPatternServer;
+        private readonly SvgPatternServer _contentSource;
+        private readonly bool _addedPattern;
+        private readonly bool _addedContentSource;
+
+        public ActivePatternScope(
+            SvgPatternServer svgPatternServer,
+            SvgPatternServer contentSource,
+            bool addedPattern,
+            bool addedContentSource)
+        {
+            _svgPatternServer = svgPatternServer;
+            _contentSource = contentSource;
+            _addedPattern = addedPattern;
+            _addedContentSource = addedContentSource;
+        }
+
+        public void Dispose()
+        {
+            if (s_activePatternServers is null)
+            {
+                return;
+            }
+
+            if (_addedContentSource)
+            {
+                s_activePatternServers.Remove(_contentSource);
+            }
+
+            if (_addedPattern)
+            {
+                s_activePatternServers.Remove(_svgPatternServer);
+            }
+
+            if (s_activePatternServers.Count == 0)
+            {
+                s_activePatternServers = null;
+            }
+        }
     }
 }

@@ -106,13 +106,9 @@ internal static class SvgPatternPaintStateResolver
                 firstViewBox = pattern;
             }
 
-            if (firstAspectRatio is null)
+            if (firstAspectRatio is null && SvgService.TryGetAttribute(pattern, "preserveAspectRatio", out _))
             {
-                var aspectRatio = pattern.AspectRatio;
-                if (aspectRatio.Align != SvgPreserveAspectRatio.xMidYMid || aspectRatio.Slice || aspectRatio.Defer)
-                {
-                    firstAspectRatio = pattern;
-                }
+                firstAspectRatio = pattern;
             }
         }
 
@@ -139,6 +135,11 @@ internal static class SvgPatternPaintStateResolver
 
         var shaderMatrix = SKMatrix.CreateIdentity();
         shaderMatrix = shaderMatrix.PreConcat(TransformsService.ToMatrix(patternTransform));
+        if (!shaderMatrix.TryInvert(out _))
+        {
+            return false;
+        }
+
         shaderMatrix = shaderMatrix.PreConcat(SKMatrix.CreateTranslation(patternRect.Value.Left, patternRect.Value.Top));
 
         var pictureTransform = SKMatrix.CreateIdentity();

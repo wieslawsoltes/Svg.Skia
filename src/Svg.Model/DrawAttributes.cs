@@ -16,5 +16,6 @@ public enum DrawAttributes
     Mask = 32,
     RequiredFeatures = 64,
     RequiredExtensions = 128,
-    SystemLanguage = 256
+    SystemLanguage = 256,
+    Markers = 512
 }

@@ -21,6 +21,10 @@ public class resvgTests : SvgUnitTest
     public static IEnumerable<object[]> NonTextFixtureRows()
         => EnumerateFixtureRows(excludePrefix: "tests/text/");
 
+    public static IEnumerable<object[]> ResourceRenderingFixtureRows()
+        => EnumerateFixtureRows()
+            .Where(static row => IsResourceRenderingFixture((string)row[0]));
+
     [OSXTheory]
     [MemberData(nameof(TextFixtureRows))]
     public void text_fixtures(string relativeName, double errorThreshold)
@@ -29,6 +33,11 @@ public class resvgTests : SvgUnitTest
     [OSXTheory(Skip = "Non-text resvg fixtures are tracked by resvg_fixture_inventory and enabled by feature area.")]
     [MemberData(nameof(NonTextFixtureRows))]
     public void non_text_fixtures(string relativeName, double errorThreshold)
+        => TestImpl(relativeName, errorThreshold);
+
+    [OSXTheory]
+    [MemberData(nameof(ResourceRenderingFixtureRows))]
+    public void resource_rendering_fixtures(string relativeName, double errorThreshold)
         => TestImpl(relativeName, errorThreshold);
 
     [Fact]
@@ -161,6 +170,46 @@ public class resvgTests : SvgUnitTest
             _ => defaultThreshold
         };
     }
+
+    private static bool IsResourceRenderingFixture(string relativeName)
+        => !relativeName.StartsWith("tests/text/", StringComparison.Ordinal) &&
+           ResourceRenderingFixturePrefixes.Any(prefix => relativeName.StartsWith(prefix, StringComparison.Ordinal));
+
+    private static readonly string[] ResourceRenderingFixturePrefixes =
+    {
+        "tests/filters/feComponentTransfer/",
+        "tests/filters/feDisplacementMap/",
+        "tests/filters/feDistantLight/",
+        "tests/filters/feTurbulence/",
+        "tests/masking/clip-rule/",
+        "tests/paint-servers/stop-color/",
+        "tests/painting/color/",
+        "tests/painting/fill-rule/",
+        "tests/painting/image-rendering/",
+        "tests/painting/isolation/",
+        "tests/painting/marker/",
+        "tests/painting/mix-blend-mode/",
+        "tests/painting/paint-order/",
+        "tests/painting/shape-rendering/",
+        "tests/painting/stroke/",
+        "tests/painting/stroke-dasharray/",
+        "tests/painting/stroke-dashoffset/",
+        "tests/painting/stroke-linecap/",
+        "tests/painting/stroke-linejoin/",
+        "tests/painting/stroke-miterlimit/",
+        "tests/painting/stroke-width/",
+        "tests/painting/visibility/",
+        "tests/shapes/circle/",
+        "tests/shapes/line/",
+        "tests/shapes/polygon/",
+        "tests/shapes/polyline/",
+        "tests/shapes/rect/",
+        "tests/structure/a/",
+        "tests/structure/defs/",
+        "tests/structure/g/",
+        "tests/structure/transform/",
+        "tests/structure/use/"
+    };
 
     private static string GetResvgTestsRoot()
         => Path.GetFullPath(Path.Combine("..", "..", "..", "..", "..", "externals", "resvg", "crates", "resvg", "tests"));

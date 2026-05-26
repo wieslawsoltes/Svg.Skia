@@ -80,6 +80,40 @@ public class Svg2StaticPaintServerTests
     }
 
     [Fact]
+    public void LinearGradient_ExplicitDefaultSpreadMethodOverridesReferencedGradient()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="80">
+              <defs>
+                <linearGradient id="base" spreadMethod="reflect">
+                  <stop offset="0" stop-color="red" />
+                  <stop offset="1" stop-color="blue" />
+                </linearGradient>
+                <linearGradient id="paint" href="#base" spreadMethod="pad" />
+              </defs>
+              <rect id="target" x="0" y="0" width="50" height="40" fill="url(#paint)" />
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg);
+        Assert.NotNull(document);
+
+        var target = Assert.IsType<SvgRectangle>(document!.GetElementById("target"));
+        var gradient = Assert.IsType<SvgLinearGradientServer>(document.GetElementById("paint"));
+
+        var shader = Assert.IsType<LinearGradientShader>(
+            PaintingService.CreateLinearGradient(
+                gradient,
+                SKRect.Create(0f, 0f, 50f, 40f),
+                target,
+                1f,
+                DrawAttributes.None,
+                SKColorSpace.Srgb));
+
+        Assert.Equal(SKShaderTileMode.Clamp, shader.Mode);
+    }
+
+    [Fact]
     public void RadialGradient_InheritsStylesheetFocalRadiusThroughHrefChain()
     {
         const string svg = """
@@ -120,4 +154,5 @@ public class Svg2StaticPaintServerTests
         Assert.Equal(2f, shader.LocalMatrix!.Value.TransX);
         Assert.Equal(3f, shader.LocalMatrix.Value.TransY);
     }
+
 }

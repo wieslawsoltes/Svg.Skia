@@ -86,4 +86,68 @@ public class SvgPatternPaintStateResolverTests
         Assert.Equal(8f, state.ShaderMatrix.TransX);
         Assert.Equal(11f, state.ShaderMatrix.TransY);
     }
+
+    [Fact]
+    public void TryCreate_ExplicitDefaultPreserveAspectRatioOverridesReferencedPattern()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="80">
+              <defs>
+                <pattern id="base" width="20" height="10" patternUnits="userSpaceOnUse" viewBox="0 0 10 10" preserveAspectRatio="none">
+                  <rect id="pattern-rect" x="0" y="0" width="10" height="10" fill="red" />
+                </pattern>
+                <pattern id="derived" href="#base" preserveAspectRatio="xMidYMid" />
+              </defs>
+              <rect id="target" x="0" y="0" width="50" height="40" fill="url(#derived)" />
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg);
+        Assert.NotNull(document);
+
+        var target = Assert.IsType<SvgRectangle>(document!.GetElementById("target"));
+        var derived = Assert.IsType<SvgPatternServer>(document.GetElementById("derived"));
+
+        var resolved = SvgPatternPaintStateResolver.TryCreate(
+            derived,
+            target,
+            SKRect.Create(0f, 0f, 50f, 40f),
+            out var state);
+
+        Assert.True(resolved);
+        Assert.NotNull(state);
+        Assert.Equal(1f, state!.PictureTransform.ScaleX);
+        Assert.Equal(1f, state.PictureTransform.ScaleY);
+        Assert.Equal(5f, state.PictureTransform.TransX);
+    }
+
+    [Fact]
+    public void TryCreate_RejectsNonInvertiblePatternTransform()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="80">
+              <defs>
+                <pattern id="pat" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="matrix(0 0 0 0 0 0)">
+                  <rect id="pattern-rect" x="0" y="0" width="10" height="10" fill="red" />
+                </pattern>
+              </defs>
+              <rect id="target" x="0" y="0" width="50" height="40" fill="url(#pat)" />
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg);
+        Assert.NotNull(document);
+
+        var target = Assert.IsType<SvgRectangle>(document!.GetElementById("target"));
+        var pattern = Assert.IsType<SvgPatternServer>(document.GetElementById("pat"));
+
+        var resolved = SvgPatternPaintStateResolver.TryCreate(
+            pattern,
+            target,
+            SKRect.Create(0f, 0f, 50f, 40f),
+            out var state);
+
+        Assert.False(resolved);
+        Assert.Null(state);
+    }
 }

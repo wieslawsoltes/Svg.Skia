@@ -1162,7 +1162,7 @@ internal sealed class SvgSceneFilterContext
         {
             case SvgColourMatrixType.HueRotate:
                 {
-                    var value = string.IsNullOrEmpty(svgColourMatrix.Values) ? 0 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture);
+                    var value = TryParseSingle(svgColourMatrix.Values, 0f);
                     var hue = (float)SvgService.DegreeToRadian(value);
                     var cosHue = Math.Cos(hue);
                     var sinHue = Math.Sin(hue);
@@ -1196,7 +1196,7 @@ internal sealed class SvgSceneFilterContext
 
             case SvgColourMatrixType.Saturate:
                 {
-                    var value = string.IsNullOrEmpty(svgColourMatrix.Values) ? 1 : float.Parse(svgColourMatrix.Values, NumberStyles.Any, CultureInfo.InvariantCulture);
+                    var value = TryParseSingle(svgColourMatrix.Values, 1f);
                     float[] matrix = {
                         (float)(0.213+0.787*value), (float)(0.715-0.715*value), (float)(0.072-0.072*value), 0, 0,
                         (float)(0.213-0.213*value), (float)(0.715+0.285*value), (float)(0.072-0.072*value), 0, 0,
@@ -1223,12 +1223,19 @@ internal sealed class SvgSceneFilterContext
                             matrix = new float[20];
                             for (var i = 0; i < 20; i++)
                             {
-                                matrix[i] = float.Parse(parts[i], NumberStyles.Any, CultureInfo.InvariantCulture);
+                                if (!float.TryParse(parts[i], NumberStyles.Any, CultureInfo.InvariantCulture, out matrix[i]))
+                                {
+                                    matrix = CreateIdentityColorMatrixArray();
+                                    break;
+                                }
                             }
-                            matrix[4] *= 255f;
-                            matrix[9] *= 255f;
-                            matrix[14] *= 255f;
-                            matrix[19] *= 255f;
+                            if (matrix.Length == 20)
+                            {
+                                matrix[4] *= 255f;
+                                matrix[9] *= 255f;
+                                matrix[14] *= 255f;
+                                matrix[19] *= 255f;
+                            }
                         }
                         else
                         {
@@ -1241,6 +1248,14 @@ internal sealed class SvgSceneFilterContext
         }
 
         return SKImageFilter.CreateColorFilter(skColorFilter, input, cropRect);
+    }
+
+    private static float TryParseSingle(string? value, float fallback)
+    {
+        return !string.IsNullOrWhiteSpace(value) &&
+               float.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : fallback;
     }
 
     private void Identity(byte[] values, SvgComponentTransferFunction transferFunction)
@@ -1718,7 +1733,7 @@ internal sealed class SvgSceneFilterContext
             sigmaY *= value;
         }
 
-        if (sigmaX < 0f && sigmaY < 0f)
+        if (sigmaX < 0f || sigmaY < 0f)
         {
             return default;
         }
@@ -2099,15 +2114,23 @@ internal sealed class SvgSceneFilterContext
             radiusY *= value;
         }
 
+        if (radiusX < 0f || radiusY < 0f)
+        {
+            return default;
+        }
+
         if (radiusX <= 0f && radiusY <= 0f)
         {
             return default;
         }
 
+        var kernelRadiusX = radiusX <= 0f ? 0 : Math.Max(1, (int)Math.Ceiling(radiusX));
+        var kernelRadiusY = radiusY <= 0f ? 0 : Math.Max(1, (int)Math.Ceiling(radiusY));
+
         return svgMorphology.Operator switch
         {
-            SvgMorphologyOperator.Dilate => SKImageFilter.CreateDilate((int)radiusX, (int)radiusY, input, cropRect),
-            SvgMorphologyOperator.Erode => SKImageFilter.CreateErode((int)radiusX, (int)radiusY, input, cropRect),
+            SvgMorphologyOperator.Dilate => SKImageFilter.CreateDilate(kernelRadiusX, kernelRadiusY, input, cropRect),
+            SvgMorphologyOperator.Erode => SKImageFilter.CreateErode(kernelRadiusX, kernelRadiusY, input, cropRect),
             _ => null,
         };
     }
