@@ -13,7 +13,7 @@ namespace Svg
                 throw new ArgumentNullException(nameof(attributeName));
             }
 
-            var normalized = NormalizeAnimationAttributeName(attributeName, out _, out _);
+            var normalized = NormalizeAnimationAttributeName(attributeName, out var namespaceName, out _);
             var value = GetValue(normalized);
             if (value is not null)
             {
@@ -21,6 +21,12 @@ namespace Svg
             }
 
             if (TryGetAttribute(attributeName, out var rawValue))
+            {
+                return rawValue;
+            }
+
+            if (namespaceName.Length != 0 &&
+                TryGetAttribute(string.Concat(namespaceName, ":", normalized), out rawValue))
             {
                 return rawValue;
             }

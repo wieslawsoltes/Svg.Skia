@@ -180,6 +180,19 @@ public class AnimationElementTests
     }
 
     [Fact]
+    public void SvgElementAnimationValueApi_ReadsNamespacedCustomAttributes()
+    {
+        var document = SvgService.FromSvg(NamespacedCustomAttributeBaseSvg);
+        Assert.NotNull(document);
+
+        var rectangle = Assert.IsType<SvgRectangle>(document!.GetElementById("target"));
+
+        Assert.True(rectangle.CustomAttributes.ContainsKey("urn:example:flag"));
+        Assert.True(rectangle.CustomAttributes.ContainsKey("flag"));
+        Assert.Equal("off", rectangle.GetAnimationValue("foo:flag"));
+    }
+
+    [Fact]
     public void AnimationElements_DeepCopyPreservesConcreteTypesAndChildren()
     {
         var document = LoadDocument();
@@ -228,6 +241,15 @@ public class AnimationElementTests
              width="10"
              height="10">
           <rect id="target" x="0" y="0" width="10" height="10" />
+        </svg>
+        """;
+
+    private const string NamespacedCustomAttributeBaseSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             xmlns:foo="urn:example"
+             width="10"
+             height="10">
+          <rect id="target" x="0" y="0" width="10" height="10" flag="plain" foo:flag="off" />
         </svg>
         """;
 
