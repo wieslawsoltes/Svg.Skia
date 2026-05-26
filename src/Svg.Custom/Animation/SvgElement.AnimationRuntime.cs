@@ -101,6 +101,11 @@ namespace Svg
                 removed |= CustomAttributes.Remove(normalized);
             }
 
+            if (namespaceName.Length != 0)
+            {
+                removed |= CustomAttributes.Remove(string.Concat(namespaceName, ":", normalized));
+            }
+
             if (IsHrefAttribute(normalized, namespaceName))
             {
                 ClearCompatibilityHrefAttributeValue(namespaceName);
