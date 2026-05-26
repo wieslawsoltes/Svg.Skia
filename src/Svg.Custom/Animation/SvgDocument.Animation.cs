@@ -35,15 +35,22 @@ namespace Svg
 
         internal void RebindSameDocumentDeferredPaintServers()
         {
+            RebindSameDocumentDeferredPaintServers(this);
+
             foreach (var element in Descendants())
             {
-                foreach (var attribute in element.Attributes)
+                RebindSameDocumentDeferredPaintServers(element);
+            }
+        }
+
+        private void RebindSameDocumentDeferredPaintServers(SvgElement element)
+        {
+            foreach (var attribute in element.Attributes)
+            {
+                if (attribute.Value is SvgDeferredPaintServer deferredPaintServer &&
+                    IsSameDocumentDeferredPaintServer(deferredPaintServer))
                 {
-                    if (attribute.Value is SvgDeferredPaintServer deferredPaintServer &&
-                        IsSameDocumentDeferredPaintServer(deferredPaintServer))
-                    {
-                        deferredPaintServer.RebindDocument(this);
-                    }
+                    deferredPaintServer.RebindDocument(this);
                 }
             }
         }

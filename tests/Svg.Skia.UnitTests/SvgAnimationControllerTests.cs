@@ -295,6 +295,21 @@ public class SvgAnimationControllerTests
     }
 
     [Fact]
+    public void CreateAnimatedDocument_RebindsRootDeferredPaintServers()
+    {
+        var document = SvgService.FromSvg(RootDeferredPaintServerAnimationSvg);
+        Assert.NotNull(document);
+
+        using var controller = new SvgAnimationController(document!);
+        var animated = controller.CreateAnimatedDocument(TimeSpan.FromSeconds(2));
+
+        var fill = Assert.IsType<SvgDeferredPaintServer>(animated.Fill);
+#pragma warning disable CS0618
+        Assert.Same(animated, fill.Document);
+#pragma warning restore CS0618
+    }
+
+    [Fact]
     public void CreateAnimatedDocument_AppliesInheritedCssAnimationsWhenWhitespaceCssParameterIsProvided()
     {
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(InheritedFontSizeAnimationSvg));
@@ -1745,6 +1760,24 @@ public class SvgAnimationControllerTests
             </g>
           </defs>
           <rect x="0" y="0" width="20" height="10" fill="url(#gradient)" />
+        </svg>
+        """;
+
+    private const string RootDeferredPaintServerAnimationSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="20"
+             height="10"
+             viewBox="0 0 20 10"
+             fill="url(#gradient)">
+          <defs>
+            <linearGradient id="gradient">
+              <stop id="animated-stop" offset="0" stop-color="red">
+                <animate attributeName="stop-color" begin="0s" dur="2s" fill="freeze" from="red" to="green" />
+              </stop>
+              <stop offset="1" stop-color="green" />
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="20" height="10" />
         </svg>
         """;
 
