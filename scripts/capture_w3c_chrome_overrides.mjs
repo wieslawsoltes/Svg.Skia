@@ -15,8 +15,14 @@ const repoRoot = path.resolve(__dirname, '..');
 const svgDir = path.join(repoRoot, 'externals', 'W3C_SVG_11_TestSuite', 'W3C_SVG_11_TestSuite', 'svg');
 const outputDir = path.join(repoRoot, 'tests', 'Svg.Skia.UnitTests', 'ChromeReference', 'W3C');
 const wrapperDir = path.join(repoRoot, 'output', 'playwright', 'w3c-capture');
-const animationSeekOverrides = new Map([
-    ['animate-dom-01-f', 2.5],
+const w3cTestSuiteTestsPath = path.join(repoRoot, 'tests', 'Svg.Skia.UnitTests', 'W3CTestSuiteTests.cs');
+const animationSeekOverrides = await readAnimationSeekOverrides();
+const preSeekInteractionScripts = new Map([
+    ['animate-elem-52-t', `
+      dispatchMouseEvent(doc, win, 'A', 'click');
+      dispatchMouseEvent(doc, win, 'B', 'click');
+      dispatchMouseEvent(doc, win, 'C', 'click');
+    `],
 ]);
 const interactionScripts = new Map([
     ['interact-dom-01-b', `
@@ -52,6 +58,45 @@ const mimeTypes = new Map([
     ['.svg', 'image/svg+xml; charset=utf-8'],
     ['.txt', 'text/plain; charset=utf-8'],
 ]);
+
+async function readAnimationSeekOverrides()
+{
+    const source = await fs.readFile(w3cTestSuiteTestsPath, 'utf8');
+    const startMarker = '// W3C_ANIMATION_SEEK_TIMES_BEGIN';
+    const endMarker = '// W3C_ANIMATION_SEEK_TIMES_END';
+    const start = source.indexOf(startMarker);
+    const end = source.indexOf(endMarker);
+
+    if (start < 0 || end < 0 || end <= start)
+    {
+        throw new Error(`Unable to find W3C animation seek-time markers in ${w3cTestSuiteTestsPath}.`);
+    }
+
+    const tableSource = source.slice(start + startMarker.length, end);
+    const seekTimes = new Map();
+    const rowPattern = /^\s*\["([^"]+)"\]\s*=\s*([0-9]+(?:\.[0-9]+)?)/gm;
+    let match;
+
+    while ((match = rowPattern.exec(tableSource)) !== null)
+    {
+        const name = match[1];
+        const seconds = Number(match[2]);
+
+        if (seekTimes.has(name))
+        {
+            throw new Error(`Duplicate W3C animation seek time for ${name}.`);
+        }
+
+        seekTimes.set(name, seconds);
+    }
+
+    if (seekTimes.size < 1)
+    {
+        throw new Error(`No W3C animation seek times found in ${w3cTestSuiteTestsPath}.`);
+    }
+
+    return seekTimes;
+}
 
 function getContentType(filePath)
 {
@@ -119,6 +164,7 @@ async function writeWrapper(name)
     const wrapperPath = path.join(wrapperDir, `${name}.html`);
     const svgUrl = `/externals/W3C_SVG_11_TestSuite/W3C_SVG_11_TestSuite/svg/${encodeURIComponent(name)}.svg`;
     const animationSeekTime = animationSeekOverrides.get(name) ?? null;
+    const preSeekInteractionScript = preSeekInteractionScripts.get(name) ?? '';
     const interactionScript = interactionScripts.get(name) ?? '';
     const html = `<!doctype html>
 <html lang="en">
@@ -170,33 +216,127 @@ async function writeWrapper(name)
       }));
     }
 
-    if (animationSeekTime !== null) {
-      const frame = document.getElementById('capture');
-      frame.addEventListener('load', () => {
+    const frame = document.getElementById('capture');
+    function runWhenFrameReady(callback) {
+      let didRun = false;
+      const run = () => {
+        if (didRun) {
+          return;
+        }
+
+        didRun = true;
+        callback();
+      };
+      const tryRun = () => {
         try {
-          const svg = frame.contentDocument?.documentElement;
-          if (svg && typeof svg.setCurrentTime === 'function') {
-            svg.setCurrentTime(animationSeekTime);
+          const doc = frame.contentDocument;
+          const href = frame.contentWindow?.location?.href;
+          if (href && href !== 'about:blank' && doc?.documentElement && (doc.readyState === undefined || doc.readyState === 'interactive' || doc.readyState === 'complete')) {
+            run();
+            return true;
           }
         } catch {
         }
+
+        return false;
+      };
+
+      if (tryRun()) {
+        return;
+      }
+
+      frame.addEventListener('load', () => {
+        tryRun();
       }, { once: true });
+      let attempts = 0;
+      const retry = () => {
+        if (tryRun() || ++attempts >= 40) {
+          return;
+        }
+
+        setTimeout(retry, 50);
+      };
+      setTimeout(retry, 50);
     }
 
-    const frame = document.getElementById('capture');
-    frame.addEventListener('load', () => {
+    let pendingCaptureReady = animationSeekTime !== null ? 2 : 1;
+    function completeCaptureReadyPart() {
+      pendingCaptureReady -= 1;
+      if (pendingCaptureReady > 0 || document.getElementById('capture-ready')) {
+        return;
+      }
+
+      const ready = document.createElement('div');
+      ready.id = 'capture-ready';
+      ready.style.position = 'absolute';
+      ready.style.left = '-9999px';
+      ready.style.top = '-9999px';
+      ready.style.width = '1px';
+      ready.style.height = '1px';
+      document.body.appendChild(ready);
+    }
+
+    if (animationSeekTime !== null) {
+      runWhenFrameReady(() => {
+        try {
+          const win = frame.contentWindow;
+          const doc = frame.contentDocument;
+          if (!win || !doc) {
+            completeCaptureReadyPart();
+            return;
+          }
+
+          ${preSeekInteractionScript}
+
+          const svg = frame.contentDocument?.documentElement;
+          if (svg && typeof svg.setCurrentTime === 'function') {
+            const seek = () => {
+              try {
+                if (typeof svg.pauseAnimations === 'function') {
+                  svg.pauseAnimations();
+                }
+                svg.setCurrentTime(animationSeekTime);
+              } catch {
+              }
+            };
+
+            seek();
+            frame.contentWindow?.requestAnimationFrame(() => {
+              seek();
+              frame.contentWindow?.setTimeout(seek, 100);
+              frame.contentWindow?.setTimeout(() => {
+                seek();
+                completeCaptureReadyPart();
+              }, 500);
+            });
+          }
+          else {
+            completeCaptureReadyPart();
+          }
+        } catch {
+          completeCaptureReadyPart();
+        }
+      });
+    }
+
+    runWhenFrameReady(() => {
       try {
         const win = frame.contentWindow;
         const doc = frame.contentDocument;
         if (!win || !doc) {
+          completeCaptureReadyPart();
           return;
         }
 
         ${interactionScript}
+        frame.contentWindow?.requestAnimationFrame(() => {
+          frame.contentWindow?.setTimeout(completeCaptureReadyPart, 0);
+        });
       } catch (error) {
         console.error(error);
+        completeCaptureReadyPart();
       }
-    }, { once: true });
+    });
   </script>
 </body>
 </html>`;
@@ -222,6 +362,8 @@ async function captureOverride(baseUrl, name)
         'chrome',
         '--viewport-size',
         '480,360',
+        '--wait-for-selector',
+        '#capture-ready',
         '--wait-for-timeout',
         '1500',
         '--timeout',

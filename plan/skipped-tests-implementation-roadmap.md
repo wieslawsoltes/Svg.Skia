@@ -101,6 +101,17 @@ Verified probe findings from the remaining skipped W3C text rows on 2026-04-09:
 - `text-intro-05-t` and `text-intro-10-f` still fail because Arabic shaping only stays correct when fallback spans are preserved, but preserving spans still leaves non-Chrome anchor/position parity. A probe to force single-run shaping produced tofu glyphs, which confirms the missing piece is mixed-font shaping/fallback support rather than a simple bidi wrapper.
 - `text-altglyph-01/02/03-b` now exercise real SVG-font alternate glyph substitution. They remain sensitive to browser/font raster identity and should not be conflated with the remaining bidi/vertical text layout work.
 
+Current resource-rendering tranche:
+
+- The next recommended non-text lane is a first resource-rendering parity slice, not a full resource-policy or browser-style completion pass.
+- The slice covers gradient and pattern inheritance where explicitly authored attributes on referenced resources must override defaults without letting default values mask inherited values.
+- The slice includes recursion guards for pattern picture compilation and referenced content so paint servers, markers, clips, masks, filters, and `use` expansions do not re-enter the same resource path indefinitely.
+- The slice hardens existing Skia-backed filters by treating invalid `feColorMatrix` values, negative blur/morphology inputs, fractional morphology radii, and lighting parameter mapping as deterministic renderer behavior rather than fixture-specific failures.
+- The slice covers clip/use placement where referenced clip content should preserve geometry and transforms while suppressing marker output that does not belong inside the clip resource.
+- The slice covers image decode guards so empty, blocked, or malformed image data produces deterministic zero-size image metadata instead of null-image crashes.
+- The green resvg resource fixture slice is tracked through already-green deterministic resource-adjacent families with no new thresholds or Chrome overrides. Renderer deltas outside that slice are covered by focused unit tests until their broader visual rows are ready.
+- Deeper rows remain planned and must not be hidden by broad thresholds: `enable-background`, `BackgroundImage`, `BackgroundAlpha`, `feImage`, CSS `filter` functions, style selector/color parity, full mask self-reference behavior, and exact browser parity for pattern tiling/inheritance and marker placement.
+
 ## Workstreams
 
 ### 1. Text Layout And Font Fidelity
@@ -160,6 +171,7 @@ Acceptance criteria:
 Target projects:
 
 - `src/Svg.Animation`
+- `src/Svg.Custom`
 - `src/Svg.Skia`
 - `tests/Svg.Skia.UnitTests`
 - `scripts/capture_w3c_chrome_overrides.mjs`
@@ -168,16 +180,50 @@ Features:
 
 - per-fixture animation snapshot times in W3C tests
 - matching Chrome capture timing
-- correct snapshot rendering for animate/set/animateTransform/animateMotion/animateColor/filter animation cases
+- repeat-count and `repeat(n)` eventbase timing for seeked snapshots
+- half-open active interval boundaries, restart truncation, repeat callbacks, and future syncbase DOM query timing
+- number-list and path interpolation for paced and explicit animation values
+- discrete midpoint fallback when interpolation is unsupported or non-additive
+- routing for custom attributes, namespaced referenced resources, `currentColor`/`inherit`, and style-backed animated values
+- by-only `animateTransform` handling
+- motion and transform composition across `animateMotion`, `animateTransform`, and base transforms
+- correct snapshot rendering for `animate`, `set`, `animateTransform`, `animateMotion`, `animateColor`, style, reference, and filter animation cases
 
 Primary test impact:
 
 - W3C `animate-*`
 - `filters-composite-05-f`
 
+Execution order:
+
+1. Lock W3C animation rows to explicit seek times and regenerate matching Chrome overrides through the HTTP capture script, not `file://`.
+2. Preserve eventbase timing semantics for `begin`, `end`, repeat events, `repeat(n)`, and self-synchronizing recurrence without letting cycles drift across snapshot seeks.
+3. Finish interpolation coverage for scalar values, number lists, transform lists, path data, and paced motion where the static runtime can compute a deterministic value.
+4. Route animated values through the same custom-attribute, referenced-resource, presentation-attribute, and inline-style paths used by static rendering so snapshots do not bypass cascade/resource semantics.
+5. Preserve discrete midpoint fallback for unsupported interpolation modes, mismatched value shapes, non-additive values, and browser-runtime-only cases.
+6. Complete by-only transform handling and motion/transform composition so base transforms, additive transforms, and motion transforms apply in browser order.
+7. Keep JavaScript/DOM/event-loop-dependent rows skipped with explicit runtime reasons instead of manufacturing baselines.
+8. Run focused W3C animation rows before broad W3C and all-area validation, then review benchmark output for timing-path or interpolation regressions.
+
+Current implementation status:
+
+- The active SMIL snapshot work is in the runtime path rather than in baseline policy. The lane now covers repeat-event timing, `repeat(n)` eventbase resolution, self-sync recurrence, future syncbase start-time queries, restart truncation, half-open interval boundaries, list/path interpolation, fallback discreteness, and composed motion/transform output as renderer behavior.
+- W3C seek times and Chrome capture alignment are part of the implementation contract: a row should compare Svg.Skia at the same snapshot time used for its Chrome override, and fixture captures must keep the parent harness and SVG on the same HTTP origin.
+- Style, custom attribute, namespaced `href`/`xlink:href`, `currentColor`, `inherit`, and referenced-resource animation routing remains part of the lane because snapshot correctness depends on animated values reaching the same property/resource resolution path as static values.
+- Validation is expected to include focused animation rows, any refreshed Chrome overrides, the broader W3C animation suite, and performance review for timing and interpolation changes before enabling more rows. Newly enabled W3C rows with Chrome overrides include `animate-elem-02-t` through `animate-elem-15-t`, `animate-elem-17-t`, `animate-elem-19-t`, `animate-elem-22-b`, `animate-elem-24-t` through `animate-elem-28-t`, `animate-elem-30-t` through `animate-elem-41-t`, `animate-elem-44-t`, `animate-elem-46-t`, `animate-elem-53-t`, `animate-elem-64-t` through `animate-elem-70-t`, `animate-elem-77-t`, `animate-elem-78-t`, `animate-elem-80-t` through `animate-elem-83-t`, `animate-elem-86-t` through `animate-elem-89-t`, `animate-elem-92-t`, `animate-pservers-grad-01-b`, and `filters-composite-05-f`.
+- The latest SMIL fixes include order-independent `animateMotion` plus `animateTransform` composition, cloned-document deferred paint-server rebinding for animated gradient resources, discrete accumulated end-value semantics, finite `max` constraints on indefinite set intervals, valid `min`/`max` pair handling, to-only non-interpolable value routing for class/reference/filter/unit attributes, and hardened Chrome override capture readiness so animation snapshots do not accidentally capture `about:blank` or a pre-seek frame.
+- Remaining skipped `animate-*` rows are split between browser-runtime policy cases and deeper static parity cases. Attribute-routing classification now leaves `animate-elem-23-t`, `animate-elem-84-t`, and `animate-elem-85-t` skipped because modern Chrome captures deprecated `animateColor` as a no-op in those rows, `animate-elem-90-b` because animated class routing changes the target state but selector recalc still disturbs the static guide fills, and `animate-elem-91-t` because to-only non-interpolable routing is covered while full display/use/resource rendering parity remains incomplete. Browser-runtime rows such as click-driven `indefinite`, access key, wallclock, pointer-event, and embedded animated image fixtures should stay skipped unless the harness explicitly simulates those runtime inputs.
+
 Acceptance criteria:
 
 - W3C animation rows no longer default to time zero when the Chrome baseline captures an advanced frame.
+- `repeat(n)` eventbase timing and self-sync recurrence produce deterministic snapshot values at the configured seek time.
+- Half-open active intervals, `restart="always"` truncation, repeat timeline callbacks, and future syncbase start-time lookups are covered by focused regression tests.
+- Scalar, number-list, path, transform, and motion interpolation either match browser snapshot behavior or fall back discretely at the midpoint with an explicit unsupported-runtime reason.
+- Custom attributes, namespaced referenced resources, presentation attributes, `currentColor`/`inherit`, and inline styles receive animated values through the same routing used by static rendering.
+- By-only transform animation and motion/transform composition preserve browser transform order for static snapshots.
+- New or refreshed W3C Chrome overrides are generated with `node scripts/capture_w3c_chrome_overrides.mjs` and stay aligned with the W3C seek times.
+- Focused W3C animation validation and relevant all-area benchmark checks are reviewed before accepting runtime changes.
 
 ### 3. CSS And Styling Fidelity
 
@@ -204,7 +250,7 @@ Acceptance criteria:
 
 - Styling rows that only depend on static cascade semantics are enabled.
 
-### 4. Paint Servers, Filters, Images, Markers, Patterns
+### 4. Resource Rendering Parity First Slice
 
 Target projects:
 
@@ -215,19 +261,83 @@ Target projects:
 
 Features:
 
-- image loading and fallback behavior
-- marker orientation and sizing parity
-- pattern inheritance and units parity
-- linear/radial gradient edge cases
-- remaining filter primitive fidelity
+- gradient inheritance across `href` chains:
+  - `spreadMethod`
+  - `gradientUnits`
+  - `gradientTransform`
+  - radial focal point and radius guards
+- pattern inheritance and recursion guards:
+  - `patternUnits`
+  - `patternContentUnits`
+  - `patternTransform`
+  - `viewBox`
+  - `preserveAspectRatio`
+  - paint-server fallback when recursive pattern rendering is suppressed
+- filter hardening for already-supported primitives:
+  - invalid or empty `feColorMatrix` values
+  - negative `feGaussianBlur` values
+  - negative and fractional `feMorphology` radii
+  - lighting filter parameter mapping
+- clip/use placement:
+  - referenced clip geometry keeps placement and transforms
+  - marker rendering is suppressed inside clip-resource compilation
+  - referenced content avoids marker/pattern recursion through nested resource paths
+- image decode guards:
+  - empty data
+  - undecodable data
+  - blocked or missing resource data that reaches image decode
+- focused unit coverage for implemented resource deltas that are not yet part of the green resvg visual slice
 
 Primary test impact:
 
-- resvg `e-image-*`, `e-marker-*`, `e-pattern-*`, `e-linearGradient-*`, `e-radialGradient-*`, `e-mask-*`, `e-filter-*`, `e-fe*`
+- resvg resource rendering fixture slice:
+  - `tests/filters/feComponentTransfer/*`
+  - `tests/filters/feDisplacementMap/*`
+  - `tests/filters/feDistantLight/*`
+  - `tests/filters/feTurbulence/*`
+  - `tests/masking/clip-rule/*`
+  - `tests/paint-servers/stop-color/*`
+  - `tests/painting/color/*`
+  - `tests/painting/fill-rule/*`
+  - `tests/painting/image-rendering/*`
+  - `tests/painting/isolation/*`
+  - `tests/painting/marker/*`
+  - `tests/painting/mix-blend-mode/*`
+  - `tests/painting/paint-order/*`
+  - `tests/painting/shape-rendering/*`
+  - `tests/painting/stroke*`
+  - `tests/painting/visibility/*`
+  - `tests/shapes/{circle,line,polygon,polyline,rect}/*`
+  - `tests/structure/{a,defs,g,transform,use}/*`
+- focused model/Skia unit tests:
+  - gradient explicit default inheritance
+  - radial focal projection
+  - pattern `preserveAspectRatio` explicit default inheritance
+  - non-invertible pattern transform rejection
+  - CSS `clip: rect(...)` parsing
+  - invalid image decode guard
+  - spot-lit specular code generation argument mapping
+- future deeper resource rows:
+  - resvg `e-image-*`, `e-marker-*`, `e-pattern-*`, `e-linearGradient-*`, `e-radialGradient-*`, `e-mask-*`, `e-filter-*`, `e-fe*` rows that require browser-only behavior or unsupported primitives
+
+Execution order:
+
+1. Lock the green resvg resource fixture slice as the first non-text resource harness.
+2. Preserve gradient inheritance fixes and radial guard behavior for the paint-server rows.
+3. Preserve pattern inheritance, transform invertibility checks, and pattern recursion guards.
+4. Preserve filter hardening before adding the filter graph IR.
+5. Preserve clip/use placement behavior so clip resources do not inherit marker output.
+6. Preserve image decode guards before broadening external resource policy work.
+7. Keep this slice free of new thresholds; add thresholds only in later visual-parity passes after row-specific review.
+8. Start deeper resource rows only after this slice stays green in focused and full resvg runs.
 
 Acceptance criteria:
 
-- Resvg non-text skip count drops materially after renderer fixes, not by baseline swapping.
+- The resource rendering fixture slice is green without baseline swapping.
+- No new thresholds or Chrome baseline swaps are required for this first slice.
+- The implementation does not edit source fixtures or manufacture baselines for unsupported resource behavior.
+- Deeper rows remain explicitly planned for `enable-background`, `BackgroundImage`, `BackgroundAlpha`, `feImage`, CSS `filter` functions, style selector/color parity, full mask self-reference behavior, and exact browser parity for pattern tiling/inheritance and marker placement.
+- Resvg non-text skip count drops materially only after renderer fixes, not by baseline swapping.
 
 ### 5. SVG DOM / Script / Interaction Runtime
 
@@ -257,18 +367,30 @@ Acceptance criteria:
 
 The next implementation tranche should be:
 
-1. Add a vertical text placement branch in `src/Svg.SceneGraph/SvgSceneTextCompiler.cs` for browser-compatible fallback text.
-   Scope: vertical advance on Y, `text-anchor` along the vertical axis, perpendicular `baseline-shift`, and glyph rotation rules for Latin versus upright CJK.
-   Acceptance: `text-align-05-b`, `text-align-06-b`, and `text-intro-03-b` render vertically against the existing Chrome captures.
-2. Introduce mixed-font bidi shaping support instead of per-span bidi wrapping.
-   Scope: preserve glyph fallback while shaping/reordering a single logical run, likely by adding run shaping support in the asset-loader/text-renderer layer rather than in `SvgSceneTextCompiler` alone.
-   Acceptance: `text-intro-02-b` and `text-intro-09-b` match Chrome ordering, and Arabic rows no longer depend on span-local fallback behavior.
-3. Finish per-glyph coordinate list parity for `e-text-006..010`, `e-text-024`, `e-tspan-013`, and the remaining positioned `tref`/`tspan` cases.
-4. Finish nested `tspan` rotate inheritance and shaping across span boundaries (`e-tspan-016/017/023/024/042`).
-5. Stabilize `letter-spacing` and `word-spacing` against resvg references.
-6. Implement `textLength` and `lengthAdjust` using run-level metrics that match final rendered glyph advances.
-7. Extend `textPath` layout for `text-anchor`, vertical flow, per-child positioning, underline/rotate/baseline-shift, and transformed referenced paths.
-8. Rebaseline any newly Chrome-backed W3C rows with `node scripts/capture_w3c_chrome_overrides.mjs` after renderer changes are proven against the live Chrome capture.
+1. Keep the resvg resource rendering fixture slice green before broadening non-text enablement.
+   Scope: paint servers, masking, marker resources, and deterministic Skia-backed filter families.
+   Acceptance: the focused resource fixture harness passes without new thresholds or baseline swaps.
+2. Stabilize gradient inheritance across referenced linear/radial gradients.
+   Scope: explicit `spreadMethod`, `gradientUnits`, and `gradientTransform` inheritance, negative radial radius handling, non-negative focal radius handling, and focal point projection into the outer circle.
+   Acceptance: paint-server gradient rows stay green without fallback baseline changes.
+3. Stabilize pattern inheritance and recursion guards.
+   Scope: explicit pattern attribute inheritance, non-invertible transform rejection, nested pattern picture compilation with an active-pattern stack, and fallback paint-server behavior when recursive pattern rendering is suppressed.
+   Acceptance: pattern rows in the resource fixture slice stay green and recursive pattern cases fail deterministically.
+4. Harden the existing Skia-backed filter primitive path.
+   Scope: invalid `feColorMatrix` values, negative `feGaussianBlur`, negative/fractional `feMorphology`, and lighting argument mapping.
+   Acceptance: Skia-backed filter rows in the resource fixture slice stay green; deeper filter graph work is not required for this slice.
+5. Preserve clip/use placement behavior.
+   Scope: clip resources keep referenced geometry placement and transforms while suppressing markers and avoiding marker/pattern recursion through referenced content.
+   Acceptance: clip/masking resource rows stay green without reintroducing marker output into clip resources.
+6. Preserve image decode guards.
+   Scope: empty, missing, blocked, or undecodable image data returns deterministic zero-size image metadata instead of crashing.
+   Acceptance: image-backed resource rows either render, skip for explicit unsupported behavior, or fail deterministically without null-image crashes.
+7. Keep deeper resource rows explicit.
+   Scope: `enable-background`, `BackgroundImage`, `BackgroundAlpha`, `feImage`, CSS `filter` functions, style selector/color parity, full mask self-reference, and exact pattern/marker browser parity.
+   Acceptance: these rows remain skipped/planned with accurate reasons until their actual renderer/runtime support exists.
+8. Run broader resvg and combined standards-area validation only after the focused resource slice is stable.
+   Scope: full resvg fixture matrix and `SvgAllAreaRegressionValidationBenchmarks` for paint servers, filters, masks/clips, images, and resource recursion.
+   Acceptance: no unrelated text/runtime changes are required to accept this resource-rendering slice.
 
 ## Runtime-Gated Groups
 

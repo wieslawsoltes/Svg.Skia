@@ -84,6 +84,77 @@ public class W3CTestSuiteTests : SvgUnitTest
         "types-dom-svgtransformable-01-f"
     };
 
+    // Parsed by scripts/capture_w3c_chrome_overrides.mjs. Keep entries as
+    // ["fixture-name"] = seconds so test and Chrome capture timing stay aligned.
+    // W3C_ANIMATION_SEEK_TIMES_BEGIN
+    private static readonly IReadOnlyDictionary<string, double> s_animationSeekTimesSeconds = new Dictionary<string, double>(StringComparer.Ordinal)
+    {
+        // Existing enabled rows.
+        ["animate-script-elem-01-b"] = 1.1,
+        ["animate-dom-01-f"] = 2.5,
+
+        // SMIL snapshot rows whose operator/pass text identifies a stable frame.
+        ["animate-elem-02-t"] = 7,
+        ["animate-elem-03-t"] = 6,
+        ["animate-elem-04-t"] = 3,
+        ["animate-elem-05-t"] = 6,
+        ["animate-elem-06-t"] = 6,
+        ["animate-elem-07-t"] = 6,
+        ["animate-elem-08-t"] = 6,
+        ["animate-elem-09-t"] = 8,
+        ["animate-elem-10-t"] = 9,
+        ["animate-elem-11-t"] = 9,
+        ["animate-elem-12-t"] = 9,
+        ["animate-elem-13-t"] = 5,
+        ["animate-elem-14-t"] = 5,
+        ["animate-elem-15-t"] = 4.5,
+        ["animate-elem-17-t"] = 6,
+        ["animate-elem-19-t"] = 5,
+        ["animate-elem-22-b"] = 9,
+        ["animate-elem-24-t"] = 9,
+        ["animate-elem-25-t"] = 9,
+        ["animate-elem-26-t"] = 7,
+        ["animate-elem-27-t"] = 9,
+        ["animate-elem-28-t"] = 4,
+        ["animate-elem-30-t"] = 3.1,
+        ["animate-elem-31-t"] = 5,
+        ["animate-elem-32-t"] = 6,
+        ["animate-elem-33-t"] = 4,
+        ["animate-elem-34-t"] = 4.5,
+        ["animate-elem-35-t"] = 5,
+        ["animate-elem-36-t"] = 1.5,
+        ["animate-elem-37-t"] = 1.5,
+        ["animate-elem-38-t"] = 10,
+        ["animate-elem-39-t"] = 1.5,
+        ["animate-elem-40-t"] = 3.1,
+        ["animate-elem-41-t"] = 3,
+        ["animate-elem-44-t"] = 4.5,
+        ["animate-elem-46-t"] = 3,
+        ["animate-elem-52-t"] = 5,
+        ["animate-elem-53-t"] = 9,
+        ["animate-elem-64-t"] = 6,
+        ["animate-elem-65-t"] = 6,
+        ["animate-elem-66-t"] = 6,
+        ["animate-elem-67-t"] = 6,
+        ["animate-elem-68-t"] = 6,
+        ["animate-elem-69-t"] = 6,
+        ["animate-elem-70-t"] = 6,
+        ["animate-elem-77-t"] = 0.5,
+        ["animate-elem-78-t"] = 0.5,
+        ["animate-elem-80-t"] = 4.1,
+        ["animate-elem-81-t"] = 5,
+        ["animate-elem-82-t"] = 3,
+        ["animate-elem-83-t"] = 2.5,
+        ["animate-elem-86-t"] = 3,
+        ["animate-elem-87-t"] = 4,
+        ["animate-elem-88-t"] = 2,
+        ["animate-elem-89-t"] = 9,
+        ["animate-elem-92-t"] = 3,
+        ["animate-pservers-grad-01-b"] = 5,
+        ["filters-composite-05-f"] = 2
+    };
+    // W3C_ANIMATION_SEEK_TIMES_END
+
     private string GetSvgPath(string name)
         => Path.Combine("..", "..", "..", "..", "..", "externals", "W3C_SVG_11_TestSuite", "W3C_SVG_11_TestSuite", "svg", name);
 
@@ -123,6 +194,7 @@ public class W3CTestSuiteTests : SvgUnitTest
         }
         using var __ = CreateSystemLanguageScope(name);
         using var _ = svg.Load(svgPath);
+        ApplyPreSeekInteractions(name, svg);
         if (GetAnimationSeekTime(name) is { } animationSeekTime)
         {
             svg.SetAnimationTime(animationSeekTime);
@@ -176,12 +248,9 @@ public class W3CTestSuiteTests : SvgUnitTest
 
     private static TimeSpan? GetAnimationSeekTime(string name)
     {
-        return name switch
-        {
-            "animate-script-elem-01-b" => TimeSpan.FromSeconds(1.1),
-            "animate-dom-01-f" => TimeSpan.FromSeconds(2.5),
-            _ => null
-        };
+        return s_animationSeekTimesSeconds.TryGetValue(name, out var seconds)
+            ? TimeSpan.FromSeconds(seconds)
+            : null;
     }
 
     private static bool ShouldUseBrowserCompatibleSvgFontFallback(string name)
@@ -433,9 +502,15 @@ public class W3CTestSuiteTests : SvgUnitTest
             "masking-path-05-f" => 0.03,
             "masking-path-06-b" => 0.095,
             "masking-path-07-b" => 0.042,
+            // The animated dash/linecap/linejoin/miter states align with Chrome at the sampled
+            // SMIL frame; the residual delta is Skia stroke rasterization on the dense path samples.
+            "animate-elem-35-t" => 0.1,
             // The pass criteria for this units fixture allow font-dependent unit rows to vary;
             // keep a narrow threshold for residual Chrome text/unit raster differences.
             "coords-units-03-b" => 0.026,
+            // Geometry and animated xlink target state match Chrome; the remaining delta is
+            // confined to platform text rasterization in the labels/revision footer.
+            "animate-elem-27-t" => 0.036,
             "struct-cond-02-t" => 0.036,
             "struct-frag-02-t" => 0.023,
             "struct-frag-03-t" => 0.024,
@@ -543,6 +618,18 @@ public class W3CTestSuiteTests : SvgUnitTest
             "struct-cond-02-t" => new SystemLanguageOverrideScope(CultureInfo.InvariantCulture),
             _ => null
         };
+    }
+
+    private static void ApplyPreSeekInteractions(string name, SKSvg svg)
+    {
+        switch (name)
+        {
+            case "animate-elem-52-t":
+                NotifyClickEvent(svg, "A");
+                NotifyClickEvent(svg, "B");
+                NotifyClickEvent(svg, "C");
+                break;
+        }
     }
 
     private static void ApplyPostLoadInteractions(string name, SKSvg svg)
@@ -851,6 +938,16 @@ public class W3CTestSuiteTests : SvgUnitTest
         dispatcher.DispatchPointerReleased(svg, press);
     }
 
+    private static void NotifyClickEvent(SKSvg svg, string elementId)
+    {
+        var sourceDocument = svg.SourceDocument ?? throw new InvalidOperationException("SVG document is not loaded.");
+        var rawElement = sourceDocument.GetElementById(elementId) ?? throw new InvalidOperationException($"Element '{elementId}' was not found.");
+        if (!svg.NotifyPointerEvent(rawElement, SvgPointerEventType.Click))
+        {
+            throw new InvalidOperationException($"Element '{elementId}' did not record a click animation event.");
+        }
+    }
+
     private static SvgJavaScriptRuntime GetJavaScriptRuntime(SKSvg svg)
     {
         var field = typeof(SKSvg).GetField("_javaScriptRuntime", BindingFlags.Instance | BindingFlags.NonPublic)
@@ -880,80 +977,80 @@ public class W3CTestSuiteTests : SvgUnitTest
     [OSXTheory]
     [InlineData("animate-dom-01-f", 0.022)]
     [InlineData("animate-dom-02-f", 0.022)]
-    [InlineData("animate-elem-02-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-03-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-04-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-05-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-06-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-07-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-08-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-09-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-10-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-11-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-12-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-13-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-14-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-15-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-17-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-19-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-20-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-21-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-22-b", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-23-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-24-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-25-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-26-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-27-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-28-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-29-b", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-30-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-31-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-32-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-33-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-34-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-35-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-36-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-37-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-38-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-39-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-40-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-41-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-44-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-46-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-52-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-53-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-60-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-61-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-62-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-63-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-64-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-65-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-66-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-67-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-68-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-69-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-70-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-77-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-78-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-80-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-81-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-82-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-83-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-84-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-85-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-86-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-87-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-88-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-89-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-90-b", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-91-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-elem-92-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-interact-events-01-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-interact-pevents-01-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-interact-pevents-02-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-interact-pevents-03-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-interact-pevents-04-t", 0.022, Skip = "TODO")]
-    [InlineData("animate-pservers-grad-01-b", 0.022, Skip = "TODO")]
+    [InlineData("animate-elem-02-t", 0.022)]
+    [InlineData("animate-elem-03-t", 0.022)]
+    [InlineData("animate-elem-04-t", 0.022)]
+    [InlineData("animate-elem-05-t", 0.022)]
+    [InlineData("animate-elem-06-t", 0.022)]
+    [InlineData("animate-elem-07-t", 0.022)]
+    [InlineData("animate-elem-08-t", 0.022)]
+    [InlineData("animate-elem-09-t", 0.022)]
+    [InlineData("animate-elem-10-t", 0.022)]
+    [InlineData("animate-elem-11-t", 0.022)]
+    [InlineData("animate-elem-12-t", 0.022)]
+    [InlineData("animate-elem-13-t", 0.022)]
+    [InlineData("animate-elem-14-t", 0.022)]
+    [InlineData("animate-elem-15-t", 0.022)]
+    [InlineData("animate-elem-17-t", 0.022)]
+    [InlineData("animate-elem-19-t", 0.022)]
+    [InlineData("animate-elem-20-t", 0.022, Skip = "Requires hyperlink activation of beginElement()/endElement() on indefinite SMIL animations, not a static snapshot trigger.")]
+    [InlineData("animate-elem-21-t", 0.022, Skip = "Requires hyperlink activation plus chained syncbase timing from indefinite SMIL animations.")]
+    [InlineData("animate-elem-22-b", 0.022)]
+    [InlineData("animate-elem-23-t", 0.022, Skip = "Modern Chrome captures deprecated animateColor as no-op; keep skipped until the W3C animateColor row has a non-Chrome static reference policy.")]
+    [InlineData("animate-elem-24-t", 0.022)]
+    [InlineData("animate-elem-25-t", 0.022)]
+    [InlineData("animate-elem-26-t", 0.022)]
+    [InlineData("animate-elem-27-t", 0.022)]
+    [InlineData("animate-elem-28-t", 0.022)]
+    [InlineData("animate-elem-29-b", 0.022, Skip = "Requires hyperlink activation of indefinite SMIL animations and interactive fade-in/fade-out sequencing.")]
+    [InlineData("animate-elem-30-t", 0.022)]
+    [InlineData("animate-elem-31-t", 0.022)]
+    [InlineData("animate-elem-32-t", 0.022)]
+    [InlineData("animate-elem-33-t", 0.022)]
+    [InlineData("animate-elem-34-t", 0.022)]
+    [InlineData("animate-elem-35-t", 0.022)]
+    [InlineData("animate-elem-36-t", 0.022)]
+    [InlineData("animate-elem-37-t", 0.022)]
+    [InlineData("animate-elem-38-t", 0.022)]
+    [InlineData("animate-elem-39-t", 0.022)]
+    [InlineData("animate-elem-40-t", 0.022)]
+    [InlineData("animate-elem-41-t", 0.022)]
+    [InlineData("animate-elem-44-t", 0.022)]
+    [InlineData("animate-elem-46-t", 0.022)]
+    [InlineData("animate-elem-52-t", 0.022)]
+    [InlineData("animate-elem-53-t", 0.022)]
+    [InlineData("animate-elem-60-t", 0.022, Skip = "Requires mixed eventbase, accessKey(), and wallclock() timing; the static harness only records pointer events.")]
+    [InlineData("animate-elem-61-t", 0.022, Skip = "Requires multiple begin conditions including accessKey() and user-event sequencing beyond static snapshot input.")]
+    [InlineData("animate-elem-62-t", 0.022, Skip = "Requires mixed eventbase, accessKey(), and wallclock() end timing; the static harness only records pointer events.")]
+    [InlineData("animate-elem-63-t", 0.022, Skip = "Requires multiple end conditions including accessKey() and repeated user-event sequencing beyond static snapshot input.")]
+    [InlineData("animate-elem-64-t", 0.022)]
+    [InlineData("animate-elem-65-t", 0.022)]
+    [InlineData("animate-elem-66-t", 0.022)]
+    [InlineData("animate-elem-67-t", 0.022)]
+    [InlineData("animate-elem-68-t", 0.022)]
+    [InlineData("animate-elem-69-t", 0.022)]
+    [InlineData("animate-elem-70-t", 0.022)]
+    [InlineData("animate-elem-77-t", 0.022)]
+    [InlineData("animate-elem-78-t", 0.022)]
+    [InlineData("animate-elem-80-t", 0.022)]
+    [InlineData("animate-elem-81-t", 0.022)]
+    [InlineData("animate-elem-82-t", 0.022)]
+    [InlineData("animate-elem-83-t", 0.022)]
+    [InlineData("animate-elem-84-t", 0.022, Skip = "Modern Chrome captures deprecated animateColor as no-op; keep skipped until the W3C animateColor row has a non-Chrome static reference policy.")]
+    [InlineData("animate-elem-85-t", 0.022, Skip = "Modern Chrome captures deprecated animateColor as no-op; keep skipped until the W3C animateColor row has a non-Chrome static reference policy.")]
+    [InlineData("animate-elem-86-t", 0.022)]
+    [InlineData("animate-elem-87-t", 0.022)]
+    [InlineData("animate-elem-88-t", 0.022)]
+    [InlineData("animate-elem-89-t", 0.022)]
+    [InlineData("animate-elem-90-b", 0.022, Skip = "Animated class routing changes the target state, but selector recalc still disturbs static guide fills in the Chrome-backed pixel row.")]
+    [InlineData("animate-elem-91-t", 0.022, Skip = "To-only non-interpolable routing is partially covered; full row still needs display/use/resource rendering parity for all subtests.")]
+    [InlineData("animate-elem-92-t", 0.022)]
+    [InlineData("animate-interact-events-01-t", 0.022, Skip = "Requires browser SVGElementInstance event dispatch and mouseover/mousedown lifetime behavior.")]
+    [InlineData("animate-interact-pevents-01-t", 0.022, Skip = "Requires browser pointer hit-testing over text pointer-events variants and hover-triggered indefinite SMIL state.")]
+    [InlineData("animate-interact-pevents-02-t", 0.022, Skip = "Requires interactive pointer-events mutation plus mousedown/mouseover hit-testing state across user actions.")]
+    [InlineData("animate-interact-pevents-03-t", 0.022, Skip = "Requires browser pointer hit-testing over visiblePainted/visibleFill/visibleStroke/visible variants and hover state.")]
+    [InlineData("animate-interact-pevents-04-t", 0.022, Skip = "Requires browser pointer hit-testing over painted/fill/stroke/all/none variants and hover state.")]
+    [InlineData("animate-pservers-grad-01-b", 0.022)]
     [InlineData("animate-script-elem-01-b", 0.022)]
     [InlineData("animate-struct-dom-01-b", 0.022)]
     [InlineData("color-prof-01-f", 0.022, Skip = "Optional ICC color profile support is not a stable Chrome-backed baseline.")]
@@ -1004,7 +1101,7 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("filters-composite-02-b", 0.022)]
     [InlineData("filters-composite-03-f", 0.022)]
     [InlineData("filters-composite-04-f", 0.022)]
-    [InlineData("filters-composite-05-f", 0.022, Skip = "Chrome override captures the running SMIL dissolve after 1.5s; static W3C snapshots do not advance feComposite animation yet.")]
+    [InlineData("filters-composite-05-f", 0.022)]
     [InlineData("filters-comptran-01-b", 0.022)]
     [InlineData("filters-conv-01-f", 0.022)]
     [InlineData("filters-conv-02-f", 0.022)]
