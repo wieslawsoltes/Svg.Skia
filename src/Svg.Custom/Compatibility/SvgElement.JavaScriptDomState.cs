@@ -71,6 +71,12 @@ public abstract partial class SvgElement
         return false;
     }
 
+    internal void ClearCompatibilityHrefAttributeValue(string namespaceName)
+    {
+        namespaceName ??= string.Empty;
+        _compatibilityHrefAttributeValues?.Remove(namespaceName);
+    }
+
     internal bool HasCompatibilityHrefAttributeValues()
     {
         return _compatibilityHrefAttributeValues is { Count: > 0 };

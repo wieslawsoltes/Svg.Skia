@@ -7,11 +7,12 @@ namespace Svg.Skia;
 
 internal readonly struct SvgAnimationEventTimingParseResult
 {
-    public SvgAnimationEventTimingParseResult(SvgElementAddress eventAddress, SvgAnimationTimingEventType eventType, TimeSpan offset)
+    public SvgAnimationEventTimingParseResult(SvgElementAddress eventAddress, SvgAnimationTimingEventType eventType, TimeSpan offset, int? repeatIteration = null)
     {
         EventAddress = eventAddress;
         EventType = eventType;
         Offset = offset;
+        RepeatIteration = repeatIteration;
     }
 
     public SvgElementAddress EventAddress { get; }
@@ -19,6 +20,8 @@ internal readonly struct SvgAnimationEventTimingParseResult
     public SvgAnimationTimingEventType EventType { get; }
 
     public TimeSpan Offset { get; }
+
+    public int? RepeatIteration { get; }
 }
 
 internal static class SvgAnimationParser
@@ -218,7 +221,7 @@ internal static class SvgAnimationParser
             eventAddress = SvgElementAddress.Create(eventElement);
         }
 
-        if (!TryMapEventName(eventName, out var eventType))
+        if (!TryMapEventName(eventName, out var eventType, out var repeatIteration))
         {
             return false;
         }
@@ -239,7 +242,7 @@ internal static class SvgAnimationParser
             }
         }
 
-        result = new SvgAnimationEventTimingParseResult(eventAddress, eventType, offset);
+        result = new SvgAnimationEventTimingParseResult(eventAddress, eventType, offset, repeatIteration);
         return true;
     }
 
@@ -530,8 +533,10 @@ internal static class SvgAnimationParser
         return true;
     }
 
-    private static bool TryMapEventName(ReadOnlySpan<char> eventName, out SvgAnimationTimingEventType eventType)
+    private static bool TryMapEventName(ReadOnlySpan<char> eventName, out SvgAnimationTimingEventType eventType, out int? repeatIteration)
     {
+        repeatIteration = null;
+
         if (EqualsAsciiIgnoreCase(eventName, "click"))
         {
             eventType = SvgAnimationTimingEventType.Click;
@@ -586,8 +591,42 @@ internal static class SvgAnimationParser
             return true;
         }
 
+        if (TryParseRepeatEventName(eventName, out repeatIteration))
+        {
+            eventType = SvgAnimationTimingEventType.Repeat;
+            return true;
+        }
+
         eventType = default;
         return false;
+    }
+
+    private static bool TryParseRepeatEventName(ReadOnlySpan<char> eventName, out int? repeatIteration)
+    {
+        repeatIteration = null;
+        var trimmed = Trim(eventName);
+        const string repeat = "repeat";
+        if (trimmed.Length == repeat.Length && EqualsAsciiIgnoreCase(trimmed, repeat))
+        {
+            return true;
+        }
+
+        if (trimmed.Length <= repeat.Length + 2 ||
+            !EqualsAsciiIgnoreCase(trimmed.Slice(0, repeat.Length), repeat) ||
+            trimmed[repeat.Length] != '(' ||
+            trimmed[trimmed.Length - 1] != ')')
+        {
+            return false;
+        }
+
+        var ordinal = Trim(trimmed.Slice(repeat.Length + 1, trimmed.Length - repeat.Length - 2));
+        if (!int.TryParse(ordinal.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) || parsed <= 0)
+        {
+            return false;
+        }
+
+        repeatIteration = parsed;
+        return true;
     }
 
     internal static float ToMotionCoordinate(SvgUnit unit, UnitRenderingType renderingType, SvgElement owner)

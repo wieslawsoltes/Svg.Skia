@@ -6,6 +6,11 @@ namespace Svg
 {
     public abstract partial class SvgAnimationElement : SvgElement
     {
+        protected string GetRawAnimationStringAttribute(string attributeName)
+        {
+            return Attributes.GetAttribute<string>(attributeName);
+        }
+
         [SvgAttribute("href", SvgAttributeAttribute.XLinkNamespace)]
         public virtual Uri ReferencedElement
         {
@@ -175,7 +180,7 @@ namespace Svg
         [SvgAttribute("values")]
         public virtual string Values
         {
-            get { return GetAttribute<string>("values", false); }
+            get { return GetRawAnimationStringAttribute("values"); }
             set { Attributes["values"] = value; }
         }
 
@@ -197,21 +202,21 @@ namespace Svg
         [SvgAttribute("from")]
         public virtual string From
         {
-            get { return GetAttribute<string>("from", false); }
+            get { return GetRawAnimationStringAttribute("from"); }
             set { Attributes["from"] = value; }
         }
 
         [SvgAttribute("to")]
         public virtual string To
         {
-            get { return GetAttribute<string>("to", false); }
+            get { return GetRawAnimationStringAttribute("to"); }
             set { Attributes["to"] = value; }
         }
 
         [SvgAttribute("by")]
         public virtual string By
         {
-            get { return GetAttribute<string>("by", false); }
+            get { return GetRawAnimationStringAttribute("by"); }
             set { Attributes["by"] = value; }
         }
 
@@ -245,7 +250,7 @@ namespace Svg
         [SvgAttribute("to")]
         public virtual string To
         {
-            get { return GetAttribute<string>("to", false); }
+            get { return GetRawAnimationStringAttribute("to"); }
             set { Attributes["to"] = value; }
         }
 

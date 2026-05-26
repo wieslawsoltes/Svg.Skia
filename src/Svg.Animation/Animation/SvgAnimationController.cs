@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using SkiaSharp;
 using Svg.Transforms;
 
@@ -50,14 +51,16 @@ public sealed class SvgAnimationController : IDisposable
             Offset = offset;
             EventAddress = null;
             EventType = default;
+            RepeatIteration = null;
         }
 
-        public TimingSpec(SvgElementAddress eventAddress, SvgAnimationTimingEventType eventType, TimeSpan offset)
+        public TimingSpec(SvgElementAddress eventAddress, SvgAnimationTimingEventType eventType, TimeSpan offset, int? repeatIteration = null)
         {
             IsEvent = true;
             Offset = offset;
             EventAddress = eventAddress;
             EventType = eventType;
+            RepeatIteration = repeatIteration;
         }
 
         public bool IsEvent { get; }
@@ -67,6 +70,8 @@ public sealed class SvgAnimationController : IDisposable
         public SvgElementAddress? EventAddress { get; }
 
         public SvgAnimationTimingEventType EventType { get; }
+
+        public int? RepeatIteration { get; }
     }
 
     private readonly struct MotionSource
@@ -120,9 +125,9 @@ public sealed class SvgAnimationController : IDisposable
             var propertyDescriptor = GetAttributePropertyDescriptor(sourceTarget, attributeName);
             ValueConverter = propertyDescriptor?.Converter;
             ValueContext = sourceTarget.OwnerDocument;
-            HasExplicitBaseAttribute = sourceTarget.ContainsAttribute(attributeName);
             BaseValue = GetAttributeValue(sourceTarget, attributeName);
             BaseValueString = ConvertAttributeValueToString(BaseValue);
+            HasExplicitBaseAttribute = HasExplicitAnimationBaseAttribute(sourceTarget, attributeName, BaseValue);
             PropertyType = propertyDescriptor?.Type ?? BaseValue?.GetType();
             TargetAttributeKey = string.Concat(targetAddress.Key, "|", attributeName);
             BeginSpecs = ParseTimingSpecifications(animation.Begin, animation.OwnerDocument, targetAddress, includeImplicitDocumentBegin: true);
@@ -224,9 +229,33 @@ public sealed class SvgAnimationController : IDisposable
         public int IterationIndex { get; }
     }
 
+    private readonly struct PathDataToken
+    {
+        public PathDataToken(char command)
+        {
+            IsCommand = true;
+            Command = command;
+            Number = 0f;
+        }
+
+        public PathDataToken(float number)
+        {
+            IsCommand = false;
+            Command = '\0';
+            Number = number;
+        }
+
+        public bool IsCommand { get; }
+
+        public char Command { get; }
+
+        public float Number { get; }
+    }
+
     private static readonly TypeConverter s_paintServerConverter = new SvgPaintServerFactory();
 
     private readonly List<AnimationBinding> _bindings;
+    private readonly List<AnimationBinding> _frameEvaluationBindings;
     private readonly Dictionary<string, AnimationBinding> _bindingsByTargetAttributeKey;
     private readonly Dictionary<string, AnimationBinding> _bindingsByAnimationAddressKey;
     private readonly Dictionary<string, List<TimeSpan>> _pointerEventInstances = new(StringComparer.Ordinal);
@@ -246,6 +275,7 @@ public sealed class SvgAnimationController : IDisposable
         Clock = new SvgAnimationClock();
         Clock.TimeChanged += OnClockTimeChanged;
         _bindings = DiscoverBindings(sourceDocument);
+        _frameEvaluationBindings = CreateFrameEvaluationBindings(_bindings);
         _bindingsByTargetAttributeKey = BuildBindingLookup(_bindings);
         _bindingsByAnimationAddressKey = BuildAnimationBindingLookup(_bindings);
         _pointerEventDependencies = BuildPointerEventDependencies(_bindings);
@@ -378,35 +408,27 @@ public sealed class SvgAnimationController : IDisposable
             return false;
         }
 
-        var beginInstances = ResolveBeginInstances(binding, recursionGuard: null);
-        if (beginInstances.Count == 0)
+        var intervals = ResolveAnimationIntervals(binding, recursionGuard: null);
+        if (intervals.Count == 0)
         {
             return false;
         }
 
-        var endInstances = ResolveEndTimingInstances(binding, recursionGuard: null);
-        var allowIndefiniteDiscrete = binding.Animation is SvgSet;
-
-        if (TryResolveCurrentActiveIntervalDetailed(binding.Animation, currentTime, allowIndefiniteDiscrete, beginInstances, endInstances, out var activeInterval))
+        if (TrySelectCurrentInterval(binding.Animation, currentTime, intervals, requireActive: true, out var activeInterval))
         {
             startTime = activeInterval.BeginInstance.Time;
             return true;
         }
 
-        for (var index = 0; index < beginInstances.Count; index++)
+        for (var index = 0; index < intervals.Count; index++)
         {
-            var candidate = beginInstances[index];
-            if (candidate.Time <= currentTime)
+            var candidate = intervals[index];
+            if (candidate.BeginInstance.Time <= currentTime)
             {
                 continue;
             }
 
-            if (!TryResolveIntervalEndDetailed(binding.Animation, candidate.Time, endInstances, allowIndefiniteDiscrete, out _, out _))
-            {
-                continue;
-            }
-
-            startTime = candidate.Time;
+            startTime = candidate.BeginInstance.Time;
             return true;
         }
 
@@ -470,6 +492,7 @@ public sealed class SvgAnimationController : IDisposable
 
         var clone = SourceDocument.DeepCopy() as SvgDocument
             ?? throw new InvalidOperationException("Svg animation runtime requires SvgDocument.DeepCopy() to return SvgDocument.");
+        clone.RebindSameDocumentDeferredPaintServers();
 
         if (_bindings.Count == 0)
         {
@@ -498,12 +521,32 @@ public sealed class SvgAnimationController : IDisposable
         }
 
         var attributes = new Dictionary<string, SvgAnimationFrameAttributeState>(StringComparer.Ordinal);
-        foreach (var binding in _bindings)
+        var motionTransformPrefixes = new Dictionary<string, string>(StringComparer.Ordinal);
+        var transformAnimationValues = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var binding in _frameEvaluationBindings)
         {
             attributes.TryGetValue(binding.TargetAttributeKey, out var currentAttributeState);
-            if (!TryResolveAnimatedAttributeValue(this, binding, time, currentAttributeState?.Value, out var value))
+            if (!TryResolveAnimatedAttributeValue(this, binding, time, currentAttributeState?.Value, attributes, out var value))
             {
                 continue;
+            }
+
+            if (binding.Animation is SvgAnimateMotion { Additive: not SvgAnimationAdditive.Sum })
+            {
+                motionTransformPrefixes[binding.TargetAttributeKey] = value;
+                if (transformAnimationValues.TryGetValue(binding.TargetAttributeKey, out var transformAnimationValue))
+                {
+                    value = CombineTransformValue(value, transformAnimationValue);
+                }
+            }
+            else if (binding.Animation is SvgAnimateTransform animateTransform)
+            {
+                transformAnimationValues[binding.TargetAttributeKey] = value;
+                if (animateTransform.Additive != SvgAnimationAdditive.Sum &&
+                    motionTransformPrefixes.TryGetValue(binding.TargetAttributeKey, out var motionTransformPrefix))
+                {
+                    value = CombineTransformValue(motionTransformPrefix, value);
+                }
             }
 
             attributes[binding.TargetAttributeKey] = new SvgAnimationFrameAttributeState(
@@ -638,7 +681,7 @@ public sealed class SvgAnimationController : IDisposable
         return _bindingsByAnimationAddressKey.TryGetValue(SvgElementAddress.Create(animation).Key, out binding!);
     }
 
-    private IReadOnlyList<ResolvedTimingInstance> ResolveBeginInstances(AnimationBinding binding, HashSet<string>? recursionGuard)
+    private IReadOnlyList<ResolvedTimingInstance> ResolveBeginInstances(AnimationBinding binding, HashSet<string>? recursionGuard, TimeSpan? horizon = null)
     {
         if (!binding.HasDynamicBeginTiming &&
             (!_scheduledBeginInstances.TryGetValue(binding.AnimationAddress.Key, out var scheduledTimes) || scheduledTimes.Count == 0))
@@ -654,7 +697,7 @@ public sealed class SvgAnimationController : IDisposable
 
         try
         {
-            var instances = ResolveTimingInstancesDetailed(binding.BeginSpecs, recursionGuard);
+            var instances = ResolveTimingInstancesDetailed(binding.BeginSpecs, recursionGuard, horizon);
             AppendScheduledInstances(binding.AnimationAddress, SvgAnimationTimingEventType.Begin, _scheduledBeginInstances, instances);
             SortAndDeduplicateTimingInstances(instances);
             return instances.Count == 0 ? s_emptyResolvedTimingInstances : instances;
@@ -665,7 +708,7 @@ public sealed class SvgAnimationController : IDisposable
         }
     }
 
-    private IReadOnlyList<ResolvedTimingInstance> ResolveEndTimingInstances(AnimationBinding binding, HashSet<string>? recursionGuard)
+    private IReadOnlyList<ResolvedTimingInstance> ResolveEndTimingInstances(AnimationBinding binding, HashSet<string>? recursionGuard, TimeSpan? horizon = null)
     {
         if (!binding.HasDynamicEndTiming &&
             (!_scheduledEndInstances.TryGetValue(binding.AnimationAddress.Key, out var scheduledTimes) || scheduledTimes.Count == 0))
@@ -681,7 +724,7 @@ public sealed class SvgAnimationController : IDisposable
 
         try
         {
-            var instances = ResolveTimingInstancesDetailed(binding.EndSpecs, recursionGuard);
+            var instances = ResolveTimingInstancesDetailed(binding.EndSpecs, recursionGuard, horizon);
             AppendScheduledInstances(binding.AnimationAddress, SvgAnimationTimingEventType.End, _scheduledEndInstances, instances);
             SortAndDeduplicateTimingInstances(instances);
             return instances.Count == 0 ? s_emptyResolvedTimingInstances : instances;
@@ -811,6 +854,26 @@ public sealed class SvgAnimationController : IDisposable
                 "onend",
                 endTime));
         }
+
+        for (var index = 0; index < intervals.Count; index++)
+        {
+            var repeatTimes = new List<TimeSpan>();
+            AddRepeatEventInstances(binding.Animation, intervals[index], requestedIteration: null, repeatTimes);
+            for (var repeatIndex = 0; repeatIndex < repeatTimes.Count; repeatIndex++)
+            {
+                var repeatTime = repeatTimes[repeatIndex];
+                if (!ShouldDispatchTimelineEvent(repeatTime, previousTime, currentTime))
+                {
+                    continue;
+                }
+
+                callbacks.Add(new SvgAnimationTimelineCallback(
+                    binding.AnimationAddress,
+                    "repeatEvent",
+                    "onrepeat",
+                    repeatTime));
+            }
+        }
     }
 
     private static bool ShouldDispatchTimelineEvent(TimeSpan eventTime, TimeSpan? previousTime, TimeSpan currentTime)
@@ -897,6 +960,16 @@ public sealed class SvgAnimationController : IDisposable
 
             bindingsForKey.Add(new PointerEventDependency(binding));
         }
+    }
+
+    private static List<AnimationBinding> CreateFrameEvaluationBindings(List<AnimationBinding> bindings)
+    {
+        return bindings
+            .Select(static (binding, index) => (binding, index))
+            .OrderBy(static entry => IsCurrentColorSourceAttribute(entry.binding.AttributeName) ? 0 : 1)
+            .ThenBy(static entry => entry.index)
+            .Select(static entry => entry.binding)
+            .ToList();
     }
 
     private static Dictionary<string, AnimationBinding> BuildBindingLookup(IEnumerable<AnimationBinding> bindings)
@@ -993,6 +1066,23 @@ public sealed class SvgAnimationController : IDisposable
         return false;
     }
 
+    private static bool HasExplicitAnimationBaseAttribute(SvgElement sourceTarget, string attributeName, object? baseValue)
+    {
+        if (sourceTarget.ContainsAttribute(attributeName))
+        {
+            return true;
+        }
+
+        return IsHrefAnimationAttribute(attributeName) && baseValue is not null;
+    }
+
+    private static bool IsHrefAnimationAttribute(string attributeName)
+    {
+        return string.Equals(attributeName, "href", StringComparison.Ordinal) ||
+               string.Equals(attributeName, "xlink:href", StringComparison.Ordinal) ||
+               attributeName.StartsWith(SvgNamespaces.XLinkNamespace + ":href", StringComparison.Ordinal);
+    }
+
     private static List<AnimationBinding> DiscoverBindings(SvgDocument sourceDocument)
     {
         var bindings = new List<AnimationBinding>();
@@ -1007,10 +1097,74 @@ public sealed class SvgAnimationController : IDisposable
                 continue;
             }
 
+            if (ShouldIgnoreBrowserUnsupportedAnimateColorBinding(animation, target, attributeName!))
+            {
+                continue;
+            }
+
             bindings.Add(new AnimationBinding(animation, target, SvgElementAddress.Create(target), attributeName!));
         }
 
         return bindings;
+    }
+
+    private static bool ShouldIgnoreBrowserUnsupportedAnimateColorBinding(
+        SvgAnimationElement animation,
+        SvgElement target,
+        string attributeName)
+    {
+        // Current browser snapshots do not apply deprecated animateColor to inherited
+        // paint-server color state declared in defs, while regular animate still applies.
+        if (animation is not SvgAnimateColor ||
+            !IsInheritedPaintServerColorAttribute(attributeName) ||
+            !IsInsideDefinitions(target))
+        {
+            return false;
+        }
+
+        return SubtreeContainsPaintServer(target);
+    }
+
+    private static bool IsInheritedPaintServerColorAttribute(string attributeName)
+    {
+        return string.Equals(attributeName, "color", StringComparison.Ordinal) ||
+               string.Equals(attributeName, "stop-color", StringComparison.Ordinal);
+    }
+
+    private static bool IsCurrentColorSourceAttribute(string attributeName)
+    {
+        return string.Equals(attributeName, "color", StringComparison.Ordinal);
+    }
+
+    private static bool IsInsideDefinitions(SvgElement element)
+    {
+        for (var current = element.Parent as SvgElement; current is not null; current = current.Parent as SvgElement)
+        {
+            if (current is SvgDefinitionList)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool SubtreeContainsPaintServer(SvgElement element)
+    {
+        if (element is SvgPaintServer)
+        {
+            return true;
+        }
+
+        for (var i = 0; i < element.Children.Count; i++)
+        {
+            if (SubtreeContainsPaintServer(element.Children[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void InvalidateFrameStateCache()
@@ -1133,7 +1287,7 @@ public sealed class SvgAnimationController : IDisposable
             return false;
         }
 
-        spec = new TimingSpec(parsedTiming.EventAddress, parsedTiming.EventType, parsedTiming.Offset);
+        spec = new TimingSpec(parsedTiming.EventAddress, parsedTiming.EventType, parsedTiming.Offset, parsedTiming.RepeatIteration);
         return true;
     }
 
@@ -1148,15 +1302,71 @@ public sealed class SvgAnimationController : IDisposable
         {
             return string.IsNullOrWhiteSpace(animateTransform.AnimationAttributeName)
                 ? "transform"
-                : animateTransform.AnimationAttributeName;
+                : ResolveNamespacedAnimationAttributeName(animation, animateTransform.AnimationAttributeName);
         }
 
         if (animation is SvgAnimationAttributeElement attributeAnimation)
         {
-            return attributeAnimation.AnimationAttributeName;
+            return ResolveNamespacedAnimationAttributeName(animation, attributeAnimation.AnimationAttributeName);
         }
 
         return null;
+    }
+
+    private static string? ResolveNamespacedAnimationAttributeName(SvgAnimationElement animation, string? attributeName)
+    {
+        if (string.IsNullOrWhiteSpace(attributeName))
+        {
+            return attributeName;
+        }
+
+        var resolvedAttributeName = attributeName!;
+        var colonIndex = resolvedAttributeName.IndexOf(':');
+        if (colonIndex <= 0 || colonIndex == resolvedAttributeName.Length - 1)
+        {
+            return resolvedAttributeName;
+        }
+
+        var prefix = resolvedAttributeName.Substring(0, colonIndex);
+        var localName = resolvedAttributeName.Substring(colonIndex + 1);
+        if (TryResolveNamespace(animation, prefix, out var namespaceName))
+        {
+            if (string.Equals(namespaceName, SvgNamespaces.XLinkNamespace, StringComparison.Ordinal))
+            {
+                return string.Concat("xlink:", localName);
+            }
+
+            if (string.Equals(namespaceName, SvgNamespaces.XmlNamespace, StringComparison.Ordinal))
+            {
+                return string.Concat("xml:", localName);
+            }
+
+            return string.Concat(namespaceName, ":", localName);
+        }
+
+        return resolvedAttributeName;
+    }
+
+    private static bool TryResolveNamespace(SvgElement element, string prefix, out string namespaceName)
+    {
+        for (SvgElement? current = element; current is not null; current = current.Parent as SvgElement)
+        {
+            if (current.Namespaces.TryGetValue(prefix, out var resolvedNamespace))
+            {
+                namespaceName = resolvedNamespace;
+                return true;
+            }
+        }
+
+        var document = element as SvgDocument ?? element.OwnerDocument;
+        if (document is not null && document.Namespaces.TryGetValue(prefix, out var documentNamespace))
+        {
+            namespaceName = documentNamespace;
+            return true;
+        }
+
+        namespaceName = string.Empty;
+        return false;
     }
 
     private static bool TryResolveAnimatedAttributeValue(
@@ -1164,6 +1374,7 @@ public sealed class SvgAnimationController : IDisposable
         AnimationBinding binding,
         TimeSpan time,
         string? currentComposedValue,
+        IReadOnlyDictionary<string, SvgAnimationFrameAttributeState>? frameAttributes,
         out string value)
     {
         value = string.Empty;
@@ -1207,7 +1418,7 @@ public sealed class SvgAnimationController : IDisposable
                 return true;
             case SvgAnimateColor animateColor:
                 if (!TryGetAnimationSample(controller, binding, animateColor, time, allowIndefiniteDiscrete: false, out var colorSample) ||
-                    !TryResolveAnimatedValue(binding, animateColor, colorSample, forceColorInterpolation: true, out value))
+                    !TryResolveAnimatedValue(binding, animateColor, colorSample, forceColorInterpolation: true, frameAttributes, out value))
                 {
                     return false;
                 }
@@ -1222,7 +1433,7 @@ public sealed class SvgAnimationController : IDisposable
                 return true;
             case SvgAnimate animate:
                 if (!TryGetAnimationSample(controller, binding, animate, time, allowIndefiniteDiscrete: false, out var valueSample) ||
-                    !TryResolveAnimatedValue(binding, animate, valueSample, forceColorInterpolation: false, out value))
+                    !TryResolveAnimatedValue(binding, animate, valueSample, forceColorInterpolation: false, frameAttributes, out value))
                 {
                     return false;
                 }
@@ -1290,7 +1501,7 @@ public sealed class SvgAnimationController : IDisposable
             return;
         }
 
-        if (!TryResolveAnimatedValue(binding, animation, sample, forceColorInterpolation, out var value))
+        if (!TryResolveAnimatedValue(binding, animation, sample, forceColorInterpolation, frameAttributes: null, out var value))
         {
             return;
         }
@@ -1379,7 +1590,7 @@ public sealed class SvgAnimationController : IDisposable
 
         public TimeSpan? ActiveEnd { get; }
 
-        public bool IsActive(TimeSpan time) => !ActiveEnd.HasValue || time <= ActiveEnd.Value;
+        public bool IsActive(TimeSpan time) => IsTimeInActiveInterval(Begin, ActiveEnd, time);
     }
 
     private readonly struct ResolvedAnimationInterval
@@ -1397,7 +1608,19 @@ public sealed class SvgAnimationController : IDisposable
 
         public ResolvedTimingInstance? EndInstance { get; }
 
-        public bool IsActive(TimeSpan time) => !ActiveEnd.HasValue || time <= ActiveEnd.Value;
+        public bool IsActive(TimeSpan time) => IsTimeInActiveInterval(BeginInstance.Time, ActiveEnd, time);
+    }
+
+    private static bool IsTimeInActiveInterval(TimeSpan begin, TimeSpan? activeEnd, TimeSpan time)
+    {
+        if (!activeEnd.HasValue)
+        {
+            return true;
+        }
+
+        return activeEnd.Value == begin
+            ? time == begin
+            : time < activeEnd.Value;
     }
 
     private static bool TryGetAnimationSample(SvgAnimationController controller, AnimationBinding binding, SvgAnimationElement animation, TimeSpan time, bool allowIndefiniteDiscrete, out AnimationSample sample)
@@ -1498,14 +1721,8 @@ public sealed class SvgAnimationController : IDisposable
     {
         interval = default;
 
-        var beginInstances = controller.ResolveBeginInstances(binding, recursionGuard: null);
-        if (beginInstances.Count == 0)
-        {
-            return false;
-        }
-
-        var endInstances = controller.ResolveEndTimingInstances(binding, recursionGuard: null);
-        if (!TryResolveCurrentIntervalDetailed(animation, time, allowIndefiniteDiscrete, beginInstances, endInstances, out var resolved))
+        var intervals = controller.ResolveAnimationIntervals(binding, recursionGuard: null, horizon: time);
+        if (!TrySelectCurrentInterval(animation, time, intervals, requireActive: false, out var resolved))
         {
             return false;
         }
@@ -1525,7 +1742,7 @@ public sealed class SvgAnimationController : IDisposable
         return false;
     }
 
-    private List<ResolvedTimingInstance> ResolveTimingInstancesDetailed(IReadOnlyList<TimingSpec> specs, HashSet<string>? recursionGuard)
+    private List<ResolvedTimingInstance> ResolveTimingInstancesDetailed(IReadOnlyList<TimingSpec> specs, HashSet<string>? recursionGuard, TimeSpan? horizon = null)
     {
         var instances = new List<ResolvedTimingInstance>();
 
@@ -1556,7 +1773,7 @@ public sealed class SvgAnimationController : IDisposable
                 continue;
             }
 
-            var dependencyInstances = ResolveAnimationEventInstances(spec, recursionGuard);
+            var dependencyInstances = ResolveAnimationEventInstances(spec, recursionGuard, horizon);
             if (dependencyInstances.Count == 0)
             {
                 continue;
@@ -1577,7 +1794,7 @@ public sealed class SvgAnimationController : IDisposable
         return instances;
     }
 
-    private List<TimeSpan> ResolveAnimationEventInstances(TimingSpec spec, HashSet<string>? recursionGuard)
+    private List<TimeSpan> ResolveAnimationEventInstances(TimingSpec spec, HashSet<string>? recursionGuard, TimeSpan? horizon = null)
     {
         if (spec.EventAddress is null ||
             !_bindingsByAnimationAddressKey.TryGetValue(spec.EventAddress.Key, out var dependencyBinding))
@@ -1585,7 +1802,7 @@ public sealed class SvgAnimationController : IDisposable
             return new List<TimeSpan>();
         }
 
-        var dependencyIntervals = ResolveAnimationIntervals(dependencyBinding, recursionGuard);
+        var dependencyIntervals = ResolveAnimationIntervals(dependencyBinding, recursionGuard, horizon);
         if (dependencyIntervals.Count == 0)
         {
             return new List<TimeSpan>();
@@ -1607,6 +1824,9 @@ public sealed class SvgAnimationController : IDisposable
                     }
 
                     break;
+                case SvgAnimationTimingEventType.Repeat:
+                    AddRepeatEventInstances(dependencyBinding.Animation, interval, spec.RepeatIteration, instances);
+                    break;
             }
         }
 
@@ -1618,22 +1838,116 @@ public sealed class SvgAnimationController : IDisposable
         return instances;
     }
 
-    private List<ResolvedAnimationInterval> ResolveAnimationIntervals(AnimationBinding binding, HashSet<string>? recursionGuard)
+    private static void AddRepeatEventInstances(
+        SvgAnimationElement animation,
+        ResolvedAnimationInterval interval,
+        int? requestedIteration,
+        List<TimeSpan> instances)
     {
-        var beginInstances = ResolveBeginInstances(binding, recursionGuard);
+        if (!TryParseClockValue(animation.Duration, out var simpleDuration) || simpleDuration <= TimeSpan.Zero)
+        {
+            return;
+        }
+
+        var activeEnd = interval.ActiveEnd;
+        if (requestedIteration.HasValue)
+        {
+            AddRepeatEventInstance(interval.BeginInstance.Time, simpleDuration, activeEnd, requestedIteration.Value, instances);
+            return;
+        }
+
+        var repeatLimit = ResolveRepeatEventLimit(animation, simpleDuration, interval);
+        for (var iteration = 1; iteration <= repeatLimit; iteration++)
+        {
+            AddRepeatEventInstance(interval.BeginInstance.Time, simpleDuration, activeEnd, iteration, instances);
+        }
+    }
+
+    private static int ResolveRepeatEventLimit(SvgAnimationElement animation, TimeSpan simpleDuration, ResolvedAnimationInterval interval)
+    {
+        const int maxUnboundedRepeatEvents = 4096;
+        var repeatCountMode = ParseRepeatCount(animation.RepeatCount, out var repeatCount);
+        if (repeatCountMode == RepeatCountMode.Finite)
+        {
+            return Math.Max(0, (int)Math.Ceiling(repeatCount) - 1);
+        }
+
+        if (interval.ActiveEnd.HasValue)
+        {
+            var elapsed = interval.ActiveEnd.Value - interval.BeginInstance.Time;
+            if (elapsed <= TimeSpan.Zero)
+            {
+                return 0;
+            }
+
+            return Math.Max(0, (int)(elapsed.Ticks / simpleDuration.Ticks));
+        }
+
+        return maxUnboundedRepeatEvents;
+    }
+
+    private static void AddRepeatEventInstance(
+        TimeSpan begin,
+        TimeSpan simpleDuration,
+        TimeSpan? activeEnd,
+        int iteration,
+        List<TimeSpan> instances)
+    {
+        if (iteration <= 0)
+        {
+            return;
+        }
+
+        var time = begin + Multiply(simpleDuration, iteration);
+        if (time <= begin)
+        {
+            return;
+        }
+
+        if (activeEnd.HasValue && time >= activeEnd.Value)
+        {
+            return;
+        }
+
+        instances.Add(time);
+    }
+
+    private List<ResolvedAnimationInterval> ResolveAnimationIntervals(AnimationBinding binding, HashSet<string>? recursionGuard, TimeSpan? horizon = null)
+    {
+        var beginInstances = ResolveBeginInstances(binding, recursionGuard, horizon);
         if (beginInstances.Count == 0)
         {
             return new List<ResolvedAnimationInterval>();
         }
 
-        var endInstances = ResolveEndTimingInstances(binding, recursionGuard);
+        var endInstances = ResolveEndTimingInstances(binding, recursionGuard, horizon);
         var allowIndefiniteDiscrete = binding.Animation is SvgSet;
+        if (HasSelfEventTiming(binding.BeginSpecs, binding.AnimationAddress) ||
+            HasSelfEventTiming(binding.EndSpecs, binding.AnimationAddress))
+        {
+            return ResolveAnimationIntervalsWithSelfSync(binding, beginInstances, endInstances, allowIndefiniteDiscrete, horizon);
+        }
+
+        return ResolveAnimationIntervalsCore(binding, beginInstances, endInstances, allowIndefiniteDiscrete, horizon);
+    }
+
+    private static List<ResolvedAnimationInterval> ResolveAnimationIntervalsCore(
+        AnimationBinding binding,
+        IReadOnlyList<ResolvedTimingInstance> beginInstances,
+        IReadOnlyList<ResolvedTimingInstance> endInstances,
+        bool allowIndefiniteDiscrete,
+        TimeSpan? horizon)
+    {
         var intervals = new List<ResolvedAnimationInterval>();
         ResolvedAnimationInterval? selected = null;
 
         for (var index = 0; index < beginInstances.Count; index++)
         {
             var begin = beginInstances[index];
+            if (horizon.HasValue && begin.Time > horizon.Value)
+            {
+                break;
+            }
 
             if (selected.HasValue)
             {
@@ -1648,10 +1962,14 @@ public sealed class SvgAnimationController : IDisposable
                         }
 
                         break;
+                    case SvgAnimationRestart.Always:
+                        TruncateRestartedInterval(intervals, selected.Value, begin.Time);
+                        break;
                 }
             }
 
-            if (!TryResolveIntervalEndDetailed(binding.Animation, begin.Time, endInstances, allowIndefiniteDiscrete, out var activeEnd, out var endInstance))
+            var effectiveEndInstances = CreateEffectiveEndInstances(binding, endInstances, begin.Time, horizon);
+            if (!TryResolveIntervalEndDetailed(binding.Animation, begin.Time, effectiveEndInstances, allowIndefiniteDiscrete, out var activeEnd, out var endInstance))
             {
                 continue;
             }
@@ -1661,6 +1979,307 @@ public sealed class SvgAnimationController : IDisposable
         }
 
         return intervals;
+    }
+
+    private static List<ResolvedAnimationInterval> ResolveAnimationIntervalsWithSelfSync(
+        AnimationBinding binding,
+        IReadOnlyList<ResolvedTimingInstance> seedBeginInstances,
+        IReadOnlyList<ResolvedTimingInstance> endInstances,
+        bool allowIndefiniteDiscrete,
+        TimeSpan? horizon)
+    {
+        const int maxSelfSyncIntervals = 4096;
+
+        var pendingBeginInstances = new List<ResolvedTimingInstance>(seedBeginInstances);
+        SortAndDeduplicateTimingInstances(pendingBeginInstances);
+
+        var knownBeginTimes = new HashSet<long>();
+        for (var index = 0; index < pendingBeginInstances.Count; index++)
+        {
+            knownBeginTimes.Add(pendingBeginInstances[index].Time.Ticks);
+        }
+
+        var intervals = new List<ResolvedAnimationInterval>();
+        ResolvedAnimationInterval? selected = null;
+        var cursor = 0;
+
+        while (cursor < pendingBeginInstances.Count && intervals.Count < maxSelfSyncIntervals)
+        {
+            var begin = pendingBeginInstances[cursor++];
+            if (horizon.HasValue && begin.Time > horizon.Value)
+            {
+                break;
+            }
+
+            if (selected.HasValue)
+            {
+                switch (binding.Animation.Restart)
+                {
+                    case SvgAnimationRestart.Never:
+                        continue;
+                    case SvgAnimationRestart.WhenNotActive:
+                        if (!selected.Value.ActiveEnd.HasValue || begin.Time < selected.Value.ActiveEnd.Value)
+                        {
+                            continue;
+                        }
+
+                        break;
+                    case SvgAnimationRestart.Always:
+                        TruncateRestartedInterval(intervals, selected.Value, begin.Time);
+                        break;
+                }
+            }
+
+            var effectiveEndInstances = CreateEffectiveEndInstances(binding, endInstances, begin.Time, horizon);
+            if (!TryResolveIntervalEndDetailed(binding.Animation, begin.Time, effectiveEndInstances, allowIndefiniteDiscrete, out var activeEnd, out var endInstance))
+            {
+                continue;
+            }
+
+            selected = new ResolvedAnimationInterval(begin, activeEnd, endInstance);
+            intervals.Add(selected.Value);
+
+            AddSelfSyncBeginInstances(
+                binding,
+                selected.Value,
+                pendingBeginInstances,
+                knownBeginTimes,
+                horizon);
+
+            if (pendingBeginInstances.Count > cursor)
+            {
+                SortAndDeduplicateTimingInstances(pendingBeginInstances);
+            }
+        }
+
+        return intervals;
+    }
+
+    private static void TruncateRestartedInterval(
+        List<ResolvedAnimationInterval> intervals,
+        ResolvedAnimationInterval selected,
+        TimeSpan restartTime)
+    {
+        if (intervals.Count == 0 ||
+            (selected.ActiveEnd.HasValue && selected.ActiveEnd.Value <= restartTime))
+        {
+            return;
+        }
+
+        intervals[intervals.Count - 1] = new ResolvedAnimationInterval(
+            selected.BeginInstance,
+            restartTime,
+            selected.EndInstance);
+    }
+
+    private static IReadOnlyList<ResolvedTimingInstance> CreateEffectiveEndInstances(
+        AnimationBinding binding,
+        IReadOnlyList<ResolvedTimingInstance> endInstances,
+        TimeSpan beginTime,
+        TimeSpan? horizon)
+    {
+        if (!HasSelfEventTiming(binding.EndSpecs, binding.AnimationAddress))
+        {
+            return endInstances;
+        }
+
+        var effective = new List<ResolvedTimingInstance>(endInstances);
+        for (var index = 0; index < binding.EndSpecs.Count; index++)
+        {
+            var spec = binding.EndSpecs[index];
+            if (!IsSelfEventTiming(spec, binding.AnimationAddress))
+            {
+                continue;
+            }
+
+            var eventInstanceKey = CreateEventInstanceKey(binding.AnimationAddress, spec.EventType);
+            switch (spec.EventType)
+            {
+                case SvgAnimationTimingEventType.Begin:
+                    AddSelfEndInstance(beginTime, beginTime, spec.Offset, eventInstanceKey, effective, horizon);
+                    break;
+                case SvgAnimationTimingEventType.Repeat:
+                    var provisionalInterval = new ResolvedAnimationInterval(
+                        new ResolvedTimingInstance(beginTime, eventInstanceKey: null, sourceEventTime: null),
+                        activeEnd: null,
+                        endInstance: null);
+                    var repeatTimes = new List<TimeSpan>();
+                    AddRepeatEventInstances(binding.Animation, provisionalInterval, spec.RepeatIteration, repeatTimes);
+                    for (var repeatIndex = 0; repeatIndex < repeatTimes.Count; repeatIndex++)
+                    {
+                        AddSelfEndInstance(repeatTimes[repeatIndex], beginTime, spec.Offset, eventInstanceKey, effective, horizon);
+                    }
+
+                    break;
+            }
+        }
+
+        SortAndDeduplicateTimingInstances(effective);
+        return effective.Count == 0 ? s_emptyResolvedTimingInstances : effective;
+    }
+
+    private static void AddSelfEndInstance(
+        TimeSpan eventTime,
+        TimeSpan sourceBegin,
+        TimeSpan offset,
+        string eventInstanceKey,
+        List<ResolvedTimingInstance> endInstances,
+        TimeSpan? horizon)
+    {
+        var candidateTime = eventTime + offset;
+        if (candidateTime <= sourceBegin ||
+            (horizon.HasValue && candidateTime > horizon.Value))
+        {
+            return;
+        }
+
+        endInstances.Add(new ResolvedTimingInstance(candidateTime, eventInstanceKey, eventTime));
+    }
+
+    private static bool HasSelfEventTiming(IReadOnlyList<TimingSpec> specs, SvgElementAddress animationAddress)
+    {
+        for (var index = 0; index < specs.Count; index++)
+        {
+            if (IsSelfEventTiming(specs[index], animationAddress))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsSelfEventTiming(TimingSpec spec, SvgElementAddress animationAddress)
+    {
+        return spec.IsEvent &&
+               spec.EventAddress is { } eventAddress &&
+               string.Equals(eventAddress.Key, animationAddress.Key, StringComparison.Ordinal);
+    }
+
+    private static void AddSelfSyncBeginInstances(
+        AnimationBinding binding,
+        ResolvedAnimationInterval interval,
+        List<ResolvedTimingInstance> pendingBeginInstances,
+        HashSet<long> knownBeginTimes,
+        TimeSpan? horizon)
+    {
+        for (var index = 0; index < binding.BeginSpecs.Count; index++)
+        {
+            var spec = binding.BeginSpecs[index];
+            if (!IsSelfEventTiming(spec, binding.AnimationAddress))
+            {
+                continue;
+            }
+
+            var eventInstanceKey = CreateEventInstanceKey(binding.AnimationAddress, spec.EventType);
+            switch (spec.EventType)
+            {
+                case SvgAnimationTimingEventType.Begin:
+                    AddSelfSyncBeginInstance(
+                        interval.BeginInstance.Time,
+                        interval.BeginInstance.Time,
+                        spec.Offset,
+                        eventInstanceKey,
+                        pendingBeginInstances,
+                        knownBeginTimes,
+                        horizon);
+                    break;
+                case SvgAnimationTimingEventType.End:
+                    if (interval.ActiveEnd.HasValue)
+                    {
+                        AddSelfSyncBeginInstance(
+                            interval.ActiveEnd.Value,
+                            interval.BeginInstance.Time,
+                            spec.Offset,
+                            eventInstanceKey,
+                            pendingBeginInstances,
+                            knownBeginTimes,
+                            horizon);
+                    }
+
+                    break;
+                case SvgAnimationTimingEventType.Repeat:
+                    var repeatEventTimes = new List<TimeSpan>();
+                    AddRepeatEventInstances(binding.Animation, interval, spec.RepeatIteration, repeatEventTimes);
+                    for (var repeatIndex = 0; repeatIndex < repeatEventTimes.Count; repeatIndex++)
+                    {
+                        AddSelfSyncBeginInstance(
+                            repeatEventTimes[repeatIndex],
+                            interval.BeginInstance.Time,
+                            spec.Offset,
+                            eventInstanceKey,
+                            pendingBeginInstances,
+                            knownBeginTimes,
+                            horizon);
+                    }
+
+                    break;
+            }
+        }
+    }
+
+    private static void AddSelfSyncBeginInstance(
+        TimeSpan eventTime,
+        TimeSpan sourceBegin,
+        TimeSpan offset,
+        string eventInstanceKey,
+        List<ResolvedTimingInstance> pendingBeginInstances,
+        HashSet<long> knownBeginTimes,
+        TimeSpan? horizon)
+    {
+        var candidateTime = eventTime + offset;
+        if (candidateTime <= sourceBegin)
+        {
+            return;
+        }
+
+        if (horizon.HasValue && candidateTime > horizon.Value)
+        {
+            return;
+        }
+
+        if (!knownBeginTimes.Add(candidateTime.Ticks))
+        {
+            return;
+        }
+
+        pendingBeginInstances.Add(new ResolvedTimingInstance(candidateTime, eventInstanceKey, eventTime));
+    }
+
+    private static bool TrySelectCurrentInterval(
+        SvgAnimationElement animation,
+        TimeSpan time,
+        IReadOnlyList<ResolvedAnimationInterval> intervals,
+        bool requireActive,
+        out ResolvedAnimationInterval interval)
+    {
+        interval = default;
+        ResolvedAnimationInterval? selected = null;
+
+        for (var index = 0; index < intervals.Count; index++)
+        {
+            var candidate = intervals[index];
+            if (candidate.BeginInstance.Time > time)
+            {
+                break;
+            }
+
+            selected = candidate;
+        }
+
+        if (!selected.HasValue)
+        {
+            return false;
+        }
+
+        var resolved = selected.Value;
+        if (resolved.IsActive(time) || (!requireActive && animation.AnimationFill == SvgAnimationFill.Freeze))
+        {
+            interval = resolved;
+            return true;
+        }
+
+        return false;
     }
 
     private static bool TryResolveCurrentIntervalDetailed(
@@ -1783,7 +2402,7 @@ public sealed class SvgAnimationController : IDisposable
                 return false;
             }
 
-            activeEnd = explicitEnd;
+            activeEnd = ComputeIndefiniteActiveEnd(animation, begin, explicitEnd);
             return true;
         }
 
@@ -1829,7 +2448,7 @@ public sealed class SvgAnimationController : IDisposable
                 return false;
             }
 
-            activeEnd = explicitEnd;
+            activeEnd = ComputeIndefiniteActiveEnd(animation, begin, explicitEnd);
             return true;
         }
 
@@ -1845,6 +2464,14 @@ public sealed class SvgAnimationController : IDisposable
     private static TimeSpan? ComputeActiveEnd(SvgAnimationElement animation, TimeSpan begin, TimeSpan simpleDuration, TimeSpan? explicitEnd)
     {
         var totalDuration = ComputeTotalDuration(animation, simpleDuration, explicitEnd, begin);
+        return totalDuration.HasValue
+            ? begin + totalDuration.Value
+            : null;
+    }
+
+    private static TimeSpan? ComputeIndefiniteActiveEnd(SvgAnimationElement animation, TimeSpan begin, TimeSpan? explicitEnd)
+    {
+        var totalDuration = ComputeConstrainedTotalDuration(animation, totalDuration: null, explicitEnd, begin);
         return totalDuration.HasValue
             ? begin + totalDuration.Value
             : null;
@@ -1882,19 +2509,37 @@ public sealed class SvgAnimationController : IDisposable
                 break;
         }
 
+        return ComputeConstrainedTotalDuration(animation, totalDuration, explicitEnd, begin);
+    }
+
+    private static TimeSpan? ComputeConstrainedTotalDuration(
+        SvgAnimationElement animation,
+        TimeSpan? totalDuration,
+        TimeSpan? explicitEnd,
+        TimeSpan begin)
+    {
         if (explicitEnd.HasValue && explicitEnd.Value > begin)
         {
             totalDuration = MinDuration(totalDuration, explicitEnd.Value - begin);
         }
 
-        switch (ParseRepeatDuration(animation.Minimum, out var minimumDuration))
+        var minimumMode = ParseRepeatDuration(animation.Minimum, out var minimumDuration);
+        var maximumMode = ParseRepeatDuration(animation.Maximum, out var maximumDuration);
+        if (minimumMode == RepeatDurationMode.Finite &&
+            maximumMode == RepeatDurationMode.Finite &&
+            minimumDuration > maximumDuration)
+        {
+            return totalDuration;
+        }
+
+        switch (minimumMode)
         {
             case RepeatDurationMode.Finite:
                 totalDuration = MaxDuration(totalDuration, minimumDuration);
                 break;
         }
 
-        switch (ParseRepeatDuration(animation.Maximum, out var maximumDuration))
+        switch (maximumMode)
         {
             case RepeatDurationMode.Finite:
                 totalDuration = MinDuration(totalDuration, maximumDuration);
@@ -1928,7 +2573,13 @@ public sealed class SvgAnimationController : IDisposable
             : RepeatDurationMode.None;
     }
 
-    private static bool TryResolveAnimatedValue(AnimationBinding binding, SvgAnimationValueElement animation, AnimationSample sample, bool forceColorInterpolation, out string value)
+    private static bool TryResolveAnimatedValue(
+        AnimationBinding binding,
+        SvgAnimationValueElement animation,
+        AnimationSample sample,
+        bool forceColorInterpolation,
+        IReadOnlyDictionary<string, SvgAnimationFrameAttributeState>? frameAttributes,
+        out string value)
     {
         value = string.Empty;
 
@@ -1965,13 +2616,28 @@ public sealed class SvgAnimationController : IDisposable
         var fromValue = values[startIndex];
         var toValue = values[endIndex];
 
-        if (TryInterpolateValue(binding, fromValue, toValue, localProgress, forceColorInterpolation, out value))
+        if (TryInterpolateValue(binding, fromValue, toValue, localProgress, forceColorInterpolation, frameAttributes, out value))
         {
             return TryApplyAccumulation(binding, animation, values, sample, forceColorInterpolation, ref value);
         }
 
-        value = localProgress >= 1f ? toValue : fromValue;
+        value = IsToOnlyAnimation(animation)
+            ? toValue
+            : ResolveNonInterpolableFallbackValue(fromValue, toValue, localProgress);
         return TryApplyAccumulation(binding, animation, values, sample, forceColorInterpolation, ref value);
+    }
+
+    private static bool IsToOnlyAnimation(SvgAnimationValueElement animation)
+    {
+        return string.IsNullOrWhiteSpace(animation.Values) &&
+               string.IsNullOrWhiteSpace(animation.From) &&
+               string.IsNullOrWhiteSpace(animation.By) &&
+               !string.IsNullOrWhiteSpace(animation.To);
+    }
+
+    private static string ResolveNonInterpolableFallbackValue(string fromValue, string toValue, float localProgress)
+    {
+        return localProgress > 0.5f ? toValue : fromValue;
     }
 
     private static bool TryResolveTransformValue(AnimationBinding binding, SvgAnimateTransform animation, AnimationSample sample, out string transformValue)
@@ -2462,6 +3128,12 @@ public sealed class SvgAnimationController : IDisposable
             {
                 resolved.Add(fromValue);
             }
+            else if (animation is SvgAnimateTransform animateTransform &&
+                     string.IsNullOrWhiteSpace(animation.To) &&
+                     SvgAnimationParser.TryGetTrimmedString(animation.By, out var transformByValue))
+            {
+                resolved.Add(CreateZeroTransformValue(animateTransform.TransformType, transformByValue));
+            }
             else if (!string.IsNullOrWhiteSpace(binding.BaseValueString))
             {
                 resolved.Add(binding.BaseValueString!);
@@ -2486,6 +3158,28 @@ public sealed class SvgAnimationController : IDisposable
         });
     }
 
+    private static string CreateZeroTransformValue(SvgAnimateTransformType transformType, string byValue)
+    {
+        var byValues = ParseTransformNumbers(byValue);
+        var length = Math.Max(1, byValues.Length);
+        var values = new string[length];
+        for (var index = 0; index < values.Length; index++)
+        {
+            values[index] = GetZeroTransformValue(transformType, index).ToSvgString();
+        }
+
+        return string.Join(" ", values);
+    }
+
+    private static float GetZeroTransformValue(SvgAnimateTransformType transformType, int index)
+    {
+        return transformType switch
+        {
+            SvgAnimateTransformType.Scale => 0f,
+            _ => 0f
+        };
+    }
+
     private static bool UsesImplicitBaseValue(AnimationBinding binding, SvgAnimationValueElement animation)
     {
         return string.IsNullOrWhiteSpace(animation.Values) &&
@@ -2503,6 +3197,18 @@ public sealed class SvgAnimationController : IDisposable
         var startValue = values[0];
         var endValue = values[values.Count - 1];
 
+        if (animation.CalcMode == SvgAnimationCalcMode.Discrete)
+        {
+            if (!TryScaleValue(binding, endValue, sample.IterationIndex, forceColorInterpolation, out var discreteAccumulationValue) ||
+                !TryAddValue(binding, value, discreteAccumulationValue, out var discreteAccumulatedValue))
+            {
+                return false;
+            }
+
+            value = discreteAccumulatedValue;
+            return true;
+        }
+
         if ((forceColorInterpolation || IsPaintServerType(binding.PropertyType) || TryGetColor(value, out _)) &&
             TryGetColor(startValue, out var startColor) &&
             TryGetColor(endValue, out var endColor) &&
@@ -2518,12 +3224,12 @@ public sealed class SvgAnimationController : IDisposable
 
         if (!TrySubtractValue(binding, endValue, startValue, forceColorInterpolation, out var deltaValue) ||
             !TryScaleValue(binding, deltaValue, sample.IterationIndex, forceColorInterpolation, out var accumulatedDelta) ||
-            !TryAddValue(binding, value, accumulatedDelta, out var accumulatedValue))
+            !TryAddValue(binding, value, accumulatedDelta, out var summedValue))
         {
             return false;
         }
 
-        value = accumulatedValue;
+        value = summedValue;
         return true;
     }
 
@@ -3016,9 +3722,22 @@ public sealed class SvgAnimationController : IDisposable
                (3f * t * t * (1f - control2));
     }
 
-    private static bool TryInterpolateValue(AnimationBinding binding, string fromValue, string toValue, float progress, bool forceColorInterpolation, out string result)
+    private static bool TryInterpolateValue(
+        AnimationBinding binding,
+        string fromValue,
+        string toValue,
+        float progress,
+        bool forceColorInterpolation,
+        IReadOnlyDictionary<string, SvgAnimationFrameAttributeState>? frameAttributes,
+        out string result)
     {
         result = string.Empty;
+
+        if (forceColorInterpolation || IsPaintServerType(binding.PropertyType) || IsColorKeyword(fromValue) || IsColorKeyword(toValue))
+        {
+            fromValue = ResolveColorKeywordValue(binding, fromValue, frameAttributes);
+            toValue = ResolveColorKeywordValue(binding, toValue, frameAttributes);
+        }
 
         if ((forceColorInterpolation || IsPaintServerType(binding.PropertyType)) &&
             TryInterpolateColor(fromValue, toValue, progress, out result))
@@ -3039,6 +3758,17 @@ public sealed class SvgAnimationController : IDisposable
             return true;
         }
 
+        if (binding.AttributeName == "d" &&
+            TryInterpolatePathData(fromValue, toValue, progress, out result))
+        {
+            return true;
+        }
+
+        if (TryInterpolateNumberList(fromValue, toValue, progress, out result))
+        {
+            return true;
+        }
+
         if (TryInterpolateSvgUnit(fromValue, toValue, progress, out result))
         {
             return true;
@@ -3050,6 +3780,267 @@ public sealed class SvgAnimationController : IDisposable
         }
 
         return false;
+    }
+
+    private static string ResolveColorKeywordValue(
+        AnimationBinding binding,
+        string value,
+        IReadOnlyDictionary<string, SvgAnimationFrameAttributeState>? frameAttributes)
+    {
+        if (!SvgAnimationParser.TryGetTrimmedString(value, out var trimmed))
+        {
+            return value;
+        }
+
+        if (SvgAnimationParser.EqualsKeywordIgnoreCase(trimmed.AsSpan(), "currentColor") &&
+            (TryGetAnimatedFrameColor(binding.SourceTarget, "color", frameAttributes, out var currentColor) ||
+             TryGetColor(binding.SourceTarget.Color, binding.SourceTarget, out currentColor)))
+        {
+            return FormatColor(currentColor);
+        }
+
+        if (SvgAnimationParser.EqualsKeywordIgnoreCase(trimmed.AsSpan(), "inherit") &&
+            TryGetInheritedColor(binding.SourceTarget, binding.AttributeName, frameAttributes, out var inheritedColor))
+        {
+            return FormatColor(inheritedColor);
+        }
+
+        return value;
+    }
+
+    private static bool IsColorKeyword(string value)
+    {
+        return SvgAnimationParser.TryGetTrimmedString(value, out var trimmed) &&
+               (SvgAnimationParser.EqualsKeywordIgnoreCase(trimmed.AsSpan(), "currentColor") ||
+                SvgAnimationParser.EqualsKeywordIgnoreCase(trimmed.AsSpan(), "inherit"));
+    }
+
+    private static bool TryGetInheritedColor(
+        SvgElement element,
+        string attributeName,
+        IReadOnlyDictionary<string, SvgAnimationFrameAttributeState>? frameAttributes,
+        out Color color)
+    {
+        color = default;
+        for (var parent = element.Parent as SvgElement; parent is not null; parent = parent.Parent as SvgElement)
+        {
+            if (TryGetAnimatedFrameColor(parent, attributeName, frameAttributes, out color))
+            {
+                return true;
+            }
+
+            if (TryGetPaintAttribute(parent, attributeName, out var paintServer) &&
+                TryGetColor(paintServer, parent, out color))
+            {
+                return true;
+            }
+
+            if (parent.TryGetAttribute(attributeName, out var rawValue) &&
+                TryGetColor(rawValue, out color))
+            {
+                return true;
+            }
+
+            var value = GetAttributeValue(parent, attributeName);
+            if (TryGetColor(value, parent, out color))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetAnimatedFrameColor(
+        SvgElement element,
+        string attributeName,
+        IReadOnlyDictionary<string, SvgAnimationFrameAttributeState>? frameAttributes,
+        out Color color)
+    {
+        color = default;
+        if (frameAttributes is null)
+        {
+            return false;
+        }
+
+        var key = string.Concat(SvgElementAddress.Create(element).Key, "|", attributeName);
+        return frameAttributes.TryGetValue(key, out var attribute) &&
+               TryGetColor(attribute.Value, out color);
+    }
+
+    private static bool TryGetPaintAttribute(SvgElement element, string attributeName, out SvgPaintServer? paintServer)
+    {
+        switch (attributeName)
+        {
+            case "color":
+                paintServer = element.Color;
+                return true;
+            case "fill" when element is SvgVisualElement visualElement:
+                paintServer = visualElement.Fill;
+                return true;
+            case "stroke" when element is SvgVisualElement visualElement:
+                paintServer = visualElement.Stroke;
+                return true;
+            case "stop-color" when element is SvgGradientStop gradientStop:
+                paintServer = gradientStop.StopColor;
+                return true;
+            case "stop-color" when element is SvgGradientServer gradientServer:
+                paintServer = gradientServer.StopColor;
+                return true;
+            case "flood-color" when element is Svg.FilterEffects.SvgDropShadow dropShadow:
+                paintServer = dropShadow.FloodColor;
+                return true;
+            default:
+                paintServer = null;
+                return false;
+        }
+    }
+
+    private static bool TryInterpolateNumberList(string fromValue, string toValue, float progress, out string result)
+    {
+        result = string.Empty;
+
+        var fromNumbers = SvgAnimationParser.ParseNumberList(fromValue);
+        var toNumbers = SvgAnimationParser.ParseNumberList(toValue);
+        if (fromNumbers.Length == 0 || fromNumbers.Length != toNumbers.Length)
+        {
+            return false;
+        }
+
+        var values = new string[fromNumbers.Length];
+        for (var index = 0; index < values.Length; index++)
+        {
+            values[index] = Lerp(fromNumbers[index], toNumbers[index], progress).ToSvgString();
+        }
+
+        result = string.Join(" ", values);
+        return true;
+    }
+
+    private static bool TryInterpolatePathData(string fromValue, string toValue, float progress, out string result)
+    {
+        result = string.Empty;
+
+        if (!TryTokenizePathData(fromValue, out var fromTokens) ||
+            !TryTokenizePathData(toValue, out var toTokens) ||
+            fromTokens.Count == 0 ||
+            fromTokens.Count != toTokens.Count)
+        {
+            return false;
+        }
+
+        var builder = new StringBuilder();
+        for (var index = 0; index < fromTokens.Count; index++)
+        {
+            var fromToken = fromTokens[index];
+            var toToken = toTokens[index];
+            if (fromToken.IsCommand != toToken.IsCommand)
+            {
+                return false;
+            }
+
+            if (fromToken.IsCommand)
+            {
+                if (fromToken.Command != toToken.Command)
+                {
+                    return false;
+                }
+
+                AppendPathToken(builder, fromToken.Command.ToString());
+                continue;
+            }
+
+            AppendPathToken(builder, Lerp(fromToken.Number, toToken.Number, progress).ToSvgString());
+        }
+
+        result = builder.ToString();
+        return result.Length > 0;
+    }
+
+    private static bool TryTokenizePathData(string value, out List<PathDataToken> tokens)
+    {
+        tokens = new List<PathDataToken>();
+        if (!SvgAnimationParser.TryGetTrimmedString(value, out var trimmed))
+        {
+            return false;
+        }
+
+        var span = trimmed.AsSpan();
+        var index = 0;
+        while (index < span.Length)
+        {
+            var ch = span[index];
+            if (char.IsWhiteSpace(ch) || ch == ',')
+            {
+                index++;
+                continue;
+            }
+
+            if (IsSvgPathCommand(ch))
+            {
+                tokens.Add(new PathDataToken(ch));
+                index++;
+                continue;
+            }
+
+            var start = index;
+            index++;
+            while (index < span.Length && IsPathNumberContinuation(span, index))
+            {
+                index++;
+            }
+
+            var token = span.Slice(start, index - start);
+            if (!SvgAnimationParser.TryParseInvariantFloat(token, out var number))
+            {
+                return false;
+            }
+
+            tokens.Add(new PathDataToken(number));
+        }
+
+        return true;
+    }
+
+    private static bool IsPathNumberContinuation(ReadOnlySpan<char> span, int index)
+    {
+        var ch = span[index];
+        if (char.IsWhiteSpace(ch) || ch == ',' || IsSvgPathCommand(ch))
+        {
+            return false;
+        }
+
+        if ((ch == '-' || ch == '+') && index > 0)
+        {
+            var previous = span[index - 1];
+            return previous == 'e' || previous == 'E';
+        }
+
+        return true;
+    }
+
+    private static bool IsSvgPathCommand(char ch)
+    {
+        return ch is 'M' or 'm' or
+            'Z' or 'z' or
+            'L' or 'l' or
+            'H' or 'h' or
+            'V' or 'v' or
+            'C' or 'c' or
+            'S' or 's' or
+            'Q' or 'q' or
+            'T' or 't' or
+            'A' or 'a';
+    }
+
+    private static void AppendPathToken(StringBuilder builder, string token)
+    {
+        if (builder.Length > 0)
+        {
+            builder.Append(' ');
+        }
+
+        builder.Append(token);
     }
 
     private static bool TryInterpolateTypedValue(object? fromObject, object? toObject, float progress, out string result)
@@ -3206,12 +4197,41 @@ public sealed class SvgAnimationController : IDisposable
 
     private static bool TryGetColor(SvgPaintServer? paintServer, out Color color)
     {
+        return TryGetColor(paintServer, styleOwner: null, out color);
+    }
+
+    private static bool TryGetColor(object? value, SvgElement? styleOwner, out Color color)
+    {
+        switch (value)
+        {
+            case SvgPaintServer paintServer:
+                return TryGetColor(paintServer, styleOwner, out color);
+            case string stringValue:
+                return TryGetColor(stringValue, out color);
+            default:
+                color = default;
+                return false;
+        }
+    }
+
+    private static bool TryGetColor(SvgPaintServer? paintServer, SvgElement? styleOwner, out Color color)
+    {
         if (paintServer == SvgPaintServer.None ||
             paintServer == SvgPaintServer.Inherit ||
             paintServer == SvgPaintServer.NotSet)
         {
             color = default;
             return false;
+        }
+
+        if (paintServer is SvgDeferredPaintServer && styleOwner is not null)
+        {
+            var deferredColourServer = SvgDeferredPaintServer.TryGet<SvgColourServer>(paintServer, styleOwner);
+            if (deferredColourServer is not null)
+            {
+                color = deferredColourServer.Colour;
+                return true;
+            }
         }
 
         if (paintServer is SvgColourServer colourServer)
@@ -3243,6 +4263,11 @@ public sealed class SvgAnimationController : IDisposable
             baseUnit.Type == byUnit.Type)
         {
             result = new SvgUnit(baseUnit.Type, baseUnit.Value + byUnit.Value).ToString();
+            return true;
+        }
+
+        if (TryAddNumberLists(baseValue, byValue, out result))
+        {
             return true;
         }
 
@@ -3289,6 +4314,11 @@ public sealed class SvgAnimationController : IDisposable
             return true;
         }
 
+        if (TrySubtractNumberLists(endValue, startValue, out result))
+        {
+            return true;
+        }
+
         if (SvgAnimationParser.TryParseInvariantFloat(endValue, out var endNumber) &&
             SvgAnimationParser.TryParseInvariantFloat(startValue, out var startNumber))
         {
@@ -3323,6 +4353,11 @@ public sealed class SvgAnimationController : IDisposable
             return true;
         }
 
+        if (TryScaleNumberList(value, factor, out result))
+        {
+            return true;
+        }
+
         if (SvgAnimationParser.TryParseInvariantFloat(value, out var numeric))
         {
             result = (numeric * factor).ToSvgString();
@@ -3330,6 +4365,57 @@ public sealed class SvgAnimationController : IDisposable
         }
 
         return false;
+    }
+
+    private static bool TryAddNumberLists(string leftValue, string rightValue, out string result)
+    {
+        return TryCombineNumberLists(leftValue, rightValue, static (left, right) => left + right, out result);
+    }
+
+    private static bool TrySubtractNumberLists(string leftValue, string rightValue, out string result)
+    {
+        return TryCombineNumberLists(leftValue, rightValue, static (left, right) => left - right, out result);
+    }
+
+    private static bool TryCombineNumberLists(string leftValue, string rightValue, Func<float, float, float> combine, out string result)
+    {
+        result = string.Empty;
+
+        var leftNumbers = SvgAnimationParser.ParseNumberList(leftValue);
+        var rightNumbers = SvgAnimationParser.ParseNumberList(rightValue);
+        if (leftNumbers.Length == 0 || leftNumbers.Length != rightNumbers.Length)
+        {
+            return false;
+        }
+
+        var values = new string[leftNumbers.Length];
+        for (var index = 0; index < values.Length; index++)
+        {
+            values[index] = combine(leftNumbers[index], rightNumbers[index]).ToSvgString();
+        }
+
+        result = string.Join(" ", values);
+        return true;
+    }
+
+    private static bool TryScaleNumberList(string value, int factor, out string result)
+    {
+        result = string.Empty;
+
+        var numbers = SvgAnimationParser.ParseNumberList(value);
+        if (numbers.Length == 0)
+        {
+            return false;
+        }
+
+        var values = new string[numbers.Length];
+        for (var index = 0; index < values.Length; index++)
+        {
+            values[index] = (numbers[index] * factor).ToSvgString();
+        }
+
+        result = string.Join(" ", values);
+        return true;
     }
 
     private static bool TryAddTypedValue(object? baseObject, object? byObject, out string result)
