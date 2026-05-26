@@ -2,7 +2,9 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Headless.XUnit;
 using Avalonia.Svg.Skia;
 using ShimSkiaSharp;
@@ -104,6 +106,80 @@ public class SvgSourceTests
                 Assert.True(source.Svg!.Settings.EnableJavaScript);
                 AssertTargetFill(source, "green");
             });
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task LoadAsync_FilePath_SetsSvg()
+    {
+        var path = CreateTempSvgFile(SampleSvg);
+
+        try
+        {
+            using var source = await SvgSource.LoadAsync(path);
+
+            Assert.NotNull(source.Svg);
+            Assert.NotNull(source.Picture);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task ReLoadAsync_PathBackedSource_PreservesPicture()
+    {
+        var path = CreateTempSvgFile(SampleSvg);
+
+        try
+        {
+            using var source = await SvgSource.LoadAsync(path);
+
+            await source.ReLoadAsync(new SvgParameters(null, "rect { fill: #000000; }"));
+
+            Assert.NotNull(source.Svg);
+            Assert.NotNull(source.Picture);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task LoadAsync_CancelledToken_Throws()
+    {
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            SvgSource.LoadAsync("/Assets/does-not-matter.svg", cancellationToken: cts.Token));
+    }
+
+    [AvaloniaFact]
+    public void NormalizePath_RelativePath_UsesBaseUri()
+    {
+        var uri = SvgSource.NormalizePath("Assets/Icon.svg", new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"));
+
+        Assert.Equal("avares://Svg.Controls.Skia.Avalonia.UnitTests/Assets/Icon.svg", uri.ToString());
+    }
+
+    [AvaloniaFact]
+    public void TypeConverter_String_CreatesPathBackedSourceWithoutEagerLoad()
+    {
+        var path = CreateTempSvgFile(SampleSvg);
+        try
+        {
+            var converter = new SvgSourceTypeConverter();
+            var source = Assert.IsType<SvgSource>(converter.ConvertFrom(path));
+
+            Assert.Equal(path, source.Path);
+            Assert.Null(source.Svg);
         }
         finally
         {
@@ -217,6 +293,28 @@ public class SvgSourceTests
     }
 
     [AvaloniaFact]
+    public void DrawOperation_RetainsSourceUntilOperationDisposed()
+    {
+        var source = SvgSource.LoadFromSvg(SampleSvg);
+        var picture = source.Picture;
+        var operation = new SvgSourceCustomDrawOperation(new Rect(0, 0, 10, 10), source);
+
+        Assert.NotNull(picture);
+
+        source.Dispose();
+
+        Assert.NotNull(source.Svg);
+        Assert.Same(picture, source.Picture);
+        Assert.True(BeginRender(source));
+        EndRender(source);
+
+        operation.Dispose();
+
+        Assert.Null(source.Svg);
+        Assert.Null(source.Picture);
+    }
+
+    [AvaloniaFact]
     public void Clone_DeepClonesModel()
     {
         var source = SvgSource.LoadFromSvg(SampleSvg);
@@ -284,6 +382,13 @@ public class SvgSourceTests
             settings.EnableJavaScript = oldEnableJavaScript;
             settings.ThrowOnJavaScriptError = oldThrowOnJavaScriptError;
         }
+    }
+
+    private static string CreateTempSvgFile(string svg)
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.svg");
+        File.WriteAllText(path, svg);
+        return path;
     }
 
     private static void AssertTargetFill(SvgSource source, string expected)
