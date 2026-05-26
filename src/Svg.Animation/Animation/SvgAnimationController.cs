@@ -565,17 +565,7 @@ public sealed class SvgAnimationController : IDisposable
     {
         ThrowIfDisposed();
 
-        foreach (var attribute in frameState.EnumerateDirtyAttributes(previousState))
-        {
-            var target = attribute.TargetAddress.Resolve(document);
-            if (target is null)
-            {
-                continue;
-            }
-
-            _ = SetAttributeValue(target, attribute.AttributeName, attribute.Value);
-        }
-
+        List<AnimationBinding>? deferredSelectorRemovals = null;
         foreach (var removedKey in frameState.EnumerateRemovedKeys(previousState))
         {
             if (!_bindingsByTargetAttributeKey.TryGetValue(removedKey, out var binding))
@@ -583,26 +573,82 @@ public sealed class SvgAnimationController : IDisposable
                 continue;
             }
 
-            var target = binding.TargetAddress.Resolve(document);
-            if (target is null)
+            if (RequiresSelectorStyleReapplication(binding.AttributeName))
             {
+                (deferredSelectorRemovals ??= new List<AnimationBinding>()).Add(binding);
                 continue;
             }
 
-            if (binding.BaseValueString is not null)
-            {
-                _ = SetAttributeValue(target, binding.AttributeName, binding.BaseValueString);
-
-                if (!binding.HasExplicitBaseAttribute)
-                {
-                    _ = ClearAttributeValue(target, binding.AttributeName);
-                }
-
-                continue;
-            }
-
-            _ = ClearAttributeValue(target, binding.AttributeName);
+            ApplyRemovedFrameAttribute(document, binding);
         }
+
+        List<SvgAnimationFrameAttributeState>? deferredAttributes = null;
+        foreach (var attribute in frameState.EnumerateDirtyAttributes(previousState))
+        {
+            if (!RequiresSelectorStyleReapplication(attribute.AttributeName))
+            {
+                (deferredAttributes ??= new List<SvgAnimationFrameAttributeState>()).Add(attribute);
+                continue;
+            }
+
+            ApplyDirtyFrameAttribute(document, attribute);
+        }
+
+        if (deferredSelectorRemovals is not null)
+        {
+            foreach (var binding in deferredSelectorRemovals)
+            {
+                ApplyRemovedFrameAttribute(document, binding);
+            }
+        }
+
+        if (deferredAttributes is not null)
+        {
+            foreach (var attribute in deferredAttributes)
+            {
+                ApplyDirtyFrameAttribute(document, attribute);
+            }
+        }
+    }
+
+    private static void ApplyDirtyFrameAttribute(SvgDocument document, SvgAnimationFrameAttributeState attribute)
+    {
+        var target = attribute.TargetAddress.Resolve(document);
+        if (target is null)
+        {
+            return;
+        }
+
+        _ = SetAttributeValue(target, attribute.AttributeName, attribute.Value);
+    }
+
+    private static void ApplyRemovedFrameAttribute(SvgDocument document, AnimationBinding binding)
+    {
+        var target = binding.TargetAddress.Resolve(document);
+        if (target is null)
+        {
+            return;
+        }
+
+        if (binding.BaseValueString is not null)
+        {
+            _ = SetAttributeValue(target, binding.AttributeName, binding.BaseValueString);
+
+            if (!binding.HasExplicitBaseAttribute)
+            {
+                _ = ClearAttributeValue(target, binding.AttributeName);
+            }
+
+            return;
+        }
+
+        _ = ClearAttributeValue(target, binding.AttributeName);
+    }
+
+    private static bool RequiresSelectorStyleReapplication(string attributeName)
+    {
+        return string.Equals(attributeName, "class", StringComparison.Ordinal) ||
+               string.Equals(attributeName, "style", StringComparison.Ordinal);
     }
 
     public bool RecordPointerEvent(SvgElement? element, SvgPointerEventType eventType)
@@ -1341,7 +1387,7 @@ public sealed class SvgAnimationController : IDisposable
                 return string.Concat("xml:", localName);
             }
 
-            return string.Concat(namespaceName, ":", localName);
+            return resolvedAttributeName;
         }
 
         return resolvedAttributeName;
@@ -2637,7 +2683,7 @@ public sealed class SvgAnimationController : IDisposable
 
     private static string ResolveNonInterpolableFallbackValue(string fromValue, string toValue, float localProgress)
     {
-        return localProgress > 0.5f ? toValue : fromValue;
+        return localProgress >= 0.5f ? toValue : fromValue;
     }
 
     private static bool TryResolveTransformValue(AnimationBinding binding, SvgAnimateTransform animation, AnimationSample sample, out string transformValue)
@@ -2656,7 +2702,7 @@ public sealed class SvgAnimationController : IDisposable
                 ? values[0]
                 : ResolveDiscreteValue(values, animation.KeyTimes, sample.Progress);
 
-            var discreteValues = ParseTransformNumbers(discrete);
+            var discreteValues = ParseTransformNumbers(animation.TransformType, discrete);
             if (!TryApplyTransformAccumulation(binding, animation, values, sample, ref discreteValues))
             {
                 return false;
@@ -2677,8 +2723,8 @@ public sealed class SvgAnimationController : IDisposable
             out var startIndex,
             out var endIndex,
             out var localProgress);
-        var fromValues = ParseTransformNumbers(values[startIndex]);
-        var toValues = ParseTransformNumbers(values[endIndex]);
+        var fromValues = ParseTransformNumbers(animation.TransformType, values[startIndex]);
+        var toValues = ParseTransformNumbers(animation.TransformType, values[endIndex]);
         var interpolated = InterpolateTransformNumbers(animation.TransformType, fromValues, toValues, localProgress);
         if (!TryApplyTransformAccumulation(binding, animation, values, sample, ref interpolated))
         {
@@ -3109,7 +3155,126 @@ public sealed class SvgAnimationController : IDisposable
 
     private static float[] ParseTransformNumbers(string value)
     {
+        return ParseTransformNumbers(transformType: null, value);
+    }
+
+    private static float[] ParseTransformNumbers(SvgAnimateTransformType transformType, string value)
+    {
+        return ParseTransformNumbers((SvgAnimateTransformType?)transformType, value);
+    }
+
+    private static float[] ParseTransformNumbers(SvgAnimateTransformType? transformType, string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Array.Empty<float>();
+        }
+
+        if (value.IndexOf('(') >= 0)
+        {
+            if (transformType is { } concreteTransformType &&
+                TryParseTransformFunctionNumbers(value, GetTransformFunctionName(concreteTransformType), out var matchingValues))
+            {
+                return matchingValues;
+            }
+
+            if (TryParseFirstTransformFunctionNumbers(value, out var functionValues))
+            {
+                return functionValues;
+            }
+        }
+
         return SvgAnimationParser.ParseNumberList(value);
+    }
+
+    private static string GetTransformFunctionName(SvgAnimateTransformType transformType)
+    {
+        return transformType switch
+        {
+            SvgAnimateTransformType.Translate => "translate",
+            SvgAnimateTransformType.Scale => "scale",
+            SvgAnimateTransformType.Rotate => "rotate",
+            SvgAnimateTransformType.SkewX => "skewX",
+            SvgAnimateTransformType.SkewY => "skewY",
+            _ => string.Empty
+        };
+    }
+
+    private static bool TryParseTransformFunctionNumbers(string value, string functionName, out float[] values)
+    {
+        values = Array.Empty<float>();
+        if (string.IsNullOrWhiteSpace(functionName))
+        {
+            return false;
+        }
+
+        var searchIndex = 0;
+        while (searchIndex < value.Length)
+        {
+            var functionIndex = value.IndexOf(functionName, searchIndex, StringComparison.Ordinal);
+            if (functionIndex < 0)
+            {
+                return false;
+            }
+
+            searchIndex = functionIndex + functionName.Length;
+            if (functionIndex > 0 && char.IsLetterOrDigit(value[functionIndex - 1]))
+            {
+                continue;
+            }
+
+            var openIndex = value.IndexOf('(', searchIndex);
+            if (openIndex < 0 || !ContainsOnlyWhitespace(value, searchIndex, openIndex))
+            {
+                continue;
+            }
+
+            var closeIndex = value.IndexOf(')', openIndex + 1);
+            if (closeIndex < 0)
+            {
+                return false;
+            }
+
+            var numberText = value.Substring(openIndex + 1, closeIndex - openIndex - 1);
+            values = SvgAnimationParser.ParseNumberList(numberText);
+            return values.Length > 0;
+        }
+
+        return false;
+    }
+
+    private static bool TryParseFirstTransformFunctionNumbers(string value, out float[] values)
+    {
+        values = Array.Empty<float>();
+
+        var openIndex = value.IndexOf('(');
+        if (openIndex < 0)
+        {
+            return false;
+        }
+
+        var closeIndex = value.IndexOf(')', openIndex + 1);
+        if (closeIndex < 0)
+        {
+            return false;
+        }
+
+        var numberText = value.Substring(openIndex + 1, closeIndex - openIndex - 1);
+        values = SvgAnimationParser.ParseNumberList(numberText);
+        return values.Length > 0;
+    }
+
+    private static bool ContainsOnlyWhitespace(string value, int startIndex, int endIndex)
+    {
+        for (var index = startIndex; index < endIndex; index++)
+        {
+            if (!char.IsWhiteSpace(value[index]))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static List<string> ResolveAnimationValues(AnimationBinding binding, SvgAnimationValueElement animation)
@@ -3128,15 +3293,15 @@ public sealed class SvgAnimationController : IDisposable
             {
                 resolved.Add(fromValue);
             }
+            else if (!string.IsNullOrWhiteSpace(binding.BaseValueString))
+            {
+                resolved.Add(binding.BaseValueString!);
+            }
             else if (animation is SvgAnimateTransform animateTransform &&
                      string.IsNullOrWhiteSpace(animation.To) &&
                      SvgAnimationParser.TryGetTrimmedString(animation.By, out var transformByValue))
             {
                 resolved.Add(CreateZeroTransformValue(animateTransform.TransformType, transformByValue));
-            }
-            else if (!string.IsNullOrWhiteSpace(binding.BaseValueString))
-            {
-                resolved.Add(binding.BaseValueString!);
             }
 
             if (SvgAnimationParser.TryGetTrimmedString(animation.To, out var toValue))
@@ -3148,7 +3313,13 @@ public sealed class SvgAnimationController : IDisposable
             if (SvgAnimationParser.TryGetTrimmedString(animation.By, out var byValue))
             {
                 var additiveBaseValue = resolved.Count > 0 ? resolved[resolved.Count - 1] : binding.BaseValueString;
-                if (additiveBaseValue is { } && TryAddValue(binding, additiveBaseValue, byValue, out var sumValue))
+                if (animation is SvgAnimateTransform byTransform &&
+                    additiveBaseValue is { } &&
+                    TryAddTransformValue(byTransform.TransformType, additiveBaseValue, byValue, out var transformSumValue))
+                {
+                    resolved.Add(transformSumValue);
+                }
+                else if (additiveBaseValue is { } && TryAddValue(binding, additiveBaseValue, byValue, out var sumValue))
                 {
                     resolved.Add(sumValue);
                 }
@@ -3156,6 +3327,43 @@ public sealed class SvgAnimationController : IDisposable
 
             return resolved;
         });
+    }
+
+    private static bool TryAddTransformValue(SvgAnimateTransformType transformType, string baseValue, string byValue, out string result)
+    {
+        result = string.Empty;
+
+        var baseValues = ParseTransformNumbers(transformType, baseValue);
+        var byValues = ParseTransformNumbers(transformType, byValue);
+        if (baseValues.Length == 0 || byValues.Length == 0)
+        {
+            return false;
+        }
+
+        var length = GetExpectedTransformValueCount(transformType, baseValues, byValues);
+        var values = new float[length];
+        for (var index = 0; index < values.Length; index++)
+        {
+            var currentBaseValue = index < baseValues.Length
+                ? baseValues[index]
+                : GetDefaultTransformValue(transformType, index, baseValues);
+            var currentByValue = index < byValues.Length
+                ? byValues[index]
+                : GetImplicitTransformByValue(transformType, index, byValues);
+            values[index] = currentBaseValue + currentByValue;
+        }
+
+        return TryCreateTransformString(transformType, values, out result);
+    }
+
+    private static float GetImplicitTransformByValue(SvgAnimateTransformType transformType, int index, float[] byValues)
+    {
+        if (transformType == SvgAnimateTransformType.Scale && byValues.Length == 1 && index == 1)
+        {
+            return byValues[0];
+        }
+
+        return 0f;
     }
 
     private static string CreateZeroTransformValue(SvgAnimateTransformType transformType, string byValue)
@@ -3240,8 +3448,8 @@ public sealed class SvgAnimationController : IDisposable
             return true;
         }
 
-        var startValues = ParseTransformNumbers(values[0]);
-        var endValues = ParseTransformNumbers(values[values.Count - 1]);
+        var startValues = ParseTransformNumbers(animation.TransformType, values[0]);
+        var endValues = ParseTransformNumbers(animation.TransformType, values[values.Count - 1]);
         var deltaValues = InterpolateTransformNumbers(animation.TransformType, startValues, endValues, 1f);
         for (var index = 0; index < deltaValues.Length; index++)
         {
@@ -3401,8 +3609,8 @@ public sealed class SvgAnimationController : IDisposable
         {
             segmentLengths[index] = ResolveTransformDistance(
                 transformType,
-                ParseTransformNumbers(values[index]),
-                ParseTransformNumbers(values[index + 1]));
+                ParseTransformNumbers(transformType, values[index]),
+                ParseTransformNumbers(transformType, values[index + 1]));
         }
 
         return segmentLengths;

@@ -149,6 +149,8 @@ public class W3CTestSuiteTests : SvgUnitTest
         ["animate-elem-87-t"] = 4,
         ["animate-elem-88-t"] = 2,
         ["animate-elem-89-t"] = 9,
+        ["animate-elem-90-b"] = 5,
+        ["animate-elem-91-t"] = 3,
         ["animate-elem-92-t"] = 3,
         ["animate-pservers-grad-01-b"] = 5,
         ["filters-composite-05-f"] = 2
@@ -505,6 +507,11 @@ public class W3CTestSuiteTests : SvgUnitTest
             // The animated dash/linecap/linejoin/miter states align with Chrome at the sampled
             // SMIL frame; the residual delta is Skia stroke rasterization on the dense path samples.
             "animate-elem-35-t" => 0.1,
+            // These two W3C rows intentionally stay on the legacy W3C pass images because current
+            // Chrome snapshots do not match the W3C discrete class/to-only non-interpolable states.
+            // The animated shape pixels match; the residual delta is text and frame rasterization.
+            "animate-elem-90-b" => 0.043,
+            "animate-elem-91-t" => 0.052,
             // The pass criteria for this units fixture allow font-dependent unit rows to vary;
             // keep a narrow threshold for residual Chrome text/unit raster differences.
             "coords-units-03-b" => 0.026,
@@ -1042,8 +1049,8 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("animate-elem-87-t", 0.022)]
     [InlineData("animate-elem-88-t", 0.022)]
     [InlineData("animate-elem-89-t", 0.022)]
-    [InlineData("animate-elem-90-b", 0.022, Skip = "Animated class routing changes the target state, but selector recalc still disturbs static guide fills in the Chrome-backed pixel row.")]
-    [InlineData("animate-elem-91-t", 0.022, Skip = "To-only non-interpolable routing is partially covered; full row still needs display/use/resource rendering parity for all subtests.")]
+    [InlineData("animate-elem-90-b", 0.022)]
+    [InlineData("animate-elem-91-t", 0.022)]
     [InlineData("animate-elem-92-t", 0.022)]
     [InlineData("animate-interact-events-01-t", 0.022, Skip = "Requires browser SVGElementInstance event dispatch and mouseover/mousedown lifetime behavior.")]
     [InlineData("animate-interact-pevents-01-t", 0.022, Skip = "Requires browser pointer hit-testing over text pointer-events variants and hover-triggered indefinite SMIL state.")]

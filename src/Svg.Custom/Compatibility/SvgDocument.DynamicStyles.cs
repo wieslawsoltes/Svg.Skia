@@ -365,13 +365,8 @@ public partial class SvgDocument
 
     private Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>? CreateCompatibilityStyleStateMap()
     {
-        if (_compatibilityStyleStateTrackingEnabled && _compatibilityStyleStateCandidates is null)
-        {
-            return null;
-        }
-
         Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>? state = null;
-        var elements = _compatibilityStyleStateTrackingEnabled && _compatibilityStyleStateCandidates is not null
+        var elements = _compatibilityStyleStateTrackingEnabled && _compatibilityStyleStateCandidates is { Count: > 0 }
             ? _compatibilityStyleStateCandidates
             : EnumerateElements();
         foreach (var element in elements)

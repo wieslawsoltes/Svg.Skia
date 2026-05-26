@@ -407,6 +407,24 @@ public class Svg : Control
     public SKSvg? SkSvg => _svg?.Svg;
 
     /// <summary>
+    /// Loads an already parsed SVG document into the control synchronously.
+    /// </summary>
+    /// <param name="document">The SVG document to load.</param>
+    /// <param name="parameters">Optional SVG parameters.</param>
+    public void LoadFromSvgDocument(SvgDocument? document, SvgParameters? parameters = null)
+    {
+        CancelPendingLoad();
+
+        if (document is null)
+        {
+            ClearSource();
+            return;
+        }
+
+        SetCurrentSource(new LoadResult(SvgSource.LoadFromSvgDocument(document, parameters), isCacheEntry: false));
+    }
+
+    /// <summary>
     /// Converts a point from control coordinates to picture coordinates.
     /// </summary>
     /// <param name="point">Point in control coordinates.</param>

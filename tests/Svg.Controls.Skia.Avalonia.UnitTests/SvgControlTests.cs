@@ -15,6 +15,7 @@ using Avalonia.Threading;
 using ShimSkiaSharp;
 using ShimSkiaSharp.Editing;
 using Svg.Model;
+using Svg.Model.Services;
 using Svg.Skia;
 using Xunit;
 
@@ -148,6 +149,22 @@ public class SvgControlTests
 
         await WaitForSourceAsync(svg);
 
+        Assert.NotNull(svg.Picture);
+        Assert.Equal(10, svg.Picture!.CullRect.Width);
+        Assert.Equal(10, svg.Picture.CullRect.Height);
+    }
+
+    [AvaloniaFact]
+    public void LoadFromSvgDocument_SetsCurrentSourceSynchronously()
+    {
+        var document = SvgService.FromSvg(SampleSvg);
+        Assert.NotNull(document);
+
+        var svg = new Svg(new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"));
+
+        svg.LoadFromSvgDocument(document);
+
+        Assert.NotNull(svg.SkSvg);
         Assert.NotNull(svg.Picture);
         Assert.Equal(10, svg.Picture!.CullRect.Width);
         Assert.Equal(10, svg.Picture.CullRect.Height);

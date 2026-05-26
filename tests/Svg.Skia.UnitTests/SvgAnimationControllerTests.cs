@@ -881,6 +881,22 @@ public class SvgAnimationControllerTests
     }
 
     [Fact]
+    public void CreateAnimatedDocument_PreservesBaseTransformForByOnlyAnimateTransform()
+    {
+        var document = SvgService.FromSvg(ByOnlyTransformWithBaseSvg);
+        Assert.NotNull(document);
+
+        using var controller = new SvgAnimationController(document!);
+        var animated = controller.CreateAnimatedDocument(TimeSpan.FromSeconds(1));
+
+        var target = animated.GetElementById<SvgRectangle>("target");
+        Assert.NotNull(target);
+        var translate = Assert.IsType<SvgTranslate>(Assert.Single(target!.Transforms));
+        Assert.Equal(12.5f, translate.X, 3);
+        Assert.Equal(0f, translate.Y, 3);
+    }
+
+    [Fact]
     public void CreateAnimatedDocument_SaturatesLargeRepeatIterationCounts()
     {
         var document = SvgService.FromSvg(LargeRepeatIterationAnimationSvg);
@@ -1071,10 +1087,15 @@ public class SvgAnimationControllerTests
 
         using var controller = new SvgAnimationController(document!);
 
+        var beforeMidpoint = controller.CreateAnimatedDocument(TimeSpan.FromSeconds(0.999));
+        var beforeMidpointTarget = beforeMidpoint.GetElementById<SvgRectangle>("target");
+        Assert.NotNull(beforeMidpointTarget);
+        Assert.Equal("hidden", beforeMidpointTarget!.Visibility);
+
         var midpoint = controller.CreateAnimatedDocument(TimeSpan.FromSeconds(1));
         var midpointTarget = midpoint.GetElementById<SvgRectangle>("target");
         Assert.NotNull(midpointTarget);
-        Assert.Equal("hidden", midpointTarget!.Visibility);
+        Assert.Equal("visible", midpointTarget!.Visibility);
 
         var endpoint = controller.CreateAnimatedDocument(TimeSpan.FromSeconds(2));
         var endpointTarget = endpoint.GetElementById<SvgRectangle>("target");
@@ -1138,6 +1159,28 @@ public class SvgAnimationControllerTests
     }
 
     [Fact]
+    public void CreateAnimatedDocument_PreservesCustomNamespacePrefixAttributeNames()
+    {
+        var document = SvgService.FromSvg(CustomNamespaceAttributeAnimationSvg);
+        Assert.NotNull(document);
+
+        var animation = document!.Descendants().OfType<SvgAnimate>().Single();
+        var resolveAttributeName = typeof(SvgAnimationController).GetMethod(
+            "ResolveAttributeName",
+            BindingFlags.Static | BindingFlags.NonPublic);
+        Assert.NotNull(resolveAttributeName);
+        Assert.Equal("foo:flag", resolveAttributeName!.Invoke(null, new object?[] { animation }));
+
+        using var controller = new SvgAnimationController(document);
+        var animated = controller.CreateAnimatedDocument(TimeSpan.FromSeconds(2));
+
+        var target = animated.GetElementById<SvgRectangle>("target");
+        Assert.NotNull(target);
+        Assert.True(target!.TryGetAttribute("urn:example:flag", out var flag));
+        Assert.Equal("on", flag);
+    }
+
+    [Fact]
     public void CreateAnimatedDocument_AnimatesHrefUsingNamespaceAlias()
     {
         var document = SvgService.FromSvg(AliasedXLinkHrefAnimationSvg);
@@ -1169,6 +1212,50 @@ public class SvgAnimationControllerTests
         Assert.Equal((byte)255, fill.Colour.R);
         Assert.Equal((byte)0, fill.Colour.G);
         Assert.Equal((byte)0, fill.Colour.B);
+    }
+
+    [Fact]
+    public void CreateAnimatedDocument_UsesToValueAtNonInterpolableMidpoint()
+    {
+        var document = SvgService.FromSvg(NonInterpolableMidpointClassAnimationSvg);
+        Assert.NotNull(document);
+
+        using var controller = new SvgAnimationController(document!);
+        var animated = controller.CreateAnimatedDocument(TimeSpan.FromSeconds(5));
+
+        var target = animated.GetElementById<SvgCircle>("target");
+        Assert.NotNull(target);
+        Assert.True(target!.TryGetAttribute("class", out var className));
+        Assert.Equal("final midway", className);
+
+        var fill = Assert.IsType<SvgColourServer>(target.Fill);
+        Assert.Equal((byte)128, fill.Colour.R);
+        Assert.Equal((byte)0, fill.Colour.G);
+        Assert.Equal((byte)0, fill.Colour.B);
+    }
+
+    [Fact]
+    public void CreateAnimatedDocument_AppliesSelectorMutationsBeforeOtherFrameAttributes()
+    {
+        var document = SvgService.FromSvg(SelectorMutationOrderingAnimationSvg);
+        Assert.NotNull(document);
+
+        using var controller = new SvgAnimationController(document!);
+        var animated = controller.CreateAnimatedDocument(TimeSpan.FromSeconds(3));
+
+        var guide = animated.GetElementById<SvgRectangle>("guide");
+        Assert.NotNull(guide);
+        var guideFill = Assert.IsType<SvgColourServer>(guide!.Fill);
+        Assert.Equal((byte)204, guideFill.Colour.R);
+        Assert.Equal((byte)204, guideFill.Colour.G);
+        Assert.Equal((byte)204, guideFill.Colour.B);
+
+        var target = animated.GetElementById<SvgRectangle>("target");
+        Assert.NotNull(target);
+        var targetFill = Assert.IsType<SvgColourServer>(target!.Fill);
+        Assert.Equal((byte)255, targetFill.Colour.R);
+        Assert.Equal((byte)0, targetFill.Colour.G);
+        Assert.Equal((byte)0, targetFill.Colour.B);
     }
 
     [Fact]
@@ -2172,6 +2259,17 @@ public class SvgAnimationControllerTests
         </svg>
         """;
 
+    private const string ByOnlyTransformWithBaseSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="20"
+             height="20"
+             viewBox="0 0 20 20">
+          <rect id="target" x="0" y="0" width="4" height="4" fill="red" transform="translate(10 0)">
+            <animateTransform attributeName="transform" type="translate" by="5 0" dur="2s" fill="freeze" />
+          </rect>
+        </svg>
+        """;
+
     private const string LargeRepeatIterationAnimationSvg = """
         <svg xmlns="http://www.w3.org/2000/svg"
              width="20"
@@ -2395,6 +2493,18 @@ public class SvgAnimationControllerTests
         </svg>
         """;
 
+    private const string CustomNamespaceAttributeAnimationSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             xmlns:foo="urn:example"
+             width="20"
+             height="20"
+             viewBox="0 0 20 20">
+          <rect id="target" x="0" y="0" width="4" height="4" foo:flag="off">
+            <animate attributeName="foo:flag" from="off" to="on" dur="2s" fill="freeze" />
+          </rect>
+        </svg>
+        """;
+
     private const string AliasedXLinkHrefAnimationSvg = """
         <svg xmlns="http://www.w3.org/2000/svg"
              xmlns:xl="http://www.w3.org/1999/xlink"
@@ -2422,6 +2532,43 @@ public class SvgAnimationControllerTests
           </style>
           <rect id="target" class="on" x="0" y="0" width="4" height="4">
             <animate attributeName="class" from="on" to="off" dur="2s" fill="freeze" />
+          </rect>
+        </svg>
+        """;
+
+    private const string NonInterpolableMidpointClassAnimationSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="20"
+             height="20"
+             viewBox="0 0 20 20">
+          <style type="text/css">
+            .start { visibility: hidden; }
+            .midway { visibility: visible; fill: #0000ff; }
+            #body .final { fill: rgb(128,0,0); }
+          </style>
+          <g id="body">
+            <circle id="target" cx="10" cy="10" r="5" class="start">
+              <set attributeName="class" to="midway" begin="2s" dur="2s" fill="freeze" />
+              <animate attributeName="class" from="midway" to="final midway" begin="3s" dur="4s" fill="freeze" />
+            </circle>
+          </g>
+        </svg>
+        """;
+
+    private const string SelectorMutationOrderingAnimationSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="20"
+             height="20"
+             viewBox="0 0 20 20">
+          <style type="text/css">
+            .on { fill: #0000ff; }
+            .off { fill: #ff0000; }
+          </style>
+          <rect id="guide" x="0" y="0" width="4" height="4" fill="rgb(204,0,102)">
+            <set attributeName="fill" to="#cccccc" begin="2s" dur="2s" fill="freeze" />
+          </rect>
+          <rect id="target" class="on" x="10" y="0" width="4" height="4">
+            <animate attributeName="class" to="off" begin="2s" dur="2s" fill="freeze" />
           </rect>
         </svg>
         """;
