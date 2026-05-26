@@ -1566,7 +1566,9 @@ public static class SvgSceneCompiler
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.MixBlendMode),
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation));
         AssignRetainedResourceKeys(node, element, compileContext.GetElementAddressKey);
-        var markerElement = compileContext.ActiveMarkerReferenceDeclarationCandidate && HasMarkerReference(visualElement)
+        var markerElement = !ignoreAttributes.HasFlag(DrawAttributes.Markers) &&
+            compileContext.ActiveMarkerReferenceDeclarationCandidate &&
+            HasMarkerReference(visualElement)
             ? visualElement
             : null;
 
@@ -2801,7 +2803,7 @@ public static class SvgSceneCompiler
                 viewport,
                 node.TotalTransform,
                 assetLoader,
-                DrawAttributes.Display | ignoreAttributes,
+                DrawAttributes.Display | DrawAttributes.Markers | ignoreAttributes,
                 compilationRootKey,
                 createOwnCompilationRootBoundary: false,
                 compileContext);

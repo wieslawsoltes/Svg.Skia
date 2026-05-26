@@ -1223,7 +1223,7 @@ public static class SkiaCSharpModelExtensions
                     sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.LightColor.ToSKColor()},");
                     sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.SurfaceScale.ToFloatString()},");
                     sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Ks.ToFloatString()},");
-                    sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.SpecularExponent.ToFloatString()},");
+                    sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Shininess.ToFloatString()},");
                     sb.AppendLine($"{indent}    {counter.ImageFilterVarName}{counterImageFilterInput},");
                     sb.AppendLine($"{indent}    {spotLitSpecularImageFilter.Clip?.ToSKRect() ?? "null"});");
                     return;

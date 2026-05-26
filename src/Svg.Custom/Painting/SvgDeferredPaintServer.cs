@@ -121,6 +121,19 @@ namespace Svg
             return newObj;
         }
 
+        internal void RebindDocument(SvgDocument document)
+        {
+            Document = document;
+            _concreteServer = null;
+            _fallbackServer = null;
+            _serverLoaded = false;
+
+            if (FallbackServer is SvgDeferredPaintServer deferredFallback)
+            {
+                deferredFallback.RebindDocument(document);
+            }
+        }
+
         public override bool Equals(object obj)
         {
             var other = obj as SvgDeferredPaintServer;

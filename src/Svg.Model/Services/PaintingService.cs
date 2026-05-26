@@ -255,8 +255,7 @@ internal static class PaintingService
         {
             if (firstSpreadMethod is null)
             {
-                var pSpreadMethod = p.SpreadMethod;
-                if (pSpreadMethod != SvgGradientSpreadMethod.Pad)
+                if (SvgService.TryGetAttribute(p, "spreadMethod", out _))
                 {
                     firstSpreadMethod = p;
                 }
@@ -271,8 +270,7 @@ internal static class PaintingService
             }
             if (firstGradientUnits is null)
             {
-                var pGradientUnits = p.GradientUnits;
-                if (pGradientUnits != SvgCoordinateUnits.ObjectBoundingBox)
+                if (SvgService.TryGetAttribute(p, "gradientUnits", out _))
                 {
                     firstGradientUnits = p;
                 }
@@ -417,8 +415,7 @@ internal static class PaintingService
         {
             if (firstSpreadMethod is null)
             {
-                var pSpreadMethod = p.SpreadMethod;
-                if (pSpreadMethod != SvgGradientSpreadMethod.Pad)
+                if (SvgService.TryGetAttribute(p, "spreadMethod", out _))
                 {
                     firstSpreadMethod = p;
                 }
@@ -433,8 +430,7 @@ internal static class PaintingService
             }
             if (firstGradientUnits is null)
             {
-                var pGradientUnits = p.GradientUnits;
-                if (pGradientUnits != SvgCoordinateUnits.ObjectBoundingBox)
+                if (SvgService.TryGetAttribute(p, "gradientUnits", out _))
                 {
                     firstGradientUnits = p;
                 }
@@ -512,6 +508,10 @@ internal static class PaintingService
         var centerY = normalizedCenterY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
 
         var radius = normalizedRadius.ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
+        if (radius < 0f)
+        {
+            return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
+        }
 
         var focalX = normalizedFocalX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
         var focalY = normalizedFocalY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);

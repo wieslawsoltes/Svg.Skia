@@ -34,8 +34,8 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
     public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)
     {
         var data = ShimSkiaSharp.SKImage.FromStream(stream);
-        using var image = SkiaSharp.SKImage.FromEncodedData(data);
-        return new ShimSkiaSharp.SKImage { Data = data, Width = image.Width, Height = image.Height };
+        using var image = data is { Length: > 0 } ? SkiaSharp.SKImage.FromEncodedData(data) : null;
+        return new ShimSkiaSharp.SKImage { Data = data, Width = image?.Width ?? 0, Height = image?.Height ?? 0 };
     }
 
     /// <inheritdoc />

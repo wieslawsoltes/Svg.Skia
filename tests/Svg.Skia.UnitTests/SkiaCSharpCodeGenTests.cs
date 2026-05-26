@@ -179,6 +179,35 @@ public class SkiaCSharpCodeGenTests
     }
 
     [Fact]
+    public void Generate_UsesSpotLitSpecularShininessForFinalArgument()
+    {
+        var paint = new SKPaint
+        {
+            ImageFilter = SKImageFilter.CreateSpotLitSpecular(
+                new SKPoint3(1f, 2f, 3f),
+                new SKPoint3(4f, 5f, 6f),
+                7f,
+                8f,
+                new SKColor(9, 10, 11, 255),
+                12f,
+                13f,
+                14f)
+        };
+        var path = new SKPath();
+        path.AddRect(SKRect.Create(0f, 0f, 10f, 10f));
+        var picture = new SKPicture(SKRect.Create(0f, 0f, 10f, 10f), new List<CanvasCommand>
+        {
+            new DrawPathCanvasCommand(path, paint)
+        });
+
+        var code = SkiaCSharpCodeGen.Generate(picture, "Svg", "Generated");
+
+        Assert.Contains("SKImageFilter.CreateSpotLitSpecular(", code);
+        Assert.Contains("    7f,", code);
+        Assert.Contains("    14f,", code);
+    }
+
+    [Fact]
     public void SkiaModel_ToSKShader_CreatesGradientsWithOptionalColorPositions()
     {
         var model = new SkiaModel(new SKSvgSettings());

@@ -239,11 +239,39 @@ internal static class SvgSceneClipCompiler
 
         var previousClipCount = clipPath.Clips?.Count ?? 0;
         PopulateVisualClip(referencedVisualElement, targetBounds, assetLoader, uris, clipPath, svgClipPathClipRule);
+        if (clipPath.Clips is { Count: > 0 } populatedClips &&
+            populatedClips.Count > previousClipCount)
+        {
+            var useTransform = CreateUseClipTransform(svgUse, targetBounds);
+            ApplyUseClipTransform(populatedClips, previousClipCount, useTransform);
+        }
+
         if (clipPath.Clips is { Count: > 0 } clips &&
             clips.Count > previousClipCount &&
             clips[clips.Count - 1].Clip is { } lastClip)
         {
             PopulateNestedClipPath(svgUse, targetBounds, assetLoader, uris, lastClip);
+        }
+    }
+
+    private static SKMatrix CreateUseClipTransform(SvgUse svgUse, SKRect targetBounds)
+    {
+        var x = SvgGeometryService.GetComputedUnit(svgUse, "x", svgUse.X).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, targetBounds);
+        var y = SvgGeometryService.GetComputedUnit(svgUse, "y", svgUse.Y).ToDeviceValue(UnitRenderingType.Vertical, svgUse, targetBounds);
+        return TransformsService.ToMatrix(svgUse.Transforms).PreConcat(SKMatrix.CreateTranslation(x, y));
+    }
+
+    private static void ApplyUseClipTransform(IList<PathClip> clips, int startIndex, SKMatrix useTransform)
+    {
+        if (useTransform.IsIdentity)
+        {
+            return;
+        }
+
+        for (var i = startIndex; i < clips.Count; i++)
+        {
+            var clip = clips[i];
+            clip.Transform = useTransform.PreConcat(clip.Transform ?? SKMatrix.CreateIdentity());
         }
     }
 

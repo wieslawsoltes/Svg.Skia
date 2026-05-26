@@ -1,6 +1,7 @@
 #pragma warning disable CS0618 // Shim paint keeps deprecated SKPaint text/typeface surface for compatibility
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using ShimSkiaSharp;
 using Svg.Skia;
@@ -15,6 +16,19 @@ namespace Svg.Skia.UnitTests;
 
 public class SkiaSvgAssetLoaderCachingTests
 {
+    [Fact]
+    public void LoadImage_ReturnsZeroSizeImageForInvalidEncodedData()
+    {
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        using var stream = new MemoryStream(new byte[] { 1, 2, 3, 4 });
+
+        var image = assetLoader.LoadImage(stream);
+
+        Assert.NotNull(image.Data);
+        Assert.Equal(0, image.Width);
+        Assert.Equal(0, image.Height);
+    }
+
     [Fact]
     public void MeasureText_RecomputesAfterPaintMutation()
     {

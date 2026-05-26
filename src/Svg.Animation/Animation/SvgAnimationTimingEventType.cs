@@ -10,5 +10,6 @@ internal enum SvgAnimationTimingEventType
     Wheel,
     Click,
     Begin,
-    End
+    End,
+    Repeat
 }

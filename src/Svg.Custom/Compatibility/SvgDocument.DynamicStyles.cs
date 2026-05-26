@@ -227,6 +227,14 @@ public partial class SvgDocument
         ApplyCompatibilityStyles();
     }
 
+    internal void ReapplyCompatibilityStylesAfterSelectorMutation()
+    {
+        EnsureCompatibilityStyleStateInitialized();
+        InvalidateComputedStyleCache();
+        RestoreCompatibilityStyleStateAfterSelectorMutation();
+        ApplyCompatibilityStyles();
+    }
+
     internal void ApplyCompatibilityStyles()
     {
         if (_compatibilityStyleSources is { Count: > 0 })
@@ -286,6 +294,35 @@ public partial class SvgDocument
         }
     }
 
+    private void RestoreCompatibilityStyleStateAfterSelectorMutation()
+    {
+        foreach (var element in EnumerateElements())
+        {
+            SvgCompatibilityStyleSnapshot snapshot;
+            if (_compatibilityRawStyleState is not null &&
+                _compatibilityRawStyleState.TryGetValue(element, out var rawState) &&
+                rawState.HasPresentationAttributes)
+            {
+                snapshot = element.CreateCompatibilityStyleSnapshot(rawState);
+            }
+            else if (_compatibilityStyleState is not null &&
+                     _compatibilityStyleState.TryGetValue(element, out var storedSnapshot))
+            {
+                snapshot = storedSnapshot;
+            }
+            else if (HasCompatibilityInlineStyle(element))
+            {
+                snapshot = new SvgCompatibilityStyleSnapshot(element.CustomAttributes["style"]);
+            }
+            else
+            {
+                snapshot = SvgCompatibilityStyleSnapshot.Empty;
+            }
+
+            element.RestoreCompatibilityStyleState(snapshot);
+        }
+    }
+
     private SvgCompatibilityStyleSnapshot GetOrCreateCompatibilityStyleSnapshot(SvgElement element)
     {
         EnsureCompatibilityStyleStateInitialized();
@@ -328,13 +365,8 @@ public partial class SvgDocument
 
     private Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>? CreateCompatibilityStyleStateMap()
     {
-        if (_compatibilityStyleStateTrackingEnabled && _compatibilityStyleStateCandidates is null)
-        {
-            return null;
-        }
-
         Dictionary<SvgElement, SvgCompatibilityStyleSnapshot>? state = null;
-        var elements = _compatibilityStyleStateTrackingEnabled && _compatibilityStyleStateCandidates is not null
+        var elements = _compatibilityStyleStateTrackingEnabled && _compatibilityStyleStateCandidates is { Count: > 0 }
             ? _compatibilityStyleStateCandidates
             : EnumerateElements();
         foreach (var element in elements)

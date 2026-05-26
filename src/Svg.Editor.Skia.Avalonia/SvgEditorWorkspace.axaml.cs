@@ -488,9 +488,6 @@ public partial class SvgEditorWorkspace : UserControl
     {
         var uri = TryResolveDocumentUri(path);
 
-        if (SvgView.SkSvg is { } skSvg)
-            skSvg.OnDraw -= SvgView_OnDraw;
-
         if (uri is not null)
         {
             using var stream = AssetLoader.Open(uri);
@@ -500,7 +497,6 @@ public partial class SvgEditorWorkspace : UserControl
             {
                 Console.WriteLine($"Failed to load SVG resource '{path}'.");
             }
-            SvgView.Path = uri.ToString();
         }
         else if (File.Exists(path))
         {
@@ -510,25 +506,17 @@ public partial class SvgEditorWorkspace : UserControl
             {
                 Console.WriteLine($"Failed to load SVG file '{path}'.");
             }
-            SvgView.Path = path;
         }
         else
         {
             _document = null;
             Session.Document = null;
-            SvgView.Path = null;
             Console.WriteLine($"SVG document '{path}' not found.");
         }
 
-        if (SvgView.SkSvg is { } skSvg2)
-        {
-            skSvg2.FromSvgDocument(_document);
-            skSvg2.OnDraw += SvgView_OnDraw;
-        }
-        else if (_document is null)
-        {
+        LoadCurrentDocumentIntoSvgView();
+        if (_document is null)
             return;
-        }
 
         SvgView.Zoom = 1.0;
         SvgView.PanX = 0;
@@ -546,6 +534,20 @@ public partial class SvgEditorWorkspace : UserControl
         UpdatePatterns();
         UpdateBrushes();
         UpdateStyles();
+    }
+
+    private void LoadCurrentDocumentIntoSvgView()
+    {
+        if (SvgView.SkSvg is { } previousSvg)
+            previousSvg.OnDraw -= SvgView_OnDraw;
+
+        SvgView.LoadFromSvgDocument(_document);
+
+        if (SvgView.SkSvg is { } currentSvg)
+        {
+            currentSvg.OnDraw -= SvgView_OnDraw;
+            currentSvg.OnDraw += SvgView_OnDraw;
+        }
     }
 
     private void ClearSelectionState()
@@ -2504,7 +2506,7 @@ public partial class SvgEditorWorkspace : UserControl
         SaveUndoState();
         _document = new SvgDocument { Width = 100, Height = 100 };
         Session.Document = _document;
-        SvgView.SkSvg!.FromSvgDocument(_document);
+        LoadCurrentDocumentIntoSvgView();
         SaveExpandedNodes();
         Session.CurrentFile = null;
         Session.ClearClipboard();
