@@ -227,6 +227,8 @@ Acceptance criteria:
 
 ### 3. CSS And Styling Fidelity
 
+Status: implemented on `codex/css-styling-fidelity` as of 2026-05-27.
+
 Target projects:
 
 - `src/Svg.Custom`
@@ -240,15 +242,43 @@ Features:
 - inheritance edge cases
 - `use` instance-tree styling semantics where feasible without full DOM runtime
 
+Implemented scope:
+
+- Ordinary CSS declarations now honor `!important` for stylesheet and inline style declarations without leaking the priority marker into parsed SVG paint values.
+- Static cascade storage no longer lets repeated low-specificity rules climb past higher-specificity rules through synthetic key increments.
+- Selector-list branches are applied with the specificity of the matching branch, including custom-property and raw SVG static-property prepasses.
+- Nested `@media` blocks are evaluated for normal declarations, custom properties, and raw static SVG properties against the same SVG viewport media context.
+- Linked `<link rel="stylesheet">` and `xml-stylesheet` processing instructions now respect static `media` filters before loading.
+- Root selectors such as `svg.theme`, `svg#root`, and `svg[...]` can match the document root for style and custom-property rules.
+- Class and `[class~=...]` matching now uses CSS whitespace tokenization instead of splitting only on literal spaces.
+- EOF-terminated `@import` rules are accepted where the import is otherwise in the valid leading import section.
+- Retained direct `<use>`, `clipPath` `<use>`, and mask clip `<use>` rendering now evaluate referenced content under the `<use>` style parent without applying selectors to generated clones.
+- Direct `<use>` rendering now runs a scoped stylesheet pass over the referenced subtree, so selector rules that depend on original ancestors or siblings are suppressed while simple and internal referenced-subtree selectors, inline styles, presentation attributes, and custom properties are preserved and restored after rendering.
+- A resvg static CSS allow-list is enabled for rows that align with Svg.Skia's static/browser subset.
+
 Primary test impact:
 
 - W3C `styling-*`
 - W3C `struct-use-10-f`, `struct-use-11-f`
 - resvg attribute/style buckets
 
+Validation:
+
+- `SvgDocumentCompatibilityLoaderTests` focused CSS/stylesheet coverage passes.
+- W3C `styling-*` focused rows pass.
+- W3C `struct-use-10-f` and `struct-use-11-f` pass against the checked Chrome overrides.
+- WPT SVG2 styling smoke row passes.
+- `resvgTests.css_styling_fixtures` passes for the enabled static CSS allow-list.
+- Retained scene graph `<use>` style-scope tests pass.
+
+Remaining known gaps:
+
+- resvg `structure/style/external-CSS` remains excluded because the upstream expected image treats the EOF `@import` as unsupported; Svg.Skia intentionally supports this static import path.
+- resvg `structure/style/*/non-presentational-attribute` remains excluded because those fixtures expect SVG 1.1 geometry CSS to be ignored, while Svg.Skia keeps SVG2 geometry styling covered by WPT and direct regression tests.
+
 Acceptance criteria:
 
-- Styling rows that only depend on static cascade semantics are enabled.
+- Styling rows that depend on static cascade and browser-compatible `<use>` styling semantics are enabled and passing.
 
 ### 4. Resource Rendering Parity First Slice
 

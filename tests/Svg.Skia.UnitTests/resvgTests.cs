@@ -25,6 +25,10 @@ public class resvgTests : SvgUnitTest
         => EnumerateFixtureRows()
             .Where(static row => IsResourceRenderingFixture((string)row[0]));
 
+    public static IEnumerable<object[]> CssStylingFixtureRows()
+        => EnumerateFixtureRows()
+            .Where(static row => IsCssStylingFixture((string)row[0]));
+
     [OSXTheory]
     [MemberData(nameof(TextFixtureRows))]
     public void text_fixtures(string relativeName, double errorThreshold)
@@ -38,6 +42,11 @@ public class resvgTests : SvgUnitTest
     [OSXTheory]
     [MemberData(nameof(ResourceRenderingFixtureRows))]
     public void resource_rendering_fixtures(string relativeName, double errorThreshold)
+        => TestImpl(relativeName, errorThreshold);
+
+    [OSXTheory]
+    [MemberData(nameof(CssStylingFixtureRows))]
+    public void css_styling_fixtures(string relativeName, double errorThreshold)
         => TestImpl(relativeName, errorThreshold);
 
     [Fact]
@@ -175,6 +184,9 @@ public class resvgTests : SvgUnitTest
         => !relativeName.StartsWith("tests/text/", StringComparison.Ordinal) &&
            ResourceRenderingFixturePrefixes.Any(prefix => relativeName.StartsWith(prefix, StringComparison.Ordinal));
 
+    private static bool IsCssStylingFixture(string relativeName)
+        => CssStylingFixtureNames.Contains(relativeName, StringComparer.Ordinal);
+
     private static readonly string[] ResourceRenderingFixturePrefixes =
     {
         "tests/filters/feComponentTransfer/",
@@ -209,6 +221,29 @@ public class resvgTests : SvgUnitTest
         "tests/structure/g/",
         "tests/structure/transform/",
         "tests/structure/use/"
+    };
+
+    private static readonly string[] CssStylingFixtureNames =
+    {
+        "tests/structure/style-attribute/comments",
+        "tests/structure/style-attribute/simple-case",
+        "tests/structure/style-attribute/transform",
+        "tests/structure/style/attribute-selector",
+        "tests/structure/style/class-selector",
+        "tests/structure/style/combined-selectors",
+        "tests/structure/style/current-color-fill-before-color",
+        "tests/structure/style/current-color-stroke-before-color",
+        "tests/structure/style/iD-selector",
+        "tests/structure/style/important",
+        "tests/structure/style/invalid-type",
+        "tests/structure/style/resolve-order",
+        "tests/structure/style/rule-specificity",
+        "tests/structure/style/style-after-usage",
+        "tests/structure/style/style-inside-CDATA",
+        "tests/structure/style/transform",
+        "tests/structure/style/type-selector",
+        "tests/structure/style/universal-selector",
+        "tests/structure/style/unresolved-class-selector"
     };
 
     private static string GetResvgTestsRoot()

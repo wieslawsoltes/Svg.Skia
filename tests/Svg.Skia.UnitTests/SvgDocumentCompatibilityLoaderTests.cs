@@ -120,6 +120,72 @@ public class SvgDocumentCompatibilityLoaderTests
         }
     }
 
+    [Theory]
+    [InlineData("screen", true)]
+    [InlineData("print", false)]
+    public void OpenPath_FiltersLinkedStylesheetByMedia(string media, bool shouldApply)
+    {
+        var tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDirectory);
+
+        try
+        {
+            var cssPath = Path.Combine(tempDirectory, "styles.css");
+            var svgPath = Path.Combine(tempDirectory, "test.svg");
+
+            File.WriteAllText(cssPath, "#target { fill: green; }");
+            File.WriteAllText(svgPath, $$"""
+                <svg xmlns="http://www.w3.org/2000/svg">
+                  <link rel="stylesheet" href="styles.css" media="{{media}}" />
+                  <rect id="target" width="10" height="10" fill="red" />
+                </svg>
+                """);
+
+            var document = SvgDocumentCompatibilityLoader.Open<SvgDocument>(svgPath, new SvgOptions());
+            var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+            var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+            Assert.Equal((shouldApply ? Color.Green : Color.Red).ToArgb(), fill.Colour.ToArgb());
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData("screen", true)]
+    [InlineData("print", false)]
+    public void OpenPath_FiltersXmlStylesheetProcessingInstructionByMedia(string media, bool shouldApply)
+    {
+        var tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDirectory);
+
+        try
+        {
+            var cssPath = Path.Combine(tempDirectory, "styles.css");
+            var svgPath = Path.Combine(tempDirectory, "test.svg");
+
+            File.WriteAllText(cssPath, "#target { fill: green; }");
+            File.WriteAllText(svgPath, $$"""
+                <?xml-stylesheet type="text/css" href="styles.css" media="{{media}}"?>
+                <svg xmlns="http://www.w3.org/2000/svg">
+                  <rect id="target" width="10" height="10" fill="red" />
+                </svg>
+                """);
+
+            var document = SvgDocumentCompatibilityLoader.Open<SvgDocument>(svgPath, new SvgOptions());
+            var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+            var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+            Assert.Equal((shouldApply ? Color.Green : Color.Red).ToArgb(), fill.Colour.ToArgb());
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
     [Fact]
     public void FromSvg_IgnoresEmptyStyleElements()
     {
@@ -249,6 +315,204 @@ public class SvgDocumentCompatibilityLoaderTests
         var fill = Assert.IsType<SvgColourServer>(rect.Fill);
 
         Assert.Equal(Color.Lime.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_StylesheetImportantOverridesInlineNormal()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>#target { fill: green !important; }</style>
+              <rect id="target" width="10" height="10" style="fill: red" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_InlineImportantOverridesStylesheetImportant()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>#target { fill: red !important; }</style>
+              <rect id="target" width="10" height="10" style="fill: green !important" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_SelectorListUsesMatchingBranchSpecificity()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>
+                .low, #unused { fill: red; }
+                .target { fill: green; }
+              </style>
+              <rect id="target" class="low target" width="10" height="10" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_CustomPropertySelectorListUsesMatchingBranchSpecificity()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>
+                .low, #unused { --paint: red; }
+                .target { --paint: green; }
+                rect { fill: var(--paint); }
+              </style>
+              <rect id="target" class="low target" width="10" height="10" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_LowSpecificitySourceOrderDoesNotOvertakeHigherSpecificity()
+    {
+        var lowSpecificityRules = new System.Text.StringBuilder();
+        for (var i = 0; i < 40; i++)
+        {
+            lowSpecificityRules.AppendLine("rect { fill: red; }");
+        }
+
+        var svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>
+                g rect { fill: green; }
+            """ + lowSpecificityRules + """
+              </style>
+              <g><rect id="target" width="10" height="10" /></g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_RootSvgSelectorMatchesDocumentForCustomProperties()
+    {
+        const string svg = """
+            <svg id="root" class="theme" xmlns="http://www.w3.org/2000/svg">
+              <style>
+                svg.theme { --paint: green; }
+                rect { fill: var(--paint, red); }
+              </style>
+              <rect id="target" width="10" height="10" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_ClassSelectorsUseCssWhitespace()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>.bar { fill: green; }</style>
+              <rect id="target" class="foo&#x9;bar" width="10" height="10" fill="red" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Theory]
+    [InlineData("screen", true)]
+    [InlineData("print", false)]
+    public void FromSvg_FiltersNestedMediaStyleRules(string media, bool shouldApply)
+    {
+        var svg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>@media {{media}} { #target { fill: green; } }</style>
+              <rect id="target" width="10" height="10" fill="red" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal((shouldApply ? Color.Green : Color.Red).ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_AppliesSvg2GeometryFromStylesheet()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>#target { x: 5; y: 6; width: 7; height: 8; fill: green; }</style>
+              <rect id="target" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(5f, rect.X.Value);
+        Assert.Equal(6f, rect.Y.Value);
+        Assert.Equal(7f, rect.Width.Value);
+        Assert.Equal(8f, rect.Height.Value);
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void FromSvg_AppliesSvg2GeometryFromInlineStyle()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <rect id="target" style="x: 5; y: 6; width: 7; height: 8; fill: green" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+        var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+        Assert.Equal(5f, rect.X.Value);
+        Assert.Equal(6f, rect.Y.Value);
+        Assert.Equal(7f, rect.Width.Value);
+        Assert.Equal(8f, rect.Height.Value);
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
     }
 
     [Fact]
@@ -721,7 +985,7 @@ public class SvgDocumentCompatibilityLoaderTests
     }
 
     [Fact]
-    public void OpenPath_IgnoresMalformedImportedStylesheetsWithoutSemicolon()
+    public void OpenPath_AppliesImportedStylesheetWithoutSemicolonAtEndOfFile()
     {
         var tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(tempDirectory);
@@ -745,7 +1009,7 @@ public class SvgDocumentCompatibilityLoaderTests
             var circle = document.Descendants().OfType<SvgCircle>().Single(static element => element.ID == "target");
             var fill = Assert.IsType<SvgColourServer>(circle.Fill);
 
-            Assert.Equal(Color.Red.ToArgb(), fill.Colour.ToArgb());
+            Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
         }
         finally
         {
