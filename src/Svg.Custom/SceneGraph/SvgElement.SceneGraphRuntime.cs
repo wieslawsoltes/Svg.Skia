@@ -33,5 +33,11 @@ namespace Svg
                 _parent = originalParent;
             }
         }
+
+        internal TResult WithUseInstanceStyleScope<TResult>(SvgUse useElement, Func<TResult> factory)
+        {
+            using var styleScope = (OwnerDocument ?? useElement.OwnerDocument)?.BeginUseInstanceStyleScope(this);
+            return WithTemporaryParent(useElement, factory);
+        }
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 
 namespace Svg;
 
@@ -54,7 +55,7 @@ public abstract partial class SvgElement
 
         var inlineStyleText = CustomAttributes.TryGetValue("style", out var styleText)
             ? styleText ?? string.Empty
-            : string.Empty;
+            : CreateInlineStyleTextFromPendingRules();
 
         if (inlineStyleText.Length == 0 && snapshot is null)
         {
@@ -64,6 +65,51 @@ public abstract partial class SvgElement
         snapshot ??= new SvgCompatibilityStyleSnapshot(inlineStyleText);
         snapshot.InlineStyleText = inlineStyleText;
         return snapshot;
+    }
+
+    private string CreateInlineStyleTextFromPendingRules()
+    {
+        StringBuilder? builder = null;
+        foreach (var style in _styles)
+        {
+            if (!SvgStyleAttributeNames.Contains(style.Key))
+            {
+                continue;
+            }
+
+            if (style.Value.TryGetValue(StyleSpecificity_InlineStyle, out var inlineValue))
+            {
+                AppendInlineStyleRule(ref builder, style.Key, inlineValue, important: false);
+            }
+
+            if (style.Value.TryGetValue(
+                    StyleSpecificity_InlineStyle + SvgCssDeclarationPriority.ImportantSpecificityOffset,
+                    out var importantInlineValue))
+            {
+                AppendInlineStyleRule(ref builder, style.Key, importantInlineValue, important: true);
+            }
+        }
+
+        return builder?.ToString() ?? string.Empty;
+    }
+
+    private static void AppendInlineStyleRule(ref StringBuilder? builder, string name, string value, bool important)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        builder ??= new StringBuilder();
+        builder.Append(name);
+        builder.Append(':');
+        builder.Append(value);
+        if (important)
+        {
+            builder.Append(" !important");
+        }
+
+        builder.Append(';');
     }
 
     internal void RestoreCompatibilityStyleState(SvgCompatibilityStyleSnapshot snapshot)

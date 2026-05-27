@@ -247,6 +247,38 @@ public partial class SvgDocument
         InvalidateComputedStyleCache();
     }
 
+    internal IDisposable? BeginUseInstanceStyleScope(SvgElement scopeRoot)
+    {
+        if (_compatibilityStyleSources is not { Count: > 0 })
+        {
+            return null;
+        }
+
+        EnsureCompatibilityStyleStateInitialized();
+
+        var elements = EnumerateElements(scopeRoot).ToArray();
+        var previousStyleSnapshots = new SvgCompatibilityStyleSnapshot[elements.Length];
+        var previousCustomPropertySnapshots = new SvgCssVariableResolver.SvgCssCustomPropertySnapshot?[elements.Length];
+        for (var i = 0; i < elements.Length; i++)
+        {
+            previousStyleSnapshots[i] = CreateCompatibilityStyleSnapshot(elements[i]);
+            previousCustomPropertySnapshots[i] = SvgCssVariableResolver.CreateSnapshot(elements[i]);
+        }
+
+        for (var i = 0; i < elements.Length; i++)
+        {
+            elements[i].RestoreCompatibilityStyleState(GetCompatibilityStyleBaseSnapshot(elements[i]));
+        }
+
+        InvalidateComputedStyleCache();
+        SvgCssCompatibilityProcessor.ApplyScoped(scopeRoot, this, _compatibilityStyleSources, new SvgElementFactory(), LoadOptions);
+        ApplyInlineStyles(scopeRoot);
+        scopeRoot.FlushStyles(children: true);
+        InvalidateComputedStyleCache();
+
+        return new SvgUseInstanceStyleScope(this, scopeRoot, elements, previousStyleSnapshots, previousCustomPropertySnapshots);
+    }
+
     private void RestoreCompatibilityStyleState()
     {
         if (!_compatibilityStyleStateInitialized)
@@ -524,12 +556,25 @@ public partial class SvgDocument
         target._compatibilityRawStyleState[targetElement] = sourceState.CloneRawPresentationState();
     }
 
+    private SvgCompatibilityStyleSnapshot GetCompatibilityStyleBaseSnapshot(SvgElement element)
+    {
+        return _compatibilityStyleState is not null &&
+               _compatibilityStyleState.TryGetValue(element, out var snapshot)
+            ? snapshot
+            : SvgCompatibilityStyleSnapshot.Empty;
+    }
+
     private void ApplyInlineStyles()
     {
+        ApplyInlineStyles(scopeRoot: null);
+    }
+
+    private void ApplyInlineStyles(SvgElement? scopeRoot)
+    {
         var parser = new SvgInlineStyleAttributeParser();
-        var elements = _compatibilityStyleStateTrackingEnabled && _compatibilityStyleStateCandidates is not null
-            ? _compatibilityStyleStateCandidates
-            : EnumerateElements();
+        var elements = scopeRoot is not null
+            ? EnumerateElements(scopeRoot)
+            : GetInlineStyleCandidateElements();
         foreach (var element in elements)
         {
             if (HasCompatibilityInlineStyle(element))
@@ -544,6 +589,13 @@ public partial class SvgDocument
     {
         return element.CustomAttributes.TryGetValue("style", out var styleText) &&
                !string.IsNullOrWhiteSpace(styleText);
+    }
+
+    private IEnumerable<SvgElement> GetInlineStyleCandidateElements()
+    {
+        return _compatibilityStyleStateTrackingEnabled && _compatibilityStyleStateCandidates is not null
+            ? _compatibilityStyleStateCandidates
+            : EnumerateElements();
     }
 
     private IEnumerable<SvgElement> EnumerateElements(SvgElement? scopeRoot = null)
@@ -563,6 +615,48 @@ public partial class SvgDocument
         foreach (var descendant in scopeRoot.Descendants())
         {
             yield return descendant;
+        }
+    }
+
+    private sealed class SvgUseInstanceStyleScope : IDisposable
+    {
+        private readonly SvgDocument _document;
+        private readonly SvgElement _scopeRoot;
+        private readonly SvgElement[] _elements;
+        private readonly SvgCompatibilityStyleSnapshot[] _styleSnapshots;
+        private readonly SvgCssVariableResolver.SvgCssCustomPropertySnapshot?[] _customPropertySnapshots;
+        private bool _disposed;
+
+        public SvgUseInstanceStyleScope(
+            SvgDocument document,
+            SvgElement scopeRoot,
+            SvgElement[] elements,
+            SvgCompatibilityStyleSnapshot[] styleSnapshots,
+            SvgCssVariableResolver.SvgCssCustomPropertySnapshot?[] customPropertySnapshots)
+        {
+            _document = document;
+            _scopeRoot = scopeRoot;
+            _elements = elements;
+            _styleSnapshots = styleSnapshots;
+            _customPropertySnapshots = customPropertySnapshots;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            for (var i = 0; i < _elements.Length; i++)
+            {
+                _elements[i].RestoreCompatibilityStyleState(_styleSnapshots[i]);
+                SvgCssVariableResolver.RestoreSnapshot(_elements[i], _customPropertySnapshots[i]);
+            }
+
+            _scopeRoot.FlushStyles(children: true);
+            _document.InvalidateComputedStyleCache();
         }
     }
 
