@@ -5270,6 +5270,30 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_UseScopedCssResolvesUseInheritedCustomProperties()
+    {
+        const string useScopedCssSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="24">
+              <style>
+                use { --instance-fill: #00ff00; }
+                rect.target { fill: var(--instance-fill); }
+              </style>
+              <defs>
+                <rect id="target" class="target" width="20" height="20" fill="#ff0000" />
+              </defs>
+              <use href="#target" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(useScopedCssSvg);
+
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+
+        Assert.Equal(SkiaColors.Lime, bitmap.GetPixel(10, 10));
+    }
+
+    [Fact]
     public void RetainedSceneGraph_ClipPathUseEvaluatesInheritedClipRuleFromUse()
     {
         const string clipUseSvg = """

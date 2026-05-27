@@ -247,7 +247,7 @@ public partial class SvgDocument
         InvalidateComputedStyleCache();
     }
 
-    internal IDisposable? BeginUseInstanceStyleScope(SvgElement scopeRoot)
+    internal IDisposable? BeginUseInstanceStyleScope(SvgElement scopeRoot, SvgUse useElement)
     {
         if (_compatibilityStyleSources is not { Count: > 0 })
         {
@@ -271,9 +271,19 @@ public partial class SvgDocument
         }
 
         InvalidateComputedStyleCache();
-        SvgCssCompatibilityProcessor.ApplyScoped(scopeRoot, this, _compatibilityStyleSources, new SvgElementFactory(), LoadOptions);
-        ApplyInlineStyles(scopeRoot);
-        scopeRoot.FlushStyles(children: true);
+        SvgCssCompatibilityProcessor.ApplyScoped(scopeRoot, useElement, this, _compatibilityStyleSources, new SvgElementFactory(), LoadOptions);
+        var originalParent = scopeRoot.Parent;
+        try
+        {
+            scopeRoot._parent = useElement;
+            ApplyInlineStyles(scopeRoot);
+            scopeRoot.FlushStyles(children: true);
+        }
+        finally
+        {
+            scopeRoot._parent = originalParent;
+        }
+
         InvalidateComputedStyleCache();
 
         return new SvgUseInstanceStyleScope(this, scopeRoot, elements, previousStyleSnapshots, previousCustomPropertySnapshots);

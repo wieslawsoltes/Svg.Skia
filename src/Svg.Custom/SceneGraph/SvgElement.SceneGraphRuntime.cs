@@ -36,7 +36,7 @@ namespace Svg
 
         internal TResult WithUseInstanceStyleScope<TResult>(SvgUse useElement, Func<TResult> factory)
         {
-            using var styleScope = (OwnerDocument ?? useElement.OwnerDocument)?.BeginUseInstanceStyleScope(this);
+            using var styleScope = (OwnerDocument ?? useElement.OwnerDocument)?.BeginUseInstanceStyleScope(this, useElement);
             return WithTemporaryParent(useElement, factory);
         }
     }
