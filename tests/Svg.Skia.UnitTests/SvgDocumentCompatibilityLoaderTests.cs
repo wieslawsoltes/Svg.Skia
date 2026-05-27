@@ -455,6 +455,37 @@ public class SvgDocumentCompatibilityLoaderTests
         Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
     }
 
+    [Fact]
+    public void FromSvg_DashMatchAttributeSelectorOnlyMatchesExactOrPrefix()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>rect[lang|="en"] { fill: lime; }</style>
+              <rect id="exact" lang="en" width="10" height="10" fill="red" />
+              <rect id="prefix" lang="en-US" x="10" width="10" height="10" fill="red" />
+              <rect id="middle" lang="fr-en" x="20" width="10" height="10" fill="red" />
+              <rect id="suffix" lang="x-en-US" x="30" width="10" height="10" fill="red" />
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var rectangles = document
+            .Descendants()
+            .OfType<SvgRectangle>()
+            .ToDictionary(static element => element.ID!);
+
+        AssertFill(rectangles["exact"], Color.Lime);
+        AssertFill(rectangles["prefix"], Color.Lime);
+        AssertFill(rectangles["middle"], Color.Red);
+        AssertFill(rectangles["suffix"], Color.Red);
+
+        static void AssertFill(SvgRectangle rectangle, Color expected)
+        {
+            var fill = Assert.IsType<SvgColourServer>(rectangle.Fill);
+            Assert.Equal(expected.ToArgb(), fill.Colour.ToArgb());
+        }
+    }
+
     [Theory]
     [InlineData("screen", true)]
     [InlineData("print", false)]

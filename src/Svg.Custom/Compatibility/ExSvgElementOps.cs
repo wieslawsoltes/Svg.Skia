@@ -78,7 +78,7 @@ namespace Svg.Css
         {
             return string.IsNullOrEmpty(value)
                  ? nodes => Enumerable.Empty<SvgElement>()
-                 : nodes => nodes.Where(n => n.TryGetAttribute(name, out var val) && val.Split('-').Contains(value));
+                 : nodes => nodes.Where(n => n.TryGetAttribute(name, out var val) && AttributeDashMatches(val, value));
         }
 
         public Func<IEnumerable<SvgElement>, IEnumerable<SvgElement>> AttributePrefixMatch(string name, string value)
@@ -172,6 +172,14 @@ namespace Svg.Css
 
                 return new List<SvgElement> { root };
             };
+        }
+
+        private static bool AttributeDashMatches(string attributeValue, string selectorValue)
+        {
+            return string.Equals(attributeValue, selectorValue, StringComparison.Ordinal) ||
+                   attributeValue.Length > selectorValue.Length &&
+                   attributeValue[selectorValue.Length] == '-' &&
+                   attributeValue.StartsWith(selectorValue, StringComparison.Ordinal);
         }
 
         private static IEnumerable<T> GetByIds<T>(IList<T> items, IEnumerable<int> indices)
