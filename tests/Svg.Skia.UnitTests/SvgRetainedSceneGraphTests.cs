@@ -5217,6 +5217,164 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.Equal(SkiaColors.Blue, bitmap.GetPixel(10, 30));
     }
 
+    [Fact]
+    public void RetainedSceneGraph_UseScopedCssIgnoresOriginalAncestorSelectors()
+    {
+        const string useScopedCssSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="24">
+              <style>
+                rect.target { fill: #00ff00; }
+                .ancestor > rect { fill: #ff0000; }
+              </style>
+              <defs>
+                <g class="ancestor">
+                  <rect id="target" class="target" width="20" height="20" />
+                </g>
+              </defs>
+              <use href="#target" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(useScopedCssSvg);
+
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+
+        Assert.Equal(SkiaColors.Lime, bitmap.GetPixel(10, 10));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_UseScopedCssPreservesInlineAndRestoresFollowingStyles()
+    {
+        const string useScopedCssSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="24">
+              <style>
+                .after-use { fill: #123456; }
+                rect.target { fill: #ff0000; }
+              </style>
+              <defs>
+                <rect id="target" class="target" width="20" height="20" style="fill:#00ff00" />
+              </defs>
+              <use href="#target" />
+              <rect class="after-use" x="32" width="20" height="20" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(useScopedCssSvg);
+
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+
+        Assert.Equal(SkiaColors.Lime, bitmap.GetPixel(10, 10));
+        Assert.Equal(new SkiaColor(0x12, 0x34, 0x56, 0xff), bitmap.GetPixel(42, 10));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_UseScopedCssResolvesUseInheritedCustomProperties()
+    {
+        const string useScopedCssSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="24">
+              <style>
+                use { --instance-fill: #00ff00; }
+                rect.target { fill: var(--instance-fill); }
+              </style>
+              <defs>
+                <rect id="target" class="target" width="20" height="20" fill="#ff0000" />
+              </defs>
+              <use href="#target" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(useScopedCssSvg);
+
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+
+        Assert.Equal(SkiaColors.Lime, bitmap.GetPixel(10, 10));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ClipPathUseEvaluatesInheritedClipRuleFromUse()
+    {
+        const string clipUseSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+              <defs>
+                <path id="donut" d="M0 0H20V20H0Z M5 5H15V15H5Z" />
+                <clipPath id="clip">
+                  <use id="clip-use" href="#donut" style="clip-rule:evenodd" />
+                </clipPath>
+              </defs>
+              <rect width="20" height="20" fill="#ff0000" clip-path="url(#clip)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(clipUseSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+
+        Assert.Equal(new SkiaColor(0xff, 0x00, 0x00, 0xff), bitmap.GetPixel(2, 2));
+        Assert.Equal(new SkiaColor(0x00, 0x00, 0x00, 0x00), bitmap.GetPixel(10, 10));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ClipPathUseIgnoresOriginalParentVisibility()
+    {
+        const string clipUseSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+              <defs>
+                <g visibility="hidden">
+                  <rect id="clip-shape" width="20" height="20" />
+                </g>
+                <clipPath id="clip">
+                  <use id="clip-use" href="#clip-shape" />
+                </clipPath>
+              </defs>
+              <rect width="20" height="20" fill="#ff0000" clip-path="url(#clip)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(clipUseSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+
+        Assert.Equal(new SkiaColor(0xff, 0x00, 0x00, 0xff), bitmap.GetPixel(10, 10));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_MaskClipPathUseEvaluatesInheritedClipRuleFromUse()
+    {
+        const string maskClipUseSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+              <defs>
+                <path id="donut" d="M0 0H20V20H0Z M5 5H15V15H5Z" />
+                <clipPath id="mask-clip">
+                  <use id="clip-use" href="#donut" style="clip-rule:evenodd" />
+                </clipPath>
+                <mask id="mask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+                  <rect width="20" height="20" fill="#ffffff" clip-path="url(#mask-clip)" />
+                </mask>
+              </defs>
+              <rect width="20" height="20" fill="#ff0000" mask="url(#mask)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(maskClipUseSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+
+        Assert.Equal(new SkiaColor(0xff, 0x00, 0x00, 0xff), bitmap.GetPixel(2, 2));
+        Assert.Equal(new SkiaColor(0x00, 0x00, 0x00, 0x00), bitmap.GetPixel(10, 10));
+    }
+
     [Theory]
     [InlineData("path", """<path id="target" d="M10,10 L50,10 L50,30" />""", 3, 10f, 10f, 0f, 50f, 30f, 90f)]
     [InlineData("line", """<line id="target" x1="10" y1="10" x2="50" y2="10" />""", 2, 10f, 10f, 0f, 50f, 10f, 0f)]

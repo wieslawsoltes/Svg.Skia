@@ -231,27 +231,34 @@ internal static class SvgSceneClipCompiler
 
         var referencedVisualElement = SvgService.GetReference<SvgVisualElement>(svgUse, SvgService.GetEffectiveReferenceUri(svgUse, svgUse.ReferencedElement));
         if (referencedVisualElement is null ||
-            referencedVisualElement is SvgSymbol ||
-            !MaskingService.CanDraw(referencedVisualElement, DrawAttributes.None))
+            referencedVisualElement is SvgSymbol)
         {
             return;
         }
 
-        var previousClipCount = clipPath.Clips?.Count ?? 0;
-        PopulateVisualClip(referencedVisualElement, targetBounds, assetLoader, uris, clipPath, svgClipPathClipRule);
-        if (clipPath.Clips is { Count: > 0 } populatedClips &&
-            populatedClips.Count > previousClipCount)
+        WithUseInstanceStyleScope(referencedVisualElement, svgUse, () =>
         {
-            var useTransform = CreateUseClipTransform(svgUse, targetBounds);
-            ApplyUseClipTransform(populatedClips, previousClipCount, useTransform);
-        }
+            if (!MaskingService.CanDraw(referencedVisualElement, DrawAttributes.None))
+            {
+                return;
+            }
 
-        if (clipPath.Clips is { Count: > 0 } clips &&
-            clips.Count > previousClipCount &&
-            clips[clips.Count - 1].Clip is { } lastClip)
-        {
-            PopulateNestedClipPath(svgUse, targetBounds, assetLoader, uris, lastClip);
-        }
+            var previousClipCount = clipPath.Clips?.Count ?? 0;
+            PopulateVisualClip(referencedVisualElement, targetBounds, assetLoader, uris, clipPath, svgClipPathClipRule);
+            if (clipPath.Clips is { Count: > 0 } populatedClips &&
+                populatedClips.Count > previousClipCount)
+            {
+                var useTransform = CreateUseClipTransform(svgUse, targetBounds);
+                ApplyUseClipTransform(populatedClips, previousClipCount, useTransform);
+            }
+
+            if (clipPath.Clips is { Count: > 0 } clips &&
+                clips.Count > previousClipCount &&
+                clips[clips.Count - 1].Clip is { } lastClip)
+            {
+                PopulateNestedClipPath(svgUse, targetBounds, assetLoader, uris, lastClip);
+            }
+        });
     }
 
     private static SKMatrix CreateUseClipTransform(SvgUse svgUse, SKRect targetBounds)
@@ -273,6 +280,15 @@ internal static class SvgSceneClipCompiler
             var clip = clips[i];
             clip.Transform = useTransform.PreConcat(clip.Transform ?? SKMatrix.CreateIdentity());
         }
+    }
+
+    private static void WithUseInstanceStyleScope(SvgElement element, SvgUse useElement, Action action)
+    {
+        _ = element.WithUseInstanceStyleScope(useElement, () =>
+        {
+            action();
+            return true;
+        });
     }
 
     private static void AddTextClip(

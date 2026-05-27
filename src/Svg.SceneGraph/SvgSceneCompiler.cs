@@ -1711,7 +1711,9 @@ public static class SvgSceneCompiler
         }
 
         var contextPaintBounds = CreateUseContextPaintBounds(referencedElement, x, y, width, height, viewport);
-        var referencedNode = WithTemporaryParent(referencedElement, svgUse, () =>
+        // Keep generated nodes addressable by the original tree while style resolution uses the <use> parent.
+        _ = compileContext.GetElementAddressKey(referencedElement);
+        var referencedNode = WithUseInstanceStyleScope(referencedElement, svgUse, () =>
         {
             referencedElement.InvalidateChildPaths();
 
@@ -1752,7 +1754,6 @@ public static class SvgSceneCompiler
             return true;
         }
 
-        RefreshGeneratedElementAddresses(referencedNode);
         AssignGeneratedHitTestTarget(referencedNode, svgUse);
         useNode.AddChild(referencedNode);
         FinalizeDirectStructuralBounds(
@@ -2382,9 +2383,9 @@ public static class SvgSceneCompiler
         return false;
     }
 
-    private static T WithTemporaryParent<T>(SvgElement element, SvgElement temporaryParent, Func<T> factory)
+    private static T WithUseInstanceStyleScope<T>(SvgElement element, SvgUse useElement, Func<T> factory)
     {
-        return element.WithTemporaryParent(temporaryParent, factory);
+        return element.WithUseInstanceStyleScope(useElement, factory);
     }
 
     private static void AppendDirectMarkers(
@@ -3274,29 +3275,6 @@ public static class SvgSceneCompiler
         for (var i = 0; i < node.Children.Count; i++)
         {
             AssignGeneratedHitTestTarget(node.Children[i], hitTestTargetElement);
-        }
-    }
-
-    private static void RefreshGeneratedElementAddresses(SvgSceneNode node)
-    {
-        var addressKeyCache = new SvgElementAddressKeyCache();
-        RefreshGeneratedElementAddresses(node, addressKeyCache.GetOrCreate);
-    }
-
-    private static void RefreshGeneratedElementAddresses(SvgSceneNode node, Func<SvgElement?, string?> getElementAddressKey)
-    {
-        node.RefreshElementIdentity(getElementAddressKey(node.Element));
-        AssignRetainedVisualState(node, node.Element);
-        AssignRetainedResourceKeys(node, node.Element, getElementAddressKey);
-
-        if (node.MaskNode is { } maskNode)
-        {
-            RefreshGeneratedElementAddresses(maskNode, getElementAddressKey);
-        }
-
-        for (var i = 0; i < node.Children.Count; i++)
-        {
-            RefreshGeneratedElementAddresses(node.Children[i], getElementAddressKey);
         }
     }
 

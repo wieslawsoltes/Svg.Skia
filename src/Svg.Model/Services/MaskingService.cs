@@ -241,23 +241,26 @@ internal static class MaskingService
                         break;
                     }
 
-                    if (!CanDraw(svgReferencedVisualElement, DrawAttributes.None))
+                    WithUseInstanceStyleScope(svgReferencedVisualElement, svgUse, () =>
                     {
-                        break;
-                    }
-
-                    // TODO: GetClipPath
-                    GetClipPath(svgReferencedVisualElement, skBounds, uris, clipPath, svgClipPathClipRule);
-
-                    if (clipPath.Clips is { } && clipPath.Clips.Count > 0)
-                    {
-                        // TODO: clipPath.Clips
-                        var lastClip = clipPath.Clips[clipPath.Clips.Count - 1];
-                        if (lastClip.Clip is { })
+                        if (!CanDraw(svgReferencedVisualElement, DrawAttributes.None))
                         {
-                            GetSvgVisualElementClipPath(svgUse, skBounds, uris, lastClip.Clip);
+                            return;
                         }
-                    }
+
+                        // TODO: GetClipPath
+                        GetClipPath(svgReferencedVisualElement, skBounds, uris, clipPath, svgClipPathClipRule);
+
+                        if (clipPath.Clips is { } && clipPath.Clips.Count > 0)
+                        {
+                            // TODO: clipPath.Clips
+                            var lastClip = clipPath.Clips[clipPath.Clips.Count - 1];
+                            if (lastClip.Clip is { })
+                            {
+                                GetSvgVisualElementClipPath(svgUse, skBounds, uris, lastClip.Clip);
+                            }
+                        }
+                    });
                 }
                 break;
 
@@ -281,6 +284,15 @@ internal static class MaskingService
                 }
                 break;
         }
+    }
+
+    private static void WithUseInstanceStyleScope(SvgElement element, SvgUse useElement, Action action)
+    {
+        _ = element.WithUseInstanceStyleScope(useElement, () =>
+        {
+            action();
+            return true;
+        });
     }
 
     private static void GetClipPath(SvgElementCollection svgElementCollection, SKRect skBounds, HashSet<Uri> uris, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
