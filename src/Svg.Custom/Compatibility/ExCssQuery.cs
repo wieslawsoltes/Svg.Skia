@@ -150,6 +150,20 @@ namespace Svg.Css
             {
                 pseudoFunc = ops.OnlyChild();
             }
+            else if (string.Equals(selector.Class, "first-of-type", StringComparison.OrdinalIgnoreCase))
+            {
+                pseudoFunc = ops.NthType(0, 1);
+            }
+            else if (string.Equals(selector.Class, "last-of-type", StringComparison.OrdinalIgnoreCase))
+            {
+                pseudoFunc = ops.NthLastType(0, 1);
+            }
+            else if (string.Equals(selector.Class, "only-of-type", StringComparison.OrdinalIgnoreCase))
+            {
+                var firstOfType = ops.NthType(0, 1);
+                var lastOfType = ops.NthLastType(0, 1);
+                pseudoFunc = nodes => lastOfType(firstOfType(nodes));
+            }
             else if (string.Equals(selector.Class, "hover", StringComparison.OrdinalIgnoreCase) ||
                      string.Equals(selector.Class, "active", StringComparison.OrdinalIgnoreCase) ||
                      string.Equals(selector.Class, "focus", StringComparison.OrdinalIgnoreCase) ||

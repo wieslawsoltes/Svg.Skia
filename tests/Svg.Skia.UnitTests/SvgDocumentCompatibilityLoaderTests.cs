@@ -186,6 +186,39 @@ public class SvgDocumentCompatibilityLoaderTests
         }
     }
 
+    [Theory]
+    [InlineData("screen and (width: 100px)", true)]
+    [InlineData("screen and (width: 480px)", false)]
+    public void OpenPath_FiltersPrologXmlStylesheetProcessingInstructionByDocumentViewport(string media, bool shouldApply)
+    {
+        var tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDirectory);
+
+        try
+        {
+            var cssPath = Path.Combine(tempDirectory, "styles.css");
+            var svgPath = Path.Combine(tempDirectory, "test.svg");
+
+            File.WriteAllText(cssPath, "#target { fill: green; }");
+            File.WriteAllText(svgPath, $$"""
+                <?xml-stylesheet type="text/css" href="styles.css" media="{{media}}"?>
+                <svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
+                  <rect id="target" width="10" height="10" fill="red" />
+                </svg>
+                """);
+
+            var document = SvgDocumentCompatibilityLoader.Open<SvgDocument>(svgPath, new SvgOptions());
+            var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
+            var fill = Assert.IsType<SvgColourServer>(rect.Fill);
+
+            Assert.Equal((shouldApply ? Color.Green : Color.Red).ToArgb(), fill.Colour.ToArgb());
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
     [Fact]
     public void FromSvg_IgnoresEmptyStyleElements()
     {
@@ -484,6 +517,37 @@ public class SvgDocumentCompatibilityLoaderTests
             var fill = Assert.IsType<SvgColourServer>(rectangle.Fill);
             Assert.Equal(expected.ToArgb(), fill.Colour.ToArgb());
         }
+    }
+
+    [Fact]
+    public void FromSvg_FixedPositionNthOfTypeSelectorsApplyWithoutSkippingRule()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <style>
+                rect:nth-of-type(1) { fill: lime; }
+                rect:nth-last-of-type(1) { stroke: blue; }
+                circle:first-of-type { fill: green; }
+              </style>
+              <g>
+                <rect id="first" width="10" height="10" fill="red" stroke="red" />
+                <circle id="circle" cx="15" cy="5" r="5" fill="red" />
+                <rect id="last" x="20" width="10" height="10" fill="red" stroke="red" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
+        var first = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "first");
+        var last = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "last");
+        var circle = document.Descendants().OfType<SvgCircle>().Single(static element => element.ID == "circle");
+        var firstFill = Assert.IsType<SvgColourServer>(first.Fill);
+        var lastStroke = Assert.IsType<SvgColourServer>(last.Stroke);
+        var circleFill = Assert.IsType<SvgColourServer>(circle.Fill);
+
+        Assert.Equal(Color.Lime.ToArgb(), firstFill.Colour.ToArgb());
+        Assert.Equal(Color.Blue.ToArgb(), lastStroke.Colour.ToArgb());
+        Assert.Equal(Color.Green.ToArgb(), circleFill.Colour.ToArgb());
     }
 
     [Theory]

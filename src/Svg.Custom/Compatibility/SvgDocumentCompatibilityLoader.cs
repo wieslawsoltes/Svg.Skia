@@ -409,6 +409,7 @@ public static class SvgDocumentCompatibilityLoader
         SvgElement? element = null;
         SvgElement? parent;
         T? svgDocument = null;
+        List<string>? pendingXmlStylesheetProcessingInstructions = null;
 
         while (reader.Read())
         {
@@ -427,6 +428,13 @@ public static class SvgDocumentCompatibilityLoader
                             svgDocument = elementFactory.CreateDocument<T>(reader);
                             svgDocument.BaseUri = baseUri;
                             element = svgDocument;
+                            AddPendingXmlStylesheetStyleSources(
+                                pendingXmlStylesheetProcessingInstructions,
+                                svgDocument,
+                                baseUri,
+                                loadOptions,
+                                ref styles);
+                            pendingXmlStylesheetProcessingInstructions = null;
                         }
 
                         if (elementStack.Count > 0)
@@ -508,11 +516,16 @@ public static class SvgDocumentCompatibilityLoader
 
                     case XmlNodeType.ProcessingInstruction:
                         if (loadLinkedStylesheets &&
-                            reader.Name.Equals("xml-stylesheet", StringComparison.OrdinalIgnoreCase) &&
-                            TryGetXmlStylesheetHref(reader.Value, svgDocument, out var stylesheetHref) &&
-                            SvgCssCompatibilityProcessor.TryLoadLinkedStylesheet(stylesheetHref, svgDocument?.BaseUri ?? baseUri, loadOptions) is { } xmlStylesheet)
+                            reader.Name.Equals("xml-stylesheet", StringComparison.OrdinalIgnoreCase))
                         {
-                            (styles ??= new List<SvgCssStyleSource>()).Add(xmlStylesheet);
+                            if (svgDocument is null)
+                            {
+                                (pendingXmlStylesheetProcessingInstructions ??= new List<string>()).Add(reader.Value);
+                            }
+                            else
+                            {
+                                AddXmlStylesheetStyleSource(reader.Value, svgDocument, baseUri, loadOptions, ref styles);
+                            }
                         }
 
                         break;
@@ -525,6 +538,38 @@ public static class SvgDocumentCompatibilityLoader
         }
 
         return svgDocument!;
+    }
+
+    private static void AddPendingXmlStylesheetStyleSources(
+        List<string>? pendingProcessingInstructions,
+        SvgDocument svgDocument,
+        Uri? baseUri,
+        SvgDocumentLoadOptions? loadOptions,
+        ref List<SvgCssStyleSource>? styles)
+    {
+        if (pendingProcessingInstructions is not { Count: > 0 })
+        {
+            return;
+        }
+
+        foreach (var processingInstruction in pendingProcessingInstructions)
+        {
+            AddXmlStylesheetStyleSource(processingInstruction, svgDocument, baseUri, loadOptions, ref styles);
+        }
+    }
+
+    private static void AddXmlStylesheetStyleSource(
+        string processingInstruction,
+        SvgDocument svgDocument,
+        Uri? baseUri,
+        SvgDocumentLoadOptions? loadOptions,
+        ref List<SvgCssStyleSource>? styles)
+    {
+        if (TryGetXmlStylesheetHref(processingInstruction, svgDocument, out var stylesheetHref) &&
+            SvgCssCompatibilityProcessor.TryLoadLinkedStylesheet(stylesheetHref, svgDocument.BaseUri ?? baseUri, loadOptions) is { } xmlStylesheet)
+        {
+            (styles ??= new List<SvgCssStyleSource>()).Add(xmlStylesheet);
+        }
     }
 
     private static bool TryGetLinkedStylesheetHref(SvgUnknownElement link, SvgDocument? svgDocument, out string href)
@@ -553,7 +598,7 @@ public static class SvgDocumentCompatibilityLoader
                !string.IsNullOrWhiteSpace(href);
     }
 
-    private static bool TryGetXmlStylesheetHref(string value, SvgDocument? svgDocument, out string href)
+    private static bool TryGetXmlStylesheetHref(string value, SvgDocument svgDocument, out string href)
     {
         href = string.Empty;
         var attributes = ParsePseudoAttributes(value);

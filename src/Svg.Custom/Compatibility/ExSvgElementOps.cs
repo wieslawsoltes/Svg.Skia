@@ -218,7 +218,7 @@ namespace Svg.Css
                     counter[type] = count;
                 }
 
-                if ((count - offset) % step == 0)
+                if (MatchesNthPosition(count + 1, step, offset))
                 {
                     yield return it;
                 }
@@ -226,6 +226,17 @@ namespace Svg.Css
                 count++;
                 counter[type] = count;
             }
+        }
+
+        private static bool MatchesNthPosition(int position, int step, int offset)
+        {
+            if (step == 0)
+            {
+                return position == offset;
+            }
+
+            var delta = position - offset;
+            return (step > 0 ? delta >= 0 : delta <= 0) && delta % step == 0;
         }
 
         private static IEnumerable<SvgElement> Descendants(SvgElement elem)
