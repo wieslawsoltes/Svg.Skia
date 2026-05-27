@@ -31,7 +31,7 @@ internal sealed class SvgInlineStyleAttributeParser
                     continue;
                 }
 
-                ApplyDeclaration(element, declaration.Name, declaration.Original, SvgElement.StyleSpecificity_InlineStyle);
+                ApplyDeclaration(element, declaration.Name, declaration.Original, SvgElement.StyleSpecificity_InlineStyle, declaration.IsImportant);
             }
         }
     }
@@ -71,13 +71,15 @@ internal sealed class SvgInlineStyleAttributeParser
         }
     }
 
-    private static void ApplyDeclaration(SvgElement element, string name, string value, int specificity)
+    private static void ApplyDeclaration(SvgElement element, string name, string value, int specificity, bool important = false)
     {
         if (SvgCssVariableResolver.IsCustomPropertyName(name))
         {
             SvgCssVariableResolver.AddCustomProperty(element, name, value, specificity);
             return;
         }
+
+        var effectiveSpecificity = SvgCssDeclarationPriority.NormalizePriority(ref value, specificity, important);
 
         if (SvgCssPaintDeclarationValidator.ShouldIgnoreInvalidPaintDeclaration(element, name, value))
         {
@@ -89,7 +91,7 @@ internal sealed class SvgInlineStyleAttributeParser
             return;
         }
 
-        element.AddStyle(name, value, specificity);
+        element.AddCompatibilityStyle(name, value, effectiveSpecificity);
     }
 
     private static bool TryReadInlineDeclaration(string styleText, ref int index, out string name, out string value)

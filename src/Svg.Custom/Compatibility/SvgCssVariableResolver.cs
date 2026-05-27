@@ -10,7 +10,6 @@ namespace Svg;
 
 internal static class SvgCssVariableResolver
 {
-    private const string ImportantKeyword = "important";
     private const int MaxResolutionDepth = 32;
     private static long s_customPropertySourceOrder;
     private static readonly ConditionalWeakTable<SvgElement, Dictionary<string, List<CustomPropertyRule>>> s_customPropertyRules = new();
@@ -48,6 +47,38 @@ internal static class SvgCssVariableResolver
         s_customPropertyRules.Remove(element);
     }
 
+    internal static SvgCssCustomPropertySnapshot? CreateSnapshot(SvgElement element)
+    {
+        if (!s_customPropertyRules.TryGetValue(element, out var propertyRules) ||
+            propertyRules.Count == 0)
+        {
+            return null;
+        }
+
+        var snapshotRules = new Dictionary<string, List<CustomPropertyRule>>(propertyRules.Count, StringComparer.Ordinal);
+        foreach (var propertyRule in propertyRules)
+        {
+            snapshotRules[propertyRule.Key] = new List<CustomPropertyRule>(propertyRule.Value);
+        }
+
+        return new SvgCssCustomPropertySnapshot(snapshotRules);
+    }
+
+    internal static void RestoreSnapshot(SvgElement element, SvgCssCustomPropertySnapshot? snapshot)
+    {
+        s_customPropertyRules.Remove(element);
+        if (snapshot is null)
+        {
+            return;
+        }
+
+        var propertyRules = s_customPropertyRules.GetOrCreateValue(element);
+        foreach (var propertyRule in snapshot.Rules)
+        {
+            propertyRules[propertyRule.Key] = new List<CustomPropertyRule>(propertyRule.Value);
+        }
+    }
+
     public static bool TryGetCustomPropertyValue(SvgElement? element, string name, out string value)
     {
         value = string.Empty;
@@ -57,7 +88,7 @@ internal static class SvgCssVariableResolver
 
     private static string NormalizeCustomPropertyValue(string value, out bool important, out CustomPropertyValueKind valueKind)
     {
-        if (TryFindTrailingImportant(value, out var importantStartIndex))
+        if (SvgCssDeclarationPriority.TryFindTrailingImportant(value, out var importantStartIndex))
         {
             important = true;
             var normalizedImportantValue = value.Substring(0, importantStartIndex).TrimEnd();
@@ -351,49 +382,6 @@ internal static class SvgCssVariableResolver
         return char.IsLetterOrDigit(value) || value is '-' or '_';
     }
 
-    private static bool TryFindTrailingImportant(string value, out int importantStartIndex)
-    {
-        importantStartIndex = -1;
-        var index = value.Length - 1;
-        while (index >= 0 && char.IsWhiteSpace(value[index]))
-        {
-            index--;
-        }
-
-        var keywordStartIndex = index - ImportantKeyword.Length + 1;
-        if (keywordStartIndex < 0 ||
-            !value.AsSpan(keywordStartIndex, ImportantKeyword.Length)
-                .Equals(ImportantKeyword.AsSpan(), StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        index = keywordStartIndex - 1;
-        while (index >= 0 && char.IsWhiteSpace(value[index]))
-        {
-            index--;
-        }
-
-        if (index < 0 || value[index] != '!' || IsEscaped(value, index))
-        {
-            return false;
-        }
-
-        importantStartIndex = index;
-        return true;
-    }
-
-    private static bool IsEscaped(string value, int index)
-    {
-        var backslashCount = 0;
-        for (var i = index - 1; i >= 0 && value[i] == '\\'; i--)
-        {
-            backslashCount++;
-        }
-
-        return backslashCount % 2 != 0;
-    }
-
     private static CustomPropertyRule GetWinningRule(List<CustomPropertyRule> rules)
     {
         var winningRule = rules[0];
@@ -478,14 +466,14 @@ internal static class SvgCssVariableResolver
         return false;
     }
 
-    private enum CustomPropertyValueKind
+    internal enum CustomPropertyValueKind
     {
         Value,
         Inherit,
         Initial
     }
 
-    private readonly struct CustomPropertyRule
+    internal readonly struct CustomPropertyRule
     {
         public CustomPropertyRule(
             string value,
@@ -510,5 +498,15 @@ internal static class SvgCssVariableResolver
         public bool Important { get; }
 
         public long SourceOrder { get; }
+    }
+
+    internal sealed class SvgCssCustomPropertySnapshot
+    {
+        public SvgCssCustomPropertySnapshot(Dictionary<string, List<CustomPropertyRule>> rules)
+        {
+            Rules = rules;
+        }
+
+        public Dictionary<string, List<CustomPropertyRule>> Rules { get; }
     }
 }

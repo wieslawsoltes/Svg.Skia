@@ -57,6 +57,27 @@ internal static class SvgCssCompatibilityProcessor
         SvgElementFactory elementFactory,
         SvgDocumentLoadOptions? loadOptions = null)
     {
+        ApplyCore(svgDocument, svgDocument, styles, elementFactory, loadOptions, svgDocument);
+    }
+
+    internal static void ApplyScoped(
+        SvgElement scopeRoot,
+        SvgDocument svgDocument,
+        IReadOnlyCollection<SvgCssStyleSource> styles,
+        SvgElementFactory elementFactory,
+        SvgDocumentLoadOptions? loadOptions = null)
+    {
+        ApplyCore(scopeRoot, svgDocument, styles, elementFactory, loadOptions, documentRootSelectorTarget: null);
+    }
+
+    private static void ApplyCore(
+        SvgElement scopeRoot,
+        SvgDocument svgDocument,
+        IReadOnlyCollection<SvgCssStyleSource> styles,
+        SvgElementFactory elementFactory,
+        SvgDocumentLoadOptions? loadOptions,
+        SvgDocument? documentRootSelectorTarget)
+    {
         if (styles.Count == 0)
         {
             return;
@@ -73,76 +94,13 @@ internal static class SvgCssCompatibilityProcessor
         }
 
         var stylesheetParser = new StylesheetParser(true, true, tolerateInvalidValues: true);
-        var stylesheet = stylesheetParser.Parse(cssTotal);
         var rootNode = new NonSvgElement();
-        rootNode.Children.Add(svgDocument);
+        rootNode.Children.Add(scopeRoot);
         try
         {
-            ApplyCustomPropertyRules(cssTotal, svgDocument, rootNode, elementFactory, stylesheetParser, mediaContext);
-            ApplyRawSvgStaticPropertyRules(cssTotal, svgDocument, rootNode, elementFactory, stylesheetParser, mediaContext);
-
-            foreach (var rule in stylesheet.StyleRules)
-            {
-                try
-                {
-                    var projectsLinkStylesToText = ContainsLinkPseudoClass(rule.Selector);
-                    var specificity = rule.Selector.GetSpecificity();
-                    List<AppliedDeclaration>? declarations = null;
-                    var elemsToStyle = rootNode.QuerySelectorAll(rule.Selector, elementFactory);
-                    if (SelectorListMatchesSvgRoot(rule.SelectorText, svgDocument))
-                    {
-                        elemsToStyle = elemsToStyle.Concat(new[] { svgDocument }).Distinct();
-                    }
-
-                    foreach (var elem in elemsToStyle)
-                    {
-                        declarations ??= CreateAppliedDeclarations();
-
-                        SvgTextBase? textContainer = null;
-                        var projectsToTextContainer = projectsLinkStylesToText &&
-                                                      TryGetLinkTextContainer(elem, out textContainer);
-
-                        foreach (var declaration in declarations)
-                        {
-                            ApplyDeclaration(elem, declaration, specificity);
-
-                            if (projectsToTextContainer)
-                            {
-                                ApplyDeclaration(textContainer!, declaration, specificity);
-                            }
-                        }
-
-                        if (elementFactory.PreserveJavaScriptDomState)
-                        {
-                            svgDocument.TrackCompatibilityStyleApplication(elem);
-                            if (projectsToTextContainer)
-                            {
-                                svgDocument.TrackCompatibilityStyleApplication(textContainer!);
-                            }
-                        }
-                    }
-
-                    List<AppliedDeclaration> CreateAppliedDeclarations()
-                    {
-                        var result = new List<AppliedDeclaration>();
-                        foreach (var declaration in rule.Style)
-                        {
-                            if (string.IsNullOrWhiteSpace(declaration.Original))
-                            {
-                                continue;
-                            }
-
-                            result.Add(new AppliedDeclaration(declaration.Name, declaration.Original));
-                        }
-
-                        return result;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Trace.TraceWarning(ex.Message);
-                }
-            }
+            ApplyCustomPropertyRules(cssTotal, svgDocument, rootNode, elementFactory, stylesheetParser, mediaContext, documentRootSelectorTarget);
+            ApplyRawSvgStaticPropertyRules(cssTotal, svgDocument, rootNode, elementFactory, stylesheetParser, mediaContext, documentRootSelectorTarget);
+            ApplyStyleRules(cssTotal, svgDocument, rootNode, elementFactory, stylesheetParser, mediaContext, documentRootSelectorTarget);
         }
         finally
         {
@@ -151,8 +109,17 @@ internal static class SvgCssCompatibilityProcessor
             // document tree. Animation bindings capture child-index addresses later, and leaving
             // svgDocument.Parent pointing at this temporary node shifts every recorded path by one
             // extra level, which makes CreateAnimatedDocument fail to resolve targets on clones.
-            _ = rootNode.Children.Remove(svgDocument);
+            _ = rootNode.Children.Remove(scopeRoot);
         }
+    }
+
+    internal static bool ShouldApplyMediaForCurrentContext(string? mediaCondition, SvgDocument? svgDocument)
+    {
+        var mediaContext = svgDocument is null
+            ? new CssMediaContext(StaticScreenWidthPixels, StaticScreenHeightPixels)
+            : ResolveMediaContext(svgDocument);
+
+        return ShouldApplyMediaForCurrentContext(mediaCondition.AsSpan(), mediaContext);
     }
 
     private static void ApplyCustomPropertyRules(
@@ -161,7 +128,8 @@ internal static class SvgCssCompatibilityProcessor
         SvgElement rootNode,
         SvgElementFactory elementFactory,
         StylesheetParser stylesheetParser,
-        CssMediaContext mediaContext)
+        CssMediaContext mediaContext,
+        SvgDocument? documentRootSelectorTarget)
     {
         var index = 0;
         while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
@@ -183,7 +151,8 @@ internal static class SvgCssCompatibilityProcessor
                         rootNode,
                         elementFactory,
                         stylesheetParser,
-                        mediaContext);
+                        mediaContext,
+                        documentRootSelectorTarget);
                 }
 
                 continue;
@@ -206,23 +175,27 @@ internal static class SvgCssCompatibilityProcessor
                 var selectorSheet = stylesheetParser.Parse(selectorText + "{fill:inherit}");
                 foreach (var rule in selectorSheet.StyleRules)
                 {
-                    var specificity = rule.Selector.GetSpecificity();
-                    var elemsToStyle = rootNode.QuerySelectorAll(rule.Selector, elementFactory);
-                    if (SelectorListMatchesSvgRoot(selectorText, svgDocument))
+                    foreach (var selector in EnumerateSelectorBranches(rule.Selector))
                     {
-                        elemsToStyle = elemsToStyle.Concat(new[] { svgDocument });
-                    }
+                        var specificity = selector.GetSpecificity();
+                        var elemsToStyle = QuerySelectorAllIncludingSvgRoot(
+                            rootNode,
+                            selector,
+                            GetSelectorText(selector, selectorText),
+                            documentRootSelectorTarget,
+                            elementFactory);
 
-                    foreach (var elem in elemsToStyle.Distinct())
-                    {
-                        foreach (var declaration in declarations)
+                        foreach (var elem in elemsToStyle.Distinct())
                         {
-                            SvgCssVariableResolver.AddCustomProperty(elem, declaration.Name, declaration.Value, specificity);
-                        }
+                            foreach (var declaration in declarations)
+                            {
+                                SvgCssVariableResolver.AddCustomProperty(elem, declaration.Name, declaration.Value, specificity);
+                            }
 
-                        if (elementFactory.PreserveJavaScriptDomState)
-                        {
-                            svgDocument.TrackCompatibilityStyleApplication(elem);
+                            if (elementFactory.PreserveJavaScriptDomState)
+                            {
+                                svgDocument.TrackCompatibilityStyleApplication(elem);
+                            }
                         }
                     }
                 }
@@ -240,7 +213,8 @@ internal static class SvgCssCompatibilityProcessor
         SvgElement rootNode,
         SvgElementFactory elementFactory,
         StylesheetParser stylesheetParser,
-        CssMediaContext mediaContext)
+        CssMediaContext mediaContext,
+        SvgDocument? documentRootSelectorTarget)
     {
         var index = 0;
         while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
@@ -262,7 +236,8 @@ internal static class SvgCssCompatibilityProcessor
                         rootNode,
                         elementFactory,
                         stylesheetParser,
-                        mediaContext);
+                        mediaContext,
+                        documentRootSelectorTarget);
                 }
 
                 continue;
@@ -285,23 +260,27 @@ internal static class SvgCssCompatibilityProcessor
                 var selectorSheet = stylesheetParser.Parse(selectorText + "{fill:inherit}");
                 foreach (var rule in selectorSheet.StyleRules)
                 {
-                    var specificity = rule.Selector.GetSpecificity();
-                    var elemsToStyle = rootNode.QuerySelectorAll(rule.Selector, elementFactory);
-                    if (SelectorListMatchesSvgRoot(selectorText, svgDocument))
+                    foreach (var selector in EnumerateSelectorBranches(rule.Selector))
                     {
-                        elemsToStyle = elemsToStyle.Concat(new[] { svgDocument });
-                    }
+                        var specificity = selector.GetSpecificity();
+                        var elemsToStyle = QuerySelectorAllIncludingSvgRoot(
+                            rootNode,
+                            selector,
+                            GetSelectorText(selector, selectorText),
+                            documentRootSelectorTarget,
+                            elementFactory);
 
-                    foreach (var elem in elemsToStyle.Distinct())
-                    {
-                        foreach (var declaration in declarations)
+                        foreach (var elem in elemsToStyle.Distinct())
                         {
-                            ApplyDeclaration(elem, declaration, specificity);
-                        }
+                            foreach (var declaration in declarations)
+                            {
+                                ApplyDeclaration(elem, declaration, specificity);
+                            }
 
-                        if (elementFactory.PreserveJavaScriptDomState)
-                        {
-                            svgDocument.TrackCompatibilityStyleApplication(elem);
+                            if (elementFactory.PreserveJavaScriptDomState)
+                            {
+                                svgDocument.TrackCompatibilityStyleApplication(elem);
+                            }
                         }
                     }
                 }
@@ -311,6 +290,159 @@ internal static class SvgCssCompatibilityProcessor
                 Trace.TraceWarning(ex.Message);
             }
         }
+    }
+
+    private static void ApplyStyleRules(
+        string cssText,
+        SvgDocument svgDocument,
+        SvgElement rootNode,
+        SvgElementFactory elementFactory,
+        StylesheetParser stylesheetParser,
+        CssMediaContext mediaContext,
+        SvgDocument? documentRootSelectorTarget)
+    {
+        var index = 0;
+        while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
+        {
+            if (statement.Terminator != CssStatementTerminator.Block)
+            {
+                continue;
+            }
+
+            var atRuleKind = GetAtRuleKind(cssText, statement);
+            if (atRuleKind == CssAtRuleKind.Media)
+            {
+                if (TryGetMediaRuleParts(cssText, statement, out var mediaCondition, out var nestedCssText) &&
+                    ShouldApplyMediaForCurrentContext(mediaCondition, mediaContext))
+                {
+                    ApplyStyleRules(
+                        nestedCssText,
+                        svgDocument,
+                        rootNode,
+                        elementFactory,
+                        stylesheetParser,
+                        mediaContext,
+                        documentRootSelectorTarget);
+                }
+
+                continue;
+            }
+
+            if (atRuleKind != CssAtRuleKind.None ||
+                !TryGetStyleRuleParts(cssText, statement, out var selectorText, out var declarationsText))
+            {
+                continue;
+            }
+
+            try
+            {
+                var selectorSheet = stylesheetParser.Parse(selectorText + "{" + declarationsText + "}");
+                foreach (var rule in selectorSheet.StyleRules)
+                {
+                    var declarations = CreateAppliedDeclarations(rule);
+                    if (declarations.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    foreach (var selector in EnumerateSelectorBranches(rule.Selector))
+                    {
+                        var specificity = selector.GetSpecificity();
+                        var projectsLinkStylesToText = ContainsLinkPseudoClass(selector);
+                        var elemsToStyle = QuerySelectorAllIncludingSvgRoot(
+                            rootNode,
+                            selector,
+                            GetSelectorText(selector, rule.SelectorText),
+                            documentRootSelectorTarget,
+                            elementFactory);
+
+                        foreach (var elem in elemsToStyle.Distinct())
+                        {
+                            SvgTextBase? textContainer = null;
+                            var projectsToTextContainer = projectsLinkStylesToText &&
+                                                          TryGetLinkTextContainer(elem, out textContainer);
+
+                            foreach (var declaration in declarations)
+                            {
+                                ApplyDeclaration(elem, declaration, specificity);
+
+                                if (projectsToTextContainer)
+                                {
+                                    ApplyDeclaration(textContainer!, declaration, specificity);
+                                }
+                            }
+
+                            if (elementFactory.PreserveJavaScriptDomState)
+                            {
+                                svgDocument.TrackCompatibilityStyleApplication(elem);
+                                if (projectsToTextContainer)
+                                {
+                                    svgDocument.TrackCompatibilityStyleApplication(textContainer!);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning(ex.Message);
+            }
+        }
+    }
+
+    private static List<AppliedDeclaration> CreateAppliedDeclarations(IStyleRule rule)
+    {
+        var result = new List<AppliedDeclaration>();
+        foreach (var declaration in rule.Style)
+        {
+            if (string.IsNullOrWhiteSpace(declaration.Original))
+            {
+                continue;
+            }
+
+            result.Add(new AppliedDeclaration(declaration.Name, declaration.Original, declaration.IsImportant));
+        }
+
+        return result;
+    }
+
+    private static IEnumerable<ISelector> EnumerateSelectorBranches(ISelector selector)
+    {
+        if (selector is ListSelector listSelector)
+        {
+            foreach (var branch in listSelector)
+            {
+                yield return branch;
+            }
+
+            yield break;
+        }
+
+        yield return selector;
+    }
+
+    private static IEnumerable<SvgElement> QuerySelectorAllIncludingSvgRoot(
+        SvgElement rootNode,
+        ISelector selector,
+        string selectorText,
+        SvgDocument? svgDocument,
+        SvgElementFactory elementFactory)
+    {
+        var elemsToStyle = rootNode.QuerySelectorAll(selector, elementFactory);
+        if (svgDocument is not null && SelectorListMatchesSvgRoot(selectorText, svgDocument))
+        {
+            elemsToStyle = elemsToStyle.Concat(new[] { svgDocument });
+        }
+
+        return elemsToStyle;
+    }
+
+    private static string GetSelectorText(ISelector selector, string fallback)
+    {
+        return !string.IsNullOrWhiteSpace(selector.Text)
+            ? selector.Text
+            : fallback;
     }
 
     private static bool SelectorListMatchesSvgRoot(string selectorText, SvgDocument svgDocument)
@@ -373,20 +505,23 @@ internal static class SvgCssCompatibilityProcessor
             return true;
         }
 
-        return TryGetSvgRootSelectorSuffix(trimmed, out var suffix) &&
+        return (TryGetSvgRootSelectorSuffix(trimmed, "svg", out var suffix) ||
+                TryGetSvgRootSelectorSuffix(trimmed, ":root", out suffix)) &&
                SvgRootSelectorSuffixMatches(svgDocument, suffix);
     }
 
-    private static bool TryGetSvgRootSelectorSuffix(ReadOnlySpan<char> selector, out ReadOnlySpan<char> suffix)
+    private static bool TryGetSvgRootSelectorSuffix(
+        ReadOnlySpan<char> selector,
+        string rootSelector,
+        out ReadOnlySpan<char> suffix)
     {
         suffix = default;
-        const string RootPseudoClass = ":root";
-        if (!selector.StartsWith(RootPseudoClass.AsSpan(), StringComparison.OrdinalIgnoreCase))
+        if (!selector.StartsWith(rootSelector.AsSpan(), StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
 
-        suffix = selector.Slice(RootPseudoClass.Length);
+        suffix = selector.Slice(rootSelector.Length);
         if (suffix.Length > 0 &&
             suffix[0] is not ('.' or '#' or '['))
         {
@@ -634,20 +769,23 @@ internal static class SvgCssCompatibilityProcessor
             return;
         }
 
+        var value = declaration.Value;
+        var effectiveSpecificity = SvgCssDeclarationPriority.NormalizePriority(ref value, specificity, declaration.Important);
+
         if (SvgCssPaintDeclarationValidator.ShouldIgnoreInvalidPaintDeclaration(
                 element,
                 declaration.Name,
-                declaration.Value))
+                value))
         {
             return;
         }
 
-        if (SvgComputedStyleMetadata.ShouldIgnoreInvalidDeclaration(declaration.Name, declaration.Value))
+        if (SvgComputedStyleMetadata.ShouldIgnoreInvalidDeclaration(declaration.Name, value))
         {
             return;
         }
 
-        element.AddStyle(declaration.Name, NormalizeReferenceUrl(declaration.Name, declaration.Value), specificity);
+        element.AddCompatibilityStyle(declaration.Name, NormalizeReferenceUrl(declaration.Name, value), effectiveSpecificity);
     }
 
     private static string NormalizeReferenceUrl(string name, string value)
@@ -1810,7 +1948,8 @@ internal static class SvgCssCompatibilityProcessor
         href = string.Empty;
         mediaCondition = default;
 
-        if (statement.Terminator != CssStatementTerminator.Semicolon)
+        if (statement.Terminator != CssStatementTerminator.Semicolon &&
+            statement.Terminator != CssStatementTerminator.EndOfFile)
         {
             return false;
         }
@@ -2497,15 +2636,18 @@ internal static class SvgCssCompatibilityProcessor
 
     private readonly struct AppliedDeclaration
     {
-        public AppliedDeclaration(string name, string value)
+        public AppliedDeclaration(string name, string value, bool important = false)
         {
             Name = name;
             Value = value;
+            Important = important;
         }
 
         public string Name { get; }
 
         public string Value { get; }
+
+        public bool Important { get; }
     }
 
     private readonly struct CssStatement

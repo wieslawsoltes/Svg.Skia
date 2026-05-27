@@ -471,7 +471,7 @@ public static class SvgDocumentCompatibilityLoader
                         else if (loadLinkedStylesheets &&
                                  element is SvgUnknownElement link &&
                                  link.ElementName == "link" &&
-                                 TryGetLinkedStylesheetHref(link, out var href) &&
+                                 TryGetLinkedStylesheetHref(link, svgDocument, out var href) &&
                                  SvgCssCompatibilityProcessor.TryLoadLinkedStylesheet(href, svgDocument?.BaseUri ?? baseUri, loadOptions) is { } linkedStylesheet)
                         {
                             (styles ??= new List<SvgCssStyleSource>()).Add(linkedStylesheet);
@@ -509,7 +509,7 @@ public static class SvgDocumentCompatibilityLoader
                     case XmlNodeType.ProcessingInstruction:
                         if (loadLinkedStylesheets &&
                             reader.Name.Equals("xml-stylesheet", StringComparison.OrdinalIgnoreCase) &&
-                            TryGetXmlStylesheetHref(reader.Value, out var stylesheetHref) &&
+                            TryGetXmlStylesheetHref(reader.Value, svgDocument, out var stylesheetHref) &&
                             SvgCssCompatibilityProcessor.TryLoadLinkedStylesheet(stylesheetHref, svgDocument?.BaseUri ?? baseUri, loadOptions) is { } xmlStylesheet)
                         {
                             (styles ??= new List<SvgCssStyleSource>()).Add(xmlStylesheet);
@@ -527,7 +527,7 @@ public static class SvgDocumentCompatibilityLoader
         return svgDocument!;
     }
 
-    private static bool TryGetLinkedStylesheetHref(SvgUnknownElement link, out string href)
+    private static bool TryGetLinkedStylesheetHref(SvgUnknownElement link, SvgDocument? svgDocument, out string href)
     {
         href = string.Empty;
 
@@ -543,11 +543,17 @@ public static class SvgDocumentCompatibilityLoader
             return false;
         }
 
+        if (TryGetAttributeIgnoreCase(link, "media", out var media) &&
+            !SvgCssCompatibilityProcessor.ShouldApplyMediaForCurrentContext(media, svgDocument))
+        {
+            return false;
+        }
+
         return TryGetAttributeIgnoreCase(link, "href", out href) &&
                !string.IsNullOrWhiteSpace(href);
     }
 
-    private static bool TryGetXmlStylesheetHref(string value, out string href)
+    private static bool TryGetXmlStylesheetHref(string value, SvgDocument? svgDocument, out string href)
     {
         href = string.Empty;
         var attributes = ParsePseudoAttributes(value);
@@ -560,6 +566,12 @@ public static class SvgDocumentCompatibilityLoader
 
         if (!attributes.TryGetValue("href", out var parsedHref) ||
             string.IsNullOrWhiteSpace(parsedHref))
+        {
+            return false;
+        }
+
+        if (attributes.TryGetValue("media", out var media) &&
+            !SvgCssCompatibilityProcessor.ShouldApplyMediaForCurrentContext(media, svgDocument))
         {
             return false;
         }
