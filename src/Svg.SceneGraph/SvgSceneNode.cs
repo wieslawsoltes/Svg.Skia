@@ -110,6 +110,10 @@ public sealed class SvgSceneNode
 
     public SKRect? FilterClip { get; internal set; }
 
+    public bool FilterUsesGlobalLayer { get; internal set; }
+
+    public SKRect? FilterGlobalClip { get; internal set; }
+
     public SKPaint? Fill { get; internal set; }
 
     public SKPaint? Stroke { get; internal set; }
@@ -191,6 +195,8 @@ public sealed class SvgSceneNode
         BlendModePaint = replacement.BlendModePaint;
         Filter = replacement.Filter;
         FilterClip = replacement.FilterClip;
+        FilterUsesGlobalLayer = replacement.FilterUsesGlobalLayer;
+        FilterGlobalClip = replacement.FilterGlobalClip;
         Fill = replacement.Fill;
         Stroke = replacement.Stroke;
         SupportsFillHitTest = replacement.SupportsFillHitTest;

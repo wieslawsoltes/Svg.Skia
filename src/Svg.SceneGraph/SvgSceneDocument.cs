@@ -770,6 +770,11 @@ public sealed class SvgSceneDocument
             node.IsDisplayNone = false;
         }
 
+        if (refreshRetainedMetadata)
+        {
+            SvgSceneCompiler.AssignRetainedResourceKeys(node, element, getElementAddressKey);
+        }
+
         node.OpacityValue = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
             ? 1f
             : SvgScenePaintingService.AdjustSvgOpacity(element.Opacity);
@@ -777,13 +782,22 @@ public sealed class SvgSceneDocument
             ? null
             : SvgScenePaintingService.GetOpacityPaint(element.Opacity);
 
+        node.SetMask(null);
+        node.MaskPaint = null;
+        node.MaskDstIn = null;
+
+        if (!IgnoreAttributes.HasFlag(DrawAttributes.Mask))
+        {
+            if (ResolveMaskPayload(node) is { } maskPayload)
+            {
+                node.SetMask(maskPayload.MaskNode);
+                node.MaskPaint = maskPayload.MaskPaint.DeepClone();
+                node.MaskDstIn = maskPayload.MaskDstIn.DeepClone();
+            }
+        }
+
         if (element is SvgVisualElement visualElement)
         {
-            if (refreshRetainedMetadata)
-            {
-                SvgSceneCompiler.AssignRetainedResourceKeys(node, element, getElementAddressKey);
-            }
-
             var hasOwnPaintPayload = HasOwnPaintPayload(node);
             node.ClipPath = ResolveClipPath(node);
             node.Fill = hasOwnPaintPayload && SvgScenePaintingService.IsValidFill(visualElement)
@@ -794,22 +808,11 @@ public sealed class SvgSceneDocument
                 : null;
             node.StrokeWidth = hasOwnPaintPayload ? node.Stroke?.StrokeWidth ?? 0f : 0f;
             node.IsStrokeNonScaling = hasOwnPaintPayload && visualElement.VectorEffect == SvgVectorEffect.NonScalingStroke;
-            node.SetMask(null);
-            node.MaskPaint = null;
-            node.MaskDstIn = null;
             node.Filter = null;
             node.FilterClip = null;
+            node.FilterUsesGlobalLayer = false;
+            node.FilterGlobalClip = null;
             node.SuppressSubtreeRendering = false;
-
-            if (!IgnoreAttributes.HasFlag(DrawAttributes.Mask))
-            {
-                if (ResolveMaskPayload(node) is { } maskPayload)
-                {
-                    node.SetMask(maskPayload.MaskNode);
-                    node.MaskPaint = maskPayload.MaskPaint.DeepClone();
-                    node.MaskDstIn = maskPayload.MaskDstIn.DeepClone();
-                }
-            }
 
             if (!IgnoreAttributes.HasFlag(DrawAttributes.Filter))
             {
@@ -819,6 +822,8 @@ public sealed class SvgSceneDocument
                     {
                         node.Filter = filterPayload.FilterPaint?.DeepClone();
                         node.FilterClip = filterPayload.FilterClip;
+                        node.FilterUsesGlobalLayer = filterPayload.UsesGlobalLayer;
+                        node.FilterGlobalClip = filterPayload.GlobalClip;
                     }
                     else
                     {
@@ -876,9 +881,7 @@ public sealed class SvgSceneDocument
     private SvgSceneFilterPayload? ResolveUntrackedFilterPayload(SvgSceneNode node)
     {
         if (node.Element is not SvgVisualElement visualElement ||
-            visualElement.Filter is null ||
-            FilterEffectsService.IsNone(visualElement.Filter) ||
-            SvgSceneFilterContext.ResolveFilterReference(visualElement, visualElement.Filter) is null)
+            !SvgSceneFilterContext.HasFilterDeclaration(visualElement))
         {
             return null;
         }
@@ -893,10 +896,21 @@ public sealed class SvgSceneDocument
             CompilationViewport,
             new SvgSceneFilterSource(this, node),
             AssetLoader,
-            references);
+            references,
+            targetTransform: node.TotalTransform);
 
-        return filterContext.FilterPaint is { } filterPaint
-            ? new SvgSceneFilterPayload(filterPaint.DeepClone(), filterContext.FilterClip, isValid: true)
+        if (filterContext.FilterPaint is { } filterPaint)
+        {
+            return new SvgSceneFilterPayload(
+                filterPaint.DeepClone(),
+                filterContext.FilterClip,
+                isValid: true,
+                filterContext.UsesGlobalLayer,
+                filterContext.GlobalClip);
+        }
+
+        return filterContext.IsValid
+            ? null
             : SvgSceneFilterPayload.Invalid(filterContext.FilterClip);
     }
 

@@ -443,12 +443,68 @@ namespace Svg
 
         private static bool ShouldKeepComputedStyleDeclaration(string attributeName, string attributeValue)
         {
-            return IsMultiKeywordWhiteSpaceDeclaration(attributeName, attributeValue) ||
+            return ShouldKeepFilterComputedStyleDeclaration(attributeName, attributeValue) ||
+                   IsMultiKeywordWhiteSpaceDeclaration(attributeName, attributeValue) ||
                    (IsGeometryAttribute(attributeName) &&
                     (IsCssIdentifier(attributeValue, "auto") ||
                      IsCssIdentifier(attributeValue, "inherit") ||
                      IsCssIdentifier(attributeValue, "initial") ||
                      IsCssIdentifier(attributeValue, "unset")));
+        }
+
+        private static bool ShouldKeepFilterComputedStyleDeclaration(string attributeName, string attributeValue)
+        {
+            if (!attributeName.Equals("filter", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            var trimmedValue = attributeValue.AsSpan().Trim();
+            return !IsCssIdentifier(trimmedValue, "none") &&
+                   !IsSingleCssUrlReference(trimmedValue);
+        }
+
+        private static bool IsSingleCssUrlReference(ReadOnlySpan<char> value)
+        {
+            if (value.Length < 6 ||
+                !value.Slice(0, 4).Equals("url(".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+                value[value.Length - 1] != ')')
+            {
+                return false;
+            }
+
+            var quote = '\0';
+            for (var i = 4; i < value.Length - 1; i++)
+            {
+                var ch = value[i];
+                if (quote != '\0')
+                {
+                    if (ch == quote)
+                    {
+                        quote = '\0';
+                    }
+
+                    continue;
+                }
+
+                if (ch == '"' || ch == '\'')
+                {
+                    quote = ch;
+                    continue;
+                }
+
+                if (ch == ')')
+                {
+                    return false;
+                }
+            }
+
+            if (quote != '\0')
+            {
+                return false;
+            }
+
+            return value.Slice(4, value.Length - 5).Trim().Length > 0;
         }
 
         private static bool IsMultiKeywordWhiteSpaceDeclaration(string attributeName, string attributeValue)
@@ -478,6 +534,11 @@ namespace Svg
         private static bool IsCssIdentifier(string value, string identifier)
         {
             return value.AsSpan().Trim().Equals(identifier.AsSpan(), StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsCssIdentifier(ReadOnlySpan<char> value, string identifier)
+        {
+            return value.Trim().Equals(identifier.AsSpan(), StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsEventDescriptorAttribute(SvgElement element, string attributeName)

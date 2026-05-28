@@ -12665,8 +12665,7 @@ internal static partial class SvgSceneTextCompiler
     {
         if (ignoreAttributes.HasFlag(DrawAttributes.Filter) ||
             run.FilterSource is not SvgVisualElement visualElement ||
-            visualElement.Filter is null ||
-            FilterEffectsService.IsNone(visualElement.Filter))
+            !SvgSceneFilterContext.HasFilterDeclaration(visualElement))
         {
             return false;
         }
@@ -12756,8 +12755,7 @@ internal static partial class SvgSceneTextCompiler
     {
         if (ignoreAttributes.HasFlag(DrawAttributes.Filter) ||
             run.StyleSource is not SvgVisualElement visualElement ||
-            visualElement.Filter is null ||
-            FilterEffectsService.IsNone(visualElement.Filter))
+            !SvgSceneFilterContext.HasFilterDeclaration(visualElement))
         {
             return false;
         }
@@ -12954,7 +12952,7 @@ internal static partial class SvgSceneTextCompiler
     {
         filters = new List<Svg.FilterEffects.SvgFilter>();
 
-        var currentFilter = SvgService.GetReference<Svg.FilterEffects.SvgFilter>(visualElement, visualElement.Filter);
+        var currentFilter = SvgService.GetReference<Svg.FilterEffects.SvgFilter>(visualElement, SvgSceneFilterContext.GetFilterReferenceUri(visualElement));
         if (currentFilter is null)
         {
             return false;

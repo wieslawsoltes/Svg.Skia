@@ -651,7 +651,11 @@ public static class SvgSceneCompiler
         if (element is SvgVisualElement visualElement)
         {
             Add(ResolveReference(visualElement, visualElement.ClipPath));
-            Add(ResolveReference(visualElement, visualElement.Filter));
+            foreach (var filterUri in SvgSceneFilterContext.GetFilterReferenceUris(visualElement))
+            {
+                Add(ResolveReference(visualElement, filterUri));
+            }
+
             Add(ResolveReference(visualElement, GetReferenceUri(visualElement, "mask")));
             Add(GetResolvedPaintServerElement(visualElement, visualElement.Fill));
             Add(GetResolvedPaintServerElement(visualElement, visualElement.Stroke));
@@ -661,6 +665,11 @@ public static class SvgSceneCompiler
                 Add(ResolveReference(visualElement, GetEffectiveMarkerReferenceUri(visualElement, "marker-mid", static element => element.MarkerMid)));
                 Add(ResolveReference(visualElement, GetEffectiveMarkerReferenceUri(visualElement, "marker-end", static element => element.MarkerEnd)));
             }
+        }
+
+        if (element is SvgMask)
+        {
+            Add(ResolveReference(element, GetReferenceUri(element, "mask")));
         }
 
         if (includeMarkerReferences && element is SvgMarkerElement markerElement)
@@ -716,7 +725,7 @@ public static class SvgSceneCompiler
         if (element is SvgVisualElement visualElement)
         {
             if (visualElement.ClipPath is not null ||
-                visualElement.Filter is not null ||
+                SvgSceneFilterContext.GetFilterReferenceUris(visualElement).Any() ||
                 HasMaskReference(element) ||
                 HasPaintServerReference(element, visualElement.Fill) ||
                 HasPaintServerReference(element, visualElement.Stroke) ||
@@ -736,6 +745,7 @@ public static class SvgSceneCompiler
             SvgPatternServer patternServer => patternServer.InheritGradient is not null,
             Svg.FilterEffects.SvgFilter svgFilter => SvgService.GetEffectiveReferenceUri(svgFilter, svgFilter.Href) is not null,
             Svg.FilterEffects.SvgImage filterImage => SvgService.GetEffectiveReferenceUri(filterImage, filterImage.Href) is not null,
+            SvgMask svgMask => HasMaskReference(svgMask),
             SvgTextRef textRef => SvgService.GetEffectiveReferenceUri(textRef, textRef.ReferencedElement) is not null,
             SvgTextPath textPath => textPath.PathData is not { Count: > 0 } &&
                                     SvgService.GetEffectiveReferenceUri(textPath, textPath.ReferencedPath) is not null,
@@ -1235,6 +1245,8 @@ public static class SvgSceneCompiler
         node.MaskDstIn = null;
         node.Filter = null;
         node.FilterClip = null;
+        node.FilterUsesGlobalLayer = false;
+        node.FilterGlobalClip = null;
     }
 
     private static void FinalizeDirectSwitchNode(
@@ -1253,6 +1265,8 @@ public static class SvgSceneCompiler
         node.MaskDstIn = null;
         node.Filter = null;
         node.FilterClip = null;
+        node.FilterUsesGlobalLayer = false;
+        node.FilterGlobalClip = null;
     }
 
     private static void FinalizeDirectFragmentNode(
@@ -2398,9 +2412,9 @@ public static class SvgSceneCompiler
         DrawAttributes ignoreAttributes,
         SvgSceneCompileContext compileContext)
     {
-        var pathTypes = path.GetPathTypes();
-        var pathLength = pathTypes.Count;
-        if (pathLength <= 0)
+        var markerVertices = CreateMarkerVertices(path);
+        var markerVertexCount = markerVertices.Count;
+        if (markerVertexCount <= 0)
         {
             return;
         }
@@ -2415,23 +2429,17 @@ public static class SvgSceneCompiler
             var marker = SvgService.GetReference<SvgMarker>(markerElement, markerStart);
             if (marker is not null)
             {
-                var refPoint1 = pathTypes[0].Point;
-                var index = 1;
-                while (index < pathLength &&
-                       pathTypes[index].Point.X == refPoint1.X &&
-                       pathTypes[index].Point.Y == refPoint1.Y)
+                var angle = GetMarkerAngle(markerVertices, 0, MarkerPlacement.Start);
+                if (marker.Orient.IsAuto && marker.Orient.IsAutoStartReverse)
                 {
-                    index++;
+                    angle += 180f;
                 }
 
-                var refPoint2 = pathLength == 1 ? refPoint1 : pathTypes[Math.Min(index, pathLength - 1)].Point;
                 if (TryCompileDirectMarkerNode(
                         marker,
                         markerElement,
-                        refPoint1,
-                        refPoint1,
-                        refPoint2,
-                        isStartMarker: true,
+                        markerVertices[0].Point,
+                        angle,
                         node.GeometryBounds,
                         viewport,
                         markerParentTotalTransform,
@@ -2450,36 +2458,19 @@ public static class SvgSceneCompiler
 
         var markerMid = GetEffectiveMarkerReferenceUri(markerElement, "marker-mid", static element => element.MarkerMid);
         if (markerMid is not null &&
-            pathLength > 1 &&
+            markerVertexCount > 2 &&
             !HasRecursiveMarkerReference(markerElement, static element => element.MarkerMid))
         {
             var marker = SvgService.GetReference<SvgMarker>(markerElement, markerMid);
             if (marker is not null)
             {
-                var bezierIndex = -1;
-                for (var i = 1; i <= pathLength - 2; i++)
+                for (var i = 1; i <= markerVertexCount - 2; i++)
                 {
-                    if ((pathTypes[i].Type & (byte)PathingService.PathPointType.PathTypeMask) == (byte)PathingService.PathPointType.Bezier)
-                    {
-                        bezierIndex = (bezierIndex + 1) % 3;
-                    }
-                    else
-                    {
-                        bezierIndex = -1;
-                    }
-
-                    if (bezierIndex != -1 && bezierIndex != 2)
-                    {
-                        continue;
-                    }
-
                     if (TryCompileDirectMarkerNode(
                             marker,
                             markerElement,
-                            pathTypes[i].Point,
-                            pathTypes[i - 1].Point,
-                            pathTypes[i].Point,
-                            pathTypes[i + 1].Point,
+                            markerVertices[i].Point,
+                            GetMarkerAngle(markerVertices, i, MarkerPlacement.Mid),
                             node.GeometryBounds,
                             viewport,
                             markerParentTotalTransform,
@@ -2494,42 +2485,6 @@ public static class SvgSceneCompiler
                         node.AddChild(midMarkerNode);
                     }
                 }
-
-                if (HasCloseSubpath(pathTypes[pathLength - 1].Type))
-                {
-                    var lastIndex = pathLength - 1;
-                    var startIndex = GetSubpathStartIndex(pathTypes, lastIndex);
-                    if (!AreSamePoint(pathTypes[lastIndex].Point, pathTypes[startIndex].Point))
-                    {
-                        var previousIndex = lastIndex - 1;
-                        while (previousIndex > startIndex &&
-                               AreSamePoint(pathTypes[previousIndex].Point, pathTypes[lastIndex].Point))
-                        {
-                            previousIndex--;
-                        }
-
-                        if (TryCompileDirectMarkerNode(
-                                marker,
-                                markerElement,
-                                pathTypes[lastIndex].Point,
-                                pathTypes[previousIndex].Point,
-                                pathTypes[lastIndex].Point,
-                                pathTypes[startIndex].Point,
-                                node.GeometryBounds,
-                                viewport,
-                                markerParentTotalTransform,
-                                assetLoader,
-                                ignoreAttributes,
-                                node.CompilationRootKey,
-                                compileContext,
-                                out var closingMidMarkerNode) &&
-                            closingMidMarkerNode is not null)
-                        {
-                            AssignGeneratedHitTestTarget(closingMidMarkerNode, hitTestTarget);
-                            node.AddChild(closingMidMarkerNode);
-                        }
-                    }
-                }
             }
         }
 
@@ -2540,42 +2495,12 @@ public static class SvgSceneCompiler
             var marker = SvgService.GetReference<SvgMarker>(markerElement, markerEnd);
             if (marker is not null)
             {
-                var index = pathLength - 1;
-                var refPoint1 = pathTypes[index].Point;
-                var isClosedSubpath = HasCloseSubpath(pathTypes[index].Type);
-                if (HasCloseSubpath(pathTypes[index].Type))
-                {
-                    var startIndex = GetSubpathStartIndex(pathTypes, index);
-                    refPoint1 = pathTypes[startIndex].Point;
-                }
-
-                if (pathLength > 1)
-                {
-                    index--;
-                    while (index > 0 &&
-                           AreSamePoint(pathTypes[index].Point, refPoint1))
-                    {
-                        index--;
-                    }
-                }
-
-                var refPoint2 = pathLength == 1 ? refPoint1 : pathTypes[index].Point;
-                var markerPoint1 = refPoint2;
-                var markerPoint2 = pathTypes[pathLength - 1].Point;
-                if (isClosedSubpath &&
-                    !AreSamePoint(pathTypes[pathLength - 1].Point, refPoint1))
-                {
-                    markerPoint1 = pathTypes[pathLength - 1].Point;
-                    markerPoint2 = refPoint1;
-                }
-
+                var lastIndex = markerVertexCount - 1;
                 if (TryCompileDirectMarkerNode(
                         marker,
                         markerElement,
-                        refPoint1,
-                        markerPoint1,
-                        markerPoint2,
-                        isStartMarker: false,
+                        markerVertices[lastIndex].Point,
+                        GetMarkerAngle(markerVertices, lastIndex, MarkerPlacement.End),
                         node.GeometryBounds,
                         viewport,
                         markerParentTotalTransform,
@@ -2593,28 +2518,577 @@ public static class SvgSceneCompiler
         }
     }
 
+    private enum MarkerPlacement
+    {
+        Start,
+        Mid,
+        End
+    }
+
+    private sealed class MarkerVertex
+    {
+        public MarkerVertex(SKPoint point, bool startsSubpath)
+        {
+            Point = point;
+            StartsSubpath = startsSubpath;
+        }
+
+        public SKPoint Point { get; }
+
+        public bool StartsSubpath { get; }
+
+        public SKPoint? IncomingTangent { get; set; }
+
+        public SKPoint? OutgoingTangent { get; set; }
+    }
+
+    private static List<MarkerVertex> CreateMarkerVertices(SKPath path)
+    {
+        var vertices = new List<MarkerVertex>();
+        if (path.Commands is not { } commands)
+        {
+            return vertices;
+        }
+
+        var current = default(SKPoint);
+        var subpathStart = default(SKPoint);
+        var haveCurrent = false;
+
+        foreach (var command in commands)
+        {
+            switch (command)
+            {
+                case MoveToPathCommand moveTo:
+                    current = new SKPoint(moveTo.X, moveTo.Y);
+                    subpathStart = current;
+                    haveCurrent = true;
+                    AddMarkerVertex(vertices, current, startsSubpath: true);
+                    break;
+
+                case LineToPathCommand lineTo when haveCurrent:
+                    {
+                        var end = new SKPoint(lineTo.X, lineTo.Y);
+                        var tangent = Subtract(end, current);
+                        AddMarkerSegment(vertices, current, end, tangent, tangent);
+                        current = end;
+                        break;
+                    }
+
+                case QuadToPathCommand quadTo when haveCurrent:
+                    {
+                        var control = new SKPoint(quadTo.X0, quadTo.Y0);
+                        var end = new SKPoint(quadTo.X1, quadTo.Y1);
+                        var startTangent = FirstUsableVector(Subtract(control, current), Subtract(end, current));
+                        var endTangent = FirstUsableVector(Subtract(end, control), Subtract(end, current));
+                        AddMarkerSegment(vertices, current, end, startTangent, endTangent);
+                        current = end;
+                        break;
+                    }
+
+                case CubicToPathCommand cubicTo when haveCurrent:
+                    {
+                        var control1 = new SKPoint(cubicTo.X0, cubicTo.Y0);
+                        var control2 = new SKPoint(cubicTo.X1, cubicTo.Y1);
+                        var end = new SKPoint(cubicTo.X2, cubicTo.Y2);
+                        var startTangent = FirstUsableVector(
+                            Subtract(control1, current),
+                            Subtract(control2, current),
+                            Subtract(end, current));
+                        var endTangent = FirstUsableVector(
+                            Subtract(end, control2),
+                            Subtract(end, control1),
+                            Subtract(end, current));
+                        AddMarkerSegment(vertices, current, end, startTangent, endTangent);
+                        current = end;
+                        break;
+                    }
+
+                case ArcToPathCommand arcTo when haveCurrent:
+                    {
+                        var end = new SKPoint(arcTo.X, arcTo.Y);
+                        if (!TryGetArcTangents(current, arcTo, out var startTangent, out var endTangent))
+                        {
+                            startTangent = Subtract(end, current);
+                            endTangent = startTangent;
+                        }
+
+                        AddMarkerSegment(vertices, current, end, startTangent, endTangent);
+                        current = end;
+                        break;
+                    }
+
+                case ClosePathCommand when haveCurrent:
+                    AddCloseMarkerSegment(vertices, current, subpathStart);
+                    current = subpathStart;
+                    break;
+
+                case AddPolyPathCommand addPoly:
+                    AppendPolyMarkerVertices(vertices, addPoly.Points, addPoly.Close, ref current, ref subpathStart, ref haveCurrent);
+                    break;
+
+                case AddRectPathCommand addRect:
+                    AppendRectMarkerVertices(vertices, addRect.Rect, ref current, ref subpathStart, ref haveCurrent);
+                    break;
+
+                case AddRoundRectPathCommand addRoundRect:
+                    AppendRoundRectMarkerVertices(vertices, addRoundRect.Rect, addRoundRect.Rx, addRoundRect.Ry, ref current, ref subpathStart, ref haveCurrent);
+                    break;
+
+                case AddOvalPathCommand addOval:
+                    AppendOvalMarkerVertices(vertices, addOval.Rect, ref current, ref subpathStart, ref haveCurrent);
+                    break;
+
+                case AddCirclePathCommand addCircle:
+                    {
+                        var radius = addCircle.Radius;
+                        AppendOvalMarkerVertices(
+                            vertices,
+                            SKRect.Create(addCircle.X - radius, addCircle.Y - radius, radius * 2f, radius * 2f),
+                            ref current,
+                            ref subpathStart,
+                            ref haveCurrent);
+                        break;
+                    }
+            }
+        }
+
+        return vertices;
+    }
+
+    private static void AppendPolyMarkerVertices(
+        List<MarkerVertex> vertices,
+        IList<SKPoint>? points,
+        bool close,
+        ref SKPoint current,
+        ref SKPoint subpathStart,
+        ref bool haveCurrent)
+    {
+        if (points is not { Count: > 0 })
+        {
+            return;
+        }
+
+        current = points[0];
+        subpathStart = current;
+        haveCurrent = true;
+        AddMarkerVertex(vertices, current, startsSubpath: true);
+
+        for (var i = 1; i < points.Count; i++)
+        {
+            var end = points[i];
+            var tangent = Subtract(end, current);
+            AddMarkerSegment(vertices, current, end, tangent, tangent);
+            current = end;
+        }
+
+        if (close)
+        {
+            AddCloseMarkerSegment(vertices, current, subpathStart);
+            current = subpathStart;
+        }
+    }
+
+    private static void AppendRectMarkerVertices(
+        List<MarkerVertex> vertices,
+        SKRect rect,
+        ref SKPoint current,
+        ref SKPoint subpathStart,
+        ref bool haveCurrent)
+    {
+        if (rect.Width <= 0f || rect.Height <= 0f)
+        {
+            return;
+        }
+
+        var points = new[]
+        {
+            rect.TopLeft,
+            new SKPoint(rect.Right, rect.Top),
+            rect.BottomRight,
+            new SKPoint(rect.Left, rect.Bottom)
+        };
+        AppendPolyMarkerVertices(vertices, points, close: true, ref current, ref subpathStart, ref haveCurrent);
+    }
+
+    private static void AppendRoundRectMarkerVertices(
+        List<MarkerVertex> vertices,
+        SKRect rect,
+        float rx,
+        float ry,
+        ref SKPoint current,
+        ref SKPoint subpathStart,
+        ref bool haveCurrent)
+    {
+        if (rect.Width <= 0f || rect.Height <= 0f)
+        {
+            return;
+        }
+
+        rx = Math.Min(Math.Abs(rx), rect.Width / 2f);
+        ry = Math.Min(Math.Abs(ry), rect.Height / 2f);
+        if (rx <= 0f || ry <= 0f)
+        {
+            AppendRectMarkerVertices(vertices, rect, ref current, ref subpathStart, ref haveCurrent);
+            return;
+        }
+
+        var kx = rx * 0.55228475f;
+        var ky = ry * 0.55228475f;
+        current = new SKPoint(rect.Left + rx, rect.Top);
+        subpathStart = current;
+        haveCurrent = true;
+        AddMarkerVertex(vertices, current, startsSubpath: true);
+
+        AddLineMarkerSegment(vertices, ref current, new SKPoint(rect.Right - rx, rect.Top));
+        AddCubicMarkerSegment(vertices, ref current, new SKPoint(rect.Right - rx + kx, rect.Top), new SKPoint(rect.Right, rect.Top + ry - ky), new SKPoint(rect.Right, rect.Top + ry));
+        AddLineMarkerSegment(vertices, ref current, new SKPoint(rect.Right, rect.Bottom - ry));
+        AddCubicMarkerSegment(vertices, ref current, new SKPoint(rect.Right, rect.Bottom - ry + ky), new SKPoint(rect.Right - rx + kx, rect.Bottom), new SKPoint(rect.Right - rx, rect.Bottom));
+        AddLineMarkerSegment(vertices, ref current, new SKPoint(rect.Left + rx, rect.Bottom));
+        AddCubicMarkerSegment(vertices, ref current, new SKPoint(rect.Left + rx - kx, rect.Bottom), new SKPoint(rect.Left, rect.Bottom - ry + ky), new SKPoint(rect.Left, rect.Bottom - ry));
+        AddLineMarkerSegment(vertices, ref current, new SKPoint(rect.Left, rect.Top + ry));
+        AddCubicMarkerSegment(vertices, ref current, new SKPoint(rect.Left, rect.Top + ry - ky), new SKPoint(rect.Left + rx - kx, rect.Top), subpathStart);
+    }
+
+    private static void AppendOvalMarkerVertices(
+        List<MarkerVertex> vertices,
+        SKRect rect,
+        ref SKPoint current,
+        ref SKPoint subpathStart,
+        ref bool haveCurrent)
+    {
+        if (rect.Width <= 0f || rect.Height <= 0f)
+        {
+            return;
+        }
+
+        var cx = (rect.Left + rect.Right) / 2f;
+        var cy = (rect.Top + rect.Bottom) / 2f;
+        var rx = rect.Width / 2f;
+        var ry = rect.Height / 2f;
+        var kx = rx * 0.55228475f;
+        var ky = ry * 0.55228475f;
+
+        current = new SKPoint(cx + rx, cy);
+        subpathStart = current;
+        haveCurrent = true;
+        AddMarkerVertex(vertices, current, startsSubpath: true);
+
+        AddCubicMarkerSegment(vertices, ref current, new SKPoint(cx + rx, cy + ky), new SKPoint(cx + kx, cy + ry), new SKPoint(cx, cy + ry));
+        AddCubicMarkerSegment(vertices, ref current, new SKPoint(cx - kx, cy + ry), new SKPoint(cx - rx, cy + ky), new SKPoint(cx - rx, cy));
+        AddCubicMarkerSegment(vertices, ref current, new SKPoint(cx - rx, cy - ky), new SKPoint(cx - kx, cy - ry), new SKPoint(cx, cy - ry));
+        AddCubicMarkerSegment(vertices, ref current, new SKPoint(cx + kx, cy - ry), new SKPoint(cx + rx, cy - ky), subpathStart);
+    }
+
+    private static void AddLineMarkerSegment(List<MarkerVertex> vertices, ref SKPoint current, SKPoint end)
+    {
+        var tangent = Subtract(end, current);
+        AddMarkerSegment(vertices, current, end, tangent, tangent);
+        current = end;
+    }
+
+    private static void AddCubicMarkerSegment(List<MarkerVertex> vertices, ref SKPoint current, SKPoint control1, SKPoint control2, SKPoint end)
+    {
+        var startTangent = FirstUsableVector(
+            Subtract(control1, current),
+            Subtract(control2, current),
+            Subtract(end, current));
+        var endTangent = FirstUsableVector(
+            Subtract(end, control2),
+            Subtract(end, control1),
+            Subtract(end, current));
+        AddMarkerSegment(vertices, current, end, startTangent, endTangent);
+        current = end;
+    }
+
+    private static void AddCloseMarkerSegment(List<MarkerVertex> vertices, SKPoint current, SKPoint subpathStart)
+    {
+        if (vertices.Count <= 0)
+        {
+            return;
+        }
+
+        var tangent = Subtract(subpathStart, current);
+        SetOutgoingTangent(vertices[vertices.Count - 1], tangent);
+        if (!AreSamePoint(current, subpathStart))
+        {
+            var closeVertex = AddMarkerVertex(vertices, subpathStart, startsSubpath: false);
+            SetIncomingTangent(closeVertex, tangent);
+        }
+    }
+
+    private static void AddMarkerSegment(
+        List<MarkerVertex> vertices,
+        SKPoint start,
+        SKPoint end,
+        SKPoint startTangent,
+        SKPoint endTangent)
+    {
+        if (vertices.Count <= 0 || !AreSamePoint(vertices[vertices.Count - 1].Point, start))
+        {
+            AddMarkerVertex(vertices, start, startsSubpath: true);
+        }
+
+        SetOutgoingTangent(vertices[vertices.Count - 1], startTangent);
+        var endVertex = AddMarkerVertex(vertices, end, startsSubpath: false);
+        SetIncomingTangent(endVertex, endTangent);
+    }
+
+    private static MarkerVertex AddMarkerVertex(List<MarkerVertex> vertices, SKPoint point, bool startsSubpath)
+    {
+        var vertex = new MarkerVertex(point, startsSubpath);
+        vertices.Add(vertex);
+        return vertex;
+    }
+
+    private static void SetIncomingTangent(MarkerVertex vertex, SKPoint tangent)
+    {
+        if (IsUsableVector(tangent))
+        {
+            vertex.IncomingTangent = tangent;
+        }
+    }
+
+    private static void SetOutgoingTangent(MarkerVertex vertex, SKPoint tangent)
+    {
+        if (IsUsableVector(tangent))
+        {
+            vertex.OutgoingTangent = tangent;
+        }
+    }
+
+    private static float GetMarkerAngle(IReadOnlyList<MarkerVertex> vertices, int index, MarkerPlacement placement)
+    {
+        var hasIncoming = TryGetIncomingTangent(vertices, index, out var incoming);
+        var hasOutgoing = TryGetOutgoingTangent(vertices, index, out var outgoing);
+
+        return placement switch
+        {
+            MarkerPlacement.Start when hasOutgoing => GetVectorAngle(outgoing),
+            MarkerPlacement.Start when hasIncoming => GetVectorAngle(incoming),
+            MarkerPlacement.End when hasIncoming => GetVectorAngle(incoming),
+            MarkerPlacement.End when hasOutgoing => GetVectorAngle(outgoing),
+            MarkerPlacement.Mid when hasIncoming && hasOutgoing => AverageAngles(GetVectorAngle(incoming), GetVectorAngle(outgoing)),
+            MarkerPlacement.Mid when hasOutgoing => GetVectorAngle(outgoing),
+            MarkerPlacement.Mid when hasIncoming => GetVectorAngle(incoming),
+            _ => 0f
+        };
+    }
+
+    private static bool TryGetIncomingTangent(IReadOnlyList<MarkerVertex> vertices, int index, out SKPoint tangent)
+    {
+        if (IsUsableVector(vertices[index].IncomingTangent, out tangent))
+        {
+            return true;
+        }
+
+        for (var i = index - 1; i >= 0 && !vertices[i + 1].StartsSubpath; i--)
+        {
+            if (IsUsableVector(vertices[i].IncomingTangent, out tangent) ||
+                IsUsableVector(vertices[i].OutgoingTangent, out tangent))
+            {
+                return true;
+            }
+        }
+
+        tangent = default;
+        return false;
+    }
+
+    private static bool TryGetOutgoingTangent(IReadOnlyList<MarkerVertex> vertices, int index, out SKPoint tangent)
+    {
+        if (IsUsableVector(vertices[index].OutgoingTangent, out tangent))
+        {
+            return true;
+        }
+
+        for (var i = index + 1; i < vertices.Count && !vertices[i].StartsSubpath; i++)
+        {
+            if (IsUsableVector(vertices[i].OutgoingTangent, out tangent) ||
+                IsUsableVector(vertices[i].IncomingTangent, out tangent))
+            {
+                return true;
+            }
+        }
+
+        tangent = default;
+        return false;
+    }
+
+    private static SKPoint FirstUsableVector(params SKPoint[] vectors)
+    {
+        for (var i = 0; i < vectors.Length; i++)
+        {
+            if (IsUsableVector(vectors[i]))
+            {
+                return vectors[i];
+            }
+        }
+
+        return default;
+    }
+
+    private static bool IsUsableVector(SKPoint vector)
+    {
+        return Math.Abs(vector.X) > 0.001f ||
+               Math.Abs(vector.Y) > 0.001f;
+    }
+
+    private static bool IsUsableVector(SKPoint? vector, out SKPoint value)
+    {
+        if (vector is { } candidate && IsUsableVector(candidate))
+        {
+            value = candidate;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    private static SKPoint Subtract(SKPoint point, SKPoint origin)
+    {
+        return new SKPoint(point.X - origin.X, point.Y - origin.Y);
+    }
+
+    private static float GetVectorAngle(SKPoint vector)
+    {
+        return (float)(Math.Atan2(vector.Y, vector.X) * 180.0 / Math.PI);
+    }
+
+    private static float AverageAngles(float angle1, float angle2)
+    {
+        return angle1 + (NormalizeSignedAngle(angle2 - angle1) / 2f);
+    }
+
+    private static float NormalizeSignedAngle(float angle)
+    {
+        angle %= 360f;
+        if (angle > 180f)
+        {
+            angle -= 360f;
+        }
+        else if (angle <= -180f)
+        {
+            angle += 360f;
+        }
+
+        return angle;
+    }
+
+    private static bool TryGetArcTangents(SKPoint start, ArcToPathCommand arcTo, out SKPoint startTangent, out SKPoint endTangent)
+    {
+        var end = new SKPoint(arcTo.X, arcTo.Y);
+        if (!TryGetArcParameters(start, end, arcTo.Rx, arcTo.Ry, arcTo.XAxisRotate, arcTo.LargeArc, arcTo.Sweep, out var parameters))
+        {
+            startTangent = default;
+            endTangent = default;
+            return false;
+        }
+
+        var direction = parameters.DeltaAngle < 0f ? -1f : 1f;
+        startTangent = GetArcTangent(parameters, parameters.StartAngle, direction);
+        endTangent = GetArcTangent(parameters, parameters.StartAngle + parameters.DeltaAngle, direction);
+        return true;
+    }
+
+    private static SKPoint GetArcTangent(ArcParameters parameters, float angle, float direction)
+    {
+        var cosTheta = (float)Math.Cos(angle);
+        var sinTheta = (float)Math.Sin(angle);
+        return new SKPoint(
+            ((-parameters.Rx * sinTheta * parameters.CosPhi) - (parameters.Ry * cosTheta * parameters.SinPhi)) * direction,
+            ((-parameters.Rx * sinTheta * parameters.SinPhi) + (parameters.Ry * cosTheta * parameters.CosPhi)) * direction);
+    }
+
+    private static bool TryGetArcParameters(
+        SKPoint start,
+        SKPoint end,
+        float rx,
+        float ry,
+        float angle,
+        SKPathArcSize largeArc,
+        SKPathDirection sweep,
+        out ArcParameters parameters)
+    {
+        parameters = default;
+
+        rx = Math.Abs(rx);
+        ry = Math.Abs(ry);
+        if (rx <= float.Epsilon || ry <= float.Epsilon || AreSamePoint(start, end))
+        {
+            return false;
+        }
+
+        var phi = angle * (float)Math.PI / 180f;
+        var cosPhi = (float)Math.Cos(phi);
+        var sinPhi = (float)Math.Sin(phi);
+
+        var dx2 = (start.X - end.X) / 2f;
+        var dy2 = (start.Y - end.Y) / 2f;
+        var x1p = (cosPhi * dx2) + (sinPhi * dy2);
+        var y1p = (-sinPhi * dx2) + (cosPhi * dy2);
+
+        var rxsq = rx * rx;
+        var rysq = ry * ry;
+        var x1psq = x1p * x1p;
+        var y1psq = y1p * y1p;
+
+        var lambda = (x1psq / rxsq) + (y1psq / rysq);
+        if (lambda > 1f)
+        {
+            var factor = (float)Math.Sqrt(lambda);
+            rx *= factor;
+            ry *= factor;
+            rxsq = rx * rx;
+            rysq = ry * ry;
+        }
+
+        var denominator = (rxsq * y1psq) + (rysq * x1psq);
+        if (denominator <= float.Epsilon)
+        {
+            return false;
+        }
+
+        var sign = (largeArc == SKPathArcSize.Large) == (sweep == SKPathDirection.Clockwise) ? -1f : 1f;
+        var sq = ((rxsq * rysq) - (rxsq * y1psq) - (rysq * x1psq)) / denominator;
+        sq = Math.Max(sq, 0f);
+        var coef = sign * (float)Math.Sqrt(sq);
+        var cxp = coef * (rx * y1p / ry);
+        var cyp = coef * (-ry * x1p / rx);
+
+        var center = new SKPoint(
+            (cosPhi * cxp) - (sinPhi * cyp) + ((start.X + end.X) / 2f),
+            (sinPhi * cxp) + (cosPhi * cyp) + ((start.Y + end.Y) / 2f));
+
+        var startAngle = (float)Math.Atan2((y1p - cyp) / ry, (x1p - cxp) / rx);
+        var endAngle = (float)Math.Atan2((-y1p - cyp) / ry, (-x1p - cxp) / rx);
+        var deltaAngle = endAngle - startAngle;
+        if (sweep != SKPathDirection.Clockwise && deltaAngle > 0f)
+        {
+            deltaAngle -= (float)Math.PI * 2f;
+        }
+        else if (sweep == SKPathDirection.Clockwise && deltaAngle < 0f)
+        {
+            deltaAngle += (float)Math.PI * 2f;
+        }
+
+        parameters = new ArcParameters(center, rx, ry, startAngle, deltaAngle, cosPhi, sinPhi);
+        return true;
+    }
+
+    private readonly record struct ArcParameters(
+        SKPoint Center,
+        float Rx,
+        float Ry,
+        float StartAngle,
+        float DeltaAngle,
+        float CosPhi,
+        float SinPhi);
+
     private static bool AreSamePoint(SKPoint point1, SKPoint point2)
     {
         return Math.Abs(point1.X - point2.X) <= 0.001f &&
                Math.Abs(point1.Y - point2.Y) <= 0.001f;
-    }
-
-    private static bool HasCloseSubpath(byte pathType)
-    {
-        return (pathType & (byte)PathingService.PathPointType.CloseSubpath) != 0;
-    }
-
-    private static int GetSubpathStartIndex(IReadOnlyList<(SKPoint Point, byte Type)> pathTypes, int index)
-    {
-        for (var current = index; current >= 0; current--)
-        {
-            if ((pathTypes[current].Type & (byte)PathingService.PathPointType.PathTypeMask) == (byte)PathingService.PathPointType.Start)
-            {
-                return current;
-            }
-        }
-
-        return 0;
     }
 
     private static bool TryCompileDirectMarkerNode(
@@ -2687,7 +3161,7 @@ public static class SvgSceneCompiler
             svgMarker,
             owner,
             referencePoint,
-            (angle1 + angle2) / 2f,
+            AverageAngles(angle1, angle2),
             contextPaintBounds,
             viewport,
             parentTotalTransform,
@@ -2714,41 +3188,41 @@ public static class SvgSceneCompiler
     {
         node = null;
 
-        if (!TryGetMarkerVisualElement(svgMarker, out var markerElement) ||
-            markerElement is null)
+        if (!HasMarkerVisualChildren(svgMarker))
         {
             return false;
         }
-
-        var markerMatrix = SKMatrix.Identity;
-        markerMatrix = markerMatrix.PreConcat(SKMatrix.CreateTranslation(referencePoint.X, referencePoint.Y));
-        markerMatrix = markerMatrix.PreConcat(SKMatrix.CreateRotationDegrees(svgMarker.Orient.IsAuto ? angle : svgMarker.Orient.Angle));
 
         var strokeWidth = owner.StrokeWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, viewport);
         var refX = svgMarker.RefX.ToDeviceValue(UnitRenderingType.Horizontal, svgMarker, viewport);
         var refY = svgMarker.RefY.ToDeviceValue(UnitRenderingType.Vertical, svgMarker, viewport);
         var markerWidth = svgMarker.MarkerWidth.ToDeviceValue(UnitRenderingType.Other, svgMarker, viewport);
         var markerHeight = svgMarker.MarkerHeight.ToDeviceValue(UnitRenderingType.Other, svgMarker, viewport);
-        var viewBoxScaleX = 1f;
-        var viewBoxScaleY = 1f;
+        if (markerWidth <= 0f || markerHeight <= 0f)
+        {
+            return false;
+        }
+
+        var markerViewport = SKRect.Create(0f, 0f, markerWidth, markerHeight);
+        var viewBoxTransform = HasValidViewBox(svgMarker.ViewBox)
+            ? TransformsService.ToMatrix(svgMarker.ViewBox, svgMarker.AspectRatio, 0f, 0f, markerWidth, markerHeight)
+            : SKMatrix.Identity;
+        var mappedReferencePoint = viewBoxTransform.MapPoint(new SKPoint(refX, refY));
+
+        var markerMatrix = SKMatrix.Identity;
+        markerMatrix = markerMatrix.PreConcat(SKMatrix.CreateTranslation(referencePoint.X, referencePoint.Y));
+        markerMatrix = markerMatrix.PreConcat(SKMatrix.CreateRotationDegrees(svgMarker.Orient.IsAuto ? angle : svgMarker.Orient.Angle));
 
         switch (svgMarker.MarkerUnits)
         {
             case SvgMarkerUnits.StrokeWidth:
                 markerMatrix = markerMatrix.PreConcat(SKMatrix.CreateScale(strokeWidth, strokeWidth));
-
-                var viewBoxWidth = svgMarker.ViewBox.Width;
-                var viewBoxHeight = svgMarker.ViewBox.Height;
-                var scaleFactorWidth = viewBoxWidth <= 0f ? 1f : markerWidth / viewBoxWidth;
-                var scaleFactorHeight = viewBoxHeight <= 0f ? 1f : markerHeight / viewBoxHeight;
-                viewBoxScaleX = Math.Min(scaleFactorWidth, scaleFactorHeight);
-                viewBoxScaleY = Math.Min(scaleFactorWidth, scaleFactorHeight);
-
-                markerMatrix = markerMatrix.PreConcat(SKMatrix.CreateTranslation(-refX * viewBoxScaleX, -refY * viewBoxScaleY));
-                markerMatrix = markerMatrix.PreConcat(SKMatrix.CreateScale(viewBoxScaleX, viewBoxScaleY));
+                markerMatrix = markerMatrix.PreConcat(SKMatrix.CreateTranslation(-mappedReferencePoint.X, -mappedReferencePoint.Y));
+                markerMatrix = markerMatrix.PreConcat(viewBoxTransform);
                 break;
             case SvgMarkerUnits.UserSpaceOnUse:
-                markerMatrix = markerMatrix.PreConcat(SKMatrix.CreateTranslation(-refX, -refY));
+                markerMatrix = markerMatrix.PreConcat(SKMatrix.CreateTranslation(-mappedReferencePoint.X, -mappedReferencePoint.Y));
+                markerMatrix = markerMatrix.PreConcat(viewBoxTransform);
                 break;
         }
 
@@ -2781,45 +3255,113 @@ public static class SvgSceneCompiler
         node.IsVisible = true;
         node.IsDisplayNone = false;
 
-        switch (svgMarker.Overflow)
+        switch (GetMarkerOverflow(svgMarker))
         {
             case SvgOverflow.Auto:
             case SvgOverflow.Visible:
             case SvgOverflow.Inherit:
                 break;
             default:
-                node.InnerClip = SKRect.Create(
-                    svgMarker.ViewBox.MinX,
-                    svgMarker.ViewBox.MinY,
-                    markerWidth / viewBoxScaleX,
-                    markerHeight / viewBoxScaleY);
+                node.InnerClip = GetMarkerInnerClip(markerViewport, viewBoxTransform);
                 break;
         }
 
-        SvgSceneNode? childNode;
+        var hasCompiledChild = false;
         using (compileContext.PushContextPaint(owner, contextPaintBounds))
         {
-            childNode = CompileElementNode(
-                markerElement,
-                viewport,
-                node.TotalTransform,
-                assetLoader,
-                DrawAttributes.Display | DrawAttributes.Markers | ignoreAttributes,
-                compilationRootKey,
-                createOwnCompilationRootBoundary: false,
-                compileContext);
+            for (var i = 0; i < svgMarker.Children.Count; i++)
+            {
+                if (svgMarker.Children[i] is not SvgVisualElement markerChild)
+                {
+                    continue;
+                }
+
+                var childNode = CompileElementNode(
+                    markerChild,
+                    viewport,
+                    node.TotalTransform,
+                    assetLoader,
+                    DrawAttributes.Display | DrawAttributes.Markers | ignoreAttributes,
+                    compilationRootKey,
+                    createOwnCompilationRootBoundary: false,
+                    compileContext);
+
+                if (childNode is null)
+                {
+                    continue;
+                }
+
+                ResetGeneratedDisplayState(childNode);
+                node.AddChild(childNode);
+                hasCompiledChild = true;
+            }
         }
 
-        if (childNode is null)
+        if (!hasCompiledChild)
         {
             node = null;
             return false;
         }
 
-        ResetGeneratedDisplayState(childNode);
-        node.AddChild(childNode);
         FinalizeDirectStructuralBounds(node, parentTotalTransform);
         return true;
+    }
+
+    private static SvgOverflow GetMarkerOverflow(SvgMarker svgMarker)
+    {
+        return TryGetSpecifiedOverflow(svgMarker, out var overflow)
+            ? overflow
+            : svgMarker.Overflow;
+    }
+
+    private static bool TryGetSpecifiedOverflow(SvgElement element, out SvgOverflow overflow)
+    {
+        if (element.TryGetOwnCascadedStyleDeclarationValue("overflow", out var styleOverflow) &&
+            TryParseOverflow(styleOverflow, out overflow))
+        {
+            return true;
+        }
+
+        if (SvgService.TryGetAttribute(element, "overflow", out var attributeOverflow) &&
+            TryParseOverflow(attributeOverflow, out overflow))
+        {
+            return true;
+        }
+
+        overflow = SvgOverflow.Hidden;
+        return false;
+    }
+
+    private static bool TryParseOverflow(string value, out SvgOverflow overflow)
+    {
+        try
+        {
+            if (new SvgOverflowConverter().ConvertFromString(value) is SvgOverflow parsedOverflow)
+            {
+                overflow = parsedOverflow;
+                return true;
+            }
+        }
+        catch (Exception ex) when (ex is ArgumentException or FormatException or NotSupportedException)
+        {
+        }
+
+        overflow = SvgOverflow.Hidden;
+        return false;
+    }
+
+    private static bool HasValidViewBox(SvgViewBox viewBox)
+    {
+        return viewBox != SvgViewBox.Empty &&
+               viewBox.Width > 0f &&
+               viewBox.Height > 0f;
+    }
+
+    private static SKRect GetMarkerInnerClip(SKRect markerViewport, SKMatrix viewBoxTransform)
+    {
+        return viewBoxTransform.TryInvert(out var inverse)
+            ? inverse.MapRect(markerViewport)
+            : markerViewport;
     }
 
     private static void ResetGeneratedDisplayState(SvgSceneNode node)
@@ -2832,18 +3374,16 @@ public static class SvgSceneCompiler
         }
     }
 
-    private static bool TryGetMarkerVisualElement(SvgMarker svgMarker, out SvgVisualElement? markerElement)
+    private static bool HasMarkerVisualChildren(SvgMarker svgMarker)
     {
         for (var i = 0; i < svgMarker.Children.Count; i++)
         {
-            if (svgMarker.Children[i] is SvgVisualElement visualElement)
+            if (svgMarker.Children[i] is SvgVisualElement)
             {
-                markerElement = visualElement;
                 return true;
             }
         }
 
-        markerElement = null;
         return false;
     }
 
@@ -3360,6 +3900,12 @@ public static class SvgSceneCompiler
         node.MaskResourceKey = null;
         node.FilterResourceKey = null;
 
+        if (element is SvgMask)
+        {
+            node.MaskResourceKey = TryGetMaskResourceKey(element, getElementAddressKey);
+            return;
+        }
+
         if (element is not SvgVisualElement visualElement)
         {
             return;
@@ -3367,7 +3913,7 @@ public static class SvgSceneCompiler
 
         node.ClipResourceKey = TryGetResourceKey(visualElement, visualElement.ClipPath, getElementAddressKey);
         node.MaskResourceKey = TryGetMaskResourceKey(visualElement, getElementAddressKey);
-        node.FilterResourceKey = TryGetResourceKey(visualElement, visualElement.Filter, getElementAddressKey);
+        node.FilterResourceKey = TryGetResourceKey(visualElement, SvgSceneFilterContext.GetFilterReferenceUri(visualElement), getElementAddressKey);
     }
 
     internal static void AssignRetainedVisualState(
@@ -3577,19 +4123,20 @@ public static class SvgSceneCompiler
     private static bool TryParseEnableBackground(SvgElement element, out SKRect? clip)
     {
         clip = null;
-        if (!element.TryGetAttribute("enable-background", out var enableBackground) ||
+        if ((!element.TryGetOwnCascadedStyleValue("enable-background", out var enableBackground) &&
+             !element.TryGetAttribute("enable-background", out enableBackground)) ||
             string.IsNullOrWhiteSpace(enableBackground))
         {
             return false;
         }
 
         enableBackground = enableBackground.Trim();
-        if (enableBackground.Equals("accumulate", StringComparison.Ordinal))
+        if (enableBackground.Equals("accumulate", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
 
-        if (!enableBackground.StartsWith("new", StringComparison.Ordinal))
+        if (!enableBackground.StartsWith("new", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
@@ -3599,18 +4146,42 @@ public static class SvgSceneCompiler
             return true;
         }
 
-        var values = enableBackground.Substring(4, enableBackground.Length - 4)
-            .Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(static part => float.Parse(part.Trim(), CultureInfo.InvariantCulture))
-            .ToArray();
-
-        if (values.Length == 4)
+        if (!char.IsWhiteSpace(enableBackground[3]) && enableBackground[3] != ',')
         {
-            clip = SKRect.Create(values[0], values[1], values[2], values[3]);
+            return false;
         }
 
+        var parts = enableBackground.Substring(4, enableBackground.Length - 4)
+            .Split(new[] { ' ', '\t', '\r', '\n', ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length != 4)
+        {
+            return false;
+        }
+
+        var values = new float[4];
+        for (var i = 0; i < parts.Length; i++)
+        {
+            if (!float.TryParse(parts[i].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ||
+                !IsFinite(value))
+            {
+                return false;
+            }
+
+            values[i] = value;
+        }
+
+        if (values[2] < 0f || values[3] < 0f)
+        {
+            return false;
+        }
+
+        clip = SKRect.Create(values[0], values[1], values[2], values[3]);
         return true;
     }
+
+    private static bool IsFinite(float value)
+        => !float.IsNaN(value) && !float.IsInfinity(value);
 
     private static List<string> PruneCompilationRoots(SvgSceneDocument sceneDocument, IReadOnlyCollection<string> compilationRootKeys)
     {

@@ -28,6 +28,8 @@ internal static class SvgScenePaintingService
 {
     internal readonly record struct SolidFillPaintCacheKey(bool IsAntialias, SKColor Color, bool LinearRgb);
 
+    private const int MaxVisiblePatternOverflowCopies = 256;
+
     [ThreadStatic]
     private static HashSet<SvgPatternServer>? s_activePatternServers;
 
@@ -610,12 +612,18 @@ internal static class SvgScenePaintingService
     private static List<SvgGradientServer> GetLinkedGradientServers(SvgGradientServer svgGradientServer, SvgVisualElement svgVisualElement)
     {
         var gradientServers = new List<SvgGradientServer>();
+        var visited = new HashSet<SvgGradientServer>();
         var currentGradientServer = svgGradientServer;
         do
         {
+            if (!visited.Add(currentGradientServer))
+            {
+                break;
+            }
+
             gradientServers.Add(currentGradientServer);
             currentGradientServer = SvgDeferredPaintServer.TryGet<SvgGradientServer>(currentGradientServer.InheritGradient, svgVisualElement);
-        } while (currentGradientServer is not null && currentGradientServer != svgGradientServer);
+        } while (currentGradientServer is not null);
 
         return gradientServers;
     }
@@ -795,6 +803,11 @@ internal static class SvgScenePaintingService
         var x2 = normalizedX2.ToDeviceValue(UnitRenderingType.Horizontal, svgLinearGradientServer, skBounds);
         var y2 = normalizedY2.ToDeviceValue(UnitRenderingType.Vertical, svgLinearGradientServer, skBounds);
 
+        if (!IsFinite(x1) || !IsFinite(y1) || !IsFinite(x2) || !IsFinite(y2))
+        {
+            return null;
+        }
+
         var colors = new List<SKColor>();
         var colorPos = new List<float>();
         var isLinearRgb = skColorSpace == SKColorSpace.SrgbLinear;
@@ -940,7 +953,9 @@ internal static class SvgScenePaintingService
         var focalY = focalYUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
         var focalRadius = focalRadiusUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
 
-        if (radius < 0f)
+        if (!IsFinite(centerX) || !IsFinite(centerY) || !IsFinite(radius) ||
+            !IsFinite(focalX) || !IsFinite(focalY) || !IsFinite(focalRadius) ||
+            radius < 0f)
         {
             return null;
         }
@@ -1037,7 +1052,7 @@ internal static class SvgScenePaintingService
         var patternScene = SvgSceneCompiler.CompileTemporaryChildrenScene(
             patternState.ContentSource,
             patternState.Children,
-            patternState.PictureViewport,
+            patternState.PictureCullRect,
             patternState.PictureViewport,
             patternState.PictureTransform,
             opacity,
@@ -1048,14 +1063,134 @@ internal static class SvgScenePaintingService
             return null;
         }
 
+        if (patternState.ClipTile)
+        {
+            patternScene.Root.Overflow = patternState.TileClip;
+        }
+
         var picture = SvgSceneRenderer.Render(patternScene);
+        if (picture is not null && !patternState.ClipTile)
+        {
+            picture = CreateVisibleOverflowPatternPicture(picture, patternState);
+        }
+
         return picture is null
             ? null
-            : SKShader.CreatePicture(picture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, patternState.ShaderMatrix, picture.CullRect);
+            : SKShader.CreatePicture(picture, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, patternState.ShaderMatrix, patternState.ShaderTile);
     }
+
+    private static SKPicture CreateVisibleOverflowPatternPicture(SKPicture picture, SvgPatternPaintState patternState)
+    {
+        var tile = patternState.ShaderTile;
+        var sourceBounds = picture.CullRect;
+        if (!HasPositiveArea(tile) || !HasPositiveArea(sourceBounds))
+        {
+            return picture;
+        }
+
+        var minX = GetRepeatStart(tile.Left, sourceBounds.Right, tile.Width);
+        var maxX = GetRepeatEnd(tile.Right, sourceBounds.Left, tile.Width);
+        var minY = GetRepeatStart(tile.Top, sourceBounds.Bottom, tile.Height);
+        var maxY = GetRepeatEnd(tile.Bottom, sourceBounds.Top, tile.Height);
+        if (IsRepeatSearchTooLarge(minX, maxX, minY, maxY))
+        {
+            return picture;
+        }
+
+        var repeatCount = CountIntersectingRepeats(sourceBounds, tile, tile.Width, tile.Height, minX, maxX, minY, maxY);
+        if (repeatCount == 0 ||
+            (repeatCount == 1 && Intersects(sourceBounds, tile)) ||
+            repeatCount > MaxVisiblePatternOverflowCopies)
+        {
+            return picture;
+        }
+
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(tile);
+        for (var y = minY; y <= maxY; y++)
+        {
+            var offsetY = y * tile.Height;
+            for (var x = minX; x <= maxX; x++)
+            {
+                var offsetX = x * tile.Width;
+                var shiftedBounds = OffsetRect(sourceBounds, offsetX, offsetY);
+                if (!Intersects(shiftedBounds, tile))
+                {
+                    continue;
+                }
+
+                if (x == 0 && y == 0)
+                {
+                    canvas.DrawPicture(picture);
+                    continue;
+                }
+
+                canvas.Save();
+                canvas.SetMatrix(SKMatrix.CreateTranslation(offsetX, offsetY));
+                canvas.DrawPicture(picture);
+                canvas.Restore();
+            }
+        }
+
+        return recorder.EndRecording();
+    }
+
+    private static int CountIntersectingRepeats(
+        SKRect sourceBounds,
+        SKRect tile,
+        float stepX,
+        float stepY,
+        int minX,
+        int maxX,
+        int minY,
+        int maxY)
+    {
+        var count = 0;
+        for (var y = minY; y <= maxY; y++)
+        {
+            var offsetY = y * stepY;
+            for (var x = minX; x <= maxX; x++)
+            {
+                var offsetX = x * stepX;
+                if (Intersects(OffsetRect(sourceBounds, offsetX, offsetY), tile))
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
+    }
+
+    private static int GetRepeatStart(float tileStart, float sourceEnd, float step)
+        => (int)Math.Floor((tileStart - sourceEnd) / step);
+
+    private static int GetRepeatEnd(float tileEnd, float sourceStart, float step)
+        => (int)Math.Ceiling((tileEnd - sourceStart) / step);
+
+    private static bool IsRepeatSearchTooLarge(int minX, int maxX, int minY, int maxY)
+    {
+        var width = (long)maxX - minX + 1;
+        var height = (long)maxY - minY + 1;
+        return width <= 0 ||
+               height <= 0 ||
+               width * height > MaxVisiblePatternOverflowCopies;
+    }
+
+    private static SKRect OffsetRect(SKRect rect, float x, float y)
+        => new(rect.Left + x, rect.Top + y, rect.Right + x, rect.Bottom + y);
+
+    private static bool Intersects(SKRect a, SKRect b)
+        => a.Left < b.Right && b.Left < a.Right && a.Top < b.Bottom && b.Top < a.Bottom;
 
     private static bool IsActivePattern(SvgPatternServer svgPatternServer)
         => s_activePatternServers?.Contains(svgPatternServer) == true;
+
+    private static bool HasPositiveArea(SKRect rect)
+        => rect.Width > 0f && rect.Height > 0f;
+
+    private static bool IsFinite(float value)
+        => !float.IsNaN(value) && !float.IsInfinity(value);
 
     private static ActivePatternScope PushActivePattern(SvgPatternServer svgPatternServer, SvgPatternServer contentSource)
     {

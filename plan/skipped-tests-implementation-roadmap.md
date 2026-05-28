@@ -103,14 +103,17 @@ Verified probe findings from the remaining skipped W3C text rows on 2026-04-09:
 
 Current resource-rendering tranche:
 
-- The next recommended non-text lane is a first resource-rendering parity slice, not a full resource-policy or browser-style completion pass.
+- The non-text lane has moved beyond the first resource-rendering parity slice into a dirty deeper static-resource pass. The pass is still not a full browser resource-policy or live-style completion pass.
 - The slice covers gradient and pattern inheritance where explicitly authored attributes on referenced resources must override defaults without letting default values mask inherited values.
 - The slice includes recursion guards for pattern picture compilation and referenced content so paint servers, markers, clips, masks, filters, and `use` expansions do not re-enter the same resource path indefinitely.
 - The slice hardens existing Skia-backed filters by treating invalid `feColorMatrix` values, negative blur/morphology inputs, fractional morphology radii, and lighting parameter mapping as deterministic renderer behavior rather than fixture-specific failures.
 - The slice covers clip/use placement where referenced clip content should preserve geometry and transforms while suppressing marker output that does not belong inside the clip resource.
 - The slice covers image decode guards so empty, blocked, or malformed image data produces deterministic zero-size image metadata instead of null-image crashes.
 - The green resvg resource fixture slice is tracked through already-green deterministic resource-adjacent families with no new thresholds or Chrome overrides. Renderer deltas outside that slice are covered by focused unit tests until their broader visual rows are ready.
-- Deeper rows remain planned and must not be hidden by broad thresholds: `enable-background`, `BackgroundImage`, `BackgroundAlpha`, `feImage`, CSS `filter` functions, style selector/color parity, full mask self-reference behavior, and exact browser parity for pattern tiling/inheritance and marker placement.
+- The deeper static-rendering pass now covers cascaded `enable-background`, `BackgroundImage`/`BackgroundAlpha` access from objectBoundingBox filter regions, nested background layer isolation, CSS `filter(...)` function parsing/composition for supported functions and ordered URL/function pipelines, custom-property and guarded CSS math expression resolution (`calc()`, `min()`, `max()`, and `clamp()`) for supported filter lengths/factors/angles, invalid computed-value fallback, modern drop-shadow color parsing in the guarded subset, invalid primitive-region guards, standards default-subregion union and input/output crop clipping for shared primitive-region handling, local/transformed/external `feImage` fragment/resource rows, non-axis `feImage` global layer bounds, mask-on-mask and self/mutual mask-cycle resource guards, explicit hidden/default pattern content clipping, visible pattern overflow bleed into neighboring tiles, inherited pattern viewBox/preserveAspectRatio and objectBoundingBox content units, repeated pattern tile coverage, and marker tangent/viewBox/multi-child placement coverage.
+- Remaining deeper rows must not be hidden by broad thresholds: CSS `filter` expression parity outside the guarded static math subset, unsupported CSS value functions and color spaces, broader browser-raster primitive-region and color-management edge cases, pathological/exact browser-raster pattern tile-edge sampling beyond the bounded Skia picture-shader emulation, future/upstream `feImage` edge cases beyond the explicit current allow-list, exact marker browser-raster parity for uncovered path degenerates, mask browser-raster/luminance edge cases beyond the explicit cycle tests, and broader style selector/color parity in resource subtrees.
+- A full `tests/filters/feImage/` enablement probe on 2026-05-27 kept the already-enabled 20 rows green and identified seven true implementation gaps. All seven are now enabled without thresholds or baseline swaps: `chained-feImage`, `link-on-an-element-with-complex-transform`, `link-on-an-element-with-transform`, `link-to-an-element-outside-defs-2`, `link-to-an-element-with-transform`, `svg`, and `with-subregion-5`.
+- A documentation-only review on 2026-05-28 reconciled this roadmap with the dirty implementation state. Production code was not changed during that review.
 
 ## Workstreams
 
@@ -317,6 +320,80 @@ Features:
   - undecodable data
   - blocked or missing resource data that reaches image decode
 - focused unit coverage for implemented resource deltas that are not yet part of the green resvg visual slice
+- deeper static filter/resource parity:
+  - cascaded `enable-background`
+  - `BackgroundImage` and `BackgroundAlpha`
+  - CSS `filter(...)` function and URL-list composition
+  - guarded CSS filter `var()`, `calc()`, `min()`, `max()`, `clamp()`, nested fallback, and modern drop-shadow color support
+  - local, transformed, external, recursive, subregion, and non-axis `feImage` rendering
+  - primitive subregion invalid-value guards
+  - pattern overflow clipping, inheritance, objectBoundingBox content units, and repeat coverage
+  - marker tangent/orientation/viewBox/multi-child placement coverage
+  - mask-on-mask plus self and mutual mask-cycle guards
+
+Implementation status:
+
+- Gradient `href` traversal now breaks any repeated server in the chain, not only direct self-reference cycles. Both retained scene graph painting and the legacy model painting service reject non-finite linear/radial geometry while preserving Skia/Chrome out-of-circle radial focal-point behavior for W3C parity.
+- Pattern `href` traversal now breaks repeated servers in non-start cycles. Recursive pattern rendering keeps the active-pattern guard and falls back through the SVG paint fallback chain when a nested recursive paint server is suppressed.
+- Filter hardening now treats non-finite `feColorMatrix`, `feGaussianBlur`, and `feMorphology` numeric values as invalid instead of forwarding NaN/Infinity into Skia filters. Fractional morphology radii continue to use ceil-based kernel radii for supported positive values.
+- `feImage` decode handling returns a transparent filter input for zero-size decoded image data, keeping invalid or undecodable data from constructing image filters with empty source rectangles.
+- Cascaded `enable-background` now participates in retained scene compilation, invalid/non-finite background clips are ignored, and background inputs can be sampled by objectBoundingBox filters instead of falling back to transparent black solely because of the filter units mode.
+- `SKSvgSettings.EnableFilterBackgroundInputs` defaults to standards-oriented background input rendering. The W3C Chrome-reference harness disables it only for `filters-overview-01-b`, `filters-overview-02-b`, and `filters-overview-03-b`, where the checked Chrome captures intentionally preserve Chrome's blank-background behavior for those overview panels.
+- Retained CSS `filter(...)` values now parse and compose a guarded static subset in authored order: `blur`, `brightness`, `contrast`, `grayscale`, `hue-rotate`, `invert`, `opacity`, `saturate`, `sepia`, `drop-shadow`, and local SVG filter `url(...)` references. Standalone function chains, function-before-URL, URL-before-function, multiple URL filters, repeated URL filters, missing-URL no-op list entries, physical length units, font-relative length units, custom-property substitution, nested variable fallbacks, invalid-variable computed-value fallback, modern drop-shadow colors, deterministic CSS Color 4 sRGB color syntaxes, and guarded CSS math expressions (`calc()`, `min()`, `max()`, and `clamp()`) for supported lengths/factors/angles are implemented for the static subset. Exact browser color-management/raster identity, broader invalid-at-computed-value-time behavior outside the guarded resource-color path, unsupported CSS value functions, wide-gamut color spaces, and relative color syntaxes remain deeper work.
+- Filter primitive subregions now reject malformed, non-finite, and non-positive explicit regions before Skia filter construction, preserving the SVG default primitive subregion instead of creating unstable crop rectangles.
+- Filter primitive default regions now use the standards union of referenced non-standard result subregions, including `feMerge` merge-node inputs, while standard inputs still default to the filter region. Shared input filters are cropped to the primitive subregion before the primitive runs, and the retained filter layer keeps the final output clipped to the filter region.
+- Background inputs now stop at the current element when it establishes its own `enable-background:new` layer, so nested `BackgroundImage` and `BackgroundAlpha` stacks do not leak parent-layer pixels into the new background image.
+- `feImage` rendering now preserves measured referenced-element placement for definition and recursion-suppressed paths, suppresses only the owning recursive filter instead of dropping the whole image, maps external raster/SVG image content through the primitive subregion in global target coordinates, and enables local fragment, transformed reference, complex-transform, subregion, chained, recursion, embedded PNG, and external SVG resvg rows. Single-URL non-axis `feImage` filters can opt into a global filter layer so inputless image output is not clipped to the skewed source shape.
+- Clip/use coverage pins referenced clip geometry placement while suppressing marker expansion inside clip-resource compilation.
+- Mask resources can now carry their own retained `mask` reference, so mask-on-mask composition is resolved through the same resource-key path as visual elements. Focused coverage now includes self-referenced masks, child self-references, mutual mask cycles, and mutual cycles on mask children, with recursive edges skipped rather than recursively drawing or dropping the whole non-recursive mask content.
+- Pattern tiles now get an explicit retained content clip for default/hidden overflow, including viewBox patterns where the clip must be expressed in content coordinates. `overflow="visible"` avoids the explicit clip and uses a bounded neighboring-tile picture wrapper so overflow content can bleed across the repeated shader tile in both directions. Focused coverage also includes stylesheet and href-cascaded overflow, inherited pattern viewBox/preserveAspectRatio, objectBoundingBox `patternContentUnits`, and repeated tile sampling. Remaining pattern risk is exact browser-raster tile-edge identity for pathological large-overflow cases beyond the bounded Skia picture-shader emulation.
+- Marker placement now has focused retained-scene coverage for quadratic endpoints, arc tangents, subpath boundaries, zero-length markers, angle wraparound, marker viewBox/preserveAspectRatio, and multi-child marker content. Exact browser raster parity for all path degenerates and marker clipping combinations remains broader visual work.
+- `SvgResourceRenderingParityTests` covers W3C-compatible out-of-circle focal preservation, non-start gradient and pattern cycles, recursive pattern fallback, invalid filter numbers, zero-size `feImage` decode, non-axis `feImage` global filter-layer bounds, marker suppression inside clip-path `<use>`, background-input sampling, cascaded `enable-background`, self-background-layer `BackgroundImage`/`BackgroundAlpha` stack isolation, primitive default-region union and input/output clipping, CSS filter function composition, URL-plus-function post-processing, function-before-URL composition, multiple URL composition, physical/font-relative filter lengths, CSS filter custom-property/math expressions, nested variable fallbacks, modern drop-shadow colors including deterministic `hwb()`, invalid variable fallback, unitless length rejection, CSS filter clip inflation, CSS drop-shadow source/currentColor handling, CSS Color 4 paint/resource colors for modern `rgb()`/`hsl()` slash alpha, `hwb()`, `transparent`, and `currentColor`, retained mask-on-mask and cycle handling, retained pattern overflow/inheritance/repeat behavior, and retained marker placement.
+- `SvgAllAreaRegressionValidationBenchmarks` now includes `resource-rendering-first-slice-regression`, a resource-heavy scenario for linked gradients, radial-gradient guards, patterns, mask/clip resources, markers, `<use>`, filter primitives, embedded images, and command/source coverage.
+
+Deeper resource parity implementation tracks for the current pass:
+
+- Franklin: transformed/external/local `feImage` is implemented for all seven known gap rows. `tests/filters/feImage/link-on-an-element-with-complex-transform` is now enabled through the single-URL non-axis global filter-layer path.
+- Kierkegaard: filter primitive region and background stack parity is implemented for the guarded static subset. Covered scope includes objectBoundingBox/userSpaceOnUse primitive-region handling, `enable-background` layer lifetime, nested `BackgroundImage`/`BackgroundAlpha` isolation, invalid region fallback behavior, and background-input sampling without broad thresholds.
+- Locke: CSS filter computed-value parity is implemented for the guarded static subset. Covered scope includes ordered URL/function pipelines, custom properties, nested fallbacks, deterministic math expression support, invalid computed-value fallback, and filter resource discovery through CSS declaration validation. Remaining CSS filter work is full browser computed-value parity outside that subset.
+- Godel: pattern tiling and inheritance parity is implemented for the current static subset. Covered scope includes default/hidden overflow clipping, visible-overflow bleed into neighboring tiles, stylesheet and href-cascaded overflow, objectBoundingBox `patternContentUnits` scale from target bounds, inherited viewBox/preserveAspectRatio, repeat coverage, transform/invertibility guards, and recursion fallback. Remaining pattern risk is exact browser-raster tile-edge identity for future pathological rows, not a known first-slice blocker.
+- Peirce: marker placement parity is implemented for the current static subset. Covered scope includes start/mid/end tangent selection, arcs, zero-length and subpath behavior, neighbor tangent fallback for zero-length endpoint markers, angle wraparound, hidden/default/style overflow clipping, visible overflow no-clip behavior, marker viewBox/preserveAspectRatio, multi-child marker content, and the explicit current resvg marker allow-list. Remaining marker work is exact browser raster parity for future uncovered rows, not a known first-slice blocker.
+- Cicero: mask self-reference and cycle behavior is implemented for the current retained-resource subset. Covered scope includes mask-on-mask, mask attributes on mask resources, self-reference cycle detection, nested mask resource keys, child self-reference, mutual mask-cycle guards, luminance alpha multiplication, alpha-mask black-content behavior, userSpaceOnUse mask-region clipping, and objectBoundingBox mask-region clipping. Remaining mask work is exact browser raster parity for future uncovered rows, not a known first-slice blocker.
+- CSS value/color parity is implemented for the deterministic resource-affecting sRGB subset. Covered scope includes modern space-separated `rgb()`/`hsl()` with slash alpha, `hwb()` conversion to sRGB, `transparent` as transparent black, `currentColor` through resource filter colors, CSS drop-shadow `hwb()` colors, and direct invalid CSS Color 4 paint declarations that must not override earlier valid declarations. Remaining style/color work is wide-gamut/relative CSS color functions, broader selector-resource cascade edge cases, and external/nested resource styling parity when row-specific probes show the renderer path is aligned with browser static rendering.
+- This deeper pass must finish with focused resource tests, the resource resvg allow-list, W3C resource/filter rows, full solution build/test, and `SvgAllAreaRegressionValidationBenchmarks`. New broad visual thresholds or baseline swaps are not acceptance criteria for this lane.
+
+Remaining browser-parity implementation pass:
+
+1. CSS value/color parity.
+   - Owner: CSS resource subagent.
+   - Status: current scoped pass complete on 2026-05-28.
+   - Scope completed: deterministic CSS Color 4 syntax that affects resource paints and filters, including modern space-separated `rgb()`/`hsl()` with slash alpha, `hwb()` conversion to sRGB, `transparent` as transparent black, `currentColor` behavior in resource filters, CSS drop-shadow `hwb()` color tokens, and direct invalid CSS Color 4 paint declarations that must not override earlier valid paint.
+   - Acceptance: focused CSS/resource tests and the CSS/resource resvg fixture slice pass without broadening unsupported color spaces into silently wrong rendering. Unsupported wide-gamut or relative color syntaxes remain rejected/planned unless converted correctly.
+2. Filter primitive region and color-management parity.
+   - Owner: filter resource subagent.
+   - Status: current scoped pass complete on 2026-05-28.
+   - Scope completed: SVG/Filter Effects primitive subregion defaults, standard-input and result-input unions, objectBoundingBox/userSpaceOnUse math, cascaded `enable-background`, `BackgroundImage`/`BackgroundAlpha` input clipping, displacement-map color interpolation, CSS filter URL/function pipelines, guarded CSS filter math expressions, and non-finite primitive guards.
+   - Acceptance: focused filter/resource and W3C filter rows pass; no footer exclusion regions or broad filter thresholds are added to hide region mistakes. Exact browser-raster identity for PNG gamma/profile handling, antialiasing, turbulence/noise, convolution, and lighting math remains a visual-parity limit.
+3. Pattern visible-overflow and tile-edge parity.
+   - Owner: pattern resource subagent.
+   - Status: current scoped pass complete on 2026-05-28.
+   - Scope completed: visible-overflow bleed into neighboring repeated tiles, tile-edge clipping for hidden/default overflow, pattern viewBox/content transforms, style/cascade/href overflow, non-invertible transform guards, and retained pattern shader parity for the current static subset.
+   - Acceptance: focused pattern tests and enabled resource rows pass; exact browser-raster tile-edge gaps remain documented only for pathological large-overflow rows that exceed the bounded Skia picture-shader emulation.
+4. Future/upstream `feImage` edge cases.
+   - Owner: `feImage` resource subagent.
+   - Status: current scoped pass complete on 2026-05-28.
+   - Scope completed: nested external SVG/raster behavior, missing/blocked/zero-size/failed-resource transparent fallback, local and external recursion guards, preserveAspectRatio/subregion/transform parity for the current static subset, and per-filter `feImage` resource caching.
+   - Acceptance: focused `feImage` and external-resource tests pass; all explicit current resvg `feImage` rows remain enabled. Remote CORS/network policy, MIME sniffing differences, SVG-as-image script/animation behavior, and unusual encoded-image color-management identity remain browser/runtime parity work.
+5. Marker and mask browser-raster parity.
+   - Owner: marker/mask resource subagent.
+   - Status: current scoped pass complete on 2026-05-28.
+   - Scope completed: uncovered marker endpoint degenerates, marker viewport clipping combinations, mask luminance plus source-alpha coverage, alpha-mask black-content behavior, userSpaceOnUse and objectBoundingBox mask-box clipping, mask resource self-reference, and nested mask raster cycle cases.
+   - Acceptance: focused marker/mask tests and W3C/resource rows pass; browser-only UI/runtime behavior remains outside this static rendering lane.
+6. Performance and integration validation.
+   - Owner: parent integration pass.
+   - Status: current integration pass complete on 2026-05-28.
+   - Scope completed: `externals/SVG` kept clean, focused resource suites run, W3C rows run, full solution build/test run, and `SvgAllAreaRegressionValidationBenchmarks` compared against a master worktree for the common all-area scenario.
+   - Acceptance: all validation commands are recorded here with exact pass counts and benchmark means. The benchmark comparison is a short guardrail run, not a statistically rigorous no-regression claim.
 
 Primary test impact:
 
@@ -324,14 +401,16 @@ Primary test impact:
   - `tests/filters/feComponentTransfer/*`
   - `tests/filters/feDisplacementMap/*`
   - `tests/filters/feDistantLight/*`
+  - `tests/filters/filter-functions/*`
   - `tests/filters/feTurbulence/*`
+  - selected `tests/filters/feImage/*` rows covering embedded PNG data, empty/broken references, local fragment references, opacity, `<g>`, `<use>`, preserveAspectRatio, recursive references, subregions, and x/y placement
   - `tests/masking/clip-rule/*`
   - `tests/paint-servers/stop-color/*`
   - `tests/painting/color/*`
   - `tests/painting/fill-rule/*`
   - `tests/painting/image-rendering/*`
   - `tests/painting/isolation/*`
-  - `tests/painting/marker/*`
+  - explicit current `tests/painting/marker/*` rows through the resource fixture name allow-list, rather than a broad future prefix
   - `tests/painting/mix-blend-mode/*`
   - `tests/painting/paint-order/*`
   - `tests/painting/shape-rendering/*`
@@ -341,14 +420,14 @@ Primary test impact:
   - `tests/structure/{a,defs,g,transform,use}/*`
 - focused model/Skia unit tests:
   - gradient explicit default inheritance
-  - radial focal projection
+  - radial focal preservation plus invalid geometry guards
   - pattern `preserveAspectRatio` explicit default inheritance
   - non-invertible pattern transform rejection
   - CSS `clip: rect(...)` parsing
   - invalid image decode guard
   - spot-lit specular code generation argument mapping
 - future deeper resource rows:
-  - resvg `e-image-*`, `e-marker-*`, `e-pattern-*`, `e-linearGradient-*`, `e-radialGradient-*`, `e-mask-*`, `e-filter-*`, `e-fe*` rows that require browser-only behavior or unsupported primitives
+  - resvg `e-image-*`, future/upstream `e-feImage-*`, `e-marker-*`, `e-pattern-*`, `e-linearGradient-*`, `e-radialGradient-*`, `e-mask-*`, and `e-filter-*` rows that require browser-only behavior, unsupported primitives, full CSS computed-value/style policy, exact resource color-management, or browser-raster identity beyond the explicit current allow-list
 
 Execution order:
 
@@ -359,15 +438,50 @@ Execution order:
 5. Preserve clip/use placement behavior so clip resources do not inherit marker output.
 6. Preserve image decode guards before broadening external resource policy work.
 7. Keep this slice free of new thresholds; add thresholds only in later visual-parity passes after row-specific review.
-8. Start deeper resource rows only after this slice stays green in focused and full resvg runs.
+8. Keep the implemented deeper static subset green before enabling more visual rows.
+9. Treat complex-transform `feImage`, mask self/mutual cycles, marker tangent/viewBox coverage, and pattern inheritance/repeat coverage as implemented current-subset work. Do not re-list them as open unless a focused row regresses.
+10. Integrate the deeper parity tracks independently and keep their write scopes narrow: `feImage`, filter/backgrounds, CSS filter values, patterns, markers, masks, then cross-cutting selector/color fixes.
+11. Keep the true remaining work explicit: CSS filter expression parity outside the guarded static math subset, unsupported CSS value functions and wide-gamut/relative color spaces, style selector/color parity in resource subtrees, exact browser-raster primitive-region/color-management behavior, pathological/exact pattern tile-edge identity beyond the bounded static subset, remote/MIME/scripted SVG-as-image `feImage` behavior, and any future browser-exact pattern/marker/mask raster rows that are not covered by the current focused static subset.
+12. Update this roadmap after each track with enabled rows, still-skipped rows, and the exact validation command/results that justify the status.
 
 Acceptance criteria:
 
 - The resource rendering fixture slice is green without baseline swapping.
-- No new thresholds or Chrome baseline swaps are required for this first slice.
+- No new resvg thresholds or Chrome baseline swaps are required for this first slice. The
+  deeper W3C displacement-map validation uses one row-specific threshold for
+  `filters-displace-01-f` after visual review showed the displaced grids line up with Chrome and
+  the residual delta is PNG gamma/color raster plus labels.
 - The implementation does not edit source fixtures or manufacture baselines for unsupported resource behavior.
-- Deeper rows remain explicitly planned for `enable-background`, `BackgroundImage`, `BackgroundAlpha`, `feImage`, CSS `filter` functions, style selector/color parity, full mask self-reference behavior, and exact browser parity for pattern tiling/inheritance and marker placement.
+- Completed deeper static subsets are covered by unit tests and the resource fixture allow-list; remaining deeper rows stay explicitly planned with accurate reasons for CSS filter expression parity outside the guarded static math subset, unsupported CSS value functions and wide-gamut/relative color spaces, style selector/color parity, exact browser-raster primitive-region/color-management behavior, pathological/exact pattern tile-edge identity beyond the bounded static subset, remote/MIME/scripted SVG-as-image `feImage` behavior, and exact browser parity for future uncovered pattern, marker, and mask raster cases.
 - Resvg non-text skip count drops materially only after renderer fixes, not by baseline swapping.
+
+Current validation:
+
+- Parent integration pass on 2026-05-28 after all resource subagent slices:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgResourceRenderingParityTests"`: 87 passed.
+  - `dotnet test tests/Svg.Model.UnitTests/Svg.Model.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~Svg2StaticStyleContractTests.ComputedStyle|FullyQualifiedName~SvgPatternPaintStateResolverTests|FullyQualifiedName~Svg2StaticPaintServerTests.PatternResolver"`: 27 passed.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~resvgTests.resource_rendering_fixtures|FullyQualifiedName~resvgTests.css_styling_fixtures"`: 466 passed.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~W3CTestSuiteTests.Tests"`: 463 passed, 63 skipped, 0 failed.
+  - `git diff --check`: clean.
+  - `dotnet format Svg.Skia.slnx --no-restore`: passed. Formatter touched `externals/SVG`; that generated submodule churn was reverted.
+  - `git -C externals/SVG status --short`: clean.
+  - `dotnet build Svg.Skia.slnx -c Release --no-restore`: passed with 289 existing package advisory, obsolete SkiaSharp API, and nullability warnings; 0 errors.
+  - `dotnet test Svg.Skia.slnx -c Release --no-build`: passed. `Svg.Skia.UnitTests` reported 2335 passed, 64 skipped, 0 failed; all other test projects passed.
+  - Current branch short benchmark guardrail: `dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj --framework net10.0 -- --filter "*SvgAllAreaRegressionValidationBenchmarks*" --job short --warmupCount 1 --iterationCount 1`: 12 benchmark cases executed.
+    - `combined-all-area-regression`: command coverage 18.752 us, command model 55.596 us, render 8.288 ms, DOM metrics 10.942 ms, compile 32.731 ms, load/render/validate 36.089 ms.
+    - `resource-rendering-first-slice-regression`: command coverage 4.500 us, command model 8.218 us, compile 555.110 us, DOM metrics 702.900 us, render 3.653 ms, load/render/validate 10.375 ms.
+  - Master worktree short benchmark guardrail: `dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj --framework net10.0 -- --filter "*SvgAllAreaRegressionValidationBenchmarks*" --job short --warmupCount 1 --iterationCount 1` from `/tmp/svg-skiamaster`: 6 benchmark cases executed for the common `combined-all-area-regression` scenario.
+    - Master `combined-all-area-regression`: command coverage 18.336 us, command model 56.593 us, render 8.328 ms, DOM metrics 10.452 ms, compile 37.457 ms, load/render/validate 65.316 ms.
+    - Current branch versus master short-run comparison: compile and end-to-end are faster on the branch, render is essentially flat, command model is slightly faster, and command coverage/DOM metrics are within short-run noise. This does not show a broad performance regression, but a real statistical claim still requires a longer benchmark job.
+- Pattern visible-overflow scoped pass on 2026-05-28:
+  - `dotnet format Svg.Skia.slnx --no-restore --include src/Svg.Model/Services/SvgPatternPaintStateResolver.cs src/Svg.SceneGraph/SvgScenePaintingService.cs tests/Svg.Skia.UnitTests/SvgResourceRenderingParityTests.cs plan/skipped-tests-implementation-roadmap.md`: passed.
+  - `dotnet test tests/Svg.Model.UnitTests/Svg.Model.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgPatternPaintStateResolverTests|FullyQualifiedName~Svg2StaticPaintServerTests.PatternResolver"`: 5 passed.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_Pattern|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_RepeatsPattern|FullyQualifiedName~resvgTests.resource_rendering_fixtures"`: 460 passed.
+- Marker/mask scoped pass on 2026-05-28:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_Mask|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_MutualMask|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_LuminanceMask|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_AlphaMask|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_UserSpaceMask|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_ObjectBoundingBoxMask|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_Marker|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_PlacesMarker|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_UsesArcTangents|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_DoesNotBridgeSubpath|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_UsesNeighborTangents|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_AveragesAutoMarker|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_AppliesMarker|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_RendersMultipleMarker"`: 20 passed.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_RendersMaskTypeAlphaAndLuminanceCoverage|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_StylesheetMaskTypeOverridesPresentationAttribute|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_CompilesResvgSelfRecursiveMaskDocumentWithoutRecursing"`: 7 passed.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~resvgTests.resource_rendering_fixtures&DisplayName~marker|FullyQualifiedName~resvgTests.resource_rendering_fixtures&DisplayName~mask"`: 70 passed.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~W3CTestSuiteTests.Tests&DisplayName~painting-marker|FullyQualifiedName~W3CTestSuiteTests.Tests&DisplayName~masking-"`: 27 passed.
 
 ### 5. SVG DOM / Script / Interaction Runtime
 
@@ -415,11 +529,14 @@ The next implementation tranche should be:
 6. Preserve image decode guards.
    Scope: empty, missing, blocked, or undecodable image data returns deterministic zero-size image metadata instead of crashing.
    Acceptance: image-backed resource rows either render, skip for explicit unsupported behavior, or fail deterministically without null-image crashes.
-7. Keep deeper resource rows explicit.
-   Scope: `enable-background`, `BackgroundImage`, `BackgroundAlpha`, `feImage`, CSS `filter` functions, style selector/color parity, full mask self-reference, and exact pattern/marker browser parity.
+7. Preserve the implemented deeper static subset.
+   Scope: cascaded `enable-background`, `BackgroundImage`, `BackgroundAlpha`, standalone CSS `filter(...)` chains, ordered CSS function/URL filter pipelines, guarded CSS filter math expressions, primitive-region guards, all explicit current `feImage` rows, mask-on-mask plus self/mutual cycle guards, marker placement subset coverage, and pattern overflow/inheritance/repeat coverage.
+   Acceptance: the focused resource unit tests and resource fixture allow-list pass without thresholds or baseline swaps.
+8. Keep remaining deeper resource rows explicit.
+   Scope: CSS filter expressions outside the guarded static math subset, unsupported CSS value functions/color spaces, style selector/color parity in resource subtrees, exact browser-raster primitive-region and color-management behavior, pathological/exact pattern tile-edge identity beyond the bounded static subset, remote/MIME/scripted SVG-as-image `feImage` behavior, and exact pattern/marker/mask browser parity beyond the explicit current unit/allow-list coverage.
    Acceptance: these rows remain skipped/planned with accurate reasons until their actual renderer/runtime support exists.
-8. Run broader resvg and combined standards-area validation only after the focused resource slice is stable.
-   Scope: full resvg fixture matrix and `SvgAllAreaRegressionValidationBenchmarks` for paint servers, filters, masks/clips, images, and resource recursion.
+9. Run broader resvg, W3C, and combined standards-area validation only after the focused resource slice is stable.
+   Scope: full resvg fixture matrix, W3C resource/filter rows, and `SvgAllAreaRegressionValidationBenchmarks` for paint servers, filters, masks/clips, images, and resource recursion.
    Acceptance: no unrelated text/runtime changes are required to accept this resource-rendering slice.
 
 ## Runtime-Gated Groups
