@@ -501,7 +501,7 @@ internal sealed class SvgComputedStyleMetadata
         "filter",
         inherited: false,
         initialValue: "none",
-        IsValidReferenceOrNone);
+        IsValidFilter);
 
     public static readonly SvgComputedStyleMetadata Mask = new(
         "mask",
@@ -968,6 +968,679 @@ internal sealed class SvgComputedStyleMetadata
         return IsCssIdentifier(value, "none") || IsValidUrlReference(value);
     }
 
+    private static bool IsValidFilter(string value)
+    {
+        if (IsCssIdentifier(value, "none"))
+        {
+            return true;
+        }
+
+        var index = 0;
+        var parsedItem = false;
+        while (index < value.Length)
+        {
+            while (index < value.Length && char.IsWhiteSpace(value[index]))
+            {
+                index++;
+            }
+
+            if (index >= value.Length)
+            {
+                break;
+            }
+
+            if (TryConsumeCssUrl(value, ref index))
+            {
+                parsedItem = true;
+                continue;
+            }
+
+            var nameStart = index;
+            while (index < value.Length && (char.IsLetter(value[index]) || value[index] == '-'))
+            {
+                index++;
+            }
+
+            if (index == nameStart)
+            {
+                return false;
+            }
+
+            var name = value.Substring(nameStart, index - nameStart);
+            while (index < value.Length && char.IsWhiteSpace(value[index]))
+            {
+                index++;
+            }
+
+            if (index >= value.Length || value[index] != '(')
+            {
+                return false;
+            }
+
+            index++;
+            var argsStart = index;
+            var depth = 1;
+            while (index < value.Length && depth > 0)
+            {
+                if (value[index] == '(')
+                {
+                    depth++;
+                }
+                else if (value[index] == ')')
+                {
+                    depth--;
+                }
+
+                index++;
+            }
+
+            if (depth != 0)
+            {
+                return false;
+            }
+
+            var args = value.Substring(argsStart, index - argsStart - 1).Trim();
+            if (!IsValidCssFilterFunction(name, args))
+            {
+                return false;
+            }
+
+            parsedItem = true;
+        }
+
+        return parsedItem;
+    }
+
+    private static bool IsValidCssFilterFunction(string name, string args)
+    {
+        if (IsCssIdentifier(name, "blur"))
+        {
+            return IsValidCssFilterLengthArgument(args, allowEmpty: true, allowPercentage: false, allowNegative: false);
+        }
+
+        if (IsCssIdentifier(name, "brightness") ||
+            IsCssIdentifier(name, "contrast") ||
+            IsCssIdentifier(name, "grayscale") ||
+            IsCssIdentifier(name, "invert") ||
+            IsCssIdentifier(name, "opacity") ||
+            IsCssIdentifier(name, "saturate") ||
+            IsCssIdentifier(name, "sepia"))
+        {
+            return IsValidCssFilterFactorArgument(args, allowEmpty: true, allowNegative: false);
+        }
+
+        if (IsCssIdentifier(name, "hue-rotate"))
+        {
+            return IsValidCssFilterAngleArgument(args, allowEmpty: true);
+        }
+
+        return IsCssIdentifier(name, "drop-shadow") && IsValidCssDropShadowFilter(args);
+    }
+
+    private static bool IsValidCssFilterLengthArgument(string value, bool allowEmpty, bool allowPercentage, bool allowNegative)
+    {
+        value = value.Trim();
+        if (value.Length == 0)
+        {
+            return allowEmpty;
+        }
+
+        if (ContainsVarFunction(value) || IsKnownLengthFunction(value))
+        {
+            return true;
+        }
+
+        try
+        {
+            var unit = SvgUnitConverter.Parse(value.AsSpan());
+            return (allowPercentage || unit.Type != SvgUnitType.Percentage) &&
+                   (allowNegative || unit.Value >= 0f) &&
+                   IsFinite(unit.Value);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsValidCssFilterFactorArgument(string value, bool allowEmpty, bool allowNegative)
+    {
+        value = value.Trim();
+        if (value.Length == 0)
+        {
+            return allowEmpty;
+        }
+
+        if (ContainsVarFunction(value) || IsKnownLengthFunction(value))
+        {
+            return true;
+        }
+
+        var isPercentage = value.EndsWith("%", StringComparison.Ordinal);
+        if (isPercentage)
+        {
+            value = value.Substring(0, value.Length - 1).Trim();
+        }
+
+        return float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) &&
+               IsFinite(number) &&
+               (allowNegative || number >= 0f);
+    }
+
+    private static bool IsValidCssFilterAngleArgument(string value, bool allowEmpty)
+    {
+        value = value.Trim();
+        if (value.Length == 0)
+        {
+            return allowEmpty;
+        }
+
+        if (ContainsVarFunction(value) || IsKnownLengthFunction(value))
+        {
+            return true;
+        }
+
+        if (value.EndsWith("deg", StringComparison.OrdinalIgnoreCase))
+        {
+            value = value.Substring(0, value.Length - 3);
+        }
+        else if (value.EndsWith("rad", StringComparison.OrdinalIgnoreCase))
+        {
+            value = value.Substring(0, value.Length - 3);
+        }
+        else if (value.EndsWith("grad", StringComparison.OrdinalIgnoreCase))
+        {
+            value = value.Substring(0, value.Length - 4);
+        }
+        else if (value.EndsWith("turn", StringComparison.OrdinalIgnoreCase))
+        {
+            value = value.Substring(0, value.Length - 4);
+        }
+
+        return float.TryParse(value.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var number) &&
+               IsFinite(number);
+    }
+
+    private static bool IsValidCssDropShadowFilter(string args)
+    {
+        var tokens = SplitCssFilterArgs(args);
+        if (tokens.Count < 2)
+        {
+            return false;
+        }
+
+        var lengths = 0;
+        var colors = 0;
+        for (var i = 0; i < tokens.Count; i++)
+        {
+            var token = tokens[i];
+            if (lengths < 3 &&
+                IsValidCssFilterLengthArgument(token, allowEmpty: false, allowPercentage: false, allowNegative: lengths < 2))
+            {
+                lengths++;
+                continue;
+            }
+
+            if (!IsValidCssFilterColorArgument(token))
+            {
+                return false;
+            }
+
+            colors++;
+            if (colors > 1)
+            {
+                return false;
+            }
+        }
+
+        return lengths >= 2;
+    }
+
+    private static bool IsValidCssFilterColorArgument(string value)
+    {
+        value = value.Trim();
+        if (value.Length == 0)
+        {
+            return false;
+        }
+
+        if (ContainsVarFunction(value))
+        {
+            return true;
+        }
+
+        if (string.Equals(value, "currentColor", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return SvgPaintServerFactory.TryParseCssConcreteColor(value, out _);
+    }
+
+    private static bool IsValidCssHexColorWithAlpha(string value)
+    {
+        if (value.Length != 5 && value.Length != 9)
+        {
+            return false;
+        }
+
+        if (value[0] != '#')
+        {
+            return false;
+        }
+
+        for (var i = 1; i < value.Length; i++)
+        {
+            if (!Uri.IsHexDigit(value[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsValidCssFunctionalColorArgument(string value)
+    {
+        return IsValidCssRgbColorFunction(value) ||
+               IsValidCssHslColorFunction(value);
+    }
+
+    private static bool IsValidCssRgbColorFunction(string value)
+    {
+        if (!TryGetCssFunctionContent(value, "rgb", "rgba", out var content) ||
+            !TrySplitCssColorComponents(content, out var components, out var alpha) ||
+            components.Count != 3)
+        {
+            return false;
+        }
+
+        return IsValidCssRgbComponent(components[0]) &&
+               IsValidCssRgbComponent(components[1]) &&
+               IsValidCssRgbComponent(components[2]) &&
+               IsValidCssAlpha(alpha);
+    }
+
+    private static bool IsValidCssHslColorFunction(string value)
+    {
+        if (!TryGetCssFunctionContent(value, "hsl", "hsla", out var content) ||
+            !TrySplitCssColorComponents(content, out var components, out var alpha) ||
+            components.Count != 3)
+        {
+            return false;
+        }
+
+        return IsValidCssFilterAngleArgument(components[0], allowEmpty: false) &&
+               IsValidCssPercentage(components[1]) &&
+               IsValidCssPercentage(components[2]) &&
+               IsValidCssAlpha(alpha);
+    }
+
+    private static bool TryGetCssFunctionContent(string value, string name, string alias, out string content)
+    {
+        content = string.Empty;
+        var openParenthesis = value.IndexOf('(');
+        if (openParenthesis <= 0 ||
+            !TryFindCssFunctionEnd(value, openParenthesis, out var closeParenthesis) ||
+            closeParenthesis != value.Length - 1)
+        {
+            return false;
+        }
+
+        var functionName = value.Substring(0, openParenthesis).Trim();
+        if (!functionName.Equals(name, StringComparison.OrdinalIgnoreCase) &&
+            !functionName.Equals(alias, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        content = value.Substring(openParenthesis + 1, closeParenthesis - openParenthesis - 1).Trim();
+        return content.Length > 0;
+    }
+
+    private static bool TryFindCssFunctionEnd(string value, int openParenthesisIndex, out int closeParenthesisIndex)
+    {
+        closeParenthesisIndex = -1;
+        var quote = '\0';
+        var escape = false;
+        var depth = 0;
+        for (var i = openParenthesisIndex; i < value.Length; i++)
+        {
+            var ch = value[i];
+            if (quote != '\0')
+            {
+                if (escape)
+                {
+                    escape = false;
+                }
+                else if (ch == '\\')
+                {
+                    escape = true;
+                }
+                else if (ch == quote)
+                {
+                    quote = '\0';
+                }
+
+                continue;
+            }
+
+            if (ch == '"' || ch == '\'')
+            {
+                quote = ch;
+                continue;
+            }
+
+            if (ch == '(')
+            {
+                depth++;
+                continue;
+            }
+
+            if (ch == ')')
+            {
+                depth--;
+                if (depth == 0)
+                {
+                    closeParenthesisIndex = i;
+                    return true;
+                }
+
+                if (depth < 0)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TrySplitCssColorComponents(string value, out List<string> components, out string? alpha)
+    {
+        components = new List<string>(3);
+        alpha = null;
+
+        var commaParts = SplitTopLevelCssArguments(value, ',');
+        if (commaParts.Count > 1)
+        {
+            if (commaParts.Count != 3 && commaParts.Count != 4)
+            {
+                return false;
+            }
+
+            AddFirstThree(components, commaParts);
+            alpha = commaParts.Count == 4 ? commaParts[3] : null;
+            return true;
+        }
+
+        var tokens = SplitCssColorSpaceTokens(value);
+        var slashIndex = tokens.IndexOf("/");
+        if (slashIndex >= 0)
+        {
+            if (slashIndex != 3 ||
+                tokens.Count != 5 ||
+                tokens.LastIndexOf("/") != slashIndex)
+            {
+                return false;
+            }
+
+            AddFirstThree(components, tokens);
+            alpha = tokens[4];
+            return true;
+        }
+
+        if (tokens.Count != 3)
+        {
+            return false;
+        }
+
+        components.AddRange(tokens);
+        return true;
+    }
+
+    private static void AddFirstThree(List<string> target, List<string> source)
+    {
+        target.Add(source[0]);
+        target.Add(source[1]);
+        target.Add(source[2]);
+    }
+
+    private static List<string> SplitTopLevelCssArguments(string value, char separator)
+    {
+        var parts = new List<string>();
+        var start = 0;
+        var depth = 0;
+        var quote = '\0';
+        for (var i = 0; i < value.Length; i++)
+        {
+            var ch = value[i];
+            if (quote != '\0')
+            {
+                if (ch == quote)
+                {
+                    quote = '\0';
+                }
+
+                continue;
+            }
+
+            if (ch == '"' || ch == '\'')
+            {
+                quote = ch;
+                continue;
+            }
+
+            if (ch == '(')
+            {
+                depth++;
+                continue;
+            }
+
+            if (ch == ')' && depth > 0)
+            {
+                depth--;
+                continue;
+            }
+
+            if (ch == separator && depth == 0)
+            {
+                parts.Add(value.Substring(start, i - start).Trim());
+                start = i + 1;
+            }
+        }
+
+        parts.Add(value.Substring(start).Trim());
+        return parts;
+    }
+
+    private static List<string> SplitCssColorSpaceTokens(string value)
+    {
+        var tokens = new List<string>();
+        var start = -1;
+        var depth = 0;
+        for (var i = 0; i < value.Length; i++)
+        {
+            var ch = value[i];
+            if (ch == '(')
+            {
+                depth++;
+            }
+            else if (ch == ')' && depth > 0)
+            {
+                depth--;
+            }
+
+            if ((char.IsWhiteSpace(ch) || ch == '/') && depth == 0)
+            {
+                if (start >= 0)
+                {
+                    tokens.Add(value.Substring(start, i - start));
+                    start = -1;
+                }
+
+                if (ch == '/')
+                {
+                    tokens.Add("/");
+                }
+
+                continue;
+            }
+
+            if (start < 0)
+            {
+                start = i;
+            }
+        }
+
+        if (start >= 0)
+        {
+            tokens.Add(value.Substring(start));
+        }
+
+        return tokens;
+    }
+
+    private static bool IsValidCssRgbComponent(string value)
+    {
+        var componentText = value.Trim();
+        if (componentText.EndsWith("%", StringComparison.Ordinal))
+        {
+            componentText = componentText.Substring(0, componentText.Length - 1).Trim();
+        }
+
+        return float.TryParse(componentText, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) &&
+               IsFinite(parsed);
+    }
+
+    private static bool IsValidCssPercentage(string value)
+    {
+        value = value.Trim();
+        if (!value.EndsWith("%", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        value = value.Substring(0, value.Length - 1).Trim();
+        return float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) &&
+               IsFinite(parsed);
+    }
+
+    private static bool IsValidCssAlpha(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return true;
+        }
+
+        var alphaText = value!.Trim();
+        if (alphaText.EndsWith("%", StringComparison.Ordinal))
+        {
+            alphaText = alphaText.Substring(0, alphaText.Length - 1).Trim();
+        }
+
+        return float.TryParse(alphaText, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) &&
+               IsFinite(parsed);
+    }
+
+    private static List<string> SplitCssFilterArgs(string args)
+    {
+        var tokens = new List<string>();
+        var start = -1;
+        var depth = 0;
+
+        for (var i = 0; i < args.Length; i++)
+        {
+            var ch = args[i];
+            if (ch == '(')
+            {
+                depth++;
+            }
+            else if (ch == ')' && depth > 0)
+            {
+                depth--;
+            }
+
+            if (char.IsWhiteSpace(ch) && depth == 0)
+            {
+                if (start >= 0)
+                {
+                    tokens.Add(args.Substring(start, i - start));
+                    start = -1;
+                }
+
+                continue;
+            }
+
+            if (start < 0)
+            {
+                start = i;
+            }
+        }
+
+        if (start >= 0)
+        {
+            tokens.Add(args.Substring(start));
+        }
+
+        return tokens;
+    }
+
+    private static bool TryConsumeCssUrl(string value, ref int index)
+    {
+        if (value.Length - index < 4 ||
+            !value.Substring(index, 4).Equals("url(", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var start = index + 4;
+        var current = start;
+        var quote = '\0';
+        while (current < value.Length)
+        {
+            var ch = value[current];
+            if (quote != '\0')
+            {
+                if (ch == quote)
+                {
+                    quote = '\0';
+                }
+
+                current++;
+                continue;
+            }
+
+            if (ch == '"' || ch == '\'')
+            {
+                quote = ch;
+                current++;
+                continue;
+            }
+
+            if (ch == ')')
+            {
+                var inner = value.Substring(start, current - start).Trim();
+                if (IsQuotedString(inner))
+                {
+                    inner = inner.Substring(1, inner.Length - 2).Trim();
+                }
+
+                if (inner.Length <= 0 || !Uri.TryCreate(inner, UriKind.RelativeOrAbsolute, out _))
+                {
+                    return false;
+                }
+
+                index = current + 1;
+                return true;
+            }
+
+            current++;
+        }
+
+        return false;
+    }
+
     private static bool IsValidPaintOrder(string value)
     {
         return TryParsePaintOrder(value, out _);
@@ -1072,6 +1745,9 @@ internal sealed class SvgComputedStyleMetadata
 
         return false;
     }
+
+    private static bool IsFinite(float value)
+        => !float.IsNaN(value) && !float.IsInfinity(value);
 
     private static bool ContainsVarFunction(string value)
     {
@@ -1656,6 +2332,31 @@ public abstract partial class SvgElement
             if (string.Equals(style.Key, propertyName, StringComparison.OrdinalIgnoreCase) &&
                 TryGetHighestCssDeclaration(style.Value, out value))
             {
+                return true;
+            }
+        }
+
+        value = string.Empty;
+        return false;
+    }
+
+    internal bool TryGetOwnPresentationStyleValue(string propertyName, out string value)
+    {
+        if (_styles.TryGetValue(propertyName, out var rules) &&
+            rules.TryGetValue(StyleSpecificity_PresAttribute, out var presentationValue) &&
+            presentationValue is not null)
+        {
+            value = presentationValue;
+            return true;
+        }
+
+        foreach (var style in _styles)
+        {
+            if (string.Equals(style.Key, propertyName, StringComparison.OrdinalIgnoreCase) &&
+                style.Value.TryGetValue(StyleSpecificity_PresAttribute, out presentationValue) &&
+                presentationValue is not null)
+            {
+                value = presentationValue;
                 return true;
             }
         }
