@@ -450,7 +450,17 @@ internal static class SvgRegressionValidationScenarios
             RequiredLayerCommandCount: 1,
             RequiredDomMetricElementIds: new[] { "combined-inline-overflow", "combined-shared-wrap", "combined-shape-wrap" },
             RequiredTextSourceElementIds: new[] { "combined-title", "combined-anchor", "combined-inline-overflow", "combined-shared-wrap", "combined-shape-wrap", "combined-caption-path-text" },
-            RequiredPathSourceElementIds: new[] { "combined-stretch-path" })
+            RequiredPathSourceElementIds: new[] { "combined-stretch-path" }),
+        new(
+            "resource-rendering-first-slice-regression",
+            BuildResourceRenderingFirstSliceScene(),
+            RequiredTextCommandCount: 1,
+            RequiredPathCommandCount: 8,
+            RequiredClipCommandCount: 1,
+            RequiredLayerCommandCount: 1,
+            RequiredDomMetricElementIds: new[] { "resource-label" },
+            RequiredTextSourceElementIds: new[] { "resource-label" },
+            RequiredPathSourceElementIds: new[] { "resource-gradient-target", "resource-radial-target", "resource-pattern-target", "resource-filter-target", "resource-marker-path" })
     ];
 
     public static IEnumerable<string> TextNames => TextScenarios.Select(static scenario => scenario.Name);
@@ -1372,6 +1382,67 @@ internal static class SvgRegressionValidationScenarios
             <text id="combined-stretch-text" font-size="20" fill="#2563eb" stroke="#0f172a" stroke-width="0.35"><textPath id="combined-stretch-path" href="#combined-stretch-curve" method="stretch" textLength="300" lengthAdjust="spacingAndGlyphs">stretch shared all area text</textPath></text>
             <text id="combined-caption-text" font-size="20" fill="#b91c1c"><textPath id="combined-caption-path-text" href="#caption-path" startOffset="5%">curved text path validates glyph placement while all areas render together</textPath></text>
           </g>
+        """);
+        builder.AppendLine("</svg>");
+        return builder.ToString();
+    }
+
+    private static string BuildResourceRenderingFirstSliceScene()
+    {
+        const string imageData = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/lzGZJwAAAABJRU5ErkJggg==";
+        var builder = CreateSvgBuilder(720, 420);
+        builder.AppendLine($$"""
+          <defs>
+            <linearGradient id="resource-base-gradient" gradientUnits="userSpaceOnUse" x1="24" y1="24" x2="260" y2="24" spreadMethod="reflect">
+              <stop offset="0" stop-color="#2563eb" />
+              <stop offset="0.5" stop-color="#22c55e" />
+              <stop offset="1" stop-color="#f59e0b" />
+            </linearGradient>
+            <linearGradient id="resource-gradient" href="#resource-base-gradient" gradientTransform="rotate(5 142 64)" />
+            <radialGradient id="resource-radial" gradientUnits="userSpaceOnUse" cx="430" cy="74" r="52" fx="520" fy="74" fr="4">
+              <stop offset="0" stop-color="#ffffff" />
+              <stop offset="1" stop-color="#7c3aed" />
+            </radialGradient>
+            <pattern id="resource-pattern-base" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(8)">
+              <rect width="18" height="18" fill="#f8fafc" />
+              <path d="M0 18L18 0" stroke="#0ea5e9" stroke-width="2" />
+              <circle cx="9" cy="9" r="3" fill="#f97316" />
+            </pattern>
+            <pattern id="resource-pattern" href="#resource-pattern-base" />
+            <marker id="resource-arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+              <path d="M0 0L10 5L0 10Z" fill="#dc2626" />
+            </marker>
+            <path id="resource-use-shape" d="M0 0H72V42H0Z M12 12H60V30H12Z" fill-rule="evenodd" />
+            <clipPath id="resource-clip">
+              <use href="#resource-use-shape" x="306" y="184" />
+            </clipPath>
+            <mask id="resource-mask" maskUnits="userSpaceOnUse" x="26" y="172" width="246" height="112">
+              <rect x="26" y="172" width="246" height="112" fill="black" />
+              <circle cx="106" cy="228" r="54" fill="white" />
+              <rect x="134" y="196" width="112" height="64" fill="white" opacity="0.7" />
+            </mask>
+            <filter id="resource-filter" filterUnits="userSpaceOnUse" x="512" y="170" width="150" height="100" color-interpolation-filters="sRGB">
+              <feImage href="data:image/png;base64,{{imageData}}" x="512" y="170" width="150" height="100" result="resource-image" />
+              <feColorMatrix in="SourceGraphic" type="saturate" values="0.65" result="resource-color" />
+              <feGaussianBlur in="resource-color" stdDeviation="1.25" result="resource-blur" />
+              <feMorphology in="resource-blur" radius="0.7" operator="dilate" result="resource-morph" />
+              <feBlend in="resource-morph" in2="resource-image" mode="multiply" />
+            </filter>
+          </defs>
+          <rect width="720" height="420" fill="#ffffff" />
+          <rect id="resource-gradient-target" x="24" y="24" width="238" height="92" rx="10" fill="url(#resource-gradient)" />
+          <circle id="resource-radial-target" cx="430" cy="74" r="56" fill="url(#resource-radial)" />
+          <rect id="resource-pattern-target" x="520" y="28" width="128" height="92" fill="url(#resource-pattern)" stroke="#334155" stroke-width="3" />
+          <g id="resource-mask-area" mask="url(#resource-mask)">
+            <rect x="26" y="172" width="246" height="112" fill="#0f766e" />
+            <circle cx="122" cy="228" r="72" fill="#fde047" opacity="0.8" />
+            <path d="M34 270C80 174 158 304 248 196" fill="none" stroke="#ffffff" stroke-width="14" opacity="0.65" />
+          </g>
+          <rect id="resource-clip-target" x="292" y="170" width="118" height="86" fill="#22c55e" clip-path="url(#resource-clip)" />
+          <rect id="resource-filter-target" x="524" y="184" width="112" height="64" fill="#2563eb" filter="url(#resource-filter)" />
+          <path id="resource-marker-path" d="M42 340C140 286 228 380 326 322S500 292 632 352" fill="none" stroke="#111827" stroke-width="6" marker-start="url(#resource-arrow)" marker-mid="url(#resource-arrow)" marker-end="url(#resource-arrow)" />
+          <use id="resource-use-target" href="#resource-use-shape" x="420" y="176" fill="#fb7185" stroke="#881337" stroke-width="3" />
+          <text id="resource-label" x="36" y="392" font-family="Noto Sans, Arial, sans-serif" font-size="22" fill="#111827">Resource rendering first slice</text>
         """);
         builder.AppendLine("</svg>");
         return builder.ToString();

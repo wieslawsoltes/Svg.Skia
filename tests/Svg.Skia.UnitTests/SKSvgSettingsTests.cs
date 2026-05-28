@@ -28,6 +28,14 @@ public class SKSvgSettingsTests : SvgUnitTest
     }
 
     [Fact]
+    public void Defaults_EnableFilterBackgroundInputs()
+    {
+        var settings = new SKSvgSettings();
+
+        Assert.True(settings.EnableFilterBackgroundInputs);
+    }
+
+    [Fact]
     public void Defaults_DisableJavaScript()
     {
         var settings = new SKSvgSettings();
@@ -57,6 +65,7 @@ public class SKSvgSettingsTests : SvgUnitTest
             StandaloneViewport = new SKRect(1, 2, 3, 4),
             EnableSvgFonts = false,
             EnableTextReferences = false,
+            EnableFilterBackgroundInputs = false,
             EnableJavaScript = true,
             EnableTextSelectionRendering = false,
             TextSelectionColor = new SKColor(1, 2, 3, 4),
@@ -77,6 +86,7 @@ public class SKSvgSettingsTests : SvgUnitTest
         Assert.Equal(source.StandaloneViewport, target.StandaloneViewport);
         Assert.False(target.EnableSvgFonts);
         Assert.False(target.EnableTextReferences);
+        Assert.False(target.EnableFilterBackgroundInputs);
         Assert.True(target.EnableJavaScript);
         Assert.False(target.EnableTextSelectionRendering);
         Assert.Equal(new SKColor(1, 2, 3, 4), target.TextSelectionColor);
@@ -181,6 +191,17 @@ public class SKSvgSettingsTests : SvgUnitTest
         var clone = svg.Clone();
 
         Assert.False(clone.Settings.EnableTextReferences);
+    }
+
+    [Fact]
+    public void Clone_PreservesEnableFilterBackgroundInputs()
+    {
+        var svg = new SKSvg();
+        svg.Settings.EnableFilterBackgroundInputs = false;
+
+        var clone = svg.Clone();
+
+        Assert.False(clone.Settings.EnableFilterBackgroundInputs);
     }
 
     [Fact]
