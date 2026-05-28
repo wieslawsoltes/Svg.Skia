@@ -99,12 +99,18 @@ internal static class PaintingService
     private static List<SvgGradientServer> GetLinkedGradientServer(SvgGradientServer svgGradientServer, SvgVisualElement svgVisualElement)
     {
         var svgGradientServers = new List<SvgGradientServer>();
+        var visited = new HashSet<SvgGradientServer>();
         var currentGradientServer = svgGradientServer;
         do
         {
+            if (!visited.Add(currentGradientServer))
+            {
+                break;
+            }
+
             svgGradientServers.Add(currentGradientServer);
             currentGradientServer = SvgDeferredPaintServer.TryGet<SvgGradientServer>(currentGradientServer.InheritGradient, svgVisualElement);
-        } while (currentGradientServer is { } && currentGradientServer != svgGradientServer);
+        } while (currentGradientServer is { });
         return svgGradientServers;
     }
 
@@ -330,6 +336,11 @@ internal static class PaintingService
         var x2 = normalizedX2.ToDeviceValue(UnitRenderingType.Horizontal, svgLinearGradientServer, skBounds);
         var y2 = normalizedY2.ToDeviceValue(UnitRenderingType.Vertical, svgLinearGradientServer, skBounds);
 
+        if (!IsFinite(x1) || !IsFinite(y1) || !IsFinite(x2) || !IsFinite(y2))
+        {
+            return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
+        }
+
         var skStart = new SKPoint(x1, y1);
         var skEnd = new SKPoint(x2, y2);
         var colors = new List<SKColor>();
@@ -516,6 +527,12 @@ internal static class PaintingService
         var focalX = normalizedFocalX.ToDeviceValue(UnitRenderingType.Horizontal, svgRadialGradientServer, skBounds);
         var focalY = normalizedFocalY.ToDeviceValue(UnitRenderingType.Vertical, svgRadialGradientServer, skBounds);
         var focalRadius = focalRadiusUnit.Normalize(svgGradientUnits).ToDeviceValue(UnitRenderingType.Other, svgRadialGradientServer, skBounds);
+
+        if (!IsFinite(centerX) || !IsFinite(centerY) || !IsFinite(radius) ||
+            !IsFinite(focalX) || !IsFinite(focalY) || !IsFinite(focalRadius))
+        {
+            return SKShader.CreateColor(new SKColor(0xFF, 0xFF, 0xFF, 0x00), skColorSpace);
+        }
 
         var skCenter = new SKPoint(centerX, centerY);
         var skFocal = new SKPoint(focalX, focalY);
@@ -1164,4 +1181,7 @@ internal static class PaintingService
 
         return 12f;
     }
+
+    private static bool IsFinite(float value)
+        => !float.IsNaN(value) && !float.IsInfinity(value);
 }

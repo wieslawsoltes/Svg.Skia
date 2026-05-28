@@ -181,13 +181,25 @@ public sealed class SvgSceneResource
             sceneDocument.CompilationViewport,
             new SvgSceneFilterSource(sceneDocument, targetNode),
             sceneDocument.AssetLoader,
-            references);
+            references,
+            targetTransform: targetNode.TotalTransform);
 
         var payload = filterContext.FilterPaint is { } filterPaint
-            ? new SvgSceneFilterPayload(filterPaint.DeepClone(), filterContext.FilterClip, isValid: true)
-            : SvgSceneFilterPayload.Invalid(filterContext.FilterClip);
+            ? new SvgSceneFilterPayload(
+                filterPaint.DeepClone(),
+                filterContext.FilterClip,
+                isValid: true,
+                filterContext.UsesGlobalLayer,
+                filterContext.GlobalClip)
+            : filterContext.IsValid
+                ? null
+                : SvgSceneFilterPayload.Invalid(filterContext.FilterClip);
 
-        _filterPayloads.Add(cacheKey, payload);
+        if (payload is { })
+        {
+            _filterPayloads.Add(cacheKey, payload);
+        }
+
         return payload;
     }
 
@@ -197,6 +209,10 @@ public sealed class SvgSceneResource
                   ?? targetNode.ElementId
                   ?? targetNode.ElementTypeName;
         var compilationRootKey = targetNode.CompilationRootKey ?? string.Empty;
+        var filterDeclaration = targetNode.Element is SvgVisualElement visualElement &&
+                                visualElement.TryGetOwnCascadedStyleValue("filter", out var value)
+            ? value
+            : string.Empty;
         var bounds = effectiveBounds ?? targetNode.GeometryBounds;
         var transform = targetNode.TotalTransform;
 
@@ -204,6 +220,7 @@ public sealed class SvgSceneResource
             "|",
             key,
             compilationRootKey,
+            filterDeclaration,
             string.Join(
                 ",",
                 bounds.Left.ToString(CultureInfo.InvariantCulture),
@@ -330,11 +347,18 @@ internal sealed class SvgSceneMaskPayload
 
 internal sealed class SvgSceneFilterPayload
 {
-    public SvgSceneFilterPayload(SKPaint? filterPaint, SKRect? filterClip, bool isValid)
+    public SvgSceneFilterPayload(
+        SKPaint? filterPaint,
+        SKRect? filterClip,
+        bool isValid,
+        bool usesGlobalLayer = false,
+        SKRect? globalClip = null)
     {
         FilterPaint = filterPaint;
         FilterClip = filterClip;
         IsValid = isValid;
+        UsesGlobalLayer = usesGlobalLayer;
+        GlobalClip = globalClip;
     }
 
     public static SvgSceneFilterPayload Invalid(SKRect? filterClip)
@@ -345,4 +369,8 @@ internal sealed class SvgSceneFilterPayload
     public SKRect? FilterClip { get; }
 
     public bool IsValid { get; }
+
+    public bool UsesGlobalLayer { get; }
+
+    public SKRect? GlobalClip { get; }
 }

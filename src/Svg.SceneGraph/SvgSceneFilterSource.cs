@@ -34,6 +34,11 @@ internal sealed class SvgSceneFilterSource : ISvgSceneFilterSource
 
     public SKPicture? BackgroundImage(SKRect? clip)
     {
+        if (_node.CreatesBackgroundLayer)
+        {
+            return null;
+        }
+
         if (FindContainerParentBackground(_node, out var clipRect) is not { } containerNode)
         {
             return null;

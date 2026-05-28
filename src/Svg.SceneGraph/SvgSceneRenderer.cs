@@ -155,19 +155,15 @@ public static class SvgSceneRenderer
             canvas.SaveLayer(opacity);
         }
 
+        var enableGlobalFilterLayer = false;
         if (node.Filter is { } filter && enableFilter)
         {
-            if (node.FilterClip is { } filterClip)
-            {
-                canvas.ClipRect(filterClip, SKClipOperation.Intersect);
-            }
-
-            canvas.SaveLayer(filter);
+            enableGlobalFilterLayer = SaveFilterLayerToCanvas(node, canvas, filter);
         }
 
         if (!RenderNodeContentToCanvas(sceneDocument, node, canvas, ignoreAttributes, until))
         {
-            RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
+            RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation, enableGlobalFilterLayer);
             return false;
         }
 
@@ -178,7 +174,7 @@ public static class SvgSceneRenderer
             canvas.Restore();
         }
 
-        RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
+        RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation, enableGlobalFilterLayer);
         return true;
     }
 
@@ -284,19 +280,15 @@ public static class SvgSceneRenderer
             canvas.SaveLayer(node.Opacity!);
         }
 
+        var enableGlobalFilterLayer = false;
         if (enableFilter)
         {
-            if (node.FilterClip is { } filterClip)
-            {
-                canvas.ClipRect(filterClip, SKClipOperation.Intersect);
-            }
-
-            canvas.SaveLayer(node.Filter!);
+            enableGlobalFilterLayer = SaveFilterLayerToCanvas(node, canvas, node.Filter!);
         }
 
         if (!RenderBackgroundNodeContentToCanvas(sceneDocument, node, canvas, until))
         {
-            RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
+            RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation, enableGlobalFilterLayer);
             return false;
         }
 
@@ -307,7 +299,7 @@ public static class SvgSceneRenderer
             canvas.Restore();
         }
 
-        RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation);
+        RestoreNode(canvas, node, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation, enableGlobalFilterLayer);
         return true;
     }
 
@@ -754,6 +746,33 @@ public static class SvgSceneRenderer
         return false;
     }
 
+    private static bool SaveFilterLayerToCanvas(SvgSceneNode node, SKCanvas canvas, SKPaint filter)
+    {
+        if (node.FilterUsesGlobalLayer &&
+            node.TotalTransform.TryInvert(out var inverseTotalTransform))
+        {
+            canvas.Save();
+            canvas.SetMatrix(inverseTotalTransform);
+
+            if (node.FilterGlobalClip is { } globalClip)
+            {
+                canvas.ClipRect(globalClip, SKClipOperation.Intersect);
+            }
+
+            canvas.SaveLayer(filter);
+            canvas.SetMatrix(node.TotalTransform);
+            return true;
+        }
+
+        if (node.FilterClip is { } filterClip)
+        {
+            canvas.ClipRect(filterClip, SKClipOperation.Intersect);
+        }
+
+        canvas.SaveLayer(filter);
+        return false;
+    }
+
     private static void RestoreNode(
         SKCanvas canvas,
         SvgSceneNode node,
@@ -761,11 +780,22 @@ public static class SvgSceneRenderer
         bool enableOpacity,
         bool enableFilter,
         bool enableBlendMode,
-        bool enableIsolation)
+        bool enableIsolation,
+        bool enableGlobalFilterLayer = false)
     {
         if (node.Filter is not null && enableFilter)
         {
+            if (enableGlobalFilterLayer &&
+                node.TotalTransform.TryInvert(out var inverseTotalTransform))
+            {
+                canvas.SetMatrix(inverseTotalTransform);
+            }
+
             canvas.Restore();
+            if (enableGlobalFilterLayer)
+            {
+                canvas.Restore();
+            }
         }
 
         if (node.Opacity is not null && enableOpacity)

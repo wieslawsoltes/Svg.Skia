@@ -37,6 +37,11 @@ public interface ISvgTextReferenceRenderingOptions
     bool EnableTextReferences { get; }
 }
 
+public interface ISvgFilterBackgroundInputOptions
+{
+    bool EnableFilterBackgroundInputs { get; }
+}
+
 public interface ISvgTextRunTypefaceResolver
 {
     SKTypeface? FindRunTypeface(string? text, SKPaint paintPreferredTypeface);

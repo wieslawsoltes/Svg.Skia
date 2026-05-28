@@ -25,6 +25,8 @@ public class SKSvgSettings
 
     public bool EnableTextReferences { get; set; }
 
+    public bool EnableFilterBackgroundInputs { get; set; }
+
     public bool EnableJavaScript { get; set; }
 
     public bool EnableTextSelectionRendering { get; set; }
@@ -65,6 +67,7 @@ public class SKSvgSettings
         target.StandaloneViewport = StandaloneViewport;
         target.EnableSvgFonts = EnableSvgFonts;
         target.EnableTextReferences = EnableTextReferences;
+        target.EnableFilterBackgroundInputs = EnableFilterBackgroundInputs;
         target.EnableJavaScript = EnableJavaScript;
         target.EnableTextSelectionRendering = EnableTextSelectionRendering;
         target.TextSelectionColor = TextSelectionColor;
@@ -94,6 +97,7 @@ public class SKSvgSettings
         StandaloneViewport = null;
         EnableSvgFonts = true;
         EnableTextReferences = true;
+        EnableFilterBackgroundInputs = true;
         EnableJavaScript = false;
         EnableTextSelectionRendering = true;
         TextSelectionColor = new SkiaSharp.SKColor(0x00, 0x80, 0x00, 0xFF);
