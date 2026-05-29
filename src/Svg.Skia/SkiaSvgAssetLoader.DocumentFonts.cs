@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using Svg;
 using Svg.Model;
@@ -718,9 +719,78 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
         var header = uriString.Substring(5, commaIndex - 5);
         var data = uriString.Substring(commaIndex + 1);
         var bytes = header.IndexOf(";base64", StringComparison.OrdinalIgnoreCase) >= 0
-            ? Convert.FromBase64String(data)
-            : System.Text.Encoding.UTF8.GetBytes(Uri.UnescapeDataString(data));
+            ? Convert.FromBase64String(Uri.UnescapeDataString(data))
+            : PercentDecodeDataUriPayload(data);
         return new MemoryStream(bytes);
+    }
+
+    private static byte[] PercentDecodeDataUriPayload(string data)
+    {
+        var output = new MemoryStream(data.Length);
+        var textStart = 0;
+
+        for (var i = 0; i < data.Length; i++)
+        {
+            if (data[i] != '%' ||
+                i + 2 >= data.Length ||
+                !TryReadHexByte(data[i + 1], data[i + 2], out var value))
+            {
+                continue;
+            }
+
+            WriteDataUriTextBytes(data, textStart, i - textStart, output);
+            output.WriteByte(value);
+            i += 2;
+            textStart = i + 1;
+        }
+
+        WriteDataUriTextBytes(data, textStart, data.Length - textStart, output);
+        return output.ToArray();
+    }
+
+    private static void WriteDataUriTextBytes(string data, int start, int length, Stream output)
+    {
+        if (length <= 0)
+        {
+            return;
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(data.Substring(start, length));
+        output.Write(bytes, 0, bytes.Length);
+    }
+
+    private static bool TryReadHexByte(char high, char low, out byte value)
+    {
+        var highValue = ReadHexValue(high);
+        var lowValue = ReadHexValue(low);
+        if (highValue < 0 || lowValue < 0)
+        {
+            value = 0;
+            return false;
+        }
+
+        value = (byte)((highValue << 4) | lowValue);
+        return true;
+    }
+
+    private static int ReadHexValue(char ch)
+    {
+        if (ch is >= '0' and <= '9')
+        {
+            return ch - '0';
+        }
+
+        if (ch is >= 'A' and <= 'F')
+        {
+            return ch - 'A' + 10;
+        }
+
+        if (ch is >= 'a' and <= 'f')
+        {
+            return ch - 'a' + 10;
+        }
+
+        return -1;
     }
 
     private static bool TryResolveW3CPackagedFontResource(string missingLocalPath, SvgDocument document, out string fallbackPath)

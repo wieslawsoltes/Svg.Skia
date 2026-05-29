@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using ShimSkiaSharp;
 using Svg.Model.Services;
 using Svg.Skia;
@@ -243,6 +244,34 @@ public class SkiaSvgAssetLoaderCachingTests
                 @font-face {
                   font-family: {{family}};
                   src: url("data:font/woff;base64,{{fontData}}");
+                }
+              </style>
+              <text x="0" y="32" font-family="{{family}}">G</text>
+            </svg>
+            """);
+        var assetLoader = Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader);
+        using var fontScope = assetLoader.PushDocumentFonts(svg.SourceDocument!);
+
+        AssertDocumentTypefaceFamily(svg, family, "G", expectedFamily);
+    }
+
+    [Fact]
+    public void FromSvg_PercentEncodedDataUriWoffFontFaceRegistersDocumentTypeface()
+    {
+        const string family = "SvgSkiaDataUriPercentBlocky";
+        var blockyPath = GetW3CResourcePath("Blocky.woff");
+        var expectedFamily = GetDocumentFontFamilyName(family, blockyPath, "G");
+        var fontData = PercentEncodeDataBytes(File.ReadAllBytes(blockyPath));
+        using var svg = new SKSvg();
+        svg.Settings.EnableSvgFonts = false;
+        svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 40f, 40f);
+
+        using var _ = svg.FromSvg($$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+              <style>
+                @font-face {
+                  font-family: {{family}};
+                  src: url("data:font/woff,{{fontData}}") format("woff");
                 }
               </style>
               <text x="0" y="32" font-family="{{family}}">G</text>
@@ -537,6 +566,20 @@ public class SkiaSvgAssetLoaderCachingTests
         Assert.NotNull(typeface);
         Assert.False(string.IsNullOrWhiteSpace(typeface.FamilyName));
         return typeface.FamilyName;
+    }
+
+    private static string PercentEncodeDataBytes(byte[] bytes)
+    {
+        const string Hex = "0123456789ABCDEF";
+        var builder = new StringBuilder(bytes.Length * 3);
+        foreach (var value in bytes)
+        {
+            builder.Append('%');
+            builder.Append(Hex[value >> 4]);
+            builder.Append(Hex[value & 0x0F]);
+        }
+
+        return builder.ToString();
     }
 
     private static SvgDocument CreateFontFaceDocument(string familyName, string fontPath, string text)
