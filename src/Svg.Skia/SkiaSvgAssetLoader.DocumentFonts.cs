@@ -7,7 +7,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Svg;
 using Svg.Model;
@@ -84,42 +83,61 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
     private static readonly Regex s_cssUrlRegex = new(@"url\((?<url>[^\)]+)\)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex s_cssFormatRegex = new(@"format\((?<format>[^\)]+)\)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private readonly object _documentFontsLock = new();
-    private readonly Dictionary<string, DocumentFontTypefaceProvider> _documentFontProviders = new(StringComparer.Ordinal);
 
     public void ClearDocumentFonts()
     {
         lock (_documentFontsLock)
         {
-            _documentFontProviders.Clear();
             _skiaModel.Settings.DocumentTypefaceProviders = null;
             ClearPaintCache();
         }
     }
 
-    public void RegisterDocumentFonts(SvgDocument document)
+    public IDisposable PushDocumentFonts(SvgDocument document)
     {
         if (document is null)
         {
             throw new ArgumentNullException(nameof(document));
         }
 
-        var documentKey = GetDocumentFontKey(document);
         var provider = CreateDocumentFontProvider(document);
         lock (_documentFontsLock)
         {
-            if (provider.IsEmpty)
+            var previousProviders = _skiaModel.Settings.DocumentTypefaceProviders;
+            _skiaModel.Settings.DocumentTypefaceProviders = provider.IsEmpty
+                ? null
+                : new List<ITypefaceProvider> { provider };
+            ClearPaintCache();
+            return new DocumentFontScope(this, previousProviders);
+        }
+    }
+
+    private sealed class DocumentFontScope : IDisposable
+    {
+        private readonly SkiaSvgAssetLoader _assetLoader;
+        private readonly IList<ITypefaceProvider>? _previousProviders;
+        private bool _disposed;
+
+        public DocumentFontScope(SkiaSvgAssetLoader assetLoader, IList<ITypefaceProvider>? previousProviders)
+        {
+            _assetLoader = assetLoader;
+            _previousProviders = previousProviders;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
             {
-                _documentFontProviders.Remove(documentKey);
-            }
-            else
-            {
-                _documentFontProviders[documentKey] = provider;
+                return;
             }
 
-            _skiaModel.Settings.DocumentTypefaceProviders = _documentFontProviders.Count == 0
-                ? null
-                : _documentFontProviders.Values.Cast<ITypefaceProvider>().ToList();
-            ClearPaintCache();
+            lock (_assetLoader._documentFontsLock)
+            {
+                _assetLoader._skiaModel.Settings.DocumentTypefaceProviders = _previousProviders;
+                _assetLoader.ClearPaintCache();
+            }
+
+            _disposed = true;
         }
     }
 
@@ -357,8 +375,9 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
             return true;
         }
 
-        if (!string.IsNullOrWhiteSpace(format) &&
-            format.Trim().Equals("woff", StringComparison.OrdinalIgnoreCase))
+        if (format is { } fontFormat &&
+            !string.IsNullOrWhiteSpace(fontFormat) &&
+            fontFormat.Trim().Equals("woff", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
@@ -687,10 +706,4 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
         };
     }
 
-    private static string GetDocumentFontKey(SvgDocument document)
-    {
-        return document.BaseUri is { } baseUri
-            ? baseUri.AbsoluteUri
-            : $"document:{RuntimeHelpers.GetHashCode(document)}";
-    }
 }

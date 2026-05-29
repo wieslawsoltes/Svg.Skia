@@ -75,6 +75,7 @@ public partial class SKSvg
                 return;
             }
 
+            using var documentFontScope = PushDocumentFonts(sceneDocument.SourceDocument, sceneDocument.AssetLoader);
             var newModel = RecordOverlayNodeModel(sceneDocument, RootNode, ignoreAttributes);
             var newPicture = newModel is null ? null : owner.SkiaModel.ToSKPicture(newModel);
 
@@ -259,6 +260,7 @@ public partial class SKSvg
             }
 
             var cullRect = _animationLayerBounds ?? sceneDocument.CullRect;
+            using var documentFontScope = PushDocumentFonts(sceneDocument.SourceDocument, sceneDocument.AssetLoader);
             var dynamicLayerModel = RecordDynamicLayerModel(layerEntries, cullRect);
             var dynamicLayerPicture = SkiaModel.ToSKPicture(dynamicLayerModel);
             var compositeModel = ComposeAnimationLayerModel(_staticAnimationLayerModel, dynamicLayerModel, cullRect);
@@ -421,6 +423,7 @@ public partial class SKSvg
         SkiaSharp.SKPicture? newStaticLayerPicture = null;
         if (topologyChanged || _staticAnimationLayerModel is null || _staticAnimationLayerPicture is null)
         {
+            using var documentFontScope = PushDocumentFonts(sceneDocument.SourceDocument, sceneDocument.AssetLoader);
             newStaticLayerModel = RecordStaticLayerModel(sceneDocument, rootInfos, cullRect, IgnoreAttributes);
             newStaticLayerPicture = SkiaModel.ToSKPicture(newStaticLayerModel);
             if (newStaticLayerPicture is null)

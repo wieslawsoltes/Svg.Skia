@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ShimSkiaSharp;
+using Svg.Model.Services;
 using Svg.Skia;
 using Svg.Skia.TypefaceProviders;
 using Xunit;
@@ -120,6 +121,8 @@ public class SkiaSvgAssetLoaderCachingTests
         svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 480f, 360f);
 
         using var _ = svg.Load(GetW3CSvgPath("pservers-grad-08-b"));
+        var assetLoader = Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader);
+        using var fontScope = assetLoader.PushDocumentFonts(svg.SourceDocument!);
 
         AssertDocumentTypefaceFamily(svg, "Blocky", "Gradient", expectedFamily);
     }
@@ -133,6 +136,8 @@ public class SkiaSvgAssetLoaderCachingTests
         svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 480f, 360f);
 
         using var _ = svg.Load(GetW3CSvgPath("render-elems-06-t"));
+        var assetLoader = Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader);
+        using var fontScope = assetLoader.PushDocumentFonts(svg.SourceDocument!);
 
         AssertDocumentTypefaceFamily(svg, "BlockyWoff", "G", expectedFamily);
         AssertDocumentTypefaceFamily(svg, "Blocky, BlockyWoff", "G", expectedFamily);
@@ -148,6 +153,8 @@ public class SkiaSvgAssetLoaderCachingTests
         svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 480f, 360f);
 
         using var _ = svg.Load(GetW3CSvgPath("render-groups-01-b"));
+        var assetLoader = Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader);
+        using var fontScope = assetLoader.PushDocumentFonts(svg.SourceDocument!);
 
         AssertDocumentTypefaceFamily(svg, "anglepoise", "SVG", expectedFamily);
     }
@@ -174,6 +181,8 @@ public class SkiaSvgAssetLoaderCachingTests
             </svg>
             """))
         {
+            var assetLoader = Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader);
+            using var fontScope = assetLoader.PushDocumentFonts(svg.SourceDocument!);
             AssertDocumentTypefaceFamily(svg, transientFamily, "G", blockyFamily);
         }
 
@@ -211,8 +220,42 @@ public class SkiaSvgAssetLoaderCachingTests
               <text x="0" y="32" font-family="{{family}}">G</text>
             </svg>
             """);
+        var assetLoader = Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader);
+        using var fontScope = assetLoader.PushDocumentFonts(svg.SourceDocument!);
 
         AssertDocumentTypefaceFamily(svg, family, "G", expectedFamily);
+    }
+
+    [Fact]
+    public void PushDocumentFonts_RestoresParentScopeAfterNestedDocument()
+    {
+        const string parentFamily = "SvgSkiaParentBlocky";
+        const string childFamily = "SvgSkiaChildAnglepoise";
+        var parentFontPath = GetW3CResourcePath("Blocky.woff");
+        var childFontPath = GetW3CResourcePath("anglepoi.woff");
+        var parentExpectedFamily = GetNativeFontFamilyName(parentFontPath);
+        var childExpectedFamily = GetNativeFontFamilyName(childFontPath);
+        var parentDocument = CreateFontFaceDocument(parentFamily, parentFontPath, "G");
+        var childDocument = CreateFontFaceDocument(childFamily, childFontPath, "S");
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+
+        using (assetLoader.PushDocumentFonts(parentDocument))
+        {
+            AssertDocumentTypefaceFamily(assetLoader, parentFamily, "G", parentExpectedFamily);
+            AssertDocumentTypefaceNotFamily(assetLoader, childFamily, "S", childExpectedFamily);
+
+            using (assetLoader.PushDocumentFonts(childDocument))
+            {
+                AssertDocumentTypefaceFamily(assetLoader, childFamily, "S", childExpectedFamily);
+                AssertDocumentTypefaceNotFamily(assetLoader, parentFamily, "G", parentExpectedFamily);
+            }
+
+            AssertDocumentTypefaceFamily(assetLoader, parentFamily, "G", parentExpectedFamily);
+            AssertDocumentTypefaceNotFamily(assetLoader, childFamily, "S", childExpectedFamily);
+        }
+
+        AssertDocumentTypefaceNotFamily(assetLoader, parentFamily, "G", parentExpectedFamily);
+        AssertDocumentTypefaceNotFamily(assetLoader, childFamily, "S", childExpectedFamily);
     }
 
     private static SKPaint CreateTextPaint(float textSize)
@@ -231,6 +274,11 @@ public class SkiaSvgAssetLoaderCachingTests
     private static List<Svg.Model.TypefaceSpan> FindTypefaces(SKSvg svg, string familyName, string text)
     {
         var assetLoader = Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader);
+        return FindTypefaces(assetLoader, familyName, text);
+    }
+
+    private static List<Svg.Model.TypefaceSpan> FindTypefaces(SkiaSvgAssetLoader assetLoader, string familyName, string text)
+    {
         var paint = new SKPaint
         {
             TextSize = 48f,
@@ -246,12 +294,25 @@ public class SkiaSvgAssetLoaderCachingTests
 
     private static void AssertDocumentTypefaceFamily(SKSvg svg, string familyName, string text, string expectedFamily)
     {
-        var spans = FindTypefaces(svg, familyName, text);
+        AssertDocumentTypefaceFamily(Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader), familyName, text, expectedFamily);
+    }
+
+    private static void AssertDocumentTypefaceFamily(SkiaSvgAssetLoader assetLoader, string familyName, string text, string expectedFamily)
+    {
+        var spans = FindTypefaces(assetLoader, familyName, text);
         Assert.NotEmpty(spans);
         Assert.Contains(
             spans,
             span => string.Equals(span.Typeface?.FamilyName, expectedFamily, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(span.Typeface?.FamilyName, familyName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static void AssertDocumentTypefaceNotFamily(SkiaSvgAssetLoader assetLoader, string familyName, string text, string expectedFamily)
+    {
+        var spans = FindTypefaces(assetLoader, familyName, text);
+        Assert.DoesNotContain(
+            spans,
+            span => string.Equals(span.Typeface?.FamilyName, expectedFamily, StringComparison.OrdinalIgnoreCase));
     }
 
     private static void AssertRunTypefaceFamily(SKSvg svg, string familyName, string text, string expectedFamily)
@@ -279,6 +340,24 @@ public class SkiaSvgAssetLoaderCachingTests
         Assert.NotEqual(IntPtr.Zero, typeface!.Handle);
         Assert.False(string.IsNullOrWhiteSpace(typeface.FamilyName));
         return typeface.FamilyName;
+    }
+
+    private static SvgDocument CreateFontFaceDocument(string familyName, string fontPath, string text)
+    {
+        var fontUri = new Uri(Path.GetFullPath(fontPath)).AbsoluteUri;
+        return SvgService.FromSvg(
+            $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+              <style>
+                @font-face {
+                  font-family: {{familyName}};
+                  src: url("{{fontUri}}") format("woff");
+                }
+              </style>
+              <text x="0" y="32" font-family="{{familyName}}">{{text}}</text>
+            </svg>
+            """,
+            null)!;
     }
 
     private static string GetW3CSvgPath(string name)

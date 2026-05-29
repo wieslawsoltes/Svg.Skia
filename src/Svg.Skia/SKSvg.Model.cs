@@ -84,6 +84,7 @@ public partial class SKSvg : IDisposable
 
     public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
+        using var documentFontScope = PushDocumentFonts(svgFragment as SvgDocument ?? svgFragment.OwnerDocument, assetLoader);
         var picture = SvgSceneRuntime.CreateModel(
             svgFragment,
             assetLoader,
@@ -94,6 +95,7 @@ public partial class SKSvg : IDisposable
 
     public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
+        using var documentFontScope = PushDocumentFonts(svgFragment as SvgDocument ?? svgFragment.OwnerDocument, assetLoader);
         var picture = SvgSceneRuntime.CreateModel(
             svgFragment,
             assetLoader,
@@ -475,6 +477,7 @@ public partial class SKSvg : IDisposable
                 }
             }
 
+            using var documentFontScope = PushDocumentFonts(SourceDocument, AssetLoader);
             var newPicture = SkiaModel.ToSKPicture(model);
             if (newPicture is null)
             {
@@ -575,6 +578,7 @@ public partial class SKSvg : IDisposable
             return null;
         }
 
+        using var documentFontScope = PushDocumentFonts(SourceDocument, AssetLoader);
         var rebuilt = SkiaModel.ToSKPicture(model);
         lock (Sync)
         {
@@ -823,6 +827,17 @@ public partial class SKSvg : IDisposable
         return Settings.SystemColorProvider is { } provider
             ? SvgSystemColorResolver.PushProvider(provider)
             : null;
+    }
+
+    private static IDisposable? PushDocumentFonts(SvgDocument? document, ISvgAssetLoader assetLoader)
+    {
+        if (document is not null &&
+            assetLoader is ISvgDocumentFontLoader fontLoader)
+        {
+            return fontLoader.PushDocumentFonts(document);
+        }
+
+        return null;
     }
 
     private SkiaSharp.SKPicture? LoadPath(
@@ -1388,6 +1403,7 @@ public partial class SKSvg : IDisposable
 
     private bool RenderRetainedSceneDocument(SvgSceneDocument sceneDocument)
     {
+        using var documentFontScope = PushDocumentFonts(sceneDocument.SourceDocument, sceneDocument.AssetLoader);
         var model = sceneDocument.CreateModel();
         if (model is null)
         {

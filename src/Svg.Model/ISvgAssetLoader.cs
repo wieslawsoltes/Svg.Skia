@@ -40,7 +40,7 @@ public interface ISvgImageAlphaProvider
 public interface ISvgDocumentFontLoader
 {
     void ClearDocumentFonts();
-    void RegisterDocumentFonts(SvgDocument document);
+    IDisposable PushDocumentFonts(SvgDocument document);
 }
 
 public interface ISvgTextReferenceRenderingOptions
