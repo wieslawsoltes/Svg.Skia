@@ -718,6 +718,7 @@ public partial class SKSvg : IDisposable
         Func<System.IO.Stream, SvgParameters?, SvgDocument?> loader)
     {
         SvgDocument? svgDocument;
+        using var systemColorScope = CreateSystemColorProviderScope();
 
         if (CacheOriginalStream)
         {
@@ -753,6 +754,7 @@ public partial class SKSvg : IDisposable
     private SkiaSharp.SKPicture? LoadSvgInternal(System.IO.Stream stream, SvgParameters? parameters, Uri? baseUri)
     {
         SvgDocument? svgDocument;
+        using var systemColorScope = CreateSystemColorProviderScope();
 
         if (CacheOriginalStream)
         {
@@ -792,6 +794,7 @@ public partial class SKSvg : IDisposable
             return null;
         }
 
+        using var systemColorScope = CreateSystemColorProviderScope();
         _originalPath = path;
         _originalParameters = parameters;
         _originalBaseUri = null;
@@ -804,6 +807,7 @@ public partial class SKSvg : IDisposable
 
     private SkiaSharp.SKPicture? LoadSvgReader(XmlReader reader)
     {
+        using var systemColorScope = CreateSystemColorProviderScope();
         _originalPath = null;
         _originalParameters = null;
         _originalBaseUri = null;
@@ -812,6 +816,13 @@ public partial class SKSvg : IDisposable
         _originalStream = null;
 
         return LoadSvgDocument(SvgService.Open(reader, Settings.EnableJavaScript));
+    }
+
+    private IDisposable? CreateSystemColorProviderScope()
+    {
+        return Settings.SystemColorProvider is { } provider
+            ? SvgSystemColorResolver.PushProvider(provider)
+            : null;
     }
 
     private SkiaSharp.SKPicture? LoadPath(
@@ -855,6 +866,11 @@ public partial class SKSvg : IDisposable
         if (svgDocument is null)
         {
             return null;
+        }
+
+        if (AssetLoader is ISvgDocumentFontLoader fontLoader)
+        {
+            fontLoader.ClearDocumentFonts();
         }
 
         if (baseUri is { })
@@ -930,6 +946,7 @@ public partial class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? FromSvg(string svg)
     {
+        using var systemColorScope = CreateSystemColorProviderScope();
         var svgDocument = SvgService.FromSvg(svg, Settings.EnableJavaScript);
         return LoadSvgDocument(svgDocument);
     }
@@ -1289,6 +1306,11 @@ public partial class SKSvg : IDisposable
     private void Reset()
     {
         ReplaceAnimationController(null);
+        if (AssetLoader is ISvgDocumentFontLoader fontLoader)
+        {
+            fontLoader.ClearDocumentFonts();
+        }
+
         SourceDocument = null;
         _javaScriptRuntime = null;
         ClearAnimationRenderState();

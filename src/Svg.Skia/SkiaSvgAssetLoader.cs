@@ -106,10 +106,13 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
         var slant = _skiaModel.ToSKFontStyleSlant(preferredTypeface?.FontSlant ?? ShimSkiaSharp.SKFontStyleSlant.Upright);
         var preferredFamily = GetExplicitFamilyName(preferredTypeface) ??
                               (preferredTypeface is null ? null : runningPaint.Typeface?.FamilyName);
-        System.Func<int, SkiaSharp.SKTypeface?> matchCharacter = codepoint =>
-            MatchCharacter(preferredFamily, weight, width, slant, codepoint);
+        SkiaSharp.SKTypeface? MatchCharacterForSpan(int codepoint, out string? familyOverride)
+        {
+            return MatchCharacterForTypefaceSpan(preferredFamily, weight, width, slant, codepoint, out familyOverride);
+        }
 
         var currentTypefaceStartIndex = 0;
+        var currentShimTypeface = default(ShimSkiaSharp.SKTypeface);
         var i = 0;
 
         void YieldCurrentTypefaceText()
@@ -124,7 +127,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
                     paintPreferredTypeface.FontVariantLigatures),
                 runningPaint.Typeface is null
                     ? null
-                    : ToShimTypeface(runningPaint.Typeface, requestedWeight)
+                    : currentShimTypeface ?? ToShimTypeface(runningPaint.Typeface, requestedWeight)
             ));
         }
 
@@ -132,8 +135,10 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
         {
             var ch = text[i];
             SkiaSharp.SKTypeface? typeface;
+            var matchedShimTypeface = currentShimTypeface;
             if (runningPaint.Typeface is { } currentTypeface &&
-                (ch <= ' ' || ch is '\u0085' or '\u00A0' || ch >= '\u0300' && IsNonAsciiTypefaceSpanGlue(text, i, ch)))
+                (ch <= ' ' || ch is '\u0085' or '\u00A0' || ch >= '\u0300' && IsNonAsciiTypefaceSpanGlue(text, i, ch)) &&
+                CanKeepGlueInCurrentTypeface(currentTypeface, text, i, ch))
             {
                 // Keep marks and whitespace in the active span so bidi/shaping stays attached to
                 // the surrounding script run instead of splitting on font fallback for nonspacing
@@ -142,12 +147,14 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
             }
             else
             {
-                typeface = matchCharacter(GetCodepoint(text, i, ch));
+                typeface = MatchCharacterForSpan(GetCodepoint(text, i, ch), out var familyOverride);
+                matchedShimTypeface = ToShimTypeface(typeface, requestedWeight, familyOverride);
             }
 
             if (i == 0)
             {
                 runningPaint.Typeface = typeface;
+                currentShimTypeface = matchedShimTypeface;
             }
             else if (runningPaint.Typeface is null
                      && typeface is { } || runningPaint.Typeface is { }
@@ -159,6 +166,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
 
                 currentTypefaceStartIndex = i;
                 runningPaint.Typeface = typeface;
+                currentShimTypeface = matchedShimTypeface;
             }
 
             if (char.IsHighSurrogate(text[i]))
@@ -219,8 +227,6 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
             candidates.Add(candidate);
         }
 
-        AddCandidate(preferredPaint?.Typeface);
-
         var spans = FindTypefaces(text, paintPreferredTypeface);
         for (var i = 0; i < spans.Count; i++)
         {
@@ -229,6 +235,8 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
                 AddCandidate(_skiaModel.ToSKTypeface(spanTypeface));
             }
         }
+
+        AddCandidate(preferredPaint?.Typeface);
 
         for (var i = 0; i < codepoints.Count; i++)
         {
@@ -329,7 +337,8 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
     private void EnsureTypefaceProviderCaches()
     {
         var providers = _skiaModel.Settings.TypefaceProviders;
-        var hash = ComputeTypefaceProviderHash(providers);
+        var documentProviders = _skiaModel.Settings.DocumentTypefaceProviders;
+        var hash = ComputeTypefaceProviderHash(documentProviders, providers);
         if (!ReferenceEquals(providers, _providerStateList) || hash != _providerStateHash)
         {
             _providerStateList = providers;
@@ -340,35 +349,40 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
         }
     }
 
-    private static int ComputeTypefaceProviderHash(IList<ITypefaceProvider>? providers)
+    private static int ComputeTypefaceProviderHash(params IList<ITypefaceProvider>?[] providerLists)
     {
         unchecked
         {
             var hash = 17;
-            if (providers is null)
+            for (var listIndex = 0; listIndex < providerLists.Length; listIndex++)
             {
-                return hash;
-            }
-
-            hash = (hash * 397) ^ providers.Count;
-            for (var i = 0; i < providers.Count; i++)
-            {
-                var provider = providers[i];
-                if (provider is null)
+                var providers = providerLists[listIndex];
+                if (providers is null)
                 {
+                    hash = (hash * 397) ^ -1;
                     continue;
                 }
 
-                hash = (hash * 397) ^ RuntimeHelpers.GetHashCode(provider);
-                hash = (hash * 397) ^ provider.GetHashCode();
-                if (provider is CustomTypefaceProvider custom)
+                hash = (hash * 397) ^ providers.Count;
+                for (var i = 0; i < providers.Count; i++)
                 {
-                    hash = (hash * 397) ^ (custom.Typeface?.Handle.GetHashCode() ?? 0);
-                }
-                else if (provider is FontManagerTypefaceProvider fontManagerProvider &&
-                         fontManagerProvider.TryGetFontManagerHandle(out var handle))
-                {
-                    hash = (hash * 397) ^ handle.GetHashCode();
+                    var provider = providers[i];
+                    if (provider is null)
+                    {
+                        continue;
+                    }
+
+                    hash = (hash * 397) ^ RuntimeHelpers.GetHashCode(provider);
+                    hash = (hash * 397) ^ provider.GetHashCode();
+                    if (provider is CustomTypefaceProvider custom)
+                    {
+                        hash = (hash * 397) ^ (custom.Typeface?.Handle.GetHashCode() ?? 0);
+                    }
+                    else if (provider is FontManagerTypefaceProvider fontManagerProvider &&
+                             fontManagerProvider.TryGetFontManagerHandle(out var handle))
+                    {
+                        hash = (hash * 397) ^ handle.GetHashCode();
+                    }
                 }
             }
 
@@ -491,6 +505,25 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
         _matchCharacterCache.TryAdd(key, typeface);
         TrimCachesIfNeeded();
         return typeface;
+    }
+
+    private SkiaSharp.SKTypeface? MatchCharacterForTypefaceSpan(
+        string? familyName,
+        SkiaSharp.SKFontStyleWeight weight,
+        SkiaSharp.SKFontStyleWidth width,
+        SkiaSharp.SKFontStyleSlant slant,
+        int codepoint,
+        out string? familyOverride)
+    {
+        familyOverride = null;
+        var typeface = TryMatchCharacterFromCustomProviders(familyName, weight, width, slant, codepoint, out var matchedFamily);
+        if (typeface is { })
+        {
+            familyOverride = matchedFamily;
+            return typeface;
+        }
+
+        return MatchCharacter(familyName, weight, width, slant, codepoint);
     }
 
     private static string? GetExplicitFamilyName(ShimSkiaSharp.SKTypeface? typeface)
@@ -622,7 +655,9 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
         for (var i = 0; i < text.Length; i++)
         {
             var ch = text[i];
-            if (ch <= ' ' || ch is '\u0085' or '\u00A0' || ch >= '\u0300' && IsNonAsciiTypefaceSpanGlue(text, i, ch))
+            if ((ch <= ' ' || ch is '\u0085' or '\u00A0') &&
+                ch is not ' ' and not '\u00A0' ||
+                ch >= '\u0300' && IsNonAsciiTypefaceSpanGlue(text, i, ch))
             {
                 if (char.IsHighSurrogate(text[i]))
                 {
@@ -650,6 +685,12 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
     private static int GetCodepoint(string text, int index, char ch)
     {
         return char.IsSurrogate(ch) ? char.ConvertToUtf32(text, index) : ch;
+    }
+
+    private static bool CanKeepGlueInCurrentTypeface(SkiaSharp.SKTypeface typeface, string text, int index, char ch)
+    {
+        return ch is not ' ' and not '\u00A0' ||
+               typeface.ContainsGlyph(GetCodepoint(text, index, ch));
     }
 
     private static bool IsNonAsciiTypefaceSpanGlue(string text, int index, char ch)
@@ -702,7 +743,8 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
 
     private static ShimSkiaSharp.SKTypeface? ToShimTypeface(
         SkiaSharp.SKTypeface? typeface,
-        SkiaSharp.SKFontStyleWeight? requestedWeight)
+        SkiaSharp.SKFontStyleWeight? requestedWeight,
+        string? familyNameOverride = null)
     {
         if (typeface is null || typeface.Handle == IntPtr.Zero)
         {
@@ -715,7 +757,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
             : (ShimSkiaSharp.SKFontStyleWeight)resolvedWeight;
 
         return ShimSkiaSharp.SKTypeface.FromFamilyName(
-            typeface.FamilyName,
+            familyNameOverride ?? typeface.FamilyName,
             shimWeight,
             (ShimSkiaSharp.SKFontStyleWidth)typeface.FontWidth,
             (ShimSkiaSharp.SKFontStyleSlant)typeface.FontSlant);
@@ -762,13 +804,14 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
     /// <returns>A matching typeface from custom providers, or null if none found.</returns>
     private SkiaSharp.SKTypeface? TryMatchCharacterFromCustomProviders(string? familyName, SkiaSharp.SKFontStyleWeight weight, SkiaSharp.SKFontStyleWidth width, SkiaSharp.SKFontStyleSlant slant, int codepoint)
     {
-        if (_skiaModel.Settings.TypefaceProviders is null || _skiaModel.Settings.TypefaceProviders.Count == 0)
-        {
-            return null;
-        }
+        return TryMatchCharacterFromCustomProviders(familyName, weight, width, slant, codepoint, out _);
+    }
 
+    private SkiaSharp.SKTypeface? TryMatchCharacterFromCustomProviders(string? familyName, SkiaSharp.SKFontStyleWeight weight, SkiaSharp.SKFontStyleWidth width, SkiaSharp.SKFontStyleSlant slant, int codepoint, out string? matchedFamily)
+    {
+        matchedFamily = null;
         var familyKey = familyName ?? "Default";
-        foreach (var provider in _skiaModel.Settings.TypefaceProviders)
+        foreach (var provider in _skiaModel.EnumerateEffectiveTypefaceProviders())
         {
             if (familyName is null &&
                 provider is FontManagerTypefaceProvider or DefaultTypefaceProvider)
@@ -779,6 +822,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
             var typeface = GetProviderTypeface(provider, familyKey, weight, width, slant);
             if (typeface is { } && typeface.ContainsGlyph(codepoint))
             {
+                matchedFamily = familyName;
                 return typeface;
             }
         }

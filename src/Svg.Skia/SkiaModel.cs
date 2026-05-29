@@ -276,7 +276,8 @@ public partial class SkiaModel
     private void EnsureTypefaceProviderCaches()
     {
         var providers = Settings.TypefaceProviders;
-        var hash = ComputeTypefaceProviderHash(providers);
+        var documentProviders = Settings.DocumentTypefaceProviders;
+        var hash = ComputeTypefaceProviderHash(documentProviders, providers);
         if (!ReferenceEquals(providers, _providerStateList) || hash != _providerStateHash)
         {
             _providerStateList = providers;
@@ -288,39 +289,63 @@ public partial class SkiaModel
         }
     }
 
-    private static int ComputeTypefaceProviderHash(IList<ITypefaceProvider>? providers)
+    private static int ComputeTypefaceProviderHash(params IList<ITypefaceProvider>?[] providerLists)
     {
         unchecked
         {
             var hash = 17;
-            if (providers is null)
+            for (var listIndex = 0; listIndex < providerLists.Length; listIndex++)
             {
-                return hash;
-            }
-
-            hash = (hash * 397) ^ providers.Count;
-            for (var i = 0; i < providers.Count; i++)
-            {
-                var provider = providers[i];
-                if (provider is null)
+                var providers = providerLists[listIndex];
+                if (providers is null)
                 {
+                    hash = (hash * 397) ^ -1;
                     continue;
                 }
 
-                hash = (hash * 397) ^ RuntimeHelpers.GetHashCode(provider);
-                hash = (hash * 397) ^ provider.GetHashCode();
-                if (provider is CustomTypefaceProvider custom)
+                hash = (hash * 397) ^ providers.Count;
+                for (var i = 0; i < providers.Count; i++)
                 {
-                    hash = (hash * 397) ^ (custom.Typeface?.Handle.GetHashCode() ?? 0);
-                }
-                else if (provider is FontManagerTypefaceProvider fontManagerProvider &&
-                         fontManagerProvider.TryGetFontManagerHandle(out var handle))
-                {
-                    hash = (hash * 397) ^ handle.GetHashCode();
+                    var provider = providers[i];
+                    if (provider is null)
+                    {
+                        continue;
+                    }
+
+                    hash = (hash * 397) ^ RuntimeHelpers.GetHashCode(provider);
+                    hash = (hash * 397) ^ provider.GetHashCode();
+                    if (provider is CustomTypefaceProvider custom)
+                    {
+                        hash = (hash * 397) ^ (custom.Typeface?.Handle.GetHashCode() ?? 0);
+                    }
+                    else if (provider is FontManagerTypefaceProvider fontManagerProvider &&
+                             fontManagerProvider.TryGetFontManagerHandle(out var handle))
+                    {
+                        hash = (hash * 397) ^ handle.GetHashCode();
+                    }
                 }
             }
 
             return hash;
+        }
+    }
+
+    internal IEnumerable<ITypefaceProvider> EnumerateEffectiveTypefaceProviders()
+    {
+        if (Settings.DocumentTypefaceProviders is { } documentProviders)
+        {
+            for (var i = 0; i < documentProviders.Count; i++)
+            {
+                yield return documentProviders[i];
+            }
+        }
+
+        if (Settings.TypefaceProviders is { } providers)
+        {
+            for (var i = 0; i < providers.Count; i++)
+            {
+                yield return providers[i];
+            }
         }
     }
 
@@ -500,20 +525,19 @@ public partial class SkiaModel
         const bool browserCompatibleFontFallback = true;
         foreach (var candidate in EnumerateFontFamilyCandidates(fontFamily, browserCompatibleFontFallback))
         {
-            if (Settings.TypefaceProviders is { } && Settings.TypefaceProviders.Count > 0)
+            foreach (var typefaceProvider in EnumerateEffectiveTypefaceProviders())
             {
-                foreach (var typefaceProvider in Settings.TypefaceProviders)
+                var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
+                if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                 {
-                    var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
-                    if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
-                    {
-                        return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, candidate, providerTypeface));
-                    }
+                    return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, candidate, providerTypeface));
                 }
             }
 
             var resolved = ResolveTypeface(candidate, style);
-            if (resolved is { } && resolved.Handle != IntPtr.Zero)
+            if (resolved is { } &&
+                resolved.Handle != IntPtr.Zero &&
+                IsAcceptableResolvedFamily(candidate, resolved))
             {
                 return CacheTypefaceResolution(cacheKey, resolved, suppressSyntheticBold: false);
             }
@@ -523,35 +547,31 @@ public partial class SkiaModel
         {
             foreach (var candidate in EnumerateFontFamilyCandidates("serif", browserCompatibleFontFallback))
             {
-                if (Settings.TypefaceProviders is { } && Settings.TypefaceProviders.Count > 0)
+                foreach (var typefaceProvider in EnumerateEffectiveTypefaceProviders())
                 {
-                    foreach (var typefaceProvider in Settings.TypefaceProviders)
+                    var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
+                    if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                     {
-                        var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
-                        if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
-                        {
-                            return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, candidate, providerTypeface));
-                        }
+                        return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, candidate, providerTypeface));
                     }
                 }
 
                 var resolved = ResolveTypeface(candidate, style);
-                if (resolved is { } && resolved.Handle != IntPtr.Zero)
+                if (resolved is { } &&
+                    resolved.Handle != IntPtr.Zero &&
+                    IsAcceptableResolvedFamily(candidate, resolved))
                 {
                     return CacheTypefaceResolution(cacheKey, resolved, suppressSyntheticBold: false);
                 }
             }
         }
 
-        if (Settings.TypefaceProviders is { } && Settings.TypefaceProviders.Count > 0)
+        foreach (var typefaceProvider in EnumerateEffectiveTypefaceProviders())
         {
-            foreach (var typefaceProvider in Settings.TypefaceProviders)
+            var providerTypeface = ResolveProviderTypeface(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, fontWeight, fontWidth, fontStyle);
+            if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
             {
-                var providerTypeface = ResolveProviderTypeface(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, fontWeight, fontWidth, fontStyle);
-                if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
-                {
-                    return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, providerTypeface));
-                }
+                return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, providerTypeface));
             }
         }
 
@@ -563,6 +583,13 @@ public partial class SkiaModel
 
         var fallback = defaultTypeface ?? SkiaSharp.SKTypeface.Default;
         return CacheTypefaceResolution(cacheKey, fallback, suppressSyntheticBold: false);
+    }
+
+    private static bool IsAcceptableResolvedFamily(string candidate, SkiaSharp.SKTypeface resolved)
+    {
+        return s_genericFontFamilyMap.ContainsKey(candidate) ||
+               s_browserCompatibleGenericFontFamilyMap.ContainsKey(candidate) ||
+               string.Equals(resolved.FamilyName, candidate, StringComparison.OrdinalIgnoreCase);
     }
 
     internal static bool HasExplicitTypeface(SKTypeface? typeface)
@@ -605,7 +632,7 @@ public partial class SkiaModel
 
     private static bool ShouldSuppressSyntheticBold(ITypefaceProvider typefaceProvider, string candidate, SkiaSharp.SKTypeface providerTypeface)
     {
-        if (typefaceProvider is FontManagerTypefaceProvider or DefaultTypefaceProvider)
+        if (typefaceProvider is FontManagerTypefaceProvider or DefaultTypefaceProvider or DocumentFontTypefaceProvider)
         {
             return false;
         }
