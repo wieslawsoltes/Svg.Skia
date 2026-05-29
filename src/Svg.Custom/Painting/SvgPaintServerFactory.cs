@@ -171,6 +171,11 @@ namespace Svg
                 return true;
             }
 
+            if (SvgSystemColorResolver.TryGetColor(value, out color))
+            {
+                return true;
+            }
+
             if (TryParseHexColorWithAlpha(value, out color) ||
                 TryParseCssFunctionalColor(value, out color))
             {

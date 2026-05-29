@@ -19,6 +19,8 @@ public class SKSvgSettings
 
     public IList<ITypefaceProvider>? TypefaceProviders { get; set; }
 
+    internal IList<ITypefaceProvider>? DocumentTypefaceProviders { get; set; }
+
     public SkiaSharp.SKRect? StandaloneViewport { get; set; }
 
     public bool EnableSvgFonts { get; set; }
@@ -28,6 +30,8 @@ public class SKSvgSettings
     public bool EnableFilterBackgroundInputs { get; set; }
 
     public bool EnableBrokenImagePlaceholders { get; set; }
+
+    public Svg.ISvgSystemColorProvider? SystemColorProvider { get; set; }
 
     public bool EnableJavaScript { get; set; }
 
@@ -68,11 +72,13 @@ public class SKSvgSettings
         target.TypefaceProviders = TypefaceProviders is null
             ? null
             : new List<ITypefaceProvider>(TypefaceProviders);
+        target.DocumentTypefaceProviders = null;
         target.StandaloneViewport = StandaloneViewport;
         target.EnableSvgFonts = EnableSvgFonts;
         target.EnableTextReferences = EnableTextReferences;
         target.EnableFilterBackgroundInputs = EnableFilterBackgroundInputs;
         target.EnableBrokenImagePlaceholders = EnableBrokenImagePlaceholders;
+        target.SystemColorProvider = SystemColorProvider;
         target.EnableJavaScript = EnableJavaScript;
         target.EnableTextSelectionRendering = EnableTextSelectionRendering;
         target.TextSelectionColor = TextSelectionColor;
@@ -99,12 +105,14 @@ public class SKSvgSettings
             new FontManagerTypefaceProvider(),
             new DefaultTypefaceProvider()
         };
+        DocumentTypefaceProviders = null;
 
         StandaloneViewport = null;
         EnableSvgFonts = true;
         EnableTextReferences = true;
         EnableFilterBackgroundInputs = true;
         EnableBrokenImagePlaceholders = true;
+        SystemColorProvider = null;
         EnableJavaScript = false;
         EnableTextSelectionRendering = true;
         TextSelectionColor = new SkiaSharp.SKColor(0x00, 0x80, 0x00, 0xFF);
