@@ -16,7 +16,11 @@ internal static class SvgTextBaselineResolver
         var charIndex = 0;
         while (TryReadNextCodepoint(text!, ref charIndex, out var scalar))
         {
-            return ResolveScriptBaseline(scalar);
+            var baseline = ResolveScriptBaseline(scalar);
+            if (baseline != SvgDominantBaseline.Alphabetic)
+            {
+                return baseline;
+            }
         }
 
         return SvgDominantBaseline.Alphabetic;

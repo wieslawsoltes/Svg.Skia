@@ -13,10 +13,12 @@ public class SvgSystemColorProviderTests
         Assert.True(SvgSystemColorResolver.TryGetColor("Window", out var window));
         Assert.True(SvgSystemColorResolver.TryGetColor("windowtext", out var windowText));
         Assert.True(SvgSystemColorResolver.TryGetColor("Highlight", out var highlight));
+        Assert.True(SvgSystemColorResolver.TryGetColor("ThreeDShadow", out var threeDShadow));
 
         Assert.Equal(Color.FromArgb(255, 255, 255, 255).ToArgb(), window.ToArgb());
         Assert.Equal(Color.FromArgb(255, 0, 0, 0).ToArgb(), windowText.ToArgb());
         Assert.Equal(Color.FromArgb(255, 10, 36, 106).ToArgb(), highlight.ToArgb());
+        Assert.Equal(Color.FromArgb(255, 128, 128, 128).ToArgb(), threeDShadow.ToArgb());
     }
 
     [Fact]

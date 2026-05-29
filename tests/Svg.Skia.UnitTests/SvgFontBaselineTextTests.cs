@@ -7,6 +7,18 @@ namespace Svg.Skia.UnitTests;
 
 public class SvgFontBaselineTextTests
 {
+    [Theory]
+    [InlineData("A\u6F22", SvgDominantBaseline.Ideographic)]
+    [InlineData(".\u0923", SvgDominantBaseline.Hanging)]
+    [InlineData("x\u2211", SvgDominantBaseline.Mathematical)]
+    public void ResolveScriptBaseline_ScansPastAlphabeticPrefixes(string text, SvgDominantBaseline expected)
+    {
+        var resolver = typeof(SvgSceneRenderer).Assembly.GetType("Svg.Skia.SvgTextBaselineResolver", throwOnError: true)!;
+        var method = resolver.GetMethod("ResolveScriptBaseline", new[] { typeof(string) });
+
+        Assert.Equal(expected, method!.Invoke(null, new object?[] { text }));
+    }
+
     [Fact]
     public void SvgFontUseScriptBaseline_UsesMixedScriptFontFaceCoordinates()
     {

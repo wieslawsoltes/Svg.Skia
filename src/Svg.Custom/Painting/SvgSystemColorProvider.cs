@@ -68,6 +68,7 @@ namespace Svg
             ["ThreeDFace"] = FromRgb(0xD4, 0xD0, 0xC8),
             ["ThreeDHighlight"] = FromRgb(0xE3, 0xE3, 0xE3),
             ["ThreeDLightShadow"] = FromRgb(0xFF, 0xFF, 0xFF),
+            ["ThreeDShadow"] = FromRgb(0x80, 0x80, 0x80),
             ["Window"] = FromRgb(0xFF, 0xFF, 0xFF),
             ["WindowFrame"] = FromRgb(0x00, 0x00, 0x00),
             ["WindowText"] = FromRgb(0x00, 0x00, 0x00)
