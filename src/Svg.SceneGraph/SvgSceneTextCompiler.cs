@@ -2836,7 +2836,8 @@ internal static partial class SvgSceneTextCompiler
             return fullRunAdvance;
         }
 
-        var spanText = TryGetBrowserCompatibleVisualText(svgTextBase, fallbackText, out var visualText)
+        var usesVisualSpanText = TryGetBrowserCompatibleVisualText(svgTextBase, fallbackText, out var visualText);
+        var spanText = usesVisualSpanText
             ? visualText
             : fallbackText;
         var typefaceSpans = assetLoader.FindTypefaces(spanText, paint);
@@ -2878,7 +2879,7 @@ internal static partial class SvgSceneTextCompiler
             return naturalTotalAdvance;
         }
 
-        var isRightToLeft = IsRightToLeft(svgTextBase);
+        var isRightToLeft = !usesVisualSpanText && IsRightToLeft(svgTextBase);
         var startIndex = isRightToLeft ? typefaceSpans.Count - 1 : 0;
         var endIndex = isRightToLeft ? -1 : typefaceSpans.Count;
         var step = isRightToLeft ? -1 : 1;
