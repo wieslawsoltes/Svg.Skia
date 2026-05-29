@@ -1498,6 +1498,91 @@ internal static class SvgCssCompatibilityProcessor
         return builder.ToString();
     }
 
+    internal static IEnumerable<SvgCssStyleSource> EnumerateExpandedStyleSources(
+        IReadOnlyCollection<SvgCssStyleSource> sources,
+        SvgDocument svgDocument,
+        SvgDocumentLoadOptions? loadOptions)
+    {
+        if (sources.Count == 0)
+        {
+            yield break;
+        }
+
+        var mediaContext = ResolveMediaContext(svgDocument);
+        foreach (var source in sources)
+        {
+            foreach (var expanded in EnumerateExpandedStyleSource(
+                         source.Content,
+                         source.BaseUri,
+                         source.BaseUri,
+                         mediaContext,
+                         loadOptions,
+                         CreateImportChain()))
+            {
+                yield return expanded;
+            }
+        }
+    }
+
+    private static IEnumerable<SvgCssStyleSource> EnumerateExpandedStyleSource(
+        string cssText,
+        Uri? baseUri,
+        Uri? policyBaseUri,
+        CssMediaContext mediaContext,
+        SvgDocumentLoadOptions? loadOptions,
+        HashSet<string> importChain)
+    {
+        var index = 0;
+        var isInLeadingImportSection = true;
+
+        while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
+        {
+            var atRuleKind = GetAtRuleKind(cssText, statement);
+            if (isInLeadingImportSection && atRuleKind == CssAtRuleKind.Import)
+            {
+                if (TryParseKnownImportRule(cssText, statement, out var href, out var mediaCondition) &&
+                    ShouldApplyMediaForCurrentContext(mediaCondition, mediaContext))
+                {
+                    var imported = TryLoadImportedStylesheet(href, baseUri, policyBaseUri, loadOptions, importChain);
+                    if (imported is not null)
+                    {
+                        try
+                        {
+                            foreach (var expanded in EnumerateExpandedStyleSource(
+                                         imported.Content,
+                                         imported.BaseUri,
+                                         policyBaseUri,
+                                         mediaContext,
+                                         loadOptions,
+                                         importChain))
+                            {
+                                yield return expanded;
+                            }
+                        }
+                        finally
+                        {
+                            importChain.Remove(imported.BaseUri!.AbsoluteUri);
+                        }
+                    }
+                }
+
+                continue;
+            }
+
+            if (atRuleKind != CssAtRuleKind.Charset)
+            {
+                isInLeadingImportSection = false;
+            }
+
+            if (atRuleKind == CssAtRuleKind.Import || statement.Length <= 0)
+            {
+                continue;
+            }
+
+            yield return new SvgCssStyleSource(cssText.Substring(statement.Start, statement.Length), baseUri);
+        }
+    }
+
     internal static HashSet<string> CreateImportChain()
     {
         // Import cycle detection should compare the fully resolved URI text exactly. Folding case

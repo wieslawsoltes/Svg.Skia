@@ -168,6 +168,19 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
     private DocumentFontTypefaceProvider CreateDocumentFontProvider(SvgDocument document)
     {
         var provider = new DocumentFontTypefaceProvider();
+        if (document.CompatibilityStyleSources is { Count: > 0 } compatibilityStyleSources)
+        {
+            foreach (var styleSource in SvgCssCompatibilityProcessor.EnumerateExpandedStyleSources(
+                         compatibilityStyleSources,
+                         document,
+                         document.LoadOptions))
+            {
+                AddCssFontFaces(provider, document, styleSource.Content, styleSource.BaseUri);
+            }
+
+            return provider;
+        }
+
         foreach (var styleElement in document.Descendants().OfType<SvgUnknownElement>())
         {
             if (string.IsNullOrWhiteSpace(styleElement.Content) ||
@@ -176,25 +189,75 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
                 continue;
             }
 
-            foreach (var fontFace in ParseCssFontFaces(styleElement.Content))
-            {
-                var fontUri = SvgExternalResourceResolver.ResolveResourceUri(styleElement, fontFace.SourceUri);
-                if (!SvgExternalResourceResolver.AllowsExternalResource(styleElement, fontUri))
-                {
-                    continue;
-                }
-
-                if (!TryCreateTypeface(fontUri, document, fontFace.Format, out var typeface) ||
-                    typeface is null)
-                {
-                    continue;
-                }
-
-                provider.Add(fontFace.Family, fontFace.Weight, fontFace.Width, fontFace.Slant, typeface);
-            }
+            AddCssFontFaces(provider, document, styleElement.Content, styleElement);
         }
 
         return provider;
+    }
+
+    private static void AddCssFontFaces(
+        DocumentFontTypefaceProvider provider,
+        SvgDocument document,
+        string css,
+        SvgElement ownerElement)
+    {
+        foreach (var fontFace in ParseCssFontFaces(css))
+        {
+            var fontUri = SvgExternalResourceResolver.ResolveResourceUri(ownerElement, fontFace.SourceUri);
+            AddCssFontFace(provider, document, ownerElement, fontUri, fontFace);
+        }
+    }
+
+    private static void AddCssFontFaces(
+        DocumentFontTypefaceProvider provider,
+        SvgDocument document,
+        string css,
+        Uri? baseUri)
+    {
+        foreach (var fontFace in ParseCssFontFaces(css))
+        {
+            var fontUri = ResolveCssResourceUri(baseUri, fontFace.SourceUri);
+            AddCssFontFace(provider, document, document, fontUri, fontFace);
+        }
+    }
+
+    private static void AddCssFontFace(
+        DocumentFontTypefaceProvider provider,
+        SvgDocument document,
+        SvgElement ownerElement,
+        Uri fontUri,
+        CssFontFace fontFace)
+    {
+        if (!SvgExternalResourceResolver.AllowsExternalResource(ownerElement, fontUri))
+        {
+            return;
+        }
+
+        if (!TryCreateTypeface(fontUri, document, fontFace.Format, out var typeface) ||
+            typeface is null)
+        {
+            return;
+        }
+
+        provider.Add(fontFace.Family, fontFace.Weight, fontFace.Width, fontFace.Slant, typeface);
+    }
+
+    private static Uri ResolveCssResourceUri(Uri? baseUri, Uri uri)
+    {
+        if (uri.IsAbsoluteUri)
+        {
+            return uri;
+        }
+
+        var uriString = uri.OriginalString;
+        if (string.IsNullOrEmpty(uriString) || uriString[0] == '#')
+        {
+            return uri;
+        }
+
+        return baseUri is { IsAbsoluteUri: true }
+            ? new Uri(baseUri, uriString)
+            : uri;
     }
 
     private static IEnumerable<CssFontFace> ParseCssFontFaces(string css)

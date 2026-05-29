@@ -189,6 +189,8 @@ public partial class SvgDocument
 
     internal bool HasCompatibilityStyleSources => _compatibilityStyleSources is { Count: > 0 };
 
+    internal IReadOnlyList<SvgCssStyleSource>? CompatibilityStyleSources => _compatibilityStyleSources;
+
     internal bool UpdateCompatibilityStyleAttribute(SvgElement element, string name, string? value)
     {
         if (!SvgStyleAttributeNames.Contains(name))

@@ -257,6 +257,86 @@ public class SkiaSvgAssetLoaderCachingTests
     }
 
     [Fact]
+    public void OpenPath_ImportedStylesheetFontFaceRegistersDocumentTypeface()
+    {
+        const string family = "SvgSkiaImportedCssBlocky";
+        var tempDirectory = Directory.CreateTempSubdirectory("SvgSkiaFontImport");
+
+        try
+        {
+            var blockyPath = WriteTempBlockyFont(tempDirectory.FullName);
+            var expectedFamily = GetDocumentFontFamilyName(family, blockyPath, "G");
+            var cssPath = Path.Combine(tempDirectory.FullName, "fonts.css");
+            var svgPath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(cssPath, $$"""
+                @font-face {
+                  font-family: {{family}};
+                  src: url("Blocky.woff") format("woff");
+                }
+                """);
+            File.WriteAllText(svgPath, $$"""
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+                  <style>@import url("fonts.css");</style>
+                  <text x="0" y="32" font-family="{{family}}">G</text>
+                </svg>
+                """);
+
+            using var svg = new SKSvg();
+            svg.Settings.EnableSvgFonts = false;
+            svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 40f, 40f);
+            using var _ = svg.Load(svgPath);
+            var assetLoader = Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader);
+            using var fontScope = assetLoader.PushDocumentFonts(svg.SourceDocument!);
+
+            AssertDocumentTypefaceFamily(svg, family, "G", expectedFamily);
+        }
+        finally
+        {
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void OpenPath_LinkedStylesheetFontFaceRegistersDocumentTypeface()
+    {
+        const string family = "SvgSkiaLinkedCssBlocky";
+        var tempDirectory = Directory.CreateTempSubdirectory("SvgSkiaFontLink");
+
+        try
+        {
+            var blockyPath = WriteTempBlockyFont(tempDirectory.FullName);
+            var expectedFamily = GetDocumentFontFamilyName(family, blockyPath, "G");
+            var cssPath = Path.Combine(tempDirectory.FullName, "fonts.css");
+            var svgPath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(cssPath, $$"""
+                @font-face {
+                  font-family: {{family}};
+                  src: url("Blocky.woff") format("woff");
+                }
+                """);
+            File.WriteAllText(svgPath, $$"""
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+                  <link rel="stylesheet" type="text/css" href="fonts.css" />
+                  <text x="0" y="32" font-family="{{family}}">G</text>
+                </svg>
+                """);
+
+            using var svg = new SKSvg();
+            svg.Settings.EnableSvgFonts = false;
+            svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 40f, 40f);
+            using var _ = svg.Load(svgPath);
+            var assetLoader = Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader);
+            using var fontScope = assetLoader.PushDocumentFonts(svg.SourceDocument!);
+
+            AssertDocumentTypefaceFamily(svg, family, "G", expectedFamily);
+        }
+        finally
+        {
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
     public void PushDocumentFonts_RestoresParentScopeAfterNestedDocument()
     {
         const string parentFamily = "SvgSkiaParentBlocky";
@@ -396,6 +476,13 @@ public class SkiaSvgAssetLoaderCachingTests
             </svg>
             """,
             null)!;
+    }
+
+    private static string WriteTempBlockyFont(string directory)
+    {
+        var fontPath = Path.Combine(directory, "Blocky.woff");
+        File.Copy(GetW3CResourcePath("Blocky.woff"), fontPath, overwrite: true);
+        return fontPath;
     }
 
     private static string GetW3CSvgPath(string name)
