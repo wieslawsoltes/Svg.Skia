@@ -1446,6 +1446,61 @@ public class SvgAnimationControllerTests
     }
 
     [Fact]
+    public void CreateAnimatedDocument_InterpolatesW3CAnimateColorBasicFixture()
+    {
+        var start = CreateAnimatedW3CDocument("animate-elem-23-t.svg", TimeSpan.FromSeconds(3));
+        AssertVisualFill(GetLargeAnimatedCircle(start), Color.Blue);
+
+        var midpoint = CreateAnimatedW3CDocument("animate-elem-23-t.svg", TimeSpan.FromSeconds(6));
+        AssertVisualFill(GetLargeAnimatedCircle(midpoint), Color.FromArgb(0, 128, 128));
+
+        var end = CreateAnimatedW3CDocument("animate-elem-23-t.svg", TimeSpan.FromSeconds(9));
+        AssertVisualFill(GetLargeAnimatedCircle(end), Color.Lime);
+    }
+
+    [Fact]
+    public void CreateAnimatedDocument_InterpolatesW3CAnimateColorKeywordFixture()
+    {
+        var animated = CreateAnimatedW3CDocument("animate-elem-84-t.svg", TimeSpan.FromSeconds(7));
+        var animatedRects = animated.Descendants()
+            .OfType<SvgRectangle>()
+            .Where(rectangle => NearlyEqual(rectangle.Width.Value, 100f) && NearlyEqual(rectangle.Height.Value, 100f))
+            .ToArray();
+
+        Assert.Equal(5, animatedRects.Length);
+        foreach (var rectangle in animatedRects)
+        {
+            var expected = NearlyEqual(rectangle.X.Value, 240f) && NearlyEqual(rectangle.Y.Value, 0f)
+                ? Color.FromArgb(0, 119, 0)
+                : Color.Green;
+            AssertVisualFill(rectangle, expected);
+        }
+    }
+
+    [Fact]
+    public void CreateAnimatedDocument_UsesSameFrameCurrentColorForW3CAnimateColorFixture()
+    {
+        var firstEnd = CreateAnimatedW3CDocument("animate-elem-85-t.svg", TimeSpan.FromSeconds(5));
+        var topRects = GetW3CAnimateElem85TopRectangles(firstEnd);
+        Assert.Equal(4, topRects.Length);
+        Assert.All(topRects, rectangle => AssertVisualFill(rectangle, Color.Green));
+
+        var firstEndBottomRects = GetW3CAnimateElem85BottomRectangles(firstEnd);
+        Assert.Equal(2, firstEndBottomRects.Length);
+        Assert.All(firstEndBottomRects, rectangle => AssertVisualFill(rectangle, Color.Green));
+
+        var midpoint = CreateAnimatedW3CDocument("animate-elem-85-t.svg", TimeSpan.FromSeconds(7.5));
+        var midpointBottomRects = GetW3CAnimateElem85BottomRectangles(midpoint);
+        Assert.Equal(2, midpointBottomRects.Length);
+        Assert.All(midpointBottomRects, rectangle => AssertVisualFill(rectangle, Color.FromArgb(0, 128, 128)));
+
+        var end = CreateAnimatedW3CDocument("animate-elem-85-t.svg", TimeSpan.FromSeconds(10));
+        var endBottomRects = GetW3CAnimateElem85BottomRectangles(end);
+        Assert.Equal(2, endBottomRects.Length);
+        Assert.All(endBottomRects, rectangle => AssertVisualFill(rectangle, Color.Cyan));
+    }
+
+    [Fact]
     public void CreateAnimatedDocument_InterpolatesFeCompositeArithmeticCoefficients()
     {
         var document = SvgService.FromSvg(FeCompositeCoefficientAnimationSvg);
@@ -1695,6 +1750,54 @@ public class SvgAnimationControllerTests
             "W3C_SVG_11_TestSuite",
             "svg",
             name));
+    }
+
+    private static SvgDocument CreateAnimatedW3CDocument(string name, TimeSpan time)
+    {
+        var path = GetW3CTestSvgPath(name);
+        Assert.True(File.Exists(path), $"Expected W3C SVG fixture at '{path}'.");
+
+        var document = SvgService.Open(path);
+        Assert.NotNull(document);
+
+        using var controller = new SvgAnimationController(document!);
+        return controller.CreateAnimatedDocument(time);
+    }
+
+    private static SvgCircle GetLargeAnimatedCircle(SvgDocument document)
+    {
+        return Assert.Single(document.Descendants().OfType<SvgCircle>(), circle => circle.Radius.Value > 100f);
+    }
+
+    private static SvgRectangle[] GetW3CAnimateElem85TopRectangles(SvgDocument document)
+    {
+        return GetW3CAnimateElem85Rectangles(document, y: 50f);
+    }
+
+    private static SvgRectangle[] GetW3CAnimateElem85BottomRectangles(SvgDocument document)
+    {
+        return document.Descendants()
+            .OfType<SvgRectangle>()
+            .Where(rectangle => NearlyEqual(rectangle.X.Value, 100f) &&
+                                (NearlyEqual(rectangle.Y.Value, 180f) || NearlyEqual(rectangle.Y.Value, 245f)) &&
+                                NearlyEqual(rectangle.Width.Value, 280f) &&
+                                NearlyEqual(rectangle.Height.Value, 60f))
+            .ToArray();
+    }
+
+    private static SvgRectangle[] GetW3CAnimateElem85Rectangles(SvgDocument document, float y)
+    {
+        return document.Descendants()
+            .OfType<SvgRectangle>()
+            .Where(rectangle => NearlyEqual(rectangle.Y.Value, y) &&
+                                NearlyEqual(rectangle.Width.Value, 90f) &&
+                                NearlyEqual(rectangle.Height.Value, 100f))
+            .ToArray();
+    }
+
+    private static bool NearlyEqual(float actual, float expected)
+    {
+        return Math.Abs(actual - expected) < 0.001f;
     }
 
     private const string AnimationRuntimeSvg = """
@@ -3073,7 +3176,18 @@ public class SvgAnimationControllerTests
     {
         var target = document.GetElementById<SvgRectangle>(elementId);
         Assert.NotNull(target);
-        var fill = Assert.IsType<SvgColourServer>(target!.Fill);
+        AssertVisualFill(target, expectedColor);
+    }
+
+    private static void AssertVisualFill(SvgElement? element, Color expectedColor)
+    {
+        var visualElement = Assert.IsAssignableFrom<SvgVisualElement>(element);
+        AssertPaintColor(visualElement.Fill, expectedColor);
+    }
+
+    private static void AssertPaintColor(SvgPaintServer? paintServer, Color expectedColor)
+    {
+        var fill = Assert.IsType<SvgColourServer>(paintServer);
         Assert.Equal(expectedColor.A, fill.Colour.A);
         Assert.Equal(expectedColor.R, fill.Colour.R);
         Assert.Equal(expectedColor.G, fill.Colour.G);
