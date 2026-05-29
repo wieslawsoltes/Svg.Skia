@@ -821,6 +821,12 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
                    knownFormat.Equals("otf", StringComparison.OrdinalIgnoreCase);
         }
 
+        if (fontUri.IsAbsoluteUri &&
+            string.Equals(fontUri.Scheme, "data", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
         var extension = Path.GetExtension(fontUri.IsAbsoluteUri ? fontUri.LocalPath : fontUri.OriginalString);
         return extension.Equals(".woff", StringComparison.OrdinalIgnoreCase) ||
                extension.Equals(".ttf", StringComparison.OrdinalIgnoreCase) ||
