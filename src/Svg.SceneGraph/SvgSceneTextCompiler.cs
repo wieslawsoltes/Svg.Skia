@@ -2809,6 +2809,14 @@ internal static partial class SvgSceneTextCompiler
         var fallbackText = GetBrowserCompatibleFallbackText(svgTextBase, text, assetLoader);
         if (TryCreateBrowserCompatibleFullRunPaint(svgTextBase, fallbackText, paint, assetLoader, out var fullRunPaint, out var shapedText))
         {
+            fullRunPaint.TextAlign = SKTextAlign.Left;
+            if (TryCreateBrowserBidiShapedGlyphRun(svgTextBase, fallbackText, fullRunPaint, assetLoader, out var bidiShapedRun, out var bidiShapedAdvance))
+            {
+                var shapedRunStartX = GetAlignedStartX(anchorX, bidiShapedAdvance, textAlign);
+                DrawShapedGlyphRun(bidiShapedRun, shapedRunStartX, anchorY, fullRunPaint, canvas);
+                return bidiShapedAdvance;
+            }
+
             var fullRunMeasureBounds = new SKRect();
             var fullRunAdvance = EnsureWhitespaceAdvance(
                 fallbackText,
@@ -2816,7 +2824,6 @@ internal static partial class SvgSceneTextCompiler
                 assetLoader,
                 assetLoader.MeasureText(shapedText, fullRunPaint, ref fullRunMeasureBounds));
 
-            fullRunPaint.TextAlign = SKTextAlign.Left;
             if (TryCreateBrowserShapedGlyphRun(svgTextBase, fallbackText, fullRunPaint, assetLoader, out var shapedRun, out var shapedAdvance))
             {
                 var shapedRunStartX = GetAlignedStartX(anchorX, shapedAdvance, textAlign);
@@ -2829,12 +2836,15 @@ internal static partial class SvgSceneTextCompiler
             return fullRunAdvance;
         }
 
-        var typefaceSpans = assetLoader.FindTypefaces(fallbackText, paint);
+        var spanText = TryGetBrowserCompatibleVisualText(svgTextBase, fallbackText, out var visualText)
+            ? visualText
+            : fallbackText;
+        var typefaceSpans = assetLoader.FindTypefaces(spanText, paint);
         var naturalTotalAdvance = 0f;
         if (typefaceSpans.Count == 0)
         {
             var scratchBounds = new SKRect();
-            naturalTotalAdvance = assetLoader.MeasureText(fallbackText, paint, ref scratchBounds);
+            naturalTotalAdvance = assetLoader.MeasureText(spanText, paint, ref scratchBounds);
         }
         else
         {
@@ -2853,7 +2863,7 @@ internal static partial class SvgSceneTextCompiler
         if (typefaceSpans.Count == 1)
         {
             paint.Typeface = typefaceSpans[0].Typeface;
-            if (TryCreateBrowserShapedGlyphRun(svgTextBase, fallbackText, paint, assetLoader, out var shapedRun, out var shapedAdvance))
+            if (TryCreateBrowserShapedGlyphRun(svgTextBase, spanText, paint, assetLoader, out var shapedRun, out var shapedAdvance))
             {
                 DrawShapedGlyphRun(shapedRun, GetAlignedStartX(anchorX, shapedAdvance, textAlign), anchorY, paint, canvas);
                 return shapedAdvance;
@@ -2864,7 +2874,7 @@ internal static partial class SvgSceneTextCompiler
 
         if (typefaceSpans.Count == 0)
         {
-            canvas.DrawText(ApplyBrowserCompatibleBidiControls(svgTextBase, fallbackText), currentX, anchorY, paint);
+            canvas.DrawText(spanText, currentX, anchorY, paint);
             return naturalTotalAdvance;
         }
 
@@ -2876,7 +2886,7 @@ internal static partial class SvgSceneTextCompiler
         {
             var typefaceSpan = typefaceSpans[i];
             paint.Typeface = typefaceSpan.Typeface;
-            canvas.DrawText(ApplyBrowserCompatibleBidiControls(svgTextBase, typefaceSpan.Text), currentX, anchorY, paint);
+            canvas.DrawText(typefaceSpan.Text, currentX, anchorY, paint);
             currentX += typefaceSpan.Advance;
             paint = paint.Clone();
         }
@@ -11592,6 +11602,68 @@ internal static partial class SvgSceneTextCompiler
         return advance > 0f;
     }
 
+    private static bool TryCreateBrowserBidiShapedGlyphRun(
+        SvgTextBase svgTextBase,
+        string text,
+        SKPaint paint,
+        ISvgAssetLoader assetLoader,
+        out ShapedGlyphRun shapedRun,
+        out float advance)
+    {
+        shapedRun = default;
+        advance = 0f;
+        if (string.IsNullOrEmpty(text) ||
+            SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase) != SvgUnicodeBidiMode.Normal ||
+            SvgTextBidiResolver.ResolveDirection(svgTextBase) != SvgTextDirection.RightToLeft ||
+            !ContainsMixedStrongDirections(text) ||
+            HasEffectiveSpacingAdjustments(svgTextBase, text) ||
+            assetLoader is not ISvgTextDirectedGlyphRunResolver glyphRunResolver)
+        {
+            return false;
+        }
+
+        var visualRuns = CreateLogicalBidiRuns(svgTextBase, text, SvgTextDirection.RightToLeft);
+        if (visualRuns.Count <= 1)
+        {
+            return false;
+        }
+
+        var glyphs = new List<ushort>();
+        var points = new List<SKPoint>();
+        var clusters = new List<int>();
+        var currentAdvance = 0f;
+        for (var i = 0; i < visualRuns.Count; i++)
+        {
+            var visualRun = visualRuns[i];
+            var runText = text.Substring(visualRun.StartCharIndex, visualRun.Length);
+            if (!glyphRunResolver.TryShapeGlyphRun(runText, paint, visualRun.Direction == SvgTextDirection.RightToLeft, out var run) ||
+                run.Glyphs.Length == 0 ||
+                run.Points.Length != run.Glyphs.Length ||
+                run.Clusters.Length != run.Glyphs.Length)
+            {
+                return false;
+            }
+
+            for (var glyphIndex = 0; glyphIndex < run.Glyphs.Length; glyphIndex++)
+            {
+                glyphs.Add(run.Glyphs[glyphIndex]);
+                points.Add(new SKPoint(run.Points[glyphIndex].X + currentAdvance, run.Points[glyphIndex].Y));
+                clusters.Add(visualRun.StartCharIndex + run.Clusters[glyphIndex]);
+            }
+
+            currentAdvance += run.Advance;
+        }
+
+        if (glyphs.Count == 0 || currentAdvance <= 0f)
+        {
+            return false;
+        }
+
+        advance = EnsureWhitespaceAdvance(text, paint, assetLoader, currentAdvance);
+        shapedRun = new ShapedGlyphRun(glyphs.ToArray(), points.ToArray(), clusters.ToArray(), advance);
+        return true;
+    }
+
     private static bool TryCreateMixedScriptSpacingRunLayout(
         SvgTextBase svgTextBase,
         string text,
@@ -17493,6 +17565,12 @@ internal static partial class SvgSceneTextCompiler
         var fallbackText = GetBrowserCompatibleFallbackText(svgTextBase, text, assetLoader);
         if (TryCreateBrowserCompatibleFullRunPaint(svgTextBase, fallbackText, paint, assetLoader, out var fullRunPaint, out var shapedText))
         {
+            if (TryCreateBrowserBidiShapedGlyphRun(svgTextBase, fallbackText, fullRunPaint, assetLoader, out var bidiShapedRun, out var bidiShapedAdvance))
+            {
+                DrawShapedGlyphRun(bidiShapedRun, anchorX, anchorY, fullRunPaint, canvas);
+                return bidiShapedAdvance;
+            }
+
             var fullRunMeasureBounds = new SKRect();
             var measuredAdvance = EnsureWhitespaceAdvance(
                 fallbackText,
@@ -17510,19 +17588,22 @@ internal static partial class SvgSceneTextCompiler
             return measuredAdvance;
         }
 
-        var typefaceSpans = assetLoader.FindTypefaces(fallbackText, paint);
+        var spanText = TryGetBrowserCompatibleVisualText(svgTextBase, fallbackText, out var visualText)
+            ? visualText
+            : fallbackText;
+        var typefaceSpans = assetLoader.FindTypefaces(spanText, paint);
         if (typefaceSpans.Count == 0)
         {
             var scratchBounds = new SKRect();
-            var measuredAdvance = EnsureWhitespaceAdvance(fallbackText, paint, assetLoader, assetLoader.MeasureText(fallbackText, paint, ref scratchBounds));
-            canvas.DrawText(ApplyBrowserCompatibleBidiControls(svgTextBase, fallbackText), anchorX, anchorY, paint);
+            var measuredAdvance = EnsureWhitespaceAdvance(spanText, paint, assetLoader, assetLoader.MeasureText(spanText, paint, ref scratchBounds));
+            canvas.DrawText(spanText, anchorX, anchorY, paint);
             return measuredAdvance;
         }
 
         if (typefaceSpans.Count == 1)
         {
             paint.Typeface = typefaceSpans[0].Typeface;
-            if (TryCreateBrowserShapedGlyphRun(svgTextBase, fallbackText, paint, assetLoader, out var shapedRun, out var shapedAdvance))
+            if (TryCreateBrowserShapedGlyphRun(svgTextBase, spanText, paint, assetLoader, out var shapedRun, out var shapedAdvance))
             {
                 DrawShapedGlyphRun(shapedRun, anchorX, anchorY, paint, canvas);
                 return shapedAdvance;
@@ -17536,13 +17617,13 @@ internal static partial class SvgSceneTextCompiler
         foreach (var typefaceSpan in typefaceSpans)
         {
             paint.Typeface = typefaceSpan.Typeface;
-            canvas.DrawText(ApplyBrowserCompatibleBidiControls(svgTextBase, typefaceSpan.Text), currentX, anchorY, paint);
+            canvas.DrawText(typefaceSpan.Text, currentX, anchorY, paint);
             currentX += typefaceSpan.Advance;
             naturalTotalAdvance += typefaceSpan.Advance;
             paint = paint.Clone();
         }
 
-        naturalTotalAdvance = EnsureWhitespaceAdvance(fallbackText, paint, assetLoader, naturalTotalAdvance);
+        naturalTotalAdvance = EnsureWhitespaceAdvance(spanText, paint, assetLoader, naturalTotalAdvance);
         return naturalTotalAdvance;
     }
 
@@ -19233,6 +19314,15 @@ internal static partial class SvgSceneTextCompiler
         return SvgTextBidiResolver.ApplyBrowserCompatibleControls(svgTextBase, text);
     }
 
+    private static bool TryGetBrowserCompatibleVisualText(SvgTextBase svgTextBase, string text, out string visualText)
+    {
+        return SvgTextBidiResolver.TryGetVisualText(
+            text,
+            SvgTextBidiResolver.ResolveDirection(svgTextBase),
+            SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase),
+            out visualText);
+    }
+
     private static bool TryGetVisualBidiText(string text, string? direction, string? unicodeBidi, out string visualText)
     {
         var baseDirection = string.Equals(direction, "rtl", StringComparison.OrdinalIgnoreCase)
@@ -19618,18 +19708,7 @@ internal static partial class SvgSceneTextCompiler
             return svgFontBaselineOffset;
         }
 
-        var baselineLineOffset = baseline switch
-        {
-            SvgDominantBaseline.Ideographic => metrics.Descent,
-            SvgDominantBaseline.Hanging => metrics.Ascent * 0.8f,
-            SvgDominantBaseline.Mathematical or SvgDominantBaseline.Middle => (metrics.Ascent + metrics.Descent) * 0.5f,
-            SvgDominantBaseline.Central => (metrics.Top + metrics.Bottom) * 0.5f,
-            SvgDominantBaseline.TextAfterEdge or SvgDominantBaseline.TextBottom => metrics.Bottom,
-            SvgDominantBaseline.TextBeforeEdge or SvgDominantBaseline.TextTop => metrics.Top,
-            _ => 0f
-        };
-
-        return -baselineLineOffset;
+        return -SvgTextBaselineResolver.GetNativeBaselineLineOffset(metrics, baseline);
     }
 
     private static SvgDominantBaseline ResolveBaselineIdentifier(SvgTextBase svgTextBase)
@@ -19765,15 +19844,15 @@ internal static partial class SvgSceneTextCompiler
             }
 
             var scalar = char.ConvertToUtf32(codepoint, 0);
-            if (IsCjkBaselineScript(scalar))
+            if (SvgTextBaselineResolver.IsCjkBaselineScript(scalar))
             {
                 cjkCount++;
             }
-            else if (IsMathematicalBaselineScript(scalar))
+            else if (SvgTextBaselineResolver.IsMathematicalBaselineScript(scalar))
             {
                 mathCount++;
             }
-            else if (IsHangingBaselineScript(scalar))
+            else if (SvgTextBaselineResolver.IsHangingBaselineScript(scalar))
             {
                 hangingCount++;
             }
@@ -19799,30 +19878,6 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return SvgDominantBaseline.Alphabetic;
-    }
-
-    private static bool IsCjkBaselineScript(int scalar)
-    {
-        return scalar is >= 0x2E80 and <= 0xA4CF or
-               >= 0xAC00 and <= 0xD7AF or
-               >= 0xF900 and <= 0xFAFF or
-               >= 0xFE30 and <= 0xFE4F or
-               >= 0x20000 and <= 0x2FA1F;
-    }
-
-    private static bool IsMathematicalBaselineScript(int scalar)
-    {
-        return scalar is >= 0x2200 and <= 0x22FF or
-               >= 0x27C0 and <= 0x27EF or
-               >= 0x2980 and <= 0x2AFF or
-               >= 0x1D400 and <= 0x1D7FF;
-    }
-
-    private static bool IsHangingBaselineScript(int scalar)
-    {
-        return scalar is >= 0x0900 and <= 0x0D7F or
-               >= 0x0F00 and <= 0x0FFF or
-               >= 0x1000 and <= 0x109F;
     }
 
     private static string GetRawTextContent(SvgElement element)

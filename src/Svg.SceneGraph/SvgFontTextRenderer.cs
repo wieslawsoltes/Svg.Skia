@@ -1343,77 +1343,7 @@ namespace Svg.Skia
 
             private static SvgDominantBaseline ResolveScriptBaseline(string text)
             {
-                var charIndex = 0;
-                while (TryReadNextCodepoint(text, ref charIndex, out var scalar))
-                {
-                    if (IsCjkBaselineScript(scalar))
-                    {
-                        return SvgDominantBaseline.Ideographic;
-                    }
-
-                    if (IsMathematicalBaselineScript(scalar))
-                    {
-                        return SvgDominantBaseline.Mathematical;
-                    }
-
-                    if (IsHangingBaselineScript(scalar))
-                    {
-                        return SvgDominantBaseline.Hanging;
-                    }
-                }
-
-                return SvgDominantBaseline.Alphabetic;
-            }
-
-            private static bool TryReadNextCodepoint(string text, ref int charIndex, out int scalar)
-            {
-                while (charIndex < text.Length)
-                {
-                    var current = text[charIndex++];
-                    if (char.IsWhiteSpace(current))
-                    {
-                        continue;
-                    }
-
-                    if (char.IsHighSurrogate(current) &&
-                        charIndex < text.Length &&
-                        char.IsLowSurrogate(text[charIndex]))
-                    {
-                        scalar = char.ConvertToUtf32(current, text[charIndex]);
-                        charIndex++;
-                        return true;
-                    }
-
-                    scalar = current;
-                    return true;
-                }
-
-                scalar = 0;
-                return false;
-            }
-
-            private static bool IsCjkBaselineScript(int scalar)
-            {
-                return scalar is >= 0x2E80 and <= 0xA4CF or
-                       >= 0xAC00 and <= 0xD7AF or
-                       >= 0xF900 and <= 0xFAFF or
-                       >= 0xFE30 and <= 0xFE4F or
-                       >= 0x20000 and <= 0x2FA1F;
-            }
-
-            private static bool IsMathematicalBaselineScript(int scalar)
-            {
-                return scalar is >= 0x2200 and <= 0x22FF or
-                       >= 0x27C0 and <= 0x27EF or
-                       >= 0x2980 and <= 0x2AFF or
-                       >= 0x1D400 and <= 0x1D7FF;
-            }
-
-            private static bool IsHangingBaselineScript(int scalar)
-            {
-                return scalar is >= 0x0900 and <= 0x0D7F or
-                       >= 0x0F00 and <= 0x0FFF or
-                       >= 0x1000 and <= 0x109F;
+                return SvgTextBaselineResolver.ResolveScriptBaseline(text);
             }
 
             private static bool HasBaselineCoordinate(float value)
@@ -1438,7 +1368,7 @@ namespace Svg.Skia
                 return baseline switch
                 {
                     SvgDominantBaseline.Ideographic => ResolveBaselineCoordinate(fontFace.Ideographic, -Math.Abs(descent)),
-                    SvgDominantBaseline.Hanging => ResolveBaselineCoordinate(fontFace.Hanging, ascent * 0.8f),
+                    SvgDominantBaseline.Hanging => ResolveBaselineCoordinate(fontFace.Hanging, ascent),
                     SvgDominantBaseline.Mathematical => ResolveBaselineCoordinate(fontFace.Mathematical, central),
                     SvgDominantBaseline.Middle when HasBaselineCoordinate(fontFace.XHeight) => fontFace.XHeight * 0.5f,
                     SvgDominantBaseline.Middle when HasBaselineCoordinate(fontFace.CapHeight) => fontFace.CapHeight * 0.5f,

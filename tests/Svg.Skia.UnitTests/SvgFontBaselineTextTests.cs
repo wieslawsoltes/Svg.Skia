@@ -40,6 +40,46 @@ public class SvgFontBaselineTextTests
     }
 
     [Fact]
+    public void SvgFontMixedScriptBaselineTable_AlignsDescendantFontSizesToRootTable()
+    {
+        const string svgMarkup = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="520" height="220" viewBox="0 0 520 220">
+              <defs>
+                <font id="BaselineFont" horiz-adv-x="1000">
+                  <font-face font-family="BaselineFont" units-per-em="1000" ascent="800" descent="200" alphabetic="0" ideographic="-200" hanging="650" />
+                  <missing-glyph horiz-adv-x="1000" d="M0 0H700V700H0Z" />
+                  <glyph unicode="a" horiz-adv-x="1000" d="M0 0H700V700H0Z" />
+                  <glyph unicode="&#x6F22;" horiz-adv-x="1000" d="M0 -200L350 700L700 -200Z" />
+                  <glyph unicode="&#x923;" horiz-adv-x="1000" d="M0 650H700L350 -50Z" />
+                </font>
+              </defs>
+              <text x="20" y="140" font-family="BaselineFont" font-size="100">
+                <tspan id="latin-large">a</tspan><tspan id="cjk-large">&#x6F22;</tspan><tspan id="hanging-large">&#x923;</tspan>
+                <tspan id="latin-small" font-size="50">a</tspan><tspan id="cjk-small" font-size="50">&#x6F22;</tspan><tspan id="hanging-small" font-size="50">&#x923;</tspan>
+                <tspan id="latin-tiny" font-size="25">a</tspan><tspan id="cjk-tiny" font-size="25">&#x6F22;</tspan><tspan id="hanging-tiny" font-size="25">&#x923;</tspan>
+              </text>
+            </svg>
+            """;
+
+        var latinLarge = GetOnlyPathBounds(svgMarkup, "latin-large");
+        var cjkLarge = GetOnlyPathBounds(svgMarkup, "cjk-large");
+        var hangingLarge = GetOnlyPathBounds(svgMarkup, "hanging-large");
+        var latinSmall = GetOnlyPathBounds(svgMarkup, "latin-small");
+        var cjkSmall = GetOnlyPathBounds(svgMarkup, "cjk-small");
+        var hangingSmall = GetOnlyPathBounds(svgMarkup, "hanging-small");
+        var latinTiny = GetOnlyPathBounds(svgMarkup, "latin-tiny");
+        var cjkTiny = GetOnlyPathBounds(svgMarkup, "cjk-tiny");
+        var hangingTiny = GetOnlyPathBounds(svgMarkup, "hanging-tiny");
+
+        Assert.Equal(latinLarge.Bottom, latinSmall.Bottom, 2);
+        Assert.Equal(latinLarge.Bottom, latinTiny.Bottom, 2);
+        Assert.Equal(cjkLarge.Bottom, cjkSmall.Bottom, 2);
+        Assert.Equal(cjkLarge.Bottom, cjkTiny.Bottom, 2);
+        Assert.Equal(hangingLarge.Top, hangingSmall.Top, 2);
+        Assert.Equal(hangingLarge.Top, hangingTiny.Top, 2);
+    }
+
+    [Fact]
     public void SvgFontBaselineFallback_UsesBrowserLikeFontCoordinatesWhenTableEntriesAreMissing()
     {
         const string svgMarkup = """
