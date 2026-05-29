@@ -80,6 +80,8 @@ public sealed class SvgSceneNode
 
     public SKPath? HitTestPath { get; internal set; }
 
+    internal SvgSceneTextCompiler.SvgTextContentMetrics? TextContentMetrics { get; set; }
+
     public SKRect GeometryBounds { get; internal set; }
 
     public SKRect TransformedBounds { get; internal set; }
@@ -180,6 +182,7 @@ public sealed class SvgSceneNode
         LocalFill = replacement.LocalFill;
         LocalStroke = replacement.LocalStroke;
         HitTestPath = replacement.HitTestPath?.DeepClone();
+        TextContentMetrics = replacement.TextContentMetrics;
         GeometryBounds = replacement.GeometryBounds;
         TransformedBounds = replacement.TransformedBounds;
         Transform = replacement.Transform;

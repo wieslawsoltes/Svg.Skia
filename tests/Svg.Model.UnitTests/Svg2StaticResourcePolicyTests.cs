@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using ShimSkiaSharp;
 using Svg.Model;
 using Svg.Model.Services;
@@ -574,6 +576,157 @@ public class Svg2StaticResourcePolicyTests
         }
     }
 
+    [Theory]
+    [InlineData(SvgProcessingMode.Static, SvgProcessingMode.Static)]
+    [InlineData(SvgProcessingMode.Animated, SvgProcessingMode.Static)]
+    [InlineData(SvgProcessingMode.DynamicInteractive, SvgProcessingMode.Static)]
+    [InlineData(SvgProcessingMode.SecureStatic, SvgProcessingMode.SecureStatic)]
+    [InlineData(SvgProcessingMode.SecureAnimated, SvgProcessingMode.SecureStatic)]
+    public void GetImage_NestedSvgImageForcesStaticImageProcessingMode(
+        SvgProcessingMode ownerProcessingMode,
+        SvgProcessingMode expectedImageProcessingMode)
+    {
+        var nestedSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+              <rect id="shape" width="16" height="16" fill="green">
+                <set attributeName="fill" to="red" />
+              </rect>
+              <script>document.getElementById('shape').setAttribute('fill', 'red');</script>
+            </svg>
+            """;
+        var nestedDataUri = "data:image/svg+xml;base64," + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(nestedSvg));
+        var parentSvg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+              <image id="asset" href="{{nestedDataUri}}" width="16" height="16" />
+            </svg>
+            """;
+        var parameters = new SvgParameters(
+            null,
+            null,
+            null,
+            new SvgDocumentLoadOptions
+            {
+                ProcessingMode = ownerProcessingMode,
+                ExternalResources = SvgExternalResourcePolicy.Enabled,
+                PreserveUnknownElements = false,
+                PreferSvg2Href = false
+            });
+
+        var parentDocument = SvgService.FromSvg(parentSvg, parameters);
+        var parentImage = Assert.IsType<SvgImage>(parentDocument!.GetElementById("asset"));
+        Assert.True(parentImage.TryGetEffectiveHrefString(out var parentHref));
+
+        var nestedDocument = Assert.IsType<SvgDocument>(SvgService.GetImage(parentHref, parentImage, new CountingAssetLoader()));
+        var nestedOptions = SvgService.GetDocumentLoadOptions(nestedDocument);
+        var shape = Assert.IsType<SvgRectangle>(nestedDocument.GetElementById("shape"));
+        var fill = Assert.IsType<SvgColourServer>(shape.Fill);
+
+        Assert.Equal(expectedImageProcessingMode, nestedOptions.ProcessingMode);
+        Assert.Equal(SvgExternalResourcePolicy.Enabled, nestedOptions.ExternalResources);
+        Assert.False(nestedOptions.PreserveUnknownElements);
+        Assert.False(nestedOptions.PreferSvg2Href);
+        Assert.Single(nestedDocument.Descendants().OfType<SvgScript>());
+        Assert.Single(nestedDocument.Descendants().OfType<SvgSet>());
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void GetImage_NestedSvgImageDoesNotLoosenSecureResourcePolicy()
+    {
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            var imagePath = Path.Combine(tempDirectory.FullName, "nested.png");
+            File.WriteAllBytes(imagePath, new byte[] { 1, 2, 3, 4 });
+            var imageUri = new Uri(Path.GetFullPath(imagePath)).AbsoluteUri;
+            var nestedSvg = $$"""
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                  <image id="nested-asset" href="{{imageUri}}" width="16" height="16" />
+                </svg>
+                """;
+            var nestedDataUri = "data:image/svg+xml;base64," + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(nestedSvg));
+            var parentSvg = $$"""
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                  <image id="asset" href="{{nestedDataUri}}" width="16" height="16" />
+                </svg>
+                """;
+            var parameters = new SvgParameters(
+                null,
+                null,
+                null,
+                new SvgDocumentLoadOptions
+                {
+                    ProcessingMode = SvgProcessingMode.SecureAnimated,
+                    ExternalResources = SvgExternalResourcePolicy.Enabled
+                });
+
+            var parentDocument = SvgService.FromSvg(parentSvg, parameters);
+            var parentImage = Assert.IsType<SvgImage>(parentDocument!.GetElementById("asset"));
+            Assert.True(parentImage.TryGetEffectiveHrefString(out var parentHref));
+
+            var nestedDocument = Assert.IsType<SvgDocument>(SvgService.GetImage(parentHref, parentImage, new CountingAssetLoader()));
+            var nestedImage = Assert.IsType<SvgImage>(nestedDocument.GetElementById("nested-asset"));
+            Assert.True(nestedImage.TryGetEffectiveHrefString(out var nestedHref));
+            var assetLoader = new CountingAssetLoader();
+
+            var nestedRaster = SvgService.GetImage(nestedHref, nestedImage, assetLoader);
+
+            Assert.Equal(SvgProcessingMode.SecureStatic, SvgService.GetDocumentLoadOptions(nestedDocument).ProcessingMode);
+            Assert.Null(nestedRaster);
+            Assert.Equal(0, assetLoader.LoadImageCallCount);
+        }
+        finally
+        {
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData("image/svg+xml")]
+    [InlineData("image/svg+xml-compressed")]
+    public void GetImage_GzippedSvgDataUriUsesStaticImageDocumentPolicy(string mimeType)
+    {
+        var nestedSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+              <rect id="shape" width="16" height="16" fill="green">
+                <set attributeName="fill" to="red" />
+              </rect>
+              <script>document.getElementById('shape').setAttribute('fill', 'red');</script>
+            </svg>
+            """;
+        var nestedDataUri = $"data:{mimeType};base64," + Convert.ToBase64String(CompressUtf8(nestedSvg));
+        var parentSvg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+              <image id="asset" href="{{nestedDataUri}}" width="16" height="16" />
+            </svg>
+            """;
+        var parameters = new SvgParameters(
+            null,
+            null,
+            null,
+            new SvgDocumentLoadOptions
+            {
+                ProcessingMode = SvgProcessingMode.DynamicInteractive,
+                ExternalResources = SvgExternalResourcePolicy.Enabled
+            });
+
+        var parentDocument = SvgService.FromSvg(parentSvg, parameters);
+        var parentImage = Assert.IsType<SvgImage>(parentDocument!.GetElementById("asset"));
+        Assert.True(parentImage.TryGetEffectiveHrefString(out var parentHref));
+
+        var nestedDocument = Assert.IsType<SvgDocument>(SvgService.GetImage(parentHref, parentImage, new CountingAssetLoader()));
+        var nestedOptions = SvgService.GetDocumentLoadOptions(nestedDocument);
+        var shape = Assert.IsType<SvgRectangle>(nestedDocument.GetElementById("shape"));
+        var fill = Assert.IsType<SvgColourServer>(shape.Fill);
+
+        Assert.Equal(SvgProcessingMode.Static, nestedOptions.ProcessingMode);
+        Assert.Equal(SvgExternalResourcePolicy.Enabled, nestedOptions.ExternalResources);
+        Assert.Single(nestedDocument.Descendants().OfType<SvgScript>());
+        Assert.Single(nestedDocument.Descendants().OfType<SvgSet>());
+        Assert.Equal(Color.Green.ToArgb(), fill.Colour.ToArgb());
+    }
+
     [Fact]
     public void GetReference_SameDocumentAndDataOnlyBlocksExternalSvgElementReference()
     {
@@ -761,6 +914,18 @@ public class Svg2StaticResourcePolicyTests
         {
             ExternalResources = externalResourcePolicy
         };
+    }
+
+    private static byte[] CompressUtf8(string text)
+    {
+        using var memoryStream = new MemoryStream();
+        using (var gzipStream = new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(text);
+            gzipStream.Write(bytes, 0, bytes.Length);
+        }
+
+        return memoryStream.ToArray();
     }
 
     private sealed class CountingAssetLoader : ISvgAssetLoader, ISvgImageAssetLoader

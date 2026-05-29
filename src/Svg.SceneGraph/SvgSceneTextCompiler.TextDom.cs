@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ShimSkiaSharp;
 using Svg;
 using Svg.Model;
@@ -12,16 +13,27 @@ internal static partial class SvgSceneTextCompiler
     internal sealed class SvgTextContentMetrics
     {
         private readonly TextDomClusterMetric[] _clusters;
+        private readonly TextDomHitCell[] _hitCells;
         private readonly int _numberOfChars;
 
-        internal static SvgTextContentMetrics Empty { get; } = new(Array.Empty<TextDomClusterMetric>(), 0, 0f);
+        internal static SvgTextContentMetrics Empty { get; } = new(Array.Empty<TextDomClusterMetric>(), 0, 0f, Array.Empty<TextDomHitCell>());
 
         public SvgTextContentMetrics(
             TextDomClusterMetric[] clusters,
             int numberOfChars,
             float computedTextLength)
+            : this(clusters, numberOfChars, computedTextLength, null)
+        {
+        }
+
+        internal SvgTextContentMetrics(
+            TextDomClusterMetric[] clusters,
+            int numberOfChars,
+            float computedTextLength,
+            TextDomHitCell[]? hitCells)
         {
             _clusters = clusters;
+            _hitCells = hitCells is { Length: > 0 } ? hitCells : CreateHitCells(clusters);
             _numberOfChars = numberOfChars;
             ComputedTextLength = computedTextLength;
         }
@@ -29,6 +41,8 @@ internal static partial class SvgSceneTextCompiler
         public int NumberOfChars => _numberOfChars;
 
         public float ComputedTextLength { get; }
+
+        internal bool HasHitTestCells => _hitCells.Length > 0;
 
         public float GetSubStringLength(int charnum, int nchars)
         {
@@ -86,6 +100,32 @@ internal static partial class SvgSceneTextCompiler
             return GetCluster(charnum).Extent;
         }
 
+        public bool TryGetCaretMetadata(int charnum, out SKPoint position, out SKRect extent)
+        {
+            position = default;
+            extent = default;
+
+            if (NumberOfChars == 0 ||
+                charnum < 0 ||
+                charnum > NumberOfChars)
+            {
+                return false;
+            }
+
+            if (charnum == NumberOfChars)
+            {
+                var lastCluster = GetCluster(NumberOfChars - 1);
+                position = lastCluster.EndPoint;
+                extent = lastCluster.Extent;
+                return true;
+            }
+
+            var cluster = GetCluster(charnum);
+            position = cluster.StartPoint;
+            extent = cluster.Extent;
+            return true;
+        }
+
         public float GetRotationOfChar(int charnum)
         {
             return GetCluster(charnum).RotationDegrees;
@@ -104,6 +144,19 @@ internal static partial class SvgSceneTextCompiler
             }
 
             return -1;
+        }
+
+        internal bool HitTestCharacterCell(SKPoint point)
+        {
+            for (var i = 0; i < _hitCells.Length; i++)
+            {
+                if (ContainsPoint(_hitCells[i].Extent, point))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public SKRect[] GetSelectionExtents(int charnum, int nchars)
@@ -244,6 +297,39 @@ internal static partial class SvgSceneTextCompiler
             return true;
         }
 
+        private static TextDomHitCell[] CreateHitCells(IReadOnlyList<TextDomClusterMetric> clusters)
+        {
+            if (clusters.Count == 0)
+            {
+                return Array.Empty<TextDomHitCell>();
+            }
+
+            var hitCells = new List<TextDomHitCell>(clusters.Count);
+            for (var i = 0; i < clusters.Count; i++)
+            {
+                if (!clusters[i].HitExtent.IsEmpty)
+                {
+                    hitCells.Add(new TextDomHitCell(clusters[i].HitExtent));
+                }
+            }
+
+            return hitCells.ToArray();
+        }
+
+        private static bool ContainsPoint(SKRect bounds, SKPoint point)
+        {
+            if (bounds.IsEmpty)
+            {
+                return false;
+            }
+
+            const float tolerance = 0.25f;
+            return point.X >= bounds.Left - tolerance &&
+                   point.X <= bounds.Right + tolerance &&
+                   point.Y >= bounds.Top - tolerance &&
+                   point.Y <= bounds.Bottom + tolerance;
+        }
+
         private static SKRect[] MergeSelectionExtents(List<SKRect> extents)
         {
             if (extents.Count <= 1)
@@ -306,6 +392,7 @@ internal static partial class SvgSceneTextCompiler
     private sealed class SvgTextContentMetricsBuilder
     {
         private readonly List<TextDomClusterMetric> _clusters = new();
+        private readonly List<TextDomHitCell> _hitCells = new();
         private int _numberOfChars;
         private float _computedTextLength;
 
@@ -315,6 +402,7 @@ internal static partial class SvgSceneTextCompiler
             for (var clusterIndex = 0; clusterIndex < runClusters.Count; clusterIndex++)
             {
                 var runCluster = runClusters[clusterIndex];
+                AppendHitCell(runCluster);
                 if (runCluster.CharLength <= 0)
                 {
                     continue;
@@ -322,6 +410,11 @@ internal static partial class SvgSceneTextCompiler
 
                 var startCharIndex = _numberOfChars;
                 var charLength = runCluster.CharLength;
+                if (runCluster.StartCharIndex is { } explicitStartCharIndex)
+                {
+                    startCharIndex = explicitStartCharIndex;
+                }
+
                 var globalCluster = new TextDomClusterMetric(
                     startCharIndex,
                     charLength,
@@ -330,9 +423,14 @@ internal static partial class SvgSceneTextCompiler
                     runCluster.StartPoint,
                     runCluster.EndPoint,
                     runCluster.Extent,
-                    runCluster.RotationDegrees);
+                    runCluster.RotationDegrees)
+                {
+                    HitExtent = runCluster.HitExtent
+                };
                 _clusters.Add(globalCluster);
-                _numberOfChars += charLength;
+                _numberOfChars = runCluster.StartCharIndex is { }
+                    ? Math.Max(_numberOfChars, startCharIndex + charLength)
+                    : _numberOfChars + charLength;
             }
 
             _computedTextLength = runStartOffset + Math.Max(0f, runLength);
@@ -348,6 +446,7 @@ internal static partial class SvgSceneTextCompiler
             for (var clusterIndex = 0; clusterIndex < runClusters.Count; clusterIndex++)
             {
                 var runCluster = runClusters[clusterIndex];
+                AppendHitCell(runCluster);
                 if (runCluster.CharLength <= 0)
                 {
                     continue;
@@ -362,7 +461,10 @@ internal static partial class SvgSceneTextCompiler
                     runCluster.StartPoint,
                     runCluster.EndPoint,
                     runCluster.Extent,
-                    runCluster.RotationDegrees);
+                    runCluster.RotationDegrees)
+                {
+                    HitExtent = runCluster.HitExtent
+                };
                 _clusters.Add(globalCluster);
                 localCharIndex += charLength;
             }
@@ -377,7 +479,16 @@ internal static partial class SvgSceneTextCompiler
             return new SvgTextContentMetrics(
                 _clusters.ToArray(),
                 _numberOfChars,
-                _computedTextLength);
+                _computedTextLength,
+                _hitCells.ToArray());
+        }
+
+        private void AppendHitCell(TextDomRunClusterMetric runCluster)
+        {
+            if (!runCluster.HitExtent.IsEmpty)
+            {
+                _hitCells.Add(new TextDomHitCell(runCluster.HitExtent));
+            }
         }
     }
 
@@ -389,7 +500,10 @@ internal static partial class SvgSceneTextCompiler
         SKPoint StartPoint,
         SKPoint EndPoint,
         SKRect Extent,
-        float RotationDegrees);
+        float RotationDegrees)
+    {
+        public SKRect HitExtent { get; init; } = Extent;
+    }
 
     private readonly record struct TextDomRunClusterMetric(
         int CharLength,
@@ -398,13 +512,23 @@ internal static partial class SvgSceneTextCompiler
         SKPoint StartPoint,
         SKPoint EndPoint,
         SKRect Extent,
-        float RotationDegrees);
+        float RotationDegrees)
+    {
+        public SKRect HitExtent { get; init; } = Extent;
+
+        public int? StartCharIndex { get; init; }
+    }
+
+    internal readonly record struct TextDomHitCell(SKRect Extent);
 
     private readonly record struct TextDomClusterSource(
         int FirstCodepointIndex,
         string Text,
         float RelativeOffset,
-        float Advance);
+        float Advance)
+    {
+        public int? FirstCharIndex { get; init; }
+    }
 
     private readonly record struct SequentialTextContentRun(
         SvgTextBase StyleSource,
@@ -439,6 +563,11 @@ internal static partial class SvgSceneTextCompiler
         }
 
         if (TryCreateInlineSizeTextContentMetrics(svgTextBase, viewport, assetLoader, out metrics))
+        {
+            return true;
+        }
+
+        if (TryCreateBidiSequentialTextContentMetrics(svgTextBase, viewport, assetLoader, out metrics))
         {
             return true;
         }
@@ -535,11 +664,12 @@ internal static partial class SvgSceneTextCompiler
         for (var lineIndex = 0; lineIndex < layout.Lines.Count; lineIndex++)
         {
             var line = layout.Lines[lineIndex];
-            var drawX = line.StartX;
-            var drawY = line.BaselineY;
             if (UsesVisualInlineSizeTextRunOrder(line))
             {
                 var runStartOffset = 0f;
+                var visualDrawX = line.StartX;
+                var visualDrawY = line.BaselineY;
+                var cursorX = line.PlaceVisualRunsRightToLeft ? GetInlineSizeVisualRunCursorX(line) : line.StartX;
                 for (var runIndex = 0; runIndex < line.VisualRuns.Count; runIndex++)
                 {
                     var run = line.VisualRuns[runIndex];
@@ -551,8 +681,8 @@ internal static partial class SvgSceneTextCompiler
                     if (!TryCreateTextRunMetrics(
                             run.StyleSource,
                             run.Text,
-                            drawX,
-                            drawY,
+                            line.PlaceVisualRunsRightToLeft ? TakeInlineSizeVisualRunX(line, run, ref cursorX) : visualDrawX,
+                            visualDrawY,
                             viewport,
                             assetLoader,
                             rotations: null,
@@ -568,7 +698,11 @@ internal static partial class SvgSceneTextCompiler
                         line.ShouldClip ? ClipTextDomRunClusters(clusters, line.ClipRect) : clusters,
                         lineStartOffset + runStartOffset,
                         runLength);
-                    ApplyInlineAdvance(run.StyleSource, ref drawX, ref drawY, runLength);
+                    if (!line.PlaceVisualRunsRightToLeft)
+                    {
+                        ApplyInlineAdvance(run.StyleSource, ref visualDrawX, ref visualDrawY, runLength);
+                    }
+
                     runStartOffset += runLength;
                 }
 
@@ -577,6 +711,8 @@ internal static partial class SvgSceneTextCompiler
                 continue;
             }
 
+            var drawX = line.StartX;
+            var drawY = line.BaselineY;
             for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
             {
                 var run = line.Runs[runIndex];
@@ -620,6 +756,11 @@ internal static partial class SvgSceneTextCompiler
 
     private static bool UsesVisualInlineSizeTextRunOrder(InlineSizeTextLine line)
     {
+        if (line.PlaceVisualRunsRightToLeft)
+        {
+            return true;
+        }
+
         if (line.VisualRuns.Count != line.Runs.Count)
         {
             return true;
@@ -957,6 +1098,7 @@ internal static partial class SvgSceneTextCompiler
         {
             var cluster = clusters[i];
             var extent = cluster.Extent;
+            var hitExtent = cluster.HitExtent;
             if (!extent.IsEmpty &&
                 TryIntersectRect(extent, clipRect, out var clippedExtent))
             {
@@ -967,6 +1109,16 @@ internal static partial class SvgSceneTextCompiler
                 extent = SKRect.Empty;
             }
 
+            if (!hitExtent.IsEmpty &&
+                TryIntersectRect(hitExtent, clipRect, out var clippedHitExtent))
+            {
+                hitExtent = clippedHitExtent;
+            }
+            else if (!hitExtent.IsEmpty)
+            {
+                hitExtent = SKRect.Empty;
+            }
+
             clipped[i] = new TextDomRunClusterMetric(
                 cluster.CharLength,
                 cluster.StartOffset,
@@ -974,7 +1126,10 @@ internal static partial class SvgSceneTextCompiler
                 cluster.StartPoint,
                 cluster.EndPoint,
                 extent,
-                cluster.RotationDegrees);
+                cluster.RotationDegrees)
+            {
+                HitExtent = hitExtent
+            };
         }
 
         return clipped;
@@ -1044,6 +1199,74 @@ internal static partial class SvgSceneTextCompiler
 
         metrics = builder.Build();
         return true;
+    }
+
+    private static bool TryCreateBidiSequentialTextContentMetrics(
+        SvgTextBase svgTextBase,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader,
+        out SvgTextContentMetrics metrics)
+    {
+        metrics = SvgTextContentMetrics.Empty;
+        if (HasSequentialTextRunBarriers(svgTextBase) ||
+            !TryCollectSequentialTextContentRuns(svgTextBase, trimLeadingWhitespaceAtStart: true, out var runs) ||
+            runs.Count != 1 ||
+            runs[0].Rotations is { Length: > 0 })
+        {
+            return false;
+        }
+
+        var run = runs[0];
+        var paint = new SKPaint();
+        PaintingService.SetPaintText(run.StyleSource, viewport, paint);
+        if (!TryCreateBidiClusterSources(run.StyleSource, run.Text, viewport, paint, assetLoader, out var sources, out var totalAdvance))
+        {
+            return false;
+        }
+
+        var xs = new List<float>();
+        var ys = new List<float>();
+        GetPositionsX(svgTextBase, viewport, assetLoader, xs);
+        GetPositionsY(svgTextBase, viewport, assetLoader, ys);
+        var currentX = xs.Count >= 1 ? xs[0] : 0f;
+        var currentY = ys.Count >= 1 ? ys[0] : 0f;
+        var baselineShift = GetBaselineShiftVector(svgTextBase, viewport, assetLoader);
+        currentX += baselineShift.X;
+        currentY += baselineShift.Y;
+        ApplyInitialChildContainerOffsets(svgTextBase, viewport, assetLoader, ref currentX, ref currentY);
+
+        var isVertical = IsVerticalWritingMode(svgTextBase);
+        if (isVertical && svgTextBase.X.Count > 0)
+        {
+            currentX -= baselineShift.X;
+        }
+
+        var textAlign = GetTextAnchorAlign(svgTextBase, viewport);
+        var inlineOrigin = isVertical
+            ? GetVerticalInlineStartCoordinate(svgTextBase, currentY, totalAdvance, textAlign)
+            : GetAlignedStartCoordinate(currentX, totalAdvance, textAlign);
+        var drawX = isVertical ? currentX : inlineOrigin;
+        var drawY = isVertical ? inlineOrigin : currentY;
+        if (!TryCreateUnpositionedTextRunMetrics(
+                run.StyleSource,
+                viewport,
+                assetLoader,
+                paint,
+                drawX,
+                drawY,
+                GetLogicalStartTextAlign(svgTextBase),
+                sources,
+                totalAdvance,
+                out var clusters,
+                out var runLength))
+        {
+            return false;
+        }
+
+        var builder = new SvgTextContentMetricsBuilder();
+        builder.AppendRun(clusters, runLength);
+        metrics = builder.Build();
+        return metrics.NumberOfChars > 0;
     }
 
     private static bool TryCollectSequentialTextContentRuns(
@@ -1510,6 +1733,12 @@ internal static partial class SvgSceneTextCompiler
             return TryCreatePlacedTextRunMetrics(svgTextBase, text, viewport, assetLoader, placements, out clusters, out runLength);
         }
 
+        if (rotations is not { Length: > 0 } &&
+            TryCreateBidiClusterSources(svgTextBase, text, viewport, paint, assetLoader, out var bidiClusters, out var bidiAdvance))
+        {
+            return TryCreateUnpositionedTextRunMetrics(svgTextBase, viewport, assetLoader, paint, anchorX, anchorY, textAlign, bidiClusters, bidiAdvance, out clusters, out runLength);
+        }
+
         if (TryCreateSvgFontTextRunMetrics(svgTextBase, text, paint, anchorX, anchorY, textAlign, assetLoader, out clusters, out runLength))
         {
             return true;
@@ -1637,11 +1866,23 @@ internal static partial class SvgSceneTextCompiler
             var extentPlacement = placement with { RotationDegrees = 0f };
             var startOffset = placement.Point.X - originX;
             var endOffset = startOffset + (source.Advance * placement.ScaleX);
-            var extent = sourcesUseSvgFont
-                ? TryMeasureTextDomClusterBounds(svgTextBase, source.Text, extentPlacement, paint, assetLoader, out var measuredExtent, out _)
-                    ? measuredExtent
-                    : SKRect.Empty
-                : CreateFallbackTextDomClusterBounds(
+            var extent = SKRect.Empty;
+            var hitExtent = SKRect.Empty;
+            if (sourcesUseSvgFont)
+            {
+                _ = TryMeasureTextDomClusterBounds(
+                    svgTextBase,
+                    source.Text,
+                    extentPlacement,
+                    paint,
+                    assetLoader,
+                    out extent,
+                    out hitExtent,
+                    out _);
+            }
+            else
+            {
+                extent = CreateFallbackTextDomClusterBounds(
                     svgTextBase,
                     extentPlacement.Point,
                     source.Advance,
@@ -1649,20 +1890,25 @@ internal static partial class SvgSceneTextCompiler
                     GetScalePivot(extentPlacement),
                     extentPlacement.RotationDegrees,
                     paint,
-                    assetLoader);
+                    assetLoader,
+                    source.Text,
+                    out hitExtent);
+            }
+
             var startPoint = placement.Point;
             var endPoint = new SKPoint(placement.Point.X + (source.Advance * placement.ScaleX), placement.Point.Y);
-            if (includeWhitespaceMetrics || !IsWhitespaceOnlyText(source.Text))
+            var isWhitespace = IsWhitespaceOnlyText(source.Text);
+            runClusters.Add(new TextDomRunClusterMetric(
+                includeWhitespaceMetrics || !isWhitespace ? source.Text.Length : 0,
+                startOffset,
+                endOffset,
+                startPoint,
+                endPoint,
+                extent,
+                placement.RotationDegrees)
             {
-                runClusters.Add(new TextDomRunClusterMetric(
-                    source.Text.Length,
-                    startOffset,
-                    endOffset,
-                    startPoint,
-                    endPoint,
-                    extent,
-                    placement.RotationDegrees));
-            }
+                HitExtent = hitExtent
+            });
 
             maxEndOffset = Math.Max(maxEndOffset, endOffset);
         }
@@ -1730,11 +1976,23 @@ internal static partial class SvgSceneTextCompiler
             var endPoint = new SKPoint(
                 startPoint.X + ((float)Math.Cos(rotationRadians) * advance),
                 startPoint.Y + ((float)Math.Sin(rotationRadians) * advance));
-            var extent = sourcesUseSvgFont
-                ? TryMeasureTextDomClusterBounds(svgTextBase, source.Text, adjustedPlacement, paint, assetLoader, out var measuredExtent, out _)
-                    ? measuredExtent
-                    : SKRect.Empty
-                : CreateFallbackTextDomClusterBounds(
+            var extent = SKRect.Empty;
+            var hitExtent = SKRect.Empty;
+            if (sourcesUseSvgFont)
+            {
+                _ = TryMeasureTextDomClusterBounds(
+                    svgTextBase,
+                    source.Text,
+                    adjustedPlacement,
+                    paint,
+                    assetLoader,
+                    out extent,
+                    out hitExtent,
+                    out _);
+            }
+            else
+            {
+                extent = CreateFallbackTextDomClusterBounds(
                     svgTextBase,
                     startPoint,
                     source.Advance,
@@ -1742,19 +2000,23 @@ internal static partial class SvgSceneTextCompiler
                     GetScalePivot(adjustedPlacement),
                     placement.RotationDegrees,
                     paint,
-                    assetLoader);
-
-            if (includeWhitespaceMetrics || !IsWhitespaceOnlyText(source.Text))
-            {
-                runClusters.Add(new TextDomRunClusterMetric(
-                    source.Text.Length,
-                    startOffset,
-                    startOffset + advance,
-                    startPoint,
-                    endPoint,
-                    extent,
-                    placement.RotationDegrees));
+                    assetLoader,
+                    source.Text,
+                    out hitExtent);
             }
+
+            var isWhitespace = IsWhitespaceOnlyText(source.Text);
+            runClusters.Add(new TextDomRunClusterMetric(
+                includeWhitespaceMetrics || !isWhitespace ? source.Text.Length : 0,
+                startOffset,
+                startOffset + advance,
+                startPoint,
+                endPoint,
+                extent,
+                placement.RotationDegrees)
+            {
+                HitExtent = hitExtent
+            });
 
             maxEndOffset = Math.Max(maxEndOffset, startOffset + advance);
             previousStartOffset = startOffset;
@@ -1804,6 +2066,7 @@ internal static partial class SvgSceneTextCompiler
             var startPoint = first.StartPoint;
             var endPoint = first.EndPoint;
             var extent = first.Extent;
+            var hitExtent = first.HitExtent;
             while (sourceIndex < clusters.Count && sourceCharIndex < clusterEnd)
             {
                 var source = clusters[sourceIndex];
@@ -1815,6 +2078,7 @@ internal static partial class SvgSceneTextCompiler
                 endOffset = Math.Max(endOffset, source.EndOffset);
                 endPoint = source.EndPoint;
                 UnionBounds(ref extent, source.Extent);
+                UnionBounds(ref hitExtent, source.HitExtent);
                 sourceCharIndex += source.CharLength;
                 sourceIndex++;
             }
@@ -1831,7 +2095,10 @@ internal static partial class SvgSceneTextCompiler
                 startPoint,
                 endPoint,
                 extent,
-                first.RotationDegrees));
+                first.RotationDegrees)
+            {
+                HitExtent = hitExtent
+            });
         }
 
         return sourceIndex == clusters.Count && sourceCharIndex == text.Length
@@ -1880,11 +2147,19 @@ internal static partial class SvgSceneTextCompiler
                     current.Extent.Top,
                     Math.Max(startPoint.X, endPoint.X),
                     current.Extent.Bottom);
+            var hitExtent = current.HitExtent.IsEmpty
+                ? current.HitExtent
+                : new SKRect(
+                    Math.Min(startPoint.X, endPoint.X),
+                    current.HitExtent.Top,
+                    Math.Max(startPoint.X, endPoint.X),
+                    current.HitExtent.Bottom);
             runClusters[i] = current with
             {
                 StartPoint = startPoint,
                 EndPoint = endPoint,
-                Extent = extent
+                Extent = extent,
+                HitExtent = hitExtent
             };
         }
     }
@@ -1924,9 +2199,10 @@ internal static partial class SvgSceneTextCompiler
                 0f,
                 1f,
                 startX + source.RelativeOffset);
-            if (!TryMeasureTextDomClusterBounds(svgTextBase, source.Text, placement, paint, assetLoader, out var extent, out _))
+            if (!TryMeasureTextDomClusterBounds(svgTextBase, source.Text, placement, paint, assetLoader, out var extent, out var hitExtent, out _))
             {
                 extent = SKRect.Empty;
+                hitExtent = SKRect.Empty;
             }
 
             runClusters[i] = new TextDomRunClusterMetric(
@@ -1936,7 +2212,11 @@ internal static partial class SvgSceneTextCompiler
                 placement.Point,
                 new SKPoint(placement.Point.X + source.Advance, placement.Point.Y),
                 extent,
-                0f);
+                0f)
+            {
+                HitExtent = hitExtent,
+                StartCharIndex = source.FirstCharIndex
+            };
         }
 
         clusters = runClusters;
@@ -1986,13 +2266,17 @@ internal static partial class SvgSceneTextCompiler
             var advance = Math.Max(0f, nextRelativeOffset - placement.RelativeX);
             var point = new SKPoint(startX + placement.RelativeX, anchorY);
             var bounds = placement.RelativeBounds;
-            var extent = bounds.IsEmpty
+            var glyphExtent = bounds.IsEmpty
                 ? SKRect.Empty
                 : new SKRect(
                     bounds.Left + startX,
                     bounds.Top + anchorY,
                     bounds.Right + startX,
                     bounds.Bottom + anchorY);
+            var hitExtent = IsWhitespaceOnlyText(clusterText) || glyphExtent.IsEmpty
+                ? GetTextAdvanceBox(svgTextBase, point.X, point.Y, advance, paint, assetLoader)
+                : glyphExtent;
+            var extent = glyphExtent;
             extent = ExpandTextBoundsWithAdvanceBox(svgTextBase, extent, point.X, point.Y, advance, paint, assetLoader);
 
             runClusters.Add(new TextDomRunClusterMetric(
@@ -2002,7 +2286,10 @@ internal static partial class SvgSceneTextCompiler
                 point,
                 new SKPoint(point.X + advance, point.Y),
                 extent,
-                0f));
+                0f)
+            {
+                HitExtent = hitExtent
+            });
         }
 
         clusters = runClusters.ToArray();
@@ -2035,6 +2322,156 @@ internal static partial class SvgSceneTextCompiler
         sources = CreateFallbackClusterSources(svgTextBase, text, viewport, assetLoader, out totalAdvance);
         usesSvgFont = false;
         return sources.Length > 0;
+    }
+
+    private static bool TryCreateBidiClusterSources(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect viewport,
+        SKPaint paint,
+        ISvgAssetLoader assetLoader,
+        out TextDomClusterSource[] sources,
+        out float totalAdvance)
+    {
+        sources = Array.Empty<TextDomClusterSource>();
+        totalAdvance = 0f;
+        if (string.IsNullOrEmpty(text) ||
+            IsVerticalWritingMode(svgTextBase) ||
+            HasOwnTextLengthAdjustment(svgTextBase))
+        {
+            return false;
+        }
+
+        var baseDirection = IsRightToLeft(svgTextBase) ? SvgTextDirection.RightToLeft : SvgTextDirection.LeftToRight;
+        var mode = SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase);
+        var visualRuns = SvgTextBidiResolver.CreateVisualRuns(text, baseDirection, mode);
+        if (visualRuns.Count <= 1)
+        {
+            return false;
+        }
+
+        var preserveLogicalRtlPlacement = mode == SvgUnicodeBidiMode.PlainText &&
+                                          ResolvePlainTextDirection(text, baseDirection) == SvgTextDirection.RightToLeft &&
+                                          !HasPlainTextParagraphSeparator(text);
+        if (preserveLogicalRtlPlacement)
+        {
+            visualRuns = visualRuns.OrderBy(static run => run.StartCharIndex).ToList();
+        }
+
+        var codepoints = SplitCodepoints(text);
+        if (codepoints.Count == 0)
+        {
+            return false;
+        }
+
+        var charOffsets = CreateCodepointCharOffsets(codepoints);
+        var advances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, viewport, assetLoader);
+        if (advances.Length != codepoints.Count)
+        {
+            return false;
+        }
+
+        var bidiSources = new List<TextDomClusterSource>(codepoints.Count);
+        for (var runIndex = 0; runIndex < visualRuns.Count; runIndex++)
+        {
+            var run = visualRuns[runIndex];
+            if (!TryGetCodepointRange(charOffsets, run.StartCharIndex, run.StartCharIndex + run.Length, out var startCodepointIndex, out var endCodepointIndex))
+            {
+                return false;
+            }
+
+            if (run.Direction == SvgTextDirection.RightToLeft && !preserveLogicalRtlPlacement)
+            {
+                for (var i = endCodepointIndex - 1; i >= startCodepointIndex; i--)
+                {
+                    AppendBidiClusterSource(codepoints, charOffsets, advances, i, bidiSources, ref totalAdvance);
+                }
+
+                continue;
+            }
+
+            for (var i = startCodepointIndex; i < endCodepointIndex; i++)
+            {
+                AppendBidiClusterSource(codepoints, charOffsets, advances, i, bidiSources, ref totalAdvance);
+            }
+        }
+
+        sources = bidiSources.ToArray();
+        return sources.Length > 0;
+    }
+
+    private static void AppendBidiClusterSource(
+        IReadOnlyList<string> codepoints,
+        IReadOnlyList<int> charOffsets,
+        IReadOnlyList<float> advances,
+        int codepointIndex,
+        List<TextDomClusterSource> sources,
+        ref float totalAdvance)
+    {
+        var advance = codepointIndex >= 0 && codepointIndex < advances.Count
+            ? Math.Max(0f, advances[codepointIndex])
+            : 0f;
+        sources.Add(new TextDomClusterSource(
+            codepointIndex,
+            codepoints[codepointIndex],
+            totalAdvance,
+            advance)
+        {
+            FirstCharIndex = charOffsets[codepointIndex]
+        });
+        totalAdvance += advance;
+    }
+
+    private static SvgTextDirection ResolvePlainTextDirection(string text, SvgTextDirection fallback)
+    {
+        var codepoints = SplitCodepoints(text);
+        for (var i = 0; i < codepoints.Count; i++)
+        {
+            var direction = SvgTextBidiResolver.GetStrongDirection(codepoints[i]);
+            if (direction > 0)
+            {
+                return SvgTextDirection.LeftToRight;
+            }
+
+            if (direction < 0)
+            {
+                return SvgTextDirection.RightToLeft;
+            }
+        }
+
+        return fallback;
+    }
+
+    private static bool HasPlainTextParagraphSeparator(string text)
+    {
+        return text.IndexOf('\n') >= 0 || text.IndexOf('\r') >= 0;
+    }
+
+    private static bool TryGetCodepointRange(
+        IReadOnlyList<int> charOffsets,
+        int startCharIndex,
+        int endCharIndex,
+        out int startCodepointIndex,
+        out int endCodepointIndex)
+    {
+        startCodepointIndex = GetCodepointBoundaryIndexFromCharOffset(charOffsets, startCharIndex);
+        endCodepointIndex = GetCodepointBoundaryIndexFromCharOffset(charOffsets, endCharIndex);
+        return startCodepointIndex >= 0 &&
+               endCodepointIndex >= startCodepointIndex &&
+               endCodepointIndex < charOffsets.Count;
+    }
+
+    private static int GetCodepointBoundaryIndexFromCharOffset(IReadOnlyList<int> charOffsets, int charOffset)
+    {
+        for (var i = 0; i < charOffsets.Count; i++)
+        {
+            if (charOffsets[i] == charOffset)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     private static bool TryCreateSvgFontClusterSources(
@@ -2359,16 +2796,35 @@ internal static partial class SvgSceneTextCompiler
         SKPoint scalePivot,
         float rotationDegrees,
         SKPaint paint,
-        ISvgAssetLoader assetLoader)
+        ISvgAssetLoader assetLoader,
+        string text,
+        out SKRect hitExtent)
     {
         var metrics = assetLoader.GetFontMetrics(paint);
-        var bounds = new SKRect(
+        var cellBounds = new SKRect(
             point.X,
             point.Y + metrics.Ascent,
             point.X + advance,
             point.Y + metrics.Descent);
+        var bounds = cellBounds;
+        if (!IsWhitespaceOnlyText(text) &&
+            TryGetRenderedTextLocalBounds(text, paint, assetLoader, out var glyphBounds))
+        {
+            hitExtent = new SKRect(
+                point.X + glyphBounds.Left,
+                point.Y + glyphBounds.Top,
+                point.X + glyphBounds.Right,
+                point.Y + glyphBounds.Bottom);
+        }
+        else
+        {
+            hitExtent = cellBounds;
+        }
+
         bounds = ExpandTextBoundsWithAdvanceBox(svgTextBase, bounds, point.X, point.Y, advance, paint, assetLoader);
         bounds = ScaleBoundsX(bounds, scalePivot, scaleX);
+        hitExtent = ScaleBoundsX(hitExtent, scalePivot, scaleX);
+        hitExtent = RotateBounds(hitExtent, point, rotationDegrees);
         return RotateBounds(bounds, point, rotationDegrees);
     }
 
@@ -2379,16 +2835,23 @@ internal static partial class SvgSceneTextCompiler
         SKPaint paint,
         ISvgAssetLoader assetLoader,
         out SKRect bounds,
+        out SKRect hitExtent,
         out float advance)
     {
+        hitExtent = SKRect.Empty;
         var localPaint = paint.Clone();
         if (SvgFontTextRenderer.TryGetLayout(svgTextBase, text, localPaint, assetLoader, out var svgFontLayout) &&
             svgFontLayout is not null)
         {
             bounds = svgFontLayout.GetBounds(placement.Point.X, placement.Point.Y);
+            hitExtent = IsWhitespaceOnlyText(text) || bounds.IsEmpty
+                ? GetTextAdvanceBox(svgTextBase, placement.Point.X, placement.Point.Y, svgFontLayout.Advance, localPaint, assetLoader)
+                : bounds;
             bounds = ExpandTextBoundsWithHorizontalAdvanceBox(bounds, placement.Point.X, svgFontLayout.Advance);
             bounds = ScaleBoundsX(bounds, GetScalePivot(placement), placement.ScaleX);
             bounds = RotateBounds(bounds, placement.Point, placement.RotationDegrees);
+            hitExtent = ScaleBoundsX(hitExtent, GetScalePivot(placement), placement.ScaleX);
+            hitExtent = RotateBounds(hitExtent, placement.Point, placement.RotationDegrees);
             advance = svgFontLayout.Advance * placement.ScaleX;
             return true;
         }
@@ -2401,6 +2864,9 @@ internal static partial class SvgSceneTextCompiler
                 placement.Point.Y + glyphBounds.Top,
                 placement.Point.X + glyphBounds.Right,
                 placement.Point.Y + glyphBounds.Bottom);
+            hitExtent = IsWhitespaceOnlyText(text)
+                ? GetTextAdvanceBox(svgTextBase, placement.Point.X, placement.Point.Y, resolved.Advance, resolved.Paint, assetLoader)
+                : bounds;
         }
         else
         {
@@ -2410,11 +2876,14 @@ internal static partial class SvgSceneTextCompiler
                 placement.Point.Y + metrics.Ascent,
                 placement.Point.X + resolved.Advance,
                 placement.Point.Y + metrics.Descent);
+            hitExtent = bounds;
         }
 
         bounds = ExpandTextBoundsWithAdvanceBox(svgTextBase, bounds, placement.Point.X, placement.Point.Y, resolved.Advance, resolved.Paint, assetLoader);
         bounds = ScaleBoundsX(bounds, GetScalePivot(placement), placement.ScaleX);
         bounds = RotateBounds(bounds, placement.Point, placement.RotationDegrees);
+        hitExtent = ScaleBoundsX(hitExtent, GetScalePivot(placement), placement.ScaleX);
+        hitExtent = RotateBounds(hitExtent, placement.Point, placement.RotationDegrees);
         advance = resolved.Advance * placement.ScaleX;
         return true;
     }

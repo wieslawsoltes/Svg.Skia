@@ -246,6 +246,77 @@ internal static class SvgAnimationParser
         return true;
     }
 
+    internal static bool TryParseAccessKeyTimingSpec(string value, out string accessKey, out TimeSpan offset)
+    {
+        accessKey = string.Empty;
+        offset = TimeSpan.Zero;
+
+        if (!TryGetTrimmedString(value, out var trimmedValue))
+        {
+            return false;
+        }
+
+        var span = trimmedValue.AsSpan();
+        var signIndex = FindEventTimingSignIndex(span);
+        var functionSegment = signIndex >= 0
+            ? Trim(span.Slice(0, signIndex))
+            : span;
+
+        if (!TryReadFunctionArgument(functionSegment, "accessKey", out var argument) ||
+            argument.Length == 0)
+        {
+            return false;
+        }
+
+        if (argument.Length >= 2 &&
+            ((argument[0] == '\'' && argument[argument.Length - 1] == '\'') ||
+             (argument[0] == '"' && argument[argument.Length - 1] == '"')))
+        {
+            argument = Trim(argument.Slice(1, argument.Length - 2));
+        }
+
+        if (argument.Length == 0)
+        {
+            return false;
+        }
+
+        if (signIndex >= 0)
+        {
+            var sign = span[signIndex];
+            var offsetText = Trim(span.Slice(signIndex + 1));
+            if (offsetText.Length == 0 || !TryParseClockValue(offsetText, out offset))
+            {
+                return false;
+            }
+
+            if (sign == '-')
+            {
+                offset = -offset;
+            }
+        }
+
+        accessKey = argument.ToString();
+        return true;
+    }
+
+    internal static bool TryParseWallclockTimingSpec(string value, out DateTimeOffset wallclockTime)
+    {
+        wallclockTime = default;
+
+        if (!TryGetTrimmedString(value, out var trimmedValue) ||
+            !TryReadFunctionArgument(trimmedValue.AsSpan(), "wallclock", out var argument) ||
+            argument.Length == 0)
+        {
+            return false;
+        }
+
+        return DateTimeOffset.TryParse(
+            argument.ToString(),
+            s_invariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+            out wallclockTime);
+    }
+
     internal static bool TryParseMotionCoordinatePair(string value, SvgElement owner, out SKPoint point)
     {
         point = default;
@@ -626,6 +697,22 @@ internal static class SvgAnimationParser
         }
 
         repeatIteration = parsed;
+        return true;
+    }
+
+    private static bool TryReadFunctionArgument(ReadOnlySpan<char> value, string functionName, out ReadOnlySpan<char> argument)
+    {
+        argument = default;
+        var trimmed = Trim(value);
+        if (trimmed.Length <= functionName.Length + 1 ||
+            !EqualsAsciiIgnoreCase(trimmed.Slice(0, functionName.Length), functionName) ||
+            trimmed[functionName.Length] != '(' ||
+            trimmed[trimmed.Length - 1] != ')')
+        {
+            return false;
+        }
+
+        argument = Trim(trimmed.Slice(functionName.Length + 1, trimmed.Length - functionName.Length - 2));
         return true;
     }
 

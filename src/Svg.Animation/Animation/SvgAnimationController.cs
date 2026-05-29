@@ -48,22 +48,39 @@ public sealed class SvgAnimationController : IDisposable
         public TimingSpec(TimeSpan offset)
         {
             IsEvent = false;
+            IsAccessKey = false;
             Offset = offset;
             EventAddress = null;
             EventType = default;
             RepeatIteration = null;
+            AccessKey = null;
         }
 
         public TimingSpec(SvgElementAddress eventAddress, SvgAnimationTimingEventType eventType, TimeSpan offset, int? repeatIteration = null)
         {
             IsEvent = true;
+            IsAccessKey = false;
             Offset = offset;
             EventAddress = eventAddress;
             EventType = eventType;
             RepeatIteration = repeatIteration;
+            AccessKey = null;
+        }
+
+        public TimingSpec(string accessKey, TimeSpan offset)
+        {
+            IsEvent = false;
+            IsAccessKey = true;
+            Offset = offset;
+            EventAddress = null;
+            EventType = SvgAnimationTimingEventType.AccessKey;
+            RepeatIteration = null;
+            AccessKey = accessKey;
         }
 
         public bool IsEvent { get; }
+
+        public bool IsAccessKey { get; }
 
         public TimeSpan Offset { get; }
 
@@ -72,6 +89,8 @@ public sealed class SvgAnimationController : IDisposable
         public SvgAnimationTimingEventType EventType { get; }
 
         public int? RepeatIteration { get; }
+
+        public string? AccessKey { get; }
     }
 
     private readonly struct MotionSource
@@ -115,7 +134,7 @@ public sealed class SvgAnimationController : IDisposable
 
     private sealed class AnimationBinding
     {
-        public AnimationBinding(SvgAnimationElement animation, SvgElement sourceTarget, SvgElementAddress targetAddress, string attributeName)
+        public AnimationBinding(SvgAnimationElement animation, SvgElement sourceTarget, SvgElementAddress targetAddress, string attributeName, DateTimeOffset wallclockTimeOrigin)
         {
             Animation = animation;
             AnimationAddress = SvgElementAddress.Create(animation);
@@ -130,8 +149,8 @@ public sealed class SvgAnimationController : IDisposable
             HasExplicitBaseAttribute = HasExplicitAnimationBaseAttribute(sourceTarget, attributeName, BaseValue);
             PropertyType = propertyDescriptor?.Type ?? BaseValue?.GetType();
             TargetAttributeKey = string.Concat(targetAddress.Key, "|", attributeName);
-            BeginSpecs = ParseTimingSpecifications(animation.Begin, animation.OwnerDocument, targetAddress, includeImplicitDocumentBegin: true);
-            EndSpecs = ParseTimingSpecifications(animation.End, animation.OwnerDocument, targetAddress, includeImplicitDocumentBegin: false);
+            BeginSpecs = ParseTimingSpecifications(animation.Begin, animation.OwnerDocument, targetAddress, wallclockTimeOrigin, includeImplicitDocumentBegin: true);
+            EndSpecs = ParseTimingSpecifications(animation.End, animation.OwnerDocument, targetAddress, wallclockTimeOrigin, includeImplicitDocumentBegin: false);
             HasDynamicBeginTiming = ContainsDynamicTiming(BeginSpecs);
             HasDynamicEndTiming = ContainsDynamicTiming(EndSpecs);
             StaticBeginInstances = HasDynamicBeginTiming ? s_emptyResolvedTimingInstances : CreateStaticTimingInstances(BeginSpecs);
@@ -259,32 +278,40 @@ public sealed class SvgAnimationController : IDisposable
     private readonly Dictionary<string, AnimationBinding> _bindingsByTargetAttributeKey;
     private readonly Dictionary<string, AnimationBinding> _bindingsByAnimationAddressKey;
     private readonly Dictionary<string, List<TimeSpan>> _pointerEventInstances = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, List<TimeSpan>> _accessKeyEventInstances = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<TimeSpan>> _scheduledBeginInstances = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<TimeSpan>> _scheduledEndInstances = new(StringComparer.Ordinal);
     private readonly HashSet<string> _pointerEventDependencies;
+    private readonly HashSet<string> _accessKeyEventDependencies;
     private readonly Dictionary<string, List<PointerEventDependency>> _pointerEventDependents;
+    private readonly Dictionary<string, List<PointerEventDependency>> _accessKeyEventDependents;
     private readonly List<AnimationBinding> _timelineTrackedBindings;
     private readonly int[]? _animatedTopLevelChildIndexes;
     private SvgAnimationFrameState? _cachedFrameState;
     private int _frameStateVersion;
     private bool _disposed;
 
-    public SvgAnimationController(SvgDocument sourceDocument)
+    public SvgAnimationController(SvgDocument sourceDocument, DateTimeOffset? wallclockTimeOrigin = null)
     {
         SourceDocument = sourceDocument ?? throw new ArgumentNullException(nameof(sourceDocument));
+        WallclockTimeOrigin = (wallclockTimeOrigin ?? DateTimeOffset.UtcNow).ToUniversalTime();
         Clock = new SvgAnimationClock();
         Clock.TimeChanged += OnClockTimeChanged;
-        _bindings = DiscoverBindings(sourceDocument);
+        _bindings = DiscoverBindings(sourceDocument, WallclockTimeOrigin);
         _frameEvaluationBindings = CreateFrameEvaluationBindings(_bindings);
         _bindingsByTargetAttributeKey = BuildBindingLookup(_bindings);
         _bindingsByAnimationAddressKey = BuildAnimationBindingLookup(_bindings);
         _pointerEventDependencies = BuildPointerEventDependencies(_bindings);
+        _accessKeyEventDependencies = BuildAccessKeyEventDependencies(_bindings);
         _pointerEventDependents = BuildPointerEventDependents(_bindings);
+        _accessKeyEventDependents = BuildAccessKeyEventDependents(_bindings);
         _timelineTrackedBindings = DiscoverTimelineTrackedBindings(_bindings);
         _animatedTopLevelChildIndexes = DiscoverAnimatedTopLevelChildIndexes(sourceDocument, _bindings);
     }
 
     public SvgDocument SourceDocument { get; }
+
+    public DateTimeOffset WallclockTimeOrigin { get; }
 
     public SvgAnimationClock Clock { get; }
 
@@ -653,6 +680,11 @@ public sealed class SvgAnimationController : IDisposable
 
     public bool RecordPointerEvent(SvgElement? element, SvgPointerEventType eventType)
     {
+        return RecordPointerEvent(element, eventType, Clock.CurrentTime);
+    }
+
+    public bool RecordPointerEvent(SvgElement? element, SvgPointerEventType eventType, TimeSpan eventTime)
+    {
         ThrowIfDisposed();
 
         if (!HasAnimations || element is null)
@@ -666,22 +698,60 @@ public sealed class SvgAnimationController : IDisposable
             return false;
         }
 
-        if (!_pointerEventInstances.TryGetValue(key, out var eventTimes))
-        {
-            eventTimes = new List<TimeSpan>();
-            _pointerEventInstances[key] = eventTimes;
-        }
-
-        eventTimes.Add(Clock.CurrentTime);
+        RecordUserEventInstance(_pointerEventInstances, key, eventTime);
         PrunePointerEventInstances(key);
         InvalidateFrameStateCache();
         return true;
+    }
+
+    public bool RecordAccessKey(string? accessKey)
+    {
+        return RecordAccessKey(accessKey, Clock.CurrentTime);
+    }
+
+    public bool RecordAccessKey(string? accessKey, TimeSpan eventTime)
+    {
+        ThrowIfDisposed();
+
+        if (!HasAnimations || !TryNormalizeAccessKey(accessKey, out var normalizedAccessKey))
+        {
+            return false;
+        }
+
+        var key = CreateAccessKeyEventInstanceKey(normalizedAccessKey);
+        if (!_accessKeyEventDependencies.Contains(key))
+        {
+            return false;
+        }
+
+        RecordUserEventInstance(_accessKeyEventInstances, key, eventTime);
+        PruneAccessKeyEventInstances(key);
+        InvalidateFrameStateCache();
+        return true;
+    }
+
+    private static void RecordUserEventInstance(Dictionary<string, List<TimeSpan>> eventInstances, string key, TimeSpan eventTime)
+    {
+        if (eventTime < TimeSpan.Zero)
+        {
+            eventTime = TimeSpan.Zero;
+        }
+
+        if (!eventInstances.TryGetValue(key, out var eventTimes))
+        {
+            eventTimes = new List<TimeSpan>();
+            eventInstances[key] = eventTimes;
+        }
+
+        eventTimes.Add(eventTime);
+        eventTimes.Sort();
     }
 
     public void Reset()
     {
         ThrowIfDisposed();
         _pointerEventInstances.Clear();
+        _accessKeyEventInstances.Clear();
         _scheduledBeginInstances.Clear();
         _scheduledEndInstances.Clear();
         InvalidateFrameStateCache();
@@ -968,6 +1038,19 @@ public sealed class SvgAnimationController : IDisposable
         return dependencies;
     }
 
+    private static HashSet<string> BuildAccessKeyEventDependencies(IEnumerable<AnimationBinding> bindings)
+    {
+        var dependencies = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var binding in bindings)
+        {
+            AddAccessKeyEventDependencies(binding.BeginSpecs, dependencies);
+            AddAccessKeyEventDependencies(binding.EndSpecs, dependencies);
+        }
+
+        return dependencies;
+    }
+
     private static Dictionary<string, List<PointerEventDependency>> BuildPointerEventDependents(IEnumerable<AnimationBinding> bindings)
     {
         var dependents = new Dictionary<string, List<PointerEventDependency>>(StringComparer.Ordinal);
@@ -981,6 +1064,19 @@ public sealed class SvgAnimationController : IDisposable
         return dependents;
     }
 
+    private static Dictionary<string, List<PointerEventDependency>> BuildAccessKeyEventDependents(IEnumerable<AnimationBinding> bindings)
+    {
+        var dependents = new Dictionary<string, List<PointerEventDependency>>(StringComparer.Ordinal);
+
+        foreach (var binding in bindings)
+        {
+            AddAccessKeyEventDependents(binding, binding.BeginSpecs, dependents);
+            AddAccessKeyEventDependents(binding, binding.EndSpecs, dependents);
+        }
+
+        return dependents;
+    }
+
     private static void AddPointerEventDependents(
         AnimationBinding binding,
         IEnumerable<TimingSpec> specs,
@@ -989,6 +1085,33 @@ public sealed class SvgAnimationController : IDisposable
         foreach (var spec in specs)
         {
             if (!TryGetPointerEventInstanceKey(spec, out var eventInstanceKey))
+            {
+                continue;
+            }
+
+            if (!dependents.TryGetValue(eventInstanceKey, out var bindingsForKey))
+            {
+                bindingsForKey = new List<PointerEventDependency>();
+                dependents[eventInstanceKey] = bindingsForKey;
+            }
+
+            if (bindingsForKey.Any(existing => ReferenceEquals(existing.Binding, binding)))
+            {
+                continue;
+            }
+
+            bindingsForKey.Add(new PointerEventDependency(binding));
+        }
+    }
+
+    private static void AddAccessKeyEventDependents(
+        AnimationBinding binding,
+        IEnumerable<TimingSpec> specs,
+        Dictionary<string, List<PointerEventDependency>> dependents)
+    {
+        foreach (var spec in specs)
+        {
+            if (!TryGetAccessKeyEventInstanceKey(spec, out var eventInstanceKey))
             {
                 continue;
             }
@@ -1100,11 +1223,34 @@ public sealed class SvgAnimationController : IDisposable
         }
     }
 
+    private static void AddAccessKeyEventDependencies(IEnumerable<TimingSpec> specs, HashSet<string> dependencies)
+    {
+        foreach (var spec in specs)
+        {
+            if (TryGetAccessKeyEventInstanceKey(spec, out var eventInstanceKey))
+            {
+                dependencies.Add(eventInstanceKey);
+            }
+        }
+    }
+
     private static bool TryGetPointerEventInstanceKey(TimingSpec spec, out string key)
     {
         if (spec.IsEvent && IsPointerTimingEventType(spec.EventType))
         {
             key = CreateEventInstanceKey(spec.EventAddress!, spec.EventType);
+            return true;
+        }
+
+        key = string.Empty;
+        return false;
+    }
+
+    private static bool TryGetAccessKeyEventInstanceKey(TimingSpec spec, out string key)
+    {
+        if (spec.IsAccessKey && spec.AccessKey is { } accessKey)
+        {
+            key = CreateAccessKeyEventInstanceKey(accessKey);
             return true;
         }
 
@@ -1129,7 +1275,7 @@ public sealed class SvgAnimationController : IDisposable
                attributeName.StartsWith(SvgNamespaces.XLinkNamespace + ":href", StringComparison.Ordinal);
     }
 
-    private static List<AnimationBinding> DiscoverBindings(SvgDocument sourceDocument)
+    private static List<AnimationBinding> DiscoverBindings(SvgDocument sourceDocument, DateTimeOffset wallclockTimeOrigin)
     {
         var bindings = new List<AnimationBinding>();
 
@@ -1148,7 +1294,7 @@ public sealed class SvgAnimationController : IDisposable
                 continue;
             }
 
-            bindings.Add(new AnimationBinding(animation, target, SvgElementAddress.Create(target), attributeName!));
+            bindings.Add(new AnimationBinding(animation, target, SvgElementAddress.Create(target), attributeName!, wallclockTimeOrigin));
         }
 
         return bindings;
@@ -1219,7 +1365,7 @@ public sealed class SvgAnimationController : IDisposable
         _cachedFrameState = null;
     }
 
-    private static List<TimingSpec> ParseTimingSpecifications(string? value, SvgDocument? document, SvgElementAddress defaultEventAddress, bool includeImplicitDocumentBegin)
+    private static List<TimingSpec> ParseTimingSpecifications(string? value, SvgDocument? document, SvgElementAddress defaultEventAddress, DateTimeOffset wallclockTimeOrigin, bool includeImplicitDocumentBegin)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -1234,6 +1380,18 @@ public sealed class SvgAnimationController : IDisposable
             if (SvgAnimationParser.TryParseClockValue(token, out var clockOffset))
             {
                 specs.Add(new TimingSpec(clockOffset));
+                continue;
+            }
+
+            if (SvgAnimationParser.TryParseWallclockTimingSpec(token, out var wallclockTime))
+            {
+                specs.Add(new TimingSpec(wallclockTime.ToUniversalTime() - wallclockTimeOrigin));
+                continue;
+            }
+
+            if (SvgAnimationParser.TryParseAccessKeyTimingSpec(token, out var accessKey, out var accessKeyOffset))
+            {
+                specs.Add(new TimingSpec(NormalizeAccessKey(accessKey), accessKeyOffset));
                 continue;
             }
 
@@ -1254,7 +1412,26 @@ public sealed class SvgAnimationController : IDisposable
             return;
         }
 
-        if (!_pointerEventDependents.TryGetValue(key, out var dependents) ||
+        PruneUserEventInstances(key, eventTimes, _pointerEventDependents);
+    }
+
+    private void PruneAccessKeyEventInstances(string key)
+    {
+        if (!_accessKeyEventInstances.TryGetValue(key, out var eventTimes) ||
+            eventTimes.Count <= 1)
+        {
+            return;
+        }
+
+        PruneUserEventInstances(key, eventTimes, _accessKeyEventDependents);
+    }
+
+    private void PruneUserEventInstances(
+        string key,
+        List<TimeSpan> eventTimes,
+        IReadOnlyDictionary<string, List<PointerEventDependency>> dependentsByKey)
+    {
+        if (!dependentsByKey.TryGetValue(key, out var dependents) ||
             dependents.Count == 0)
         {
             eventTimes.Clear();
@@ -1794,6 +1971,25 @@ public sealed class SvgAnimationController : IDisposable
 
         foreach (var spec in specs)
         {
+            if (TryGetAccessKeyEventInstanceKey(spec, out var accessKeyEventKey))
+            {
+                if (!_accessKeyEventInstances.TryGetValue(accessKeyEventKey, out var eventTimes))
+                {
+                    continue;
+                }
+
+                for (var index = 0; index < eventTimes.Count; index++)
+                {
+                    var eventTime = eventTimes[index];
+                    instances.Add(new ResolvedTimingInstance(
+                        eventTime + spec.Offset,
+                        accessKeyEventKey,
+                        eventTime));
+                }
+
+                continue;
+            }
+
             if (!spec.IsEvent)
             {
                 instances.Add(new ResolvedTimingInstance(spec.Offset, eventInstanceKey: null, sourceEventTime: null));
@@ -2396,7 +2592,7 @@ public sealed class SvgAnimationController : IDisposable
     {
         for (var index = 0; index < specs.Count; index++)
         {
-            if (specs[index].IsEvent)
+            if (specs[index].IsEvent || specs[index].IsAccessKey)
             {
                 return true;
             }
@@ -4857,6 +5053,28 @@ public sealed class SvgAnimationController : IDisposable
     private static string CreateEventInstanceKey(SvgElementAddress address, SvgAnimationTimingEventType eventType)
     {
         return string.Concat(address.Key, "|", ((int)eventType).ToString(CultureInfo.InvariantCulture));
+    }
+
+    private static string CreateAccessKeyEventInstanceKey(string accessKey)
+    {
+        return string.Concat("accessKey|", NormalizeAccessKey(accessKey));
+    }
+
+    private static bool TryNormalizeAccessKey(string? accessKey, out string normalizedAccessKey)
+    {
+        normalizedAccessKey = string.Empty;
+        if (string.IsNullOrWhiteSpace(accessKey))
+        {
+            return false;
+        }
+
+        normalizedAccessKey = NormalizeAccessKey(accessKey!);
+        return normalizedAccessKey.Length > 0;
+    }
+
+    private static string NormalizeAccessKey(string accessKey)
+    {
+        return accessKey.Trim().ToUpperInvariant();
     }
 
     private static object? GetAttributeValue(SvgElement element, string attributeName)

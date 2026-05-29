@@ -34,23 +34,137 @@ public interface ISvgJavaScriptTextContentHost
     void SelectSubString(SvgTextBase textContentElement, int charnum, int nchars);
 }
 
+public interface ISvgJavaScriptTextSelectionHost
+{
+    bool BeginTextSelection(SvgTextBase textContentElement, int anchorCharnum);
+    bool ExtendTextSelection(SvgTextBase textContentElement, int focusCharnum);
+    bool SelectTextRange(SvgTextBase textContentElement, int anchorCharnum, int focusCharnum);
+    void ClearTextSelection();
+    SvgJavaScriptTextSelection? GetTextSelection(SvgTextBase? textContentElement);
+}
+
+public interface ISvgJavaScriptViewerHost
+{
+    double CurrentScale { get; set; }
+
+    float CurrentTranslateX { get; set; }
+
+    float CurrentTranslateY { get; set; }
+}
+
 public sealed class SvgJavaScriptNodeList
 {
-    private readonly object?[] _items;
+    private readonly object?[]? _items;
+    private readonly Func<object?[]>? _liveItems;
 
     public SvgJavaScriptNodeList(IEnumerable<object?> items)
     {
         _items = items is object?[] array ? array : new List<object?>(items).ToArray();
     }
 
-    public int length => _items.Length;
+    internal SvgJavaScriptNodeList(Func<IEnumerable<object?>> liveItems)
+    {
+        _liveItems = () => new List<object?>(liveItems()).ToArray();
+    }
+
+    public int length => GetItems().Length;
 
     public object? item(int index)
+    {
+        var items = GetItems();
+        return index >= 0 && index < items.Length ? items[index] : null;
+    }
+
+    public object? this[int index] => item(index);
+
+    private object?[] GetItems()
+    {
+        return _liveItems?.Invoke() ?? _items ?? Array.Empty<object?>();
+    }
+}
+
+public sealed class SvgJavaScriptRectList
+{
+    private readonly SvgJavaScriptRect[] _items;
+
+    public SvgJavaScriptRectList(IEnumerable<SvgJavaScriptRect> items)
+    {
+        _items = items is SvgJavaScriptRect[] array ? array : new List<SvgJavaScriptRect>(items).ToArray();
+    }
+
+    public int length => _items.Length;
+
+    public SvgJavaScriptRect? item(int index)
     {
         return index >= 0 && index < _items.Length ? _items[index] : null;
     }
 
-    public object? this[int index] => item(index);
+    public SvgJavaScriptRect? this[int index] => item(index);
+}
+
+public sealed class SvgJavaScriptTextSelection
+{
+    public SvgJavaScriptTextSelection(
+        string? elementId,
+        int charnum,
+        int nchars,
+        int startCharnum,
+        int endCharnum,
+        int selectedNChars,
+        int anchorCharnum,
+        int focusCharnum,
+        string direction,
+        bool hasCaret,
+        SvgJavaScriptPoint caretPosition,
+        SvgJavaScriptRect caretExtent,
+        IEnumerable<SvgJavaScriptRect> extents,
+        IEnumerable<SvgJavaScriptRect> visualExtents)
+    {
+        this.elementId = elementId;
+        this.charnum = charnum;
+        this.nchars = nchars;
+        this.startCharnum = startCharnum;
+        this.endCharnum = endCharnum;
+        this.selectedNChars = selectedNChars;
+        this.anchorCharnum = anchorCharnum;
+        this.focusCharnum = focusCharnum;
+        this.direction = direction;
+        this.hasCaret = hasCaret;
+        this.caretPosition = caretPosition;
+        this.caretExtent = caretExtent;
+        this.extents = new SvgJavaScriptRectList(extents);
+        this.visualExtents = new SvgJavaScriptRectList(visualExtents);
+    }
+
+    public string? elementId { get; }
+
+    public int charnum { get; }
+
+    public int nchars { get; }
+
+    public int startCharnum { get; }
+
+    public int endCharnum { get; }
+
+    public int selectedNChars { get; }
+
+    public int anchorCharnum { get; }
+
+    public int focusCharnum { get; }
+
+    public string direction { get; }
+
+    public bool hasCaret { get; }
+
+    public bool isCollapsed => selectedNChars == 0 && hasCaret;
+
+    public SvgJavaScriptPoint caretPosition { get; }
+
+    public SvgJavaScriptRect caretExtent { get; }
+
+    public SvgJavaScriptRectList extents { get; }
+
+    public SvgJavaScriptRectList visualExtents { get; }
 }
 
 public sealed class SvgJavaScriptDomImplementation
@@ -93,7 +207,7 @@ public sealed class SvgJavaScriptDomImplementation
             return false;
         }
 
-        return s_supportedFeatures.Contains(feature.Trim());
+        return s_supportedFeatures.Contains(feature!.Trim());
     }
 }
 
@@ -449,7 +563,7 @@ internal static class SvgJavaScriptParsing
     {
         return string.IsNullOrWhiteSpace(value)
             ? Array.Empty<string>()
-            : value.Split(s_whitespaceSeparators, StringSplitOptions.RemoveEmptyEntries);
+            : value!.Split(s_whitespaceSeparators, StringSplitOptions.RemoveEmptyEntries);
     }
 
     public static bool TryParseFloat(string? value, out float result)

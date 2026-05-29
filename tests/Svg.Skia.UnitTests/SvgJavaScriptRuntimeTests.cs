@@ -109,6 +109,149 @@ public class SvgJavaScriptRuntimeTests
     }
 
     [Fact]
+    public void FromSvg_CurrentScaleAndTranslateUseViewerState()
+    {
+        using var svg = new SKSvg
+        {
+            CurrentScale = 2d,
+            CurrentTranslate = new SKPoint(4f, 5f)
+        };
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="10" height="10" fill="red" />
+              <script><![CDATA[
+                var root = document.documentElement;
+                var passed = root.currentScale === 2
+                  && root.currentTranslate.x === 4
+                  && root.currentTranslate.y === 5;
+                root.currentScale = 3;
+                root.currentTranslate.x = 7;
+                root.currentTranslate.y = 8;
+                root.currentScale = -1;
+                document.getElementById('target').setAttribute('fill', passed ? 'green' : 'red');
+              ]]></script>
+            </svg>
+            """);
+
+        AssertFill(svg, "target", Color.Green);
+        Assert.Equal(3d, svg.CurrentScale);
+        Assert.Equal(new SKPoint(7f, 8f), svg.CurrentTranslate);
+    }
+
+    [Fact]
+    public void Draw_AppliesViewerZoomAndPanTransform()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" x="2" y="2" width="4" height="4" fill="green" />
+            </svg>
+            """);
+
+        Assert.True(svg.SetViewerTransform(2d, new SKPoint(3f, 5f)));
+
+        var viewerPoint = svg.PictureToViewerPoint(new SKPoint(2f, 2f));
+        Assert.Equal(new SKPoint(7f, 9f), viewerPoint);
+        Assert.True(svg.TryGetViewerPicturePoint(viewerPoint, out var picturePoint));
+        AssertApproximately(2f, picturePoint.X);
+        AssertApproximately(2f, picturePoint.Y);
+
+        using var bitmap = RenderDrawBitmap(svg, 30, 30);
+
+        AssertGreen(bitmap.GetPixel(8, 10));
+        Assert.Equal(0, bitmap.GetPixel(3, 3).Alpha);
+    }
+
+    [Fact]
+    public void ResetViewerTransform_RestoresCurrentScaleAndTranslate()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect width="10" height="10" fill="green" />
+            </svg>
+            """);
+
+        var changes = new List<SKSvgViewerTransformChangedEventArgs>();
+        svg.ViewerTransformChanged += (_, args) => changes.Add(args);
+
+        Assert.True(svg.ZoomBy(2d));
+        Assert.True(svg.PanBy(new SKPoint(4f, 5f)));
+        Assert.True(svg.ResetViewerTransform());
+
+        Assert.Equal(1d, svg.CurrentScale);
+        Assert.Equal(default, svg.CurrentTranslate);
+        Assert.True(svg.ViewerTransform.IsIdentity);
+        Assert.Equal(3, changes.Count);
+        Assert.Equal(1d, changes[^1].NewScale);
+        Assert.Equal(default, changes[^1].NewTranslate);
+    }
+
+    [Fact]
+    public void FromSvg_ZoomAndPanDisableSuppressesViewerTransform()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" zoomAndPan="disable">
+              <rect id="target" x="2" y="2" width="4" height="4" fill="green" />
+            </svg>
+            """);
+
+        Assert.False(svg.IsZoomAndPanEnabled);
+        Assert.False(svg.ZoomTo(2d));
+        Assert.False(svg.PanBy(new SKPoint(3f, 5f)));
+        Assert.False(svg.SetViewerTransform(2d, new SKPoint(3f, 5f)));
+
+        svg.CurrentScale = 3d;
+        svg.CurrentTranslate = new SKPoint(7f, 8f);
+
+        Assert.Equal(1d, svg.CurrentScale);
+        Assert.Equal(default, svg.CurrentTranslate);
+        Assert.True(svg.ViewerTransform.IsIdentity);
+
+        using var bitmap = RenderDrawBitmap(svg, 20, 20);
+
+        AssertGreen(bitmap.GetPixel(3, 3));
+        Assert.Equal(0, bitmap.GetPixel(10, 10).Alpha);
+    }
+
+    [Fact]
+    public void FromSvg_EmbeddedSvgImageDoesNotRunNestedScriptsOrAnimationsWhenJavaScriptEnabled()
+    {
+        var nestedSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="nested-shape" width="20" height="20" fill="green">
+                <set attributeName="fill" to="red" begin="0s" dur="10s" />
+              </rect>
+              <script>document.getElementById('nested-shape').setAttribute('fill', 'red');</script>
+            </svg>
+            """;
+        var nestedDataUri = "data:image/svg+xml;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(nestedSvg));
+        var parentSvg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <rect id="target" width="20" height="20" fill="red" />
+              <image href="{{nestedDataUri}}" width="20" height="20" />
+              <script>document.getElementById('target').setAttribute('fill', 'green');</script>
+            </svg>
+            """;
+        using var svg = new SKSvg();
+        svg.Settings.EnableJavaScript = true;
+        svg.Settings.ThrowOnJavaScriptError = true;
+
+        svg.FromSvg(parentSvg);
+        using var bitmap = RenderBitmap(svg);
+        var embeddedPixel = bitmap.GetPixel(10, 10);
+
+        AssertFill(svg, "target", Color.Green);
+        Assert.True(
+            embeddedPixel.Green >= 128 && embeddedPixel.Red < 50 && embeddedPixel.Blue < 50 && embeddedPixel.Alpha > 200,
+            $"Expected embedded SVG image to stay green, but pixel was {embeddedPixel}.");
+    }
+
+    [Fact]
     public void FromSvg_ReusedInstanceLoadScriptsApplyPendingAnimationTime()
     {
         using var svg = new SKSvg();
@@ -2274,6 +2417,31 @@ public class SvgJavaScriptRuntimeTests
             svg.Settings.Srgb);
 
         return Assert.IsType<SkiaSharp.SKBitmap>(bitmap);
+    }
+
+    private static SkiaSharp.SKBitmap RenderDrawBitmap(SKSvg svg, int width, int height)
+    {
+        var bitmap = new SkiaSharp.SKBitmap(
+            width,
+            height,
+            SkiaSharp.SKColorType.Rgba8888,
+            SkiaSharp.SKAlphaType.Unpremul);
+        using var canvas = new SkiaSharp.SKCanvas(bitmap);
+        canvas.Clear(SkiaSharp.SKColors.Transparent);
+        svg.Draw(canvas);
+        return bitmap;
+    }
+
+    private static void AssertGreen(SkiaSharp.SKColor pixel)
+    {
+        Assert.True(
+            pixel.Green >= 128 && pixel.Red < 50 && pixel.Blue < 50 && pixel.Alpha > 200,
+            $"Expected green pixel, but pixel was {pixel}.");
+    }
+
+    private static void AssertApproximately(float expected, float actual)
+    {
+        Assert.True(Math.Abs(expected - actual) < 0.001f, $"Expected {expected}, but was {actual}.");
     }
 
     private static SvgJavaScriptRuntime GetJavaScriptRuntime(SKSvg svg)

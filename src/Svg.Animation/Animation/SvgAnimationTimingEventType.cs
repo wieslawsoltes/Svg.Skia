@@ -9,6 +9,7 @@ internal enum SvgAnimationTimingEventType
     Leave,
     Wheel,
     Click,
+    AccessKey,
     Begin,
     End,
     Repeat

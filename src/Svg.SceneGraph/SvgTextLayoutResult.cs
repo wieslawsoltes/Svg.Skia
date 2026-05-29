@@ -665,7 +665,10 @@ internal readonly record struct SvgTextDomClusterMetric(
     SKPoint StartPoint,
     SKPoint EndPoint,
     SKRect Extent,
-    float RotationDegrees);
+    float RotationDegrees)
+{
+    public SKRect HitExtent { get; init; } = Extent;
+}
 
 internal abstract class SvgTextRenderCommand
 {

@@ -30,6 +30,31 @@ public sealed class SvgJavaScriptDocument
 
     public SvgJavaScriptElement rootElement => documentElement;
 
+    public string nodeName => "#document";
+
+    public int nodeType => 9;
+
+    public string? nodeValue
+    {
+        get => null;
+        set { }
+    }
+
+    public SvgJavaScriptDocument? ownerDocument => null;
+
+    public SvgJavaScriptElement? firstChild => documentElement;
+
+    public SvgJavaScriptElement? lastChild => documentElement;
+
+    public SvgJavaScriptNodeList childNodes => new(() => new object?[] { documentElement });
+
+    public SvgJavaScriptNodeList children => childNodes;
+
+    public bool hasChildNodes()
+    {
+        return true;
+    }
+
     public SvgJavaScriptElement? getElementById(string? id)
     {
         if (string.IsNullOrEmpty(id))
@@ -43,14 +68,13 @@ public sealed class SvgJavaScriptDocument
 
     public SvgJavaScriptElement createElementNS(string? namespaceUri, string qualifiedName)
     {
-        _ = namespaceUri;
         if (qualifiedName is null)
         {
             throw new ArgumentNullException(nameof(qualifiedName));
         }
 
         var localName = GetLocalName(qualifiedName);
-        return GetOrCreateElement(CreateSvgElement(localName));
+        return GetOrCreateElement(CreateElement(namespaceUri, localName));
     }
 
     public SvgJavaScriptElement createElement(string qualifiedName)
@@ -69,17 +93,43 @@ public sealed class SvgJavaScriptDocument
         return new SvgJavaScriptEvent();
     }
 
+    public void clearTextSelection()
+    {
+        _runtime.ClearTextSelection();
+    }
+
+    public SvgJavaScriptTextSelection? getTextSelection()
+    {
+        return _runtime.GetTextSelection(null);
+    }
+
     public SvgJavaScriptNodeList getElementsByTagName(string tagName)
     {
         if (tagName is null || tagName == "*")
         {
-            return new SvgJavaScriptNodeList(GetDocumentAndDescendants().Select(GetOrCreateElement).Cast<object>());
+            return new SvgJavaScriptNodeList(() => GetDocumentAndDescendants().Select(GetOrCreateElement).Cast<object?>());
         }
 
-        return new SvgJavaScriptNodeList(GetDocumentAndDescendants()
+        return new SvgJavaScriptNodeList(() => GetDocumentAndDescendants()
             .Where(element => string.Equals(GetElementName(element), tagName, StringComparison.OrdinalIgnoreCase))
             .Select(GetOrCreateElement)
-            .Cast<object>());
+            .Cast<object?>());
+    }
+
+    public SvgJavaScriptNodeList getElementsByTagNameNS(string? namespaceUri, string localName)
+    {
+        return new SvgJavaScriptNodeList(() => GetDocumentAndDescendants()
+            .Where(element => ElementMatchesNamespaceAndName(element, namespaceUri, localName))
+            .Select(GetOrCreateElement)
+            .Cast<object?>());
+    }
+
+    public SvgJavaScriptNodeList getElementsByClassName(string classNames)
+    {
+        return new SvgJavaScriptNodeList(() => GetDocumentAndDescendants()
+            .Where(element => ElementMatchesClassNames(element, classNames))
+            .Select(GetOrCreateElement)
+            .Cast<object?>());
     }
 
     internal SvgJavaScriptRuntime Runtime => _runtime;
@@ -188,9 +238,19 @@ public sealed class SvgJavaScriptDocument
             return "svg";
         }
 
+        if (element is NonSvgElement nonSvgElement)
+        {
+            return nonSvgElement.Name;
+        }
+
         if (element is SvgUnknownElement && element.CustomAttributes.TryGetValue("tagName", out var tagName))
         {
             return tagName;
+        }
+
+        if (!string.IsNullOrEmpty(element.ElementName))
+        {
+            return element.ElementName;
         }
 
         return element switch
@@ -200,12 +260,56 @@ public sealed class SvgJavaScriptDocument
         };
     }
 
+    internal static string GetElementNamespace(SvgElement element)
+    {
+        return string.IsNullOrEmpty(element.ElementNamespace)
+            ? SvgNamespace
+            : element.ElementNamespace;
+    }
+
+    internal static bool ElementMatchesNamespaceAndName(SvgElement element, string? namespaceUri, string localName)
+    {
+        var namespaceMatches = namespaceUri == "*" ||
+                               string.Equals(GetElementNamespace(element), namespaceUri ?? string.Empty, StringComparison.Ordinal);
+        var nameMatches = localName == "*" ||
+                          string.Equals(GetElementName(element), localName, StringComparison.OrdinalIgnoreCase);
+        return namespaceMatches && nameMatches;
+    }
+
+    internal static bool ElementMatchesClassNames(SvgElement element, string classNames)
+    {
+        var requiredClasses = ParseClassNames(classNames);
+        if (requiredClasses.Length == 0)
+        {
+            return false;
+        }
+
+        if (!TryGetClassAttribute(element, out var classAttribute))
+        {
+            return false;
+        }
+
+        var actualClasses = ParseClassNames(classAttribute);
+        return requiredClasses.All(required => actualClasses.Contains(required, StringComparer.Ordinal));
+    }
+
     private static string GetLocalName(string qualifiedName)
     {
         var colonIndex = qualifiedName.IndexOf(':');
         return colonIndex >= 0 && colonIndex + 1 < qualifiedName.Length
             ? qualifiedName.Substring(colonIndex + 1)
             : qualifiedName;
+    }
+
+    private static SvgElement CreateElement(string? namespaceUri, string localName)
+    {
+        if (string.IsNullOrEmpty(namespaceUri) ||
+            string.Equals(namespaceUri, SvgNamespace, StringComparison.Ordinal))
+        {
+            return CreateSvgElement(localName);
+        }
+
+        return new NonSvgElement(localName, namespaceUri);
     }
 
     private static SvgElement CreateSvgElement(string localName)
@@ -218,6 +322,43 @@ public sealed class SvgJavaScriptDocument
         var unknown = new SvgUnknownElement(localName);
         unknown.CustomAttributes["tagName"] = localName;
         return unknown;
+    }
+
+    private static string[] ParseClassNames(string? classNames)
+    {
+        if (string.IsNullOrWhiteSpace(classNames))
+        {
+            return Array.Empty<string>();
+        }
+
+        return classNames!.Split(new[] { ' ', '\t', '\r', '\n', '\f' }, StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    private static bool TryGetClassAttribute(SvgElement element, out string classAttribute)
+    {
+        if (element.TryGetJavaScriptDomAttributeValue("class", out var scriptClassAttribute) &&
+            !string.IsNullOrWhiteSpace(scriptClassAttribute))
+        {
+            classAttribute = scriptClassAttribute;
+            return true;
+        }
+
+        if (element.TryGetAttribute("class", out var parsedClassAttribute) &&
+            !string.IsNullOrWhiteSpace(parsedClassAttribute))
+        {
+            classAttribute = parsedClassAttribute;
+            return true;
+        }
+
+        if (element.CustomAttributes.TryGetValue("class", out var customClassAttribute) &&
+            !string.IsNullOrWhiteSpace(customClassAttribute))
+        {
+            classAttribute = customClassAttribute!;
+            return true;
+        }
+
+        classAttribute = string.Empty;
+        return false;
     }
 
     private static Dictionary<string, Func<SvgElement>> CreateElementFactories()

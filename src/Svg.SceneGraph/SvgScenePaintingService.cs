@@ -56,17 +56,36 @@ internal static class SvgScenePaintingService
 
     internal static bool IsValidFill(SvgElement svgElement)
     {
-        var fill = svgElement.Fill;
-        return fill is not null && fill != SvgPaintServer.None;
+        return IsValidHitTestPaintServer(svgElement.Fill, svgElement);
     }
 
     internal static bool IsValidStroke(SvgElement svgElement, SKRect skBounds)
     {
         var stroke = svgElement.Stroke;
         var strokeWidth = svgElement.StrokeWidth;
-        return stroke is not null
-            && stroke != SvgPaintServer.None
+        return IsValidHitTestPaintServer(stroke, svgElement)
             && strokeWidth.ToDeviceValue(UnitRenderingType.Other, svgElement, skBounds) > 0f;
+    }
+
+    private static bool IsValidHitTestPaintServer(SvgPaintServer? server, SvgElement owner, int depth = 0)
+    {
+        if (server is null || server == SvgPaintServer.None || depth >= 8)
+        {
+            return false;
+        }
+
+        if (server is SvgDeferredPaintServer deferredServer)
+        {
+            var resolved = SvgDeferredPaintServer.TryGet<SvgPaintServer>(deferredServer, owner);
+            if (resolved is not null)
+            {
+                return IsValidHitTestPaintServer(resolved, owner, depth + 1);
+            }
+
+            return IsValidHitTestPaintServer(deferredServer.FallbackServer, owner, depth + 1);
+        }
+
+        return true;
     }
 
     internal static SKPaint? GetFillPaint(

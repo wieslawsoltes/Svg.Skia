@@ -155,7 +155,63 @@ public class Svg2StaticImageFontResourcePolicyTests
         Assert.Equal(SKRect.Create(3f, 4f, 12f, 10f), foreignObjectNode.GeometryBounds);
     }
 
-    private sealed class IntrinsicImageAssetLoader : ISvgAssetLoader
+    [Fact]
+    public void BrokenImagePlaceholder_EnabledCreatesDeterministicImageNode()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <image id="asset" href="data:image/png;base64,not-valid-base64" width="16" height="12" />
+            </svg>
+            """);
+        var assetLoader = new IntrinsicImageAssetLoader(width: 0f, height: 0f)
+        {
+            EnableBrokenImagePlaceholders = true
+        };
+
+        var compiled = SvgSceneCompiler.TryCompile(
+            document,
+            SKRect.Create(0f, 0f, 20f, 20f),
+            assetLoader,
+            DrawAttributes.None,
+            out var sceneDocument);
+
+        Assert.True(compiled);
+        Assert.NotNull(sceneDocument);
+        Assert.True(sceneDocument!.TryGetNodeById("asset", out var imageNode));
+        Assert.True(imageNode!.IsRenderable);
+        Assert.Equal(SKRect.Create(0f, 0f, 16f, 12f), imageNode.GeometryBounds);
+        Assert.NotNull(imageNode.LocalModel);
+        Assert.Equal(3, imageNode.LocalModel!.Commands!.Count);
+    }
+
+    [Fact]
+    public void BrokenImagePlaceholder_DisabledKeepsInvalidImageNonRenderable()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <image id="asset" href="data:image/png;base64,not-valid-base64" width="16" height="12" />
+            </svg>
+            """);
+        var assetLoader = new IntrinsicImageAssetLoader(width: 0f, height: 0f)
+        {
+            EnableBrokenImagePlaceholders = false
+        };
+
+        var compiled = SvgSceneCompiler.TryCompile(
+            document,
+            SKRect.Create(0f, 0f, 20f, 20f),
+            assetLoader,
+            DrawAttributes.None,
+            out var sceneDocument);
+
+        Assert.True(compiled);
+        Assert.NotNull(sceneDocument);
+        Assert.True(sceneDocument!.TryGetNodeById("asset", out var imageNode));
+        Assert.False(imageNode!.IsRenderable);
+        Assert.Null(imageNode.LocalModel);
+    }
+
+    private sealed class IntrinsicImageAssetLoader : ISvgAssetLoader, ISvgBrokenImagePlaceholderOptions
     {
         private readonly float _width;
         private readonly float _height;
@@ -167,6 +223,8 @@ public class Svg2StaticImageFontResourcePolicyTests
         }
 
         public bool EnableSvgFonts => false;
+
+        public bool EnableBrokenImagePlaceholders { get; init; }
 
         public SKImage LoadImage(Stream stream)
         {

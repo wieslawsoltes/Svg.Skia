@@ -32,7 +32,7 @@ public static class SKSvgJavaScriptRuntime
         }
     }
 
-    private sealed class SvgJavaScriptRuntimeAdapter : ISKSvgJavaScriptRuntime
+    private sealed class SvgJavaScriptRuntimeAdapter : ISKSvgJavaScriptRuntime, ISKSvgJavaScriptViewerRuntime
     {
         private readonly SvgJavaScriptRuntime _runtime;
 
@@ -53,6 +53,11 @@ public static class SKSvgJavaScriptRuntime
         public void SetTextContentHost(ISKSvgJavaScriptTextContentHost? textContentHost)
         {
             _runtime.TextContentHost = textContentHost is null ? null : new SvgJavaScriptTextContentHostAdapter(textContentHost);
+        }
+
+        public void SetViewerHost(ISKSvgJavaScriptViewerHost? viewerHost)
+        {
+            _runtime.ViewerHost = viewerHost is null ? null : new SvgJavaScriptViewerHostAdapter(viewerHost);
         }
 
         public void ExecuteDocumentScripts(bool dispatchLoadEvent)
@@ -185,7 +190,7 @@ public static class SKSvgJavaScriptRuntime
         }
     }
 
-    private sealed class SvgJavaScriptTextContentHostAdapter : ISvgJavaScriptTextContentHost
+    private sealed class SvgJavaScriptTextContentHostAdapter : ISvgJavaScriptTextContentHost, ISvgJavaScriptTextSelectionHost
     {
         private readonly ISKSvgJavaScriptTextContentHost _host;
 
@@ -240,9 +245,114 @@ public static class SKSvgJavaScriptRuntime
             _host.SelectSubString(textContentElement, charnum, nchars);
         }
 
+        public bool BeginTextSelection(SvgTextBase textContentElement, int anchorCharnum)
+        {
+            return _host is ISKSvgJavaScriptTextSelectionHost selectionHost &&
+                   selectionHost.TryBeginTextSelection(textContentElement, anchorCharnum);
+        }
+
+        public bool ExtendTextSelection(SvgTextBase textContentElement, int focusCharnum)
+        {
+            return _host is ISKSvgJavaScriptTextSelectionHost selectionHost &&
+                   selectionHost.TryExtendTextSelection(textContentElement, focusCharnum);
+        }
+
+        public bool SelectTextRange(SvgTextBase textContentElement, int anchorCharnum, int focusCharnum)
+        {
+            return _host is ISKSvgJavaScriptTextSelectionHost selectionHost &&
+                   selectionHost.TrySelectTextRange(textContentElement, anchorCharnum, focusCharnum);
+        }
+
+        public void ClearTextSelection()
+        {
+            if (_host is ISKSvgJavaScriptTextSelectionHost selectionHost)
+            {
+                selectionHost.ClearTextSelection();
+            }
+        }
+
+        public SvgJavaScriptTextSelection? GetTextSelection(SvgTextBase? textContentElement)
+        {
+            if (_host is not ISKSvgJavaScriptTextSelectionHost selectionHost ||
+                !selectionHost.TryGetTextSelection(textContentElement, out var selection))
+            {
+                return null;
+            }
+
+            return ConvertSelection(selection);
+        }
+
         private static SvgJavaScriptPoint ConvertPoint(SKPoint point)
         {
             return new SvgJavaScriptPoint(point.X, point.Y);
+        }
+
+        private static SvgJavaScriptRect ConvertRect(SKRect rect)
+        {
+            return new SvgJavaScriptRect(rect.Left, rect.Top, rect.Width, rect.Height);
+        }
+
+        private static SvgJavaScriptTextSelection ConvertSelection(SKSvg.SvgTextSelectionRange selection)
+        {
+            return new SvgJavaScriptTextSelection(
+                selection.ElementId,
+                selection.Charnum,
+                selection.NChars,
+                selection.StartCharnum,
+                selection.EndCharnum,
+                selection.SelectedNChars,
+                selection.AnchorCharnum,
+                selection.FocusCharnum,
+                selection.Direction.ToString().ToLowerInvariant(),
+                selection.HasCaret,
+                ConvertPoint(selection.CaretPosition),
+                ConvertRect(selection.CaretExtent),
+                ConvertRects(selection.Extents),
+                ConvertRects(selection.VisualExtents));
+        }
+
+        private static SvgJavaScriptRect[] ConvertRects(System.Collections.Generic.IReadOnlyList<SKRect> rects)
+        {
+            if (rects.Count == 0)
+            {
+                return Array.Empty<SvgJavaScriptRect>();
+            }
+
+            var result = new SvgJavaScriptRect[rects.Count];
+            for (var i = 0; i < rects.Count; i++)
+            {
+                result[i] = ConvertRect(rects[i]);
+            }
+
+            return result;
+        }
+    }
+
+    private sealed class SvgJavaScriptViewerHostAdapter : ISvgJavaScriptViewerHost
+    {
+        private readonly ISKSvgJavaScriptViewerHost _host;
+
+        public SvgJavaScriptViewerHostAdapter(ISKSvgJavaScriptViewerHost host)
+        {
+            _host = host;
+        }
+
+        public double CurrentScale
+        {
+            get => _host.CurrentScale;
+            set => _host.CurrentScale = value;
+        }
+
+        public float CurrentTranslateX
+        {
+            get => _host.CurrentTranslateX;
+            set => _host.CurrentTranslateX = value;
+        }
+
+        public float CurrentTranslateY
+        {
+            get => _host.CurrentTranslateY;
+            set => _host.CurrentTranslateY = value;
         }
     }
 }

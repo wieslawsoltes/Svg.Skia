@@ -627,12 +627,12 @@ public static class SvgService
 
         if (isSvgMimeType || isSvg)
         {
-            return LoadSvg(stream, uri, GetEffectiveDocumentLoadOptions(svgOwnerElement));
+            return LoadSvg(stream, uri, GetEffectiveSvgImageDocumentLoadOptions(svgOwnerElement));
         }
 
         if (isSvgMimeType || isSvgz)
         {
-            return LoadSvgz(stream, uri, GetEffectiveDocumentLoadOptions(svgOwnerElement));
+            return LoadSvgz(stream, uri, GetEffectiveSvgImageDocumentLoadOptions(svgOwnerElement));
         }
 
         return LoadImage(assetLoader, stream, uri, svgOwnerElement);
@@ -700,7 +700,7 @@ public static class SvgService
                     if (isCompressed)
                     {
                         using var bytesStream = new System.IO.MemoryStream(bytes);
-                        return LoadSvgz(bytesStream, imageBaseUri, GetEffectiveDocumentLoadOptions(svgOwnerElement));
+                        return LoadSvgz(bytesStream, imageBaseUri, GetEffectiveSvgImageDocumentLoadOptions(svgOwnerElement));
                     }
                 }
 
@@ -710,7 +710,7 @@ public static class SvgService
 
             var buffer = Encoding.Default.GetBytes(data);
             using var stream = new System.IO.MemoryStream(buffer);
-            return LoadSvg(stream, imageBaseUri, GetEffectiveDocumentLoadOptions(svgOwnerElement));
+            return LoadSvg(stream, imageBaseUri, GetEffectiveSvgImageDocumentLoadOptions(svgOwnerElement));
         }
 
         if (mimeType.StartsWith("image/", StringComparison.Ordinal) ||
@@ -725,7 +725,7 @@ public static class SvgService
                     if (isCompressed)
                     {
                         using var bytesStream = new System.IO.MemoryStream(bytes);
-                        return LoadSvgz(bytesStream, svgOwnerElement.OwnerDocument.BaseUri, GetEffectiveDocumentLoadOptions(svgOwnerElement));
+                        return LoadSvgz(bytesStream, imageBaseUri, GetEffectiveSvgImageDocumentLoadOptions(svgOwnerElement));
                     }
                 }
 
@@ -870,6 +870,21 @@ public static class SvgService
     private static SvgDocumentLoadOptions GetEffectiveDocumentLoadOptions(SvgDocument? svgDocument)
     {
         return svgDocument?.LoadOptions ?? new SvgDocumentLoadOptions();
+    }
+
+    private static SvgDocumentLoadOptions GetEffectiveSvgImageDocumentLoadOptions(SvgElement? svgElement)
+    {
+        var loadOptions = CloneDocumentLoadOptions(GetEffectiveDocumentLoadOptions(svgElement));
+        loadOptions.ProcessingMode = ToSvgImageDocumentProcessingMode(loadOptions.ProcessingMode);
+        return loadOptions;
+    }
+
+    private static SvgProcessingMode ToSvgImageDocumentProcessingMode(SvgProcessingMode processingMode)
+    {
+        return processingMode == SvgProcessingMode.SecureStatic ||
+               processingMode == SvgProcessingMode.SecureAnimated
+            ? SvgProcessingMode.SecureStatic
+            : SvgProcessingMode.Static;
     }
 
     private static SvgDocumentLoadOptions CloneDocumentLoadOptions(SvgDocumentLoadOptions? loadOptions)

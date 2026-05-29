@@ -462,6 +462,51 @@ public class SvgResourceRenderingParityTests
     }
 
     [Fact]
+    public void RetainedSceneGraph_NestedImplicitSvgImageUsesImageViewport()
+    {
+        var previousResolveExternalImages = SvgDocument.ResolveExternalImages;
+        var tempDirectory = Directory.CreateTempSubdirectory();
+
+        try
+        {
+            SvgDocument.ResolveExternalImages = ExternalType.Local | ExternalType.Remote;
+
+            var level2Path = Path.Combine(tempDirectory.FullName, "level2.svg");
+            File.WriteAllText(level2Path, """
+                <svg xmlns="http://www.w3.org/2000/svg">
+                  <rect width="100%" height="100%" fill="#00ff00" />
+                </svg>
+                """);
+
+            var level1Path = Path.Combine(tempDirectory.FullName, "level1.svg");
+            File.WriteAllText(level1Path, """
+                <svg xmlns="http://www.w3.org/2000/svg">
+                  <image href="level2.svg" width="100%" height="100%" />
+                </svg>
+                """);
+
+            var sourcePath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(sourcePath, """
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+                  <image href="level1.svg" width="20" height="20" />
+                </svg>
+                """);
+
+            using var svg = new SKSvg();
+            svg.Load(sourcePath);
+
+            Assert.NotNull(svg.Picture);
+            using var bitmap = ToBitmap(svg, svg.Picture!);
+            AssertMostlyGreen(bitmap.GetPixel(10, 10), "Expected nested implicit SVG image to resolve percentage dimensions against the image viewport.");
+        }
+        finally
+        {
+            SvgDocument.ResolveExternalImages = previousResolveExternalImages;
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
     public void RetainedSceneGraph_FeImageExternalSvgCycleProducesTransparentNestedInput()
     {
         var previousResolveExternalImages = SvgDocument.ResolveExternalImages;

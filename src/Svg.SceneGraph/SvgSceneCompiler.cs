@@ -99,6 +99,12 @@ public static class SvgSceneCompiler
             return true;
         }
 
+        public bool IsActive(SvgDocument? document)
+        {
+            var documentKey = GetDocumentKey(document);
+            return documentKey is not null && _activeDocumentKeys.Contains(documentKey);
+        }
+
         public void Exit(string? documentKey)
         {
             if (documentKey is not null)
@@ -1967,27 +1973,60 @@ public static class SvgSceneCompiler
         var references = CreateReferences(svgImage);
         if (references is { } && references.Contains(uri))
         {
-            node.IsRenderable = false;
+            var placeholderRect = SKRect.Create(x, y, width, height);
+            if (!TryUseBrokenImagePlaceholder(
+                    node,
+                    svgImage,
+                    placeholderRect,
+                    viewport,
+                    parentTotalTransform,
+                    assetLoader))
+            {
+                node.IsRenderable = false;
+            }
+
             return true;
         }
 
         var image = SvgService.GetImage(href!, svgImage, assetLoader);
         if (image is not SKImage && image is not SvgDocument)
         {
-            node.IsRenderable = false;
+            var placeholderRect = SKRect.Create(x, y, width, height);
+            if (!TryUseBrokenImagePlaceholder(
+                    node,
+                    svgImage,
+                    placeholderRect,
+                    viewport,
+                    parentTotalTransform,
+                    assetLoader))
+            {
+                node.IsRenderable = false;
+            }
+
             return true;
         }
 
         var srcRect = image switch
         {
             SKImage skImage => SKRect.Create(0f, 0f, skImage.Width, skImage.Height),
-            SvgDocument svgDocument => CreateSourceRect(svgDocument),
+            SvgDocument svgDocument => CreateSourceRect(svgDocument, SKRect.Create(0f, 0f, width, height)),
             _ => SKRect.Empty
         };
 
         if (srcRect.IsEmpty)
         {
-            node.IsRenderable = false;
+            var placeholderRect = SKRect.Create(x, y, width, height);
+            if (!TryUseBrokenImagePlaceholder(
+                    node,
+                    svgImage,
+                    placeholderRect,
+                    viewport,
+                    parentTotalTransform,
+                    assetLoader))
+            {
+                node.IsRenderable = false;
+            }
+
             return true;
         }
 
@@ -2021,6 +2060,22 @@ public static class SvgSceneCompiler
                 }
                 break;
             case SvgDocument svgDocument:
+                if (compileContext.IsActive(svgDocument))
+                {
+                    if (!TryUseBrokenImagePlaceholder(
+                            node,
+                            svgImage,
+                            destClip,
+                            viewport,
+                            parentTotalTransform,
+                            assetLoader))
+                    {
+                        node.IsRenderable = false;
+                    }
+
+                    return true;
+                }
+
                 var fragmentNode = usesReferencedSvgViewport
                     ? CompileEmbeddedSvgDocumentImageSceneNode(
                         svgImage,
@@ -2369,9 +2424,91 @@ public static class SvgSceneCompiler
         return picture.Commands is { Count: > 0 } ? picture : null;
     }
 
-    private static SKRect CreateSourceRect(SvgDocument svgDocument)
+    private static bool TryUseBrokenImagePlaceholder(
+        SvgSceneNode node,
+        SvgImage svgImage,
+        SKRect destRect,
+        SKRect viewport,
+        SKMatrix parentTotalTransform,
+        ISvgAssetLoader assetLoader)
+    {
+        if (assetLoader is not ISvgBrokenImagePlaceholderOptions { EnableBrokenImagePlaceholders: true } ||
+            destRect.IsEmpty ||
+            destRect.Width <= 0f ||
+            destRect.Height <= 0f)
+        {
+            return false;
+        }
+
+        node.GeometryBounds = destRect;
+        node.Transform = TransformsService.ToMatrix(svgImage.Transforms, svgImage, destRect, viewport);
+        node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
+        node.TransformedBounds = node.TotalTransform.MapRect(destRect);
+        node.Clip = MaskingService.GetClipRect(svgImage.Clip, destRect) ?? destRect;
+        node.LocalModel = CreateBrokenImagePlaceholderModel(destRect);
+        node.IsRenderable = node.LocalModel is not null;
+        return node.IsRenderable;
+    }
+
+    private static SKPicture? CreateBrokenImagePlaceholderModel(SKRect destRect)
+    {
+        var cullRect = CreateLocalCullRect(destRect);
+        if (cullRect.IsEmpty)
+        {
+            return null;
+        }
+
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(cullRect);
+        var background = new SKPath();
+        background.AddRect(destRect);
+        canvas.DrawPath(
+            background,
+            new SKPaint
+            {
+                Style = SKPaintStyle.Fill,
+                Color = new SKColor(0xF8, 0xF8, 0xF8, 0xFF)
+            });
+
+        var border = new SKPath();
+        border.AddRect(destRect);
+        canvas.DrawPath(
+            border,
+            new SKPaint
+            {
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 1f,
+                IsAntialias = false,
+                Color = new SKColor(0x66, 0x66, 0x66, 0xFF)
+            });
+
+        var diagonal = new SKPath();
+        diagonal.MoveTo(destRect.Left, destRect.Top);
+        diagonal.LineTo(destRect.Right, destRect.Bottom);
+        diagonal.MoveTo(destRect.Right, destRect.Top);
+        diagonal.LineTo(destRect.Left, destRect.Bottom);
+        canvas.DrawPath(
+            diagonal,
+            new SKPaint
+            {
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 1f,
+                IsAntialias = false,
+                Color = new SKColor(0x99, 0x99, 0x99, 0xFF)
+            });
+
+        var picture = recorder.EndRecording();
+        return picture.Commands is { Count: > 0 } ? picture : null;
+    }
+
+    private static SKRect CreateSourceRect(SvgDocument svgDocument, SKRect imageViewport)
     {
         var size = SvgService.GetDimensions(svgDocument);
+        if ((size.Width <= 0f || size.Height <= 0f) && imageViewport.Width > 0f && imageViewport.Height > 0f)
+        {
+            size = SvgService.GetDimensions(svgDocument, imageViewport);
+        }
+
         return size.Width > 0f && size.Height > 0f
             ? SKRect.Create(0f, 0f, size.Width, size.Height)
             : SKRect.Empty;

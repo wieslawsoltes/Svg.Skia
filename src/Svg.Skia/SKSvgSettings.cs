@@ -27,6 +27,8 @@ public class SKSvgSettings
 
     public bool EnableFilterBackgroundInputs { get; set; }
 
+    public bool EnableBrokenImagePlaceholders { get; set; }
+
     public bool EnableJavaScript { get; set; }
 
     public bool EnableTextSelectionRendering { get; set; }
@@ -42,6 +44,8 @@ public class SKSvgSettings
     public bool ThrowOnJavaScriptError { get; set; }
 
     public ISKSvgJavaScriptRuntimeFactory? JavaScriptRuntimeFactory { get; set; }
+
+    public ISKSvgNavigationHandler? NavigationHandler { get; set; }
 
     public SKSvgSettings Clone()
     {
@@ -68,6 +72,7 @@ public class SKSvgSettings
         target.EnableSvgFonts = EnableSvgFonts;
         target.EnableTextReferences = EnableTextReferences;
         target.EnableFilterBackgroundInputs = EnableFilterBackgroundInputs;
+        target.EnableBrokenImagePlaceholders = EnableBrokenImagePlaceholders;
         target.EnableJavaScript = EnableJavaScript;
         target.EnableTextSelectionRendering = EnableTextSelectionRendering;
         target.TextSelectionColor = TextSelectionColor;
@@ -76,6 +81,7 @@ public class SKSvgSettings
         target.JavaScriptMaxStatements = JavaScriptMaxStatements;
         target.ThrowOnJavaScriptError = ThrowOnJavaScriptError;
         target.JavaScriptRuntimeFactory = JavaScriptRuntimeFactory;
+        target.NavigationHandler = NavigationHandler;
     }
 
     public SKSvgSettings()
@@ -98,6 +104,7 @@ public class SKSvgSettings
         EnableSvgFonts = true;
         EnableTextReferences = true;
         EnableFilterBackgroundInputs = true;
+        EnableBrokenImagePlaceholders = true;
         EnableJavaScript = false;
         EnableTextSelectionRendering = true;
         TextSelectionColor = new SkiaSharp.SKColor(0x00, 0x80, 0x00, 0xFF);
