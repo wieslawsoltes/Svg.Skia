@@ -115,7 +115,7 @@ public class SkiaSvgAssetLoaderCachingTests
     [Fact]
     public void Load_W3CWoffFontFaceRegistersDocumentTypeface()
     {
-        var expectedFamily = GetNativeFontFamilyName(GetW3CResourcePath("Blocky.woff"));
+        var expectedFamily = GetDocumentFontFamilyName("Blocky", GetW3CResourcePath("Blocky.woff"), "G");
         using var svg = new SKSvg();
         svg.Settings.EnableSvgFonts = false;
         svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 480f, 360f);
@@ -130,7 +130,7 @@ public class SkiaSvgAssetLoaderCachingTests
     [Fact]
     public void Load_W3CRenderWoffFontFaceRegistersFallbackFamily()
     {
-        var expectedFamily = GetNativeFontFamilyName(GetW3CResourcePath("Blocky.woff"));
+        var expectedFamily = GetDocumentFontFamilyName("BlockyWoff", GetW3CResourcePath("Blocky.woff"), "G");
         using var svg = new SKSvg();
         svg.Settings.EnableSvgFonts = false;
         svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 480f, 360f);
@@ -147,7 +147,7 @@ public class SkiaSvgAssetLoaderCachingTests
     [Fact]
     public void Load_W3CGroupWoffFontFaceRegistersDocumentTypeface()
     {
-        var expectedFamily = GetNativeFontFamilyName(GetW3CResourcePath("anglepoi.woff"));
+        var expectedFamily = GetDocumentFontFamilyName("anglepoise", GetW3CResourcePath("anglepoi.woff"), "S");
         using var svg = new SKSvg();
         svg.Settings.EnableSvgFonts = false;
         svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 480f, 360f);
@@ -163,7 +163,7 @@ public class SkiaSvgAssetLoaderCachingTests
     public void Load_ClearsDocumentFontFaceProvidersBetweenDocuments()
     {
         const string transientFamily = "SvgSkiaTransientBlocky";
-        var blockyFamily = GetNativeFontFamilyName(GetW3CResourcePath("Blocky.woff"));
+        var blockyFamily = GetDocumentFontFamilyName(transientFamily, GetW3CResourcePath("Blocky.woff"), "G");
         var blockyUri = new Uri(Path.GetFullPath(GetW3CResourcePath("Blocky.woff"))).AbsoluteUri;
         using var svg = new SKSvg();
         svg.Settings.EnableSvgFonts = false;
@@ -203,7 +203,7 @@ public class SkiaSvgAssetLoaderCachingTests
     {
         const string family = "SvgSkiaDataUriBlocky";
         var blockyPath = GetW3CResourcePath("Blocky.woff");
-        var expectedFamily = GetNativeFontFamilyName(blockyPath);
+        var expectedFamily = GetDocumentFontFamilyName(family, blockyPath, "G");
         var fontData = Convert.ToBase64String(File.ReadAllBytes(blockyPath));
         using var svg = new SKSvg();
         svg.Settings.EnableSvgFonts = false;
@@ -233,8 +233,8 @@ public class SkiaSvgAssetLoaderCachingTests
         const string childFamily = "SvgSkiaChildAnglepoise";
         var parentFontPath = GetW3CResourcePath("Blocky.woff");
         var childFontPath = GetW3CResourcePath("anglepoi.woff");
-        var parentExpectedFamily = GetNativeFontFamilyName(parentFontPath);
-        var childExpectedFamily = GetNativeFontFamilyName(childFontPath);
+        var parentExpectedFamily = GetDocumentFontFamilyName(parentFamily, parentFontPath, "G");
+        var childExpectedFamily = GetDocumentFontFamilyName(childFamily, childFontPath, "S");
         var parentDocument = CreateFontFaceDocument(parentFamily, parentFontPath, "G");
         var childDocument = CreateFontFaceDocument(childFamily, childFontPath, "S");
         var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
@@ -318,6 +318,13 @@ public class SkiaSvgAssetLoaderCachingTests
     private static void AssertRunTypefaceFamily(SKSvg svg, string familyName, string text, string expectedFamily)
     {
         var assetLoader = Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader);
+        var runTypeface = FindRunTypeface(assetLoader, familyName, text);
+        Assert.NotNull(runTypeface);
+        Assert.Equal(expectedFamily, runTypeface!.FamilyName, ignoreCase: true);
+    }
+
+    private static SKTypeface? FindRunTypeface(SkiaSvgAssetLoader assetLoader, string familyName, string text)
+    {
         var paint = new SKPaint
         {
             TextSize = 48f,
@@ -328,16 +335,17 @@ public class SkiaSvgAssetLoaderCachingTests
                 SKFontStyleSlant.Upright)
         };
 
-        var runTypeface = assetLoader.FindRunTypeface(text, paint);
-        Assert.NotNull(runTypeface);
-        Assert.Equal(expectedFamily, runTypeface!.FamilyName, ignoreCase: true);
+        return assetLoader.FindRunTypeface(text, paint);
     }
 
-    private static string GetNativeFontFamilyName(string path)
+    private static string GetDocumentFontFamilyName(string familyName, string fontPath, string text)
     {
-        using var typeface = NativeTypeface.FromFile(path);
+        var document = CreateFontFaceDocument(familyName, fontPath, text);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        using var fontScope = assetLoader.PushDocumentFonts(document);
+        var typeface = FindRunTypeface(assetLoader, familyName, text);
+
         Assert.NotNull(typeface);
-        Assert.NotEqual(IntPtr.Zero, typeface!.Handle);
         Assert.False(string.IsNullOrWhiteSpace(typeface.FamilyName));
         return typeface.FamilyName;
     }
