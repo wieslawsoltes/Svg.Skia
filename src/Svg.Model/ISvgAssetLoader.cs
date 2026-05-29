@@ -27,6 +27,11 @@ public interface ISvgImageAssetLoader
     SKImage LoadImage(Stream stream, SvgImageLoadContext context);
 }
 
+public interface ISvgBrokenImagePlaceholderOptions
+{
+    bool EnableBrokenImagePlaceholders { get; }
+}
+
 public interface ISvgImageAlphaProvider
 {
     bool TryGetImageAlpha(SKImage image, out int width, out int height, out byte[] alpha);

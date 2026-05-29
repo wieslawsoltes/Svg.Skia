@@ -57,6 +57,11 @@ public interface ISKSvgJavaScriptRuntime
         SKSvgJavaScriptEventInput? input);
 }
 
+public interface ISKSvgJavaScriptViewerRuntime
+{
+    void SetViewerHost(ISKSvgJavaScriptViewerHost? viewerHost);
+}
+
 public interface ISKSvgJavaScriptAnimationHost
 {
     TimeSpan CurrentTime { get; }
@@ -91,6 +96,28 @@ public interface ISKSvgJavaScriptTextContentHost
     int GetCharNumAtPosition(SvgTextBase textContentElement, SKPoint point);
 
     void SelectSubString(SvgTextBase textContentElement, int charnum, int nchars);
+}
+
+public interface ISKSvgJavaScriptTextSelectionHost
+{
+    bool TryBeginTextSelection(SvgTextBase textContentElement, int anchorCharnum);
+
+    bool TryExtendTextSelection(SvgTextBase textContentElement, int focusCharnum);
+
+    bool TrySelectTextRange(SvgTextBase textContentElement, int anchorCharnum, int focusCharnum);
+
+    void ClearTextSelection();
+
+    bool TryGetTextSelection(SvgTextBase? textContentElement, out SKSvg.SvgTextSelectionRange selection);
+}
+
+public interface ISKSvgJavaScriptViewerHost
+{
+    double CurrentScale { get; set; }
+
+    float CurrentTranslateX { get; set; }
+
+    float CurrentTranslateY { get; set; }
 }
 
 public enum SKSvgJavaScriptMouseButton

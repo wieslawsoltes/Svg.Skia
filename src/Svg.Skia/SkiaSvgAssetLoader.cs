@@ -11,7 +11,7 @@ namespace Svg.Skia;
 /// <summary>
 /// Asset loader implementation using SkiaSharp types.
 /// </summary>
-public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImageAlphaProvider, Model.ISvgTextReferenceRenderingOptions, Model.ISvgFilterBackgroundInputOptions, Model.ISvgTextRunTypefaceResolver, Model.ISvgTextGlyphRunResolver, Model.ISvgTextDirectedGlyphRunResolver, Model.ISvgTextGlyphClusterResolver, Model.ISvgTextGlyphRunPathResolver
+public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImageAlphaProvider, Model.ISvgBrokenImagePlaceholderOptions, Model.ISvgTextReferenceRenderingOptions, Model.ISvgFilterBackgroundInputOptions, Model.ISvgTextRunTypefaceResolver, Model.ISvgTextGlyphRunResolver, Model.ISvgTextDirectedGlyphRunResolver, Model.ISvgTextGlyphClusterResolver, Model.ISvgTextGlyphRunPathResolver
 {
     private readonly SkiaModel _skiaModel;
 
@@ -32,6 +32,9 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
 
     /// <inheritdoc />
     public bool EnableFilterBackgroundInputs => _skiaModel.Settings.EnableFilterBackgroundInputs;
+
+    /// <inheritdoc />
+    public bool EnableBrokenImagePlaceholders => _skiaModel.Settings.EnableBrokenImagePlaceholders;
 
     /// <inheritdoc />
     public ShimSkiaSharp.SKImage LoadImage(System.IO.Stream stream)

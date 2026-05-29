@@ -466,6 +466,7 @@ internal static partial class SvgSceneTextCompiler
             float startX,
             float baselineY,
             float logicalAdvance,
+            bool placeVisualRunsRightToLeft,
             bool shouldClip)
         {
             Runs = runs;
@@ -474,6 +475,7 @@ internal static partial class SvgSceneTextCompiler
             StartX = startX;
             BaselineY = baselineY;
             LogicalAdvance = logicalAdvance;
+            PlaceVisualRunsRightToLeft = placeVisualRunsRightToLeft;
             ShouldClip = shouldClip;
         }
 
@@ -488,6 +490,8 @@ internal static partial class SvgSceneTextCompiler
         public float BaselineY { get; }
 
         public float LogicalAdvance { get; }
+
+        public bool PlaceVisualRunsRightToLeft { get; }
 
         public bool ShouldClip { get; }
     }
@@ -840,6 +844,7 @@ internal static partial class SvgSceneTextCompiler
             node.Transform = TransformsService.ToMatrix(svgTextBase.Transforms, svgTextBase, compiledGeometryBounds, viewport);
             node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
             node.TransformedBounds = node.TotalTransform.MapRect(compiledGeometryBounds);
+            AssignTextContentMetrics(node, svgTextBase, viewport, assetLoader);
             node.LocalModel = sequentialModel;
             if (node.LocalModel is null)
             {
@@ -854,6 +859,7 @@ internal static partial class SvgSceneTextCompiler
         node.Transform = TransformsService.ToMatrix(svgTextBase.Transforms, svgTextBase, geometryBounds, viewport);
         node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
         node.TransformedBounds = node.TotalTransform.MapRect(geometryBounds);
+        AssignTextContentMetrics(node, svgTextBase, viewport, assetLoader);
 
         if (!node.IsRenderable)
         {
@@ -888,6 +894,18 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return true;
+    }
+
+    private static void AssignTextContentMetrics(
+        SvgSceneNode node,
+        SvgTextBase svgTextBase,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader)
+    {
+        node.TextContentMetrics = TryCreateTextContentMetrics(svgTextBase, viewport, assetLoader, out var metrics) &&
+                                  metrics.HasHitTestCells
+            ? metrics
+            : null;
     }
 
     private static bool TryCompileSequentialText(
@@ -6349,22 +6367,46 @@ internal static partial class SvgSceneTextCompiler
                 canvas.ClipRect(line.ClipRect, SKClipOperation.Intersect);
             }
 
-            var drawX = line.StartX;
-            var drawY = line.BaselineY;
-            for (var i = 0; i < line.VisualRuns.Count; i++)
+            if (line.PlaceVisualRunsRightToLeft)
             {
-                var run = line.VisualRuns[i];
-                DrawTextStringAlignedLeft(
-                    run.StyleSource,
-                    run.Text,
-                    ref drawX,
-                    ref drawY,
-                    geometryBounds,
-                    ignoreAttributes,
-                    canvas,
-                    assetLoader,
-                    getElementAddressKey,
-                    contextPaint);
+                var cursorX = GetInlineSizeVisualRunCursorX(line);
+                for (var i = 0; i < line.VisualRuns.Count; i++)
+                {
+                    var run = line.VisualRuns[i];
+                    var drawX = TakeInlineSizeVisualRunX(line, run, ref cursorX);
+                    var drawY = line.BaselineY;
+                    DrawTextStringAlignedLeft(
+                        run.StyleSource,
+                        run.Text,
+                        ref drawX,
+                        ref drawY,
+                        geometryBounds,
+                        ignoreAttributes,
+                        canvas,
+                        assetLoader,
+                        getElementAddressKey,
+                        contextPaint);
+                }
+            }
+            else
+            {
+                var drawX = line.StartX;
+                var drawY = line.BaselineY;
+                for (var i = 0; i < line.VisualRuns.Count; i++)
+                {
+                    var run = line.VisualRuns[i];
+                    DrawTextStringAlignedLeft(
+                        run.StyleSource,
+                        run.Text,
+                        ref drawX,
+                        ref drawY,
+                        geometryBounds,
+                        ignoreAttributes,
+                        canvas,
+                        assetLoader,
+                        getElementAddressKey,
+                        contextPaint);
+                }
             }
 
             if (line.ShouldClip)
@@ -6396,22 +6438,44 @@ internal static partial class SvgSceneTextCompiler
         for (var lineIndex = 0; lineIndex < layout.Lines.Count; lineIndex++)
         {
             var line = layout.Lines[lineIndex];
-            var drawX = line.StartX;
-            var drawY = line.BaselineY;
-            for (var i = 0; i < line.VisualRuns.Count; i++)
+            if (line.PlaceVisualRunsRightToLeft)
             {
-                var run = line.VisualRuns[i];
-                var runBounds = MeasureTextStringBoundsAlignedLeft(run.StyleSource, run.Text, drawX, drawY, viewport, assetLoader, rotations: null, out var advance);
-                if (!line.ShouldClip)
+                var cursorX = GetInlineSizeVisualRunCursorX(line);
+                for (var i = 0; i < line.VisualRuns.Count; i++)
                 {
-                    UnionBounds(ref bounds, runBounds);
+                    var run = line.VisualRuns[i];
+                    var drawX = TakeInlineSizeVisualRunX(line, run, ref cursorX);
+                    var drawY = line.BaselineY;
+                    var runBounds = MeasureTextStringBoundsAlignedLeft(run.StyleSource, run.Text, drawX, drawY, viewport, assetLoader, rotations: null, out _);
+                    if (!line.ShouldClip)
+                    {
+                        UnionBounds(ref bounds, runBounds);
+                    }
+                    else if (TryIntersectRect(runBounds, line.ClipRect, out var clippedRunBounds))
+                    {
+                        UnionBounds(ref bounds, clippedRunBounds);
+                    }
                 }
-                else if (TryIntersectRect(runBounds, line.ClipRect, out var clippedRunBounds))
+            }
+            else
+            {
+                var drawX = line.StartX;
+                var drawY = line.BaselineY;
+                for (var i = 0; i < line.VisualRuns.Count; i++)
                 {
-                    UnionBounds(ref bounds, clippedRunBounds);
-                }
+                    var run = line.VisualRuns[i];
+                    var runBounds = MeasureTextStringBoundsAlignedLeft(run.StyleSource, run.Text, drawX, drawY, viewport, assetLoader, rotations: null, out var advance);
+                    if (!line.ShouldClip)
+                    {
+                        UnionBounds(ref bounds, runBounds);
+                    }
+                    else if (TryIntersectRect(runBounds, line.ClipRect, out var clippedRunBounds))
+                    {
+                        UnionBounds(ref bounds, clippedRunBounds);
+                    }
 
-                ApplyInlineAdvance(run.StyleSource, ref drawX, ref drawY, advance);
+                    ApplyInlineAdvance(run.StyleSource, ref drawX, ref drawY, advance);
+                }
             }
         }
 
@@ -7782,6 +7846,59 @@ internal static partial class SvgSceneTextCompiler
         return visualRuns.Count > 0 ? visualRuns.ToArray() : logicalRuns.ToArray();
     }
 
+    private static bool ShouldPlacePlainTextInlineSizeLineRightToLeft(
+        SvgTextBase svgTextBase,
+        bool isVertical,
+        IReadOnlyList<InlineSizeTextRun> logicalRuns)
+    {
+        if (isVertical ||
+            SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase) != SvgUnicodeBidiMode.PlainText)
+        {
+            return false;
+        }
+
+        for (var runIndex = 0; runIndex < logicalRuns.Count; runIndex++)
+        {
+            var text = logicalRuns[runIndex].Text;
+            if (string.IsNullOrEmpty(text))
+            {
+                continue;
+            }
+
+            var codepoints = SplitCodepoints(text);
+            for (var i = 0; i < codepoints.Count; i++)
+            {
+                var direction = SvgTextBidiResolver.GetStrongDirection(codepoints[i]);
+                if (direction != 0)
+                {
+                    return direction < 0;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static float GetInlineSizeVisualRunCursorX(InlineSizeTextLine line)
+    {
+        return line.PlaceVisualRunsRightToLeft
+            ? line.StartX + SumInlineSizeTextRunAdvances(line.VisualRuns)
+            : line.StartX;
+    }
+
+    private static float TakeInlineSizeVisualRunX(InlineSizeTextLine line, InlineSizeTextRun run, ref float cursorX)
+    {
+        if (line.PlaceVisualRunsRightToLeft)
+        {
+            cursorX -= run.Advance;
+            return cursorX;
+        }
+
+        var runX = cursorX;
+        cursorX += run.Advance;
+        return runX;
+    }
+
     private static bool NeedsInlineSizeBidiOrdering(SvgTextBase svgTextBase, IReadOnlyList<InlineSizeTextRun> logicalRuns)
     {
         if (logicalRuns.Count == 0)
@@ -7875,7 +7992,8 @@ internal static partial class SvgSceneTextCompiler
         }
 
         var visualRuns = CreateVisualInlineSizeTextRuns(svgTextBase, layoutRuns, geometryBounds, assetLoader);
-        var line = new InlineSizeTextLine(layoutRuns, visualRuns, clipRect, drawX, drawY, totalAdvance, overflows);
+        var placeVisualRunsRightToLeft = ShouldPlacePlainTextInlineSizeLineRightToLeft(svgTextBase, isVertical, layoutRuns);
+        var line = new InlineSizeTextLine(layoutRuns, visualRuns, clipRect, drawX, drawY, totalAdvance, placeVisualRunsRightToLeft, overflows);
         layout = new InlineSizeTextOverflowLayout(
             new[] { line },
             isVertical ? drawX : drawX + totalAdvance,
@@ -7964,7 +8082,8 @@ internal static partial class SvgSceneTextCompiler
             }
 
             var visualLineRuns = CreateVisualInlineSizeTextRuns(svgTextBase, lineRuns, geometryBounds, assetLoader);
-            lines.Add(new InlineSizeTextLine(lineRuns, visualLineRuns, clipRect, drawX, drawY, logicalLine.Advance, lineOverflows));
+            var placeVisualRunsRightToLeft = ShouldPlacePlainTextInlineSizeLineRightToLeft(svgTextBase, isVertical, lineRuns);
+            lines.Add(new InlineSizeTextLine(lineRuns, visualLineRuns, clipRect, drawX, drawY, logicalLine.Advance, placeVisualRunsRightToLeft, lineOverflows));
             hasClippedLine |= lineOverflows;
             finalX = isVertical ? drawX : drawX + logicalLine.Advance;
             finalY = isVertical ? drawY + (logicalLine.Advance * inlineDirection) : drawY;

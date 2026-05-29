@@ -27,8 +27,8 @@ public sealed class SvgJavaScriptEvent
         altKey = input?.AltKey ?? false;
         shiftKey = input?.ShiftKey ?? false;
         ctrlKey = input?.CtrlKey ?? false;
-        bubbles = true;
-        cancelable = true;
+        bubbles = GetDefaultBubbles(type);
+        cancelable = GetDefaultCancelable(type);
     }
 
     public string type { get; private set; } = string.Empty;
@@ -160,5 +160,22 @@ public sealed class SvgJavaScriptEvent
             SvgJavaScriptMouseButton.XButton2 => 4,
             _ => 0
         };
+    }
+
+    private static bool GetDefaultBubbles(string? eventType)
+    {
+        var normalizedType = NormalizeEventType(eventType);
+        return normalizedType is not "load" and not "svgload" and not "unload" and not "svgunload" and not "focus" and not "blur";
+    }
+
+    private static bool GetDefaultCancelable(string? eventType)
+    {
+        var normalizedType = NormalizeEventType(eventType);
+        return normalizedType is not "load" and not "svgload" and not "focus" and not "blur" and not "focusin" and not "focusout";
+    }
+
+    private static string NormalizeEventType(string? eventType)
+    {
+        return eventType?.Trim().ToLowerInvariant() ?? string.Empty;
     }
 }

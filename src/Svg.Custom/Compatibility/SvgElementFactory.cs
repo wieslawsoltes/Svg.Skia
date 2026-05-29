@@ -176,6 +176,11 @@ namespace Svg
                             element.SetJavaScriptDomAttributeValue(localName, reader.Value);
                         }
 
+                        if (ShouldIgnoreInvalidPresentationStyleAttribute(localName, reader.Value))
+                        {
+                            continue;
+                        }
+
                         if (PreserveCompatibilityPresentationAttributes)
                         {
                             PreserveCompatibilityPresentationAttribute(document, element, localName, reader.Value);
@@ -197,7 +202,14 @@ namespace Svg
                             element.SetJavaScriptDomAttributeValue(GetJavaScriptDomAttributeName(prefix, localName), reader.Value);
                         }
 
-                        SetPropertyValue(element, ns, localName, reader.Value, document);
+                        if (CanBindAttributeNamespace(ns))
+                        {
+                            SetPropertyValue(element, ns, localName, reader.Value, document);
+                        }
+                        else
+                        {
+                            element.CustomAttributes[$"{ns}:{localName}"] = reader.Value;
+                        }
                     }
                 }
             }
@@ -231,6 +243,14 @@ namespace Svg
             }
 
             return prefix.Length == 0 ? localName : $"{prefix}:{localName}";
+        }
+
+        private static bool CanBindAttributeNamespace(string ns)
+        {
+            return string.IsNullOrEmpty(ns) ||
+                   ns.Equals(SvgNamespaces.SvgNamespace, StringComparison.Ordinal) ||
+                   ns.Equals(SvgNamespaces.XLinkNamespace, StringComparison.Ordinal) ||
+                   ns.Equals(SvgNamespaces.XmlNamespace, StringComparison.Ordinal);
         }
 
         private static bool IsStyleAttribute(string name)
@@ -277,6 +297,105 @@ namespace Svg
         private static bool IsNonInheritedOpacityAttribute(string name)
         {
             return name == "opacity";
+        }
+
+        private static bool ShouldIgnoreInvalidPresentationStyleAttribute(string attributeName, string attributeValue)
+        {
+            return IsCaseSensitivePresentationLengthAttribute(attributeName) &&
+                   HasUppercaseLengthUnitIdentifier(attributeValue.AsSpan());
+        }
+
+        private static bool IsCaseSensitivePresentationLengthAttribute(string attributeName)
+        {
+            return attributeName is
+                "stroke-width" or
+                "font-size" or
+                "letter-spacing" or
+                "word-spacing" or
+                "baseline-shift" or
+                "kerning" or
+                "shape-padding" or
+                "shape-margin" or
+                "inline-size";
+        }
+
+        private static bool HasUppercaseLengthUnitIdentifier(ReadOnlySpan<char> value)
+        {
+            value = TrimWhitespace(value);
+            if (value.Length == 0)
+            {
+                return false;
+            }
+
+            var index = 0;
+            if (value[index] is '+' or '-')
+            {
+                index++;
+            }
+
+            var sawNumber = false;
+            while (index < value.Length && char.IsDigit(value[index]))
+            {
+                sawNumber = true;
+                index++;
+            }
+
+            if (index < value.Length && value[index] == '.')
+            {
+                index++;
+                while (index < value.Length && char.IsDigit(value[index]))
+                {
+                    sawNumber = true;
+                    index++;
+                }
+            }
+
+            if (!sawNumber)
+            {
+                return false;
+            }
+
+            if (index < value.Length && (value[index] is 'e' or 'E'))
+            {
+                var exponentIndex = index + 1;
+                if (exponentIndex < value.Length && value[exponentIndex] is '+' or '-')
+                {
+                    exponentIndex++;
+                }
+
+                var exponentDigitsStart = exponentIndex;
+                while (exponentIndex < value.Length && char.IsDigit(value[exponentIndex]))
+                {
+                    exponentIndex++;
+                }
+
+                if (exponentIndex > exponentDigitsStart)
+                {
+                    index = exponentIndex;
+                }
+            }
+
+            while (index < value.Length && char.IsWhiteSpace(value[index]))
+            {
+                index++;
+            }
+
+            if (index >= value.Length || value[index] == '%')
+            {
+                return false;
+            }
+
+            while (index < value.Length && char.IsLetter(value[index]))
+            {
+                if (value[index] is >= 'A' and <= 'Z')
+                {
+                    return true;
+                }
+
+                index++;
+            }
+
+            return false;
         }
 
         private static ReadOnlySpan<char> TrimWhitespace(ReadOnlySpan<char> value)

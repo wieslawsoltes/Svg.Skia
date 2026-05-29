@@ -45,6 +45,8 @@ public sealed partial class SvgJavaScriptRuntime
     private long _nextTimeoutSequence;
     private ISvgJavaScriptAnimationHost? _animationHost;
     private ISvgJavaScriptTextContentHost? _textContentHost;
+    private ISvgJavaScriptViewerHost? _viewerHost;
+    private SvgElement? _focusedElement;
     private TimeSpan? _pendingAnimationTime;
     private double _virtualTimerMilliseconds;
     private bool _drainingTimeouts;
@@ -78,6 +80,8 @@ public sealed partial class SvgJavaScriptRuntime
 
     internal SvgJavaScriptDocument DocumentFacade => _documentFacade;
 
+    public SvgJavaScriptElement? FocusedElement => _focusedElement is null ? null : GetElement(_focusedElement);
+
     public ISvgJavaScriptAnimationHost? AnimationHost
     {
         get => _animationHost;
@@ -98,6 +102,12 @@ public sealed partial class SvgJavaScriptRuntime
         set => _textContentHost = value;
     }
 
+    public ISvgJavaScriptViewerHost? ViewerHost
+    {
+        get => _viewerHost;
+        set => _viewerHost = value;
+    }
+
     public SvgJavaScriptElement GetElement(SvgElement element)
     {
         return _documentFacade.GetOrCreateElement(element);
@@ -111,6 +121,54 @@ public sealed partial class SvgJavaScriptRuntime
         _useInstanceRoots.Clear();
     }
 
+    internal bool FocusElement(SvgElement? element)
+    {
+        if (ReferenceEquals(_focusedElement, element))
+        {
+            return false;
+        }
+
+        var previous = _focusedElement;
+        if (previous is not null)
+        {
+            DispatchFocusEvent(previous, "blur", element);
+            DispatchFocusEvent(previous, "focusout", element);
+        }
+
+        _focusedElement = element;
+
+        if (element is not null)
+        {
+            DispatchFocusEvent(element, "focus", previous);
+            DispatchFocusEvent(element, "focusin", previous);
+        }
+
+        return true;
+    }
+
+    internal bool BlurElement(SvgElement element)
+    {
+        if (!ReferenceEquals(_focusedElement, element))
+        {
+            return false;
+        }
+
+        return FocusElement(null);
+    }
+
+    internal void SetFocusedElementState(SvgElement? element)
+    {
+        _focusedElement = element;
+    }
+
+    private void DispatchFocusEvent(SvgElement element, string eventType, SvgElement? relatedElement)
+    {
+        var target = GetElement(element);
+        var relatedTarget = relatedElement is null ? null : GetElement(relatedElement);
+        var evt = CreateEvent(eventType, target, relatedTarget, input: null);
+        _ = DispatchEvent(target, evt);
+    }
+
     public void ExecuteDocumentScripts(bool dispatchLoadEvent = true)
     {
         foreach (var script in _document.Descendants().OfType<SvgScript>().ToArray())
@@ -120,13 +178,16 @@ public sealed partial class SvgJavaScriptRuntime
 
         if (dispatchLoadEvent)
         {
-            ExecuteEventHandlerAndListeners(
-                _document,
-                GetElement(_document),
-                relatedTargetNode: null,
-                "load",
-                "onload",
-                input: null);
+            foreach (var element in GetLoadEventTargets(_document).ToArray())
+            {
+                ExecuteEventHandlerAndListeners(
+                    element,
+                    GetElement(element),
+                    relatedTargetNode: null,
+                    "load",
+                    "onload",
+                    input: null);
+            }
         }
 
         DrainPendingTimeouts();
@@ -631,6 +692,74 @@ public sealed partial class SvgJavaScriptRuntime
         }
     }
 
+    internal bool BeginTextSelection(SvgTextBase textContentElement, int anchorCharnum)
+    {
+        try
+        {
+            var selected = GetTextSelectionHost()?.BeginTextSelection(textContentElement, anchorCharnum) == true;
+            if (selected)
+            {
+                MarkMutation();
+            }
+
+            return selected;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            ThrowDomException(1, "The character index is out of range.");
+            return false;
+        }
+    }
+
+    internal bool ExtendTextSelection(SvgTextBase textContentElement, int focusCharnum)
+    {
+        try
+        {
+            var selected = GetTextSelectionHost()?.ExtendTextSelection(textContentElement, focusCharnum) == true;
+            if (selected)
+            {
+                MarkMutation();
+            }
+
+            return selected;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            ThrowDomException(1, "The character index is out of range.");
+            return false;
+        }
+    }
+
+    internal bool SelectTextRange(SvgTextBase textContentElement, int anchorCharnum, int focusCharnum)
+    {
+        try
+        {
+            var selected = GetTextSelectionHost()?.SelectTextRange(textContentElement, anchorCharnum, focusCharnum) == true;
+            if (selected)
+            {
+                MarkMutation();
+            }
+
+            return selected;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            ThrowDomException(1, "The character index is out of range.");
+            return false;
+        }
+    }
+
+    internal void ClearTextSelection()
+    {
+        GetTextSelectionHost()?.ClearTextSelection();
+        MarkMutation();
+    }
+
+    internal SvgJavaScriptTextSelection? GetTextSelection(SvgTextBase? textContentElement)
+    {
+        return GetTextSelectionHost()?.GetTextSelection(textContentElement);
+    }
+
     private ISvgJavaScriptTextContentHost RequireTextContentHost()
     {
         if (_textContentHost is not null)
@@ -640,6 +769,11 @@ public sealed partial class SvgJavaScriptRuntime
 
         ThrowDomException(11, "The text content element is not available in the current host.");
         return null!;
+    }
+
+    private ISvgJavaScriptTextSelectionHost? GetTextSelectionHost()
+    {
+        return _textContentHost as ISvgJavaScriptTextSelectionHost;
     }
 
     private void ExecuteScriptElement(SvgScript script)
@@ -943,6 +1077,19 @@ public sealed partial class SvgJavaScriptRuntime
         return trimmed.StartsWith("javascript:", StringComparison.OrdinalIgnoreCase)
             ? trimmed.Substring("javascript:".Length)
             : script;
+    }
+
+    private static IEnumerable<SvgElement> GetLoadEventTargets(SvgElement element)
+    {
+        foreach (var child in element.Children)
+        {
+            foreach (var childTarget in GetLoadEventTargets(child))
+            {
+                yield return childTarget;
+            }
+        }
+
+        yield return element;
     }
 
     private static string NormalizeEventType(string? eventType)

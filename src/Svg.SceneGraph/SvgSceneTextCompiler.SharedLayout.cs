@@ -219,7 +219,10 @@ internal static partial class SvgSceneTextCompiler
                 cluster.StartPoint,
                 cluster.EndPoint,
                 cluster.Extent,
-                cluster.RotationDegrees));
+                cluster.RotationDegrees)
+            {
+                HitExtent = cluster.HitExtent
+            });
         }
 
         if (clusters.Count == 0)
@@ -1736,7 +1739,10 @@ internal static partial class SvgSceneTextCompiler
                         cluster.StartPoint,
                         cluster.EndPoint,
                         cluster.Extent,
-                        cluster.RotationDegrees));
+                        cluster.RotationDegrees)
+                    {
+                        HitExtent = cluster.HitExtent
+                    });
                     localCharIndex += cluster.CharLength;
                 }
 

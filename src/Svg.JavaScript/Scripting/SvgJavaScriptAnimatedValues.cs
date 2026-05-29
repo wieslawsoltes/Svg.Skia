@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Svg;
 
 namespace Svg.JavaScript;
 
@@ -92,14 +93,14 @@ public sealed class SvgJavaScriptLength
 
     public double value
     {
-        get => ParseNumber(GetRawValue());
-        set => SetRawValue(SvgJavaScriptParsing.FormatNumber(value));
+        get => ConvertSpecifiedValueToUserUnits(GetRawValue());
+        set => SetUserUnitValue(value);
     }
 
     public double valueInSpecifiedUnits
     {
         get => ParseNumber(GetRawValue());
-        set => SetRawValue(SvgJavaScriptParsing.FormatNumber(value));
+        set => SetSpecifiedUnitValue(value);
     }
 
     public ushort unitType => ParseUnitType(GetRawValue());
@@ -119,7 +120,7 @@ public sealed class SvgJavaScriptLength
         var rawValue = _element?.getAttribute(_attributeName);
         if (!string.IsNullOrEmpty(rawValue))
         {
-            return rawValue;
+            return rawValue!;
         }
 
         return GetDefaultValue();
@@ -155,6 +156,243 @@ public sealed class SvgJavaScriptLength
         }
     }
 
+    private void SetUserUnitValue(double value)
+    {
+        var rawValue = GetRawValue();
+        var suffix = GetUnitSuffix(rawValue);
+        var specifiedValue = ConvertUserUnitsToSpecifiedValue(value, suffix);
+        SetRawValue(SvgJavaScriptParsing.FormatNumber(specifiedValue) + suffix);
+    }
+
+    private void SetSpecifiedUnitValue(double value)
+    {
+        var suffix = GetUnitSuffix(GetRawValue());
+        SetRawValue(SvgJavaScriptParsing.FormatNumber(value) + suffix);
+    }
+
+    private double ConvertSpecifiedValueToUserUnits(string rawValue)
+    {
+        var specifiedValue = ParseNumber(rawValue);
+        return GetUnitSuffix(rawValue) switch
+        {
+            "" or "px" => specifiedValue,
+            "%" => specifiedValue * GetPercentageReferenceLength() / 100d,
+            "em" => specifiedValue * GetFontSizeReferenceLength(),
+            "ex" => specifiedValue * GetFontSizeReferenceLength() * 0.5d,
+            "cm" => specifiedValue * 96d / 2.54d,
+            "mm" => specifiedValue * 96d / 25.4d,
+            "in" => specifiedValue * 96d,
+            "pt" => specifiedValue * 96d / 72d,
+            "pc" => specifiedValue * 16d,
+            _ => specifiedValue
+        };
+    }
+
+    private double ConvertUserUnitsToSpecifiedValue(double userUnitValue, string suffix)
+    {
+        return suffix switch
+        {
+            "" or "px" => userUnitValue,
+            "%" => ConvertUserUnitsToPercent(userUnitValue),
+            "em" => DivideByReference(userUnitValue, GetFontSizeReferenceLength()),
+            "ex" => DivideByReference(userUnitValue, GetFontSizeReferenceLength() * 0.5d),
+            "cm" => userUnitValue * 2.54d / 96d,
+            "mm" => userUnitValue * 25.4d / 96d,
+            "in" => userUnitValue / 96d,
+            "pt" => userUnitValue * 72d / 96d,
+            "pc" => userUnitValue / 16d,
+            _ => userUnitValue
+        };
+    }
+
+    private double ConvertUserUnitsToPercent(double userUnitValue)
+    {
+        var reference = GetPercentageReferenceLength();
+        return reference > 0d ? userUnitValue * 100d / reference : userUnitValue;
+    }
+
+    private static double DivideByReference(double value, double reference)
+    {
+        return reference > 0d ? value / reference : value;
+    }
+
+    private double GetPercentageReferenceLength()
+    {
+        if (_element is null)
+        {
+            return 100d;
+        }
+
+        var axis = GetLengthAxis(_attributeName);
+        var viewport = FindPercentageViewport(_element.Element);
+        if (viewport is null)
+        {
+            return axis switch
+            {
+                LengthAxis.Vertical => GetViewBoxDimension(_element.Element, LengthAxis.Vertical) ?? 100d,
+                LengthAxis.Other => GetViewBoxOtherDimension(_element.Element) ?? 100d,
+                _ => GetViewBoxDimension(_element.Element, LengthAxis.Horizontal) ?? 100d
+            };
+        }
+
+        var width = ResolveViewportDimension(viewport, LengthAxis.Horizontal, depth: 0);
+        if (axis == LengthAxis.Horizontal)
+        {
+            return width;
+        }
+
+        var height = ResolveViewportDimension(viewport, LengthAxis.Vertical, depth: 0);
+        return axis == LengthAxis.Vertical
+            ? height
+            : Math.Sqrt((width * width) + (height * height)) / Math.Sqrt(2d);
+    }
+
+    private double GetFontSizeReferenceLength()
+    {
+        if (_element is null)
+        {
+            return 12d;
+        }
+
+        var rawFontSize = _element.GetComputedStyleProperty("font-size");
+        if (string.IsNullOrWhiteSpace(rawFontSize))
+        {
+            rawFontSize = _element.getAttribute("font-size");
+        }
+
+        if (string.IsNullOrWhiteSpace(rawFontSize))
+        {
+            return 12d;
+        }
+
+        var number = ParseNumber(rawFontSize);
+        return GetUnitSuffix(rawFontSize) switch
+        {
+            "" or "px" => number,
+            "%" => 12d * number / 100d,
+            "em" => 12d * number,
+            "ex" => 6d * number,
+            "cm" => number * 96d / 2.54d,
+            "mm" => number * 96d / 25.4d,
+            "in" => number * 96d,
+            "pt" => number * 96d / 72d,
+            "pc" => number * 16d,
+            _ => 12d
+        };
+    }
+
+    private static SvgElement? FindPercentageViewport(SvgElement element)
+    {
+        for (var parent = element.Parent; parent is not null; parent = parent.Parent)
+        {
+            if (parent is SvgFragment)
+            {
+                return parent;
+            }
+        }
+
+        return element is SvgFragment ? element : null;
+    }
+
+    private static double ResolveViewportDimension(SvgElement viewport, LengthAxis axis, int depth)
+    {
+        if (depth > 16)
+        {
+            return 100d;
+        }
+
+        var attributeName = axis == LengthAxis.Vertical ? "height" : "width";
+        var rawValue = GetRawElementLengthValue(viewport, attributeName);
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            rawValue = viewport is SvgFragment ? "100%" : "100";
+        }
+
+        var specifiedValue = ParseNumber(rawValue);
+        return GetUnitSuffix(rawValue) switch
+        {
+            "" or "px" => specifiedValue,
+            "%" => ResolveViewportPercentage(viewport, axis, specifiedValue, depth),
+            "em" => specifiedValue * 12d,
+            "ex" => specifiedValue * 6d,
+            "cm" => specifiedValue * 96d / 2.54d,
+            "mm" => specifiedValue * 96d / 25.4d,
+            "in" => specifiedValue * 96d,
+            "pt" => specifiedValue * 96d / 72d,
+            "pc" => specifiedValue * 16d,
+            _ => specifiedValue
+        };
+    }
+
+    private static double ResolveViewportPercentage(SvgElement viewport, LengthAxis axis, double value, int depth)
+    {
+        var parentViewport = FindPercentageViewport(viewport);
+        if (parentViewport is not null && !ReferenceEquals(parentViewport, viewport))
+        {
+            return ResolveViewportDimension(parentViewport, axis, depth + 1) * value / 100d;
+        }
+
+        var viewBoxDimension = axis == LengthAxis.Vertical
+            ? GetViewBoxDimension(viewport, LengthAxis.Vertical)
+            : GetViewBoxDimension(viewport, LengthAxis.Horizontal);
+        return (viewBoxDimension ?? 100d) * value / 100d;
+    }
+
+    private static double? GetViewBoxDimension(SvgElement element, LengthAxis axis)
+    {
+        return element is SvgFragment { ViewBox: var viewBox } &&
+               viewBox != SvgViewBox.Empty &&
+               viewBox.Width > 0f &&
+               viewBox.Height > 0f
+            ? axis == LengthAxis.Vertical ? viewBox.Height : viewBox.Width
+            : null;
+    }
+
+    private static double? GetViewBoxOtherDimension(SvgElement element)
+    {
+        if (element is not SvgFragment { ViewBox: var viewBox } ||
+            viewBox == SvgViewBox.Empty ||
+            viewBox.Width <= 0f ||
+            viewBox.Height <= 0f)
+        {
+            return null;
+        }
+
+        return Math.Sqrt((viewBox.Width * viewBox.Width) + (viewBox.Height * viewBox.Height)) / Math.Sqrt(2d);
+    }
+
+    private static string GetRawElementLengthValue(SvgElement element, string name)
+    {
+        if (element.TryGetJavaScriptDomAttributeValue(name, out var scriptSetValue))
+        {
+            return scriptSetValue;
+        }
+
+        if (element.CustomAttributes.TryGetValue(name, out var customValue) &&
+            !string.IsNullOrWhiteSpace(customValue))
+        {
+            return customValue ?? string.Empty;
+        }
+
+        if (element.TryGetAttribute(name, out var attributeValue) &&
+            !string.IsNullOrWhiteSpace(attributeValue))
+        {
+            return attributeValue ?? string.Empty;
+        }
+
+        return element is SvgFragment && (name == "width" || name == "height") ? "100%" : string.Empty;
+    }
+
+    private static LengthAxis GetLengthAxis(string attributeName)
+    {
+        return attributeName switch
+        {
+            "y" or "y1" or "y2" or "cy" or "height" or "dy" or "ry" => LengthAxis.Vertical,
+            "r" => LengthAxis.Other,
+            _ => LengthAxis.Horizontal
+        };
+    }
+
     private static bool TryNormalizeLength(string? value, out string normalized)
     {
         normalized = string.Empty;
@@ -164,7 +402,7 @@ public sealed class SvgJavaScriptLength
             return true;
         }
 
-        var text = value.Trim();
+        var text = value!.Trim();
         var suffix = GetUnitSuffix(text);
         var numeric = suffix.Length == 0 ? text : text.Substring(0, text.Length - suffix.Length);
         if (!double.TryParse(numeric, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
@@ -220,7 +458,7 @@ public sealed class SvgJavaScriptLength
             return 0d;
         }
 
-        var text = value.Trim();
+        var text = value!.Trim();
         var suffix = GetUnitSuffix(text);
         var numeric = suffix.Length == 0 ? text : text.Substring(0, text.Length - suffix.Length);
         return double.TryParse(numeric, NumberStyles.Float, CultureInfo.InvariantCulture, out var result)
@@ -241,6 +479,13 @@ public sealed class SvgJavaScriptLength
         }
 
         return string.Empty;
+    }
+
+    private enum LengthAxis
+    {
+        Horizontal,
+        Vertical,
+        Other
     }
 }
 
@@ -315,7 +560,7 @@ public sealed class SvgJavaScriptAngle
             return true;
         }
 
-        var text = value.Trim();
+        var text = value!.Trim();
         var suffix = text.Length >= 4 && text.EndsWith("grad", StringComparison.OrdinalIgnoreCase)
             ? "grad"
             : text.Length >= 3 && text.EndsWith("deg", StringComparison.OrdinalIgnoreCase)

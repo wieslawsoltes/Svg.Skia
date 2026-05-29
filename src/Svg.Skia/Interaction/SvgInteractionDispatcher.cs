@@ -111,31 +111,90 @@ public sealed class SvgPointerEventArgs : EventArgs
     public SKPoint PicturePoint => Input.PicturePoint;
 }
 
+public sealed class SvgCursorChangedEventArgs : EventArgs
+{
+    internal SvgCursorChangedEventArgs(string? oldCursor, string? newCursor, SvgElement? targetElement)
+    {
+        OldCursor = oldCursor;
+        NewCursor = newCursor;
+        TargetElement = targetElement;
+    }
+
+    public string? OldCursor { get; }
+
+    public string? NewCursor { get; }
+
+    public SvgElement? TargetElement { get; }
+}
+
+public sealed class SvgFocusChangedEventArgs : EventArgs
+{
+    internal SvgFocusChangedEventArgs(SvgElement? oldElement, SvgElement? newElement, SvgPointerInput input)
+    {
+        OldElement = oldElement;
+        NewElement = newElement;
+        Input = input;
+    }
+
+    public SvgElement? OldElement { get; }
+
+    public SvgElement? NewElement { get; }
+
+    public SvgPointerInput Input { get; }
+}
+
 public sealed class SvgInteractionDispatchResult
 {
-    internal SvgInteractionDispatchResult(SvgElement? targetElement, string? cursor, bool handled)
+    internal SvgInteractionDispatchResult(
+        SvgElement? targetElement,
+        SvgElement? focusedElement,
+        string? cursor,
+        bool handled,
+        bool defaultPrevented,
+        bool defaultActionActivated,
+        bool hyperlinkActivated)
     {
         TargetElement = targetElement;
+        FocusedElement = focusedElement;
         Cursor = cursor;
         Handled = handled;
+        DefaultPrevented = defaultPrevented;
+        DefaultActionActivated = defaultActionActivated;
+        HyperlinkActivated = hyperlinkActivated;
     }
 
     public SvgElement? TargetElement { get; }
 
+    public SvgElement? FocusedElement { get; }
+
     public string? Cursor { get; }
 
     public bool Handled { get; }
+
+    public bool DefaultPrevented { get; }
+
+    public bool DefaultActionActivated { get; }
+
+    public bool HyperlinkActivated { get; }
 }
 
 public sealed class SvgInteractionDispatcher
 {
+    private const int MaxMutationRetestPasses = 8;
+
     private readonly SvgEventCallerRegistry _eventCallerRegistry = new();
     private SvgElement? _registeredRoot;
     private SvgElement? _hoveredElement;
     private SvgElement? _pressedElement;
     private SvgElement? _capturedElement;
+    private SvgElement? _focusedElement;
+    private SvgSceneNode? _hoveredNode;
+    private SvgSceneNode? _pressedNode;
+    private SvgSceneNode? _capturedNode;
 
     public bool RaiseSvgElementEvents { get; set; } = true;
+
+    public bool RetestHoverAfterMutation { get; set; } = true;
 
     public SvgElement? HoveredElement => _hoveredElement;
 
@@ -143,9 +202,15 @@ public sealed class SvgInteractionDispatcher
 
     public SvgElement? CapturedElement => _capturedElement;
 
+    public SvgElement? FocusedElement => _focusedElement;
+
     public string? CurrentCursor { get; private set; }
 
     public event EventHandler<SvgPointerEventArgs>? Dispatched;
+
+    public event EventHandler<SvgCursorChangedEventArgs>? CursorChanged;
+
+    public event EventHandler<SvgFocusChangedEventArgs>? FocusChanged;
 
     public SvgElement? HitTestTopmostElement(SKSvg? svg, SKPoint picturePoint)
     {
@@ -167,6 +232,11 @@ public sealed class SvgInteractionDispatcher
         _ = DispatchPointerReleased(svg, input);
     }
 
+    public void HandlePointerClick(SKSvg? svg, SvgPointerInput input)
+    {
+        _ = DispatchPointerClick(svg, input);
+    }
+
     public void HandlePointerWheelChanged(SKSvg? svg, SvgPointerInput input)
     {
         _ = DispatchPointerWheelChanged(svg, input);
@@ -182,23 +252,33 @@ public sealed class SvgInteractionDispatcher
         EnsureEventBridge(svg);
 
         var animationFrameDirty = false;
-        var hitTarget = svg?.HitTestTopmostElement(input.PicturePoint);
+        var pointerRetestDirty = false;
+        var hitNode = svg?.HitTestTopmostSceneNode(input.PicturePoint);
+        var hitTarget = hitNode?.HitTestTargetElement;
         var routeTarget = _capturedElement ?? hitTarget;
+        var routeNode = _capturedNode ?? hitNode;
         var handled = false;
+        var defaultPrevented = false;
 
         if (_capturedElement is null)
         {
-            handled = UpdateHover(svg, hitTarget, input, ref animationFrameDirty);
+            handled = UpdateHover(svg, hitNode, input, ref animationFrameDirty, ref pointerRetestDirty);
+            handled |= RetestHoverAfterPointerMutation(svg, input, ref animationFrameDirty, ref pointerRetestDirty);
+            routeTarget = _hoveredElement;
+            routeNode = _hoveredNode;
         }
         else
         {
-            CurrentCursor = ResolveCursor(routeTarget);
+            SetCurrentCursor(ResolveCursor(routeTarget), routeTarget);
         }
 
-        handled |= DispatchRoutedEvent(svg, SvgPointerEventType.Move, routeTarget, null, input, "onmousemove", ref animationFrameDirty);
+        var moveResult = DispatchRoutedEventCore(svg, SvgPointerEventType.Move, routeTarget, routeNode, null, input, "onmousemove", ref animationFrameDirty, ref pointerRetestDirty);
+        handled |= moveResult.Handled;
+        defaultPrevented |= moveResult.DefaultPrevented;
+        handled |= RetestHoverAfterPointerMutation(svg, input, ref animationFrameDirty, ref pointerRetestDirty);
         RefreshAnimationFrame(svg, animationFrameDirty);
 
-        return CreateResult(_hoveredElement ?? routeTarget, handled);
+        return CreateResult(_hoveredElement ?? routeTarget, handled, defaultPrevented);
     }
 
     public SvgInteractionDispatchResult DispatchPointerPressed(SKSvg? svg, SvgPointerInput input)
@@ -206,14 +286,36 @@ public sealed class SvgInteractionDispatcher
         EnsureEventBridge(svg);
 
         var animationFrameDirty = false;
-        var target = svg?.HitTestTopmostElement(input.PicturePoint);
-        var handled = UpdateHover(svg, target, input, ref animationFrameDirty);
+        var pointerRetestDirty = false;
+        var targetNode = svg?.HitTestTopmostSceneNode(input.PicturePoint);
+        var target = targetNode?.HitTestTargetElement;
+        var handled = UpdateHover(svg, targetNode, input, ref animationFrameDirty, ref pointerRetestDirty);
+        handled |= RetestHoverAfterPointerMutation(svg, input, ref animationFrameDirty, ref pointerRetestDirty);
+        target = _hoveredElement;
+        targetNode = _hoveredNode;
         _pressedElement = target;
         _capturedElement = target;
-        handled |= DispatchRoutedEvent(svg, SvgPointerEventType.Press, target, null, input, "onmousedown", ref animationFrameDirty);
+        _pressedNode = targetNode;
+        _capturedNode = targetNode;
+        var pressResult = DispatchRoutedEventCore(svg, SvgPointerEventType.Press, target, targetNode, null, input, "onmousedown", ref animationFrameDirty, ref pointerRetestDirty);
+        handled |= pressResult.Handled;
+        var defaultPrevented = pressResult.DefaultPrevented;
+        var defaultActionActivated = false;
+        if (!pressResult.DefaultPrevented)
+        {
+            defaultActionActivated = ApplyFocusDefaultAction(svg, target, input, ref animationFrameDirty, ref pointerRetestDirty);
+            handled |= defaultActionActivated;
+        }
+
         RefreshAnimationFrame(svg, animationFrameDirty);
 
-        return CreateResult(_hoveredElement ?? target, handled);
+        return CreateResult(_hoveredElement ?? target, handled, defaultPrevented, defaultActionActivated);
+    }
+
+    public SvgInteractionDispatchResult DispatchPointerClick(SKSvg? svg, SvgPointerInput input)
+    {
+        _ = DispatchPointerPressed(svg, input);
+        return DispatchPointerReleased(svg, input);
     }
 
     public SvgInteractionDispatchResult DispatchPointerReleased(SKSvg? svg, SvgPointerInput input)
@@ -221,37 +323,65 @@ public sealed class SvgInteractionDispatcher
         EnsureEventBridge(svg);
 
         var animationFrameDirty = false;
-        var hitTarget = svg?.HitTestTopmostElement(input.PicturePoint);
+        var pointerRetestDirty = false;
+        var hitNode = svg?.HitTestTopmostSceneNode(input.PicturePoint);
+        var hitTarget = hitNode?.HitTestTargetElement;
         var routeTarget = _capturedElement ?? hitTarget;
+        var routeNode = _capturedNode ?? hitNode;
         var captureWasActive = _capturedElement is not null;
         var handled = false;
+        var defaultPrevented = false;
+        var defaultActionActivated = false;
+        var hyperlinkActivated = false;
 
         if (_capturedElement is null)
         {
-            handled = UpdateHover(svg, hitTarget, input, ref animationFrameDirty);
+            handled = UpdateHover(svg, hitNode, input, ref animationFrameDirty, ref pointerRetestDirty);
+            handled |= RetestHoverAfterPointerMutation(svg, input, ref animationFrameDirty, ref pointerRetestDirty);
+            hitTarget = _hoveredElement;
+            hitNode = _hoveredNode;
+            routeTarget = hitTarget;
+            routeNode = hitNode;
         }
         else
         {
-            CurrentCursor = ResolveCursor(routeTarget);
+            SetCurrentCursor(ResolveCursor(routeTarget), routeTarget);
         }
 
-        handled |= DispatchRoutedEvent(svg, SvgPointerEventType.Release, routeTarget, null, input, "onmouseup", ref animationFrameDirty);
+        var releaseResult = DispatchRoutedEventCore(svg, SvgPointerEventType.Release, routeTarget, routeNode, null, input, "onmouseup", ref animationFrameDirty, ref pointerRetestDirty);
+        handled |= releaseResult.Handled;
+        defaultPrevented |= releaseResult.DefaultPrevented;
 
         if (routeTarget is not null && ReferenceEquals(hitTarget, _pressedElement))
         {
-            handled |= DispatchRoutedEvent(svg, SvgPointerEventType.Click, routeTarget, null, input, "onclick", ref animationFrameDirty);
+            var clickResult = DispatchRoutedEventCore(svg, SvgPointerEventType.Click, routeTarget, routeNode, null, input, "onclick", ref animationFrameDirty, ref pointerRetestDirty);
+            handled |= clickResult.Handled;
+            defaultPrevented |= clickResult.DefaultPrevented;
+            if (!clickResult.DefaultPrevented)
+            {
+                hyperlinkActivated = svg?.ActivateHyperlink(routeTarget, input) == true;
+                defaultActionActivated |= hyperlinkActivated;
+                handled |= hyperlinkActivated;
+            }
         }
 
         _pressedElement = null;
         _capturedElement = null;
+        _pressedNode = null;
+        _capturedNode = null;
 
         if (captureWasActive)
         {
-            handled |= UpdateHover(svg, hitTarget, input, ref animationFrameDirty);
+            RefreshAnimationFrame(svg, animationFrameDirty);
+            animationFrameDirty = false;
+            hitNode = svg?.HitTestTopmostSceneNode(input.PicturePoint);
+            hitTarget = hitNode?.HitTestTargetElement;
+            handled |= UpdateHover(svg, hitNode, input, ref animationFrameDirty, ref pointerRetestDirty);
         }
 
+        handled |= RetestHoverAfterPointerMutation(svg, input, ref animationFrameDirty, ref pointerRetestDirty);
         RefreshAnimationFrame(svg, animationFrameDirty);
-        return CreateResult(_hoveredElement ?? hitTarget, handled);
+        return CreateResult(_hoveredElement ?? hitTarget, handled, defaultPrevented, defaultActionActivated, hyperlinkActivated);
     }
 
     public SvgInteractionDispatchResult DispatchPointerWheelChanged(SKSvg? svg, SvgPointerInput input)
@@ -259,23 +389,33 @@ public sealed class SvgInteractionDispatcher
         EnsureEventBridge(svg);
 
         var animationFrameDirty = false;
-        var hitTarget = svg?.HitTestTopmostElement(input.PicturePoint);
+        var pointerRetestDirty = false;
+        var hitNode = svg?.HitTestTopmostSceneNode(input.PicturePoint);
+        var hitTarget = hitNode?.HitTestTargetElement;
         var routeTarget = _capturedElement ?? hitTarget;
+        var routeNode = _capturedNode ?? hitNode;
         var handled = false;
+        var defaultPrevented = false;
 
         if (_capturedElement is null)
         {
-            handled = UpdateHover(svg, hitTarget, input, ref animationFrameDirty);
+            handled = UpdateHover(svg, hitNode, input, ref animationFrameDirty, ref pointerRetestDirty);
+            handled |= RetestHoverAfterPointerMutation(svg, input, ref animationFrameDirty, ref pointerRetestDirty);
+            routeTarget = _hoveredElement;
+            routeNode = _hoveredNode;
         }
         else
         {
-            CurrentCursor = ResolveCursor(routeTarget);
+            SetCurrentCursor(ResolveCursor(routeTarget), routeTarget);
         }
 
-        handled |= DispatchRoutedScroll(svg, routeTarget, input, ref animationFrameDirty);
+        var scrollResult = DispatchRoutedScroll(svg, routeTarget, routeNode, input, ref animationFrameDirty, ref pointerRetestDirty);
+        handled |= scrollResult.Handled;
+        defaultPrevented |= scrollResult.DefaultPrevented;
+        handled |= RetestHoverAfterPointerMutation(svg, input, ref animationFrameDirty, ref pointerRetestDirty);
         RefreshAnimationFrame(svg, animationFrameDirty);
 
-        return CreateResult(_hoveredElement ?? routeTarget, handled);
+        return CreateResult(_hoveredElement ?? routeTarget, handled, defaultPrevented);
     }
 
     public SvgInteractionDispatchResult DispatchPointerExited(SvgPointerInput input)
@@ -287,21 +427,24 @@ public sealed class SvgInteractionDispatcher
     {
         if (_capturedElement is not null)
         {
-            CurrentCursor = null;
+            SetCurrentCursor(null, null);
             return CreateResult(_capturedElement, handled: false);
         }
 
         var target = _hoveredElement;
+        var targetNode = _hoveredNode;
         var handled = false;
         var animationFrameDirty = false;
+        var pointerRetestDirty = false;
 
         if (target is { })
         {
-            handled = DispatchRoutedEvent(svg, SvgPointerEventType.Leave, target, null, input, "onmouseout", ref animationFrameDirty);
+            handled = DispatchRoutedEvent(svg, SvgPointerEventType.Leave, target, targetNode, null, input, "onmouseout", ref animationFrameDirty, ref pointerRetestDirty);
         }
 
         _hoveredElement = null;
-        CurrentCursor = null;
+        _hoveredNode = null;
+        SetCurrentCursor(null, null);
         RefreshAnimationFrame(svg, animationFrameDirty);
 
         return CreateResult(null, handled);
@@ -312,56 +455,239 @@ public sealed class SvgInteractionDispatcher
         _hoveredElement = null;
         _pressedElement = null;
         _capturedElement = null;
+        _focusedElement = null;
+        _hoveredNode = null;
+        _pressedNode = null;
+        _capturedNode = null;
         _registeredRoot = null;
-        CurrentCursor = null;
+        SetCurrentCursor(null, null);
         _eventCallerRegistry.Clear();
     }
 
-    private bool UpdateHover(SKSvg? svg, SvgElement? target, SvgPointerInput input, ref bool animationFrameDirty)
+    private bool UpdateHover(
+        SKSvg? svg,
+        SvgSceneNode? targetNode,
+        SvgPointerInput input,
+        ref bool animationFrameDirty,
+        ref bool pointerRetestDirty)
     {
+        var target = targetNode?.HitTestTargetElement;
         if (ReferenceEquals(target, _hoveredElement))
         {
-            CurrentCursor = ResolveCursor(target);
+            SetCurrentCursor(ResolveCursor(target), target);
             return false;
         }
 
         var previous = _hoveredElement;
+        var previousNode = _hoveredNode;
         var handled = false;
 
         if (previous is { })
         {
-            handled |= DispatchRoutedEvent(svg, SvgPointerEventType.Leave, previous, target, input, "onmouseout", ref animationFrameDirty);
+            handled |= DispatchRoutedEvent(svg, SvgPointerEventType.Leave, previous, previousNode, target, input, "onmouseout", ref animationFrameDirty, ref pointerRetestDirty);
         }
 
         _hoveredElement = target;
-        CurrentCursor = ResolveCursor(target);
+        _hoveredNode = targetNode;
+        SetCurrentCursor(ResolveCursor(target), target);
 
         if (target is { })
         {
-            handled |= DispatchRoutedEvent(svg, SvgPointerEventType.Enter, target, previous, input, "onmouseover", ref animationFrameDirty);
+            handled |= DispatchRoutedEvent(svg, SvgPointerEventType.Enter, target, targetNode, previous, input, "onmouseover", ref animationFrameDirty, ref pointerRetestDirty);
         }
 
         return handled;
     }
 
-    private SvgInteractionDispatchResult CreateResult(SvgElement? target, bool handled)
+    private bool RetestHoverAfterPointerMutation(
+        SKSvg? svg,
+        SvgPointerInput input,
+        ref bool animationFrameDirty,
+        ref bool pointerRetestDirty)
     {
-        return new SvgInteractionDispatchResult(target, CurrentCursor, handled);
+        if (!RetestHoverAfterMutation ||
+            !pointerRetestDirty ||
+            _capturedElement is not null)
+        {
+            return false;
+        }
+
+        var handled = false;
+        for (var i = 0; i < MaxMutationRetestPasses && pointerRetestDirty; i++)
+        {
+            pointerRetestDirty = false;
+            RefreshAnimationFrame(svg, animationFrameDirty);
+            animationFrameDirty = false;
+
+            var targetNode = svg?.HitTestTopmostSceneNode(input.PicturePoint);
+            handled |= UpdateHover(svg, targetNode, input, ref animationFrameDirty, ref pointerRetestDirty);
+        }
+
+        return handled;
     }
 
-    private bool DispatchRoutedScroll(SKSvg? svg, SvgElement? target, SvgPointerInput input, ref bool animationFrameDirty)
+    public SvgInteractionDispatchResult FocusElement(SKSvg? svg, SvgElement? element, SvgPointerInput input)
+    {
+        EnsureEventBridge(svg);
+
+        var animationFrameDirty = false;
+        var pointerRetestDirty = false;
+        var focusTarget = element is not null && IsFocusableElement(element) ? element : null;
+        var changed = SetFocusedElement(svg, focusTarget, input, ref animationFrameDirty, ref pointerRetestDirty);
+        RefreshAnimationFrame(svg, animationFrameDirty);
+        return CreateResult(focusTarget, changed, defaultActionActivated: changed);
+    }
+
+    public SvgInteractionDispatchResult BlurFocusedElement(SKSvg? svg, SvgPointerInput input)
+    {
+        EnsureEventBridge(svg);
+
+        var animationFrameDirty = false;
+        var pointerRetestDirty = false;
+        var previous = _focusedElement;
+        var changed = SetFocusedElement(svg, null, input, ref animationFrameDirty, ref pointerRetestDirty);
+        RefreshAnimationFrame(svg, animationFrameDirty);
+        return CreateResult(previous, changed, defaultActionActivated: changed);
+    }
+
+    private bool ApplyFocusDefaultAction(
+        SKSvg? svg,
+        SvgElement? target,
+        SvgPointerInput input,
+        ref bool animationFrameDirty,
+        ref bool pointerRetestDirty)
+    {
+        return SetFocusedElement(svg, ResolveFocusableElement(target), input, ref animationFrameDirty, ref pointerRetestDirty);
+    }
+
+    private bool SetFocusedElement(
+        SKSvg? svg,
+        SvgElement? element,
+        SvgPointerInput input,
+        ref bool animationFrameDirty,
+        ref bool pointerRetestDirty)
+    {
+        if (ReferenceEquals(_focusedElement, element))
+        {
+            return false;
+        }
+
+        var previous = _focusedElement;
+        if (previous is not null)
+        {
+            _ = DispatchJavaScriptFocusEvent(svg, previous, element, "blur", "onblur", bubbles: false, input, ref pointerRetestDirty);
+            _ = DispatchJavaScriptFocusEvent(svg, previous, element, "focusout", "onfocusout", bubbles: true, input, ref pointerRetestDirty);
+        }
+
+        _focusedElement = element;
+        FocusChanged?.Invoke(this, new SvgFocusChangedEventArgs(previous, element, input));
+
+        if (element is not null)
+        {
+            _ = DispatchJavaScriptFocusEvent(svg, element, previous, "focus", "onfocus", bubbles: false, input, ref pointerRetestDirty);
+            _ = DispatchJavaScriptFocusEvent(svg, element, previous, "focusin", "onfocusin", bubbles: true, input, ref pointerRetestDirty);
+        }
+
+        animationFrameDirty |= pointerRetestDirty;
+        return true;
+    }
+
+    private static bool DispatchJavaScriptFocusEvent(
+        SKSvg? svg,
+        SvgElement target,
+        SvgElement? relatedElement,
+        string eventType,
+        string attributeName,
+        bool bubbles,
+        SvgPointerInput input,
+        ref bool pointerRetestDirty)
+    {
+        var handled = false;
+        object? javaScriptEvent = null;
+        if (bubbles)
+        {
+            foreach (var element in BuildRoute(target))
+            {
+                var javaScriptResult = svg?.DispatchJavaScriptEvent(element, target, relatedElement, eventType, attributeName, input, ref javaScriptEvent);
+                pointerRetestDirty |= javaScriptResult?.Mutated == true;
+                handled |= javaScriptResult?.DefaultPrevented == true;
+                if (javaScriptResult?.CancelBubble == true)
+                {
+                    return true;
+                }
+            }
+
+            return handled;
+        }
+
+        var result = svg?.DispatchJavaScriptEvent(target, target, relatedElement, eventType, attributeName, input, ref javaScriptEvent);
+        pointerRetestDirty |= result?.Mutated == true;
+        return result?.DefaultPrevented == true;
+    }
+
+    private SvgInteractionDispatchResult CreateResult(
+        SvgElement? target,
+        bool handled,
+        bool defaultPrevented = false,
+        bool defaultActionActivated = false,
+        bool hyperlinkActivated = false)
+    {
+        return new SvgInteractionDispatchResult(
+            target,
+            _focusedElement,
+            CurrentCursor,
+            handled,
+            defaultPrevented,
+            defaultActionActivated,
+            hyperlinkActivated);
+    }
+
+    private void SetCurrentCursor(string? cursor, SvgElement? target)
+    {
+        if (string.Equals(CurrentCursor, cursor, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var previous = CurrentCursor;
+        CurrentCursor = cursor;
+        CursorChanged?.Invoke(this, new SvgCursorChangedEventArgs(previous, cursor, target));
+    }
+
+    private readonly struct SvgRoutedEventDispatchResult
+    {
+        public SvgRoutedEventDispatchResult(bool handled, bool defaultPrevented)
+        {
+            Handled = handled;
+            DefaultPrevented = defaultPrevented;
+        }
+
+        public bool Handled { get; }
+
+        public bool DefaultPrevented { get; }
+    }
+
+    private SvgRoutedEventDispatchResult DispatchRoutedScroll(
+        SKSvg? svg,
+        SvgElement? target,
+        SvgSceneNode? targetNode,
+        SvgPointerInput input,
+        ref bool animationFrameDirty,
+        ref bool pointerRetestDirty)
     {
         var cursor = ResolveCursor(target);
         if (target is null)
         {
-            return DispatchShared(
-                SvgPointerEventType.Wheel,
-                null,
-                null,
-                null,
-                SvgPointerEventRoutePhase.Target,
-                input,
-                cursor);
+            return new SvgRoutedEventDispatchResult(
+                DispatchShared(
+                    SvgPointerEventType.Wheel,
+                    null,
+                    null,
+                    null,
+                    SvgPointerEventRoutePhase.Target,
+                    input,
+                    cursor),
+                defaultPrevented: false);
         }
 
         if (DispatchTunnelEvent(
@@ -371,16 +697,24 @@ public sealed class SvgInteractionDispatcher
                 input,
                 cursor))
         {
-            return true;
+            return new SvgRoutedEventDispatchResult(handled: true, defaultPrevented: false);
         }
 
         var handled = false;
+        var defaultPrevented = false;
         object? javaScriptEvent = null;
         foreach (var element in BuildRoute(target))
         {
-            animationFrameDirty |= svg?.RecordAnimationPointerEvent(element, SvgPointerEventType.Wheel) == true;
+            var animationTriggered = ReferenceEquals(element, target)
+                ? svg?.RecordAnimationPointerEvent(element, targetNode, SvgPointerEventType.Wheel) == true
+                : svg?.RecordAnimationPointerEvent(element, SvgPointerEventType.Wheel) == true;
+            animationFrameDirty |= animationTriggered;
+            pointerRetestDirty |= animationTriggered;
             var javaScriptResult = svg?.DispatchJavaScriptEvent(element, target, null, "mousescroll", "onmousescroll", input, ref javaScriptEvent);
-            handled |= javaScriptResult?.DefaultPrevented == true;
+            pointerRetestDirty |= javaScriptResult?.Mutated == true;
+            var javaScriptDefaultPrevented = javaScriptResult?.DefaultPrevented == true;
+            defaultPrevented |= javaScriptDefaultPrevented;
+            handled |= javaScriptDefaultPrevented;
             DispatchSvgMouseScroll(element, input);
             var routePhase = ReferenceEquals(element, target)
                 ? SvgPointerEventRoutePhase.Target
@@ -389,33 +723,51 @@ public sealed class SvgInteractionDispatcher
             if (DispatchShared(SvgPointerEventType.Wheel, element, target, null, routePhase, input, cursor) ||
                 javaScriptResult?.CancelBubble == true)
             {
-                return true;
+                return new SvgRoutedEventDispatchResult(handled: true, defaultPrevented: defaultPrevented);
             }
         }
 
-        return handled;
+        return new SvgRoutedEventDispatchResult(handled, defaultPrevented);
     }
 
     private bool DispatchRoutedEvent(
         SKSvg? svg,
         SvgPointerEventType eventType,
         SvgElement? target,
+        SvgSceneNode? targetNode,
         SvgElement? relatedElement,
         SvgPointerInput input,
         string svgEventName,
-        ref bool animationFrameDirty)
+        ref bool animationFrameDirty,
+        ref bool pointerRetestDirty)
+    {
+        return DispatchRoutedEventCore(svg, eventType, target, targetNode, relatedElement, input, svgEventName, ref animationFrameDirty, ref pointerRetestDirty).Handled;
+    }
+
+    private SvgRoutedEventDispatchResult DispatchRoutedEventCore(
+        SKSvg? svg,
+        SvgPointerEventType eventType,
+        SvgElement? target,
+        SvgSceneNode? targetNode,
+        SvgElement? relatedElement,
+        SvgPointerInput input,
+        string svgEventName,
+        ref bool animationFrameDirty,
+        ref bool pointerRetestDirty)
     {
         var cursor = ResolveCursor(target);
         if (target is null)
         {
-            return DispatchShared(
-                eventType,
-                null,
-                null,
-                relatedElement,
-                SvgPointerEventRoutePhase.Target,
-                input,
-                cursor);
+            return new SvgRoutedEventDispatchResult(
+                DispatchShared(
+                    eventType,
+                    null,
+                    null,
+                    relatedElement,
+                    SvgPointerEventRoutePhase.Target,
+                    input,
+                    cursor),
+                defaultPrevented: false);
         }
 
         if (DispatchTunnelEvent(
@@ -425,16 +777,24 @@ public sealed class SvgInteractionDispatcher
                 input,
                 cursor))
         {
-            return true;
+            return new SvgRoutedEventDispatchResult(handled: true, defaultPrevented: false);
         }
 
         var handled = false;
+        var defaultPrevented = false;
         object? javaScriptEvent = null;
         foreach (var element in BuildRoute(target))
         {
-            animationFrameDirty |= svg?.RecordAnimationPointerEvent(element, eventType) == true;
+            var animationTriggered = ReferenceEquals(element, target)
+                ? svg?.RecordAnimationPointerEvent(element, targetNode, eventType) == true
+                : svg?.RecordAnimationPointerEvent(element, eventType) == true;
+            animationFrameDirty |= animationTriggered;
+            pointerRetestDirty |= animationTriggered;
             var javaScriptResult = svg?.DispatchJavaScriptEvent(element, target, relatedElement, ToJavaScriptEventType(svgEventName), svgEventName, input, ref javaScriptEvent);
-            handled |= javaScriptResult?.DefaultPrevented == true;
+            pointerRetestDirty |= javaScriptResult?.Mutated == true;
+            var javaScriptDefaultPrevented = javaScriptResult?.DefaultPrevented == true;
+            defaultPrevented |= javaScriptDefaultPrevented;
+            handled |= javaScriptDefaultPrevented;
             DispatchSvgMouseEvent(element, svgEventName, input);
             var routePhase = ReferenceEquals(element, target)
                 ? SvgPointerEventRoutePhase.Target
@@ -443,11 +803,11 @@ public sealed class SvgInteractionDispatcher
             if (DispatchShared(eventType, element, target, relatedElement, routePhase, input, cursor) ||
                 javaScriptResult?.CancelBubble == true)
             {
-                return true;
+                return new SvgRoutedEventDispatchResult(handled: true, defaultPrevented: defaultPrevented);
             }
         }
 
-        return handled;
+        return new SvgRoutedEventDispatchResult(handled, defaultPrevented);
     }
 
     private bool DispatchTunnelEvent(
@@ -620,6 +980,68 @@ public sealed class SvgInteractionDispatcher
         }
 
         return null;
+    }
+
+    private static SvgElement? ResolveFocusableElement(SvgElement? target)
+    {
+        for (var current = target; current is not null; current = current.Parent)
+        {
+            if (IsFocusableElement(current))
+            {
+                return current;
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsFocusableElement(SvgElement element)
+    {
+        if (TryGetBooleanAttribute(element, "focusable", out var focusable))
+        {
+            return focusable;
+        }
+
+        if (TryGetTabIndex(element, out var tabIndex))
+        {
+            return tabIndex >= 0;
+        }
+
+        return element is SvgAnchor anchor &&
+               anchor.TryGetEffectiveHrefString(out var href) &&
+               !string.IsNullOrWhiteSpace(href);
+    }
+
+    private static bool TryGetBooleanAttribute(SvgElement element, string attributeName, out bool value)
+    {
+        value = false;
+        if (!element.TryGetAttribute(attributeName, out var rawValue) ||
+            string.IsNullOrWhiteSpace(rawValue))
+        {
+            return false;
+        }
+
+        var normalized = rawValue.Trim();
+        if (string.Equals(normalized, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            value = true;
+            return true;
+        }
+
+        if (string.Equals(normalized, "false", StringComparison.OrdinalIgnoreCase))
+        {
+            value = false;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetTabIndex(SvgElement element, out int tabIndex)
+    {
+        tabIndex = 0;
+        return element.TryGetAttribute("tabindex", out var rawValue) &&
+               int.TryParse(rawValue?.Trim(), out tabIndex);
     }
 
     private static int ToSvgMouseButtonValue(SvgMouseButton button)
