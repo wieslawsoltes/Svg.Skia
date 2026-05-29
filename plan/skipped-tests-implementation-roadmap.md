@@ -91,7 +91,7 @@ Still open inside the text tranche:
   - `SKSvgSettings.EnableTextSelectionRendering` and `TextSelectionColor` now control retained static selection highlight painting for JavaScript `selectSubString`; post-load selection calls refresh the retained picture so event-driven selection is visible.
   - Empty-content `altGlyph` now resolves referenced SVG font glyphs instead of being skipped before SVG-font lookup. The resolver covers direct glyph references, `glyphRef`, `altGlyphDef`, and `altGlyphItem` sequences when they resolve to one SVG font entry.
   - W3C `text-altglyph-01/02/03-b` rows are enabled with scoped raster thresholds and an ignored draft-banner strip for `text-altglyph-03-b`; remaining deltas are browser/font raster identity, not missing substitution.
-  - W3C `text-tselect-01/02/03` remain explicitly skipped because the legacy fixtures assert browser visual-order selection UI behavior beyond static logical selection highlighting.
+  - W3C `text-tselect-01/02/03` now run semantic host-selection assertions instead of a stale static raster comparison. Exact browser chrome selection UI remains host/runtime behavior, but logical `selectSubString`, retained highlight extents, and backward caret metadata are covered.
 
 Verified probe findings from the remaining skipped W3C text rows on 2026-04-09:
 
@@ -487,16 +487,20 @@ Current validation:
 
 Target projects:
 
-- new runtime surface, likely centered around `src/Svg.Custom`, `src/Svg.Model`, and test harness integration
+- existing runtime surface centered around `src/Svg.JavaScript`, `src/Svg.Skia` interaction dispatch, `src/Svg.Custom` namespace parsing, and W3C harness integration
 
 Features:
 
-- DOM objects and live lists
-- script execution
-- event dispatch
-- selection APIs
-- mutation-driven rerendering
-- interactive pointer and zoom behavior
+- DOM objects and live lists: implemented for document/element `childNodes`, `children`, `getElementsByTagName`, and `getElementsByTagNameNS`; parsed SVG and foreign-namespace element names now report DOM local names instead of CLR fallback names.
+- Script execution: existing Jint-backed inline/external script execution remains the runtime base; `contentScriptType` default-script gating is covered by `script-specify-01-f`.
+- Event dispatch: implemented element-wide post-order non-bubbling load dispatch, image load dispatch, event bubbling/stop-propagation coverage, namespace-correct dynamic image creation through `setAttributeNS`, SVG mouse-event routing into SMIL eventbase timing, and source-document normalization for events that originate from retained/animated scene elements.
+- SVG DOM metrics: implemented viewport-relative `SVGLength.value` / `valueInSpecifiedUnits` conversion for percentage lengths, including nested `<svg>` reparenting behavior.
+- Selection APIs: static `selectSubString` support remains covered by text DOM tests; browser UI selection painting remains intentionally out of scope for static rendering.
+- Mutation-driven rerendering: existing mutation version invalidation and `SKSvg.RefreshFromSourceDocument()` integration is preserved and now covers dynamically created namespaced image/path/text nodes.
+- Interactive pointer and zoom behavior: pointer dispatch, bubbling, stop propagation, pointer-events text hit testing, animated pointer-events state changes, direct viewer zoom/pan transform APIs, and deterministic viewer transform notifications are covered for static harness events. Browser viewer cursor chrome, hyperlink navigation, visual text selection UI, and full browser `SVGElementInstance` event targeting remain policy/runtime-host features.
+- Static DOM/types TODO triage: `struct-defs-01-t`, `types-basic-01-f`, and `types-basic-02-f` are not runtime-host work. `struct-defs-01-t` is defs non-rendering, `types-basic-01-f` is number/scientific-notation parsing, and `types-basic-02-f` is CSS-vs-presentation length unit case handling. These rows now use semantic assertions where legacy W3C PNGs are stale or contradict the pass criteria.
+- Resource/DOM crossover: nested SVG image loading now resolves implicit SVG image viewports from the containing `<image>` viewport, so `struct-image-16-f` renders the W3C green pass state. The Chrome override for that row was removed because current Chrome captures the spec-failing red state; the row compares against the W3C reference with a scoped full-frame threshold for the SVG/PNG revision-text mismatch only.
+- Resource/DOM crossover: invalid and cyclic SVG image references now use the deterministic retained broken-image placeholder policy when placeholders are enabled, including recursive embedded SVG-as-image edges discovered during nested document compilation. This preserves non-recursive nested SVG content and surrounding sibling content while avoiding infinite recursion. W3C `struct-image-12-b` remains a semantic/unit-test-covered policy skip because exact Chrome broken-image icon chrome is browser UI, not Svg.Skia renderer output.
 
 Primary test impact:
 
@@ -504,8 +508,16 @@ Primary test impact:
 
 Acceptance criteria:
 
-- These rows remain skipped until the runtime exists.
-- Once started, this should be tracked as a dedicated milestone because it is not a text-rendering-only task.
+- Runtime-backed rows are enabled only when the DOM/script state is asserted directly or the raster is stable; no fake baselines or broad thresholds are used for browser UI behavior.
+- Newly covered rows include `animate-interact-pevents-01/02/03/04-t`, `conform-viewers-03-f`, `extend-namespace-01-f`, `interact-events-01/02-b`, `interact-events-202-f`, `interact-events-203-t`, `interact-order-01/02/03-b`, `interact-pevents-01-b`, `interact-pevents-07/08/09/10`, `interact-pointer-01/02/03/04`, `interact-zoom-01/02/03`, `script-specify-01-f`, `struct-defs-01-t`, `struct-image-07-t`, `struct-image-16-f`, `struct-image-17-b`, `struct-svg-02-f`, `types-basic-01-f`, and `types-basic-02-f`.
+- 2026-05-29 interaction/runtime completion pass:
+  - `animate-interact-events-01-t` is enabled with a semantic assertion. Pointer dispatch now carries the retained generated `<use>` hit node into SMIL event recording so referenced instance content and ancestor listeners receive `mouseover`/`mouseout`/press events before the normal referencing-element route.
+  - `interact-pevents-03/04/05` are enabled with semantic assertions over text character-cell hit testing. Compiled text scene nodes now retain text DOM metrics with separate hit extents, allowing visible glyphs and SVG-font space cells to hit while letter-spacing gaps stay non-targetable.
+  - `text-tselect-01/02/03` are enabled as semantic host-selection rows. The tests assert layout-backed logical substring selection, retained extents, visual extents, and backward range metadata without pretending Svg.Skia owns browser selection chrome.
+  - `conform-viewers-02-f` is enabled through the existing gzipped nested SVG data URI semantic assertion, with focused resource tests covering W3C-style `image/svg+xml` gzip payloads and compressed SVG image MIME aliases.
+  - `struct-image-12-b` is covered by focused resource tests for deterministic invalid/cyclic image placeholders and sibling-content preservation, but the W3C raster row stays skipped because Chrome paints native broken-image UI chrome that Svg.Skia intentionally does not emulate.
+  - Focused validation covered the newly enabled W3C rows plus the hit-test/text-selection/viewer/resource unit slices. Final validation also passed `dotnet build Svg.Skia.slnx -c Release --no-restore`, `dotnet test Svg.Skia.slnx -c Release --no-build`, and `dotnet format Svg.Skia.slnx --no-restore --verify-no-changes`.
+- Remaining browser-host behavior after this pass is limited to exact viewer/UI chrome parity, such as native text selection painting/focus policy beyond retained host highlights and external navigation chrome. No W3C interaction/runtime row in this lane remains skipped for missing Svg.Skia engine support.
 
 ## Immediate Implementation Order
 
@@ -541,7 +553,7 @@ The next implementation tranche should be:
 
 ## Runtime-Gated Groups
 
-The following groups should not be enabled by changing thresholds or inventing baselines:
+The following groups should not be enabled by changing thresholds or inventing baselines. Enable rows only through actual runtime support plus focused semantic assertions when the legacy PNG is stale:
 
 - W3C `text-dom-*`
 - W3C `text-tselect-*`
@@ -551,7 +563,7 @@ The following groups should not be enabled by changing thresholds or inventing b
 - W3C `struct-dom-*`
 - W3C `struct-svg-*`
 
-They require a DOM, script, or interaction runtime rather than renderer-only fixes.
+Most DOM/script rows now have a static runtime path. Remaining skipped rows in these groups are browser-host or deeper browser-DOM features outside Svg.Skia's static runtime contract, such as native cursor/hyperlink chrome and exact visual text-selection UI/focus policy beyond retained host highlights.
 
 ## Reference-Suite Constraints
 
