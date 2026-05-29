@@ -227,6 +227,36 @@ public class SkiaSvgAssetLoaderCachingTests
     }
 
     [Fact]
+    public void FromSvg_FontFaceSrcFallbackUsesLaterSupportedSource()
+    {
+        const string family = "SvgSkiaFallbackSrcBlocky";
+        var blockyPath = GetW3CResourcePath("Blocky.woff");
+        var expectedFamily = GetDocumentFontFamilyName(family, blockyPath, "G");
+        var blockyUri = new Uri(Path.GetFullPath(blockyPath)).AbsoluteUri;
+        var unsupportedFontData = Convert.ToBase64String(new byte[] { 0, 1, 2, 3 });
+        using var svg = new SKSvg();
+        svg.Settings.EnableSvgFonts = false;
+        svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 40f, 40f);
+
+        using var _ = svg.FromSvg($$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+              <style>
+                @font-face {
+                  font-family: {{family}};
+                  src: url("data:font/woff2;base64,{{unsupportedFontData}}") format("woff2"),
+                       url("{{blockyUri}}") format("woff");
+                }
+              </style>
+              <text x="0" y="32" font-family="{{family}}">G</text>
+            </svg>
+            """);
+        var assetLoader = Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader);
+        using var fontScope = assetLoader.PushDocumentFonts(svg.SourceDocument!);
+
+        AssertDocumentTypefaceFamily(svg, family, "G", expectedFamily);
+    }
+
+    [Fact]
     public void PushDocumentFonts_RestoresParentScopeAfterNestedDocument()
     {
         const string parentFamily = "SvgSkiaParentBlocky";

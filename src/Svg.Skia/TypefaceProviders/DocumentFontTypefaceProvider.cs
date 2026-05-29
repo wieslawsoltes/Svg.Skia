@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Svg.Skia.TypefaceProviders;
 
-internal sealed class DocumentFontTypefaceProvider : ITypefaceProvider
+internal sealed class DocumentFontTypefaceProvider : ITypefaceProvider, IDisposable
 {
     private sealed class Entry
     {
@@ -37,6 +37,7 @@ internal sealed class DocumentFontTypefaceProvider : ITypefaceProvider
 
     private static readonly char[] s_fontFamilyTrim = { '\'', '"' };
     private readonly List<Entry> _entries = new();
+    private bool _disposed;
 
     public bool IsEmpty => _entries.Count == 0;
 
@@ -47,6 +48,11 @@ internal sealed class DocumentFontTypefaceProvider : ITypefaceProvider
         SkiaSharp.SKFontStyleSlant slant,
         SkiaSharp.SKTypeface typeface)
     {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(DocumentFontTypefaceProvider));
+        }
+
         if (string.IsNullOrWhiteSpace(familyName) ||
             typeface.Handle == IntPtr.Zero)
         {
@@ -67,6 +73,11 @@ internal sealed class DocumentFontTypefaceProvider : ITypefaceProvider
         SkiaSharp.SKFontStyleWidth fontWidth,
         SkiaSharp.SKFontStyleSlant fontStyle)
     {
+        if (_disposed)
+        {
+            return null;
+        }
+
         if (_entries.Count == 0 || string.IsNullOrWhiteSpace(fontFamily))
         {
             return null;
@@ -107,5 +118,21 @@ internal sealed class DocumentFontTypefaceProvider : ITypefaceProvider
         }
 
         return null;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        for (var i = 0; i < _entries.Count; i++)
+        {
+            _entries[i].Typeface.Dispose();
+        }
+
+        _entries.Clear();
     }
 }

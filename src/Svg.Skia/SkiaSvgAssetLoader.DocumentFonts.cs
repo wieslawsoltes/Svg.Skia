@@ -88,8 +88,10 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
     {
         lock (_documentFontsLock)
         {
+            var activeProviders = _skiaModel.Settings.DocumentTypefaceProviders;
             _skiaModel.Settings.DocumentTypefaceProviders = null;
             ClearPaintCache();
+            DisposeDocumentProviders(activeProviders);
         }
     }
 
@@ -108,19 +110,24 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
                 ? null
                 : new List<ITypefaceProvider> { provider };
             ClearPaintCache();
-            return new DocumentFontScope(this, previousProviders);
+            return new DocumentFontScope(this, provider, previousProviders);
         }
     }
 
     private sealed class DocumentFontScope : IDisposable
     {
         private readonly SkiaSvgAssetLoader _assetLoader;
+        private readonly DocumentFontTypefaceProvider _activeProvider;
         private readonly IList<ITypefaceProvider>? _previousProviders;
         private bool _disposed;
 
-        public DocumentFontScope(SkiaSvgAssetLoader assetLoader, IList<ITypefaceProvider>? previousProviders)
+        public DocumentFontScope(
+            SkiaSvgAssetLoader assetLoader,
+            DocumentFontTypefaceProvider activeProvider,
+            IList<ITypefaceProvider>? previousProviders)
         {
             _assetLoader = assetLoader;
+            _activeProvider = activeProvider;
             _previousProviders = previousProviders;
         }
 
@@ -137,7 +144,24 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
                 _assetLoader.ClearPaintCache();
             }
 
+            _activeProvider.Dispose();
             _disposed = true;
+        }
+    }
+
+    private static void DisposeDocumentProviders(IList<ITypefaceProvider>? providers)
+    {
+        if (providers is null)
+        {
+            return;
+        }
+
+        for (var i = 0; i < providers.Count; i++)
+        {
+            if (providers[i] is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
         }
     }
 
@@ -204,7 +228,28 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
                 continue;
             }
 
-            var urlMatch = s_cssUrlRegex.Match(src);
+            var normalizedFamily = family.Trim().Trim('"', '\'');
+            var weightValue = ParseFontWeight(values.TryGetValue("font-weight", out var weight) ? weight : null);
+            var widthValue = ParseFontWidth(values.TryGetValue("font-stretch", out var stretch) ? stretch : null);
+            var slantValue = ParseFontSlant(values.TryGetValue("font-style", out var style) ? style : null);
+            foreach (var source in ParseCssFontFaceSources(src))
+            {
+                yield return new CssFontFace(
+                    normalizedFamily,
+                    source.SourceUri,
+                    source.Format,
+                    weightValue,
+                    widthValue,
+                    slantValue);
+            }
+        }
+    }
+
+    private static IEnumerable<(Uri SourceUri, string? Format)> ParseCssFontFaceSources(string src)
+    {
+        foreach (var source in SplitCssCommaList(src))
+        {
+            var urlMatch = s_cssUrlRegex.Match(source);
             if (!urlMatch.Success)
             {
                 continue;
@@ -217,19 +262,78 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
             }
 
             var format = default(string);
-            var formatMatch = s_cssFormatRegex.Match(src);
+            var formatMatch = s_cssFormatRegex.Match(source);
             if (formatMatch.Success)
             {
                 format = formatMatch.Groups["format"].Value.Trim().Trim('"', '\'').ToLowerInvariant();
             }
 
-            yield return new CssFontFace(
-                family.Trim().Trim('"', '\''),
-                sourceUri,
-                format,
-                ParseFontWeight(values.TryGetValue("font-weight", out var weight) ? weight : null),
-                ParseFontWidth(values.TryGetValue("font-stretch", out var stretch) ? stretch : null),
-                ParseFontSlant(values.TryGetValue("font-style", out var style) ? style : null));
+            yield return (sourceUri, format);
+        }
+    }
+
+    private static IEnumerable<string> SplitCssCommaList(string value)
+    {
+        var itemStart = 0;
+        var depth = 0;
+        var quote = '\0';
+        var escaped = false;
+
+        for (var i = 0; i <= value.Length; i++)
+        {
+            var ch = i < value.Length ? value[i] : ',';
+            if (escaped)
+            {
+                escaped = false;
+                continue;
+            }
+
+            if (ch == '\\')
+            {
+                escaped = true;
+                continue;
+            }
+
+            if (quote != '\0')
+            {
+                if (ch == quote)
+                {
+                    quote = '\0';
+                }
+
+                continue;
+            }
+
+            if (ch is '"' or '\'')
+            {
+                quote = ch;
+                continue;
+            }
+
+            if (ch == '(')
+            {
+                depth++;
+                continue;
+            }
+
+            if (ch == ')' && depth > 0)
+            {
+                depth--;
+                continue;
+            }
+
+            if (ch != ',' || depth != 0)
+            {
+                continue;
+            }
+
+            var item = value.Substring(itemStart, i - itemStart).Trim();
+            if (item.Length > 0)
+            {
+                yield return item;
+            }
+
+            itemStart = i + 1;
         }
     }
 
