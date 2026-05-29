@@ -336,6 +336,57 @@ public class SkiaSvgAssetLoaderCachingTests
         }
     }
 
+    [Theory]
+    [InlineData("screen", true)]
+    [InlineData("print", false)]
+    public void OpenPath_LinkedStylesheetFontFaceRespectsMediaContext(string media, bool shouldApply)
+    {
+        var family = $"SvgSkiaMediaCssBlocky{media}";
+        var tempDirectory = Directory.CreateTempSubdirectory("SvgSkiaFontMedia");
+
+        try
+        {
+            var blockyPath = WriteTempBlockyFont(tempDirectory.FullName);
+            var expectedFamily = GetDocumentFontFamilyName(family, blockyPath, "G");
+            var cssPath = Path.Combine(tempDirectory.FullName, "fonts.css");
+            var svgPath = Path.Combine(tempDirectory.FullName, "source.svg");
+            File.WriteAllText(cssPath, $$"""
+                @media {{media}} {
+                  @font-face {
+                    font-family: {{family}};
+                    src: url("Blocky.woff") format("woff");
+                  }
+                }
+                """);
+            File.WriteAllText(svgPath, $$"""
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+                  <link rel="stylesheet" type="text/css" href="fonts.css" />
+                  <text x="0" y="32" font-family="{{family}}">G</text>
+                </svg>
+                """);
+
+            using var svg = new SKSvg();
+            svg.Settings.EnableSvgFonts = false;
+            svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 40f, 40f);
+            using var _ = svg.Load(svgPath);
+            var assetLoader = Assert.IsType<SkiaSvgAssetLoader>(svg.AssetLoader);
+            using var fontScope = assetLoader.PushDocumentFonts(svg.SourceDocument!);
+
+            if (shouldApply)
+            {
+                AssertDocumentTypefaceFamily(svg, family, "G", expectedFamily);
+            }
+            else
+            {
+                AssertDocumentTypefaceNotFamily(assetLoader, family, "G", expectedFamily);
+            }
+        }
+        finally
+        {
+            tempDirectory.Delete(recursive: true);
+        }
+    }
+
     [Fact]
     public void PushDocumentFonts_RestoresParentScopeAfterNestedDocument()
     {

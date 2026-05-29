@@ -1517,7 +1517,8 @@ internal static class SvgCssCompatibilityProcessor
                          source.BaseUri,
                          mediaContext,
                          loadOptions,
-                         CreateImportChain()))
+                         CreateImportChain(),
+                         allowLeadingImports: true))
             {
                 yield return expanded;
             }
@@ -1530,10 +1531,11 @@ internal static class SvgCssCompatibilityProcessor
         Uri? policyBaseUri,
         CssMediaContext mediaContext,
         SvgDocumentLoadOptions? loadOptions,
-        HashSet<string> importChain)
+        HashSet<string> importChain,
+        bool allowLeadingImports)
     {
         var index = 0;
-        var isInLeadingImportSection = true;
+        var isInLeadingImportSection = allowLeadingImports;
 
         while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
         {
@@ -1554,7 +1556,8 @@ internal static class SvgCssCompatibilityProcessor
                                          policyBaseUri,
                                          mediaContext,
                                          loadOptions,
-                                         importChain))
+                                         importChain,
+                                         allowLeadingImports: true))
                             {
                                 yield return expanded;
                             }
@@ -1563,6 +1566,28 @@ internal static class SvgCssCompatibilityProcessor
                         {
                             importChain.Remove(imported.BaseUri!.AbsoluteUri);
                         }
+                    }
+                }
+
+                continue;
+            }
+
+            if (atRuleKind == CssAtRuleKind.Media)
+            {
+                isInLeadingImportSection = false;
+                if (TryGetMediaRuleParts(cssText, statement, out var mediaCondition, out var nestedCssText) &&
+                    ShouldApplyMediaForCurrentContext(mediaCondition, mediaContext))
+                {
+                    foreach (var expanded in EnumerateExpandedStyleSource(
+                                 nestedCssText,
+                                 baseUri,
+                                 policyBaseUri,
+                                 mediaContext,
+                                 loadOptions,
+                                 importChain,
+                                 allowLeadingImports: false))
+                    {
+                        yield return expanded;
                     }
                 }
 
