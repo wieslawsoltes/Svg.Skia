@@ -36,6 +36,14 @@ public class SKSvgSettingsTests : SvgUnitTest
     }
 
     [Fact]
+    public void Defaults_EnableBrokenImagePlaceholders()
+    {
+        var settings = new SKSvgSettings();
+
+        Assert.True(settings.EnableBrokenImagePlaceholders);
+    }
+
+    [Fact]
     public void Defaults_DisableJavaScript()
     {
         var settings = new SKSvgSettings();
@@ -66,6 +74,7 @@ public class SKSvgSettingsTests : SvgUnitTest
             EnableSvgFonts = false,
             EnableTextReferences = false,
             EnableFilterBackgroundInputs = false,
+            EnableBrokenImagePlaceholders = false,
             EnableJavaScript = true,
             EnableTextSelectionRendering = false,
             TextSelectionColor = new SKColor(1, 2, 3, 4),
@@ -87,6 +96,7 @@ public class SKSvgSettingsTests : SvgUnitTest
         Assert.False(target.EnableSvgFonts);
         Assert.False(target.EnableTextReferences);
         Assert.False(target.EnableFilterBackgroundInputs);
+        Assert.False(target.EnableBrokenImagePlaceholders);
         Assert.True(target.EnableJavaScript);
         Assert.False(target.EnableTextSelectionRendering);
         Assert.Equal(new SKColor(1, 2, 3, 4), target.TextSelectionColor);
@@ -105,6 +115,7 @@ public class SKSvgSettingsTests : SvgUnitTest
         var factory = new TestJavaScriptRuntimeFactory();
         var settings = new SKSvgSettings
         {
+            EnableBrokenImagePlaceholders = false,
             EnableJavaScript = true,
             EnableExternalJavaScript = false,
             JavaScriptTimeoutMilliseconds = 250,
@@ -116,6 +127,7 @@ public class SKSvgSettingsTests : SvgUnitTest
         var clone = settings.Clone();
 
         Assert.NotSame(settings, clone);
+        Assert.False(clone.EnableBrokenImagePlaceholders);
         Assert.True(clone.EnableJavaScript);
         Assert.False(clone.EnableExternalJavaScript);
         Assert.Equal(250, clone.JavaScriptTimeoutMilliseconds);

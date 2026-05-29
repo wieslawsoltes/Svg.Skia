@@ -13,6 +13,9 @@ using Svg.Model.Services;
 using Svg.Pathing;
 using Svg.Skia.UnitTests.Common;
 using Xunit;
+using SkiaAlphaType = SkiaSharp.SKAlphaType;
+using SkiaBitmap = SkiaSharp.SKBitmap;
+using SkiaColorType = SkiaSharp.SKColorType;
 
 namespace Svg.Skia.UnitTests;
 
@@ -24,11 +27,35 @@ public class W3CTestSuiteTests : SvgUnitTest
         "animate-dom-01-f",
         "animate-dom-02-f",
         "animate-struct-dom-01-b",
+        "animate-interact-pevents-01-t",
+        "animate-interact-pevents-02-t",
+        "animate-interact-pevents-03-t",
+        "animate-interact-pevents-04-t",
+        "conform-viewers-03-f",
         "coords-dom-01-f",
         "coords-dom-02-f",
         "coords-dom-03-f",
         "coords-dom-04-f",
+        "extend-namespace-01-f",
+        "interact-events-202-f",
+        "interact-events-203-t",
         "interact-dom-01-b",
+        "interact-events-01-b",
+        "interact-events-02-b",
+        "interact-order-01-b",
+        "interact-order-02-b",
+        "interact-order-03-b",
+        "interact-pevents-01-b",
+        "interact-pevents-03-b",
+        "interact-pevents-05-b",
+        "interact-pevents-07-t",
+        "interact-pevents-08-f",
+        "interact-pevents-09-f",
+        "interact-pevents-10-f",
+        "interact-pointer-01-t",
+        "interact-pointer-02-t",
+        "interact-pointer-03-t",
+        "interact-pointer-04-f",
         "masking-path-09-b",
         "masking-path-12-f",
         "paths-dom-01-f",
@@ -58,6 +85,7 @@ public class W3CTestSuiteTests : SvgUnitTest
         "struct-dom-19-f",
         "struct-dom-20-f",
         "struct-svg-01-f",
+        "struct-svg-02-f",
         "struct-use-13-f",
         "struct-use-14-f",
         "struct-use-15-f",
@@ -685,8 +713,126 @@ public class W3CTestSuiteTests : SvgUnitTest
     {
         switch (name)
         {
+            case "animate-elem-20-t":
+                AssertIndefiniteFillHyperlinkFixture(svg);
+                return true;
+            case "animate-elem-21-t":
+                AssertChainedIndefiniteHyperlinkFixture(svg);
+                return true;
+            case "animate-elem-29-b":
+                AssertIndefiniteOpacityHyperlinkFixture(svg);
+                return true;
+            case "animate-elem-60-t":
+                AssertAccessKeyAndPastWallclockBeginFixture(svg);
+                return true;
+            case "animate-elem-61-t":
+                AssertMultipleBeginUserEventFixture(svg);
+                return true;
+            case "animate-elem-62-t":
+                AssertAccessKeyAndFutureWallclockEndFixture(svg);
+                return true;
+            case "animate-elem-63-t":
+                AssertMultipleEndUserEventFixture(svg);
+                return true;
+            case "animate-interact-pevents-01-t":
+                AssertTextPointerEventsRows(svg, animated: true);
+                return true;
+            case "animate-interact-pevents-02-t":
+                AssertRenderingOrderPointerEvents(svg, animated: true);
+                return true;
+            case "animate-interact-pevents-03-t":
+                AssertVisiblePointerEventsGrid(svg, animated: true);
+                return true;
+            case "animate-interact-pevents-04-t":
+                AssertPaintedPointerEventsGrid(svg, animated: true);
+                return true;
+            case "animate-interact-events-01-t":
+                AssertAnimatedUseInstanceMouseEventsAndBubbling(svg);
+                return true;
+            case "conform-viewers-02-f":
+                AssertGzippedSvgDataImageFixture(svg);
+                return true;
+            case "conform-viewers-03-f":
+                AssertDynamicImageNamespaceFixtureUsesOnlyRealXLinkHref(svg.SourceDocument!);
+                return true;
+            case "extend-namespace-01-f":
+                AssertForeignNamespaceDomFixtureCreatedPieChart(svg.SourceDocument!);
+                return true;
+            case "interact-cursor-01-f":
+                AssertCursorFixtureResolvesExpectedCursorValues(svg);
+                return true;
+            case "interact-events-01-b":
+                AssertOnLoadEventAttributeFixtureReachedExpectedVisibility(svg.SourceDocument!);
+                return true;
+            case "interact-events-02-b":
+                AssertSvgLoadDoesNotBubbleFixtureReachedExpectedFills(svg.SourceDocument!);
+                return true;
+            case "interact-events-202-f":
+                AssertUseMouseOverFixtureTogglesReferencingGroups(svg);
+                return true;
+            case "interact-events-203-t":
+                AssertUseInstanceMouseEventsAndBubbling(svg);
+                return true;
+            case "interact-order-01-b":
+                AssertMouseEventBubblingAndStopPropagation(svg);
+                return true;
+            case "interact-order-02-b":
+                AssertEventOrderCircleClickSemantics(svg);
+                return true;
+            case "interact-order-03-b":
+                AssertEventOrderTextClickSemantics(svg);
+                return true;
+            case "interact-pevents-01-b":
+                AssertTextPointerEventsRows(svg, animated: false);
+                return true;
+            case "interact-pevents-03-b":
+                AssertTextCharacterCellPointerEvents(svg, name, animated: false);
+                return true;
+            case "interact-pevents-04-t":
+                AssertTextCharacterCellPointerEvents(svg, name, animated: true);
+                return true;
+            case "interact-pevents-05-b":
+                AssertTextCharacterCellPointerEvents(svg, name, animated: false);
+                return true;
+            case "interact-pevents-07-t":
+                AssertRenderingOrderPointerEvents(svg, animated: false);
+                return true;
+            case "interact-pevents-08-f":
+                AssertVisiblePointerEventsGrid(svg, animated: false);
+                return true;
+            case "interact-pevents-09-f":
+                AssertPaintedPointerEventsGrid(svg, animated: false);
+                return true;
+            case "interact-zoom-01-t":
+            case "interact-zoom-02-t":
+                AssertZoomAndPanMagnifyFixture(svg);
+                return true;
+            case "interact-zoom-03-t":
+                AssertZoomAndPanDisableFixture(svg);
+                return true;
+            case "interact-pevents-10-f":
+                AssertDisplayNonePointerEventsDoNotFire(svg);
+                return true;
+            case "interact-pointer-01-t":
+                AssertPointerResultRowReachesPassedState(svg, "r");
+                return true;
+            case "interact-pointer-02-t":
+                AssertPointerResultRowReachesPassedState(svg, "r");
+                return true;
+            case "interact-pointer-03-t":
+                AssertPointerResultRowReachesPassedState(svg, "r1");
+                return true;
+            case "interact-pointer-04-f":
+                AssertMaskedPointerRowReachesPassedState(svg);
+                return true;
             case "paths-dom-02-f":
                 AssertPathsDom02FixtureCreatesFlowerPathSegments(svg.SourceDocument!);
+                return true;
+            case "script-specify-01-f":
+                AssertUnknownContentScriptTypeSuppressesEventHandler(svg.SourceDocument!);
+                return true;
+            case "struct-defs-01-t":
+                AssertDefsFixtureKeepsDefinitionContentNonRenderable(svg.SourceDocument!);
                 return true;
             case "struct-dom-07-f":
                 AssertUseInstanceChildNodesCanMutateCorrespondingElements(svg.SourceDocument!);
@@ -697,16 +843,958 @@ public class W3CTestSuiteTests : SvgUnitTest
             case "struct-dom-18-f":
                 AssertIntersectionAndEnclosureListsHideFixtureFailText(svg);
                 return true;
+            case "struct-svg-02-f":
+                AssertNestedSvgLengthDomMetricsResolveViewportChanges();
+                return true;
+            case "struct-image-07-t":
+                AssertXmlBaseImageFixtureCompilesAllImages(svg);
+                return true;
+            case "struct-image-12-b":
+                AssertBrokenImageAndCycleFixtureUsesPlaceholders(svg);
+                return true;
+            case "struct-image-17-b":
+                AssertEmbeddedSvgImageRemainsStatic(svg);
+                return true;
+            case "text-tselect-01-b":
+            case "text-tselect-02-f":
+            case "text-tselect-03-f":
+                AssertTextSelectionFixtureSupportsHostSelection(svg, name);
+                return true;
             case "types-dom-06-f":
                 AssertStringListsDuplicateInsertedValues(svg.SourceDocument!);
                 return true;
             case "types-dom-08-f":
                 AssertGetBBoxFixtureReachesPassedState(svg);
                 return true;
+            case "types-basic-01-f":
+                AssertBasicNumberFixtureParsesScientificStrokeWidths(svg.SourceDocument!);
+                return true;
+            case "types-basic-02-f":
+                AssertBasicLengthFixtureHonorsPresentationAndCssUnitCase(svg.SourceDocument!);
+                return true;
             default:
                 return false;
         }
     }
+
+    private static void AssertDynamicImageNamespaceFixtureUsesOnlyRealXLinkHref(SvgDocument document)
+    {
+        var images = document.Descendants().OfType<SvgImage>().ToArray();
+        Assert.Contains(images, image => string.Equals(image.Href, "../images/pinksquidj.png", StringComparison.Ordinal));
+        var invalidNamespaceImage = Assert.IsType<SvgImage>(document.GetElementById("image2")!);
+        Assert.True(string.IsNullOrEmpty(invalidNamespaceImage.Href));
+
+        var prefix = Assert.IsType<SvgTextSpan>(document.GetElementById("prefix")!);
+        Assert.NotEqual("...", prefix.Content);
+        var status = Assert.IsType<SvgTextSpan>(document.GetElementById("status")!);
+        Assert.Equal("No exceptions.", status.Content);
+    }
+
+    private static void AssertIndefiniteFillHyperlinkFixture(SKSvg svg)
+    {
+        DispatchPointerClick(svg, new SKPoint(350f, 80f));
+        var fadeIn = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(3.1));
+        AssertColorFill(fadeIn.GetElementById("pink"), System.Drawing.Color.Blue);
+
+        svg.SetAnimationTime(TimeSpan.FromSeconds(3.1));
+        DispatchPointerClick(svg, new SKPoint(350f, 260f));
+        var fadeOut = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(6.2));
+        AssertColorFill(fadeOut.GetElementById("pink"), System.Drawing.Color.White);
+    }
+
+    private static void AssertChainedIndefiniteHyperlinkFixture(SKSvg svg)
+    {
+        DispatchPointerClick(svg, new SKPoint(350f, 80f));
+        var fadeIn = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(3.1));
+        AssertColorFill(fadeIn.GetElementById("pink"), System.Drawing.Color.Blue);
+        Assert.All(
+            fadeIn.Descendants().OfType<SvgCircle>(),
+            circle => AssertColorStroke(circle, System.Drawing.Color.FromArgb(0x66, 0x66, 0x66)));
+
+        svg.SetAnimationTime(TimeSpan.FromSeconds(3.1));
+        DispatchPointerClick(svg, new SKPoint(350f, 260f));
+        var fadeOut = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(6.2));
+        AssertColorFill(fadeOut.GetElementById("pink"), System.Drawing.Color.White);
+        Assert.All(
+            fadeOut.Descendants().OfType<SvgCircle>(),
+            circle => AssertColorStroke(circle, System.Drawing.Color.White));
+    }
+
+    private static void AssertIndefiniteOpacityHyperlinkFixture(SKSvg svg)
+    {
+        DispatchPointerClick(svg, new SKPoint(350f, 80f));
+        var fadeIn = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(3.1));
+        var visibleRect = Assert.IsType<SvgRectangle>(fadeIn.GetElementById("pink"));
+        Assert.Equal(1f, visibleRect.FillOpacity, 3);
+
+        svg.SetAnimationTime(TimeSpan.FromSeconds(3.1));
+        DispatchPointerClick(svg, new SKPoint(350f, 260f));
+        var fadeOut = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(6.2));
+        var hiddenRect = Assert.IsType<SvgRectangle>(fadeOut.GetElementById("pink"));
+        Assert.Equal(0f, hiddenRect.FillOpacity, 3);
+    }
+
+    private static void AssertAccessKeyAndPastWallclockBeginFixture(SKSvg svg)
+    {
+        var eventTarget = svg.SourceDocument!.GetElementById("setThreeTarget");
+        Assert.NotNull(eventTarget);
+        Assert.True(svg.NotifyPointerEvent(eventTarget, SvgPointerEventType.Click, TimeSpan.Zero));
+        Assert.True(svg.NotifyAccessKey("a", TimeSpan.Zero));
+
+        var afterAccess = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(2.5));
+        var setThree = GetRowRectangles(afterAccess, "setThree");
+        AssertColorFill(setThree[0], System.Drawing.Color.FromArgb(0x33, 0xFF, 0x33));
+        AssertColorFill(setThree[1], System.Drawing.Color.FromArgb(0x33, 0xFF, 0x33));
+
+        var setSeven = GetRowRectangles(afterAccess, "setSeven");
+        AssertColorFill(setSeven[0], System.Drawing.Color.FromArgb(0x33, 0xFF, 0x33));
+        AssertColorFill(setSeven[1], System.Drawing.Color.FromArgb(0x33, 0xFF, 0x33));
+
+        var setEight = Assert.Single(GetRowRectangles(afterAccess, "setEight"));
+        AssertColorFill(setEight, System.Drawing.Color.FromArgb(0xFF, 0x33, 0x33));
+    }
+
+    private static void AssertMultipleBeginUserEventFixture(SKSvg svg)
+    {
+        Assert.True(svg.NotifyAccessKey("a", TimeSpan.FromSeconds(2)));
+        Assert.Equal(34f, GetAnimatedRectangleX(svg, "setFiveTarget", TimeSpan.FromSeconds(2.5)), 3);
+        Assert.Equal(-6f, GetAnimatedRectangleX(svg, "setFiveTarget", TimeSpan.FromSeconds(3.5)), 3);
+        Assert.Equal(34f, GetAnimatedRectangleX(svg, "setFiveTarget", TimeSpan.FromSeconds(6.5)), 3);
+
+        var target = svg.SourceDocument!.GetElementById("setSixTarget");
+        Assert.NotNull(target);
+        Assert.True(svg.NotifyPointerEvent(target, SvgPointerEventType.Click, TimeSpan.FromSeconds(5)));
+        Assert.Equal(34f, GetAnimatedRectangleX(svg, "setSixTarget", TimeSpan.FromSeconds(5.5)), 3);
+    }
+
+    private static void AssertAccessKeyAndFutureWallclockEndFixture(SKSvg svg)
+    {
+        Assert.True(svg.NotifyAccessKey("a", TimeSpan.FromSeconds(2)));
+
+        var afterFirstEnd = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(3));
+        var firstSetSeven = GetRowRectangles(afterFirstEnd, "setSeven");
+        AssertColorFill(firstSetSeven[0], System.Drawing.Color.FromArgb(0x33, 0xFF, 0x33));
+        AssertColorFill(firstSetSeven[1], System.Drawing.Color.FromArgb(0xFF, 0x33, 0x33));
+
+        var afterSecondEnd = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(4.5));
+        var secondSetSeven = GetRowRectangles(afterSecondEnd, "setSeven");
+        AssertColorFill(secondSetSeven[0], System.Drawing.Color.FromArgb(0x33, 0xFF, 0x33));
+        AssertColorFill(secondSetSeven[1], System.Drawing.Color.FromArgb(0x33, 0xFF, 0x33));
+
+        var setEight = Assert.Single(GetRowRectangles(afterSecondEnd, "setEight"));
+        AssertColorFill(setEight, System.Drawing.Color.FromArgb(0x33, 0xFF, 0x33));
+    }
+
+    private static void AssertMultipleEndUserEventFixture(SKSvg svg)
+    {
+        Assert.Equal(34f, GetAnimatedRectangleX(svg, "setFiveTarget", TimeSpan.FromSeconds(0.5)), 3);
+        Assert.True(svg.NotifyAccessKey("a", TimeSpan.FromSeconds(6)));
+        Assert.Equal(-6f, GetAnimatedRectangleX(svg, "setFiveTarget", TimeSpan.FromSeconds(1.5)), 3);
+
+        var target = svg.SourceDocument!.GetElementById("setSixTarget");
+        Assert.NotNull(target);
+        Assert.True(svg.NotifyPointerEvent(target, SvgPointerEventType.Click, TimeSpan.FromSeconds(1.5)));
+        Assert.Equal(-6f, GetAnimatedRectangleX(svg, "setSixTarget", TimeSpan.FromSeconds(1.75)), 3);
+    }
+
+    private static void AssertZoomAndPanMagnifyFixture(SKSvg svg)
+    {
+        Assert.True(svg.IsZoomAndPanEnabled);
+        Assert.True(svg.ZoomTo(2d));
+        Assert.True(svg.PanBy(new SKPoint(8f, 12f)));
+        Assert.Equal(2d, svg.CurrentScale);
+        Assert.Equal(new SKPoint(8f, 12f), svg.CurrentTranslate);
+        Assert.Equal(new SKPoint(28f, 32f), svg.PictureToViewerPoint(new SKPoint(10f, 10f)));
+        Assert.True(svg.TryGetViewerPicturePoint(new SKPoint(28f, 32f), out var picturePoint));
+        Assert.Equal(10f, picturePoint.X, 3);
+        Assert.Equal(10f, picturePoint.Y, 3);
+    }
+
+    private static void AssertZoomAndPanDisableFixture(SKSvg svg)
+    {
+        Assert.False(svg.IsZoomAndPanEnabled);
+        Assert.False(svg.ZoomTo(2d));
+        Assert.False(svg.PanBy(new SKPoint(8f, 12f)));
+        Assert.True(svg.ViewerTransform.IsIdentity);
+        Assert.Equal(1d, svg.CurrentScale);
+        Assert.Equal(default, svg.CurrentTranslate);
+    }
+
+    private static void AssertGzippedSvgDataImageFixture(SKSvg svg)
+    {
+        using var bitmap = RenderBitmap(svg);
+        var starCenter = bitmap.GetPixel(240, 170);
+        Assert.True(
+            starCenter.Alpha > 0 && starCenter.Red > 100 && starCenter.Green > 100,
+            $"Expected gzipped data SVG image content near the center, but found {starCenter}.");
+    }
+
+    private static void AssertForeignNamespaceDomFixtureCreatedPieChart(SvgDocument document)
+    {
+        var pieParent = Assert.IsType<SvgGroup>(document.GetElementById("PieParent")!);
+        var paths = pieParent.Children.OfType<SvgPath>().ToArray();
+        var labels = pieParent.Children.OfType<SvgText>().ToArray();
+
+        Assert.Equal(5, paths.Length);
+        Assert.Equal(5, labels.Length);
+        Assert.Equal(new[] { "East", "North", "West", "Central", "South" }, labels.Select(label => label.Content).ToArray());
+
+        var firstFill = Assert.IsType<SvgColourServer>(paths[0].Fill);
+        var firstStroke = Assert.IsType<SvgColourServer>(paths[0].Stroke);
+        Assert.Equal(System.Drawing.Color.FromArgb(0xFF, 0x88, 0x88).ToArgb(), firstFill.Colour.ToArgb());
+        Assert.Equal(System.Drawing.Color.Blue.ToArgb(), firstStroke.Colour.ToArgb());
+    }
+
+    private static void AssertCursorFixtureResolvesExpectedCursorValues(SKSvg svg)
+    {
+        var dispatcher = new SvgInteractionDispatcher();
+
+        Assert.Equal("crosshair", DispatchPointerMoved(dispatcher, svg, new SKPoint(160f, 80f)).Cursor);
+        Assert.Equal("pointer", DispatchPointerMoved(dispatcher, svg, new SKPoint(160f, 176f)).Cursor);
+        Assert.Equal("text", DispatchPointerMoved(dispatcher, svg, new SKPoint(260f, 80f)).Cursor);
+        Assert.Equal("wait", DispatchPointerMoved(dispatcher, svg, new SKPoint(260f, 128f)).Cursor);
+        Assert.Equal("help", DispatchPointerMoved(dispatcher, svg, new SKPoint(260f, 176f)).Cursor);
+        Assert.Equal("url(#magglass),crosshair", DispatchPointerMoved(dispatcher, svg, new SKPoint(260f, 224f)).Cursor);
+        Assert.Equal("url(#magglass),crosshair", DispatchPointerMoved(dispatcher, svg, new SKPoint(390f, 315f)).Cursor);
+    }
+
+    private static void AssertOnLoadEventAttributeFixtureReachedExpectedVisibility(SvgDocument document)
+    {
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings { ThrowOnError = true });
+        Assert.Equal("hidden", runtime.GetElement(document.GetElementById("Rect1")!).getAttribute("visibility"));
+        Assert.Equal("visible", runtime.GetElement(document.GetElementById("Rect2")!).getAttribute("visibility"));
+        Assert.Equal("visible", runtime.GetElement(document.GetElementById("Rect3")!).getAttribute("visibility"));
+        Assert.Equal("visible", runtime.GetElement(document.GetElementById("Rect4")!).getAttribute("visibility"));
+        Assert.Equal("hidden", runtime.GetElement(document.GetElementById("Rect5")!).getAttribute("visibility"));
+        Assert.Equal("visible", runtime.GetElement(document.GetElementById("Rect6")!).getAttribute("visibility"));
+    }
+
+    private static void AssertSvgLoadDoesNotBubbleFixtureReachedExpectedFills(SvgDocument document)
+    {
+        AssertColorFill(document.GetElementById("r1"), System.Drawing.Color.Green);
+        AssertColorFill(document.GetElementById("r2"), System.Drawing.Color.Green);
+    }
+
+    private static void AssertUseMouseOverFixtureTogglesReferencingGroups(SKSvg svg)
+    {
+        var document = svg.SourceDocument!;
+        var dispatcher = new SvgInteractionDispatcher();
+
+        AssertRuntimeAttribute(document, "g3", "visibility", "hidden");
+        AssertRuntimeAttribute(document, "g4", "visibility", "hidden");
+
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(50f, 50f));
+        AssertRuntimeAttribute(document, "g3", "visibility", "visible");
+        AssertRuntimeAttribute(document, "g4", "visibility", "hidden");
+
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(140f, 50f));
+        AssertRuntimeAttribute(document, "g3", "visibility", "hidden");
+        AssertRuntimeAttribute(document, "g4", "visibility", "visible");
+
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(350f, 300f));
+        AssertRuntimeAttribute(document, "g3", "visibility", "hidden");
+        AssertRuntimeAttribute(document, "g4", "visibility", "hidden");
+    }
+
+    private static void AssertUseInstanceMouseEventsAndBubbling(SKSvg svg)
+    {
+        var document = svg.SourceDocument!;
+        var dispatcher = new SvgInteractionDispatcher();
+
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(55f, 55f));
+        AssertColorFill(document.GetElementById("rect"), System.Drawing.Color.Blue);
+
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(55f, 125f));
+        AssertColorFill(document.GetElementById("rect"), System.Drawing.Color.Blue);
+        AssertColorStroke(document.GetElementById("rect1"), System.Drawing.Color.Black);
+
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(55f, 195f));
+        AssertColorFill(document.GetElementById("rect"), System.Drawing.Color.Blue);
+        AssertColorStroke(document.GetElementById("rect2"), System.Drawing.Color.Black);
+
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(55f, 265f));
+        AssertColorFill(document.GetElementById("rect"), System.Drawing.Color.Blue);
+        AssertColorStroke(document.GetElementById("rect3"), System.Drawing.Color.Empty);
+
+        _ = DispatchPointerPressed(dispatcher, svg, new SKPoint(55f, 265f));
+        AssertColorStroke(document.GetElementById("rect3"), System.Drawing.Color.Black);
+    }
+
+    private static void AssertAnimatedUseInstanceMouseEventsAndBubbling(SKSvg svg)
+    {
+        var dispatcher = new SvgInteractionDispatcher();
+        var eventIndex = 0;
+
+        var firstTime = AdvanceAnimationEventTime(svg, animated: true, ref eventIndex);
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(55f, 55f));
+        AssertColorFill(GetInteractionDocument(svg, animated: true, firstTime).GetElementById("rect"), System.Drawing.Color.Blue);
+
+        var secondTime = AdvanceAnimationEventTime(svg, animated: true, ref eventIndex);
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(55f, 125f));
+        var secondDocument = GetInteractionDocument(svg, animated: true, secondTime);
+        AssertColorFill(secondDocument.GetElementById("rect"), System.Drawing.Color.Blue);
+        AssertColorStroke(GetUseInstanceStrokeIndicator(secondDocument, 0), System.Drawing.Color.Black);
+
+        var thirdTime = AdvanceAnimationEventTime(svg, animated: true, ref eventIndex);
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(55f, 195f));
+        var thirdDocument = GetInteractionDocument(svg, animated: true, thirdTime);
+        AssertColorFill(thirdDocument.GetElementById("rect"), System.Drawing.Color.Blue);
+        AssertColorStroke(GetUseInstanceStrokeIndicator(thirdDocument, 1), System.Drawing.Color.Black);
+
+        var fourthTime = AdvanceAnimationEventTime(svg, animated: true, ref eventIndex);
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(55f, 265f));
+        var fourthDocument = GetInteractionDocument(svg, animated: true, fourthTime);
+        AssertColorFill(fourthDocument.GetElementById("rect"), System.Drawing.Color.Blue);
+        AssertColorStroke(GetUseInstanceStrokeIndicator(fourthDocument, 2), System.Drawing.Color.Empty);
+
+        var pressTime = AdvanceAnimationEventTime(svg, animated: true, ref eventIndex);
+        _ = DispatchPointerPressed(dispatcher, svg, new SKPoint(55f, 265f));
+        AssertColorStroke(GetUseInstanceStrokeIndicator(GetInteractionDocument(svg, animated: true, pressTime), 2), System.Drawing.Color.Black);
+    }
+
+    private static SvgRectangle GetUseInstanceStrokeIndicator(SvgDocument document, int index)
+    {
+        var indicators = document.Descendants()
+            .OfType<SvgRectangle>()
+            .Where(static rect =>
+                string.IsNullOrWhiteSpace(rect.ID) &&
+                rect.Width.Value == 50f &&
+                rect.Height.Value == 50f &&
+                rect.StrokeWidth.Value == 5f &&
+                rect.PointerEvents == SvgPointerEvents.None)
+            .OrderBy(static rect => rect.Y.Value)
+            .ToArray();
+
+        Assert.Equal(3, indicators.Length);
+        return indicators[index];
+    }
+
+    private static void AssertMouseEventBubblingAndStopPropagation(SKSvg svg)
+    {
+        var circles = svg.SourceDocument!.Descendants().OfType<SvgCircle>()
+            .OrderBy(circle => circle.CenterY.Value)
+            .ToArray();
+        Assert.Equal(2, circles.Length);
+
+        var dispatcher = new SvgInteractionDispatcher();
+        dispatcher.DispatchPointerMoved(svg, new SvgPointerInput(new SKPoint(70f, 120f), SvgPointerDeviceType.Mouse, SvgMouseButton.Left, 0, 0, false, false, false, "w3c"));
+        AssertColorFill(circles[0], System.Drawing.Color.FromArgb(0xFF, 0x00, 0x88));
+
+        dispatcher.DispatchPointerMoved(svg, new SvgPointerInput(new SKPoint(70f, 240f), SvgPointerDeviceType.Mouse, SvgMouseButton.Left, 0, 0, false, false, false, "w3c"));
+        AssertColorFill(circles[1], System.Drawing.Color.Blue);
+    }
+
+    private static void AssertEventOrderCircleClickSemantics(SKSvg svg)
+    {
+        var circles = svg.SourceDocument!.Descendants().OfType<SvgCircle>()
+            .OrderBy(circle => circle.CenterY.Value)
+            .ToArray();
+        Assert.Equal(2, circles.Length);
+
+        var dispatcher = new SvgInteractionDispatcher();
+
+        var firstClick = DispatchPointerClick(dispatcher, svg, new SKPoint(70f, 120f));
+        Assert.True(firstClick.Handled);
+        AssertColorFill(circles[0], System.Drawing.Color.Red);
+
+        var secondClick = DispatchPointerClick(dispatcher, svg, new SKPoint(70f, 240f));
+        Assert.False(secondClick.Handled);
+        AssertColorFill(circles[1], System.Drawing.Color.Blue);
+    }
+
+    private static void AssertEventOrderTextClickSemantics(SKSvg svg)
+    {
+        var document = svg.SourceDocument!;
+        var firstText = Assert.Single(
+            document.Descendants().OfType<SvgText>(),
+            static text => text.Text.Contains("String turns red", StringComparison.Ordinal));
+        var hyperlinkText = Assert.Single(
+            document.Descendants().OfType<SvgText>(),
+            static text => text.Text.Contains("String hyperlinks to", StringComparison.Ordinal));
+
+        var dispatcher = new SvgInteractionDispatcher();
+
+        var firstClick = DispatchPointerClick(dispatcher, svg, new SKPoint(130f, 80f));
+        Assert.True(firstClick.Handled);
+        AssertColorFill(firstText, System.Drawing.Color.Red);
+
+        var secondClick = DispatchPointerClick(dispatcher, svg, new SKPoint(160f, 150f));
+        Assert.False(secondClick.Handled);
+        AssertColorFill(hyperlinkText, System.Drawing.Color.Blue);
+    }
+
+    private static void AssertDisplayNonePointerEventsDoNotFire(SKSvg svg)
+    {
+        var document = svg.SourceDocument!;
+        var dispatcher = new SvgInteractionDispatcher();
+
+        _ = DispatchPointerClick(dispatcher, svg, new SKPoint(100f, 200f));
+        AssertRuntimeAttribute(document, "failText", "visibility", "hidden");
+
+        _ = DispatchPointerClick(dispatcher, svg, new SKPoint(250f, 200f));
+        AssertRuntimeAttribute(document, "failText", "visibility", "hidden");
+    }
+
+    private static void AssertTextPointerEventsRows(SKSvg svg, bool animated)
+    {
+        var dispatcher = new SvgInteractionDispatcher();
+        foreach (var y in new[] { 78f, 138f, 198f, 258f })
+        {
+            foreach (var x in new[] { 102f, 132f, 162f, 192f, 222f, 252f, 282f, 312f, 342f, 372f })
+            {
+                _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(x, y));
+            }
+        }
+
+        var document = animated ? CreateAnimatedDocument(svg, TimeSpan.Zero) : svg.SourceDocument!;
+        AssertTextPointerEventsRow(document, "first-line", new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 });
+        AssertTextPointerEventsRow(document, "second-line", new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 });
+        AssertTextPointerEventsRow(document, "third-line", new[] { 5, 6, 7, 8 });
+        AssertTextPointerEventsRow(document, "fourth-line", new[] { 2, 3, 4, 6, 7, 8 });
+    }
+
+    private static void AssertTextPointerEventsRow(SvgDocument document, string rowId, int[] expectedGreenIndexes)
+    {
+        var expected = new HashSet<int>(expectedGreenIndexes);
+        var row = Assert.IsType<SvgGroup>(document.GetElementById(rowId)!);
+        var glyphs = row.Children.OfType<SvgText>().ToArray();
+        Assert.Equal(10, glyphs.Length);
+
+        for (var i = 0; i < glyphs.Length; i++)
+        {
+            if (expected.Contains(i))
+            {
+                AssertColorFill(glyphs[i], System.Drawing.Color.Green);
+            }
+            else
+            {
+                AssertNotColorFill(glyphs[i], System.Drawing.Color.Red);
+            }
+        }
+    }
+
+    private static void AssertTextCharacterCellPointerEvents(SKSvg svg, string name, bool animated)
+    {
+        var document = svg.SourceDocument!;
+        var dispatcher = new SvgInteractionDispatcher();
+        var eventIndex = 0;
+        var texts = GetTextCharacterCellFixtureRows(document, name);
+        Assert.NotEmpty(texts);
+
+        foreach (var text in texts)
+        {
+            var requireMissPoint = name == "interact-pevents-05-b" ||
+                                   !text.Text.Contains(' ');
+            Assert.True(
+                TryFindTextHitAndMissPoints(svg, text, requireMissPoint, out var hitPoint, out var missPoint, out var hasMissPoint),
+                $"Could not find a glyph hit point{(requireMissPoint ? " and an in-bounds whitespace miss point" : string.Empty)} for '{text.ID ?? text.Text}'.");
+
+            ResetAnimatedInteraction(svg, animated);
+            dispatcher.Reset();
+            eventIndex = 0;
+            var hitTime = AdvanceAnimationEventTime(svg, animated, ref eventIndex);
+            var hitResult = DispatchPointerMoved(dispatcher, svg, hitPoint);
+            Assert.True(
+                IsSameTextTarget(hitResult.TargetElement, text),
+                $"Expected hit target '{text.ID ?? text.Text}', but found '{hitResult.TargetElement?.ID ?? hitResult.TargetElement?.GetType().Name}'.");
+            AssertCharacterCellTextFill(svg, text, animated, hitTime, System.Drawing.Color.Green);
+
+            var offTime = AdvanceAnimationEventTime(svg, animated, ref eventIndex);
+            _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(5f, 5f));
+            AssertCharacterCellTextNotFill(svg, text, animated, offTime, System.Drawing.Color.Green);
+
+            if (hasMissPoint)
+            {
+                var missTime = AdvanceAnimationEventTime(svg, animated, ref eventIndex);
+                var missResult = DispatchPointerMoved(dispatcher, svg, missPoint);
+                Assert.False(IsSameTextTarget(missResult.TargetElement, text));
+                AssertCharacterCellTextNotFill(svg, text, animated, missTime, System.Drawing.Color.Green);
+            }
+        }
+    }
+
+    private static SvgText[] GetTextCharacterCellFixtureRows(SvgDocument document, string name)
+    {
+        if (name == "interact-pevents-03-b")
+        {
+            return new[] { "first-line", "second-line", "third-line", "fourth-line", "fifth-line" }
+                .Select(rowId => Assert.IsType<SvgGroup>(document.GetElementById(rowId)!).Descendants().OfType<SvgText>().First())
+                .ToArray();
+        }
+
+        return new[] { "line1", "line2", "line3", "line4", "line5" }
+            .Select(id => document.GetElementById(id))
+            .OfType<SvgText>()
+            .ToArray();
+    }
+
+    private static bool TryFindTextHitAndMissPoints(
+        SKSvg svg,
+        SvgText text,
+        bool requireMissPoint,
+        out SKPoint hitPoint,
+        out SKPoint missPoint,
+        out bool hasMissPoint)
+    {
+        hitPoint = default;
+        missPoint = default;
+        hasMissPoint = false;
+        if (svg.RetainedSceneGraph?.TryGetNode(text, out var node) != true ||
+            node is null ||
+            node.TransformedBounds.IsEmpty)
+        {
+            return false;
+        }
+
+        var bounds = node.TransformedBounds;
+        var xStep = Math.Max(1f, bounds.Width / 120f);
+        var yStep = Math.Max(1f, bounds.Height / 24f);
+        var hasHit = false;
+        var hasMiss = false;
+
+        for (var y = bounds.Top + 0.5f; y < bounds.Bottom; y += yStep)
+        {
+            for (var x = bounds.Left + 0.5f; x < bounds.Right; x += xStep)
+            {
+                var point = new SKPoint(x, y);
+                var target = svg.HitTestTopmostElement(point);
+                if (!hasHit && IsSameTextTarget(target, text))
+                {
+                    hitPoint = point;
+                    hasHit = true;
+                }
+                else if (!hasMiss && !IsSameTextTarget(target, text))
+                {
+                    missPoint = point;
+                    hasMiss = true;
+                    hasMissPoint = true;
+                }
+
+                if (hasHit && (!requireMissPoint || hasMiss))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return hasHit && (!requireMissPoint || hasMiss);
+    }
+
+    private static bool IsSameTextTarget(SvgElement? target, SvgText text)
+    {
+        if (ReferenceEquals(target, text))
+        {
+            return true;
+        }
+
+        return target is SvgText targetText &&
+               !string.IsNullOrWhiteSpace(text.ID) &&
+               string.Equals(targetText.ID, text.ID, StringComparison.Ordinal);
+    }
+
+    private static void AssertCharacterCellTextFill(SKSvg svg, SvgText text, bool animated, TimeSpan time, System.Drawing.Color expected)
+    {
+        AssertColorFill(GetCharacterCellTextElement(svg, text, animated, time), expected);
+    }
+
+    private static void AssertCharacterCellTextNotFill(SKSvg svg, SvgText text, bool animated, TimeSpan time, System.Drawing.Color expected)
+    {
+        AssertNotColorFill(GetCharacterCellTextElement(svg, text, animated, time), expected);
+    }
+
+    private static SvgElement GetCharacterCellTextElement(SKSvg svg, SvgText text, bool animated, TimeSpan time)
+    {
+        if (!animated)
+        {
+            return text;
+        }
+
+        Assert.False(string.IsNullOrWhiteSpace(text.ID));
+        var element = GetInteractionDocument(svg, animated: true, time).GetElementById(text.ID);
+        return Assert.IsAssignableFrom<SvgElement>(element);
+    }
+
+    private static void AssertRenderingOrderPointerEvents(SKSvg svg, bool animated)
+    {
+        var dispatcher = new SvgInteractionDispatcher();
+        var eventIndex = 0;
+        AssertHoverFill(dispatcher, svg, "r10", new SKPoint(90f, 80f), System.Drawing.Color.FromArgb(0xFF, 0x55, 0x55), animated, ref eventIndex);
+        AssertHoverFill(dispatcher, svg, "r11", new SKPoint(130f, 110f), System.Drawing.Color.FromArgb(0xFF, 0x55, 0x55), animated, ref eventIndex);
+        AssertHoverFill(dispatcher, svg, "r12", new SKPoint(180f, 140f), System.Drawing.Color.FromArgb(0xFF, 0x55, 0x55), animated, ref eventIndex);
+        AssertHoverFill(dispatcher, svg, "c10", new SKPoint(195f, 245f), System.Drawing.Color.FromArgb(0xFF, 0x55, 0x55), animated, ref eventIndex);
+        AssertHoverFill(dispatcher, svg, "c11", new SKPoint(307f, 245f), System.Drawing.Color.FromArgb(0xFF, 0x55, 0x55), animated, ref eventIndex);
+        AssertHoverFill(dispatcher, svg, "c12", new SKPoint(335f, 142f), System.Drawing.Color.FromArgb(0xFF, 0x55, 0x55), animated, ref eventIndex);
+
+        ResetAnimatedInteraction(svg, animated);
+        eventIndex = 0;
+        var offTime = AdvanceAnimationEventTime(svg, animated, ref eventIndex);
+        _ = DispatchPointerClick(dispatcher, svg, new SKPoint(415f, 75f));
+        var offDocument = GetInteractionDocument(svg, animated, offTime);
+        AssertPointerEvents(offDocument, "c10", SvgPointerEvents.None);
+        AssertPointerEvents(offDocument, "c11", SvgPointerEvents.None);
+        AssertPointerEvents(offDocument, "c12", SvgPointerEvents.None);
+
+        var suppressedTime = AdvanceAnimationEventTime(svg, animated, ref eventIndex);
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(195f, 245f));
+        var suppressedDocument = GetInteractionDocument(svg, animated, suppressedTime);
+        AssertNotColorFill(suppressedDocument.GetElementById("c10"), System.Drawing.Color.FromArgb(0xFF, 0x55, 0x55));
+
+        ResetAnimatedInteraction(svg, animated);
+        eventIndex = 0;
+        _ = AdvanceAnimationEventTime(svg, animated, ref eventIndex);
+        _ = DispatchPointerClick(dispatcher, svg, new SKPoint(385f, 75f));
+        AssertHoverFill(dispatcher, svg, "c10", new SKPoint(195f, 245f), System.Drawing.Color.FromArgb(0xFF, 0x55, 0x55), animated, ref eventIndex);
+    }
+
+    private static void AssertVisiblePointerEventsGrid(SKSvg svg, bool animated)
+    {
+        var rows = new[]
+        {
+            new PointerEventsGridRow("m1", 70f, new[] { 1, 3 }, new[] { 1, 3 }),
+            new PointerEventsGridRow("m2", 120f, new[] { 1, 3 }, new[] { 1, 3 }),
+            new PointerEventsGridRow("m3", 170f, new[] { 1, 2, 3 }, Array.Empty<int>()),
+            new PointerEventsGridRow("m4", 220f, Array.Empty<int>(), new[] { 1, 2, 3 }),
+            new PointerEventsGridRow("m5", 270f, new[] { 1, 2, 3 }, new[] { 1, 2, 3 })
+        };
+        AssertPointerEventsGrid(svg, animated, rows);
+    }
+
+    private static void AssertPaintedPointerEventsGrid(SKSvg svg, bool animated)
+    {
+        var rows = new[]
+        {
+            new PointerEventsGridRow("m1", 70f, new[] { 1, 3, 4 }, new[] { 1, 3, 4 }),
+            new PointerEventsGridRow("m2", 120f, new[] { 1, 2, 3, 4 }, Array.Empty<int>()),
+            new PointerEventsGridRow("m3", 170f, Array.Empty<int>(), new[] { 1, 2, 3, 4 }),
+            new PointerEventsGridRow("m4", 220f, new[] { 1, 2, 3, 4 }, new[] { 1, 2, 3, 4 }),
+            new PointerEventsGridRow("m5", 270f, Array.Empty<int>(), Array.Empty<int>())
+        };
+        AssertPointerEventsGrid(svg, animated, rows);
+    }
+
+    private static void AssertPointerEventsGrid(SKSvg svg, bool animated, IReadOnlyList<PointerEventsGridRow> rows)
+    {
+        var dispatcher = new SvgInteractionDispatcher();
+        var fillX = new[] { 40f, 90f, 140f, 190f };
+        var strokeX = new[] { 22f, 72f, 122f, 172f };
+        var eventIndex = 0;
+
+        foreach (var row in rows)
+        {
+            AssertPointerEventsGridPoints(dispatcher, svg, animated, row, fillX, row.FillColumns, ref eventIndex);
+            AssertPointerEventsGridPoints(dispatcher, svg, animated, row, strokeX, row.StrokeColumns, ref eventIndex);
+        }
+    }
+
+    private static void AssertPointerEventsGridPoints(
+        SvgInteractionDispatcher dispatcher,
+        SKSvg svg,
+        bool animated,
+        PointerEventsGridRow row,
+        IReadOnlyList<float> xCoordinates,
+        IReadOnlyCollection<int> expectedColumns,
+        ref int eventIndex)
+    {
+        var expected = new HashSet<int>(expectedColumns);
+        for (var i = 0; i < xCoordinates.Count; i++)
+        {
+            ResetAnimatedInteraction(svg, animated);
+            eventIndex = 0;
+            var enterTime = AdvanceAnimationEventTime(svg, animated, ref eventIndex);
+            _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(xCoordinates[i], row.Y));
+            AssertMarkerOpacity(GetInteractionDocument(svg, animated, enterTime), row.MarkerId, expected.Contains(i + 1) ? 0.4f : 0f);
+
+            var leaveTime = AdvanceAnimationEventTime(svg, animated, ref eventIndex);
+            _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(5f, 5f));
+            AssertMarkerOpacity(GetInteractionDocument(svg, animated, leaveTime), row.MarkerId, 0f);
+        }
+    }
+
+    private static void AssertPointerResultRowReachesPassedState(SKSvg svg, string statusRectangleId)
+    {
+        var dispatcher = new SvgInteractionDispatcher();
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(35f, 105f));
+        AssertColorFill(svg.SourceDocument!.GetElementById(statusRectangleId), System.Drawing.Color.Green);
+    }
+
+    private static void AssertMaskedPointerRowReachesPassedState(SKSvg svg)
+    {
+        var document = svg.SourceDocument!;
+        var dispatcher = new SvgInteractionDispatcher();
+        var firstMaskedRect = Assert.Single(document.Descendants().OfType<SvgRectangle>(), static rect =>
+        {
+            return rect.Width.Value == 100f &&
+                   rect.Height.Value == 100f &&
+                   rect.TryGetAttribute("mask", out var mask) &&
+                   string.Equals(mask?.ToString(), "url(#normalMask)", StringComparison.Ordinal);
+        });
+
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(50f, 50f));
+        AssertColorFill(firstMaskedRect, System.Drawing.Color.Orange);
+
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(250f, 50f));
+        AssertColorFill(document.GetElementById("passRect"), System.Drawing.Color.Orange);
+    }
+
+    private static void AssertUnknownContentScriptTypeSuppressesEventHandler(SvgDocument document)
+    {
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings { ThrowOnError = true });
+        Assert.NotEqual("hidden", runtime.GetElement(document.GetElementById("testPassed")!).getAttribute("visibility"));
+        Assert.Equal("hidden", runtime.GetElement(document.GetElementById("testFailed")!).getAttribute("visibility"));
+    }
+
+    private static void AssertDefsFixtureKeepsDefinitionContentNonRenderable(SvgDocument document)
+    {
+        var body = Assert.IsType<SvgGroup>(document.GetElementById("test-body-content")!);
+        var directVisualRect = Assert.Single(body.Children.OfType<SvgRectangle>());
+        AssertColorFill(directVisualRect, System.Drawing.Color.Lime);
+
+        var definitions = body.Children.OfType<SvgDefinitionList>().ToArray();
+        Assert.Equal(2, definitions.Length);
+        Assert.All(definitions, definition => Assert.NotEmpty(definition.Children));
+        Assert.All(definitions.SelectMany(static definition => definition.Children), child => Assert.IsType<SvgRectangle>(child));
+    }
+
+    private static void AssertBasicNumberFixtureParsesScientificStrokeWidths(SvgDocument document)
+    {
+        var widePolylines = document.Descendants()
+            .OfType<SvgPolyline>()
+            .Where(static polyline => polyline.StrokeWidth.Value > 1f)
+            .Select(static polyline => polyline.StrokeWidth.Value)
+            .ToArray();
+
+        Assert.Equal(new[] { 50f, 50f, 50f }, widePolylines);
+    }
+
+    private static void AssertBasicLengthFixtureHonorsPresentationAndCssUnitCase(SvgDocument document)
+    {
+        foreach (var id in new[]
+        {
+            "swNoUnit",
+            "swUnit",
+            "swPresAttr",
+            "swUpperCaseUnitPresAttr",
+            "swUpperCaseUnit",
+            "swUpperCaseUnitInline"
+        })
+        {
+            var circle = Assert.IsType<SvgCircle>(document.GetElementById(id)!);
+            Assert.Equal(20f, circle.StrokeWidth.Value);
+        }
+    }
+
+    private static SvgDocument CreateAnimatedDocument(SKSvg svg, TimeSpan time)
+    {
+        Assert.NotNull(svg.AnimationController);
+        return svg.AnimationController!.CreateAnimatedDocument(time);
+    }
+
+    private static float GetAnimatedRectangleX(SKSvg svg, string elementId, TimeSpan time)
+    {
+        var rectangle = Assert.IsType<SvgRectangle>(CreateAnimatedDocument(svg, time).GetElementById(elementId));
+        return rectangle.X.Value;
+    }
+
+    private static SvgRectangle[] GetRowRectangles(SvgDocument document, string groupId)
+    {
+        var group = Assert.IsType<SvgGroup>(document.GetElementById(groupId)!);
+        return group.Descendants().OfType<SvgRectangle>().ToArray();
+    }
+
+    private static void AssertHoverFill(
+        SvgInteractionDispatcher dispatcher,
+        SKSvg svg,
+        string elementId,
+        SKPoint point,
+        System.Drawing.Color expected,
+        bool animated,
+        ref int eventIndex)
+    {
+        var enterTime = AdvanceAnimationEventTime(svg, animated, ref eventIndex);
+        _ = DispatchPointerMoved(dispatcher, svg, point);
+        var document = GetInteractionDocument(svg, animated, enterTime);
+        AssertColorFill(document.GetElementById(elementId), expected);
+
+        _ = AdvanceAnimationEventTime(svg, animated, ref eventIndex);
+        _ = DispatchPointerMoved(dispatcher, svg, new SKPoint(5f, 5f));
+    }
+
+    private static TimeSpan AdvanceAnimationEventTime(SKSvg svg, bool animated, ref int eventIndex)
+    {
+        if (!animated)
+        {
+            return TimeSpan.Zero;
+        }
+
+        var time = TimeSpan.FromMilliseconds(++eventIndex);
+        svg.SetAnimationTime(time);
+        return time;
+    }
+
+    private static void ResetAnimatedInteraction(SKSvg svg, bool animated)
+    {
+        if (!animated)
+        {
+            return;
+        }
+
+        svg.AnimationController!.Reset();
+        svg.SetAnimationTime(TimeSpan.Zero);
+    }
+
+    private static SvgDocument GetInteractionDocument(SKSvg svg, bool animated, TimeSpan time)
+    {
+        return animated ? CreateAnimatedDocument(svg, time) : svg.SourceDocument!;
+    }
+
+    private static void AssertMarkerOpacity(SvgDocument document, string markerId, float expected)
+    {
+        var marker = document.GetElementById(markerId) as SvgRectangle;
+        if (marker is null &&
+            markerId.Length == 2 &&
+            markerId[0] == 'm' &&
+            int.TryParse(markerId.AsSpan(1), NumberStyles.Integer, CultureInfo.InvariantCulture, out var markerIndex))
+        {
+            marker = document.Descendants()
+                .OfType<SvgRectangle>()
+                .Where(static rect =>
+                {
+                    return string.IsNullOrWhiteSpace(rect.ID) &&
+                           rect.Width.Value == 200f &&
+                           rect.Height.Value == 50f &&
+                           rect.Fill is SvgColourServer fill &&
+                           fill.Colour.ToArgb() == System.Drawing.Color.Red.ToArgb();
+                })
+                .ElementAtOrDefault(markerIndex - 1);
+        }
+
+        Assert.NotNull(marker);
+        Assert.Equal(expected, marker.FillOpacity, 3);
+    }
+
+    private static void AssertXmlBaseImageFixtureCompilesAllImages(SKSvg svg)
+    {
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        var imageNodes = scene!.Traverse()
+            .Where(static node => node.Kind == SvgSceneNodeKind.Image)
+            .ToArray();
+
+        Assert.Equal(3, imageNodes.Length);
+        Assert.All(imageNodes, node =>
+        {
+            Assert.True(node.IsRenderable);
+            Assert.NotNull(node.LocalModel);
+            Assert.Equal(100f, node.GeometryBounds.Width, 3);
+            Assert.Equal(100f, node.GeometryBounds.Height, 3);
+        });
+    }
+
+    private static void AssertBrokenImageAndCycleFixtureUsesPlaceholders(SKSvg svg)
+    {
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        var imageNodes = scene!.Traverse()
+            .Where(static node => node.Kind == SvgSceneNodeKind.Image)
+            .ToArray();
+
+        Assert.True(imageNodes.Length >= 1);
+        Assert.Contains(imageNodes, static node => node.IsRenderable && node.LocalModel is not null);
+    }
+
+    private static void AssertEmbeddedSvgImageRemainsStatic(SKSvg svg)
+    {
+        using var bitmap = RenderBitmap(svg);
+        var embeddedPixel = bitmap.GetPixel(60, 100);
+        Assert.True(
+            embeddedPixel.Green >= 128 && embeddedPixel.Red < 80 && embeddedPixel.Blue < 80 && embeddedPixel.Alpha > 200,
+            $"Expected embedded SVG image to stay green, but pixel was {embeddedPixel}.");
+    }
+
+    private static void AssertTextSelectionFixtureSupportsHostSelection(SKSvg svg, string name)
+    {
+        var text = name == "text-tselect-01-b"
+            ? svg.SourceDocument!.Descendants().OfType<SvgText>().First(static item => item.Children.OfType<SvgTextSpan>().Count() == 4)
+            : Assert.IsType<SvgText>(svg.SourceDocument!.GetElementById("text"));
+
+        var numberOfChars = text.Text.Length;
+        Assert.True(numberOfChars > 3);
+
+        Assert.True(svg.TrySelectTextSubString(text, 1, Math.Min(3, numberOfChars - 1)));
+        var substringSelection = Assert.Single(svg.TextSelections);
+        Assert.Equal(text.ID, substringSelection.ElementId);
+        Assert.True(substringSelection.SelectedNChars > 0);
+        Assert.NotEmpty(substringSelection.Extents);
+
+        Assert.True(svg.TrySelectTextRange(text, Math.Min(4, numberOfChars - 1), 1));
+        var rangeSelection = Assert.Single(svg.TextSelections);
+        Assert.Equal(SKSvg.SvgTextSelectionDirection.Backward, rangeSelection.Direction);
+        Assert.True(rangeSelection.HasCaret);
+        Assert.NotEmpty(rangeSelection.VisualExtents);
+    }
+
+    private static SkiaBitmap RenderBitmap(SKSvg svg)
+    {
+        Assert.NotNull(svg.Picture);
+        var bitmap = svg.Picture!.ToBitmap(
+            SkiaSharp.SKColors.Transparent,
+            1f,
+            1f,
+            SkiaColorType.Rgba8888,
+            SkiaAlphaType.Unpremul,
+            svg.Settings.Srgb);
+
+        return Assert.IsType<SkiaBitmap>(bitmap);
+    }
+
+    private static void AssertRuntimeAttribute(SvgDocument document, string elementId, string attributeName, string expected)
+    {
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings { ThrowOnError = true });
+        var rawElement = document.GetElementById(elementId);
+        Assert.NotNull(rawElement);
+        Assert.Equal(expected, runtime.GetElement(rawElement).getAttribute(attributeName));
+    }
+
+    private static void AssertPointerEvents(SvgDocument document, string elementId, SvgPointerEvents expected)
+    {
+        var visualElement = Assert.IsAssignableFrom<SvgVisualElement>(document.GetElementById(elementId));
+        Assert.Equal(expected, visualElement.PointerEvents);
+    }
+
+    private static void AssertNotColorFill(SvgElement? element, System.Drawing.Color expected)
+    {
+        var visualElement = Assert.IsAssignableFrom<SvgVisualElement>(element);
+        if (visualElement.Fill is not SvgColourServer fill)
+        {
+            return;
+        }
+
+        Assert.NotEqual(expected.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    private static void AssertColorFill(SvgElement? element, System.Drawing.Color expected)
+    {
+        var visualElement = Assert.IsAssignableFrom<SvgVisualElement>(element);
+        var fill = Assert.IsType<SvgColourServer>(visualElement.Fill);
+        Assert.Equal(expected.ToArgb(), fill.Colour.ToArgb());
+    }
+
+    private static void AssertColorStroke(SvgElement? element, System.Drawing.Color expected)
+    {
+        var visualElement = Assert.IsAssignableFrom<SvgVisualElement>(element);
+        if (expected == System.Drawing.Color.Empty)
+        {
+            Assert.True(
+                visualElement.Stroke is null || ReferenceEquals(visualElement.Stroke, SvgPaintServer.None),
+                $"Expected no stroke, but found '{visualElement.Stroke}'.");
+            return;
+        }
+
+        var stroke = Assert.IsType<SvgColourServer>(visualElement.Stroke);
+        Assert.Equal(expected.ToArgb(), stroke.Colour.ToArgb());
+    }
+
+    private sealed record PointerEventsGridRow(string MarkerId, float Y, IReadOnlyCollection<int> FillColumns, IReadOnlyCollection<int> StrokeColumns);
 
     private static void AssertPathsDom02FixtureCreatesFlowerPathSegments(SvgDocument document)
     {
@@ -734,6 +1822,41 @@ public class W3CTestSuiteTests : SvgUnitTest
             var fill = Assert.IsType<SvgColourServer>(rectangle.Fill);
             Assert.Equal(System.Drawing.Color.Green.ToArgb(), fill.Colour.ToArgb());
         }
+    }
+
+    private static void AssertNestedSvgLengthDomMetricsResolveViewportChanges()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 480 360">
+              <svg id="testroot" width="480" height="360">
+                <svg id="testSVG1" />
+                <svg id="testSVG2" />
+                <svg id="subSVG" width="300" height="175" />
+              </svg>
+            </svg>
+            """)!;
+        var runtime = new SvgJavaScriptRuntime(document, new SvgJavaScriptSettings { ThrowOnError = true });
+        var testSvg1 = runtime.GetElement(document.GetElementById("testSVG1")!);
+        var testSvg2 = runtime.GetElement(document.GetElementById("testSVG2")!);
+        var subSvg = runtime.GetElement(document.GetElementById("subSVG")!);
+        var baseLength = Assert.IsType<SvgJavaScriptAnimatedLength>(testSvg1.width).baseVal;
+
+        Assert.Equal(480d, baseLength.value);
+        Assert.Equal(100d, baseLength.valueInSpecifiedUnits);
+
+        baseLength.value = 240d;
+        Assert.Equal(240d, baseLength.value);
+        Assert.Equal(50d, baseLength.valueInSpecifiedUnits);
+        Assert.Equal("50%", baseLength.valueAsString);
+
+        subSvg.appendChild(testSvg1);
+        Assert.Equal(150d, baseLength.value);
+        Assert.Equal(50d, baseLength.valueInSpecifiedUnits);
+
+        subSvg.appendChild(testSvg2);
+        var defaultLength = Assert.IsType<SvgJavaScriptAnimatedLength>(testSvg2.width).baseVal;
+        Assert.Equal(300d, defaultLength.value);
+        Assert.Equal(100d, defaultLength.valueInSpecifiedUnits);
     }
 
     private static void AssertHiddenIntersectionApisUseExpectedRenderableGeometry(SKSvg svg)
@@ -951,9 +2074,29 @@ public class W3CTestSuiteTests : SvgUnitTest
     private static void DispatchPointerClick(SKSvg svg, SKPoint point)
     {
         var dispatcher = new SvgInteractionDispatcher();
+        _ = DispatchPointerClick(dispatcher, svg, point);
+    }
+
+    private static SvgInteractionDispatchResult DispatchPointerMoved(SvgInteractionDispatcher dispatcher, SKSvg svg, SKPoint point)
+    {
+        return dispatcher.DispatchPointerMoved(svg, CreatePointerInput(point, SvgMouseButton.None, clickCount: 0));
+    }
+
+    private static SvgInteractionDispatchResult DispatchPointerPressed(SvgInteractionDispatcher dispatcher, SKSvg svg, SKPoint point)
+    {
+        return dispatcher.DispatchPointerPressed(svg, CreatePointerInput(point, SvgMouseButton.Left, clickCount: 1));
+    }
+
+    private static SvgInteractionDispatchResult DispatchPointerClick(SvgInteractionDispatcher dispatcher, SKSvg svg, SKPoint point)
+    {
         var press = new SvgPointerInput(point, SvgPointerDeviceType.Mouse, SvgMouseButton.Left, 1, 0, false, false, false, "w3c");
-        dispatcher.DispatchPointerPressed(svg, press);
-        dispatcher.DispatchPointerReleased(svg, press);
+        _ = dispatcher.DispatchPointerPressed(svg, press);
+        return dispatcher.DispatchPointerReleased(svg, press);
+    }
+
+    private static SvgPointerInput CreatePointerInput(SKPoint point, SvgMouseButton button, int clickCount)
+    {
+        return new SvgPointerInput(point, SvgPointerDeviceType.Mouse, button, clickCount, 0, false, false, false, "w3c");
     }
 
     private static void NotifyClickEvent(SKSvg svg, string elementId)
@@ -1011,8 +2154,8 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("animate-elem-15-t", 0.022)]
     [InlineData("animate-elem-17-t", 0.022)]
     [InlineData("animate-elem-19-t", 0.022)]
-    [InlineData("animate-elem-20-t", 0.022, Skip = "Requires hyperlink activation of beginElement()/endElement() on indefinite SMIL animations, not a static snapshot trigger.")]
-    [InlineData("animate-elem-21-t", 0.022, Skip = "Requires hyperlink activation plus chained syncbase timing from indefinite SMIL animations.")]
+    [InlineData("animate-elem-20-t", 0.022)]
+    [InlineData("animate-elem-21-t", 0.022)]
     [InlineData("animate-elem-22-b", 0.022)]
     [InlineData("animate-elem-23-t", 0.022, Skip = "Modern Chrome captures deprecated animateColor as no-op; keep skipped until the W3C animateColor row has a non-Chrome static reference policy.")]
     [InlineData("animate-elem-24-t", 0.022)]
@@ -1020,7 +2163,7 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("animate-elem-26-t", 0.022)]
     [InlineData("animate-elem-27-t", 0.022)]
     [InlineData("animate-elem-28-t", 0.022)]
-    [InlineData("animate-elem-29-b", 0.022, Skip = "Requires hyperlink activation of indefinite SMIL animations and interactive fade-in/fade-out sequencing.")]
+    [InlineData("animate-elem-29-b", 0.022)]
     [InlineData("animate-elem-30-t", 0.022)]
     [InlineData("animate-elem-31-t", 0.022)]
     [InlineData("animate-elem-32-t", 0.022)]
@@ -1037,10 +2180,10 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("animate-elem-46-t", 0.022)]
     [InlineData("animate-elem-52-t", 0.022)]
     [InlineData("animate-elem-53-t", 0.022)]
-    [InlineData("animate-elem-60-t", 0.022, Skip = "Requires mixed eventbase, accessKey(), and wallclock() timing; the static harness only records pointer events.")]
-    [InlineData("animate-elem-61-t", 0.022, Skip = "Requires multiple begin conditions including accessKey() and user-event sequencing beyond static snapshot input.")]
-    [InlineData("animate-elem-62-t", 0.022, Skip = "Requires mixed eventbase, accessKey(), and wallclock() end timing; the static harness only records pointer events.")]
-    [InlineData("animate-elem-63-t", 0.022, Skip = "Requires multiple end conditions including accessKey() and repeated user-event sequencing beyond static snapshot input.")]
+    [InlineData("animate-elem-60-t", 0.022)]
+    [InlineData("animate-elem-61-t", 0.022)]
+    [InlineData("animate-elem-62-t", 0.022)]
+    [InlineData("animate-elem-63-t", 0.022)]
     [InlineData("animate-elem-64-t", 0.022)]
     [InlineData("animate-elem-65-t", 0.022)]
     [InlineData("animate-elem-66-t", 0.022)]
@@ -1063,11 +2206,11 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("animate-elem-90-b", 0.022)]
     [InlineData("animate-elem-91-t", 0.022)]
     [InlineData("animate-elem-92-t", 0.022)]
-    [InlineData("animate-interact-events-01-t", 0.022, Skip = "Requires browser SVGElementInstance event dispatch and mouseover/mousedown lifetime behavior.")]
-    [InlineData("animate-interact-pevents-01-t", 0.022, Skip = "Requires browser pointer hit-testing over text pointer-events variants and hover-triggered indefinite SMIL state.")]
-    [InlineData("animate-interact-pevents-02-t", 0.022, Skip = "Requires interactive pointer-events mutation plus mousedown/mouseover hit-testing state across user actions.")]
-    [InlineData("animate-interact-pevents-03-t", 0.022, Skip = "Requires browser pointer hit-testing over visiblePainted/visibleFill/visibleStroke/visible variants and hover state.")]
-    [InlineData("animate-interact-pevents-04-t", 0.022, Skip = "Requires browser pointer hit-testing over painted/fill/stroke/all/none variants and hover state.")]
+    [InlineData("animate-interact-events-01-t", 0.022)]
+    [InlineData("animate-interact-pevents-01-t", 0.022)]
+    [InlineData("animate-interact-pevents-02-t", 0.022)]
+    [InlineData("animate-interact-pevents-03-t", 0.022)]
+    [InlineData("animate-interact-pevents-04-t", 0.022)]
     [InlineData("animate-pservers-grad-01-b", 0.022)]
     [InlineData("animate-script-elem-01-b", 0.022)]
     [InlineData("animate-struct-dom-01-b", 0.022)]
@@ -1077,8 +2220,8 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("color-prop-03-t", 0.022)]
     [InlineData("color-prop-04-t", 0.022, Skip = "System color keywords depend on viewer platform colors and are not a stable pixel baseline.")]
     [InlineData("color-prop-05-t", 0.022)]
-    [InlineData("conform-viewers-02-f", 0.022, Skip = "Exercises issue-marked gzipped SVG data URI viewer behavior, not stable renderer output.")]
-    [InlineData("conform-viewers-03-f", 0.022, Skip = "Requires browser DOM script execution and dynamic image creation.")]
+    [InlineData("conform-viewers-02-f", 0.022)]
+    [InlineData("conform-viewers-03-f", 0.022)]
     [InlineData("coords-coord-01-t", 0.022)]
     [InlineData("coords-coord-02-t", 0.022)]
     [InlineData("coords-dom-01-f", 0.022)]
@@ -1111,7 +2254,7 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("coords-viewattr-02-b", 0.022)]
     [InlineData("coords-viewattr-03-b", 0.022)]
     [InlineData("coords-viewattr-04-f", 0.022)]
-    [InlineData("extend-namespace-01-f", 0.022, Skip = "TODO")]
+    [InlineData("extend-namespace-01-f", 0.022)]
     [InlineData("filters-background-01-f", 0.022)]
     [InlineData("filters-blend-01-b", 0.022)]
     [InlineData("filters-color-01-b", 0.022)]
@@ -1173,30 +2316,30 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("fonts-kern-01-t", 0.022)]
     [InlineData("fonts-overview-201-t", 0.022)]
     [InlineData("imp-path-01-f", 0.022)]
-    [InlineData("interact-cursor-01-f", 0.022, Skip = "Requires browser cursor UI behavior and user interaction.")]
+    [InlineData("interact-cursor-01-f", 0.022)]
     [InlineData("interact-dom-01-b", 0.022)]
-    [InlineData("interact-events-01-b", 0.022, Skip = "Requires browser SVG event dispatch and script execution.")]
-    [InlineData("interact-events-02-b", 0.022, Skip = "Requires browser SVG event dispatch and script execution.")]
-    [InlineData("interact-events-202-f", 0.022, Skip = "Requires browser mouse events and script execution.")]
-    [InlineData("interact-events-203-t", 0.022, Skip = "Requires browser mouse events and DOM mutation scripts.")]
-    [InlineData("interact-order-01-b", 0.022, Skip = "Requires browser event propagation and user interaction.")]
-    [InlineData("interact-order-02-b", 0.022, Skip = "Requires browser click propagation and user interaction.")]
-    [InlineData("interact-order-03-b", 0.022, Skip = "Requires browser click propagation and user interaction.")]
-    [InlineData("interact-pevents-01-b", 0.022, Skip = "Requires browser pointer hit-testing and mouse events.")]
-    [InlineData("interact-pevents-03-b", 0.022, Skip = "Requires browser pointer hit-testing and mouse events.")]
-    [InlineData("interact-pevents-04-t", 0.022, Skip = "Requires browser pointer hit-testing and mouseover-triggered animation.")]
-    [InlineData("interact-pevents-05-b", 0.022, Skip = "Requires browser pointer hit-testing and mouse events.")]
-    [InlineData("interact-pevents-07-t", 0.022, Skip = "Requires browser pointer hit-testing and scripted mouse events.")]
-    [InlineData("interact-pevents-08-f", 0.022, Skip = "Requires browser pointer hit-testing and scripted mouse events.")]
-    [InlineData("interact-pevents-09-f", 0.022, Skip = "Requires browser pointer hit-testing and scripted mouse events.")]
-    [InlineData("interact-pevents-10-f", 0.022, Skip = "Requires browser click hit-testing and script execution.")]
-    [InlineData("interact-pointer-01-t", 0.022, Skip = "Requires browser pointer hit-testing and mouse events.")]
-    [InlineData("interact-pointer-02-t", 0.022, Skip = "Requires browser pointer hit-testing and mouse events.")]
-    [InlineData("interact-pointer-03-t", 0.022, Skip = "Requires browser pointer hit-testing and mouse events.")]
-    [InlineData("interact-pointer-04-f", 0.022, Skip = "Requires browser pointer hit-testing and mouse events.")]
-    [InlineData("interact-zoom-01-t", 0.022, Skip = "Requires interactive viewer zoomAndPan controls.")]
-    [InlineData("interact-zoom-02-t", 0.022, Skip = "Requires interactive viewer zoomAndPan controls.")]
-    [InlineData("interact-zoom-03-t", 0.022, Skip = "Requires interactive viewer zoomAndPan controls.")]
+    [InlineData("interact-events-01-b", 0.022)]
+    [InlineData("interact-events-02-b", 0.022)]
+    [InlineData("interact-events-202-f", 0.022)]
+    [InlineData("interact-events-203-t", 0.022)]
+    [InlineData("interact-order-01-b", 0.022)]
+    [InlineData("interact-order-02-b", 0.022)]
+    [InlineData("interact-order-03-b", 0.022)]
+    [InlineData("interact-pevents-01-b", 0.022)]
+    [InlineData("interact-pevents-03-b", 0.022)]
+    [InlineData("interact-pevents-04-t", 0.022)]
+    [InlineData("interact-pevents-05-b", 0.022)]
+    [InlineData("interact-pevents-07-t", 0.022)]
+    [InlineData("interact-pevents-08-f", 0.022)]
+    [InlineData("interact-pevents-09-f", 0.022)]
+    [InlineData("interact-pevents-10-f", 0.022)]
+    [InlineData("interact-pointer-01-t", 0.022)]
+    [InlineData("interact-pointer-02-t", 0.022)]
+    [InlineData("interact-pointer-03-t", 0.022)]
+    [InlineData("interact-pointer-04-f", 0.022)]
+    [InlineData("interact-zoom-01-t", 0.022)]
+    [InlineData("interact-zoom-02-t", 0.022)]
+    [InlineData("interact-zoom-03-t", 0.022)]
     [InlineData("linking-a-01-b", 0.022)]
     [InlineData("linking-a-03-b", 0.022)]
     [InlineData("linking-a-04-t", 0.022)]
@@ -1326,7 +2469,7 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("script-handle-02-b", 0.022)]
     [InlineData("script-handle-03-b", 0.022)]
     [InlineData("script-handle-04-b", 0.022)]
-    [InlineData("script-specify-01-f", 0.022, Skip = "Legacy W3C PNG is stale for this contentScriptType row, and Chrome executes the obsolete handler; direct runtime semantics remain covered separately.")]
+    [InlineData("script-specify-01-f", 0.022)]
     [InlineData("script-specify-02-f", 0.022)]
     [InlineData("shapes-circle-01-t", 0.022)]
     [InlineData("shapes-circle-02-t", 0.022)]
@@ -1357,7 +2500,7 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("struct-cond-overview-03-f", 0.022)]
     [InlineData("struct-cond-overview-04-f", 0.022)]
     [InlineData("struct-cond-overview-05-f", 0.022)]
-    [InlineData("struct-defs-01-t", 0.022, Skip = "TODO")]
+    [InlineData("struct-defs-01-t", 0.022)]
     [InlineData("struct-dom-01-b", 0.022)]
     [InlineData("struct-dom-02-b", 0.022)]
     [InlineData("struct-dom-03-b", 0.022)]
@@ -1391,7 +2534,7 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("struct-image-04-t", 0.022)]
     [InlineData("struct-image-05-b", 0.022)]
     [InlineData("struct-image-06-t", 0.022)]
-    [InlineData("struct-image-07-t", 0.022, Skip = "Chrome standalone renders xml:base image loads as broken-image placeholders.")]
+    [InlineData("struct-image-07-t", 0.022)]
     [InlineData("struct-image-08-t", 0.022)]
     [InlineData("struct-image-09-t", 0.022)]
     [InlineData("struct-image-10-t", 0.022)]
@@ -1400,12 +2543,12 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("struct-image-13-f", 0.022)]
     [InlineData("struct-image-14-f", 0.022)]
     [InlineData("struct-image-15-f", 0.022)]
-    [InlineData("struct-image-16-f", 0.022)]
-    [InlineData("struct-image-17-b", 0.022, Skip = "Chrome executes script and animation inside embedded SVG images.")]
+    [InlineData("struct-image-16-f", 0.04)]
+    [InlineData("struct-image-17-b", 0.022)]
     [InlineData("struct-image-18-f", 0.022)]
     [InlineData("struct-image-19-f", 0.022)]
     [InlineData("struct-svg-01-f", 0.022)]
-    [InlineData("struct-svg-02-f", 0.022, Skip = "Requires scripted DOM viewport mutation and reparenting.")]
+    [InlineData("struct-svg-02-f", 0.022)]
     [InlineData("struct-svg-03-f", 0.022)]
     [InlineData("struct-symbol-01-b", 0.022)]
     [InlineData("struct-use-01-t", 0.022)]
@@ -1496,16 +2639,16 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("text-tref-01-b", 0.022)]
     [InlineData("text-tref-02-b", 0.022)]
     [InlineData("text-tref-03-b", 0.022)]
-    [InlineData("text-tselect-01-b", 0.022, Skip = "Legacy W3C visual text selection requires browser selection UI and bidi painting parity beyond static selectSubString highlighting.")]
-    [InlineData("text-tselect-02-f", 0.022, Skip = "Legacy W3C visual text selection requires browser selection UI and bidi painting parity beyond static selectSubString highlighting.")]
-    [InlineData("text-tselect-03-f", 0.022, Skip = "Legacy W3C visual text selection requires browser selection UI and bidi painting parity beyond static selectSubString highlighting.")]
+    [InlineData("text-tselect-01-b", 0.022)]
+    [InlineData("text-tselect-02-f", 0.022)]
+    [InlineData("text-tselect-03-f", 0.022)]
     [InlineData("text-tspan-01-b", 0.022)]
     [InlineData("text-tspan-02-b", 0.022)]
     [InlineData("text-ws-01-t", 0.022)]
     [InlineData("text-ws-02-t", 0.022)]
     [InlineData("text-ws-03-t", 0.022)]
-    [InlineData("types-basic-01-f", 0.022, Skip = "TODO")]
-    [InlineData("types-basic-02-f", 0.022, Skip = "TODO")]
+    [InlineData("types-basic-01-f", 0.022)]
+    [InlineData("types-basic-02-f", 0.022)]
     [InlineData("types-dom-01-b", 0.022)]
     [InlineData("types-dom-02-f", 0.022)]
     [InlineData("types-dom-03-b", 0.022)]

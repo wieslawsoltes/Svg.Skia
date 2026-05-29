@@ -1038,6 +1038,7 @@ public class SKSvgTests : SvgUnitTest
             """;
 
         var svg = new SKSvg();
+        svg.Settings.EnableBrokenImagePlaceholders = false;
         using var input = new MemoryStream(Encoding.UTF8.GetBytes(svgMarkup));
         using var _ = svg.Load(input);
         using var output = new MemoryStream();

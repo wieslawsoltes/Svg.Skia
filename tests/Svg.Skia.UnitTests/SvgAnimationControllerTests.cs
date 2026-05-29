@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -769,6 +770,74 @@ public class SvgAnimationControllerTests
         var target = animated.GetElementById<SvgRectangle>("target");
         Assert.NotNull(target);
         Assert.Equal(2f, target!.X.Value, 3);
+    }
+
+    [Fact]
+    public void NotifyAccessKey_ResolvesMultipleBeginConditions()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(AccessKeyMultipleBeginSvg);
+
+        Assert.True(svg.NotifyAccessKey("a", TimeSpan.FromSeconds(2)));
+
+        Assert.Equal(34f, GetAnimatedRectangleX(svg, "target", TimeSpan.FromSeconds(2.5)), 3);
+        Assert.Equal(0f, GetAnimatedRectangleX(svg, "target", TimeSpan.FromSeconds(3.5)), 3);
+        Assert.Equal(34f, GetAnimatedRectangleX(svg, "target", TimeSpan.FromSeconds(6.5)), 3);
+        Assert.Equal(0f, GetAnimatedRectangleX(svg, "target", TimeSpan.FromSeconds(7.5)), 3);
+    }
+
+    [Fact]
+    public void NotifyAccessKey_ResolvesEarlyAndLateEndConditions()
+    {
+        using var early = new SKSvg();
+        early.FromSvg(AccessKeyEndSvg);
+
+        Assert.True(early.NotifyAccessKey("a", TimeSpan.FromSeconds(2)));
+        Assert.Equal(34f, GetAnimatedRectangleX(early, "target", TimeSpan.FromSeconds(3)), 3);
+        Assert.Equal(0f, GetAnimatedRectangleX(early, "target", TimeSpan.FromSeconds(7.5)), 3);
+
+        using var late = new SKSvg();
+        late.FromSvg(AccessKeyEndSvg);
+
+        Assert.True(late.NotifyAccessKey("a", TimeSpan.FromSeconds(6)));
+        Assert.Equal(0f, GetAnimatedRectangleX(late, "target", TimeSpan.FromSeconds(6.1)), 3);
+    }
+
+    [Fact]
+    public void CreateAnimatedDocument_ResolvesWallclockBeginAndEndAgainstOrigin()
+    {
+        var document = SvgService.FromSvg(WallclockTimingSvg);
+        Assert.NotNull(document);
+
+        using var controller = new SvgAnimationController(
+            document!,
+            new DateTimeOffset(2026, 5, 28, 0, 0, 0, TimeSpan.Zero));
+
+        var animated = controller.CreateAnimatedDocument(TimeSpan.Zero);
+
+        Assert.Equal(34f, GetRectangleX(animated, "pastBegin"), 3);
+        Assert.Equal(34f, GetRectangleX(animated, "futureEnd"), 3);
+    }
+
+    [Fact]
+    public void NotifyPointerEventAndAccessKey_ReplaysRepeatedUserEventSequence()
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(MixedUserEventSequenceSvg);
+
+        var trigger = svg.SourceDocument!.GetElementById("target");
+        Assert.NotNull(trigger);
+
+        Assert.True(svg.NotifyPointerEvent(trigger, SvgPointerEventType.Click, TimeSpan.FromSeconds(1)));
+        Assert.Equal(34f, GetAnimatedRectangleX(svg, "target", TimeSpan.FromSeconds(1.5)), 3);
+        Assert.Equal(0f, GetAnimatedRectangleX(svg, "target", TimeSpan.FromSeconds(2.5)), 3);
+
+        Assert.True(svg.NotifyPointerEvent(trigger, SvgPointerEventType.Click, TimeSpan.FromSeconds(3)));
+        Assert.Equal(34f, GetAnimatedRectangleX(svg, "target", TimeSpan.FromSeconds(3.5)), 3);
+        Assert.Equal(0f, GetAnimatedRectangleX(svg, "target", TimeSpan.FromSeconds(4.5)), 3);
+
+        Assert.True(svg.NotifyAccessKey("b", TimeSpan.FromSeconds(5)));
+        Assert.Equal(34f, GetAnimatedRectangleX(svg, "target", TimeSpan.FromSeconds(5.5)), 3);
     }
 
     [Fact]
@@ -2022,6 +2091,53 @@ public class SvgAnimationControllerTests
         </svg>
         """;
 
+    private const string AccessKeyMultipleBeginSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="50"
+             height="10"
+             viewBox="0 0 50 10">
+          <rect id="target" x="0" y="0" width="5" height="5" fill="red">
+            <set attributeName="x" to="34" begin="accessKey(a) + 0s;accessKey(a)+4s" dur="1s" />
+          </rect>
+        </svg>
+        """;
+
+    private const string AccessKeyEndSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="50"
+             height="10"
+             viewBox="0 0 50 10">
+          <rect id="target" x="0" y="0" width="5" height="5" fill="red">
+            <set attributeName="x" to="34" begin="0s" end="accessKey(a) - 5s;accessKey(a)+5s" dur="indefinite" />
+          </rect>
+        </svg>
+        """;
+
+    private const string WallclockTimingSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="60"
+             height="20"
+             viewBox="0 0 60 20">
+          <rect id="pastBegin" x="0" y="0" width="5" height="5" fill="red">
+            <set attributeName="x" to="34" begin="wallclock(2000-06-10T12:34:56Z)" dur="indefinite" />
+          </rect>
+          <rect id="futureEnd" x="0" y="10" width="5" height="5" fill="red">
+            <set attributeName="x" to="34" begin="0s" end="wallclock(2200-06-10T12:34:56Z)" dur="indefinite" />
+          </rect>
+        </svg>
+        """;
+
+    private const string MixedUserEventSequenceSvg = """
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="50"
+             height="10"
+             viewBox="0 0 50 10">
+          <rect id="target" x="0" y="0" width="5" height="5" fill="red">
+            <set attributeName="x" to="34" begin="target.click;accessKey(b)" dur="1s" />
+          </rect>
+        </svg>
+        """;
+
     private const string MotionValuesSvg = """
         <svg xmlns="http://www.w3.org/2000/svg"
              width="30"
@@ -2931,6 +3047,26 @@ public class SvgAnimationControllerTests
             svg.Settings.Srgb);
 
         return Assert.IsType<SkiaBitmap>(bitmap);
+    }
+
+    private static float GetAnimatedRectangleX(SKSvg svg, string elementId, TimeSpan time)
+    {
+        Assert.NotNull(svg.AnimationController);
+        var animated = svg.AnimationController!.CreateAnimatedDocument(time);
+        return GetRectangleX(animated, elementId);
+    }
+
+    private static float GetRectangleX(SvgDocument document, string elementId)
+    {
+        var target = document.GetElementById<SvgRectangle>(elementId);
+        Assert.NotNull(target);
+        if (target!.TryGetAttribute("x", out string rawX) &&
+            float.TryParse(rawX, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsedX))
+        {
+            return parsedX;
+        }
+
+        return target.X.Value;
     }
 
     private static void AssertAnimatedFill(SvgDocument document, string elementId, Color expectedColor)
