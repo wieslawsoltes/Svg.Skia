@@ -234,7 +234,8 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
         {
             if (spans[i].Typeface is { } spanTypeface)
             {
-                AddCandidate(_skiaModel.ToSKTypeface(spanTypeface), spanTypeface);
+                var spanNativeTypeface = _skiaModel.ToSKTypeface(spanTypeface);
+                AddCandidate(spanNativeTypeface, GetRunReturnTypeface(spanTypeface, spanNativeTypeface));
             }
         }
 
@@ -256,6 +257,38 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
         }
 
         return null;
+
+        ShimSkiaSharp.SKTypeface? GetRunReturnTypeface(
+            ShimSkiaSharp.SKTypeface spanTypeface,
+            SkiaSharp.SKTypeface? nativeTypeface)
+        {
+            if (nativeTypeface is null ||
+                nativeTypeface.Handle == IntPtr.Zero ||
+                string.IsNullOrWhiteSpace(spanTypeface.FamilyName) ||
+                !spanTypeface.FamilyName.Contains(',', StringComparison.Ordinal))
+            {
+                return spanTypeface;
+            }
+
+            foreach (var candidate in SkiaModel.EnumerateFontFamilyCandidates(spanTypeface.FamilyName, browserCompatible: true))
+            {
+                var candidateTypeface = ShimSkiaSharp.SKTypeface.FromFamilyName(
+                    candidate,
+                    spanTypeface.FontWeight,
+                    spanTypeface.FontWidth,
+                    spanTypeface.FontSlant);
+                var candidateNativeTypeface = _skiaModel.ToSKTypeface(candidateTypeface);
+                if (candidateNativeTypeface is not null &&
+                    candidateNativeTypeface.Handle != IntPtr.Zero &&
+                    (candidateNativeTypeface.FamilyName, candidateNativeTypeface.FontWeight, candidateNativeTypeface.FontWidth, candidateNativeTypeface.FontSlant) ==
+                    (nativeTypeface.FamilyName, nativeTypeface.FontWeight, nativeTypeface.FontWidth, nativeTypeface.FontSlant))
+                {
+                    return candidateTypeface;
+                }
+            }
+
+            return spanTypeface;
+        }
     }
 
     /// <inheritdoc />
@@ -812,39 +845,19 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
     private SkiaSharp.SKTypeface? TryMatchCharacterFromCustomProviders(string? familyName, SkiaSharp.SKFontStyleWeight weight, SkiaSharp.SKFontStyleWidth width, SkiaSharp.SKFontStyleSlant slant, int codepoint, out string? matchedFamily)
     {
         matchedFamily = null;
-
-        SkiaSharp.SKTypeface? TryMatchFamily(string familyKey, string? returnFamily, out string? resolvedFamily)
+        var familyKey = familyName ?? "Default";
+        foreach (var provider in _skiaModel.EnumerateEffectiveTypefaceProviders())
         {
-            resolvedFamily = null;
-            foreach (var provider in _skiaModel.EnumerateEffectiveTypefaceProviders())
+            if (familyName is null &&
+                provider is FontManagerTypefaceProvider or DefaultTypefaceProvider)
             {
-                if (familyName is null &&
-                    provider is FontManagerTypefaceProvider or DefaultTypefaceProvider)
-                {
-                    continue;
-                }
-
-                var typeface = GetProviderTypeface(provider, familyKey, weight, width, slant);
-                if (typeface is { } && typeface.ContainsGlyph(codepoint))
-                {
-                    resolvedFamily = returnFamily;
-                    return typeface;
-                }
+                continue;
             }
 
-            return null;
-        }
-
-        if (familyName is null)
-        {
-            return TryMatchFamily("Default", null, out matchedFamily);
-        }
-
-        foreach (var candidate in SkiaModel.EnumerateFontFamilyCandidates(familyName, browserCompatible: true))
-        {
-            var typeface = TryMatchFamily(candidate, candidate, out matchedFamily);
-            if (typeface is { })
+            var typeface = GetProviderTypeface(provider, familyKey, weight, width, slant);
+            if (typeface is { } && typeface.ContainsGlyph(codepoint))
             {
+                matchedFamily = familyName;
                 return typeface;
             }
         }
