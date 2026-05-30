@@ -1289,7 +1289,7 @@ public sealed class SvgAnimationController : IDisposable
                 continue;
             }
 
-            if (ShouldIgnoreBrowserUnsupportedAnimateColorBinding(animation, target, attributeName!))
+            if (ShouldIgnorePaintServerDefinitionAnimateColorBinding(animation, target, attributeName!))
             {
                 continue;
             }
@@ -1300,13 +1300,15 @@ public sealed class SvgAnimationController : IDisposable
         return bindings;
     }
 
-    private static bool ShouldIgnoreBrowserUnsupportedAnimateColorBinding(
+    private static bool ShouldIgnorePaintServerDefinitionAnimateColorBinding(
         SvgAnimationElement animation,
         SvgElement target,
         string attributeName)
     {
-        // Current browser snapshots do not apply deprecated animateColor to inherited
-        // paint-server color state declared in defs, while regular animate still applies.
+        // Direct SVG 1.1 animateColor interpolation is supported. This guard is
+        // limited to inherited paint-server color state in defs, where current
+        // browser snapshots keep referenced gradients stable while regular
+        // numeric animation on the same subtree still applies.
         if (animation is not SvgAnimateColor ||
             !IsInheritedPaintServerColorAttribute(attributeName) ||
             !IsInsideDefinitions(target))

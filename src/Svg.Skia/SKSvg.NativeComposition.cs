@@ -334,6 +334,8 @@ public partial class SKSvg
 
     private SvgDocument GetNativeCompositionDocument(SvgAnimationController animationController)
     {
+        using var systemColorScope = CreateSystemColorProviderScope();
+
         if (_animatedDocument is { } animatedDocument)
         {
             return animatedDocument;

@@ -334,6 +334,7 @@ public static class SvgSceneCompiler
         out SvgSceneDocument? sceneDocument)
     {
         sceneDocument = null;
+        using var documentFontScope = PushDocumentFonts(sourceDocument, assetLoader);
 
         if (!TryCompileNodeTree(
                 sourceDocument,
@@ -370,6 +371,7 @@ public static class SvgSceneCompiler
         out SKRect effectiveCullRect,
         out SKRect viewport)
     {
+        using var documentFontScope = PushDocumentFonts(sourceDocument, assetLoader);
         return TryCompileNodeTree(
             sourceDocument,
             cullRect,
@@ -450,6 +452,7 @@ public static class SvgSceneCompiler
         DrawAttributes ignoreAttributes,
         out SvgSceneDocument? sceneDocument)
     {
+        using var documentFontScope = PushDocumentFonts(sourceFragment as SvgDocument ?? sourceFragment?.OwnerDocument, assetLoader);
         return TryCompileFragment(
             sourceFragment,
             cullRect,
@@ -458,6 +461,17 @@ public static class SvgSceneCompiler
             ignoreAttributes,
             new SvgSceneCompileContext(),
             out sceneDocument);
+    }
+
+    private static IDisposable? PushDocumentFonts(SvgDocument? document, ISvgAssetLoader assetLoader)
+    {
+        if (document is not null &&
+            assetLoader is ISvgDocumentFontLoader fontLoader)
+        {
+            return fontLoader.PushDocumentFonts(document);
+        }
+
+        return null;
     }
 
     private static bool TryCompileFragment(

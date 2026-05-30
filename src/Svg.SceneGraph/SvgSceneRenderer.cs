@@ -15,6 +15,17 @@ public static class SvgSceneRenderer
         Markers
     }
 
+    private static IDisposable? PushDocumentFonts(SvgSceneDocument sceneDocument)
+    {
+        if (sceneDocument.SourceDocument is not null &&
+            sceneDocument.AssetLoader is ISvgDocumentFontLoader fontLoader)
+        {
+            return fontLoader.PushDocumentFonts(sceneDocument.SourceDocument);
+        }
+
+        return null;
+    }
+
     public static SKPicture? Render(SvgSceneDocument? sceneDocument)
     {
         if (sceneDocument is null)
@@ -33,9 +44,10 @@ public static class SvgSceneRenderer
             return null;
         }
 
+        using var documentFontScope = PushDocumentFonts(sceneDocument);
         var recorder = new SKPictureRecorder();
         var canvas = recorder.BeginRecording(cullRect);
-        RenderNodeToCanvas(sceneDocument, sceneDocument.Root, canvas);
+        RenderNodeToCanvasCore(sceneDocument, sceneDocument.Root, canvas);
         return recorder.EndRecording();
     }
 
@@ -56,13 +68,38 @@ public static class SvgSceneRenderer
             return null;
         }
 
+        using var documentFontScope = PushDocumentFonts(sceneDocument);
         var recorder = new SKPictureRecorder();
         var canvas = recorder.BeginRecording(cullRect);
-        RenderNodeToCanvas(sceneDocument, node, canvas, ignoreAttributes, until, enableRootTransform, ignoreRootOpacity, ignoreRootMask, ignoreRootFilter);
+        RenderNodeToCanvasCore(sceneDocument, node, canvas, ignoreAttributes, until, enableRootTransform, ignoreRootOpacity, ignoreRootMask, ignoreRootFilter);
         return recorder.EndRecording();
     }
 
     internal static bool RenderNodeToCanvas(
+        SvgSceneDocument sceneDocument,
+        SvgSceneNode node,
+        SKCanvas canvas,
+        DrawAttributes ignoreAttributes = DrawAttributes.None,
+        SvgSceneNode? until = null,
+        bool enableTransform = true,
+        bool ignoreCurrentOpacity = false,
+        bool ignoreCurrentMask = false,
+        bool ignoreCurrentFilter = false)
+    {
+        using var documentFontScope = PushDocumentFonts(sceneDocument);
+        return RenderNodeToCanvasCore(
+            sceneDocument,
+            node,
+            canvas,
+            ignoreAttributes,
+            until,
+            enableTransform,
+            ignoreCurrentOpacity,
+            ignoreCurrentMask,
+            ignoreCurrentFilter);
+    }
+
+    private static bool RenderNodeToCanvasCore(
         SvgSceneDocument sceneDocument,
         SvgSceneNode node,
         SKCanvas canvas,
@@ -170,7 +207,7 @@ public static class SvgSceneRenderer
         if (node.MaskNode is { } maskNode && node.MaskDstIn is { } maskDstIn && enableMask)
         {
             canvas.SaveLayer(maskDstIn);
-            RenderNodeToCanvas(sceneDocument, maskNode, canvas, ignoreAttributes, until: null);
+            RenderNodeToCanvasCore(sceneDocument, maskNode, canvas, ignoreAttributes, until: null);
             canvas.Restore();
         }
 
@@ -190,6 +227,7 @@ public static class SvgSceneRenderer
             throw new ArgumentNullException(nameof(until));
         }
 
+        using var documentFontScope = PushDocumentFonts(sceneDocument);
         return RenderBackgroundToCanvasCore(sceneDocument, node, canvas, until, enableTransform);
     }
 
@@ -295,7 +333,7 @@ public static class SvgSceneRenderer
         if (enableMask && node.MaskNode is { } maskNode && node.MaskDstIn is { } maskDstIn)
         {
             canvas.SaveLayer(maskDstIn);
-            RenderNodeToCanvas(sceneDocument, maskNode, canvas, until: null);
+            RenderNodeToCanvasCore(sceneDocument, maskNode, canvas, until: null);
             canvas.Restore();
         }
 
@@ -557,7 +595,7 @@ public static class SvgSceneRenderer
     {
         for (var i = 0; i < node.Children.Count; i++)
         {
-            if (!RenderNodeToCanvas(sceneDocument, node.Children[i], canvas, ignoreAttributes, until))
+            if (!RenderNodeToCanvasCore(sceneDocument, node.Children[i], canvas, ignoreAttributes, until))
             {
                 return false;
             }
@@ -581,7 +619,7 @@ public static class SvgSceneRenderer
                 continue;
             }
 
-            if (!RenderNodeToCanvas(sceneDocument, child, canvas, ignoreAttributes, until))
+            if (!RenderNodeToCanvasCore(sceneDocument, child, canvas, ignoreAttributes, until))
             {
                 return false;
             }
@@ -605,7 +643,7 @@ public static class SvgSceneRenderer
                 continue;
             }
 
-            if (!RenderNodeToCanvas(sceneDocument, child, canvas, ignoreAttributes, until))
+            if (!RenderNodeToCanvasCore(sceneDocument, child, canvas, ignoreAttributes, until))
             {
                 return false;
             }

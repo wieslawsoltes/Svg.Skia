@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using Xunit;
 using SkiaAlphaType = SkiaSharp.SKAlphaType;
@@ -87,6 +88,7 @@ public class SvgViewerResourceTests
             using var svg = new SKSvg();
             using var _ = svg.Load(parentPath);
             using var bitmap = RenderBitmap(svg);
+            using var secondBitmap = RenderBitmap(svg);
 
             AssertMostlyRed(
                 bitmap.GetPixel(10, 5),
@@ -97,6 +99,7 @@ public class SvgViewerResourceTests
             AssertNeutralPlaceholder(
                 bitmap.GetPixel(10, 15),
                 "Expected the recursive nested SVG image edge to render the deterministic broken-image placeholder.");
+            AssertSameBitmap(bitmap, secondBitmap);
         }
         finally
         {
@@ -108,9 +111,29 @@ public class SvgViewerResourceTests
     public void Load_W3CBrokenAndCyclicImageFixtureUsesPlaceholdersAndPreservesSurroundingContent()
     {
         using var svg = new SKSvg();
+        SetStandaloneW3CViewport(svg);
         svg.Load(GetW3CSvgPath("struct-image-12-b"));
 
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        var fixtureImageNodes = scene!.Traverse()
+            .Where(static node =>
+                node.Kind == SvgSceneNodeKind.Image &&
+                IsClose(node.GeometryBounds.Left, 60f) &&
+                IsClose(node.GeometryBounds.Top, 50f) &&
+                IsClose(node.GeometryBounds.Width, 240f) &&
+                IsClose(node.GeometryBounds.Height, 240f))
+            .ToArray();
+        Assert.True(fixtureImageNodes.Length >= 3);
+        Assert.All(fixtureImageNodes, static node =>
+        {
+            Assert.True(node.IsRenderable);
+            Assert.True(node.LocalModel is not null || node.Children.Count > 0);
+        });
+        Assert.True(fixtureImageNodes.Count(static node => node.LocalModel is not null) >= 2);
+
         using var bitmap = RenderBitmap(svg);
+        using var secondBitmap = RenderBitmap(svg);
 
         AssertNeutralPlaceholder(
             bitmap.GetPixel(120, 120),
@@ -118,6 +141,51 @@ public class SvgViewerResourceTests
         AssertMostlyBlue(
             bitmap.GetPixel(360, 230),
             "Expected content surrounding the invalid/cyclic W3C image references to remain visible.");
+        AssertSameBitmap(bitmap, secondBitmap);
+    }
+
+    [Fact]
+    public void Load_W3CRecursiveUseFixtureSuppressesRecursiveReferencesAndKeepsOutputStable()
+    {
+        using var svg = new SKSvg();
+        SetStandaloneW3CViewport(svg);
+        svg.Load(GetW3CSvgPath("struct-use-08-b"));
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        var recursiveUseNodes = scene!.Traverse()
+            .Where(static node => node.ElementId is "use-elm-1" or "use-elm-2")
+            .OrderBy(static node => node.ElementId, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(2, recursiveUseNodes.Length);
+        var rootReferenceUse = recursiveUseNodes[0];
+        Assert.False(rootReferenceUse.IsRenderable);
+        Assert.Empty(rootReferenceUse.Children);
+
+        var imageReferenceUse = recursiveUseNodes[1];
+        Assert.True(imageReferenceUse.IsRenderable);
+        Assert.NotEmpty(imageReferenceUse.Children);
+        Assert.True(imageReferenceUse.Children.Count <= 1);
+        Assert.True(scene.Traverse().Count() < 80);
+
+        using var bitmap = RenderBitmap(svg);
+        using var secondBitmap = RenderBitmap(svg);
+
+        AssertTransparent(
+            bitmap.GetPixel(120, 110),
+            "Expected recursive <use> content referencing the external root to be suppressed.");
+        AssertNotMostlyRed(
+            bitmap.GetPixel(360, 110),
+            "Expected bounded recursive image expansion not to paint recursive red content.");
+        AssertContainsMostlyGreenPixel(
+            bitmap,
+            170,
+            245,
+            140,
+            35,
+            "Expected non-recursive pass text in struct-use-08-b to remain visible.");
+        AssertSameBitmap(bitmap, secondBitmap);
     }
 
     private static string GetW3CSvgPath(string name)
@@ -133,6 +201,11 @@ public class SvgViewerResourceTests
             "W3C_SVG_11_TestSuite",
             "svg",
             $"{name}.svg");
+    }
+
+    private static void SetStandaloneW3CViewport(SKSvg svg)
+    {
+        svg.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 480f, 360f);
     }
 
     private static byte[] CompressUtf8(string text)
@@ -182,6 +255,18 @@ public class SvgViewerResourceTests
             $"{message} Pixel was {pixel}.");
     }
 
+    private static void AssertTransparent(SkiaColor pixel, string message)
+    {
+        Assert.True(pixel.Alpha <= 8, $"{message} Pixel was {pixel}.");
+    }
+
+    private static void AssertNotMostlyRed(SkiaColor pixel, string message)
+    {
+        Assert.False(
+            pixel.Red > 160 && pixel.Green < 80 && pixel.Blue < 80 && pixel.Alpha > 120,
+            $"{message} Pixel was {pixel}.");
+    }
+
     private static void AssertNeutralPlaceholder(SkiaColor pixel, string message)
     {
         Assert.True(
@@ -192,5 +277,47 @@ public class SvgViewerResourceTests
             Math.Abs(pixel.Red - pixel.Green) <= 24 &&
             Math.Abs(pixel.Red - pixel.Blue) <= 24,
             $"{message} Pixel was {pixel}.");
+    }
+
+    private static void AssertContainsMostlyGreenPixel(
+        SkiaBitmap bitmap,
+        int startX,
+        int startY,
+        int width,
+        int height,
+        string message)
+    {
+        for (var y = startY; y < startY + height; y++)
+        {
+            for (var x = startX; x < startX + width; x++)
+            {
+                var pixel = bitmap.GetPixel(x, y);
+                if (pixel.Green > 100 && pixel.Red < 80 && pixel.Blue < 80 && pixel.Alpha > 120)
+                {
+                    return;
+                }
+            }
+        }
+
+        Assert.Fail(message);
+    }
+
+    private static void AssertSameBitmap(SkiaBitmap expected, SkiaBitmap actual)
+    {
+        Assert.Equal(expected.Width, actual.Width);
+        Assert.Equal(expected.Height, actual.Height);
+
+        for (var y = 0; y < expected.Height; y++)
+        {
+            for (var x = 0; x < expected.Width; x++)
+            {
+                Assert.Equal(expected.GetPixel(x, y), actual.GetPixel(x, y));
+            }
+        }
+    }
+
+    private static bool IsClose(float actual, float expected)
+    {
+        return Math.Abs(actual - expected) <= 0.01f;
     }
 }

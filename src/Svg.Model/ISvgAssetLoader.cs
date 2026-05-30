@@ -37,6 +37,12 @@ public interface ISvgImageAlphaProvider
     bool TryGetImageAlpha(SKImage image, out int width, out int height, out byte[] alpha);
 }
 
+public interface ISvgDocumentFontLoader
+{
+    void ClearDocumentFonts();
+    IDisposable PushDocumentFonts(SvgDocument document);
+}
+
 public interface ISvgTextReferenceRenderingOptions
 {
     bool EnableTextReferences { get; }

@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Reflection;
 using SkiaSharp;
 using Svg;
@@ -64,6 +67,7 @@ public class SKSvgSettingsTests : SvgUnitTest
     public void CopyTo_CopiesRenderingAndJavaScriptSettings()
     {
         var provider = new DefaultTypefaceProvider();
+        var systemColorProvider = new SvgDictionarySystemColorProvider(new Dictionary<string, Color>());
         var factory = new TestJavaScriptRuntimeFactory();
         var source = new SKSvgSettings
         {
@@ -75,6 +79,7 @@ public class SKSvgSettingsTests : SvgUnitTest
             EnableTextReferences = false,
             EnableFilterBackgroundInputs = false,
             EnableBrokenImagePlaceholders = false,
+            SystemColorProvider = systemColorProvider,
             EnableJavaScript = true,
             EnableTextSelectionRendering = false,
             TextSelectionColor = new SKColor(1, 2, 3, 4),
@@ -97,6 +102,7 @@ public class SKSvgSettingsTests : SvgUnitTest
         Assert.False(target.EnableTextReferences);
         Assert.False(target.EnableFilterBackgroundInputs);
         Assert.False(target.EnableBrokenImagePlaceholders);
+        Assert.Same(systemColorProvider, target.SystemColorProvider);
         Assert.True(target.EnableJavaScript);
         Assert.False(target.EnableTextSelectionRendering);
         Assert.Equal(new SKColor(1, 2, 3, 4), target.TextSelectionColor);
@@ -107,6 +113,55 @@ public class SKSvgSettingsTests : SvgUnitTest
         Assert.Same(factory, target.JavaScriptRuntimeFactory);
         Assert.NotSame(source.TypefaceProviders, target.TypefaceProviders);
         Assert.Same(provider, Assert.Single(target.TypefaceProviders!));
+    }
+
+    [Fact]
+    public void FromSvg_UsesSettingsSystemColorProviderForCurrentLoad()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.SystemColorProvider = new SvgDictionarySystemColorProvider(new Dictionary<string, Color>
+        {
+            ["Window"] = Color.FromArgb(255, 11, 22, 33)
+        });
+
+        svg.FromSvg(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+              <rect id="shape" width="10" height="10" fill="Window" />
+            </svg>
+            """);
+
+        var shape = Assert.IsType<SvgRectangle>(svg.SourceDocument!.GetElementById("shape"));
+        var fill = Assert.IsType<SvgColourServer>(shape.Fill);
+        Assert.Equal(Color.FromArgb(255, 11, 22, 33).ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void SetAnimationTime_UsesSettingsSystemColorProviderForAnimatedColors()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.SystemColorProvider = new SvgDictionarySystemColorProvider(new Dictionary<string, Color>
+        {
+            ["Window"] = Color.FromArgb(255, 11, 22, 33),
+            ["Highlight"] = Color.FromArgb(255, 44, 55, 66)
+        });
+
+        svg.FromSvg(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+              <rect id="shape" width="10" height="10" fill="Window">
+                <animateColor attributeName="fill" values="Window;Highlight" dur="2s" fill="freeze" />
+              </rect>
+            </svg>
+            """);
+
+        svg.SetAnimationTime(TimeSpan.FromSeconds(2));
+
+        using var stream = new MemoryStream();
+        Assert.True(svg.Save(stream, SKColors.Transparent));
+        stream.Position = 0;
+        using var bitmap = SKBitmap.Decode(stream);
+        Assert.Equal(new SKColor(44, 55, 66, 255), bitmap.GetPixel(5, 5));
     }
 
     [Fact]

@@ -84,6 +84,7 @@ public partial class SKSvg : IDisposable
 
     public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
+        using var documentFontScope = PushDocumentFonts(svgFragment as SvgDocument ?? svgFragment.OwnerDocument, assetLoader);
         var picture = SvgSceneRuntime.CreateModel(
             svgFragment,
             assetLoader,
@@ -94,6 +95,7 @@ public partial class SKSvg : IDisposable
 
     public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
+        using var documentFontScope = PushDocumentFonts(svgFragment as SvgDocument ?? svgFragment.OwnerDocument, assetLoader);
         var picture = SvgSceneRuntime.CreateModel(
             svgFragment,
             assetLoader,
@@ -475,6 +477,7 @@ public partial class SKSvg : IDisposable
                 }
             }
 
+            using var documentFontScope = PushDocumentFonts(SourceDocument, AssetLoader);
             var newPicture = SkiaModel.ToSKPicture(model);
             if (newPicture is null)
             {
@@ -575,6 +578,7 @@ public partial class SKSvg : IDisposable
             return null;
         }
 
+        using var documentFontScope = PushDocumentFonts(SourceDocument, AssetLoader);
         var rebuilt = SkiaModel.ToSKPicture(model);
         lock (Sync)
         {
@@ -718,6 +722,7 @@ public partial class SKSvg : IDisposable
         Func<System.IO.Stream, SvgParameters?, SvgDocument?> loader)
     {
         SvgDocument? svgDocument;
+        using var systemColorScope = CreateSystemColorProviderScope();
 
         if (CacheOriginalStream)
         {
@@ -753,6 +758,7 @@ public partial class SKSvg : IDisposable
     private SkiaSharp.SKPicture? LoadSvgInternal(System.IO.Stream stream, SvgParameters? parameters, Uri? baseUri)
     {
         SvgDocument? svgDocument;
+        using var systemColorScope = CreateSystemColorProviderScope();
 
         if (CacheOriginalStream)
         {
@@ -792,6 +798,7 @@ public partial class SKSvg : IDisposable
             return null;
         }
 
+        using var systemColorScope = CreateSystemColorProviderScope();
         _originalPath = path;
         _originalParameters = parameters;
         _originalBaseUri = null;
@@ -804,6 +811,7 @@ public partial class SKSvg : IDisposable
 
     private SkiaSharp.SKPicture? LoadSvgReader(XmlReader reader)
     {
+        using var systemColorScope = CreateSystemColorProviderScope();
         _originalPath = null;
         _originalParameters = null;
         _originalBaseUri = null;
@@ -812,6 +820,24 @@ public partial class SKSvg : IDisposable
         _originalStream = null;
 
         return LoadSvgDocument(SvgService.Open(reader, Settings.EnableJavaScript));
+    }
+
+    private IDisposable? CreateSystemColorProviderScope()
+    {
+        return Settings.SystemColorProvider is { } provider
+            ? SvgSystemColorResolver.PushProvider(provider)
+            : null;
+    }
+
+    private static IDisposable? PushDocumentFonts(SvgDocument? document, ISvgAssetLoader assetLoader)
+    {
+        if (document is not null &&
+            assetLoader is ISvgDocumentFontLoader fontLoader)
+        {
+            return fontLoader.PushDocumentFonts(document);
+        }
+
+        return null;
     }
 
     private SkiaSharp.SKPicture? LoadPath(
@@ -855,6 +881,11 @@ public partial class SKSvg : IDisposable
         if (svgDocument is null)
         {
             return null;
+        }
+
+        if (AssetLoader is ISvgDocumentFontLoader fontLoader)
+        {
+            fontLoader.ClearDocumentFonts();
         }
 
         if (baseUri is { })
@@ -930,6 +961,7 @@ public partial class SKSvg : IDisposable
 
     public SkiaSharp.SKPicture? FromSvg(string svg)
     {
+        using var systemColorScope = CreateSystemColorProviderScope();
         var svgDocument = SvgService.FromSvg(svg, Settings.EnableJavaScript);
         return LoadSvgDocument(svgDocument);
     }
@@ -1289,6 +1321,11 @@ public partial class SKSvg : IDisposable
     private void Reset()
     {
         ReplaceAnimationController(null);
+        if (AssetLoader is ISvgDocumentFontLoader fontLoader)
+        {
+            fontLoader.ClearDocumentFonts();
+        }
+
         SourceDocument = null;
         _javaScriptRuntime = null;
         ClearAnimationRenderState();
@@ -1366,6 +1403,7 @@ public partial class SKSvg : IDisposable
 
     private bool RenderRetainedSceneDocument(SvgSceneDocument sceneDocument)
     {
+        using var documentFontScope = PushDocumentFonts(sceneDocument.SourceDocument, sceneDocument.AssetLoader);
         var model = sceneDocument.CreateModel();
         if (model is null)
         {
@@ -2851,6 +2889,7 @@ public partial class SKSvg : IDisposable
             return false;
         }
 
+        using var systemColorScope = CreateSystemColorProviderScope();
         return RenderAnimationFrame(AnimationController.EvaluateFrameState(time), raiseInvalidation, bypassThrottle);
     }
 
@@ -2861,6 +2900,7 @@ public partial class SKSvg : IDisposable
             return false;
         }
 
+        using var systemColorScope = CreateSystemColorProviderScope();
         var forceRender = DispatchAnimationTimelineCallbacks(ref frameState);
 
         if (!forceRender &&

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using ShimSkiaSharp;
+using ShimSkiaSharp.Editing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Svg;
@@ -719,6 +720,9 @@ public class W3CTestSuiteTests : SvgUnitTest
             case "animate-elem-21-t":
                 AssertChainedIndefiniteHyperlinkFixture(svg);
                 return true;
+            case "animate-elem-23-t":
+                AssertBasicAnimateColorFixture(svg);
+                return true;
             case "animate-elem-29-b":
                 AssertIndefiniteOpacityHyperlinkFixture(svg);
                 return true;
@@ -734,6 +738,12 @@ public class W3CTestSuiteTests : SvgUnitTest
             case "animate-elem-63-t":
                 AssertMultipleEndUserEventFixture(svg);
                 return true;
+            case "animate-elem-84-t":
+                AssertAnimateColorKeywordFixture(svg);
+                return true;
+            case "animate-elem-85-t":
+                AssertAnimateColorCurrentColorFixture(svg);
+                return true;
             case "animate-interact-pevents-01-t":
                 AssertTextPointerEventsRows(svg, animated: true);
                 return true;
@@ -748,6 +758,12 @@ public class W3CTestSuiteTests : SvgUnitTest
                 return true;
             case "animate-interact-events-01-t":
                 AssertAnimatedUseInstanceMouseEventsAndBubbling(svg);
+                return true;
+            case "color-prof-01-f":
+                AssertOptionalIccProfileFixtureUsesUnsupportedPolicy(svg.SourceDocument!);
+                return true;
+            case "color-prop-04-t":
+                AssertSystemColorFixtureUsesDeterministicPalette(svg.SourceDocument!);
                 return true;
             case "conform-viewers-02-f":
                 AssertGzippedSvgDataImageFixture(svg);
@@ -852,8 +868,14 @@ public class W3CTestSuiteTests : SvgUnitTest
             case "struct-image-12-b":
                 AssertBrokenImageAndCycleFixtureUsesPlaceholders(svg);
                 return true;
+            case "struct-use-08-b":
+                AssertRecursiveUseFixtureSuppressesRecursiveReferences(svg);
+                return true;
             case "struct-image-17-b":
                 AssertEmbeddedSvgImageRemainsStatic(svg);
+                return true;
+            case "text-align-08-b":
+                AssertTextAlign08MixedScriptBaselineFixture(svg);
                 return true;
             case "text-tselect-01-b":
             case "text-tselect-02-f":
@@ -877,6 +899,47 @@ public class W3CTestSuiteTests : SvgUnitTest
         }
     }
 
+    private static void AssertTextAlign08MixedScriptBaselineFixture(SKSvg svg)
+    {
+        var sourceDocument = svg.SourceDocument;
+        Assert.NotNull(sourceDocument);
+
+        var baselineText = Assert.Single(
+            sourceDocument!.Descendants().OfType<SvgText>(),
+            static text => text.FontSize.Value == 120f);
+        Assert.Contains("a犜ण", baselineText.Text);
+        Assert.Equal(new[] { 75f, 30f }, baselineText.Children.OfType<SvgTextSpan>().Select(static tspan => tspan.FontSize.Value).ToArray());
+
+        Assert.True(sourceDocument.BaseUri is { IsFile: true }, "Expected the W3C fixture to have a local file BaseUri.");
+        using var svgFontRender = new SKSvg();
+        svgFontRender.Settings.EnableSvgFonts = true;
+        svgFontRender.Settings.EnableTextReferences = true;
+        svgFontRender.Settings.StandaloneViewport = SkiaSharp.SKRect.Create(0f, 0f, 480f, 360f);
+        using var _ = svgFontRender.Load(sourceDocument.BaseUri!.LocalPath);
+        Assert.NotNull(svgFontRender.Model);
+
+        var bodyGlyphBounds = svgFontRender.Model!
+            .FindCommands<DrawPathCanvasCommand>()
+            .Select(static command => command.Path?.Bounds ?? SKRect.Empty)
+            .Where(static bounds => !bounds.IsEmpty &&
+                                    bounds.Left >= 45f &&
+                                    bounds.Right <= 440f &&
+                                    bounds.Top >= 80f &&
+                                    bounds.Bottom <= 240f &&
+                                    bounds.Width > 20f &&
+                                    bounds.Height > 20f)
+            .OrderBy(static bounds => bounds.Left)
+            .ToArray();
+
+        Assert.Equal(3, bodyGlyphBounds.Length);
+        Assert.InRange(bodyGlyphBounds[0].Top, 88f, 98f);
+        Assert.InRange(bodyGlyphBounds[0].Bottom, 198f, 202f);
+        Assert.InRange(bodyGlyphBounds[1].Top, 92f, 101f);
+        Assert.InRange(bodyGlyphBounds[1].Bottom, 207f, 211f);
+        Assert.InRange(bodyGlyphBounds[2].Top, 97f, 105f);
+        Assert.InRange(bodyGlyphBounds[2].Bottom, 216f, 220f);
+    }
+
     private static void AssertDynamicImageNamespaceFixtureUsesOnlyRealXLinkHref(SvgDocument document)
     {
         var images = document.Descendants().OfType<SvgImage>().ToArray();
@@ -888,6 +951,44 @@ public class W3CTestSuiteTests : SvgUnitTest
         Assert.NotEqual("...", prefix.Content);
         var status = Assert.IsType<SvgTextSpan>(document.GetElementById("status")!);
         Assert.Equal("No exceptions.", status.Content);
+    }
+
+    private static void AssertOptionalIccProfileFixtureUsesUnsupportedPolicy(SvgDocument document)
+    {
+        var profile = document.GetElementById("changeColor");
+        Assert.NotNull(profile);
+        Assert.IsType<SvgUnknownElement>(profile);
+        Assert.True(profile.TryGetAttribute("name", out var profileName));
+        Assert.Equal("changeColor", profileName?.ToString());
+        var images = document.Descendants().OfType<SvgImage>().ToArray();
+        Assert.Equal(2, images.Length);
+        Assert.Contains(images, static image => string.Equals(image.ID, "image1PNG", StringComparison.Ordinal));
+
+        var profiledImage = Assert.IsType<SvgImage>(document.GetElementById("image2"));
+        Assert.Equal("../images/colorprof.png", profiledImage.Href);
+        Assert.True(profiledImage.TryGetAttribute("color-profile", out var colorProfile));
+        Assert.Equal("changeColor", colorProfile?.ToString());
+    }
+
+    private static void AssertSystemColorFixtureUsesDeterministicPalette(SvgDocument document)
+    {
+        AssertColorFill(document.GetElementById("drop-bg"), GetSvgSystemColor("ThreeDFace"));
+        AssertColorFill(document.GetElementById("windowbar"), GetSvgSystemColor("ActiveCaption"));
+        AssertColorStroke(document.GetElementById("windowbar"), GetSvgSystemColor("ActiveBorder"));
+        AssertColorFill(document.GetElementById("contents"), GetSvgSystemColor("WindowText"));
+
+        var menuTexts = document.Descendants()
+            .OfType<SvgText>()
+            .Where(static text => text.Content is "Load" or "Save" or "Edit")
+            .ToArray();
+        Assert.Equal(3, menuTexts.Length);
+        Assert.All(menuTexts, text => AssertColorFill(text, GetSvgSystemColor("MenuText")));
+    }
+
+    private static System.Drawing.Color GetSvgSystemColor(string name)
+    {
+        Assert.True(SvgSystemColorResolver.TryGetColor(name, out var color), $"System color '{name}' was not registered.");
+        return color;
     }
 
     private static void AssertIndefiniteFillHyperlinkFixture(SKSvg svg)
@@ -932,6 +1033,89 @@ public class W3CTestSuiteTests : SvgUnitTest
         var fadeOut = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(6.2));
         var hiddenRect = Assert.IsType<SvgRectangle>(fadeOut.GetElementById("pink"));
         Assert.Equal(0f, hiddenRect.FillOpacity, 3);
+    }
+
+    private static void AssertBasicAnimateColorFixture(SKSvg svg)
+    {
+        var start = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(3));
+        AssertColorFill(GetLargeAnimatedCircle(start), System.Drawing.Color.Blue);
+
+        var midpoint = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(6));
+        AssertColorFill(GetLargeAnimatedCircle(midpoint), System.Drawing.Color.FromArgb(0, 128, 128));
+
+        var end = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(9));
+        AssertColorFill(GetLargeAnimatedCircle(end), System.Drawing.Color.Lime);
+    }
+
+    private static void AssertAnimateColorKeywordFixture(SKSvg svg)
+    {
+        var animated = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(7));
+        var animatedRects = animated.Descendants()
+            .OfType<SvgRectangle>()
+            .Where(rectangle => IsClose(rectangle.Width.Value, 100f) && IsClose(rectangle.Height.Value, 100f))
+            .ToArray();
+
+        Assert.Equal(5, animatedRects.Length);
+        foreach (var rectangle in animatedRects)
+        {
+            var expected = IsClose(rectangle.X.Value, 240f) && IsClose(rectangle.Y.Value, 0f)
+                ? System.Drawing.Color.FromArgb(0, 119, 0)
+                : System.Drawing.Color.Green;
+            AssertColorFill(rectangle, expected);
+        }
+    }
+
+    private static void AssertAnimateColorCurrentColorFixture(SKSvg svg)
+    {
+        var firstEnd = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(5));
+        var topRects = GetAnimateElem85TopRectangles(firstEnd);
+        Assert.Equal(4, topRects.Length);
+        Assert.All(topRects, rectangle => AssertColorFill(rectangle, System.Drawing.Color.Green));
+
+        var firstEndBottomRects = GetAnimateElem85BottomRectangles(firstEnd);
+        Assert.Equal(2, firstEndBottomRects.Length);
+        Assert.All(firstEndBottomRects, rectangle => AssertColorFill(rectangle, System.Drawing.Color.Green));
+
+        var midpoint = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(7.5));
+        var midpointBottomRects = GetAnimateElem85BottomRectangles(midpoint);
+        Assert.Equal(2, midpointBottomRects.Length);
+        Assert.All(midpointBottomRects, rectangle => AssertColorFill(rectangle, System.Drawing.Color.FromArgb(0, 128, 128)));
+
+        var end = CreateAnimatedDocument(svg, TimeSpan.FromSeconds(10));
+        var endBottomRects = GetAnimateElem85BottomRectangles(end);
+        Assert.Equal(2, endBottomRects.Length);
+        Assert.All(endBottomRects, rectangle => AssertColorFill(rectangle, System.Drawing.Color.Cyan));
+    }
+
+    private static SvgCircle GetLargeAnimatedCircle(SvgDocument document)
+    {
+        return Assert.Single(document.Descendants().OfType<SvgCircle>(), circle => circle.Radius.Value > 100f);
+    }
+
+    private static SvgRectangle[] GetAnimateElem85TopRectangles(SvgDocument document)
+    {
+        return document.Descendants()
+            .OfType<SvgRectangle>()
+            .Where(rectangle => IsClose(rectangle.Y.Value, 50f) &&
+                                IsClose(rectangle.Width.Value, 90f) &&
+                                IsClose(rectangle.Height.Value, 100f))
+            .ToArray();
+    }
+
+    private static SvgRectangle[] GetAnimateElem85BottomRectangles(SvgDocument document)
+    {
+        return document.Descendants()
+            .OfType<SvgRectangle>()
+            .Where(rectangle => IsClose(rectangle.X.Value, 100f) &&
+                                (IsClose(rectangle.Y.Value, 180f) || IsClose(rectangle.Y.Value, 245f)) &&
+                                IsClose(rectangle.Width.Value, 280f) &&
+                                IsClose(rectangle.Height.Value, 60f))
+            .ToArray();
+    }
+
+    private static bool IsClose(float actual, float expected)
+    {
+        return Math.Abs(actual - expected) < 0.001f;
     }
 
     private static void AssertAccessKeyAndPastWallclockBeginFixture(SKSvg svg)
@@ -1702,6 +1886,32 @@ public class W3CTestSuiteTests : SvgUnitTest
         Assert.Contains(imageNodes, static node => node.IsRenderable && node.LocalModel is not null);
     }
 
+    private static void AssertRecursiveUseFixtureSuppressesRecursiveReferences(SKSvg svg)
+    {
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        var recursiveUseNodes = scene!.Traverse()
+            .Where(static node => node.ElementId is "use-elm-1" or "use-elm-2")
+            .OrderBy(static node => node.ElementId, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(2, recursiveUseNodes.Length);
+        var rootReferenceUse = recursiveUseNodes[0];
+        Assert.False(rootReferenceUse.IsRenderable);
+        Assert.Empty(rootReferenceUse.Children);
+
+        var imageReferenceUse = recursiveUseNodes[1];
+        Assert.True(imageReferenceUse.IsRenderable);
+        Assert.NotEmpty(imageReferenceUse.Children);
+        Assert.True(imageReferenceUse.Children.Count <= 1);
+        Assert.True(scene.Traverse().Count() < 80);
+
+        using var bitmap = RenderBitmap(svg);
+        AssertTransparent(bitmap.GetPixel(120, 110));
+        AssertNotMostlyRed(bitmap.GetPixel(360, 110));
+        AssertContainsMostlyGreenPixel(bitmap, 170, 245, 140, 35);
+    }
+
     private static void AssertEmbeddedSvgImageRemainsStatic(SKSvg svg)
     {
         using var bitmap = RenderBitmap(svg);
@@ -1745,6 +1955,35 @@ public class W3CTestSuiteTests : SvgUnitTest
             svg.Settings.Srgb);
 
         return Assert.IsType<SkiaBitmap>(bitmap);
+    }
+
+    private static void AssertTransparent(SkiaSharp.SKColor pixel)
+    {
+        Assert.True(pixel.Alpha <= 8, $"Expected recursive referenced content to stay transparent, but pixel was {pixel}.");
+    }
+
+    private static void AssertNotMostlyRed(SkiaSharp.SKColor pixel)
+    {
+        Assert.False(
+            pixel.Red > 160 && pixel.Green < 80 && pixel.Blue < 80 && pixel.Alpha > 120,
+            $"Expected bounded recursive image expansion not to paint recursive red content, but pixel was {pixel}.");
+    }
+
+    private static void AssertContainsMostlyGreenPixel(SkiaBitmap bitmap, int startX, int startY, int width, int height)
+    {
+        for (var y = startY; y < startY + height; y++)
+        {
+            for (var x = startX; x < startX + width; x++)
+            {
+                var pixel = bitmap.GetPixel(x, y);
+                if (pixel.Green > 100 && pixel.Red < 80 && pixel.Blue < 80 && pixel.Alpha > 120)
+                {
+                    return;
+                }
+            }
+        }
+
+        Assert.Fail("Expected recursive-use fixture pass text to remain visible.");
     }
 
     private static void AssertRuntimeAttribute(SvgDocument document, string elementId, string attributeName, string expected)
@@ -2157,7 +2396,7 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("animate-elem-20-t", 0.022)]
     [InlineData("animate-elem-21-t", 0.022)]
     [InlineData("animate-elem-22-b", 0.022)]
-    [InlineData("animate-elem-23-t", 0.022, Skip = "Modern Chrome captures deprecated animateColor as no-op; keep skipped until the W3C animateColor row has a non-Chrome static reference policy.")]
+    [InlineData("animate-elem-23-t", 0.022)]
     [InlineData("animate-elem-24-t", 0.022)]
     [InlineData("animate-elem-25-t", 0.022)]
     [InlineData("animate-elem-26-t", 0.022)]
@@ -2197,8 +2436,8 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("animate-elem-81-t", 0.022)]
     [InlineData("animate-elem-82-t", 0.022)]
     [InlineData("animate-elem-83-t", 0.022)]
-    [InlineData("animate-elem-84-t", 0.022, Skip = "Modern Chrome captures deprecated animateColor as no-op; keep skipped until the W3C animateColor row has a non-Chrome static reference policy.")]
-    [InlineData("animate-elem-85-t", 0.022, Skip = "Modern Chrome captures deprecated animateColor as no-op; keep skipped until the W3C animateColor row has a non-Chrome static reference policy.")]
+    [InlineData("animate-elem-84-t", 0.022)]
+    [InlineData("animate-elem-85-t", 0.022)]
     [InlineData("animate-elem-86-t", 0.022)]
     [InlineData("animate-elem-87-t", 0.022)]
     [InlineData("animate-elem-88-t", 0.022)]
@@ -2214,11 +2453,11 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("animate-pservers-grad-01-b", 0.022)]
     [InlineData("animate-script-elem-01-b", 0.022)]
     [InlineData("animate-struct-dom-01-b", 0.022)]
-    [InlineData("color-prof-01-f", 0.022, Skip = "Optional ICC color profile support is not a stable Chrome-backed baseline.")]
+    [InlineData("color-prof-01-f", 0.022)]
     [InlineData("color-prop-01-b", 0.022)]
     [InlineData("color-prop-02-f", 0.022)]
     [InlineData("color-prop-03-t", 0.022)]
-    [InlineData("color-prop-04-t", 0.022, Skip = "System color keywords depend on viewer platform colors and are not a stable pixel baseline.")]
+    [InlineData("color-prop-04-t", 0.022)]
     [InlineData("color-prop-05-t", 0.022)]
     [InlineData("conform-viewers-02-f", 0.022)]
     [InlineData("conform-viewers-03-f", 0.022)]
@@ -2431,7 +2670,7 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("pservers-grad-05-b", 0.022)]
     [InlineData("pservers-grad-06-b", 0.022)]
     [InlineData("pservers-grad-07-b", 0.022)]
-    [InlineData("pservers-grad-08-b", 0.022, Skip = "Requires SVG/WOFF webfont loading for exact Chrome text gradients.")]
+    [InlineData("pservers-grad-08-b", 0.022)]
     [InlineData("pservers-grad-09-b", 0.022)]
     [InlineData("pservers-grad-10-b", 0.022)]
     [InlineData("pservers-grad-11-b", 0.022)]
@@ -2460,11 +2699,11 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("render-elems-01-t", 0.022)]
     [InlineData("render-elems-02-t", 0.022)]
     [InlineData("render-elems-03-t", 0.022)]
-    [InlineData("render-elems-06-t", 0.022, Skip = "Requires SVG/WOFF webfont loading for exact Chrome glyph outlines.")]
-    [InlineData("render-elems-07-t", 0.022, Skip = "Requires SVG/WOFF webfont loading for exact Chrome glyph outlines.")]
-    [InlineData("render-elems-08-t", 0.022, Skip = "Requires SVG/WOFF webfont loading for exact Chrome glyph outlines.")]
-    [InlineData("render-groups-01-b", 0.022, Skip = "Requires SVG/WOFF webfont loading for exact Chrome group text composition.")]
-    [InlineData("render-groups-03-t", 0.022, Skip = "Requires SVG/WOFF webfont loading for exact Chrome group text composition.")]
+    [InlineData("render-elems-06-t", 0.022)]
+    [InlineData("render-elems-07-t", 0.022)]
+    [InlineData("render-elems-08-t", 0.022)]
+    [InlineData("render-groups-01-b", 0.022)]
+    [InlineData("render-groups-03-t", 0.022)]
     [InlineData("script-handle-01-b", 0.022)]
     [InlineData("script-handle-02-b", 0.022)]
     [InlineData("script-handle-03-b", 0.022)]
@@ -2591,7 +2830,7 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("text-align-05-b", 0.022)]
     [InlineData("text-align-06-b", 0.022)]
     [InlineData("text-align-07-t", 0.022)]
-    [InlineData("text-align-08-b", 0.022, Skip = "Mixed-script dominant baseline tables are not implemented")]
+    [InlineData("text-align-08-b", 0.022)]
     [InlineData("text-altglyph-01-b", 0.17)]
     [InlineData("text-altglyph-02-b", 0.05)]
     [InlineData("text-altglyph-03-b", 0.05)]
@@ -2663,4 +2902,9 @@ public class W3CTestSuiteTests : SvgUnitTest
     [InlineData("types-dom-svgstringlist-01-f", 0.022)]
     [InlineData("types-dom-svgtransformable-01-f", 0.022)]
     public void Tests(string name, double errorThreshold) => TestImpl(name, errorThreshold);
+
+    [Theory]
+    [InlineData("struct-image-12-b")]
+    [InlineData("struct-use-08-b")]
+    public void BrowserUiAndRecursiveCapturePolicyRowsHaveSemanticCoverage(string name) => TestImpl(name, 0.022);
 }

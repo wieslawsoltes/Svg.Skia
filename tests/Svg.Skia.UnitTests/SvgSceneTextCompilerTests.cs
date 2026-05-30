@@ -140,6 +140,12 @@ public class SvgSceneTextCompilerTests
         binder: null,
         [typeof(SvgTextBase), typeof(IReadOnlyList<string>), typeof(SKRect), typeof(ISvgAssetLoader)],
         modifiers: null)!;
+    private static readonly MethodInfo s_drawTextRunsMethod = s_svgSceneTextCompilerType.GetMethod(
+        "DrawTextRuns",
+        BindingFlags.NonPublic | BindingFlags.Static,
+        binder: null,
+        [typeof(SvgTextBase), typeof(string), typeof(float), typeof(float), typeof(SKRect), typeof(SKPaint), typeof(SKCanvas), typeof(ISvgAssetLoader), typeof(float[])],
+        modifiers: null)!;
     private static readonly MethodInfo s_tryPrepareFlatTextRunMethod = s_svgSceneTextCompilerType
         .GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
         .Single(method =>
@@ -4611,6 +4617,26 @@ public class SvgSceneTextCompilerTests
     }
 
     [Fact]
+    public void DrawTextRuns_RtlVisualTypefaceSpansDrawOnceInVisualOrder()
+    {
+        const string text = "ABC \u05D0\u05D1\u05D2 DEF";
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="240" height="80">
+              <text id="label" x="10" y="40" font-size="20" direction="rtl" unicode-bidi="embed">ABC &#x05D0;&#x05D1;&#x05D2; DEF</text>
+            </svg>
+            """);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var loader = new VisualOrderTypefaceSpanAssetLoader();
+
+        var draws = InvokeDrawTextRuns(svgText, text, SKRect.Create(0f, 0f, 240f, 80f), loader)
+            .Select(static command => command.Text)
+            .ToArray();
+
+        Assert.Equal(["DEF", "\u05D0\u05D1\u05D2", "ABC"], draws);
+    }
+
+    [Fact]
     public void SvgTextLayoutPlanner_NestedIsolateSpanKeepsOuterNeutralPunctuation()
     {
         var plan = CreateTextLayoutPlanFromRuns(
@@ -5236,6 +5262,33 @@ public class SvgSceneTextCompilerTests
         return Assert.IsType<bool>(s_tryCompileSequentialTextMethod.Invoke(null, args));
     }
 
+    private static IReadOnlyList<DrawTextCanvasCommand> InvokeDrawTextRuns(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader)
+    {
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(viewport);
+        var paint = new SKPaint();
+        _ = s_drawTextRunsMethod.Invoke(
+            null,
+            [
+                svgTextBase,
+                text,
+                10f,
+                40f,
+                viewport,
+                paint,
+                canvas,
+                assetLoader,
+                null
+            ]);
+
+        return recorder.EndRecording().Commands?.OfType<DrawTextCanvasCommand>().ToArray()
+            ?? Array.Empty<DrawTextCanvasCommand>();
+    }
+
     private static SKRect InvokeSvgFontLayoutBounds(
         SvgTextBase svgTextBase,
         string text,
@@ -5762,6 +5815,91 @@ public class SvgSceneTextCompilerTests
             }
 
             throw new InvalidOperationException($"Unexpected prefix measurement for '{text}'.");
+        }
+    }
+
+    private sealed class VisualOrderTypefaceSpanAssetLoader : ISvgAssetLoader
+    {
+        private readonly SKTypeface _typeface = SKTypeface.FromFamilyName(
+            "sans-serif",
+            SKFontStyleWeight.Normal,
+            SKFontStyleWidth.Normal,
+            SKFontStyleSlant.Upright);
+
+        public bool EnableSvgFonts => false;
+
+        public SKImage LoadImage(Stream stream) => LoadTestImage(stream);
+
+        public List<TypefaceSpan> FindTypefaces(string? text, SKPaint paintPreferredTypeface)
+        {
+            var spans = new List<TypefaceSpan>();
+            foreach (var run in SplitStrongRuns(text ?? string.Empty))
+            {
+                spans.Add(new TypefaceSpan(run, run.Length * 10f, _typeface));
+            }
+
+            return spans;
+        }
+
+        public SKFontMetrics GetFontMetrics(SKPaint paint) => default;
+
+        public float MeasureText(string? text, SKPaint paint, ref SKRect bounds)
+        {
+            bounds = default;
+            return SplitStrongRuns(text ?? string.Empty).Sum(static run => run.Length * 10f);
+        }
+
+        public SKPath? GetTextPath(string? text, SKPaint paint, float x, float y) => null;
+
+        private static IEnumerable<string> SplitStrongRuns(string text)
+        {
+            var builder = new StringBuilder();
+            StrongRunDirection? currentDirection = null;
+
+            foreach (var character in text)
+            {
+                var direction = GetStrongRunDirection(character);
+                if (direction is null)
+                {
+                    continue;
+                }
+
+                if (currentDirection is { } &&
+                    currentDirection != direction)
+                {
+                    yield return builder.ToString();
+                    builder.Clear();
+                }
+
+                currentDirection = direction;
+                builder.Append(character);
+            }
+
+            if (builder.Length > 0)
+            {
+                yield return builder.ToString();
+            }
+        }
+
+        private static StrongRunDirection? GetStrongRunDirection(char character)
+        {
+            if (character is >= 'A' and <= 'Z' or >= 'a' and <= 'z')
+            {
+                return StrongRunDirection.LeftToRight;
+            }
+
+            if (character is >= '\u0590' and <= '\u05FF')
+            {
+                return StrongRunDirection.RightToLeft;
+            }
+
+            return null;
+        }
+
+        private enum StrongRunDirection
+        {
+            LeftToRight,
+            RightToLeft
         }
     }
 

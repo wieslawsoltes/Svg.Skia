@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SkiaSharp;
@@ -14,12 +15,30 @@ namespace Svg.Skia.UnitTests;
 public class resvgTests : SvgUnitTest
 {
     private const double DefaultThreshold = 0.12;
+    private const int ExpectedTotalFixtureCount = 1730;
+    private const int ExpectedTextFixtureCount = 379;
+    private const int ExpectedNonTextFixtureCount = 1351;
+    private const int ExpectedResourceRenderingFixtureCount = 447;
+    private const int ExpectedCssStylingFixtureCount = 19;
+    private const int ExpectedEnabledNonTextFixtureCount = 466;
+    private const int ExpectedRemainingNonTextFixtureCount = 885;
+    private const string RemainingExtraFixtureSkipReason =
+        "Remaining resvg extra fixtures are explicit inventory rows (15); enable individual rows when backed by a tracked renderer bug or parity lane.";
+    private const string RemainingFilterFixtureSkipReason =
+        "Remaining resvg filter fixtures are explicit inventory rows (281); filter primitive parity is tracked by feature-specific renderer lanes.";
+    private const string RemainingMaskingFixtureSkipReason =
+        "Remaining resvg masking fixtures are explicit inventory rows (92); clip/mask parity is tracked by feature-specific renderer lanes.";
+    private const string RemainingPaintServerFixtureSkipReason =
+        "Remaining resvg paint-server fixtures are explicit inventory rows (148); gradient/pattern parity is tracked by feature-specific renderer lanes.";
+    private const string RemainingPaintingFixtureSkipReason =
+        "Remaining resvg painting fixtures are explicit inventory rows (115); paint operation parity is tracked by feature-specific renderer lanes.";
+    private const string RemainingShapeFixtureSkipReason =
+        "Remaining resvg shape fixtures are explicit inventory rows (69); shape/path geometry parity is tracked by feature-specific renderer lanes.";
+    private const string RemainingStructureFixtureSkipReason =
+        "Remaining resvg structure fixtures are explicit inventory rows (165); structure/use/image parity is tracked by feature-specific renderer lanes.";
 
     public static IEnumerable<object[]> TextFixtureRows()
         => EnumerateFixtureRows("tests/text/");
-
-    public static IEnumerable<object[]> NonTextFixtureRows()
-        => EnumerateFixtureRows(excludePrefix: "tests/text/");
 
     public static IEnumerable<object[]> ResourceRenderingFixtureRows()
         => EnumerateFixtureRows()
@@ -29,14 +48,30 @@ public class resvgTests : SvgUnitTest
         => EnumerateFixtureRows()
             .Where(static row => IsCssStylingFixture((string)row[0]));
 
+    public static IEnumerable<object[]> RemainingExtraFixtureRows()
+        => EnumerateRemainingNonTextRows(ResvgFixtureArea.Extra, RemainingExtraFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFixtureRows()
+        => EnumerateRemainingNonTextRows(ResvgFixtureArea.Filters, RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingMaskingFixtureRows()
+        => EnumerateRemainingNonTextRows(ResvgFixtureArea.Masking, RemainingMaskingFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingPaintServerFixtureRows()
+        => EnumerateRemainingNonTextRows(ResvgFixtureArea.PaintServers, RemainingPaintServerFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingPaintingFixtureRows()
+        => EnumerateRemainingNonTextRows(ResvgFixtureArea.Painting, RemainingPaintingFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingShapeFixtureRows()
+        => EnumerateRemainingNonTextRows(ResvgFixtureArea.Shapes, RemainingShapeFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingStructureFixtureRows()
+        => EnumerateRemainingNonTextRows(ResvgFixtureArea.Structure, RemainingStructureFixtureSkipReason);
+
     [OSXTheory]
     [MemberData(nameof(TextFixtureRows))]
     public void text_fixtures(string relativeName, double errorThreshold)
-        => TestImpl(relativeName, errorThreshold);
-
-    [OSXTheory(Skip = "Non-text resvg fixtures are tracked by resvg_fixture_inventory and enabled by feature area.")]
-    [MemberData(nameof(NonTextFixtureRows))]
-    public void non_text_fixtures(string relativeName, double errorThreshold)
         => TestImpl(relativeName, errorThreshold);
 
     [OSXTheory]
@@ -48,6 +83,41 @@ public class resvgTests : SvgUnitTest
     [MemberData(nameof(CssStylingFixtureRows))]
     public void css_styling_fixtures(string relativeName, double errorThreshold)
         => TestImpl(relativeName, errorThreshold);
+
+    [OSXTheory(Skip = RemainingExtraFixtureSkipReason)]
+    [MemberData(nameof(RemainingExtraFixtureRows))]
+    public void remaining_extra_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFixtureRows))]
+    public void remaining_filter_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingMaskingFixtureSkipReason)]
+    [MemberData(nameof(RemainingMaskingFixtureRows))]
+    public void remaining_masking_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingPaintServerFixtureSkipReason)]
+    [MemberData(nameof(RemainingPaintServerFixtureRows))]
+    public void remaining_paint_server_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingPaintingFixtureSkipReason)]
+    [MemberData(nameof(RemainingPaintingFixtureRows))]
+    public void remaining_painting_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingShapeFixtureSkipReason)]
+    [MemberData(nameof(RemainingShapeFixtureRows))]
+    public void remaining_shape_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingStructureFixtureSkipReason)]
+    [MemberData(nameof(RemainingStructureFixtureRows))]
+    public void remaining_structure_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
 
     [Fact]
     public void resvg_fixture_inventory()
@@ -64,6 +134,97 @@ public class resvgTests : SvgUnitTest
             Assert.True(File.Exists(GetSvgPath(fixture)), $"Missing SVG fixture: {fixture}");
             Assert.True(File.Exists(GetExpectedPngPath(fixture)), $"Missing PNG fixture: {fixture}");
         }
+    }
+
+    [Fact]
+    public void resvg_remaining_non_text_fixture_inventory()
+    {
+        var fixtures = EnumerateFixtureNames().ToArray();
+        var textFixtures = fixtures
+            .Where(static fixture => fixture.StartsWith("tests/text/", StringComparison.Ordinal))
+            .ToArray();
+        var nonTextFixtures = fixtures
+            .Where(static fixture => !fixture.StartsWith("tests/text/", StringComparison.Ordinal))
+            .ToArray();
+        var resourceRenderingFixtures = fixtures
+            .Where(static fixture => IsResourceRenderingFixture(fixture))
+            .ToArray();
+        var cssStylingFixtures = fixtures
+            .Where(static fixture => IsCssStylingFixture(fixture))
+            .ToArray();
+        var enabledNonTextFixtures = resourceRenderingFixtures
+            .Concat(cssStylingFixtures)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(static fixture => fixture, StringComparer.Ordinal)
+            .ToArray();
+        var remainingNonTextFixtures = EnumerateRemainingNonTextFixtureNames().ToArray();
+        var accountedFixtures = textFixtures
+            .Concat(enabledNonTextFixtures)
+            .Concat(remainingNonTextFixtures)
+            .OrderBy(static fixture => fixture, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(ExpectedTotalFixtureCount, fixtures.Length);
+        Assert.Equal(ExpectedTextFixtureCount, textFixtures.Length);
+        Assert.Equal(ExpectedNonTextFixtureCount, nonTextFixtures.Length);
+        Assert.Equal(ExpectedResourceRenderingFixtureCount, resourceRenderingFixtures.Length);
+        Assert.Equal(ExpectedCssStylingFixtureCount, cssStylingFixtures.Length);
+        Assert.Equal(ExpectedEnabledNonTextFixtureCount, enabledNonTextFixtures.Length);
+        Assert.Equal(ExpectedRemainingNonTextFixtureCount, remainingNonTextFixtures.Length);
+        Assert.Equal(fixtures, accountedFixtures);
+
+        foreach (var (area, expectedCount) in ExpectedRemainingFixtureAreaCounts)
+        {
+            var actualCount = remainingNonTextFixtures.Count(fixture => GetNonTextFixtureArea(fixture) == area);
+            Assert.Equal(expectedCount, actualCount);
+        }
+    }
+
+    [Fact]
+    public void resvg_remaining_non_text_theories_are_explicit_feature_area_inventory()
+    {
+        var remainingTheoryNames = typeof(resvgTests)
+            .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            .Where(static method => method.GetCustomAttributes(typeof(OSXTheory), inherit: false).Length > 0)
+            .Where(static method => method.Name.StartsWith("remaining_", StringComparison.Ordinal))
+            .Select(static method => method.Name)
+            .OrderBy(static name => name, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(
+            new[]
+            {
+                "remaining_extra_fixtures",
+                "remaining_filter_fixtures",
+                "remaining_masking_fixtures",
+                "remaining_paint_server_fixtures",
+                "remaining_painting_fixtures",
+                "remaining_shape_fixtures",
+                "remaining_structure_fixtures"
+            },
+            remainingTheoryNames);
+        Assert.DoesNotContain(
+            typeof(resvgTests).GetMethods(BindingFlags.Instance | BindingFlags.Public),
+            static method => string.Equals(method.Name, "non_text_fixtures", StringComparison.Ordinal));
+
+        var skipReasons = new[]
+        {
+            RemainingExtraFixtureSkipReason,
+            RemainingFilterFixtureSkipReason,
+            RemainingMaskingFixtureSkipReason,
+            RemainingPaintServerFixtureSkipReason,
+            RemainingPaintingFixtureSkipReason,
+            RemainingShapeFixtureSkipReason,
+            RemainingStructureFixtureSkipReason
+        };
+
+        Assert.All(skipReasons, static reason =>
+        {
+            Assert.Contains("explicit inventory rows", reason, StringComparison.Ordinal);
+            Assert.DoesNotContain("hardening", reason, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("browser-parity", reason, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("umbrella", reason, StringComparison.OrdinalIgnoreCase);
+        });
     }
 
     private static IEnumerable<object[]> EnumerateFixtureRows(string? includePrefix = null, string? excludePrefix = null)
@@ -84,11 +245,54 @@ public class resvgTests : SvgUnitTest
         }
     }
 
+    private static IEnumerable<object[]> EnumerateRemainingNonTextRows(ResvgFixtureArea area, string skipReason)
+    {
+        foreach (var fixture in EnumerateRemainingNonTextFixtureNames())
+        {
+            if (GetNonTextFixtureArea(fixture) != area)
+            {
+                continue;
+            }
+
+            yield return new object[] { fixture, GetEffectiveThreshold(fixture, DefaultThreshold), skipReason };
+        }
+    }
+
     private static IEnumerable<string> EnumerateFixtureNames()
     {
         return EnumerateFixtureNames(GetResvgTestsRoot(), "tests")
             .Concat(EnumerateFixtureNames(GetResvgTestsRoot(), "extra"))
             .OrderBy(x => x, StringComparer.Ordinal);
+    }
+
+    private static IEnumerable<string> EnumerateRemainingNonTextFixtureNames()
+    {
+        foreach (var fixture in EnumerateFixtureNames())
+        {
+            if (fixture.StartsWith("tests/text/", StringComparison.Ordinal) ||
+                IsResourceRenderingFixture(fixture) ||
+                IsCssStylingFixture(fixture))
+            {
+                continue;
+            }
+
+            yield return fixture;
+        }
+    }
+
+    private static ResvgFixtureArea GetNonTextFixtureArea(string relativeName)
+    {
+        return relativeName switch
+        {
+            var fixture when fixture.StartsWith("extra/", StringComparison.Ordinal) => ResvgFixtureArea.Extra,
+            var fixture when fixture.StartsWith("tests/filters/", StringComparison.Ordinal) => ResvgFixtureArea.Filters,
+            var fixture when fixture.StartsWith("tests/masking/", StringComparison.Ordinal) => ResvgFixtureArea.Masking,
+            var fixture when fixture.StartsWith("tests/paint-servers/", StringComparison.Ordinal) => ResvgFixtureArea.PaintServers,
+            var fixture when fixture.StartsWith("tests/painting/", StringComparison.Ordinal) => ResvgFixtureArea.Painting,
+            var fixture when fixture.StartsWith("tests/shapes/", StringComparison.Ordinal) => ResvgFixtureArea.Shapes,
+            var fixture when fixture.StartsWith("tests/structure/", StringComparison.Ordinal) => ResvgFixtureArea.Structure,
+            _ => throw new InvalidOperationException($"Unclassified resvg fixture: {relativeName}")
+        };
     }
 
     private static IEnumerable<string> EnumerateFixtureNames(string root, string directoryName)
@@ -160,6 +364,12 @@ public class resvgTests : SvgUnitTest
         }
     }
 
+    private void TestSkippedFixtureImpl(string relativeName, double errorThreshold, string skipReason)
+    {
+        Assert.NotEmpty(skipReason);
+        TestImpl(relativeName, errorThreshold);
+    }
+
     private static SKColor ToSkColor(Rgba32 color)
         => new(color.R, color.G, color.B, color.A);
 
@@ -187,6 +397,17 @@ public class resvgTests : SvgUnitTest
 
     private static bool IsCssStylingFixture(string relativeName)
         => CssStylingFixtureNames.Contains(relativeName, StringComparer.Ordinal);
+
+    private static readonly (ResvgFixtureArea Area, int Count)[] ExpectedRemainingFixtureAreaCounts =
+    {
+        (ResvgFixtureArea.Extra, 15),
+        (ResvgFixtureArea.Filters, 281),
+        (ResvgFixtureArea.Masking, 92),
+        (ResvgFixtureArea.PaintServers, 148),
+        (ResvgFixtureArea.Painting, 115),
+        (ResvgFixtureArea.Shapes, 69),
+        (ResvgFixtureArea.Structure, 165)
+    };
 
     private static readonly string[] ResourceRenderingFixturePrefixes =
     {
@@ -356,5 +577,16 @@ public class resvgTests : SvgUnitTest
             .Replace('%', 'p');
 
         return string.Join("_", safeName.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private enum ResvgFixtureArea
+    {
+        Extra,
+        Filters,
+        Masking,
+        PaintServers,
+        Painting,
+        Shapes,
+        Structure
     }
 }

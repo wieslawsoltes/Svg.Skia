@@ -80,6 +80,7 @@ public partial class SKSvg
 
     public SkiaSharp.SKPicture? CreateRetainedSceneGraphPicture()
     {
+        using var documentFontScope = PushDocumentFonts(SourceDocument, AssetLoader);
         var model = CreateRetainedSceneGraphModel();
         return model is null ? null : SkiaModel.ToSKPicture(model);
     }
@@ -255,6 +256,7 @@ public partial class SKSvg
 
     public SkiaSharp.SKPicture? CreateRetainedSceneNodePicture(SvgSceneNode node, SKRect? clip = null)
     {
+        using var documentFontScope = PushDocumentFonts(SourceDocument, AssetLoader);
         var model = CreateRetainedSceneNodeModel(node, clip);
         return model is null ? null : SkiaModel.ToSKPicture(model);
     }
@@ -273,6 +275,7 @@ public partial class SKSvg
 
     public SkiaSharp.SKPicture? CreateRetainedScenePicture(SvgElement element, SKRect? clip = null)
     {
+        using var documentFontScope = PushDocumentFonts(SourceDocument, AssetLoader);
         var model = CreateRetainedSceneModel(element, clip);
         return model is null ? null : SkiaModel.ToSKPicture(model);
     }

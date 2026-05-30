@@ -54,9 +54,12 @@ const mimeTypes = new Map([
     ['.jpg', 'image/jpeg'],
     ['.jpeg', 'image/jpeg'],
     ['.js', 'application/javascript; charset=utf-8'],
+    ['.otf', 'font/otf'],
     ['.png', 'image/png'],
     ['.svg', 'image/svg+xml; charset=utf-8'],
     ['.txt', 'text/plain; charset=utf-8'],
+    ['.ttf', 'font/ttf'],
+    ['.woff', 'font/woff'],
 ]);
 
 async function readAnimationSeekOverrides()
@@ -103,6 +106,29 @@ function getContentType(filePath)
     return mimeTypes.get(path.extname(filePath).toLowerCase()) ?? 'application/octet-stream';
 }
 
+function tryGetW3CFontResourceFallback(normalizedPath)
+{
+    const svgWoffsDir = path.join(
+        repoRoot,
+        'externals',
+        'W3C_SVG_11_TestSuite',
+        'W3C_SVG_11_TestSuite',
+        'svg',
+        'woffs');
+    if (!normalizedPath.startsWith(`${svgWoffsDir}${path.sep}`))
+    {
+        return null;
+    }
+
+    return path.join(
+        repoRoot,
+        'externals',
+        'W3C_SVG_11_TestSuite',
+        'W3C_SVG_11_TestSuite',
+        'resources',
+        path.basename(normalizedPath));
+}
+
 function createStaticServer(rootPath)
 {
     return http.createServer(async (req, res) =>
@@ -122,10 +148,27 @@ function createStaticServer(rootPath)
                 return;
             }
 
-            const stats = await fs.stat(normalizedPath);
+            let stats;
+            let resolvedPath = normalizedPath;
+            try
+            {
+                stats = await fs.stat(resolvedPath);
+            }
+            catch
+            {
+                const fallbackPath = tryGetW3CFontResourceFallback(resolvedPath);
+                if (!fallbackPath)
+                {
+                    throw new Error('Not Found');
+                }
+
+                resolvedPath = fallbackPath;
+                stats = await fs.stat(resolvedPath);
+            }
+
             const filePath = stats.isDirectory()
-                ? path.join(normalizedPath, 'index.html')
-                : normalizedPath;
+                ? path.join(resolvedPath, 'index.html')
+                : resolvedPath;
 
             const body = await fs.readFile(filePath);
             res.writeHead(200, { 'Content-Type': getContentType(filePath) });
