@@ -284,6 +284,25 @@ public class SkiaSvgAssetLoaderCachingTests
     }
 
     [Fact]
+    public void FindRunTypeface_PreservesDocumentFontFamilyOverride()
+    {
+        const string family = "SvgSkiaAliasBlocky";
+        var document = CreateFontFaceDocument(family, GetW3CResourcePath("Blocky.woff"), "G");
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        using var fontScope = assetLoader.PushDocumentFonts(document);
+
+        var spans = FindTypefaces(assetLoader, family, "G");
+        Assert.Contains(
+            spans,
+            span => string.Equals(span.Typeface?.FamilyName, family, StringComparison.OrdinalIgnoreCase));
+
+        var runTypeface = FindRunTypeface(assetLoader, family, "G");
+
+        Assert.NotNull(runTypeface);
+        Assert.Equal(family, runTypeface!.FamilyName, ignoreCase: true);
+    }
+
+    [Fact]
     public void FromSvg_FontFaceSrcFallbackUsesLaterSupportedSource()
     {
         const string family = "SvgSkiaFallbackSrcBlocky";
