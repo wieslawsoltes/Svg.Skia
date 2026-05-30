@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using SkiaSharp;
 using Svg;
@@ -132,6 +134,34 @@ public class SKSvgSettingsTests : SvgUnitTest
         var shape = Assert.IsType<SvgRectangle>(svg.SourceDocument!.GetElementById("shape"));
         var fill = Assert.IsType<SvgColourServer>(shape.Fill);
         Assert.Equal(Color.FromArgb(255, 11, 22, 33).ToArgb(), fill.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void SetAnimationTime_UsesSettingsSystemColorProviderForAnimatedColors()
+    {
+        using var svg = new SKSvg();
+        svg.Settings.SystemColorProvider = new SvgDictionarySystemColorProvider(new Dictionary<string, Color>
+        {
+            ["Window"] = Color.FromArgb(255, 11, 22, 33),
+            ["Highlight"] = Color.FromArgb(255, 44, 55, 66)
+        });
+
+        svg.FromSvg(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+              <rect id="shape" width="10" height="10" fill="Window">
+                <animateColor attributeName="fill" values="Window;Highlight" dur="2s" fill="freeze" />
+              </rect>
+            </svg>
+            """);
+
+        svg.SetAnimationTime(TimeSpan.FromSeconds(2));
+
+        using var stream = new MemoryStream();
+        Assert.True(svg.Save(stream, SKColors.Transparent));
+        stream.Position = 0;
+        using var bitmap = SKBitmap.Decode(stream);
+        Assert.Equal(new SKColor(44, 55, 66, 255), bitmap.GetPixel(5, 5));
     }
 
     [Fact]

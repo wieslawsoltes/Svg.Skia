@@ -262,15 +262,17 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
             ShimSkiaSharp.SKTypeface spanTypeface,
             SkiaSharp.SKTypeface? nativeTypeface)
         {
+            var spanFamilyName = spanTypeface.FamilyName;
             if (nativeTypeface is null ||
                 nativeTypeface.Handle == IntPtr.Zero ||
-                string.IsNullOrWhiteSpace(spanTypeface.FamilyName) ||
-                spanTypeface.FamilyName.IndexOf(',') < 0)
+                spanFamilyName is null ||
+                string.IsNullOrWhiteSpace(spanFamilyName) ||
+                spanFamilyName.IndexOf(',') < 0)
             {
                 return spanTypeface;
             }
 
-            foreach (var candidate in SkiaModel.EnumerateFontFamilyCandidates(spanTypeface.FamilyName, browserCompatible: true))
+            foreach (var candidate in SkiaModel.EnumerateFontFamilyCandidates(spanFamilyName, browserCompatible: true))
             {
                 var candidateTypeface = ShimSkiaSharp.SKTypeface.FromFamilyName(
                     candidate,

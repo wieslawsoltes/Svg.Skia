@@ -2889,6 +2889,7 @@ public partial class SKSvg : IDisposable
             return false;
         }
 
+        using var systemColorScope = CreateSystemColorProviderScope();
         return RenderAnimationFrame(AnimationController.EvaluateFrameState(time), raiseInvalidation, bypassThrottle);
     }
 
@@ -2899,6 +2900,7 @@ public partial class SKSvg : IDisposable
             return false;
         }
 
+        using var systemColorScope = CreateSystemColorProviderScope();
         var forceRender = DispatchAnimationTimelineCallbacks(ref frameState);
 
         if (!forceRender &&
