@@ -265,7 +265,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
             if (nativeTypeface is null ||
                 nativeTypeface.Handle == IntPtr.Zero ||
                 string.IsNullOrWhiteSpace(spanTypeface.FamilyName) ||
-                !spanTypeface.FamilyName.Contains(',', StringComparison.Ordinal))
+                spanTypeface.FamilyName.IndexOf(',') < 0)
             {
                 return spanTypeface;
             }
