@@ -204,12 +204,14 @@ public class CloneCommandTests
     public void CanvasCommand_DeepClone_ClonesSaveLayer()
     {
         var paint = CloneTestData.CreatePaint();
-        CanvasCommand command = new SaveLayerCanvasCommand(1, paint);
+        var bounds = SKRect.Create(1, 2, 3, 4);
+        CanvasCommand command = new SaveLayerCanvasCommand(1, paint, bounds);
 
         var clone = command.DeepClone();
         var typed = Assert.IsType<SaveLayerCanvasCommand>(clone);
 
         Assert.Equal(1, typed.Count);
+        Assert.Equal(bounds, typed.Bounds);
         Assert.NotSame(paint, typed.Paint);
     }
 }

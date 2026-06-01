@@ -832,6 +832,9 @@ internal static class SvgRegressionValidationScenarios
     private static int CombineSaveLayerCommand(int checksum, SaveLayerCanvasCommand command)
     {
         checksum = Combine(checksum, command.Count);
+        checksum = command.Bounds is { } bounds
+            ? CombineRectCommand(checksum, bounds)
+            : Combine(checksum, 0);
         checksum = CombinePaint(checksum, command.Paint);
         return checksum;
     }

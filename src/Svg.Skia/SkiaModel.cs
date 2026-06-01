@@ -363,6 +363,9 @@ public partial class SkiaModel
 
             _positionedTextCacheRefs.Clear();
             _positionedTextCache = new ConditionalWeakTable<DrawTextBlobCanvasCommand, PositionedTextCache>();
+            _shapedTextCache = null;
+            _lastConvertedPicture = null;
+            _previousConvertedPicture = null;
         }
     }
 
@@ -996,11 +999,13 @@ public partial class SkiaModel
                         ? SkiaSharp.SKImageFilter.CreateBlur(
                             blurImageFilter.SigmaX,
                             blurImageFilter.SigmaY,
+                            SkiaSharp.SKShaderTileMode.Decal,
                             ToSKImageFilter(blurImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateBlur(
                             blurImageFilter.SigmaX,
                             blurImageFilter.SigmaY,
+                            SkiaSharp.SKShaderTileMode.Decal,
                             ToSKImageFilter(blurImageFilter.Input));
                 }
             case ColorFilterImageFilter colorFilterImageFilter:
@@ -1636,6 +1641,142 @@ public partial class SkiaModel
         }
     }
 
+    private bool TryGetOrCreateShapedTextBlob(
+        DrawTextCanvasCommand command,
+        SkiaSharp.SKFont font,
+        string? fontFeatureSettings,
+        string? fontKerning,
+        string? fontVariantLigatures,
+        out SkiaSharp.SKTextBlob textBlob,
+        out float width,
+        out bool disposeAfterUse)
+    {
+        textBlob = null!;
+        width = 0f;
+        disposeAfterUse = false;
+        if (string.IsNullOrEmpty(command.Text) || font.Typeface is null)
+        {
+            return false;
+        }
+
+        var signature = new ShapedTextSignature(
+            new FontSignature(font),
+            fontFeatureSettings,
+            fontKerning,
+            fontVariantLigatures);
+
+        if (!_cacheShapedTextBlobsForCurrentPicture)
+        {
+            if (!TryCreateShapedTextBlob(
+                    command,
+                    font,
+                    fontFeatureSettings,
+                    fontKerning,
+                    fontVariantLigatures,
+                    out textBlob,
+                    out width))
+            {
+                return false;
+            }
+
+            disposeAfterUse = true;
+            return true;
+        }
+
+        lock (_positionedTextCacheLock)
+        {
+            ShapedTextCache? cached = null;
+            var shapedTextCache = _shapedTextCache ??= new ConditionalWeakTable<DrawTextCanvasCommand, ShapedTextCache>();
+            if (shapedTextCache.TryGetValue(command, out var existing))
+            {
+                if (existing.Signature.Equals(signature))
+                {
+                    if (existing.TextBlob.Handle != IntPtr.Zero)
+                    {
+                        textBlob = existing.TextBlob;
+                        width = existing.Width;
+                        return true;
+                    }
+
+                    cached = existing;
+                }
+                else
+                {
+                    cached = existing;
+                }
+
+                shapedTextCache.Remove(command);
+            }
+
+            if (!TryCreateShapedTextBlob(
+                    command,
+                    font,
+                    fontFeatureSettings,
+                    fontKerning,
+                    fontVariantLigatures,
+                    out var created,
+                    out var createdWidth))
+            {
+                DisposeCachedTextBlob(cached?.TextBlob);
+                return false;
+            }
+
+            DisposeCachedTextBlob(cached?.TextBlob);
+            shapedTextCache.Add(command, new ShapedTextCache(signature, created, createdWidth));
+            _positionedTextCacheRefs.Add(new WeakReference<SkiaSharp.SKTextBlob>(created));
+            TrimPositionedTextCacheRefsIfNeeded();
+            textBlob = created;
+            width = createdWidth;
+            return true;
+        }
+    }
+
+    private bool TryCreateShapedTextBlob(
+        DrawTextCanvasCommand command,
+        SkiaSharp.SKFont font,
+        string? fontFeatureSettings,
+        string? fontKerning,
+        string? fontVariantLigatures,
+        out SkiaSharp.SKTextBlob textBlob,
+        out float width)
+    {
+        textBlob = null!;
+        width = 0f;
+        if (!TryShapeText(
+                command.Text,
+                command.X,
+                command.Y,
+                font,
+                rightToLeft: null,
+                fontFeatureSettings,
+                fontKerning,
+                fontVariantLigatures,
+                out var result))
+        {
+            return false;
+        }
+
+        using var builder = new SkiaSharp.SKTextBlobBuilder();
+        builder.AddPositionedRun(result.Codepoints, font, result.Points);
+        var created = builder.Build();
+        if (created is null)
+        {
+            return false;
+        }
+
+        textBlob = created;
+        width = result.Width;
+        return true;
+    }
+
+    private static void DisposeCachedTextBlob(SkiaSharp.SKTextBlob? textBlob)
+    {
+        if (textBlob is not null && textBlob.Handle != IntPtr.Zero)
+        {
+            textBlob.Dispose();
+        }
+    }
+
     public SkiaSharp.SKClipOperation ToSKClipOperation(SKClipOperation clipOperation)
     {
         return clipOperation switch
@@ -1875,7 +2016,11 @@ public partial class SkiaModel
             }
         }
 
-        if (skPathResult is { })
+        if (skPathResult is null && clipPath.Clip?.Clips is { })
+        {
+            skPathResult = ToSKPath(clipPath.Clip);
+        }
+        else if (skPathResult is { })
         {
             if (clipPath.Clip?.Clips is { })
             {
@@ -1883,12 +2028,12 @@ public partial class SkiaModel
                 if (skPathClip is { })
                     skPathResult = skPathResult.Op(skPathClip, SkiaSharp.SKPathOp.Intersect);
             }
+        }
 
-            if (clipPath.Transform is { })
-            {
-                var skMatrix = ToSKMatrix(clipPath.Transform.Value);
-                skPathResult.Transform(skMatrix);
-            }
+        if (skPathResult is { } && clipPath.Transform is { })
+        {
+            var skMatrix = ToSKMatrix(clipPath.Transform.Value);
+            skPathResult.Transform(skMatrix);
         }
 
         return skPathResult;
@@ -1906,16 +2051,45 @@ public partial class SkiaModel
         using var skPictureRecorder = new SkiaSharp.SKPictureRecorder();
         using var skCanvas = skPictureRecorder.BeginRecording(skRect);
 
-        if (commands is { Count: > 0 })
+        var previousCacheShapedTextBlobs = _cacheShapedTextBlobsForCurrentPicture;
+        var previousCacheComplexRenderPaints = _cacheComplexRenderPaintsForCurrentPicture;
+        var cacheRepeatedPictureObjects = ShouldCacheRepeatedPictureObjects(picture);
+        _cacheShapedTextBlobsForCurrentPicture = cacheRepeatedPictureObjects;
+        _cacheComplexRenderPaintsForCurrentPicture = cacheRepeatedPictureObjects;
+        try
         {
-            Draw(picture, skCanvas);
+            if (commands is { Count: > 0 })
+            {
+                Draw(picture, skCanvas);
+            }
+            else
+            {
+                PreserveCullRect(skCanvas, skRect);
+            }
         }
-        else
+        finally
         {
-            PreserveCullRect(skCanvas, skRect);
+            _cacheShapedTextBlobsForCurrentPicture = previousCacheShapedTextBlobs;
+            _cacheComplexRenderPaintsForCurrentPicture = previousCacheComplexRenderPaints;
         }
 
         return skPictureRecorder.EndRecording();
+    }
+
+    private bool ShouldCacheRepeatedPictureObjects(SKPicture picture)
+    {
+        lock (_pictureCacheLock)
+        {
+            if (ReferenceEquals(_lastConvertedPicture, picture) ||
+                ReferenceEquals(_previousConvertedPicture, picture))
+            {
+                return true;
+            }
+
+            _previousConvertedPicture = _lastConvertedPicture;
+            _lastConvertedPicture = picture;
+            return false;
+        }
     }
 
     public SkiaSharp.SKPicture? ToWireframePicture(SKPicture? picture)
@@ -2000,7 +2174,18 @@ public partial class SkiaModel
                         var paint = wireframe
                             ? ToWireframePaint(saveLayerCanvasCommand.Paint)
                             : GetRenderPaint(saveLayerCanvasCommand.Paint);
-                        skCanvas.SaveLayer(paint);
+                        if (saveLayerCanvasCommand.Bounds is { } bounds)
+                        {
+                            skCanvas.SaveLayer(ToSKRect(bounds), paint);
+                        }
+                        else
+                        {
+                            skCanvas.SaveLayer(paint);
+                        }
+                    }
+                    else if (saveLayerCanvasCommand.Bounds is { } bounds)
+                    {
+                        skCanvas.SaveLayer(ToSKRect(bounds), null);
                     }
                     else
                     {
@@ -2128,17 +2313,36 @@ public partial class SkiaModel
                             : paint;
                         try
                         {
-                            if (!TryDrawShapedText(
-                                    skCanvas,
-                                    text,
-                                    x,
-                                    y,
-                                    textAlign,
+                            if (TryGetOrCreateShapedTextBlob(
+                                    drawTextCanvasCommand,
                                     font,
-                                    textPaint,
                                     drawTextCanvasCommand.Paint.FontFeatureSettings,
                                     drawTextCanvasCommand.Paint.FontKerning,
-                                    drawTextCanvasCommand.Paint.FontVariantLigatures))
+                                    drawTextCanvasCommand.Paint.FontVariantLigatures,
+                                    out var textBlob,
+                                    out var shapedTextWidth,
+                                    out var disposeTextBlobAfterUse))
+                            {
+                                try
+                                {
+                                    var xOffset = textAlign switch
+                                    {
+                                        SkiaSharp.SKTextAlign.Center => -(shapedTextWidth * 0.5f),
+                                        SkiaSharp.SKTextAlign.Right => -shapedTextWidth,
+                                        _ => 0f
+                                    };
+
+                                    skCanvas.DrawText(textBlob, xOffset, 0, textPaint);
+                                }
+                                finally
+                                {
+                                    if (disposeTextBlobAfterUse)
+                                    {
+                                        textBlob.Dispose();
+                                    }
+                                }
+                            }
+                            else
                             {
                                 skCanvas.DrawText(text, x, y, textPaint);
                             }

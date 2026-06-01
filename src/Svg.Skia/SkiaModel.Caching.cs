@@ -171,6 +171,65 @@ public partial class SkiaModel
         public SkiaSharp.SKTextBlob TextBlob { get; }
     }
 
+    private readonly struct ShapedTextSignature : IEquatable<ShapedTextSignature>
+    {
+        public ShapedTextSignature(
+            FontSignature font,
+            string? fontFeatureSettings,
+            string? fontKerning,
+            string? fontVariantLigatures)
+        {
+            Font = font;
+            FontFeatureSettings = fontFeatureSettings;
+            FontKerning = fontKerning;
+            FontVariantLigatures = fontVariantLigatures;
+        }
+
+        public FontSignature Font { get; }
+        public string? FontFeatureSettings { get; }
+        public string? FontKerning { get; }
+        public string? FontVariantLigatures { get; }
+
+        public bool Equals(ShapedTextSignature other)
+        {
+            return Font.Equals(other.Font) &&
+                   string.Equals(FontFeatureSettings, other.FontFeatureSettings, StringComparison.Ordinal) &&
+                   string.Equals(FontKerning, other.FontKerning, StringComparison.Ordinal) &&
+                   string.Equals(FontVariantLigatures, other.FontVariantLigatures, StringComparison.Ordinal);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is ShapedTextSignature other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash = Font.GetHashCode();
+                hash = (hash * 397) ^ (FontFeatureSettings?.GetHashCode() ?? 0);
+                hash = (hash * 397) ^ (FontKerning?.GetHashCode() ?? 0);
+                hash = (hash * 397) ^ (FontVariantLigatures?.GetHashCode() ?? 0);
+                return hash;
+            }
+        }
+    }
+
+    private sealed class ShapedTextCache
+    {
+        public ShapedTextCache(ShapedTextSignature signature, SkiaSharp.SKTextBlob textBlob, float width)
+        {
+            Signature = signature;
+            TextBlob = textBlob;
+            Width = width;
+        }
+
+        public ShapedTextSignature Signature { get; }
+        public SkiaSharp.SKTextBlob TextBlob { get; }
+        public float Width { get; }
+    }
+
     private sealed class NativePaintCacheEntry
     {
         public NativePaintCacheEntry(int version, SkiaSharp.SKPaint paint)
@@ -261,6 +320,7 @@ public partial class SkiaModel
     private readonly object _pictureCacheLock = new();
     private readonly object _nativeObjectCacheLock = new();
     private ConditionalWeakTable<DrawTextBlobCanvasCommand, PositionedTextCache> _positionedTextCache = new();
+    private ConditionalWeakTable<DrawTextCanvasCommand, ShapedTextCache>? _shapedTextCache;
     private ConditionalWeakTable<ShimSkiaSharp.SKPaint, NativePaintCacheEntry> _nativePaintCache = new();
     private ConditionalWeakTable<ShimSkiaSharp.SKPath, NativePathCacheEntry> _nativePathCache = new();
     private ConditionalWeakTable<ShimSkiaSharp.SKImage, NativeImageCacheEntry> _nativeImageCache = new();
@@ -272,6 +332,10 @@ public partial class SkiaModel
     private readonly Dictionary<ShimSkiaSharp.SKPicture, SkiaSharp.SKPicture> _pictureCache = new(PictureReferenceEqualityComparer.Instance);
     private IList<ITypefaceProvider>? _providerStateList;
     private int _providerStateHash;
+    private ShimSkiaSharp.SKPicture? _lastConvertedPicture;
+    private ShimSkiaSharp.SKPicture? _previousConvertedPicture;
+    private bool _cacheShapedTextBlobsForCurrentPicture;
+    private bool _cacheComplexRenderPaintsForCurrentPicture;
 
     private static bool CanCacheRenderPaint(ShimSkiaSharp.SKPaint paint)
     {
@@ -919,7 +983,14 @@ public partial class SkiaModel
             return null;
         }
 
-        if (!CanCacheRenderPaint(paint))
+        var canCacheSimplePaint = CanCacheRenderPaint(paint);
+        if (!canCacheSimplePaint && !_cacheComplexRenderPaintsForCurrentPicture)
+        {
+            return CreateRenderPaint(paint);
+        }
+
+        var revision = paint.Version;
+        if (!canCacheSimplePaint && !TryGetPaintRevision(paint, CreateVisitedSet(), out revision))
         {
             return CreateRenderPaint(paint);
         }
@@ -927,7 +998,7 @@ public partial class SkiaModel
         lock (_nativeObjectCacheLock)
         {
             if (_nativePaintCache.TryGetValue(paint, out var cached) &&
-                cached.Version == paint.Version &&
+                cached.Version == revision &&
                 cached.Paint.Handle != IntPtr.Zero)
             {
                 return cached.Paint;
@@ -940,7 +1011,7 @@ public partial class SkiaModel
             }
 
             _nativePaintCache.Remove(paint);
-            _nativePaintCache.Add(paint, new NativePaintCacheEntry(paint.Version, created));
+            _nativePaintCache.Add(paint, new NativePaintCacheEntry(revision, created));
             return created;
         }
     }

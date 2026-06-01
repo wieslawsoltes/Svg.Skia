@@ -38,7 +38,7 @@ public abstract record CanvasCommand : IDeepCloneable<CanvasCommand>
                 DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand => new DrawTextOnPathCanvasCommand(drawTextOnPathCanvasCommand.Text, drawTextOnPathCanvasCommand.Path?.DeepClone(context), drawTextOnPathCanvasCommand.HOffset, drawTextOnPathCanvasCommand.VOffset, drawTextOnPathCanvasCommand.Paint?.DeepClone(context), drawTextOnPathCanvasCommand.TextAlign, drawTextOnPathCanvasCommand.Font?.DeepClone(context)),
                 RestoreCanvasCommand restoreCanvasCommand => new RestoreCanvasCommand(restoreCanvasCommand.Count),
                 SaveCanvasCommand saveCanvasCommand => new SaveCanvasCommand(saveCanvasCommand.Count),
-                SaveLayerCanvasCommand saveLayerCanvasCommand => new SaveLayerCanvasCommand(saveLayerCanvasCommand.Count, saveLayerCanvasCommand.Paint?.DeepClone(context)),
+                SaveLayerCanvasCommand saveLayerCanvasCommand => new SaveLayerCanvasCommand(saveLayerCanvasCommand.Count, saveLayerCanvasCommand.Paint?.DeepClone(context), saveLayerCanvasCommand.Bounds),
                 SetMatrixCanvasCommand setMatrixCanvasCommand => new SetMatrixCanvasCommand(setMatrixCanvasCommand.DeltaMatrix, setMatrixCanvasCommand.TotalMatrix),
                 _ => throw new NotSupportedException($"Unsupported {nameof(CanvasCommand)} type: {GetType().Name}.")
             };
@@ -81,7 +81,7 @@ public record RestoreCanvasCommand(int Count) : CanvasCommand;
 
 public record SaveCanvasCommand(int Count) : CanvasCommand;
 
-public record SaveLayerCanvasCommand(int Count, SKPaint? Paint = null) : CanvasCommand;
+public record SaveLayerCanvasCommand(int Count, SKPaint? Paint = null, SKRect? Bounds = null) : CanvasCommand;
 
 public record SetMatrixCanvasCommand(SKMatrix DeltaMatrix, SKMatrix TotalMatrix) : CanvasCommand;
 
@@ -264,6 +264,14 @@ public class SKCanvas : ICloneable, IDeepCloneable<SKCanvas>
     {
         _totalMatrices.Push(TotalMatrix);
         AddCommand(new SaveLayerCanvasCommand(_saveCount, paint));
+        _saveCount++;
+        return _saveCount;
+    }
+
+    public int SaveLayer(SKRect bounds, SKPaint? paint)
+    {
+        _totalMatrices.Push(TotalMatrix);
+        AddCommand(new SaveLayerCanvasCommand(_saveCount, paint, bounds));
         _saveCount++;
         return _saveCount;
     }

@@ -795,9 +795,12 @@ public static class SvgSceneRenderer
             if (node.FilterGlobalClip is { } globalClip)
             {
                 canvas.ClipRect(globalClip, SKClipOperation.Intersect);
+                canvas.SaveLayer(globalClip, filter);
             }
-
-            canvas.SaveLayer(filter);
+            else
+            {
+                canvas.SaveLayer(filter);
+            }
             canvas.SetMatrix(node.TotalTransform);
             return true;
         }
@@ -805,9 +808,12 @@ public static class SvgSceneRenderer
         if (node.FilterClip is { } filterClip)
         {
             canvas.ClipRect(filterClip, SKClipOperation.Intersect);
+            canvas.SaveLayer(filterClip, filter);
         }
-
-        canvas.SaveLayer(filter);
+        else
+        {
+            canvas.SaveLayer(filter);
+        }
         return false;
     }
 

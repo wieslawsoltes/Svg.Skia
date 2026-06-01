@@ -889,9 +889,12 @@ public partial class SKSvg
             if (node.FilterClip is { } filterClip)
             {
                 canvas.ClipRect(filterClip, SKClipOperation.Intersect);
+                canvas.SaveLayer(filterClip, filter);
             }
-
-            canvas.SaveLayer(filter);
+            else
+            {
+                canvas.SaveLayer(filter);
+            }
         }
 
         SvgSceneRenderer.DrawNodeLocalVisuals(node, canvas);

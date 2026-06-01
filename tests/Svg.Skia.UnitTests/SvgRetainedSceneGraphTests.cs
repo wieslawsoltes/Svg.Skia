@@ -5928,7 +5928,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
-    public void RetainedSceneGraph_HandlesConditionalAttributesWithChromeCompatibleBehavior()
+    public void RetainedSceneGraph_HandlesConditionalAttributesWithStandardsBehavior()
     {
         using var svg = new SKSvg();
         svg.FromSvg(ConditionalReferenceSvg);
@@ -5938,7 +5938,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.True(scene!.TryGetNodeById("feature-group", out var featureGroup));
         Assert.True(scene.TryGetNodeById("extension-group", out var extensionGroup));
         Assert.True(scene.TryGetNodeById("language-group", out var languageGroup));
-        Assert.False(featureGroup!.SuppressSubtreeRendering);
+        Assert.True(featureGroup!.SuppressSubtreeRendering);
         Assert.True(extensionGroup!.SuppressSubtreeRendering);
         Assert.True(languageGroup!.SuppressSubtreeRendering);
 
@@ -5946,7 +5946,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
 
         using var bitmap = ToBitmap(svg, svg.Picture!);
 
-        var directFeaturePixel = bitmap.GetPixel(6, 6);
+        Assert.Equal(0, bitmap.GetPixel(6, 6).Alpha);
         Assert.Equal(0, bitmap.GetPixel(6, 22).Alpha);
         Assert.Equal(0, bitmap.GetPixel(6, 38).Alpha);
 
@@ -5954,7 +5954,6 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         var extensionPixel = bitmap.GetPixel(22, 22);
         var languagePixel = bitmap.GetPixel(22, 38);
 
-        Assert.True(directFeaturePixel.Red > 200 && directFeaturePixel.Alpha > 0, $"Expected requiredFeatures rect to render but was {directFeaturePixel}.");
         Assert.True(featurePixel.Red > 200 && featurePixel.Alpha > 0, $"Expected referenced feature rect to render but was {featurePixel}.");
         Assert.True(extensionPixel.Green > 200 && extensionPixel.Alpha > 0, $"Expected referenced extension rect to render but was {extensionPixel}.");
         Assert.True(languagePixel.Blue > 200 && languagePixel.Alpha > 0, $"Expected referenced language rect to render but was {languagePixel}.");

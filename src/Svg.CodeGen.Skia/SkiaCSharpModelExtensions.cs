@@ -1808,7 +1808,15 @@ public static class SkiaCSharpModelExtensions
 
             if (!isDefaultPathClip)
             {
-                sb.AppendLine($"{indent}{counter.PathVarName}{counterPathResult} = {counter.PathVarName}{counterPathResult}.Op({counter.PathVarName}{counterPathClip}, SKPathOp.Intersect);");
+                if (isDefaultPathResult)
+                {
+                    sb.AppendLine($"{indent}var {counter.PathVarName}{counterPathResult} = {counter.PathVarName}{counterPathClip};");
+                    isDefaultPathResult = false;
+                }
+                else
+                {
+                    sb.AppendLine($"{indent}{counter.PathVarName}{counterPathResult} = {counter.PathVarName}{counterPathResult}.Op({counter.PathVarName}{counterPathClip}, SKPathOp.Intersect);");
+                }
             }
         }
 
@@ -1889,11 +1897,19 @@ public static class SkiaCSharpModelExtensions
                     }
                 case SaveLayerCanvasCommand saveLayerCanvasCommand:
                     {
+                        var bounds = saveLayerCanvasCommand.Bounds?.ToSKRect();
                         if (saveLayerCanvasCommand.Paint is { })
                         {
                             var counterPaint = ++counter.Paint;
                             saveLayerCanvasCommand.Paint.ToSKPaint(counter, sb, indent);
-                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer({counter.PaintVarName}{counterPaint});");
+                            if (bounds is { })
+                            {
+                                sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer({bounds}, {counter.PaintVarName}{counterPaint});");
+                            }
+                            else
+                            {
+                                sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer({counter.PaintVarName}{counterPaint});");
+                            }
 
                             // NOTE: Do not dispose created SKTypeface by font manager.
 #if USE_DISPOSE_TYPEFACE
@@ -1923,6 +1939,10 @@ public static class SkiaCSharpModelExtensions
                             }
 
                             sb.AppendLine($"{indent}{counter.PaintVarName}{counterPaint}?.Dispose();");
+                        }
+                        else if (bounds is { })
+                        {
+                            sb.AppendLine($"{indent}{counter.CanvasVarName}{counterCanvas}.SaveLayer({bounds}, null);");
                         }
                         else
                         {

@@ -12880,9 +12880,12 @@ internal static partial class SvgSceneTextCompiler
             if (simpleFilterClip is { } resolvedSimpleFilterClip)
             {
                 canvas.ClipRect(resolvedSimpleFilterClip, SKClipOperation.Intersect);
+                canvas.SaveLayer(resolvedSimpleFilterClip, simpleFilterPaint);
             }
-
-            canvas.SaveLayer(simpleFilterPaint);
+            else
+            {
+                canvas.SaveLayer(simpleFilterPaint);
+            }
             DrawStretchedTextPathRun(run, geometryBounds, ignoreAttributes, canvas, assetLoader, getElementAddressKey, includeFill: true, includeStroke: true, includeDecorations: true, contextPaint);
             canvas.Restore();
             canvas.Restore();
@@ -12925,9 +12928,12 @@ internal static partial class SvgSceneTextCompiler
         if (filterContext.FilterClip is { } filterClip)
         {
             canvas.ClipRect(filterClip, SKClipOperation.Intersect);
+            canvas.SaveLayer(filterClip, filterContext.FilterPaint);
         }
-
-        canvas.SaveLayer(filterContext.FilterPaint);
+        else
+        {
+            canvas.SaveLayer(filterContext.FilterPaint);
+        }
         canvas.DrawPicture(sourceGraphic);
         canvas.Restore();
         canvas.Restore();
@@ -12970,9 +12976,12 @@ internal static partial class SvgSceneTextCompiler
             if (simpleFilterClip is { } resolvedSimpleFilterClip)
             {
                 canvas.ClipRect(resolvedSimpleFilterClip, SKClipOperation.Intersect);
+                canvas.SaveLayer(resolvedSimpleFilterClip, simpleFilterPaint);
             }
-
-            canvas.SaveLayer(simpleFilterPaint);
+            else
+            {
+                canvas.SaveLayer(simpleFilterPaint);
+            }
             DrawPositionedTextPathRun(run, geometryBounds, ignoreAttributes, canvas, assetLoader, getElementAddressKey, includeFill: true, includeStroke: true, includeDecorations: true, contextPaint);
             canvas.Restore();
             canvas.Restore();
@@ -13015,9 +13024,12 @@ internal static partial class SvgSceneTextCompiler
         if (filterContext.FilterClip is { } filterClip)
         {
             canvas.ClipRect(filterClip, SKClipOperation.Intersect);
+            canvas.SaveLayer(filterClip, filterContext.FilterPaint);
         }
-
-        canvas.SaveLayer(filterContext.FilterPaint);
+        else
+        {
+            canvas.SaveLayer(filterContext.FilterPaint);
+        }
         canvas.DrawPicture(sourceGraphic);
         canvas.Restore();
         canvas.Restore();

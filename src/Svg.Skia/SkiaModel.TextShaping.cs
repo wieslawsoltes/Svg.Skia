@@ -18,48 +18,6 @@ public partial class SkiaModel
     private const int HarfBuzzFontScale = 512;
     private const float MinimumStableTextMeasureSize = 16f;
 
-    private bool TryDrawShapedText(
-        SkiaSharp.SKCanvas canvas,
-        string text,
-        float x,
-        float y,
-        SkiaSharp.SKTextAlign textAlign,
-        SkiaSharp.SKFont font,
-        SkiaSharp.SKPaint paint,
-        string? fontFeatureSettings,
-        string? fontKerning,
-        string? fontVariantLigatures)
-    {
-        if (!TryShapeText(text, x, y, font, null, fontFeatureSettings, fontKerning, fontVariantLigatures, out var result))
-        {
-            return false;
-        }
-
-        using var builder = new SkiaSharp.SKTextBlobBuilder();
-        var glyphs = new ushort[result.Codepoints.Length];
-        for (var i = 0; i < result.Codepoints.Length; i++)
-        {
-            glyphs[i] = result.Codepoints[i];
-        }
-
-        builder.AddPositionedRun(glyphs, font, result.Points);
-        using var textBlob = builder.Build();
-        if (textBlob is null)
-        {
-            return false;
-        }
-
-        var xOffset = textAlign switch
-        {
-            SkiaSharp.SKTextAlign.Center => -(result.Width * 0.5f),
-            SkiaSharp.SKTextAlign.Right => -result.Width,
-            _ => 0f
-        };
-
-        canvas.DrawText(textBlob, xOffset, 0, paint);
-        return true;
-    }
-
     internal float GetTextAdvance(string text, SkiaSharp.SKPaint paint)
     {
         return GetTextAdvance(text, paint, fontFeatureSettings: null, fontKerning: null, fontVariantLigatures: null);
