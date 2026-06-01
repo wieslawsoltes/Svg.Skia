@@ -15,6 +15,8 @@ internal sealed class SvgSceneFilterContext
 {
     private static readonly char[] s_colorMatrixSplitChars = { ' ', '\t', '\n', '\r', ',' };
 
+    private static readonly IReadOnlyList<CssFilterStep> s_emptyCssFilterSteps = Array.Empty<CssFilterStep>();
+
     private const string SourceGraphic = "SourceGraphic";
 
     private const string SourceAlpha = "SourceAlpha";
@@ -422,6 +424,10 @@ internal sealed class SvgSceneFilterContext
                     var input1FilterResult = GetInputFilter(input1Key, colorInterpolationFilters, _skFilterRegion, isFirst);
                     var input2Key = svgBlend.Input2;
                     var input2FilterResult = GetInputFilter(input2Key, colorInterpolationFilters, _skFilterRegion, false);
+                    if (input2FilterResult is null && string.IsNullOrWhiteSpace(input2Key) && input1FilterResult is { })
+                    {
+                        input2FilterResult = input1FilterResult;
+                    }
                     if (input2FilterResult is null)
                     {
                         break;
@@ -478,6 +484,10 @@ internal sealed class SvgSceneFilterContext
                     var input1FilterResult = GetInputFilter(input1Key, colorInterpolationFilters, _skFilterRegion, isFirst);
                     var input2Key = svgComposite.Input2;
                     var input2FilterResult = GetInputFilter(input2Key, colorInterpolationFilters, _skFilterRegion, false);
+                    if (input2FilterResult is null && string.IsNullOrWhiteSpace(input2Key) && input1FilterResult is { })
+                    {
+                        input2FilterResult = input1FilterResult;
+                    }
                     if (input2FilterResult is null)
                     {
                         break;
@@ -597,12 +607,19 @@ internal sealed class SvgSceneFilterContext
             case SvgGaussianBlur svgGaussianBlur:
                 {
                     var inputKey = svgGaussianBlur.Input;
-                    var inputFilterResult = GetInputFilter(inputKey, colorInterpolationFilters, _skFilterRegion, isFirst);
+                    var useImplicitSourceGraphic = IsImplicitSourceGraphicInput(inputKey, isFirst) &&
+                                                   !_results.ContainsKey(SourceGraphic) &&
+                                                   CanCreateBlur(svgGaussianBlur);
+                    var inputFilterResult = useImplicitSourceGraphic
+                        ? null
+                        : GetInputFilter(inputKey, colorInterpolationFilters, _skFilterRegion, isFirst);
                     var skFilterPrimitiveRegion = GetFilterPrimitiveRegion(primitiveContext, inputFilterResult);
                     var skCropRect = skFilterPrimitiveRegion;
-                    var input = ApplyColourInterpolationAndClip(inputFilterResult, colorInterpolationFilters, skFilterPrimitiveRegion);
+                    var input = useImplicitSourceGraphic
+                        ? ApplyImplicitSourceGraphic(colorInterpolationFilters, skFilterPrimitiveRegion)
+                        : ApplyColourInterpolationAndClip(inputFilterResult, colorInterpolationFilters, skFilterPrimitiveRegion);
                     var skImageFilter = CreateBlur(svgGaussianBlur, input, skCropRect);
-                    _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
+                    _lastResult = GetFilterResultOrPassThrough(svgFilterPrimitive, skImageFilter, colorInterpolationFilters, inputFilterResult);
                     if (skImageFilter is { })
                     {
                         _regions[skImageFilter] = skFilterPrimitiveRegion;
@@ -661,7 +678,7 @@ internal sealed class SvgSceneFilterContext
                     var skCropRect = skFilterPrimitiveRegion;
                     var input = ApplyColourInterpolationAndClip(inputFilterResult, colorInterpolationFilters, skFilterPrimitiveRegion);
                     var skImageFilter = CreateMorphology(svgMorphology, input, skCropRect);
-                    _lastResult = GetFilterResult(svgFilterPrimitive, skImageFilter, colorInterpolationFilters);
+                    _lastResult = GetFilterResultOrPassThrough(svgFilterPrimitive, skImageFilter, colorInterpolationFilters, inputFilterResult);
                     if (skImageFilter is { })
                     {
                         _regions[skImageFilter] = skFilterPrimitiveRegion;
@@ -862,12 +879,25 @@ internal sealed class SvgSceneFilterContext
 
     internal static Uri? GetFilterReferenceUri(SvgVisualElement visualElement)
     {
-        foreach (var filterUri in GetFilterReferenceUris(visualElement))
+        if (TryGetCssFilterSteps(visualElement, SKRect.Empty, out var cssFilterSteps))
         {
-            return filterUri;
+            foreach (var step in cssFilterSteps)
+            {
+                if (step.Uri is { } uri)
+                {
+                    return uri;
+                }
+            }
+
+            return null;
         }
 
-        return null;
+        return GetLegacyFilterReferenceUri(visualElement);
+    }
+
+    internal static bool HasFilterReference(SvgVisualElement visualElement)
+    {
+        return GetFilterReferenceUri(visualElement) is not null;
     }
 
     internal static IEnumerable<Uri> GetFilterReferenceUris(SvgVisualElement visualElement)
@@ -940,7 +970,7 @@ internal sealed class SvgSceneFilterContext
         return filterUri is { };
     }
 
-    private bool TryInitializeCssFilterList(List<CssFilterStep> steps, out bool hasFilter)
+    private bool TryInitializeCssFilterList(IReadOnlyList<CssFilterStep> steps, out bool hasFilter)
     {
         hasFilter = false;
         SKImageFilter? current = null;
@@ -950,7 +980,7 @@ internal sealed class SvgSceneFilterContext
         {
             if (step.Function is { } function)
             {
-                var filterRegion = CalculateCssFilterRegion(currentRegion, new List<CssFilterFunction> { function });
+                var filterRegion = CalculateCssFilterRegion(currentRegion, function);
                 current = CreateCssFilterFunction(function, current, filterRegion);
                 if (current is null)
                 {
@@ -1075,7 +1105,7 @@ internal sealed class SvgSceneFilterContext
         return SKImageFilter.CreateMerge(new[] { shadow, source }, cropRect);
     }
 
-    private static SKRect CalculateCssFilterRegion(SKRect sourceBounds, List<CssFilterFunction> functions)
+    private static SKRect CalculateCssFilterRegion(SKRect sourceBounds, CssFilterFunction function)
     {
         var region = sourceBounds;
 
@@ -1084,28 +1114,23 @@ internal sealed class SvgSceneFilterContext
             return region;
         }
 
-        foreach (var function in functions)
+        switch (function.Name)
         {
-            switch (function.Name)
-            {
-                case "blur":
-                    region = Inflate(region, function.Values[0] * 3f, function.Values[0] * 3f);
-                    break;
-                case "drop-shadow":
-                    var shadow = Offset(region, function.Values[0], function.Values[1]);
-                    shadow = Inflate(shadow, function.Values[2] * 3f, function.Values[2] * 3f);
-                    region = SKRect.Union(region, shadow);
-                    break;
-            }
+            case "blur":
+                region = Inflate(region, function.Values[0] * 3f, function.Values[0] * 3f);
+                break;
+            case "drop-shadow":
+                var shadow = Offset(region, function.Values[0], function.Values[1]);
+                shadow = Inflate(shadow, function.Values[2] * 3f, function.Values[2] * 3f);
+                region = SKRect.Union(region, shadow);
+                break;
         }
 
         return region;
     }
 
-    private static bool TryGetCssFilterSteps(SvgVisualElement visualElement, SKRect bounds, out List<CssFilterStep> steps)
+    private static bool TryGetCssFilterSteps(SvgVisualElement visualElement, SKRect bounds, out IReadOnlyList<CssFilterStep> steps)
     {
-        steps = new List<CssFilterStep>();
-
         if (visualElement.TryGetOwnCascadedCssDeclarationValue("filter", out var cssValue))
         {
             return TryGetCssFilterStepsFromValue(cssValue, visualElement, bounds, invalidVarComputesToNone: true, allowUnitlessLengths: false, out steps);
@@ -1118,6 +1143,7 @@ internal sealed class SvgSceneFilterContext
 
         if (!visualElement.TryGetOwnCascadedStyleValue("filter", out var value))
         {
+            steps = s_emptyCssFilterSteps;
             return false;
         }
 
@@ -1296,9 +1322,9 @@ internal sealed class SvgSceneFilterContext
         SKRect bounds,
         bool invalidVarComputesToNone,
         bool allowUnitlessLengths,
-        out List<CssFilterStep> steps)
+        out IReadOnlyList<CssFilterStep> steps)
     {
-        steps = new List<CssFilterStep>();
+        steps = s_emptyCssFilterSteps;
         if (string.IsNullOrWhiteSpace(value))
         {
             return invalidVarComputesToNone;
@@ -1333,13 +1359,14 @@ internal sealed class SvgSceneFilterContext
             return true;
         }
 
-        if (!TryParseCssFilterList(value, visualElement, bounds, allowUnitlessLengths, out steps) ||
-            steps.Count == 0)
+        if (!TryParseCssFilterList(value, visualElement, bounds, allowUnitlessLengths, out var parsedSteps) ||
+            parsedSteps.Count == 0)
         {
-            steps.Clear();
+            steps = s_emptyCssFilterSteps;
             return invalidVarComputesToNone;
         }
 
+        steps = parsedSteps;
         return true;
     }
 
@@ -1427,9 +1454,10 @@ internal sealed class SvgSceneFilterContext
         return false;
     }
 
-    private static bool TryParseCssFilterList(string value, SvgVisualElement? visualElement, SKRect bounds, bool allowUnitlessLengths, out List<CssFilterStep> steps)
+    private static bool TryParseCssFilterList(string value, SvgVisualElement? visualElement, SKRect bounds, bool allowUnitlessLengths, out IReadOnlyList<CssFilterStep> steps)
     {
-        steps = new List<CssFilterStep>();
+        List<CssFilterStep>? parsedSteps = null;
+        steps = s_emptyCssFilterSteps;
         var index = 0;
 
         while (index < value.Length)
@@ -1447,7 +1475,8 @@ internal sealed class SvgSceneFilterContext
                     return false;
                 }
 
-                steps.Add(new CssFilterStep(filterUri));
+                parsedSteps ??= new List<CssFilterStep>();
+                parsedSteps.Add(new CssFilterStep(filterUri));
                 continue;
             }
 
@@ -1496,9 +1525,11 @@ internal sealed class SvgSceneFilterContext
                 return false;
             }
 
-            steps.Add(new CssFilterStep(function));
+            parsedSteps ??= new List<CssFilterStep>();
+            parsedSteps.Add(new CssFilterStep(function));
         }
 
+        steps = parsedSteps ?? s_emptyCssFilterSteps;
         return true;
     }
 
@@ -3261,6 +3292,17 @@ internal sealed class SvgSceneFilterContext
         return default;
     }
 
+    private SvgSceneFilterResult? GetFilterResultOrPassThrough(
+        SvgFilterPrimitive svgFilterPrimitive,
+        SKImageFilter? skImageFilter,
+        SvgColourInterpolation colorSpace,
+        SvgSceneFilterResult? passThrough)
+    {
+        return skImageFilter is { }
+            ? GetFilterResult(svgFilterPrimitive, skImageFilter, colorSpace)
+            : passThrough;
+    }
+
     private List<SvgFilter>? GetLinkedFilter(SvgVisualElement svgVisualElement, HashSet<Uri> uris)
         => GetLinkedFilter(svgVisualElement, svgVisualElement.Filter, uris);
 
@@ -3451,6 +3493,39 @@ internal sealed class SvgSceneFilterContext
         return assetLoader is not ISvgFilterBackgroundInputOptions { EnableFilterBackgroundInputs: false };
     }
 
+    private static bool IsImplicitSourceGraphicInput(string? inputKey, bool isFirst)
+    {
+        return string.Equals(inputKey, SourceGraphic, StringComparison.Ordinal) ||
+               (isFirst && string.IsNullOrWhiteSpace(inputKey));
+    }
+
+    private bool CanCreateBlur(SvgGaussianBlur svgGaussianBlur)
+    {
+        TransformsService.GetOptionalNumbers(svgGaussianBlur.StdDeviation, 0f, 0f, out var sigmaX, out var sigmaY);
+
+        if (_primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox)
+        {
+            var value = TransformsService.CalculateOtherPercentageValue(_skBounds);
+            sigmaX *= value;
+            sigmaY *= value;
+        }
+
+        return IsFinite(sigmaX) && IsFinite(sigmaY) && sigmaX >= 0f && sigmaY >= 0f;
+    }
+
+    private SKImageFilter? ApplyImplicitSourceGraphic(SvgColourInterpolation dst, SKRect clip)
+    {
+        SKImageFilter? filter = dst switch
+        {
+            SvgColourInterpolation.LinearRGB => SKImageFilter.CreateColorFilter(FilterEffectsService.SRGBToLinearGamma(), null),
+            _ => null
+        };
+
+        return IsUsableRegion(clip) && !AreSameRegion(_skFilterRegion, clip)
+            ? CreateIdentityCropFilter(filter, clip)
+            : filter;
+    }
+
     private float CalculateHorizontal(SvgElement svgElement, SvgUnit unit)
     {
         var useBoundingBox = _primitiveUnits == SvgCoordinateUnits.ObjectBoundingBox;
@@ -3482,6 +3557,12 @@ internal sealed class SvgSceneFilterContext
 
         return value;
     }
+
+    private float CalculateHorizontalNumber(SvgElement svgElement, SvgUnit unit, float fallback)
+        => unit.Type == SvgUnitType.Percentage ? fallback : CalculateHorizontal(svgElement, unit);
+
+    private float CalculateVerticalNumber(SvgElement svgElement, SvgUnit unit, float fallback)
+        => unit.Type == SvgUnitType.Percentage ? fallback : CalculateVertical(svgElement, unit);
 
     private SKBlendMode GetBlendMode(SvgBlendMode svgBlendMode)
     {
@@ -3566,7 +3647,7 @@ internal sealed class SvgSceneFilterContext
 
             case SvgColourMatrixType.Saturate:
                 {
-                    var value = TryParseFiniteSingle(svgColourMatrix.Values, 1f);
+                    var value = Clamp01(TryParseFiniteSingle(svgColourMatrix.Values, 1f));
                     float[] matrix = {
                         (float)(0.213+0.787*value), (float)(0.715-0.715*value), (float)(0.072-0.072*value), 0, 0,
                         (float)(0.213-0.213*value), (float)(0.715+0.285*value), (float)(0.072-0.072*value), 0, 0,
@@ -3837,6 +3918,11 @@ internal sealed class SvgSceneFilterContext
         }
 
         var divisor = svgConvolveMatrix.Divisor;
+        if (svgConvolveMatrix.ContainsAttribute("divisor") && Math.Abs(divisor) <= float.Epsilon)
+        {
+            return default;
+        }
+
         if (divisor == 0f)
         {
             foreach (var value in kernel)
@@ -4040,8 +4126,8 @@ internal sealed class SvgSceneFilterContext
 
         var floodAlpha = PaintingService.CombineWithOpacity(floodColor.Value.Alpha, svgDropShadow.FloodOpacity);
         var filterFloodColor = ConvertToFilterColorSpace(floodColor.Value, colorInterpolationFilters);
-        var dx = CalculateHorizontal(svgDropShadow, svgDropShadow.Dx);
-        var dy = CalculateVertical(svgDropShadow, svgDropShadow.Dy);
+        var dx = CalculateHorizontalNumber(svgDropShadow, svgDropShadow.Dx, 2f);
+        var dy = CalculateVerticalNumber(svgDropShadow, svgDropShadow.Dy, 2f);
         if (!IsFinite(dx) || !IsFinite(dy))
         {
             return default;
@@ -4952,8 +5038,8 @@ internal sealed class SvgSceneFilterContext
     {
         var dxUnit = svgOffset.Dx;
         var dyUnit = svgOffset.Dy;
-        var dx = CalculateHorizontal(svgOffset, dxUnit);
-        var dy = CalculateVertical(svgOffset, dyUnit);
+        var dx = CalculateHorizontalNumber(svgOffset, dxUnit, 0f);
+        var dy = CalculateVerticalNumber(svgOffset, dyUnit, 0f);
         if (!IsFinite(dx) || !IsFinite(dy))
         {
             return default;

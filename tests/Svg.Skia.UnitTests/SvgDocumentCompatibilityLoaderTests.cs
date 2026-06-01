@@ -1516,7 +1516,7 @@ public class SvgDocumentCompatibilityLoaderTests
     }
 
     [Fact]
-    public void FromSvg_IgnoresInvalidPercentageOpacityInlineStyles()
+    public void FromSvg_NormalizesPercentageOpacityInlineStyles()
     {
         const string svg = """
             <svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.1%">
@@ -1531,13 +1531,13 @@ public class SvgDocumentCompatibilityLoaderTests
         var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
         var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
 
-        Assert.Equal(1f, document.Opacity, 3);
-        Assert.Equal(1f, rect.FillOpacity, 3);
-        Assert.Equal(1f, rect.StrokeOpacity, 3);
+        Assert.Equal(0.001f, document.Opacity, 3);
+        Assert.Equal(0.5f, rect.FillOpacity, 3);
+        Assert.Equal(0.25f, rect.StrokeOpacity, 3);
     }
 
     [Fact]
-    public void FromSvg_IgnoresPercentagePaintOpacityAttributesAndPreservesInheritance()
+    public void FromSvg_NormalizesPercentagePaintOpacityAttributesAndOverridesInheritance()
     {
         const string svg = """
             <svg xmlns="http://www.w3.org/2000/svg">
@@ -1555,8 +1555,8 @@ public class SvgDocumentCompatibilityLoaderTests
         var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svg);
         var rect = document.Descendants().OfType<SvgRectangle>().Single(static element => element.ID == "target");
 
-        Assert.Equal(0.3f, rect.FillOpacity, 3);
-        Assert.Equal(0.4f, rect.StrokeOpacity, 3);
+        Assert.Equal(1f, rect.FillOpacity, 3);
+        Assert.Equal(1f, rect.StrokeOpacity, 3);
     }
 
     private static LoadResult CaptureLoad(Func<SvgDocument> load)

@@ -95,7 +95,7 @@ public sealed class SvgSceneResource
         }
 
         var clipPath = SvgSceneClipCompiler.CompileClipPath(svgClipPath, targetNode.GeometryBounds, sceneDocument.AssetLoader);
-        if (clipPath?.Clips is not { Count: > 0 })
+        if (clipPath is null || !HasClipGeometry(clipPath))
         {
             return null;
         }
@@ -298,6 +298,21 @@ public sealed class SvgSceneResource
         }
 
         return MaskType.Luminance;
+    }
+
+    private static bool HasClipGeometry(ClipPath? clipPath)
+    {
+        if (clipPath is null)
+        {
+            return false;
+        }
+
+        if (clipPath.Clips is { Count: > 0 })
+        {
+            return true;
+        }
+
+        return HasClipGeometry(clipPath.Clip);
     }
 
     private sealed class ReadOnlySetView<T> : IReadOnlyCollection<T> where T : notnull
