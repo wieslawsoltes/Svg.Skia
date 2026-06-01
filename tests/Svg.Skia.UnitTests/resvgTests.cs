@@ -15,27 +15,29 @@ namespace Svg.Skia.UnitTests;
 public class resvgTests : SvgUnitTest
 {
     private const double DefaultThreshold = 0.12;
+    private const string RemainingFixtureProbeFamilyEnvironmentVariable = "SVG_SKIA_RESVG_PROBE_FAMILY";
+    private const string RemainingFixtureProbeAllValue = "all";
     private const int ExpectedTotalFixtureCount = 1730;
     private const int ExpectedTextFixtureCount = 379;
     private const int ExpectedNonTextFixtureCount = 1351;
-    private const int ExpectedResourceRenderingFixtureCount = 447;
+    private const int ExpectedResourceRenderingFixtureCount = 525;
     private const int ExpectedCssStylingFixtureCount = 19;
-    private const int ExpectedEnabledNonTextFixtureCount = 466;
-    private const int ExpectedRemainingNonTextFixtureCount = 885;
+    private const int ExpectedEnabledNonTextFixtureCount = 544;
+    private const int ExpectedRemainingNonTextFixtureCount = 807;
     private const string RemainingExtraFixtureSkipReason =
         "Remaining resvg extra fixtures are explicit inventory rows (15); enable individual rows when backed by a tracked renderer bug or parity lane.";
     private const string RemainingFilterFixtureSkipReason =
-        "Remaining resvg filter fixtures are explicit inventory rows (281); filter primitive parity is tracked by feature-specific renderer lanes.";
+        "Remaining resvg filter fixture family rows are explicit inventory rows; filter primitive parity is tracked by feature-specific renderer lanes.";
     private const string RemainingMaskingFixtureSkipReason =
-        "Remaining resvg masking fixtures are explicit inventory rows (92); clip/mask parity is tracked by feature-specific renderer lanes.";
+        "Remaining resvg masking fixture family rows are explicit inventory rows; clip/mask parity is tracked by feature-specific renderer lanes.";
     private const string RemainingPaintServerFixtureSkipReason =
-        "Remaining resvg paint-server fixtures are explicit inventory rows (148); gradient/pattern parity is tracked by feature-specific renderer lanes.";
+        "Remaining resvg paint-server fixture family rows are explicit inventory rows; gradient/pattern parity is tracked by feature-specific renderer lanes.";
     private const string RemainingPaintingFixtureSkipReason =
-        "Remaining resvg painting fixtures are explicit inventory rows (115); paint operation parity is tracked by feature-specific renderer lanes.";
+        "Remaining resvg painting fixture family rows are explicit inventory rows; paint operation parity is tracked by feature-specific renderer lanes.";
     private const string RemainingShapeFixtureSkipReason =
-        "Remaining resvg shape fixtures are explicit inventory rows (69); shape/path geometry parity is tracked by feature-specific renderer lanes.";
+        "Remaining resvg shape fixture family rows are explicit inventory rows; shape/path geometry parity is tracked by feature-specific renderer lanes.";
     private const string RemainingStructureFixtureSkipReason =
-        "Remaining resvg structure fixtures are explicit inventory rows (165); structure/use/image parity is tracked by feature-specific renderer lanes.";
+        "Remaining resvg structure fixture family rows are explicit inventory rows; structure/use/image parity is tracked by feature-specific renderer lanes.";
 
     public static IEnumerable<object[]> TextFixtureRows()
         => EnumerateFixtureRows("tests/text/");
@@ -49,25 +51,138 @@ public class resvgTests : SvgUnitTest
             .Where(static row => IsCssStylingFixture((string)row[0]));
 
     public static IEnumerable<object[]> RemainingExtraFixtureRows()
-        => EnumerateRemainingNonTextRows(ResvgFixtureArea.Extra, RemainingExtraFixtureSkipReason);
+        => EnumerateRemainingFixtureFamilyRows("extra/", RemainingExtraFixtureSkipReason);
 
-    public static IEnumerable<object[]> RemainingFilterFixtureRows()
-        => EnumerateRemainingNonTextRows(ResvgFixtureArea.Filters, RemainingFilterFixtureSkipReason);
+    public static IEnumerable<object[]> RemainingFilterEnableBackgroundFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/enable-background/", RemainingFilterFixtureSkipReason);
 
-    public static IEnumerable<object[]> RemainingMaskingFixtureRows()
-        => EnumerateRemainingNonTextRows(ResvgFixtureArea.Masking, RemainingMaskingFixtureSkipReason);
+    public static IEnumerable<object[]> RemainingFilterFeBlendFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feBlend/", RemainingFilterFixtureSkipReason);
 
-    public static IEnumerable<object[]> RemainingPaintServerFixtureRows()
-        => EnumerateRemainingNonTextRows(ResvgFixtureArea.PaintServers, RemainingPaintServerFixtureSkipReason);
+    public static IEnumerable<object[]> RemainingFilterFeColorMatrixFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feColorMatrix/", RemainingFilterFixtureSkipReason);
 
-    public static IEnumerable<object[]> RemainingPaintingFixtureRows()
-        => EnumerateRemainingNonTextRows(ResvgFixtureArea.Painting, RemainingPaintingFixtureSkipReason);
+    public static IEnumerable<object[]> RemainingFilterFeCompositeFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feComposite/", RemainingFilterFixtureSkipReason);
 
-    public static IEnumerable<object[]> RemainingShapeFixtureRows()
-        => EnumerateRemainingNonTextRows(ResvgFixtureArea.Shapes, RemainingShapeFixtureSkipReason);
+    public static IEnumerable<object[]> RemainingFilterFeConvolveMatrixFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feConvolveMatrix/", RemainingFilterFixtureSkipReason);
 
-    public static IEnumerable<object[]> RemainingStructureFixtureRows()
-        => EnumerateRemainingNonTextRows(ResvgFixtureArea.Structure, RemainingStructureFixtureSkipReason);
+    public static IEnumerable<object[]> RemainingFilterFeDiffuseLightingFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feDiffuseLighting/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFeDropShadowFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feDropShadow/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFeFloodFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feFlood/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFeGaussianBlurFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feGaussianBlur/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFeMergeFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feMerge/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFeMorphologyFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feMorphology/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFeOffsetFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feOffset/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFePointLightFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/fePointLight/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFeSpecularLightingFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feSpecularLighting/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFeSpotLightFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feSpotLight/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFeTileFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/feTile/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFilterFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/filter/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFilterFloodColorFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/filters/flood-color/", RemainingFilterFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingMaskingClipFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/masking/clip/", RemainingMaskingFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingMaskingClipPathFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/masking/clipPath/", RemainingMaskingFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingMaskingMaskFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/masking/mask/", RemainingMaskingFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingPaintServerLinearGradientFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/paint-servers/linearGradient/", RemainingPaintServerFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingPaintServerPatternFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/paint-servers/pattern/", RemainingPaintServerFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingPaintServerRadialGradientFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/paint-servers/radialGradient/", RemainingPaintServerFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingPaintingContextFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/painting/context/", RemainingPaintingFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingPaintingDisplayFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/painting/display/", RemainingPaintingFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingPaintingFillFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/painting/fill/", RemainingPaintingFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingShapePathFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/shapes/path/", RemainingShapeFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingStructureImageFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/structure/image/", RemainingStructureFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingStructureStyleFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/structure/style/", RemainingStructureFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingStructureStyleAttributeFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/structure/style-attribute/", RemainingStructureFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingStructureSvgFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/structure/svg/", RemainingStructureFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingStructureSwitchFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/structure/switch/", RemainingStructureFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingStructureSymbolFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/structure/symbol/", RemainingStructureFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingStructureSystemLanguageFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/structure/systemLanguage/", RemainingStructureFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingStructureTransformOriginFixtureRows()
+        => EnumerateRemainingFixtureFamilyRows("tests/structure/transform-origin/", RemainingStructureFixtureSkipReason);
+
+    public static IEnumerable<object[]> RemainingFixtureFamilyProbeRows()
+    {
+        var probeFamilyPrefix = GetRemainingFixtureFamilyProbePrefix();
+
+        if (probeFamilyPrefix is null)
+        {
+            yield return new object[] { string.Empty };
+            yield break;
+        }
+
+        if (string.Equals(probeFamilyPrefix, RemainingFixtureProbeAllValue, StringComparison.Ordinal))
+        {
+            foreach (var family in RemainingFixtureFamilies)
+            {
+                yield return new object[] { family.Prefix };
+            }
+
+            yield break;
+        }
+
+        yield return new object[] { probeFamilyPrefix };
+    }
 
     [OSXTheory]
     [MemberData(nameof(TextFixtureRows))]
@@ -90,34 +205,203 @@ public class resvgTests : SvgUnitTest
         => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
 
     [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
-    [MemberData(nameof(RemainingFilterFixtureRows))]
-    public void remaining_filter_fixtures(string relativeName, double errorThreshold, string skipReason)
+    [MemberData(nameof(RemainingFilterEnableBackgroundFixtureRows))]
+    public void remaining_filter_enable_background_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeBlendFixtureRows))]
+    public void remaining_filter_fe_blend_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeColorMatrixFixtureRows))]
+    public void remaining_filter_fe_color_matrix_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeCompositeFixtureRows))]
+    public void remaining_filter_fe_composite_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeConvolveMatrixFixtureRows))]
+    public void remaining_filter_fe_convolve_matrix_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeDiffuseLightingFixtureRows))]
+    public void remaining_filter_fe_diffuse_lighting_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeDropShadowFixtureRows))]
+    public void remaining_filter_fe_drop_shadow_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeFloodFixtureRows))]
+    public void remaining_filter_fe_flood_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeGaussianBlurFixtureRows))]
+    public void remaining_filter_fe_gaussian_blur_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeMergeFixtureRows))]
+    public void remaining_filter_fe_merge_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeMorphologyFixtureRows))]
+    public void remaining_filter_fe_morphology_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeOffsetFixtureRows))]
+    public void remaining_filter_fe_offset_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFePointLightFixtureRows))]
+    public void remaining_filter_fe_point_light_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeSpecularLightingFixtureRows))]
+    public void remaining_filter_fe_specular_lighting_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeSpotLightFixtureRows))]
+    public void remaining_filter_fe_spot_light_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFeTileFixtureRows))]
+    public void remaining_filter_fe_tile_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFilterFixtureRows))]
+    public void remaining_filter_filter_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingFilterFixtureSkipReason)]
+    [MemberData(nameof(RemainingFilterFloodColorFixtureRows))]
+    public void remaining_filter_flood_color_fixtures(string relativeName, double errorThreshold, string skipReason)
         => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
 
     [OSXTheory(Skip = RemainingMaskingFixtureSkipReason)]
-    [MemberData(nameof(RemainingMaskingFixtureRows))]
-    public void remaining_masking_fixtures(string relativeName, double errorThreshold, string skipReason)
+    [MemberData(nameof(RemainingMaskingClipFixtureRows))]
+    public void remaining_masking_clip_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingMaskingFixtureSkipReason)]
+    [MemberData(nameof(RemainingMaskingClipPathFixtureRows))]
+    public void remaining_masking_clip_path_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingMaskingFixtureSkipReason)]
+    [MemberData(nameof(RemainingMaskingMaskFixtureRows))]
+    public void remaining_masking_mask_fixtures(string relativeName, double errorThreshold, string skipReason)
         => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
 
     [OSXTheory(Skip = RemainingPaintServerFixtureSkipReason)]
-    [MemberData(nameof(RemainingPaintServerFixtureRows))]
-    public void remaining_paint_server_fixtures(string relativeName, double errorThreshold, string skipReason)
+    [MemberData(nameof(RemainingPaintServerLinearGradientFixtureRows))]
+    public void remaining_paint_server_linear_gradient_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingPaintServerFixtureSkipReason)]
+    [MemberData(nameof(RemainingPaintServerPatternFixtureRows))]
+    public void remaining_paint_server_pattern_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingPaintServerFixtureSkipReason)]
+    [MemberData(nameof(RemainingPaintServerRadialGradientFixtureRows))]
+    public void remaining_paint_server_radial_gradient_fixtures(string relativeName, double errorThreshold, string skipReason)
         => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
 
     [OSXTheory(Skip = RemainingPaintingFixtureSkipReason)]
-    [MemberData(nameof(RemainingPaintingFixtureRows))]
-    public void remaining_painting_fixtures(string relativeName, double errorThreshold, string skipReason)
+    [MemberData(nameof(RemainingPaintingContextFixtureRows))]
+    public void remaining_painting_context_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingPaintingFixtureSkipReason)]
+    [MemberData(nameof(RemainingPaintingDisplayFixtureRows))]
+    public void remaining_painting_display_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingPaintingFixtureSkipReason)]
+    [MemberData(nameof(RemainingPaintingFillFixtureRows))]
+    public void remaining_painting_fill_fixtures(string relativeName, double errorThreshold, string skipReason)
         => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
 
     [OSXTheory(Skip = RemainingShapeFixtureSkipReason)]
-    [MemberData(nameof(RemainingShapeFixtureRows))]
-    public void remaining_shape_fixtures(string relativeName, double errorThreshold, string skipReason)
+    [MemberData(nameof(RemainingShapePathFixtureRows))]
+    public void remaining_shape_path_fixtures(string relativeName, double errorThreshold, string skipReason)
         => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
 
     [OSXTheory(Skip = RemainingStructureFixtureSkipReason)]
-    [MemberData(nameof(RemainingStructureFixtureRows))]
-    public void remaining_structure_fixtures(string relativeName, double errorThreshold, string skipReason)
+    [MemberData(nameof(RemainingStructureImageFixtureRows))]
+    public void remaining_structure_image_fixtures(string relativeName, double errorThreshold, string skipReason)
         => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingStructureFixtureSkipReason)]
+    [MemberData(nameof(RemainingStructureStyleFixtureRows))]
+    public void remaining_structure_style_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingStructureFixtureSkipReason)]
+    [MemberData(nameof(RemainingStructureStyleAttributeFixtureRows))]
+    public void remaining_structure_style_attribute_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingStructureFixtureSkipReason)]
+    [MemberData(nameof(RemainingStructureSvgFixtureRows))]
+    public void remaining_structure_svg_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingStructureFixtureSkipReason)]
+    [MemberData(nameof(RemainingStructureSwitchFixtureRows))]
+    public void remaining_structure_switch_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingStructureFixtureSkipReason)]
+    [MemberData(nameof(RemainingStructureSymbolFixtureRows))]
+    public void remaining_structure_symbol_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingStructureFixtureSkipReason)]
+    [MemberData(nameof(RemainingStructureSystemLanguageFixtureRows))]
+    public void remaining_structure_system_language_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory(Skip = RemainingStructureFixtureSkipReason)]
+    [MemberData(nameof(RemainingStructureTransformOriginFixtureRows))]
+    public void remaining_structure_transform_origin_fixtures(string relativeName, double errorThreshold, string skipReason)
+        => TestSkippedFixtureImpl(relativeName, errorThreshold, skipReason);
+
+    [OSXTheory]
+    [MemberData(nameof(RemainingFixtureFamilyProbeRows))]
+    public void remaining_fixture_family_probe(string familyPrefix)
+    {
+        if (string.IsNullOrEmpty(familyPrefix))
+        {
+            return;
+        }
+
+        var fixtureRows = EnumerateRemainingFixtureFamilyRows(familyPrefix, "Manual remaining fixture family probe.").ToArray();
+
+        Assert.NotEmpty(fixtureRows);
+
+        foreach (var row in fixtureRows)
+        {
+            TestImpl((string)row[0], (double)row[1], preserveActual: true);
+        }
+    }
 
     [Fact]
     public void resvg_fixture_inventory()
@@ -178,6 +462,21 @@ public class resvgTests : SvgUnitTest
             var actualCount = remainingNonTextFixtures.Count(fixture => GetNonTextFixtureArea(fixture) == area);
             Assert.Equal(expectedCount, actualCount);
         }
+
+        var remainingFamilyFixtures = RemainingFixtureFamilies
+            .SelectMany(static family => EnumerateRemainingFixtureFamilyNames(family.Prefix))
+            .OrderBy(static fixture => fixture, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(remainingNonTextFixtures, remainingFamilyFixtures);
+
+        foreach (var family in RemainingFixtureFamilies)
+        {
+            var familyFixtures = EnumerateRemainingFixtureFamilyNames(family.Prefix).ToArray();
+
+            Assert.Equal(family.ExpectedCount, familyFixtures.Length);
+            Assert.All(familyFixtures, fixture => Assert.Equal(family.Area, GetNonTextFixtureArea(fixture)));
+        }
     }
 
     [Fact]
@@ -187,25 +486,23 @@ public class resvgTests : SvgUnitTest
             .GetMethods(BindingFlags.Instance | BindingFlags.Public)
             .Where(static method => method.GetCustomAttributes(typeof(OSXTheory), inherit: false).Length > 0)
             .Where(static method => method.Name.StartsWith("remaining_", StringComparison.Ordinal))
+            .Where(static method => method.Name.EndsWith("_fixtures", StringComparison.Ordinal))
             .Select(static method => method.Name)
             .OrderBy(static name => name, StringComparer.Ordinal)
             .ToArray();
 
         Assert.Equal(
-            new[]
-            {
-                "remaining_extra_fixtures",
-                "remaining_filter_fixtures",
-                "remaining_masking_fixtures",
-                "remaining_paint_server_fixtures",
-                "remaining_painting_fixtures",
-                "remaining_shape_fixtures",
-                "remaining_structure_fixtures"
-            },
+            RemainingFixtureFamilies
+                .Select(static family => family.TheoryName)
+                .OrderBy(static name => name, StringComparer.Ordinal)
+                .ToArray(),
             remainingTheoryNames);
         Assert.DoesNotContain(
             typeof(resvgTests).GetMethods(BindingFlags.Instance | BindingFlags.Public),
             static method => string.Equals(method.Name, "non_text_fixtures", StringComparison.Ordinal));
+        Assert.Contains(
+            typeof(resvgTests).GetMethods(BindingFlags.Instance | BindingFlags.Public),
+            static method => string.Equals(method.Name, "remaining_fixture_family_probe", StringComparison.Ordinal));
 
         var skipReasons = new[]
         {
@@ -245,17 +542,72 @@ public class resvgTests : SvgUnitTest
         }
     }
 
-    private static IEnumerable<object[]> EnumerateRemainingNonTextRows(ResvgFixtureArea area, string skipReason)
+    private static IEnumerable<object[]> EnumerateRemainingFixtureFamilyRows(string familyPrefix, string skipReason)
+    {
+        foreach (var fixture in EnumerateRemainingFixtureFamilyNames(familyPrefix))
+        {
+            yield return new object[] { fixture, GetEffectiveThreshold(fixture, DefaultThreshold), skipReason };
+        }
+    }
+
+    private static IEnumerable<string> EnumerateRemainingFixtureFamilyNames(string familyPrefix)
     {
         foreach (var fixture in EnumerateRemainingNonTextFixtureNames())
         {
-            if (GetNonTextFixtureArea(fixture) != area)
+            if (fixture.StartsWith(familyPrefix, StringComparison.Ordinal))
             {
-                continue;
+                yield return fixture;
             }
-
-            yield return new object[] { fixture, GetEffectiveThreshold(fixture, DefaultThreshold), skipReason };
         }
+    }
+
+    private static string? GetRemainingFixtureFamilyProbePrefix()
+    {
+        var probeFamily = Environment.GetEnvironmentVariable(RemainingFixtureProbeFamilyEnvironmentVariable);
+
+        if (string.IsNullOrWhiteSpace(probeFamily))
+        {
+            return null;
+        }
+
+        var normalizedProbeFamily = probeFamily
+            .Trim()
+            .Replace('\\', '/')
+            .TrimEnd('/');
+
+        if (string.Equals(normalizedProbeFamily, RemainingFixtureProbeAllValue, StringComparison.OrdinalIgnoreCase))
+        {
+            return RemainingFixtureProbeAllValue;
+        }
+
+        foreach (var family in RemainingFixtureFamilies)
+        {
+            if (IsRemainingFixtureFamilyProbeMatch(family, normalizedProbeFamily))
+            {
+                return family.Prefix;
+            }
+        }
+
+        var supportedFamilies = string.Join(
+            ", ",
+            RemainingFixtureFamilies.Select(static family => family.Prefix.TrimEnd('/')));
+
+        throw new InvalidOperationException(
+            $"Unsupported {RemainingFixtureProbeFamilyEnvironmentVariable} value '{probeFamily}'. Supported values: {RemainingFixtureProbeAllValue}, {supportedFamilies}.");
+    }
+
+    private static bool IsRemainingFixtureFamilyProbeMatch(RemainingFixtureFamily family, string probeFamily)
+    {
+        var familyPrefix = family.Prefix.TrimEnd('/');
+        var familyTheoryName = family.TheoryName;
+        var familyTheoryKey = familyTheoryName.Substring(
+            "remaining_".Length,
+            familyTheoryName.Length - "remaining_".Length - "_fixtures".Length);
+
+        return string.Equals(probeFamily, familyPrefix, StringComparison.Ordinal) ||
+            string.Equals(probeFamily, family.Prefix, StringComparison.Ordinal) ||
+            string.Equals(probeFamily, familyTheoryName, StringComparison.Ordinal) ||
+            string.Equals(probeFamily, familyTheoryKey, StringComparison.Ordinal);
     }
 
     private static IEnumerable<string> EnumerateFixtureNames()
@@ -323,7 +675,7 @@ public class resvgTests : SvgUnitTest
     private static string GetActualPngPath(string relativeName)
         => Path.Combine("..", "..", "..", "..", "Tests", $"resvg {GetSafeName(relativeName)} (Actual).png");
 
-    private void TestImpl(string relativeName, double errorThreshold)
+    private void TestImpl(string relativeName, double errorThreshold, bool preserveActual = false)
     {
         var svgPath = GetSvgPath(relativeName);
         var chromeOverridePng = GetChromeOverridePngPath(relativeName);
@@ -331,7 +683,7 @@ public class resvgTests : SvgUnitTest
         var expectedPng = useChromeOverride ? chromeOverridePng : GetExpectedPngPath(relativeName);
         var actualPng = GetActualPngPath(relativeName);
 
-        if (File.Exists(actualPng))
+        if (!preserveActual && File.Exists(actualPng))
         {
             File.Delete(actualPng);
         }
@@ -358,7 +710,7 @@ public class resvgTests : SvgUnitTest
             errorThreshold,
             compositeBackground: compositeBackground);
 
-        if (File.Exists(actualPng))
+        if (!preserveActual && File.Exists(actualPng))
         {
             File.Delete(actualPng);
         }
@@ -398,14 +750,55 @@ public class resvgTests : SvgUnitTest
     private static bool IsCssStylingFixture(string relativeName)
         => CssStylingFixtureNames.Contains(relativeName, StringComparer.Ordinal);
 
+    private static readonly RemainingFixtureFamily[] RemainingFixtureFamilies =
+    {
+        new("remaining_extra_fixtures", ResvgFixtureArea.Extra, "extra/", 15),
+        new("remaining_filter_enable_background_fixtures", ResvgFixtureArea.Filters, "tests/filters/enable-background/", 21),
+        new("remaining_filter_fe_blend_fixtures", ResvgFixtureArea.Filters, "tests/filters/feBlend/", 10),
+        new("remaining_filter_fe_color_matrix_fixtures", ResvgFixtureArea.Filters, "tests/filters/feColorMatrix/", 16),
+        new("remaining_filter_fe_composite_fixtures", ResvgFixtureArea.Filters, "tests/filters/feComposite/", 18),
+        new("remaining_filter_fe_convolve_matrix_fixtures", ResvgFixtureArea.Filters, "tests/filters/feConvolveMatrix/", 25),
+        new("remaining_filter_fe_diffuse_lighting_fixtures", ResvgFixtureArea.Filters, "tests/filters/feDiffuseLighting/", 22),
+        new("remaining_filter_fe_drop_shadow_fixtures", ResvgFixtureArea.Filters, "tests/filters/feDropShadow/", 8),
+        new("remaining_filter_fe_flood_fixtures", ResvgFixtureArea.Filters, "tests/filters/feFlood/", 8),
+        new("remaining_filter_fe_gaussian_blur_fixtures", ResvgFixtureArea.Filters, "tests/filters/feGaussianBlur/", 13),
+        new("remaining_filter_fe_merge_fixtures", ResvgFixtureArea.Filters, "tests/filters/feMerge/", 3),
+        new("remaining_filter_fe_morphology_fixtures", ResvgFixtureArea.Filters, "tests/filters/feMorphology/", 14),
+        new("remaining_filter_fe_offset_fixtures", ResvgFixtureArea.Filters, "tests/filters/feOffset/", 9),
+        new("remaining_filter_fe_point_light_fixtures", ResvgFixtureArea.Filters, "tests/filters/fePointLight/", 4),
+        new("remaining_filter_fe_specular_lighting_fixtures", ResvgFixtureArea.Filters, "tests/filters/feSpecularLighting/", 8),
+        new("remaining_filter_fe_spot_light_fixtures", ResvgFixtureArea.Filters, "tests/filters/feSpotLight/", 12),
+        new("remaining_filter_fe_tile_fixtures", ResvgFixtureArea.Filters, "tests/filters/feTile/", 7),
+        new("remaining_filter_filter_fixtures", ResvgFixtureArea.Filters, "tests/filters/filter/", 74),
+        new("remaining_filter_flood_color_fixtures", ResvgFixtureArea.Filters, "tests/filters/flood-color/", 7),
+        new("remaining_masking_clip_fixtures", ResvgFixtureArea.Masking, "tests/masking/clip/", 1),
+        new("remaining_masking_clip_path_fixtures", ResvgFixtureArea.Masking, "tests/masking/clipPath/", 52),
+        new("remaining_masking_mask_fixtures", ResvgFixtureArea.Masking, "tests/masking/mask/", 39),
+        new("remaining_paint_server_linear_gradient_fixtures", ResvgFixtureArea.PaintServers, "tests/paint-servers/linearGradient/", 38),
+        new("remaining_paint_server_pattern_fixtures", ResvgFixtureArea.PaintServers, "tests/paint-servers/pattern/", 31),
+        new("remaining_paint_server_radial_gradient_fixtures", ResvgFixtureArea.PaintServers, "tests/paint-servers/radialGradient/", 45),
+        new("remaining_painting_context_fixtures", ResvgFixtureArea.Painting, "tests/painting/context/", 16),
+        new("remaining_painting_display_fixtures", ResvgFixtureArea.Painting, "tests/painting/display/", 9),
+        new("remaining_painting_fill_fixtures", ResvgFixtureArea.Painting, "tests/painting/fill/", 60),
+        new("remaining_shape_path_fixtures", ResvgFixtureArea.Shapes, "tests/shapes/path/", 57),
+        new("remaining_structure_image_fixtures", ResvgFixtureArea.Structure, "tests/structure/image/", 55),
+        new("remaining_structure_style_fixtures", ResvgFixtureArea.Structure, "tests/structure/style/", 2),
+        new("remaining_structure_style_attribute_fixtures", ResvgFixtureArea.Structure, "tests/structure/style-attribute/", 1),
+        new("remaining_structure_svg_fixtures", ResvgFixtureArea.Structure, "tests/structure/svg/", 44),
+        new("remaining_structure_switch_fixtures", ResvgFixtureArea.Structure, "tests/structure/switch/", 13),
+        new("remaining_structure_symbol_fixtures", ResvgFixtureArea.Structure, "tests/structure/symbol/", 17),
+        new("remaining_structure_system_language_fixtures", ResvgFixtureArea.Structure, "tests/structure/systemLanguage/", 10),
+        new("remaining_structure_transform_origin_fixtures", ResvgFixtureArea.Structure, "tests/structure/transform-origin/", 23)
+    };
+
     private static readonly (ResvgFixtureArea Area, int Count)[] ExpectedRemainingFixtureAreaCounts =
     {
         (ResvgFixtureArea.Extra, 15),
-        (ResvgFixtureArea.Filters, 281),
+        (ResvgFixtureArea.Filters, 279),
         (ResvgFixtureArea.Masking, 92),
-        (ResvgFixtureArea.PaintServers, 148),
-        (ResvgFixtureArea.Painting, 115),
-        (ResvgFixtureArea.Shapes, 69),
+        (ResvgFixtureArea.PaintServers, 114),
+        (ResvgFixtureArea.Painting, 85),
+        (ResvgFixtureArea.Shapes, 57),
         (ResvgFixtureArea.Structure, 165)
     };
 
@@ -414,15 +807,21 @@ public class resvgTests : SvgUnitTest
         "tests/filters/feComponentTransfer/",
         "tests/filters/feDisplacementMap/",
         "tests/filters/feDistantLight/",
+        "tests/filters/flood-opacity/",
         "tests/filters/filter-functions/",
         "tests/filters/feTurbulence/",
         "tests/masking/clip-rule/",
+        "tests/paint-servers/stop/",
         "tests/paint-servers/stop-color/",
+        "tests/paint-servers/stop-opacity/",
         "tests/painting/color/",
+        "tests/painting/fill-opacity/",
         "tests/painting/fill-rule/",
         "tests/painting/image-rendering/",
         "tests/painting/isolation/",
         "tests/painting/mix-blend-mode/",
+        "tests/painting/opacity/",
+        "tests/painting/overflow/",
         "tests/painting/paint-order/",
         "tests/painting/shape-rendering/",
         "tests/painting/stroke/",
@@ -431,9 +830,11 @@ public class resvgTests : SvgUnitTest
         "tests/painting/stroke-linecap/",
         "tests/painting/stroke-linejoin/",
         "tests/painting/stroke-miterlimit/",
+        "tests/painting/stroke-opacity/",
         "tests/painting/stroke-width/",
         "tests/painting/visibility/",
         "tests/shapes/circle/",
+        "tests/shapes/ellipse/",
         "tests/shapes/line/",
         "tests/shapes/polygon/",
         "tests/shapes/polyline/",
@@ -578,6 +979,12 @@ public class resvgTests : SvgUnitTest
 
         return string.Join("_", safeName.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
     }
+
+    private sealed record RemainingFixtureFamily(
+        string TheoryName,
+        ResvgFixtureArea Area,
+        string Prefix,
+        int ExpectedCount);
 
     private enum ResvgFixtureArea
     {
