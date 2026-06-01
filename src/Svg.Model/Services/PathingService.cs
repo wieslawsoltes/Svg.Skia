@@ -263,8 +263,8 @@ internal static class PathingService
             FillType = fillType
         };
 
-        var isEndFigure = false;
-        var haveFigure = false;
+        var hasCurrentPoint = false;
+        var hasRenderableCommand = false;
         var start = System.Drawing.PointF.Empty;
         var prevMove = start;
         var lastCubicSecondControlPoint = System.Drawing.PointF.Empty;
@@ -281,47 +281,40 @@ internal static class PathingService
             {
                 case SvgMoveToSegment svgMoveToSegment:
                     {
-                        if (isEndFigure && haveFigure == false)
-                        {
-                            return default;
-                        }
-
                         if (isLast)
                         {
                             return skPath;
                         }
 
-                        isEndFigure = true;
-                        haveFigure = true;
                         var end = ToAbsolute(svgMoveToSegment.End, svgMoveToSegment.IsRelative, start);
                         skPath.MoveTo(end.X, end.Y);
                         start = end;
                         prevMove = end;
+                        hasCurrentPoint = true;
                         hasLastCubicSecondControlPoint = false;
                         hasLastQuadraticControlPoint = false;
                         break;
                     }
                 case SvgLineSegment svgLineSegment:
                     {
-                        if (isEndFigure == false)
+                        if (hasCurrentPoint == false)
                         {
                             return default;
                         }
-                        haveFigure = true;
                         var end = ToAbsolute(svgLineSegment.End, svgLineSegment.IsRelative, start);
                         skPath.LineTo(end.X, end.Y);
                         start = end;
+                        hasRenderableCommand = true;
                         hasLastCubicSecondControlPoint = false;
                         hasLastQuadraticControlPoint = false;
                         break;
                     }
                 case SvgCubicCurveSegment svgCubicCurveSegment:
                     {
-                        if (isEndFigure == false)
+                        if (hasCurrentPoint == false)
                         {
                             return default;
                         }
-                        haveFigure = true;
 
                         var firstControlPoint = svgCubicCurveSegment.FirstControlPoint;
                         if (float.IsNaN(firstControlPoint.X) || float.IsNaN(firstControlPoint.Y))
@@ -345,6 +338,7 @@ internal static class PathingService
                         var second = ToAbsolute(svgCubicCurveSegment.SecondControlPoint, svgCubicCurveSegment.IsRelative, start);
                         skPath.CubicTo(first.X, first.Y, second.X, second.Y, end.X, end.Y);
                         start = end;
+                        hasRenderableCommand = true;
                         lastCubicSecondControlPoint = second;
                         hasLastCubicSecondControlPoint = true;
                         hasLastQuadraticControlPoint = false;
@@ -352,11 +346,10 @@ internal static class PathingService
                     }
                 case SvgQuadraticCurveSegment svgQuadraticCurveSegment:
                     {
-                        if (isEndFigure == false)
+                        if (hasCurrentPoint == false)
                         {
                             return default;
                         }
-                        haveFigure = true;
 
                         var controlPoint = svgQuadraticCurveSegment.ControlPoint;
                         if (float.IsNaN(controlPoint.X) || float.IsNaN(controlPoint.Y))
@@ -379,6 +372,7 @@ internal static class PathingService
 
                         skPath.QuadTo(controlPoint.X, controlPoint.Y, end.X, end.Y);
                         start = end;
+                        hasRenderableCommand = true;
                         lastQuadraticControlPoint = controlPoint;
                         hasLastQuadraticControlPoint = true;
                         hasLastCubicSecondControlPoint = false;
@@ -386,41 +380,39 @@ internal static class PathingService
                     }
                 case SvgArcSegment svgArcSegment:
                     {
-                        if (isEndFigure == false)
+                        if (hasCurrentPoint == false)
                         {
                             return default;
                         }
-                        haveFigure = true;
                         var rx = svgArcSegment.RadiusX;
                         var ry = svgArcSegment.RadiusY;
-                        var xAxisRotate = svgArcSegment.Angle;
-                        var largeArc = svgArcSegment.Size == SvgArcSize.Small ? SKPathArcSize.Small : SKPathArcSize.Large;
-                        var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
                         var end = ToAbsolute(svgArcSegment.End, svgArcSegment.IsRelative, start);
-                        skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, end.X, end.Y);
+                        if (rx <= float.Epsilon || ry <= float.Epsilon)
+                        {
+                            skPath.LineTo(end.X, end.Y);
+                        }
+                        else if (!NearlyEqual(start, end))
+                        {
+                            var xAxisRotate = svgArcSegment.Angle;
+                            var largeArc = svgArcSegment.Size == SvgArcSize.Small ? SKPathArcSize.Small : SKPathArcSize.Large;
+                            var sweep = svgArcSegment.Sweep == SvgArcSweep.Negative ? SKPathDirection.CounterClockwise : SKPathDirection.Clockwise;
+                            skPath.ArcTo(rx, ry, xAxisRotate, largeArc, sweep, end.X, end.Y);
+                        }
                         start = end;
+                        hasRenderableCommand = true;
                         hasLastCubicSecondControlPoint = false;
                         hasLastQuadraticControlPoint = false;
                         break;
                     }
                 case SvgClosePathSegment _:
                     {
-                        if (isEndFigure == false && haveFigure == false)
+                        if (hasCurrentPoint == false)
                         {
                             continue;
                         }
-                        if (isEndFigure == false)
-                        {
-                            return default;
-                        }
-                        if (haveFigure == false)
-                        {
-                            return default;
-                        }
-                        isEndFigure = false;
-                        haveFigure = false;
                         skPath.Close();
                         start = prevMove;
+                        hasRenderableCommand = true;
                         hasLastCubicSecondControlPoint = false;
                         hasLastQuadraticControlPoint = false;
                         break;
@@ -428,7 +420,7 @@ internal static class PathingService
             }
         }
 
-        if (isEndFigure && haveFigure == false)
+        if (hasCurrentPoint && hasRenderableCommand == false)
         {
             return default;
         }
@@ -562,27 +554,9 @@ internal static class PathingService
 
     internal static SKPath? ToPath(this SvgEllipse svgEllipse, SvgFillRule svgFillRule, SKRect skViewport)
     {
-        var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
-        var skPath = new SKPath
-        {
-            FillType = fillType
-        };
-
-        var cx = svgEllipse.CenterX.ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, skViewport);
-        var cy = svgEllipse.CenterY.ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, skViewport);
-        var rx = svgEllipse.RadiusX.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skViewport);
-        var ry = svgEllipse.RadiusY.ToDeviceValue(UnitRenderingType.Other, svgEllipse, skViewport);
-
-        if (rx <= 0f || ry <= 0f)
-        {
-            return default;
-        }
-
-        var skRectBounds = SKRect.Create(cx - rx, cy - ry, rx + rx, ry + ry);
-
-        skPath.AddOval(skRectBounds);
-
-        return skPath;
+        return SvgGeometryService.TryCreateEquivalentPath(svgEllipse, svgFillRule, skViewport, out var path)
+            ? path
+            : default;
     }
 
     internal static SKPath? ToPath(this SvgLine svgLine, SvgFillRule svgFillRule, SKRect skViewport)
@@ -602,5 +576,11 @@ internal static class PathingService
         skPath.LineTo(x1, y1);
 
         return skPath;
+    }
+
+    private static bool NearlyEqual(System.Drawing.PointF left, System.Drawing.PointF right)
+    {
+        return Math.Abs(left.X - right.X) <= float.Epsilon &&
+               Math.Abs(left.Y - right.Y) <= float.Epsilon;
     }
 }

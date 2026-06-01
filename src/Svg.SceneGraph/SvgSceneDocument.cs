@@ -22,6 +22,10 @@ public sealed class SvgSceneDocument
     private readonly HashSet<string> _resolvingMaskResourceKeys = new(StringComparer.Ordinal);
     private readonly ReadOnlyDictionary<string, SvgSceneNode> _readOnlyNodesById;
     private readonly ReadOnlyDictionary<string, SvgSceneResource> _readOnlyResourcesById;
+    private bool _mayContainResourceElements = true;
+    private bool _mayContainReferenceDependencies = true;
+    private bool _mayContainMarkerReferenceDeclarations = true;
+    private bool _mayContainClipPathDeclarations = true;
 
     internal SvgSceneDocument(
         SvgDocument? sourceDocument,
@@ -330,15 +334,20 @@ public sealed class SvgSceneDocument
     private void RebuildIndexesAndDependencies(bool? knownMarkerReferenceDeclarations)
     {
         var addressKeyCache = new SvgElementAddressKeyCache();
-        var (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations) = AnalyzeDependencyRequirements(knownMarkerReferenceDeclarations);
+        var (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations) =
+            AnalyzeDependencyRequirements(knownMarkerReferenceDeclarations);
+        _mayContainResourceElements = hasResourceElements;
+        _mayContainReferenceDependencies = hasReferenceDependencies;
+        _mayContainMarkerReferenceDeclarations = hasMarkerReferenceDeclarations;
+        _mayContainClipPathDeclarations = hasClipPathDeclarations;
         ClearIndexesAndDependencies();
         ReindexNodes();
         if (hasResourceElements)
         {
-            RebuildResourceGraph(addressKeyCache, hasMarkerReferenceDeclarations);
+            RebuildResourceGraph(addressKeyCache, hasMarkerReferenceDeclarations, hasClipPathDeclarations);
         }
 
-        RegisterNodeDependencies(addressKeyCache, hasReferenceDependencies, hasMarkerReferenceDeclarations);
+        RegisterNodeDependencies(addressKeyCache, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations);
         ResolveRuntimePayloads(addressKeyCache);
         Revision++;
     }
@@ -383,12 +392,21 @@ public sealed class SvgSceneDocument
 
     internal void RebuildResourceGraph(SvgElementAddressKeyCache addressKeyCache)
     {
+        if (!_mayContainResourceElements)
+        {
+            return;
+        }
+
         RebuildResourceGraph(
             addressKeyCache,
-            SvgSceneCompiler.SubtreeMayContainMarkerReferenceDeclarations(SourceDocument));
+            _mayContainMarkerReferenceDeclarations,
+            _mayContainClipPathDeclarations);
     }
 
-    private void RebuildResourceGraph(SvgElementAddressKeyCache addressKeyCache, bool includeMarkerReferences)
+    private void RebuildResourceGraph(
+        SvgElementAddressKeyCache addressKeyCache,
+        bool includeMarkerReferences,
+        bool includeClipPathReferences)
     {
         if (SourceDocument is null)
         {
@@ -463,6 +481,7 @@ public sealed class SvgSceneDocument
                         }
                     },
                     includeMarkerReferences,
+                    includeClipPathReferences,
                     addressKeyCache.GetOrCreate,
                     (ActiveResources: activeResources, PendingDependencyKeysByResource: pendingDependencyKeysByResource));
             }
@@ -493,7 +512,7 @@ public sealed class SvgSceneDocument
 
     internal void RegisterNodeDependencies(SvgElementAddressKeyCache addressKeyCache)
     {
-        RegisterNodeDependencies(addressKeyCache, includeReferencedDependencies: true);
+        RegisterNodeDependencies(addressKeyCache, _mayContainReferenceDependencies);
     }
 
     internal void RegisterNodeDependencies(SvgElementAddressKeyCache addressKeyCache, bool includeReferencedDependencies)
@@ -501,13 +520,15 @@ public sealed class SvgSceneDocument
         RegisterNodeDependencies(
             addressKeyCache,
             includeReferencedDependencies,
-            SvgSceneCompiler.SubtreeMayContainMarkerReferenceDeclarations(SourceDocument));
+            _mayContainMarkerReferenceDeclarations,
+            _mayContainClipPathDeclarations);
     }
 
     private void RegisterNodeDependencies(
         SvgElementAddressKeyCache addressKeyCache,
         bool includeReferencedDependencies,
-        bool includeMarkerReferences)
+        bool includeMarkerReferences,
+        bool includeClipPathReferences)
     {
         if (_compilationRootsByKey.Count == 0)
         {
@@ -520,19 +541,20 @@ public sealed class SvgSceneDocument
             return;
         }
 
-        RegisterNodeDependencies(Root, new List<string>(), addressKeyCache, includeMarkerReferences);
+        RegisterNodeDependencies(Root, new List<string>(), addressKeyCache, includeMarkerReferences, includeClipPathReferences);
     }
 
-    private (bool HasResourceElements, bool HasReferenceDependencies, bool HasMarkerReferenceDeclarations) AnalyzeDependencyRequirements(bool? knownMarkerReferenceDeclarations)
+    private (bool HasResourceElements, bool HasReferenceDependencies, bool HasMarkerReferenceDeclarations, bool HasClipPathDeclarations) AnalyzeDependencyRequirements(bool? knownMarkerReferenceDeclarations)
     {
         if (SourceDocument is null)
         {
-            return (false, false, false);
+            return (false, false, false, false);
         }
 
         var hasResourceElements = false;
         var hasReferenceDependencies = false;
         var hasMarkerReferenceDeclarations = knownMarkerReferenceDeclarations.GetValueOrDefault();
+        var hasClipPathDeclarations = false;
         foreach (var element in TraverseElements(SourceDocument))
         {
             if (!hasResourceElements &&
@@ -548,21 +570,28 @@ public sealed class SvgSceneDocument
                 hasMarkerReferenceDeclarations = true;
             }
 
+            if (!hasClipPathDeclarations &&
+                SvgSceneCompiler.HasOwnClipPathDeclarationCandidate(element))
+            {
+                hasClipPathDeclarations = true;
+            }
+
             if (!hasReferenceDependencies &&
-                SvgSceneCompiler.MayReferenceOtherElements(element, hasMarkerReferenceDeclarations))
+                SvgSceneCompiler.MayReferenceOtherElements(element, hasMarkerReferenceDeclarations, hasClipPathDeclarations))
             {
                 hasReferenceDependencies = true;
             }
 
             if (hasResourceElements &&
                 hasReferenceDependencies &&
-                (knownMarkerReferenceDeclarations.HasValue || hasMarkerReferenceDeclarations))
+                (knownMarkerReferenceDeclarations.HasValue || hasMarkerReferenceDeclarations) &&
+                hasClipPathDeclarations)
             {
                 break;
             }
         }
 
-        return (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations);
+        return (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations);
     }
 
     private void RegisterCompilationRootSubtreeAddresses(SvgElementAddressKeyCache addressKeyCache)
@@ -666,7 +695,8 @@ public sealed class SvgSceneDocument
         SvgSceneNode node,
         List<string> activeCompilationRootKeys,
         SvgElementAddressKeyCache addressKeyCache,
-        bool includeMarkerReferences)
+        bool includeMarkerReferences,
+        bool includeClipPathReferences)
     {
         var addedCompilationRootKey = false;
         if (node.IsCompilationRootBoundary && !string.IsNullOrWhiteSpace(node.CompilationRootKey))
@@ -705,6 +735,7 @@ public sealed class SvgSceneDocument
                         }
                     },
                     includeMarkerReferences,
+                    includeClipPathReferences,
                     addressKeyCache.GetOrCreate,
                     (SceneDocument: this, ResourcesByKey: _resourcesByKey, ActiveCompilationRootKeys: activeCompilationRootKeys));
             }
@@ -712,12 +743,12 @@ public sealed class SvgSceneDocument
 
         if (node.MaskNode is { } maskNode)
         {
-            RegisterNodeDependencies(maskNode, activeCompilationRootKeys, addressKeyCache, includeMarkerReferences);
+            RegisterNodeDependencies(maskNode, activeCompilationRootKeys, addressKeyCache, includeMarkerReferences, includeClipPathReferences);
         }
 
         for (var i = 0; i < node.Children.Count; i++)
         {
-            RegisterNodeDependencies(node.Children[i], activeCompilationRootKeys, addressKeyCache, includeMarkerReferences);
+            RegisterNodeDependencies(node.Children[i], activeCompilationRootKeys, addressKeyCache, includeMarkerReferences, includeClipPathReferences);
         }
 
         if (addedCompilationRootKey)
@@ -728,26 +759,41 @@ public sealed class SvgSceneDocument
 
     internal void ResolveRuntimePayloads(SvgElementAddressKeyCache addressKeyCache)
     {
-        ResolveRuntimePayloadTree(Root, refreshRetainedMetadata: false, addressKeyCache);
+        var gradientPaintCache = new SvgScenePaintingService.GradientPaintCache();
+        var opacityPaintCache = new Dictionary<float, SKPaint>();
+        var solidFillPaintCache = new Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint>();
+        ResolveRuntimePayloadTree(Root, refreshRetainedMetadata: false, addressKeyCache, gradientPaintCache, opacityPaintCache, solidFillPaintCache);
     }
 
     internal void ResolveRuntimePayloadTree(
         SvgSceneNode? root,
         bool refreshRetainedMetadata = false,
-        SvgElementAddressKeyCache? addressKeyCache = null)
+        SvgElementAddressKeyCache? addressKeyCache = null,
+        SvgScenePaintingService.GradientPaintCache? gradientPaintCache = null,
+        Dictionary<float, SKPaint>? opacityPaintCache = null,
+        Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint>? solidFillPaintCache = null)
     {
         if (root is null)
         {
             return;
         }
 
+        gradientPaintCache ??= new SvgScenePaintingService.GradientPaintCache();
+        opacityPaintCache ??= new Dictionary<float, SKPaint>();
+        solidFillPaintCache ??= new Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint>();
         foreach (var node in TraverseStructural(root))
         {
-            ResolveRuntimePayload(node, refreshRetainedMetadata, addressKeyCache);
+            ResolveRuntimePayload(node, refreshRetainedMetadata, addressKeyCache, gradientPaintCache, opacityPaintCache, solidFillPaintCache);
         }
     }
 
-    private void ResolveRuntimePayload(SvgSceneNode node, bool refreshRetainedMetadata, SvgElementAddressKeyCache? addressKeyCache)
+    private void ResolveRuntimePayload(
+        SvgSceneNode node,
+        bool refreshRetainedMetadata,
+        SvgElementAddressKeyCache? addressKeyCache,
+        SvgScenePaintingService.GradientPaintCache gradientPaintCache,
+        Dictionary<float, SKPaint> opacityPaintCache,
+        Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> solidFillPaintCache)
     {
         if (!node.IsRenderable || node.Element is not SvgElement element)
         {
@@ -775,12 +821,13 @@ public sealed class SvgSceneDocument
             SvgSceneCompiler.AssignRetainedResourceKeys(node, element, getElementAddressKey);
         }
 
-        node.OpacityValue = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
+        var opacityValue = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
             ? 1f
             : SvgScenePaintingService.AdjustSvgOpacity(element.Opacity);
+        node.OpacityValue = opacityValue;
         node.Opacity = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
             ? null
-            : SvgScenePaintingService.GetOpacityPaint(element.Opacity);
+            : GetCachedOpacityPaint(opacityValue, opacityPaintCache);
 
         node.SetMask(null);
         node.MaskPaint = null;
@@ -796,15 +843,26 @@ public sealed class SvgSceneDocument
             }
         }
 
+        if (IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
+        {
+            node.ClipPath = null;
+        }
+        else
+        {
+            var clipPath = ResolveClipPath(node);
+            node.ClipPath = clipPath is not null || !_mayContainClipPathDeclarations
+                ? clipPath
+                : SvgSceneClipCompiler.CompileBasicShapeClipPath(element, node.GeometryBounds, CompilationViewport);
+        }
+
         if (element is SvgVisualElement visualElement)
         {
             var hasOwnPaintPayload = HasOwnPaintPayload(node);
-            node.ClipPath = ResolveClipPath(node);
             node.Fill = hasOwnPaintPayload && SvgScenePaintingService.IsValidFill(visualElement)
-                ? SvgScenePaintingService.GetFillPaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes)
+                ? GetCachedFillPaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes, gradientPaintCache, solidFillPaintCache)
                 : null;
             node.Stroke = hasOwnPaintPayload && SvgScenePaintingService.IsValidStroke(visualElement, node.GeometryBounds)
-                ? SvgScenePaintingService.GetStrokePaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes, geometryPath: node.HitTestPath)
+                ? SvgScenePaintingService.GetStrokePaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes, geometryPath: node.HitTestPath, gradientPaintCache: gradientPaintCache)
                 : null;
             node.StrokeWidth = hasOwnPaintPayload ? node.Stroke?.StrokeWidth ?? 0f : 0f;
             node.IsStrokeNonScaling = hasOwnPaintPayload && visualElement.VectorEffect == SvgVectorEffect.NonScalingStroke;
@@ -832,6 +890,49 @@ public sealed class SvgSceneDocument
                 }
             }
         }
+    }
+
+    private static SKPaint? GetCachedOpacityPaint(float opacityValue, Dictionary<float, SKPaint> opacityPaintCache)
+    {
+        if (opacityValue >= 1f)
+        {
+            return null;
+        }
+
+        if (!opacityPaintCache.TryGetValue(opacityValue, out var paint))
+        {
+            paint = SvgScenePaintingService.GetOpacityPaint(opacityValue)!;
+            opacityPaintCache[opacityValue] = paint;
+        }
+
+        return paint;
+    }
+
+    private static SKPaint? GetCachedFillPaint(
+        SvgVisualElement visualElement,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        DrawAttributes ignoreAttributes,
+        SvgScenePaintingService.GradientPaintCache gradientPaintCache,
+        Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> solidFillPaintCache)
+    {
+        if (SvgScenePaintingService.TryCreateSolidFillPaintCacheKey(visualElement, ignoreAttributes, out var key))
+        {
+            if (!solidFillPaintCache.TryGetValue(key, out var paint))
+            {
+                paint = SvgScenePaintingService.CreateSolidFillPaint(key);
+                solidFillPaintCache[key] = paint;
+            }
+
+            return paint;
+        }
+
+        return SvgScenePaintingService.GetFillPaint(
+            visualElement,
+            geometryBounds,
+            assetLoader,
+            ignoreAttributes,
+            gradientPaintCache: gradientPaintCache);
     }
 
     private static bool HasOwnPaintPayload(SvgSceneNode node)

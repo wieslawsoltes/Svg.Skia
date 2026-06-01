@@ -278,6 +278,21 @@ internal static class SvgGeometryService
             ry = rx;
         }
 
+        if (rx < 0f && ry < 0f)
+        {
+            return null;
+        }
+
+        if (rx < 0f)
+        {
+            rx = Math.Abs(rx);
+        }
+
+        if (ry < 0f)
+        {
+            ry = Math.Abs(ry);
+        }
+
         if (rx <= 0f || ry <= 0f)
         {
             return null;

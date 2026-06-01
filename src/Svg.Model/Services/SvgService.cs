@@ -10,12 +10,13 @@ using System.Text;
 using System.Xml;
 using ShimSkiaSharp;
 using Svg;
+using Svg.Model;
 
 namespace Svg.Model.Services;
 
 public static class SvgService
 {
-    public static CultureInfo? s_systemLanguageOverride = default;
+    public static CultureInfo? s_systemLanguageOverride = CultureInfo.GetCultureInfo("en-US");
 
     private static readonly char[] s_spaceTab = { ' ', '\t' };
 
@@ -38,8 +39,8 @@ public static class SvgService
         "http://www.w3.org/TR/SVG11/feature#CoreAttribute",
         "http://www.w3.org/TR/SVG11/feature#Structure",
         "http://www.w3.org/TR/SVG11/feature#BasicStructure",
-        "http://www.w3.org/TR/SVG11/feature#ContainerAttribute",
         "http://www.w3.org/TR/SVG11/feature#ConditionalProcessing",
+        "http://www.w3.org/TR/SVG11/feature#ContainerAttribute",
         "http://www.w3.org/TR/SVG11/feature#Image",
         "http://www.w3.org/TR/SVG11/feature#Style",
         "http://www.w3.org/TR/SVG11/feature#ViewportAttribute",
@@ -354,8 +355,30 @@ public static class SvgService
 
     internal static bool HasRequiredFeatures(this SvgElement svgElement)
     {
-        // Chrome ignores requiredFeatures, and the W3C PNG baselines for this
-        // slice are stale. Match current browser behavior for rendering parity.
+        if (!TryGetAttribute(svgElement, "requiredFeatures", out var requiredFeaturesString))
+        {
+            return true;
+        }
+
+        if (string.IsNullOrEmpty(requiredFeaturesString))
+        {
+            return false;
+        }
+
+        var features = requiredFeaturesString.Trim().Split(s_spaceTab, StringSplitOptions.RemoveEmptyEntries);
+        if (features.Length <= 0)
+        {
+            return false;
+        }
+
+        foreach (var feature in features)
+        {
+            if (!s_supportedFeatures.Contains(feature))
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -424,6 +447,14 @@ public static class SvgService
         }
 
         return false;
+    }
+
+    internal static bool PassesConditionalProcessing(this SvgElement svgElement, DrawAttributes ignoreAttributes)
+    {
+        var hasRequiredFeatures = ignoreAttributes.HasFlag(DrawAttributes.RequiredFeatures) || svgElement.HasRequiredFeatures();
+        var hasRequiredExtensions = ignoreAttributes.HasFlag(DrawAttributes.RequiredExtensions) || svgElement.HasRequiredExtensions();
+        var hasSystemLanguage = ignoreAttributes.HasFlag(DrawAttributes.SystemLanguage) || svgElement.HasSystemLanguage();
+        return hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage;
     }
 
     private static string? GetSystemLanguageTag(CultureInfo culture)

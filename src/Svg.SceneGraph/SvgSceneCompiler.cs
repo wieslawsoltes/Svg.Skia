@@ -23,6 +23,7 @@ public static class SvgSceneCompiler
         private readonly HashSet<string> _activeDocumentKeys = new(StringComparer.Ordinal);
         private readonly SvgElementAddressKeyCache _addressKeys = new();
         private readonly Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> _solidFillPaintCache = new();
+        private readonly SvgScenePaintingService.GradientPaintCache _gradientPaintCache = new();
         private readonly Dictionary<SvgFragment, SKSize> _fragmentViewportSizeOverrides = new();
         private readonly Dictionary<SvgDocument, bool> _markerReferenceDeclarationsByDocument = new();
         private readonly Stack<MarkerReferenceState> _markerReferenceDocumentStack = new();
@@ -32,6 +33,8 @@ public static class SvgSceneCompiler
         private bool _activeDocumentMayContainMarkerReferenceDeclarations;
 
         public SvgSceneContextPaint? ContextPaint { get; private set; }
+
+        public SvgScenePaintingService.GradientPaintCache GradientPaintCache => _gradientPaintCache;
 
         public bool ActiveMarkerReferenceDeclarationCandidate => _activeMarkerReferenceDeclarationCandidate;
 
@@ -156,7 +159,7 @@ public static class SvgSceneCompiler
                 _solidFillPaintCache[key] = cachedPaint;
             }
 
-            paint = cachedPaint.Clone();
+            paint = cachedPaint;
             return true;
         }
 
@@ -650,7 +653,18 @@ public static class SvgSceneCompiler
         Func<SvgElement?, string?>? getElementAddressKey = null,
         TState state = default!)
     {
-        var seen = new HashSet<string>(StringComparer.Ordinal);
+        VisitReferencedElements(element, visitor, includeMarkerReferences, includeClipPathReferences: true, getElementAddressKey, state);
+    }
+
+    internal static void VisitReferencedElements<TState>(
+        SvgElement element,
+        Action<SvgElement, string, TState> visitor,
+        bool includeMarkerReferences,
+        bool includeClipPathReferences,
+        Func<SvgElement?, string?>? getElementAddressKey = null,
+        TState state = default!)
+    {
+        HashSet<string>? seen = null;
 
         void Add(SvgElement? dependencyElement)
         {
@@ -660,7 +674,13 @@ public static class SvgSceneCompiler
             }
 
             var dependencyAddressKey = (getElementAddressKey ?? TryGetElementAddressKey)(dependencyElement) ?? dependencyElement.ID;
-            if (string.IsNullOrWhiteSpace(dependencyAddressKey) || !seen.Add(dependencyAddressKey))
+            if (string.IsNullOrWhiteSpace(dependencyAddressKey))
+            {
+                return;
+            }
+
+            seen ??= new HashSet<string>(StringComparer.Ordinal);
+            if (!seen.Add(dependencyAddressKey))
             {
                 return;
             }
@@ -668,9 +688,13 @@ public static class SvgSceneCompiler
             visitor(dependencyElement, dependencyAddressKey!, state);
         }
 
+        if (includeClipPathReferences && IsClipPathApplicableElement(element))
+        {
+            Add(ResolveReference(element, GetClipPathReferenceUri(element)));
+        }
+
         if (element is SvgVisualElement visualElement)
         {
-            Add(ResolveReference(visualElement, visualElement.ClipPath));
             foreach (var filterUri in SvgSceneFilterContext.GetFilterReferenceUris(visualElement))
             {
                 Add(ResolveReference(visualElement, filterUri));
@@ -742,10 +766,21 @@ public static class SvgSceneCompiler
 
     internal static bool MayReferenceOtherElements(SvgElement element, bool includeMarkerReferences)
     {
+        return MayReferenceOtherElements(element, includeMarkerReferences, includeClipPathReferences: true);
+    }
+
+    internal static bool MayReferenceOtherElements(SvgElement element, bool includeMarkerReferences, bool includeClipPathReferences)
+    {
+        if (includeClipPathReferences &&
+            IsClipPathApplicableElement(element) &&
+            GetClipPathReferenceUri(element) is not null)
+        {
+            return true;
+        }
+
         if (element is SvgVisualElement visualElement)
         {
-            if (visualElement.ClipPath is not null ||
-                SvgSceneFilterContext.GetFilterReferenceUris(visualElement).Any() ||
+            if (SvgSceneFilterContext.HasFilterReference(visualElement) ||
                 HasMaskReference(element) ||
                 HasPaintServerReference(element, visualElement.Fill) ||
                 HasPaintServerReference(element, visualElement.Stroke) ||
@@ -2537,7 +2572,7 @@ public static class SvgSceneCompiler
                 continue;
             }
 
-            if (child.HasRequiredFeatures() && child.HasRequiredExtensions() && child.HasSystemLanguage())
+            if (child.PassesConditionalProcessing(DrawAttributes.None))
             {
                 activeChild = child;
                 return true;
@@ -3655,6 +3690,35 @@ public static class SvgSceneCompiler
             SvgCascadedStyleFeatureFlags.MarkerReference);
     }
 
+    internal static bool SubtreeMayContainClipPathDeclarations(SvgElement? element)
+    {
+        if (element is null)
+        {
+            return false;
+        }
+
+        if (HasOwnClipPathDeclarationCandidate(element))
+        {
+            return true;
+        }
+
+        for (var i = 0; i < element.Children.Count; i++)
+        {
+            if (SubtreeMayContainClipPathDeclarations(element.Children[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    internal static bool HasOwnClipPathDeclarationCandidate(SvgElement element)
+    {
+        return (element.TryGetOwnCascadedStyleValue("clip-path", out var styleValue) && !string.IsNullOrWhiteSpace(styleValue)) ||
+               (element.TryGetAttribute("clip-path", out var attributeValue) && !string.IsNullOrWhiteSpace(attributeValue));
+    }
+
     private static SvgCascadedStyleFeatureFlags GetRequestedCascadedStyleFeatureFlags(SvgElement element)
     {
         var flags = SvgCascadedStyleFeatureFlags.None;
@@ -3739,10 +3803,7 @@ public static class SvgSceneCompiler
 
     private static bool HasFeatures(SvgElement element, DrawAttributes ignoreAttributes)
     {
-        var hasRequiredFeatures = ignoreAttributes.HasFlag(DrawAttributes.RequiredFeatures) || element.HasRequiredFeatures();
-        var hasRequiredExtensions = ignoreAttributes.HasFlag(DrawAttributes.RequiredExtensions) || element.HasRequiredExtensions();
-        var hasSystemLanguage = ignoreAttributes.HasFlag(DrawAttributes.SystemLanguage) || element.HasSystemLanguage();
-        return hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage;
+        return element.PassesConditionalProcessing(ignoreAttributes);
     }
 
     internal static SvgSceneDocument? CompileTemporaryChildrenScene(
@@ -3887,7 +3948,8 @@ public static class SvgSceneCompiler
                     geometryBounds,
                     assetLoader,
                     ignoreAttributes,
-                    compileContext.ContextPaint);
+                    compileContext.ContextPaint,
+                    compileContext.GradientPaintCache);
             if (fill is null)
             {
                 canDrawFill = false;
@@ -3902,7 +3964,8 @@ public static class SvgSceneCompiler
                 assetLoader,
                 ignoreAttributes,
                 compileContext.ContextPaint,
-                path);
+                path,
+                compileContext.GradientPaintCache);
             if (stroke is null)
             {
                 canDrawStroke = false;
@@ -3998,12 +4061,54 @@ public static class SvgSceneCompiler
 
     private static SvgElement? GetResolvedPaintServerElement(SvgElement owner, SvgPaintServer? server)
     {
-        if (server is null || server == SvgPaintServer.None || server == SvgPaintServer.Inherit || server == SvgPaintServer.NotSet)
+        if (!MayResolvePaintServerResource(server))
         {
             return null;
         }
 
-        return SvgDeferredPaintServer.TryGet<SvgPaintServer>(server, owner) as SvgElement;
+        var resolvedServer = server is SvgDeferredPaintServer
+            ? SvgDeferredPaintServer.TryGet<SvgPaintServer>(server, owner)
+            : server;
+        var paintServerElement = resolvedServer as SvgElement;
+        return IsPaintServerResource(resolvedServer) &&
+               paintServerElement is not null &&
+               paintServerElement.PassesConditionalProcessing(DrawAttributes.None)
+            ? paintServerElement
+            : null;
+    }
+
+    private static bool MayResolvePaintServerResource(SvgPaintServer? server)
+    {
+        if (server is null ||
+            server == SvgPaintServer.None ||
+            server == SvgPaintServer.Inherit ||
+            server == SvgPaintServer.NotSet ||
+            server is SvgColourServer ||
+            server is SvgContextPaintServer)
+        {
+            return false;
+        }
+
+        return server is not SvgDeferredPaintServer deferredServer ||
+               IsDeferredPaintServerReference(deferredServer);
+    }
+
+    private static bool IsPaintServerResource(SvgPaintServer? server)
+    {
+        return server is SvgGradientServer or SvgPatternServer;
+    }
+
+    private static bool IsDeferredPaintServerReference(SvgDeferredPaintServer deferredServer)
+    {
+        var value = deferredServer.DeferredId;
+        if (string.IsNullOrEmpty(value) ||
+            !TryGetTrimmedRange(value, out var start, out var length))
+        {
+            return false;
+        }
+
+        return value[start] == '#' ||
+               StartsWithRange(value, start, length, "url(");
     }
 
     private static bool HasPaintServerReference(SvgElement owner, SvgPaintServer? server)
@@ -4018,14 +4123,39 @@ public static class SvgSceneCompiler
             return null;
         }
 
-        return uri.IsAbsoluteUri
+        var referencedElement = uri.IsAbsoluteUri
             ? SvgService.GetReference<SvgElement>(owner, uri)
             : owner.OwnerDocument?.GetElementById(uri.ToString());
+        return referencedElement is not null &&
+               referencedElement.PassesConditionalProcessing(DrawAttributes.None)
+            ? referencedElement
+            : null;
     }
 
     private static string? TryGetResourceKey(SvgElement owner, Uri? uri, Func<SvgElement?, string?>? getElementAddressKey = null)
     {
         return (getElementAddressKey ?? TryGetElementAddressKey)(ResolveReference(owner, uri));
+    }
+
+    private static string? TryGetClipResourceKey(SvgElement? element, Func<SvgElement?, string?>? getElementAddressKey = null)
+    {
+        if (element is null ||
+            !IsClipPathApplicableElement(element))
+        {
+            return null;
+        }
+
+        var clipUri = GetClipPathReferenceUri(element);
+        if (clipUri is null)
+        {
+            return null;
+        }
+
+        var svgClipPath = SvgService.GetReference<SvgClipPath>(element, clipUri);
+        return svgClipPath is not null &&
+               svgClipPath.PassesConditionalProcessing(DrawAttributes.None)
+            ? (getElementAddressKey ?? TryGetElementAddressKey)(svgClipPath)
+            : null;
     }
 
     private static string? TryGetMaskResourceKey(SvgElement element, Func<SvgElement?, string?>? getElementAddressKey = null)
@@ -4037,7 +4167,10 @@ public static class SvgSceneCompiler
         }
 
         var svgMask = SvgService.GetReference<SvgMask>(element, maskUri);
-        return (getElementAddressKey ?? TryGetElementAddressKey)(svgMask);
+        return svgMask is not null &&
+               svgMask.PassesConditionalProcessing(DrawAttributes.None)
+            ? (getElementAddressKey ?? TryGetElementAddressKey)(svgMask)
+            : null;
     }
 
     private static bool HasMaskReference(SvgElement element)
@@ -4051,6 +4184,12 @@ public static class SvgSceneCompiler
         node.MaskResourceKey = null;
         node.FilterResourceKey = null;
 
+        if (element is not null &&
+            IsClipPathApplicableElement(element))
+        {
+            node.ClipResourceKey = TryGetClipResourceKey(element, getElementAddressKey);
+        }
+
         if (element is SvgMask)
         {
             node.MaskResourceKey = TryGetMaskResourceKey(element, getElementAddressKey);
@@ -4062,7 +4201,6 @@ public static class SvgSceneCompiler
             return;
         }
 
-        node.ClipResourceKey = TryGetResourceKey(visualElement, visualElement.ClipPath, getElementAddressKey);
         node.MaskResourceKey = TryGetMaskResourceKey(visualElement, getElementAddressKey);
         node.FilterResourceKey = TryGetResourceKey(visualElement, SvgSceneFilterContext.GetFilterReferenceUri(visualElement), getElementAddressKey);
     }
@@ -4240,6 +4378,30 @@ public static class SvgSceneCompiler
         return GetReferenceUri(element, name);
     }
 
+    private static Uri? GetClipPathReferenceUri(SvgElement element)
+    {
+        if ((!element.TryGetOwnCascadedStyleValue("clip-path", out var value) &&
+             !element.TryGetAttribute("clip-path", out value)) ||
+            string.IsNullOrEmpty(value) ||
+            !TryGetTrimmedRange(value, out var start, out var length))
+        {
+            return null;
+        }
+
+        if (StartsWithRange(value, start, length, "url(") ||
+            value[start] == '#')
+        {
+            return TryCreateMarkerReferenceUri(value);
+        }
+
+        return null;
+    }
+
+    private static bool IsClipPathApplicableElement(SvgElement element)
+    {
+        return element is SvgVisualElement || element.IsContainerElement();
+    }
+
     private static Uri? GetReferenceUri(SvgElement element, string name)
     {
         if ((!element.TryGetOwnCascadedStyleValue(name, out var value) &&
@@ -4250,6 +4412,31 @@ public static class SvgSceneCompiler
         }
 
         return TryCreateMarkerReferenceUri(value);
+    }
+
+    private static bool TryGetTrimmedRange(string value, out int start, out int length)
+    {
+        start = 0;
+        var end = value.Length - 1;
+
+        while (start <= end && char.IsWhiteSpace(value[start]))
+        {
+            start++;
+        }
+
+        while (end >= start && char.IsWhiteSpace(value[end]))
+        {
+            end--;
+        }
+
+        length = end - start + 1;
+        return length > 0;
+    }
+
+    private static bool StartsWithRange(string value, int start, int length, string expected)
+    {
+        return length >= expected.Length &&
+               string.Compare(value, start, expected, 0, expected.Length, StringComparison.OrdinalIgnoreCase) == 0;
     }
 
     private static bool TryGetCursorAttribute(SvgElement element, out string? cursor)
@@ -4432,6 +4619,7 @@ public static class SvgSceneCompiler
             transform = transform.PreConcat(SKMatrix.CreateTranslation(targetBounds.Left, targetBounds.Top));
             transform = transform.PreConcat(SKMatrix.CreateScale(targetBounds.Width, targetBounds.Height));
         }
+        var localMaskClip = CreateLocalMaskClip(maskRect.Value, transform);
 
         var compileContext = new SvgSceneCompileContext();
         _ = compileContext.TryEnter(svgMask.OwnerDocument, out var documentKey);
@@ -4448,10 +4636,10 @@ public static class SvgSceneCompiler
             IsRenderable = true,
             IsAntialias = PaintingService.IsAntialias(svgMask),
             GeometryBounds = maskRect.Value,
+            Clip = localMaskClip,
             Transform = transform,
             TotalTransform = transform,
-            TransformedBounds = transform.MapRect(maskRect.Value),
-            Overflow = maskRect.Value
+            TransformedBounds = transform.MapRect(localMaskClip)
         };
         var ownFeatureFlags = svgMask.GetOwnCascadedStyleFeatureFlags(GetRequestedCascadedStyleFeatureFlags(svgMask));
         AssignRetainedVisualState(
@@ -4485,5 +4673,17 @@ public static class SvgSceneCompiler
         }
 
         return node;
+    }
+
+    private static SKRect CreateLocalMaskClip(SKRect maskRect, SKMatrix maskContentTransform)
+    {
+        if (maskContentTransform.IsIdentity)
+        {
+            return maskRect;
+        }
+
+        return maskContentTransform.TryInvert(out var inverse)
+            ? inverse.MapRect(maskRect)
+            : maskRect;
     }
 }

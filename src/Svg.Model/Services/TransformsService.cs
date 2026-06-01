@@ -305,7 +305,10 @@ internal static class TransformsService
 
     private static SKRect ResolveTransformReferenceBox(SvgElement svgElement, SKRect geometryBounds, SKRect viewport)
     {
-        if (svgElement.TransformBox is SvgTransformBox.FillBox or SvgTransformBox.StrokeBox)
+        if (svgElement.TransformBox is SvgTransformBox.FillBox or
+            SvgTransformBox.StrokeBox or
+            SvgTransformBox.ContentBox or
+            SvgTransformBox.BorderBox)
         {
             return geometryBounds.IsEmpty ? viewport : geometryBounds;
         }
