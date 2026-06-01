@@ -82,21 +82,58 @@ namespace Svg
                     paintServer = typedPaintServer;
                     return true;
                 }
+
+                if (attributeValue is string rawAttributeValue &&
+                    TryParseStopColor(element, rawAttributeValue, out paintServer, out shouldInherit))
+                {
+                    if (!shouldInherit)
+                    {
+                        element.Attributes["stop-color"] = paintServer;
+                    }
+
+                    return true;
+                }
             }
 
             if (element.TryGetAttribute("stop-color", out var rawValue) && !string.IsNullOrWhiteSpace(rawValue))
             {
-                if (string.Equals(rawValue.Trim(), "inherit", StringComparison.OrdinalIgnoreCase))
+                var hasOwnAttribute = element.Attributes.ContainsKey("stop-color");
+                if (TryParseStopColor(element, rawValue, out paintServer, out shouldInherit))
                 {
-                    shouldInherit = true;
+                    if (hasOwnAttribute && !shouldInherit)
+                    {
+                        element.Attributes["stop-color"] = paintServer;
+                    }
+
                     return true;
                 }
-
-                paintServer = SvgPaintServerFactory.Create(rawValue, element.OwnerDocument);
-                return true;
             }
 
             return false;
+        }
+
+        private static bool TryParseStopColor(
+            SvgElement element,
+            string rawValue,
+            out SvgPaintServer paintServer,
+            out bool shouldInherit)
+        {
+            paintServer = null;
+            shouldInherit = false;
+
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return false;
+            }
+
+            if (string.Equals(rawValue.Trim(), "inherit", StringComparison.OrdinalIgnoreCase))
+            {
+                shouldInherit = true;
+                return true;
+            }
+
+            paintServer = SvgPaintServerFactory.Create(rawValue, element.OwnerDocument);
+            return true;
         }
 
         private static bool TryGetExplicitStopOpacity(SvgElement element, out float opacity, out bool shouldInherit)
@@ -118,11 +155,15 @@ namespace Svg
                     case string rawOpacity when string.Equals(rawOpacity.Trim(), "inherit", StringComparison.OrdinalIgnoreCase):
                         shouldInherit = true;
                         return true;
+                    case string rawOpacity when TryParseOpacity(rawOpacity, out opacity):
+                        element.Attributes["stop-opacity"] = opacity;
+                        return true;
                 }
             }
 
             if (element.TryGetAttribute("stop-opacity", out var rawValue) && !string.IsNullOrWhiteSpace(rawValue))
             {
+                var hasOwnAttribute = element.Attributes.ContainsKey("stop-opacity");
                 if (string.Equals(rawValue.Trim(), "inherit", StringComparison.OrdinalIgnoreCase))
                 {
                     shouldInherit = true;
@@ -131,6 +172,11 @@ namespace Svg
 
                 if (TryParseOpacity(rawValue, out opacity))
                 {
+                    if (hasOwnAttribute)
+                    {
+                        element.Attributes["stop-opacity"] = opacity;
+                    }
+
                     return true;
                 }
             }
@@ -140,8 +186,20 @@ namespace Svg
 
         private static bool TryParseOpacity(string rawValue, out float opacity)
         {
-            if (float.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
+            var value = rawValue.Trim();
+            var isPercentage = value.EndsWith("%", StringComparison.Ordinal);
+            if (isPercentage)
             {
+                value = value.Substring(0, value.Length - 1).Trim();
+            }
+
+            if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
+            {
+                if (isPercentage)
+                {
+                    parsed /= 100f;
+                }
+
                 opacity = ClampOpacity(parsed);
                 return true;
             }

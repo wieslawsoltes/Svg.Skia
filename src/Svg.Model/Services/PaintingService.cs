@@ -570,6 +570,11 @@ internal static class PaintingService
         }
 
         focalRadius = Math.Max(0f, focalRadius);
+        if (svgGradientUnits != SvgCoordinateUnits.ObjectBoundingBox)
+        {
+            skFocal = CorrectRadialGradientFocalPoint(skCenter, radius, skFocal, focalRadius);
+        }
+
         var isRadialGradient = focalRadius == 0f && skCenter.X == skFocal.X && skCenter.Y == skFocal.Y;
 
         if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
@@ -669,6 +674,26 @@ internal static class PaintingService
             SvgShapeRendering.CrispEdges => false,
             _ => true
         };
+    }
+
+    internal static SKPoint CorrectRadialGradientFocalPoint(SKPoint center, float radius, SKPoint focal, float focalRadius)
+    {
+        if (radius <= 0f)
+        {
+            return focal;
+        }
+
+        var maxDistance = Math.Max(0f, radius - Math.Max(0f, focalRadius));
+        var dx = focal.X - center.X;
+        var dy = focal.Y - center.Y;
+        var distance = (float)Math.Sqrt((dx * dx) + (dy * dy));
+        if (distance <= maxDistance || distance <= 0f)
+        {
+            return focal;
+        }
+
+        var scale = maxDistance / distance;
+        return new SKPoint(center.X + (dx * scale), center.Y + (dy * scale));
     }
 
     internal static bool IsValidFill(SvgElement svgElement)

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Linq;
 using System.Text;
 
 namespace Svg
@@ -81,10 +80,17 @@ namespace Svg
         {
             if (DeferredId == "currentColor" && styleOwner != null)
             {
-                var colorElement = styleOwner.ParentsAndSelf.OfType<SvgElement>().FirstOrDefault(
-                    e => e.Color != None && e.Color != NotSet && e.Color != Inherit);
+                for (var current = styleOwner; current is not null; current = current.Parent)
+                {
+                    var color = GetOwnColor(current);
+                    if (IsConcreteCurrentColor(color))
+                    {
+                        _concreteServer = color;
+                        return;
+                    }
+                }
 
-                _concreteServer = colorElement?.Color;
+                _concreteServer = new SvgColourServer(System.Drawing.Color.Black);
                 return;
             }
 
@@ -165,6 +171,36 @@ namespace Svg
             var deferred = (SvgDeferredPaintServer)server;
             deferred.EnsureServer(parent);
             return (deferred._concreteServer ?? deferred._fallbackServer) as T;
+        }
+
+        private static bool IsConcreteCurrentColor(SvgPaintServer server)
+        {
+            if (server == null ||
+                server == None ||
+                server == NotSet ||
+                server == Inherit)
+            {
+                return false;
+            }
+
+            return server is SvgColourServer;
+        }
+
+        private static SvgPaintServer GetOwnColor(SvgElement element)
+        {
+            if (!element.Attributes.ContainsKey("color"))
+            {
+                if (element.TryGetOwnCascadedStyleDeclarationValue("color", out var styleColor) &&
+                    !string.IsNullOrWhiteSpace(styleColor))
+                {
+                    return SvgPaintServerFactory.Create(styleColor, element.OwnerDocument);
+                }
+
+                return NotSet;
+            }
+
+            var value = element.Attributes.GetAttribute<object>("color");
+            return value as SvgPaintServer ?? NotSet;
         }
     }
 }

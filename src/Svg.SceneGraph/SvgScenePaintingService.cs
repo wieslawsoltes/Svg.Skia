@@ -28,6 +28,113 @@ internal static class SvgScenePaintingService
 {
     internal readonly record struct SolidFillPaintCacheKey(bool IsAntialias, SKColor Color, bool LinearRgb);
 
+    internal sealed class GradientPaintCache
+    {
+        private Dictionary<GradientStopCacheKey, GradientStopCacheEntry>? _stops;
+
+        internal bool TryGetStops(
+            SvgGradientServer root,
+            float opacity,
+            DrawAttributes ignoreAttributes,
+            bool isLinearRgb,
+            out GradientStopCacheEntry entry)
+        {
+            if (_stops is null)
+            {
+                entry = default;
+                return false;
+            }
+
+            return _stops.TryGetValue(
+                new GradientStopCacheKey(root, opacity, ignoreAttributes, isLinearRgb),
+                out entry);
+        }
+
+        internal void SetStops(
+            SvgGradientServer root,
+            float opacity,
+            DrawAttributes ignoreAttributes,
+            bool isLinearRgb,
+            GradientStopCacheEntry entry)
+        {
+            _stops ??= new Dictionary<GradientStopCacheKey, GradientStopCacheEntry>();
+            _stops[new GradientStopCacheKey(root, opacity, ignoreAttributes, isLinearRgb)] = entry;
+        }
+    }
+
+    private readonly record struct GradientStopCacheKey(
+        SvgGradientServer Root,
+        float Opacity,
+        DrawAttributes IgnoreAttributes,
+        bool IsLinearRgb);
+
+    internal readonly struct GradientStopCacheEntry
+    {
+        public GradientStopCacheEntry(SKColor singleColor)
+        {
+            HasStops = true;
+            SingleColor = singleColor;
+            Colors = null;
+            ColorPos = null;
+        }
+
+        public GradientStopCacheEntry(SKColorF[] colors, float[] colorPos)
+        {
+            HasStops = true;
+            SingleColor = default;
+            Colors = colors;
+            ColorPos = colorPos;
+        }
+
+        public static GradientStopCacheEntry Empty { get; } = new();
+
+        public bool HasStops { get; }
+
+        public SKColor SingleColor { get; }
+
+        public SKColorF[]? Colors { get; }
+
+        public float[]? ColorPos { get; }
+    }
+
+    private readonly struct GradientServerChain
+    {
+        private readonly SvgGradientServer? _single;
+        private readonly List<SvgGradientServer>? _servers;
+
+        public GradientServerChain(SvgGradientServer single)
+        {
+            _single = single;
+            _servers = null;
+        }
+
+        public GradientServerChain(List<SvgGradientServer> servers)
+        {
+            _single = null;
+            _servers = servers;
+        }
+
+        public int Count => _servers?.Count ?? (_single is null ? 0 : 1);
+
+        public SvgGradientServer this[int index]
+        {
+            get
+            {
+                if (_servers is not null)
+                {
+                    return _servers[index];
+                }
+
+                if (index == 0 && _single is not null)
+                {
+                    return _single;
+                }
+
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+        }
+    }
+
     private const int MaxVisiblePatternOverflowCopies = 256;
 
     [ThreadStatic]
@@ -93,7 +200,8 @@ internal static class SvgScenePaintingService
         SKRect skBounds,
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
-        SvgSceneContextPaint? contextPaint = null)
+        SvgSceneContextPaint? contextPaint = null,
+        GradientPaintCache? gradientPaintCache = null)
     {
         var skPaint = new SKPaint
         {
@@ -111,7 +219,8 @@ internal static class SvgScenePaintingService
                 forStroke: false,
                 assetLoader,
                 ignoreAttributes,
-                contextPaint)
+                contextPaint,
+                gradientPaintCache)
             ? skPaint
             : null;
     }
@@ -168,7 +277,8 @@ internal static class SvgScenePaintingService
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
         SvgSceneContextPaint? contextPaint = null,
-        SKPath? geometryPath = null)
+        SKPath? geometryPath = null,
+        GradientPaintCache? gradientPaintCache = null)
     {
         var skPaint = new SKPaint
         {
@@ -186,7 +296,8 @@ internal static class SvgScenePaintingService
                 forStroke: true,
                 assetLoader,
                 ignoreAttributes,
-                contextPaint))
+                contextPaint,
+                gradientPaintCache))
         {
             return null;
         }
@@ -227,6 +338,7 @@ internal static class SvgScenePaintingService
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
         SvgSceneContextPaint? contextPaint,
+        GradientPaintCache? gradientPaintCache,
         int contextPaintDepth = 0)
     {
         if (server is null)
@@ -251,6 +363,25 @@ internal static class SvgScenePaintingService
             return false;
         }
 
+        if (server is SvgGradientServer or SvgPatternServer &&
+            server is SvgElement serverElement &&
+            !serverElement.PassesConditionalProcessing(ignoreAttributes))
+        {
+            return TryApplyFallbackPaintServer(
+                svgVisualElement,
+                fallbackServer,
+                opacity,
+                skBounds,
+                skPaint,
+                forStroke,
+                assetLoader,
+                ignoreAttributes,
+                contextPaint,
+                gradientPaintCache,
+                contextPaintDepth,
+                SKColorSpace.Srgb);
+        }
+
         switch (server)
         {
             case SvgContextPaintServer svgContextPaintServer:
@@ -264,6 +395,7 @@ internal static class SvgScenePaintingService
                     assetLoader,
                     ignoreAttributes,
                     contextPaint,
+                    gradientPaintCache,
                     contextPaintDepth);
 
             case SvgColourServer svgColourServer:
@@ -291,6 +423,7 @@ internal static class SvgScenePaintingService
                         assetLoader,
                         ignoreAttributes,
                         contextPaint,
+                        gradientPaintCache,
                         contextPaintDepth,
                         skColorSpace);
                 }
@@ -314,11 +447,12 @@ internal static class SvgScenePaintingService
                             assetLoader,
                             ignoreAttributes,
                             contextPaint,
+                            gradientPaintCache,
                             contextPaintDepth,
                             skColorSpace);
                     }
 
-                    var shader = CreateLinearGradient(svgLinearGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes, skColorSpace);
+                    var shader = CreateLinearGradient(svgLinearGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes, skColorSpace, gradientPaintCache);
                     if (shader is null)
                     {
                         return TryApplyFallbackPaintServer(
@@ -331,6 +465,7 @@ internal static class SvgScenePaintingService
                             assetLoader,
                             ignoreAttributes,
                             contextPaint,
+                            gradientPaintCache,
                             contextPaintDepth,
                             skColorSpace);
                     }
@@ -358,11 +493,12 @@ internal static class SvgScenePaintingService
                             assetLoader,
                             ignoreAttributes,
                             contextPaint,
+                            gradientPaintCache,
                             contextPaintDepth,
                             skColorSpace);
                     }
 
-                    var shader = CreateTwoPointConicalGradient(svgRadialGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes, skColorSpace);
+                    var shader = CreateTwoPointConicalGradient(svgRadialGradientServer, skBounds, svgVisualElement, opacity, ignoreAttributes, skColorSpace, gradientPaintCache);
                     if (shader is null)
                     {
                         return TryApplyFallbackPaintServer(
@@ -375,6 +511,7 @@ internal static class SvgScenePaintingService
                             assetLoader,
                             ignoreAttributes,
                             contextPaint,
+                            gradientPaintCache,
                             contextPaintDepth,
                             skColorSpace);
                     }
@@ -394,6 +531,7 @@ internal static class SvgScenePaintingService
                     assetLoader,
                     ignoreAttributes,
                     contextPaint,
+                    gradientPaintCache,
                     contextPaintDepth);
 
             default:
@@ -411,6 +549,7 @@ internal static class SvgScenePaintingService
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
         SvgSceneContextPaint? contextPaint,
+        GradientPaintCache? gradientPaintCache,
         int contextPaintDepth)
     {
         if (contextPaint is null ||
@@ -438,6 +577,7 @@ internal static class SvgScenePaintingService
             assetLoader,
             ignoreAttributes,
             contextPaint.Parent,
+            gradientPaintCache,
             contextPaintDepth + 1);
     }
 
@@ -520,6 +660,7 @@ internal static class SvgScenePaintingService
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
         SvgSceneContextPaint? contextPaint,
+        GradientPaintCache? gradientPaintCache,
         int contextPaintDepth,
         SKColorSpace skColorSpace)
     {
@@ -543,6 +684,7 @@ internal static class SvgScenePaintingService
             assetLoader,
             ignoreAttributes,
             contextPaint,
+            gradientPaintCache,
             contextPaintDepth + 1);
     }
 
@@ -628,8 +770,18 @@ internal static class SvgScenePaintingService
         }
     }
 
-    private static List<SvgGradientServer> GetLinkedGradientServers(SvgGradientServer svgGradientServer, SvgVisualElement svgVisualElement)
+    private static GradientServerChain GetLinkedGradientServers(SvgGradientServer svgGradientServer, SvgVisualElement svgVisualElement)
     {
+        if (!svgGradientServer.PassesConditionalProcessing(DrawAttributes.None))
+        {
+            return default;
+        }
+
+        if (!svgGradientServer.TryGetEffectiveHrefString(out _))
+        {
+            return new GradientServerChain(svgGradientServer);
+        }
+
         var gradientServers = new List<SvgGradientServer>();
         var visited = new HashSet<SvgGradientServer>();
         var currentGradientServer = svgGradientServer;
@@ -640,67 +792,212 @@ internal static class SvgScenePaintingService
                 break;
             }
 
+            if (!currentGradientServer.PassesConditionalProcessing(DrawAttributes.None))
+            {
+                break;
+            }
+
             gradientServers.Add(currentGradientServer);
             currentGradientServer = SvgDeferredPaintServer.TryGet<SvgGradientServer>(currentGradientServer.InheritGradient, svgVisualElement);
         } while (currentGradientServer is not null);
 
-        return gradientServers;
+        return new GradientServerChain(gradientServers);
     }
 
-    private static void GetStops(
-        List<SvgGradientServer> svgReferencedGradientServers,
-        SKRect skBounds,
-        List<SKColor> colors,
-        List<float> colorPos,
-        SvgVisualElement svgVisualElement,
+    private static bool TryCreateGradientStops(
+        SvgGradientServer rootGradientServer,
+        GradientServerChain svgReferencedGradientServers,
         float opacity,
         DrawAttributes ignoreAttributes,
-        bool isLinearRgb)
+        bool isLinearRgb,
+        GradientPaintCache? gradientPaintCache,
+        out SKColor singleColor,
+        out SKColorF[]? colors,
+        out float[]? colorPos)
     {
-        foreach (var svgReferencedGradientServer in svgReferencedGradientServers)
+        singleColor = default;
+        colors = null;
+        colorPos = null;
+
+        if (gradientPaintCache is not null &&
+            gradientPaintCache.TryGetStops(rootGradientServer, opacity, ignoreAttributes, isLinearRgb, out var cachedEntry))
         {
-            if (colors.Count != 0)
+            return TryGetCachedGradientStops(cachedEntry, out singleColor, out colors, out colorPos);
+        }
+
+        for (var i = 0; i < svgReferencedGradientServers.Count; i++)
+        {
+            var svgReferencedGradientServer = svgReferencedGradientServers[i];
+            var stops = svgReferencedGradientServer.Stops;
+            if (stops.Count == 0)
             {
                 continue;
             }
 
-            foreach (var child in svgReferencedGradientServer.Children)
+            if (stops.Count == 1)
             {
-                if (child is not SvgGradientStop svgGradientStop)
+                if (TryGetGradientStopColor(stops[0], opacity, ignoreAttributes, isLinearRgb, out singleColor))
                 {
-                    continue;
+                    gradientPaintCache?.SetStops(
+                        rootGradientServer,
+                        opacity,
+                        ignoreAttributes,
+                        isLinearRgb,
+                        new GradientStopCacheEntry(singleColor));
+                    return true;
                 }
 
-                var server = svgGradientStop.StopColor;
-                if (server is SvgDeferredPaintServer svgDeferredPaintServer)
-                {
-                    // Match the model-path behavior: stop-level currentColor/inherit must resolve
-                    // against the gradient definition tree rather than the referencing element.
-                    server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgGradientStop);
-                }
-
-                if (server is not SvgColourServer stopColorSvgColourServer)
-                {
-                    continue;
-                }
-
-                var stopOpacity = AdjustSvgOpacity(svgGradientStop.StopOpacity);
-                var stopColor = GetColor(stopColorSvgColourServer, opacity * stopOpacity, ignoreAttributes);
-                if (isLinearRgb)
-                {
-                    stopColor = ToLinear(stopColor);
-                }
-
-                colors.Add(stopColor);
-                colorPos.Add(GetGradientStopOffset(svgGradientStop));
+                continue;
             }
+
+            colors = new SKColorF[stops.Count];
+            colorPos = new float[stops.Count];
+            var stopCount = FillGradientStops(stops, opacity, ignoreAttributes, isLinearRgb, colors, colorPos);
+            if (stopCount == 0)
+            {
+                colors = null;
+                colorPos = null;
+                continue;
+            }
+
+            if (stopCount == 1)
+            {
+                singleColor = (SKColor)colors[0];
+                colors = null;
+                colorPos = null;
+                gradientPaintCache?.SetStops(
+                    rootGradientServer,
+                    opacity,
+                    ignoreAttributes,
+                    isLinearRgb,
+                    new GradientStopCacheEntry(singleColor));
+                return true;
+            }
+
+            if (stopCount != stops.Count)
+            {
+                Array.Resize(ref colors, stopCount);
+                Array.Resize(ref colorPos, stopCount);
+            }
+
+            AdjustStopColorPos(colorPos);
+            gradientPaintCache?.SetStops(
+                rootGradientServer,
+                opacity,
+                ignoreAttributes,
+                isLinearRgb,
+                new GradientStopCacheEntry(colors, colorPos));
+            return true;
         }
+
+        gradientPaintCache?.SetStops(
+            rootGradientServer,
+            opacity,
+            ignoreAttributes,
+            isLinearRgb,
+            GradientStopCacheEntry.Empty);
+        return false;
     }
 
-    private static void AdjustStopColorPos(List<float> colorPos)
+    private static bool TryGetCachedGradientStops(
+        GradientStopCacheEntry entry,
+        out SKColor singleColor,
+        out SKColorF[]? colors,
+        out float[]? colorPos)
+    {
+        singleColor = entry.SingleColor;
+        colors = entry.Colors;
+        colorPos = entry.ColorPos;
+        return entry.HasStops;
+    }
+
+    private static int FillGradientStops(
+        List<SvgGradientStop> stops,
+        float opacity,
+        DrawAttributes ignoreAttributes,
+        bool isLinearRgb,
+        SKColorF[] colors,
+        float[] colorPos)
+    {
+        var index = 0;
+        for (var i = 0; i < stops.Count; i++)
+        {
+            var svgGradientStop = stops[i];
+            if (!TryGetGradientStopColor(svgGradientStop, opacity, ignoreAttributes, isLinearRgb, out var stopColor))
+            {
+                continue;
+            }
+
+            colors[index] = stopColor;
+            colorPos[index] = GetGradientStopOffset(svgGradientStop);
+            index++;
+        }
+
+        return index;
+    }
+
+    private static bool TryGetGradientStopColor(
+        SvgGradientStop svgGradientStop,
+        float opacity,
+        DrawAttributes ignoreAttributes,
+        bool isLinearRgb,
+        out SKColor color)
+    {
+        color = default;
+        if (!TryGetGradientStopColorServer(svgGradientStop, ignoreAttributes, out var stopColorSvgColourServer))
+        {
+            return false;
+        }
+
+        color = CreateGradientStopColor(svgGradientStop, stopColorSvgColourServer, opacity, ignoreAttributes, isLinearRgb);
+        return true;
+    }
+
+    private static bool TryGetGradientStopColorServer(
+        SvgGradientStop svgGradientStop,
+        DrawAttributes ignoreAttributes,
+        out SvgColourServer stopColorSvgColourServer)
+    {
+        stopColorSvgColourServer = null!;
+
+        if (!svgGradientStop.PassesConditionalProcessing(ignoreAttributes))
+        {
+            return false;
+        }
+
+        var server = svgGradientStop.StopColor;
+        if (server is SvgDeferredPaintServer svgDeferredPaintServer)
+        {
+            // Match the model-path behavior: stop-level currentColor/inherit must resolve
+            // against the gradient definition tree rather than the referencing element.
+            server = SvgDeferredPaintServer.TryGet<SvgPaintServer>(svgDeferredPaintServer, svgGradientStop);
+        }
+
+        if (server is not SvgColourServer colorServer)
+        {
+            return false;
+        }
+
+        stopColorSvgColourServer = colorServer;
+        return true;
+    }
+
+    private static SKColor CreateGradientStopColor(
+        SvgGradientStop svgGradientStop,
+        SvgColourServer stopColorSvgColourServer,
+        float opacity,
+        DrawAttributes ignoreAttributes,
+        bool isLinearRgb)
+    {
+        var stopOpacity = AdjustSvgOpacity(svgGradientStop.StopOpacity);
+        var stopColor = GetColor(stopColorSvgColourServer, opacity * stopOpacity, ignoreAttributes);
+        return isLinearRgb ? ToLinear(stopColor) : stopColor;
+    }
+
+    private static void AdjustStopColorPos(float[] colorPos)
     {
         var maxPos = float.MinValue;
-        for (var i = 0; i < colorPos.Count; i++)
+        for (var i = 0; i < colorPos.Length; i++)
         {
             var pos = colorPos[i];
             if (pos > maxPos)
@@ -731,24 +1028,14 @@ internal static class SvgScenePaintingService
         return Math.Min(Math.Max(value, 0f), 1f);
     }
 
-    private static SKColorF[] ToSkColorF(IReadOnlyList<SKColor> skColors)
-    {
-        var skColorsF = new SKColorF[skColors.Count];
-        for (var i = 0; i < skColors.Count; i++)
-        {
-            skColorsF[i] = skColors[i];
-        }
-
-        return skColorsF;
-    }
-
     private static SKShader? CreateLinearGradient(
         SvgLinearGradientServer svgLinearGradientServer,
         SKRect skBounds,
         SvgVisualElement svgVisualElement,
         float opacity,
         DrawAttributes ignoreAttributes,
-        SKColorSpace skColorSpace)
+        SKColorSpace skColorSpace,
+        GradientPaintCache? gradientPaintCache)
     {
         var svgReferencedGradientServers = GetLinkedGradientServers(svgLinearGradientServer, svgVisualElement);
 
@@ -760,8 +1047,9 @@ internal static class SvgScenePaintingService
         SvgLinearGradientServer? firstX2 = null;
         SvgLinearGradientServer? firstY2 = null;
 
-        foreach (var p in svgReferencedGradientServers)
+        for (var i = 0; i < svgReferencedGradientServers.Count; i++)
         {
+            var p = svgReferencedGradientServers[i];
             if (firstSpreadMethod is null && SvgService.TryGetAttribute(p, "spreadMethod", out _))
             {
                 firstSpreadMethod = p;
@@ -827,11 +1115,20 @@ internal static class SvgScenePaintingService
             return null;
         }
 
-        var colors = new List<SKColor>();
-        var colorPos = new List<float>();
         var isLinearRgb = skColorSpace == SKColorSpace.SrgbLinear;
-        GetStops(svgReferencedGradientServers, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes, isLinearRgb);
-        AdjustStopColorPos(colorPos);
+        if (!TryCreateGradientStops(
+                svgLinearGradientServer,
+                svgReferencedGradientServers,
+                opacity,
+                ignoreAttributes,
+                isLinearRgb,
+                gradientPaintCache,
+                out var singleColor,
+                out var skColorsF,
+                out var skColorPos))
+        {
+            return null;
+        }
 
         var shaderTileMode = svgSpreadMethod switch
         {
@@ -840,18 +1137,11 @@ internal static class SvgScenePaintingService
             _ => SKShaderTileMode.Clamp
         };
 
-        if (colors.Count == 0)
+        if (skColorsF is null)
         {
-            return null;
+            return SKShader.CreateColor(singleColor, skColorSpace);
         }
 
-        if (colors.Count == 1)
-        {
-            return SKShader.CreateColor(colors[0], skColorSpace);
-        }
-
-        var skColorsF = ToSkColorF(colors);
-        var skColorPos = colorPos.ToArray();
         var skStart = new SKPoint(x1, y1);
         var skEnd = new SKPoint(x2, y2);
 
@@ -888,7 +1178,8 @@ internal static class SvgScenePaintingService
         SvgVisualElement svgVisualElement,
         float opacity,
         DrawAttributes ignoreAttributes,
-        SKColorSpace skColorSpace)
+        SKColorSpace skColorSpace,
+        GradientPaintCache? gradientPaintCache)
     {
         var svgReferencedGradientServers = GetLinkedGradientServers(svgRadialGradientServer, svgVisualElement);
 
@@ -902,8 +1193,9 @@ internal static class SvgScenePaintingService
         SvgRadialGradientServer? firstFocalY = null;
         SvgRadialGradientServer? firstFocalRadius = null;
 
-        foreach (var p in svgReferencedGradientServers)
+        for (var i = 0; i < svgReferencedGradientServers.Count; i++)
         {
+            var p = svgReferencedGradientServers[i];
             if (firstSpreadMethod is null && SvgService.TryGetAttribute(p, "spreadMethod", out _))
             {
                 firstSpreadMethod = p;
@@ -979,11 +1271,20 @@ internal static class SvgScenePaintingService
             return null;
         }
 
-        var colors = new List<SKColor>();
-        var colorPos = new List<float>();
         var isLinearRgb = skColorSpace == SKColorSpace.SrgbLinear;
-        GetStops(svgReferencedGradientServers, skBounds, colors, colorPos, svgVisualElement, opacity, ignoreAttributes, isLinearRgb);
-        AdjustStopColorPos(colorPos);
+        if (!TryCreateGradientStops(
+                svgRadialGradientServer,
+                svgReferencedGradientServers,
+                opacity,
+                ignoreAttributes,
+                isLinearRgb,
+                gradientPaintCache,
+                out var singleColor,
+                out var skColorsF,
+                out var skColorPos))
+        {
+            return null;
+        }
 
         var shaderTileMode = svgSpreadMethod switch
         {
@@ -992,26 +1293,24 @@ internal static class SvgScenePaintingService
             _ => SKShaderTileMode.Clamp
         };
 
-        if (colors.Count == 0)
+        if (skColorsF is null)
         {
-            return null;
-        }
-
-        if (colors.Count == 1)
-        {
-            return SKShader.CreateColor(colors[0], skColorSpace);
+            return SKShader.CreateColor(singleColor, skColorSpace);
         }
 
         if (radius == 0f)
         {
-            return SKShader.CreateColor(colors[colors.Count - 1], skColorSpace);
+            return SKShader.CreateColor((SKColor)skColorsF[skColorsF.Length - 1], skColorSpace);
         }
 
-        var skColorsF = ToSkColorF(colors);
-        var skColorPos = colorPos.ToArray();
         var skCenter = new SKPoint(centerX, centerY);
         var skFocal = new SKPoint(focalX, focalY);
         focalRadius = Math.Max(0f, focalRadius);
+        if (svgGradientUnits != SvgCoordinateUnits.ObjectBoundingBox)
+        {
+            skFocal = PaintingService.CorrectRadialGradientFocalPoint(skCenter, radius, skFocal, focalRadius);
+        }
+
         var isRadialGradient = focalRadius == 0f && skCenter.X == skFocal.X && skCenter.Y == skFocal.Y;
 
         if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)

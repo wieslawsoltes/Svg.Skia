@@ -176,6 +176,12 @@ namespace Svg
                 return true;
             }
 
+            if (TryGetLegacyIccColorFallback(value, out var fallbackColor) &&
+                TryParseCssConcreteColor(fallbackColor, out color))
+            {
+                return true;
+            }
+
             if (TryParseHexColorWithAlpha(value, out color) ||
                 TryParseCssFunctionalColor(value, out color))
             {
@@ -198,6 +204,84 @@ namespace Svg
 
             color = Color.Empty;
             return false;
+        }
+
+        private static bool TryGetLegacyIccColorFallback(string value, out string fallbackColor)
+        {
+            fallbackColor = string.Empty;
+
+            var depth = 0;
+            var quote = '\0';
+            for (var i = 0; i < value.Length; i++)
+            {
+                var ch = value[i];
+                if (quote != '\0')
+                {
+                    if (ch == quote)
+                    {
+                        quote = '\0';
+                    }
+
+                    continue;
+                }
+
+                if (ch == '"' || ch == '\'')
+                {
+                    quote = ch;
+                    continue;
+                }
+
+                if (ch == '(')
+                {
+                    depth++;
+                    continue;
+                }
+
+                if (ch == ')' && depth > 0)
+                {
+                    depth--;
+                    continue;
+                }
+
+                if (depth != 0 ||
+                    !IsFunctionAt(value, i, "icc-color") ||
+                    i == 0 ||
+                    !char.IsWhiteSpace(value[i - 1]))
+                {
+                    continue;
+                }
+
+                var openParenthesis = i + "icc-color".Length;
+                if (!TryFindCssFunctionEnd(value, openParenthesis, out var closeParenthesis))
+                {
+                    return false;
+                }
+
+                for (var tail = closeParenthesis + 1; tail < value.Length; tail++)
+                {
+                    if (!char.IsWhiteSpace(value[tail]))
+                    {
+                        return false;
+                    }
+                }
+
+                fallbackColor = value.Substring(0, i).Trim();
+                return fallbackColor.Length > 0;
+            }
+
+            return false;
+        }
+
+        private static bool IsFunctionAt(string value, int index, string functionName)
+        {
+            if (index + functionName.Length >= value.Length ||
+                string.Compare(value, index, functionName, 0, functionName.Length, ignoreCase: true, CultureInfo.InvariantCulture) != 0)
+            {
+                return false;
+            }
+
+            var openParenthesisIndex = index + functionName.Length;
+            return value[openParenthesisIndex] == '(';
         }
 
         private static bool TryParseHexColorWithAlpha(string value, out Color color)
