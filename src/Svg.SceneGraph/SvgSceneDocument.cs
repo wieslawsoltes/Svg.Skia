@@ -13,7 +13,7 @@ namespace Svg.Skia;
 
 public sealed class SvgSceneDocument
 {
-    private readonly Dictionary<string, List<SvgSceneNode>> _nodesByAddress = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, NodeAddressSet> _nodesByAddress = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SvgSceneNode> _nodesById = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SvgSceneNode> _compilationRootsByKey = new(StringComparer.Ordinal);
     private readonly Dictionary<string, CompilationRootKeySet> _compilationRootsByDependentAddress = new(StringComparer.Ordinal);
@@ -425,13 +425,7 @@ public sealed class SvgSceneDocument
                 var node = traversalStack.Pop();
                 if (!string.IsNullOrWhiteSpace(node.ElementAddressKey))
                 {
-                    if (!_nodesByAddress.TryGetValue(node.ElementAddressKey!, out var list))
-                    {
-                        list = new List<SvgSceneNode>();
-                        _nodesByAddress.Add(node.ElementAddressKey!, list);
-                    }
-
-                    list.Add(node);
+                    RegisterNodeAddress(node.ElementAddressKey!, node);
                 }
 
                 if (!string.IsNullOrWhiteSpace(node.ElementId) && !_nodesById.ContainsKey(node.ElementId!))
@@ -1213,6 +1207,20 @@ public sealed class SvgSceneDocument
         }
     }
 
+    private void RegisterNodeAddress(string addressKey, SvgSceneNode node)
+    {
+        var hasExistingNodes = _nodesByAddress.TryGetValue(addressKey, out var nodes);
+        nodes.Add(node);
+        if (hasExistingNodes)
+        {
+            _nodesByAddress[addressKey] = nodes;
+        }
+        else
+        {
+            _nodesByAddress.Add(addressKey, nodes);
+        }
+    }
+
     private void CollectResourceDependents(SvgSceneResource resource, HashSet<string> results, HashSet<string> visitedResources)
     {
         if (!visitedResources.Add(resource.Key))
@@ -1269,6 +1277,94 @@ public sealed class SvgSceneDocument
         {
             return RuntimeHelpers.GetHashCode(obj);
         }
+    }
+
+    private struct NodeAddressSet : IReadOnlyList<SvgSceneNode>
+    {
+        private SvgSceneNode? _first;
+        private SvgSceneNode? _second;
+        private SvgSceneNode[]? _additional;
+        private int _additionalCount;
+
+        public readonly int Count =>
+            (_first is null ? 0 : 1) +
+            (_second is null ? 0 : 1) +
+            _additionalCount;
+
+        public readonly SvgSceneNode this[int index]
+        {
+            get
+            {
+                if (index == 0 && _first is not null)
+                {
+                    return _first;
+                }
+
+                if (index == 1 && _second is not null)
+                {
+                    return _second;
+                }
+
+                var additionalIndex = index - 2;
+                if (_additional is not null &&
+                    additionalIndex >= 0 &&
+                    additionalIndex < _additionalCount)
+                {
+                    return _additional[additionalIndex];
+                }
+
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+        }
+
+        public void Add(SvgSceneNode node)
+        {
+            if (_first is null)
+            {
+                _first = node;
+                return;
+            }
+
+            if (_second is null)
+            {
+                _second = node;
+                return;
+            }
+
+            if (_additional is null)
+            {
+                _additional = new SvgSceneNode[4];
+            }
+            else if (_additionalCount >= _additional.Length)
+            {
+                Array.Resize(ref _additional, _additional.Length * 2);
+            }
+
+            _additional[_additionalCount++] = node;
+        }
+
+        public readonly IEnumerator<SvgSceneNode> GetEnumerator()
+        {
+            if (_first is not null)
+            {
+                yield return _first;
+            }
+
+            if (_second is not null)
+            {
+                yield return _second;
+            }
+
+            if (_additional is not null)
+            {
+                for (var i = 0; i < _additionalCount; i++)
+                {
+                    yield return _additional[i];
+                }
+            }
+        }
+
+        readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     private struct CompilationRootKeySet : IReadOnlyCollection<string>
