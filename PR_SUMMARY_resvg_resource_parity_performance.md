@@ -16,6 +16,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Text-path placement allocation trimming for simple positioned text-path runs.
 - Text-path geometry cache-hit allocation trimming for repeated referenced path data.
 - Direct textPath-only retained compile fast path for positioned textPath nodes.
+- Simple textPath recording guards for ASCII grapheme probes and empty decoration phases.
 - Whole-run natural text advance caching for repeated text measurement.
 - Simple natural text advance cache-hit fast path for repeated prepared text measurement.
 - Short shaped-text layout caching for repeated positioned glyph runs.
@@ -148,6 +149,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Changed shared inline-size compiler-run creation to count rendered groups and fill an exact `PositionedCodepointRun[]`, and changed flattened text construction to use exact string creation on modern targets with a compatible exact char-array fallback on older targets.
 - Changed wrapped inline-size textLength line-run grouping to count groups and fill an exact `PositionedCodepointRun[]`, changed grouped run text materialization to use exact string creation, and wrote computed placements directly into each group-owned placement array instead of staging a full line-run placement buffer.
 - Added a guarded retained compile fast path for direct textPath-only text nodes, resolving positioned textPath runs once and reusing them for both retained bounds and local picture recording while leaving stretch textPath, mixed inline text, recursive or missing geometry, inline layout, vertical text, and textLength container barriers on the existing path.
+- Skipped grapheme-cluster draw probing for simple ASCII positioned textPath runs and skipped empty decoration phases for positioned/stretch textPath recordings, while leaving complex clusters and decorated textPath runs on the existing paths.
 - Added a bounded short rendered-text local-bounds cache keyed by asset loader and text paint/font signature so repeated text-DOM, prepared-text, and text-path bounds checks reuse successful glyph/path bounds while preserving precise hit extents for letter-spacing gaps.
 - Trimmed retained text fallback paint cloning so single-span typeface fallback commands record one isolated paint clone and multi-span fallback loops skip the unused clone after the final span.
 - Reused cached read-only codepoint split arrays across text-DOM, prepared-text, and shared-layout read paths, leaving the lone mutable split at the reverse-by-codepoint call site.
@@ -369,6 +371,11 @@ Focused text-path geometry cache-hit measurements for `generated-text-path-curve
 Focused direct textPath retained compile fast-path measurement for `generated-text-path-curves-96`:
 
 - `CompileNodeTreeOnly`: the post-aligned retained scan measured `17.350 ms / 11,889.16 KB`; the direct textPath compile fast path measured `13.504 ms / 9.89 MB`.
+
+Focused simple textPath recording guard measurements:
+
+- `CreateTextPathPlacementsFromPrebuiltGeometryAcrossFragments | generated-text-path-curves-96`: audit control measured `1.582 ms / 144,913 B`, confirming placement creation is no longer the dominant retained compile allocation after the direct emission pass.
+- `CompileNodeTreeOnly | generated-text-path-curves-96`: line-stats control measured `12.251 ms / 9.92 MB`; simple ASCII grapheme-probe and empty-decoration recording guards measured `12.049 ms / 9.75 MB`.
 
 Focused positioned text-blob retained compile measurements:
 
@@ -899,6 +906,17 @@ Focused simple natural text advance cache-hit measurements:
   - Build passed with existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release`
   - `Svg.Skia.UnitTests`: Passed 2594, skipped 40; other test projects passed.
+- Focused simple textPath recording guard validation:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~TextPath"`
+  - Passed 73.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-textpath-next-audit dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextPathPlacementBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=textpath-decoration-grapheme-guards dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `dotnet format Svg.Skia.slnx --no-restore`
+  - Completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release`
+  - Build passed with 277 existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2597, skipped 40; other test projects passed.
   - Current: `SVG_SKIA_BENCHMARK_SCENARIOS=text-regression-positioned-layout,text-regression-vertical-rtl-layout,text-regression-vertical-rtl-shape-layout,text-regression-wrapped-textlength-positioned-descendants SVG_SKIA_BENCHMARK_RUN_LABEL=current-readonly-codepoint-dom-metrics dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextRegressionValidationBenchmarks.ValidateTextContentDomMetrics" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
   - Control: `SVG_SKIA_BENCHMARK_SCENARIOS=text-regression-positioned-layout,text-regression-vertical-rtl-layout,text-regression-vertical-rtl-shape-layout,text-regression-wrapped-textlength-positioned-descendants SVG_SKIA_BENCHMARK_RUN_LABEL=control-codepoint-dom-metrics dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextRegressionValidationBenchmarks.ValidateTextContentDomMetrics" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
 - Focused text internals benchmark comparison:
