@@ -14,31 +14,56 @@ public partial class SkiaModel
 
     private sealed class DrawPictureState
     {
-        private readonly Stack<bool> _saveStack = new();
+        private int _saveDepth;
+        private int _saveLayerDepth;
+        private int _singleLayerSaveDepth;
+        private List<int>? _nestedLayerSaveDepths;
 
-        public int SaveLayerDepth { get; private set; }
+        public int SaveLayerDepth => _saveLayerDepth;
 
         public void Save(bool isLayer)
         {
-            _saveStack.Push(isLayer);
+            _saveDepth++;
             if (isLayer)
             {
-                SaveLayerDepth++;
+                _saveLayerDepth++;
+                if (_saveLayerDepth == 1)
+                {
+                    _singleLayerSaveDepth = _saveDepth;
+                }
+                else
+                {
+                    (_nestedLayerSaveDepths ??= new List<int>(2)).Add(_saveDepth);
+                }
             }
         }
 
         public void Restore()
         {
-            if (_saveStack.Count == 0)
+            if (_saveDepth == 0)
             {
                 return;
             }
 
-            if (_saveStack.Pop())
+            if (_saveLayerDepth > 0 && CurrentLayerSaveDepth == _saveDepth)
             {
-                SaveLayerDepth--;
+                if (_saveLayerDepth == 1)
+                {
+                    _singleLayerSaveDepth = 0;
+                }
+                else
+                {
+                    _nestedLayerSaveDepths!.RemoveAt(_saveLayerDepth - 2);
+                }
+
+                _saveLayerDepth--;
             }
+
+            _saveDepth--;
         }
+
+        private int CurrentLayerSaveDepth
+            => _saveLayerDepth == 1 ? _singleLayerSaveDepth : _nestedLayerSaveDepths![_saveLayerDepth - 2];
     }
 
     private static readonly Dictionary<string, string[]> s_genericFontFamilyMap = new(StringComparer.OrdinalIgnoreCase)
