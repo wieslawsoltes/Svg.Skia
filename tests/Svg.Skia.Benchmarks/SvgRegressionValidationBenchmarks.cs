@@ -32,7 +32,7 @@ public class SvgTextRegressionValidationBenchmarks
     [ParamsSource(nameof(Scenarios))]
     public string ScenarioName { get; set; } = string.Empty;
 
-    public IEnumerable<string> Scenarios => SvgRegressionValidationScenarios.TextNames;
+    public IEnumerable<string> Scenarios => SvgLoadPipelineBenchmarkScenarios.ApplyScenarioNameFilter(SvgRegressionValidationScenarios.TextNames);
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -210,7 +210,7 @@ public class SvgAllAreaRegressionValidationBenchmarks
     [ParamsSource(nameof(Scenarios))]
     public string ScenarioName { get; set; } = string.Empty;
 
-    public IEnumerable<string> Scenarios => SvgRegressionValidationScenarios.AllAreaNames;
+    public IEnumerable<string> Scenarios => SvgLoadPipelineBenchmarkScenarios.ApplyScenarioNameFilter(SvgRegressionValidationScenarios.AllAreaNames);
 
     [GlobalSetup]
     public void GlobalSetup()

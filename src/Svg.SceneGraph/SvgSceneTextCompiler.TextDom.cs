@@ -2705,6 +2705,11 @@ internal static partial class SvgSceneTextCompiler
         var advances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, viewport, assetLoader);
         var clusterStarts = SvgTextBoundaryResolver.Default.GetGraphemeClusterStartCharIndexes(text);
         var codepointCharOffsets = CreateCodepointCharOffsets(codepoints);
+        if (clusterStarts.Count >= codepoints.Count)
+        {
+            return CreateCodepointFallbackClusterSources(codepoints, advances, out totalAdvance);
+        }
+
         if (clusterStarts.Count > 0)
         {
             var clusterSources = new List<TextDomClusterSource>(clusterStarts.Count);
