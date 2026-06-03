@@ -3284,7 +3284,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     {
         const string textLengthSvg = """
             <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-              <text x="20" y="100" font-family="Noto Sans" font-size="48" textLength="150">Text</text>
+              <text id="spaced-length" x="20" y="100" font-family="Noto Sans" font-size="48" textLength="150">Text</text>
             </svg>
             """;
 
@@ -3292,19 +3292,22 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         SetTypefaceProviders(svg.Settings);
         svg.FromSvg(textLengthSvg);
 
-        var retainedModel = svg.CreateRetainedSceneGraphModel();
-        Assert.NotNull(retainedModel);
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        AssertCompilationStrategy(scene!, "spaced-length", SvgSceneCompilationStrategy.DirectRetained);
+        Assert.True(scene.TryGetNodeById("spaced-length", out var textNode));
+        Assert.NotNull(textNode?.LocalModel);
 
-        var positions = retainedModel!
-            .FindCommands<DrawTextCanvasCommand>()
-            .Where(static cmd => cmd.Y == 100f)
-            .Select(static cmd => cmd.X)
-            .OrderBy(static x => x)
-            .ToArray();
+        var blobs = textNode!.LocalModel!.FindCommands<DrawTextBlobCanvasCommand>().ToArray();
+        Assert.Single(blobs);
+        Assert.Equal("Text", blobs[0].TextBlob?.Text);
+        var positions = Assert.IsType<SKPoint[]>(blobs[0].TextBlob?.Points);
 
         Assert.Equal(4, positions.Length);
-        Assert.Equal(20f, positions[0], 1);
-        Assert.True(positions[^1] > 120f, $"Expected textLength spacing to spread the glyph origins, but got final X={positions[^1]}.");
+        Assert.Equal(20f, positions[0].X, 1);
+        Assert.Equal(100f, positions[0].Y, 1);
+        Assert.True(positions[^1].X > 120f, $"Expected textLength spacing to spread the glyph origins, but got final X={positions[^1].X}.");
+        Assert.Empty(textNode.LocalModel.FindCommands<DrawTextCanvasCommand>());
     }
 
     [Fact]
