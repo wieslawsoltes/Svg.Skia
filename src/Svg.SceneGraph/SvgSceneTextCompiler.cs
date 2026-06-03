@@ -20787,7 +20787,7 @@ internal static partial class SvgSceneTextCompiler
 
         var naturalAdvances = MeasureFlattenedNaturalAdvances(flattenedCodepoints, geometryBounds, assetLoader);
         var stepAdvances = CreateFlattenedBaseStepAdvances(flattenedCodepoints, naturalAdvances, geometryBounds);
-        var glyphScales = Enumerable.Repeat(1f, flattenedCodepoints.Count).ToArray();
+        var glyphScales = CreateUnitGlyphScales(flattenedCodepoints.Count);
         ApplyDescendantFlattenedTextLengthAdjustments(
             flattenedCodepoints,
             naturalAdvances,
@@ -20796,28 +20796,44 @@ internal static partial class SvgSceneTextCompiler
             svgTextBase,
             viewport,
             geometryBounds);
-        var chunks = GetFlattenedTextLengthChunkRanges(flattenedCodepoints).ToArray();
-        var adjustedRootLength = TryApplyAncestorTextLengthToNestedChunks(
-            svgTextBase,
-            specifiedLength,
-            flattenedCodepoints,
-            naturalAdvances,
-            stepAdvances,
-            glyphScales,
-            chunks);
-        if (!adjustedRootLength)
+        var adjustedRootLength = false;
+        if (!HasFlattenedTextLengthChunkBreaks(flattenedCodepoints))
         {
-            foreach (var chunk in chunks)
+            adjustedRootLength = ApplyFlattenedTextLengthAdjustment(
+                svgTextBase,
+                specifiedLength,
+                flattenedCodepoints,
+                naturalAdvances,
+                stepAdvances,
+                glyphScales,
+                0,
+                flattenedCodepoints.Count);
+        }
+        else
+        {
+            var chunks = GetFlattenedTextLengthChunkRanges(flattenedCodepoints).ToArray();
+            adjustedRootLength = TryApplyAncestorTextLengthToNestedChunks(
+                svgTextBase,
+                specifiedLength,
+                flattenedCodepoints,
+                naturalAdvances,
+                stepAdvances,
+                glyphScales,
+                chunks);
+            if (!adjustedRootLength)
             {
-                adjustedRootLength |= ApplyFlattenedTextLengthAdjustment(
-                    svgTextBase,
-                    specifiedLength,
-                    flattenedCodepoints,
-                    naturalAdvances,
-                    stepAdvances,
-                    glyphScales,
-                    chunk.Start,
-                    chunk.Count);
+                foreach (var chunk in chunks)
+                {
+                    adjustedRootLength |= ApplyFlattenedTextLengthAdjustment(
+                        svgTextBase,
+                        specifiedLength,
+                        flattenedCodepoints,
+                        naturalAdvances,
+                        stepAdvances,
+                        glyphScales,
+                        chunk.Start,
+                        chunk.Count);
+                }
             }
         }
 
@@ -20865,6 +20881,11 @@ internal static partial class SvgSceneTextCompiler
         }
 
         finalY = activeY;
+        if (TryAddSingleStyleFlattenedTextLengthRun(flattenedCodepoints, placements, runs))
+        {
+            return true;
+        }
+
         var groupStart = 0;
         while (groupStart < flattenedCodepoints.Count)
         {
@@ -20884,6 +20905,52 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return runs.Count > 0;
+    }
+
+    private static float[] CreateUnitGlyphScales(int count)
+    {
+        var glyphScales = new float[count];
+        for (var i = 0; i < glyphScales.Length; i++)
+        {
+            glyphScales[i] = 1f;
+        }
+
+        return glyphScales;
+    }
+
+    private static bool TryAddSingleStyleFlattenedTextLengthRun(
+        IReadOnlyList<FlattenedTextCodepoint> codepoints,
+        PositionedCodepointPlacement[] placements,
+        List<PositionedCodepointRun> runs)
+    {
+        if (codepoints.Count == 0 || placements.Length != codepoints.Count)
+        {
+            return false;
+        }
+
+        var styleSource = codepoints[0].StyleSource;
+        for (var i = 1; i < codepoints.Count; i++)
+        {
+            if (!ReferenceEquals(codepoints[i].StyleSource, styleSource))
+            {
+                return false;
+            }
+        }
+
+        runs.Add(new PositionedCodepointRun(styleSource, CreateFlattenedText(codepoints, 0, codepoints.Count), placements));
+        return true;
+    }
+
+    private static string CreateFlattenedText(IReadOnlyList<FlattenedTextCodepoint> codepoints, int start, int count)
+    {
+        var builder = new StringBuilder(count);
+        var end = Math.Min(codepoints.Count, start + count);
+        for (var i = start; i < end; i++)
+        {
+            builder.Append(codepoints[i].Codepoint);
+        }
+
+        return builder.ToString();
     }
 
     private static float[] MeasureFlattenedNaturalAdvances(
@@ -20996,19 +21063,13 @@ internal static partial class SvgSceneTextCompiler
 
         if (GetOwnLengthAdjust(lengthSource) == SvgTextLengthAdjust.Spacing)
         {
-            var gapIndexes = GetFlattenedTextLengthGapIndexes(codepoints, start, count);
-            if (gapIndexes.Count == 0)
+            var gapCount = CountFlattenedTextLengthGaps(codepoints, start, count);
+            if (gapCount == 0)
             {
                 return false;
             }
 
-            var extraGapAdvance = (specifiedLength - naturalLength) / gapIndexes.Count;
-            for (var i = 0; i < gapIndexes.Count; i++)
-            {
-                var stepIndex = gapIndexes[i];
-                stepAdvances[stepIndex] += extraGapAdvance;
-            }
-
+            AddFlattenedTextLengthGapAdvance(codepoints, stepAdvances, start, count, (specifiedLength - naturalLength) / gapCount);
             return true;
         }
 
@@ -21038,7 +21099,8 @@ internal static partial class SvgSceneTextCompiler
         IReadOnlyList<float> glyphScales,
         IReadOnlyList<(int Start, int Count)> chunks)
     {
-        var eligibleChunkStarts = new List<int>();
+        var firstEligibleChunkStart = -1;
+        List<int>? extraEligibleChunkStarts = null;
         for (var i = 0; i < chunks.Count; i++)
         {
             var chunk = chunks[i];
@@ -21051,10 +21113,18 @@ internal static partial class SvgSceneTextCompiler
                 continue;
             }
 
-            eligibleChunkStarts.Add(chunk.Start);
+            if (firstEligibleChunkStart < 0)
+            {
+                firstEligibleChunkStart = chunk.Start;
+            }
+            else
+            {
+                extraEligibleChunkStarts ??= new List<int>();
+                extraEligibleChunkStarts.Add(chunk.Start);
+            }
         }
 
-        if (eligibleChunkStarts.Count == 0)
+        if (firstEligibleChunkStart < 0)
         {
             return false;
         }
@@ -21066,10 +21136,14 @@ internal static partial class SvgSceneTextCompiler
             glyphScales,
             0,
             codepoints.Count);
-        for (var i = 0; i < eligibleChunkStarts.Count; i++)
+        naturalLength += naturalAdvances[firstEligibleChunkStart] * glyphScales[firstEligibleChunkStart];
+        if (extraEligibleChunkStarts is { })
         {
-            var chunkStart = eligibleChunkStarts[i];
-            naturalLength += naturalAdvances[chunkStart] * glyphScales[chunkStart];
+            for (var i = 0; i < extraEligibleChunkStarts.Count; i++)
+            {
+                var chunkStart = extraEligibleChunkStarts[i];
+                naturalLength += naturalAdvances[chunkStart] * glyphScales[chunkStart];
+            }
         }
 
         if (naturalLength <= TextLengthTolerance || Math.Abs(naturalLength - specifiedLength) <= TextLengthTolerance)
@@ -21077,17 +21151,39 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var extraChunkAdvance = (specifiedLength - naturalLength) / eligibleChunkStarts.Count;
-        for (var i = 0; i < eligibleChunkStarts.Count; i++)
+        var eligibleChunkCount = 1 + (extraEligibleChunkStarts?.Count ?? 0);
+        var extraChunkAdvance = (specifiedLength - naturalLength) / eligibleChunkCount;
+        if (firstEligibleChunkStart >= 0 && firstEligibleChunkStart < stepAdvances.Length)
         {
-            var stepIndex = eligibleChunkStarts[i];
-            if (stepIndex >= 0 && stepIndex < stepAdvances.Length)
+            stepAdvances[firstEligibleChunkStart] += extraChunkAdvance;
+        }
+
+        if (extraEligibleChunkStarts is { })
+        {
+            for (var i = 0; i < extraEligibleChunkStarts.Count; i++)
             {
-                stepAdvances[stepIndex] += extraChunkAdvance;
+                var stepIndex = extraEligibleChunkStarts[i];
+                if (stepIndex >= 0 && stepIndex < stepAdvances.Length)
+                {
+                    stepAdvances[stepIndex] += extraChunkAdvance;
+                }
             }
         }
 
         return true;
+    }
+
+    private static bool HasFlattenedTextLengthChunkBreaks(IReadOnlyList<FlattenedTextCodepoint> codepoints)
+    {
+        for (var i = 1; i < codepoints.Count; i++)
+        {
+            if (codepoints[i].X.HasValue || codepoints[i].Y.HasValue)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static IEnumerable<(int Start, int Count)> GetFlattenedTextLengthChunkRanges(
@@ -21141,22 +21237,39 @@ internal static partial class SvgSceneTextCompiler
         return Math.Max(0f, advance);
     }
 
-    private static List<int> GetFlattenedTextLengthGapIndexes(
+    private static int CountFlattenedTextLengthGaps(
         IReadOnlyList<FlattenedTextCodepoint> codepoints,
         int start,
         int count)
     {
-        var gapIndexes = new List<int>();
+        var gapCount = 0;
         var end = Math.Min(codepoints.Count, start + count);
         for (var i = start; i < end - 1; i++)
         {
             if (IsEffectiveFlattenedTextLengthGap(codepoints, i))
             {
-                gapIndexes.Add(i);
+                gapCount++;
             }
         }
 
-        return gapIndexes;
+        return gapCount;
+    }
+
+    private static void AddFlattenedTextLengthGapAdvance(
+        IReadOnlyList<FlattenedTextCodepoint> codepoints,
+        float[] stepAdvances,
+        int start,
+        int count,
+        float extraGapAdvance)
+    {
+        var end = Math.Min(codepoints.Count, start + count);
+        for (var i = start; i < end - 1; i++)
+        {
+            if (IsEffectiveFlattenedTextLengthGap(codepoints, i))
+            {
+                stepAdvances[i] += extraGapAdvance;
+            }
+        }
     }
 
     private static bool IsEffectiveFlattenedTextLengthGap(
