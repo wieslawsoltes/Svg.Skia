@@ -110,6 +110,95 @@ public partial class SkiaSvgAssetLoader
         }
     }
 
+    private readonly struct TypefaceSpanCacheKey : System.IEquatable<TypefaceSpanCacheKey>
+    {
+        public TypefaceSpanCacheKey(string text, ShimSkiaSharp.SKPaint paint)
+        {
+            Text = text;
+            TextSize = paint.TextSize;
+            LcdRenderText = paint.LcdRenderText;
+            SubpixelText = paint.SubpixelText;
+            TextEncoding = paint.TextEncoding;
+            FontFeatureSettings = paint.FontFeatureSettings;
+            FontKerning = paint.FontKerning;
+            FontVariantLigatures = paint.FontVariantLigatures;
+
+            if (paint.Typeface is { } typeface)
+            {
+                HasTypeface = true;
+                TypefaceFamilyName = typeface.FamilyName;
+                TypefaceWeight = typeface.FontWeight;
+                TypefaceWidth = typeface.FontWidth;
+                TypefaceSlant = typeface.FontSlant;
+            }
+            else
+            {
+                HasTypeface = false;
+                TypefaceFamilyName = null;
+                TypefaceWeight = default;
+                TypefaceWidth = default;
+                TypefaceSlant = default;
+            }
+        }
+
+        private string Text { get; }
+        private float TextSize { get; }
+        private bool LcdRenderText { get; }
+        private bool SubpixelText { get; }
+        private ShimSkiaSharp.SKTextEncoding TextEncoding { get; }
+        private string? FontFeatureSettings { get; }
+        private string? FontKerning { get; }
+        private string? FontVariantLigatures { get; }
+        private bool HasTypeface { get; }
+        private string? TypefaceFamilyName { get; }
+        private ShimSkiaSharp.SKFontStyleWeight TypefaceWeight { get; }
+        private ShimSkiaSharp.SKFontStyleWidth TypefaceWidth { get; }
+        private ShimSkiaSharp.SKFontStyleSlant TypefaceSlant { get; }
+
+        public bool Equals(TypefaceSpanCacheKey other)
+        {
+            return string.Equals(Text, other.Text, StringComparison.Ordinal)
+                && TextSize.Equals(other.TextSize)
+                && LcdRenderText == other.LcdRenderText
+                && SubpixelText == other.SubpixelText
+                && TextEncoding == other.TextEncoding
+                && string.Equals(FontFeatureSettings, other.FontFeatureSettings, StringComparison.Ordinal)
+                && string.Equals(FontKerning, other.FontKerning, StringComparison.Ordinal)
+                && string.Equals(FontVariantLigatures, other.FontVariantLigatures, StringComparison.Ordinal)
+                && HasTypeface == other.HasTypeface
+                && string.Equals(TypefaceFamilyName, other.TypefaceFamilyName, StringComparison.Ordinal)
+                && TypefaceWeight == other.TypefaceWeight
+                && TypefaceWidth == other.TypefaceWidth
+                && TypefaceSlant == other.TypefaceSlant;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is TypefaceSpanCacheKey other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash = StringComparer.Ordinal.GetHashCode(Text);
+                hash = (hash * 397) ^ TextSize.GetHashCode();
+                hash = (hash * 397) ^ (LcdRenderText ? 1 : 0);
+                hash = (hash * 397) ^ (SubpixelText ? 1 : 0);
+                hash = (hash * 397) ^ (int)TextEncoding;
+                hash = (hash * 397) ^ (FontFeatureSettings is null ? 0 : StringComparer.Ordinal.GetHashCode(FontFeatureSettings));
+                hash = (hash * 397) ^ (FontKerning is null ? 0 : StringComparer.Ordinal.GetHashCode(FontKerning));
+                hash = (hash * 397) ^ (FontVariantLigatures is null ? 0 : StringComparer.Ordinal.GetHashCode(FontVariantLigatures));
+                hash = (hash * 397) ^ (HasTypeface ? 1 : 0);
+                hash = (hash * 397) ^ (TypefaceFamilyName is null ? 0 : StringComparer.Ordinal.GetHashCode(TypefaceFamilyName));
+                hash = (hash * 397) ^ (int)TypefaceWeight;
+                hash = (hash * 397) ^ (int)TypefaceWidth;
+                hash = (hash * 397) ^ (int)TypefaceSlant;
+                return hash;
+            }
+        }
+    }
+
     private readonly struct PaintSignature : System.IEquatable<PaintSignature>
     {
         public PaintSignature(ShimSkiaSharp.SKPaint paint)
@@ -283,9 +372,12 @@ public partial class SkiaSvgAssetLoader
 
     private const int MatchCharacterCacheLimit = 4096;
     private const int ProviderTypefaceCacheLimit = 512;
+    private const int TypefaceSpanCacheLimit = 1024;
+    private const int TypefaceSpanCacheMaxTextLength = 256;
     private const int PaintCacheRefTrimThreshold = 1024;
     private readonly ConcurrentDictionary<MatchCharacterKey, SkiaSharp.SKTypeface?> _matchCharacterCache = new();
     private readonly ConcurrentDictionary<ProviderTypefaceKey, SkiaSharp.SKTypeface?> _providerTypefaceCache = new();
+    private readonly ConcurrentDictionary<TypefaceSpanCacheKey, Svg.Model.TypefaceSpan[]> _typefaceSpanCache = new();
     private readonly object _paintCacheLock = new();
     private ConditionalWeakTable<ShimSkiaSharp.SKPaint, CachedSkPaint> _paintCache = new();
     private readonly List<WeakReference<SkiaSharp.SKPaint>> _paintCacheRefs = new();
