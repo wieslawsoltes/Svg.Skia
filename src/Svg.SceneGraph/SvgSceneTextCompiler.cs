@@ -642,19 +642,40 @@ internal static partial class SvgSceneTextCompiler
     private sealed class FlattenedCodepointTextList : IReadOnlyList<string>
     {
         private readonly IReadOnlyList<FlattenedTextCodepoint> _codepoints;
+        private readonly int _start;
+        private readonly int _count;
 
         public FlattenedCodepointTextList(IReadOnlyList<FlattenedTextCodepoint> codepoints)
+            : this(codepoints, 0, codepoints.Count)
         {
-            _codepoints = codepoints;
         }
 
-        public int Count => _codepoints.Count;
+        public FlattenedCodepointTextList(IReadOnlyList<FlattenedTextCodepoint> codepoints, int start, int count)
+        {
+            _codepoints = codepoints;
+            _start = start;
+            _count = count;
+        }
 
-        public string this[int index] => _codepoints[index].Codepoint;
+        public int Count => _count;
+
+        public string this[int index]
+        {
+            get
+            {
+                if ((uint)index >= (uint)_count)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                return _codepoints[_start + index].Codepoint;
+            }
+        }
 
         public IEnumerator<string> GetEnumerator()
         {
-            for (var i = 0; i < _codepoints.Count; i++)
+            var end = _start + _count;
+            for (var i = _start; i < end; i++)
             {
                 yield return _codepoints[i].Codepoint;
             }
@@ -21105,13 +21126,8 @@ internal static partial class SvgSceneTextCompiler
             return;
         }
 
-        var runCodepoints = new string[count];
-        for (var i = 0; i < count; i++)
-        {
-            runCodepoints[i] = codepoints[start + i].Codepoint;
-        }
-
-        var runText = string.Concat(runCodepoints);
+        var runCodepoints = new FlattenedCodepointTextList(codepoints, start, count);
+        var runText = CreateFlattenedText(codepoints, start, count);
         var runAdvances = MeasureNaturalCodepointAdvances(styleSource, runText, runCodepoints, geometryBounds, assetLoader);
         if (runAdvances.Length == count)
         {
