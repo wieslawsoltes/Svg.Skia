@@ -2176,6 +2176,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
+        var useFontScale = !NearlyEquals(scaleX, 1f);
         var points = new SKPoint[placements.Length];
         for (var i = 0; i < placements.Length; i++)
         {
@@ -2189,7 +2190,9 @@ internal static partial class SvgSceneTextCompiler
                 return false;
             }
 
-            points[i] = placement.Point;
+            points[i] = useFontScale
+                ? new SKPoint(scaleOriginX + ((placement.Point.X - scaleOriginX) * scaleX), placement.Point.Y)
+                : placement.Point;
         }
 
         PaintingService.SetPaintText(svgTextBase, geometryBounds, paint);
@@ -2206,23 +2209,14 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var font = new SKFont(blobPaint.Typeface, blobPaint.TextSize)
+        var font = new SKFont(blobPaint.Typeface, blobPaint.TextSize, scaleX)
         {
             Subpixel = blobPaint.SubpixelText,
             Edging = blobPaint.LcdRenderText ? SKFontEdging.SubpixelAntialias : SKFontEdging.Antialias
         };
 
         var textBlob = SKTextBlob.CreatePositioned(text, font, points);
-        if (NearlyEquals(scaleX, 1f))
-        {
-            canvas.DrawText(textBlob, 0f, 0f, blobPaint);
-            return true;
-        }
-
-        canvas.Save();
-        canvas.SetMatrix(SKMatrix.CreateScale(scaleX, 1f, scaleOriginX, points[0].Y));
         canvas.DrawText(textBlob, 0f, 0f, blobPaint);
-        canvas.Restore();
         return true;
     }
 

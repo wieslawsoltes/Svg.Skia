@@ -3334,7 +3334,8 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         var blob = blobs[0];
         Assert.Equal("Text", blob.TextBlob?.Text);
         Assert.Equal(4, blob.TextBlob?.Points?.Length);
-        Assert.NotEmpty(textNode.LocalModel.FindCommands<SetMatrixCanvasCommand>());
+        Assert.True(blob.TextBlob?.Font?.ScaleX > 1.1f, $"Expected scaled text blob font, but got {blob.TextBlob?.Font?.ScaleX}.");
+        Assert.Empty(textNode.LocalModel.FindCommands<SetMatrixCanvasCommand>());
         Assert.Empty(textNode.LocalModel.FindCommands<DrawTextCanvasCommand>());
     }
 
@@ -3630,7 +3631,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
-    public void RetainedSceneGraph_LengthAdjustSpacingAndGlyphs_UsesHorizontalScaleTransform()
+    public void RetainedSceneGraph_LengthAdjustSpacingAndGlyphs_UsesScaledTextBlobFont()
     {
         const string lengthAdjustSvg = """
             <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
@@ -3645,13 +3646,12 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         var retainedModel = svg.CreateRetainedSceneGraphModel();
         Assert.NotNull(retainedModel);
 
-        var scaleMatrices = retainedModel!
-            .FindCommands<SetMatrixCanvasCommand>()
-            .Select(static cmd => cmd.DeltaMatrix)
-            .Where(static matrix => matrix.ScaleX > 1.1f)
+        var scaledBlobs = retainedModel!
+            .FindCommands<DrawTextBlobCanvasCommand>()
+            .Where(static command => command.TextBlob?.Font?.ScaleX > 1.1f)
             .ToArray();
 
-        Assert.NotEmpty(scaleMatrices);
+        Assert.NotEmpty(scaledBlobs);
     }
 
     [Fact]
