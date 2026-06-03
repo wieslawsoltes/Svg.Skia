@@ -562,6 +562,15 @@ internal static partial class SvgSceneTextCompiler
         float Advance,
         float BoundaryAdvance);
 
+    private readonly record struct SimplePositionedSequentialCompileRun(
+        SvgTextBase StyleSource,
+        string Text,
+        SKPoint[] Points,
+        SKTypeface Typeface,
+        SKRect RelativeBounds,
+        float Advance,
+        float BoundaryAdvance);
+
     private readonly record struct LogicalBidiRun(int StartCharIndex, int Length, SvgTextDirection Direction);
 
     private readonly record struct TextPathRun(SvgTextBase StyleSource, SvgTextBase TextPathSource, string Text, float Dx, float Dy, float? X, float? Y);
@@ -1587,6 +1596,20 @@ internal static partial class SvgSceneTextCompiler
         geometryBounds = SKRect.Empty;
         localModel = null;
 
+        if (TryCompileSimpleAlignedSpacingSequentialText(
+                svgTextBase,
+                runs,
+                viewport,
+                ignoreAttributes,
+                assetLoader,
+                getElementAddressKey,
+                contextPaint,
+                out geometryBounds,
+                out localModel))
+        {
+            return true;
+        }
+
         if (!TryResolveAlignedSequentialCompileRuns(runs, viewport, assetLoader, out var resolvedRuns, out var totalAdvance))
         {
             return false;
@@ -1632,6 +1655,62 @@ internal static partial class SvgSceneTextCompiler
         var recorder = new SKPictureRecorder();
         var canvas = recorder.BeginRecording(cullRect);
         DrawResolvedAlignedSequentialCompileRuns(resolvedRuns, geometryBounds, ignoreAttributes, canvas, assetLoader, getElementAddressKey, contextPaint);
+        var recordedModel = recorder.EndRecording();
+        localModel = recordedModel.Commands is { Count: > 0 } ? recordedModel : null;
+        return true;
+    }
+
+    private static bool TryCompileSimpleAlignedSpacingSequentialText(
+        SvgTextBase svgTextBase,
+        IReadOnlyList<SequentialTextRun> runs,
+        SKRect viewport,
+        DrawAttributes ignoreAttributes,
+        ISvgAssetLoader assetLoader,
+        Func<SvgElement?, string?>? getElementAddressKey,
+        SvgSceneContextPaint? contextPaint,
+        out SKRect geometryBounds,
+        out SKPicture? localModel)
+    {
+        geometryBounds = SKRect.Empty;
+        localModel = null;
+
+        if (!TryResolveSimpleAlignedSpacingSequentialCompileRuns(runs, viewport, assetLoader, out var resolvedRuns, out var totalAdvance))
+        {
+            return false;
+        }
+
+        var x = svgTextBase.X.Count >= 1
+            ? svgTextBase.X[0].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, viewport)
+            : 0f;
+        var y = svgTextBase.Y.Count >= 1
+            ? svgTextBase.Y[0].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, viewport)
+            : 0f;
+        var baselineShift = GetBaselineShiftVector(svgTextBase, viewport, assetLoader);
+        var currentX = x + baselineShift.X;
+        var currentY = y + baselineShift.Y;
+        ApplyInitialSequentialOffsets(svgTextBase, viewport, ref currentX, ref currentY);
+
+        var textAlign = GetTextAnchorAlign(svgTextBase, viewport);
+        var inlineOrigin = GetAlignedStartCoordinate(currentX, totalAdvance, textAlign);
+        var runX = inlineOrigin;
+        var runY = currentY;
+        for (var i = 0; i < resolvedRuns.Count; i++)
+        {
+            var run = resolvedRuns[i];
+            OffsetPositionedTextBlobPoints(run.Points, runX, runY);
+            UnionBounds(ref geometryBounds, OffsetRect(run.RelativeBounds, runX, runY));
+            ApplyInlineAdvance(run.StyleSource, ref runX, ref runY, run.Advance + run.BoundaryAdvance);
+        }
+
+        var cullRect = CreateTextLocalCullRect(geometryBounds);
+        if (cullRect.IsEmpty)
+        {
+            return true;
+        }
+
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(cullRect);
+        DrawResolvedSimpleAlignedSpacingSequentialCompileRuns(resolvedRuns, geometryBounds, ignoreAttributes, canvas, assetLoader, getElementAddressKey, contextPaint);
         var recordedModel = recorder.EndRecording();
         localModel = recordedModel.Commands is { Count: > 0 } ? recordedModel : null;
         return true;
@@ -2091,6 +2170,187 @@ internal static partial class SvgSceneTextCompiler
         return resolvedRuns.Count > 0 && totalAdvance > 0f;
     }
 
+    private static bool TryResolveSimpleAlignedSpacingSequentialCompileRuns(
+        IReadOnlyList<SequentialTextRun> runs,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        out List<SimplePositionedSequentialCompileRun> resolvedRuns,
+        out float totalAdvance)
+    {
+        resolvedRuns = new List<SimplePositionedSequentialCompileRun>(runs.Count);
+        totalAdvance = 0f;
+
+        for (var i = 0; i < runs.Count; i++)
+        {
+            var run = runs[i];
+            if (!TryCreateSimpleAlignedSpacingSequentialCompileRun(run, geometryBounds, assetLoader, out var resolvedRun))
+            {
+                resolvedRuns.Clear();
+                totalAdvance = 0f;
+                return false;
+            }
+
+            var boundaryAdvance = GetSequentialRunBoundaryAdvance(runs, i, geometryBounds);
+            resolvedRun = resolvedRun with { BoundaryAdvance = boundaryAdvance };
+            resolvedRuns.Add(resolvedRun);
+            totalAdvance += resolvedRun.Advance + boundaryAdvance;
+        }
+
+        return resolvedRuns.Count > 0 && totalAdvance > 0f;
+    }
+
+    private static bool TryCreateSimpleAlignedSpacingSequentialCompileRun(
+        SequentialTextRun run,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        out SimplePositionedSequentialCompileRun resolvedRun)
+    {
+        resolvedRun = default;
+        var styleSource = run.StyleSource;
+        var text = run.Text;
+        if (!CanUseSimpleAlignedSpacingSequentialCompileRun(run, geometryBounds, assetLoader))
+        {
+            return false;
+        }
+
+        var codepoints = SplitCodepointsReadOnly(text);
+        if (codepoints.Count < 2 || codepoints.Count != text.Length)
+        {
+            return false;
+        }
+
+        var paint = CreateTextMetricsPaint(styleSource, geometryBounds);
+        paint.TextAlign = SKTextAlign.Left;
+        if (!TryCreateSingleSpanShapingPaint(text, paint, assetLoader, out var shapingPaint) ||
+            shapingPaint.Typeface is null ||
+            !TryGetRenderedTextLocalBounds(text, shapingPaint, assetLoader, out var localBounds) ||
+            localBounds.IsEmpty)
+        {
+            return false;
+        }
+
+        var naturalAdvances = MeasureNaturalCodepointAdvances(styleSource, text, codepoints, geometryBounds, assetLoader);
+        if (naturalAdvances.Length != codepoints.Count)
+        {
+            return false;
+        }
+
+        var letterSpacingUnit = styleSource.LetterSpacing;
+        var wordSpacingUnit = styleSource.WordSpacing;
+        var hasLetterSpacingAdjustment = HasSpacingAdjustment(letterSpacingUnit) && !SuppressesLetterSpacingForRun(codepoints);
+        var hasWordSpacingAdjustment = HasSpacingAdjustment(wordSpacingUnit);
+        var fixedLetterSpacing = hasLetterSpacingAdjustment
+            ? letterSpacingUnit.ToDeviceValue(UnitRenderingType.Horizontal, styleSource, geometryBounds)
+            : 0f;
+        var fixedWordSpacing = hasWordSpacingAdjustment
+            ? wordSpacingUnit.ToDeviceValue(UnitRenderingType.Horizontal, styleSource, geometryBounds)
+            : 0f;
+
+        if (fixedLetterSpacing < 0f || fixedWordSpacing < 0f)
+        {
+            return false;
+        }
+
+        var points = new SKPoint[codepoints.Count];
+        var currentX = 0f;
+        var currentY = 0f;
+        var insertedSpacing = 0f;
+        for (var i = 0; i < codepoints.Count; i++)
+        {
+            points[i] = new SKPoint(currentX, currentY);
+            if (i >= codepoints.Count - 1)
+            {
+                continue;
+            }
+
+            var clusterAdvance = naturalAdvances[i];
+            if (hasLetterSpacingAdjustment && SupportsLetterSpacing(codepoints[i]))
+            {
+                clusterAdvance += fixedLetterSpacing;
+                insertedSpacing += fixedLetterSpacing;
+            }
+
+            if (hasWordSpacingAdjustment && IsWhitespaceCodepoint(codepoints[i]))
+            {
+                clusterAdvance += fixedWordSpacing;
+                insertedSpacing += fixedWordSpacing;
+            }
+
+            if (!IsFinitePositionedTextBlobCoordinate(clusterAdvance) || clusterAdvance < 0f)
+            {
+                return false;
+            }
+
+            currentX += clusterAdvance;
+        }
+
+        var lastAdvance = naturalAdvances[naturalAdvances.Length - 1];
+        if (!IsFinitePositionedTextBlobCoordinate(lastAdvance) || lastAdvance < 0f)
+        {
+            return false;
+        }
+
+        var totalAdvance = currentX + lastAdvance;
+        if (!IsFinitePositionedTextBlobCoordinate(totalAdvance) || totalAdvance <= 0f)
+        {
+            return false;
+        }
+
+        var relativeBounds = new SKRect(
+            localBounds.Left,
+            localBounds.Top,
+            localBounds.Right + insertedSpacing,
+            localBounds.Bottom);
+        if (relativeBounds.IsEmpty)
+        {
+            return false;
+        }
+
+        resolvedRun = new SimplePositionedSequentialCompileRun(
+            styleSource,
+            text,
+            points,
+            shapingPaint.Typeface,
+            relativeBounds,
+            totalAdvance,
+            BoundaryAdvance: 0f);
+        return true;
+    }
+
+    private static bool CanUseSimpleAlignedSpacingSequentialCompileRun(
+        SequentialTextRun run,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader)
+    {
+        var styleSource = run.StyleSource;
+        if (styleSource is SvgAltGlyph ||
+            string.IsNullOrEmpty(run.Text) ||
+            !IsSimpleAsciiSequentialCompileText(run.Text) ||
+            IsVerticalWritingMode(styleSource) ||
+            HasRotateValues(styleSource) ||
+            HasInheritedRotateValues(styleSource) ||
+            HasNonBaselineShift(styleSource) ||
+            HasOwnTextLengthAdjustment(styleSource) ||
+            ResolveTextDecorationLayers(styleSource).Count > 0 ||
+            RequiresSyntheticSmallCaps(styleSource, run.Text) ||
+            ContainsMixedStrongDirections(run.Text) ||
+            HasCustomTextOpenTypePaintProperty(styleSource) ||
+            !TryResolveSimpleTextMetricsFontSize(styleSource, geometryBounds, out _) ||
+            !HasSupportedAlignedSequentialCompileSpacing(styleSource, run.Text))
+        {
+            return false;
+        }
+
+        if ((HasSpacingAdjustment(styleSource.LetterSpacing) && styleSource.LetterSpacing.Type == SvgUnitType.Percentage) ||
+            (HasSpacingAdjustment(styleSource.WordSpacing) && styleSource.WordSpacing.Type == SvgUnitType.Percentage))
+        {
+            return false;
+        }
+
+        var paint = CreateTextMetricsPaint(styleSource, geometryBounds);
+        return !SvgFontTextRenderer.TryGetLayout(styleSource, run.Text, paint, assetLoader, out _);
+    }
+
     private static bool CanUseAlignedSequentialCompileRun(
         SequentialTextRun run,
         SKRect geometryBounds,
@@ -2177,6 +2437,23 @@ internal static partial class SvgSceneTextCompiler
         }
     }
 
+    private static void OffsetPositionedTextBlobPoints(
+        SKPoint[] points,
+        float offsetX,
+        float offsetY)
+    {
+        if (points.Length == 0 ||
+            (Math.Abs(offsetX) <= 0.001f && Math.Abs(offsetY) <= 0.001f))
+        {
+            return;
+        }
+
+        for (var i = 0; i < points.Length; i++)
+        {
+            points[i] = new SKPoint(points[i].X + offsetX, points[i].Y + offsetY);
+        }
+    }
+
     private static void DrawResolvedAlignedSequentialCompileRuns(
         IReadOnlyList<AlignedSequentialCompileRun> resolvedRuns,
         SKRect geometryBounds,
@@ -2228,6 +2505,78 @@ internal static partial class SvgSceneTextCompiler
                 return 0f;
             });
         }
+    }
+
+    private static void DrawResolvedSimpleAlignedSpacingSequentialCompileRuns(
+        IReadOnlyList<SimplePositionedSequentialCompileRun> resolvedRuns,
+        SKRect geometryBounds,
+        DrawAttributes ignoreAttributes,
+        SKCanvas canvas,
+        ISvgAssetLoader assetLoader,
+        Func<SvgElement?, string?>? getElementAddressKey,
+        SvgSceneContextPaint? contextPaint)
+    {
+        for (var i = 0; i < resolvedRuns.Count; i++)
+        {
+            var run = resolvedRuns[i];
+            using var commandSource = PushTextCommandSource(canvas, run.StyleSource, getElementAddressKey);
+            SKTextBlob? textBlob = null;
+            _ = DrawTextPaintOrder(run.StyleSource, includeFill: true, includeStroke: true, includeDecorations: false, phase =>
+            {
+                switch (phase)
+                {
+                    case TextPaintPhase.Fill:
+                        if (SvgScenePaintingService.IsValidFill(run.StyleSource))
+                        {
+                            var fillPaint = SvgScenePaintingService.GetFillPaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes, contextPaint);
+                            if (fillPaint is not null)
+                            {
+                                DrawSimplePositionedTextBlob(run, geometryBounds, fillPaint, canvas, ref textBlob);
+                            }
+                        }
+
+                        break;
+
+                    case TextPaintPhase.Stroke:
+                        if (SvgScenePaintingService.IsValidStroke(run.StyleSource, geometryBounds))
+                        {
+                            var strokePaint = SvgScenePaintingService.GetStrokePaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes, contextPaint);
+                            if (strokePaint is not null)
+                            {
+                                DrawSimplePositionedTextBlob(run, geometryBounds, strokePaint, canvas, ref textBlob);
+                            }
+                        }
+
+                        break;
+                }
+
+                return 0f;
+            });
+        }
+    }
+
+    private static void DrawSimplePositionedTextBlob(
+        SimplePositionedSequentialCompileRun run,
+        SKRect geometryBounds,
+        SKPaint paint,
+        SKCanvas canvas,
+        ref SKTextBlob? textBlob)
+    {
+        PaintingService.SetPaintText(run.StyleSource, geometryBounds, paint);
+        paint.TextAlign = SKTextAlign.Left;
+        paint.Typeface = run.Typeface;
+
+        if (textBlob is null)
+        {
+            var font = new SKFont(run.Typeface, paint.TextSize)
+            {
+                Subpixel = paint.SubpixelText,
+                Edging = paint.LcdRenderText ? SKFontEdging.SubpixelAntialias : SKFontEdging.Antialias
+            };
+            textBlob = SKTextBlob.CreatePositioned(run.Text, font, run.Points);
+        }
+
+        canvas.DrawText(textBlob, 0f, 0f, paint);
     }
 
     private static bool TryDrawPositionedTextBlob(

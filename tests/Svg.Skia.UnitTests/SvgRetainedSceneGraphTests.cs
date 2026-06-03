@@ -3339,6 +3339,36 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_LetterAndWordSpacing_RecordsPositionedTextBlob()
+    {
+        const string spacedTextSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="120" viewBox="0 0 220 120">
+              <text id="spaced-text" x="20" y="70" font-family="Noto Sans" font-size="28" letter-spacing="4" word-spacing="12">A B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(spacedTextSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        AssertCompilationStrategy(scene!, "spaced-text", SvgSceneCompilationStrategy.DirectRetained);
+        Assert.True(scene.TryGetNodeById("spaced-text", out var textNode));
+        Assert.NotNull(textNode?.LocalModel);
+
+        var blobs = textNode!.LocalModel!.FindCommands<DrawTextBlobCanvasCommand>().ToArray();
+        Assert.Single(blobs);
+        Assert.Equal("A B", blobs[0].TextBlob?.Text);
+        var points = Assert.IsType<SKPoint[]>(blobs[0].TextBlob?.Points);
+        Assert.Equal(3, points.Length);
+        Assert.Equal(20f, points[0].X, 1);
+        Assert.True(points[1].X > points[0].X + 10f, $"Expected letter spacing after A, but points were {string.Join(", ", points.Select(static point => point.X.ToString(CultureInfo.InvariantCulture)))}.");
+        Assert.True(points[2].X > points[1].X + 20f, $"Expected word spacing before B, but points were {string.Join(", ", points.Select(static point => point.X.ToString(CultureInfo.InvariantCulture)))}.");
+        Assert.Empty(textNode.LocalModel.FindCommands<DrawTextCanvasCommand>());
+    }
+
+    [Fact]
     public void RetainedSceneGraph_InlineSizeWithTextLength_DoesNotWrapAdjustedGlyphs()
     {
         const string textLengthSvg = """
