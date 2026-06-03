@@ -129,7 +129,7 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
 - `dotnet build Svg.Skia.slnx -c Release`
   - Succeeded with existing warnings only.
 - `dotnet test Svg.Skia.slnx -c Release`
-  - `Svg.Skia.UnitTests`: Passed 2593, skipped 40.
+  - `Svg.Skia.UnitTests`: Passed 2594, skipped 40.
   - Other test projects in the solution passed.
 - Focused natural text advance cache validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests.MeasureNaturalTextAdvance"`
