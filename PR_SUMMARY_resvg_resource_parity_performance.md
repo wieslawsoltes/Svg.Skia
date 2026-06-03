@@ -15,6 +15,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Pre-sized text-path path-sample storage for long sampled paths.
 - Text-path placement allocation trimming for simple positioned text-path runs.
 - Text-path geometry cache-hit allocation trimming for repeated referenced path data.
+- Direct textPath-only retained compile fast path for positioned textPath nodes.
 - Whole-run natural text advance caching for repeated text measurement.
 - Simple natural text advance cache-hit fast path for repeated prepared text measurement.
 - Short shaped-text layout caching for repeated positioned glyph runs.
@@ -103,6 +104,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added direct text-DOM metrics for simple horizontal ASCII letter/word-spacing runs by reusing aligned codepoint placements and natural advances, bypassing generic shaped cluster-source allocation while leaving SVG-font, bidi, synthetic small-caps, textLength, rotation/scale, vertical, and complex text on the existing paths.
 - Added direct text-DOM metrics for simple unpositioned horizontal ASCII runs by creating per-codepoint metrics from natural advances and fallback bounds, bypassing shaped cluster-source construction while leaving SVG-font, bidi, spacing, textLength, rotations, vertical, and complex text on the existing paths.
 - Added a guarded retained compile fast path for simple horizontal ASCII aligned runs with fixed letter/word spacing or non-relative textLength, resolving codepoint placements once and reusing them for both bounds and drawing while leaving rotations, baseline shifts, decorations, vertical text, relative spacing/textLength, SVG-font text, custom OpenType properties, and complex bidi text on the existing path.
+- Added a guarded retained compile fast path for direct textPath-only text nodes, resolving positioned textPath runs once and reusing them for both retained bounds and local picture recording while leaving stretch textPath, mixed inline text, recursive or missing geometry, inline layout, vertical text, and textLength container barriers on the existing path.
 - Added a bounded short rendered-text local-bounds cache keyed by asset loader and text paint/font signature so repeated text-DOM, prepared-text, and text-path bounds checks reuse successful glyph/path bounds while preserving precise hit extents for letter-spacing gaps.
 - Trimmed retained text fallback paint cloning so single-span typeface fallback commands record one isolated paint clone and multi-span fallback loops skip the unused clone after the final span.
 - Reused cached read-only codepoint split arrays across text-DOM, prepared-text, and shared-layout read paths, leaving the lone mutable split at the reverse-by-codepoint call site.
@@ -308,6 +310,10 @@ Focused text-path geometry cache-hit measurements for `generated-text-path-curve
 - `CreateTextPathPlacementsFromPrebuiltGeometryAcrossFragments` stayed at the direct-emission allocation level of `144,913 B`.
 - `CompileNodeTreeOnly | generated-text-path-curves-96`: retained compile allocation moved from `13.86 MB` to `11.61 MB`; short-run timings remained noisy, so this is treated primarily as an allocation cleanup.
 
+Focused direct textPath retained compile fast-path measurement for `generated-text-path-curves-96`:
+
+- `CompileNodeTreeOnly`: the post-aligned retained scan measured `17.350 ms / 11,889.16 KB`; the direct textPath compile fast path measured `13.504 ms / 9.89 MB`.
+
 ### Natural Text Advance Performance
 
 - Added a bounded whole-run natural text advance cache keyed by document, asset loader, paint/font signature, SVG text style, bidi mode, language, and SVG-font-sensitive state.
@@ -489,6 +495,20 @@ Focused simple natural text advance cache-hit measurements:
   - `dotnet format Svg.Skia.slnx --no-restore`
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextSelectionDomTests|FullyQualifiedName~HitTestTests|FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgRetainedSceneGraphTests"`
   - Passed 492.
+  - `dotnet build Svg.Skia.slnx -c Release`
+  - Build passed with existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2594, skipped 40; other test projects passed.
+- Focused direct textPath retained compile fast-path validation:
+  - `dotnet format Svg.Skia.slnx --no-restore`
+  - Completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
+  - Build passed with existing warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgRetainedSceneGraphTests"`
+  - Passed 448.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~W3CTestSuiteTests.Tests"`
+  - Passed 523, skipped 3.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-direct-textpath-compile-fastpath dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - `dotnet build Svg.Skia.slnx -c Release`
   - Build passed with existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release`
