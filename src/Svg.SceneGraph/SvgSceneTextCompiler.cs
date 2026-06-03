@@ -15009,7 +15009,17 @@ internal static partial class SvgSceneTextCompiler
 
         var rotations = GetPositionedRotations(svgTextBase, codepoints.Count);
         var currentVOffset = baseVOffset + GetBaselineOffset(svgTextBase, viewport, assetLoader);
-        var plannerClusters = new SvgTextPathLayoutPlanner.ClusterPlacementInput[codepoints.Count];
+        var plannerSamples = GetTextPathPlannerSamples(pathSamples);
+        var placementBuffer = new PositionedCodepointPlacement[codepoints.Count];
+        var visibleStartIndex = -1;
+        var visibleCount = 0;
+        var placementOffset = startOffset;
+        var closedLoopEndOffset = isClosedLoop && pathLength > 0f
+            ? startOffset + pathLength
+            : float.PositiveInfinity;
+        var pathSegmentIndex = 1;
+        var previousSampleOffset = float.NegativeInfinity;
+
         for (var i = 0; i < codepoints.Count; i++)
         {
             var glyphAdvance = scaleRunFromStart
@@ -15045,36 +15055,127 @@ internal static partial class SvgSceneTextCompiler
                 clusterAdvance += extraGapAdvance;
             }
 
-            plannerClusters[i] = new SvgTextPathLayoutPlanner.ClusterPlacementInput(
-                codepoints[i],
-                glyphAdvance,
-                clusterAdvance - glyphAdvance,
-                GetCodepointRotationDegrees(svgTextBase, codepoints[i], rotations, i),
-                scaleRunFromStart ? glyphScaleX : 1f);
+            var glyphMidOffset = placementOffset + (glyphAdvance * 0.5f);
+            if (glyphMidOffset >= closedLoopEndOffset)
+            {
+                break;
+            }
+
+            var sampleOffset = glyphMidOffset;
+            if (isClosedLoop && pathLength > 0f)
+            {
+                sampleOffset = NormalizeClosedPathDistance(glyphMidOffset, pathLength);
+            }
+            else if (glyphMidOffset <= 0f)
+            {
+                placementOffset += clusterAdvance;
+                continue;
+            }
+
+            if (!isClosedLoop && glyphMidOffset >= pathLength)
+            {
+                break;
+            }
+
+            if (sampleOffset < previousSampleOffset)
+            {
+                pathSegmentIndex = 1;
+            }
+
+            previousSampleOffset = sampleOffset;
+
+            if (!SvgTextPathLayoutPlanner.TryGetPointAndTangent(plannerSamples, sampleOffset, ref pathSegmentIndex, out var rawPoint, out var tangent))
+            {
+                return false;
+            }
+
+            var codepointRotationDegrees = GetCodepointRotationDegrees(svgTextBase, codepoints[i], rotations, i);
+            var angleDegrees = (float)(Math.Atan2(tangent.Y, tangent.X) * 180d / Math.PI);
+            var finalAngleDegrees = angleDegrees + codepointRotationDegrees;
+            var baselineDirection = RotateTextPathTangent(tangent, codepointRotationDegrees);
+            var baselineNormal = new SKPoint(-baselineDirection.Y, baselineDirection.X);
+            var point = new SKPoint(
+                rawPoint.X + (baselineNormal.X * currentVOffset) - (baselineDirection.X * glyphAdvance * 0.5f),
+                rawPoint.Y + (baselineNormal.Y * currentVOffset) - (baselineDirection.Y * glyphAdvance * 0.5f));
+
+            if (visibleStartIndex < 0)
+            {
+                visibleStartIndex = i;
+            }
+
+            placementBuffer[visibleCount++] = new PositionedCodepointPlacement(
+                point,
+                finalAngleDegrees,
+                scaleRunFromStart ? glyphScaleX : 1f,
+                point.X,
+                placementOffset);
+
+            if (i < codepoints.Count - 1)
+            {
+                placementOffset += clusterAdvance;
+            }
         }
 
-        var plannerSamples = GetTextPathPlannerSamples(pathSamples);
-        var options = new SvgTextPathLayoutPlanner.MappingOptions(pathLength, isClosedLoop, startOffset, currentVOffset);
-        if (!SvgTextPathLayoutPlanner.TryCreatePlacementPlan(plannerClusters, plannerSamples, options, out var plan))
+        if (visibleCount == 0)
         {
             return false;
         }
 
-        renderedText = plan.Text;
-        var planPlacements = plan.Placements;
-        placements = new PositionedCodepointPlacement[planPlacements.Count];
-        for (var i = 0; i < planPlacements.Count; i++)
+        if (visibleCount == placementBuffer.Length)
         {
-            var placement = planPlacements[i];
-            placements[i] = new PositionedCodepointPlacement(
-                placement.Point,
-                placement.RotationDegrees,
-                placement.ScaleX,
-                placement.ScaleOriginX,
-                placement.InlineOffset);
+            placements = placementBuffer;
+            renderedText = text;
+        }
+        else
+        {
+            placements = new PositionedCodepointPlacement[visibleCount];
+            Array.Copy(placementBuffer, placements, visibleCount);
+            renderedText = CreateCodepointRangeText(codepoints, visibleStartIndex, visibleCount);
         }
 
-        return placements.Length > 0;
+        return true;
+    }
+
+    private static SKPoint RotateTextPathTangent(SKPoint tangent, float rotationDegrees)
+    {
+        if (Math.Abs(rotationDegrees) <= 0.001f)
+        {
+            return tangent;
+        }
+
+        var rotationRadians = rotationDegrees * ((float)Math.PI / 180f);
+        var cos = (float)Math.Cos(rotationRadians);
+        var sin = (float)Math.Sin(rotationRadians);
+        return new SKPoint(
+            (tangent.X * cos) - (tangent.Y * sin),
+            (tangent.X * sin) + (tangent.Y * cos));
+    }
+
+    private static string CreateCodepointRangeText(IReadOnlyList<string> codepoints, int startIndex, int count)
+    {
+        if (count <= 0 || startIndex < 0)
+        {
+            return string.Empty;
+        }
+
+        if (count == 1)
+        {
+            return codepoints[startIndex];
+        }
+
+        var length = 0;
+        for (var i = 0; i < count; i++)
+        {
+            length += codepoints[startIndex + i].Length;
+        }
+
+        var builder = new StringBuilder(length);
+        for (var i = 0; i < count; i++)
+        {
+            builder.Append(codepoints[startIndex + i]);
+        }
+
+        return builder.ToString();
     }
 
     private static IReadOnlyList<float> CreateTextPathPlacementAdvances(
