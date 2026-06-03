@@ -1052,7 +1052,7 @@ public static class SvgSceneCompiler
                         createOwnCompilationRootBoundary: true,
                         compileContext) is { } childNode)
                 {
-                    node.AddChild(childNode);
+                    node.AddChild(childNode, element.Children.Count);
                 }
             }
         }
@@ -2363,7 +2363,7 @@ public static class SvgSceneCompiler
                     createOwnCompilationRootBoundary: false,
                     compileContext) is { } childNode)
             {
-                node.AddChild(childNode);
+                node.AddChild(childNode, svgSymbol.Children.Count);
             }
         }
 
@@ -3609,7 +3609,7 @@ public static class SvgSceneCompiler
                 }
 
                 ResetGeneratedDisplayState(childNode);
-                node.AddChild(childNode);
+                node.AddChild(childNode, svgMarker.Children.Count);
                 hasCompiledChild = true;
             }
         }
@@ -3994,7 +3994,7 @@ public static class SvgSceneCompiler
                         createOwnCompilationRootBoundary: false,
                         compileContext) is { } childNode)
                 {
-                    root.AddChild(childNode);
+                    root.AddChild(childNode, children.Count);
                 }
             }
         }
@@ -4826,7 +4826,7 @@ public static class SvgSceneCompiler
                         createOwnCompilationRootBoundary: false,
                         compileContext) is { } childNode)
                 {
-                    node.AddChild(childNode);
+                    node.AddChild(childNode, svgMask.Children.Count);
                 }
             }
         }

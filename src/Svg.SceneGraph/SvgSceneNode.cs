@@ -147,8 +147,22 @@ public sealed class SvgSceneNode
 
     internal void AddChild(SvgSceneNode child)
     {
+        AddChild(child, expectedChildCount: 0);
+    }
+
+    internal void AddChild(SvgSceneNode child, int expectedChildCount)
+    {
         child.Parent = this;
-        (_children ??= new List<SvgSceneNode>()).Add(child);
+        var children = _children;
+        if (children is null)
+        {
+            children = expectedChildCount > 0
+                ? new List<SvgSceneNode>(expectedChildCount)
+                : new List<SvgSceneNode>();
+            _children = children;
+        }
+
+        children.Add(child);
     }
 
     internal void SetMask(SvgSceneNode? maskNode)
@@ -217,7 +231,7 @@ public sealed class SvgSceneNode
         _children?.Clear();
         for (var i = 0; i < replacement.Children.Count; i++)
         {
-            AddChild(replacement.Children[i]);
+            AddChild(replacement.Children[i], replacement.Children.Count);
         }
 
         MaskNode = null;
