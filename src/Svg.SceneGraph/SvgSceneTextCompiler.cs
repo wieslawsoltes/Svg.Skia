@@ -20959,12 +20959,68 @@ internal static partial class SvgSceneTextCompiler
         ISvgAssetLoader assetLoader)
     {
         var advances = new float[codepoints.Count];
-        for (var i = 0; i < codepoints.Count; i++)
+        var start = 0;
+        while (start < codepoints.Count)
         {
-            advances[i] = MeasureNaturalTextAdvance(codepoints[i].StyleSource, codepoints[i].Codepoint, geometryBounds, assetLoader);
+            var styleSource = codepoints[start].StyleSource;
+            var end = start + 1;
+            while (end < codepoints.Count && ReferenceEquals(codepoints[end].StyleSource, styleSource))
+            {
+                end++;
+            }
+
+            MeasureFlattenedNaturalAdvancesRange(
+                codepoints,
+                start,
+                end - start,
+                styleSource,
+                geometryBounds,
+                assetLoader,
+                advances);
+            start = end;
         }
 
         return advances;
+    }
+
+    private static void MeasureFlattenedNaturalAdvancesRange(
+        IReadOnlyList<FlattenedTextCodepoint> codepoints,
+        int start,
+        int count,
+        SvgTextBase styleSource,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        float[] advances)
+    {
+        if (count <= 0)
+        {
+            return;
+        }
+
+        if (count == 1)
+        {
+            advances[start] = MeasureNaturalTextAdvance(styleSource, codepoints[start].Codepoint, geometryBounds, assetLoader);
+            return;
+        }
+
+        var runCodepoints = new string[count];
+        for (var i = 0; i < count; i++)
+        {
+            runCodepoints[i] = codepoints[start + i].Codepoint;
+        }
+
+        var runText = string.Concat(runCodepoints);
+        var runAdvances = MeasureNaturalCodepointAdvances(styleSource, runText, runCodepoints, geometryBounds, assetLoader);
+        if (runAdvances.Length == count)
+        {
+            Array.Copy(runAdvances, 0, advances, start, count);
+            return;
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            advances[start + i] = MeasureNaturalTextAdvance(styleSource, codepoints[start + i].Codepoint, geometryBounds, assetLoader);
+        }
     }
 
     private static float[] CreateFlattenedBaseStepAdvances(
