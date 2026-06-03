@@ -361,7 +361,12 @@ public static class SvgSceneRenderer
     {
         if (node.LocalModel is { } localModel)
         {
-            ApplySourceMetadata(localModel, node, overwrite: false);
+            if (!node.LocalModelSourceMetadataApplied)
+            {
+                ApplySourceMetadata(localModel, node, overwrite: false);
+                node.LocalModelSourceMetadataApplied = true;
+            }
+
             canvas.DrawPicture(localModel);
             return;
         }

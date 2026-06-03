@@ -72,6 +72,8 @@ public sealed class SvgSceneNode
 
     public SKPicture? LocalModel { get; internal set; }
 
+    internal bool LocalModelSourceMetadataApplied { get; set; }
+
     internal SKPath? LocalPath { get; set; }
 
     internal SKPaint? LocalFill { get; set; }
@@ -178,6 +180,7 @@ public sealed class SvgSceneNode
         CompilationRootKey = replacement.CompilationRootKey;
         IsCompilationRootBoundary = replacement.IsCompilationRootBoundary;
         LocalModel = replacement.LocalModel;
+        LocalModelSourceMetadataApplied = replacement.LocalModelSourceMetadataApplied;
         LocalPath = replacement.LocalPath;
         LocalFill = replacement.LocalFill;
         LocalStroke = replacement.LocalStroke;
