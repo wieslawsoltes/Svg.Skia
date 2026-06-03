@@ -15990,7 +15990,7 @@ internal static partial class SvgSceneTextCompiler
 
         transform = SKMatrix.Identity;
         samplingScale = 1f;
-        referencedElement = SvgService.GetReference<SvgElement>(svgTextPath, SvgService.GetEffectiveReferenceUri(svgTextPath, svgTextPath.ReferencedPath));
+        referencedElement = ResolveTextPathGeometryReference(svgTextPath);
         if (referencedElement is null)
         {
             return false;
@@ -16008,6 +16008,94 @@ internal static partial class SvgSceneTextCompiler
             svgTextPath.Side,
             samplingScale,
             viewport);
+        return true;
+    }
+
+    private static SvgElement? ResolveTextPathGeometryReference(SvgTextPath svgTextPath)
+    {
+        return TryResolveSameDocumentTextPathReference(svgTextPath, out var referencedElement)
+            ? referencedElement
+            : SvgService.GetReference<SvgElement>(svgTextPath, SvgService.GetEffectiveReferenceUri(svgTextPath, svgTextPath.ReferencedPath));
+    }
+
+    private static bool TryResolveSameDocumentTextPathReference(SvgTextPath svgTextPath, out SvgElement? referencedElement)
+    {
+        referencedElement = null;
+        if (svgTextPath.TryGetEffectiveHrefString(out var hrefText))
+        {
+            return TryResolveSameDocumentFragmentReference(svgTextPath, hrefText, out referencedElement);
+        }
+
+        var referencedPath = svgTextPath.ReferencedPath;
+        if (referencedPath is null ||
+            !TryGetSameDocumentFragmentReferenceId(referencedPath, out var referenceId))
+        {
+            return false;
+        }
+
+        referencedElement = svgTextPath.OwnerDocument?.IdManager.GetElementById(referenceId);
+        return true;
+    }
+
+    private static bool TryResolveSameDocumentFragmentReference(SvgElement owner, string? hrefText, out SvgElement? referencedElement)
+    {
+        referencedElement = null;
+        if (!TryGetSameDocumentFragmentReferenceId(hrefText, out var referenceId))
+        {
+            return false;
+        }
+
+        referencedElement = owner.OwnerDocument?.IdManager.GetElementById(referenceId);
+        return true;
+    }
+
+    private static bool TryGetSameDocumentFragmentReferenceId(Uri uri, out string referenceId)
+    {
+        referenceId = string.Empty;
+        if (uri.IsAbsoluteUri || string.IsNullOrEmpty(uri.OriginalString))
+        {
+            return false;
+        }
+
+        return TryGetSameDocumentFragmentReferenceId(uri.OriginalString, out referenceId);
+    }
+
+    private static bool TryGetSameDocumentFragmentReferenceId(string? hrefText, out string referenceId)
+    {
+        referenceId = string.Empty;
+        if (hrefText is null || hrefText.Length == 0)
+        {
+            return false;
+        }
+
+        var start = 0;
+        var end = hrefText.Length - 1;
+        while (start <= end && char.IsWhiteSpace(hrefText[start]))
+        {
+            start++;
+        }
+
+        while (end >= start && char.IsWhiteSpace(hrefText[end]))
+        {
+            end--;
+        }
+
+        if (start > end ||
+            hrefText[start] != '#' ||
+            start == end)
+        {
+            return false;
+        }
+
+        for (var i = start + 1; i <= end; i++)
+        {
+            if (hrefText[i] == '%' || char.IsWhiteSpace(hrefText[i]))
+            {
+                return false;
+            }
+        }
+
+        referenceId = hrefText.Substring(start + 1, end - start);
         return true;
     }
 
@@ -16098,10 +16186,16 @@ internal static partial class SvgSceneTextCompiler
     {
         signature = MixSignature(signature, (int)svgPath.FillRule);
         signature = MixSignature(signature, svgPath.PathLength);
-        signature = MixPathSegmentListGeometrySignature(signature, svgPath.PathData);
-        signature = MixComputedPropertySignature(signature, svgPath, "d");
-        signature = MixComputedStylePropertySignature(signature, svgPath, "d");
+        signature = MixPathSegmentListGeometrySignature(signature, GetRawPathData(svgPath) ?? svgPath.PathData);
+        signature = MixCascadedCssPropertySignature(signature, svgPath, "d");
         return signature;
+    }
+
+    private static SvgPathSegmentList? GetRawPathData(SvgPath svgPath)
+    {
+        return svgPath.Attributes.TryGetValue("d", out var pathData) && pathData is SvgPathSegmentList segments
+            ? segments
+            : null;
     }
 
     private static long MixSvgRectangleGeometrySignature(long signature, SvgRectangle svgRectangle)
@@ -16191,6 +16285,26 @@ internal static partial class SvgSceneTextCompiler
         signature = MixSignature(signature, fallback.Value);
         signature = MixSignature(signature, fallback.IsEmpty ? 1 : 0);
         return MixComputedPropertySignature(signature, element, propertyName);
+    }
+
+    private static long MixCascadedCssPropertySignature(long signature, SvgElement element, string propertyName)
+    {
+        if (element.TryGetOwnCascadedCssDeclarationValue(propertyName, out var ownCssValue))
+        {
+            signature = MixSignature(signature, 1);
+            signature = MixSignature(signature, ownCssValue);
+            if (string.Equals(ownCssValue.Trim(), "inherit", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(ownCssValue.Trim(), "unset", StringComparison.OrdinalIgnoreCase))
+            {
+                signature = MixComputedStylePropertySignature(signature, element, propertyName);
+            }
+        }
+        else
+        {
+            signature = MixSignature(signature, 0);
+        }
+
+        return signature;
     }
 
     private static long MixComputedPropertySignature(long signature, SvgElement element, string propertyName)
