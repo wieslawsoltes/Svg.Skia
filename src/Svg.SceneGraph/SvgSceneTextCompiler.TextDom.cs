@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ShimSkiaSharp;
 using Svg;
 using Svg.Model;
@@ -13,8 +14,10 @@ internal static partial class SvgSceneTextCompiler
     internal sealed class SvgTextContentMetrics
     {
         private readonly TextDomClusterMetric[] _clusters;
-        private readonly TextDomHitCell[] _hitCells;
         private readonly int _numberOfChars;
+        private readonly bool _hasHitTestCells;
+        private readonly TextDomHitCell[]? _extraHitCells;
+        private TextDomHitCell[]? _hitCells;
 
         internal static SvgTextContentMetrics Empty { get; } = new(Array.Empty<TextDomClusterMetric>(), 0, 0f, Array.Empty<TextDomHitCell>());
 
@@ -33,7 +36,8 @@ internal static partial class SvgSceneTextCompiler
             TextDomHitCell[]? hitCells)
         {
             _clusters = clusters;
-            _hitCells = hitCells is { Length: > 0 } ? hitCells : CreateHitCells(clusters);
+            _extraHitCells = hitCells is { Length: > 0 } ? hitCells : null;
+            _hasHitTestCells = _extraHitCells is { Length: > 0 } || HasHitCellCandidate(clusters);
             _numberOfChars = numberOfChars;
             ComputedTextLength = computedTextLength;
         }
@@ -42,7 +46,7 @@ internal static partial class SvgSceneTextCompiler
 
         public float ComputedTextLength { get; }
 
-        internal bool HasHitTestCells => _hitCells.Length > 0;
+        internal bool HasHitTestCells => _hasHitTestCells;
 
         public float GetSubStringLength(int charnum, int nchars)
         {
@@ -148,9 +152,15 @@ internal static partial class SvgSceneTextCompiler
 
         internal bool HitTestCharacterCell(SKPoint point)
         {
-            for (var i = 0; i < _hitCells.Length; i++)
+            if (!_hasHitTestCells)
             {
-                if (ContainsPoint(_hitCells[i].Extent, point))
+                return false;
+            }
+
+            var hitCells = GetHitCells();
+            for (var i = 0; i < hitCells.Length; i++)
+            {
+                if (ContainsPoint(hitCells[i].Extent, point))
                 {
                     return true;
                 }
@@ -220,6 +230,18 @@ internal static partial class SvgSceneTextCompiler
             }
 
             throw new ArgumentOutOfRangeException(nameof(charnum));
+        }
+
+        private TextDomHitCell[] GetHitCells()
+        {
+            var hitCells = _hitCells;
+            if (hitCells is not null)
+            {
+                return hitCells;
+            }
+
+            hitCells = CreateHitCells(_clusters, _extraHitCells);
+            return Interlocked.CompareExchange(ref _hitCells, hitCells, null) ?? hitCells;
         }
 
         private void ValidateCharacterIndex(int charnum)
@@ -297,14 +319,22 @@ internal static partial class SvgSceneTextCompiler
             return true;
         }
 
-        private static TextDomHitCell[] CreateHitCells(IReadOnlyList<TextDomClusterMetric> clusters)
+        private static TextDomHitCell[] CreateHitCells(
+            IReadOnlyList<TextDomClusterMetric> clusters,
+            TextDomHitCell[]? extraHitCells)
         {
+            var extraHitCellCount = extraHitCells?.Length ?? 0;
             if (clusters.Count == 0)
             {
-                return Array.Empty<TextDomHitCell>();
+                return extraHitCellCount == 0 ? Array.Empty<TextDomHitCell>() : extraHitCells!;
             }
 
-            var hitCells = new List<TextDomHitCell>(clusters.Count);
+            var hitCells = new List<TextDomHitCell>(clusters.Count + extraHitCellCount);
+            if (extraHitCells is not null)
+            {
+                hitCells.AddRange(extraHitCells);
+            }
+
             for (var i = 0; i < clusters.Count; i++)
             {
                 if (!clusters[i].HitExtent.IsEmpty)
@@ -314,6 +344,19 @@ internal static partial class SvgSceneTextCompiler
             }
 
             return hitCells.ToArray();
+        }
+
+        private static bool HasHitCellCandidate(IReadOnlyList<TextDomClusterMetric> clusters)
+        {
+            for (var i = 0; i < clusters.Count; i++)
+            {
+                if (!clusters[i].HitExtent.IsEmpty)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool ContainsPoint(SKRect bounds, SKPoint point)
@@ -392,7 +435,7 @@ internal static partial class SvgSceneTextCompiler
     private sealed class SvgTextContentMetricsBuilder
     {
         private readonly List<TextDomClusterMetric> _clusters = new();
-        private readonly List<TextDomHitCell> _hitCells = new();
+        private List<TextDomHitCell>? _extraHitCells;
         private int _numberOfChars;
         private float _computedTextLength;
 
@@ -402,9 +445,9 @@ internal static partial class SvgSceneTextCompiler
             for (var clusterIndex = 0; clusterIndex < runClusters.Count; clusterIndex++)
             {
                 var runCluster = runClusters[clusterIndex];
-                AppendHitCell(runCluster);
                 if (runCluster.CharLength <= 0)
                 {
+                    AppendExtraHitCell(runCluster);
                     continue;
                 }
 
@@ -446,9 +489,9 @@ internal static partial class SvgSceneTextCompiler
             for (var clusterIndex = 0; clusterIndex < runClusters.Count; clusterIndex++)
             {
                 var runCluster = runClusters[clusterIndex];
-                AppendHitCell(runCluster);
                 if (runCluster.CharLength <= 0)
                 {
+                    AppendExtraHitCell(runCluster);
                     continue;
                 }
 
@@ -480,15 +523,17 @@ internal static partial class SvgSceneTextCompiler
                 _clusters.ToArray(),
                 _numberOfChars,
                 _computedTextLength,
-                _hitCells.ToArray());
+                _extraHitCells?.ToArray());
         }
 
-        private void AppendHitCell(TextDomRunClusterMetric runCluster)
+        private void AppendExtraHitCell(TextDomRunClusterMetric runCluster)
         {
-            if (!runCluster.HitExtent.IsEmpty)
+            if (runCluster.HitExtent.IsEmpty)
             {
-                _hitCells.Add(new TextDomHitCell(runCluster.HitExtent));
+                return;
             }
+
+            (_extraHitCells ??= new List<TextDomHitCell>()).Add(new TextDomHitCell(runCluster.HitExtent));
         }
     }
 
