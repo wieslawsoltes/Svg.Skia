@@ -15,9 +15,12 @@ internal static partial class SvgSceneTextCompiler
     private static readonly ConcurrentDictionary<SimpleCodepointAdvanceCacheKey, float> s_simpleCodepointAdvanceCache = new();
     private static readonly ConcurrentDictionary<NaturalTextAdvanceCacheKey, float> s_naturalTextAdvanceCache = new();
     private static readonly ConcurrentDictionary<NaturalCodepointAdvanceCacheKey, float[]> s_naturalCodepointAdvanceCache = new();
+    private static readonly ConcurrentDictionary<RenderedTextLocalBoundsCacheKey, SKRect> s_renderedTextLocalBoundsCache = new();
     private const int SimpleCodepointAdvanceCacheLimit = 4096;
     private const int NaturalTextAdvanceCacheLimit = 2048;
     private const int NaturalCodepointAdvanceCacheLimit = 1024;
+    private const int RenderedTextLocalBoundsCacheLimit = 4096;
+    private const int RenderedTextLocalBoundsCacheMaxTextLength = 64;
 
     private readonly record struct SimpleCodepointAdvanceCacheKey(
         int AssetLoaderId,
@@ -79,6 +82,22 @@ internal static partial class SvgSceneTextCompiler
         bool RightToLeft,
         bool RequiresSyntheticSmallCaps,
         bool UsesBrowserCompatibleRunTypeface);
+
+    private readonly record struct RenderedTextLocalBoundsCacheKey(
+        int AssetLoaderId,
+        string Text,
+        float TextSize,
+        bool LcdRenderText,
+        bool SubpixelText,
+        SKTextEncoding TextEncoding,
+        SKTextAlign TextAlign,
+        string? FontFeatureSettings,
+        string? FontKerning,
+        string? FontVariantLigatures,
+        string? TypefaceFamilyName,
+        SKFontStyleWeight TypefaceWeight,
+        SKFontStyleWidth TypefaceWidth,
+        SKFontStyleSlant TypefaceSlant);
 
     // Keep flat sequential text preparation behind a swappable boundary so a future
     // Pretext-backed implementation can plug in without taking ownership of SVG placement.
@@ -283,6 +302,7 @@ internal static partial class SvgSceneTextCompiler
             s_simpleCodepointAdvanceCache.Clear();
             s_naturalTextAdvanceCache.Clear();
             s_naturalCodepointAdvanceCache.Clear();
+            s_renderedTextLocalBoundsCache.Clear();
         }
     }
 

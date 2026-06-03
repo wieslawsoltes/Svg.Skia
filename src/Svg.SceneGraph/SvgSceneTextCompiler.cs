@@ -4309,16 +4309,72 @@ internal static partial class SvgSceneTextCompiler
         ISvgAssetLoader assetLoader,
         out SKRect bounds)
     {
+        var canCache = text.Length <= RenderedTextLocalBoundsCacheMaxTextLength;
+        var cacheKey = canCache ? CreateRenderedTextLocalBoundsCacheKey(assetLoader, text, paint) : default;
+        if (canCache && s_renderedTextLocalBoundsCache.TryGetValue(cacheKey, out bounds))
+        {
+            return true;
+        }
+
         var path = assetLoader.GetTextPath(text, paint, 0f, 0f);
         if (path is not null && !path.IsEmpty)
         {
             bounds = path.Bounds;
-            return !bounds.IsEmpty;
+            return CacheRenderedTextLocalBoundsIfNeeded(canCache, cacheKey, bounds);
         }
 
         bounds = new SKRect();
         assetLoader.MeasureText(text, paint, ref bounds);
-        return !bounds.IsEmpty;
+        return CacheRenderedTextLocalBoundsIfNeeded(canCache, cacheKey, bounds);
+    }
+
+    private static RenderedTextLocalBoundsCacheKey CreateRenderedTextLocalBoundsCacheKey(
+        ISvgAssetLoader assetLoader,
+        string text,
+        SKPaint paint)
+    {
+        return new RenderedTextLocalBoundsCacheKey(
+            RuntimeHelpers.GetHashCode(assetLoader),
+            text,
+            paint.TextSize,
+            paint.LcdRenderText,
+            paint.SubpixelText,
+            paint.TextEncoding,
+            paint.TextAlign,
+            paint.FontFeatureSettings,
+            paint.FontKerning,
+            paint.FontVariantLigatures,
+            paint.Typeface?.FamilyName,
+            paint.Typeface?.FontWeight ?? SKFontStyleWeight.Normal,
+            paint.Typeface?.FontWidth ?? SKFontStyleWidth.Normal,
+            paint.Typeface?.FontSlant ?? SKFontStyleSlant.Upright);
+    }
+
+    private static bool CacheRenderedTextLocalBoundsIfNeeded(
+        bool canCache,
+        RenderedTextLocalBoundsCacheKey cacheKey,
+        SKRect bounds)
+    {
+        if (bounds.IsEmpty)
+        {
+            return false;
+        }
+
+        if (canCache)
+        {
+            s_renderedTextLocalBoundsCache.TryAdd(cacheKey, bounds);
+            TrimRenderedTextLocalBoundsCacheIfNeeded();
+        }
+
+        return true;
+    }
+
+    private static void TrimRenderedTextLocalBoundsCacheIfNeeded()
+    {
+        if (s_renderedTextLocalBoundsCache.Count > RenderedTextLocalBoundsCacheLimit)
+        {
+            s_renderedTextLocalBoundsCache.Clear();
+        }
     }
 
     private static bool HasLinearDecorations(IReadOnlyList<PositionedCodepointPlacement> placements)
