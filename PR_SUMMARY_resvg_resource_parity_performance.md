@@ -14,6 +14,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Text-path fallback and bounds caching for large positioned text-path runs.
 - Whole-run natural text advance caching for repeated text measurement.
 - Short shaped-text layout caching for repeated positioned glyph runs.
+- Lazy child storage for leaf-heavy retained scene graphs.
 - Closed line-only SVG path conversion for generated path-heavy scenes.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
@@ -67,6 +68,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added a bounded native path value cache for repeated three- and four-point `AddPoly` paths so generated path-heavy scenes can reuse equivalent native path objects during picture conversion without weakening mutation tracking.
 - Cached local-model source metadata annotation per retained scene node so repeated retained model renders avoid walking already annotated nested command trees.
 - Added a bounded short shaped-text layout cache for first-pass native picture conversion so repeated short glyph runs can reuse HarfBuzz shaping output while still creating correctly positioned `SKTextBlob` instances per draw.
+- Changed retained scene nodes to allocate child lists lazily so leaf-heavy generated scenes avoid a per-node empty `List<T>` allocation while preserving stable `Children` enumeration semantics.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -99,6 +101,12 @@ Focused short shaped-layout cache measurements for `generated-text-path-curves-9
 - Manual cold load profile `Load via SKSvg.FromSvg`: `315.29 ms / 83.92 MB` to `100.78 ms / 80.54 MB`.
 - Manual cold load profile `Mutate + retained scene rebuild`: `499.13 ms / 96.69 MB` to `105.86 ms / 90.32 MB`.
 - Warmed `CreateNativePictureFromFullModel`: `698.2 us / 110.29 KB` to `517.75 us / 110.29 KB`.
+
+Focused retained-scene child-list measurements for `generated-shapes-1024`:
+
+- `CompileNodeTreeOnly`: `5.109 ms / 4,923,017 B` to `4.220 ms / 4,857,479 B`.
+- `CompileViaSceneCompiler`: allocation `7,736,128 B` to `7,646,095 B`; short-run wall-clock timing was noisy.
+- Load-pipeline retained-scene compile allocation recheck: about `7.737 MB` to `7,671,357 B`; the end-to-end timing row was too noisy to treat as a speed claim.
 
 ### Text Path Performance
 
@@ -167,6 +175,9 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
 - Focused short shaped-layout cache validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~W3CTestSuiteTests.Tests|FullyQualifiedName~resvgTests.text_fixtures|FullyQualifiedName~SKSvgRebuildFromModelTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextPathParityTests"`
   - Passed 1107, skipped 3.
+- Focused retained-scene child-list validation:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SKSvgRebuildFromModelTests|FullyQualifiedName~SvgRetainedSceneGraphTests"`
+  - Passed 283.
 - Focused text internals benchmark comparison:
   - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-before-next-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - After: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-after-natural-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
@@ -185,6 +196,10 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
 - Focused short shaped-layout cache profiling and benchmark checks:
   - Manual profile: `dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --profile-svg "/var/folders/6f/snf59k7x0ns_dv9l8f0_qgz00000gn/T/svg-skia-generated-profiles/generated-text-path-curves-96.svg" 30 --profile-output "/var/folders/6f/snf59k7x0ns_dv9l8f0_qgz00000gn/T/svg-skia-generated-profiles/generated-text-path-curves-96-profile-short-shaped-layout-cache.md"`
   - Warmed native conversion: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-short-shaped-layout-cache-text-suite" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-path-curves-96" dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks.CreateNativePictureFromFullModel*"`
+- Focused retained-scene child-list benchmark checks:
+  - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-retained-compile-shapes-phase-audit" SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - After: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-retained-compile-shapes-lazy-node-children" SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - Load-pipeline recheck: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-load-pipeline-lazy-node-children" SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024,generated-filtered-shapes-256" dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgLoadPipelineBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
 - Focused text/resource validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgResourceRenderingParityTests"`
   - Passed 290.
