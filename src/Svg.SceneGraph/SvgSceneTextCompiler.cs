@@ -21105,14 +21105,49 @@ internal static partial class SvgSceneTextCompiler
 
     private static string CreateFlattenedText(IReadOnlyList<FlattenedTextCodepoint> codepoints, int start, int count)
     {
-        var builder = new StringBuilder(count);
         var end = Math.Min(codepoints.Count, start + count);
-        for (var i = start; i < end; i++)
+        if (start >= end)
         {
-            builder.Append(codepoints[i].Codepoint);
+            return string.Empty;
         }
 
-        return builder.ToString();
+        var charCount = 0;
+        for (var i = start; i < end; i++)
+        {
+            charCount += codepoints[i].Codepoint.Length;
+        }
+
+        if (charCount == 0)
+        {
+            return string.Empty;
+        }
+
+#if NET6_0_OR_GREATER
+        return string.Create(
+            charCount,
+            (Codepoints: codepoints, Start: start, End: end),
+            static (destination, state) =>
+            {
+                var offset = 0;
+                for (var i = state.Start; i < state.End; i++)
+                {
+                    var codepoint = state.Codepoints[i].Codepoint.AsSpan();
+                    codepoint.CopyTo(destination.Slice(offset));
+                    offset += codepoint.Length;
+                }
+            });
+#else
+        var chars = new char[charCount];
+        var offset = 0;
+        for (var i = start; i < end; i++)
+        {
+            var codepoint = codepoints[i].Codepoint;
+            codepoint.CopyTo(0, chars, offset, codepoint.Length);
+            offset += codepoint.Length;
+        }
+
+        return new string(chars);
+#endif
     }
 
     private static float[] MeasureFlattenedNaturalAdvances(

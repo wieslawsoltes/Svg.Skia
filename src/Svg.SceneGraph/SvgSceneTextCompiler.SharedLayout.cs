@@ -545,7 +545,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var text = string.Concat(codepoints.Skip(start).Take(count).Select(static item => item.Codepoint));
+        var text = CreateFlattenedText(codepoints, start, count);
         if (string.IsNullOrEmpty(text))
         {
             return false;
@@ -1560,16 +1560,38 @@ internal static partial class SvgSceneTextCompiler
         IReadOnlyList<SharedInlineSizeRunPlacement> placements,
         IReadOnlyList<FlattenedTextCodepoint> codepoints)
     {
-        var runs = new List<PositionedCodepointRun>();
+        var groupCount = CountSharedRenderedPlacementGroups(placements, codepoints);
+        if (groupCount == 0)
+        {
+            return Array.Empty<PositionedCodepointRun>();
+        }
+
+        var runs = new PositionedCodepointRun[groupCount];
+        var runIndex = 0;
         var start = 0;
         while (TryGetNextSharedRenderedPlacementGroup(placements, codepoints, ref start, out var groupStart, out var groupEnd, out var styleSource))
         {
             var text = CreateSharedPlacementText(placements, codepoints, groupStart, groupEnd);
             var compilerPlacements = CreateSharedCompilerPlacements(placements, groupStart, groupEnd);
-            runs.Add(new PositionedCodepointRun(styleSource, text, compilerPlacements));
+            runs[runIndex] = new PositionedCodepointRun(styleSource, text, compilerPlacements);
+            runIndex++;
         }
 
-        return runs.ToArray();
+        return runs;
+    }
+
+    private static int CountSharedRenderedPlacementGroups(
+        IReadOnlyList<SharedInlineSizeRunPlacement> placements,
+        IReadOnlyList<FlattenedTextCodepoint> codepoints)
+    {
+        var groupCount = 0;
+        var start = 0;
+        while (TryGetNextSharedRenderedPlacementGroup(placements, codepoints, ref start, out _, out _, out _))
+        {
+            groupCount++;
+        }
+
+        return groupCount;
     }
 
     private static bool TryGetNextSharedRenderedPlacementGroup(
