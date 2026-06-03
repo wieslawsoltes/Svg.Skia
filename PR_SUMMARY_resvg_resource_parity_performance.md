@@ -25,6 +25,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Lazy text hit-cell materialization for retained text metrics.
 - Single-span resolved typeface fast path for simple retained text.
 - Direct simple spacing text-DOM metrics for retained text.
+- Direct simple unpositioned text-DOM metrics for simple retained text.
 - Closed line-only SVG path conversion for generated path-heavy scenes.
 - Versioned shim path-bounds caching for retained compile bounds scans.
 - Benchmark and profiling support for focused performance regression checks.
@@ -90,6 +91,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Changed text content metrics to lazily create derived hit-cell arrays only when text-cell hit testing needs them, while preserving eager extra cells for zero-width pointer-event cases not stored as character clusters.
 - Allowed simple ASCII retained text with explicit font families to use the sequential text compile path when typeface lookup resolves to one full-run span; multi-span fallback, per-glyph layout, spacing, and active text-length adjustment cases continue through the prepared text path.
 - Added direct text-DOM metrics for simple horizontal ASCII letter/word-spacing runs by reusing aligned codepoint placements and natural advances, bypassing generic shaped cluster-source allocation while leaving SVG-font, bidi, synthetic small-caps, textLength, rotation/scale, vertical, and complex text on the existing paths.
+- Added direct text-DOM metrics for simple unpositioned horizontal ASCII runs by creating per-codepoint metrics from natural advances and fallback bounds, bypassing shaped cluster-source construction while leaving SVG-font, bidi, spacing, textLength, rotations, vertical, and complex text on the existing paths.
 - Added versioned `SKPath.Bounds` caching for command sequences whose command data is stable, while continuing to recompute `AddPoly` paths whose point lists can be mutated by callers.
 - Kept the shim path command storage concrete internally so bounds scans avoid interface enumeration allocation while preserving the public `IList<PathCommand>? Commands` surface.
 
@@ -208,6 +210,14 @@ Focused simple spacing text-DOM metrics measurements:
 - `generated-text-192` remained the control path, measuring `51,543,168 B` for node-tree compile and about `52.28 MB` for both runtime and scene-compiler compile rows in the same run.
 - Short-run timings were noisy, so this change is treated as an allocation reduction and regression guard for retained text metrics.
 
+Focused simple unpositioned text-DOM metrics measurements:
+
+- `CompileNodeTreeOnly | generated-text-192`: `51,543,168 B` to `39,941,636 B`.
+- `CompileViaSceneRuntime | generated-text-192`: `52,281,424 B` to `40,679,827 B`.
+- `CompileViaSceneCompiler | generated-text-192`: `52,280,800 B` to `40,679,344 B`.
+- `generated-aligned-letter-spacing-192` allocation stayed flat around `64.76 MB` for node-tree compile and `65.03 MB` for runtime/compiler compile rows because it remains covered by the spacing-specific metrics path.
+- Short-run timings improved in this run, but the change is treated primarily as an allocation reduction and regression guard for simple retained text metrics.
+
 ### Text Path Performance
 
 - Added a document-scoped fallback codepoint resolver with bounded caching for fallback text, resolved paint, advance, and optional local bounds.
@@ -318,6 +328,12 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~W3CTestSuiteTests.Tests"`
   - Passed 523, skipped 3.
   - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-aligned-letter-spacing-192,generated-text-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-retained-simple-spacing-metrics-reused-advances dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
+- Focused simple unpositioned text-DOM metrics validation:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextSelectionDomTests|FullyQualifiedName~HitTestTests|FullyQualifiedName~SvgTextPathParityTests"`
+  - Passed 229.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~W3CTestSuiteTests.Tests"`
+  - Passed 523, skipped 3.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192,generated-aligned-letter-spacing-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-retained-simple-unpositioned-text-metrics dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
 - Focused text internals benchmark comparison:
   - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-before-next-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - After: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-after-natural-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
