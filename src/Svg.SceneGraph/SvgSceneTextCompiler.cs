@@ -627,6 +627,8 @@ internal static partial class SvgSceneTextCompiler
 
     private readonly record struct PositionedTextPathRun(SvgTextBase StyleSource, string Text, PositionedCodepointPlacement[] Placements);
 
+    private readonly record struct DirectTextPathRenderGroup(SKRect GeometryBounds, List<PositionedTextPathRun> Runs);
+
     private readonly record struct StretchedTextPathRun(SvgTextBase StyleSource, SvgTextBase CommandSource, SvgTextBase FilterSource, string Text, SKPath Path, IReadOnlyList<StretchedTextPathDecorationRun> Decorations);
 
     private readonly record struct StretchedTextPathDecorationRun(TextDecorationLayer Layer, SKPath Path);
@@ -1349,6 +1351,22 @@ internal static partial class SvgSceneTextCompiler
             return true;
         }
 
+        if (TryCompileDirectTextPathText(svgTextBase, viewport, ignoreAttributes, assetLoader, references, getElementAddressKey, contextPaint, out var textPathGeometryBounds, out var textPathModel))
+        {
+            node.GeometryBounds = textPathGeometryBounds;
+            node.Transform = TransformsService.ToMatrix(svgTextBase.Transforms, svgTextBase, textPathGeometryBounds, viewport);
+            node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
+            node.TransformedBounds = node.TotalTransform.MapRect(textPathGeometryBounds);
+            AssignTextContentMetrics(node);
+            node.LocalModel = textPathModel;
+            if (node.LocalModel is null)
+            {
+                node.IsRenderable = false;
+            }
+
+            return true;
+        }
+
         var geometryBounds = EstimateGeometryBounds(svgTextBase, viewport, assetLoader);
         node.GeometryBounds = geometryBounds;
         node.Transform = TransformsService.ToMatrix(svgTextBase.Transforms, svgTextBase, geometryBounds, viewport);
@@ -1533,6 +1551,184 @@ internal static partial class SvgSceneTextCompiler
         DrawResolvedAlignedSequentialCompileRuns(resolvedRuns, geometryBounds, ignoreAttributes, canvas, assetLoader, getElementAddressKey, contextPaint);
         var recordedModel = recorder.EndRecording();
         localModel = recordedModel.Commands is { Count: > 0 } ? recordedModel : null;
+        return true;
+    }
+
+    private static bool TryCompileDirectTextPathText(
+        SvgTextBase svgTextBase,
+        SKRect viewport,
+        DrawAttributes ignoreAttributes,
+        ISvgAssetLoader assetLoader,
+        HashSet<Uri>? references,
+        Func<SvgElement?, string?>? getElementAddressKey,
+        SvgSceneContextPaint? contextPaint,
+        out SKRect geometryBounds,
+        out SKPicture? localModel)
+    {
+        geometryBounds = SKRect.Empty;
+        localModel = null;
+
+        if (HasInlineSizeLayout(svgTextBase) ||
+            HasPreparedSequentialTextContainerBarriers(svgTextBase))
+        {
+            return false;
+        }
+
+        var drawIgnoreAttributes = ignoreAttributes | DrawAttributes.ClipPath | DrawAttributes.Mask | DrawAttributes.Opacity;
+        if (!TryCollectDirectTextPathChildren(svgTextBase, drawIgnoreAttributes, out var textPaths))
+        {
+            return false;
+        }
+
+        var x = svgTextBase.X.Count >= 1
+            ? svgTextBase.X[0].ToDeviceValue(UnitRenderingType.HorizontalOffset, svgTextBase, viewport)
+            : 0f;
+        var y = svgTextBase.Y.Count >= 1
+            ? svgTextBase.Y[0].ToDeviceValue(UnitRenderingType.VerticalOffset, svgTextBase, viewport)
+            : 0f;
+        var currentX = x;
+        var currentY = y;
+        var useCurrentPositionOffset = true;
+        var groups = new List<DirectTextPathRenderGroup>(textPaths.Count);
+
+        for (var i = 0; i < textPaths.Count; i++)
+        {
+            if (!TryCreateDirectTextPathRenderGroup(
+                    textPaths[i],
+                    ref currentX,
+                    ref currentY,
+                    useCurrentPositionOffset,
+                    viewport,
+                    assetLoader,
+                    out var group,
+                    out var runBounds))
+            {
+                return false;
+            }
+
+            useCurrentPositionOffset = false;
+            groups.Add(group);
+            UnionBounds(ref geometryBounds, runBounds);
+        }
+
+        var cullRect = CreateTextLocalCullRect(geometryBounds);
+        if (cullRect.IsEmpty)
+        {
+            return true;
+        }
+
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(cullRect);
+        for (var i = 0; i < groups.Count; i++)
+        {
+            var group = groups[i];
+            DrawPositionedTextPathRuns(
+                group.Runs,
+                viewport,
+                group.GeometryBounds,
+                drawIgnoreAttributes,
+                canvas,
+                assetLoader,
+                references,
+                getElementAddressKey,
+                contextPaint);
+        }
+
+        var recordedModel = recorder.EndRecording();
+        localModel = recordedModel.Commands is { Count: > 0 } ? recordedModel : null;
+        return true;
+    }
+
+    private static bool TryCollectDirectTextPathChildren(
+        SvgTextBase svgTextBase,
+        DrawAttributes ignoreAttributes,
+        out List<SvgTextPath> textPaths)
+    {
+        textPaths = new List<SvgTextPath>();
+        var contentNodes = GetContentNodeList(svgTextBase);
+        if (contentNodes.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < contentNodes.Count; i++)
+        {
+            switch (contentNodes[i])
+            {
+                case SvgTextPath { Method: SvgTextPathMethod.Align } svgTextPath
+                    when CanRenderTextSubtree(svgTextPath, ignoreAttributes) &&
+                         !HasRecursiveTextPathReference(svgTextPath):
+                    textPaths.Add(svgTextPath);
+                    break;
+
+                case SvgTextPath:
+                case SvgElement:
+                    return false;
+
+                default:
+                    if (!string.IsNullOrWhiteSpace(contentNodes[i].Content))
+                    {
+                        return false;
+                    }
+
+                    break;
+            }
+        }
+
+        return textPaths.Count > 0;
+    }
+
+    private static bool TryCreateDirectTextPathRenderGroup(
+        SvgTextPath svgTextPath,
+        ref float currentX,
+        ref float currentY,
+        bool useCurrentPositionOffset,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader,
+        out DirectTextPathRenderGroup group,
+        out SKRect runBounds)
+    {
+        group = default;
+        runBounds = SKRect.Empty;
+
+        if (!TryResolveTextPathGeometry(svgTextPath, viewport, out _, out var skPath, out var geometryBounds, out var pathSamples, out var pathLength, out var isClosedLoop) ||
+            !TryCollectTextPathRuns(svgTextPath, viewport, out var runs) ||
+            runs.Count == 0)
+        {
+            return false;
+        }
+
+        ResolveTextPathChunkOffsets(svgTextPath, useCurrentPositionOffset, currentX, currentY, viewport, assetLoader, pathSamples, out var horizontalOffset, out var verticalOffset);
+        var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
+        var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
+        var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
+        hOffset = ApplyTextPathSideOffset(svgTextPath, hOffset, pathLength, totalAdvance);
+
+        if (!TryCreateTextPathRunPlacements(runs, pathSamples, isClosedLoop, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
+        {
+            return false;
+        }
+
+        var fallbackResolver = positionedRuns.Count > 0
+            ? GetFallbackCodepointResolver(positionedRuns[0].StyleSource)
+            : GetFallbackCodepointResolver(svgTextPath);
+        for (var i = 0; i < positionedRuns.Count; i++)
+        {
+            var bounds = MeasureCodepointPlacementBounds(
+                positionedRuns[i].StyleSource,
+                positionedRuns[i].Text,
+                positionedRuns[i].Placements,
+                geometryBounds,
+                assetLoader,
+                out _,
+                fallbackResolver);
+            UnionBounds(ref runBounds, bounds);
+        }
+
+        var textPathCursorDistance = GetTextPathCursorDistance(svgTextPath, pathLength, endOffset);
+        AdvanceTextPathPosition(pathSamples, textPathCursorDistance, endVOffset, isClosedLoop, ref currentX, ref currentY);
+
+        group = new DirectTextPathRenderGroup(geometryBounds, positionedRuns);
         return true;
     }
 
