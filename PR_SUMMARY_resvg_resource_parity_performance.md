@@ -54,6 +54,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Read-only codepoint split reuse for text-DOM and prepared-text read paths.
 - Closed line-only SVG path conversion for generated path-heavy scenes.
 - Versioned shim path-bounds caching for retained compile bounds scans.
+- Small `AddPoly` native path revision-key reuse for generated path-heavy replay.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -142,6 +143,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Reused cached read-only codepoint split arrays across text-DOM, prepared-text, and shared-layout read paths, leaving the lone mutable split at the reverse-by-codepoint call site.
 - Added versioned `SKPath.Bounds` caching for command sequences whose command data is stable, while continuing to recompute `AddPoly` paths whose point lists can be mutated by callers.
 - Kept the shim path command storage concrete internally so bounds scans avoid interface enumeration allocation while preserving the public `IList<PathCommand>? Commands` surface.
+- Reused the small `AddPoly` native path value-cache key to derive one-command small-poly path revisions, avoiding a second point-list hash pass while preserving mutable-point invalidation.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -161,6 +163,11 @@ Focused native path value-cache measurement for `generated-shapes-1024`:
 
 - `CreateNativePictureFromFullModel`: `1.107 ms / 1.68 KB`.
 - `DrawNativePicture1x`: `4.386 ms` in a noisy short run, so native picture replay remains a follow-up hotspot rather than a claimed win for this change.
+
+Focused small `AddPoly` revision-key reuse measurements:
+
+- `ReplayFullModelIntoRecorderCanvasUsingCurrentLoop | generated-shapes-1024`: `1,993.8 us / 1.63 KB` to `1,149 us / 1.63 KB`.
+- `ReplayFullModelIntoRecorderCanvasUsingCurrentLoop | generated-filtered-shapes-256`: `2,543.4 us / 51.69 KB` to `1,985 us / 51.69 KB`.
 
 Focused layer-depth replay-state measurements:
 
@@ -540,6 +547,12 @@ Focused simple natural text advance cache-hit measurements:
 - Focused native path value-cache validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SKSvgRebuildFromModelTests"`
   - Passed 20.
+- Focused small `AddPoly` revision-key validation:
+  - `dotnet build src/Svg.Skia/Svg.Skia.csproj -c Release --no-restore`
+  - Build passed with existing warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SKSvgRebuildFromModelTests"`
+  - Passed 20.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256 SVG_SKIA_BENCHMARK_RUN_LABEL=current-small-poly-revision-key dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks.ReplayFullModelIntoRecorderCanvasUsingCurrentLoop*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
 - Focused layer-depth replay-state validation:
   - `dotnet build src/Svg.Skia/Svg.Skia.csproj -c Release --no-restore`
   - Build passed with existing warnings.
