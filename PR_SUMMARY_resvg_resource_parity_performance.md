@@ -36,6 +36,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Simple aligned retained text compile fast path for horizontal spacing/textLength runs.
 - Positioned text-blob recording for simple unrotated retained text placements.
 - Uniform scaled positioned text-blob recording for simple retained `spacingAndGlyphs` textLength placements.
+- Aligned retained compile codepoint split reuse for positioned bounds measurement.
 - Bounded rendered text local-bounds caching for repeated retained text metrics.
 - Read-only codepoint split reuse for text-DOM and prepared-text read paths.
 - Closed line-only SVG path conversion for generated path-heavy scenes.
@@ -108,6 +109,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added a guarded retained compile fast path for simple horizontal ASCII aligned runs with fixed letter/word spacing or non-relative textLength, resolving codepoint placements once and reusing them for both bounds and drawing while leaving rotations, baseline shifts, decorations, vertical text, relative spacing/textLength, SVG-font text, custom OpenType properties, and complex bidi text on the existing path.
 - Added guarded positioned text-blob recording for simple ASCII unrotated retained text placements, collapsing many per-codepoint text commands into one positioned blob command while leaving SVG-font text, synthetic small-caps, mixed typeface fallback, rotated glyphs, mixed-scale glyphs, and complex text on the existing per-codepoint renderer.
 - Extended positioned text-blob recording to uniform positive horizontal scale, replacing per-glyph save/scale/text/restore sequences with one scaled positioned blob for simple retained `lengthAdjust="spacingAndGlyphs"` textLength runs.
+- Reused aligned placement codepoint splits during retained aligned bounds measurement, avoiding a second codepoint read/allocation pass for simple aligned retained runs.
 - Added a guarded retained compile fast path for direct textPath-only text nodes, resolving positioned textPath runs once and reusing them for both retained bounds and local picture recording while leaving stretch textPath, mixed inline text, recursive or missing geometry, inline layout, vertical text, and textLength container barriers on the existing path.
 - Added a bounded short rendered-text local-bounds cache keyed by asset loader and text paint/font signature so repeated text-DOM, prepared-text, and text-path bounds checks reuse successful glyph/path bounds while preserving precise hit extents for letter-spacing gaps.
 - Trimmed retained text fallback paint cloning so single-span typeface fallback commands record one isolated paint clone and multi-span fallback loops skip the unused clone after the final span.
@@ -330,6 +332,12 @@ Focused uniform scaled positioned text-blob retained compile measurements:
 - `CompileNodeTreeOnly | generated-aligned-text-length-192`: `16.79 ms / 12.84 MB` after replacing simple `spacingAndGlyphs` per-glyph scale/draw recordings with one scaled positioned text blob.
 - Allocation still points at textLength layout preparation as a follow-up hotspot; this change targets retained command count and draw-path simplification for uniformly scaled placements.
 
+Focused aligned compile codepoint-bound reuse measurements:
+
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: `12.65 ms / 12.18 MB`, down from the recent retained compile scan's `12.32 MB` and the prior scaled text-blob control run's `12.31 MB`.
+- `CompileNodeTreeOnly | generated-aligned-text-length-192`: `18.11 ms / 12.84 MB`, allocation-flat against the prior scaled text-blob row and kept as a textLength control.
+- Short-run timings remained noisy, so this is treated as a small retained compile allocation cleanup.
+
 ### Natural Text Advance Performance
 
 - Added a bounded whole-run natural text advance cache keyed by document, asset loader, paint/font signature, SVG text style, bidi mode, language, and SVG-font-sensitive state.
@@ -521,6 +529,18 @@ Focused simple natural text advance cache-hit measurements:
   - Completed; formatter-only `externals/SVG` submodule changes were restored.
   - `dotnet build Svg.Skia.slnx -c Release`
   - Build passed with existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2595, skipped 40; other test projects passed.
+- Focused aligned compile codepoint-bound reuse validation:
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
+  - Build passed with existing warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgTextSelectionDomTests|FullyQualifiedName~HitTestTests"`
+  - Passed 488.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-aligned-letter-spacing-192,generated-aligned-text-length-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-aligned-codepoint-bound-reuse dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - `dotnet format Svg.Skia.slnx --no-restore`
+  - Completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release`
+  - Build passed with 277 existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release`
   - `Svg.Skia.UnitTests`: Passed 2595, skipped 40; other test projects passed.
 - Focused retained text paint-clone trim validation:
