@@ -23,6 +23,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Lazy retained-scene compile-context storage for rarely used caches.
 - Bounded typeface-span lookup caching for repeated short text runs.
 - Lazy retained text hit-metric construction and text hit-cell materialization.
+- Retained text fallback paint-clone trimming for simple typeface-span draws.
 - Single-span resolved typeface fast path for simple retained text.
 - Direct simple spacing text-DOM metrics for retained text.
 - Direct simple unpositioned text-DOM metrics for simple retained text.
@@ -94,6 +95,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added direct text-DOM metrics for simple horizontal ASCII letter/word-spacing runs by reusing aligned codepoint placements and natural advances, bypassing generic shaped cluster-source allocation while leaving SVG-font, bidi, synthetic small-caps, textLength, rotation/scale, vertical, and complex text on the existing paths.
 - Added direct text-DOM metrics for simple unpositioned horizontal ASCII runs by creating per-codepoint metrics from natural advances and fallback bounds, bypassing shaped cluster-source construction while leaving SVG-font, bidi, spacing, textLength, rotations, vertical, and complex text on the existing paths.
 - Added a bounded short rendered-text local-bounds cache keyed by asset loader and text paint/font signature so repeated text-DOM, prepared-text, and text-path bounds checks reuse successful glyph/path bounds while preserving precise hit extents for letter-spacing gaps.
+- Trimmed retained text fallback paint cloning so single-span typeface fallback commands record one isolated paint clone and multi-span fallback loops skip the unused clone after the final span.
 - Added versioned `SKPath.Bounds` caching for command sequences whose command data is stable, while continuing to recompute `AddPoly` paths whose point lists can be mutated by callers.
 - Kept the shim path command storage concrete internally so bounds scans avoid interface enumeration allocation while preserving the public `IList<PathCommand>? Commands` surface.
 
@@ -231,6 +233,13 @@ Focused rendered text local-bounds cache measurements:
 - `CompileViaSceneCompiler | generated-text-192`: `40,679,344 B` to `26,311,518 B`.
 - Short-run timings improved in the same focused benchmark from about `47 ms` to `35-36 ms` for aligned letter-spacing rows and about `31-33 ms` to `23-24 ms` for simple text rows; the allocation deltas remain the primary regression reference.
 
+Focused retained text paint-clone trim measurement:
+
+- `CompileNodeTreeOnly | generated-text-192`: `8.317 ms / 7.55 MB`.
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: `16.147 ms / 15.6 MB`.
+- `CompileNodeTreeOnly | generated-text-path-curves-96`: `16.965 ms / 15 MB`.
+- Allocations stayed flat against the previous lazy text-hit-metric row, so this is treated as a small clone-churn cleanup and focused regression guard rather than a new allocation step change.
+
 ### Text Path Performance
 
 - Added a document-scoped fallback codepoint resolver with bounded caching for fallback text, resolved paint, advance, and optional local bounds.
@@ -354,6 +363,10 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~W3CTestSuiteTests.Tests"`
   - Passed 523, skipped 3.
   - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-aligned-letter-spacing-192,generated-text-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-retained-rendered-bounds-cache dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
+- Focused retained text paint-clone trim validation:
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2594, skipped 40; other test projects passed.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192,generated-aligned-letter-spacing-192,generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-retained-text-paint-clone-trim-final dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
 - Focused text internals benchmark comparison:
   - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-before-next-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - After: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-after-natural-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
