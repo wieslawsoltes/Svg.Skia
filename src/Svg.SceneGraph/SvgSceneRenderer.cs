@@ -172,24 +172,32 @@ public static class SvgSceneRenderer
             canvas.ClipRect(innerClip, SKClipOperation.Intersect);
         }
 
+        var needsLocalLayerBounds =
+            enableIsolation ||
+            enableBlendMode ||
+            (node.MaskPaint is { } && node.MaskNode is not null && enableMask) ||
+            (node.Opacity is { } && enableOpacity);
+        SKRect layerBounds = default;
+        var hasLayerBounds = needsLocalLayerBounds && TryGetLocalLayerBounds(node, out layerBounds);
+
         if (enableIsolation)
         {
-            canvas.SaveLayer(new SKPaint());
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, new SKPaint());
         }
 
         if (enableBlendMode)
         {
-            canvas.SaveLayer(node.BlendModePaint!);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, node.BlendModePaint!);
         }
 
         if (node.MaskPaint is { } maskPaint && node.MaskNode is not null && enableMask)
         {
-            canvas.SaveLayer(maskPaint);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, maskPaint);
         }
 
         if (node.Opacity is { } opacity && enableOpacity)
         {
-            canvas.SaveLayer(opacity);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, opacity);
         }
 
         var enableGlobalFilterLayer = false;
@@ -206,7 +214,7 @@ public static class SvgSceneRenderer
 
         if (node.MaskNode is { } maskNode && node.MaskDstIn is { } maskDstIn && enableMask)
         {
-            canvas.SaveLayer(maskDstIn);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, maskDstIn);
             RenderNodeToCanvasCore(sceneDocument, maskNode, canvas, ignoreAttributes, until: null);
             canvas.Restore();
         }
@@ -298,24 +306,32 @@ public static class SvgSceneRenderer
             !enableOpacity &&
             !enableFilter;
 
+        var needsLocalLayerBounds =
+            enableIsolation ||
+            enableBlendMode ||
+            enableMask ||
+            enableOpacity;
+        SKRect layerBounds = default;
+        var hasLayerBounds = needsLocalLayerBounds && TryGetLocalLayerBounds(node, out layerBounds);
+
         if (enableIsolation)
         {
-            canvas.SaveLayer(new SKPaint());
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, new SKPaint());
         }
 
         if (enableBlendMode)
         {
-            canvas.SaveLayer(node.BlendModePaint!);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, node.BlendModePaint!);
         }
 
         if (enableMask)
         {
-            canvas.SaveLayer(node.MaskPaint!);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, node.MaskPaint!);
         }
 
         if (enableOpacity)
         {
-            canvas.SaveLayer(node.Opacity!);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, node.Opacity!);
         }
 
         var enableGlobalFilterLayer = false;
@@ -332,7 +348,7 @@ public static class SvgSceneRenderer
 
         if (enableMask && node.MaskNode is { } maskNode && node.MaskDstIn is { } maskDstIn)
         {
-            canvas.SaveLayer(maskDstIn);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, maskDstIn);
             RenderNodeToCanvasCore(sceneDocument, maskNode, canvas, until: null);
             canvas.Restore();
         }
@@ -782,6 +798,161 @@ public static class SvgSceneRenderer
         }
 
         return false;
+    }
+
+    internal static bool TryGetLocalLayerBounds(SvgSceneNode node, out SKRect bounds)
+    {
+        bounds = SKRect.Empty;
+
+        if (node.IsDisplayNone || node.SuppressSubtreeRendering)
+        {
+            return true;
+        }
+
+        if (node.Filter is not null)
+        {
+            if (!TryGetLocalFilterBounds(node, out bounds))
+            {
+                return false;
+            }
+
+            ApplyLocalClipBounds(node, ref bounds);
+            return true;
+        }
+
+        if (node.IsRenderable)
+        {
+            if (!TryGetLocalVisualBounds(node, out var localBounds))
+            {
+                return false;
+            }
+
+            bounds = SvgSceneNodeBoundsService.UnionNonEmpty(bounds, localBounds);
+        }
+
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            var child = node.Children[i];
+            if (!TryGetLocalLayerBounds(child, out var childBounds))
+            {
+                return false;
+            }
+
+            if (HasPositiveArea(childBounds))
+            {
+                bounds = SvgSceneNodeBoundsService.UnionNonEmpty(bounds, child.Transform.MapRect(childBounds));
+            }
+        }
+
+        ApplyLocalClipBounds(node, ref bounds);
+        return true;
+    }
+
+    private static bool TryGetLocalFilterBounds(SvgSceneNode node, out SKRect bounds)
+    {
+        if (node.FilterClip is { } filterClip)
+        {
+            bounds = filterClip;
+            return true;
+        }
+
+        if (node.FilterUsesGlobalLayer &&
+            node.FilterGlobalClip is { } globalClip &&
+            node.TotalTransform.TryInvert(out var inverseTotalTransform))
+        {
+            bounds = inverseTotalTransform.MapRect(globalClip);
+            return true;
+        }
+
+        bounds = SKRect.Empty;
+        return false;
+    }
+
+    private static bool TryGetLocalVisualBounds(SvgSceneNode node, out SKRect bounds)
+    {
+        bounds = node.GeometryBounds;
+        if (!HasPositiveArea(bounds) && node.LocalPath is { } localPath)
+        {
+            bounds = localPath.Bounds;
+        }
+
+        if (!HasPositiveArea(bounds) || node.StrokeWidth <= 0f)
+        {
+            return true;
+        }
+
+        var inflation = node.StrokeWidth * 0.5f;
+        if (node.IsStrokeNonScaling)
+        {
+            if (!node.TotalTransform.TryInvert(out var inverseTotalTransform))
+            {
+                bounds = SKRect.Empty;
+                return false;
+            }
+
+            var scaleX = Math.Sqrt((inverseTotalTransform.ScaleX * inverseTotalTransform.ScaleX) + (inverseTotalTransform.SkewY * inverseTotalTransform.SkewY));
+            var scaleY = Math.Sqrt((inverseTotalTransform.SkewX * inverseTotalTransform.SkewX) + (inverseTotalTransform.ScaleY * inverseTotalTransform.ScaleY));
+            inflation = (float)(Math.Max(scaleX, scaleY) * inflation);
+        }
+
+        bounds.Left -= inflation;
+        bounds.Top -= inflation;
+        bounds.Right += inflation;
+        bounds.Bottom += inflation;
+        return true;
+    }
+
+    private static void ApplyLocalClipBounds(SvgSceneNode node, ref SKRect bounds)
+    {
+        if (TryIntersect(bounds, node.Overflow, out var clippedBounds))
+        {
+            bounds = clippedBounds;
+        }
+
+        if (TryIntersect(bounds, node.Clip, out clippedBounds))
+        {
+            bounds = clippedBounds;
+        }
+
+        if (TryIntersect(bounds, node.InnerClip, out clippedBounds))
+        {
+            bounds = clippedBounds;
+        }
+    }
+
+    private static bool TryIntersect(SKRect bounds, SKRect? clip, out SKRect result)
+    {
+        result = bounds;
+        if (clip is not { } clipRect || !HasPositiveArea(bounds))
+        {
+            return false;
+        }
+
+        var left = Math.Max(bounds.Left, clipRect.Left);
+        var top = Math.Max(bounds.Top, clipRect.Top);
+        var right = Math.Min(bounds.Right, clipRect.Right);
+        var bottom = Math.Min(bounds.Bottom, clipRect.Bottom);
+        result = right > left && bottom > top
+            ? new SKRect(left, top, right, bottom)
+            : SKRect.Empty;
+        return true;
+    }
+
+    private static bool HasPositiveArea(SKRect bounds)
+    {
+        return bounds.Width > 0f && bounds.Height > 0f;
+    }
+
+    internal static void SaveLayerToCanvas(SKCanvas canvas, SKRect? bounds, SKPaint paint)
+    {
+        if (bounds is { } layerBounds && HasPositiveArea(layerBounds))
+        {
+            canvas.SaveLayer(layerBounds, paint);
+        }
+        else
+        {
+            canvas.SaveLayer(paint);
+        }
     }
 
     private static bool SaveFilterLayerToCanvas(SvgSceneNode node, SKCanvas canvas, SKPaint filter)

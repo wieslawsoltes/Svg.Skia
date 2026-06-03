@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using ShimSkiaSharp;
 using Svg;
 using Svg.Model;
@@ -305,12 +304,9 @@ internal static class SvgSceneClipCompiler
         shapeName = value.Substring(0, openParen).Trim().ToLowerInvariant();
         arguments = value.Substring(openParen + 1, closeParen - openParen - 1).Trim();
 
-        var suffix = value.Substring(closeParen + 1).Trim();
-        if (suffix.Length > 0)
+        if (TryGetFirstToken(value, closeParen + 1, out var tokenStart, out var tokenLength))
         {
-            geometryBox = suffix
-                .Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                .FirstOrDefault();
+            geometryBox = value.Substring(tokenStart, tokenLength);
         }
 
         return shapeName.Length > 0;
@@ -596,31 +592,48 @@ internal static class SvgSceneClipCompiler
             values = values.Substring("nonzero,".Length).Trim();
         }
 
-        var pointTokens = values
-            .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(static token => token.Trim())
-            .Where(static token => token.Length > 0)
-            .ToArray();
-        if (pointTokens.Length < 3)
+        path = new SKPath { FillType = fillType };
+        var pointCount = 0;
+        var pointStart = 0;
+        for (var i = 0; i <= values.Length; i++)
         {
-            return false;
-        }
-
-        var points = new List<SKPoint>(pointTokens.Length);
-        foreach (var pointToken in pointTokens)
-        {
-            var coordinates = SplitShapeTokens(pointToken);
-            if (coordinates.Length != 2 ||
-                !TryResolvePosition(string.Join(" ", coordinates), owner, referenceBox, out var x, out var y))
+            if (i < values.Length && values[i] != ',')
             {
+                continue;
+            }
+
+            var pointToken = values.Substring(pointStart, i - pointStart).Trim();
+            pointStart = i + 1;
+            if (pointToken.Length == 0)
+            {
+                continue;
+            }
+
+            if (!TryResolvePosition(pointToken, owner, referenceBox, out var x, out var y))
+            {
+                path = null;
                 return false;
             }
 
-            points.Add(new SKPoint(x, y));
+            if (pointCount == 0)
+            {
+                path.MoveTo(x, y);
+            }
+            else
+            {
+                path.LineTo(x, y);
+            }
+
+            pointCount++;
         }
 
-        path = new SKPath { FillType = fillType };
-        path.AddPoly(points.ToArray(), close: true);
+        if (pointCount < 3)
+        {
+            path = null;
+            return false;
+        }
+
+        path.Close();
         return true;
     }
 
@@ -720,11 +733,59 @@ internal static class SvgSceneClipCompiler
     }
 
     private static string[] SplitShapeTokens(string value)
-        => value
-            .Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(static token => token.Trim())
-            .Where(static token => token.Length > 0)
-            .ToArray();
+    {
+        List<string>? tokens = null;
+        var tokenStart = -1;
+        for (var i = 0; i <= value.Length; i++)
+        {
+            if (i < value.Length && !char.IsWhiteSpace(value[i]))
+            {
+                if (tokenStart < 0)
+                {
+                    tokenStart = i;
+                }
+
+                continue;
+            }
+
+            if (tokenStart < 0)
+            {
+                continue;
+            }
+
+            tokens ??= new List<string>();
+            tokens.Add(value.Substring(tokenStart, i - tokenStart));
+            tokenStart = -1;
+        }
+
+        return tokens?.ToArray() ?? Array.Empty<string>();
+    }
+
+    private static bool TryGetFirstToken(string value, int start, out int tokenStart, out int tokenLength)
+    {
+        tokenStart = -1;
+        tokenLength = 0;
+
+        while (start < value.Length && char.IsWhiteSpace(value[start]))
+        {
+            start++;
+        }
+
+        if (start >= value.Length)
+        {
+            return false;
+        }
+
+        var end = start;
+        while (end < value.Length && !char.IsWhiteSpace(value[end]))
+        {
+            end++;
+        }
+
+        tokenStart = start;
+        tokenLength = end - start;
+        return tokenLength > 0;
+    }
 
     private static bool TryResolvePosition(string value, SvgElement owner, SKRect referenceBox, out float x, out float y)
     {

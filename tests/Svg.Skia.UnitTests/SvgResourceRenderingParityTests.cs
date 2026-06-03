@@ -237,6 +237,33 @@ public class SvgResourceRenderingParityTests
             $"Expected invalid unary filter primitive to preserve seagreen source, but pixel was {pixel}.");
     }
 
+    [Theory]
+    [InlineData("""<feGaussianBlur in="SourceGraphic" stdDeviation="0" result="m" />""", typeof(BlurImageFilter))]
+    [InlineData("""<feMorphology in="SourceGraphic" radius="0" operator="dilate" result="m" />""", typeof(DilateImageFilter))]
+    public void RetainedSceneGraph_ZeroUnaryFilterPrimitiveAliasesResultForLaterInputs(string primitiveMarkup, Type skippedFilterType)
+    {
+        var filterSvg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="20">
+              <defs>
+                <filter id="f" color-interpolation-filters="sRGB">
+                  {{primitiveMarkup}}
+                  <feOffset in="m" dx="4" dy="0" />
+                </filter>
+              </defs>
+              <rect id="target" x="5" y="5" width="10" height="10" fill="#ff0000" filter="url(#f)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(filterSvg);
+
+        Assert.False(ContainsImageFilter(svg, "target", skippedFilterType));
+        var offset = AssertFilter<OffsetImageFilter>(svg, "target");
+        Assert.NotNull(offset.Input);
+        Assert.Equal(4f, offset.Dx);
+        Assert.Equal(0f, offset.Dy);
+    }
+
     [Fact]
     public void RetainedSceneGraph_ExplicitZeroConvolveDivisorInvalidatesPrimitive()
     {

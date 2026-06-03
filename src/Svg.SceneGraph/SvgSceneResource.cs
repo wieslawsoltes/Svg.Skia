@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using ShimSkiaSharp;
 using Svg;
 using Svg.Model;
@@ -14,9 +13,10 @@ public sealed class SvgSceneResource
     private readonly HashSet<string> _dependencyKeys = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reverseDependencyKeys = new(StringComparer.Ordinal);
     private readonly HashSet<string> _dependentCompilationRoots = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, SvgSceneClipPayload> _clipPayloads = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, SvgSceneMaskPayload> _maskPayloads = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, SvgSceneFilterPayload> _filterPayloads = new(StringComparer.Ordinal);
+    private readonly Dictionary<SvgSceneBoundsPayloadCacheKey, SvgSceneClipPayload> _clipPayloads = new();
+    private readonly Dictionary<SvgSceneBoundsPayloadCacheKey, SvgSceneMaskPayload> _maskPayloads = new();
+    private readonly Dictionary<SvgSceneResourcePayloadCacheKey, SvgSceneFilterPayload> _filterPayloads = new();
+    private readonly Dictionary<SvgSceneSharedFilterPayloadCacheKey, SvgSceneFilterPayload> _sharedFilterPayloads = new();
 
     internal SvgSceneResource(string key, SvgSceneResourceKind kind, SvgElement sourceElement, string? addressKey)
     {
@@ -88,7 +88,7 @@ public sealed class SvgSceneResource
             return null;
         }
 
-        var cacheKey = CreatePayloadCacheKey(targetNode);
+        var cacheKey = CreateBoundsPayloadCacheKey(targetNode);
         if (_clipPayloads.TryGetValue(cacheKey, out var cachedPayload))
         {
             return cachedPayload;
@@ -113,7 +113,7 @@ public sealed class SvgSceneResource
         }
 
         var targetBounds = targetNode.GeometryBounds;
-        var cacheKey = CreatePayloadCacheKey(targetNode, targetBounds);
+        var cacheKey = CreateBoundsPayloadCacheKey(targetNode, targetBounds);
         if (_maskPayloads.TryGetValue(cacheKey, out var cachedPayload))
         {
             return cachedPayload;
@@ -165,15 +165,22 @@ public sealed class SvgSceneResource
             return null;
         }
 
-        var cacheKey = CreatePayloadCacheKey(targetNode);
+        var cacheKey = CreatePayloadCacheKey(targetNode, includeFilterDeclaration: true);
         if (_filterPayloads.TryGetValue(cacheKey, out var cachedPayload))
         {
             return cachedPayload;
         }
 
-        var references = targetNode.Element.OwnerDocument?.BaseUri is { } baseUri
-            ? new HashSet<Uri> { baseUri }
-            : null;
+        var filterDeclaration = GetOwnFilterDeclaration(targetNode);
+        var canUseSharedFilterPayload = IsSingleUrlFilterDeclaration(filterDeclaration);
+        var sharedCacheKey = CreateSharedFilterPayloadCacheKey(filterDeclaration, targetNode.GeometryBounds);
+        if (canUseSharedFilterPayload && _sharedFilterPayloads.TryGetValue(sharedCacheKey, out cachedPayload))
+        {
+            _filterPayloads.Add(cacheKey, cachedPayload);
+            return cachedPayload;
+        }
+
+        var initialReferenceUri = targetNode.Element.OwnerDocument?.BaseUri;
         var filterContext = new SvgSceneFilterContext(
             sceneDocument,
             visualElement,
@@ -181,12 +188,13 @@ public sealed class SvgSceneResource
             sceneDocument.CompilationViewport,
             new SvgSceneFilterSource(sceneDocument, targetNode),
             sceneDocument.AssetLoader,
-            references,
-            targetTransform: targetNode.TotalTransform);
+            references: null,
+            targetTransform: targetNode.TotalTransform,
+            initialReferenceUri: initialReferenceUri);
 
         var payload = filterContext.FilterPaint is { } filterPaint
             ? new SvgSceneFilterPayload(
-                filterPaint.DeepClone(),
+                filterPaint,
                 filterContext.FilterClip,
                 isValid: true,
                 filterContext.UsesGlobalLayer,
@@ -198,46 +206,123 @@ public sealed class SvgSceneResource
         if (payload is { })
         {
             _filterPayloads.Add(cacheKey, payload);
+            if (canUseSharedFilterPayload &&
+                payload.IsValid &&
+                filterContext.CanReuseFilterPaintAcrossTargets &&
+                !_sharedFilterPayloads.ContainsKey(sharedCacheKey))
+            {
+                _sharedFilterPayloads.Add(sharedCacheKey, payload);
+            }
         }
 
         return payload;
     }
 
-    private static string CreatePayloadCacheKey(SvgSceneNode targetNode, SKRect? effectiveBounds = null)
+    private static SvgSceneResourcePayloadCacheKey CreatePayloadCacheKey(
+        SvgSceneNode targetNode,
+        SKRect? effectiveBounds = null,
+        bool includeFilterDeclaration = false)
     {
         var key = targetNode.ElementAddressKey
                   ?? targetNode.ElementId
                   ?? targetNode.ElementTypeName;
         var compilationRootKey = targetNode.CompilationRootKey ?? string.Empty;
-        var filterDeclaration = targetNode.Element is SvgVisualElement visualElement &&
-                                visualElement.TryGetOwnCascadedStyleValue("filter", out var value)
-            ? value
-            : string.Empty;
+        var filterDeclaration = includeFilterDeclaration ? GetOwnFilterDeclaration(targetNode) : string.Empty;
         var bounds = effectiveBounds ?? targetNode.GeometryBounds;
         var transform = targetNode.TotalTransform;
 
-        return string.Join(
-            "|",
+        return new SvgSceneResourcePayloadCacheKey(
             key,
             compilationRootKey,
             filterDeclaration,
-            string.Join(
-                ",",
-                bounds.Left.ToString(CultureInfo.InvariantCulture),
-                bounds.Top.ToString(CultureInfo.InvariantCulture),
-                bounds.Right.ToString(CultureInfo.InvariantCulture),
-                bounds.Bottom.ToString(CultureInfo.InvariantCulture)),
-            string.Join(
-                ",",
-                transform.ScaleX.ToString(CultureInfo.InvariantCulture),
-                transform.SkewX.ToString(CultureInfo.InvariantCulture),
-                transform.TransX.ToString(CultureInfo.InvariantCulture),
-                transform.SkewY.ToString(CultureInfo.InvariantCulture),
-                transform.ScaleY.ToString(CultureInfo.InvariantCulture),
-                transform.TransY.ToString(CultureInfo.InvariantCulture),
-                transform.Persp0.ToString(CultureInfo.InvariantCulture),
-                transform.Persp1.ToString(CultureInfo.InvariantCulture),
-                transform.Persp2.ToString(CultureInfo.InvariantCulture)));
+            bounds,
+            transform);
+    }
+
+    private static SvgSceneBoundsPayloadCacheKey CreateBoundsPayloadCacheKey(SvgSceneNode targetNode, SKRect? effectiveBounds = null)
+    {
+        var key = targetNode.ElementAddressKey
+                  ?? targetNode.ElementId
+                  ?? targetNode.ElementTypeName;
+        var compilationRootKey = targetNode.CompilationRootKey ?? string.Empty;
+        return new SvgSceneBoundsPayloadCacheKey(key, compilationRootKey, effectiveBounds ?? targetNode.GeometryBounds);
+    }
+
+    private static SvgSceneSharedFilterPayloadCacheKey CreateSharedFilterPayloadCacheKey(string filterDeclaration, SKRect bounds)
+        => new(filterDeclaration, bounds);
+
+    private static string GetOwnFilterDeclaration(SvgSceneNode targetNode)
+        => targetNode.Element is SvgVisualElement visualElement &&
+           visualElement.TryGetOwnCascadedStyleValue("filter", out var value)
+            ? value
+            : string.Empty;
+
+    private static bool IsSingleUrlFilterDeclaration(string value)
+    {
+        var index = 0;
+        SkipWhitespace(value, ref index);
+        if (value.Length - index < 4 ||
+            !value.AsSpan(index, 4).Equals("url(".AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var start = index + 4;
+        var current = start;
+        var quote = '\0';
+        while (current < value.Length)
+        {
+            var ch = value[current];
+            if (quote != '\0')
+            {
+                if (ch == quote)
+                {
+                    quote = '\0';
+                }
+
+                current++;
+                continue;
+            }
+
+            if (ch == '"' || ch == '\'')
+            {
+                quote = ch;
+                current++;
+                continue;
+            }
+
+            if (ch == ')')
+            {
+                var inner = value.Substring(start, current - start).Trim();
+                if (inner.Length >= 2 &&
+                    ((inner[0] == '"' && inner[inner.Length - 1] == '"') ||
+                     (inner[0] == '\'' && inner[inner.Length - 1] == '\'')))
+                {
+                    inner = inner.Substring(1, inner.Length - 2).Trim();
+                }
+
+                if (inner.Length <= 0 || !Uri.TryCreate(inner, UriKind.RelativeOrAbsolute, out _))
+                {
+                    return false;
+                }
+
+                current++;
+                SkipWhitespace(value, ref current);
+                return current == value.Length;
+            }
+
+            current++;
+        }
+
+        return false;
+    }
+
+    private static void SkipWhitespace(string value, ref int index)
+    {
+        while (index < value.Length && char.IsWhiteSpace(value[index]))
+        {
+            index++;
+        }
     }
 
     private static SKPaint CreateMaskPaint()
@@ -331,6 +416,176 @@ public sealed class SvgSceneResource
         public IEnumerator<T> GetEnumerator() => _source.GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+}
+
+internal readonly struct SvgSceneResourcePayloadCacheKey : IEquatable<SvgSceneResourcePayloadCacheKey>
+{
+    private readonly string? _nodeKey;
+    private readonly string? _compilationRootKey;
+    private readonly string? _filterDeclaration;
+    private readonly SKRect _bounds;
+    private readonly SKMatrix _transform;
+
+    public SvgSceneResourcePayloadCacheKey(
+        string? nodeKey,
+        string? compilationRootKey,
+        string? filterDeclaration,
+        SKRect bounds,
+        SKMatrix transform)
+    {
+        _nodeKey = nodeKey;
+        _compilationRootKey = compilationRootKey;
+        _filterDeclaration = filterDeclaration;
+        _bounds = bounds;
+        _transform = transform;
+    }
+
+    public bool Equals(SvgSceneResourcePayloadCacheKey other)
+    {
+        return string.Equals(_nodeKey, other._nodeKey, StringComparison.Ordinal) &&
+               string.Equals(_compilationRootKey, other._compilationRootKey, StringComparison.Ordinal) &&
+               string.Equals(_filterDeclaration, other._filterDeclaration, StringComparison.Ordinal) &&
+               RectEquals(_bounds, other._bounds) &&
+               MatrixEquals(_transform, other._transform);
+    }
+
+    public override bool Equals(object? obj)
+        => obj is SvgSceneResourcePayloadCacheKey other && Equals(other);
+
+    public override int GetHashCode()
+    {
+        var hash = SvgSceneResourceHash.CombineString(SvgSceneResourceHash.Seed, _nodeKey);
+        hash = SvgSceneResourceHash.CombineString(hash, _compilationRootKey);
+        hash = SvgSceneResourceHash.CombineString(hash, _filterDeclaration);
+        hash = SvgSceneResourceHash.Combine(hash, _bounds.Left);
+        hash = SvgSceneResourceHash.Combine(hash, _bounds.Top);
+        hash = SvgSceneResourceHash.Combine(hash, _bounds.Right);
+        hash = SvgSceneResourceHash.Combine(hash, _bounds.Bottom);
+        hash = SvgSceneResourceHash.Combine(hash, _transform.ScaleX);
+        hash = SvgSceneResourceHash.Combine(hash, _transform.SkewX);
+        hash = SvgSceneResourceHash.Combine(hash, _transform.TransX);
+        hash = SvgSceneResourceHash.Combine(hash, _transform.SkewY);
+        hash = SvgSceneResourceHash.Combine(hash, _transform.ScaleY);
+        hash = SvgSceneResourceHash.Combine(hash, _transform.TransY);
+        hash = SvgSceneResourceHash.Combine(hash, _transform.Persp0);
+        hash = SvgSceneResourceHash.Combine(hash, _transform.Persp1);
+        return SvgSceneResourceHash.Combine(hash, _transform.Persp2);
+    }
+
+    private static bool RectEquals(SKRect left, SKRect right)
+    {
+        return left.Left == right.Left &&
+               left.Top == right.Top &&
+               left.Right == right.Right &&
+               left.Bottom == right.Bottom;
+    }
+
+    private static bool MatrixEquals(SKMatrix left, SKMatrix right)
+    {
+        return left.ScaleX == right.ScaleX &&
+               left.SkewX == right.SkewX &&
+               left.TransX == right.TransX &&
+               left.SkewY == right.SkewY &&
+               left.ScaleY == right.ScaleY &&
+               left.TransY == right.TransY &&
+               left.Persp0 == right.Persp0 &&
+               left.Persp1 == right.Persp1 &&
+               left.Persp2 == right.Persp2;
+    }
+}
+
+internal static class SvgSceneResourceHash
+{
+    public const int Seed = 17;
+
+    public static int CombineString(int hash, string? value)
+        => Combine(hash, value is null ? 0 : StringComparer.Ordinal.GetHashCode(value));
+
+    public static int Combine<T>(int hash, T value)
+        => Combine(hash, EqualityComparer<T>.Default.GetHashCode(value!));
+
+    private static int Combine(int hash, int value)
+        => unchecked((hash * 397) ^ value);
+}
+
+internal readonly struct SvgSceneBoundsPayloadCacheKey : IEquatable<SvgSceneBoundsPayloadCacheKey>
+{
+    private readonly string? _nodeKey;
+    private readonly string? _compilationRootKey;
+    private readonly SKRect _bounds;
+
+    public SvgSceneBoundsPayloadCacheKey(string? nodeKey, string? compilationRootKey, SKRect bounds)
+    {
+        _nodeKey = nodeKey;
+        _compilationRootKey = compilationRootKey;
+        _bounds = bounds;
+    }
+
+    public bool Equals(SvgSceneBoundsPayloadCacheKey other)
+    {
+        return string.Equals(_nodeKey, other._nodeKey, StringComparison.Ordinal) &&
+               string.Equals(_compilationRootKey, other._compilationRootKey, StringComparison.Ordinal) &&
+               RectEquals(_bounds, other._bounds);
+    }
+
+    public override bool Equals(object? obj)
+        => obj is SvgSceneBoundsPayloadCacheKey other && Equals(other);
+
+    public override int GetHashCode()
+    {
+        var hash = SvgSceneResourceHash.CombineString(SvgSceneResourceHash.Seed, _nodeKey);
+        hash = SvgSceneResourceHash.CombineString(hash, _compilationRootKey);
+        hash = SvgSceneResourceHash.Combine(hash, _bounds.Left);
+        hash = SvgSceneResourceHash.Combine(hash, _bounds.Top);
+        hash = SvgSceneResourceHash.Combine(hash, _bounds.Right);
+        return SvgSceneResourceHash.Combine(hash, _bounds.Bottom);
+    }
+
+    private static bool RectEquals(SKRect left, SKRect right)
+    {
+        return left.Left == right.Left &&
+               left.Top == right.Top &&
+               left.Right == right.Right &&
+               left.Bottom == right.Bottom;
+    }
+}
+
+internal readonly struct SvgSceneSharedFilterPayloadCacheKey : IEquatable<SvgSceneSharedFilterPayloadCacheKey>
+{
+    private readonly string? _filterDeclaration;
+    private readonly SKRect _bounds;
+
+    public SvgSceneSharedFilterPayloadCacheKey(string? filterDeclaration, SKRect bounds)
+    {
+        _filterDeclaration = filterDeclaration;
+        _bounds = bounds;
+    }
+
+    public bool Equals(SvgSceneSharedFilterPayloadCacheKey other)
+    {
+        return string.Equals(_filterDeclaration, other._filterDeclaration, StringComparison.Ordinal) &&
+               RectEquals(_bounds, other._bounds);
+    }
+
+    public override bool Equals(object? obj)
+        => obj is SvgSceneSharedFilterPayloadCacheKey other && Equals(other);
+
+    public override int GetHashCode()
+    {
+        var hash = SvgSceneResourceHash.CombineString(SvgSceneResourceHash.Seed, _filterDeclaration);
+        hash = SvgSceneResourceHash.Combine(hash, _bounds.Left);
+        hash = SvgSceneResourceHash.Combine(hash, _bounds.Top);
+        hash = SvgSceneResourceHash.Combine(hash, _bounds.Right);
+        return SvgSceneResourceHash.Combine(hash, _bounds.Bottom);
+    }
+
+    private static bool RectEquals(SKRect left, SKRect right)
+    {
+        return left.Left == right.Left &&
+               left.Top == right.Top &&
+               left.Right == right.Right &&
+               left.Bottom == right.Bottom;
     }
 }
 
