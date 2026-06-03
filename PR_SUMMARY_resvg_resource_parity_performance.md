@@ -35,6 +35,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Direct simple unpositioned text-DOM metrics for simple retained text.
 - Simple aligned retained text compile fast path for horizontal spacing/textLength runs.
 - Direct fixed-spacing positioned text-blob recording for simple retained aligned text runs.
+- Direct positioned text-blob recording for simple root `lengthAdjust="spacing"` textLength runs.
 - Positioned text-blob recording for simple unrotated retained text placements.
 - Uniform scaled positioned text-blob recording for simple retained `spacingAndGlyphs` textLength placements.
 - Font-scale encoded positioned text blobs for uniform retained `spacingAndGlyphs` textLength placements.
@@ -126,6 +127,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added direct text-DOM metrics for simple unpositioned horizontal ASCII runs by creating per-codepoint metrics from natural advances and fallback bounds, bypassing shaped cluster-source construction while leaving SVG-font, bidi, spacing, textLength, rotations, vertical, and complex text on the existing paths.
 - Added a guarded retained compile fast path for simple horizontal ASCII aligned runs with fixed letter/word spacing or non-relative textLength, resolving codepoint placements once and reusing them for both bounds and drawing while leaving rotations, baseline shifts, decorations, vertical text, relative spacing/textLength, SVG-font text, custom OpenType properties, and complex bidi text on the existing path.
 - Added a narrower retained compile path for simple fixed non-negative letter/word-spacing runs that builds positioned text-blob points directly from natural advances and full-run local bounds, bypassing placement structs and per-codepoint bounds resolution while leaving percentages, negative spacing, textLength, SVG fonts, rotations, baseline shifts, decorations, vertical text, custom OpenType properties, and complex text on the existing aligned placement path.
+- Added a root retained compile path for simple horizontal ASCII `lengthAdjust="spacing"` textLength runs that records one positioned text blob from natural advances plus the distributed textLength gap, bypassing flattened textLength layout, per-codepoint placement structs, and per-codepoint text commands while leaving inline-size, positioned descendants, nested textLength, rotations, baseline shifts, decorations, vertical text, SVG fonts, relative textLength units, custom OpenType properties, explicit spacing, and complex text on existing paths.
 - Added guarded positioned text-blob recording for simple ASCII unrotated retained text placements, collapsing many per-codepoint text commands into one positioned blob command while leaving SVG-font text, synthetic small-caps, mixed typeface fallback, rotated glyphs, mixed-scale glyphs, and complex text on the existing per-codepoint renderer.
 - Extended positioned text-blob recording to uniform positive horizontal scale, replacing per-glyph save/scale/text/restore sequences with one scaled positioned blob for simple retained `lengthAdjust="spacingAndGlyphs"` textLength runs.
 - Encoded uniform positioned text-blob scale in the blob `SKFont` and pre-scaled glyph origins, removing save/set-matrix/restore command wrappers from simple retained `spacingAndGlyphs` textLength blob recording while preserving the existing fallback for rotated, mixed-scale, SVG-font, synthetic small-caps, and complex text.
@@ -400,6 +402,11 @@ Focused simple fixed-spacing positioned text-blob measurements:
 
 - `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: `1.766 ms / 2.79 MB`, down from the fresh retained hotspot scan's `57.08 ms / 12,569.67 KB`, after building positioned text-blob points directly and reusing full-run local bounds for simple fixed spacing.
 - `CompileNodeTreeOnly | generated-aligned-text-length-192`: `12.866 ms / 10.65 MB` as the textLength control, allocation-flat against the single-span scaled textLength row.
+
+Focused simple root textLength spacing positioned text-blob measurements:
+
+- `CompileNodeTreeOnly | generated-aligned-text-length-192`: `7.591 ms / 6 MB`, down from the fresh retained hotspot scan's `71.45 ms / 11,102.6 KB`, after recording simple root `lengthAdjust="spacing"` rows as one positioned text blob and keeping the existing scaled-command path for `spacingAndGlyphs`.
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: `2.427 ms / 3.19 MB` as the fixed-spacing control row.
 
 Focused aligned compile codepoint-bound reuse measurements:
 
@@ -717,6 +724,10 @@ Focused simple natural text advance cache-hit measurements:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_LetterAndWordSpacing|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_TextLengthSpacingAndGlyphs|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_LengthAdjustSpacingAndGlyphs|FullyQualifiedName~SvgSceneTextCompilerTests"`
   - Passed 183.
   - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-aligned-letter-spacing-192,generated-aligned-text-length-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-simple-spacing-positioned-blob dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+- Focused simple root textLength spacing positioned text-blob validation:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_TextLengthSpacing|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_TextLengthSpacingAndGlyphs|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_LengthAdjustSpacingAndGlyphs|FullyQualifiedName~SvgSceneTextCompilerTests"`
+  - Passed 183.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-aligned-text-length-192,generated-aligned-letter-spacing-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-simple-textlength-spacing-blob dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
 - Focused aligned compile codepoint-bound reuse validation:
   - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
   - Build passed with existing warnings.
