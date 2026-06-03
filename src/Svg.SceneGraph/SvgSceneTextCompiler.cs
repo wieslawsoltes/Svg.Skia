@@ -9772,8 +9772,28 @@ internal static partial class SvgSceneTextCompiler
             sourceRunIndex++;
         }
 
-        var groupedRuns = new List<PositionedCodepointRun>();
+        var groupCount = 0;
         var groupSearchStart = 0;
+        while (TryGetNextWrappedTextLengthGroup(
+                   lineRuns,
+                   codepoints,
+                   ref groupSearchStart,
+                   out _,
+                   out _,
+                   out _,
+                   out _))
+        {
+            groupCount++;
+        }
+
+        if (groupCount == 0)
+        {
+            return false;
+        }
+
+        var groupedRuns = new PositionedCodepointRun[groupCount];
+        groupSearchStart = 0;
+        var groupIndex = 0;
         while (TryGetNextWrappedTextLengthGroup(
                    lineRuns,
                    codepoints,
@@ -9783,18 +9803,19 @@ internal static partial class SvgSceneTextCompiler
                    out var groupStyleSource,
                    out var renderedCount))
         {
-            groupedRuns.Add(CreateWrappedTextLengthRun(
+            groupedRuns[groupIndex] = CreateWrappedTextLengthRun(
                 groupStyleSource,
                 lineRuns,
                 codepoints,
                 placements,
                 groupStart,
                 groupEnd,
-                renderedCount));
+                renderedCount);
+            groupIndex++;
         }
 
-        positionedRuns = groupedRuns.ToArray();
-        return positionedRuns.Length > 0;
+        positionedRuns = groupedRuns;
+        return true;
     }
 
     private static bool TryGetNextWrappedTextLengthGroup(
@@ -9857,8 +9878,8 @@ internal static partial class SvgSceneTextCompiler
         int end,
         int renderedCount)
     {
-        var builder = new StringBuilder(renderedCount);
         var runPlacements = new PositionedCodepointPlacement[renderedCount];
+        var charCount = 0;
         var placementIndex = 0;
         for (var i = start; i < end; i++)
         {
@@ -9868,12 +9889,65 @@ internal static partial class SvgSceneTextCompiler
                 continue;
             }
 
-            builder.Append(codepoints[sourceIndex].Codepoint);
+            charCount += codepoints[sourceIndex].Codepoint.Length;
             runPlacements[placementIndex] = placements[i];
             placementIndex++;
         }
 
-        return new PositionedCodepointRun(styleSource, builder.ToString(), runPlacements);
+        var text = CreateWrappedTextLengthRunText(lineRuns, codepoints, start, end, charCount);
+        return new PositionedCodepointRun(styleSource, text, runPlacements);
+    }
+
+    private static string CreateWrappedTextLengthRunText(
+        IReadOnlyList<InlineSizeTextRun> lineRuns,
+        IReadOnlyList<FlattenedTextCodepoint> codepoints,
+        int start,
+        int end,
+        int charCount)
+    {
+        if (charCount == 0)
+        {
+            return string.Empty;
+        }
+
+#if NET6_0_OR_GREATER
+        return string.Create(
+            charCount,
+            (LineRuns: lineRuns, Codepoints: codepoints, Start: start, End: end),
+            static (destination, state) =>
+            {
+                var offset = 0;
+                for (var i = state.Start; i < state.End; i++)
+                {
+                    var sourceIndex = state.LineRuns[i].SourceCodepointIndex;
+                    if (!IsValidWrappedTextLengthSourceIndex(sourceIndex, state.Codepoints.Count))
+                    {
+                        continue;
+                    }
+
+                    var codepoint = state.Codepoints[sourceIndex].Codepoint.AsSpan();
+                    codepoint.CopyTo(destination.Slice(offset));
+                    offset += codepoint.Length;
+                }
+            });
+#else
+        var chars = new char[charCount];
+        var offset = 0;
+        for (var i = start; i < end; i++)
+        {
+            var sourceIndex = lineRuns[i].SourceCodepointIndex;
+            if (!IsValidWrappedTextLengthSourceIndex(sourceIndex, codepoints.Count))
+            {
+                continue;
+            }
+
+            var codepoint = codepoints[sourceIndex].Codepoint;
+            codepoint.CopyTo(0, chars, offset, codepoint.Length);
+            offset += codepoint.Length;
+        }
+
+        return new string(chars);
+#endif
     }
 
     private static bool IsValidWrappedTextLengthSourceIndex(int sourceIndex, int codepointCount)
