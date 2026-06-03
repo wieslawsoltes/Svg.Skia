@@ -142,6 +142,11 @@ public static class SvgSceneCompiler
             return _addressKeys.GetOrCreate(element);
         }
 
+        public string? GetChildElementAddressKey(SvgElement parent, int childIndex)
+        {
+            return _addressKeys.GetOrCreateChild(parent, childIndex);
+        }
+
         public string? GetClipResourceKey(SvgElement? element)
         {
             if (element is null ||
@@ -1035,8 +1040,10 @@ public static class SvgSceneCompiler
                 : viewport;
             for (var i = 0; i < element.Children.Count; i++)
             {
+                var childElement = element.Children[i];
+                _ = compileContext.GetChildElementAddressKey(element, i);
                 if (CompileElementNode(
-                        element.Children[i],
+                        childElement,
                         childViewport,
                         node.TotalTransform.IsIdentity ? parentTotalTransform : node.TotalTransform,
                         assetLoader,
@@ -2344,8 +2351,10 @@ public static class SvgSceneCompiler
         var childViewport = GetSymbolChildViewport(svgSymbol, width, height);
         for (var i = 0; i < svgSymbol.Children.Count; i++)
         {
+            var childElement = svgSymbol.Children[i];
+            _ = compileContext.GetChildElementAddressKey(svgSymbol, i);
             if (CompileElementNode(
-                    svgSymbol.Children[i],
+                    childElement,
                     childViewport,
                     node.TotalTransform,
                     assetLoader,
@@ -3583,6 +3592,7 @@ public static class SvgSceneCompiler
                     continue;
                 }
 
+                _ = compileContext.GetChildElementAddressKey(svgMarker, i);
                 var childNode = CompileElementNode(
                     markerChild,
                     viewport,
@@ -4804,8 +4814,10 @@ public static class SvgSceneCompiler
         {
             for (var i = 0; i < svgMask.Children.Count; i++)
             {
+                var childElement = svgMask.Children[i];
+                _ = compileContext.GetChildElementAddressKey(svgMask, i);
                 if (CompileElementNode(
-                        svgMask.Children[i],
+                        childElement,
                         childViewport,
                         node.TotalTransform,
                         assetLoader,

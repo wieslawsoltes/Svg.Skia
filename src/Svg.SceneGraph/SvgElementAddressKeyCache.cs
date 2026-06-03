@@ -6,6 +6,7 @@ namespace Svg.Skia;
 
 internal sealed class SvgElementAddressKeyCache
 {
+    private const int LinearChildIndexLookupLimit = 8;
     private readonly Dictionary<SvgElement, string?> _addressKeys = new(SvgElementReferenceComparer.Instance);
     private readonly Dictionary<SvgElement, ChildIndexLookup> _childIndexesByParent = new(SvgElementReferenceComparer.Instance);
 
@@ -38,8 +39,49 @@ internal sealed class SvgElementAddressKeyCache
         return addressKey;
     }
 
+    public string? GetOrCreateChild(SvgElement parent, int childIndex)
+    {
+        if (childIndex < 0 || childIndex >= parent.Children.Count)
+        {
+            return null;
+        }
+
+        var child = parent.Children[childIndex];
+        if (!ReferenceEquals(child.Parent, parent))
+        {
+            return GetOrCreate(child);
+        }
+
+        if (_addressKeys.TryGetValue(child, out var addressKey))
+        {
+            return addressKey;
+        }
+
+        var indexText = childIndex.ToString(CultureInfo.InvariantCulture);
+        var parentAddressKey = GetOrCreate(parent);
+        addressKey = parentAddressKey is null
+            ? indexText
+            : string.Concat(parentAddressKey, "/", indexText);
+
+        _addressKeys[child] = addressKey;
+        return addressKey;
+    }
+
     private int GetChildIndex(SvgElement parent, SvgElement child)
     {
+        if (parent.Children.Count <= LinearChildIndexLookupLimit)
+        {
+            for (var i = 0; i < parent.Children.Count; i++)
+            {
+                if (ReferenceEquals(parent.Children[i], child))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         if (!_childIndexesByParent.TryGetValue(parent, out var lookup) ||
             lookup.ChildCount != parent.Children.Count)
         {
