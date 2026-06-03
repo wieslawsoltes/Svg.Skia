@@ -20,13 +20,14 @@ public static class SvgSceneCompiler
             SvgCascadedStyleFeatureFlags.MixBlendMode |
             SvgCascadedStyleFeatureFlags.Isolation;
 
-        private readonly HashSet<string> _activeDocumentKeys = new(StringComparer.Ordinal);
+        private string? _activeDocumentKey;
+        private HashSet<string>? _activeDocumentKeys;
         private readonly SvgElementAddressKeyCache _addressKeys = new();
         private readonly Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> _solidFillPaintCache = new();
-        private readonly SvgScenePaintingService.GradientPaintCache _gradientPaintCache = new();
-        private readonly Dictionary<SvgFragment, SKSize> _fragmentViewportSizeOverrides = new();
-        private readonly Dictionary<SvgDocument, bool> _markerReferenceDeclarationsByDocument = new();
-        private readonly Dictionary<ReferenceCacheKey, SvgElement?> _resolvedReferenceCache = new();
+        private SvgScenePaintingService.GradientPaintCache? _gradientPaintCache;
+        private Dictionary<SvgFragment, SKSize>? _fragmentViewportSizeOverrides;
+        private Dictionary<SvgDocument, bool>? _markerReferenceDeclarationsByDocument;
+        private Dictionary<ReferenceCacheKey, SvgElement?>? _resolvedReferenceCache;
         private readonly Stack<MarkerReferenceState> _markerReferenceDocumentStack = new();
         private SvgDocument? _activeMarkerReferenceDocument;
         private SvgCascadedStyleFeatureFlags _activeDocumentCascadedStyleFeatureFlags = AllCascadedStyleFeatureFlags;
@@ -35,7 +36,7 @@ public static class SvgSceneCompiler
 
         public SvgSceneContextPaint? ContextPaint { get; private set; }
 
-        public SvgScenePaintingService.GradientPaintCache GradientPaintCache => _gradientPaintCache;
+        public SvgScenePaintingService.GradientPaintCache GradientPaintCache => _gradientPaintCache ??= new();
 
         public bool ActiveMarkerReferenceDeclarationCandidate => _activeMarkerReferenceDeclarationCandidate;
 
@@ -56,8 +57,9 @@ public static class SvgSceneCompiler
 
         public IDisposable PushFragmentViewportSizeOverride(SvgFragment svgFragment, SKSize viewportSize)
         {
-            var hadPreviousOverride = _fragmentViewportSizeOverrides.TryGetValue(svgFragment, out var previousViewportSize);
-            _fragmentViewportSizeOverrides[svgFragment] = viewportSize;
+            var fragmentViewportSizeOverrides = _fragmentViewportSizeOverrides ??= new Dictionary<SvgFragment, SKSize>();
+            var hadPreviousOverride = fragmentViewportSizeOverrides.TryGetValue(svgFragment, out var previousViewportSize);
+            fragmentViewportSizeOverrides[svgFragment] = viewportSize;
 
             return new FragmentViewportSizeOverrideScope(
                 this,
@@ -78,13 +80,19 @@ public static class SvgSceneCompiler
 
         public bool TryGetFragmentViewportSizeOverride(SvgFragment svgFragment, out SKSize viewportSize)
         {
+            if (_fragmentViewportSizeOverrides is null)
+            {
+                viewportSize = default;
+                return false;
+            }
+
             return _fragmentViewportSizeOverrides.TryGetValue(svgFragment, out viewportSize);
         }
 
         public bool TryEnter(SvgDocument? document, out string? documentKey)
         {
             documentKey = GetDocumentKey(document);
-            if (documentKey is not null && !_activeDocumentKeys.Add(documentKey))
+            if (documentKey is not null && !TryEnterDocumentKey(documentKey))
             {
                 return false;
             }
@@ -106,19 +114,27 @@ public static class SvgSceneCompiler
         public bool IsActive(SvgDocument? document)
         {
             var documentKey = GetDocumentKey(document);
-            return documentKey is not null && _activeDocumentKeys.Contains(documentKey);
+            if (documentKey is null)
+            {
+                return false;
+            }
+
+            return _activeDocumentKeys is null
+                ? string.Equals(_activeDocumentKey, documentKey, StringComparison.Ordinal)
+                : _activeDocumentKeys.Contains(documentKey);
         }
 
         public void Exit(string? documentKey)
         {
             if (documentKey is not null)
             {
-                _activeDocumentKeys.Remove(documentKey);
+                ExitDocumentKey(documentKey);
             }
 
-            if (_activeMarkerReferenceDocument is not null)
+            if (_activeMarkerReferenceDocument is not null &&
+                (_activeDocumentMayContainMarkerReferenceDeclarations || _markerReferenceDeclarationsByDocument is not null))
             {
-                _markerReferenceDeclarationsByDocument[_activeMarkerReferenceDocument] = _activeDocumentMayContainMarkerReferenceDeclarations;
+                (_markerReferenceDeclarationsByDocument ??= new Dictionary<SvgDocument, bool>())[_activeMarkerReferenceDocument] = _activeDocumentMayContainMarkerReferenceDeclarations;
             }
 
             if (_markerReferenceDocumentStack.Count == 0)
@@ -135,6 +151,47 @@ public static class SvgSceneCompiler
             _activeDocumentCascadedStyleFeatureFlags = previous.CascadedStyleFeatureFlags;
             _activeMarkerReferenceDeclarationCandidate = previous.MarkerReferenceDeclarationCandidate;
             _activeDocumentMayContainMarkerReferenceDeclarations = previous.MayContainMarkerReferenceDeclarations;
+        }
+
+        private bool TryEnterDocumentKey(string documentKey)
+        {
+            if (_activeDocumentKeys is not null)
+            {
+                return _activeDocumentKeys.Add(documentKey);
+            }
+
+            if (_activeDocumentKey is null)
+            {
+                _activeDocumentKey = documentKey;
+                return true;
+            }
+
+            if (string.Equals(_activeDocumentKey, documentKey, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            _activeDocumentKeys = new HashSet<string>(StringComparer.Ordinal)
+            {
+                _activeDocumentKey,
+                documentKey
+            };
+            _activeDocumentKey = null;
+            return true;
+        }
+
+        private void ExitDocumentKey(string documentKey)
+        {
+            if (_activeDocumentKeys is not null)
+            {
+                _activeDocumentKeys.Remove(documentKey);
+                return;
+            }
+
+            if (string.Equals(_activeDocumentKey, documentKey, StringComparison.Ordinal))
+            {
+                _activeDocumentKey = null;
+            }
         }
 
         public string? GetElementAddressKey(SvgElement? element)
@@ -182,10 +239,11 @@ public static class SvgSceneCompiler
                 return SvgService.GetReference<T>(owner, uri);
             }
 
-            if (!_resolvedReferenceCache.TryGetValue(key, out var resolvedElement))
+            var resolvedReferenceCache = _resolvedReferenceCache ??= new Dictionary<ReferenceCacheKey, SvgElement?>();
+            if (!resolvedReferenceCache.TryGetValue(key, out var resolvedElement))
             {
                 resolvedElement = SvgService.GetReference<SvgElement>(owner, uri);
-                _resolvedReferenceCache.Add(key, resolvedElement);
+                resolvedReferenceCache.Add(key, resolvedElement);
             }
 
             return resolvedElement as T;
@@ -221,10 +279,12 @@ public static class SvgSceneCompiler
                 return SubtreeMayContainMarkerReferenceDeclarations(element);
             }
 
-            if (!_markerReferenceDeclarationsByDocument.TryGetValue(document, out var mayContainMarkerReferences))
+            var markerReferenceDeclarationsByDocument = _markerReferenceDeclarationsByDocument;
+            if (markerReferenceDeclarationsByDocument is null ||
+                !markerReferenceDeclarationsByDocument.TryGetValue(document, out var mayContainMarkerReferences))
             {
                 mayContainMarkerReferences = SubtreeMayContainMarkerReferenceDeclarations(document);
-                _markerReferenceDeclarationsByDocument[document] = mayContainMarkerReferences;
+                (_markerReferenceDeclarationsByDocument ??= new Dictionary<SvgDocument, bool>())[document] = mayContainMarkerReferences;
             }
 
             return mayContainMarkerReferences;
@@ -335,11 +395,11 @@ public static class SvgSceneCompiler
             {
                 if (_hadPreviousOverride)
                 {
-                    _compileContext._fragmentViewportSizeOverrides[_svgFragment] = _previousViewportSize;
+                    _compileContext._fragmentViewportSizeOverrides![_svgFragment] = _previousViewportSize;
                 }
                 else
                 {
-                    _compileContext._fragmentViewportSizeOverrides.Remove(_svgFragment);
+                    _compileContext._fragmentViewportSizeOverrides!.Remove(_svgFragment);
                 }
             }
         }
