@@ -741,7 +741,11 @@ public sealed class SvgSceneDocument
                 if (compilationRootsByElement.TryGetValue(frame.Element, out var elementCompilationRootKeys))
                 {
                     addedCompilationRootCount = elementCompilationRootKeys.Count;
-                    activeCompilationRootKeys.AddRange(elementCompilationRootKeys);
+                    for (var i = 0; i < elementCompilationRootKeys.Count; i++)
+                    {
+                        activeCompilationRootKeys.Add(elementCompilationRootKeys[i]);
+                    }
+
                     traversalStack.Push((frame.Element, addedCompilationRootCount, true));
                 }
 
@@ -767,9 +771,9 @@ public sealed class SvgSceneDocument
         }
     }
 
-    private Dictionary<SvgElement, List<string>>? BuildCompilationRootLookup(SvgElementAddressKeyCache addressKeyCache)
+    private Dictionary<SvgElement, CompilationRootKeySet>? BuildCompilationRootLookup(SvgElementAddressKeyCache addressKeyCache)
     {
-        Dictionary<SvgElement, List<string>>? compilationRootsByElement = null;
+        Dictionary<SvgElement, CompilationRootKeySet>? compilationRootsByElement = null;
         var traversalStack = _runtimePayloadTraversalStackInUse
             ? new Stack<SvgSceneNode>()
             : _runtimePayloadTraversalStack;
@@ -797,17 +801,20 @@ public sealed class SvgSceneDocument
                     }
                     else
                     {
-                        if (compilationRootsByElement is null ||
-                            !compilationRootsByElement.TryGetValue(node.Element, out var compilationRootKeys))
+                        var compilationRootKeys = default(CompilationRootKeySet);
+                        var hasExistingKeys = compilationRootsByElement is not null &&
+                                              compilationRootsByElement.TryGetValue(node.Element, out compilationRootKeys);
+                        if (compilationRootKeys.Add(node.CompilationRootKey!))
                         {
-                            compilationRootKeys = new List<string>();
-                            compilationRootsByElement ??= new Dictionary<SvgElement, List<string>>(SvgElementReferenceComparer.Instance);
-                            compilationRootsByElement.Add(node.Element, compilationRootKeys);
-                        }
-
-                        if (!compilationRootKeys.Contains(node.CompilationRootKey!, StringComparer.Ordinal))
-                        {
-                            compilationRootKeys.Add(node.CompilationRootKey!);
+                            compilationRootsByElement ??= new Dictionary<SvgElement, CompilationRootKeySet>(SvgElementReferenceComparer.Instance);
+                            if (hasExistingKeys)
+                            {
+                                compilationRootsByElement[node.Element] = compilationRootKeys;
+                            }
+                            else
+                            {
+                                compilationRootsByElement.Add(node.Element, compilationRootKeys);
+                            }
                         }
                     }
                 }
@@ -1367,7 +1374,7 @@ public sealed class SvgSceneDocument
         readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    private struct CompilationRootKeySet : IReadOnlyCollection<string>
+    private struct CompilationRootKeySet : IReadOnlyList<string>
     {
         private string? _first;
         private string? _second;
@@ -1378,6 +1385,32 @@ public sealed class SvgSceneDocument
             (_first is null ? 0 : 1) +
             (_second is null ? 0 : 1) +
             _additionalCount;
+
+        public readonly string this[int index]
+        {
+            get
+            {
+                if (index == 0 && _first is not null)
+                {
+                    return _first;
+                }
+
+                if (index == 1 && _second is not null)
+                {
+                    return _second;
+                }
+
+                var additionalIndex = index - 2;
+                if (_additional is not null &&
+                    additionalIndex >= 0 &&
+                    additionalIndex < _additionalCount)
+                {
+                    return _additional[additionalIndex];
+                }
+
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+        }
 
         public bool Add(string compilationRootKey)
         {
