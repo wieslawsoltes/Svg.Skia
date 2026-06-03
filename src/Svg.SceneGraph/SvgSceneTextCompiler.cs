@@ -18456,6 +18456,33 @@ internal static partial class SvgSceneTextCompiler
         PaintingService.SetPaintText(svgTextBase, geometryBounds, paint);
         paint.TextAlign = SKTextAlign.Left;
 
+        var isRightToLeft = IsRightToLeft(svgTextBase);
+        var requiresSyntheticSmallCaps = RequiresSyntheticSmallCaps(svgTextBase, text);
+        var usesBrowserCompatibleRunTypeface = ShouldUseBrowserCompatibleRunTypeface(svgTextBase, text);
+        var cacheKey = CreateNaturalTextAdvanceCacheKey(
+            svgTextBase,
+            assetLoader,
+            text,
+            paint,
+            isRightToLeft,
+            requiresSyntheticSmallCaps,
+            usesBrowserCompatibleRunTypeface);
+        if (TryGetCachedNaturalTextAdvance(cacheKey, out var cachedAdvance))
+        {
+            return cachedAdvance;
+        }
+
+        var advance = MeasureNaturalTextAdvanceHorizontalUncached(svgTextBase, text, paint, assetLoader);
+        CacheNaturalTextAdvance(cacheKey, advance);
+        return advance;
+    }
+
+    private static float MeasureNaturalTextAdvanceHorizontalUncached(
+        SvgTextBase svgTextBase,
+        string text,
+        SKPaint paint,
+        ISvgAssetLoader assetLoader)
+    {
         if (SvgFontTextRenderer.TryGetLayout(svgTextBase, text, paint, assetLoader, out var svgFontLayout) &&
             svgFontLayout is not null)
         {

@@ -12,6 +12,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Resource dependency tracking for retained scene rebuilds.
 - Bounded save-layer and picture-conversion optimizations for filtered scenes.
 - Text-path fallback and bounds caching for large positioned text-path runs.
+- Whole-run natural text advance caching for repeated text measurement.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -73,6 +74,17 @@ Focused benchmark results for `svg2-textpath-side-right-128` retained-scene comp
 - After document-scoped fallback cache: `71.149 ms / 44 MB`.
 - After fallback bounds cache: `53.589 ms / 29.2 MB`.
 
+### Natural Text Advance Performance
+
+- Added a bounded whole-run natural text advance cache keyed by document, asset loader, paint/font signature, SVG text style, bidi mode, language, and SVG-font-sensitive state.
+- Kept the cache wired through the prepared-text cache clear path and added regression coverage for same-style reuse and font-size-sensitive recomputation.
+
+Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalTextAdvanceAcrossFragments`:
+
+- `generated-aligned-text-length-192`: `7.332 ms / 3349.78 KB` to `222.031 us / 45 KB`.
+- `generated-text-192`: `10.008 ms / 4592.33 KB` to `824.006 us / 144.01 KB`.
+- `generated-text-path-curves-96`: `6.974 ms / 2884.8 KB` to `119.345 us / 22.5 KB`.
+
 ### Benchmark And Profiling Workflow
 
 - Added serialized benchmark run locking and configurable artifact roots/run labels.
@@ -94,8 +106,14 @@ Focused benchmark results for `svg2-textpath-side-right-128` retained-scene comp
 - `dotnet build Svg.Skia.slnx -c Release`
   - Succeeded with existing warnings only.
 - `dotnet test Svg.Skia.slnx -c Release`
-  - `Svg.Skia.UnitTests`: Passed 2591, skipped 40.
+  - `Svg.Skia.UnitTests`: Passed 2593, skipped 40.
   - Other test projects in the solution passed.
+- Focused natural text advance cache validation:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests.MeasureNaturalTextAdvance"`
+  - Passed 2.
+- Focused text internals benchmark comparison:
+  - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-before-next-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - After: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-after-natural-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
 - Focused text/resource validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgResourceRenderingParityTests"`
   - Passed 290.

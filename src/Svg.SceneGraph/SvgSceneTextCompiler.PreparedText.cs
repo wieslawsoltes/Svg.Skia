@@ -13,8 +13,10 @@ namespace Svg.Skia;
 internal static partial class SvgSceneTextCompiler
 {
     private static readonly ConcurrentDictionary<SimpleCodepointAdvanceCacheKey, float> s_simpleCodepointAdvanceCache = new();
+    private static readonly ConcurrentDictionary<NaturalTextAdvanceCacheKey, float> s_naturalTextAdvanceCache = new();
     private static readonly ConcurrentDictionary<NaturalCodepointAdvanceCacheKey, float[]> s_naturalCodepointAdvanceCache = new();
     private const int SimpleCodepointAdvanceCacheLimit = 4096;
+    private const int NaturalTextAdvanceCacheLimit = 2048;
     private const int NaturalCodepointAdvanceCacheLimit = 1024;
 
     private readonly record struct SimpleCodepointAdvanceCacheKey(
@@ -31,6 +33,34 @@ internal static partial class SvgSceneTextCompiler
         SKFontStyleWeight TypefaceWeight,
         SKFontStyleWidth TypefaceWidth,
         SKFontStyleSlant TypefaceSlant);
+
+    private readonly record struct NaturalTextAdvanceCacheKey(
+        int AssetLoaderId,
+        int OwnerDocumentId,
+        int AltGlyphId,
+        string Text,
+        string? FontFamily,
+        SvgFontStyle FontStyle,
+        SvgFontVariant FontVariant,
+        SvgFontWeight FontWeight,
+        SvgTextDirection Direction,
+        SvgUnicodeBidiMode UnicodeBidi,
+        string? Language,
+        bool EnableSvgFonts,
+        float TextSize,
+        bool LcdRenderText,
+        bool SubpixelText,
+        SKTextEncoding TextEncoding,
+        string? FontFeatureSettings,
+        string? FontKerning,
+        string? FontVariantLigatures,
+        string? TypefaceFamilyName,
+        SKFontStyleWeight TypefaceWeight,
+        SKFontStyleWidth TypefaceWidth,
+        SKFontStyleSlant TypefaceSlant,
+        bool RightToLeft,
+        bool RequiresSyntheticSmallCaps,
+        bool UsesBrowserCompatibleRunTypeface);
 
     private readonly record struct NaturalCodepointAdvanceCacheKey(
         int AssetLoaderId,
@@ -251,6 +281,7 @@ internal static partial class SvgSceneTextCompiler
         public void ClearCaches()
         {
             s_simpleCodepointAdvanceCache.Clear();
+            s_naturalTextAdvanceCache.Clear();
             s_naturalCodepointAdvanceCache.Clear();
         }
     }
@@ -599,6 +630,91 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return MeasureNaturalTextAdvanceHorizontal(svgTextBase, text, geometryBounds, assetLoader);
+    }
+
+    private static bool TryGetCachedNaturalTextAdvance(
+        NaturalTextAdvanceCacheKey cacheKey,
+        out float advance)
+    {
+        return s_naturalTextAdvanceCache.TryGetValue(cacheKey, out advance);
+    }
+
+    private static void CacheNaturalTextAdvance(
+        NaturalTextAdvanceCacheKey cacheKey,
+        float advance)
+    {
+        s_naturalTextAdvanceCache.TryAdd(cacheKey, advance);
+        TrimNaturalTextAdvanceCacheIfNeeded();
+    }
+
+    private static NaturalTextAdvanceCacheKey CreateNaturalTextAdvanceCacheKey(
+        SvgTextBase svgTextBase,
+        ISvgAssetLoader assetLoader,
+        string text,
+        SKPaint paint,
+        bool isRightToLeft,
+        bool requiresSyntheticSmallCaps,
+        bool usesBrowserCompatibleRunTypeface)
+    {
+        var ownerDocument = svgTextBase.OwnerDocument;
+        return new NaturalTextAdvanceCacheKey(
+            RuntimeHelpers.GetHashCode(assetLoader),
+            ownerDocument is null ? 0 : RuntimeHelpers.GetHashCode(ownerDocument),
+            svgTextBase is SvgAltGlyph ? RuntimeHelpers.GetHashCode(svgTextBase) : 0,
+            text,
+            svgTextBase.FontFamily,
+            svgTextBase.FontStyle,
+            svgTextBase.FontVariant,
+            svgTextBase.FontWeight,
+            SvgTextBidiResolver.ResolveDirection(svgTextBase),
+            SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase),
+            GetNaturalTextAdvanceLanguage(svgTextBase),
+            assetLoader.EnableSvgFonts,
+            paint.TextSize,
+            paint.LcdRenderText,
+            paint.SubpixelText,
+            paint.TextEncoding,
+            paint.FontFeatureSettings,
+            paint.FontKerning,
+            paint.FontVariantLigatures,
+            paint.Typeface?.FamilyName,
+            paint.Typeface?.FontWeight ?? SKFontStyleWeight.Normal,
+            paint.Typeface?.FontWidth ?? SKFontStyleWidth.Normal,
+            paint.Typeface?.FontSlant ?? SKFontStyleSlant.Upright,
+            isRightToLeft,
+            requiresSyntheticSmallCaps,
+            usesBrowserCompatibleRunTypeface);
+    }
+
+    private static string? GetNaturalTextAdvanceLanguage(SvgTextBase svgTextBase)
+    {
+        for (SvgElement? current = svgTextBase; current is not null; current = current.Parent)
+        {
+            if (current.TryGetAttribute("xml:lang", out var xmlLang) && !string.IsNullOrWhiteSpace(xmlLang))
+            {
+                return NormalizeNaturalTextAdvanceLanguage(xmlLang);
+            }
+
+            if (current.TryGetAttribute("lang", out var lang) && !string.IsNullOrWhiteSpace(lang))
+            {
+                return NormalizeNaturalTextAdvanceLanguage(lang);
+            }
+        }
+
+        return null;
+    }
+
+    private static string NormalizeNaturalTextAdvanceLanguage(string value)
+    {
+        return value.Trim().Replace('_', '-');
+    }
+
+    private static void TrimNaturalTextAdvanceCacheIfNeeded()
+    {
+        if (s_naturalTextAdvanceCache.Count > NaturalTextAdvanceCacheLimit)
+        {
+            s_naturalTextAdvanceCache.Clear();
+        }
     }
 
     private static PreparedLineStats MeasureLineStatsCore(

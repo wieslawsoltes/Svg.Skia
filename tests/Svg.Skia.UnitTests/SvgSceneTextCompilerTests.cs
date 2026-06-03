@@ -546,6 +546,39 @@ public class SvgSceneTextCompilerTests
     }
 
     [Fact]
+    public void MeasureNaturalTextAdvance_ReusesCachedRunForSameStyle()
+    {
+        var document = CreateDocument("Cache", 24);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var geometryBounds = GetDocumentViewport(document);
+        var assetLoader = new CountingNaturalAdvanceAssetLoader();
+
+        var firstAdvance = InvokeMeasureNaturalTextAdvance(svgText, "Cache", geometryBounds, assetLoader);
+        var secondAdvance = InvokeMeasureNaturalTextAdvance(svgText, "Cache", geometryBounds, assetLoader);
+
+        Assert.Equal(firstAdvance, secondAdvance);
+        Assert.Equal(1, assetLoader.FindTypefacesCallCount);
+    }
+
+    [Fact]
+    public void MeasureNaturalTextAdvance_RecomputesForDifferentFontSizes_OnSharedAssetLoader()
+    {
+        var assetLoader = new CountingNaturalAdvanceAssetLoader();
+        var smallDocument = CreateDocument("Scale", 12);
+        var largeDocument = CreateDocument("Scale", 36);
+        var smallText = smallDocument.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var largeText = largeDocument.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var smallBounds = GetDocumentViewport(smallDocument);
+        var largeBounds = GetDocumentViewport(largeDocument);
+
+        var smallAdvance = InvokeMeasureNaturalTextAdvance(smallText, "Scale", smallBounds, assetLoader);
+        var largeAdvance = InvokeMeasureNaturalTextAdvance(largeText, "Scale", largeBounds, assetLoader);
+
+        Assert.True(largeAdvance > smallAdvance * 2f);
+        Assert.Equal(2, assetLoader.FindTypefacesCallCount);
+    }
+
+    [Fact]
     public void TryCompileSequentialText_FallsBack_ForCustomFontAndEmoji()
     {
         var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
@@ -6261,6 +6294,62 @@ public class SvgSceneTextCompilerTests
             }
 
             return advance;
+        }
+    }
+
+    private sealed class CountingNaturalAdvanceAssetLoader : ISvgAssetLoader
+    {
+        private readonly SKTypeface _typeface = SKTypeface.FromFamilyName(
+            "sans-serif",
+            SKFontStyleWeight.Normal,
+            SKFontStyleWidth.Normal,
+            SKFontStyleSlant.Upright);
+
+        public bool EnableSvgFonts => false;
+
+        public int FindTypefacesCallCount { get; private set; }
+
+        public SKImage LoadImage(Stream stream) => LoadTestImage(stream);
+
+        public List<TypefaceSpan> FindTypefaces(string? text, SKPaint paintPreferredTypeface)
+        {
+            FindTypefacesCallCount++;
+            var resolvedText = text ?? string.Empty;
+            return
+            [
+                new TypefaceSpan(resolvedText, GetAdvance(resolvedText, paintPreferredTypeface), _typeface)
+            ];
+        }
+
+        public SKFontMetrics GetFontMetrics(SKPaint paint)
+        {
+            var size = paint.TextSize > 0f ? paint.TextSize : 10f;
+            return new SKFontMetrics
+            {
+                Ascent = -size * 0.8f,
+                Descent = size * 0.2f,
+                Top = -size * 0.8f,
+                Bottom = size * 0.2f,
+                Leading = 0f
+            };
+        }
+
+        public float MeasureText(string? text, SKPaint paint, ref SKRect bounds)
+        {
+            var advance = GetAdvance(text ?? string.Empty, paint);
+            var metrics = GetFontMetrics(paint);
+            bounds = advance > 0f
+                ? new SKRect(0f, metrics.Ascent, advance, metrics.Descent)
+                : SKRect.Empty;
+            return advance;
+        }
+
+        public SKPath? GetTextPath(string? text, SKPaint paint, float x, float y) => null;
+
+        private static float GetAdvance(string text, SKPaint paint)
+        {
+            var size = paint.TextSize > 0f ? paint.TextSize : 10f;
+            return text.Length * size;
         }
     }
 
