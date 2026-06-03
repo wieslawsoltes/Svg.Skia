@@ -14,6 +14,8 @@ public partial class SkiaModel
     private const int TypefaceCacheLimit = 512;
     private const int ResolvedTypefaceCacheLimit = 512;
     private const int NativePathValueCacheLimit = 128;
+    private const int ShapedTextLayoutCacheLimit = 1024;
+    private const int ShapedTextLayoutCacheMaxTextLength = 8;
     private const int PositionedTextCacheRefTrimThreshold = 1024;
     private const int RevisionVisitedSetRetainLimit = 256;
 
@@ -328,6 +330,37 @@ public partial class SkiaModel
         public float Width { get; }
     }
 
+    private readonly struct ShapedTextLayoutCacheKey : IEquatable<ShapedTextLayoutCacheKey>
+    {
+        public ShapedTextLayoutCacheKey(string text, ShapedTextSignature signature)
+        {
+            Text = text;
+            Signature = signature;
+        }
+
+        public string Text { get; }
+        public ShapedTextSignature Signature { get; }
+
+        public bool Equals(ShapedTextLayoutCacheKey other)
+        {
+            return string.Equals(Text, other.Text, StringComparison.Ordinal) &&
+                   Signature.Equals(other.Signature);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is ShapedTextLayoutCacheKey other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (StringComparer.Ordinal.GetHashCode(Text) * 397) ^ Signature.GetHashCode();
+            }
+        }
+    }
+
     private sealed class NativePaintCacheEntry
     {
         public NativePaintCacheEntry(int version, SkiaSharp.SKPaint paint)
@@ -431,6 +464,7 @@ public partial class SkiaModel
     private readonly object _nativeObjectCacheLock = new();
     private ConditionalWeakTable<DrawTextBlobCanvasCommand, PositionedTextCache> _positionedTextCache = new();
     private ConditionalWeakTable<DrawTextCanvasCommand, ShapedTextCache>? _shapedTextCache;
+    private readonly Dictionary<ShapedTextLayoutCacheKey, ShapedTextResult> _shapedTextLayoutCache = new();
     private ConditionalWeakTable<ShimSkiaSharp.SKPaint, NativePaintCacheEntry> _nativePaintCache = new();
     private ConditionalWeakTable<ShimSkiaSharp.SKPath, NativePathCacheEntry> _nativePathCache = new();
     private ConditionalWeakTable<ShimSkiaSharp.SKImage, NativeImageCacheEntry> _nativeImageCache = new();
@@ -455,6 +489,61 @@ public partial class SkiaModel
             && paint.ColorFilter is null
             && paint.ImageFilter is null
             && paint.PathEffect is null;
+    }
+
+    private static bool CanCacheShapedTextLayout(string text)
+    {
+        return text.Length <= ShapedTextLayoutCacheMaxTextLength;
+    }
+
+    private bool TryGetCachedShapedTextLayout(
+        string text,
+        ShapedTextSignature signature,
+        out ShapedTextResult result)
+    {
+        result = default;
+        if (!CanCacheShapedTextLayout(text))
+        {
+            return false;
+        }
+
+        var key = new ShapedTextLayoutCacheKey(text, signature);
+        lock (_positionedTextCacheLock)
+        {
+            if (!_shapedTextLayoutCache.TryGetValue(key, out var cached))
+            {
+                return false;
+            }
+
+            result = cached;
+            return true;
+        }
+    }
+
+    private void CacheShapedTextLayout(
+        string text,
+        ShapedTextSignature signature,
+        ShapedTextResult result)
+    {
+        if (!CanCacheShapedTextLayout(text) || result.Codepoints.Length == 0)
+        {
+            return;
+        }
+
+        var key = new ShapedTextLayoutCacheKey(text, signature);
+        lock (_positionedTextCacheLock)
+        {
+            if (_shapedTextLayoutCache.ContainsKey(key))
+            {
+                _ = _shapedTextLayoutCache.Remove(key);
+            }
+            else if (_shapedTextLayoutCache.Count >= ShapedTextLayoutCacheLimit)
+            {
+                _shapedTextLayoutCache.Clear();
+            }
+
+            _shapedTextLayoutCache[key] = result;
+        }
     }
 
     private static void AddValues<T>(ref RevisionBuilder hash, T[]? values)

@@ -1714,6 +1714,8 @@ public partial class SkiaModel
                     fontFeatureSettings,
                     fontKerning,
                     fontVariantLigatures,
+                    signature,
+                    useLayoutCache: true,
                     out textBlob,
                     out width))
             {
@@ -1755,6 +1757,8 @@ public partial class SkiaModel
                     fontFeatureSettings,
                     fontKerning,
                     fontVariantLigatures,
+                    signature,
+                    useLayoutCache: false,
                     out var created,
                     out var createdWidth))
             {
@@ -1778,15 +1782,23 @@ public partial class SkiaModel
         string? fontFeatureSettings,
         string? fontKerning,
         string? fontVariantLigatures,
+        ShapedTextSignature signature,
+        bool useLayoutCache,
         out SkiaSharp.SKTextBlob textBlob,
         out float width)
     {
         textBlob = null!;
         width = 0f;
+        if (useLayoutCache &&
+            TryGetCachedShapedTextLayout(command.Text, signature, out var cachedResult))
+        {
+            return TryCreatePositionedShapedTextBlob(cachedResult, command.X, command.Y, font, out textBlob, out width);
+        }
+
         if (!TryShapeText(
                 command.Text,
-                command.X,
-                command.Y,
+                useLayoutCache ? 0f : command.X,
+                useLayoutCache ? 0f : command.Y,
                 font,
                 rightToLeft: null,
                 fontFeatureSettings,
@@ -1797,8 +1809,28 @@ public partial class SkiaModel
             return false;
         }
 
+        if (useLayoutCache)
+        {
+            CacheShapedTextLayout(command.Text, signature, result);
+            return TryCreatePositionedShapedTextBlob(result, command.X, command.Y, font, out textBlob, out width);
+        }
+
+        return TryCreatePositionedShapedTextBlob(result, 0f, 0f, font, out textBlob, out width);
+    }
+
+    private static bool TryCreatePositionedShapedTextBlob(
+        ShapedTextResult result,
+        float x,
+        float y,
+        SkiaSharp.SKFont font,
+        out SkiaSharp.SKTextBlob textBlob,
+        out float width)
+    {
+        textBlob = null!;
+        width = 0f;
         using var builder = new SkiaSharp.SKTextBlobBuilder();
-        builder.AddPositionedRun(result.Codepoints, font, result.Points);
+        var points = x == 0f && y == 0f ? result.Points : OffsetShapedTextPoints(result.Points, x, y);
+        builder.AddPositionedRun(result.Codepoints, font, points);
         var created = builder.Build();
         if (created is null)
         {
@@ -1808,6 +1840,17 @@ public partial class SkiaModel
         textBlob = created;
         width = result.Width;
         return true;
+    }
+
+    private static SkiaSharp.SKPoint[] OffsetShapedTextPoints(SkiaSharp.SKPoint[] source, float x, float y)
+    {
+        var points = new SkiaSharp.SKPoint[source.Length];
+        for (var i = 0; i < source.Length; i++)
+        {
+            points[i] = new SkiaSharp.SKPoint(source[i].X + x, source[i].Y + y);
+        }
+
+        return points;
     }
 
     private static void DisposeCachedTextBlob(SkiaSharp.SKTextBlob? textBlob)
