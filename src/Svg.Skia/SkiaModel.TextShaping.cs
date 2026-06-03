@@ -1,6 +1,7 @@
 // Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -17,6 +18,113 @@ public partial class SkiaModel
 {
     private const int HarfBuzzFontScale = 512;
     private const float MinimumStableTextMeasureSize = 16f;
+    private const int TextAdvanceCacheLimit = 4096;
+    private static readonly ConcurrentDictionary<TextAdvanceCacheKey, float> s_textAdvanceCache = new();
+
+    private readonly struct TextAdvanceCacheKey : IEquatable<TextAdvanceCacheKey>
+    {
+        public TextAdvanceCacheKey(
+            string text,
+            float textSize,
+            float textScaleX,
+            float textSkewX,
+            bool fakeBoldText,
+            bool lcdRenderText,
+            bool subpixelText,
+            SkiaSharp.SKTextEncoding textEncoding,
+            string? fontFeatureSettings,
+            string? fontKerning,
+            string? fontVariantLigatures,
+            IntPtr typefaceHandle,
+            string? typefaceFamilyName,
+            int typefaceWeight,
+            int typefaceWidth,
+            SkiaSharp.SKFontStyleSlant typefaceSlant)
+        {
+            Text = text;
+            TextSize = textSize;
+            TextScaleX = textScaleX;
+            TextSkewX = textSkewX;
+            FakeBoldText = fakeBoldText;
+            LcdRenderText = lcdRenderText;
+            SubpixelText = subpixelText;
+            TextEncoding = textEncoding;
+            FontFeatureSettings = fontFeatureSettings;
+            FontKerning = fontKerning;
+            FontVariantLigatures = fontVariantLigatures;
+            TypefaceHandle = typefaceHandle;
+            TypefaceFamilyName = typefaceFamilyName;
+            TypefaceWeight = typefaceWeight;
+            TypefaceWidth = typefaceWidth;
+            TypefaceSlant = typefaceSlant;
+        }
+
+        private string Text { get; }
+        private float TextSize { get; }
+        private float TextScaleX { get; }
+        private float TextSkewX { get; }
+        private bool FakeBoldText { get; }
+        private bool LcdRenderText { get; }
+        private bool SubpixelText { get; }
+        private SkiaSharp.SKTextEncoding TextEncoding { get; }
+        private string? FontFeatureSettings { get; }
+        private string? FontKerning { get; }
+        private string? FontVariantLigatures { get; }
+        private IntPtr TypefaceHandle { get; }
+        private string? TypefaceFamilyName { get; }
+        private int TypefaceWeight { get; }
+        private int TypefaceWidth { get; }
+        private SkiaSharp.SKFontStyleSlant TypefaceSlant { get; }
+
+        public bool Equals(TextAdvanceCacheKey other)
+        {
+            return string.Equals(Text, other.Text, StringComparison.Ordinal) &&
+                   TextSize.Equals(other.TextSize) &&
+                   TextScaleX.Equals(other.TextScaleX) &&
+                   TextSkewX.Equals(other.TextSkewX) &&
+                   FakeBoldText == other.FakeBoldText &&
+                   LcdRenderText == other.LcdRenderText &&
+                   SubpixelText == other.SubpixelText &&
+                   TextEncoding == other.TextEncoding &&
+                   string.Equals(FontFeatureSettings, other.FontFeatureSettings, StringComparison.Ordinal) &&
+                   string.Equals(FontKerning, other.FontKerning, StringComparison.Ordinal) &&
+                   string.Equals(FontVariantLigatures, other.FontVariantLigatures, StringComparison.Ordinal) &&
+                   TypefaceHandle == other.TypefaceHandle &&
+                   string.Equals(TypefaceFamilyName, other.TypefaceFamilyName, StringComparison.Ordinal) &&
+                   TypefaceWeight == other.TypefaceWeight &&
+                   TypefaceWidth == other.TypefaceWidth &&
+                   TypefaceSlant == other.TypefaceSlant;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is TextAdvanceCacheKey other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash = StringComparer.Ordinal.GetHashCode(Text);
+                hash = (hash * 397) ^ TextSize.GetHashCode();
+                hash = (hash * 397) ^ TextScaleX.GetHashCode();
+                hash = (hash * 397) ^ TextSkewX.GetHashCode();
+                hash = (hash * 397) ^ (FakeBoldText ? 1 : 0);
+                hash = (hash * 397) ^ (LcdRenderText ? 1 : 0);
+                hash = (hash * 397) ^ (SubpixelText ? 1 : 0);
+                hash = (hash * 397) ^ (int)TextEncoding;
+                hash = (hash * 397) ^ (FontFeatureSettings is null ? 0 : StringComparer.Ordinal.GetHashCode(FontFeatureSettings));
+                hash = (hash * 397) ^ (FontKerning is null ? 0 : StringComparer.Ordinal.GetHashCode(FontKerning));
+                hash = (hash * 397) ^ (FontVariantLigatures is null ? 0 : StringComparer.Ordinal.GetHashCode(FontVariantLigatures));
+                hash = (hash * 397) ^ TypefaceHandle.GetHashCode();
+                hash = (hash * 397) ^ (TypefaceFamilyName is null ? 0 : StringComparer.Ordinal.GetHashCode(TypefaceFamilyName));
+                hash = (hash * 397) ^ TypefaceWeight;
+                hash = (hash * 397) ^ TypefaceWidth;
+                hash = (hash * 397) ^ (int)TypefaceSlant;
+                return hash;
+            }
+        }
+    }
 
     internal float GetTextAdvance(string text, SkiaSharp.SKPaint paint)
     {
@@ -24,6 +132,25 @@ public partial class SkiaModel
     }
 
     internal float GetTextAdvance(
+        string text,
+        SkiaSharp.SKPaint paint,
+        string? fontFeatureSettings,
+        string? fontKerning,
+        string? fontVariantLigatures)
+    {
+        var cacheKey = CreateTextAdvanceCacheKey(text, paint, fontFeatureSettings, fontKerning, fontVariantLigatures);
+        if (s_textAdvanceCache.TryGetValue(cacheKey, out var cachedAdvance))
+        {
+            return cachedAdvance;
+        }
+
+        var advance = GetTextAdvanceUncached(text, paint, fontFeatureSettings, fontKerning, fontVariantLigatures);
+        s_textAdvanceCache.TryAdd(cacheKey, advance);
+        TrimTextAdvanceCacheIfNeeded();
+        return advance;
+    }
+
+    private float GetTextAdvanceUncached(
         string text,
         SkiaSharp.SKPaint paint,
         string? fontFeatureSettings,
@@ -49,6 +176,41 @@ public partial class SkiaModel
         }
 
         return paint.MeasureText(text);
+    }
+
+    private static TextAdvanceCacheKey CreateTextAdvanceCacheKey(
+        string text,
+        SkiaSharp.SKPaint paint,
+        string? fontFeatureSettings,
+        string? fontKerning,
+        string? fontVariantLigatures)
+    {
+        var typeface = paint.Typeface;
+        return new TextAdvanceCacheKey(
+            text,
+            paint.TextSize,
+            paint.TextScaleX,
+            paint.TextSkewX,
+            paint.FakeBoldText,
+            paint.LcdRenderText,
+            paint.SubpixelText,
+            paint.TextEncoding,
+            fontFeatureSettings,
+            fontKerning,
+            fontVariantLigatures,
+            typeface?.Handle ?? IntPtr.Zero,
+            typeface?.FamilyName,
+            typeface?.FontWeight ?? (int)SkiaSharp.SKFontStyleWeight.Normal,
+            typeface?.FontWidth ?? (int)SkiaSharp.SKFontStyleWidth.Normal,
+            typeface?.FontSlant ?? SkiaSharp.SKFontStyleSlant.Upright);
+    }
+
+    private static void TrimTextAdvanceCacheIfNeeded()
+    {
+        if (s_textAdvanceCache.Count > TextAdvanceCacheLimit)
+        {
+            s_textAdvanceCache.Clear();
+        }
     }
 
     private static bool TryCreateStableMeasurePaint(

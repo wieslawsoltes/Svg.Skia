@@ -14,14 +14,34 @@ public static class SKPictureExtensions
         skCanvas.Clear(background);
         if (scaleX == 1f && scaleY == 1f)
         {
-            skCanvas.DrawPicture(skPicture);
+            DrawPictureIfVisible(skPicture, skCanvas);
             return;
         }
 
         skCanvas.Save();
         skCanvas.Scale(scaleX, scaleY);
-        skCanvas.DrawPicture(skPicture);
+        DrawPictureIfVisible(skPicture, skCanvas);
         skCanvas.Restore();
+    }
+
+    internal static bool CanDrawPicture(SkiaSharp.SKPicture skPicture, SkiaSharp.SKCanvas skCanvas)
+    {
+        return CanDrawPictureCullRect(skPicture.CullRect, skCanvas);
+    }
+
+    internal static bool CanDrawPictureCullRect(SkiaSharp.SKRect cullRect, SkiaSharp.SKCanvas skCanvas)
+    {
+        return cullRect.Width <= 0f ||
+               cullRect.Height <= 0f ||
+               !skCanvas.QuickReject(cullRect);
+    }
+
+    private static void DrawPictureIfVisible(SkiaSharp.SKPicture skPicture, SkiaSharp.SKCanvas skCanvas)
+    {
+        if (CanDrawPicture(skPicture, skCanvas))
+        {
+            skCanvas.DrawPicture(skPicture);
+        }
     }
 
     public static SkiaSharp.SKBitmap? ToBitmap(this SkiaSharp.SKPicture skPicture, SkiaSharp.SKColor background, float scaleX, float scaleY, SkiaSharp.SKColorType skColorType, SkiaSharp.SKAlphaType skAlphaType, SkiaSharp.SKColorSpace skColorSpace)
