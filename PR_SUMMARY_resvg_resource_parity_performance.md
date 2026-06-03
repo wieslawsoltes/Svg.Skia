@@ -47,6 +47,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Read-only flattened codepoint text view for shared and wrapped inline-size break planning.
 - Range-backed flattened codepoint text view for grouped natural-advance measurement.
 - Exact flattened textLength run storage for retained render, bounds, and text-DOM metric paths.
+- Exact shared inline-size compiler-run storage and exact flattened text construction for shared/wrapped textLength paths.
 - Bounded rendered text local-bounds caching for repeated retained text metrics.
 - Read-only codepoint split reuse for text-DOM and prepared-text read paths.
 - Closed line-only SVG path conversion for generated path-heavy scenes.
@@ -130,6 +131,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Replaced the shared and wrapped inline-size break planner's flattened-codepoint `string[]` projection with a read-only text view over the existing flattened codepoint list, avoiding one reference-array allocation per layout pass while preserving the same line-break resolver behavior.
 - Reused the flattened-codepoint text view for same-style natural-advance ranges, replacing per-range `string[]` materialization while keeping measured text construction and per-codepoint fallback behavior unchanged.
 - Changed flattened textLength run creation to return exact run arrays only after eligibility succeeds, avoiding the eager `List<PositionedCodepointRun>` allocation on failed probes and the temporary list/internal-array pair for successful retained render, bounds, and text-DOM metric paths.
+- Changed shared inline-size compiler-run creation to count rendered groups and fill an exact `PositionedCodepointRun[]`, and changed flattened text construction to use exact string creation on modern targets with a compatible exact char-array fallback on older targets.
 - Added a guarded retained compile fast path for direct textPath-only text nodes, resolving positioned textPath runs once and reusing them for both retained bounds and local picture recording while leaving stretch textPath, mixed inline text, recursive or missing geometry, inline layout, vertical text, and textLength container barriers on the existing path.
 - Added a bounded short rendered-text local-bounds cache keyed by asset loader and text paint/font signature so repeated text-DOM, prepared-text, and text-path bounds checks reuse successful glyph/path bounds while preserving precise hit extents for letter-spacing gaps.
 - Trimmed retained text fallback paint cloning so single-span typeface fallback commands record one isolated paint clone and multi-span fallback loops skip the unused clone after the final span.
@@ -424,6 +426,13 @@ Focused flattened textLength run-storage measurements:
 - `CompileNodeTreeOnly | generated-aligned-text-length-192`: `45.04 ms / 12.79 MB`, a small allocation trim from the prior MB-rounded `12.8 MB` row after removing transient run-list storage.
 - `ValidateTextContentDomMetrics | text-regression-wrapped-textlength-positioned-descendants`: `3.793 ms / 2,698,181 B`, effectively flat but slightly lower than the prior `2635.08 KB` wrapped textLength DOM guard.
 - `CompileTextLayoutRegressionScene | text-regression-wrapped-textlength-positioned-descendants`: `13.903 ms / 4,466,148 B`, kept as the wrapped textLength compile regression guard with timing treated as noise-sensitive.
+
+Focused shared inline-size exact-run/text construction measurements:
+
+- `CompileTextLayoutRegressionScene | text-regression-shared-layout-engine-integration`: `2.287 ms / 1.43 MB`, allocation-flat against the prior focused shared-layout compile row.
+- `CompileTextLayoutRegressionScene | text-regression-wrapped-textlength-positioned-descendants`: `11.800 ms / 4.26 MB`, allocation-flat against the prior wrapped inline-size textLength compile rows; short-run timing remained noise-sensitive.
+- `ValidateTextContentDomMetrics | text-regression-shared-layout-engine-integration`: `1.493 ms / 807.58 KB`, effectively flat against the prior `807.02 KB` shared-layout DOM guard.
+- `ValidateTextContentDomMetrics | text-regression-wrapped-textlength-positioned-descendants`: `4.690 ms / 2631.05 KB`, a small allocation trim from the prior `2635.08 KB` wrapped textLength DOM guard after removing transient compiler-run storage and `StringBuilder` flattened-text construction.
 
 ### Natural Text Advance Performance
 
@@ -736,6 +745,19 @@ Focused simple natural text advance cache-hit measurements:
   - Passed 473.
   - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-flattened-textlength-run-array dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - `SVG_SKIA_BENCHMARK_SCENARIOS=text-regression-wrapped-textlength-positioned-descendants SVG_SKIA_BENCHMARK_RUN_LABEL=current-flattened-textlength-run-array-regression dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextRegressionValidationBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - `dotnet format Svg.Skia.slnx --no-restore`
+  - Completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release`
+  - Build passed with 277 existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2595, skipped 40; other test projects passed.
+- Focused shared inline-size exact-run/text construction validation:
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
+  - Build passed.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgTextSelectionDomTests|FullyQualifiedName~SvgCssShapeTextLayoutTests"`
+  - Passed 473.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=text-regression-shared-layout-engine-integration,text-regression-wrapped-textlength-positioned-descendants SVG_SKIA_BENCHMARK_RUN_LABEL=current-shared-layout-exact-runs-string-create-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextRegressionValidationBenchmarks.CompileTextLayoutRegressionScene*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=text-regression-shared-layout-engine-integration,text-regression-wrapped-textlength-positioned-descendants SVG_SKIA_BENCHMARK_RUN_LABEL=current-shared-layout-exact-runs-string-create-dom-metrics dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextRegressionValidationBenchmarks.ValidateTextContentDomMetrics*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - `dotnet format Svg.Skia.slnx --no-restore`
   - Completed; formatter-only `externals/SVG` submodule changes were restored.
   - `dotnet build Svg.Skia.slnx -c Release`
