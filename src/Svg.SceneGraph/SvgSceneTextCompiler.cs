@@ -557,6 +557,7 @@ internal static partial class SvgSceneTextCompiler
         SvgTextBase StyleSource,
         string Text,
         PositionedCodepointPlacement[] Placements,
+        IReadOnlyList<string> Codepoints,
         float Advance,
         float BoundaryAdvance);
 
@@ -1532,6 +1533,7 @@ internal static partial class SvgSceneTextCompiler
             var runBounds = MeasureCodepointPlacementBounds(
                 run.StyleSource,
                 run.Text,
+                run.Codepoints,
                 run.Placements,
                 viewport,
                 assetLoader,
@@ -1978,7 +1980,16 @@ internal static partial class SvgSceneTextCompiler
                     assetLoader,
                     explicitRotations: null,
                     out var placements,
-                    out var runAdvance))
+                    out var runAdvance,
+                    out var codepoints,
+                    out _))
+            {
+                resolvedRuns.Clear();
+                totalAdvance = 0f;
+                return false;
+            }
+
+            if (codepoints is null)
             {
                 resolvedRuns.Clear();
                 totalAdvance = 0f;
@@ -1990,6 +2001,7 @@ internal static partial class SvgSceneTextCompiler
                 run.StyleSource,
                 run.Text,
                 placements,
+                codepoints,
                 runAdvance,
                 boundaryAdvance));
             totalAdvance += runAdvance + boundaryAdvance;
@@ -4717,6 +4729,41 @@ internal static partial class SvgSceneTextCompiler
             var resolved = fallbackResolver.Resolve(svgTextBase, codepoint, localPaint, assetLoader);
             AppendPositionedTextPath(path, resolved.Text, placement, resolved.Paint, assetLoader);
         }
+    }
+
+    private static SKRect MeasureCodepointPlacementBounds(
+        SvgTextBase svgTextBase,
+        string text,
+        IReadOnlyList<string> codepoints,
+        PositionedCodepointPlacement[] placements,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        out float advance,
+        FallbackCodepointResolver? fallbackResolver = null)
+    {
+        if (codepoints.Count != placements.Length)
+        {
+            return MeasureCodepointPlacementBounds(svgTextBase, text, placements, geometryBounds, assetLoader, out advance, fallbackResolver);
+        }
+
+        var paint = new SKPaint();
+        PaintingService.SetPaintText(svgTextBase, geometryBounds, paint);
+        paint.TextAlign = SKTextAlign.Left;
+        fallbackResolver ??= GetFallbackCodepointResolver(svgTextBase);
+
+        var bounds = SKRect.Empty;
+        advance = 0f;
+
+        for (var i = 0; i < codepoints.Count; i++)
+        {
+            if (TryMeasurePositionedCodepointBounds(svgTextBase, codepoints[i], placements[i], paint, assetLoader, fallbackResolver, out var candidateBounds, out var candidateAdvance))
+            {
+                UnionBounds(ref bounds, candidateBounds);
+                advance = candidateAdvance;
+            }
+        }
+
+        return bounds;
     }
 
     private static SKRect MeasureCodepointPlacementBounds(
