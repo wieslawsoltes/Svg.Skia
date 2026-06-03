@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,8 +17,9 @@ internal static class SvgLoadPipelineProfiler
 {
     private const int DefaultIterations = 12;
     private const int DefaultWarmupIterations = 3;
+    private const string ProfileOutputEnvironmentVariable = "SVG_SKIA_PROFILE_OUTPUT";
 
-    public static bool TryRun(string[] args)
+    public static bool TryRun(string[] args, string artifactsPath)
     {
         if (args.Length == 0 || !string.Equals(args[0], "--profile-svg", StringComparison.Ordinal))
         {
@@ -26,20 +28,55 @@ internal static class SvgLoadPipelineProfiler
 
         if (args.Length < 2)
         {
-            Console.Error.WriteLine("Usage: --profile-svg <path> [iterations]");
+            Console.Error.WriteLine("Usage: --profile-svg <path> [iterations] [--profile-output <path>]");
             return true;
         }
 
         var path = args[1];
-        var iterations = args.Length >= 3 && int.TryParse(args[2], out var parsedIterations) && parsedIterations > 0
-            ? parsedIterations
-            : DefaultIterations;
+        var iterations = DefaultIterations;
+        string? outputPath = null;
 
-        Run(path, iterations, DefaultWarmupIterations);
+        for (var i = 2; i < args.Length; i++)
+        {
+            if (string.Equals(args[i], "--profile-output", StringComparison.Ordinal))
+            {
+                if (i + 1 >= args.Length)
+                {
+                    Console.Error.WriteLine("Usage: --profile-svg <path> [iterations] [--profile-output <path>]");
+                    return true;
+                }
+
+                outputPath = args[++i];
+                continue;
+            }
+
+            if (int.TryParse(args[i], NumberStyles.None, CultureInfo.InvariantCulture, out var parsedIterations) &&
+                parsedIterations > 0)
+            {
+                iterations = parsedIterations;
+                continue;
+            }
+
+            Console.Error.WriteLine($"Unknown profile argument: {args[i]}");
+            Console.Error.WriteLine("Usage: --profile-svg <path> [iterations] [--profile-output <path>]");
+            return true;
+        }
+
+        outputPath ??= Environment.GetEnvironmentVariable(ProfileOutputEnvironmentVariable);
+        if (string.IsNullOrWhiteSpace(outputPath))
+        {
+            outputPath = ResolveDefaultProfileOutputPath(artifactsPath, path);
+        }
+        else
+        {
+            outputPath = Path.GetFullPath(outputPath);
+        }
+
+        Run(path, iterations, DefaultWarmupIterations, outputPath);
         return true;
     }
 
-    private static void Run(string path, int iterations, int warmupIterations)
+    private static void Run(string path, int iterations, int warmupIterations, string outputPath)
     {
         if (!File.Exists(path))
         {
@@ -48,8 +85,8 @@ internal static class SvgLoadPipelineProfiler
 
         var absolutePath = Path.GetFullPath(path);
         var fileUri = new Uri(absolutePath);
-        var svgText = File.ReadAllText(path);
-        var fileInfo = new FileInfo(path);
+        var svgText = File.ReadAllText(absolutePath);
+        var fileInfo = new FileInfo(absolutePath);
         var stageSkiaModel = new SkiaModel(new SKSvgSettings());
         var stageAssetLoader = new SkiaSvgAssetLoader(stageSkiaModel);
         var parsedDocument = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(svgText);
@@ -72,7 +109,7 @@ internal static class SvgLoadPipelineProfiler
             throw new InvalidOperationException("Failed to create the native SkiaSharp.SKPicture for profiling.");
         }
 
-        Console.WriteLine($"SVG: {path}");
+        Console.WriteLine($"SVG: {absolutePath}");
         Console.WriteLine($"Size: {fileInfo.Length} bytes");
         Console.WriteLine($"Iterations: {iterations} (warmup {warmupIterations})");
         Console.WriteLine();
@@ -158,6 +195,9 @@ internal static class SvgLoadPipelineProfiler
         };
 
         PrintSummary(results);
+        WriteMarkdownReport(outputPath, absolutePath, fileInfo.Length, iterations, warmupIterations, results);
+        Console.WriteLine();
+        Console.WriteLine($"Profile report: {outputPath}");
     }
 
     private static void Warmup(string svgText, Uri baseUri, int iterations)
@@ -234,6 +274,61 @@ internal static class SvgLoadPipelineProfiler
             Console.WriteLine(
                 $"{result.Name,-36} mean {result.MeanMilliseconds,8:F2} ms  p95 {result.P95Milliseconds,8:F2} ms  alloc {result.MeanAllocatedBytes / 1024d / 1024d,8:F2} MB");
         }
+    }
+
+    private static string ResolveDefaultProfileOutputPath(string artifactsPath, string svgPath)
+    {
+        var fileName = Path.GetFileNameWithoutExtension(svgPath);
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            fileName = "svg";
+        }
+
+        return Path.GetFullPath(Path.Combine(artifactsPath, "profiles", $"{fileName}.profile.md"));
+    }
+
+    private static void WriteMarkdownReport(
+        string outputPath,
+        string svgPath,
+        long svgBytes,
+        int iterations,
+        int warmupIterations,
+        IReadOnlyList<ProfileResult> results)
+    {
+        var outputDirectory = Path.GetDirectoryName(outputPath);
+        if (!string.IsNullOrEmpty(outputDirectory))
+        {
+            Directory.CreateDirectory(outputDirectory);
+        }
+
+        var builder = new StringBuilder();
+        builder.AppendLine("# Svg.Skia Load Pipeline Profile");
+        builder.AppendLine();
+        builder.AppendLine($"- SVG: `{svgPath}`");
+        builder.AppendLine(FormattableString.Invariant($"- Size: `{svgBytes}` bytes"));
+        builder.AppendLine(FormattableString.Invariant($"- Iterations: `{iterations}`"));
+        builder.AppendLine(FormattableString.Invariant($"- Warmup iterations: `{warmupIterations}`"));
+        builder.AppendLine(FormattableString.Invariant($"- Generated UTC: `{DateTimeOffset.UtcNow:O}`"));
+        builder.AppendLine();
+        builder.AppendLine("| Stage | Mean (ms) | P95 (ms) | Mean alloc (MB) | Payload |");
+        builder.AppendLine("| --- | ---: | ---: | ---: | ---: |");
+
+        foreach (var result in results)
+        {
+            builder.Append("| ");
+            builder.Append(result.Name);
+            builder.Append(" | ");
+            builder.Append(result.MeanMilliseconds.ToString("F2", CultureInfo.InvariantCulture));
+            builder.Append(" | ");
+            builder.Append(result.P95Milliseconds.ToString("F2", CultureInfo.InvariantCulture));
+            builder.Append(" | ");
+            builder.Append((result.MeanAllocatedBytes / 1024d / 1024d).ToString("F2", CultureInfo.InvariantCulture));
+            builder.Append(" | ");
+            builder.Append(result.MeanPayload.ToString("F2", CultureInfo.InvariantCulture));
+            builder.AppendLine(" |");
+        }
+
+        File.WriteAllText(outputPath, builder.ToString());
     }
 
     private readonly record struct ProfileSample(long AllocatedBytes, double Payload)

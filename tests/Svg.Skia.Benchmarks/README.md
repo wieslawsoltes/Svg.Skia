@@ -78,6 +78,58 @@ BenchmarkDotNet results are emitted under `artifacts/benchmarks/` as HTML and Gi
 
 The benchmark project uses a tuned short-run BenchmarkDotNet job by default so it stays practical for local iteration while still producing stable exported summaries.
 
+## Serialized benchmark runs and branch comparisons
+
+Every benchmark and profiler invocation now takes a shared process lock before it starts. By default the lock file is created under the system temp directory as `svg-skia-benchmark.lock`; set `SVG_SKIA_BENCHMARK_LOCK_PATH` to force several worktrees to use the same lock. If another Svg.Skia benchmark process is already running, the next process waits instead of starting an overlapping BenchmarkDotNet run.
+
+BenchmarkDotNet artifacts can be routed per branch or per focused benchmark:
+
+- `SVG_SKIA_BENCHMARK_ARTIFACTS` sets the artifact root instead of `tests/Svg.Skia.Benchmarks/artifacts/benchmarks`.
+- `SVG_SKIA_BENCHMARK_RUN_LABEL` appends a sanitized subdirectory under that root.
+- `SVG_SKIA_BENCHMARK_SCENARIOS` limits parameterized generated/external and regression-validation scenario sets to exact scenario names separated by commas, semicolons, or newlines. During BenchmarkDotNet discovery, scenario sources with no matching names are left unfiltered so unrelated benchmark classes can still be discovered safely.
+- `SVG_SKIA_PROFILE_OUTPUT` sets the manual profiler Markdown output path; `--profile-output` overrides it.
+
+Use this serialized workflow when comparing the current branch against `master`. The shell `mkdir` lock is intentionally kept around the command so the sequence is also safe for a baseline worktree that does not yet include the in-process lock:
+
+```bash
+RUN_ROOT="$PWD/artifacts/benchmark-comparisons/resvg-resource-parity-$(date -u +%Y%m%dT%H%M%SZ)"
+RUN_LOCK_DIR="${TMPDIR:-/tmp}/svg-skia-benchmark-running.lockdir"
+BENCHMARK_LOCK_PATH="${TMPDIR:-/tmp}/svg-skia-benchmark.lock"
+mkdir -p "$RUN_ROOT"
+
+run_svg_benchmark_once() {
+  repo="$1"
+  label="$2"
+  filter="$3"
+  artifacts="$RUN_ROOT/$label"
+
+  while ! mkdir "$RUN_LOCK_DIR" 2>/dev/null; do
+    echo "Waiting for serialized benchmark slot: $RUN_LOCK_DIR"
+    sleep 10
+  done
+
+  (
+    trap 'rmdir "$RUN_LOCK_DIR"' EXIT
+    cd "$repo" || exit 1
+    SVG_SKIA_BENCHMARK_LOCK_PATH="$BENCHMARK_LOCK_PATH" \
+    SVG_SKIA_BENCHMARK_ARTIFACTS="$RUN_ROOT" \
+    SVG_SKIA_BENCHMARK_RUN_LABEL="$label" \
+    dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- \
+      --artifacts "$artifacts" \
+      --filter "$filter"
+  )
+}
+
+git worktree add ../Svg.Skia-master master
+
+run_svg_benchmark_once "$PWD" "feature-SvgLoadPipelineBenchmarks" "*SvgLoadPipelineBenchmarks*"
+run_svg_benchmark_once "$PWD/../Svg.Skia-master" "master-SvgLoadPipelineBenchmarks" "*SvgLoadPipelineBenchmarks*"
+
+find "$RUN_ROOT" -name "*report-github.md" -print
+```
+
+Repeat the two `run_svg_benchmark_once` calls with a different `--filter` value when comparing another benchmark class. Let each call finish before starting the next one; the lock is a guard for accidental overlap, not a reason to launch multiple BenchmarkDotNet runs in parallel.
+
 ## Run animation benchmarks
 
 ```bash
@@ -130,10 +182,26 @@ SVG_SKIA_BENCHMARK_SVG_PATHS="/Users/me/Downloads/solar battery.svg" \
 dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgLoadPipelineBenchmarks*"
 ```
 
+To keep parameterized BenchmarkDotNet runs tiny while investigating one generated scenario, set `SVG_SKIA_BENCHMARK_SCENARIOS`:
+
+```bash
+SVG_SKIA_BENCHMARK_SCENARIOS="generated-inline-styles-512" \
+dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks.ReplayFullModelIntoRecorderCanvasUsingCurrentLoop*"
+```
+
+The same scenario filter also applies to regression-validation benchmark scenarios:
+
+```bash
+SVG_SKIA_BENCHMARK_SCENARIOS="text-regression-shared-layout-engine-integration" \
+dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextRegressionValidationBenchmarks*"
+```
+
 ## Manual profiler
 
 For quick local stage-by-stage sampling outside BenchmarkDotNet, the project also keeps the ad hoc profiler:
 
 ```bash
-dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --profile-svg "/absolute/path/to/file.svg" 30
+dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --profile-svg "/absolute/path/to/file.svg" 30 --profile-output "$RUN_ROOT/feature-profile.md"
 ```
+
+When `--profile-output` and `SVG_SKIA_PROFILE_OUTPUT` are omitted, the profiler writes a Markdown table to `profiles/<svg-file-name>.profile.md` under the resolved benchmark artifacts directory.

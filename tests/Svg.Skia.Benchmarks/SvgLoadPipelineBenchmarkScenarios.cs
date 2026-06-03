@@ -9,6 +9,7 @@ namespace Svg.Skia.Benchmarks;
 internal static class SvgLoadPipelineBenchmarkScenarios
 {
     private const string ExternalPathsEnvVar = "SVG_SKIA_BENCHMARK_SVG_PATHS";
+    private const string ScenarioFilterEnvVar = "SVG_SKIA_BENCHMARK_SCENARIOS";
     private static readonly Lazy<IReadOnlyList<SvgLoadPipelineBenchmarkScenario>> ScenariosCache = new(CreateScenarios);
 
     public static IEnumerable<string> Names => ScenariosCache.Value.Select(static scenario => scenario.Name);
@@ -27,46 +28,87 @@ internal static class SvgLoadPipelineBenchmarkScenarios
             new("generated-aligned-text-length-192", BuildAlignedTextLengthScene(192), null),
             new("generated-gradients-512", BuildGradientScene(512), null),
             new("generated-filtered-shapes-256", BuildFilteredShapeScene(256), null),
+            new("generated-flood-filters-256", BuildFloodFilterScene(256), null),
             new("generated-text-192", BuildTextScene(192), null),
             new("generated-text-path-curves-96", BuildTextPathScene(96), null),
             new("generated-shapes-1024", BuildShapeScene(1024), null)
         };
 
         var externalPaths = Environment.GetEnvironmentVariable(ExternalPathsEnvVar);
-        if (string.IsNullOrWhiteSpace(externalPaths))
+        if (!string.IsNullOrWhiteSpace(externalPaths))
+        {
+            var externalScenarioCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var candidate in externalPaths.Split(['\n', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var fullPath = Path.GetFullPath(candidate);
+                if (!File.Exists(fullPath))
+                {
+                    throw new FileNotFoundException($"Benchmark SVG file configured via {ExternalPathsEnvVar} was not found.", fullPath);
+                }
+
+                var fileName = Path.GetFileName(fullPath);
+                var scenarioName = $"file:{fileName}";
+                if (externalScenarioCounts.TryGetValue(scenarioName, out var suffix))
+                {
+                    suffix++;
+                    externalScenarioCounts[scenarioName] = suffix;
+                    scenarioName = $"{scenarioName}#{suffix}";
+                }
+                else
+                {
+                    externalScenarioCounts[scenarioName] = 0;
+                }
+
+                scenarios.Add(new SvgLoadPipelineBenchmarkScenario(
+                    scenarioName,
+                    File.ReadAllText(fullPath),
+                    new Uri(fullPath)));
+            }
+        }
+
+        return ApplyScenarioFilter(scenarios);
+    }
+
+    internal static IReadOnlyList<string> ApplyScenarioNameFilter(IEnumerable<string> scenarioNames)
+    {
+        var availableNames = scenarioNames as IReadOnlyList<string> ?? scenarioNames.ToArray();
+        var filter = Environment.GetEnvironmentVariable(ScenarioFilterEnvVar);
+        if (string.IsNullOrWhiteSpace(filter))
+        {
+            return availableNames;
+        }
+
+        var names = new HashSet<string>(
+            filter.Split(['\n', ';', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            StringComparer.Ordinal);
+        if (names.Count == 0)
+        {
+            return availableNames;
+        }
+
+        var filtered = availableNames
+            .Where(names.Contains)
+            .ToArray();
+        if (filtered.Length == 0)
+        {
+            return availableNames;
+        }
+
+        return filtered;
+    }
+
+    private static IReadOnlyList<SvgLoadPipelineBenchmarkScenario> ApplyScenarioFilter(IReadOnlyList<SvgLoadPipelineBenchmarkScenario> scenarios)
+    {
+        var filteredNames = ApplyScenarioNameFilter(scenarios.Select(static scenario => scenario.Name));
+        if (filteredNames.Count == scenarios.Count)
         {
             return scenarios;
         }
 
-        var externalScenarioCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var candidate in externalPaths.Split(['\n', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-        {
-            var fullPath = Path.GetFullPath(candidate);
-            if (!File.Exists(fullPath))
-            {
-                throw new FileNotFoundException($"Benchmark SVG file configured via {ExternalPathsEnvVar} was not found.", fullPath);
-            }
-
-            var fileName = Path.GetFileName(fullPath);
-            var scenarioName = $"file:{fileName}";
-            if (externalScenarioCounts.TryGetValue(scenarioName, out var suffix))
-            {
-                suffix++;
-                externalScenarioCounts[scenarioName] = suffix;
-                scenarioName = $"{scenarioName}#{suffix}";
-            }
-            else
-            {
-                externalScenarioCounts[scenarioName] = 0;
-            }
-
-            scenarios.Add(new SvgLoadPipelineBenchmarkScenario(
-                scenarioName,
-                File.ReadAllText(fullPath),
-                new Uri(fullPath)));
-        }
-
-        return scenarios;
+        var filteredNameSet = new HashSet<string>(filteredNames, StringComparer.Ordinal);
+        return scenarios
+            .Where(scenario => filteredNameSet.Contains(scenario.Name))
+            .ToArray();
     }
 
     private static string BuildInlineStyleScene(int elementCount)
@@ -275,6 +317,40 @@ internal static class SvgLoadPipelineBenchmarkScenarios
         }
 
         builder.AppendLine("  </g>");
+        builder.AppendLine("</svg>");
+        return builder.ToString();
+    }
+
+    private static string BuildFloodFilterScene(int elementCount)
+    {
+        const int columns = 16;
+        var rows = (elementCount + columns - 1) / columns;
+        var width = (columns * 34) + 24;
+        var height = (rows * 34) + 24;
+        var builder = CreateSvgBuilder(width, height);
+        builder.AppendLine("  <defs>");
+
+        for (var i = 0; i < elementCount; i++)
+        {
+            var red = (i * 37) % 255;
+            var green = (i * 53) % 255;
+            var blue = (i * 71) % 255;
+            builder.AppendLine($"""    <filter id="flood-{i}" x="0" y="0" width="100%" height="100%">""");
+            builder.AppendLine($"""      <feFlood flood-color="rgb({red},{green},{blue})" flood-opacity="0.72" />""");
+            builder.AppendLine("    </filter>");
+        }
+
+        builder.AppendLine("  </defs>");
+
+        for (var i = 0; i < elementCount; i++)
+        {
+            var column = i % columns;
+            var row = i / columns;
+            var x = 10 + (column * 34);
+            var y = 10 + (row * 34);
+            builder.AppendLine($"""  <rect id="flood-target-{i}" x="{x}" y="{y}" width="24" height="24" filter="url(#flood-{i})" />""");
+        }
+
         builder.AppendLine("</svg>");
         return builder.ToString();
     }
