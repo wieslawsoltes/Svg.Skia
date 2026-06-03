@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ShimSkiaSharp;
 using Svg;
@@ -7,7 +8,7 @@ namespace Svg.Skia;
 
 public sealed class SvgSceneNode
 {
-    private readonly List<SvgSceneNode> _children = new();
+    private List<SvgSceneNode>? _children;
 
     internal SvgSceneNode(
         SvgSceneNodeKind kind,
@@ -66,7 +67,7 @@ public sealed class SvgSceneNode
 
     public SvgSceneNode? Parent { get; private set; }
 
-    public IReadOnlyList<SvgSceneNode> Children => _children;
+    public IReadOnlyList<SvgSceneNode> Children => _children is null ? Array.Empty<SvgSceneNode>() : _children;
 
     public SvgSceneNode? MaskNode { get; private set; }
 
@@ -147,7 +148,7 @@ public sealed class SvgSceneNode
     internal void AddChild(SvgSceneNode child)
     {
         child.Parent = this;
-        _children.Add(child);
+        (_children ??= new List<SvgSceneNode>()).Add(child);
     }
 
     internal void SetMask(SvgSceneNode? maskNode)
@@ -213,7 +214,7 @@ public sealed class SvgSceneNode
         IsAntialias = replacement.IsAntialias;
         SuppressSubtreeRendering = replacement.SuppressSubtreeRendering;
 
-        _children.Clear();
+        _children?.Clear();
         for (var i = 0; i < replacement.Children.Count; i++)
         {
             AddChild(replacement.Children[i]);
@@ -241,9 +242,13 @@ public sealed class SvgSceneNode
     {
         MarkDirty();
 
-        for (var i = 0; i < _children.Count; i++)
+        var children = _children;
+        if (children is not null)
         {
-            _children[i].MarkSubtreeDirty();
+            for (var i = 0; i < children.Count; i++)
+            {
+                children[i].MarkSubtreeDirty();
+            }
         }
 
         MaskNode?.MarkSubtreeDirty();
@@ -253,9 +258,13 @@ public sealed class SvgSceneNode
     {
         IsDirty = false;
 
-        for (var i = 0; i < _children.Count; i++)
+        var children = _children;
+        if (children is not null)
         {
-            _children[i].ClearDirty();
+            for (var i = 0; i < children.Count; i++)
+            {
+                children[i].ClearDirty();
+            }
         }
 
         MaskNode?.ClearDirty();
