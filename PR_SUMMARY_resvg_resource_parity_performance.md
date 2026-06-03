@@ -13,6 +13,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Bounded save-layer and picture-conversion optimizations for filtered scenes.
 - Text-path fallback and bounds caching for large positioned text-path runs.
 - Whole-run natural text advance caching for repeated text measurement.
+- Short shaped-text layout caching for repeated positioned glyph runs.
 - Closed line-only SVG path conversion for generated path-heavy scenes.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
@@ -65,6 +66,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added a closed line-only SVG path conversion fast path that emits a single `AddPoly` command for one-move, line-only, closed subpaths while preserving generic conversion for open, curved, arc, and multi-subpath data.
 - Added a bounded native path value cache for repeated three- and four-point `AddPoly` paths so generated path-heavy scenes can reuse equivalent native path objects during picture conversion without weakening mutation tracking.
 - Cached local-model source metadata annotation per retained scene node so repeated retained model renders avoid walking already annotated nested command trees.
+- Added a bounded short shaped-text layout cache for first-pass native picture conversion so repeated short glyph runs can reuse HarfBuzz shaping output while still creating correctly positioned `SKTextBlob` instances per draw.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -90,6 +92,13 @@ Focused local-model metadata-cache measurements:
 - `CreateShimPictureModel | generated-aligned-letter-spacing-192`: `48.99 us / 33.76 KB` to `23.32 us / 33.76 KB`.
 - `CreateShimPictureModel | generated-text-192`: `50.91 us / 59.26 KB` to `44.22 us / 59.26 KB`.
 - `CreateShimPictureModel | generated-text-path-curves-96`: `124.36 us / 30.54 KB` to `23.51 us / 30.54 KB`.
+
+Focused short shaped-layout cache measurements for `generated-text-path-curves-96`:
+
+- Manual cold load profile `Create native SKPicture`: `208.39 ms / 12.45 MB` to `21.99 ms / 9.52 MB`.
+- Manual cold load profile `Load via SKSvg.FromSvg`: `315.29 ms / 83.92 MB` to `100.78 ms / 80.54 MB`.
+- Manual cold load profile `Mutate + retained scene rebuild`: `499.13 ms / 96.69 MB` to `105.86 ms / 90.32 MB`.
+- Warmed `CreateNativePictureFromFullModel`: `698.2 us / 110.29 KB` to `517.75 us / 110.29 KB`.
 
 ### Text Path Performance
 
@@ -155,6 +164,9 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
   - Passed 20.
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests&FullyQualifiedName~TextPath"`
   - Passed 50.
+- Focused short shaped-layout cache validation:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~W3CTestSuiteTests.Tests|FullyQualifiedName~resvgTests.text_fixtures|FullyQualifiedName~SKSvgRebuildFromModelTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextPathParityTests"`
+  - Passed 1107, skipped 3.
 - Focused text internals benchmark comparison:
   - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-before-next-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - After: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-after-natural-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
@@ -170,6 +182,9 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
 - Focused local-model metadata-cache benchmark comparison:
   - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="baseline-model-localmetadata-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-path-curves-96,generated-text-192,generated-aligned-letter-spacing-192" dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgLoadPipelineBenchmarks.CreateShimPictureModel*"`
   - After: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-model-localmetadata-cache-exact" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-path-curves-96,generated-text-192,generated-aligned-letter-spacing-192" dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgLoadPipelineBenchmarks.CreateShimPictureModel*"`
+- Focused short shaped-layout cache profiling and benchmark checks:
+  - Manual profile: `dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --profile-svg "/var/folders/6f/snf59k7x0ns_dv9l8f0_qgz00000gn/T/svg-skia-generated-profiles/generated-text-path-curves-96.svg" 30 --profile-output "/var/folders/6f/snf59k7x0ns_dv9l8f0_qgz00000gn/T/svg-skia-generated-profiles/generated-text-path-curves-96-profile-short-shaped-layout-cache.md"`
+  - Warmed native conversion: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-short-shaped-layout-cache-text-suite" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-path-curves-96" dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks.CreateNativePictureFromFullModel*"`
 - Focused text/resource validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgResourceRenderingParityTests"`
   - Passed 290.
