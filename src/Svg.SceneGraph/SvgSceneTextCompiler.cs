@@ -1163,7 +1163,7 @@ internal static partial class SvgSceneTextCompiler
         public SKPicture? StrokePaint(SKRect? clip) => _strokePaint;
     }
 
-    private sealed class FlattenedTextCodepoint
+    private struct FlattenedTextCodepoint
     {
         public FlattenedTextCodepoint(SvgTextBase styleSource, string codepoint)
         {
@@ -21626,22 +21626,34 @@ internal static partial class SvgSceneTextCompiler
 
         for (var i = 0; i < count && i < svgTextBase.X.Count; i++)
         {
-            codepoints[startIndex + i].X = ResolveTextUnitValue(svgTextBase.X[i], UnitRenderingType.HorizontalOffset, svgTextBase, viewport, assetLoader);
+            var index = startIndex + i;
+            var codepoint = codepoints[index];
+            codepoint.X = ResolveTextUnitValue(svgTextBase.X[i], UnitRenderingType.HorizontalOffset, svgTextBase, viewport, assetLoader);
+            codepoints[index] = codepoint;
         }
 
         for (var i = 0; i < count && i < svgTextBase.Y.Count; i++)
         {
-            codepoints[startIndex + i].Y = ResolveTextUnitValue(svgTextBase.Y[i], UnitRenderingType.VerticalOffset, svgTextBase, viewport, assetLoader);
+            var index = startIndex + i;
+            var codepoint = codepoints[index];
+            codepoint.Y = ResolveTextUnitValue(svgTextBase.Y[i], UnitRenderingType.VerticalOffset, svgTextBase, viewport, assetLoader);
+            codepoints[index] = codepoint;
         }
 
         for (var i = 0; i < count && i < svgTextBase.Dx.Count; i++)
         {
-            codepoints[startIndex + i].Dx = ResolveTextUnitValue(svgTextBase.Dx[i], UnitRenderingType.HorizontalOffset, svgTextBase, viewport, assetLoader);
+            var index = startIndex + i;
+            var codepoint = codepoints[index];
+            codepoint.Dx = ResolveTextUnitValue(svgTextBase.Dx[i], UnitRenderingType.HorizontalOffset, svgTextBase, viewport, assetLoader);
+            codepoints[index] = codepoint;
         }
 
         for (var i = 0; i < count && i < svgTextBase.Dy.Count; i++)
         {
-            codepoints[startIndex + i].Dy = ResolveTextUnitValue(svgTextBase.Dy[i], UnitRenderingType.VerticalOffset, svgTextBase, viewport, assetLoader);
+            var index = startIndex + i;
+            var codepoint = codepoints[index];
+            codepoint.Dy = ResolveTextUnitValue(svgTextBase.Dy[i], UnitRenderingType.VerticalOffset, svgTextBase, viewport, assetLoader);
+            codepoints[index] = codepoint;
         }
     }
 
