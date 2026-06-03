@@ -21,6 +21,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Compact retained-scene compilation-root lookup storage during document registration.
 - Retained-scene child-list capacity hints during compile traversal.
 - Lazy retained-scene compile-context storage for rarely used caches.
+- Bounded typeface-span lookup caching for repeated short text runs.
 - Closed line-only SVG path conversion for generated path-heavy scenes.
 - Versioned shim path-bounds caching for retained compile bounds scans.
 - Benchmark and profiling support for focused performance regression checks.
@@ -82,6 +83,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Reused compact inline compilation-root key storage while building the temporary registration lookup, avoiding per-element `List<T>` allocation for the common one- or two-root case.
 - Preallocated retained scene node child lists when the compiler already knows the source child count, avoiding repeated `List<T>` growth in generated child-heavy scenes.
 - Allocated retained scene compile-context gradient, fragment viewport, marker-reference, and resolved-reference caches only when those features are used; the active-document guard also keeps the common single-document case inline before allocating a `HashSet<T>`.
+- Added a bounded per-loader typeface-span cache for repeated short text/paint lookups; cache hits return fresh mutable lists while the cached span arrays stay internal, and provider-state changes clear the cache with the existing typeface-provider caches.
 - Added versioned `SKPath.Bounds` caching for command sequences whose command data is stable, while continuing to recompute `AddPoly` paths whose point lists can be mutated by callers.
 - Kept the shim path command storage concrete internally so bounds scans avoid interface enumeration allocation while preserving the public `IList<PathCommand>? Commands` surface.
 
@@ -171,6 +173,12 @@ Focused retained-scene child-list capacity and lazy compile-context measurements
 - Full compile allocation for `generated-shapes-1024` dropped from `6,309,427 B` to `6,260,019 B` in `CompileViaSceneCompiler`, and from `6,310,081 B` to `6,285,250 B` in `CompileViaSceneRuntime`.
 - Final combined child-list capacity plus lazy compile-context measurement for `CompileNodeTreeOnly` was `970.11 KB` on `generated-filtered-shapes-256` and `4168.44 KB` on `generated-shapes-1024`; the lazy-context portion is a small constant allocation reduction on top of the child-list win.
 
+Focused typeface-span cache measurements:
+
+- `FindTypefacesSequence | generated-text-192`: `2,119.790 us / 838.07 KB` to `5.583 us / 7.5 KB`.
+- `CompileViaSceneRuntime | generated-text-192`: `318.12 ms / 72.29 MB` to `114.85 ms / 53.26 MB`.
+- `CompileViaSceneRuntime | generated-aligned-letter-spacing-192`: `191.49 ms / 71.92 MB` to `89.25 ms / 68.44 MB`.
+
 ### Text Path Performance
 
 - Added a document-scoped fallback codepoint resolver with bounded caching for fallback text, resolved paint, advance, and optional local bounds.
@@ -258,6 +266,11 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
 - Focused retained-scene child-list capacity and lazy compile-context validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SKSvgRebuildFromModelTests|FullyQualifiedName~SvgAnimationControllerTests.TryApplyRetainedSceneMutationByIdAndRender|FullyQualifiedName~SvgResourceRenderingParityTests"`
   - Passed 391.
+- Focused typeface-span cache validation:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SkiaSvgAssetLoaderCachingTests|FullyQualifiedName~Issue405Tests|FullyQualifiedName~Issue462Tests|FullyQualifiedName~SKSvgSettingsTests.FindTypefaces_WithImplicitItalicTypeface_MatchesResolvedTextTypeface"`
+  - Passed 27.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-text-typeface-span-cache dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextAssetLoaderBenchmarks.FindTypefacesSequence*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 10`
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192,generated-aligned-letter-spacing-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-retained-typeface-span-cache-text dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileViaSceneRuntime*" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
   - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256 SVG_SKIA_BENCHMARK_RUN_LABEL=current-retained-lazy-compile-context-single-doc dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
 - Focused text internals benchmark comparison:
   - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-before-next-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
