@@ -92,6 +92,50 @@ public class PathingServiceTests
     }
 
     [Fact]
+    public void ToPath_ClosedLineOnlyPath_UsesPolyCommand()
+    {
+        var segments = SvgPathBuilder.Parse("M 0 14 L 7 0 L 14 14 Z".AsSpan());
+
+        var path = Assert.IsType<SKPath>(segments.ToPath(SvgFillRule.NonZero));
+        var command = Assert.Single(Assert.IsAssignableFrom<IList<PathCommand>>(path.Commands));
+        var poly = Assert.IsType<AddPolyPathCommand>(command);
+        var points = Assert.IsAssignableFrom<IList<SKPoint>>(poly.Points);
+
+        Assert.True(poly.Close);
+        Assert.Equal(
+            new[]
+            {
+                new SKPoint(0f, 14f),
+                new SKPoint(7f, 0f),
+                new SKPoint(14f, 14f)
+            },
+            points);
+    }
+
+    [Fact]
+    public void ToPath_ClosedRelativeLineOnlyPath_UsesAbsolutePolyPoints()
+    {
+        var segments = SvgPathBuilder.Parse("M 5 5 l 10 0 v 10 h -10 z".AsSpan());
+
+        var path = Assert.IsType<SKPath>(segments.ToPath(SvgFillRule.EvenOdd));
+        Assert.Equal(SKPathFillType.EvenOdd, path.FillType);
+        var command = Assert.Single(Assert.IsAssignableFrom<IList<PathCommand>>(path.Commands));
+        var poly = Assert.IsType<AddPolyPathCommand>(command);
+        var points = Assert.IsAssignableFrom<IList<SKPoint>>(poly.Points);
+
+        Assert.True(poly.Close);
+        Assert.Equal(
+            new[]
+            {
+                new SKPoint(5f, 5f),
+                new SKPoint(15f, 5f),
+                new SKPoint(15f, 15f),
+                new SKPoint(5f, 15f)
+            },
+            points);
+    }
+
+    [Fact]
     public void ToPath_ArcAfterClosePath_ContinuesFromClosedSubpathStart()
     {
         var segments = SvgPathBuilder.Parse("M 10 50 L 10 10 L 50 10 z A 5 5 0 0 1 150 150".AsSpan());

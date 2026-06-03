@@ -258,6 +258,11 @@ internal static class PathingService
         }
 
         var fillType = svgFillRule == SvgFillRule.EvenOdd ? SKPathFillType.EvenOdd : SKPathFillType.Winding;
+        if (TryCreateClosedLinePath(svgPathSegmentList, fillType, out var linePath))
+        {
+            return linePath;
+        }
+
         var skPath = new SKPath
         {
             FillType = fillType
@@ -426,6 +431,52 @@ internal static class PathingService
         }
 
         return skPath;
+    }
+
+    private static bool TryCreateClosedLinePath(SvgPathSegmentList svgPathSegmentList, SKPathFillType fillType, out SKPath? path)
+    {
+        path = null;
+
+        if (svgPathSegmentList.Count < 4 ||
+            svgPathSegmentList[0] is not SvgMoveToSegment moveTo ||
+            svgPathSegmentList[svgPathSegmentList.Count - 1] is not SvgClosePathSegment)
+        {
+            return false;
+        }
+
+        for (var i = 1; i < svgPathSegmentList.Count - 1; i++)
+        {
+            if (svgPathSegmentList[i] is not SvgLineSegment)
+            {
+                return false;
+            }
+        }
+
+        var points = new SKPoint[svgPathSegmentList.Count - 1];
+        var start = System.Drawing.PointF.Empty;
+        var end = ToAbsolute(moveTo.End, moveTo.IsRelative, start);
+        points[0] = new SKPoint(end.X, end.Y);
+        start = end;
+
+        for (var i = 1; i < svgPathSegmentList.Count - 1; i++)
+        {
+            var lineTo = (SvgLineSegment)svgPathSegmentList[i];
+            end = ToAbsolute(lineTo.End, lineTo.IsRelative, start);
+            points[i] = new SKPoint(end.X, end.Y);
+            start = end;
+        }
+
+        if (points.Length < 3)
+        {
+            return false;
+        }
+
+        path = new SKPath
+        {
+            FillType = fillType
+        };
+        path.AddPoly(points, close: true);
+        return true;
     }
 
     internal static SKPath? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, SKRect skViewport)
