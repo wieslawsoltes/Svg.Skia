@@ -13,6 +13,7 @@ public partial class SkiaModel
 {
     private const int TypefaceCacheLimit = 512;
     private const int ResolvedTypefaceCacheLimit = 512;
+    private const int NativePathValueCacheLimit = 128;
     private const int PositionedTextCacheRefTrimThreshold = 1024;
     private const int RevisionVisitedSetRetainLimit = 256;
 
@@ -180,6 +181,77 @@ public partial class SkiaModel
                 hash = (hash * 397) ^ Edging.GetHashCode();
                 hash = (hash * 397) ^ Subpixel.GetHashCode();
                 hash = (hash * 397) ^ Embolden.GetHashCode();
+                return hash;
+            }
+        }
+    }
+
+    private readonly struct SmallPolyPathCacheKey : IEquatable<SmallPolyPathCacheKey>
+    {
+        public const int MaxPointCount = 4;
+
+        public SmallPolyPathCacheKey(SKPathFillType fillType, bool close, IList<SKPoint> points)
+        {
+            FillType = fillType;
+            Close = close;
+            Count = points.Count;
+            X0 = points[0].X;
+            Y0 = points[0].Y;
+            X1 = points[1].X;
+            Y1 = points[1].Y;
+            X2 = points[2].X;
+            Y2 = points[2].Y;
+            X3 = Count > 3 ? points[3].X : 0f;
+            Y3 = Count > 3 ? points[3].Y : 0f;
+        }
+
+        public SKPathFillType FillType { get; }
+        public bool Close { get; }
+        public int Count { get; }
+        public float X0 { get; }
+        public float Y0 { get; }
+        public float X1 { get; }
+        public float Y1 { get; }
+        public float X2 { get; }
+        public float Y2 { get; }
+        public float X3 { get; }
+        public float Y3 { get; }
+
+        public bool Equals(SmallPolyPathCacheKey other)
+        {
+            return FillType == other.FillType
+                && Close == other.Close
+                && Count == other.Count
+                && X0.Equals(other.X0)
+                && Y0.Equals(other.Y0)
+                && X1.Equals(other.X1)
+                && Y1.Equals(other.Y1)
+                && X2.Equals(other.X2)
+                && Y2.Equals(other.Y2)
+                && X3.Equals(other.X3)
+                && Y3.Equals(other.Y3);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is SmallPolyPathCacheKey other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash = (int)FillType;
+                hash = (hash * 397) ^ Close.GetHashCode();
+                hash = (hash * 397) ^ Count;
+                hash = (hash * 397) ^ X0.GetHashCode();
+                hash = (hash * 397) ^ Y0.GetHashCode();
+                hash = (hash * 397) ^ X1.GetHashCode();
+                hash = (hash * 397) ^ Y1.GetHashCode();
+                hash = (hash * 397) ^ X2.GetHashCode();
+                hash = (hash * 397) ^ Y2.GetHashCode();
+                hash = (hash * 397) ^ X3.GetHashCode();
+                hash = (hash * 397) ^ Y3.GetHashCode();
                 return hash;
             }
         }
@@ -368,6 +440,7 @@ public partial class SkiaModel
     private ConditionalWeakTable<ShimSkiaSharp.SKImageFilter, NativeImageFilterCacheEntry> _nativeImageFilterCache = new();
     private ConditionalWeakTable<ShimSkiaSharp.SKPicture, NativePictureCacheEntry> _nativePictureCache = new();
     private readonly List<WeakReference<SkiaSharp.SKTextBlob>> _positionedTextCacheRefs = new();
+    private readonly Dictionary<SmallPolyPathCacheKey, SkiaSharp.SKPath> _smallPolyNativePathCache = new();
     private readonly Dictionary<ShimSkiaSharp.SKPicture, SkiaSharp.SKPicture> _pictureCache = new(PictureReferenceEqualityComparer.Instance);
     private IList<ITypefaceProvider>? _providerStateList;
     private int _providerStateHash;
@@ -525,6 +598,33 @@ public partial class SkiaModel
         }
 
         return path.Version;
+    }
+
+    private static bool TryCreateSmallPolyPathCacheKey(ShimSkiaSharp.SKPath path, out SmallPolyPathCacheKey key)
+    {
+        key = default;
+
+        if (path.Commands is not { Count: 1 } commands ||
+            commands[0] is not AddPolyPathCommand addPoly ||
+            addPoly.Points is not { } points ||
+            points.Count < 3 ||
+            points.Count > SmallPolyPathCacheKey.MaxPointCount)
+        {
+            return false;
+        }
+
+        key = new SmallPolyPathCacheKey(path.FillType, addPoly.Close, points);
+        return true;
+    }
+
+    private void CacheSmallPolyRenderPath(SmallPolyPathCacheKey key, SkiaSharp.SKPath path)
+    {
+        if (_smallPolyNativePathCache.Count >= NativePathValueCacheLimit)
+        {
+            _smallPolyNativePathCache.Clear();
+        }
+
+        _smallPolyNativePathCache[key] = path;
     }
 
     private static int GetImageRevision(ShimSkiaSharp.SKImage image)
@@ -1698,6 +1798,7 @@ public partial class SkiaModel
         }
 
         var revision = GetRenderPathCacheRevision(path);
+        var canUseValueCache = TryCreateSmallPolyPathCacheKey(path, out var valueKey);
 
         lock (_nativeObjectCacheLock)
         {
@@ -1708,9 +1809,26 @@ public partial class SkiaModel
                 return cached.Path;
             }
 
+            if (canUseValueCache &&
+                _smallPolyNativePathCache.TryGetValue(valueKey, out var cachedValuePath))
+            {
+                if (cachedValuePath.Handle != IntPtr.Zero)
+                {
+                    _nativePathCache.Remove(path);
+                    _nativePathCache.Add(path, new NativePathCacheEntry(revision, cachedValuePath));
+                    return cachedValuePath;
+                }
+
+                _ = _smallPolyNativePathCache.Remove(valueKey);
+            }
+
             var created = ToSKPath(path);
             _nativePathCache.Remove(path);
             _nativePathCache.Add(path, new NativePathCacheEntry(revision, created));
+            if (canUseValueCache)
+            {
+                CacheSmallPolyRenderPath(valueKey, created);
+            }
             return created;
         }
     }
@@ -1839,6 +1957,7 @@ public partial class SkiaModel
             _nativePathEffectCache = new ConditionalWeakTable<ShimSkiaSharp.SKPathEffect, NativePathEffectCacheEntry>();
             _nativeImageFilterCache = new ConditionalWeakTable<ShimSkiaSharp.SKImageFilter, NativeImageFilterCacheEntry>();
             _nativePictureCache = new ConditionalWeakTable<ShimSkiaSharp.SKPicture, NativePictureCacheEntry>();
+            _smallPolyNativePathCache.Clear();
         }
     }
 

@@ -590,6 +590,58 @@ public class SKSvgRebuildFromModelTests
         Assert.Equal(new SkiaColor(255, 0, 0, 255), rebuiltBitmap.GetPixel(8, 5));
     }
 
+    [Fact]
+    public void ToSKPicture_ReflectsMutatedEquivalentPolyPathAfterValueCacheReuse()
+    {
+        var stablePoints = new List<ShimSkiaSharp.SKPoint>
+        {
+            new(0f, 0f),
+            new(4f, 0f),
+            new(4f, 10f),
+            new(0f, 10f)
+        };
+        var mutablePoints = new List<ShimSkiaSharp.SKPoint>
+        {
+            new(0f, 0f),
+            new(4f, 0f),
+            new(4f, 10f),
+            new(0f, 10f)
+        };
+        var stablePath = new ShimSkiaSharp.SKPath();
+        stablePath.Commands!.Add(new AddPolyPathCommand(stablePoints, true));
+        var mutablePath = new ShimSkiaSharp.SKPath();
+        mutablePath.Commands!.Add(new AddPolyPathCommand(mutablePoints, true));
+        var paint = new ShimSkiaSharp.SKPaint
+        {
+            Style = ShimSkiaSharp.SKPaintStyle.Fill,
+            Color = new ShimSkiaSharp.SKColor(255, 0, 0, 255)
+        };
+
+        var picture = new ShimSkiaSharp.SKPicture(
+            ShimSkiaSharp.SKRect.Create(0, 0, 10, 10),
+            new CanvasCommand[]
+            {
+                new DrawPathCanvasCommand(stablePath, paint),
+                new DrawPathCanvasCommand(mutablePath, paint)
+            });
+        var skiaModel = new SkiaModel(new SKSvgSettings());
+
+        using var originalPicture = skiaModel.ToSKPicture(picture);
+        using var originalBitmap = RenderBitmap(Assert.IsType<SkiaPicture>(originalPicture));
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), originalBitmap.GetPixel(2, 5));
+        Assert.Equal(SKColors.White, originalBitmap.GetPixel(8, 5));
+
+        mutablePoints[0] = new ShimSkiaSharp.SKPoint(6f, 0f);
+        mutablePoints[1] = new ShimSkiaSharp.SKPoint(10f, 0f);
+        mutablePoints[2] = new ShimSkiaSharp.SKPoint(10f, 10f);
+        mutablePoints[3] = new ShimSkiaSharp.SKPoint(6f, 10f);
+
+        using var rebuiltPicture = skiaModel.ToSKPicture(picture);
+        using var rebuiltBitmap = RenderBitmap(Assert.IsType<SkiaPicture>(rebuiltPicture));
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), rebuiltBitmap.GetPixel(2, 5));
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), rebuiltBitmap.GetPixel(8, 5));
+    }
+
     private static SkiaBitmap RenderBitmap(SkiaPicture picture)
     {
         var bitmap = picture.ToBitmap(
