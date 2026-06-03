@@ -2329,7 +2329,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var naturalAdvance = MeasureNaturalTextAdvance(svgTextBase, text, geometryBounds, assetLoader);
+        var naturalAdvance = MeasureNaturalTextAdvanceHorizontal(svgTextBase, text, geometryBounds, assetLoader);
         if (naturalAdvance <= TextLengthTolerance ||
             Math.Abs(naturalAdvance - specifiedLength) <= TextLengthTolerance)
         {
@@ -2350,7 +2350,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        if (!TryCreateSingleRunShapingPaint(text, paint, assetLoader, out var runPaint) ||
+        if (!TryCreateSingleSpanShapingPaint(text, paint, assetLoader, out var runPaint) ||
             runPaint.Typeface is null)
         {
             return false;
@@ -18995,6 +18995,28 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
+        if (spans[0].Typeface is { } typeface)
+        {
+            shapingPaint.Typeface = typeface;
+        }
+
+        return shapingPaint.Typeface is not null;
+    }
+
+    private static bool TryCreateSingleSpanShapingPaint(
+        string text,
+        SKPaint paint,
+        ISvgAssetLoader assetLoader,
+        out SKPaint shapingPaint)
+    {
+        shapingPaint = paint;
+        var spans = assetLoader.FindTypefaces(text, paint);
+        if (spans.Count != 1 || spans[0].Text.Length != text.Length)
+        {
+            return false;
+        }
+
+        shapingPaint = paint.Clone();
         if (spans[0].Typeface is { } typeface)
         {
             shapingPaint.Typeface = typeface;
