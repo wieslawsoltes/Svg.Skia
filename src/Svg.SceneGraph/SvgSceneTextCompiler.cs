@@ -2107,7 +2107,10 @@ internal static partial class SvgSceneTextCompiler
                             var fillPaint = SvgScenePaintingService.GetFillPaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes, contextPaint);
                             if (fillPaint is not null)
                             {
-                                _ = DrawCodepointPlacements(run.StyleSource, run.Text, run.Placements, geometryBounds, fillPaint, canvas, assetLoader);
+                                if (!TryDrawPositionedTextBlob(run.StyleSource, run.Text, run.Placements, geometryBounds, fillPaint, canvas, assetLoader))
+                                {
+                                    _ = DrawCodepointPlacements(run.StyleSource, run.Text, run.Placements, geometryBounds, fillPaint, canvas, assetLoader);
+                                }
                             }
                         }
 
@@ -2119,7 +2122,10 @@ internal static partial class SvgSceneTextCompiler
                             var strokePaint = SvgScenePaintingService.GetStrokePaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes, contextPaint);
                             if (strokePaint is not null)
                             {
-                                _ = DrawCodepointPlacements(run.StyleSource, run.Text, run.Placements, geometryBounds, strokePaint, canvas, assetLoader);
+                                if (!TryDrawPositionedTextBlob(run.StyleSource, run.Text, run.Placements, geometryBounds, strokePaint, canvas, assetLoader))
+                                {
+                                    _ = DrawCodepointPlacements(run.StyleSource, run.Text, run.Placements, geometryBounds, strokePaint, canvas, assetLoader);
+                                }
                             }
                         }
 
@@ -2130,6 +2136,70 @@ internal static partial class SvgSceneTextCompiler
             });
         }
     }
+
+    private static bool TryDrawPositionedTextBlob(
+        SvgTextBase svgTextBase,
+        string text,
+        PositionedCodepointPlacement[] placements,
+        SKRect geometryBounds,
+        SKPaint paint,
+        SKCanvas canvas,
+        ISvgAssetLoader assetLoader)
+    {
+        if (string.IsNullOrEmpty(text) ||
+            placements.Length == 0 ||
+            placements.Length != text.Length ||
+            !IsSimpleAsciiSequentialCompileText(text) ||
+            RequiresSyntheticSmallCaps(svgTextBase, text))
+        {
+            return false;
+        }
+
+        var points = new SKPoint[placements.Length];
+        for (var i = 0; i < placements.Length; i++)
+        {
+            var placement = placements[i];
+            if (placement.RotationDegrees != 0f ||
+                placement.ScaleX != 1f ||
+                !IsFinitePositionedTextBlobCoordinate(placement.Point.X) ||
+                !IsFinitePositionedTextBlobCoordinate(placement.Point.Y))
+            {
+                return false;
+            }
+
+            points[i] = placement.Point;
+        }
+
+        PaintingService.SetPaintText(svgTextBase, geometryBounds, paint);
+        paint.TextAlign = SKTextAlign.Left;
+
+        if (SvgFontTextRenderer.TryGetLayout(svgTextBase, text, paint, assetLoader, out _))
+        {
+            return false;
+        }
+
+        var spans = assetLoader.FindTypefaces(text, paint);
+        if (spans.Count != 1 ||
+            spans[0].Typeface is null ||
+            !string.Equals(spans[0].Text, text, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var blobPaint = paint.Clone();
+        blobPaint.Typeface = spans[0].Typeface;
+        var font = new SKFont(spans[0].Typeface, blobPaint.TextSize)
+        {
+            Subpixel = blobPaint.SubpixelText,
+            Edging = blobPaint.LcdRenderText ? SKFontEdging.SubpixelAntialias : SKFontEdging.Antialias
+        };
+
+        canvas.DrawText(SKTextBlob.CreatePositioned(text, font, points), 0f, 0f, blobPaint);
+        return true;
+    }
+
+    private static bool IsFinitePositionedTextBlobCoordinate(float value)
+        => !float.IsNaN(value) && !float.IsInfinity(value);
 
     private static SKRect OffsetRect(SKRect rect, float x, float y)
     {
@@ -3226,7 +3296,10 @@ internal static partial class SvgSceneTextCompiler
                                 var fillPaint = SvgScenePaintingService.GetFillPaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes, contextPaint);
                                 if (fillPaint is not null)
                                 {
-                                    _ = DrawCodepointPlacements(run.StyleSource, run.Text, run.Placements, geometryBounds, fillPaint, canvas, assetLoader);
+                                    if (!TryDrawPositionedTextBlob(run.StyleSource, run.Text, run.Placements, geometryBounds, fillPaint, canvas, assetLoader))
+                                    {
+                                        _ = DrawCodepointPlacements(run.StyleSource, run.Text, run.Placements, geometryBounds, fillPaint, canvas, assetLoader);
+                                    }
                                 }
                             }
 
@@ -3238,7 +3311,10 @@ internal static partial class SvgSceneTextCompiler
                                 var strokePaint = SvgScenePaintingService.GetStrokePaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes, contextPaint);
                                 if (strokePaint is not null)
                                 {
-                                    _ = DrawCodepointPlacements(run.StyleSource, run.Text, run.Placements, geometryBounds, strokePaint, canvas, assetLoader);
+                                    if (!TryDrawPositionedTextBlob(run.StyleSource, run.Text, run.Placements, geometryBounds, strokePaint, canvas, assetLoader))
+                                    {
+                                        _ = DrawCodepointPlacements(run.StyleSource, run.Text, run.Placements, geometryBounds, strokePaint, canvas, assetLoader);
+                                    }
                                 }
                             }
 
@@ -3300,7 +3376,10 @@ internal static partial class SvgSceneTextCompiler
                             var fillPaint = SvgScenePaintingService.GetFillPaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes, contextPaint);
                             if (fillPaint is not null)
                             {
-                                _ = DrawCodepointPlacements(run.StyleSource, run.Text, run.Placements, geometryBounds, fillPaint, canvas, assetLoader);
+                                if (!TryDrawPositionedTextBlob(run.StyleSource, run.Text, run.Placements, geometryBounds, fillPaint, canvas, assetLoader))
+                                {
+                                    _ = DrawCodepointPlacements(run.StyleSource, run.Text, run.Placements, geometryBounds, fillPaint, canvas, assetLoader);
+                                }
                             }
                         }
 
@@ -3312,7 +3391,10 @@ internal static partial class SvgSceneTextCompiler
                             var strokePaint = SvgScenePaintingService.GetStrokePaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes, contextPaint);
                             if (strokePaint is not null)
                             {
-                                _ = DrawCodepointPlacements(run.StyleSource, run.Text, run.Placements, geometryBounds, strokePaint, canvas, assetLoader);
+                                if (!TryDrawPositionedTextBlob(run.StyleSource, run.Text, run.Placements, geometryBounds, strokePaint, canvas, assetLoader))
+                                {
+                                    _ = DrawCodepointPlacements(run.StyleSource, run.Text, run.Placements, geometryBounds, strokePaint, canvas, assetLoader);
+                                }
                             }
                         }
 

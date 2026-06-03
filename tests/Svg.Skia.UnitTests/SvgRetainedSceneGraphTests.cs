@@ -26,6 +26,40 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
 {
     private readonly record struct PathDrawInfo(SKRect Bounds, SKMatrix Matrix);
 
+    private static Dictionary<string, SKPoint> GetPositionedGlyphPoints(SKPicture retainedModel, params string[] glyphs)
+    {
+        var result = new Dictionary<string, SKPoint>(StringComparer.Ordinal);
+        var glyphSet = new HashSet<string>(glyphs, StringComparer.Ordinal);
+        foreach (var command in retainedModel.FindCommands<DrawTextCanvasCommand>())
+        {
+            if (glyphSet.Contains(command.Text))
+            {
+                result.TryAdd(command.Text, new SKPoint(command.X, command.Y));
+            }
+        }
+
+        foreach (var command in retainedModel.FindCommands<DrawTextBlobCanvasCommand>())
+        {
+            if (command.TextBlob?.Text is not { } text ||
+                command.TextBlob.Points is not { } points ||
+                text.Length != points.Length)
+            {
+                continue;
+            }
+
+            for (var i = 0; i < text.Length; i++)
+            {
+                var glyph = text[i].ToString();
+                if (glyphSet.Contains(glyph))
+                {
+                    result.TryAdd(glyph, points[i]);
+                }
+            }
+        }
+
+        return result;
+    }
+
     [Fact]
     public void RetainedSceneGraph_BuildsIndexesForSimpleDocument()
     {
@@ -3428,10 +3462,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
         Assert.DoesNotContain(retainedModel.FindCommands<DrawTextCanvasCommand>(), static command => command.Text == "\u2026");
 
-        var glyphs = retainedModel
-            .FindCommands<DrawTextCanvasCommand>()
-            .Where(static command => command.Text is "A" or "B" or "C")
-            .ToDictionary(static command => command.Text, static command => new SKPoint(command.X, command.Y), StringComparer.Ordinal);
+        var glyphs = GetPositionedGlyphPoints(retainedModel, "A", "B", "C");
 
         Assert.True(glyphs.TryGetValue("A", out var a), "Expected flattened textLength glyph A.");
         Assert.True(glyphs.TryGetValue("B", out var b), "Expected flattened textLength glyph B.");
@@ -3458,10 +3489,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         var retainedModel = svg.CreateRetainedSceneGraphModel();
         Assert.NotNull(retainedModel);
 
-        var glyphs = retainedModel!
-            .FindCommands<DrawTextCanvasCommand>()
-            .Where(static command => command.Text is "A" or "B" or "C")
-            .ToDictionary(static command => command.Text, static command => new SKPoint(command.X, command.Y), StringComparer.Ordinal);
+        var glyphs = GetPositionedGlyphPoints(retainedModel!, "A", "B", "C");
 
         Assert.True(glyphs.TryGetValue("A", out var a), "Expected flattened textLength glyph A.");
         Assert.True(glyphs.TryGetValue("B", out var b), "Expected flattened textLength glyph B.");
