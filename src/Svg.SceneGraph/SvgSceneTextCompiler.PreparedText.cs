@@ -754,6 +754,40 @@ internal static partial class SvgSceneTextCompiler
         var spans = assetLoader.FindTypefaces(fallbackText, paint);
         if (spans.Count > 0)
         {
+            if (spans.Count == 1 &&
+                spans[0] is var span &&
+                span.Typeface is { } spanTypeface &&
+                string.Equals(span.Text, fallbackText, StringComparison.Ordinal))
+            {
+                var runPaint = paint.Clone();
+                runPaint.Typeface = spanTypeface;
+
+                var measureBounds = new SKRect();
+                var measuredAdvance = assetLoader.MeasureText(fallbackText, runPaint, ref measureBounds);
+                var advance = EnsureWhitespaceAdvance(
+                    fallbackText,
+                    runPaint,
+                    assetLoader,
+                    span.Advance > 0f ? span.Advance : measuredAdvance);
+                var relativeBounds = measureBounds;
+                if (relativeBounds.IsEmpty &&
+                    !TryGetRenderedTextLocalBounds(fallbackText, runPaint, assetLoader, out relativeBounds))
+                {
+                    relativeBounds = GetTextAdvanceBox(svgTextBase, 0f, 0f, advance, runPaint, assetLoader);
+                }
+                else
+                {
+                    relativeBounds = ExpandTextBoundsWithAdvanceBox(svgTextBase, relativeBounds, 0f, 0f, advance, runPaint, assetLoader);
+                }
+
+                return new PreparedLineStats(
+                    ApplyBrowserCompatibleBidiControls(svgTextBase, fallbackText),
+                    spanTypeface,
+                    advance,
+                    relativeBounds,
+                    usesResolvedRunTypeface: true);
+            }
+
             var currentX = 0f;
             var totalAdvance = 0f;
             var bounds = SKRect.Empty;

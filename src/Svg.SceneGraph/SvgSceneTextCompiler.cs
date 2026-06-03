@@ -1410,7 +1410,6 @@ internal static partial class SvgSceneTextCompiler
         localModel = null;
 
         if (HasInlineSizeLayout(svgTextBase) ||
-            !HasGenericSequentialCompileFontFamily(svgTextBase) ||
             HasPreparedSequentialTextContainerBarriers(svgTextBase) ||
             !TryCollectSequentialTextRuns(svgTextBase, requireAnchorContent: false, IsTextReferenceRenderingEnabled(assetLoader), trimLeadingWhitespaceAtStart: true, out var runs) ||
             runs.Count == 0 ||
@@ -1477,8 +1476,7 @@ internal static partial class SvgSceneTextCompiler
     {
         for (var i = 0; i < runs.Count; i++)
         {
-            if (!HasGenericSequentialCompileFontFamily(runs[i].StyleSource) ||
-                HasPerGlyphLayoutAdjustments(runs[i].StyleSource, runs[i].Text) ||
+            if (HasPerGlyphLayoutAdjustments(runs[i].StyleSource, runs[i].Text) ||
                 !IsSimpleAsciiSequentialCompileText(runs[i].Text))
             {
                 return false;
