@@ -1773,9 +1773,19 @@ internal static partial class SvgSceneTextCompiler
             return TryCreateVerticalTextRunMetrics(svgTextBase, verticalPlacements, verticalAdvance, viewport, assetLoader, out clusters, out runLength);
         }
 
-        if (TryCreateAlignedCodepointPlacements(svgTextBase, text, anchorX, anchorY, viewport, textAlign, assetLoader, rotations, out var placements, out _))
+        if (TryCreateAlignedCodepointPlacements(svgTextBase, text, anchorX, anchorY, viewport, textAlign, assetLoader, rotations, out var placements, out _, out var placementCodepoints, out var naturalAdvances))
         {
-            return TryCreatePlacedTextRunMetrics(svgTextBase, text, viewport, assetLoader, placements, out clusters, out runLength);
+            return TryCreatePlacedTextRunMetrics(
+                svgTextBase,
+                text,
+                viewport,
+                assetLoader,
+                placements,
+                placements.Length > 0 ? placements[0].Point.X : 0f,
+                out clusters,
+                out runLength,
+                placementCodepoints,
+                naturalAdvances);
         }
 
         if (rotations is not { Length: > 0 } &&
@@ -1880,7 +1890,9 @@ internal static partial class SvgSceneTextCompiler
         PositionedCodepointPlacement[] placements,
         float originX,
         out TextDomRunClusterMetric[] clusters,
-        out float runLength)
+        out float runLength,
+        IReadOnlyList<string>? knownCodepoints = null,
+        float[]? knownNaturalAdvances = null)
     {
         clusters = Array.Empty<TextDomRunClusterMetric>();
         runLength = 0f;
@@ -1891,6 +1903,22 @@ internal static partial class SvgSceneTextCompiler
 
         var paint = new SKPaint();
         PaintingService.SetPaintText(svgTextBase, viewport, paint);
+        if (TryCreateSimpleSpacingPlacedTextRunMetrics(
+                svgTextBase,
+                text,
+                viewport,
+                assetLoader,
+                paint,
+                placements,
+                originX,
+                out clusters,
+                out runLength,
+                knownCodepoints,
+                knownNaturalAdvances))
+        {
+            return true;
+        }
+
         if (!TryCreateClusterSources(svgTextBase, text, viewport, paint, assetLoader, out var sources, out _, out var sourcesUseSvgFont))
         {
             return false;
@@ -1959,6 +1987,101 @@ internal static partial class SvgSceneTextCompiler
         }
 
         clusters = MergeTextDomRunClustersByGraphemeClusters(text, runClusters);
+        runLength = maxEndOffset;
+        return true;
+    }
+
+    private static bool TryCreateSimpleSpacingPlacedTextRunMetrics(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader,
+        SKPaint paint,
+        PositionedCodepointPlacement[] placements,
+        float originX,
+        out TextDomRunClusterMetric[] clusters,
+        out float runLength,
+        IReadOnlyList<string>? knownCodepoints = null,
+        float[]? knownNaturalAdvances = null)
+    {
+        clusters = Array.Empty<TextDomRunClusterMetric>();
+        runLength = 0f;
+        if (placements.Length == 0 ||
+            HasOwnTextLengthAdjustment(svgTextBase) ||
+            IsRightToLeft(svgTextBase) ||
+            SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase) != SvgUnicodeBidiMode.Normal ||
+            RequiresSyntheticSmallCaps(svgTextBase, text) ||
+            !IsSimpleAsciiSequentialCompileText(text))
+        {
+            return false;
+        }
+
+        for (var i = 0; i < placements.Length; i++)
+        {
+            if (placements[i].RotationDegrees != 0f ||
+                placements[i].ScaleX != 1f)
+            {
+                return false;
+            }
+        }
+
+        if (TryCreateSvgFontClusterSources(svgTextBase, text, paint, assetLoader, out _, out _))
+        {
+            return false;
+        }
+
+        var codepoints = knownCodepoints ?? SplitCodepointsReadOnly(text);
+        if (codepoints.Count == 0 ||
+            codepoints.Count != placements.Length ||
+            !HasEffectiveSpacingAdjustments(svgTextBase, codepoints))
+        {
+            return false;
+        }
+
+        var advances = knownNaturalAdvances ?? MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, viewport, assetLoader);
+        if (advances.Length != codepoints.Count)
+        {
+            return false;
+        }
+
+        var includeWhitespaceMetrics = PreservesTextDomWhitespace(svgTextBase);
+        var runClusters = new TextDomRunClusterMetric[codepoints.Count];
+        var maxEndOffset = 0f;
+        for (var i = 0; i < codepoints.Count; i++)
+        {
+            var codepoint = codepoints[i];
+            var placement = placements[i];
+            var startOffset = placement.Point.X - originX;
+            var advance = advances[i];
+            var endOffset = startOffset + advance;
+            var extent = CreateFallbackTextDomClusterBounds(
+                svgTextBase,
+                placement.Point,
+                advance,
+                placement.ScaleX,
+                GetScalePivot(placement),
+                placement.RotationDegrees,
+                paint,
+                assetLoader,
+                codepoint,
+                out var hitExtent);
+            var isWhitespace = IsWhitespaceOnlyText(codepoint);
+            runClusters[i] = new TextDomRunClusterMetric(
+                includeWhitespaceMetrics || !isWhitespace ? codepoint.Length : 0,
+                startOffset,
+                endOffset,
+                placement.Point,
+                new SKPoint(placement.Point.X + advance, placement.Point.Y),
+                extent,
+                placement.RotationDegrees)
+            {
+                HitExtent = hitExtent
+            };
+
+            maxEndOffset = Math.Max(maxEndOffset, endOffset);
+        }
+
+        clusters = runClusters;
         runLength = maxEndOffset;
         return true;
     }

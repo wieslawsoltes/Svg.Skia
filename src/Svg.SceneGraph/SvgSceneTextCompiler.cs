@@ -18216,8 +18216,39 @@ internal static partial class SvgSceneTextCompiler
         out PositionedCodepointPlacement[] placements,
         out float totalAdvance)
     {
+        return TryCreateAlignedCodepointPlacements(
+            svgTextBase,
+            text,
+            anchorX,
+            anchorY,
+            geometryBounds,
+            textAlign,
+            assetLoader,
+            explicitRotations,
+            out placements,
+            out totalAdvance,
+            out _,
+            out _);
+    }
+
+    private static bool TryCreateAlignedCodepointPlacements(
+        SvgTextBase svgTextBase,
+        string text,
+        float anchorX,
+        float anchorY,
+        SKRect geometryBounds,
+        SKTextAlign textAlign,
+        ISvgAssetLoader assetLoader,
+        float[]? explicitRotations,
+        out PositionedCodepointPlacement[] placements,
+        out float totalAdvance,
+        out IReadOnlyList<string>? codepoints,
+        out float[]? naturalAdvances)
+    {
         placements = Array.Empty<PositionedCodepointPlacement>();
         totalAdvance = 0f;
+        codepoints = null;
+        naturalAdvances = null;
         var isVertical = IsVerticalWritingMode(svgTextBase);
         var hasExplicitRotationValues = explicitRotations is { Length: > 0 };
 
@@ -18226,18 +18257,19 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var codepoints = SplitCodepointsReadOnly(text);
-        if (codepoints.Count == 0)
+        var resolvedCodepoints = SplitCodepointsReadOnly(text);
+        if (resolvedCodepoints.Count == 0)
         {
             return false;
         }
 
-        var hasEffectiveSpacingAdjustments = HasEffectiveSpacingAdjustments(svgTextBase, codepoints);
+        codepoints = resolvedCodepoints;
+        var hasEffectiveSpacingAdjustments = HasEffectiveSpacingAdjustments(svgTextBase, resolvedCodepoints);
 
-        var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, geometryBounds, assetLoader);
+        naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, text, resolvedCodepoints, geometryBounds, assetLoader);
         var letterSpacingUnit = svgTextBase.LetterSpacing;
         var wordSpacingUnit = svgTextBase.WordSpacing;
-        var hasLetterSpacingAdjustment = HasSpacingAdjustment(letterSpacingUnit) && !SuppressesLetterSpacingForRun(codepoints);
+        var hasLetterSpacingAdjustment = HasSpacingAdjustment(letterSpacingUnit) && !SuppressesLetterSpacingForRun(resolvedCodepoints);
         var hasWordSpacingAdjustment = HasSpacingAdjustment(wordSpacingUnit);
         var letterSpacingIsPercentage = hasLetterSpacingAdjustment && letterSpacingUnit.Type == SvgUnitType.Percentage;
         var wordSpacingIsPercentage = hasWordSpacingAdjustment && wordSpacingUnit.Type == SvgUnitType.Percentage;
@@ -18248,19 +18280,19 @@ internal static partial class SvgSceneTextCompiler
             ? wordSpacingUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgTextBase, geometryBounds)
             : 0f;
         var naturalLength = 0f;
-        for (var i = 0; i < codepoints.Count; i++)
+        for (var i = 0; i < resolvedCodepoints.Count; i++)
         {
             naturalLength += naturalAdvances[i];
-            if (i < codepoints.Count - 1)
+            if (i < resolvedCodepoints.Count - 1)
             {
-                if (hasLetterSpacingAdjustment && SupportsLetterSpacing(codepoints[i]))
+                if (hasLetterSpacingAdjustment && SupportsLetterSpacing(resolvedCodepoints[i]))
                 {
                     naturalLength += letterSpacingIsPercentage
                         ? ResolveSpacingValue(svgTextBase, letterSpacingUnit, geometryBounds, naturalAdvances[i])
                         : fixedLetterSpacing;
                 }
 
-                if (hasWordSpacingAdjustment && IsWhitespaceCodepoint(codepoints[i]))
+                if (hasWordSpacingAdjustment && IsWhitespaceCodepoint(resolvedCodepoints[i]))
                 {
                     naturalLength += wordSpacingIsPercentage
                         ? ResolveSpacingValue(svgTextBase, wordSpacingUnit, geometryBounds, naturalAdvances[i])
@@ -18289,9 +18321,9 @@ internal static partial class SvgSceneTextCompiler
 
         if (hasActiveTextLengthAdjustment)
         {
-            if (GetOwnLengthAdjust(svgTextBase) == SvgTextLengthAdjust.Spacing && codepoints.Count > 1)
+            if (GetOwnLengthAdjust(svgTextBase) == SvgTextLengthAdjust.Spacing && resolvedCodepoints.Count > 1)
             {
-                extraGapAdvance = (specifiedLength - totalAdvance) / (codepoints.Count - 1);
+                extraGapAdvance = (specifiedLength - totalAdvance) / (resolvedCodepoints.Count - 1);
                 totalAdvance = specifiedLength;
             }
             else if (totalAdvance > 0f)
@@ -18302,7 +18334,7 @@ internal static partial class SvgSceneTextCompiler
             }
         }
 
-        var rotations = explicitRotations is not null ? explicitRotations : GetPositionedRotations(svgTextBase, codepoints.Count);
+        var rotations = explicitRotations is not null ? explicitRotations : GetPositionedRotations(svgTextBase, resolvedCodepoints.Count);
         var currentX = anchorX;
         var currentY = anchorY;
         if (isVertical)
@@ -18315,22 +18347,22 @@ internal static partial class SvgSceneTextCompiler
         }
 
         var scaleOriginX = currentX;
-        placements = new PositionedCodepointPlacement[codepoints.Count];
-        for (var i = 0; i < codepoints.Count; i++)
+        placements = new PositionedCodepointPlacement[resolvedCodepoints.Count];
+        for (var i = 0; i < resolvedCodepoints.Count; i++)
         {
             placements[i] = new PositionedCodepointPlacement(
                 new SKPoint(currentX, currentY),
-                GetCodepointRotationDegrees(svgTextBase, codepoints[i], rotations, i),
+                GetCodepointRotationDegrees(svgTextBase, resolvedCodepoints[i], rotations, i),
                 glyphScaleX,
                 scaleRunFromStart ? scaleOriginX : currentX);
 
-            if (i >= codepoints.Count - 1)
+            if (i >= resolvedCodepoints.Count - 1)
             {
                 continue;
             }
 
             var clusterAdvance = naturalAdvances[i];
-            if (hasLetterSpacingAdjustment && SupportsLetterSpacing(codepoints[i]))
+            if (hasLetterSpacingAdjustment && SupportsLetterSpacing(resolvedCodepoints[i]))
             {
                 clusterAdvance += letterSpacingIsPercentage
                     ? ResolveSpacingValue(svgTextBase, letterSpacingUnit, geometryBounds, naturalAdvances[i])
@@ -18341,7 +18373,7 @@ internal static partial class SvgSceneTextCompiler
                 }
             }
 
-            if (hasWordSpacingAdjustment && IsWhitespaceCodepoint(codepoints[i]))
+            if (hasWordSpacingAdjustment && IsWhitespaceCodepoint(resolvedCodepoints[i]))
             {
                 clusterAdvance += wordSpacingIsPercentage
                     ? ResolveSpacingValue(svgTextBase, wordSpacingUnit, geometryBounds, naturalAdvances[i])
