@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using ShimSkiaSharp;
+using Svg;
 using Svg.Model;
 using Svg.Model.Services;
 
@@ -13,10 +14,12 @@ namespace Svg.Skia;
 internal static partial class SvgSceneTextCompiler
 {
     private static readonly ConcurrentDictionary<SimpleCodepointAdvanceCacheKey, float> s_simpleCodepointAdvanceCache = new();
+    private static readonly ConcurrentDictionary<SimpleNaturalTextAdvanceCacheKey, float> s_simpleNaturalTextAdvanceCache = new();
     private static readonly ConcurrentDictionary<NaturalTextAdvanceCacheKey, float> s_naturalTextAdvanceCache = new();
     private static readonly ConcurrentDictionary<NaturalCodepointAdvanceCacheKey, float[]> s_naturalCodepointAdvanceCache = new();
     private static readonly ConcurrentDictionary<RenderedTextLocalBoundsCacheKey, SKRect> s_renderedTextLocalBoundsCache = new();
     private const int SimpleCodepointAdvanceCacheLimit = 4096;
+    private const int SimpleNaturalTextAdvanceCacheLimit = 4096;
     private const int NaturalTextAdvanceCacheLimit = 2048;
     private const int NaturalCodepointAdvanceCacheLimit = 1024;
     private const int RenderedTextLocalBoundsCacheLimit = 4096;
@@ -36,6 +39,26 @@ internal static partial class SvgSceneTextCompiler
         SKFontStyleWeight TypefaceWeight,
         SKFontStyleWidth TypefaceWidth,
         SKFontStyleSlant TypefaceSlant);
+
+    private readonly record struct SimpleNaturalTextAdvanceCacheKey(
+        int AssetLoaderId,
+        int OwnerDocumentId,
+        string Text,
+        string? FontFamily,
+        SvgFontStyle FontStyle,
+        SvgFontVariant FontVariant,
+        SvgFontWeight FontWeight,
+        SvgTextDirection Direction,
+        SvgUnicodeBidiMode UnicodeBidi,
+        string? Language,
+        bool EnableSvgFonts,
+        float TextSize,
+        SKFontStyleWeight TypefaceWeight,
+        SKFontStyleWidth TypefaceWidth,
+        SKFontStyleSlant TypefaceSlant,
+        bool RightToLeft,
+        bool RequiresSyntheticSmallCaps,
+        bool UsesBrowserCompatibleRunTypeface);
 
     private readonly record struct NaturalTextAdvanceCacheKey(
         int AssetLoaderId,
@@ -300,6 +323,7 @@ internal static partial class SvgSceneTextCompiler
         public void ClearCaches()
         {
             s_simpleCodepointAdvanceCache.Clear();
+            s_simpleNaturalTextAdvanceCache.Clear();
             s_naturalTextAdvanceCache.Clear();
             s_naturalCodepointAdvanceCache.Clear();
             s_renderedTextLocalBoundsCache.Clear();

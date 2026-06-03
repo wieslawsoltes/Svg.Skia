@@ -18537,13 +18537,25 @@ internal static partial class SvgSceneTextCompiler
         SKRect geometryBounds,
         ISvgAssetLoader assetLoader)
     {
-        var paint = new SKPaint();
-        PaintingService.SetPaintText(svgTextBase, geometryBounds, paint);
-        paint.TextAlign = SKTextAlign.Left;
-
         var isRightToLeft = IsRightToLeft(svgTextBase);
         var requiresSyntheticSmallCaps = RequiresSyntheticSmallCaps(svgTextBase, text);
         var usesBrowserCompatibleRunTypeface = ShouldUseBrowserCompatibleRunTypeface(svgTextBase, text);
+        var hasSimpleCacheKey = TryCreateSimpleNaturalTextAdvanceCacheKey(
+            svgTextBase,
+            assetLoader,
+            text,
+            geometryBounds,
+            isRightToLeft,
+            requiresSyntheticSmallCaps,
+            usesBrowserCompatibleRunTypeface,
+            out var simpleCacheKey);
+        if (hasSimpleCacheKey &&
+            TryGetCachedSimpleNaturalTextAdvance(simpleCacheKey, out var cachedSimpleAdvance))
+        {
+            return cachedSimpleAdvance;
+        }
+
+        var paint = CreateTextMetricsPaint(svgTextBase, geometryBounds);
         var cacheKey = CreateNaturalTextAdvanceCacheKey(
             svgTextBase,
             assetLoader,
@@ -18554,12 +18566,212 @@ internal static partial class SvgSceneTextCompiler
             usesBrowserCompatibleRunTypeface);
         if (TryGetCachedNaturalTextAdvance(cacheKey, out var cachedAdvance))
         {
+            if (hasSimpleCacheKey)
+            {
+                CacheSimpleNaturalTextAdvance(simpleCacheKey, cachedAdvance);
+            }
+
             return cachedAdvance;
         }
 
         var advance = MeasureNaturalTextAdvanceHorizontalUncached(svgTextBase, text, paint, assetLoader);
         CacheNaturalTextAdvance(cacheKey, advance);
+        if (hasSimpleCacheKey)
+        {
+            CacheSimpleNaturalTextAdvance(simpleCacheKey, advance);
+        }
+
         return advance;
+    }
+
+    private static bool TryGetCachedSimpleNaturalTextAdvance(
+        SimpleNaturalTextAdvanceCacheKey cacheKey,
+        out float advance)
+    {
+        return s_simpleNaturalTextAdvanceCache.TryGetValue(cacheKey, out advance);
+    }
+
+    private static void CacheSimpleNaturalTextAdvance(
+        SimpleNaturalTextAdvanceCacheKey cacheKey,
+        float advance)
+    {
+        s_simpleNaturalTextAdvanceCache.TryAdd(cacheKey, advance);
+        TrimSimpleNaturalTextAdvanceCacheIfNeeded();
+    }
+
+    private static bool TryCreateSimpleNaturalTextAdvanceCacheKey(
+        SvgTextBase svgTextBase,
+        ISvgAssetLoader assetLoader,
+        string text,
+        SKRect geometryBounds,
+        bool isRightToLeft,
+        bool requiresSyntheticSmallCaps,
+        bool usesBrowserCompatibleRunTypeface,
+        out SimpleNaturalTextAdvanceCacheKey cacheKey)
+    {
+        cacheKey = default;
+        if (svgTextBase is SvgAltGlyph ||
+            HasCustomTextOpenTypePaintProperty(svgTextBase) ||
+            !TryResolveSimpleTextMetricsFontSize(svgTextBase, geometryBounds, out var textSize))
+        {
+            return false;
+        }
+
+        var ownerDocument = svgTextBase.OwnerDocument;
+        var resolvedWeight = PaintingService.ResolveFontWeight(svgTextBase, svgTextBase.FontWeight);
+        cacheKey = new SimpleNaturalTextAdvanceCacheKey(
+            RuntimeHelpers.GetHashCode(assetLoader),
+            ownerDocument is null ? 0 : RuntimeHelpers.GetHashCode(ownerDocument),
+            text,
+            svgTextBase.FontFamily,
+            svgTextBase.FontStyle,
+            svgTextBase.FontVariant,
+            svgTextBase.FontWeight,
+            SvgTextBidiResolver.ResolveDirection(svgTextBase),
+            SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase),
+            GetNaturalTextAdvanceLanguage(svgTextBase),
+            assetLoader.EnableSvgFonts,
+            textSize,
+            PaintingService.ToFontStyleWeight(resolvedWeight),
+            PaintingService.ToFontStyleWidth(svgTextBase.FontStretch),
+            PaintingService.ToFontStyleSlant(svgTextBase.FontStyle),
+            isRightToLeft,
+            requiresSyntheticSmallCaps,
+            usesBrowserCompatibleRunTypeface);
+        return true;
+    }
+
+    private static bool HasCustomTextOpenTypePaintProperty(SvgElement element)
+    {
+        for (SvgElement? current = element; current is not null; current = current.Parent)
+        {
+            if (HasCustomTextOpenTypePaintProperty(current, "font-feature-settings", "normal") ||
+                HasCustomTextOpenTypePaintProperty(current, "font-kerning", "auto") ||
+                HasCustomTextOpenTypePaintProperty(current, "font-variant-ligatures", "normal"))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool HasCustomTextOpenTypePaintProperty(
+        SvgElement element,
+        string propertyName,
+        string defaultValue)
+    {
+        if (!element.ComputedStyle.TryGetPropertyValue(propertyName, out var value) ||
+            string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        var trimmed = value.AsSpan().Trim();
+        return !trimmed.Equals("inherit".AsSpan(), StringComparison.OrdinalIgnoreCase) &&
+               !trimmed.Equals("unset".AsSpan(), StringComparison.OrdinalIgnoreCase) &&
+               !trimmed.Equals("initial".AsSpan(), StringComparison.OrdinalIgnoreCase) &&
+               !trimmed.Equals(defaultValue.AsSpan(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool TryResolveSimpleTextMetricsFontSize(
+        SvgElement element,
+        SKRect geometryBounds,
+        out float textSize)
+    {
+        const int maxFontSizeInheritanceDepth = 256;
+        var depth = 0;
+        for (SvgElement? current = element; current is not null; current = current.Parent)
+        {
+            if (depth++ > maxFontSizeInheritanceDepth)
+            {
+                textSize = 12f;
+                return true;
+            }
+
+            var status = TryResolveSimpleSpecifiedFontSize(current, geometryBounds, out textSize);
+            if (status == SimpleFontSizeResolutionStatus.Resolved)
+            {
+                return true;
+            }
+
+            if (status == SimpleFontSizeResolutionStatus.Unsupported)
+            {
+                return false;
+            }
+        }
+
+        textSize = 12f;
+        return true;
+    }
+
+    private static SimpleFontSizeResolutionStatus TryResolveSimpleSpecifiedFontSize(
+        SvgElement element,
+        SKRect geometryBounds,
+        out float textSize)
+    {
+        if (element is SvgTextBase textBase)
+        {
+            var fontSize = textBase.FontSize;
+            if (fontSize != SvgUnit.None &&
+                fontSize != SvgUnit.Empty)
+            {
+                return TryResolveSimpleFontSizeUnit(fontSize, element, geometryBounds, out textSize);
+            }
+        }
+
+        if (element.ComputedStyle.TryGetPropertyValue("font-size", out var rawFontSize) &&
+            !string.IsNullOrWhiteSpace(rawFontSize))
+        {
+            try
+            {
+                var fontSize = SvgUnitConverter.Parse(rawFontSize.AsSpan().Trim());
+                if (fontSize != SvgUnit.None &&
+                    fontSize != SvgUnit.Empty)
+                {
+                    return TryResolveSimpleFontSizeUnit(fontSize, element, geometryBounds, out textSize);
+                }
+            }
+            catch (FormatException)
+            {
+                textSize = 0f;
+                return SimpleFontSizeResolutionStatus.Unsupported;
+            }
+        }
+
+        textSize = 0f;
+        return SimpleFontSizeResolutionStatus.NotSpecified;
+    }
+
+    private static SimpleFontSizeResolutionStatus TryResolveSimpleFontSizeUnit(
+        SvgUnit fontSize,
+        SvgElement element,
+        SKRect geometryBounds,
+        out float textSize)
+    {
+        if (fontSize.Type is SvgUnitType.Percentage or SvgUnitType.Em or SvgUnitType.Ex)
+        {
+            textSize = 0f;
+            return SimpleFontSizeResolutionStatus.Unsupported;
+        }
+
+        textSize = fontSize.ToDeviceValue(UnitRenderingType.Vertical, element, geometryBounds);
+        return SimpleFontSizeResolutionStatus.Resolved;
+    }
+
+    private static void TrimSimpleNaturalTextAdvanceCacheIfNeeded()
+    {
+        if (s_simpleNaturalTextAdvanceCache.Count > SimpleNaturalTextAdvanceCacheLimit)
+        {
+            s_simpleNaturalTextAdvanceCache.Clear();
+        }
+    }
+
+    private enum SimpleFontSizeResolutionStatus
+    {
+        NotSpecified,
+        Resolved,
+        Unsupported
     }
 
     private static float MeasureNaturalTextAdvanceHorizontalUncached(
