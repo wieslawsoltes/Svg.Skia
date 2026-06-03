@@ -15061,22 +15061,33 @@ internal static partial class SvgSceneTextCompiler
         }
 
         renderedText = plan.Text;
-        placements = plan.Placements
-            .Select(static placement => new PositionedCodepointPlacement(
+        var planPlacements = plan.Placements;
+        placements = new PositionedCodepointPlacement[planPlacements.Count];
+        for (var i = 0; i < planPlacements.Count; i++)
+        {
+            var placement = planPlacements[i];
+            placements[i] = new PositionedCodepointPlacement(
                 placement.Point,
                 placement.RotationDegrees,
                 placement.ScaleX,
                 placement.ScaleOriginX,
-                placement.InlineOffset))
-            .ToArray();
+                placement.InlineOffset);
+        }
+
         return placements.Length > 0;
     }
 
-    private static float[] CreateTextPathPlacementAdvances(
+    private static IReadOnlyList<float> CreateTextPathPlacementAdvances(
         string text,
         IReadOnlyList<string> codepoints,
         IReadOnlyList<float> naturalAdvances)
     {
+        if (naturalAdvances.Count >= codepoints.Count &&
+            (codepoints.Count <= 1 || IsSimpleAsciiSequentialCompileText(text)))
+        {
+            return naturalAdvances;
+        }
+
         var advances = new float[codepoints.Count];
         for (var i = 0; i < codepoints.Count && i < naturalAdvances.Count; i++)
         {
