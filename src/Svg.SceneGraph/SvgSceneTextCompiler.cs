@@ -14497,14 +14497,7 @@ internal static partial class SvgSceneTextCompiler
 
     private static HashSet<Uri>? CreateFilterReferences(SvgVisualElement visualElement, HashSet<Uri>? references)
     {
-        if (references is { Count: > 0 })
-        {
-            return new HashSet<Uri>(references);
-        }
-
-        return visualElement.OwnerDocument?.BaseUri is { } baseUri
-            ? new HashSet<Uri> { baseUri }
-            : null;
+        return SvgService.ExtendImageReferences(references, visualElement.OwnerDocument);
     }
 
     private static bool TryCreateTextPathRunPlacements(

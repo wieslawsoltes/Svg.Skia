@@ -1767,7 +1767,7 @@ public static class SvgSceneCompiler
                 viewport,
                 parentTotalTransform,
                 assetLoader,
-                CreateReferences(element),
+                references: null,
                 ignoreAttributes,
                 textElementAddressKey,
                 textCompilationRootKey,
