@@ -13,6 +13,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Bounded save-layer and picture-conversion optimizations for filtered scenes.
 - Text-path fallback and bounds caching for large positioned text-path runs.
 - Whole-run natural text advance caching for repeated text measurement.
+- Simple natural text advance cache-hit fast path for repeated prepared text measurement.
 - Short shaped-text layout caching for repeated positioned glyph runs.
 - Lazy child storage for leaf-heavy retained scene graphs.
 - Compact retained-scene dependency-root storage for low-fanout mutation maps.
@@ -275,6 +276,7 @@ Focused benchmark results for `svg2-textpath-side-right-128` retained-scene comp
 ### Natural Text Advance Performance
 
 - Added a bounded whole-run natural text advance cache keyed by document, asset loader, paint/font signature, SVG text style, bidi mode, language, and SVG-font-sensitive state.
+- Added a guarded simple natural text advance cache-hit path that skips repeated `SKPaint` and `SKTypeface` setup when font-size resolution is direct and no inherited OpenType text paint properties are active; relative font sizes, custom OpenType settings, and `altGlyph` continue through the full cache key path.
 - Kept the cache wired through the prepared-text cache clear path and added regression coverage for same-style reuse and font-size-sensitive recomputation.
 
 Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalTextAdvanceAcrossFragments`:
@@ -282,6 +284,16 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
 - `generated-aligned-text-length-192`: `7.332 ms / 3349.78 KB` to `222.031 us / 45 KB`.
 - `generated-text-192`: `10.008 ms / 4592.33 KB` to `824.006 us / 144.01 KB`.
 - `generated-text-path-curves-96`: `6.974 ms / 2884.8 KB` to `119.345 us / 22.5 KB`.
+
+Focused simple natural text advance cache-hit measurements:
+
+- `MeasureNaturalTextAdvanceAcrossFragments | generated-aligned-text-length-192`: `222.031 us / 45 KB` to `202.074 us / 12 KB`.
+- `MeasureNaturalTextAdvanceAcrossFragments | generated-text-192`: `824.006 us / 144.01 KB` to `732.645 us / 45 KB`.
+- `MeasureNaturalTextAdvanceAcrossFragments | generated-text-path-curves-96`: `119.345 us / 22.5 KB` to `102.129 us / 6 KB`.
+- `CompileNodeTreeOnly | generated-text-192`: `7.587 ms` to `6.264 ms`, with retained compile allocation effectively flat at `7.54 MB`.
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: `34.229 ms` to `15.006 ms`, with retained compile allocation effectively flat at `15.59 MB`.
+- `CompileNodeTreeOnly | generated-text-path-curves-96`: `27.097 ms` to `15.622 ms`, with retained compile allocation effectively flat at `14.99 MB`.
+- Short-run timings still have visible noise, but the internals allocation drop and retained compile timing movement are both favorable.
 
 ### Benchmark And Profiling Workflow
 
@@ -309,6 +321,11 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
 - Focused natural text advance cache validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests.MeasureNaturalTextAdvance"`
   - Passed 2.
+- Focused simple natural text advance cache validation:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextSelectionDomTests|FullyQualifiedName~HitTestTests|FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgRetainedSceneGraphTests"`
+  - Passed 492.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-simple-natural-advance-cache dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192,generated-aligned-letter-spacing-192,generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-simple-natural-advance-cache-retained dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
 - Focused direct primitive path validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SKSvgRebuildFromModelTests.RebuildFromModel_ReflectsMutatedPathAfterInitialNativeBuild|FullyQualifiedName~SKSvgRebuildFromModelTests.RebuildFromModel_CanUpdateCommandsForSourceElementId"`
   - Passed 2.
@@ -408,6 +425,7 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
 - Focused text internals benchmark comparison:
   - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-before-next-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - After: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-after-natural-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - Simple cache hit: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-simple-natural-advance-cache dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
 - Focused direct primitive path benchmark comparison:
   - Before draw: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-render-draw-hotspots-after-text-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024,generated-flood-filters-256,generated-filtered-shapes-256,generated-inline-styles-512,generated-text-path-curves-96" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRenderBitmapBenchmarks.DrawNativePicture1x*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - After native conversion: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-native-after-direct-primitive-fill-paths" SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024,generated-inline-styles-512,generated-filtered-shapes-256" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks.CreateNativePictureFromFullModel*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
