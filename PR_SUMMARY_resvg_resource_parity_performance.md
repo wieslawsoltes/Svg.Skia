@@ -270,6 +270,7 @@ Focused read-only codepoint split measurements:
 - Added fast paths for single-codepoint grapheme clusters in placement and text-DOM fallback cluster generation.
 - Pre-sized text-path path-sample lists from the existing command and sampling-step logic so long cubic paths avoid repeated `List<PathSample>` backing-array growth while preserving the generated sample points.
 - Reused measured natural advances for simple ASCII text-path placement and replaced the final LINQ placement projection with an indexed copy, avoiding an advance-copy array and iterator allocation while leaving complex grapheme cluster redistribution on the existing path.
+- Emitted positioned text-path placements directly from the compiler once advances and spacing are resolved, preserving the planner's path clipping and tangent math while removing the intermediate cluster-input and placement-plan arrays from the hot path.
 
 Focused benchmark results for `svg2-textpath-side-right-128` retained-scene compilation:
 
@@ -288,6 +289,8 @@ Focused text-path placement allocation trim measurements for `generated-text-pat
 
 - `CreateTextPathPlacementsFromPrebuiltGeometryAcrossFragments`: `868.55 KB` to `673,793 B`.
 - `CompileNodeTreeOnly | generated-text-path-curves-96`: retained compile allocation moved from `14.99 MB` to `14.63 MB`; short-run timings were noisy, so this is treated as an allocation cleanup.
+- After direct compiler-side placement emission, `CreateTextPathPlacementsFromPrebuiltGeometryAcrossFragments` allocation dropped again from `673,793 B` to `144,912 B`.
+- The same direct emission pass moved `CompileNodeTreeOnly | generated-text-path-curves-96` retained compile allocation from `14.63 MB` to `13.86 MB`; short-run timings were noisy, so this is treated as an allocation cleanup.
 
 ### Natural Text Advance Performance
 
@@ -356,6 +359,13 @@ Focused simple natural text advance cache-hit measurements:
   - Passed 185.
   - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-text-path-placement-trim dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextPathPlacementBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-text-path-placement-trim-retained dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
+- Focused direct text-path placement emission validation:
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
+  - Build passed with existing warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextPathParityTests"`
+  - Passed 185.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-text-path-direct-placement dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextPathPlacementBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-text-path-direct-placement-retained dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
 - Focused direct primitive path validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SKSvgRebuildFromModelTests.RebuildFromModel_ReflectsMutatedPathAfterInitialNativeBuild|FullyQualifiedName~SKSvgRebuildFromModelTests.RebuildFromModel_CanUpdateCommandsForSourceElementId"`
   - Passed 2.
