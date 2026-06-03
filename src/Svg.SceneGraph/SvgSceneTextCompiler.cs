@@ -1332,7 +1332,7 @@ internal static partial class SvgSceneTextCompiler
             node.Transform = TransformsService.ToMatrix(svgTextBase.Transforms, svgTextBase, compiledGeometryBounds, viewport);
             node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
             node.TransformedBounds = node.TotalTransform.MapRect(compiledGeometryBounds);
-            AssignTextContentMetrics(node, svgTextBase, viewport, assetLoader);
+            AssignTextContentMetrics(node);
             node.LocalModel = sequentialModel;
             if (node.LocalModel is null)
             {
@@ -1347,7 +1347,7 @@ internal static partial class SvgSceneTextCompiler
         node.Transform = TransformsService.ToMatrix(svgTextBase.Transforms, svgTextBase, geometryBounds, viewport);
         node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
         node.TransformedBounds = node.TotalTransform.MapRect(geometryBounds);
-        AssignTextContentMetrics(node, svgTextBase, viewport, assetLoader);
+        AssignTextContentMetrics(node);
 
         if (!node.IsRenderable)
         {
@@ -1384,13 +1384,9 @@ internal static partial class SvgSceneTextCompiler
         return true;
     }
 
-    private static void AssignTextContentMetrics(
-        SvgSceneNode node,
-        SvgTextBase svgTextBase,
-        SKRect viewport,
-        ISvgAssetLoader assetLoader)
+    private static void AssignTextContentMetrics(SvgSceneNode node)
     {
-        node.SetLazyTextContentMetrics(svgTextBase, viewport, assetLoader);
+        node.SetLazyTextContentMetrics();
     }
 
     private static bool TryCompileSequentialText(

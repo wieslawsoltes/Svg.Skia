@@ -10,8 +10,8 @@ namespace Svg.Skia;
 public sealed class SvgSceneNode
 {
     private List<SvgSceneNode>? _children;
-    private TextContentMetricsSource? _textContentMetricsSource;
     private SvgSceneTextCompiler.SvgTextContentMetrics? _textContentMetrics;
+    private bool _hasLazyTextContentMetrics;
 
     internal SvgSceneNode(
         SvgSceneNodeKind kind,
@@ -92,7 +92,7 @@ public sealed class SvgSceneNode
         set
         {
             _textContentMetrics = value;
-            _textContentMetricsSource = null;
+            _hasLazyTextContentMetrics = false;
         }
     }
 
@@ -212,7 +212,7 @@ public sealed class SvgSceneNode
         LocalStroke = replacement.LocalStroke;
         HitTestPath = replacement.HitTestPath?.DeepClone();
         _textContentMetrics = replacement._textContentMetrics;
-        _textContentMetricsSource = replacement._textContentMetricsSource;
+        _hasLazyTextContentMetrics = replacement._hasLazyTextContentMetrics;
         GeometryBounds = replacement.GeometryBounds;
         TransformedBounds = replacement.TransformedBounds;
         Transform = replacement.Transform;
@@ -251,41 +251,36 @@ public sealed class SvgSceneNode
         MarkDirty();
     }
 
-    internal void SetLazyTextContentMetrics(
-        SvgTextBase textContentElement,
-        SKRect viewport,
-        ISvgAssetLoader assetLoader)
+    internal void SetLazyTextContentMetrics()
     {
         _textContentMetrics = null;
-        _textContentMetricsSource = new TextContentMetricsSource(textContentElement, viewport, assetLoader);
+        _hasLazyTextContentMetrics = true;
     }
 
-    internal SvgSceneTextCompiler.SvgTextContentMetrics? GetTextContentMetrics()
+    internal SvgSceneTextCompiler.SvgTextContentMetrics? GetTextContentMetrics(
+        SKRect viewport,
+        ISvgAssetLoader assetLoader)
     {
         if (_textContentMetrics is not null)
         {
             return _textContentMetrics;
         }
 
-        if (_textContentMetricsSource is not { } source)
+        if (!_hasLazyTextContentMetrics ||
+            Element is not SvgTextBase textContentElement)
         {
             return null;
         }
 
-        if (SvgSceneTextCompiler.TryCreateTextContentMetrics(source.TextContentElement, source.Viewport, source.AssetLoader, out var metrics) &&
+        if (SvgSceneTextCompiler.TryCreateTextContentMetrics(textContentElement, viewport, assetLoader, out var metrics) &&
             metrics.HasHitTestCells)
         {
             _textContentMetrics = metrics;
         }
 
-        _textContentMetricsSource = null;
+        _hasLazyTextContentMetrics = false;
         return _textContentMetrics;
     }
-
-    private sealed record TextContentMetricsSource(
-        SvgTextBase TextContentElement,
-        SKRect Viewport,
-        ISvgAssetLoader AssetLoader);
 
     internal void RefreshElementIdentity(string? elementAddressKey)
     {
