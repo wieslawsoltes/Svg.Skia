@@ -706,6 +706,29 @@ public partial class SkiaModel
         return true;
     }
 
+    private static int GetSmallPolyPathRevision(ShimSkiaSharp.SKPath path, SmallPolyPathCacheKey key)
+    {
+        var hash = new RevisionBuilder();
+        hash.Add(path.Version);
+        hash.Add(1);
+        hash.Add(typeof(AddPolyPathCommand));
+        hash.Add(key.Close);
+        hash.Add(key.Count);
+        hash.Add(key.X0);
+        hash.Add(key.Y0);
+        hash.Add(key.X1);
+        hash.Add(key.Y1);
+        hash.Add(key.X2);
+        hash.Add(key.Y2);
+        if (key.Count > 3)
+        {
+            hash.Add(key.X3);
+            hash.Add(key.Y3);
+        }
+
+        return hash.ToRevision();
+    }
+
     private void CacheSmallPolyRenderPath(SmallPolyPathCacheKey key, SkiaSharp.SKPath path)
     {
         if (_smallPolyNativePathCache.Count >= NativePathValueCacheLimit)
@@ -1886,8 +1909,10 @@ public partial class SkiaModel
             return null;
         }
 
-        var revision = GetRenderPathCacheRevision(path);
         var canUseValueCache = TryCreateSmallPolyPathCacheKey(path, out var valueKey);
+        var revision = canUseValueCache
+            ? GetSmallPolyPathRevision(path, valueKey)
+            : GetRenderPathCacheRevision(path);
 
         lock (_nativeObjectCacheLock)
         {
