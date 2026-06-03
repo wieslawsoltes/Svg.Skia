@@ -23,6 +23,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Lazy retained-scene compile-context storage for rarely used caches.
 - Bounded typeface-span lookup caching for repeated short text runs.
 - Lazy retained text hit-metric construction and text hit-cell materialization.
+- Source-free lazy retained text hit-metric materialization for text-cell hit testing.
 - Retained text fallback paint-clone trimming for simple typeface-span draws.
 - Single-span resolved typeface fast path for simple retained text.
 - Direct simple spacing text-DOM metrics for retained text.
@@ -92,6 +93,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Allocated retained scene compile-context gradient, fragment viewport, marker-reference, and resolved-reference caches only when those features are used; the active-document guard also keeps the common single-document case inline before allocating a `HashSet<T>`.
 - Added a bounded per-loader typeface-span cache for repeated short text/paint lookups; cache hits return fresh mutable lists while the cached span arrays stay internal, and provider-state changes clear the cache with the existing typeface-provider caches.
 - Changed retained scene nodes to keep a lazy text hit-metric source and resolve DOM hit-cell metrics only when text-cell hit testing first needs them; derived hit-cell arrays still materialize lazily, while extra cells for zero-width pointer-event cases remain preserved when metrics are resolved.
+- Moved lazy retained text metric materialization to use the scene document's compilation viewport and asset loader during point hit testing, removing the per-text-node lazy source record while preserving first-hit DOM metric resolution.
 - Allowed simple ASCII retained text with explicit font families to use the sequential text compile path when typeface lookup resolves to one full-run span; multi-span fallback, per-glyph layout, spacing, and active text-length adjustment cases continue through the prepared text path.
 - Added direct text-DOM metrics for simple horizontal ASCII letter/word-spacing runs by reusing aligned codepoint placements and natural advances, bypassing generic shaped cluster-source allocation while leaving SVG-font, bidi, synthetic small-caps, textLength, rotation/scale, vertical, and complex text on the existing paths.
 - Added direct text-DOM metrics for simple unpositioned horizontal ASCII runs by creating per-codepoint metrics from natural advances and fallback bounds, bypassing shaped cluster-source construction while leaving SVG-font, bidi, spacing, textLength, rotations, vertical, and complex text on the existing paths.
@@ -201,6 +203,13 @@ Focused lazy retained text hit-metric measurements:
 - The same change moved the focused short-run means to `7.708 ms` for `generated-text-192`, `18.650 ms` for `generated-aligned-letter-spacing-192`, and `17.903 ms` for `generated-text-path-curves-96`.
 - A direct single-run text-content metrics builder bypass also removes an extra builder copy when metrics do need to be resolved for one-run retained text.
 - The allocation deltas are the primary regression reference; text hit-testing and selection behavior remain covered by focused tests.
+
+Focused source-free lazy retained text metric measurements:
+
+- `CompileNodeTreeOnly | generated-text-192`: `7,913,332 B` to about `7,902,530 B`.
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: about `16,359,636 B` to about `16,348,747 B`.
+- `CompileNodeTreeOnly | generated-text-path-curves-96`: about `15,726,484 B` to about `15,721,074 B`.
+- Short-run timings were noisy, so this is treated as a small retained compile allocation cleanup.
 
 Focused single-span resolved typeface fast-path measurements:
 
@@ -349,6 +358,15 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~W3CTestSuiteTests.Tests"`
   - Passed 523, skipped 3.
   - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-aligned-letter-spacing-192,generated-text-192,generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-retained-lazy-text-hit-metrics dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
+- Focused source-free lazy retained text metrics validation:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextSelectionDomTests|FullyQualifiedName~HitTestTests|FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgRetainedSceneGraphTests"`
+  - Passed 492.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192,generated-aligned-letter-spacing-192,generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-lazy-text-metrics-source-free dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
+  - `dotnet format Svg.Skia.slnx --no-restore`
+  - `dotnet build Svg.Skia.slnx -c Release`
+  - Build passed with existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2594, skipped 40; other test projects passed.
 - Focused single-span resolved typeface fast-path validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextSelectionDomTests|FullyQualifiedName~HitTestTests|FullyQualifiedName~SvgTextPathParityTests"`
   - Passed 229.
