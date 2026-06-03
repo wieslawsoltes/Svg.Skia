@@ -64,6 +64,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added a direct native draw fast path for filled single-command rectangle, rounded-rectangle, oval, and circle shim paths, while preserving the existing path fallback for composite paths, strokes, and save-layer replay.
 - Added a closed line-only SVG path conversion fast path that emits a single `AddPoly` command for one-move, line-only, closed subpaths while preserving generic conversion for open, curved, arc, and multi-subpath data.
 - Added a bounded native path value cache for repeated three- and four-point `AddPoly` paths so generated path-heavy scenes can reuse equivalent native path objects during picture conversion without weakening mutation tracking.
+- Cached local-model source metadata annotation per retained scene node so repeated retained model renders avoid walking already annotated nested command trees.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -83,6 +84,12 @@ Focused native path value-cache measurement for `generated-shapes-1024`:
 
 - `CreateNativePictureFromFullModel`: `1.107 ms / 1.68 KB`.
 - `DrawNativePicture1x`: `4.386 ms` in a noisy short run, so native picture replay remains a follow-up hotspot rather than a claimed win for this change.
+
+Focused local-model metadata-cache measurements:
+
+- `CreateShimPictureModel | generated-aligned-letter-spacing-192`: `48.99 us / 33.76 KB` to `23.32 us / 33.76 KB`.
+- `CreateShimPictureModel | generated-text-192`: `50.91 us / 59.26 KB` to `44.22 us / 59.26 KB`.
+- `CreateShimPictureModel | generated-text-path-curves-96`: `124.36 us / 30.54 KB` to `23.51 us / 30.54 KB`.
 
 ### Text Path Performance
 
@@ -143,6 +150,11 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
 - Focused native path value-cache validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SKSvgRebuildFromModelTests"`
   - Passed 20.
+- Focused local-model metadata-cache validation:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SKSvgRebuildFromModelTests"`
+  - Passed 20.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests&FullyQualifiedName~TextPath"`
+  - Passed 50.
 - Focused text internals benchmark comparison:
   - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-before-next-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - After: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-after-natural-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
@@ -155,6 +167,9 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
 - Focused native path value-cache benchmarks:
   - `SVG_SKIA_BENCHMARK_RUN_LABEL="current-native-after-small-poly-path-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks.CreateNativePictureFromFullModel*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - `SVG_SKIA_BENCHMARK_RUN_LABEL="current-render-after-small-poly-path-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRenderBitmapBenchmarks.DrawNativePicture1x*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+- Focused local-model metadata-cache benchmark comparison:
+  - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="baseline-model-localmetadata-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-path-curves-96,generated-text-192,generated-aligned-letter-spacing-192" dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgLoadPipelineBenchmarks.CreateShimPictureModel*"`
+  - After: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-model-localmetadata-cache-exact" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-path-curves-96,generated-text-192,generated-aligned-letter-spacing-192" dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgLoadPipelineBenchmarks.CreateShimPictureModel*"`
 - Focused text/resource validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgResourceRenderingParityTests"`
   - Passed 290.
