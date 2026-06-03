@@ -48,6 +48,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Range-backed flattened codepoint text view for grouped natural-advance measurement.
 - Exact flattened textLength run storage for retained render, bounds, and text-DOM metric paths.
 - Exact shared inline-size compiler-run storage and exact flattened text construction for shared/wrapped textLength paths.
+- Layer-depth-only native picture replay state tracking for save/restore-heavy scenes.
 - Bounded rendered text local-bounds caching for repeated retained text metrics.
 - Read-only codepoint split reuse for text-DOM and prepared-text read paths.
 - Closed line-only SVG path conversion for generated path-heavy scenes.
@@ -102,6 +103,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added a direct native draw fast path for filled single-command rectangle, rounded-rectangle, oval, and circle shim paths, while preserving the existing path fallback for composite paths, strokes, and save-layer replay.
 - Added a closed line-only SVG path conversion fast path that emits a single `AddPoly` command for one-move, line-only, closed subpaths while preserving generic conversion for open, curved, arc, and multi-subpath data.
 - Added a bounded native path value cache for repeated three- and four-point `AddPoly` paths so generated path-heavy scenes can reuse equivalent native path objects during picture conversion without weakening mutation tracking.
+- Changed draw-picture replay state tracking from an eager save-stack to save-depth counters plus rare nested save-layer depth storage, avoiding ordinary save/restore stack work while preserving the save-layer guard for direct primitive replay.
 - Cached local-model source metadata annotation per retained scene node so repeated retained model renders avoid walking already annotated nested command trees.
 - Added a bounded short shaped-text layout cache for first-pass native picture conversion so repeated short glyph runs can reuse HarfBuzz shaping output while still creating correctly positioned `SKTextBlob` instances per draw.
 - Changed retained scene nodes to allocate child lists lazily so leaf-heavy generated scenes avoid a per-node empty `List<T>` allocation while preserving stable `Children` enumeration semantics.
@@ -157,6 +159,13 @@ Focused native path value-cache measurement for `generated-shapes-1024`:
 
 - `CreateNativePictureFromFullModel`: `1.107 ms / 1.68 KB`.
 - `DrawNativePicture1x`: `4.386 ms` in a noisy short run, so native picture replay remains a follow-up hotspot rather than a claimed win for this change.
+
+Focused layer-depth replay-state measurements:
+
+- `ReplayFullModelIntoRecorderCanvasUsingCurrentLoop | generated-shapes-1024`: `2,304.8 us / 1.68 KB` to `1,993.8 us / 1.63 KB`.
+- `ReplayFullModelIntoRecorderCanvasUsingCurrentLoop | generated-filtered-shapes-256`: `2,894.1 us / 51.68 KB` to `2,543.4 us / 51.69 KB`.
+- `CreateNativePictureFromFullModel | generated-filtered-shapes-256`: `3,512.0 us / 51.68 KB` to `2,982.8 us / 51.69 KB`.
+- `CreateNativePictureFromFullModel | generated-shapes-1024`: `2,216.2 us / 1.68 KB` to `2,304.4 us / 1.63 KB`; this conversion row stayed within short-run noise, while the production replay row improved.
 
 Focused local-model metadata-cache measurements:
 
@@ -522,6 +531,13 @@ Focused simple natural text advance cache-hit measurements:
 - Focused native path value-cache validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SKSvgRebuildFromModelTests"`
   - Passed 20.
+- Focused layer-depth replay-state validation:
+  - `dotnet build src/Svg.Skia/Svg.Skia.csproj -c Release --no-restore`
+  - Build passed with existing warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgResourceRenderingParityTests|FullyQualifiedName~W3CTestSuiteTests.Tests"`
+  - Passed 894, skipped 3.
+  - Before: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256 SVG_SKIA_BENCHMARK_RUN_LABEL=current-before-layer-depth-state dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - After: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256 SVG_SKIA_BENCHMARK_RUN_LABEL=current-layer-depth-state dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
 - Focused local-model metadata-cache validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SKSvgRebuildFromModelTests"`
   - Passed 20.
