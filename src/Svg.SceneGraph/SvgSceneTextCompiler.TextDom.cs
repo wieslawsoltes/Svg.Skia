@@ -1019,14 +1019,14 @@ internal static partial class SvgSceneTextCompiler
                 out var runs,
                 out var totalAdvance,
                 out _) ||
-            runs.Count == 0)
+            runs.Length == 0)
         {
             return false;
         }
 
         var globalOriginX = runs[0].Placements[0].Point.X;
         var clusters = new List<TextDomRunClusterMetric>();
-        for (var i = 0; i < runs.Count; i++)
+        for (var i = 0; i < runs.Length; i++)
         {
             var run = runs[i];
             if (!TryCreatePlacedTextRunMetrics(

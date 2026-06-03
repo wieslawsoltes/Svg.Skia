@@ -3433,7 +3433,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        for (var i = 0; i < runs.Count; i++)
+        for (var i = 0; i < runs.Length; i++)
         {
             var run = runs[i];
             using var commandSource = PushTextCommandSource(canvas, run.StyleSource, getElementAddressKey);
@@ -5584,7 +5584,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        for (var i = 0; i < runs.Count; i++)
+        for (var i = 0; i < runs.Length; i++)
         {
             var runBounds = MeasureCodepointPlacementBounds(runs[i].StyleSource, runs[i].Text, runs[i].Placements, viewport, assetLoader, out _);
             UnionBounds(ref bounds, runBounds);
@@ -20891,11 +20891,11 @@ internal static partial class SvgSceneTextCompiler
         SKRect geometryBounds,
         ISvgAssetLoader assetLoader,
         bool trimLeadingWhitespaceAtStart,
-        out List<PositionedCodepointRun> runs,
+        out PositionedCodepointRun[] runs,
         out float totalAdvance,
         out float finalY)
     {
-        runs = new List<PositionedCodepointRun>();
+        runs = Array.Empty<PositionedCodepointRun>();
         totalAdvance = 0f;
         finalY = currentY;
 
@@ -21004,30 +21004,36 @@ internal static partial class SvgSceneTextCompiler
         }
 
         finalY = activeY;
-        if (TryAddSingleStyleFlattenedTextLengthRun(flattenedCodepoints, placements, runs))
+        if (TryCreateSingleStyleFlattenedTextLengthRun(flattenedCodepoints, placements, out var singleRun))
         {
+            runs = [singleRun];
             return true;
         }
 
+        var groupCount = CountFlattenedStyleGroups(flattenedCodepoints);
+        if (groupCount <= 0)
+        {
+            return false;
+        }
+
+        runs = new PositionedCodepointRun[groupCount];
+        var runIndex = 0;
         var groupStart = 0;
         while (groupStart < flattenedCodepoints.Count)
         {
             var groupStyle = flattenedCodepoints[groupStart].StyleSource;
-            var builder = new StringBuilder();
-            var groupPlacements = new List<PositionedCodepointPlacement>();
             var groupIndex = groupStart;
             while (groupIndex < flattenedCodepoints.Count && ReferenceEquals(flattenedCodepoints[groupIndex].StyleSource, groupStyle))
             {
-                builder.Append(flattenedCodepoints[groupIndex].Codepoint);
-                groupPlacements.Add(placements[groupIndex]);
                 groupIndex++;
             }
 
-            runs.Add(new PositionedCodepointRun(groupStyle, builder.ToString(), groupPlacements.ToArray()));
+            runs[runIndex] = CreateFlattenedPositionedRun(groupStyle, flattenedCodepoints, placements, groupStart, groupIndex - groupStart);
+            runIndex++;
             groupStart = groupIndex;
         }
 
-        return runs.Count > 0;
+        return runIndex > 0;
     }
 
     private static float[] CreateUnitGlyphScales(int count)
@@ -21041,11 +21047,12 @@ internal static partial class SvgSceneTextCompiler
         return glyphScales;
     }
 
-    private static bool TryAddSingleStyleFlattenedTextLengthRun(
+    private static bool TryCreateSingleStyleFlattenedTextLengthRun(
         IReadOnlyList<FlattenedTextCodepoint> codepoints,
         PositionedCodepointPlacement[] placements,
-        List<PositionedCodepointRun> runs)
+        out PositionedCodepointRun run)
     {
+        run = default;
         if (codepoints.Count == 0 || placements.Length != codepoints.Count)
         {
             return false;
@@ -21060,8 +21067,40 @@ internal static partial class SvgSceneTextCompiler
             }
         }
 
-        runs.Add(new PositionedCodepointRun(styleSource, CreateFlattenedText(codepoints, 0, codepoints.Count), placements));
+        run = new PositionedCodepointRun(styleSource, CreateFlattenedText(codepoints, 0, codepoints.Count), placements);
         return true;
+    }
+
+    private static int CountFlattenedStyleGroups(IReadOnlyList<FlattenedTextCodepoint> codepoints)
+    {
+        var groupCount = 0;
+        var groupStart = 0;
+        while (groupStart < codepoints.Count)
+        {
+            var groupStyle = codepoints[groupStart].StyleSource;
+            var groupIndex = groupStart + 1;
+            while (groupIndex < codepoints.Count && ReferenceEquals(codepoints[groupIndex].StyleSource, groupStyle))
+            {
+                groupIndex++;
+            }
+
+            groupCount++;
+            groupStart = groupIndex;
+        }
+
+        return groupCount;
+    }
+
+    private static PositionedCodepointRun CreateFlattenedPositionedRun(
+        SvgTextBase styleSource,
+        IReadOnlyList<FlattenedTextCodepoint> codepoints,
+        PositionedCodepointPlacement[] placements,
+        int start,
+        int count)
+    {
+        var runPlacements = new PositionedCodepointPlacement[count];
+        Array.Copy(placements, start, runPlacements, 0, count);
+        return new PositionedCodepointRun(styleSource, CreateFlattenedText(codepoints, start, count), runPlacements);
     }
 
     private static string CreateFlattenedText(IReadOnlyList<FlattenedTextCodepoint> codepoints, int start, int count)
