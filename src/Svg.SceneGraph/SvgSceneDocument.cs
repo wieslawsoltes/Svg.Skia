@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -15,7 +16,7 @@ public sealed class SvgSceneDocument
     private readonly Dictionary<string, List<SvgSceneNode>> _nodesByAddress = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SvgSceneNode> _nodesById = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SvgSceneNode> _compilationRootsByKey = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, HashSet<string>> _compilationRootsByDependentAddress = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, CompilationRootKeySet> _compilationRootsByDependentAddress = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SvgSceneResource> _resourcesByKey = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SvgSceneResource> _resourcesById = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<SvgSceneResource>> _resourcesByAddress = new(StringComparer.Ordinal);
@@ -347,14 +348,14 @@ public sealed class SvgSceneDocument
         var hasResources = _resourcesByAddress.TryGetValue(addressKey, out var resources);
         if (hasDirectCompilationRoots && !hasResources)
         {
-            return directCompilationRoots!;
+            return directCompilationRoots;
         }
 
         HashSet<string>? results = null;
 
         if (hasDirectCompilationRoots)
         {
-            results = new HashSet<string>(directCompilationRoots!, StringComparer.Ordinal);
+            results = new HashSet<string>(directCompilationRoots, StringComparer.Ordinal);
         }
 
         if (hasResources)
@@ -367,7 +368,7 @@ public sealed class SvgSceneDocument
             }
         }
 
-        return results ?? (IReadOnlyCollection<string>?)directCompilationRoots ?? Array.Empty<string>();
+        return results is null ? Array.Empty<string>() : results;
     }
 
     internal void RebuildIndexesAndDependencies()
@@ -1198,13 +1199,18 @@ public sealed class SvgSceneDocument
 
     private void RegisterDependentAddress(string addressKey, string compilationRootKey)
     {
-        if (!_compilationRootsByDependentAddress.TryGetValue(addressKey, out var compilationRootKeys))
+        var hasExistingKeys = _compilationRootsByDependentAddress.TryGetValue(addressKey, out var compilationRootKeys);
+        if (compilationRootKeys.Add(compilationRootKey))
         {
-            compilationRootKeys = new HashSet<string>(StringComparer.Ordinal);
-            _compilationRootsByDependentAddress.Add(addressKey, compilationRootKeys);
+            if (hasExistingKeys)
+            {
+                _compilationRootsByDependentAddress[addressKey] = compilationRootKeys;
+            }
+            else
+            {
+                _compilationRootsByDependentAddress.Add(addressKey, compilationRootKeys);
+            }
         }
-
-        compilationRootKeys.Add(compilationRootKey);
     }
 
     private void CollectResourceDependents(SvgSceneResource resource, HashSet<string> results, HashSet<string> visitedResources)
@@ -1263,5 +1269,89 @@ public sealed class SvgSceneDocument
         {
             return RuntimeHelpers.GetHashCode(obj);
         }
+    }
+
+    private struct CompilationRootKeySet : IReadOnlyCollection<string>
+    {
+        private string? _first;
+        private string? _second;
+        private string[]? _additional;
+        private int _additionalCount;
+
+        public readonly int Count =>
+            (_first is null ? 0 : 1) +
+            (_second is null ? 0 : 1) +
+            _additionalCount;
+
+        public bool Add(string compilationRootKey)
+        {
+            if (_first is null)
+            {
+                _first = compilationRootKey;
+                return true;
+            }
+
+            if (string.Equals(_first, compilationRootKey, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (_second is null)
+            {
+                _second = compilationRootKey;
+                return true;
+            }
+
+            if (string.Equals(_second, compilationRootKey, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (_additional is not null)
+            {
+                for (var i = 0; i < _additionalCount; i++)
+                {
+                    if (string.Equals(_additional[i], compilationRootKey, StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            if (_additional is null)
+            {
+                _additional = new string[4];
+            }
+            else if (_additionalCount >= _additional.Length)
+            {
+                Array.Resize(ref _additional, _additional.Length * 2);
+            }
+
+            _additional[_additionalCount++] = compilationRootKey;
+            return true;
+        }
+
+        public readonly IEnumerator<string> GetEnumerator()
+        {
+            if (_first is not null)
+            {
+                yield return _first;
+            }
+
+            if (_second is not null)
+            {
+                yield return _second;
+            }
+
+            if (_additional is not null)
+            {
+                for (var i = 0; i < _additionalCount; i++)
+                {
+                    yield return _additional[i];
+                }
+            }
+        }
+
+        readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
