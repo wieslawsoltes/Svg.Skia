@@ -709,7 +709,7 @@ internal static partial class SvgSceneTextCompiler
             segmentAdvance += Math.Max(0f, wrapAdvance);
         }
 
-        var codepointTexts = codepoints.Select(static item => item.Codepoint).ToArray();
+        var codepointTexts = new FlattenedCodepointTextList(codepoints);
         var bidiFormattingDepth = 0;
         string? previousCodepoint = null;
         for (var i = 0; i < codepoints.Count; i++)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -637,6 +638,33 @@ internal static partial class SvgSceneTextCompiler
     private readonly record struct StretchedTextPathCluster(string Text, float NaturalOffset, float NaturalAdvance, SKPath? NaturalPath = null);
 
     private readonly record struct PositionedCodepointRun(SvgTextBase StyleSource, string Text, PositionedCodepointPlacement[] Placements);
+
+    private sealed class FlattenedCodepointTextList : IReadOnlyList<string>
+    {
+        private readonly IReadOnlyList<FlattenedTextCodepoint> _codepoints;
+
+        public FlattenedCodepointTextList(IReadOnlyList<FlattenedTextCodepoint> codepoints)
+        {
+            _codepoints = codepoints;
+        }
+
+        public int Count => _codepoints.Count;
+
+        public string this[int index] => _codepoints[index].Codepoint;
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            for (var i = 0; i < _codepoints.Count; i++)
+            {
+                yield return _codepoints[i].Codepoint;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
 
     private readonly record struct PathSample(SKPoint Point, float Distance, bool StartsSubpath, bool ClosesSubpath);
 
@@ -10141,7 +10169,7 @@ internal static partial class SvgSceneTextCompiler
             segmentAdvance += advance;
         }
 
-        var codepointTexts = codepoints.Select(static item => item.Codepoint).ToArray();
+        var codepointTexts = new FlattenedCodepointTextList(codepoints);
         var bidiFormattingDepth = 0;
         string? previousCodepoint = null;
         for (var i = 0; i < codepoints.Count; i++)
