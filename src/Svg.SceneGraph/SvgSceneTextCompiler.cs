@@ -639,6 +639,38 @@ internal static partial class SvgSceneTextCompiler
 
     private readonly record struct PositionedCodepointRun(SvgTextBase StyleSource, string Text, PositionedCodepointPlacement[] Placements);
 
+    private struct WrappedTextLengthRunGroup
+    {
+        public WrappedTextLengthRunGroup(SvgTextBase styleSource, int start, int end, int renderedCount)
+        {
+            StyleSource = styleSource;
+            Start = start;
+            End = end;
+            CharCount = 0;
+            PlacementIndex = 0;
+            Placements = new PositionedCodepointPlacement[renderedCount];
+        }
+
+        public SvgTextBase StyleSource { get; }
+
+        public int Start { get; }
+
+        public int End { get; }
+
+        public int CharCount { get; private set; }
+
+        public int PlacementIndex { get; private set; }
+
+        public PositionedCodepointPlacement[] Placements { get; }
+
+        public void AddPlacement(int charLength, PositionedCodepointPlacement placement)
+        {
+            CharCount += charLength;
+            Placements[PlacementIndex] = placement;
+            PlacementIndex++;
+        }
+    }
+
     private sealed class FlattenedCodepointTextList : IReadOnlyList<string>
     {
         private readonly IReadOnlyList<FlattenedTextCodepoint> _codepoints;
@@ -9738,40 +9770,6 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var placements = new PositionedCodepointPlacement[lineRuns.Count];
-        var currentOffset = 0f;
-        var currentYOffset = 0f;
-        var sourceRunIndex = 0;
-        for (var i = 0; i < lineRuns.Count; i++)
-        {
-            var sourceIndex = lineRuns[i].SourceCodepointIndex;
-            if (sourceIndex < 0 || sourceIndex >= codepoints.Count)
-            {
-                continue;
-            }
-
-            var codepoint = codepoints[sourceIndex];
-            currentOffset += codepoint.Dx;
-            currentYOffset += codepoint.Dy;
-            var placementX = drawX + currentOffset;
-            var placementY = drawY + currentYOffset;
-            placements[i] = new PositionedCodepointPlacement(
-                new SKPoint(placementX, placementY),
-                0f,
-                glyphScaleX,
-                scaleGlyphs ? drawX : placementX);
-
-            if (sourceRunIndex < sourceRunCount - 1)
-            {
-                var clusterAdvance = scaleGlyphs
-                    ? naturalAdvances[sourceIndex] * glyphScaleX
-                    : naturalAdvances[sourceIndex] + GetInterCodepointSpacingAdvance(codepoint, naturalAdvances[sourceIndex], geometryBounds) + extraGapAdvance;
-                currentOffset += IsValidPositiveAdvance(clusterAdvance) ? clusterAdvance : 0f;
-            }
-
-            sourceRunIndex++;
-        }
-
         var groupCount = 0;
         var groupSearchStart = 0;
         while (TryGetNextWrappedTextLengthGroup(
@@ -9791,7 +9789,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var groupedRuns = new PositionedCodepointRun[groupCount];
+        var groups = new WrappedTextLengthRunGroup[groupCount];
         groupSearchStart = 0;
         var groupIndex = 0;
         while (TryGetNextWrappedTextLengthGroup(
@@ -9803,15 +9801,63 @@ internal static partial class SvgSceneTextCompiler
                    out var groupStyleSource,
                    out var renderedCount))
         {
-            groupedRuns[groupIndex] = CreateWrappedTextLengthRun(
-                groupStyleSource,
-                lineRuns,
-                codepoints,
-                placements,
-                groupStart,
-                groupEnd,
-                renderedCount);
+            groups[groupIndex] = new WrappedTextLengthRunGroup(groupStyleSource, groupStart, groupEnd, renderedCount);
             groupIndex++;
+        }
+
+        var currentOffset = 0f;
+        var currentYOffset = 0f;
+        var sourceRunIndex = 0;
+        groupIndex = 0;
+        for (var i = 0; i < lineRuns.Count; i++)
+        {
+            var sourceIndex = lineRuns[i].SourceCodepointIndex;
+            if (sourceIndex < 0 || sourceIndex >= codepoints.Count)
+            {
+                continue;
+            }
+
+            while (groupIndex < groups.Length && i >= groups[groupIndex].End)
+            {
+                groupIndex++;
+            }
+
+            if (groupIndex >= groups.Length)
+            {
+                return false;
+            }
+
+            var codepoint = codepoints[sourceIndex];
+            currentOffset += codepoint.Dx;
+            currentYOffset += codepoint.Dy;
+            var placementX = drawX + currentOffset;
+            var placementY = drawY + currentYOffset;
+            var placement = new PositionedCodepointPlacement(
+                new SKPoint(placementX, placementY),
+                0f,
+                glyphScaleX,
+                scaleGlyphs ? drawX : placementX);
+
+            ref var group = ref groups[groupIndex];
+            group.AddPlacement(codepoint.Codepoint.Length, placement);
+
+            if (sourceRunIndex < sourceRunCount - 1)
+            {
+                var clusterAdvance = scaleGlyphs
+                    ? naturalAdvances[sourceIndex] * glyphScaleX
+                    : naturalAdvances[sourceIndex] + GetInterCodepointSpacingAdvance(codepoint, naturalAdvances[sourceIndex], geometryBounds) + extraGapAdvance;
+                currentOffset += IsValidPositiveAdvance(clusterAdvance) ? clusterAdvance : 0f;
+            }
+
+            sourceRunIndex++;
+        }
+
+        var groupedRuns = new PositionedCodepointRun[groups.Length];
+        for (var i = 0; i < groups.Length; i++)
+        {
+            var group = groups[i];
+            var text = CreateWrappedTextLengthRunText(lineRuns, codepoints, group.Start, group.End, group.CharCount);
+            groupedRuns[i] = new PositionedCodepointRun(group.StyleSource, text, group.Placements);
         }
 
         positionedRuns = groupedRuns;
@@ -9867,35 +9913,6 @@ internal static partial class SvgSceneTextCompiler
 
         groupEnd = start;
         return renderedCount > 0;
-    }
-
-    private static PositionedCodepointRun CreateWrappedTextLengthRun(
-        SvgTextBase styleSource,
-        IReadOnlyList<InlineSizeTextRun> lineRuns,
-        IReadOnlyList<FlattenedTextCodepoint> codepoints,
-        IReadOnlyList<PositionedCodepointPlacement> placements,
-        int start,
-        int end,
-        int renderedCount)
-    {
-        var runPlacements = new PositionedCodepointPlacement[renderedCount];
-        var charCount = 0;
-        var placementIndex = 0;
-        for (var i = start; i < end; i++)
-        {
-            var sourceIndex = lineRuns[i].SourceCodepointIndex;
-            if (!IsValidWrappedTextLengthSourceIndex(sourceIndex, codepoints.Count))
-            {
-                continue;
-            }
-
-            charCount += codepoints[sourceIndex].Codepoint.Length;
-            runPlacements[placementIndex] = placements[i];
-            placementIndex++;
-        }
-
-        var text = CreateWrappedTextLengthRunText(lineRuns, codepoints, start, end, charCount);
-        return new PositionedCodepointRun(styleSource, text, runPlacements);
     }
 
     private static string CreateWrappedTextLengthRunText(
