@@ -33,6 +33,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Single-span resolved typeface fast path for simple retained text.
 - Direct simple spacing text-DOM metrics for retained text.
 - Direct simple unpositioned text-DOM metrics for simple retained text.
+- Bounded prepared line-stats caching for repeated retained sequential text runs.
 - Simple aligned retained text compile fast path for horizontal spacing/textLength runs.
 - Direct fixed-spacing positioned text-blob recording for simple retained aligned text runs.
 - Direct positioned text-blob recording for simple root `lengthAdjust="spacing"` textLength runs.
@@ -125,6 +126,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Allowed simple ASCII retained text with explicit font families to use the sequential text compile path when typeface lookup resolves to one full-run span; multi-span fallback, per-glyph layout, spacing, and active text-length adjustment cases continue through the prepared text path.
 - Added direct text-DOM metrics for simple horizontal ASCII letter/word-spacing runs by reusing aligned codepoint placements and natural advances, bypassing generic shaped cluster-source allocation while leaving SVG-font, bidi, synthetic small-caps, textLength, rotation/scale, vertical, and complex text on the existing paths.
 - Added direct text-DOM metrics for simple unpositioned horizontal ASCII runs by creating per-codepoint metrics from natural advances and fallback bounds, bypassing shaped cluster-source construction while leaving SVG-font, bidi, spacing, textLength, rotations, vertical, and complex text on the existing paths.
+- Added a bounded prepared line-stats cache keyed by asset loader, document, text, font, bidi, and paint metric signature so repeated retained sequential text fragments reuse measured draw text, resolved typeface, advance, and local bounds while ignoring paint color differences that do not affect text metrics.
 - Added a guarded retained compile fast path for simple horizontal ASCII aligned runs with fixed letter/word spacing or non-relative textLength, resolving codepoint placements once and reusing them for both bounds and drawing while leaving rotations, baseline shifts, decorations, vertical text, relative spacing/textLength, SVG-font text, custom OpenType properties, and complex bidi text on the existing path.
 - Added a narrower retained compile path for simple fixed non-negative letter/word-spacing runs that builds positioned text-blob points directly from natural advances and full-run local bounds, bypassing placement structs and per-codepoint bounds resolution while leaving percentages, negative spacing, textLength, SVG fonts, rotations, baseline shifts, decorations, vertical text, custom OpenType properties, and complex text on the existing aligned placement path.
 - Added a root retained compile path for simple horizontal ASCII `lengthAdjust="spacing"` textLength runs that records one positioned text blob from natural advances plus the distributed textLength gap, bypassing flattened textLength layout, per-codepoint placement structs, and per-codepoint text commands while leaving inline-size, positioned descendants, nested textLength, rotations, baseline shifts, decorations, vertical text, SVG fonts, relative textLength units, custom OpenType properties, explicit spacing, and complex text on existing paths.
@@ -407,6 +409,11 @@ Focused simple root textLength spacing positioned text-blob measurements:
 
 - `CompileNodeTreeOnly | generated-aligned-text-length-192`: `7.591 ms / 6 MB`, down from the fresh retained hotspot scan's `71.45 ms / 11,102.6 KB`, after recording simple root `lengthAdjust="spacing"` rows as one positioned text blob and keeping the existing scaled-command path for `spacingAndGlyphs`.
 - `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: `2.427 ms / 3.19 MB` as the fixed-spacing control row.
+
+Focused retained sequential line-stats cache measurements:
+
+- `CompileNodeTreeOnly | generated-text-192`: `3.829 ms / 3.14 MB`, down from the fresh retained hotspot scan's `66.16 ms / 9.49 MB`, after caching repeated simple sequential line stats across the generated `Item `, ` sample `, and `glyphs` fragments.
+- `CompileNodeTreeOnly | generated-aligned-text-length-192`: `7.199 ms / 6 MB` and `CompileNodeTreeOnly | generated-text-path-curves-96`: `12.251 ms / 9.92 MB` in the same control run.
 
 Focused aligned compile codepoint-bound reuse measurements:
 
@@ -728,6 +735,12 @@ Focused simple natural text advance cache-hit measurements:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_TextLengthSpacing|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_TextLengthSpacingAndGlyphs|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_LengthAdjustSpacingAndGlyphs|FullyQualifiedName~SvgSceneTextCompilerTests"`
   - Passed 183.
   - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-aligned-text-length-192,generated-aligned-letter-spacing-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-simple-textlength-spacing-blob dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+- Focused retained sequential line-stats cache validation:
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
+  - Build passed with existing warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests.TryCompileSequentialText_ReusesLineStatsForRepeatedStyleRuns|FullyQualifiedName~SvgSceneTextCompilerTests.TryCompileSequentialText_Succeeds_ForDirectedAsciiRuns|FullyQualifiedName~SvgSceneTextCompilerTests.TryCompileSequentialText_FallsBack"`
+  - Passed 5.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192,generated-text-path-curves-96,generated-aligned-text-length-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-line-stats-cache dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
 - Focused aligned compile codepoint-bound reuse validation:
   - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
   - Build passed with existing warnings.
