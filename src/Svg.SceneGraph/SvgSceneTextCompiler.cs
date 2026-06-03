@@ -3346,14 +3346,17 @@ internal static partial class SvgSceneTextCompiler
         paint.TextAlign = SKTextAlign.Left;
         if (typefaceSpans.Count == 1)
         {
-            paint.Typeface = typefaceSpans[0].Typeface;
+            var typefaceSpan = typefaceSpans[0];
+            paint.Typeface = typefaceSpan.Typeface;
             if (TryCreateBrowserShapedGlyphRun(svgTextBase, spanText, paint, assetLoader, out var shapedRun, out var shapedAdvance))
             {
                 DrawShapedGlyphRun(shapedRun, GetAlignedStartX(anchorX, shapedAdvance, textAlign), anchorY, paint, canvas);
                 return shapedAdvance;
             }
 
-            paint = paint.Clone();
+            var runPaint = paint.Clone();
+            canvas.DrawText(typefaceSpan.Text, currentX, anchorY, runPaint);
+            return naturalTotalAdvance;
         }
 
         if (typefaceSpans.Count == 0)
@@ -3372,7 +3375,10 @@ internal static partial class SvgSceneTextCompiler
             paint.Typeface = typefaceSpan.Typeface;
             canvas.DrawText(typefaceSpan.Text, currentX, anchorY, paint);
             currentX += typefaceSpan.Advance;
-            paint = paint.Clone();
+            if (i + step != endIndex)
+            {
+                paint = paint.Clone();
+            }
         }
 
         return naturalTotalAdvance;
@@ -18823,25 +18829,32 @@ internal static partial class SvgSceneTextCompiler
 
         if (typefaceSpans.Count == 1)
         {
-            paint.Typeface = typefaceSpans[0].Typeface;
+            var typefaceSpan = typefaceSpans[0];
+            paint.Typeface = typefaceSpan.Typeface;
             if (TryCreateBrowserShapedGlyphRun(svgTextBase, spanText, paint, assetLoader, out var shapedRun, out var shapedAdvance))
             {
                 DrawShapedGlyphRun(shapedRun, anchorX, anchorY, paint, canvas);
                 return shapedAdvance;
             }
 
-            paint = paint.Clone();
+            var runPaint = paint.Clone();
+            canvas.DrawText(typefaceSpan.Text, anchorX, anchorY, runPaint);
+            return EnsureWhitespaceAdvance(spanText, paint, assetLoader, typefaceSpan.Advance);
         }
 
         var currentX = anchorX;
         var naturalTotalAdvance = 0f;
-        foreach (var typefaceSpan in typefaceSpans)
+        for (var i = 0; i < typefaceSpans.Count; i++)
         {
+            var typefaceSpan = typefaceSpans[i];
             paint.Typeface = typefaceSpan.Typeface;
             canvas.DrawText(typefaceSpan.Text, currentX, anchorY, paint);
             currentX += typefaceSpan.Advance;
             naturalTotalAdvance += typefaceSpan.Advance;
-            paint = paint.Clone();
+            if (i + 1 < typefaceSpans.Count)
+            {
+                paint = paint.Clone();
+            }
         }
 
         naturalTotalAdvance = EnsureWhitespaceAdvance(spanText, paint, assetLoader, naturalTotalAdvance);
