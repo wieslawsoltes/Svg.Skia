@@ -1764,7 +1764,7 @@ internal static partial class SvgSceneTextCompiler
         List<SvgTextDomClusterMetric> domClusters,
         ref int domCharIndex)
     {
-        var codepoints = SplitCodepoints(run.Text);
+        var codepoints = SplitCodepointsReadOnly(run.Text);
         var inlineDirection = GetInlineAdvanceDirection(run.StyleSource);
         var localOffset = 0f;
         var localCharIndex = 0;

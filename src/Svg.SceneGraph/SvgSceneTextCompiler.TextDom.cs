@@ -2736,7 +2736,7 @@ internal static partial class SvgSceneTextCompiler
             visualRuns = visualRuns.OrderBy(static run => run.StartCharIndex).ToList();
         }
 
-        var codepoints = SplitCodepoints(text);
+        var codepoints = SplitCodepointsReadOnly(text);
         if (codepoints.Count == 0)
         {
             return false;
@@ -2802,7 +2802,7 @@ internal static partial class SvgSceneTextCompiler
 
     private static SvgTextDirection ResolvePlainTextDirection(string text, SvgTextDirection fallback)
     {
-        var codepoints = SplitCodepoints(text);
+        var codepoints = SplitCodepointsReadOnly(text);
         for (var i = 0; i < codepoints.Count; i++)
         {
             var direction = SvgTextBidiResolver.GetStrongDirection(codepoints[i]);
@@ -2932,7 +2932,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var codepoints = SplitCodepoints(text);
+        var codepoints = SplitCodepointsReadOnly(text);
         if (codepoints.Count == 0 ||
             shapedRun.Glyphs.Length == 0 ||
             shapedRun.Points.Length != shapedRun.Glyphs.Length ||
@@ -2998,7 +2998,7 @@ internal static partial class SvgSceneTextCompiler
             return CopyTextDomClusterSources(sources);
         }
 
-        var codepoints = SplitCodepoints(text);
+        var codepoints = SplitCodepointsReadOnly(text);
         var codepointCharOffsets = CreateCodepointCharOffsets(codepoints);
         var mergedSources = new List<TextDomClusterSource>(clusterStarts.Count);
         var sourceIndex = 0;
@@ -3079,7 +3079,7 @@ internal static partial class SvgSceneTextCompiler
         ISvgAssetLoader assetLoader,
         out float totalAdvance)
     {
-        var codepoints = SplitCodepoints(text);
+        var codepoints = SplitCodepointsReadOnly(text);
         var advances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, viewport, assetLoader);
         var clusterStarts = SvgTextBoundaryResolver.Default.GetGraphemeClusterStartCharIndexes(text);
         var codepointCharOffsets = CreateCodepointCharOffsets(codepoints);

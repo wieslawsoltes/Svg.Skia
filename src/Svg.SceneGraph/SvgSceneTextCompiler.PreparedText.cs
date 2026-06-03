@@ -224,7 +224,7 @@ internal static partial class SvgSceneTextCompiler
             ISvgAssetLoader assetLoader,
             out PreparedFlatTextRun preparedText)
         {
-            var naturalCodepointAdvances = MeasureNaturalCodepointAdvancesCore(styleSource, text, SplitCodepoints(text), geometryBounds, assetLoader);
+            var naturalCodepointAdvances = MeasureNaturalCodepointAdvancesCore(styleSource, text, SplitCodepointsReadOnly(text), geometryBounds, assetLoader);
             preparedText = new PreparedFlatTextRun(
                 styleSource,
                 text,
@@ -639,7 +639,7 @@ internal static partial class SvgSceneTextCompiler
     {
         if (IsVerticalWritingMode(svgTextBase))
         {
-            var codepoints = SplitCodepoints(text);
+            var codepoints = SplitCodepointsReadOnly(text);
             var totalAdvance = 0f;
             for (var i = 0; i < codepoints.Count; i++)
             {
