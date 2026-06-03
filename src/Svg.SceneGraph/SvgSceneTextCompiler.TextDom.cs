@@ -1788,6 +1788,21 @@ internal static partial class SvgSceneTextCompiler
                 naturalAdvances);
         }
 
+        if (TryCreateSimpleUnpositionedTextRunMetrics(
+                svgTextBase,
+                text,
+                viewport,
+                assetLoader,
+                paint,
+                anchorX,
+                anchorY,
+                textAlign,
+                out clusters,
+                out runLength))
+        {
+            return true;
+        }
+
         if (rotations is not { Length: > 0 } &&
             TryCreateBidiClusterSources(svgTextBase, text, viewport, paint, assetLoader, out var bidiClusters, out var bidiAdvance))
         {
@@ -2083,6 +2098,92 @@ internal static partial class SvgSceneTextCompiler
 
         clusters = runClusters;
         runLength = maxEndOffset;
+        return true;
+    }
+
+    private static bool TryCreateSimpleUnpositionedTextRunMetrics(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader,
+        SKPaint paint,
+        float anchorX,
+        float anchorY,
+        SKTextAlign textAlign,
+        out TextDomRunClusterMetric[] clusters,
+        out float runLength)
+    {
+        clusters = Array.Empty<TextDomRunClusterMetric>();
+        runLength = 0f;
+        if (HasOwnTextLengthAdjustment(svgTextBase) ||
+            IsVerticalWritingMode(svgTextBase) ||
+            IsRightToLeft(svgTextBase) ||
+            SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase) != SvgUnicodeBidiMode.Normal ||
+            RequiresSyntheticSmallCaps(svgTextBase, text) ||
+            !IsSimpleAsciiSequentialCompileText(text))
+        {
+            return false;
+        }
+
+        var codepoints = SplitCodepointsReadOnly(text);
+        if (codepoints.Count == 0 ||
+            HasEffectiveSpacingAdjustments(svgTextBase, codepoints))
+        {
+            return false;
+        }
+
+        if (TryCreateSvgFontClusterSources(svgTextBase, text, paint, assetLoader, out _, out _))
+        {
+            return false;
+        }
+
+        var advances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, viewport, assetLoader);
+        if (advances.Length != codepoints.Count)
+        {
+            return false;
+        }
+
+        var totalAdvance = 0f;
+        for (var i = 0; i < advances.Length; i++)
+        {
+            totalAdvance += advances[i];
+        }
+
+        var startX = GetAlignedStartCoordinate(anchorX, totalAdvance, textAlign);
+        var runClusters = new TextDomRunClusterMetric[codepoints.Count];
+        var relativeOffset = 0f;
+        for (var i = 0; i < codepoints.Count; i++)
+        {
+            var codepoint = codepoints[i];
+            var advance = advances[i];
+            var point = new SKPoint(startX + relativeOffset, anchorY);
+            var extent = CreateFallbackTextDomClusterBounds(
+                svgTextBase,
+                point,
+                advance,
+                1f,
+                point,
+                0f,
+                paint,
+                assetLoader,
+                codepoint,
+                out var hitExtent);
+            runClusters[i] = new TextDomRunClusterMetric(
+                codepoint.Length,
+                relativeOffset,
+                relativeOffset + advance,
+                point,
+                new SKPoint(point.X + advance, point.Y),
+                extent,
+                0f)
+            {
+                HitExtent = hitExtent
+            };
+            relativeOffset += advance;
+        }
+
+        clusters = runClusters;
+        runLength = totalAdvance;
         return true;
     }
 
