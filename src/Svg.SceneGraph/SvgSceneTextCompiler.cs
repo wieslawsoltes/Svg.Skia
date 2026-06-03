@@ -5366,7 +5366,9 @@ internal static partial class SvgSceneTextCompiler
         out float advance)
     {
         advance = 0f;
-        if (string.IsNullOrEmpty(text) || placements.Length <= 1)
+        if (string.IsNullOrEmpty(text) ||
+            placements.Length <= 1 ||
+            IsSimpleAsciiSequentialCompileText(text))
         {
             return false;
         }
@@ -7563,6 +7565,21 @@ internal static partial class SvgSceneTextCompiler
         return layers.Count > 0
             ? layers.ToList()
             : Array.Empty<TextDecorationLayer>();
+    }
+
+    private static bool HasTextDecorationLayers(SvgTextBase svgTextBase)
+    {
+        for (SvgElement? current = svgTextBase; current is not null; current = current.Parent)
+        {
+            if (current is SvgVisualElement &&
+                TryGetOwnTextDecoration(current, out _) &&
+                ShouldApplyDecorationLayer(svgTextBase, current))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool ShouldApplyDecorationLayer(SvgTextBase leafTextBase, SvgElement decorator)
@@ -14854,7 +14871,8 @@ internal static partial class SvgSceneTextCompiler
         SvgSceneContextPaint? contextPaint)
     {
         using var commandSource = PushTextCommandSource(canvas, run.CommandSource, getElementAddressKey);
-        _ = DrawTextPaintOrder(run.StyleSource, includeFill, includeStroke, includeDecorations, phase =>
+        var drawDecorations = includeDecorations && run.Decorations.Count > 0;
+        _ = DrawTextPaintOrder(run.StyleSource, includeFill, includeStroke, drawDecorations, phase =>
         {
             switch (phase)
             {
@@ -14932,7 +14950,8 @@ internal static partial class SvgSceneTextCompiler
         SvgSceneContextPaint? contextPaint)
     {
         using var commandSource = PushTextCommandSource(canvas, run.StyleSource, getElementAddressKey);
-        _ = DrawTextPaintOrder(run.StyleSource, includeFill, includeStroke, includeDecorations, phase =>
+        var drawDecorations = includeDecorations && HasTextDecorationLayers(run.StyleSource);
+        _ = DrawTextPaintOrder(run.StyleSource, includeFill, includeStroke, drawDecorations, phase =>
         {
             switch (phase)
             {
@@ -16676,7 +16695,7 @@ internal static partial class SvgSceneTextCompiler
         IReadOnlyList<float> naturalAdvances)
     {
         if (naturalAdvances.Count >= codepoints.Count &&
-            (codepoints.Count <= 1 || IsSimpleAsciiSequentialCompileText(text)))
+            (codepoints.Count <= 1 || IsSimpleAsciiSequentialCompileText(text) || !MayNeedClusteredNaturalCodepointAdvances(codepoints)))
         {
             return naturalAdvances;
         }
