@@ -14,6 +14,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Text-path fallback and bounds caching for large positioned text-path runs.
 - Pre-sized text-path path-sample storage for long sampled paths.
 - Text-path placement allocation trimming for simple positioned text-path runs.
+- Text-path geometry cache-hit allocation trimming for repeated referenced path data.
 - Whole-run natural text advance caching for repeated text measurement.
 - Simple natural text advance cache-hit fast path for repeated prepared text measurement.
 - Short shaped-text layout caching for repeated positioned glyph runs.
@@ -271,6 +272,7 @@ Focused read-only codepoint split measurements:
 - Pre-sized text-path path-sample lists from the existing command and sampling-step logic so long cubic paths avoid repeated `List<PathSample>` backing-array growth while preserving the generated sample points.
 - Reused measured natural advances for simple ASCII text-path placement and replaced the final LINQ placement projection with an indexed copy, avoiding an advance-copy array and iterator allocation while leaving complex grapheme cluster redistribution on the existing path.
 - Emitted positioned text-path placements directly from the compiler once advances and spacing are resolved, preserving the planner's path clipping and tangent math while removing the intermediate cluster-input and placement-plan arrays from the hot path.
+- Resolved same-document text-path `#id` geometry references without reparsing a `Uri` on cache hits, and hashed raw typed `SvgPathSegmentList` data for referenced path signatures so repeated cache-key creation does not serialize parsed `d` attributes back to strings.
 
 Focused benchmark results for `svg2-textpath-side-right-128` retained-scene compilation:
 
@@ -291,6 +293,13 @@ Focused text-path placement allocation trim measurements for `generated-text-pat
 - `CompileNodeTreeOnly | generated-text-path-curves-96`: retained compile allocation moved from `14.99 MB` to `14.63 MB`; short-run timings were noisy, so this is treated as an allocation cleanup.
 - After direct compiler-side placement emission, `CreateTextPathPlacementsFromPrebuiltGeometryAcrossFragments` allocation dropped again from `673,793 B` to `144,912 B`.
 - The same direct emission pass moved `CompileNodeTreeOnly | generated-text-path-curves-96` retained compile allocation from `14.63 MB` to `13.86 MB`; short-run timings were noisy, so this is treated as an allocation cleanup.
+
+Focused text-path geometry cache-hit measurements for `generated-text-path-curves-96`:
+
+- `ResolveTextPathGeometryAcrossFragments`: `1,053,326 B` to `3,840 B`, with the focused short-run mean moving to `30.32 us`.
+- `PrepareTextPathPlacementInputsAcrossFragments`: `1,310,739 B` to `261,255 B`.
+- `CreateTextPathPlacementsFromPrebuiltGeometryAcrossFragments` stayed at the direct-emission allocation level of `144,913 B`.
+- `CompileNodeTreeOnly | generated-text-path-curves-96`: retained compile allocation moved from `13.86 MB` to `11.61 MB`; short-run timings remained noisy, so this is treated primarily as an allocation cleanup.
 
 ### Natural Text Advance Performance
 
@@ -366,6 +375,11 @@ Focused simple natural text advance cache-hit measurements:
   - Passed 185.
   - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-text-path-direct-placement dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextPathPlacementBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-text-path-direct-placement-retained dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
+- Focused text-path geometry cache-hit validation:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgSceneTextCompilerTests"`
+  - Passed 185.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-text-path-raw-pathdata-full-placement dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextPathPlacementBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-retained-text-path-raw-pathdata-signature dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
 - Focused direct primitive path validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SKSvgRebuildFromModelTests.RebuildFromModel_ReflectsMutatedPathAfterInitialNativeBuild|FullyQualifiedName~SKSvgRebuildFromModelTests.RebuildFromModel_CanUpdateCommandsForSourceElementId"`
   - Passed 2.
