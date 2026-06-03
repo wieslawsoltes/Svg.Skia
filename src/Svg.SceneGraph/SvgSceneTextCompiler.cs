@@ -1390,10 +1390,7 @@ internal static partial class SvgSceneTextCompiler
         SKRect viewport,
         ISvgAssetLoader assetLoader)
     {
-        node.TextContentMetrics = TryCreateTextContentMetrics(svgTextBase, viewport, assetLoader, out var metrics) &&
-                                  metrics.HasHitTestCells
-            ? metrics
-            : null;
+        node.SetLazyTextContentMetrics(svgTextBase, viewport, assetLoader);
     }
 
     private static bool TryCompileSequentialText(

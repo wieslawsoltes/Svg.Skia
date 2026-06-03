@@ -537,6 +537,112 @@ internal static partial class SvgSceneTextCompiler
         }
     }
 
+    private static SvgTextContentMetrics CreateSingleRunTextContentMetrics(
+        IReadOnlyList<TextDomRunClusterMetric> runClusters,
+        float runLength)
+    {
+        var clusterCount = 0;
+        var extraHitCellCount = 0;
+        for (var i = 0; i < runClusters.Count; i++)
+        {
+            if (runClusters[i].CharLength <= 0)
+            {
+                if (!runClusters[i].HitExtent.IsEmpty)
+                {
+                    extraHitCellCount++;
+                }
+
+                continue;
+            }
+
+            clusterCount++;
+        }
+
+        if (clusterCount == 0)
+        {
+            var hitCells = extraHitCellCount == 0
+                ? null
+                : CreateSingleRunExtraHitCells(runClusters, extraHitCellCount);
+            return new SvgTextContentMetrics(
+                Array.Empty<TextDomClusterMetric>(),
+                0,
+                Math.Max(0f, runLength),
+                hitCells);
+        }
+
+        var clusters = new TextDomClusterMetric[clusterCount];
+        var extraHitCells = extraHitCellCount == 0 ? null : new TextDomHitCell[extraHitCellCount];
+        var numberOfChars = 0;
+        var clusterIndex = 0;
+        var extraHitCellIndex = 0;
+        var hasExplicitStartCharIndex = false;
+        for (var i = 0; i < runClusters.Count; i++)
+        {
+            var runCluster = runClusters[i];
+            if (runCluster.CharLength <= 0)
+            {
+                if (!runCluster.HitExtent.IsEmpty && extraHitCells is not null)
+                {
+                    extraHitCells[extraHitCellIndex++] = new TextDomHitCell(runCluster.HitExtent);
+                }
+
+                continue;
+            }
+
+            var startCharIndex = numberOfChars;
+            if (runCluster.StartCharIndex is { } explicitStartCharIndex)
+            {
+                startCharIndex = explicitStartCharIndex;
+                hasExplicitStartCharIndex = true;
+            }
+
+            clusters[clusterIndex++] = new TextDomClusterMetric(
+                startCharIndex,
+                runCluster.CharLength,
+                runCluster.StartOffset,
+                runCluster.EndOffset,
+                runCluster.StartPoint,
+                runCluster.EndPoint,
+                runCluster.Extent,
+                runCluster.RotationDegrees)
+            {
+                HitExtent = runCluster.HitExtent
+            };
+            numberOfChars = runCluster.StartCharIndex is { }
+                ? Math.Max(numberOfChars, startCharIndex + runCluster.CharLength)
+                : numberOfChars + runCluster.CharLength;
+        }
+
+        if (hasExplicitStartCharIndex && clusters.Length > 1)
+        {
+            Array.Sort(clusters, static (left, right) => left.StartCharIndex.CompareTo(right.StartCharIndex));
+        }
+
+        return new SvgTextContentMetrics(
+            clusters,
+            numberOfChars,
+            Math.Max(0f, runLength),
+            extraHitCells);
+    }
+
+    private static TextDomHitCell[] CreateSingleRunExtraHitCells(
+        IReadOnlyList<TextDomRunClusterMetric> runClusters,
+        int extraHitCellCount)
+    {
+        var extraHitCells = new TextDomHitCell[extraHitCellCount];
+        var extraHitCellIndex = 0;
+        for (var i = 0; i < runClusters.Count; i++)
+        {
+            var runCluster = runClusters[i];
+            if (runCluster.CharLength <= 0 && !runCluster.HitExtent.IsEmpty)
+            {
+                extraHitCells[extraHitCellIndex++] = new TextDomHitCell(runCluster.HitExtent);
+            }
+        }
+
+        return extraHitCells;
+    }
+
     internal readonly record struct TextDomClusterMetric(
         int StartCharIndex,
         int CharLength,
@@ -944,9 +1050,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var builder = new SvgTextContentMetricsBuilder();
-        builder.AppendRun(clusters, totalAdvance);
-        metrics = builder.Build();
+        metrics = CreateSingleRunTextContentMetrics(clusters, totalAdvance);
         return metrics.NumberOfChars > 0;
     }
 
@@ -1219,7 +1323,7 @@ internal static partial class SvgSceneTextCompiler
             : GetAlignedStartCoordinate(currentX, totalAdvance, textAlign);
         var drawX = isVertical ? currentX : inlineOrigin;
         var drawY = isVertical ? inlineOrigin : currentY;
-        var builder = new SvgTextContentMetricsBuilder();
+        SvgTextContentMetricsBuilder? builder = null;
         for (var i = 0; i < runs.Count; i++)
         {
             var run = runs[i];
@@ -1238,11 +1342,18 @@ internal static partial class SvgSceneTextCompiler
                 return false;
             }
 
+            if (runs.Count == 1)
+            {
+                metrics = CreateSingleRunTextContentMetrics(clusters, runLength);
+                return true;
+            }
+
+            builder ??= new SvgTextContentMetricsBuilder();
             builder.AppendRun(clusters, runLength);
             ApplyInlineAdvance(run.StyleSource, ref drawX, ref drawY, runLength);
         }
 
-        metrics = builder.Build();
+        metrics = builder?.Build() ?? SvgTextContentMetrics.Empty;
         return true;
     }
 
@@ -1308,9 +1419,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var builder = new SvgTextContentMetricsBuilder();
-        builder.AppendRun(clusters, runLength);
-        metrics = builder.Build();
+        metrics = CreateSingleRunTextContentMetrics(clusters, runLength);
         return metrics.NumberOfChars > 0;
     }
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ShimSkiaSharp;
 using Svg;
+using Svg.Model;
 using Svg.Model.Services;
 
 namespace Svg.Skia;
@@ -9,6 +10,8 @@ namespace Svg.Skia;
 public sealed class SvgSceneNode
 {
     private List<SvgSceneNode>? _children;
+    private TextContentMetricsSource? _textContentMetricsSource;
+    private SvgSceneTextCompiler.SvgTextContentMetrics? _textContentMetrics;
 
     internal SvgSceneNode(
         SvgSceneNodeKind kind,
@@ -83,7 +86,15 @@ public sealed class SvgSceneNode
 
     public SKPath? HitTestPath { get; internal set; }
 
-    internal SvgSceneTextCompiler.SvgTextContentMetrics? TextContentMetrics { get; set; }
+    internal SvgSceneTextCompiler.SvgTextContentMetrics? TextContentMetrics
+    {
+        get => _textContentMetrics;
+        set
+        {
+            _textContentMetrics = value;
+            _textContentMetricsSource = null;
+        }
+    }
 
     public SKRect GeometryBounds { get; internal set; }
 
@@ -200,7 +211,8 @@ public sealed class SvgSceneNode
         LocalFill = replacement.LocalFill;
         LocalStroke = replacement.LocalStroke;
         HitTestPath = replacement.HitTestPath?.DeepClone();
-        TextContentMetrics = replacement.TextContentMetrics;
+        _textContentMetrics = replacement._textContentMetrics;
+        _textContentMetricsSource = replacement._textContentMetricsSource;
         GeometryBounds = replacement.GeometryBounds;
         TransformedBounds = replacement.TransformedBounds;
         Transform = replacement.Transform;
@@ -238,6 +250,42 @@ public sealed class SvgSceneNode
         SetMask(replacement.MaskNode);
         MarkDirty();
     }
+
+    internal void SetLazyTextContentMetrics(
+        SvgTextBase textContentElement,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader)
+    {
+        _textContentMetrics = null;
+        _textContentMetricsSource = new TextContentMetricsSource(textContentElement, viewport, assetLoader);
+    }
+
+    internal SvgSceneTextCompiler.SvgTextContentMetrics? GetTextContentMetrics()
+    {
+        if (_textContentMetrics is not null)
+        {
+            return _textContentMetrics;
+        }
+
+        if (_textContentMetricsSource is not { } source)
+        {
+            return null;
+        }
+
+        if (SvgSceneTextCompiler.TryCreateTextContentMetrics(source.TextContentElement, source.Viewport, source.AssetLoader, out var metrics) &&
+            metrics.HasHitTestCells)
+        {
+            _textContentMetrics = metrics;
+        }
+
+        _textContentMetricsSource = null;
+        return _textContentMetrics;
+    }
+
+    private sealed record TextContentMetricsSource(
+        SvgTextBase TextContentElement,
+        SKRect Viewport,
+        ISvgAssetLoader AssetLoader);
 
     internal void RefreshElementIdentity(string? elementAddressKey)
     {

@@ -243,7 +243,7 @@ internal static class SvgSceneHitTestService
 
     private static bool HitTestTextCell(SvgSceneNode node, SKPoint point)
     {
-        if (node.TextContentMetrics is { } metrics)
+        if (node.GetTextContentMetrics() is { } metrics)
         {
             if (!GetTextCellBounds(node).Contains(point) ||
                 !TryGetLocalPoint(node, point, out var metricPoint) ||
