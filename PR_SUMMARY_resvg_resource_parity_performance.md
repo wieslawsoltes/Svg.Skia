@@ -16,6 +16,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Short shaped-text layout caching for repeated positioned glyph runs.
 - Lazy child storage for leaf-heavy retained scene graphs.
 - Compact retained-scene dependency-root storage for low-fanout mutation maps.
+- Compact retained-scene node-address storage for low-fanout address indexes.
 - Closed line-only SVG path conversion for generated path-heavy scenes.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
@@ -71,6 +72,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added a bounded short shaped-text layout cache for first-pass native picture conversion so repeated short glyph runs can reuse HarfBuzz shaping output while still creating correctly positioned `SKTextBlob` instances per draw.
 - Changed retained scene nodes to allocate child lists lazily so leaf-heavy generated scenes avoid a per-node empty `List<T>` allocation while preserving stable `Children` enumeration semantics.
 - Changed retained scene dependency maps to store one or two compilation-root keys inline before allocating overflow storage, avoiding per-dependent-address `HashSet<T>` allocation in low-fanout generated scenes.
+- Changed retained scene node-address maps to store one or two nodes inline before allocating overflow storage, avoiding per-address `List<T>` allocation for generated scenes where most addresses resolve to a single node.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -117,6 +119,15 @@ Focused retained-scene dependency-root storage measurements for `generated-shape
 - `CompileViaSceneRuntime`: `7,646,714 B` to `7,315,008 B`.
 - `CompileViaSceneCompiler`: `7,646,095 B` to `7,289,620 B`.
 - `generated-filtered-shapes-256` stayed covered in the same benchmark run, with retained compile allocation around `2.14 MB` and dependency registration at `274,688 B`; short-run timings were noisy, so the dependency-root change is treated as an allocation improvement.
+
+Focused retained-scene node-address storage measurements:
+
+- `ReindexSceneNodesOnly | generated-shapes-1024`: `270,400 B` to about `1,072 B`.
+- `ReindexSceneNodesOnly | generated-filtered-shapes-256`: about `67,736 B` to about `1,072 B`.
+- `CreateSceneDocumentFromCompiledTree | generated-shapes-1024`: `2,456,331 B` to `2,346,035 B`.
+- `CreateSceneDocumentFromCompiledTree | generated-filtered-shapes-256`: `1,009,824 B` to `982,953 B`.
+- `CompileViaSceneRuntime | generated-shapes-1024`: `7,315,008 B` to `7,229,173 B`.
+- `CompileViaSceneCompiler | generated-shapes-1024`: `7,289,620 B` to `7,228,311 B`.
 
 ### Text Path Performance
 
@@ -191,6 +202,9 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
 - Focused retained-scene dependency-root storage validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SKSvgRebuildFromModelTests|FullyQualifiedName~SvgAnimationControllerTests.TryApplyRetainedSceneMutationByIdAndRender"`
   - Passed 284.
+- Focused retained-scene node-address storage validation:
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SKSvgRebuildFromModelTests|FullyQualifiedName~SvgAnimationControllerTests.TryApplyRetainedSceneMutationByIdAndRender"`
+  - Passed 284.
 - Focused text internals benchmark comparison:
   - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-before-next-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - After: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-after-natural-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
@@ -215,6 +229,8 @@ Focused benchmark results for `SvgTextCompileInternalsBenchmarks.MeasureNaturalT
   - Load-pipeline recheck: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-load-pipeline-lazy-node-children" SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024,generated-filtered-shapes-256" dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgLoadPipelineBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
 - Focused retained-scene dependency-root storage benchmark check:
   - `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024,generated-filtered-shapes-256" SVG_SKIA_BENCHMARK_RUN_LABEL="current-retained-compile-small-dependency-set" dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+- Focused retained-scene node-address storage benchmark check:
+  - `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024,generated-filtered-shapes-256" SVG_SKIA_BENCHMARK_RUN_LABEL="current-retained-compile-compact-node-addresses" dotnet run -c Release --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
 - Focused text/resource validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgResourceRenderingParityTests"`
   - Passed 290.
