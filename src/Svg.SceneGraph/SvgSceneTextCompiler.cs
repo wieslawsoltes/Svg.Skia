@@ -2155,12 +2155,22 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
+        var scaleX = placements[0].ScaleX;
+        var scaleOriginX = placements[0].ScaleOriginX;
+        if (!IsFinitePositionedTextBlobCoordinate(scaleX) ||
+            scaleX <= 0f ||
+            !IsFinitePositionedTextBlobCoordinate(scaleOriginX))
+        {
+            return false;
+        }
+
         var points = new SKPoint[placements.Length];
         for (var i = 0; i < placements.Length; i++)
         {
             var placement = placements[i];
             if (placement.RotationDegrees != 0f ||
-                placement.ScaleX != 1f ||
+                !NearlyEquals(placement.ScaleX, scaleX) ||
+                !NearlyEquals(placement.ScaleOriginX, scaleOriginX) ||
                 !IsFinitePositionedTextBlobCoordinate(placement.Point.X) ||
                 !IsFinitePositionedTextBlobCoordinate(placement.Point.Y))
             {
@@ -2178,23 +2188,29 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var spans = assetLoader.FindTypefaces(text, paint);
-        if (spans.Count != 1 ||
-            spans[0].Typeface is null ||
-            !string.Equals(spans[0].Text, text, StringComparison.Ordinal))
+        if (!TryCreateSingleRunShapingPaint(text, paint, assetLoader, out var blobPaint) ||
+            blobPaint.Typeface is null)
         {
             return false;
         }
 
-        var blobPaint = paint.Clone();
-        blobPaint.Typeface = spans[0].Typeface;
-        var font = new SKFont(spans[0].Typeface, blobPaint.TextSize)
+        var font = new SKFont(blobPaint.Typeface, blobPaint.TextSize)
         {
             Subpixel = blobPaint.SubpixelText,
             Edging = blobPaint.LcdRenderText ? SKFontEdging.SubpixelAntialias : SKFontEdging.Antialias
         };
 
-        canvas.DrawText(SKTextBlob.CreatePositioned(text, font, points), 0f, 0f, blobPaint);
+        var textBlob = SKTextBlob.CreatePositioned(text, font, points);
+        if (NearlyEquals(scaleX, 1f))
+        {
+            canvas.DrawText(textBlob, 0f, 0f, blobPaint);
+            return true;
+        }
+
+        canvas.Save();
+        canvas.SetMatrix(SKMatrix.CreateScale(scaleX, 1f, scaleOriginX, points[0].Y));
+        canvas.DrawText(textBlob, 0f, 0f, blobPaint);
+        canvas.Restore();
         return true;
     }
 
@@ -3803,7 +3819,11 @@ internal static partial class SvgSceneTextCompiler
         if ((isVertical || HasPerGlyphLayoutAdjustments(svgTextBase, text)) &&
             TryCreateAlignedCodepointPlacements(svgTextBase, text, anchorX, anchorY, geometryBounds, textAlign, assetLoader, rotations, out var placements, out var totalAdvance))
         {
-            _ = DrawCodepointPlacements(svgTextBase, text, placements, geometryBounds, paint, canvas, assetLoader);
+            if (!TryDrawPositionedTextBlob(svgTextBase, text, placements, geometryBounds, paint, canvas, assetLoader))
+            {
+                _ = DrawCodepointPlacements(svgTextBase, text, placements, geometryBounds, paint, canvas, assetLoader);
+            }
+
             return totalAdvance;
         }
 
@@ -19907,7 +19927,11 @@ internal static partial class SvgSceneTextCompiler
         if ((isVertical || HasPerGlyphLayoutAdjustments(svgTextBase, text)) &&
             TryCreateAlignedCodepointPlacements(svgTextBase, text, anchorX, anchorY, geometryBounds, inlineStartAlign, assetLoader, rotations, out var placements, out var totalAdvance))
         {
-            _ = DrawCodepointPlacements(svgTextBase, text, placements, geometryBounds, paint, canvas, assetLoader);
+            if (!TryDrawPositionedTextBlob(svgTextBase, text, placements, geometryBounds, paint, canvas, assetLoader))
+            {
+                _ = DrawCodepointPlacements(svgTextBase, text, placements, geometryBounds, paint, canvas, assetLoader);
+            }
+
             return totalAdvance;
         }
 

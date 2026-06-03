@@ -3308,6 +3308,37 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_TextLengthSpacingAndGlyphs_RecordsScaledTextBlob()
+    {
+        const string textLengthSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="160" viewBox="0 0 220 160">
+              <text id="scaled-length" x="20" y="90" font-family="Noto Sans" font-size="36" textLength="150" lengthAdjust="spacingAndGlyphs">Text</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(textLengthSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        AssertCompilationStrategy(scene!, "scaled-length", SvgSceneCompilationStrategy.DirectRetained);
+        Assert.True(scene.TryGetNodeById("scaled-length", out var textNode));
+        Assert.NotNull(textNode?.LocalModel);
+
+        var blobs = textNode!.LocalModel!.FindCommands<DrawTextBlobCanvasCommand>().ToArray();
+        Assert.True(
+            blobs.Length == 1,
+            $"Expected one positioned text blob command, but found {blobs.Length}. Commands: {string.Join(", ", textNode.LocalModel.Commands!.Select(static command => command.GetType().Name))}");
+
+        var blob = blobs[0];
+        Assert.Equal("Text", blob.TextBlob?.Text);
+        Assert.Equal(4, blob.TextBlob?.Points?.Length);
+        Assert.NotEmpty(textNode.LocalModel.FindCommands<SetMatrixCanvasCommand>());
+        Assert.Empty(textNode.LocalModel.FindCommands<DrawTextCanvasCommand>());
+    }
+
+    [Fact]
     public void RetainedSceneGraph_InlineSizeWithTextLength_DoesNotWrapAdjustedGlyphs()
     {
         const string textLengthSvg = """
