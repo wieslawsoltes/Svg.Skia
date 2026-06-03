@@ -2301,6 +2301,72 @@ internal static partial class SvgSceneTextCompiler
         return true;
     }
 
+    private static bool TryDrawSimpleScaledTextLengthRun(
+        SvgTextBase svgTextBase,
+        string text,
+        float anchorX,
+        float anchorY,
+        SKRect geometryBounds,
+        SKTextAlign textAlign,
+        SKPaint paint,
+        SKCanvas canvas,
+        ISvgAssetLoader assetLoader,
+        float[]? rotations,
+        out float advance)
+    {
+        advance = 0f;
+        if (string.IsNullOrEmpty(text) ||
+            rotations is { Length: > 0 } ||
+            !IsSimpleAsciiSequentialCompileText(text) ||
+            IsVerticalWritingMode(svgTextBase) ||
+            HasMultipleTextPositionValues(svgTextBase) ||
+            HasEffectiveSpacingAdjustments(svgTextBase, text) ||
+            GetOwnLengthAdjust(svgTextBase) != SvgTextLengthAdjust.SpacingAndGlyphs ||
+            RequiresSyntheticSmallCaps(svgTextBase, text) ||
+            ShouldUseBrowserCompatibleRunTypeface(svgTextBase, text) ||
+            !TryGetOwnTextLength(svgTextBase, geometryBounds, isVertical: false, out var specifiedLength))
+        {
+            return false;
+        }
+
+        var naturalAdvance = MeasureNaturalTextAdvance(svgTextBase, text, geometryBounds, assetLoader);
+        if (naturalAdvance <= TextLengthTolerance ||
+            Math.Abs(naturalAdvance - specifiedLength) <= TextLengthTolerance)
+        {
+            return false;
+        }
+
+        var scaleX = specifiedLength / naturalAdvance;
+        if (!IsFinitePositionedTextBlobCoordinate(scaleX) || scaleX <= 0f)
+        {
+            return false;
+        }
+
+        PaintingService.SetPaintText(svgTextBase, geometryBounds, paint);
+        paint.TextAlign = SKTextAlign.Left;
+
+        if (SvgFontTextRenderer.TryGetLayout(svgTextBase, text, paint, assetLoader, out _))
+        {
+            return false;
+        }
+
+        if (!TryCreateSingleRunShapingPaint(text, paint, assetLoader, out var runPaint) ||
+            runPaint.Typeface is null)
+        {
+            return false;
+        }
+
+        var font = new SKFont(runPaint.Typeface, runPaint.TextSize, scaleX)
+        {
+            Subpixel = runPaint.SubpixelText,
+            Edging = runPaint.LcdRenderText ? SKFontEdging.SubpixelAntialias : SKFontEdging.Antialias
+        };
+        var drawX = GetAlignedStartCoordinate(anchorX, specifiedLength, textAlign);
+        canvas.DrawText(text, drawX, anchorY, SKTextAlign.Left, font, runPaint);
+        advance = specifiedLength;
+        return true;
+    }
+
     private static bool IsFinitePositionedTextBlobCoordinate(float value)
         => !float.IsNaN(value) && !float.IsInfinity(value);
 
@@ -3901,6 +3967,11 @@ internal static partial class SvgSceneTextCompiler
             var mixedStartX = GetAlignedStartX(anchorX, mixedLayout.TotalAdvance, textAlign);
             DrawMixedScriptSpacingRun(svgTextBase, mixedLayout, mixedStartX, anchorY, geometryBounds, paint, canvas, assetLoader);
             return mixedLayout.TotalAdvance;
+        }
+
+        if (TryDrawSimpleScaledTextLengthRun(svgTextBase, text, anchorX, anchorY, geometryBounds, textAlign, paint, canvas, assetLoader, rotations, out var scaledTextLengthAdvance))
+        {
+            return scaledTextLengthAdvance;
         }
 
         if ((isVertical || HasPerGlyphLayoutAdjustments(svgTextBase, text)) &&
@@ -20170,6 +20241,11 @@ internal static partial class SvgSceneTextCompiler
         {
             DrawMixedScriptSpacingRun(svgTextBase, mixedLayout, anchorX, anchorY, geometryBounds, paint, canvas, assetLoader);
             return mixedLayout.TotalAdvance;
+        }
+
+        if (TryDrawSimpleScaledTextLengthRun(svgTextBase, text, anchorX, anchorY, geometryBounds, inlineStartAlign, paint, canvas, assetLoader, rotations, out var scaledTextLengthAdvance))
+        {
+            return scaledTextLengthAdvance;
         }
 
         if ((isVertical || HasPerGlyphLayoutAdjustments(svgTextBase, text)) &&

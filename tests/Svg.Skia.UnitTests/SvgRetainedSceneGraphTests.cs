@@ -3308,7 +3308,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
-    public void RetainedSceneGraph_TextLengthSpacingAndGlyphs_RecordsScaledTextBlob()
+    public void RetainedSceneGraph_TextLengthSpacingAndGlyphs_RecordsScaledTextCommand()
     {
         const string textLengthSvg = """
             <svg xmlns="http://www.w3.org/2000/svg" width="220" height="160" viewBox="0 0 220 160">
@@ -3326,17 +3326,16 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.True(scene.TryGetNodeById("scaled-length", out var textNode));
         Assert.NotNull(textNode?.LocalModel);
 
-        var blobs = textNode!.LocalModel!.FindCommands<DrawTextBlobCanvasCommand>().ToArray();
+        var draws = textNode!.LocalModel!.FindCommands<DrawTextCanvasCommand>().ToArray();
         Assert.True(
-            blobs.Length == 1,
-            $"Expected one positioned text blob command, but found {blobs.Length}. Commands: {string.Join(", ", textNode.LocalModel.Commands!.Select(static command => command.GetType().Name))}");
+            draws.Length == 1,
+            $"Expected one scaled text command, but found {draws.Length}. Commands: {string.Join(", ", textNode.LocalModel.Commands!.Select(static command => command.GetType().Name))}");
 
-        var blob = blobs[0];
-        Assert.Equal("Text", blob.TextBlob?.Text);
-        Assert.Equal(4, blob.TextBlob?.Points?.Length);
-        Assert.True(blob.TextBlob?.Font?.ScaleX > 1.1f, $"Expected scaled text blob font, but got {blob.TextBlob?.Font?.ScaleX}.");
+        var draw = draws[0];
+        Assert.Equal("Text", draw.Text);
+        Assert.True(draw.Font?.ScaleX > 1.1f, $"Expected scaled text command font, but got {draw.Font?.ScaleX}.");
         Assert.Empty(textNode.LocalModel.FindCommands<SetMatrixCanvasCommand>());
-        Assert.Empty(textNode.LocalModel.FindCommands<DrawTextCanvasCommand>());
+        Assert.Empty(textNode.LocalModel.FindCommands<DrawTextBlobCanvasCommand>());
     }
 
     [Fact]
@@ -3631,7 +3630,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
-    public void RetainedSceneGraph_LengthAdjustSpacingAndGlyphs_UsesScaledTextBlobFont()
+    public void RetainedSceneGraph_LengthAdjustSpacingAndGlyphs_UsesScaledTextCommandFont()
     {
         const string lengthAdjustSvg = """
             <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
@@ -3646,12 +3645,12 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         var retainedModel = svg.CreateRetainedSceneGraphModel();
         Assert.NotNull(retainedModel);
 
-        var scaledBlobs = retainedModel!
-            .FindCommands<DrawTextBlobCanvasCommand>()
-            .Where(static command => command.TextBlob?.Font?.ScaleX > 1.1f)
+        var scaledCommands = retainedModel!
+            .FindCommands<DrawTextCanvasCommand>()
+            .Where(static command => command.Font?.ScaleX > 1.1f)
             .ToArray();
 
-        Assert.NotEmpty(scaledBlobs);
+        Assert.NotEmpty(scaledCommands);
     }
 
     [Fact]
