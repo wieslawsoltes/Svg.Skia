@@ -9360,17 +9360,16 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var combinedText = string.Concat(flattenedCodepoints.Select(static codepoint => codepoint.Codepoint));
+        var combinedText = CreateFlattenedText(flattenedCodepoints, 0, flattenedCodepoints.Count);
         if (ContainsMixedStrongDirections(combinedText))
         {
             return false;
         }
 
-        var naturalAdvances = new float[flattenedCodepoints.Count];
+        var naturalAdvances = MeasureFlattenedNaturalAdvances(flattenedCodepoints, geometryBounds, assetLoader);
         var preparedRuns = new PreparedSequentialRun[flattenedCodepoints.Count];
         for (var i = 0; i < flattenedCodepoints.Count; i++)
         {
-            naturalAdvances[i] = MeasureNaturalTextAdvance(flattenedCodepoints[i].StyleSource, flattenedCodepoints[i].Codepoint, geometryBounds, assetLoader);
             preparedRuns[i] = new PreparedSequentialRun(flattenedCodepoints[i].StyleSource, flattenedCodepoints[i].Codepoint, naturalAdvances[i]);
         }
 
@@ -9725,37 +9724,112 @@ internal static partial class SvgSceneTextCompiler
         }
 
         var groupedRuns = new List<PositionedCodepointRun>();
-        var groupText = new StringBuilder();
-        var groupPlacements = new List<PositionedCodepointPlacement>();
-        SvgTextBase? groupStyleSource = null;
-        for (var i = 0; i < lineRuns.Count; i++)
+        var groupSearchStart = 0;
+        while (TryGetNextWrappedTextLengthGroup(
+                   lineRuns,
+                   codepoints,
+                   ref groupSearchStart,
+                   out var groupStart,
+                   out var groupEnd,
+                   out var groupStyleSource,
+                   out var renderedCount))
         {
-            var sourceIndex = lineRuns[i].SourceCodepointIndex;
-            if (sourceIndex < 0 || sourceIndex >= codepoints.Count)
-            {
-                continue;
-            }
-
-            var styleSource = codepoints[sourceIndex].StyleSource;
-            if (groupStyleSource is not null && !ReferenceEquals(groupStyleSource, styleSource))
-            {
-                groupedRuns.Add(new PositionedCodepointRun(groupStyleSource, groupText.ToString(), groupPlacements.ToArray()));
-                groupText.Clear();
-                groupPlacements.Clear();
-            }
-
-            groupStyleSource = styleSource;
-            groupText.Append(codepoints[sourceIndex].Codepoint);
-            groupPlacements.Add(placements[i]);
-        }
-
-        if (groupStyleSource is not null && groupText.Length > 0)
-        {
-            groupedRuns.Add(new PositionedCodepointRun(groupStyleSource, groupText.ToString(), groupPlacements.ToArray()));
+            groupedRuns.Add(CreateWrappedTextLengthRun(
+                groupStyleSource,
+                lineRuns,
+                codepoints,
+                placements,
+                groupStart,
+                groupEnd,
+                renderedCount));
         }
 
         positionedRuns = groupedRuns.ToArray();
         return positionedRuns.Length > 0;
+    }
+
+    private static bool TryGetNextWrappedTextLengthGroup(
+        IReadOnlyList<InlineSizeTextRun> lineRuns,
+        IReadOnlyList<FlattenedTextCodepoint> codepoints,
+        ref int start,
+        out int groupStart,
+        out int groupEnd,
+        out SvgTextBase styleSource,
+        out int renderedCount)
+    {
+        while (start < lineRuns.Count &&
+               !IsValidWrappedTextLengthSourceIndex(lineRuns[start].SourceCodepointIndex, codepoints.Count))
+        {
+            start++;
+        }
+
+        if (start >= lineRuns.Count)
+        {
+            groupStart = 0;
+            groupEnd = 0;
+            styleSource = null!;
+            renderedCount = 0;
+            return false;
+        }
+
+        groupStart = start;
+        var sourceIndex = lineRuns[start].SourceCodepointIndex;
+        styleSource = codepoints[sourceIndex].StyleSource;
+        renderedCount = 0;
+
+        while (start < lineRuns.Count)
+        {
+            sourceIndex = lineRuns[start].SourceCodepointIndex;
+            if (!IsValidWrappedTextLengthSourceIndex(sourceIndex, codepoints.Count))
+            {
+                start++;
+                continue;
+            }
+
+            if (!ReferenceEquals(codepoints[sourceIndex].StyleSource, styleSource))
+            {
+                break;
+            }
+
+            renderedCount++;
+            start++;
+        }
+
+        groupEnd = start;
+        return renderedCount > 0;
+    }
+
+    private static PositionedCodepointRun CreateWrappedTextLengthRun(
+        SvgTextBase styleSource,
+        IReadOnlyList<InlineSizeTextRun> lineRuns,
+        IReadOnlyList<FlattenedTextCodepoint> codepoints,
+        IReadOnlyList<PositionedCodepointPlacement> placements,
+        int start,
+        int end,
+        int renderedCount)
+    {
+        var builder = new StringBuilder(renderedCount);
+        var runPlacements = new PositionedCodepointPlacement[renderedCount];
+        var placementIndex = 0;
+        for (var i = start; i < end; i++)
+        {
+            var sourceIndex = lineRuns[i].SourceCodepointIndex;
+            if (!IsValidWrappedTextLengthSourceIndex(sourceIndex, codepoints.Count))
+            {
+                continue;
+            }
+
+            builder.Append(codepoints[sourceIndex].Codepoint);
+            runPlacements[placementIndex] = placements[i];
+            placementIndex++;
+        }
+
+        return new PositionedCodepointRun(styleSource, builder.ToString(), runPlacements);
+    }
+
+    private static bool IsValidWrappedTextLengthSourceIndex(int sourceIndex, int codepointCount)
+    {
+        return sourceIndex >= 0 && sourceIndex < codepointCount;
     }
 
     private static bool AllowsInlineSizeWrapping(SvgTextBase svgTextBase, IReadOnlyList<PreparedSequentialRun> runs)
