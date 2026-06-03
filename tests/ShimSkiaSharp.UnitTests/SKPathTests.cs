@@ -11,7 +11,9 @@ public class SKPathTests
     {
         var path = new SKPath();
         Assert.True(path.IsEmpty);
-        Assert.Empty(path.Commands);
+        var commands = path.Commands!;
+        Assert.NotNull(commands);
+        Assert.Empty(commands);
         Assert.Equal(SKRect.Empty, path.Bounds);
     }
 
@@ -22,10 +24,44 @@ public class SKPathTests
         var path = new SKPath();
         path.AddRect(rect);
         Assert.False(path.IsEmpty);
-        Assert.Single(path.Commands);
-        var cmd = Assert.IsType<AddRectPathCommand>(path.Commands.First());
+        var commands = path.Commands!;
+        Assert.NotNull(commands);
+        Assert.Single(commands);
+        var cmd = Assert.IsType<AddRectPathCommand>(commands.First());
         Assert.Equal(rect, cmd.Rect);
         Assert.Equal(rect, path.Bounds);
+    }
+
+    [Fact]
+    public void Bounds_RecomputesAfterPathMutation()
+    {
+        var path = new SKPath();
+        path.AddRect(SKRect.Create(0, 0, 10, 10));
+
+        _ = path.Bounds;
+
+        path.AddRect(SKRect.Create(20, 20, 5, 5));
+
+        Assert.Equal(new SKRect(0, 0, 25, 25), path.Bounds);
+    }
+
+    [Fact]
+    public void AddPolyBounds_ReflectPointMutations()
+    {
+        var points = new[]
+        {
+            new SKPoint(0, 0),
+            new SKPoint(10, 10),
+            new SKPoint(0, 10)
+        };
+        var path = new SKPath();
+        path.AddPoly(points);
+
+        _ = path.Bounds;
+
+        points[1] = new SKPoint(50, 50);
+
+        Assert.Equal(new SKRect(0, 0, 50, 50), path.Bounds);
     }
 
     [Fact]

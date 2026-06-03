@@ -70,11 +70,14 @@ public record QuadToPathCommand(float X0, float Y0, float X1, float Y1) : PathCo
 public class SKPath : ICloneable, IDeepCloneable<SKPath>
 {
     private SKPathFillType _fillType;
+    private SKRect _cachedBounds;
+    private int _cachedBoundsVersion = -1;
     private int _version;
+    private ChangeTrackingList<PathCommand>? _commands;
 
-    public IList<PathCommand>? Commands { get; private set; }
+    public IList<PathCommand>? Commands => _commands;
 
-    public bool IsEmpty => Commands is null || Commands.Count == 0;
+    public bool IsEmpty => _commands is null || _commands.Count == 0;
 
     public SKRect Bounds => GetBounds();
 
@@ -97,7 +100,7 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
 
     public SKPath()
     {
-        Commands = new ChangeTrackingList<PathCommand>(IncrementVersion);
+        _commands = new ChangeTrackingList<PathCommand>(IncrementVersion);
     }
 
     public SKPath Clone() => DeepClone(new CloneContext());
@@ -117,8 +120,8 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
         context.Add(this, clone);
 
         clone.FillType = FillType;
-        clone.Commands = new ChangeTrackingList<PathCommand>(
-            CloneHelpers.CloneList(Commands, context, command => command.DeepClone(context)),
+        clone._commands = new ChangeTrackingList<PathCommand>(
+            CloneHelpers.CloneList(_commands, context, command => command.DeepClone(context)),
             clone.IncrementVersion);
 
         return clone;
@@ -129,21 +132,41 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
         _version++;
     }
 
-
     private SKRect GetBounds()
     {
-        if (Commands is null || Commands.Count == 0)
+        if (_cachedBoundsVersion == _version)
+        {
+            return _cachedBounds;
+        }
+
+        var bounds = ComputeBounds(out var canCache);
+        if (canCache)
+        {
+            _cachedBounds = bounds;
+            _cachedBoundsVersion = _version;
+        }
+
+        return bounds;
+    }
+
+    private SKRect ComputeBounds(out bool canCache)
+    {
+        canCache = true;
+        var commands = _commands;
+        if (commands is null || commands.Count == 0)
         {
             return SKRect.Empty;
         }
 
+        var commandCount = commands.Count;
         var bounds = new SKRect(float.MaxValue, float.MaxValue, float.MinValue, float.MinValue);
 
         var last = new SKPoint();
         var haveLast = false;
 
-        foreach (var pathCommand in Commands)
+        for (var i = 0; i < commandCount; i++)
         {
+            var pathCommand = commands[i];
             switch (pathCommand)
             {
                 case MoveToPathCommand moveToPathCommand:
@@ -264,16 +287,19 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
                     break;
                 case AddPolyPathCommand addPolyPathCommand:
                     {
+                        canCache = false;
                         if (addPolyPathCommand.Points is { })
                         {
                             var points = addPolyPathCommand.Points;
-                            foreach (var point in points)
+                            var pointCount = points.Count;
+                            for (var pointIndex = 0; pointIndex < pointCount; pointIndex++)
                             {
+                                var point = points[pointIndex];
                                 SKPathBoundsHelper.ComputePointBounds(point.X, point.Y, ref bounds);
                             }
-                            if (points.Count > 0)
+                            if (pointCount > 0)
                             {
-                                last = points[points.Count - 1];
+                                last = points[pointCount - 1];
                                 haveLast = true;
                             }
                         }
@@ -286,35 +312,35 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
     }
 
     public void MoveTo(float x, float y)
-        => Commands?.Add(new MoveToPathCommand(x, y));
+        => _commands?.Add(new MoveToPathCommand(x, y));
 
     public void LineTo(float x, float y)
-        => Commands?.Add(new LineToPathCommand(x, y));
+        => _commands?.Add(new LineToPathCommand(x, y));
 
     public void ArcTo(float rx, float ry, float xAxisRotate, SKPathArcSize largeArc, SKPathDirection sweep, float x, float y)
-        => Commands?.Add(new ArcToPathCommand(rx, ry, xAxisRotate, largeArc, sweep, x, y));
+        => _commands?.Add(new ArcToPathCommand(rx, ry, xAxisRotate, largeArc, sweep, x, y));
 
     public void QuadTo(float x0, float y0, float x1, float y1)
-        => Commands?.Add(new QuadToPathCommand(x0, y0, x1, y1));
+        => _commands?.Add(new QuadToPathCommand(x0, y0, x1, y1));
 
     public void CubicTo(float x0, float y0, float x1, float y1, float x2, float y2)
-        => Commands?.Add(new CubicToPathCommand(x0, y0, x1, y1, x2, y2));
+        => _commands?.Add(new CubicToPathCommand(x0, y0, x1, y1, x2, y2));
 
     public void Close()
-        => Commands?.Add(new ClosePathCommand());
+        => _commands?.Add(new ClosePathCommand());
 
     public void AddRect(SKRect rect)
-        => Commands?.Add(new AddRectPathCommand(rect));
+        => _commands?.Add(new AddRectPathCommand(rect));
 
     public void AddRoundRect(SKRect rect, float rx, float ry)
-        => Commands?.Add(new AddRoundRectPathCommand(rect, rx, ry));
+        => _commands?.Add(new AddRoundRectPathCommand(rect, rx, ry));
 
     public void AddOval(SKRect rect)
-        => Commands?.Add(new AddOvalPathCommand(rect));
+        => _commands?.Add(new AddOvalPathCommand(rect));
 
     public void AddCircle(float x, float y, float radius)
-        => Commands?.Add(new AddCirclePathCommand(x, y, radius));
+        => _commands?.Add(new AddCirclePathCommand(x, y, radius));
 
     public void AddPoly(SKPoint[] points, bool close = true)
-        => Commands?.Add(new AddPolyPathCommand(points, close));
+        => _commands?.Add(new AddPolyPathCommand(points, close));
 }
