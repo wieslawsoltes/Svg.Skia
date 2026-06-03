@@ -15275,9 +15275,167 @@ internal static partial class SvgSceneTextCompiler
         }
     }
 
+    private static int EstimatePathSampleCapacity(SKPath path, float samplingScale)
+    {
+        if (path.Commands is null || path.Commands.Count == 0)
+        {
+            return 0;
+        }
+
+        samplingScale = NormalizeTextPathSamplingScale(samplingScale);
+        var capacity = 0;
+        var current = default(SKPoint);
+        var figureStart = default(SKPoint);
+        var hasCurrent = false;
+
+        void AddCapacity(int count)
+        {
+            if (count <= 0)
+            {
+                return;
+            }
+
+            capacity = capacity > int.MaxValue - count
+                ? int.MaxValue
+                : capacity + count;
+        }
+
+        void CloseCurrentSample()
+        {
+            current = figureStart;
+            AddCapacity(1);
+        }
+
+        void AppendEllipseSamples(float cx, float cy, float rx, float ry)
+        {
+            if (rx <= 0f || ry <= 0f)
+            {
+                return;
+            }
+
+            var steps = ResolveTextPathFixedSteps(MaxEllipseSteps, samplingScale, MaxEllipseSteps, MaxTextPathCurveSteps);
+            AddCapacity(steps + 1);
+            current = new SKPoint(cx + rx, cy);
+            figureStart = current;
+            hasCurrent = true;
+        }
+
+        void AppendRoundRectSamples(SKRect rect, float rx, float ry)
+        {
+            if (rect.Width <= 0f || rect.Height <= 0f)
+            {
+                return;
+            }
+
+            rx = Math.Min(Math.Abs(rx), rect.Width / 2f);
+            ry = Math.Min(Math.Abs(ry), rect.Height / 2f);
+            if (rx <= 0f || ry <= 0f)
+            {
+                AddCapacity(5);
+                current = rect.TopLeft;
+                figureStart = current;
+                hasCurrent = true;
+                return;
+            }
+
+            var arcSteps = ResolveTextPathFixedSteps(32, samplingScale, 32, MaxTextPathCurveSteps);
+            AddCapacity(6 + (4 * arcSteps));
+            current = new SKPoint(rect.Left + rx, rect.Top);
+            figureStart = current;
+            hasCurrent = true;
+        }
+
+        for (var i = 0; i < path.Commands.Count; i++)
+        {
+            switch (path.Commands[i])
+            {
+                case MoveToPathCommand moveTo:
+                    current = new SKPoint(moveTo.X, moveTo.Y);
+                    figureStart = current;
+                    hasCurrent = true;
+                    AddCapacity(1);
+                    break;
+
+                case LineToPathCommand lineTo when hasCurrent:
+                    current = new SKPoint(lineTo.X, lineTo.Y);
+                    AddCapacity(1);
+                    break;
+
+                case QuadToPathCommand quadTo when hasCurrent:
+                    {
+                        var control = new SKPoint(quadTo.X0, quadTo.Y0);
+                        var end = new SKPoint(quadTo.X1, quadTo.Y1);
+                        AddCapacity(ResolveTextPathCurveSteps(ApproximateQuadraticLength(current, control, end), samplingScale, 96));
+                        current = end;
+                    }
+                    break;
+
+                case CubicToPathCommand cubicTo when hasCurrent:
+                    {
+                        var control1 = new SKPoint(cubicTo.X0, cubicTo.Y0);
+                        var control2 = new SKPoint(cubicTo.X1, cubicTo.Y1);
+                        var end = new SKPoint(cubicTo.X2, cubicTo.Y2);
+                        AddCapacity(ResolveTextPathCurveSteps(ApproximateCubicLength(current, control1, control2, end), samplingScale, 128));
+                        current = end;
+                    }
+                    break;
+
+                case ArcToPathCommand arcTo when hasCurrent:
+                    {
+                        var end = new SKPoint(arcTo.X, arcTo.Y);
+                        AddCapacity(TryGetArcParameters(current, end, arcTo.Rx, arcTo.Ry, arcTo.XAxisRotate, arcTo.LargeArc, arcTo.Sweep, out var parameters)
+                            ? ResolveArcSampleSteps(parameters, samplingScale)
+                            : 1);
+                        current = end;
+                    }
+                    break;
+
+                case ClosePathCommand _ when hasCurrent:
+                    CloseCurrentSample();
+                    break;
+
+                case AddRectPathCommand addRect:
+                    if (addRect.Rect.Width > 0f && addRect.Rect.Height > 0f)
+                    {
+                        AddCapacity(5);
+                        current = addRect.Rect.TopLeft;
+                        figureStart = current;
+                        hasCurrent = true;
+                    }
+
+                    break;
+
+                case AddRoundRectPathCommand addRoundRect:
+                    AppendRoundRectSamples(addRoundRect.Rect, addRoundRect.Rx, addRoundRect.Ry);
+                    break;
+
+                case AddOvalPathCommand addOval:
+                    AppendEllipseSamples(
+                        (addOval.Rect.Left + addOval.Rect.Right) / 2f,
+                        (addOval.Rect.Top + addOval.Rect.Bottom) / 2f,
+                        addOval.Rect.Width / 2f,
+                        addOval.Rect.Height / 2f);
+                    break;
+
+                case AddCirclePathCommand addCircle:
+                    AppendEllipseSamples(addCircle.X, addCircle.Y, Math.Abs(addCircle.Radius), Math.Abs(addCircle.Radius));
+                    break;
+
+                case AddPolyPathCommand addPoly when addPoly.Points is { Count: > 0 } points:
+                    AddCapacity(points.Count + (addPoly.Close ? 1 : 0));
+                    current = addPoly.Close ? points[0] : points[points.Count - 1];
+                    figureStart = points[0];
+                    hasCurrent = true;
+                    break;
+            }
+        }
+
+        return capacity;
+    }
+
     private static List<PathSample> BuildPathSamples(SKPath path, float samplingScale = 1f)
     {
-        var samples = new List<PathSample>();
+        var samples = new List<PathSample>(EstimatePathSampleCapacity(path, samplingScale));
         if (path.Commands is null || path.Commands.Count == 0)
         {
             return samples;
@@ -16598,9 +16756,7 @@ internal static partial class SvgSceneTextCompiler
 
     private static void AppendArcSamples(ArcParameters parameters, Action<SKPoint> appendSample, float samplingScale = 1f)
     {
-        var approxLength = Math.Abs(parameters.DeltaAngle) * Math.Max(parameters.Rx, parameters.Ry);
-        var normalizedScale = NormalizeTextPathSamplingScale(samplingScale);
-        var steps = ClampSteps((int)Math.Ceiling(approxLength * normalizedScale / 4f), 6, ResolveTextPathSamplingMaxSteps(normalizedScale, MaxEllipseSteps));
+        var steps = ResolveArcSampleSteps(parameters, samplingScale);
         for (var i = 1; i <= steps; i++)
         {
             var theta = parameters.StartAngle + (parameters.DeltaAngle * i / steps);
@@ -16610,6 +16766,13 @@ internal static partial class SvgSceneTextCompiler
                 (parameters.CosPhi * parameters.Rx * cosTheta) - (parameters.SinPhi * parameters.Ry * sinTheta) + parameters.Center.X,
                 (parameters.SinPhi * parameters.Rx * cosTheta) + (parameters.CosPhi * parameters.Ry * sinTheta) + parameters.Center.Y));
         }
+    }
+
+    private static int ResolveArcSampleSteps(ArcParameters parameters, float samplingScale)
+    {
+        var approxLength = Math.Abs(parameters.DeltaAngle) * Math.Max(parameters.Rx, parameters.Ry);
+        var normalizedScale = NormalizeTextPathSamplingScale(samplingScale);
+        return ClampSteps((int)Math.Ceiling(approxLength * normalizedScale / 4f), 6, ResolveTextPathSamplingMaxSteps(normalizedScale, MaxEllipseSteps));
     }
 
     private static bool TryGetArcParameters(
