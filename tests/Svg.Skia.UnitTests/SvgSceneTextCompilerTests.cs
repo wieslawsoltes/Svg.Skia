@@ -634,6 +634,25 @@ public class SvgSceneTextCompilerTests
     }
 
     [Fact]
+    public void TryCompileSequentialText_ReusesLineStatsForRepeatedStyleRuns()
+    {
+        var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
+            """
+            <svg xmlns="http://www.w3.org/2000/svg" width="320" height="120" viewBox="0 0 320 120">
+              <text id="label" x="10" y="40" font-family="sans-serif" font-size="24">A<tspan font-style="italic">B</tspan>A<tspan font-style="italic">B</tspan></text>
+            </svg>
+            """);
+        var svgText = document.Descendants().OfType<SvgText>().Single(static element => element.ID == "label");
+        var viewport = GetDocumentViewport(document);
+        var assetLoader = new CountingNaturalAdvanceAssetLoader();
+
+        var succeeded = InvokeTryCompileSequentialText(svgText, viewport, assetLoader);
+
+        Assert.True(succeeded);
+        Assert.Equal(2, assetLoader.FindTypefacesCallCount);
+    }
+
+    [Fact]
     public void TryCompileSequentialText_FallsBack_ForNestedTextLengthAdjustment()
     {
         var document = SvgDocumentCompatibilityLoader.FromSvg<SvgDocument>(
