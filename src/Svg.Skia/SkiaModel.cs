@@ -12,6 +12,35 @@ public partial class SkiaModel
 {
     private static readonly char[] s_fontFamilyTrimChars = { '\'', '"' };
 
+    private sealed class DrawPictureState
+    {
+        private readonly Stack<bool> _saveStack = new();
+
+        public int SaveLayerDepth { get; private set; }
+
+        public void Save(bool isLayer)
+        {
+            _saveStack.Push(isLayer);
+            if (isLayer)
+            {
+                SaveLayerDepth++;
+            }
+        }
+
+        public void Restore()
+        {
+            if (_saveStack.Count == 0)
+            {
+                return;
+            }
+
+            if (_saveStack.Pop())
+            {
+                SaveLayerDepth--;
+            }
+        }
+    }
+
     private static readonly Dictionary<string, string[]> s_genericFontFamilyMap = new(StringComparer.OrdinalIgnoreCase)
     {
         ["sans-serif"] = new[] { "sans-serif", "Helvetica Neue", "Helvetica", "Arial", "Roboto", "Segoe UI", "DejaVu Sans" },
@@ -2072,7 +2101,7 @@ public partial class SkiaModel
         {
             if (commands is { Count: > 0 })
             {
-                DrawPictureCommandsCore(picture, skCanvas);
+                DrawPictureCommandsCore(picture, skCanvas, state: new DrawPictureState());
             }
             else
             {
@@ -2142,6 +2171,15 @@ public partial class SkiaModel
 
     public void Draw(CanvasCommand canvasCommand, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
     {
+        Draw(canvasCommand, skCanvas, wireframe, null);
+    }
+
+    private void Draw(
+        CanvasCommand canvasCommand,
+        SkiaSharp.SKCanvas skCanvas,
+        bool wireframe,
+        DrawPictureState? state)
+    {
         switch (canvasCommand)
         {
             case ClipPathCanvasCommand clipPathCanvasCommand:
@@ -2166,11 +2204,13 @@ public partial class SkiaModel
             case SaveCanvasCommand _:
                 {
                     skCanvas.Save();
+                    state?.Save(isLayer: false);
                     break;
                 }
             case RestoreCanvasCommand _:
                 {
                     skCanvas.Restore();
+                    state?.Restore();
                     break;
                 }
             case SetMatrixCanvasCommand setMatrixCanvasCommand:
@@ -2203,6 +2243,7 @@ public partial class SkiaModel
                     {
                         skCanvas.SaveLayer();
                     }
+                    state?.Save(isLayer: true);
                     break;
                 }
             case DrawImageCanvasCommand drawImageCanvasCommand:
@@ -2245,7 +2286,7 @@ public partial class SkiaModel
                         }
                         else
                         {
-                            DrawPictureCommandsCore(picture, skCanvas, wireframe);
+                            DrawPictureCommandsCore(picture, skCanvas, wireframe, state);
                         }
                     }
                     break;
@@ -2254,15 +2295,25 @@ public partial class SkiaModel
                 {
                     if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
                     {
+                        var paint = wireframe
+                            ? ToWireframePaint(drawPathCanvasCommand.Paint)
+                            : GetRenderPaint(drawPathCanvasCommand.Paint);
+                        if (paint is null)
+                        {
+                            break;
+                        }
+
+                        if (TryDrawDirectFilledPrimitivePath(skCanvas, paint, drawPathCanvasCommand.Paint, drawPathCanvasCommand.Path, state))
+                        {
+                            break;
+                        }
+
                         var path = GetRenderPath(drawPathCanvasCommand.Path);
                         if (path is null)
                         {
                             break;
                         }
 
-                        var paint = wireframe
-                            ? ToWireframePaint(drawPathCanvasCommand.Paint)
-                            : GetRenderPaint(drawPathCanvasCommand.Paint);
                         DrawPath(skCanvas, path, paint, drawPathCanvasCommand.Paint);
                     }
                     break;
@@ -2431,7 +2482,7 @@ public partial class SkiaModel
         _cacheComplexRenderPaintsForCurrentPicture |= cacheRepeatedPictureObjects;
         try
         {
-            DrawPictureCommandsCore(picture, skCanvas);
+            DrawPictureCommandsCore(picture, skCanvas, state: new DrawPictureState());
         }
         finally
         {
@@ -2440,7 +2491,11 @@ public partial class SkiaModel
         }
     }
 
-    private void DrawPictureCommandsCore(SKPicture picture, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
+    private void DrawPictureCommandsCore(
+        SKPicture picture,
+        SkiaSharp.SKCanvas skCanvas,
+        bool wireframe = false,
+        DrawPictureState? state = null)
     {
         var commands = picture.Commands;
         if (commands is null)
@@ -2450,7 +2505,7 @@ public partial class SkiaModel
 
         for (var i = 0; i < commands.Count; i++)
         {
-            Draw(commands[i], skCanvas, wireframe);
+            Draw(commands[i], skCanvas, wireframe, state);
         }
     }
 
@@ -2485,6 +2540,47 @@ public partial class SkiaModel
         skCanvas.ResetMatrix();
         skCanvas.DrawPath(transformedPath, paint);
         skCanvas.Restore();
+    }
+
+    private bool TryDrawDirectFilledPrimitivePath(
+        SkiaSharp.SKCanvas skCanvas,
+        SkiaSharp.SKPaint paint,
+        SKPaint sourcePaint,
+        SKPath? sourcePath,
+        DrawPictureState? state)
+    {
+        if (sourcePath?.Commands is not { Count: 1 } commands)
+        {
+            return false;
+        }
+
+        if (sourcePaint.Style != SKPaintStyle.Fill)
+        {
+            return false;
+        }
+
+        if (state is null || state.SaveLayerDepth > 0)
+        {
+            return false;
+        }
+
+        switch (commands[0])
+        {
+            case AddRectPathCommand addRect:
+                skCanvas.DrawRect(ToSKRect(addRect.Rect), paint);
+                return true;
+            case AddRoundRectPathCommand addRoundRect:
+                skCanvas.DrawRoundRect(ToSKRect(addRoundRect.Rect), addRoundRect.Rx, addRoundRect.Ry, paint);
+                return true;
+            case AddOvalPathCommand addOval:
+                skCanvas.DrawOval(ToSKRect(addOval.Rect), paint);
+                return true;
+            case AddCirclePathCommand addCircle:
+                skCanvas.DrawCircle(addCircle.X, addCircle.Y, addCircle.Radius, paint);
+                return true;
+            default:
+                return false;
+        }
     }
 
     private SkiaSharp.SKPaint ToWireframePaint(SKPaint? paint)
