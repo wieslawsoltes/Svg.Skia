@@ -228,7 +228,8 @@ internal static partial class SvgSceneTextCompiler
             assetLoader,
             out _,
             out var placements,
-            out totalAdvance);
+            out totalAdvance,
+            out _);
 
         placementCount = succeeded ? placements.Length : 0;
         return succeeded;

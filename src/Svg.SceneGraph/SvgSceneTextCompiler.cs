@@ -645,7 +645,12 @@ internal static partial class SvgSceneTextCompiler
         public float FinalY { get; }
     }
 
-    private readonly record struct PositionedTextPathRun(SvgTextBase StyleSource, string Text, PositionedCodepointPlacement[] Placements);
+    private readonly record struct PositionedTextPathRun(
+        SvgTextBase StyleSource,
+        string Text,
+        PositionedCodepointPlacement[] Placements,
+        SKRect FastBounds,
+        bool HasFastBounds);
 
     private readonly record struct DirectTextPathRenderGroup(SKRect GeometryBounds, List<PositionedTextPathRun> Runs);
 
@@ -2099,14 +2104,7 @@ internal static partial class SvgSceneTextCompiler
             : GetFallbackCodepointResolver(svgTextPath);
         for (var i = 0; i < positionedRuns.Count; i++)
         {
-            var bounds = MeasureCodepointPlacementBounds(
-                positionedRuns[i].StyleSource,
-                positionedRuns[i].Text,
-                positionedRuns[i].Placements,
-                geometryBounds,
-                assetLoader,
-                out _,
-                fallbackResolver);
+            var bounds = GetPositionedTextPathRunBounds(positionedRuns[i], geometryBounds, assetLoader, fallbackResolver);
             UnionBounds(ref runBounds, bounds);
         }
 
@@ -5985,6 +5983,57 @@ internal static partial class SvgSceneTextCompiler
         return true;
     }
 
+    private static bool TryCreateSimpleAsciiPositionedBoundsPaint(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        out SKPaint runPaint,
+        out SKFontMetrics metrics,
+        out float padding)
+    {
+        runPaint = new SKPaint();
+        metrics = default;
+        padding = 0f;
+
+        if (!IsSimpleAsciiSequentialCompileText(text) ||
+            RequiresSyntheticSmallCaps(svgTextBase, text))
+        {
+            return false;
+        }
+
+        PaintingService.SetPaintText(svgTextBase, geometryBounds, runPaint);
+        runPaint.TextAlign = SKTextAlign.Left;
+
+        var fallbackText = GetBrowserCompatibleFallbackText(svgTextBase, text, assetLoader);
+        if (!string.Equals(fallbackText, text, StringComparison.Ordinal) ||
+            HasPositionedSvgFontLayouts(svgTextBase, text, runPaint, assetLoader) ||
+            !TryCreateSingleSpanShapingPaint(text, runPaint, assetLoader, out runPaint) ||
+            runPaint.Typeface is null)
+        {
+            return false;
+        }
+
+        metrics = assetLoader.GetFontMetrics(runPaint);
+        padding = Math.Max(1f, runPaint.TextSize * 0.25f);
+        return metrics.Descent > metrics.Ascent;
+    }
+
+    private static SKRect CreateFastPositionedTextBounds(
+        PositionedCodepointPlacement placement,
+        float advance,
+        SKFontMetrics metrics,
+        float padding)
+    {
+        var bounds = new SKRect(
+            placement.Point.X - padding,
+            placement.Point.Y + metrics.Ascent - padding,
+            placement.Point.X + advance + padding,
+            placement.Point.Y + metrics.Descent + padding);
+        bounds = ScaleBoundsX(bounds, GetScalePivot(placement), placement.ScaleX);
+        return RotateBounds(bounds, placement.Point, placement.RotationDegrees);
+    }
+
     private static bool TryCreateSimpleAsciiPositionedRunPaint(
         SvgTextBase svgTextBase,
         string text,
@@ -9219,7 +9268,7 @@ internal static partial class SvgSceneTextCompiler
             : GetFallbackCodepointResolver(run.TextPath!);
         for (var i = 0; i < positionedRuns.Count; i++)
         {
-            var runBounds = MeasureCodepointPlacementBounds(positionedRuns[i].StyleSource, positionedRuns[i].Text, positionedRuns[i].Placements, run.GeometryBounds, assetLoader, out _, fallbackResolver);
+            var runBounds = GetPositionedTextPathRunBounds(positionedRuns[i], run.GeometryBounds, assetLoader, fallbackResolver);
             UnionBounds(ref bounds, runBounds);
         }
 
@@ -15308,6 +15357,24 @@ internal static partial class SvgSceneTextCompiler
         }
     }
 
+    private static SKRect GetPositionedTextPathRunBounds(
+        PositionedTextPathRun run,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader,
+        FallbackCodepointResolver? fallbackResolver)
+    {
+        return run.HasFastBounds && !run.FastBounds.IsEmpty
+            ? run.FastBounds
+            : MeasureCodepointPlacementBounds(
+                run.StyleSource,
+                run.Text,
+                run.Placements,
+                geometryBounds,
+                assetLoader,
+                out _,
+                fallbackResolver);
+    }
+
     private static void DrawStretchedTextPathRuns(
         IReadOnlyList<StretchedTextPathRun> runs,
         SKRect viewport,
@@ -15927,9 +15994,9 @@ internal static partial class SvgSceneTextCompiler
 
             var lengthSource = ResolveTextPathLengthSource(run);
             var lengthOverride = ResolveTextPathRunLengthOverride(runs.Count, i, run, lengthSource, runLengthOverrides, specifiedLengthOverride);
-            if (TryCreateTextPathCodepointPlacements(run.StyleSource, lengthSource, run.Text, currentOffset, currentVOffset, pathSamples, isClosedLoop, viewport, geometryBounds, assetLoader, out var renderedText, out var placements, out var advance, specifiedLengthOverride: lengthOverride))
+            if (TryCreateTextPathCodepointPlacements(run.StyleSource, lengthSource, run.Text, currentOffset, currentVOffset, pathSamples, isClosedLoop, viewport, geometryBounds, assetLoader, out var renderedText, out var placements, out var advance, out var fastBounds, specifiedLengthOverride: lengthOverride))
             {
-                positionedRuns.Add(new PositionedTextPathRun(run.StyleSource, renderedText, placements));
+                positionedRuns.Add(new PositionedTextPathRun(run.StyleSource, renderedText, placements, fastBounds, !fastBounds.IsEmpty));
             }
 
             currentOffset += advance;
@@ -16910,11 +16977,13 @@ internal static partial class SvgSceneTextCompiler
         out string renderedText,
         out PositionedCodepointPlacement[] placements,
         out float totalAdvance,
+        out SKRect fastBounds,
         float? specifiedLengthOverride = null)
     {
         renderedText = string.Empty;
         placements = Array.Empty<PositionedCodepointPlacement>();
         totalAdvance = 0f;
+        fastBounds = SKRect.Empty;
 
         if (string.IsNullOrEmpty(text) || pathSamples.Count < 2)
         {
@@ -17003,6 +17072,14 @@ internal static partial class SvgSceneTextCompiler
             : float.PositiveInfinity;
         var pathSegmentIndex = 1;
         var previousSampleOffset = float.NegativeInfinity;
+        var canCreateFastBounds = TryCreateSimpleAsciiPositionedBoundsPaint(
+            svgTextBase,
+            text,
+            geometryBounds,
+            assetLoader,
+            out _,
+            out var fastBoundsMetrics,
+            out var fastBoundsPadding);
 
         for (var i = 0; i < codepoints.Count; i++)
         {
@@ -17087,12 +17164,26 @@ internal static partial class SvgSceneTextCompiler
                 visibleStartIndex = i;
             }
 
-            placementBuffer[visibleCount++] = new PositionedCodepointPlacement(
+            var placement = new PositionedCodepointPlacement(
                 point,
                 finalAngleDegrees,
                 scaleRunFromStart ? glyphScaleX : 1f,
                 point.X,
                 placementOffset);
+            placementBuffer[visibleCount++] = placement;
+
+            if (canCreateFastBounds)
+            {
+                var unscaledAdvance = IsValidPositiveAdvance(placementAdvances[i])
+                    ? placementAdvances[i]
+                    : 0f;
+                var candidateBounds = CreateFastPositionedTextBounds(
+                    placement,
+                    unscaledAdvance,
+                    fastBoundsMetrics,
+                    fastBoundsPadding);
+                UnionBounds(ref fastBounds, candidateBounds);
+            }
 
             if (i < codepoints.Count - 1)
             {
