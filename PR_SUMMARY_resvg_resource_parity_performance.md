@@ -31,6 +31,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Retained-scene child address-key pre-seeding during compile traversal.
 - Persistent retained-scene address-key string reuse for repeated retained compiles.
 - Retained conditional-processing feature gates for documents without conditional attributes.
+- Retained geometry-length CSS feature gates for documents without CSS geometry declarations.
 - Compact retained-scene compilation-root lookup storage during document registration.
 - Node-tree dependency registration for fully retained no-reference scenes.
 - Retained-scene child-list capacity hints during compile traversal.
@@ -126,6 +127,9 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added shared conditional-processing checks for scene compilation and clip compilation.
 - Cached document/subtree conditional-processing feature flags so retained compilation can skip per-element `requiredFeatures`, `requiredExtensions`, and `systemLanguage` checks when the active document does not contain those attributes.
 - Invalidated the conditional-processing feature cache when custom attributes mutate, keeping retained mutations that add conditional attributes behaviorally correct.
+- Added document-level CSS geometry feature tracking for `x`, `y`, dimensions, radii, and line endpoints so retained geometry reads can skip cascaded CSS lookup when no CSS geometry declarations exist.
+- Reused the geometry declaration probe across rectangle, circle, ellipse, line, image, and `<use>` geometry reads, including clip-path `<use>` transforms.
+- Added a case-insensitive CSS geometry regression test for retained scene compilation.
 - Expanded clip-path compilation to cover conditional descendants, basic shapes, nested geometry, fallback geometry, and dependency tracking.
 - Improved path handling for move-only paths, zero-radius arcs, same-point arcs, and ellipse geometry conversion.
 - Added transform-box reference box mapping for content-box and border-box behavior.
@@ -1553,10 +1557,16 @@ Focused simple natural text advance cache-hit measurements:
   - Focused conditional/static/vector validation: `dotnet test tests/Svg.Model.UnitTests/Svg.Model.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgConditionalProcessingTests|FullyQualifiedName~PathingServiceTests|FullyQualifiedName~Svg2StaticStyleContractTests|FullyQualifiedName~VectorDrawableAndroidSpecTests"` passed 91.
   - Rebuilt direct allocation probe for `generated-shapes-1024` reported `2065052.20 B` per compile, matching the prior address-key-cache baseline range (`2065012.20 B`); the rejected rectangle command-cache experiment was removed before publishing.
   - BenchmarkDotNet retained compile row: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024,generated-text-192,generated-aligned-letter-spacing-192" SVG_SKIA_BENCHMARK_RUN_LABEL="conditional-processing-feature-gate-retained-compile" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3` stayed allocation-flat, as expected for a traversal short-circuit that mostly removes redundant attribute probing.
+- Focused geometry CSS feature-gate validation:
+  - Added active-document CSS geometry feature flags so ordinary shape attributes skip redundant cascaded CSS lookup when no CSS geometry declarations exist, while CSS-authored geometry still takes precedence.
+  - Reused the computed geometry feature gate across shape, image, and `<use>` reads so multi-property geometry paths avoid repeating the same document probe.
+  - Focused retained/model validation passed: retained CSS geometry and SVG 2 geometry tests passed 4 tests, and `Svg.Model.UnitTests` style/path filters passed 45 tests.
+  - Direct allocation probe for `generated-shapes-1024` stayed allocation-flat at `2065052.20 B` per compile.
+  - Focused retained compile benchmark `geometry-css-feature-gate-reused-shape-flag` measured `CompileNodeTreeOnly | generated-shapes-1024` at `2.637 ms / 1.97 MB`, compared with the previous post-geometry hotspot scan row of `4.225 ms / 2016.66 KB`.
 - Pre-publish validation for the current stack:
   - `dotnet format Svg.Skia.slnx --no-restore` completed.
   - Formatter-only `externals/SVG` submodule churn was stashed as `codex-format-submodule-churn`.
-  - `dotnet build Svg.Skia.slnx -c Release` passed with 349 existing warnings.
-  - `dotnet test Svg.Skia.slnx -c Release --no-build` passed; `Svg.Skia.UnitTests` reported 2601 passed and 40 skipped, and the other test projects passed.
+  - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release` passed; `Svg.Skia.UnitTests` reported 2602 passed and 40 skipped, and all other test assemblies passed.
 
-The release build currently reports 349 existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
+The release build currently reports 297 existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
