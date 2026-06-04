@@ -43,6 +43,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Font-scale encoded positioned text blobs for uniform retained `spacingAndGlyphs` textLength placements.
 - Direct scaled text command recording for simple retained `spacingAndGlyphs` textLength runs.
 - Single-span typeface resolution for simple scaled textLength command recording.
+- Root retained compile fast path for simple scaled `spacingAndGlyphs` textLength runs.
 - Aligned retained compile codepoint split reuse for positioned bounds measurement.
 - Lazy text reference seeding for retained text compile paths that actually build filtered textPath contexts.
 - Flattened textLength run materialization allocation trimming for simple one-style retained textLength runs.
@@ -136,6 +137,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Encoded uniform positioned text-blob scale in the blob `SKFont` and pre-scaled glyph origins, removing save/set-matrix/restore command wrappers from simple retained `spacingAndGlyphs` textLength blob recording while preserving the existing fallback for rotated, mixed-scale, SVG-font, synthetic small-caps, and complex text.
 - Recorded simple horizontal ASCII `lengthAdjust="spacingAndGlyphs"` textLength runs as one scaled `DrawText` command, avoiding positioned blob point materialization while leaving rotations, explicit spacing, vertical text, SVG-font text, synthetic small-caps, browser-compatible fallback runs, and complex typeface fallback on the existing positioned paths.
 - Reused the cached horizontal natural-advance path and narrowed simple scaled textLength command typeface resolution to one verified full-run typeface span, avoiding the broader run-typeface resolver while falling back to positioned text for multi-span or complex cases.
+- Added a root retained compile branch for simple horizontal ASCII `lengthAdjust="spacingAndGlyphs"` textLength runs, resolving scaled draw bounds once and recording the scaled text command directly instead of falling through to generic text bounds estimation plus draw traversal.
 - Reused aligned placement codepoint splits during retained aligned bounds measurement, avoiding a second codepoint read/allocation pass for simple aligned retained runs.
 - Deferred text reference-set allocation until filtered textPath rendering actually constructs a filter context, while preserving document URI seeding through `SvgService.ExtendImageReferences`.
 - Trimmed flattened textLength run materialization by avoiding LINQ glyph-scale seeding, temporary spacing gap-index lists, chunk arrays for one-chunk textLength runs, and placement-list copies for simple one-style retained textLength runs.
@@ -416,6 +418,10 @@ Focused simple root textLength spacing positioned text-blob measurements:
 
 - `CompileNodeTreeOnly | generated-aligned-text-length-192`: `7.591 ms / 6 MB`, down from the fresh retained hotspot scan's `71.45 ms / 11,102.6 KB`, after recording simple root `lengthAdjust="spacing"` rows as one positioned text blob and keeping the existing scaled-command path for `spacingAndGlyphs`.
 - `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: `2.427 ms / 3.19 MB` as the fixed-spacing control row.
+
+Focused simple root scaled textLength retained compile measurements:
+
+- `CompileNodeTreeOnly | generated-aligned-text-length-192`: `2.822 ms / 1.93 MB`, down from the current post-textPath retained hotspot scan's `68.703 ms / 6.4 MB`, after compiling simple root `lengthAdjust="spacingAndGlyphs"` rows directly to scaled text commands instead of using the generic measure-record traversal.
 
 Focused retained sequential line-stats cache measurements:
 
@@ -742,6 +748,18 @@ Focused simple natural text advance cache-hit measurements:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_TextLengthSpacing|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_TextLengthSpacingAndGlyphs|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_LengthAdjustSpacingAndGlyphs|FullyQualifiedName~SvgSceneTextCompilerTests"`
   - Passed 183.
   - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-aligned-text-length-192,generated-aligned-letter-spacing-192 SVG_SKIA_BENCHMARK_RUN_LABEL=current-simple-textlength-spacing-blob dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+- Focused simple root scaled textLength retained compile validation:
+  - `dotnet build Svg.Skia.slnx -c Release --no-restore`
+  - Build passed with existing warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests"`
+  - Passed 265.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-aligned-text-length-192 SVG_SKIA_BENCHMARK_RUN_LABEL=scaled-textlength-retained-compile-fastpath dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `dotnet format Svg.Skia.slnx --no-restore`
+  - Completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release`
+  - Build passed with existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2597, skipped 40; other test projects passed.
 - Focused retained sequential line-stats cache validation:
   - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
   - Build passed with existing warnings.
