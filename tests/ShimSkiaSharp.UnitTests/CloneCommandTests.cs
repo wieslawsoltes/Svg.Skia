@@ -184,6 +184,25 @@ public class CloneCommandTests
     }
 
     [Fact]
+    public void CanvasCommand_DeepClone_ClonesDrawPositionedTextRun()
+    {
+        var fragments = new[]
+        {
+            new PositionedTextRunFragment("A", new SKPoint(1, 2), 15, 1, 1),
+            new PositionedTextRunFragment("B", new SKPoint(3, 4), 25, 1.5f, 3)
+        };
+        var paint = CloneTestData.CreatePaint();
+        CanvasCommand command = new DrawPositionedTextRunCanvasCommand(fragments, paint);
+
+        var clone = command.DeepClone();
+        var typed = Assert.IsType<DrawPositionedTextRunCanvasCommand>(clone);
+
+        Assert.NotSame(fragments, typed.Fragments);
+        Assert.Equal(fragments, typed.Fragments);
+        Assert.NotSame(paint, typed.Paint);
+    }
+
+    [Fact]
     public void CanvasCommand_DeepClone_ClonesDrawTextOnPath()
     {
         var path = CloneTestData.CreatePath();

@@ -348,6 +348,9 @@ public static class SKPictureEditingExtensions
             case DrawPathCanvasCommand drawPath:
                 paint = drawPath.Paint;
                 return true;
+            case DrawPositionedTextRunCanvasCommand drawPositionedTextRun:
+                paint = drawPositionedTextRun.Paint;
+                return true;
             case DrawTextBlobCanvasCommand drawTextBlob:
                 paint = drawTextBlob.Paint;
                 return true;
@@ -372,6 +375,7 @@ public static class SKPictureEditingExtensions
         {
             DrawImageCanvasCommand drawImage => drawImage with { Paint = paint },
             DrawPathCanvasCommand drawPath => drawPath with { Paint = paint },
+            DrawPositionedTextRunCanvasCommand drawPositionedTextRun => drawPositionedTextRun with { Paint = paint },
             DrawTextBlobCanvasCommand drawTextBlob => drawTextBlob with { Paint = paint },
             DrawTextCanvasCommand drawText => drawText with { Paint = paint },
             DrawTextOnPathCanvasCommand drawTextOnPath => drawTextOnPath with { Paint = paint },

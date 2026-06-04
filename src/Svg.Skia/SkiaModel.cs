@@ -2237,6 +2237,85 @@ public partial class SkiaModel
         skCanvas.DrawRect(skRect, paint);
     }
 
+    private void DrawPositionedTextRun(
+        DrawPositionedTextRunCanvasCommand command,
+        SkiaSharp.SKCanvas skCanvas,
+        bool wireframe)
+    {
+        if (command.Fragments is not { Count: > 0 } || command.Paint is not { })
+        {
+            return;
+        }
+
+        using var paint = wireframe
+            ? ToWireframePaint(command.Paint)
+            : ToSKTextPaint(command.Paint);
+        if (paint is null)
+        {
+            return;
+        }
+
+        var textAlign = ToSKTextAlign(command.TextAlign ?? command.Paint.TextAlign);
+        var applyFont = command.Font is not null;
+        using var font = command.Font is { } textFont
+            ? ToSKFont(textFont)
+            : ToSKFont(command.Paint);
+        if (font is null)
+        {
+            return;
+        }
+
+        var textPaint = applyFont || command.TextAlign.HasValue
+            ? CreateTextRenderPaint(paint, textAlign, font, applyFont)
+            : paint;
+        try
+        {
+            foreach (var fragment in command.Fragments)
+            {
+                DrawPositionedTextRunFragment(fragment, skCanvas, textPaint);
+            }
+        }
+        finally
+        {
+            DisposeIfCloned(textPaint, paint);
+        }
+    }
+
+    private void DrawPositionedTextRunFragment(
+        PositionedTextRunFragment fragment,
+        SkiaSharp.SKCanvas skCanvas,
+        SkiaSharp.SKPaint paint)
+    {
+        if (fragment.RotationDegrees == 0f && fragment.ScaleX == 1f)
+        {
+            skCanvas.DrawText(fragment.Text, fragment.Point.X, fragment.Point.Y, paint);
+            return;
+        }
+
+        skCanvas.Save();
+        if (fragment.RotationDegrees != 0f)
+        {
+            var matrix = ToSKMatrix(SKMatrix.CreateRotationDegrees(
+                fragment.RotationDegrees,
+                fragment.Point.X,
+                fragment.Point.Y));
+            skCanvas.Concat(ref matrix);
+        }
+
+        if (fragment.ScaleX != 1f)
+        {
+            var matrix = ToSKMatrix(SKMatrix.CreateScale(
+                fragment.ScaleX,
+                1f,
+                fragment.ScaleOriginX,
+                fragment.Point.Y));
+            skCanvas.Concat(ref matrix);
+        }
+
+        skCanvas.DrawText(fragment.Text, fragment.Point.X, fragment.Point.Y, paint);
+        skCanvas.Restore();
+    }
+
     public void Draw(CanvasCommand canvasCommand, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
     {
         Draw(canvasCommand, skCanvas, wireframe, null);
@@ -2384,6 +2463,11 @@ public partial class SkiaModel
 
                         DrawPath(skCanvas, path, paint, drawPathCanvasCommand.Paint);
                     }
+                    break;
+                }
+            case DrawPositionedTextRunCanvasCommand drawPositionedTextRunCanvasCommand:
+                {
+                    DrawPositionedTextRun(drawPositionedTextRunCanvasCommand, skCanvas, wireframe);
                     break;
                 }
             case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:

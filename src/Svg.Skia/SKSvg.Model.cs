@@ -1602,6 +1602,7 @@ public partial class SKSvg : IDisposable
     private static bool IsTextDrawingCommand(CanvasCommand command)
     {
         return command is DrawPathCanvasCommand or
+            DrawPositionedTextRunCanvasCommand or
             DrawTextCanvasCommand or
             DrawTextBlobCanvasCommand or
             DrawTextOnPathCanvasCommand;

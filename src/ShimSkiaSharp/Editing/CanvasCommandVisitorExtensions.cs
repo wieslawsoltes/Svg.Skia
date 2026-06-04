@@ -35,6 +35,9 @@ public static class CanvasCommandVisitorExtensions
             case DrawPathCanvasCommand drawPath:
                 visitor.Visit(drawPath);
                 break;
+            case DrawPositionedTextRunCanvasCommand drawPositionedTextRun:
+                visitor.Visit(drawPositionedTextRun);
+                break;
             case DrawTextBlobCanvasCommand drawTextBlob:
                 visitor.Visit(drawTextBlob);
                 break;

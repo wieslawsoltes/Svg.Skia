@@ -33,6 +33,7 @@ public abstract record CanvasCommand : IDeepCloneable<CanvasCommand>
                 DrawImageCanvasCommand drawImageCanvasCommand => new DrawImageCanvasCommand(drawImageCanvasCommand.Image?.DeepClone(context), drawImageCanvasCommand.Source, drawImageCanvasCommand.Dest, drawImageCanvasCommand.Paint?.DeepClone(context), drawImageCanvasCommand.Sampling),
                 DrawPictureCanvasCommand drawPictureCanvasCommand => new DrawPictureCanvasCommand(drawPictureCanvasCommand.Picture?.DeepClone(context)),
                 DrawPathCanvasCommand drawPathCanvasCommand => new DrawPathCanvasCommand(drawPathCanvasCommand.Path?.DeepClone(context), drawPathCanvasCommand.Paint?.DeepClone(context)),
+                DrawPositionedTextRunCanvasCommand drawPositionedTextRunCanvasCommand => new DrawPositionedTextRunCanvasCommand(ClonePositionedTextRunFragments(drawPositionedTextRunCanvasCommand.Fragments), drawPositionedTextRunCanvasCommand.Paint?.DeepClone(context), drawPositionedTextRunCanvasCommand.TextAlign, drawPositionedTextRunCanvasCommand.Font?.DeepClone(context)),
                 DrawTextBlobCanvasCommand drawTextBlobCanvasCommand => new DrawTextBlobCanvasCommand(drawTextBlobCanvasCommand.TextBlob?.DeepClone(context), drawTextBlobCanvasCommand.X, drawTextBlobCanvasCommand.Y, drawTextBlobCanvasCommand.Paint?.DeepClone(context)),
                 DrawTextCanvasCommand drawTextCanvasCommand => new DrawTextCanvasCommand(drawTextCanvasCommand.Text, drawTextCanvasCommand.X, drawTextCanvasCommand.Y, drawTextCanvasCommand.Paint?.DeepClone(context), drawTextCanvasCommand.TextAlign, drawTextCanvasCommand.Font?.DeepClone(context)),
                 DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand => new DrawTextOnPathCanvasCommand(drawTextOnPathCanvasCommand.Text, drawTextOnPathCanvasCommand.Path?.DeepClone(context), drawTextOnPathCanvasCommand.HOffset, drawTextOnPathCanvasCommand.VOffset, drawTextOnPathCanvasCommand.Paint?.DeepClone(context), drawTextOnPathCanvasCommand.TextAlign, drawTextOnPathCanvasCommand.Font?.DeepClone(context)),
@@ -59,6 +60,22 @@ public abstract record CanvasCommand : IDeepCloneable<CanvasCommand>
         command.SourceElementAddress = SourceElementAddress;
         command.SourceElementTypeName = SourceElementTypeName;
     }
+
+    private static PositionedTextRunFragment[]? ClonePositionedTextRunFragments(IReadOnlyList<PositionedTextRunFragment>? fragments)
+    {
+        if (fragments is null)
+        {
+            return null;
+        }
+
+        var clone = new PositionedTextRunFragment[fragments.Count];
+        for (var i = 0; i < fragments.Count; i++)
+        {
+            clone[i] = fragments[i];
+        }
+
+        return clone;
+    }
 }
 
 public record ClipPathCanvasCommand(ClipPath? ClipPath, SKClipOperation Operation, bool Antialias) : CanvasCommand;
@@ -70,6 +87,19 @@ public record DrawImageCanvasCommand(SKImage? Image, SKRect Source, SKRect Dest,
 public record DrawPictureCanvasCommand(SKPicture? Picture) : CanvasCommand;
 
 public record DrawPathCanvasCommand(SKPath? Path, SKPaint? Paint) : CanvasCommand;
+
+public readonly record struct PositionedTextRunFragment(
+    string Text,
+    SKPoint Point,
+    float RotationDegrees,
+    float ScaleX,
+    float ScaleOriginX);
+
+public record DrawPositionedTextRunCanvasCommand(
+    IReadOnlyList<PositionedTextRunFragment>? Fragments,
+    SKPaint? Paint,
+    SKTextAlign? TextAlign = null,
+    SKFont? Font = null) : CanvasCommand;
 
 public record DrawTextBlobCanvasCommand(SKTextBlob? TextBlob, float X, float Y, SKPaint? Paint) : CanvasCommand;
 
@@ -224,6 +254,16 @@ public class SKCanvas : ICloneable, IDeepCloneable<SKCanvas>
     public void DrawText(SKTextBlob textBlob, float x, float y, SKPaint paint)
     {
         AddCommand(new DrawTextBlobCanvasCommand(textBlob, x, y, paint));
+    }
+
+    public void DrawPositionedTextRun(IReadOnlyList<PositionedTextRunFragment> fragments, SKPaint paint)
+    {
+        AddCommand(new DrawPositionedTextRunCanvasCommand(fragments, paint));
+    }
+
+    public void DrawPositionedTextRun(IReadOnlyList<PositionedTextRunFragment> fragments, SKTextAlign textAlign, SKFont font, SKPaint paint)
+    {
+        AddCommand(new DrawPositionedTextRunCanvasCommand(fragments, paint, textAlign, font));
     }
 
     public void DrawText(string text, float x, float y, SKPaint paint)

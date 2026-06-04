@@ -1604,6 +1604,30 @@ public partial class SkiaModel
                     return false;
                 }
                 break;
+            case DrawPositionedTextRunCanvasCommand drawPositionedTextRunCanvasCommand:
+                hash.Add(drawPositionedTextRunCanvasCommand.Fragments?.Count ?? 0);
+                if (drawPositionedTextRunCanvasCommand.Fragments is { } fragments)
+                {
+                    for (var i = 0; i < fragments.Count; i++)
+                    {
+                        var fragment = fragments[i];
+                        hash.Add(fragment.Text);
+                        hash.Add(fragment.Point);
+                        hash.Add(fragment.RotationDegrees);
+                        hash.Add(fragment.ScaleX);
+                        hash.Add(fragment.ScaleOriginX);
+                    }
+                }
+
+                hash.Add(drawPositionedTextRunCanvasCommand.TextAlign);
+                if (!TryAddPaintRevision(ref hash, drawPositionedTextRunCanvasCommand.Paint, visited) ||
+                    !TryGetFontRevision(drawPositionedTextRunCanvasCommand.Font, visited, out var drawPositionedTextRunFontRevision))
+                {
+                    revision = 0;
+                    return false;
+                }
+                hash.Add(drawPositionedTextRunFontRevision);
+                break;
             case DrawTextBlobCanvasCommand drawTextBlobCanvasCommand:
                 hash.Add(drawTextBlobCanvasCommand.X);
                 hash.Add(drawTextBlobCanvasCommand.Y);

@@ -27,6 +27,7 @@ internal static partial class SvgSceneTextCompiler
     private const int MaxTextPathCurveSteps = 8192;
     private const int TextPathGeometryCacheLimit = 256;
     private const int FallbackCodepointCacheLimit = 4096;
+    private const int MinCompactPositionedTextRunCodepoints = 24;
     private const float MaxTextPathSamplingScale = 64f;
     private const float TextPathCurveSamplesPerUnit = 192f;
     private const float TextPathTangentEpsilon = 1e-12f;
@@ -5656,12 +5657,53 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
+        if (TryDrawCompactPositionedTextRun(codepoints, placements, runPaint, canvas))
+        {
+            return true;
+        }
+
         for (var i = 0; i < codepoints.Count; i++)
         {
             DrawPositionedText(codepoints[i], placements[i], runPaint, canvas);
         }
 
         return true;
+    }
+
+    private static bool TryDrawCompactPositionedTextRun(
+        IReadOnlyList<string> codepoints,
+        PositionedCodepointPlacement[] placements,
+        SKPaint paint,
+        SKCanvas canvas)
+    {
+        if (codepoints.Count < MinCompactPositionedTextRunCodepoints ||
+            codepoints.Count != placements.Length ||
+            HasCustomTextShapingProperties(paint))
+        {
+            return false;
+        }
+
+        var fragments = new PositionedTextRunFragment[codepoints.Count];
+        for (var i = 0; i < codepoints.Count; i++)
+        {
+            var placement = placements[i];
+            fragments[i] = new PositionedTextRunFragment(
+                codepoints[i],
+                placement.Point,
+                placement.RotationDegrees,
+                placement.ScaleX,
+                placement.ScaleOriginX);
+        }
+
+        canvas.DrawPositionedTextRun(fragments, paint);
+        return true;
+    }
+
+    private static bool HasCustomTextShapingProperties(SKPaint paint)
+    {
+        return !string.IsNullOrEmpty(paint.FontFeatureSettings) ||
+               !string.IsNullOrEmpty(paint.FontKerning) ||
+               !string.IsNullOrEmpty(paint.FontVariantLigatures);
     }
 
     private static bool TryDrawGraphemeClusterPlacements(

@@ -475,7 +475,7 @@ internal static class SvgRegressionValidationScenarios
 
     public static int CountTextCommands(SKPicture? picture)
         => EnumerateCommands(picture).Count(static command =>
-            command is DrawTextCanvasCommand or DrawTextBlobCanvasCommand or DrawTextOnPathCanvasCommand);
+            command is DrawPositionedTextRunCanvasCommand or DrawTextCanvasCommand or DrawTextBlobCanvasCommand or DrawTextOnPathCanvasCommand);
 
     public static int CountPathCommands(SKPicture? picture)
         => EnumerateCommands(picture).Count(static command => command is DrawPathCanvasCommand);
@@ -488,6 +488,7 @@ internal static class SvgRegressionValidationScenarios
             checksum = CombineCommandSource(checksum, command);
             checksum = command switch
             {
+                DrawPositionedTextRunCanvasCommand drawPositionedTextRun => CombinePositionedTextRunCommand(checksum, drawPositionedTextRun),
                 DrawTextCanvasCommand drawText => CombineTextCommand(checksum, drawText.Text, drawText.X, drawText.Y),
                 DrawTextBlobCanvasCommand drawTextBlob => CombineTextBlobCommand(checksum, drawTextBlob),
                 DrawTextOnPathCanvasCommand drawTextOnPath => CombineTextOnPathCommand(checksum, drawTextOnPath),
@@ -514,6 +515,10 @@ internal static class SvgRegressionValidationScenarios
             if (command is DrawPathCanvasCommand drawPath)
             {
                 checksum = CombinePathCommand(checksum, drawPath);
+            }
+            else if (command is DrawPositionedTextRunCanvasCommand drawPositionedTextRun)
+            {
+                checksum = CombinePositionedTextRunCommand(checksum, drawPositionedTextRun);
             }
             else if (command is DrawTextCanvasCommand drawText)
             {
@@ -578,6 +583,9 @@ internal static class SvgRegressionValidationScenarios
             commandCount++;
             switch (command)
             {
+                case DrawPositionedTextRunCanvasCommand:
+                    textCount++;
+                    break;
                 case DrawTextCanvasCommand:
                     textCount++;
                     drawTextCount++;
@@ -635,6 +643,7 @@ internal static class SvgRegressionValidationScenarios
         {
             switch (command)
             {
+                case DrawPositionedTextRunCanvasCommand:
                 case DrawTextCanvasCommand:
                 case DrawTextBlobCanvasCommand:
                 case DrawTextOnPathCanvasCommand:
@@ -693,6 +702,7 @@ internal static class SvgRegressionValidationScenarios
 
             switch (command)
             {
+                case DrawPositionedTextRunCanvasCommand:
                 case DrawTextCanvasCommand:
                 case DrawTextBlobCanvasCommand:
                 case DrawTextOnPathCanvasCommand:
@@ -781,6 +791,26 @@ internal static class SvgRegressionValidationScenarios
             }
         }
 
+        return checksum;
+    }
+
+    private static int CombinePositionedTextRunCommand(int checksum, DrawPositionedTextRunCanvasCommand command)
+    {
+        checksum = Combine(checksum, command.Fragments?.Count ?? 0);
+        if (command.Fragments is { } fragments)
+        {
+            for (var i = 0; i < fragments.Count; i++)
+            {
+                var fragment = fragments[i];
+                checksum = CombineTextCommand(checksum, fragment.Text, fragment.Point.X, fragment.Point.Y);
+                checksum = Combine(checksum, BitConverter.SingleToInt32Bits(fragment.RotationDegrees));
+                checksum = Combine(checksum, BitConverter.SingleToInt32Bits(fragment.ScaleX));
+                checksum = Combine(checksum, BitConverter.SingleToInt32Bits(fragment.ScaleOriginX));
+            }
+        }
+
+        checksum = Combine(checksum, command.TextAlign?.GetHashCode() ?? 0);
+        checksum = CombinePaint(checksum, command.Paint);
         return checksum;
     }
 
