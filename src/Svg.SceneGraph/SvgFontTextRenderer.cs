@@ -128,6 +128,22 @@ namespace Svg.Skia
             return false;
         }
 
+        internal static bool HasFontEntries(SvgTextBase svgTextBase, ISvgAssetLoader? assetLoader)
+        {
+            if (assetLoader is { EnableSvgFonts: false })
+            {
+                return false;
+            }
+
+            var document = svgTextBase.OwnerDocument;
+            if (document is null || string.IsNullOrWhiteSpace(svgTextBase.FontFamily))
+            {
+                return false;
+            }
+
+            return s_registryCache.GetValue(document, static doc => SvgFontRegistry.Create(doc)).HasEntries;
+        }
+
         private static bool IsCompatibleLayoutCandidate(SvgFontEntry entry, SvgFontRequest request)
         {
             return entry.IsVariantCompatible(request) &&

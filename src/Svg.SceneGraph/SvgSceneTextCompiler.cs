@@ -5435,7 +5435,7 @@ internal static partial class SvgSceneTextCompiler
         SKPaint paint,
         ISvgAssetLoader assetLoader)
     {
-        if (!assetLoader.EnableSvgFonts)
+        if (!SvgFontTextRenderer.HasFontEntries(svgTextBase, assetLoader))
         {
             return false;
         }
@@ -16997,11 +16997,13 @@ internal static partial class SvgSceneTextCompiler
         }
 
         var pathLength = pathSamples[pathSamples.Count - 1].Distance;
+        var isSimpleAsciiText = IsSimpleAsciiSequentialCompileText(text);
         var naturalAdvances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, geometryBounds, assetLoader);
         var placementAdvances = CreateTextPathPlacementAdvances(text, codepoints, naturalAdvances);
         var letterSpacingUnit = svgTextBase.LetterSpacing;
         var wordSpacingUnit = svgTextBase.WordSpacing;
-        var hasLetterSpacingAdjustment = HasSpacingAdjustment(letterSpacingUnit) && !SuppressesLetterSpacingForRun(text);
+        var hasLetterSpacingAdjustment = HasSpacingAdjustment(letterSpacingUnit) &&
+                                         (isSimpleAsciiText || !SuppressesLetterSpacingForRun(text));
         var hasWordSpacingAdjustment = HasSpacingAdjustment(wordSpacingUnit);
         var letterSpacingIsPercentage = hasLetterSpacingAdjustment && letterSpacingUnit.Type == SvgUnitType.Percentage;
         var wordSpacingIsPercentage = hasWordSpacingAdjustment && wordSpacingUnit.Type == SvgUnitType.Percentage;
@@ -17020,14 +17022,14 @@ internal static partial class SvgSceneTextCompiler
                 continue;
             }
 
-            if (hasLetterSpacingAdjustment && SupportsLetterSpacing(codepoints[i]))
+            if (hasLetterSpacingAdjustment && SupportsTextPathLetterSpacing(isSimpleAsciiText, text, codepoints, i))
             {
                 naturalLength += letterSpacingIsPercentage
                     ? ResolveSpacingValue(svgTextBase, letterSpacingUnit, geometryBounds, naturalAdvances[i])
                     : fixedLetterSpacing;
             }
 
-            if (hasWordSpacingAdjustment && IsWhitespaceCodepoint(codepoints[i]))
+            if (hasWordSpacingAdjustment && IsTextPathWhitespace(isSimpleAsciiText, text, codepoints, i))
             {
                 naturalLength += wordSpacingIsPercentage
                     ? ResolveSpacingValue(svgTextBase, wordSpacingUnit, geometryBounds, naturalAdvances[i])
@@ -17095,14 +17097,14 @@ internal static partial class SvgSceneTextCompiler
             var wordSpacing = 0f;
             if (i < codepoints.Count - 1)
             {
-                if (hasLetterSpacingAdjustment && SupportsLetterSpacing(codepoints[i]))
+                if (hasLetterSpacingAdjustment && SupportsTextPathLetterSpacing(isSimpleAsciiText, text, codepoints, i))
                 {
                     letterSpacing = letterSpacingIsPercentage
                         ? ResolveSpacingValue(svgTextBase, letterSpacingUnit, geometryBounds, naturalAdvances[i])
                         : fixedLetterSpacing;
                 }
 
-                if (hasWordSpacingAdjustment && IsWhitespaceCodepoint(codepoints[i]))
+                if (hasWordSpacingAdjustment && IsTextPathWhitespace(isSimpleAsciiText, text, codepoints, i))
                 {
                     wordSpacing = wordSpacingIsPercentage
                         ? ResolveSpacingValue(svgTextBase, wordSpacingUnit, geometryBounds, naturalAdvances[i])
@@ -17150,7 +17152,9 @@ internal static partial class SvgSceneTextCompiler
                 return false;
             }
 
-            var codepointRotationDegrees = GetCodepointRotationDegrees(svgTextBase, codepoints[i], rotations, i);
+            var codepointRotationDegrees = rotations is null
+                ? 0f
+                : GetCodepointRotationDegrees(svgTextBase, codepoints[i], rotations, i);
             var angleDegrees = (float)(Math.Atan2(tangent.Y, tangent.X) * 180d / Math.PI);
             var finalAngleDegrees = angleDegrees + codepointRotationDegrees;
             var baselineDirection = RotateTextPathTangent(tangent, codepointRotationDegrees);
@@ -19826,6 +19830,17 @@ internal static partial class SvgSceneTextCompiler
         return codepoint.Length > 0 && char.IsWhiteSpace(codepoint, 0);
     }
 
+    private static bool IsTextPathWhitespace(
+        bool isSimpleAsciiText,
+        string text,
+        IReadOnlyList<string> codepoints,
+        int index)
+    {
+        return isSimpleAsciiText
+            ? (uint)index < (uint)text.Length && char.IsWhiteSpace(text[index])
+            : IsWhitespaceCodepoint(codepoints[index]);
+    }
+
     private static bool SupportsLetterSpacing(string codepoint)
     {
         if (string.IsNullOrEmpty(codepoint))
@@ -19834,6 +19849,17 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return !IsCursiveTrackingCodepoint(codepoint);
+    }
+
+    private static bool SupportsTextPathLetterSpacing(
+        bool isSimpleAsciiText,
+        string text,
+        IReadOnlyList<string> codepoints,
+        int index)
+    {
+        return isSimpleAsciiText
+            ? (uint)index < (uint)text.Length
+            : SupportsLetterSpacing(codepoints[index]);
     }
 
     private static bool IsCursiveTrackingCodepoint(string codepoint)
