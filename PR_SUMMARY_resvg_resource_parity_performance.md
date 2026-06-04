@@ -97,6 +97,10 @@ The branch focuses on cases found while validating the resource parity lane:
 - Own-`textLength` guard for retained textLength fast-path probes on ordinary text.
 - Lazy retained-node visual/resource sidecar storage for rare cursor, background, blend, and resource-key state.
 - Lazy retained-node effect sidecar storage for rare clip, mask, and filter state.
+- Boxing-free `DrawAttributes` flag checks across retained compile, scene rendering, and SKSvg layer paths.
+- Delegate-free retained structural finalization for group, anchor, switch, fragment, `<use>`, and symbol compile paths.
+- ASCII bidi-probe fast paths for simple retained text so direction/control checks skip codepoint-object allocation.
+- Resolved-typeface text paint setup so retained text recording skips redundant `SKTypeface` resolution.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -227,6 +231,9 @@ The branch focuses on cases found while validating the resource parity lane:
 - Moved rare retained-node visual and resource-key state into lazy sidecars, so ordinary retained nodes do not carry cursor, background-layer, isolation/blend, clip, mask, or filter fields directly.
 - Moved rare retained-node clip/mask/filter effect state into a lazy effect sidecar, including overflow/clip rectangles, filter clips, mask paints, and mask child nodes.
 - Added cursor and `enable-background` to cascaded-style feature analysis so retained visual-state probes are skipped when the element's own declarations cannot contain those features.
+- Replaced retained structural finalization callbacks with explicit bounds/transform finalization so group, anchor, switch, fragment, `<use>`, and symbol paths avoid per-node delegate/display-class allocations during retained compile.
+- Added ASCII fast paths to bidi direction and explicit-control probes so simple retained text eligibility checks avoid `BidiCodepoint` allocation while non-ASCII, RTL, and explicit-control text still uses the full resolver.
+- Added an internal text-paint setup path that accepts an already resolved `SKTypeface`, and used it for retained sequential and simple aligned text recording so these paths keep text paint properties without re-resolving and then overwriting typefaces.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -1403,7 +1410,7 @@ Focused simple natural text advance cache-hit measurements:
   - Constructor benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-inline-styles-512 SVG_SKIA_BENCHMARK_RUN_LABEL=on-demand-roots-scenedoc-create dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CreateSceneDocumentFromCompiledTree*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
   - Full compile benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-inline-styles-512 SVG_SKIA_BENCHMARK_RUN_LABEL=on-demand-roots-full-retained-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileViaSceneRuntime*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
   - Focused mutation tests: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgAnimationControllerTests"` passed 351.
-  - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet format Svg.Skia.slnx --no-restore` completed.
   - `dotnet build Svg.Skia.slnx -c Release` passed with existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release`
   - `Svg.Skia.UnitTests`: Passed 2599, skipped 40; other test projects passed.
@@ -1494,8 +1501,26 @@ Focused simple natural text advance cache-hit measurements:
   - Focused text compiler/path/paint-order tests: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgTextPaintOrderTests"` passed 188.
   - Text internals benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" SVG_SKIA_BENCHMARK_RUN_LABEL="skip-split-cache-cwt-hit" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
   - Retained text benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" SVG_SKIA_BENCHMARK_RUN_LABEL="skip-split-cache-cwt-hit-retained-text" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+- Focused DrawAttributes flag-check validation:
+  - Direct allocation probe for `generated-shapes-1024` moved from `2840132.92 B` to `2703206.52 B` allocated per compile, with elapsed time moving from `5.5168 ms` to `5.1171 ms`.
+  - BenchmarkDotNet retained compile row: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="next-drawattributes-has-shape-node" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3` measured `CompileNodeTreeOnly | generated-shapes-1024` at `3.139 ms / 2.58 MB`, below the prior shape phase scan allocation of `2703177 B`.
+  - Focused tests passed: `dotnet test tests/Svg.Model.UnitTests/Svg.Model.UnitTests.csproj -c Release -f net10.0 --no-restore` passed 211, and `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -c Release -f net10.0 --no-restore` passed 2599 with 40 skipped.
+- Focused structural finalization delegate-allocation validation:
+  - Direct allocation probe for `generated-shapes-1024` moved from `2703205.88 B` to `2588412.52 B` allocated per compile after replacing structural finalization callbacks with explicit bounds/transform finalization.
+  - BenchmarkDotNet retained compile row: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="direct-structural-finalize-no-delegate-shapes" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3` measured `CompileNodeTreeOnly | generated-shapes-1024` at `2.47 MB` allocated; timing remained short-run/noisy.
+  - Hot-row benchmark measured allocations of `2.47 MB` for `generated-shapes-1024`, `2.58 MB` for `generated-aligned-letter-spacing-192`, and `2.49 MB` for `generated-text-192`.
+  - Focused retained/resource/text/hit-test validation passed 642 tests.
+- Focused ASCII bidi-probe validation:
+  - Direct allocation probe for `generated-aligned-letter-spacing-192` moved from `2811330.04 B` to `2084679.92 B` allocated per compile; `generated-shapes-1024` stayed flat at `2588412.52 B`.
+  - BenchmarkDotNet retained compile row: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-aligned-letter-spacing-192,generated-text-192,generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="ascii-bidi-probe-retained-compile" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3` measured allocations of `1.9 MB`, `2.49 MB`, and `2.47 MB`, respectively.
+  - Focused text/hit/path/static validation passed 276 tests, and broader retained/W3C/RTL/CSS text validation passed 799 with 3 existing skips.
+- Focused resolved-typeface text paint validation:
+  - Direct allocation probe for `generated-text-192` moved from `2821955.64 B` to `2693958.92 B` allocated per compile; `generated-shapes-1024` stayed flat at `2588412.52 B`, and `generated-aligned-letter-spacing-192` moved from `2124391.20 B` to `2098351.96 B`.
+  - Allocation sampling for `generated-text-192` showed the sampled `ShimSkiaSharp.SKTypeface` bucket moving from `12799968 B` to `8425424 B` after reusing resolved run typefaces during paint setup.
+  - BenchmarkDotNet retained compile row: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-shapes-1024,generated-aligned-letter-spacing-192" SVG_SKIA_BENCHMARK_RUN_LABEL="resolved-text-typeface-retained-compile" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3` measured allocations of `2.46 MB`, `2.47 MB`, and `1.89 MB`, respectively; timing remained short-run/noisy.
+  - Focused validation passed: `Svg.Model.UnitTests` 211 tests and the text/retained/hit/path/static Svg.Skia slice 543 tests.
 - Pre-publish validation for the current stack:
-  - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet format Svg.Skia.slnx --no-restore` completed.
   - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release` passed; `Svg.Skia.UnitTests` reported 2599 passed and 40 skipped, and the other test projects passed.
 
