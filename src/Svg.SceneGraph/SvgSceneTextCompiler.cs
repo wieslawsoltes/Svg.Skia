@@ -20664,14 +20664,14 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var cache = new Dictionary<string, float>(StringComparer.Ordinal);
+        var cache = new SimpleRunCodepointAdvanceCache();
         var prefixEquivalentAdvances = new float[codepoints.Count];
         var accumulatedAdvance = 0f;
         var previousRunDelta = 0f;
 
         for (var i = 0; i < codepoints.Count; i++)
         {
-            if (!TryMeasureSimpleRunCodepointAdvance(codepoints[i], shapingPaint, assetLoader, cache, out var isolatedAdvance))
+            if (!TryMeasureSimpleRunCodepointAdvance(codepoints[i], shapingPaint, assetLoader, ref cache, out var isolatedAdvance))
             {
                 return false;
             }
@@ -20714,23 +20714,26 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var sampleIndices = GetPrefixValidationSampleIndices(codepoints);
-        if (sampleIndices.Count == 0)
+        const float epsilon = 0.05f;
+        var firstWhitespaceIndex = -1;
+        var lastWhitespaceIndex = -1;
+        if (codepoints.Count > 8)
         {
-            return false;
+            FindPrefixValidationWhitespaceIndices(codepoints, out firstWhitespaceIndex, out lastWhitespaceIndex);
         }
 
-        const float epsilon = 0.05f;
         var builder = new StringBuilder();
         var accumulatedAdvance = 0f;
-        var sampleCursor = 0;
+        var previousSampleIndex = -1;
+        var validatedSampleCount = 0;
 
         for (var i = 0; i < codepoints.Count; i++)
         {
             builder.Append(codepoints[i]);
             accumulatedAdvance += advances[i];
 
-            if (sampleCursor >= sampleIndices.Count || i != sampleIndices[sampleCursor])
+            if (!ShouldValidatePrefixAtIndex(i, codepoints.Count, firstWhitespaceIndex, lastWhitespaceIndex) ||
+                i == previousSampleIndex)
             {
                 continue;
             }
@@ -20741,66 +20744,65 @@ internal static partial class SvgSceneTextCompiler
                 return false;
             }
 
-            sampleCursor++;
+            previousSampleIndex = i;
+            validatedSampleCount++;
         }
 
-        return sampleCursor == sampleIndices.Count;
+        return validatedSampleCount > 0;
     }
 
-    private static List<int> GetPrefixValidationSampleIndices(IReadOnlyList<string> codepoints)
+    private static void FindPrefixValidationWhitespaceIndices(
+        IReadOnlyList<string> codepoints,
+        out int firstWhitespaceIndex,
+        out int lastWhitespaceIndex)
     {
-        var count = codepoints.Count;
-        if (count == 0)
+        firstWhitespaceIndex = -1;
+        lastWhitespaceIndex = -1;
+
+        for (var i = 0; i < codepoints.Count; i++)
         {
-            return [];
+            if (IsWhitespaceCodepoint(codepoints[i]))
+            {
+                firstWhitespaceIndex = i;
+                break;
+            }
         }
 
+        for (var i = codepoints.Count - 1; i >= 0; i--)
+        {
+            if (IsWhitespaceCodepoint(codepoints[i]))
+            {
+                lastWhitespaceIndex = i;
+                break;
+            }
+        }
+    }
+
+    private static bool ShouldValidatePrefixAtIndex(
+        int index,
+        int count,
+        int firstWhitespaceIndex,
+        int lastWhitespaceIndex)
+    {
         if (count <= 8)
         {
-            var allIndices = new List<int>(count);
-            for (var i = 0; i < count; i++)
-            {
-                allIndices.Add(i);
-            }
-
-            return allIndices;
+            return true;
         }
 
-        var samples = new SortedSet<int>
-        {
-            0,
-            1,
-            count / 2,
-            count - 2,
-            count - 1
-        };
-
-        for (var i = 0; i < count; i++)
-        {
-            if (IsWhitespaceCodepoint(codepoints[i]))
-            {
-                samples.Add(i);
-                break;
-            }
-        }
-
-        for (var i = count - 1; i >= 0; i--)
-        {
-            if (IsWhitespaceCodepoint(codepoints[i]))
-            {
-                samples.Add(i);
-                break;
-            }
-        }
-
-        return [.. samples];
+        return index == 0 ||
+               index == 1 ||
+               index == count / 2 ||
+               index == count - 2 ||
+               index == count - 1 ||
+               index == firstWhitespaceIndex ||
+               index == lastWhitespaceIndex;
     }
 
     private static bool TryMeasureSimpleRunCodepointAdvance(
         string codepoint,
         SKPaint shapingPaint,
         ISvgAssetLoader assetLoader,
-        IDictionary<string, float> cache,
+        ref SimpleRunCodepointAdvanceCache cache,
         out float advance)
     {
         if (cache.TryGetValue(codepoint, out advance))
@@ -20811,7 +20813,7 @@ internal static partial class SvgSceneTextCompiler
         var cacheKey = CreateSimpleCodepointAdvanceCacheKey(assetLoader, codepoint, shapingPaint);
         if (s_simpleCodepointAdvanceCache.TryGetValue(cacheKey, out advance))
         {
-            cache[codepoint] = advance;
+            cache.Set(codepoint, advance);
             return true;
         }
 
@@ -20823,10 +20825,162 @@ internal static partial class SvgSceneTextCompiler
             advance = 0f;
         }
 
-        cache[codepoint] = advance;
+        cache.Set(codepoint, advance);
         s_simpleCodepointAdvanceCache.TryAdd(cacheKey, advance);
         TrimSimpleCodepointAdvanceCacheIfNeeded();
         return true;
+    }
+
+    private struct SimpleRunCodepointAdvanceCache
+    {
+        private string? _key0;
+        private string? _key1;
+        private string? _key2;
+        private string? _key3;
+        private string? _key4;
+        private string? _key5;
+        private string? _key6;
+        private string? _key7;
+        private float _value0;
+        private float _value1;
+        private float _value2;
+        private float _value3;
+        private float _value4;
+        private float _value5;
+        private float _value6;
+        private float _value7;
+        private Dictionary<string, float>? _overflow;
+
+        public bool TryGetValue(string key, out float value)
+        {
+            if (string.Equals(_key0, key, StringComparison.Ordinal))
+            {
+                value = _value0;
+                return true;
+            }
+
+            if (string.Equals(_key1, key, StringComparison.Ordinal))
+            {
+                value = _value1;
+                return true;
+            }
+
+            if (string.Equals(_key2, key, StringComparison.Ordinal))
+            {
+                value = _value2;
+                return true;
+            }
+
+            if (string.Equals(_key3, key, StringComparison.Ordinal))
+            {
+                value = _value3;
+                return true;
+            }
+
+            if (string.Equals(_key4, key, StringComparison.Ordinal))
+            {
+                value = _value4;
+                return true;
+            }
+
+            if (string.Equals(_key5, key, StringComparison.Ordinal))
+            {
+                value = _value5;
+                return true;
+            }
+
+            if (string.Equals(_key6, key, StringComparison.Ordinal))
+            {
+                value = _value6;
+                return true;
+            }
+
+            if (string.Equals(_key7, key, StringComparison.Ordinal))
+            {
+                value = _value7;
+                return true;
+            }
+
+            if (_overflow is not null && _overflow.TryGetValue(key, out value))
+            {
+                return true;
+            }
+
+            value = 0f;
+            return false;
+        }
+
+        public void Set(string key, float value)
+        {
+            if (TrySetInline(key, value))
+            {
+                return;
+            }
+
+            _overflow ??= new Dictionary<string, float>(StringComparer.Ordinal);
+            _overflow[key] = value;
+        }
+
+        private bool TrySetInline(string key, float value)
+        {
+            if (_key0 is null || string.Equals(_key0, key, StringComparison.Ordinal))
+            {
+                _key0 = key;
+                _value0 = value;
+                return true;
+            }
+
+            if (_key1 is null || string.Equals(_key1, key, StringComparison.Ordinal))
+            {
+                _key1 = key;
+                _value1 = value;
+                return true;
+            }
+
+            if (_key2 is null || string.Equals(_key2, key, StringComparison.Ordinal))
+            {
+                _key2 = key;
+                _value2 = value;
+                return true;
+            }
+
+            if (_key3 is null || string.Equals(_key3, key, StringComparison.Ordinal))
+            {
+                _key3 = key;
+                _value3 = value;
+                return true;
+            }
+
+            if (_key4 is null || string.Equals(_key4, key, StringComparison.Ordinal))
+            {
+                _key4 = key;
+                _value4 = value;
+                return true;
+            }
+
+            if (_key5 is null || string.Equals(_key5, key, StringComparison.Ordinal))
+            {
+                _key5 = key;
+                _value5 = value;
+                return true;
+            }
+
+            if (_key6 is null || string.Equals(_key6, key, StringComparison.Ordinal))
+            {
+                _key6 = key;
+                _value6 = value;
+                return true;
+            }
+
+            if (_key7 is null || string.Equals(_key7, key, StringComparison.Ordinal))
+            {
+                _key7 = key;
+                _value7 = value;
+                return true;
+            }
+
+            return false;
+        }
     }
 
     private static SimpleCodepointAdvanceCacheKey CreateSimpleCodepointAdvanceCacheKey(
