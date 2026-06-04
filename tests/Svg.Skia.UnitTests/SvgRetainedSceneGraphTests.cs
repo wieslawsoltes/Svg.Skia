@@ -121,6 +121,51 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_ChildrenSupportInlineAndOverflowStorage()
+    {
+        const string svgText = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+              <g id="two">
+                <rect id="a" x="0" y="0" width="10" height="10" />
+                <circle id="b" cx="20" cy="5" r="5" />
+              </g>
+              <g id="one">
+                <rect id="c" x="30" y="0" width="10" height="10" />
+              </g>
+              <g id="three">
+                <rect id="d" x="0" y="20" width="10" height="10" />
+                <rect id="e" x="12" y="20" width="10" height="10" />
+                <rect id="f" x="24" y="20" width="10" height="10" />
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(svgText);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.Equal(3, scene!.Root.Children.Count);
+        Assert.Equal(new[] { "two", "one", "three" }, scene.Root.Children.Select(static node => node.ElementId).ToArray());
+
+        Assert.True(scene.TryGetNodeById("two", out var twoChildGroup));
+        Assert.Equal(2, twoChildGroup!.Children.Count);
+        Assert.Equal("a", twoChildGroup.Children[0].ElementId);
+        Assert.Equal("b", twoChildGroup.Children[1].ElementId);
+        Assert.Equal(new[] { "a", "b" }, twoChildGroup.Children.Select(static node => node.ElementId).ToArray());
+
+        Assert.True(scene.TryGetNodeById("three", out var overflowGroup));
+        Assert.Equal(3, overflowGroup!.Children.Count);
+        Assert.Equal(new[] { "d", "e", "f" }, overflowGroup.Children.Select(static node => node.ElementId).ToArray());
+
+        twoChildGroup.MarkSubtreeDirty();
+        Assert.All(twoChildGroup.Children, static child => Assert.True(child.IsDirty));
+
+        twoChildGroup.ClearDirty();
+        Assert.All(twoChildGroup.Children, static child => Assert.False(child.IsDirty));
+    }
+
+    [Fact]
     public void RetainedSceneGraph_CompilesDocumentRootWithDirectRetainedStrategy()
     {
         using var svg = new SKSvg();

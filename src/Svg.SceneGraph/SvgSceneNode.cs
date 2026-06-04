@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using ShimSkiaSharp;
 using Svg;
@@ -7,9 +8,12 @@ using Svg.Model.Services;
 
 namespace Svg.Skia;
 
-public sealed class SvgSceneNode
+public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
 {
-    private List<SvgSceneNode>? _children;
+    private const int InlineChildCapacity = 2;
+
+    private object? _children;
+    private SvgSceneNode? _child1;
     private SvgSceneTextCompiler.SvgTextContentMetrics? _textContentMetrics;
     private bool _hasLazyTextContentMetrics;
 
@@ -70,7 +74,12 @@ public sealed class SvgSceneNode
 
     public SvgSceneNode? Parent { get; private set; }
 
-    public IReadOnlyList<SvgSceneNode> Children => _children is null ? Array.Empty<SvgSceneNode>() : _children;
+    public IReadOnlyList<SvgSceneNode> Children =>
+        _children is List<SvgSceneNode> children
+            ? children
+            : _children is null
+                ? Array.Empty<SvgSceneNode>()
+                : this;
 
     public SvgSceneNode? MaskNode { get; private set; }
 
@@ -164,16 +173,28 @@ public sealed class SvgSceneNode
     internal void AddChild(SvgSceneNode child, int expectedChildCount)
     {
         child.Parent = this;
-        var children = _children;
-        if (children is null)
+        if (_children is List<SvgSceneNode> children)
         {
-            children = expectedChildCount > 0
-                ? new List<SvgSceneNode>(expectedChildCount)
-                : new List<SvgSceneNode>();
-            _children = children;
+            children.Add(child);
+            return;
         }
 
-        children.Add(child);
+        if (expectedChildCount <= InlineChildCapacity)
+        {
+            if (_children is null)
+            {
+                _children = child;
+                return;
+            }
+
+            if (_child1 is null)
+            {
+                _child1 = child;
+                return;
+            }
+        }
+
+        PromoteChildrenToList(Math.Max(expectedChildCount, ChildCount + 1)).Add(child);
     }
 
     internal void SetMask(SvgSceneNode? maskNode)
@@ -240,7 +261,7 @@ public sealed class SvgSceneNode
         IsAntialias = replacement.IsAntialias;
         SuppressSubtreeRendering = replacement.SuppressSubtreeRendering;
 
-        _children?.Clear();
+        ClearChildren();
         for (var i = 0; i < replacement.Children.Count; i++)
         {
             AddChild(replacement.Children[i], replacement.Children.Count);
@@ -299,13 +320,9 @@ public sealed class SvgSceneNode
     {
         MarkDirty();
 
-        var children = _children;
-        if (children is not null)
+        for (var i = 0; i < ChildCount; i++)
         {
-            for (var i = 0; i < children.Count; i++)
-            {
-                children[i].MarkSubtreeDirty();
-            }
+            GetChild(i).MarkSubtreeDirty();
         }
 
         MaskNode?.MarkSubtreeDirty();
@@ -315,15 +332,140 @@ public sealed class SvgSceneNode
     {
         IsDirty = false;
 
-        var children = _children;
-        if (children is not null)
+        for (var i = 0; i < ChildCount; i++)
         {
-            for (var i = 0; i < children.Count; i++)
-            {
-                children[i].ClearDirty();
-            }
+            GetChild(i).ClearDirty();
         }
 
         MaskNode?.ClearDirty();
+    }
+
+    private int ChildCount
+    {
+        get
+        {
+            return _children switch
+            {
+                null => 0,
+                List<SvgSceneNode> children => children.Count,
+                SvgSceneNode => _child1 is null ? 1 : 2,
+                _ => 0
+            };
+        }
+    }
+
+    private SvgSceneNode GetChild(int index)
+    {
+        if (_children is List<SvgSceneNode> children)
+        {
+            return children[index];
+        }
+
+        if (_children is SvgSceneNode child0)
+        {
+            return index switch
+            {
+                0 => child0,
+                1 when _child1 is not null => _child1,
+                _ => throw new ArgumentOutOfRangeException(nameof(index))
+            };
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(index));
+    }
+
+    private void ClearChildren()
+    {
+        _children = null;
+        _child1 = null;
+    }
+
+    private List<SvgSceneNode> PromoteChildrenToList(int capacity)
+    {
+        var children = new List<SvgSceneNode>(capacity);
+        if (_children is SvgSceneNode child0)
+        {
+            children.Add(child0);
+
+            if (_child1 is not null)
+            {
+                children.Add(_child1);
+            }
+        }
+
+        _child1 = null;
+        _children = children;
+        return children;
+    }
+
+    int IReadOnlyCollection<SvgSceneNode>.Count => ChildCount;
+
+    SvgSceneNode IReadOnlyList<SvgSceneNode>.this[int index] => GetChild(index);
+
+    IEnumerator<SvgSceneNode> IEnumerable<SvgSceneNode>.GetEnumerator()
+    {
+        if (_children is List<SvgSceneNode> children)
+        {
+            return children.GetEnumerator();
+        }
+
+        return _children is SvgSceneNode child0
+            ? new InlineChildEnumerator(child0, _child1, _child1 is null ? 1 : 2)
+            : new InlineChildEnumerator(null, null, 0);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return ((IEnumerable<SvgSceneNode>)this).GetEnumerator();
+    }
+
+    private sealed class InlineChildEnumerator : IEnumerator<SvgSceneNode>
+    {
+        private readonly SvgSceneNode? _child0;
+        private readonly SvgSceneNode? _child1;
+        private readonly int _count;
+        private int _index = -1;
+
+        public InlineChildEnumerator(SvgSceneNode? child0, SvgSceneNode? child1, int count)
+        {
+            _child0 = child0;
+            _child1 = child1;
+            _count = count;
+        }
+
+        public SvgSceneNode Current
+        {
+            get
+            {
+                return _index switch
+                {
+                    0 => _child0!,
+                    1 => _child1!,
+                    _ => throw new InvalidOperationException()
+                };
+            }
+        }
+
+        object IEnumerator.Current => Current;
+
+        public bool MoveNext()
+        {
+            if (_index + 1 >= _count)
+            {
+                return false;
+            }
+
+            _index++;
+            return true;
+        }
+
+        public void Reset()
+        {
+            _index = -1;
+        }
+
+        public void Dispose()
+        {
+        }
     }
 }

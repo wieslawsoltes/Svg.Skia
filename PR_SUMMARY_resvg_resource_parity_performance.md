@@ -32,6 +32,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Compact retained-scene compilation-root lookup storage during document registration.
 - Node-tree dependency registration for fully retained no-reference scenes.
 - Retained-scene child-list capacity hints during compile traversal.
+- Compact retained-scene node child storage for one- and two-child nodes.
 - Lazy retained-scene compile-context storage for rarely used caches.
 - Retained-scene address-key cache pre-sizing, cached small child-index strings, and lazy child-index lookup storage.
 - Retained-scene document index capacity hints and no-reference dependency registration reuse.
@@ -134,6 +135,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Pre-seeded retained child address keys from known child indexes during scene compilation and kept tiny child-index lookups linear, avoiding avoidable lookup-dictionary allocation for leaf-heavy generated scenes.
 - Reused compact inline compilation-root key storage while building the temporary registration lookup, avoiding per-element `List<T>` allocation for the common one- or two-root case.
 - Preallocated retained scene node child lists when the compiler already knows the source child count, avoiding repeated `List<T>` growth in generated child-heavy scenes.
+- Changed retained scene nodes to keep one or two children inline before allocating overflow list storage, preserving the public `IReadOnlyList<SvgSceneNode>` child surface while trimming low-fanout retained compile allocations.
 - Allocated retained scene compile-context gradient, fragment viewport, marker-reference, and resolved-reference caches only when those features are used; the active-document guard also keeps the common single-document case inline before allocating a `HashSet<T>`.
 - Pre-sized retained scene address-key caches from shallow source-tree counts, reused cached small child-index strings, and kept child-index lookup dictionaries lazy so generated retained scenes avoid dictionary growth and temporary index-string churn.
 - Reused dependency-analysis element/id counts to pre-size retained scene-document indexes on modern targets, and let no-reference standalone dependency registration reuse node subtree metadata once reindexing has proven address coverage.
@@ -327,6 +329,14 @@ Focused retained-scene child-list capacity and lazy compile-context measurements
 - Full compile allocation also dropped: `CompileViaSceneCompiler | generated-filtered-shapes-256` from `1,898,560 B` to `1,888,166 B`, and `CompileViaSceneRuntime | generated-filtered-shapes-256` from `1,899,184 B` to `1,894,938 B`.
 - Full compile allocation for `generated-shapes-1024` dropped from `6,309,427 B` to `6,260,019 B` in `CompileViaSceneCompiler`, and from `6,310,081 B` to `6,285,250 B` in `CompileViaSceneRuntime`.
 - Final combined child-list capacity plus lazy compile-context measurement for `CompileNodeTreeOnly` was `970.11 KB` on `generated-filtered-shapes-256` and `4168.44 KB` on `generated-shapes-1024`; the lazy-context portion is a small constant allocation reduction on top of the child-list win.
+
+Focused compact retained-node child storage measurements:
+
+- `CompileNodeTreeOnly | generated-shapes-1024`: fresh retained hotspot scan allocation moved from `3922.03 KB` to `3874.03 KB`.
+- `CompileNodeTreeOnly | generated-filtered-shapes-256`: fresh retained hotspot scan allocation moved from `916.32 KB` to `904.33 KB`.
+- `CompileNodeTreeOnly | generated-text-192`: control row stayed essentially flat at `3215.36 KB`.
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: control row stayed essentially flat at `3219.97 KB`.
+- Short-run timings were mixed/noisy, so this is treated as a retained node allocation cleanup for low-fanout scene graphs.
 
 Focused retained-scene address-key cache measurements:
 
@@ -1212,5 +1222,18 @@ Focused simple natural text advance cache-hit measurements:
   - Build passed with 193 existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release`
   - `Svg.Skia.UnitTests`: Passed 2598, skipped 40; other test projects passed.
+- Focused compact retained-node child storage validation:
+  - Fresh retained hotspot scan: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-path-curves-96,generated-shapes-1024,generated-filtered-shapes-256 SVG_SKIA_BENCHMARK_RUN_LABEL=next-hotspot-scan-after-inline-path-list dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Current compact storage run: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-aligned-letter-spacing-192 SVG_SKIA_BENCHMARK_RUN_LABEL=compact-retained-node-children-retained-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
+  - Build passed with no warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests"`
+  - Passed 267.
+  - `dotnet format Svg.Skia.slnx --no-restore`
+  - Completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release`
+  - Build passed with existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2599, skipped 40; other test projects passed.
 
 The release build currently reports existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
