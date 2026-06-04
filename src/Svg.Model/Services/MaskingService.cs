@@ -17,12 +17,12 @@ internal static class MaskingService
 
     internal static bool IsVisible(SvgVisualElement svgVisualElement, DrawAttributes ignoreAttributes)
     {
-        return ignoreAttributes.HasFlag(DrawAttributes.Visibility) || svgVisualElement.Visible;
+        return ignoreAttributes.Has(DrawAttributes.Visibility) || svgVisualElement.Visible;
     }
 
     internal static bool IsDisplayRendered(SvgVisualElement svgVisualElement, DrawAttributes ignoreAttributes)
     {
-        return ignoreAttributes.HasFlag(DrawAttributes.Display) ||
+        return ignoreAttributes.Has(DrawAttributes.Display) ||
                !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
     }
 

@@ -1910,7 +1910,7 @@ public static class SvgSceneCompiler
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground));
         AssignRetainedResourceKeys(node, element, compileContext);
-        var markerElement = !ignoreAttributes.HasFlag(DrawAttributes.Markers) &&
+        var markerElement = !ignoreAttributes.Has(DrawAttributes.Markers) &&
             compileContext.ActiveMarkerReferenceDeclarationCandidate &&
             HasMarkerReference(visualElement)
             ? visualElement
@@ -4126,7 +4126,7 @@ public static class SvgSceneCompiler
             Stroke = null,
             HitTestTargetElement = null,
             Opacity = SvgScenePaintingService.GetOpacityPaint(opacity),
-            OpacityValue = ignoreAttributes.HasFlag(DrawAttributes.Opacity)
+            OpacityValue = ignoreAttributes.Has(DrawAttributes.Opacity)
                 ? 1f
                 : SvgScenePaintingService.AdjustSvgOpacity(opacity)
         };
@@ -4179,7 +4179,7 @@ public static class SvgSceneCompiler
         // Temporary pattern scenes use a synthetic root opacity that should not be
         // replaced by the owner's own element opacity during scene-document initialization.
         root.Opacity = SvgScenePaintingService.GetOpacityPaint(opacity);
-        root.OpacityValue = ignoreAttributes.HasFlag(DrawAttributes.Opacity)
+        root.OpacityValue = ignoreAttributes.Has(DrawAttributes.Opacity)
             ? 1f
             : SvgScenePaintingService.AdjustSvgOpacity(opacity);
 

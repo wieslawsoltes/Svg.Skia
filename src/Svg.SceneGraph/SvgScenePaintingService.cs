@@ -691,7 +691,7 @@ internal static class SvgScenePaintingService
     private static SKColor GetColor(SvgColourServer svgColourServer, float opacity, DrawAttributes ignoreAttributes)
     {
         var colour = svgColourServer.Colour;
-        var alpha = ignoreAttributes.HasFlag(DrawAttributes.Opacity)
+        var alpha = ignoreAttributes.Has(DrawAttributes.Opacity)
             ? svgColourServer.Colour.A
             : CombineWithOpacity(svgColourServer.Colour.A, opacity);
 

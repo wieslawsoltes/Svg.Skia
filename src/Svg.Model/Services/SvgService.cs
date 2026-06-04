@@ -451,9 +451,9 @@ public static class SvgService
 
     internal static bool PassesConditionalProcessing(this SvgElement svgElement, DrawAttributes ignoreAttributes)
     {
-        var hasRequiredFeatures = ignoreAttributes.HasFlag(DrawAttributes.RequiredFeatures) || svgElement.HasRequiredFeatures();
-        var hasRequiredExtensions = ignoreAttributes.HasFlag(DrawAttributes.RequiredExtensions) || svgElement.HasRequiredExtensions();
-        var hasSystemLanguage = ignoreAttributes.HasFlag(DrawAttributes.SystemLanguage) || svgElement.HasSystemLanguage();
+        var hasRequiredFeatures = ignoreAttributes.Has(DrawAttributes.RequiredFeatures) || svgElement.HasRequiredFeatures();
+        var hasRequiredExtensions = ignoreAttributes.Has(DrawAttributes.RequiredExtensions) || svgElement.HasRequiredExtensions();
+        var hasSystemLanguage = ignoreAttributes.Has(DrawAttributes.SystemLanguage) || svgElement.HasSystemLanguage();
         return hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage;
     }
 

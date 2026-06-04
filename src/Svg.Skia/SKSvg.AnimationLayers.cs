@@ -845,7 +845,7 @@ public partial class SKSvg
 
         canvas.Save();
 
-        var enableClip = !ignoreAttributes.HasFlag(DrawAttributes.ClipPath);
+        var enableClip = !ignoreAttributes.Has(DrawAttributes.ClipPath);
         if (node.Overflow is { } overflow)
         {
             canvas.ClipRect(overflow, SKClipOperation.Intersect);
@@ -871,9 +871,9 @@ public partial class SKSvg
             canvas.ClipRect(innerClip, SKClipOperation.Intersect);
         }
 
-        var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask);
-        var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity);
-        var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter);
+        var enableMask = !ignoreAttributes.Has(DrawAttributes.Mask);
+        var enableOpacity = !ignoreAttributes.Has(DrawAttributes.Opacity);
+        var enableFilter = !ignoreAttributes.Has(DrawAttributes.Filter);
         var enableBlendMode = node.BlendModePaint is not null;
         var enableIsolation = node.IsIsolationGroup &&
             !enableBlendMode &&

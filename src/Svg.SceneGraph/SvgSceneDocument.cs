@@ -1184,11 +1184,11 @@ public sealed class SvgSceneDocument
             SvgSceneCompiler.AssignRetainedResourceKeys(node, element, getElementAddressKey);
         }
 
-        var opacityValue = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
+        var opacityValue = IgnoreAttributes.Has(DrawAttributes.Opacity)
             ? 1f
             : SvgScenePaintingService.AdjustSvgOpacity(element.Opacity);
         node.OpacityValue = opacityValue;
-        node.Opacity = IgnoreAttributes.HasFlag(DrawAttributes.Opacity)
+        node.Opacity = IgnoreAttributes.Has(DrawAttributes.Opacity)
             ? null
             : GetCachedOpacityPaint(opacityValue, opacityPaintCache);
 
@@ -1197,7 +1197,7 @@ public sealed class SvgSceneDocument
         node.MaskDstIn = null;
 
         if (mayContainMaskDeclarations &&
-            !IgnoreAttributes.HasFlag(DrawAttributes.Mask))
+            !IgnoreAttributes.Has(DrawAttributes.Mask))
         {
             if (ResolveMaskPayload(node) is { } maskPayload)
             {
@@ -1207,7 +1207,7 @@ public sealed class SvgSceneDocument
             }
         }
 
-        if (IgnoreAttributes.HasFlag(DrawAttributes.ClipPath) ||
+        if (IgnoreAttributes.Has(DrawAttributes.ClipPath) ||
             !mayContainClipPathDeclarations)
         {
             node.ClipPath = null;
@@ -1246,7 +1246,7 @@ public sealed class SvgSceneDocument
             node.SuppressSubtreeRendering = false;
 
             if (mayContainFilterDeclarations &&
-                !IgnoreAttributes.HasFlag(DrawAttributes.Filter))
+                !IgnoreAttributes.Has(DrawAttributes.Filter))
             {
                 if (ResolveFilterPayload(node) is { } filterPayload)
                 {
@@ -1355,7 +1355,7 @@ public sealed class SvgSceneDocument
 
     private ClipPath? ResolveClipPath(SvgSceneNode node)
     {
-        if (IgnoreAttributes.HasFlag(DrawAttributes.ClipPath) || string.IsNullOrWhiteSpace(node.ClipResourceKey))
+        if (IgnoreAttributes.Has(DrawAttributes.ClipPath) || string.IsNullOrWhiteSpace(node.ClipResourceKey))
         {
             return null;
         }

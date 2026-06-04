@@ -15733,7 +15733,7 @@ internal static partial class SvgSceneTextCompiler
         Func<SvgElement?, string?>? getElementAddressKey,
         SvgSceneContextPaint? contextPaint)
     {
-        if (ignoreAttributes.HasFlag(DrawAttributes.Filter) ||
+        if (ignoreAttributes.Has(DrawAttributes.Filter) ||
             run.FilterSource is not SvgVisualElement visualElement ||
             !SvgSceneFilterContext.HasFilterDeclaration(visualElement))
         {
@@ -15830,7 +15830,7 @@ internal static partial class SvgSceneTextCompiler
         FallbackCodepointResolver fallbackResolver,
         SvgSceneContextPaint? contextPaint)
     {
-        if (ignoreAttributes.HasFlag(DrawAttributes.Filter) ||
+        if (ignoreAttributes.Has(DrawAttributes.Filter) ||
             run.StyleSource is not SvgVisualElement visualElement ||
             !SvgSceneFilterContext.HasFilterDeclaration(visualElement))
         {
@@ -24616,9 +24616,9 @@ internal static partial class SvgSceneTextCompiler
 
     private static bool HasFeatures(SvgElement element, DrawAttributes ignoreAttributes)
     {
-        var hasRequiredFeatures = ignoreAttributes.HasFlag(DrawAttributes.RequiredFeatures) || element.HasRequiredFeatures();
-        var hasRequiredExtensions = ignoreAttributes.HasFlag(DrawAttributes.RequiredExtensions) || element.HasRequiredExtensions();
-        var hasSystemLanguage = ignoreAttributes.HasFlag(DrawAttributes.SystemLanguage) || element.HasSystemLanguage();
+        var hasRequiredFeatures = ignoreAttributes.Has(DrawAttributes.RequiredFeatures) || element.HasRequiredFeatures();
+        var hasRequiredExtensions = ignoreAttributes.Has(DrawAttributes.RequiredExtensions) || element.HasRequiredExtensions();
+        var hasSystemLanguage = ignoreAttributes.Has(DrawAttributes.SystemLanguage) || element.HasSystemLanguage();
         return hasRequiredFeatures && hasRequiredExtensions && hasSystemLanguage;
     }
 

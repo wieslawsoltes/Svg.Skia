@@ -131,10 +131,10 @@ public static class SvgSceneRenderer
             node.ElementAddressKey,
             node.ElementTypeName);
 
-        var enableClip = !ignoreAttributes.HasFlag(DrawAttributes.ClipPath);
-        var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask) && !ignoreCurrentMask;
-        var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity) && !ignoreCurrentOpacity;
-        var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter) && !ignoreCurrentFilter;
+        var enableClip = !ignoreAttributes.Has(DrawAttributes.ClipPath);
+        var enableMask = !ignoreAttributes.Has(DrawAttributes.Mask) && !ignoreCurrentMask;
+        var enableOpacity = !ignoreAttributes.Has(DrawAttributes.Opacity) && !ignoreCurrentOpacity;
+        var enableFilter = !ignoreAttributes.Has(DrawAttributes.Filter) && !ignoreCurrentFilter;
         var enableBlendMode = node.BlendModePaint is not null;
         var enableIsolation = node.IsIsolationGroup &&
             !enableBlendMode &&
