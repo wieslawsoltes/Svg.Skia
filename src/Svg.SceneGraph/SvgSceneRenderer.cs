@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ShimSkiaSharp;
 using Svg;
 using Svg.Model;
@@ -143,6 +144,21 @@ public static class SvgSceneRenderer
         if (IsStateFreeNode(node, enableTransform, enableClip, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation))
         {
             return RenderNodeContentToCanvas(sceneDocument, node, canvas, ignoreAttributes, until);
+        }
+
+        if (TryRenderTransformOnlySimpleChildrenToCanvas(
+                node,
+                canvas,
+                until,
+                enableTransform,
+                enableClip,
+                enableMask,
+                enableOpacity,
+                enableFilter,
+                enableBlendMode,
+                enableIsolation))
+        {
+            return true;
         }
 
         canvas.Save();
@@ -790,6 +806,243 @@ public static class SvgSceneRenderer
                (node.Filter is null || !enableFilter) &&
                !enableBlendMode &&
                !enableIsolation;
+    }
+
+    private static bool TryRenderTransformOnlySimpleChildrenToCanvas(
+        SvgSceneNode node,
+        SKCanvas canvas,
+        SvgSceneNode? until,
+        bool enableTransform,
+        bool enableClip,
+        bool enableMask,
+        bool enableOpacity,
+        bool enableFilter,
+        bool enableBlendMode,
+        bool enableIsolation)
+    {
+        if (until is not null ||
+            !enableTransform ||
+            node.Transform.IsIdentity ||
+            node.HasLocalVisuals ||
+            node.Children.Count == 0 ||
+            node.Overflow is not null ||
+            node.Clip is not null ||
+            (node.ClipPath is not null && enableClip) ||
+            node.InnerClip is not null ||
+            (node.MaskNode is not null && enableMask) ||
+            (node.Opacity is not null && enableOpacity) ||
+            (node.Filter is not null && enableFilter) ||
+            enableBlendMode ||
+            enableIsolation)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            if (!CanRenderTransformedSimpleChild(node.Children[i], enableClip, enableMask, enableOpacity, enableFilter))
+            {
+                return false;
+            }
+        }
+
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            RenderTransformedSimpleChild(node.Children[i], node.Transform, canvas, enableOpacity);
+        }
+
+        return true;
+    }
+
+    private static bool CanRenderTransformedSimpleChild(
+        SvgSceneNode child,
+        bool enableClip,
+        bool enableMask,
+        bool enableOpacity,
+        bool enableFilter)
+    {
+        if (child.IsDisplayNone || child.SuppressSubtreeRendering)
+        {
+            return true;
+        }
+
+        if (!child.IsRenderable ||
+            child.LocalPath is null ||
+            child.LocalFill is null ||
+            child.LocalStroke is not null ||
+            child.LocalModel is not null ||
+            child.Children.Count != 0 ||
+            child.Overflow is not null ||
+            child.Clip is not null ||
+            (child.ClipPath is not null && enableClip) ||
+            child.InnerClip is not null ||
+            (child.MaskNode is not null && enableMask) ||
+            !CanInlineSimpleLeafOpacity(child, enableOpacity) ||
+            (child.Filter is not null && enableFilter) ||
+            child.BlendModePaint is not null ||
+            child.IsIsolationGroup ||
+            !IsSimpleSolidFill(child.LocalFill) ||
+            !CanCreateTransformedSimpleFillPath(child.LocalPath, child.Transform))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsSimpleSolidFill(SKPaint paint)
+    {
+        return paint.Style == SKPaintStyle.Fill &&
+               !paint.IsStrokeNonScaling &&
+               paint.Color is not null &&
+               paint.Shader is null &&
+               paint.ColorFilter is null &&
+               paint.ImageFilter is null &&
+               paint.PathEffect is null &&
+               paint.BlendMode == SKBlendMode.SrcOver;
+    }
+
+    private static bool CanInlineSimpleLeafOpacity(SvgSceneNode child, bool enableOpacity)
+    {
+        return !enableOpacity ||
+               child.Opacity is null ||
+               child.OpacityValue is >= 0f and <= 1f;
+    }
+
+    private static void RenderTransformedSimpleChild(
+        SvgSceneNode child,
+        SKMatrix parentTransform,
+        SKCanvas canvas,
+        bool enableOpacity)
+    {
+        if (child.IsDisplayNone || child.SuppressSubtreeRendering)
+        {
+            return;
+        }
+
+        var transform = parentTransform.PreConcat(child.Transform);
+        var path = CreateTransformedSimpleFillPath(child.LocalPath!, transform)!;
+        var fill = GetSimpleLeafFill(child, enableOpacity);
+        using var commandSource = canvas.PushCommandSource(
+            child.ElementId,
+            child.ElementAddressKey,
+            child.ElementTypeName);
+        canvas.DrawPath(path, fill);
+    }
+
+    private static SKPaint GetSimpleLeafFill(SvgSceneNode child, bool enableOpacity)
+    {
+        var fill = child.LocalFill!;
+        if (!enableOpacity || child.Opacity is null || child.OpacityValue >= 1f)
+        {
+            return fill;
+        }
+
+        var color = fill.Color!.Value;
+        var alpha = (byte)Math.Round(color.Alpha * child.OpacityValue);
+        var adjusted = fill.Clone();
+        adjusted.Color = new SKColor(color.Red, color.Green, color.Blue, alpha);
+        return adjusted;
+    }
+
+    private static bool CanCreateTransformedSimpleFillPath(SKPath sourcePath, SKMatrix transform)
+    {
+        return sourcePath.Commands is { Count: > 0 } commands &&
+               TryCreateTransformedSimpleFillPath(commands, transform, sourcePath.FillType, out _);
+    }
+
+    private static SKPath? CreateTransformedSimpleFillPath(SKPath sourcePath, SKMatrix transform)
+    {
+        return sourcePath.Commands is { Count: > 0 } commands &&
+               TryCreateTransformedSimpleFillPath(commands, transform, sourcePath.FillType, out var transformedPath)
+            ? transformedPath
+            : null;
+    }
+
+    private static bool TryCreateTransformedSimpleFillPath(
+        IList<PathCommand> commands,
+        SKMatrix transform,
+        SKPathFillType fillType,
+        out SKPath? transformedPath)
+    {
+        transformedPath = null;
+        if (commands.Count == 1)
+        {
+            switch (commands[0])
+            {
+                case AddRectPathCommand addRect:
+                    transformedPath = CreatePolygonPath(
+                        fillType,
+                        transform.MapPoint(new SKPoint(addRect.Rect.Left, addRect.Rect.Top)),
+                        transform.MapPoint(new SKPoint(addRect.Rect.Right, addRect.Rect.Top)),
+                        transform.MapPoint(new SKPoint(addRect.Rect.Right, addRect.Rect.Bottom)),
+                        transform.MapPoint(new SKPoint(addRect.Rect.Left, addRect.Rect.Bottom)));
+                    return true;
+                case AddPolyPathCommand { Points: { Count: >= 3 } points } addPoly:
+                    transformedPath = CreateTransformedPolygonPath(fillType, points, addPoly.Close, transform);
+                    return true;
+            }
+
+            return false;
+        }
+
+        if (!TryCollectClosedPolyline(commands, out var polylinePoints))
+        {
+            return false;
+        }
+
+        transformedPath = CreateTransformedPolygonPath(fillType, polylinePoints, close: true, transform);
+        return true;
+    }
+
+    private static bool TryCollectClosedPolyline(IList<PathCommand> commands, out SKPoint[] points)
+    {
+        points = Array.Empty<SKPoint>();
+        if (commands.Count < 4 ||
+            commands[0] is not MoveToPathCommand moveTo ||
+            commands[commands.Count - 1] is not ClosePathCommand)
+        {
+            return false;
+        }
+
+        points = new SKPoint[commands.Count - 1];
+        points[0] = new SKPoint(moveTo.X, moveTo.Y);
+        for (var i = 1; i < commands.Count - 1; i++)
+        {
+            if (commands[i] is not LineToPathCommand lineTo)
+            {
+                points = Array.Empty<SKPoint>();
+                return false;
+            }
+
+            points[i] = new SKPoint(lineTo.X, lineTo.Y);
+        }
+
+        return true;
+    }
+
+    private static SKPath CreatePolygonPath(SKPathFillType fillType, params SKPoint[] points)
+    {
+        var path = new SKPath { FillType = fillType };
+        path.AddPoly(points, close: true);
+        return path;
+    }
+
+    private static SKPath CreateTransformedPolygonPath(
+        SKPathFillType fillType,
+        IList<SKPoint> points,
+        bool close,
+        SKMatrix transform)
+    {
+        var transformed = new SKPoint[points.Count];
+        for (var i = 0; i < points.Count; i++)
+        {
+            transformed[i] = transform.MapPoint(points[i]);
+        }
+
+        var path = new SKPath { FillType = fillType };
+        path.AddPoly(transformed, close);
+        return path;
     }
 
     private static bool IsSelfOrAncestor(SvgSceneNode node, SvgSceneNode descendant)

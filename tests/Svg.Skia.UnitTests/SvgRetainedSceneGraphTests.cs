@@ -90,6 +90,37 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_FoldsSimpleTransformOnlyShapeGroups()
+    {
+        const string svgText = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+              <g id="group" transform="translate(20 10) rotate(15)">
+                <rect id="rect" x="0" y="0" width="14" height="14" fill="seagreen" opacity="0.85" />
+                <path id="triangle" d="M 0 14 L 7 0 L 14 14 Z" fill="white" opacity="0.25" />
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(svgText);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<SaveCanvasCommand>());
+        Assert.Empty(retainedModel.FindCommands<SetMatrixCanvasCommand>());
+        Assert.Empty(retainedModel.FindCommands<RestoreCanvasCommand>());
+
+        var rect = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawPathCanvasCommand>("rect"));
+        var triangle = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawPathCanvasCommand>("triangle"));
+
+        Assert.IsType<AddPolyPathCommand>(Assert.Single(rect.Path!.Commands!));
+        Assert.IsType<AddPolyPathCommand>(Assert.Single(triangle.Path!.Commands!));
+        Assert.True(rect.Path!.Bounds.Left > 15f, $"Expected transformed rect bounds, but got {rect.Path.Bounds}.");
+        Assert.True(triangle.Path!.Bounds.Top > 9f, $"Expected transformed triangle bounds, but got {triangle.Path.Bounds}.");
+    }
+
+    [Fact]
     public void RetainedSceneGraph_CompilesDocumentRootWithDirectRetainedStrategy()
     {
         using var svg = new SKSvg();
