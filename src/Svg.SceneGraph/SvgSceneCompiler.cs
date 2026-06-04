@@ -35,12 +35,13 @@ public static class SvgSceneCompiler
         private string? _activeDocumentKey;
         private HashSet<string>? _activeDocumentKeys;
         private readonly SvgElementAddressKeyCache _addressKeys;
-        private readonly Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> _solidFillPaintCache = new();
+        private Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint>? _solidFillPaintCache;
         private SvgScenePaintingService.GradientPaintCache? _gradientPaintCache;
         private Dictionary<SvgFragment, SKSize>? _fragmentViewportSizeOverrides;
         private Dictionary<SvgDocument, bool>? _markerReferenceDeclarationsByDocument;
         private Dictionary<ReferenceCacheKey, SvgElement?>? _resolvedReferenceCache;
-        private readonly Stack<MarkerReferenceState> _markerReferenceDocumentStack = new();
+        private MarkerReferenceState? _markerReferenceState;
+        private Stack<MarkerReferenceState>? _markerReferenceDocumentStack;
         private SvgDocument? _activeMarkerReferenceDocument;
         private SvgCascadedStyleFeatureFlags _activeDocumentCascadedStyleFeatureFlags = AllCascadedStyleFeatureFlags;
         private SvgConditionalProcessingFeatureFlags _activeDocumentConditionalProcessingFeatureFlags = AllConditionalProcessingFeatureFlags;
@@ -127,12 +128,18 @@ public static class SvgSceneCompiler
                 return false;
             }
 
-            _markerReferenceDocumentStack.Push(new MarkerReferenceState(
+            var previousMarkerReferenceState = new MarkerReferenceState(
                 _activeMarkerReferenceDocument,
                 _activeDocumentCascadedStyleFeatureFlags,
                 _activeDocumentConditionalProcessingFeatureFlags,
                 _activeMarkerReferenceDeclarationCandidate,
-                _activeDocumentMayContainMarkerReferenceDeclarations));
+                _activeDocumentMayContainMarkerReferenceDeclarations);
+            if (_markerReferenceState.HasValue)
+            {
+                (_markerReferenceDocumentStack ??= new Stack<MarkerReferenceState>()).Push(_markerReferenceState.GetValueOrDefault());
+            }
+
+            _markerReferenceState = previousMarkerReferenceState;
             _activeMarkerReferenceDocument = document;
             _activeDocumentCascadedStyleFeatureFlags = document is null
                 ? AllCascadedStyleFeatureFlags
@@ -171,7 +178,7 @@ public static class SvgSceneCompiler
                 (_markerReferenceDeclarationsByDocument ??= new Dictionary<SvgDocument, bool>())[_activeMarkerReferenceDocument] = _activeDocumentMayContainMarkerReferenceDeclarations;
             }
 
-            if (_markerReferenceDocumentStack.Count == 0)
+            if (!_markerReferenceState.HasValue)
             {
                 _activeMarkerReferenceDocument = null;
                 _activeDocumentCascadedStyleFeatureFlags = AllCascadedStyleFeatureFlags;
@@ -181,7 +188,10 @@ public static class SvgSceneCompiler
                 return;
             }
 
-            var previous = _markerReferenceDocumentStack.Pop();
+            var previous = _markerReferenceState.GetValueOrDefault();
+            _markerReferenceState = _markerReferenceDocumentStack is { Count: > 0 } markerReferenceDocumentStack
+                ? markerReferenceDocumentStack.Pop()
+                : null;
             _activeMarkerReferenceDocument = previous.Document;
             _activeDocumentCascadedStyleFeatureFlags = previous.CascadedStyleFeatureFlags;
             _activeDocumentConditionalProcessingFeatureFlags = previous.ConditionalProcessingFeatureFlags;
@@ -297,10 +307,11 @@ public static class SvgSceneCompiler
                 return false;
             }
 
-            if (!_solidFillPaintCache.TryGetValue(key, out var cachedPaint))
+            var solidFillPaintCache = _solidFillPaintCache ??= new Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint>();
+            if (!solidFillPaintCache.TryGetValue(key, out var cachedPaint))
             {
                 cachedPaint = SvgScenePaintingService.CreateSolidFillPaint(key);
-                _solidFillPaintCache[key] = cachedPaint;
+                solidFillPaintCache[key] = cachedPaint;
             }
 
             paint = cachedPaint;
@@ -1094,6 +1105,48 @@ public static class SvgSceneCompiler
         return address.Key;
     }
 
+    internal static string GetElementTypeName(SvgElement element)
+    {
+        return element switch
+        {
+            SvgDocument => nameof(SvgDocument),
+            SvgFragment => nameof(SvgFragment),
+            SvgGroup => nameof(SvgGroup),
+            SvgAnchor => nameof(SvgAnchor),
+            SvgSwitch => nameof(SvgSwitch),
+            SvgUse => nameof(SvgUse),
+            SvgSymbol => nameof(SvgSymbol),
+            SvgImage => nameof(SvgImage),
+            SvgForeignObject => nameof(SvgForeignObject),
+            SvgClipPath => nameof(SvgClipPath),
+            SvgMask => nameof(SvgMask),
+            SvgMarker => nameof(SvgMarker),
+            SvgDefinitionList => nameof(SvgDefinitionList),
+            SvgDescription => nameof(SvgDescription),
+            SvgTitle => nameof(SvgTitle),
+            SvgUnknownElement => nameof(SvgUnknownElement),
+            SvgAltGlyph => nameof(SvgAltGlyph),
+            SvgTextPath => nameof(SvgTextPath),
+            SvgTextRef => nameof(SvgTextRef),
+            SvgTextSpan => nameof(SvgTextSpan),
+            SvgText => nameof(SvgText),
+            SvgRectangle => nameof(SvgRectangle),
+            SvgPath => nameof(SvgPath),
+            SvgCircle => nameof(SvgCircle),
+            SvgEllipse => nameof(SvgEllipse),
+            SvgLine => nameof(SvgLine),
+            SvgPolyline => nameof(SvgPolyline),
+            SvgPolygon => nameof(SvgPolygon),
+            SvgLinearGradientServer => nameof(SvgLinearGradientServer),
+            SvgRadialGradientServer => nameof(SvgRadialGradientServer),
+            SvgPatternServer => nameof(SvgPatternServer),
+            SvgGradientStop => nameof(SvgGradientStop),
+            Svg.FilterEffects.SvgFilter => nameof(Svg.FilterEffects.SvgFilter),
+            Svg.FilterEffects.SvgImage => nameof(Svg.FilterEffects.SvgImage),
+            _ => element.GetType().Name
+        };
+    }
+
     private static SvgSceneNode? CompileElementNode(
         SvgElement element,
         SKRect viewport,
@@ -1260,7 +1313,7 @@ public static class SvgSceneCompiler
             kind,
             element,
             elementAddressKey,
-            element.GetType().Name,
+            GetElementTypeName(element),
             effectiveCompilationRootKey,
             createOwnCompilationRootBoundary && !string.IsNullOrWhiteSpace(effectiveCompilationRootKey))
         {
@@ -1485,7 +1538,7 @@ public static class SvgSceneCompiler
             SvgSceneNodeKindExtensions.FromElement(element),
             element,
             elementAddressKey,
-            element.GetType().Name,
+            GetElementTypeName(element),
             effectiveCompilationRootKey,
             createOwnCompilationRootBoundary && !string.IsNullOrWhiteSpace(effectiveCompilationRootKey))
         {
@@ -1917,7 +1970,7 @@ public static class SvgSceneCompiler
             SvgSceneNodeKindExtensions.FromElement(element),
             element,
             elementAddressKey,
-            element.GetType().Name,
+            GetElementTypeName(element),
             effectiveCompilationRootKey,
             createOwnCompilationRootBoundary && !string.IsNullOrWhiteSpace(effectiveCompilationRootKey))
         {
@@ -2043,7 +2096,7 @@ public static class SvgSceneCompiler
             SvgSceneNodeKind.Use,
             svgUse,
             elementAddressKey,
-            svgUse.GetType().Name,
+            GetElementTypeName(svgUse),
             effectiveCompilationRootKey,
             createOwnCompilationRootBoundary && !string.IsNullOrWhiteSpace(effectiveCompilationRootKey))
         {
@@ -2303,7 +2356,7 @@ public static class SvgSceneCompiler
             SvgSceneNodeKind.Image,
             svgImage,
             elementAddressKey,
-            svgImage.GetType().Name,
+            GetElementTypeName(svgImage),
             effectiveCompilationRootKey,
             createOwnCompilationRootBoundary && !string.IsNullOrWhiteSpace(effectiveCompilationRootKey))
         {
@@ -2516,7 +2569,7 @@ public static class SvgSceneCompiler
             SvgSceneNodeKind.Fragment,
             svgSymbol,
             compileContext.GetElementAddressKey(svgSymbol),
-            svgSymbol.GetType().Name,
+            GetElementTypeName(svgSymbol),
             compilationRootKey,
             isCompilationRootBoundary: false)
         {
@@ -2678,7 +2731,7 @@ public static class SvgSceneCompiler
             SvgSceneNodeKind.Fragment,
             element: null,
             elementAddressKey: null,
-            elementTypeName: svgImage.GetType().Name,
+            elementTypeName: GetElementTypeName(svgImage),
             compilationRootKey,
             isCompilationRootBoundary: false)
         {
@@ -2725,7 +2778,7 @@ public static class SvgSceneCompiler
             SvgSceneNodeKind.Fragment,
             element: null,
             elementAddressKey: null,
-            elementTypeName: svgImage.GetType().Name,
+            elementTypeName: GetElementTypeName(svgImage),
             compilationRootKey,
             isCompilationRootBoundary: false)
         {
@@ -3757,7 +3810,7 @@ public static class SvgSceneCompiler
             SvgSceneNodeKind.Marker,
             svgMarker,
             compileContext.GetElementAddressKey(svgMarker),
-            svgMarker.GetType().Name,
+            GetElementTypeName(svgMarker),
             compilationRootKey,
             isCompilationRootBoundary: false)
         {
@@ -4195,7 +4248,7 @@ public static class SvgSceneCompiler
             SvgSceneNodeKind.Group,
             owner,
             elementAddressKey: null,
-            owner.GetType().Name,
+            GetElementTypeName(owner),
             compilationRootKey: null,
             isCompilationRootBoundary: false)
         {
@@ -5050,7 +5103,7 @@ public static class SvgSceneCompiler
             SvgSceneNodeKind.Mask,
             svgMask,
             compileContext.GetElementAddressKey(svgMask),
-            svgMask.GetType().Name,
+            GetElementTypeName(svgMask),
             compilationRootKey: null,
             isCompilationRootBoundary: false)
         {

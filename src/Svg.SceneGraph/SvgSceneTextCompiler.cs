@@ -1434,7 +1434,7 @@ internal static partial class SvgSceneTextCompiler
             SvgSceneNodeKindExtensions.FromElement(svgTextBase),
             svgTextBase,
             elementAddressKey,
-            svgTextBase.GetType().Name,
+            SvgSceneCompiler.GetElementTypeName(svgTextBase),
             compilationRootKey,
             isCompilationRootBoundary)
         {
@@ -3634,7 +3634,7 @@ internal static partial class SvgSceneTextCompiler
     {
         var sourceElement = ResolveTextCommandSourceElement(svgTextBase);
         var addressKey = (getElementAddressKey ?? SvgSceneCompiler.TryGetElementAddressKey)(sourceElement);
-        return canvas.PushCommandSource(sourceElement.ID, addressKey, sourceElement.GetType().Name);
+        return canvas.PushCommandSource(sourceElement.ID, addressKey, SvgSceneCompiler.GetElementTypeName(sourceElement));
     }
 
     private static SvgElement ResolveTextCommandSourceElement(SvgTextBase svgTextBase)
@@ -16118,7 +16118,7 @@ internal static partial class SvgSceneTextCompiler
             SvgSceneNodeKind.Fragment,
             sourceDocument,
             elementAddressKey: null,
-            elementTypeName: sourceDocument?.GetType().Name ?? nameof(SvgDocument),
+            elementTypeName: sourceDocument is null ? nameof(SvgDocument) : SvgSceneCompiler.GetElementTypeName(sourceDocument),
             compilationRootKey: null,
             isCompilationRootBoundary: false)
         {

@@ -352,7 +352,7 @@ public sealed class SvgSceneResource
             SvgSceneNodeKind.Mask,
             svgMask,
             SvgSceneCompiler.TryGetElementAddressKey(svgMask),
-            svgMask.GetType().Name,
+            SvgSceneCompiler.GetElementTypeName(svgMask),
             compilationRootKey: null,
             isCompilationRootBoundary: false)
         {

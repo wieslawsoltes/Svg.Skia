@@ -688,7 +688,7 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
     {
         ElementAddressKey = elementAddressKey;
         ElementId = Element?.ID;
-        ElementTypeName = Element?.GetType().Name ?? ElementTypeName;
+        ElementTypeName = Element is null ? ElementTypeName : SvgSceneCompiler.GetElementTypeName(Element);
     }
 
     public void MarkDirty()
