@@ -70,6 +70,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Read-only codepoint split reuse for text-DOM and prepared-text read paths.
 - Closed line-only SVG path conversion for generated path-heavy scenes.
 - Versioned shim path-bounds caching for retained compile bounds scans.
+- Inline shim path command-list storage for one- and two-command paths.
 - Small `AddPoly` native path revision-key reuse for generated path-heavy replay.
 - Transform-only simple shape group flattening for retained command streams and native replay.
 - Direct-matrix native replay for transformed retained positioned text runs.
@@ -176,6 +177,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Reused cached read-only codepoint split arrays across text-DOM, prepared-text, and shared-layout read paths, leaving the lone mutable split at the reverse-by-codepoint call site.
 - Added versioned `SKPath.Bounds` caching for command sequences whose command data is stable, while continuing to recompute `AddPoly` paths whose point lists can be mutated by callers.
 - Kept the shim path command storage concrete internally so bounds scans avoid interface enumeration allocation while preserving the public `IList<PathCommand>? Commands` surface.
+- Changed shim path command lists to keep one- and two-command paths inline before allocating overflow list storage, preserving the mutable `IList<PathCommand>` command surface while trimming generated simple-path retained compile allocations.
 - Reused the small `AddPoly` native path value-cache key to derive one-command small-poly path revisions, avoiding a second point-list hash pass while preserving mutable-point invalidation.
 - Flattened transform-only retained groups whose children are simple solid-filled leaf paths by pre-transforming rectangle, polygon, and closed line-only path commands during retained recording; this removes save/set-matrix/restore command wrappers and simple leaf opacity save-layers while preserving source-element metadata and keeping clips, masks, filters, strokes, blend modes, isolation, nested children, shaders, and complex paths on the existing rendering path.
 - Replayed compact retained positioned text runs by scanning for untransformed fragments first, drawing those directly, and using direct canvas matrix resets for transformed fragments instead of per-fragment save/restore pairs.
@@ -194,6 +196,14 @@ Focused `SvgPathConversionBenchmarks` measurements for the closed line-only path
 - `ConvertSvgPathsOnly`: `551.4 us / 824 KB`.
 - `ConvertAllVisualPaths`: `1,216.3 us / 1072 KB`.
 - Timing had visible short-run noise; the benchmark is kept as a focused allocation and regression reference for the new path-conversion shape.
+
+Focused inline shim path command-list storage measurements for `generated-shapes-1024`:
+
+- `SvgPathConversionBenchmarks.ConvertAllVisualPaths`: `1,216.3 us / 1072 KB` to `1.207 ms / 992 KB`.
+- `SvgPathConversionBenchmarks.ConvertPrimitiveShapesOnly`: `290.0 us / 248 KB` to `367.2 us / 208 KB`.
+- `SvgPathConversionBenchmarks.ConvertSvgPathsOnly`: `551.4 us / 824 KB` to `601.7 us / 784 KB`.
+- `SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly`: local focused scan moved from `9.262 ms / 4050.05 KB` to `7.454 ms / 3.83 MB`.
+- Timing remains short-run/noisy, so this is treated primarily as a managed-allocation cleanup for simple retained paths.
 
 Focused native path value-cache measurement for `generated-shapes-1024`:
 
@@ -414,6 +424,7 @@ Focused ASCII codepoint and single-run aligned retained compile measurements:
 - `CompileNodeTreeOnly | generated-aligned-text-length-192`: current retained hotspot scan allocation moved from `1980.55 KB` to `1965.55 KB`.
 - `CreateAlignedPlacementsAcrossFragments` stayed allocation-flat at `574.27 KB` and `213.43 KB`, which confirms the retained compile reduction comes from compile-path collection/cache cleanup rather than the standalone placement benchmark's warmed-cache loop.
 - Updated retained hotspot scan after this change: `generated-shapes-1024` remains the largest retained compile allocation at `4168.46 KB`; `generated-text-192` is `3218.43 KB`; `generated-aligned-letter-spacing-192` is `3223.03 KB`; `generated-text-path-curves-96` is `1305.75 KB`; `generated-aligned-text-length-192` is `1965.55 KB`; `generated-filtered-shapes-256` is `970.11 KB`.
+- After inline shim path command-list storage, the focused `generated-shapes-1024` retained compile row measured `3.83 MB`; text scenarios remain the next retained compile allocation targets.
 - `generated-text-192` phase audit shows remaining plain-text allocation is still dominated by `CompileNodeTreeOnly` (`3.996 ms / 3,295,669 B`), while scene-document creation is `737,417 B`, dependency registration is `95,168 B`, and runtime payload resolution is `57,416 B`.
 
 ### Text Path Performance
