@@ -1868,8 +1868,10 @@ public static class SvgSceneCompiler
         node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
         node.TransformedBounds = node.TotalTransform.MapRect(node.GeometryBounds);
         node.HitTestPath = path;
-        node.SupportsFillHitTest = SvgScenePaintingService.IsValidFill(visualElement);
-        node.SupportsStrokeHitTest = SvgScenePaintingService.IsValidStroke(visualElement, node.GeometryBounds);
+        var supportsFillHitTest = SvgScenePaintingService.IsValidFill(visualElement);
+        var supportsStrokeHitTest = SvgScenePaintingService.IsValidStroke(visualElement, node.GeometryBounds);
+        node.SupportsFillHitTest = supportsFillHitTest;
+        node.SupportsStrokeHitTest = supportsStrokeHitTest;
         node.IsStrokeNonScaling = visualElement.VectorEffect == SvgVectorEffect.NonScalingStroke;
         node.HitTestTargetElement = GetDefaultHitTestTargetElement(node, element);
         AssignRetainedVisualState(
@@ -1907,6 +1909,8 @@ public static class SvgSceneCompiler
             visualElement,
             path,
             node.GeometryBounds,
+            supportsFillHitTest,
+            supportsStrokeHitTest,
             assetLoader,
             ignoreAttributes,
             compileContext,
@@ -4171,6 +4175,8 @@ public static class SvgSceneCompiler
         SvgVisualElement visualElement,
         SKPath path,
         SKRect geometryBounds,
+        bool supportsFillHitTest,
+        bool supportsStrokeHitTest,
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes,
         SvgSceneCompileContext compileContext,
@@ -4185,7 +4191,7 @@ public static class SvgSceneCompiler
         var canDrawFill = true;
         var canDrawStroke = true;
 
-        if (SvgScenePaintingService.IsValidFill(visualElement))
+        if (supportsFillHitTest)
         {
             fill = compileContext.TryGetCachedSolidFillPaint(visualElement, ignoreAttributes, out var cachedFill)
                 ? cachedFill
@@ -4202,7 +4208,7 @@ public static class SvgSceneCompiler
             }
         }
 
-        if (SvgScenePaintingService.IsValidStroke(visualElement, geometryBounds))
+        if (supportsStrokeHitTest)
         {
             stroke = SvgScenePaintingService.GetStrokePaint(
                 visualElement,
