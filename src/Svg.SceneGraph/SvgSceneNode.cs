@@ -17,6 +17,7 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
     private VisualState? _visualState;
     private ResourceKeyState? _resourceKeys;
     private EffectState? _effectState;
+    private OpacityState? _opacityState;
     private SvgSceneTextCompiler.SvgTextContentMetrics? _textContentMetrics;
     private bool _hasLazyTextContentMetrics;
 
@@ -351,39 +352,41 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
 
     public SKPaint? Opacity
     {
-        get => _effectState?.Opacity;
+        get => _opacityState?.Opacity;
         internal set
         {
             if (value is null)
             {
-                if (_effectState is not null)
+                if (_opacityState is not null)
                 {
-                    _effectState.Opacity = null;
+                    _opacityState.Opacity = null;
+                    ClearOpacityStateIfDefault();
                 }
 
                 return;
             }
 
-            EnsureEffectState().Opacity = value;
+            EnsureOpacityState().Opacity = value;
         }
     }
 
     public float OpacityValue
     {
-        get => _effectState?.OpacityValue ?? 1f;
+        get => _opacityState?.OpacityValue ?? 1f;
         internal set
         {
             if (value == 1f)
             {
-                if (_effectState is not null)
+                if (_opacityState is not null)
                 {
-                    _effectState.OpacityValue = 1f;
+                    _opacityState.OpacityValue = 1f;
+                    ClearOpacityStateIfDefault();
                 }
 
                 return;
             }
 
-            EnsureEffectState().OpacityValue = value;
+            EnsureOpacityState().OpacityValue = value;
         }
     }
 
@@ -521,6 +524,19 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
     private EffectState EnsureEffectState()
     {
         return _effectState ??= new EffectState();
+    }
+
+    private OpacityState EnsureOpacityState()
+    {
+        return _opacityState ??= new OpacityState();
+    }
+
+    private void ClearOpacityStateIfDefault()
+    {
+        if (_opacityState is { Opacity: null, OpacityValue: 1f })
+        {
+            _opacityState = null;
+        }
     }
 
     internal void AddChild(SvgSceneNode child)
@@ -850,6 +866,12 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
         public string? FilterResourceKey;
     }
 
+    private sealed class OpacityState
+    {
+        public SKPaint? Opacity;
+        public float OpacityValue = 1f;
+    }
+
     private sealed class EffectState
     {
         public SvgSceneNode? MaskNode;
@@ -859,8 +881,6 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
         public ClipPath? ClipPath;
         public SKPaint? MaskPaint;
         public SKPaint? MaskDstIn;
-        public SKPaint? Opacity;
-        public float OpacityValue = 1f;
         public SKPaint? Filter;
         public SKRect? FilterClip;
         public bool FilterUsesGlobalLayer;

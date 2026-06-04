@@ -1232,10 +1232,10 @@ public sealed class SvgSceneDocument
                 ? node.SupportsStrokeHitTest
                 : SvgScenePaintingService.IsValidStroke(visualElement, node.GeometryBounds);
             node.Fill = resolveFillPayload && hasFillPayload
-                ? GetCachedFillPaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes, gradientPaintCache, solidFillPaintCache)
+                ? GetFillPayload(node, visualElement, gradientPaintCache, solidFillPaintCache)
                 : null;
             node.Stroke = hasOwnPaintPayload && hasStrokePayload
-                ? SvgScenePaintingService.GetStrokePaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes, geometryPath: node.HitTestPath, gradientPaintCache: gradientPaintCache)
+                ? GetStrokePayload(node, visualElement, gradientPaintCache)
                 : null;
             node.StrokeWidth = hasOwnPaintPayload ? node.Stroke?.StrokeWidth ?? 0f : 0f;
             node.IsStrokeNonScaling = hasOwnPaintPayload && visualElement.VectorEffect == SvgVectorEffect.NonScalingStroke;
@@ -1307,6 +1307,31 @@ public sealed class SvgSceneDocument
             assetLoader,
             ignoreAttributes,
             gradientPaintCache: gradientPaintCache);
+    }
+
+    private SKPaint? GetFillPayload(
+        SvgSceneNode node,
+        SvgVisualElement visualElement,
+        SvgScenePaintingService.GradientPaintCache gradientPaintCache,
+        Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> solidFillPaintCache)
+    {
+        return node.LocalFill ??
+               GetCachedFillPaint(visualElement, node.GeometryBounds, AssetLoader, IgnoreAttributes, gradientPaintCache, solidFillPaintCache);
+    }
+
+    private SKPaint? GetStrokePayload(
+        SvgSceneNode node,
+        SvgVisualElement visualElement,
+        SvgScenePaintingService.GradientPaintCache gradientPaintCache)
+    {
+        return node.LocalStroke ??
+               SvgScenePaintingService.GetStrokePaint(
+                   visualElement,
+                   node.GeometryBounds,
+                   AssetLoader,
+                   IgnoreAttributes,
+                   geometryPath: node.HitTestPath,
+                   gradientPaintCache: gradientPaintCache);
     }
 
     private static bool HasOwnPaintPayload(SvgSceneNode node)
