@@ -306,6 +306,11 @@ internal static class SvgTextBidiResolver
 
     public static bool ContainsMixedStrongDirections(string text)
     {
+        if (IsAsciiText(text))
+        {
+            return false;
+        }
+
         var hasLeftToRight = false;
         var hasRightToLeft = false;
         foreach (var codepoint in CreateCodepoints(text))
@@ -331,6 +336,11 @@ internal static class SvgTextBidiResolver
 
     public static bool ContainsRightToLeftStrongDirection(string text)
     {
+        if (IsAsciiText(text))
+        {
+            return false;
+        }
+
         foreach (var codepoint in CreateCodepoints(text))
         {
             if (GetStrongDirection(codepoint.BidiClass) == SvgTextDirection.RightToLeft)
@@ -344,6 +354,11 @@ internal static class SvgTextBidiResolver
 
     public static bool ContainsExplicitBidiControlCodepoint(string text)
     {
+        if (IsAsciiText(text))
+        {
+            return false;
+        }
+
         foreach (var codepoint in CreateCodepoints(text))
         {
             if (IsExplicitBidiClass(codepoint.BidiClass))
@@ -353,6 +368,24 @@ internal static class SvgTextBidiResolver
         }
 
         return false;
+    }
+
+    private static bool IsAsciiText(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return true;
+        }
+
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (text[i] > 0x7F)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public static bool IsExplicitBidiControlCodepoint(string codepoint)
