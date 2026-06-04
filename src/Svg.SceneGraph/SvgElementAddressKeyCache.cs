@@ -7,8 +7,17 @@ namespace Svg.Skia;
 internal sealed class SvgElementAddressKeyCache
 {
     private const int LinearChildIndexLookupLimit = 8;
-    private readonly Dictionary<SvgElement, string?> _addressKeys = new(SvgElementReferenceComparer.Instance);
-    private readonly Dictionary<SvgElement, ChildIndexLookup> _childIndexesByParent = new(SvgElementReferenceComparer.Instance);
+    private const int CachedChildIndexTextCount = 256;
+    private static readonly string[] s_cachedChildIndexTexts = CreateCachedChildIndexTexts();
+    private readonly Dictionary<SvgElement, string?> _addressKeys;
+    private Dictionary<SvgElement, ChildIndexLookup>? _childIndexesByParent;
+
+    public SvgElementAddressKeyCache(int initialAddressCapacity = 0)
+    {
+        _addressKeys = initialAddressCapacity > 0
+            ? new Dictionary<SvgElement, string?>(initialAddressCapacity, SvgElementReferenceComparer.Instance)
+            : new Dictionary<SvgElement, string?>(SvgElementReferenceComparer.Instance);
+    }
 
     public string? GetOrCreate(SvgElement? element)
     {
@@ -29,11 +38,7 @@ internal sealed class SvgElementAddressKeyCache
             return null;
         }
 
-        var indexText = childIndex.ToString(CultureInfo.InvariantCulture);
-        var parentAddressKey = GetOrCreate(parent);
-        addressKey = parentAddressKey is null
-            ? indexText
-            : string.Concat(parentAddressKey, "/", indexText);
+        addressKey = CreateChildAddressKey(GetOrCreate(parent), childIndex);
 
         _addressKeys[element] = addressKey;
         return addressKey;
@@ -57,11 +62,7 @@ internal sealed class SvgElementAddressKeyCache
             return addressKey;
         }
 
-        var indexText = childIndex.ToString(CultureInfo.InvariantCulture);
-        var parentAddressKey = GetOrCreate(parent);
-        addressKey = parentAddressKey is null
-            ? indexText
-            : string.Concat(parentAddressKey, "/", indexText);
+        addressKey = CreateChildAddressKey(GetOrCreate(parent), childIndex);
 
         _addressKeys[child] = addressKey;
         return addressKey;
@@ -82,11 +83,13 @@ internal sealed class SvgElementAddressKeyCache
             return -1;
         }
 
-        if (!_childIndexesByParent.TryGetValue(parent, out var lookup) ||
+        var childIndexesByParent = _childIndexesByParent;
+        if (childIndexesByParent is null ||
+            !childIndexesByParent.TryGetValue(parent, out var lookup) ||
             lookup.ChildCount != parent.Children.Count)
         {
             lookup = BuildChildIndexLookup(parent);
-            _childIndexesByParent[parent] = lookup;
+            (_childIndexesByParent ??= new Dictionary<SvgElement, ChildIndexLookup>(SvgElementReferenceComparer.Instance))[parent] = lookup;
         }
 
         if (lookup.Indexes.TryGetValue(child, out var childIndex) &&
@@ -98,13 +101,39 @@ internal sealed class SvgElementAddressKeyCache
         }
 
         lookup = BuildChildIndexLookup(parent);
-        _childIndexesByParent[parent] = lookup;
+        _childIndexesByParent![parent] = lookup;
         return lookup.Indexes.TryGetValue(child, out childIndex) &&
                childIndex >= 0 &&
                childIndex < parent.Children.Count &&
                ReferenceEquals(parent.Children[childIndex], child)
             ? childIndex
             : -1;
+    }
+
+    private static string CreateChildAddressKey(string? parentAddressKey, int childIndex)
+    {
+        var indexText = GetChildIndexText(childIndex);
+        return parentAddressKey is null
+            ? indexText
+            : string.Concat(parentAddressKey, "/", indexText);
+    }
+
+    private static string GetChildIndexText(int childIndex)
+    {
+        return (uint)childIndex < (uint)s_cachedChildIndexTexts.Length
+            ? s_cachedChildIndexTexts[childIndex]
+            : childIndex.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static string[] CreateCachedChildIndexTexts()
+    {
+        var values = new string[CachedChildIndexTextCount];
+        for (var i = 0; i < values.Length; i++)
+        {
+            values[i] = i.ToString(CultureInfo.InvariantCulture);
+        }
+
+        return values;
     }
 
     private static ChildIndexLookup BuildChildIndexLookup(SvgElement parent)

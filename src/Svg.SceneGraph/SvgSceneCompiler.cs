@@ -13,6 +13,8 @@ namespace Svg.Skia;
 
 public static class SvgSceneCompiler
 {
+    private const int MaxInitialAddressKeyCacheCapacity = 16 * 1024;
+
     private sealed class SvgSceneCompileContext
     {
         private const SvgCascadedStyleFeatureFlags AllCascadedStyleFeatureFlags =
@@ -22,7 +24,7 @@ public static class SvgSceneCompiler
 
         private string? _activeDocumentKey;
         private HashSet<string>? _activeDocumentKeys;
-        private readonly SvgElementAddressKeyCache _addressKeys = new();
+        private readonly SvgElementAddressKeyCache _addressKeys;
         private readonly Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> _solidFillPaintCache = new();
         private SvgScenePaintingService.GradientPaintCache? _gradientPaintCache;
         private Dictionary<SvgFragment, SKSize>? _fragmentViewportSizeOverrides;
@@ -33,6 +35,11 @@ public static class SvgSceneCompiler
         private SvgCascadedStyleFeatureFlags _activeDocumentCascadedStyleFeatureFlags = AllCascadedStyleFeatureFlags;
         private bool _activeMarkerReferenceDeclarationCandidate;
         private bool _activeDocumentMayContainMarkerReferenceDeclarations;
+
+        public SvgSceneCompileContext(int initialAddressCapacity = 0)
+        {
+            _addressKeys = new SvgElementAddressKeyCache(initialAddressCapacity);
+        }
 
         public SvgSceneContextPaint? ContextPaint { get; private set; }
 
@@ -440,7 +447,7 @@ public static class SvgSceneCompiler
             cullRect,
             assetLoader,
             ignoreAttributes,
-            new SvgSceneCompileContext(),
+            CreateCompileContext(sourceDocument),
             out sceneDocument);
     }
 
@@ -515,7 +522,7 @@ public static class SvgSceneCompiler
             cullRect,
             assetLoader,
             ignoreAttributes,
-            new SvgSceneCompileContext(),
+            CreateCompileContext(sourceDocument),
             out rootNode,
             out effectiveCullRect,
             out viewport);
@@ -597,7 +604,7 @@ public static class SvgSceneCompiler
             viewport,
             assetLoader,
             ignoreAttributes,
-            new SvgSceneCompileContext(),
+            CreateCompileContext(sourceFragment),
             out sceneDocument);
     }
 
@@ -610,6 +617,42 @@ public static class SvgSceneCompiler
         }
 
         return null;
+    }
+
+    private static SvgSceneCompileContext CreateCompileContext(SvgElement? root)
+    {
+        return new SvgSceneCompileContext(EstimateInitialAddressKeyCapacity(root));
+    }
+
+    private static int EstimateInitialAddressKeyCapacity(SvgElement? root)
+    {
+        if (root is null)
+        {
+            return 0;
+        }
+
+        var capacity = root is SvgDocument ? 0 : 1;
+        var children = root.Children;
+        capacity = AddInitialAddressKeyCapacity(capacity, children.Count);
+        for (var i = 0; i < children.Count; i++)
+        {
+            capacity = AddInitialAddressKeyCapacity(capacity, children[i].Children.Count);
+        }
+
+        return capacity;
+    }
+
+    private static int AddInitialAddressKeyCapacity(int capacity, int addition)
+    {
+        if (addition <= 0 || capacity >= MaxInitialAddressKeyCacheCapacity)
+        {
+            return capacity;
+        }
+
+        var next = capacity + addition;
+        return next > MaxInitialAddressKeyCacheCapacity || next < capacity
+            ? MaxInitialAddressKeyCacheCapacity
+            : next;
     }
 
     private static bool TryCompileFragment(
