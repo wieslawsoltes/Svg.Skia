@@ -36,6 +36,7 @@ public sealed class SvgSceneDocument
     private bool _mayContainReferenceDependencies = true;
     private bool _mayContainMarkerReferenceDeclarations = true;
     private bool _mayContainClipPathDeclarations = true;
+    private bool _useOnDemandSubtreeCompilationRoots;
     private int _addressableElementCount;
 
     internal SvgSceneDocument(
@@ -346,10 +347,21 @@ public sealed class SvgSceneDocument
         }
 
         var hasDirectCompilationRoots = _compilationRootsByDependentAddress.TryGetValue(addressKey, out var directCompilationRoots);
+        var onDemandCompilationRoots = default(CompilationRootKeySet);
+        var hasOnDemandCompilationRoots = _useOnDemandSubtreeCompilationRoots &&
+                                          TryGetOnDemandSubtreeCompilationRoots(addressKey, out onDemandCompilationRoots);
         var hasResources = _resourcesByAddress.TryGetValue(addressKey, out var resources);
-        if (hasDirectCompilationRoots && !hasResources)
+        if (!hasResources)
         {
-            return directCompilationRoots;
+            if (hasDirectCompilationRoots && !hasOnDemandCompilationRoots)
+            {
+                return directCompilationRoots;
+            }
+
+            if (hasOnDemandCompilationRoots && !hasDirectCompilationRoots)
+            {
+                return onDemandCompilationRoots;
+            }
         }
 
         HashSet<string>? results = null;
@@ -357,6 +369,15 @@ public sealed class SvgSceneDocument
         if (hasDirectCompilationRoots)
         {
             results = new HashSet<string>(directCompilationRoots, StringComparer.Ordinal);
+        }
+
+        if (hasOnDemandCompilationRoots)
+        {
+            results ??= new HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < onDemandCompilationRoots.Count; i++)
+            {
+                results.Add(onDemandCompilationRoots[i]);
+            }
         }
 
         if (hasResources)
@@ -417,6 +438,7 @@ public sealed class SvgSceneDocument
         _resourcesByKey.Clear();
         _resourcesById.Clear();
         _resourcesByAddress.Clear();
+        _useOnDemandSubtreeCompilationRoots = false;
     }
 
     private void EnsureIndexCapacity(int addressableElementCount, int elementIdCount)
@@ -654,6 +676,12 @@ public sealed class SvgSceneDocument
             return;
         }
 
+        if (!includeReferencedDependencies)
+        {
+            _useOnDemandSubtreeCompilationRoots = true;
+            return;
+        }
+
         if (useNodeSubtreeRegistration)
         {
             RegisterCompilationRootSubtreeAddressesFromNodes();
@@ -662,12 +690,6 @@ public sealed class SvgSceneDocument
         {
             RegisterCompilationRootSubtreeAddresses(addressKeyCache);
         }
-
-        if (!includeReferencedDependencies)
-        {
-            return;
-        }
-
         var activeCompilationRootKeys = _nodeDependencyActiveCompilationRootKeys;
         activeCompilationRootKeys.Clear();
         try
@@ -752,6 +774,46 @@ public sealed class SvgSceneDocument
         traversalStack.Clear();
 
         return (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, addressableElementCount, elementIdCount);
+    }
+
+    private bool TryGetOnDemandSubtreeCompilationRoots(string addressKey, out CompilationRootKeySet compilationRootKeys)
+    {
+        compilationRootKeys = default;
+
+        var lookupKey = addressKey;
+        while (!string.IsNullOrWhiteSpace(lookupKey))
+        {
+            if (_nodesByAddress.TryGetValue(lookupKey, out var nodes))
+            {
+                AddOnDemandSubtreeCompilationRoots(nodes, ref compilationRootKeys);
+                return compilationRootKeys.Count > 0;
+            }
+
+            var parentSeparatorIndex = lookupKey.LastIndexOf('/');
+            if (parentSeparatorIndex < 0)
+            {
+                break;
+            }
+
+            lookupKey = lookupKey.Substring(0, parentSeparatorIndex);
+        }
+
+        return false;
+    }
+
+    private static void AddOnDemandSubtreeCompilationRoots(NodeAddressSet nodes, ref CompilationRootKeySet compilationRootKeys)
+    {
+        for (var i = 0; i < nodes.Count; i++)
+        {
+            for (var current = nodes[i]; current is not null; current = current.Parent)
+            {
+                if (current.IsCompilationRootBoundary &&
+                    !string.IsNullOrWhiteSpace(current.CompilationRootKey))
+                {
+                    compilationRootKeys.Add(current.CompilationRootKey!);
+                }
+            }
+        }
     }
 
     private void RegisterCompilationRootSubtreeAddressesFromNodes()
