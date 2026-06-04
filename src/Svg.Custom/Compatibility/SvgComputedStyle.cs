@@ -24,6 +24,15 @@ internal enum SvgCascadedStyleFeatureFlags
     EnableBackground = 256
 }
 
+[Flags]
+internal enum SvgConditionalProcessingFeatureFlags
+{
+    None = 0,
+    RequiredFeatures = 1,
+    RequiredExtensions = 2,
+    SystemLanguage = 4
+}
+
 internal sealed class SvgComputedStyleCache
 {
     private readonly Dictionary<SvgElement, SvgComputedStyleSnapshot> _snapshots =
@@ -2267,6 +2276,11 @@ public abstract partial class SvgElement
         SvgCascadedStyleFeatureFlags.Cursor |
         SvgCascadedStyleFeatureFlags.EnableBackground;
 
+    private const SvgConditionalProcessingFeatureFlags AllConditionalProcessingFeatureFlags =
+        SvgConditionalProcessingFeatureFlags.RequiredFeatures |
+        SvgConditionalProcessingFeatureFlags.RequiredExtensions |
+        SvgConditionalProcessingFeatureFlags.SystemLanguage;
+
     internal SvgComputedStyleSnapshot ComputedStyle =>
         OwnerDocument is not null
             ? OwnerDocument.GetComputedStyle(this)
@@ -2643,6 +2657,64 @@ public abstract partial class SvgElement
         return flags;
     }
 
+    internal SvgConditionalProcessingFeatureFlags GetOwnConditionalProcessingFeatureFlags(
+        SvgConditionalProcessingFeatureFlags requestedFlags = AllConditionalProcessingFeatureFlags)
+    {
+        if (requestedFlags == SvgConditionalProcessingFeatureFlags.None)
+        {
+            return SvgConditionalProcessingFeatureFlags.None;
+        }
+
+        var flags = SvgConditionalProcessingFeatureFlags.None;
+
+        if (HasFeatureFlag(requestedFlags, SvgConditionalProcessingFeatureFlags.RequiredFeatures) &&
+            TryGetAttribute("requiredFeatures", out _))
+        {
+            flags |= SvgConditionalProcessingFeatureFlags.RequiredFeatures;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgConditionalProcessingFeatureFlags.RequiredExtensions) &&
+            TryGetAttribute("requiredExtensions", out _))
+        {
+            flags |= SvgConditionalProcessingFeatureFlags.RequiredExtensions;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgConditionalProcessingFeatureFlags.SystemLanguage) &&
+            TryGetAttribute("systemLanguage", out _))
+        {
+            flags |= SvgConditionalProcessingFeatureFlags.SystemLanguage;
+        }
+
+        return flags;
+    }
+
+    internal SvgConditionalProcessingFeatureFlags GetSubtreeConditionalProcessingFeatureFlags(
+        SvgConditionalProcessingFeatureFlags requestedFlags = AllConditionalProcessingFeatureFlags)
+    {
+        if (requestedFlags == SvgConditionalProcessingFeatureFlags.None)
+        {
+            return SvgConditionalProcessingFeatureFlags.None;
+        }
+
+        var flags = GetOwnConditionalProcessingFeatureFlags(requestedFlags);
+        if (flags == requestedFlags)
+        {
+            return flags;
+        }
+
+        for (var i = 0; i < Children.Count; i++)
+        {
+            var remainingFlags = requestedFlags & ~flags;
+            flags |= Children[i].GetSubtreeConditionalProcessingFeatureFlags(remainingFlags);
+            if (flags == requestedFlags)
+            {
+                return flags;
+            }
+        }
+
+        return flags;
+    }
+
     private SvgCascadedStyleFeatureFlags AddStyleRulesFeatureFlag(
         SvgCascadedStyleFeatureFlags flags,
         SvgCascadedStyleFeatureFlags requestedFlags,
@@ -2796,6 +2868,13 @@ public abstract partial class SvgElement
         return (flags & flag) != 0;
     }
 
+    private static bool HasFeatureFlag(
+        SvgConditionalProcessingFeatureFlags flags,
+        SvgConditionalProcessingFeatureFlags flag)
+    {
+        return (flags & flag) != 0;
+    }
+
     private static bool IsMarkerReferenceProperty(string propertyName)
     {
         return string.Equals(propertyName, "marker", StringComparison.OrdinalIgnoreCase) ||
@@ -2846,6 +2925,7 @@ public partial class SvgDocument
     private SvgComputedStyleCache? _computedStyleCache;
     private SvgComputedStyleCache? _temporaryParentComputedStyleCache;
     private SvgCascadedStyleFeatureFlags? _cascadedStyleFeatureFlags;
+    private SvgConditionalProcessingFeatureFlags? _conditionalProcessingFeatureFlags;
     private int _temporaryParentComputedStyleScopeDepth;
 
     internal SvgComputedStyleSnapshot GetComputedStyle(SvgElement element)
@@ -2872,12 +2952,19 @@ public partial class SvgDocument
         _computedStyleCache = null;
         _temporaryParentComputedStyleCache = null;
         _cascadedStyleFeatureFlags = null;
+        _conditionalProcessingFeatureFlags = null;
     }
 
     internal SvgCascadedStyleFeatureFlags GetCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags requestedFlags)
     {
         _cascadedStyleFeatureFlags ??= GetSubtreeCascadedStyleFeatureFlags();
         return _cascadedStyleFeatureFlags.Value & requestedFlags;
+    }
+
+    internal SvgConditionalProcessingFeatureFlags GetConditionalProcessingFeatureFlags(SvgConditionalProcessingFeatureFlags requestedFlags)
+    {
+        _conditionalProcessingFeatureFlags ??= GetSubtreeConditionalProcessingFeatureFlags();
+        return _conditionalProcessingFeatureFlags.Value & requestedFlags;
     }
 
     private void EndComputedStyleTemporaryParentScope()

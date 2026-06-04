@@ -27,6 +27,11 @@ public static class SvgSceneCompiler
             SvgCascadedStyleFeatureFlags.Cursor |
             SvgCascadedStyleFeatureFlags.EnableBackground;
 
+        private const SvgConditionalProcessingFeatureFlags AllConditionalProcessingFeatureFlags =
+            SvgConditionalProcessingFeatureFlags.RequiredFeatures |
+            SvgConditionalProcessingFeatureFlags.RequiredExtensions |
+            SvgConditionalProcessingFeatureFlags.SystemLanguage;
+
         private string? _activeDocumentKey;
         private HashSet<string>? _activeDocumentKeys;
         private readonly SvgElementAddressKeyCache _addressKeys;
@@ -38,6 +43,7 @@ public static class SvgSceneCompiler
         private readonly Stack<MarkerReferenceState> _markerReferenceDocumentStack = new();
         private SvgDocument? _activeMarkerReferenceDocument;
         private SvgCascadedStyleFeatureFlags _activeDocumentCascadedStyleFeatureFlags = AllCascadedStyleFeatureFlags;
+        private SvgConditionalProcessingFeatureFlags _activeDocumentConditionalProcessingFeatureFlags = AllConditionalProcessingFeatureFlags;
         private bool _activeMarkerReferenceDeclarationCandidate;
         private bool _activeDocumentMayContainMarkerReferenceDeclarations;
 
@@ -54,6 +60,9 @@ public static class SvgSceneCompiler
 
         public SvgCascadedStyleFeatureFlags ActiveDocumentCascadedStyleFeatureFlags =>
             _activeDocumentCascadedStyleFeatureFlags;
+
+        public SvgConditionalProcessingFeatureFlags ActiveDocumentConditionalProcessingFeatureFlags =>
+            _activeDocumentConditionalProcessingFeatureFlags;
 
         public bool ActiveDocumentMayContainMarkerReferenceDeclarations => _activeDocumentMayContainMarkerReferenceDeclarations;
 
@@ -121,12 +130,16 @@ public static class SvgSceneCompiler
             _markerReferenceDocumentStack.Push(new MarkerReferenceState(
                 _activeMarkerReferenceDocument,
                 _activeDocumentCascadedStyleFeatureFlags,
+                _activeDocumentConditionalProcessingFeatureFlags,
                 _activeMarkerReferenceDeclarationCandidate,
                 _activeDocumentMayContainMarkerReferenceDeclarations));
             _activeMarkerReferenceDocument = document;
             _activeDocumentCascadedStyleFeatureFlags = document is null
                 ? AllCascadedStyleFeatureFlags
                 : document.GetCascadedStyleFeatureFlags(AllCascadedStyleFeatureFlags);
+            _activeDocumentConditionalProcessingFeatureFlags = document is null
+                ? AllConditionalProcessingFeatureFlags
+                : document.GetConditionalProcessingFeatureFlags(AllConditionalProcessingFeatureFlags);
             _activeMarkerReferenceDeclarationCandidate = false;
             _activeDocumentMayContainMarkerReferenceDeclarations = false;
             return true;
@@ -162,6 +175,7 @@ public static class SvgSceneCompiler
             {
                 _activeMarkerReferenceDocument = null;
                 _activeDocumentCascadedStyleFeatureFlags = AllCascadedStyleFeatureFlags;
+                _activeDocumentConditionalProcessingFeatureFlags = AllConditionalProcessingFeatureFlags;
                 _activeMarkerReferenceDeclarationCandidate = false;
                 _activeDocumentMayContainMarkerReferenceDeclarations = false;
                 return;
@@ -170,6 +184,7 @@ public static class SvgSceneCompiler
             var previous = _markerReferenceDocumentStack.Pop();
             _activeMarkerReferenceDocument = previous.Document;
             _activeDocumentCascadedStyleFeatureFlags = previous.CascadedStyleFeatureFlags;
+            _activeDocumentConditionalProcessingFeatureFlags = previous.ConditionalProcessingFeatureFlags;
             _activeMarkerReferenceDeclarationCandidate = previous.MarkerReferenceDeclarationCandidate;
             _activeDocumentMayContainMarkerReferenceDeclarations = previous.MayContainMarkerReferenceDeclarations;
         }
@@ -354,11 +369,13 @@ public static class SvgSceneCompiler
             public MarkerReferenceState(
                 SvgDocument? document,
                 SvgCascadedStyleFeatureFlags cascadedStyleFeatureFlags,
+                SvgConditionalProcessingFeatureFlags conditionalProcessingFeatureFlags,
                 bool markerReferenceDeclarationCandidate,
                 bool mayContainMarkerReferenceDeclarations)
             {
                 Document = document;
                 CascadedStyleFeatureFlags = cascadedStyleFeatureFlags;
+                ConditionalProcessingFeatureFlags = conditionalProcessingFeatureFlags;
                 MarkerReferenceDeclarationCandidate = markerReferenceDeclarationCandidate;
                 MayContainMarkerReferenceDeclarations = mayContainMarkerReferenceDeclarations;
             }
@@ -366,6 +383,8 @@ public static class SvgSceneCompiler
             public SvgDocument? Document { get; }
 
             public SvgCascadedStyleFeatureFlags CascadedStyleFeatureFlags { get; }
+
+            public SvgConditionalProcessingFeatureFlags ConditionalProcessingFeatureFlags { get; }
 
             public bool MarkerReferenceDeclarationCandidate { get; }
 
@@ -1281,7 +1300,7 @@ public static class SvgSceneCompiler
         {
             case SvgDocument svgDocument:
                 {
-                    if (!HasFeatures(svgDocument, ignoreAttributes))
+                    if (!HasFeatures(svgDocument, ignoreAttributes, compileContext))
                     {
                         node = CreateDirectStructuralNode(
                             svgDocument,
@@ -1351,7 +1370,7 @@ public static class SvgSceneCompiler
                 }
             case SvgGroup svgGroup:
                 {
-                    var hasFeatures = HasFeatures(svgGroup, ignoreAttributes);
+                    var hasFeatures = HasFeatures(svgGroup, ignoreAttributes, compileContext);
                     var isVisible = MaskingService.IsVisible(svgGroup, ignoreAttributes);
                     var isDisplayRendered = MaskingService.IsDisplayRendered(svgGroup, ignoreAttributes);
                     node = CreateDirectStructuralNode(
@@ -1369,7 +1388,7 @@ public static class SvgSceneCompiler
                 }
             case SvgSwitch svgSwitch:
                 {
-                    var hasFeatures = HasFeatures(svgSwitch, ignoreAttributes);
+                    var hasFeatures = HasFeatures(svgSwitch, ignoreAttributes, compileContext);
                     var isVisible = MaskingService.IsVisible(svgSwitch, ignoreAttributes);
                     var isDisplayRendered = MaskingService.IsDisplayRendered(svgSwitch, ignoreAttributes);
                     node = CreateDirectStructuralNode(
@@ -1387,7 +1406,7 @@ public static class SvgSceneCompiler
                 }
             case SvgFragment svgFragment when element is not SvgDocument:
                 {
-                    if (!HasFeatures(svgFragment, ignoreAttributes))
+                    if (!HasFeatures(svgFragment, ignoreAttributes, compileContext))
                     {
                         node = CreateDirectStructuralNode(
                             svgFragment,
@@ -1905,7 +1924,7 @@ public static class SvgSceneCompiler
             CompilationStrategy = SvgSceneCompilationStrategy.DirectRetained
         };
 
-        var hasFeatures = HasFeatures(element, ignoreAttributes);
+        var hasFeatures = HasFeatures(element, ignoreAttributes, compileContext);
         var canDraw = MaskingService.CanDraw(visualElement, ignoreAttributes);
         var isRenderable = hasFeatures && canDraw;
         node.IsRenderable = isRenderable;
@@ -2030,7 +2049,7 @@ public static class SvgSceneCompiler
         {
             CompilationStrategy = SvgSceneCompilationStrategy.DirectRetained,
             IsAntialias = PaintingService.IsAntialias(svgUse),
-            IsRenderable = HasFeatures(svgUse, ignoreAttributes) && MaskingService.CanDraw(svgUse, ignoreAttributes),
+            IsRenderable = HasFeatures(svgUse, ignoreAttributes, compileContext) && MaskingService.CanDraw(svgUse, ignoreAttributes),
             HitTestTargetElement = svgUse,
             Fill = null,
             Stroke = null
@@ -2289,7 +2308,7 @@ public static class SvgSceneCompiler
         {
             CompilationStrategy = SvgSceneCompilationStrategy.DirectRetained,
             IsAntialias = PaintingService.IsAntialias(svgImage),
-            IsRenderable = HasFeatures(svgImage, ignoreAttributes) && MaskingService.CanDraw(svgImage, ignoreAttributes),
+            IsRenderable = HasFeatures(svgImage, ignoreAttributes, compileContext) && MaskingService.CanDraw(svgImage, ignoreAttributes),
             HitTestTargetElement = svgImage,
             SupportsFillHitTest = true,
             Fill = null,
@@ -2474,7 +2493,7 @@ public static class SvgSceneCompiler
         string? compilationRootKey,
         SvgSceneCompileContext compileContext)
     {
-        if (!HasFeatures(svgSymbol, ignoreAttributes) || !MaskingService.CanDraw(svgSymbol, ignoreAttributes))
+        if (!HasFeatures(svgSymbol, ignoreAttributes, compileContext) || !MaskingService.CanDraw(svgSymbol, ignoreAttributes))
         {
             return null;
         }
@@ -4111,9 +4130,38 @@ public static class SvgSceneCompiler
             : new Uri(normalizedValue, UriKind.RelativeOrAbsolute);
     }
 
-    private static bool HasFeatures(SvgElement element, DrawAttributes ignoreAttributes)
+    private static bool HasFeatures(
+        SvgElement element,
+        DrawAttributes ignoreAttributes,
+        SvgSceneCompileContext compileContext)
     {
-        return element.PassesConditionalProcessing(ignoreAttributes);
+        var activeFlags = FilterIgnoredConditionalProcessingFeatureFlags(
+            compileContext.ActiveDocumentConditionalProcessingFeatureFlags,
+            ignoreAttributes);
+        return activeFlags == SvgConditionalProcessingFeatureFlags.None ||
+               element.PassesConditionalProcessing(ignoreAttributes);
+    }
+
+    private static SvgConditionalProcessingFeatureFlags FilterIgnoredConditionalProcessingFeatureFlags(
+        SvgConditionalProcessingFeatureFlags flags,
+        DrawAttributes ignoreAttributes)
+    {
+        if (ignoreAttributes.Has(DrawAttributes.RequiredFeatures))
+        {
+            flags &= ~SvgConditionalProcessingFeatureFlags.RequiredFeatures;
+        }
+
+        if (ignoreAttributes.Has(DrawAttributes.RequiredExtensions))
+        {
+            flags &= ~SvgConditionalProcessingFeatureFlags.RequiredExtensions;
+        }
+
+        if (ignoreAttributes.Has(DrawAttributes.SystemLanguage))
+        {
+            flags &= ~SvgConditionalProcessingFeatureFlags.SystemLanguage;
+        }
+
+        return flags;
     }
 
     internal static SvgSceneDocument? CompileTemporaryChildrenScene(

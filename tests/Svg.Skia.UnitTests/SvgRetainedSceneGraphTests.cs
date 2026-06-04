@@ -6127,6 +6127,34 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_ApplyMutation_InvalidatesConditionalProcessingFeatureCache()
+    {
+        const string svgText = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <rect id="target" x="2" y="2" width="20" height="20" fill="#ff0000" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(svgText);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("target", out var initialNode));
+        Assert.True(initialNode!.IsRenderable);
+
+        var sourceDocument = Assert.IsType<SvgDocument>(scene.SourceDocument);
+        var target = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("target"));
+        target.CustomAttributes["requiredFeatures"] = "http://example.invalid/unsupported-feature";
+
+        var result = scene.ApplyMutation(target, new[] { "requiredFeatures" });
+
+        Assert.True(result.Succeeded);
+        Assert.True(scene.TryGetNodeById("target", out var updatedNode));
+        Assert.False(updatedNode!.IsRenderable);
+    }
+
+    [Fact]
     public void RetainedSceneGraph_AllowsVisibleChildInsideHiddenGroup()
     {
         using var svg = new SKSvg();
