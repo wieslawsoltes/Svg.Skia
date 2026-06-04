@@ -51,6 +51,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Single-span typeface resolution for simple scaled textLength command recording.
 - Root retained compile fast path for simple scaled `spacingAndGlyphs` textLength runs.
 - Aligned retained compile codepoint split reuse for positioned bounds measurement.
+- ASCII codepoint string reuse, exact split-list capacity, natural-advance cache insertion copy trimming, and single-run aligned retained compile list elision.
 - Lazy text reference seeding for retained text compile paths that actually build filtered textPath contexts.
 - Flattened textLength run materialization allocation trimming for simple one-style retained textLength runs.
 - Grouped flattened textLength natural-advance measurement for contiguous same-style retained textLength runs.
@@ -148,6 +149,8 @@ The branch focuses on cases found while validating the resource parity lane:
 - Reused the cached horizontal natural-advance path and narrowed simple scaled textLength command typeface resolution to one verified full-run typeface span, avoiding the broader run-typeface resolver while falling back to positioned text for multi-span or complex cases.
 - Added a root retained compile branch for simple horizontal ASCII `lengthAdjust="spacingAndGlyphs"` textLength runs, resolving scaled draw bounds once and recording the scaled text command directly instead of falling through to generic text bounds estimation plus draw traversal.
 - Reused aligned placement codepoint splits during retained aligned bounds measurement, avoiding a second codepoint read/allocation pass for simple aligned retained runs.
+- Reused immutable one-character ASCII codepoint strings during codepoint splitting, pre-sized uncached split lists, and stored freshly measured natural codepoint advances directly in the internal cache once callers had finished mutating reconciliation data.
+- Bypassed one-item `List<SimplePositionedSequentialCompileRun>` materialization for single-run simple aligned retained spacing/textLength compilation by drawing the resolved positioned run directly.
 - Deferred text reference-set allocation until filtered textPath rendering actually constructs a filter context, while preserving document URI seeding through `SvgService.ExtendImageReferences`.
 - Trimmed flattened textLength run materialization by avoiding LINQ glyph-scale seeding, temporary spacing gap-index lists, chunk arrays for one-chunk textLength runs, and placement-list copies for simple one-style retained textLength runs.
 - Grouped flattened textLength natural-advance measurement across contiguous same-style ranges, reusing the full-run codepoint-advance engine while keeping the per-codepoint fallback when measured advances do not match the flattened range.
@@ -386,6 +389,14 @@ Focused read-only codepoint split measurements:
 - `ValidateTextContentDomMetrics | text-regression-vertical-rtl-layout` stayed allocation-flat at `11807.13 KB`.
 - Short-run timings were mixed and noisy, so this is treated as a small managed-allocation cleanup for read-only text internals rather than a wall-clock speed claim.
 
+Focused ASCII codepoint and single-run aligned retained compile measurements:
+
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: current retained hotspot scan allocation moved from `3265.44 KB` to `3223.03 KB`.
+- `CompileNodeTreeOnly | generated-aligned-text-length-192`: current retained hotspot scan allocation moved from `1980.55 KB` to `1965.55 KB`.
+- `CreateAlignedPlacementsAcrossFragments` stayed allocation-flat at `574.27 KB` and `213.43 KB`, which confirms the retained compile reduction comes from compile-path collection/cache cleanup rather than the standalone placement benchmark's warmed-cache loop.
+- Updated retained hotspot scan after this change: `generated-shapes-1024` remains the largest retained compile allocation at `4168.46 KB`; `generated-text-192` is `3218.43 KB`; `generated-aligned-letter-spacing-192` is `3223.03 KB`; `generated-text-path-curves-96` is `1305.75 KB`; `generated-aligned-text-length-192` is `1965.55 KB`; `generated-filtered-shapes-256` is `970.11 KB`.
+- `generated-text-192` phase audit shows remaining plain-text allocation is still dominated by `CompileNodeTreeOnly` (`3.996 ms / 3,295,669 B`), while scene-document creation is `737,417 B`, dependency registration is `95,168 B`, and runtime payload resolution is `57,416 B`.
+
 ### Text Path Performance
 
 - Added a document-scoped fallback codepoint resolver with bounded caching for fallback text, resolved paint, advance, and optional local bounds.
@@ -623,8 +634,9 @@ Focused simple natural text advance cache-hit measurements:
 ## Validation
 
 - `dotnet format Svg.Skia.slnx --no-restore`
+  - Completed; formatter-only `externals/SVG` submodule changes were restored.
 - `dotnet build Svg.Skia.slnx -c Release`
-  - Succeeded with 193 existing warnings.
+  - Succeeded with 297 existing warnings.
 - `dotnet test Svg.Skia.slnx -c Release`
   - `Svg.Skia.UnitTests`: Passed 2598, skipped 40.
   - Other test projects in the solution passed.
@@ -1066,6 +1078,15 @@ Focused simple natural text advance cache-hit measurements:
 - Focused read-only codepoint DOM-metrics validation:
   - Current: `SVG_SKIA_BENCHMARK_SCENARIOS=text-regression-positioned-layout,text-regression-vertical-rtl-layout,text-regression-vertical-rtl-shape-layout,text-regression-wrapped-textlength-positioned-descendants SVG_SKIA_BENCHMARK_RUN_LABEL=current-readonly-codepoint-dom-metrics dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextRegressionValidationBenchmarks.ValidateTextContentDomMetrics" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
   - Control: `SVG_SKIA_BENCHMARK_SCENARIOS=text-regression-positioned-layout,text-regression-vertical-rtl-layout,text-regression-vertical-rtl-shape-layout,text-regression-wrapped-textlength-positioned-descendants SVG_SKIA_BENCHMARK_RUN_LABEL=control-codepoint-dom-metrics dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextRegressionValidationBenchmarks.ValidateTextContentDomMetrics" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
+- Focused ASCII codepoint and single-run aligned compile validation:
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
+  - Build passed with no warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgRetainedSceneGraphTests"`
+  - Passed 447.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-aligned-letter-spacing-192,generated-aligned-text-length-192 SVG_SKIA_BENCHMARK_RUN_LABEL=ascii-codepoint-cache-aligned-placement dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgAlignedTextPlacementBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-aligned-letter-spacing-192,generated-aligned-text-length-192 SVG_SKIA_BENCHMARK_RUN_LABEL=ascii-codepoint-single-run-retained-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-192 SVG_SKIA_BENCHMARK_RUN_LABEL=ascii-codepoint-single-run-retained-hotspot-scan dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192 SVG_SKIA_BENCHMARK_RUN_LABEL=ascii-codepoint-single-run-text-phase-audit dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
 - Focused text internals benchmark comparison:
   - Before: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-before-next-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
   - After: `SVG_SKIA_BENCHMARK_RUN_LABEL="current-text-internals-after-natural-advance-cache" SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
