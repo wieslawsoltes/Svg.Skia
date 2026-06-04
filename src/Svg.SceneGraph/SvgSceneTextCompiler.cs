@@ -15178,6 +15178,30 @@ internal static partial class SvgSceneTextCompiler
             return 0f;
         }
 
+        var hasLetterSpacing = HasSpacingAdjustment(styleSource.LetterSpacing);
+        var hasWordSpacing = HasSpacingAdjustment(styleSource.WordSpacing);
+        if (!hasLetterSpacing && !hasWordSpacing)
+        {
+            return 0f;
+        }
+
+        if (IsSimpleAsciiSequentialCompileText(text))
+        {
+            var trailingChar = text[text.Length - 1];
+            var asciiSpacing = 0f;
+            if (hasLetterSpacing)
+            {
+                asciiSpacing += ResolveSpacingValue(styleSource, styleSource.LetterSpacing, geometryBounds, 0f);
+            }
+
+            if (hasWordSpacing && char.IsWhiteSpace(trailingChar))
+            {
+                asciiSpacing += ResolveSpacingValue(styleSource, styleSource.WordSpacing, geometryBounds, 0f);
+            }
+
+            return asciiSpacing;
+        }
+
         var lastCodepointStart = GetLastCodepointStart(text);
         if (lastCodepointStart < 0 || lastCodepointStart >= text.Length)
         {
@@ -15186,12 +15210,12 @@ internal static partial class SvgSceneTextCompiler
 
         var codepoint = text.Substring(lastCodepointStart);
         var spacing = 0f;
-        if (!SuppressesLetterSpacingForRun(text) && SupportsLetterSpacing(codepoint))
+        if (hasLetterSpacing && !SuppressesLetterSpacingForRun(text) && SupportsLetterSpacing(codepoint))
         {
             spacing += ResolveSpacingValue(styleSource, styleSource.LetterSpacing, geometryBounds, 0f);
         }
 
-        if (IsWhitespaceCodepoint(codepoint))
+        if (hasWordSpacing && IsWhitespaceCodepoint(codepoint))
         {
             spacing += ResolveSpacingValue(styleSource, styleSource.WordSpacing, geometryBounds, 0f);
         }
@@ -22033,6 +22057,11 @@ internal static partial class SvgSceneTextCompiler
 
         var whiteSpace = GetTextWhiteSpaceModel(svgTextBase);
         var preserveLineBreaks = preservePreLineBreaks && whiteSpace.PreservesSegmentBreaks;
+        if (TryUseAlreadyPreparedText(value, whiteSpace, trimLeadingWhitespace, trimTrailingWhitespace, out var preparedValue))
+        {
+            return preparedValue;
+        }
+
         value = NormalizeTextWhiteSpace(value, whiteSpace, preserveLineBreaks);
 
         if (whiteSpace.DiscardsDocumentWhiteSpace)
@@ -22057,6 +22086,65 @@ internal static partial class SvgSceneTextCompiler
                 : value;
 
         return s_multipleSpaces.Replace(normalizedValue, " ");
+    }
+
+    private static bool TryUseAlreadyPreparedText(
+        string value,
+        SvgTextWhiteSpaceModel whiteSpace,
+        bool trimLeadingWhitespace,
+        bool trimTrailingWhitespace,
+        out string preparedValue)
+    {
+        preparedValue = value;
+        if (whiteSpace.DiscardsDocumentWhiteSpace)
+        {
+            return false;
+        }
+
+        if (value.Length == 0)
+        {
+            return true;
+        }
+
+        if (trimLeadingWhitespace &&
+            whiteSpace.TrimsLeadingWhitespace &&
+            IsCssDocumentWhiteSpace(value[0]))
+        {
+            return false;
+        }
+
+        if (trimTrailingWhitespace &&
+            whiteSpace.TrimsTrailingWhitespace &&
+            IsCssDocumentWhiteSpace(value[value.Length - 1]))
+        {
+            return false;
+        }
+
+        var collapsesSpaces = !whiteSpace.PreservesTextWhitespace;
+        var previousWasSpace = false;
+        for (var i = 0; i < value.Length; i++)
+        {
+            var ch = value[i];
+            if (ch is '\r' or '\n' or '\t' or '\f')
+            {
+                return false;
+            }
+
+            if (collapsesSpaces && ch == ' ')
+            {
+                if (previousWasSpace)
+                {
+                    return false;
+                }
+
+                previousWasSpace = true;
+                continue;
+            }
+
+            previousWasSpace = false;
+        }
+
+        return true;
     }
 
     private static SvgTextWhiteSpaceModel GetTextWhiteSpaceModel(SvgTextBase svgTextBase)
