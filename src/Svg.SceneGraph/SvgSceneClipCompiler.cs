@@ -983,8 +983,9 @@ internal static class SvgSceneClipCompiler
 
     private static SKMatrix CreateUseClipTransform(SvgUse svgUse, SKRect targetBounds)
     {
-        var x = SvgGeometryService.GetComputedUnit(svgUse, "x", svgUse.X).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, targetBounds);
-        var y = SvgGeometryService.GetComputedUnit(svgUse, "y", svgUse.Y).ToDeviceValue(UnitRenderingType.Vertical, svgUse, targetBounds);
+        var mayHaveGeometryLengthCssDeclarations = svgUse.MayHaveGeometryLengthCssDeclarations();
+        var x = SvgGeometryService.GetComputedUnit(svgUse, "x", svgUse.X, mayHaveGeometryLengthCssDeclarations).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, targetBounds);
+        var y = SvgGeometryService.GetComputedUnit(svgUse, "y", svgUse.Y, mayHaveGeometryLengthCssDeclarations).ToDeviceValue(UnitRenderingType.Vertical, svgUse, targetBounds);
         var useBounds = SKRect.Create(x, y, targetBounds.Width, targetBounds.Height);
         return TransformsService.ToMatrix(svgUse.Transforms, svgUse, useBounds, targetBounds).PreConcat(SKMatrix.CreateTranslation(x, y));
     }

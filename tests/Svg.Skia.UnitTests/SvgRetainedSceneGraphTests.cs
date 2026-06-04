@@ -5070,6 +5070,31 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_AppliesCaseInsensitiveCssGeometryDuringCompilation()
+    {
+        const string cssGeometrySvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+              <style>
+                #rect-target { X: 11px; Y: 13px; WIDTH: 17px; HEIGHT: 19px; }
+              </style>
+              <rect id="rect-target" x="1" y="1" width="2" height="2" fill="red" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(cssGeometrySvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("rect-target", out var rectNode));
+
+        AssertApproximately(11f, rectNode!.GeometryBounds.Left);
+        AssertApproximately(13f, rectNode.GeometryBounds.Top);
+        AssertApproximately(17f, rectNode.GeometryBounds.Width);
+        AssertApproximately(19f, rectNode.GeometryBounds.Height);
+    }
+
+    [Fact]
     public void RetainedSceneGraph_CompilesMarkerChildrenWithDirectRetainedStrategy()
     {
         using var svg = new SKSvg();

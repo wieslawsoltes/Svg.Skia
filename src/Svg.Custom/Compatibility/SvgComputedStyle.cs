@@ -21,7 +21,8 @@ internal enum SvgCascadedStyleFeatureFlags
     Mask = 32,
     Filter = 64,
     Cursor = 128,
-    EnableBackground = 256
+    EnableBackground = 256,
+    GeometryLength = 512
 }
 
 [Flags]
@@ -2274,7 +2275,8 @@ public abstract partial class SvgElement
         SvgCascadedStyleFeatureFlags.Mask |
         SvgCascadedStyleFeatureFlags.Filter |
         SvgCascadedStyleFeatureFlags.Cursor |
-        SvgCascadedStyleFeatureFlags.EnableBackground;
+        SvgCascadedStyleFeatureFlags.EnableBackground |
+        SvgCascadedStyleFeatureFlags.GeometryLength;
 
     private const SvgConditionalProcessingFeatureFlags AllConditionalProcessingFeatureFlags =
         SvgConditionalProcessingFeatureFlags.RequiredFeatures |
@@ -2285,6 +2287,15 @@ public abstract partial class SvgElement
         OwnerDocument is not null
             ? OwnerDocument.GetComputedStyle(this)
             : new SvgComputedStyleSnapshot(new SvgComputedStyleCache(), this);
+
+    internal bool MayHaveGeometryLengthCssDeclarations()
+    {
+        var document = this as SvgDocument ?? OwnerDocument;
+        return document is null ||
+               HasFeatureFlag(
+                   document.GetCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags.GeometryLength),
+                   SvgCascadedStyleFeatureFlags.GeometryLength);
+    }
 
     internal bool TryGetOwnCascadedStyleValue(string propertyName, out string value)
     {
@@ -2470,6 +2481,8 @@ public abstract partial class SvgElement
                 flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "font-kerning");
                 flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "font-variant-ligatures");
             }
+
+            flags = AddGeometryLengthCssFeatureFlag(flags, requestedFlags);
 
             if (flags == requestedFlags)
             {
@@ -2725,6 +2738,29 @@ public abstract partial class SvgElement
             : flags;
     }
 
+    private SvgCascadedStyleFeatureFlags AddGeometryLengthCssFeatureFlag(
+        SvgCascadedStyleFeatureFlags flags,
+        SvgCascadedStyleFeatureFlags requestedFlags)
+    {
+        if (!HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.GeometryLength) ||
+            HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.GeometryLength))
+        {
+            return flags;
+        }
+
+        foreach (var style in _styles)
+        {
+            if (IsGeometryLengthCssProperty(style.Key) &&
+                TryGetHighestCssDeclaration(style.Value, out var value) &&
+                !string.IsNullOrWhiteSpace(value))
+            {
+                return flags | SvgCascadedStyleFeatureFlags.GeometryLength;
+            }
+        }
+
+        return flags;
+    }
+
     private SvgCascadedStyleFeatureFlags AddAttributeFeatureFlag(
         SvgCascadedStyleFeatureFlags flags,
         SvgCascadedStyleFeatureFlags requestedFlags,
@@ -2881,6 +2917,23 @@ public abstract partial class SvgElement
                string.Equals(propertyName, "marker-start", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(propertyName, "marker-mid", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(propertyName, "marker-end", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsGeometryLengthCssProperty(string propertyName)
+    {
+        return string.Equals(propertyName, "x", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "y", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "width", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "height", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "rx", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "ry", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "cx", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "cy", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "r", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "x1", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "y1", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "x2", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "y2", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsMarkerReferenceDeclarationCandidateValue(string value)

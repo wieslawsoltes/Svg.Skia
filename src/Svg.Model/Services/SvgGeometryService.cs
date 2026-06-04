@@ -69,7 +69,16 @@ internal static class SvgGeometryService
 
     internal static SvgUnit GetComputedUnit(SvgElement element, string propertyName, SvgUnit fallback)
     {
-        return GetComputedUnit(element, propertyName, fallback, out _);
+        return GetComputedUnit(element, propertyName, fallback, element.MayHaveGeometryLengthCssDeclarations());
+    }
+
+    internal static SvgUnit GetComputedUnit(
+        SvgElement element,
+        string propertyName,
+        SvgUnit fallback,
+        bool mayHaveGeometryLengthCssDeclarations)
+    {
+        return GetComputedUnit(element, propertyName, fallback, mayHaveGeometryLengthCssDeclarations, out _);
     }
 
     internal static SvgUnit GetComputedUnit(
@@ -79,7 +88,42 @@ internal static class SvgGeometryService
         out bool isAuto,
         out bool isAuthorSpecified)
     {
-        return GetComputedUnit(element, propertyName, fallback, out isAuto, out isAuthorSpecified, defaultAuto: false);
+        return GetComputedUnit(
+            element,
+            propertyName,
+            fallback,
+            element.MayHaveGeometryLengthCssDeclarations(),
+            out isAuto,
+            out isAuthorSpecified);
+    }
+
+    internal static SvgUnit GetComputedUnit(
+        SvgElement element,
+        string propertyName,
+        SvgUnit fallback,
+        bool mayHaveGeometryLengthCssDeclarations,
+        out bool isAuto,
+        out bool isAuthorSpecified)
+    {
+        return GetComputedUnit(
+            element,
+            propertyName,
+            fallback,
+            mayHaveGeometryLengthCssDeclarations,
+            out isAuto,
+            out isAuthorSpecified,
+            defaultAuto: false);
+    }
+
+    private static SvgUnit GetComputedUnit(
+        SvgElement element,
+        string propertyName,
+        SvgUnit fallback,
+        bool mayHaveGeometryLengthCssDeclarations,
+        out bool isAuto,
+        bool defaultAuto = false)
+    {
+        return GetComputedUnit(element, propertyName, fallback, mayHaveGeometryLengthCssDeclarations, out isAuto, out _, defaultAuto);
     }
 
     private static SvgUnit GetComputedUnit(
@@ -89,19 +133,28 @@ internal static class SvgGeometryService
         out bool isAuto,
         bool defaultAuto = false)
     {
-        return GetComputedUnit(element, propertyName, fallback, out isAuto, out _, defaultAuto);
+        return GetComputedUnit(
+            element,
+            propertyName,
+            fallback,
+            element.MayHaveGeometryLengthCssDeclarations(),
+            out isAuto,
+            out _,
+            defaultAuto);
     }
 
     private static SvgUnit GetComputedUnit(
         SvgElement element,
         string propertyName,
         SvgUnit fallback,
+        bool mayHaveGeometryLengthCssDeclarations,
         out bool isAuto,
         out bool isAuthorSpecified,
         bool defaultAuto = false)
     {
         isAuthorSpecified = false;
-        if (!element.TryGetOwnCascadedCssDeclarationValue(propertyName, out var rawValue) ||
+        if (!mayHaveGeometryLengthCssDeclarations ||
+            !element.TryGetOwnCascadedCssDeclarationValue(propertyName, out var rawValue) ||
             string.IsNullOrWhiteSpace(rawValue))
         {
             isAuto = defaultAuto && !element.ContainsAttribute(propertyName);
@@ -159,12 +212,25 @@ internal static class SvgGeometryService
 
     private static SKPath? CreateRectanglePath(SvgRectangle svgRectangle, SvgFillRule fillRule, SKRect viewport)
     {
-        var x = GetComputedUnit(svgRectangle, "x", svgRectangle.X);
-        var y = GetComputedUnit(svgRectangle, "y", svgRectangle.Y);
-        var width = GetComputedUnit(svgRectangle, "width", svgRectangle.Width);
-        var height = GetComputedUnit(svgRectangle, "height", svgRectangle.Height);
-        var rx = GetComputedUnit(svgRectangle, "rx", svgRectangle.CornerRadiusX, out var rxAuto, defaultAuto: true);
-        var ry = GetComputedUnit(svgRectangle, "ry", svgRectangle.CornerRadiusY, out var ryAuto, defaultAuto: true);
+        var mayHaveGeometryLengthCssDeclarations = svgRectangle.MayHaveGeometryLengthCssDeclarations();
+        var x = GetComputedUnit(svgRectangle, "x", svgRectangle.X, mayHaveGeometryLengthCssDeclarations);
+        var y = GetComputedUnit(svgRectangle, "y", svgRectangle.Y, mayHaveGeometryLengthCssDeclarations);
+        var width = GetComputedUnit(svgRectangle, "width", svgRectangle.Width, mayHaveGeometryLengthCssDeclarations);
+        var height = GetComputedUnit(svgRectangle, "height", svgRectangle.Height, mayHaveGeometryLengthCssDeclarations);
+        var rx = GetComputedUnit(
+            svgRectangle,
+            "rx",
+            svgRectangle.CornerRadiusX,
+            mayHaveGeometryLengthCssDeclarations,
+            out var rxAuto,
+            defaultAuto: true);
+        var ry = GetComputedUnit(
+            svgRectangle,
+            "ry",
+            svgRectangle.CornerRadiusY,
+            mayHaveGeometryLengthCssDeclarations,
+            out var ryAuto,
+            defaultAuto: true);
 
         var deviceX = x.ToDeviceValue(UnitRenderingType.Horizontal, svgRectangle, viewport);
         var deviceY = y.ToDeviceValue(UnitRenderingType.Vertical, svgRectangle, viewport);
@@ -243,9 +309,13 @@ internal static class SvgGeometryService
 
     private static SKPath? CreateCirclePath(SvgCircle svgCircle, SvgFillRule fillRule, SKRect viewport)
     {
-        var cx = GetComputedUnit(svgCircle, "cx", svgCircle.CenterX).ToDeviceValue(UnitRenderingType.Horizontal, svgCircle, viewport);
-        var cy = GetComputedUnit(svgCircle, "cy", svgCircle.CenterY).ToDeviceValue(UnitRenderingType.Vertical, svgCircle, viewport);
-        var radius = GetComputedUnit(svgCircle, "r", svgCircle.Radius).ToDeviceValue(UnitRenderingType.Other, svgCircle, viewport);
+        var mayHaveGeometryLengthCssDeclarations = svgCircle.MayHaveGeometryLengthCssDeclarations();
+        var cx = GetComputedUnit(svgCircle, "cx", svgCircle.CenterX, mayHaveGeometryLengthCssDeclarations)
+            .ToDeviceValue(UnitRenderingType.Horizontal, svgCircle, viewport);
+        var cy = GetComputedUnit(svgCircle, "cy", svgCircle.CenterY, mayHaveGeometryLengthCssDeclarations)
+            .ToDeviceValue(UnitRenderingType.Vertical, svgCircle, viewport);
+        var radius = GetComputedUnit(svgCircle, "r", svgCircle.Radius, mayHaveGeometryLengthCssDeclarations)
+            .ToDeviceValue(UnitRenderingType.Other, svgCircle, viewport);
         if (radius <= 0f)
         {
             return null;
@@ -261,10 +331,25 @@ internal static class SvgGeometryService
 
     private static SKPath? CreateEllipsePath(SvgEllipse svgEllipse, SvgFillRule fillRule, SKRect viewport)
     {
-        var cx = GetComputedUnit(svgEllipse, "cx", svgEllipse.CenterX).ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, viewport);
-        var cy = GetComputedUnit(svgEllipse, "cy", svgEllipse.CenterY).ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, viewport);
-        var rxUnit = GetComputedUnit(svgEllipse, "rx", svgEllipse.RadiusX, out var rxAuto, defaultAuto: true);
-        var ryUnit = GetComputedUnit(svgEllipse, "ry", svgEllipse.RadiusY, out var ryAuto, defaultAuto: true);
+        var mayHaveGeometryLengthCssDeclarations = svgEllipse.MayHaveGeometryLengthCssDeclarations();
+        var cx = GetComputedUnit(svgEllipse, "cx", svgEllipse.CenterX, mayHaveGeometryLengthCssDeclarations)
+            .ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, viewport);
+        var cy = GetComputedUnit(svgEllipse, "cy", svgEllipse.CenterY, mayHaveGeometryLengthCssDeclarations)
+            .ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, viewport);
+        var rxUnit = GetComputedUnit(
+            svgEllipse,
+            "rx",
+            svgEllipse.RadiusX,
+            mayHaveGeometryLengthCssDeclarations,
+            out var rxAuto,
+            defaultAuto: true);
+        var ryUnit = GetComputedUnit(
+            svgEllipse,
+            "ry",
+            svgEllipse.RadiusY,
+            mayHaveGeometryLengthCssDeclarations,
+            out var ryAuto,
+            defaultAuto: true);
         var rx = rxUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgEllipse, viewport);
         var ry = ryUnit.ToDeviceValue(UnitRenderingType.Vertical, svgEllipse, viewport);
         if (rxAuto && ryAuto)
@@ -311,10 +396,15 @@ internal static class SvgGeometryService
 
     private static SKPath? CreateLinePath(SvgLine svgLine, SvgFillRule fillRule, SKRect viewport)
     {
-        var x0 = GetComputedUnit(svgLine, "x1", svgLine.StartX).ToDeviceValue(UnitRenderingType.Horizontal, svgLine, viewport);
-        var y0 = GetComputedUnit(svgLine, "y1", svgLine.StartY).ToDeviceValue(UnitRenderingType.Vertical, svgLine, viewport);
-        var x1 = GetComputedUnit(svgLine, "x2", svgLine.EndX).ToDeviceValue(UnitRenderingType.Horizontal, svgLine, viewport);
-        var y1 = GetComputedUnit(svgLine, "y2", svgLine.EndY).ToDeviceValue(UnitRenderingType.Vertical, svgLine, viewport);
+        var mayHaveGeometryLengthCssDeclarations = svgLine.MayHaveGeometryLengthCssDeclarations();
+        var x0 = GetComputedUnit(svgLine, "x1", svgLine.StartX, mayHaveGeometryLengthCssDeclarations)
+            .ToDeviceValue(UnitRenderingType.Horizontal, svgLine, viewport);
+        var y0 = GetComputedUnit(svgLine, "y1", svgLine.StartY, mayHaveGeometryLengthCssDeclarations)
+            .ToDeviceValue(UnitRenderingType.Vertical, svgLine, viewport);
+        var x1 = GetComputedUnit(svgLine, "x2", svgLine.EndX, mayHaveGeometryLengthCssDeclarations)
+            .ToDeviceValue(UnitRenderingType.Horizontal, svgLine, viewport);
+        var y1 = GetComputedUnit(svgLine, "y2", svgLine.EndY, mayHaveGeometryLengthCssDeclarations)
+            .ToDeviceValue(UnitRenderingType.Vertical, svgLine, viewport);
 
         var path = new SKPath
         {

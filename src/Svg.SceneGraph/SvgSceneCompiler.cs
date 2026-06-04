@@ -2063,12 +2063,13 @@ public static class SvgSceneCompiler
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground));
 
-        var x = SvgGeometryService.GetComputedUnit(svgUse, "x", svgUse.X).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, viewport);
-        var y = SvgGeometryService.GetComputedUnit(svgUse, "y", svgUse.Y).ToDeviceValue(UnitRenderingType.Vertical, svgUse, viewport);
+        var mayHaveGeometryLengthCssDeclarations = svgUse.MayHaveGeometryLengthCssDeclarations();
+        var x = SvgGeometryService.GetComputedUnit(svgUse, "x", svgUse.X, mayHaveGeometryLengthCssDeclarations).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, viewport);
+        var y = SvgGeometryService.GetComputedUnit(svgUse, "y", svgUse.Y, mayHaveGeometryLengthCssDeclarations).ToDeviceValue(UnitRenderingType.Vertical, svgUse, viewport);
         var hasExplicitWidth = HasExplicitUseDimension(svgUse, "width");
         var hasExplicitHeight = HasExplicitUseDimension(svgUse, "height");
-        var width = SvgGeometryService.GetComputedUnit(svgUse, "width", svgUse.Width).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, viewport);
-        var height = SvgGeometryService.GetComputedUnit(svgUse, "height", svgUse.Height).ToDeviceValue(UnitRenderingType.Vertical, svgUse, viewport);
+        var width = SvgGeometryService.GetComputedUnit(svgUse, "width", svgUse.Width, mayHaveGeometryLengthCssDeclarations).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, viewport);
+        var height = SvgGeometryService.GetComputedUnit(svgUse, "height", svgUse.Height, mayHaveGeometryLengthCssDeclarations).ToDeviceValue(UnitRenderingType.Vertical, svgUse, viewport);
 
         var referencedElementUri = SvgService.GetEffectiveReferenceUri(svgUse, svgUse.ReferencedElement);
         var hasRecursiveReference = SvgService.HasRecursiveReference(svgUse, static element => SvgService.GetEffectiveReferenceUri(element, element.ReferencedElement), new HashSet<Uri>());
@@ -2323,14 +2324,27 @@ public static class SvgSceneCompiler
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground));
 
-        var widthUnit = SvgGeometryService.GetComputedUnit(svgImage, "width", svgImage.Width, out var widthAuto, out var widthAuthorSpecified);
-        var heightUnit = SvgGeometryService.GetComputedUnit(svgImage, "height", svgImage.Height, out var heightAuto, out var heightAuthorSpecified);
+        var mayHaveGeometryLengthCssDeclarations = svgImage.MayHaveGeometryLengthCssDeclarations();
+        var widthUnit = SvgGeometryService.GetComputedUnit(
+            svgImage,
+            "width",
+            svgImage.Width,
+            mayHaveGeometryLengthCssDeclarations,
+            out var widthAuto,
+            out var widthAuthorSpecified);
+        var heightUnit = SvgGeometryService.GetComputedUnit(
+            svgImage,
+            "height",
+            svgImage.Height,
+            mayHaveGeometryLengthCssDeclarations,
+            out var heightAuto,
+            out var heightAuthorSpecified);
         var hasExplicitWidth = widthAuthorSpecified && !widthAuto;
         var hasExplicitHeight = heightAuthorSpecified && !heightAuto;
         var width = widthUnit.ToDeviceValue(UnitRenderingType.Horizontal, svgImage, viewport);
         var height = heightUnit.ToDeviceValue(UnitRenderingType.Vertical, svgImage, viewport);
-        var x = SvgGeometryService.GetComputedUnit(svgImage, "x", svgImage.Location.X).ToDeviceValue(UnitRenderingType.Horizontal, svgImage, viewport);
-        var y = SvgGeometryService.GetComputedUnit(svgImage, "y", svgImage.Location.Y).ToDeviceValue(UnitRenderingType.Vertical, svgImage, viewport);
+        var x = SvgGeometryService.GetComputedUnit(svgImage, "x", svgImage.Location.X, mayHaveGeometryLengthCssDeclarations).ToDeviceValue(UnitRenderingType.Horizontal, svgImage, viewport);
+        var y = SvgGeometryService.GetComputedUnit(svgImage, "y", svgImage.Location.Y, mayHaveGeometryLengthCssDeclarations).ToDeviceValue(UnitRenderingType.Vertical, svgImage, viewport);
 
         var href = SvgService.GetEffectiveHrefString(svgImage, svgImage.Href);
         if (!node.IsRenderable || string.IsNullOrWhiteSpace(href))
