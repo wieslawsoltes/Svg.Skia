@@ -99,6 +99,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Lazy retained-node effect sidecar storage for rare clip, mask, and filter state.
 - Boxing-free `DrawAttributes` flag checks across retained compile, scene rendering, and SKSvg layer paths.
 - Boxing-free `SKColor` equality checks for unchanged retained paint color assignments.
+- Cached computed path-data parsing for unchanged retained path geometry conversion.
 - Delegate-free retained structural finalization for group, anchor, switch, fragment, `<use>`, and symbol compile paths.
 - ASCII bidi-probe fast paths for simple retained text so direction/control checks skip codepoint-object allocation.
 - Resolved-typeface text paint setup so retained text recording skips redundant `SKTypeface` resolution.
@@ -237,6 +238,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added ASCII fast paths to bidi direction and explicit-control probes so simple retained text eligibility checks avoid `BidiCodepoint` allocation while non-ASCII, RTL, and explicit-control text still uses the full resolver.
 - Added an internal text-paint setup path that accepts an already resolved `SKTypeface`, and used it for retained sequential and simple aligned text recording so these paths keep text paint properties without re-resolving and then overwriting typefaces.
 - Let fill-only resolved sequential text skip the pre-flight fill-validity check and rely on the existing fill-paint resolution path to no-op invalid fills, avoiding a duplicated inherited `fill` property walk for every simple retained text run while preserving stroke and decoration guards.
+- Cached parsed computed CSS `d` path data per `SvgPath`, keyed by the raw cascaded value, so repeated retained geometry conversion skips reparsing unchanged path data while still invalidating when the source path data changes and still suppressing attribute geometry for computed `d: none` or invalid computed `d`.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -1531,10 +1533,14 @@ Focused simple natural text advance cache-hit measurements:
   - EventPipe allocation sampling for `generated-shapes-1024` no longer showed `ShimSkiaSharp.SKColor` in the hot type list; before this change the sampled `SKColor` bucket was `33243560 B`.
   - BenchmarkDotNet retained compile row: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024,generated-text-192,generated-aligned-letter-spacing-192" SVG_SKIA_BENCHMARK_RUN_LABEL="skcolor-typed-equality-retained-compile" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3` measured `generated-text-192` at `7.224 ms / 1.79 MB`, `generated-aligned-letter-spacing-192` at `8.364 ms / 1.97 MB`, and `generated-shapes-1024` at `9.438 ms / 2.33 MB`; timing remained short-run/noisy, so this is kept as allocation evidence.
   - Focused validation passed: `ShimSkiaSharp.UnitTests` paint/canvas/clone/editing filters passed 41 tests, and the retained/rebuild/resource/hit-test Svg.Skia slice passed 415 tests.
+- Focused computed path-data cache validation:
+  - Direct allocation probe for `generated-shapes-1024` moved from `2440883.44 B` to `2154110.92 B` allocated per retained compile after caching parsed computed `d` path data.
+  - BenchmarkDotNet retained compile row: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="computed-pathdata-cache-shapes" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3` measured `generated-shapes-1024` at `5.662 ms / 2.05 MB`, down from the current hotspot scan row of `8.159 ms / 2383.66 KB`; timing remains short-run/noisy, so the allocation drop is the main signal.
+  - Focused validation passed: `dotnet test tests/Svg.Model.UnitTests/Svg.Model.UnitTests.csproj -c Release -f net10.0 --no-restore --filter "FullyQualifiedName~PathingServiceTests|FullyQualifiedName~Svg2StaticStyleContractTests.ComputedStyle_PathDataNoneSuppressesAttributeGeometry"` passed 13 tests.
 - Pre-publish validation for the current stack:
   - `dotnet format Svg.Skia.slnx --no-restore` completed.
   - Formatter-only `externals/SVG` submodule churn was stashed as `codex-format-submodule-churn`.
-  - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
+  - `dotnet build Svg.Skia.slnx -c Release` passed with 193 existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release` passed; `Svg.Skia.UnitTests` reported 2599 passed and 40 skipped, and the other test projects passed.
 
-The release build currently reports 297 existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
+The release build currently reports 193 existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
