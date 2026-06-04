@@ -33,6 +33,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Node-tree dependency registration for fully retained no-reference scenes.
 - Retained-scene child-list capacity hints during compile traversal.
 - Lazy retained-scene compile-context storage for rarely used caches.
+- Retained-scene address-key cache pre-sizing, cached small child-index strings, and lazy child-index lookup storage.
 - Bounded typeface-span lookup caching for repeated short text runs.
 - Lazy retained text hit-metric construction and text hit-cell materialization.
 - Source-free lazy retained text hit-metric materialization for text-cell hit testing.
@@ -132,6 +133,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Reused compact inline compilation-root key storage while building the temporary registration lookup, avoiding per-element `List<T>` allocation for the common one- or two-root case.
 - Preallocated retained scene node child lists when the compiler already knows the source child count, avoiding repeated `List<T>` growth in generated child-heavy scenes.
 - Allocated retained scene compile-context gradient, fragment viewport, marker-reference, and resolved-reference caches only when those features are used; the active-document guard also keeps the common single-document case inline before allocating a `HashSet<T>`.
+- Pre-sized retained scene address-key caches from shallow source-tree counts, reused cached small child-index strings, and kept child-index lookup dictionaries lazy so generated retained scenes avoid dictionary growth and temporary index-string churn.
 - Added a bounded per-loader typeface-span cache for repeated short text/paint lookups; cache hits return fresh mutable lists while the cached span arrays stay internal, and provider-state changes clear the cache with the existing typeface-provider caches.
 - Changed retained scene nodes to keep a lazy text hit-metric source and resolve DOM hit-cell metrics only when text-cell hit testing first needs them; derived hit-cell arrays still materialize lazily, while extra cells for zero-width pointer-event cases remain preserved when metrics are resolved.
 - Moved lazy retained text metric materialization to use the scene document's compilation viewport and asset loader during point hit testing, removing the per-text-node lazy source record while preserving first-hit DOM metric resolution.
@@ -313,6 +315,13 @@ Focused retained-scene child-list capacity and lazy compile-context measurements
 - Full compile allocation also dropped: `CompileViaSceneCompiler | generated-filtered-shapes-256` from `1,898,560 B` to `1,888,166 B`, and `CompileViaSceneRuntime | generated-filtered-shapes-256` from `1,899,184 B` to `1,894,938 B`.
 - Full compile allocation for `generated-shapes-1024` dropped from `6,309,427 B` to `6,260,019 B` in `CompileViaSceneCompiler`, and from `6,310,081 B` to `6,285,250 B` in `CompileViaSceneRuntime`.
 - Final combined child-list capacity plus lazy compile-context measurement for `CompileNodeTreeOnly` was `970.11 KB` on `generated-filtered-shapes-256` and `4168.44 KB` on `generated-shapes-1024`; the lazy-context portion is a small constant allocation reduction on top of the child-list win.
+
+Focused retained-scene address-key cache measurements:
+
+- `CompileNodeTreeOnly | generated-shapes-1024`: `4,268,450 B` to `4,147,255 B`.
+- `CompileNodeTreeOnly | generated-text-192`: `3,295,716 B` to `3,291,042 B`.
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: `3,300,412 B` to `3,295,755 B`.
+- The allocation win comes from pre-sized address-key dictionaries, cached child-index text for small indexes, and lazy child-index lookup dictionaries; no retained path sharing was introduced because `HitTestPath` remains publicly observable and mutable.
 
 Focused typeface-span cache measurements:
 
@@ -724,6 +733,12 @@ Focused simple natural text advance cache-hit measurements:
 - Focused retained-scene child-list capacity and lazy compile-context validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SKSvgRebuildFromModelTests|FullyQualifiedName~SvgAnimationControllerTests.TryApplyRetainedSceneMutationByIdAndRender|FullyQualifiedName~SvgResourceRenderingParityTests"`
   - Passed 391.
+- Focused retained-scene address-key cache validation:
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
+  - Build passed with existing Svg.Custom obsolete warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgResourceRenderingParityTests|FullyQualifiedName~SKSvgRebuildFromModelTests"`
+  - Passed 393.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-text-192,generated-aligned-letter-spacing-192 SVG_SKIA_BENCHMARK_RUN_LABEL=address-key-cache-capacity-retained-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
 - Focused typeface-span cache validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SkiaSvgAssetLoaderCachingTests|FullyQualifiedName~Issue405Tests|FullyQualifiedName~Issue462Tests|FullyQualifiedName~SKSvgSettingsTests.FindTypefaces_WithImplicitItalicTypeface_MatchesResolvedTextTypeface"`
   - Passed 27.
