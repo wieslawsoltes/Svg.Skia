@@ -20,6 +20,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - TextPath offset measurement skip for left-aligned, left-side positioned textPath runs.
 - Simple ASCII positioned textPath bounds and draw fast path using one full-run paint.
 - Compact retained command recording for long simple positioned textPath runs.
+- Fast metric bounds reuse for simple positioned textPath retained compile.
 - Whole-run natural text advance caching for repeated text measurement.
 - Simple natural text advance cache-hit fast path for repeated prepared text measurement.
 - Short shaped-text layout caching for repeated positioned glyph runs.
@@ -395,6 +396,11 @@ Focused simple positioned textPath run measurements for `generated-text-path-cur
 Focused compact positioned textPath command measurements for `generated-text-path-curves-96`:
 
 - `CompileNodeTreeOnly`: the latest retained textPath scan before compaction measured `15.821 ms / 10,905.51 KB`; compact long simple positioned textPath command recording measured `6.492 ms / 9.16 MB` in the focused retained compile run.
+
+Focused fast positioned textPath bounds measurements for `generated-text-path-curves-96`:
+
+- Fresh retained hotspot scan: `27.579 ms / 9403.67 KB`.
+- Fast metric bounds reuse for simple positioned textPath runs: `4.542 ms / 6.77 MB`.
 
 Focused positioned text-blob retained compile measurements:
 
@@ -972,6 +978,20 @@ Focused simple natural text advance cache-hit measurements:
   - Completed; formatter-only `externals/SVG` submodule changes were restored.
   - `dotnet build Svg.Skia.slnx -c Release`
   - Build passed with existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2597, skipped 40; other test projects passed.
+- Focused fast positioned textPath bounds validation:
+  - Fresh scan: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-path-curves-96,generated-shapes-1024,generated-filtered-shapes-256 SVG_SKIA_BENCHMARK_RUN_LABEL=current-next-retained-hotspot-scan dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Placement audit: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=current-textpath-placement-after-compact dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextPathPlacementBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Current: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=textpath-fast-placement-bounds dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
+  - Build passed.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~TextPath|FullyQualifiedName~SvgRetainedSceneGraphTests"`
+  - Passed 288.
+  - `dotnet format Svg.Skia.slnx --no-restore`
+  - Completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release`
+  - Build passed with 293 existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release`
   - `Svg.Skia.UnitTests`: Passed 2597, skipped 40; other test projects passed.
 - Focused read-only codepoint DOM-metrics validation:
