@@ -72,6 +72,8 @@ The branch focuses on cases found while validating the resource parity lane:
 - Bounded rendered text local-bounds caching for repeated retained text metrics.
 - Read-only codepoint split reuse for text-DOM and prepared-text read paths.
 - Source-text reuse and simple natural codepoint advance caching for repeated prepared text measurement.
+- Prepared-text no-op whitespace reuse and trailing-run spacing boundary guards for retained text.
+- Unchanged-total-transform guard for retained structural finalization.
 - Closed line-only SVG path conversion for generated path-heavy scenes.
 - Versioned shim path-bounds caching for retained compile bounds scans.
 - Inline shim path command-list storage for one- and two-command paths.
@@ -194,6 +196,8 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added a bounded short rendered-text local-bounds cache keyed by asset loader and text paint/font signature so repeated text-DOM, prepared-text, and text-path bounds checks reuse successful glyph/path bounds while preserving precise hit extents for letter-spacing gaps.
 - Trimmed retained text fallback paint cloning so single-span typeface fallback commands record one isolated paint clone and multi-span fallback loops skip the unused clone after the final span.
 - Reused cached read-only codepoint split arrays across text-DOM, prepared-text, and shared-layout read paths, leaving the lone mutable split at the reverse-by-codepoint call site.
+- Reused already prepared text when whitespace normalization, trimming, discard, and space collapse are provably no-ops, and skipped trailing-run boundary codepoint work when no spacing is active or the trailing run is simple ASCII.
+- Skipped descendant total-transform refresh during retained structural finalization when the finalized node's effective total transform is unchanged, while still updating the node's own bounds and transformed bounds.
 - Added versioned `SKPath.Bounds` caching for command sequences whose command data is stable, while continuing to recompute `AddPoly` paths whose point lists can be mutated by callers.
 - Kept the shim path command storage concrete internally so bounds scans avoid interface enumeration allocation while preserving the public `IList<PathCommand>? Commands` surface.
 - Changed shim path command lists to keep one- and two-command paths inline before allocating overflow list storage, preserving the mutable `IList<PathCommand>` command surface while trimming generated simple-path retained compile allocations.
@@ -1422,9 +1426,27 @@ Focused simple natural text advance cache-hit measurements:
   - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
   - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore` passed with existing `SvgDeferredPaintServer` obsolete warnings and no errors.
   - Focused retained/resource/text validation: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgInteractionDispatcherTests|FullyQualifiedName~SvgResourceRenderingParityTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SKSvgRebuildFromModelTests"` passed 613.
+- Focused prepared-text and boundary-spacing validation:
+  - Fresh retained hotspot scan after the natural-codepoint cache: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-path-curves-96,generated-shapes-1024,generated-filtered-shapes-256" SVG_SKIA_BENCHMARK_RUN_LABEL="next-hotspot-after-codepoint-cache" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Current retained text compile: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" SVG_SKIA_BENCHMARK_RUN_LABEL="preparetext-boundary-spacing-retained-text" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Fresh post-change hotspot scan: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-path-curves-96,generated-shapes-1024,generated-filtered-shapes-256" SVG_SKIA_BENCHMARK_RUN_LABEL="post-preparetext-boundary-spacing-hotspot-scan" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `CompileNodeTreeOnly | generated-text-192`: allocation moved from `2728.97 KB` to `2.56 MB`; short-run mean measured `4.738 ms`.
+  - `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: allocation moved from `2682.19 KB` to `2.58 MB`; short-run mean measured `2.695 ms`.
+  - `CompileNodeTreeOnly | generated-aligned-text-length-192`: allocation moved from `1858.61 KB` to `1.78 MB`; short-run mean measured `2.256 ms`.
+  - Latest retained hotspot scan after the text guards measured `generated-aligned-letter-spacing-192` at `2640.1 KB`, `generated-shapes-1024` at `2632.5 KB`, `generated-text-192` at `2623.93 KB`, `generated-aligned-text-length-192` at `1818.82 KB`, `generated-text-path-curves-96` at `1213.6 KB`, and `generated-filtered-shapes-256` at `631.94 KB`.
+  - Timing remains short-run/noisy, so these rows are kept as allocation regression evidence for the no-op prepared-text and boundary-spacing guards.
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore` passed with no warnings.
+  - Focused text/retained tests: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgTextSelectionDomTests|FullyQualifiedName~HitTestTests|FullyQualifiedName~WptSvg2StaticSubsetTests"` passed 538.
+- Focused unchanged structural transform refresh validation:
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore` passed with no warnings.
+  - Focused retained/text hit-test validation: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~HitTestTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextSelectionDomTests"` passed 492.
+  - Current retained shape compile: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="structural-transform-refresh-guard-shapes" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `CompileNodeTreeOnly | generated-shapes-1024` measured `3.085 ms / 2.57 MB`, versus the prior focused shape phase row of `3.230 ms / 2,695,680 B`; allocation stayed flat, as expected, and the guard trims redundant traversal work.
+  - Fresh retained hotspot scan: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-path-curves-96,generated-shapes-1024,generated-filtered-shapes-256" SVG_SKIA_BENCHMARK_RUN_LABEL="post-transform-refresh-guard-hotspot-scan" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Latest retained hotspot scan measured `generated-aligned-letter-spacing-192` at `2640.08 KB`, `generated-shapes-1024` at `2632.5 KB`, `generated-text-192` at `2623.93 KB`, `generated-aligned-text-length-192` at `1818.82 KB`, `generated-text-path-curves-96` at `1213.6 KB`, and `generated-filtered-shapes-256` at `631.94 KB`.
 - Pre-publish validation for the current stack:
   - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
-  - `dotnet build Svg.Skia.slnx -c Release` passed with 349 existing warnings.
+  - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release` passed; `Svg.Skia.UnitTests` reported 2599 passed and 40 skipped, and the other test projects passed.
 
 The release build currently reports existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
