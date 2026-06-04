@@ -452,21 +452,13 @@ internal static class PathingService
             }
         }
 
-        var points = new SKPoint[svgPathSegmentList.Count - 1];
         var start = System.Drawing.PointF.Empty;
         var end = ToAbsolute(moveTo.End, moveTo.IsRelative, start);
-        points[0] = new SKPoint(end.X, end.Y);
+        var point0 = new SKPoint(end.X, end.Y);
         start = end;
 
-        for (var i = 1; i < svgPathSegmentList.Count - 1; i++)
-        {
-            var lineTo = (SvgLineSegment)svgPathSegmentList[i];
-            end = ToAbsolute(lineTo.End, lineTo.IsRelative, start);
-            points[i] = new SKPoint(end.X, end.Y);
-            start = end;
-        }
-
-        if (points.Length < 3)
+        var pointCount = svgPathSegmentList.Count - 1;
+        if (pointCount < 3)
         {
             return false;
         }
@@ -475,8 +467,41 @@ internal static class PathingService
         {
             FillType = fillType
         };
+
+        if (pointCount == 3)
+        {
+            var point1 = GetClosedLinePoint(svgPathSegmentList, 1, ref start);
+            var point2 = GetClosedLinePoint(svgPathSegmentList, 2, ref start);
+            path.AddPoly(point0, point1, point2, close: true);
+            return true;
+        }
+
+        if (pointCount == 4)
+        {
+            var point1 = GetClosedLinePoint(svgPathSegmentList, 1, ref start);
+            var point2 = GetClosedLinePoint(svgPathSegmentList, 2, ref start);
+            var point3 = GetClosedLinePoint(svgPathSegmentList, 3, ref start);
+            path.AddPoly(point0, point1, point2, point3, close: true);
+            return true;
+        }
+
+        var points = new SKPoint[pointCount];
+        points[0] = point0;
+        for (var i = 1; i < pointCount; i++)
+        {
+            points[i] = GetClosedLinePoint(svgPathSegmentList, i, ref start);
+        }
+
         path.AddPoly(points, close: true);
         return true;
+    }
+
+    private static SKPoint GetClosedLinePoint(SvgPathSegmentList svgPathSegmentList, int index, ref System.Drawing.PointF start)
+    {
+        var lineTo = (SvgLineSegment)svgPathSegmentList[index];
+        var end = ToAbsolute(lineTo.End, lineTo.IsRelative, start);
+        start = end;
+        return new SKPoint(end.X, end.Y);
     }
 
     internal static SKPath? ToPath(this SvgPointCollection svgPointCollection, SvgFillRule svgFillRule, bool isClosed, SKRect skViewport)
@@ -492,18 +517,45 @@ internal static class PathingService
             FillType = fillType
         };
 
-        var skPoints = new SKPoint[svgPointCollection.Count / 2];
+        var pointCount = svgPointCollection.Count / 2;
+        if (pointCount == 3)
+        {
+            skPath.AddPoly(
+                ToSKPoint(svgPointCollection, 0, skViewport),
+                ToSKPoint(svgPointCollection, 2, skViewport),
+                ToSKPoint(svgPointCollection, 4, skViewport),
+                isClosed);
+            return skPath;
+        }
+
+        if (pointCount == 4)
+        {
+            skPath.AddPoly(
+                ToSKPoint(svgPointCollection, 0, skViewport),
+                ToSKPoint(svgPointCollection, 2, skViewport),
+                ToSKPoint(svgPointCollection, 4, skViewport),
+                ToSKPoint(svgPointCollection, 6, skViewport),
+                isClosed);
+            return skPath;
+        }
+
+        var skPoints = new SKPoint[pointCount];
 
         for (var i = 0; i + 1 < svgPointCollection.Count; i += 2)
         {
-            var x = svgPointCollection[i].ToDeviceValue(UnitRenderingType.Other, null, skViewport);
-            var y = svgPointCollection[i + 1].ToDeviceValue(UnitRenderingType.Other, null, skViewport);
-            skPoints[i / 2] = new SKPoint(x, y);
+            skPoints[i / 2] = ToSKPoint(svgPointCollection, i, skViewport);
         }
 
         skPath.AddPoly(skPoints, isClosed);
 
         return skPath;
+    }
+
+    private static SKPoint ToSKPoint(SvgPointCollection svgPointCollection, int index, SKRect skViewport)
+    {
+        var x = svgPointCollection[index].ToDeviceValue(UnitRenderingType.Other, null, skViewport);
+        var y = svgPointCollection[index + 1].ToDeviceValue(UnitRenderingType.Other, null, skViewport);
+        return new SKPoint(x, y);
     }
 
     internal static SKPath? ToPath(this SvgRectangle svgRectangle, SvgFillRule svgFillRule, SKRect skViewport)

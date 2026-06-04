@@ -1025,10 +1025,15 @@ public static class SvgSceneRenderer
         return true;
     }
 
-    private static SKPath CreatePolygonPath(SKPathFillType fillType, params SKPoint[] points)
+    private static SKPath CreatePolygonPath(
+        SKPathFillType fillType,
+        SKPoint point0,
+        SKPoint point1,
+        SKPoint point2,
+        SKPoint point3)
     {
         var path = new SKPath { FillType = fillType };
-        path.AddPoly(points, close: true);
+        path.AddPoly(point0, point1, point2, point3, close: true);
         return path;
     }
 
@@ -1062,13 +1067,35 @@ public static class SvgSceneRenderer
         bool close,
         SKMatrix transform)
     {
-        var transformed = new SKPoint[points.Count];
-        for (var i = 0; i < points.Count; i++)
+        var pointCount = points.Count;
+        var path = new SKPath { FillType = fillType };
+        if (pointCount == 3)
+        {
+            path.AddPoly(
+                transform.MapPoint(points[0]),
+                transform.MapPoint(points[1]),
+                transform.MapPoint(points[2]),
+                close);
+            return path;
+        }
+
+        if (pointCount == 4)
+        {
+            path.AddPoly(
+                transform.MapPoint(points[0]),
+                transform.MapPoint(points[1]),
+                transform.MapPoint(points[2]),
+                transform.MapPoint(points[3]),
+                close);
+            return path;
+        }
+
+        var transformed = new SKPoint[pointCount];
+        for (var i = 0; i < pointCount; i++)
         {
             transformed[i] = transform.MapPoint(points[i]);
         }
 
-        var path = new SKPath { FillType = fillType };
         path.AddPoly(transformed, close);
         return path;
     }

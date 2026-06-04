@@ -96,6 +96,25 @@ public class SKPathTests
     }
 
     [Fact]
+    public void AddPolyInlinePoints_ReflectPointListMutations()
+    {
+        var path = new SKPath();
+        path.AddPoly(
+            new SKPoint(0, 0),
+            new SKPoint(10, 10),
+            new SKPoint(0, 10));
+
+        var poly = Assert.IsType<AddPolyPathCommand>(Assert.Single(path.Commands!));
+        Assert.Same(poly, poly.Points);
+
+        _ = path.Bounds;
+
+        poly.Points![1] = new SKPoint(50, 50);
+
+        Assert.Equal(new SKRect(0, 0, 50, 50), path.Bounds);
+    }
+
+    [Fact]
     public void MoveTo_LineTo_UpdatesBounds()
     {
         var path = new SKPath();

@@ -50,7 +50,285 @@ public record AddCirclePathCommand(float X, float Y, float Radius) : PathCommand
 
 public record AddOvalPathCommand(SKRect Rect) : PathCommand;
 
-public record AddPolyPathCommand(IList<SKPoint>? Points, bool Close) : PathCommand;
+public record AddPolyPathCommand : PathCommand, IList<SKPoint>
+{
+    private IList<SKPoint>? _points;
+    private SKPoint _point0;
+    private SKPoint _point1;
+    private SKPoint _point2;
+    private SKPoint _point3;
+    private int _inlinePointCount;
+
+    public AddPolyPathCommand(IList<SKPoint>? points, bool close)
+    {
+        _points = points;
+        Close = close;
+    }
+
+    internal AddPolyPathCommand(SKPoint point0, SKPoint point1, SKPoint point2, bool close)
+    {
+        _point0 = point0;
+        _point1 = point1;
+        _point2 = point2;
+        _inlinePointCount = 3;
+        Close = close;
+    }
+
+    internal AddPolyPathCommand(SKPoint point0, SKPoint point1, SKPoint point2, SKPoint point3, bool close)
+    {
+        _point0 = point0;
+        _point1 = point1;
+        _point2 = point2;
+        _point3 = point3;
+        _inlinePointCount = 4;
+        Close = close;
+    }
+
+    public IList<SKPoint>? Points => _points ?? (_inlinePointCount > 0 ? this : null);
+
+    public bool Close { get; init; }
+
+    public int Count => _points?.Count ?? _inlinePointCount;
+
+    public bool IsReadOnly => _points?.IsReadOnly ?? false;
+
+    public SKPoint this[int index]
+    {
+        get
+        {
+            if (_points is not null)
+            {
+                return _points[index];
+            }
+
+            return index switch
+            {
+                0 when _inlinePointCount > 0 => _point0,
+                1 when _inlinePointCount > 1 => _point1,
+                2 when _inlinePointCount > 2 => _point2,
+                3 when _inlinePointCount > 3 => _point3,
+                _ => throw new ArgumentOutOfRangeException(nameof(index))
+            };
+        }
+        set
+        {
+            if (_points is not null)
+            {
+                _points[index] = value;
+                return;
+            }
+
+            switch (index)
+            {
+                case 0 when _inlinePointCount > 0:
+                    _point0 = value;
+                    break;
+                case 1 when _inlinePointCount > 1:
+                    _point1 = value;
+                    break;
+                case 2 when _inlinePointCount > 2:
+                    _point2 = value;
+                    break;
+                case 3 when _inlinePointCount > 3:
+                    _point3 = value;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(index));
+            }
+        }
+    }
+
+    public void Add(SKPoint item)
+    {
+        EnsurePointList(_inlinePointCount + 1).Add(item);
+    }
+
+    public void Clear()
+    {
+        if (_points is not null)
+        {
+            _points.Clear();
+            return;
+        }
+
+        _point0 = default;
+        _point1 = default;
+        _point2 = default;
+        _point3 = default;
+        _inlinePointCount = 0;
+    }
+
+    public bool Contains(SKPoint item) => IndexOf(item) >= 0;
+
+    public void CopyTo(SKPoint[] array, int arrayIndex)
+    {
+        if (_points is not null)
+        {
+            _points.CopyTo(array, arrayIndex);
+            return;
+        }
+
+        if (array is null)
+        {
+            throw new ArgumentNullException(nameof(array));
+        }
+
+        if (arrayIndex < 0 || array.Length - arrayIndex < _inlinePointCount)
+        {
+            throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+        }
+
+        for (var i = 0; i < _inlinePointCount; i++)
+        {
+            array[arrayIndex + i] = this[i];
+        }
+    }
+
+    public IEnumerator<SKPoint> GetEnumerator()
+    {
+        return _points is not null
+            ? _points.GetEnumerator()
+            : new InlinePointEnumerator(_point0, _point1, _point2, _point3, _inlinePointCount);
+    }
+
+    public int IndexOf(SKPoint item)
+    {
+        if (_points is not null)
+        {
+            return _points.IndexOf(item);
+        }
+
+        var comparer = EqualityComparer<SKPoint>.Default;
+        for (var i = 0; i < _inlinePointCount; i++)
+        {
+            if (comparer.Equals(this[i], item))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    public void Insert(int index, SKPoint item)
+    {
+        EnsurePointList(_inlinePointCount + 1).Insert(index, item);
+    }
+
+    public bool Remove(SKPoint item)
+    {
+        if (_points is not null)
+        {
+            return _points.Remove(item);
+        }
+
+        var index = IndexOf(item);
+        if (index < 0)
+        {
+            return false;
+        }
+
+        RemoveAt(index);
+        return true;
+    }
+
+    public void RemoveAt(int index)
+    {
+        if (_points is not null)
+        {
+            _points.RemoveAt(index);
+            return;
+        }
+
+        if (index < 0 || index >= _inlinePointCount)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        var list = EnsurePointList(_inlinePointCount);
+        list.RemoveAt(index);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    private IList<SKPoint> EnsurePointList(int capacity)
+    {
+        if (_points is not null)
+        {
+            return _points;
+        }
+
+        var points = new List<SKPoint>(capacity);
+        for (var i = 0; i < _inlinePointCount; i++)
+        {
+            points.Add(this[i]);
+        }
+
+        _point0 = default;
+        _point1 = default;
+        _point2 = default;
+        _point3 = default;
+        _inlinePointCount = 0;
+        _points = points;
+        return points;
+    }
+
+    private sealed class InlinePointEnumerator : IEnumerator<SKPoint>
+    {
+        private readonly SKPoint _point0;
+        private readonly SKPoint _point1;
+        private readonly SKPoint _point2;
+        private readonly SKPoint _point3;
+        private readonly int _count;
+        private int _index = -1;
+
+        public InlinePointEnumerator(SKPoint point0, SKPoint point1, SKPoint point2, SKPoint point3, int count)
+        {
+            _point0 = point0;
+            _point1 = point1;
+            _point2 = point2;
+            _point3 = point3;
+            _count = count;
+        }
+
+        public SKPoint Current
+        {
+            get
+            {
+                return _index switch
+                {
+                    0 => _point0,
+                    1 => _point1,
+                    2 => _point2,
+                    3 => _point3,
+                    _ => throw new InvalidOperationException()
+                };
+            }
+        }
+
+        object? IEnumerator.Current => Current;
+
+        public bool MoveNext()
+        {
+            if (_index + 1 >= _count)
+            {
+                return false;
+            }
+
+            _index++;
+            return true;
+        }
+
+        public void Reset()
+        {
+            _index = -1;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+}
 
 public record AddRectPathCommand(SKRect Rect) : PathCommand;
 
@@ -574,6 +852,12 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>, IList<PathCommand>
 
     public void AddPoly(SKPoint[] points, bool close = true)
         => Add(new AddPolyPathCommand(points, close));
+
+    public void AddPoly(SKPoint point0, SKPoint point1, SKPoint point2, bool close = true)
+        => Add(new AddPolyPathCommand(point0, point1, point2, close));
+
+    public void AddPoly(SKPoint point0, SKPoint point1, SKPoint point2, SKPoint point3, bool close = true)
+        => Add(new AddPolyPathCommand(point0, point1, point2, point3, close));
 
     private void AddInitial(PathCommand item)
     {

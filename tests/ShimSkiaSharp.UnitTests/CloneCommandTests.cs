@@ -47,6 +47,22 @@ public class CloneCommandTests
     }
 
     [Fact]
+    public void AddPolyPathCommand_Equality_UsesPointReferenceAndClose()
+    {
+        var points = new List<SKPoint> { new SKPoint(1, 2), new SKPoint(3, 4) };
+
+        Assert.Equal(
+            new AddPolyPathCommand(points, true),
+            new AddPolyPathCommand(points, true));
+        Assert.NotEqual(
+            new AddPolyPathCommand(points, true),
+            new AddPolyPathCommand(points, false));
+        Assert.NotEqual(
+            new AddPolyPathCommand(points, true),
+            new AddPolyPathCommand(new List<SKPoint>(points), true));
+    }
+
+    [Fact]
     public void CanvasCommand_DeepClone_CopiesValueCommands()
     {
         var commands = new CanvasCommand[]
