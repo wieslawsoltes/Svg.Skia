@@ -72,6 +72,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Bounded rendered text local-bounds caching for repeated retained text metrics.
 - Read-only codepoint split reuse for text-DOM and prepared-text read paths.
 - Source-text reuse and simple natural codepoint advance caching for repeated prepared text measurement.
+- Split-codepoint cache-hit fast path for repeated retained text splitting.
 - Prepared-text no-op whitespace reuse and trailing-run spacing boundary guards for retained text.
 - Unchanged-total-transform guard for retained structural finalization.
 - Fill-only resolved sequential text recording for retained simple tspan runs.
@@ -200,6 +201,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added a bounded short rendered-text local-bounds cache keyed by asset loader and text paint/font signature so repeated text-DOM, prepared-text, and text-path bounds checks reuse successful glyph/path bounds while preserving precise hit extents for letter-spacing gaps.
 - Trimmed retained text fallback paint cloning so single-span typeface fallback commands record one isolated paint clone and multi-span fallback loops skip the unused clone after the final span.
 - Reused cached read-only codepoint split arrays across text-DOM, prepared-text, and shared-layout read paths, leaving the lone mutable split at the reverse-by-codepoint call site.
+- Returned cached read-only codepoint split arrays directly on split-cache hits, avoiding a redundant text-side cache lookup while preserving the source-text registration done on cache insertion.
 - Reused already prepared text when whitespace normalization, trimming, discard, and space collapse are provably no-ops, and skipped trailing-run boundary codepoint work when no spacing is active or the trailing run is simple ASCII.
 - Skipped descendant total-transform refresh during retained structural finalization when the finalized node's effective total transform is unchanged, while still updating the node's own bounds and transformed bounds.
 - Recorded resolved sequential text runs through a direct fill-only path when stroke and text-decoration are inactive, avoiding the generic paint-order delegate path for simple retained tspan rows while leaving stroked/decorated text on the existing flow.
@@ -456,6 +458,13 @@ Focused source-text/simple natural-codepoint cache text internals scan:
 - `MeasureNaturalCodepointAdvancesAcrossFragments | generated-text-192`: `632.37 us / 45 KB`.
 - `MeasureNaturalTextAdvanceAcrossFragments | generated-text-192`: `702.85 us / 45 KB`.
 - Split-codepoint allocation stayed at the earlier read-only split-cache levels, while natural codepoint advance allocation dropped from `69 KB`/`67.5 KB`/`187.92 KB` to `12 KB`/`12 KB`/`45 KB` across the aligned letter-spacing, aligned textLength, and generated text rows.
+
+Focused split-codepoint cache-hit fast-path measurements:
+
+- `SplitCodepointsAcrossFragments | generated-aligned-letter-spacing-192`: `19.47 us / 57.64 KB` to `7.807 us / 57.64 KB`.
+- `SplitCodepointsAcrossFragments | generated-aligned-text-length-192`: `19.43 us / 53.14 KB` to `7.242 us / 53.14 KB`.
+- `SplitCodepointsAcrossFragments | generated-text-192`: `47.13 us / 76.28 KB` to `17.970 us / 76.28 KB`.
+- Retained text compile follow-up rows measured `CompileNodeTreeOnly` at `1.372 ms / 1.78 MB` for `generated-aligned-text-length-192`, `2.348 ms / 2.58 MB` for `generated-aligned-letter-spacing-192`, and `2.846 ms / 2.49 MB` for `generated-text-192`; timings stayed short-run/noisy, while allocations remained aligned with the prior retained text scan.
 
 Focused SVG-font metrics-guard retained/text benchmark scan:
 
@@ -1480,6 +1489,11 @@ Focused simple natural text advance cache-hit measurements:
   - Current path conversion rows measured `ConvertPrimitiveShapesOnly` at `530.8 us / 104 KB`, `ConvertSvgPathsOnly` at `979.5 us / 664 KB`, and `ConvertAllVisualPaths` at `2.443 ms / 768.01 KB`; compared with the prior focused path-conversion scan, SVG-path and all-visual path allocations moved from `680 KB` to `664 KB` and from `784.01 KB` to `768.01 KB`.
   - Retained compile benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="inline-small-poly-retained-compile" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
   - `CompileNodeTreeOnly | generated-shapes-1024` measured `7.024 ms / 2.58 MB`; timing remains short-run/noisy, while allocation is slightly below the previous `2655.82 KB` generated-shapes row.
+- Focused split-codepoint cache-hit fast-path validation:
+  - Focused retained text tests: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests"` passed 267.
+  - Focused text compiler/path/paint-order tests: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgTextPaintOrderTests"` passed 188.
+  - Text internals benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" SVG_SKIA_BENCHMARK_RUN_LABEL="skip-split-cache-cwt-hit" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Retained text benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" SVG_SKIA_BENCHMARK_RUN_LABEL="skip-split-cache-cwt-hit-retained-text" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
 - Pre-publish validation for the current stack:
   - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
   - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
