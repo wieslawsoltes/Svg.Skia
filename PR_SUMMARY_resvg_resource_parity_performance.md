@@ -86,6 +86,8 @@ The branch focuses on cases found while validating the resource parity lane:
 - Retained paint-hit validity reuse during runtime payload refresh for direct path, shape, and text nodes.
 - Inline `SKPath` command storage without a per-path change-tracking wrapper.
 - Own-`textLength` guard for retained textLength fast-path probes on ordinary text.
+- Lazy retained-node visual/resource sidecar storage for rare cursor, background, blend, and resource-key state.
+- Lazy retained-node effect sidecar storage for rare clip, mask, filter, and opacity state.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -204,6 +206,9 @@ The branch focuses on cases found while validating the resource parity lane:
 - Reused direct visual fill/stroke hit-test validity checks when creating retained local paints, avoiding duplicate paint-server and stroke-width validity work for every direct shape node.
 - Reused retained fill/stroke hit-test flags while refreshing runtime paint payloads for direct path, shape, and text nodes, avoiding duplicate paint-validity checks after retained compile has already computed them.
 - Skipped retained textLength-specific compile probes before run collection when a text element has no own `textLength`, avoiding duplicate sequential-run collection for ordinary retained text while preserving the specialized paths for real `textLength` rows.
+- Moved rare retained-node visual and resource-key state into lazy sidecars, so ordinary retained nodes do not carry cursor, background-layer, isolation/blend, clip, mask, or filter fields directly.
+- Moved rare retained-node clip/mask/filter/opacity effect state into a lazy effect sidecar, including overflow/clip rectangles, filter clips, mask paints, opacity paint/value, and mask child nodes.
+- Added cursor and `enable-background` to cascaded-style feature analysis so retained visual-state probes are skipped when the element's own declarations cannot contain those features.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -403,6 +408,25 @@ Focused compact retained-node child storage measurements:
 - `CompileNodeTreeOnly | generated-text-192`: control row stayed essentially flat at `3215.36 KB`.
 - `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: control row stayed essentially flat at `3219.97 KB`.
 - Short-run timings were mixed/noisy, so this is treated as a retained node allocation cleanup for low-fanout scene graphs.
+
+Focused retained-node visual/resource/effect sidecar measurements:
+
+- `CompileNodeTreeOnly | generated-shapes-1024`: fresh retained hotspot scan allocation moved from `3208.77 KB` to `3064.69 KB` after visual/resource sidecars, then to `2632.5 KB` after effect sidecars.
+- `CompileNodeTreeOnly | generated-filtered-shapes-256`: fresh retained hotspot scan allocation moved from `766.37 KB` to `740.24 KB` after visual/resource sidecars, then to `631.94 KB` after effect sidecars.
+- `CompileNodeTreeOnly | generated-text-192`: fresh retained hotspot scan allocation moved from `2765.34 KB` to `2756.27 KB` after visual/resource sidecars, then to `2728.96 KB` after effect sidecars.
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: fresh retained hotspot scan allocation moved from `2811.57 KB` to `2802.48 KB` after visual/resource sidecars, then to `2775.2 KB` after effect sidecars.
+- Post-sidecar hotspot scan retained `CompileNodeTreeOnly` allocations were `1935.11 KB` for `generated-aligned-text-length-192` and `1257.09 KB` for `generated-text-path-curves-96`, leaving ordinary/aligned text and generated shapes as the next retained compile allocation targets.
+- Short-run timings were noisy, so the allocation drop is the primary signal for the lazy retained-node sidecars.
+
+Focused post-sidecar text internals scan:
+
+- `SplitCodepointsAcrossFragments | generated-text-192`: `18.636 us / 76.28 KB`.
+- `MeasureNaturalCodepointAdvancesAcrossFragments | generated-text-192`: `429.774 us / 187.92 KB`.
+- `MeasureNaturalTextAdvanceAcrossFragments | generated-text-192`: `714.979 us / 45 KB`.
+- `SplitCodepointsAcrossFragments | generated-aligned-text-length-192`: `7.397 us / 53.14 KB`.
+- `MeasureNaturalCodepointAdvancesAcrossFragments | generated-aligned-text-length-192`: `133.149 us / 67.5 KB`.
+- `MeasureNaturalTextAdvanceAcrossFragments | generated-aligned-text-length-192`: `197.668 us / 12 KB`.
+- The next text-focused allocation target is natural codepoint advance measurement; natural full-text advance remains the larger timing hotspot.
 
 Focused retained-scene address-key cache measurements:
 
@@ -1363,6 +1387,15 @@ Focused simple natural text advance cache-hit measurements:
   - Focused retained/resource/hit-test validation: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgResourceRenderingParityTests|FullyQualifiedName~HitTestTests|FullyQualifiedName~SKSvgRebuildFromModelTests"` passed 415.
   - Current retained compile: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-aligned-letter-spacing-192 SVG_SKIA_BENCHMARK_RUN_LABEL=direct-visual-validity-reuse-retained-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
   - Control rerun: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-filtered-shapes-256,generated-aligned-letter-spacing-192,generated-text-192 SVG_SKIA_BENCHMARK_RUN_LABEL=direct-visual-validity-reuse-control-rerun dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+- Focused retained-node visual/resource/effect sidecar validation:
+  - Fresh retained hotspot scan: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-path-curves-96,generated-shapes-1024,generated-filtered-shapes-256" SVG_SKIA_BENCHMARK_RUN_LABEL="next-after-published-retained-hotspot-scan" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Visual/resource sidecar retained compile: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-aligned-letter-spacing-192" SVG_SKIA_BENCHMARK_RUN_LABEL="lazy-node-state-retained-compile" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Effect sidecar retained compile: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-aligned-letter-spacing-192" SVG_SKIA_BENCHMARK_RUN_LABEL="lazy-node-effect-state-retained-compile" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Post-sidecar hotspot scan: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-path-curves-96,generated-shapes-1024,generated-filtered-shapes-256" SVG_SKIA_BENCHMARK_RUN_LABEL="post-node-sidecars-retained-hotspot-scan" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Post-sidecar text internals scan: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192" SVG_SKIA_BENCHMARK_RUN_LABEL="post-node-sidecars-text-internals-scan" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore` passed with existing `SvgDeferredPaintServer` obsolete warnings and no errors.
+  - Focused retained/resource/text validation: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgInteractionDispatcherTests|FullyQualifiedName~SvgResourceRenderingParityTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SKSvgRebuildFromModelTests"` passed 613.
 - Pre-publish validation for the current stack:
   - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
   - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
