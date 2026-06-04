@@ -36,6 +36,7 @@ public class SvgTextCompileInternalsBenchmarks
     public IEnumerable<string> Scenarios => SvgLoadPipelineBenchmarkScenarios.Names
         .Where(static name =>
             name.Contains("text", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("spacing", StringComparison.OrdinalIgnoreCase) ||
             name.StartsWith("file:", StringComparison.OrdinalIgnoreCase));
 
     [GlobalSetup]
