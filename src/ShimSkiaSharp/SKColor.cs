@@ -4,7 +4,7 @@ using System;
 
 namespace ShimSkiaSharp;
 
-public readonly struct SKColor
+public readonly struct SKColor : IEquatable<SKColor>
 {
     public byte Red { get; }
 
@@ -31,6 +31,29 @@ public readonly struct SKColor
             color.Green * (1 / 255.0f),
             color.Blue * (1 / 255.0f),
             color.Alpha * (1 / 255.0f));
+    }
+
+    public bool Equals(SKColor other)
+    {
+        return Red == other.Red &&
+               Green == other.Green &&
+               Blue == other.Blue &&
+               Alpha == other.Alpha;
+    }
+
+    public override bool Equals(object? obj)
+        => obj is SKColor other && Equals(other);
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            var hash = Red.GetHashCode();
+            hash = (hash * 397) ^ Green.GetHashCode();
+            hash = (hash * 397) ^ Blue.GetHashCode();
+            hash = (hash * 397) ^ Alpha.GetHashCode();
+            return hash;
+        }
     }
 
     public override string ToString()
