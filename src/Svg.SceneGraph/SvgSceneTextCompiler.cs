@@ -1560,7 +1560,8 @@ internal static partial class SvgSceneTextCompiler
         geometryBounds = SKRect.Empty;
         localModel = null;
 
-        if (HasInlineSizeLayout(svgTextBase) ||
+        if (!HasOwnTextLengthAdjustment(svgTextBase) ||
+            HasInlineSizeLayout(svgTextBase) ||
             HasSequentialTextRunBarriers(svgTextBase) ||
             GetOwnLengthAdjust(svgTextBase) != SvgTextLengthAdjust.SpacingAndGlyphs ||
             !TryCollectSequentialTextRuns(svgTextBase, requireAnchorContent: false, IsTextReferenceRenderingEnabled(assetLoader), trimLeadingWhitespaceAtStart: true, out var runs) ||
@@ -1599,7 +1600,8 @@ internal static partial class SvgSceneTextCompiler
         geometryBounds = SKRect.Empty;
         localModel = null;
 
-        if (HasInlineSizeLayout(svgTextBase) ||
+        if (!HasOwnTextLengthAdjustment(svgTextBase) ||
+            HasInlineSizeLayout(svgTextBase) ||
             HasSequentialTextRunBarriers(svgTextBase) ||
             GetOwnLengthAdjust(svgTextBase) != SvgTextLengthAdjust.Spacing ||
             !TryCollectSequentialTextRuns(svgTextBase, requireAnchorContent: false, IsTextReferenceRenderingEnabled(assetLoader), trimLeadingWhitespaceAtStart: true, out var runs) ||
