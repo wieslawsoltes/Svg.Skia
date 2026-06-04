@@ -21,6 +21,8 @@ internal static partial class SvgSceneTextCompiler
     private static readonly Regex s_numberPrefix = new(@"^[+-]?(?:(?:\d+\.\d*)|(?:\d+)|(?:\.\d+))(?:[eE][+-]?\d+)?", RegexOptions.Compiled);
     private static readonly Regex s_cssUrlReferences = new(@"url\(([^)]*)\)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly ConcurrentDictionary<string, string[]> s_splitCodepointCache = new(StringComparer.Ordinal);
+    private static readonly ConditionalWeakTable<IReadOnlyList<string>, SplitCodepointTextCacheEntry> s_splitCodepointTextCache = new();
+    private static readonly object s_splitCodepointTextCacheLock = new();
     private static readonly string[] s_asciiCodepointStrings = CreateAsciiCodepointStrings();
     private const int SplitCodepointCacheLimit = 4096;
     private const int MaxEllipseSteps = 128;
@@ -56,6 +58,16 @@ internal static partial class SvgSceneTextCompiler
         HorizontalRightToLeft,
         VerticalRightToLeftColumns,
         VerticalLeftToRightColumns
+    }
+
+    private sealed class SplitCodepointTextCacheEntry
+    {
+        public SplitCodepointTextCacheEntry(string text)
+        {
+            Text = text;
+        }
+
+        public string Text { get; }
     }
 
     private readonly record struct SequentialTextRun(SvgTextBase StyleSource, string Text);
@@ -20083,11 +20095,13 @@ internal static partial class SvgSceneTextCompiler
 
         if (s_splitCodepointCache.TryGetValue(text, out var cachedCodepoints))
         {
+            CacheSplitCodepointText(cachedCodepoints, text);
             return cachedCodepoints;
         }
 
         var codepoints = SplitCodepointsUncached(text);
         var codepointArray = codepoints.Count == 0 ? Array.Empty<string>() : codepoints.ToArray();
+        CacheSplitCodepointText(codepointArray, text);
         s_splitCodepointCache.TryAdd(text, codepointArray);
         TrimSplitCodepointCacheIfNeeded();
         return codepointArray;
@@ -20096,7 +20110,13 @@ internal static partial class SvgSceneTextCompiler
     private static List<string> SplitCodepoints(string text)
     {
         var codepoints = SplitCodepointsReadOnly(text);
-        return codepoints.Count == 0 ? [] : new List<string>(codepoints);
+        if (codepoints.Count == 0)
+        {
+            return [];
+        }
+
+        var list = new List<string>(codepoints);
+        return list;
     }
 
     private static List<string> SplitCodepointsUncached(string text)
@@ -20117,6 +20137,30 @@ internal static partial class SvgSceneTextCompiler
         {
             s_splitCodepointCache.Clear();
         }
+    }
+
+    private static void CacheSplitCodepointText(IReadOnlyList<string> codepoints, string text)
+    {
+        if (codepoints.Count == 0 ||
+            s_splitCodepointTextCache.TryGetValue(codepoints, out _))
+        {
+            return;
+        }
+
+        lock (s_splitCodepointTextCacheLock)
+        {
+            if (!s_splitCodepointTextCache.TryGetValue(codepoints, out _))
+            {
+                s_splitCodepointTextCache.Add(codepoints, new SplitCodepointTextCacheEntry(text));
+            }
+        }
+    }
+
+    private static string GetSplitCodepointTextOrConcat(IReadOnlyList<string> codepoints)
+    {
+        return s_splitCodepointTextCache.TryGetValue(codepoints, out var entry)
+            ? entry.Text
+            : string.Concat(codepoints);
     }
 
     private static float[] MeasureNaturalCodepointAdvances(
@@ -21224,6 +21268,64 @@ internal static partial class SvgSceneTextCompiler
         TrimSimpleNaturalTextAdvanceCacheIfNeeded();
     }
 
+    private static bool TryGetCachedSimpleNaturalCodepointAdvances(
+        SimpleNaturalCodepointAdvanceCacheKey cacheKey,
+        out float[] advances)
+    {
+        if (s_simpleNaturalCodepointAdvanceCache.TryGetValue(cacheKey, out var cachedAdvances))
+        {
+            advances = cachedAdvances;
+            return true;
+        }
+
+        advances = Array.Empty<float>();
+        return false;
+    }
+
+    private static void CacheSimpleNaturalCodepointAdvances(
+        SimpleNaturalCodepointAdvanceCacheKey cacheKey,
+        float[] advances)
+    {
+        s_simpleNaturalCodepointAdvanceCache.TryAdd(cacheKey, advances);
+        TrimSimpleNaturalCodepointAdvanceCacheIfNeeded();
+    }
+
+    private static bool TryCreateSimpleNaturalCodepointAdvanceCacheKey(
+        SvgTextBase svgTextBase,
+        ISvgAssetLoader assetLoader,
+        string text,
+        SKRect geometryBounds,
+        out SimpleNaturalCodepointAdvanceCacheKey cacheKey)
+    {
+        cacheKey = default;
+        if (svgTextBase is SvgAltGlyph ||
+            HasCustomTextOpenTypePaintProperty(svgTextBase) ||
+            !TryResolveSimpleTextMetricsFontSize(svgTextBase, geometryBounds, out var textSize))
+        {
+            return false;
+        }
+
+        var ownerDocument = svgTextBase.OwnerDocument;
+        var resolvedWeight = PaintingService.ResolveFontWeight(svgTextBase, svgTextBase.FontWeight);
+        cacheKey = new SimpleNaturalCodepointAdvanceCacheKey(
+            RuntimeHelpers.GetHashCode(assetLoader),
+            ownerDocument is null ? 0 : RuntimeHelpers.GetHashCode(ownerDocument),
+            text,
+            svgTextBase.FontFamily,
+            svgTextBase.FontStyle,
+            svgTextBase.FontVariant,
+            svgTextBase.FontWeight,
+            SvgTextBidiResolver.ResolveDirection(svgTextBase),
+            SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase),
+            GetNaturalTextAdvanceLanguage(svgTextBase),
+            assetLoader.EnableSvgFonts,
+            textSize,
+            PaintingService.ToFontStyleWeight(resolvedWeight),
+            PaintingService.ToFontStyleWidth(svgTextBase.FontStretch),
+            PaintingService.ToFontStyleSlant(svgTextBase.FontStyle));
+        return true;
+    }
+
     private static bool TryCreateSimpleNaturalTextAdvanceCacheKey(
         SvgTextBase svgTextBase,
         ISvgAssetLoader assetLoader,
@@ -21389,6 +21491,14 @@ internal static partial class SvgSceneTextCompiler
         if (s_simpleNaturalTextAdvanceCache.Count > SimpleNaturalTextAdvanceCacheLimit)
         {
             s_simpleNaturalTextAdvanceCache.Clear();
+        }
+    }
+
+    private static void TrimSimpleNaturalCodepointAdvanceCacheIfNeeded()
+    {
+        if (s_simpleNaturalCodepointAdvanceCache.Count > SimpleNaturalCodepointAdvanceCacheLimit)
+        {
+            s_simpleNaturalCodepointAdvanceCache.Clear();
         }
     }
 
