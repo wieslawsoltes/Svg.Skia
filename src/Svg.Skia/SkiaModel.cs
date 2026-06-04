@@ -2270,7 +2270,7 @@ public partial class SkiaModel
             : paint;
         try
         {
-            DrawPositionedTextRunFragments(command.Fragments, skCanvas, textPaint);
+            DrawPositionedTextRunFragments(command.Fragments, skCanvas, textPaint, font, textAlign);
         }
         finally
         {
@@ -2281,8 +2281,15 @@ public partial class SkiaModel
     private void DrawPositionedTextRunFragments(
         IReadOnlyList<PositionedTextRunFragment> fragments,
         SkiaSharp.SKCanvas skCanvas,
-        SkiaSharp.SKPaint paint)
+        SkiaSharp.SKPaint paint,
+        SkiaSharp.SKFont font,
+        SkiaSharp.SKTextAlign textAlign)
     {
+        if (TryDrawRotationScalePositionedTextRunBlob(fragments, skCanvas, paint, font, textAlign))
+        {
+            return;
+        }
+
         var hasTransformedFragment = false;
         for (var i = 0; i < fragments.Count; i++)
         {
@@ -2353,6 +2360,55 @@ public partial class SkiaModel
         }
 
         skCanvas.DrawText(fragment.Text, fragment.Point.X, fragment.Point.Y, paint);
+    }
+
+    private static bool TryDrawRotationScalePositionedTextRunBlob(
+        IReadOnlyList<PositionedTextRunFragment> fragments,
+        SkiaSharp.SKCanvas skCanvas,
+        SkiaSharp.SKPaint paint,
+        SkiaSharp.SKFont font,
+        SkiaSharp.SKTextAlign textAlign)
+    {
+        if (textAlign != SkiaSharp.SKTextAlign.Left)
+        {
+            return false;
+        }
+
+        var count = fragments.Count;
+        for (var i = 0; i < count; i++)
+        {
+            var fragment = fragments[i];
+            if (fragment.Text.Length != 1 ||
+                fragment.Text[0] > '\u007F' ||
+                fragment.ScaleX != 1f)
+            {
+                return false;
+            }
+        }
+
+        var text = new char[count];
+        var positions = new SkiaSharp.SKRotationScaleMatrix[count];
+        for (var i = 0; i < count; i++)
+        {
+            var fragment = fragments[i];
+            text[i] = fragment.Text[0];
+            positions[i] = SkiaSharp.SKRotationScaleMatrix.CreateDegrees(
+                scale: 1f,
+                degrees: fragment.RotationDegrees,
+                tx: fragment.Point.X,
+                ty: fragment.Point.Y,
+                anchorX: 0f,
+                anchorY: 0f);
+        }
+
+        using var textBlob = SkiaSharp.SKTextBlob.CreateRotationScale(text.AsSpan(), font, positions);
+        if (textBlob is null)
+        {
+            return false;
+        }
+
+        skCanvas.DrawText(textBlob, 0f, 0f, paint);
+        return true;
     }
 
     public void Draw(CanvasCommand canvasCommand, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
