@@ -69,6 +69,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Small `AddPoly` native path revision-key reuse for generated path-heavy replay.
 - Transform-only simple shape group flattening for retained command streams and native replay.
 - Direct-matrix native replay for transformed retained positioned text runs.
+- Rotation-scale native text blob replay for simple positioned text runs.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -169,6 +170,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Reused the small `AddPoly` native path value-cache key to derive one-command small-poly path revisions, avoiding a second point-list hash pass while preserving mutable-point invalidation.
 - Flattened transform-only retained groups whose children are simple solid-filled leaf paths by pre-transforming rectangle, polygon, and closed line-only path commands during retained recording; this removes save/set-matrix/restore command wrappers and simple leaf opacity save-layers while preserving source-element metadata and keeping clips, masks, filters, strokes, blend modes, isolation, nested children, shaders, and complex paths on the existing rendering path.
 - Replayed compact retained positioned text runs by scanning for untransformed fragments first, drawing those directly, and using direct canvas matrix resets for transformed fragments instead of per-fragment save/restore pairs.
+- Added a guarded native `SKTextBlob.CreateRotationScale` replay path for left-aligned simple ASCII positioned text runs, collapsing eligible fragment runs into one native blob draw while keeping scaled, non-ASCII, non-left-aligned, and other complex runs on the existing per-fragment fallback.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -215,6 +217,17 @@ Focused direct positioned text run replay measurements:
 - `DrawNativePicture1x | generated-aligned-text-length-192`: latest focused run measured `450.3 us`.
 - `DrawNativePicture1x | generated-shapes-1024`: latest focused run measured `1.397 ms`.
 - `DrawNativePicture1x | generated-filtered-shapes-256`: latest focused run measured `1.369 ms`.
+
+Focused rotation-scale positioned text blob measurements:
+
+- `DrawNativePicture1x | generated-text-path-curves-96`: latest post-direct-matrix scan `5.543 ms` to `2.320 ms`.
+- `DrawNativePicture1x | generated-aligned-letter-spacing-192`: `1.053 ms` to `521.9 us`.
+- `DrawNativePicture1x | generated-aligned-text-length-192`: `917.7 us` to `461.4 us`.
+- `DrawNativePicture1x | generated-text-192`: `1.056 ms` to `512.9 us`.
+- `CreateNativePictureFromFullModel | generated-text-path-curves-96`: current focused run measured `138.2 us / 112.39 KB`.
+- `CreateNativePictureFromFullModel | generated-aligned-letter-spacing-192`: current focused run measured `154.4 us / 153.55 KB`.
+- `CreateNativePictureFromFullModel | generated-aligned-text-length-192`: current focused run measured `97.46 us / 76.09 KB`.
+- `CreateNativePictureFromFullModel | generated-text-192`: current focused run measured `64.32 us / 25.63 KB`.
 
 Focused layer-depth replay-state measurements:
 
@@ -1108,5 +1121,20 @@ Focused simple natural text advance cache-hit measurements:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SKSvgRebuildFromModelTests"`
   - Passed 472.
   - `SVG_SKIA_BENCHMARK_RUN_LABEL=positioned-text-run-direct-matrix-draw SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96,generated-shapes-1024,generated-filtered-shapes-256,generated-aligned-letter-spacing-192,generated-aligned-text-length-192 dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRenderBitmapBenchmarks.DrawNativePicture1x*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+- Focused rotation-scale positioned text blob replay validation:
+  - `dotnet build src/Svg.Skia/Svg.Skia.csproj -c Release --no-restore`
+  - Build passed with existing warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SKSvgRebuildFromModelTests"`
+  - Passed 472.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~WptSvg2StaticSubsetTests"`
+  - Passed 46.
+  - `SVG_SKIA_BENCHMARK_RUN_LABEL=positioned-run-rsxform-blob-draw SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-192,generated-shapes-1024,generated-filtered-shapes-256 dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRenderBitmapBenchmarks.DrawNativePicture1x*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - `SVG_SKIA_BENCHMARK_RUN_LABEL=positioned-run-rsxform-blob-native-picture-create SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-192 dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks.CreateNativePictureFromFullModel*" --warmupCount 2 --minIterationCount 4 --maxIterationCount 8`
+  - `dotnet format Svg.Skia.slnx --no-restore`
+  - Completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release`
+  - Build passed with 193 existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2598, skipped 40; other test projects passed.
 
 The release build currently reports existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
