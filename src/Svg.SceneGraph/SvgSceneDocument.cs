@@ -379,7 +379,7 @@ public sealed class SvgSceneDocument
     private void RebuildIndexesAndDependencies(bool? knownMarkerReferenceDeclarations)
     {
         var addressKeyCache = new SvgElementAddressKeyCache();
-        var (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations) =
+        var (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, addressableElementCount) =
             AnalyzeDependencyRequirements(knownMarkerReferenceDeclarations);
         _mayContainResourceElements = hasResourceElements;
         _mayContainReferenceDependencies = hasReferenceDependencies;
@@ -392,7 +392,15 @@ public sealed class SvgSceneDocument
             RebuildResourceGraph(addressKeyCache, hasMarkerReferenceDeclarations, hasClipPathDeclarations);
         }
 
-        RegisterNodeDependencies(addressKeyCache, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations);
+        var canUseNodeSubtreeRegistration = !hasReferenceDependencies &&
+                                            addressableElementCount > 0 &&
+                                            _nodesByAddress.Count >= addressableElementCount;
+        RegisterNodeDependencies(
+            addressKeyCache,
+            hasReferenceDependencies,
+            hasMarkerReferenceDeclarations,
+            hasClipPathDeclarations,
+            canUseNodeSubtreeRegistration);
         ResolveRuntimePayloads(addressKeyCache);
         Revision++;
     }
@@ -614,14 +622,23 @@ public sealed class SvgSceneDocument
         SvgElementAddressKeyCache addressKeyCache,
         bool includeReferencedDependencies,
         bool includeMarkerReferences,
-        bool includeClipPathReferences)
+        bool includeClipPathReferences,
+        bool useNodeSubtreeRegistration = false)
     {
         if (_compilationRootsByKey.Count == 0)
         {
             return;
         }
 
-        RegisterCompilationRootSubtreeAddresses(addressKeyCache);
+        if (useNodeSubtreeRegistration)
+        {
+            RegisterCompilationRootSubtreeAddressesFromNodes();
+        }
+        else
+        {
+            RegisterCompilationRootSubtreeAddresses(addressKeyCache);
+        }
+
         if (!includeReferencedDependencies)
         {
             return;
@@ -639,17 +656,18 @@ public sealed class SvgSceneDocument
         }
     }
 
-    private (bool HasResourceElements, bool HasReferenceDependencies, bool HasMarkerReferenceDeclarations, bool HasClipPathDeclarations) AnalyzeDependencyRequirements(bool? knownMarkerReferenceDeclarations)
+    private (bool HasResourceElements, bool HasReferenceDependencies, bool HasMarkerReferenceDeclarations, bool HasClipPathDeclarations, int AddressableElementCount) AnalyzeDependencyRequirements(bool? knownMarkerReferenceDeclarations)
     {
         if (SourceDocument is null)
         {
-            return (false, false, false, false);
+            return (false, false, false, false, 0);
         }
 
         var hasResourceElements = false;
         var hasReferenceDependencies = false;
         var hasMarkerReferenceDeclarations = knownMarkerReferenceDeclarations.GetValueOrDefault();
         var hasClipPathDeclarations = false;
+        var addressableElementCount = 0;
         var traversalStack = _elementTraversalStack;
         traversalStack.Clear();
         traversalStack.Push(SourceDocument);
@@ -657,6 +675,11 @@ public sealed class SvgSceneDocument
         while (traversalStack.Count > 0)
         {
             var element = traversalStack.Pop();
+            if (!ReferenceEquals(element, SourceDocument))
+            {
+                addressableElementCount++;
+            }
+
             if (!hasResourceElements &&
                 SvgSceneCompiler.TryGetResourceKind(element, out _))
             {
@@ -698,7 +721,56 @@ public sealed class SvgSceneDocument
 
         traversalStack.Clear();
 
-        return (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations);
+        return (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, addressableElementCount);
+    }
+
+    private void RegisterCompilationRootSubtreeAddressesFromNodes()
+    {
+        var activeCompilationRootKeys = _compilationRootSubtreeActiveKeys;
+        activeCompilationRootKeys.Clear();
+        try
+        {
+            RegisterCompilationRootSubtreeAddressesFromNode(Root, activeCompilationRootKeys);
+        }
+        finally
+        {
+            activeCompilationRootKeys.Clear();
+        }
+    }
+
+    private void RegisterCompilationRootSubtreeAddressesFromNode(
+        SvgSceneNode node,
+        List<string> activeCompilationRootKeys)
+    {
+        var addedCompilationRootKey = false;
+        if (node.IsCompilationRootBoundary && !string.IsNullOrWhiteSpace(node.CompilationRootKey))
+        {
+            activeCompilationRootKeys.Add(node.CompilationRootKey!);
+            addedCompilationRootKey = true;
+        }
+
+        if (activeCompilationRootKeys.Count > 0 && !string.IsNullOrWhiteSpace(node.ElementAddressKey))
+        {
+            for (var i = 0; i < activeCompilationRootKeys.Count; i++)
+            {
+                RegisterDependentAddress(node.ElementAddressKey!, activeCompilationRootKeys[i]);
+            }
+        }
+
+        if (node.MaskNode is { } maskNode)
+        {
+            RegisterCompilationRootSubtreeAddressesFromNode(maskNode, activeCompilationRootKeys);
+        }
+
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            RegisterCompilationRootSubtreeAddressesFromNode(node.Children[i], activeCompilationRootKeys);
+        }
+
+        if (addedCompilationRootKey)
+        {
+            activeCompilationRootKeys.RemoveAt(activeCompilationRootKeys.Count - 1);
+        }
     }
 
     private void RegisterCompilationRootSubtreeAddresses(SvgElementAddressKeyCache addressKeyCache)
