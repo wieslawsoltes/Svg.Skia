@@ -882,7 +882,7 @@ public static class SvgSceneRenderer
             child.BlendModePaint is not null ||
             child.IsIsolationGroup ||
             !IsSimpleSolidFill(child.LocalFill) ||
-            !CanCreateTransformedSimpleFillPath(child.LocalPath, child.Transform))
+            !CanCreateTransformedSimpleFillPath(child.LocalPath))
         {
             return false;
         }
@@ -945,10 +945,20 @@ public static class SvgSceneRenderer
         return adjusted;
     }
 
-    private static bool CanCreateTransformedSimpleFillPath(SKPath sourcePath, SKMatrix transform)
+    private static bool CanCreateTransformedSimpleFillPath(SKPath sourcePath)
     {
         return sourcePath.Commands is { Count: > 0 } commands &&
-               TryCreateTransformedSimpleFillPath(commands, transform, sourcePath.FillType, out _);
+               CanCreateTransformedSimpleFillPath(commands);
+    }
+
+    private static bool CanCreateTransformedSimpleFillPath(IList<PathCommand> commands)
+    {
+        if (commands.Count == 1)
+        {
+            return commands[0] is AddRectPathCommand or AddPolyPathCommand { Points.Count: >= 3 };
+        }
+
+        return IsClosedPolyline(commands);
     }
 
     private static SKPath? CreateTransformedSimpleFillPath(SKPath sourcePath, SKMatrix transform)
@@ -986,36 +996,30 @@ public static class SvgSceneRenderer
             return false;
         }
 
-        if (!TryCollectClosedPolyline(commands, out var polylinePoints))
+        if (!IsClosedPolyline(commands))
         {
             return false;
         }
 
-        transformedPath = CreateTransformedPolygonPath(fillType, polylinePoints, close: true, transform);
+        transformedPath = CreateTransformedClosedPolylinePath(fillType, commands, transform);
         return true;
     }
 
-    private static bool TryCollectClosedPolyline(IList<PathCommand> commands, out SKPoint[] points)
+    private static bool IsClosedPolyline(IList<PathCommand> commands)
     {
-        points = Array.Empty<SKPoint>();
         if (commands.Count < 4 ||
-            commands[0] is not MoveToPathCommand moveTo ||
+            commands[0] is not MoveToPathCommand ||
             commands[commands.Count - 1] is not ClosePathCommand)
         {
             return false;
         }
 
-        points = new SKPoint[commands.Count - 1];
-        points[0] = new SKPoint(moveTo.X, moveTo.Y);
         for (var i = 1; i < commands.Count - 1; i++)
         {
-            if (commands[i] is not LineToPathCommand lineTo)
+            if (commands[i] is not LineToPathCommand)
             {
-                points = Array.Empty<SKPoint>();
                 return false;
             }
-
-            points[i] = new SKPoint(lineTo.X, lineTo.Y);
         }
 
         return true;
@@ -1025,6 +1029,30 @@ public static class SvgSceneRenderer
     {
         var path = new SKPath { FillType = fillType };
         path.AddPoly(points, close: true);
+        return path;
+    }
+
+    private static SKPath CreateTransformedClosedPolylinePath(
+        SKPathFillType fillType,
+        IList<PathCommand> commands,
+        SKMatrix transform)
+    {
+        var transformed = new SKPoint[commands.Count - 1];
+        if (commands[0] is MoveToPathCommand moveTo)
+        {
+            transformed[0] = transform.MapPoint(new SKPoint(moveTo.X, moveTo.Y));
+        }
+
+        for (var i = 1; i < commands.Count - 1; i++)
+        {
+            if (commands[i] is LineToPathCommand lineTo)
+            {
+                transformed[i] = transform.MapPoint(new SKPoint(lineTo.X, lineTo.Y));
+            }
+        }
+
+        var path = new SKPath { FillType = fillType };
+        path.AddPoly(transformed, close: true);
         return path;
     }
 
