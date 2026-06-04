@@ -2416,8 +2416,7 @@ internal static partial class SvgSceneTextCompiler
 
     private static bool CanDrawResolvedSequentialCompileRunFillOnly(SvgTextBase svgTextBase, SKRect geometryBounds)
     {
-        return SvgScenePaintingService.IsValidFill(svgTextBase) &&
-               !SvgScenePaintingService.IsValidStroke(svgTextBase, geometryBounds) &&
+        return !SvgScenePaintingService.IsValidStroke(svgTextBase, geometryBounds) &&
                !HasTextDecorationLayers(svgTextBase);
     }
 
