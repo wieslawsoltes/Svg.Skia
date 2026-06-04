@@ -101,6 +101,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Delegate-free retained structural finalization for group, anchor, switch, fragment, `<use>`, and symbol compile paths.
 - ASCII bidi-probe fast paths for simple retained text so direction/control checks skip codepoint-object allocation.
 - Resolved-typeface text paint setup so retained text recording skips redundant `SKTypeface` resolution.
+- Fill-only retained text validity-probe skip so simple resolved text avoids a redundant fill paint-server walk.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -234,6 +235,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Replaced retained structural finalization callbacks with explicit bounds/transform finalization so group, anchor, switch, fragment, `<use>`, and symbol paths avoid per-node delegate/display-class allocations during retained compile.
 - Added ASCII fast paths to bidi direction and explicit-control probes so simple retained text eligibility checks avoid `BidiCodepoint` allocation while non-ASCII, RTL, and explicit-control text still uses the full resolver.
 - Added an internal text-paint setup path that accepts an already resolved `SKTypeface`, and used it for retained sequential and simple aligned text recording so these paths keep text paint properties without re-resolving and then overwriting typefaces.
+- Let fill-only resolved sequential text skip the pre-flight fill-validity check and rely on the existing fill-paint resolution path to no-op invalid fills, avoiding a duplicated inherited `fill` property walk for every simple retained text run while preserving stroke and decoration guards.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -1519,6 +1521,10 @@ Focused simple natural text advance cache-hit measurements:
   - Allocation sampling for `generated-text-192` showed the sampled `ShimSkiaSharp.SKTypeface` bucket moving from `12799968 B` to `8425424 B` after reusing resolved run typefaces during paint setup.
   - BenchmarkDotNet retained compile row: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-shapes-1024,generated-aligned-letter-spacing-192" SVG_SKIA_BENCHMARK_RUN_LABEL="resolved-text-typeface-retained-compile" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3` measured allocations of `2.46 MB`, `2.47 MB`, and `1.89 MB`, respectively; timing remained short-run/noisy.
   - Focused validation passed: `Svg.Model.UnitTests` 211 tests and the text/retained/hit/path/static Svg.Skia slice 543 tests.
+- Focused fill-validity probe skip validation:
+  - Direct allocation probe for `generated-text-192` moved from `2654501.08 B` to `2019516.68 B` allocated per compile after skipping the duplicated fill-validity probe; `generated-shapes-1024` stayed flat at `2588412.52 B`, and `generated-aligned-letter-spacing-192` moved from `2122819.52 B` to `2089455.12 B`.
+  - BenchmarkDotNet retained compile row: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="skip-fill-validity-probe-retained-text" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3` measured `generated-text-192` at `1.83 MB`, `generated-aligned-letter-spacing-192` at `1.89 MB`, and `generated-shapes-1024` at `2.47 MB`; timing remained short-run/noisy.
+  - Focused text/retained/paint-order/hit/static validation passed 540 tests.
 - Pre-publish validation for the current stack:
   - `dotnet format Svg.Skia.slnx --no-restore` completed.
   - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
