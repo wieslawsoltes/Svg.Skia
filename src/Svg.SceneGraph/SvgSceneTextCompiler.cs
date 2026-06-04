@@ -2352,6 +2352,13 @@ internal static partial class SvgSceneTextCompiler
         {
             var run = resolvedRuns[i];
             using var commandSource = PushTextCommandSource(canvas, run.StyleSource, getElementAddressKey);
+            if (CanDrawResolvedSequentialCompileRunFillOnly(run.StyleSource, geometryBounds))
+            {
+                DrawResolvedSequentialCompileRunFill(run, currentX, currentY, geometryBounds, ignoreAttributes, canvas, assetLoader, contextPaint);
+                ApplyInlineAdvance(run.StyleSource, ref currentX, ref currentY, run.Advance);
+                continue;
+            }
+
             _ = DrawTextPaintOrder(run.StyleSource, includeFill: true, includeStroke: true, includeDecorations: true, phase =>
             {
                 switch (phase)
@@ -2407,6 +2414,35 @@ internal static partial class SvgSceneTextCompiler
 
             ApplyInlineAdvance(run.StyleSource, ref currentX, ref currentY, run.Advance);
         }
+    }
+
+    private static bool CanDrawResolvedSequentialCompileRunFillOnly(SvgTextBase svgTextBase, SKRect geometryBounds)
+    {
+        return SvgScenePaintingService.IsValidFill(svgTextBase) &&
+               !SvgScenePaintingService.IsValidStroke(svgTextBase, geometryBounds) &&
+               !HasTextDecorationLayers(svgTextBase);
+    }
+
+    private static void DrawResolvedSequentialCompileRunFill(
+        ResolvedSequentialCompileRun run,
+        float x,
+        float y,
+        SKRect geometryBounds,
+        DrawAttributes ignoreAttributes,
+        SKCanvas canvas,
+        ISvgAssetLoader assetLoader,
+        SvgSceneContextPaint? contextPaint)
+    {
+        var fillPaint = SvgScenePaintingService.GetFillPaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes, contextPaint);
+        if (fillPaint is null)
+        {
+            return;
+        }
+
+        PaintingService.SetPaintText(run.StyleSource, geometryBounds, fillPaint);
+        fillPaint.TextAlign = SKTextAlign.Left;
+        fillPaint.Typeface = run.Typeface;
+        canvas.DrawText(run.DrawText, x, y, fillPaint);
     }
 
     private static bool TryResolveAlignedSequentialCompileRuns(
