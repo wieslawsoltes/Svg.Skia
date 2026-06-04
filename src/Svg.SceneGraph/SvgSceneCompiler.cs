@@ -1692,13 +1692,33 @@ public static class SvgSceneCompiler
                 : SKRect.Union(bounds, childBounds);
         }
 
+        var previousTotalTransform = node.TotalTransform;
         node.GeometryBounds = bounds;
         if (resolveTransform is not null)
         {
             node.Transform = resolveTransform(bounds);
         }
 
-        RefreshNodeTotalTransforms(node, parentTotalTransform);
+        node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
+        node.TransformedBounds = node.TotalTransform.MapRect(node.GeometryBounds);
+
+        if (node.TotalTransform != previousTotalTransform)
+        {
+            RefreshChildTotalTransforms(node);
+        }
+    }
+
+    private static void RefreshChildTotalTransforms(SvgSceneNode node)
+    {
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            RefreshNodeTotalTransforms(node.Children[i], node.TotalTransform);
+        }
+
+        if (node.MaskNode is { } maskNode)
+        {
+            RefreshNodeTotalTransforms(maskNode, node.TotalTransform);
+        }
     }
 
     private static void RefreshNodeTotalTransforms(
