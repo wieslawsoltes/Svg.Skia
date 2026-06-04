@@ -1527,10 +1527,12 @@ public static class SvgSceneCompiler
         SKMatrix parentTotalTransform,
         DrawAttributes ignoreAttributes)
     {
+        var bounds = CalculateDirectStructuralBounds(node);
         FinalizeDirectStructuralBounds(
             node,
             parentTotalTransform,
-            bounds => TransformsService.ApplyTransformOrigin(svgGroup, bounds, viewport, node.Transform));
+            bounds,
+            TransformsService.ApplyTransformOrigin(svgGroup, bounds, viewport, node.Transform));
     }
 
     private static void FinalizeDirectAnchorNode(
@@ -1540,10 +1542,12 @@ public static class SvgSceneCompiler
         SKMatrix parentTotalTransform,
         DrawAttributes ignoreAttributes)
     {
+        var bounds = CalculateDirectStructuralBounds(node);
         FinalizeDirectStructuralBounds(
             node,
             parentTotalTransform,
-            bounds => TransformsService.ApplyTransformOrigin(svgAnchor, bounds, viewport, node.Transform));
+            bounds,
+            TransformsService.ApplyTransformOrigin(svgAnchor, bounds, viewport, node.Transform));
         node.ClipPath = null;
         node.MaskPaint = null;
         node.MaskDstIn = null;
@@ -1560,10 +1564,12 @@ public static class SvgSceneCompiler
         SKMatrix parentTotalTransform,
         DrawAttributes ignoreAttributes)
     {
+        var bounds = CalculateDirectStructuralBounds(node);
         FinalizeDirectStructuralBounds(
             node,
             parentTotalTransform,
-            bounds => TransformsService.ApplyTransformOrigin(svgSwitch, bounds, viewport, node.Transform));
+            bounds,
+            TransformsService.ApplyTransformOrigin(svgSwitch, bounds, viewport, node.Transform));
         node.ClipPath = null;
         node.MaskPaint = null;
         node.MaskDstIn = null;
@@ -1581,21 +1587,20 @@ public static class SvgSceneCompiler
         DrawAttributes ignoreAttributes)
     {
         var fragmentViewport = node.GeometryBounds;
+        var bounds = CalculateDirectStructuralBounds(node);
+        var transform = TransformsService.ToMatrix(svgFragment.Transforms, svgFragment, bounds, viewport);
+        var viewBoxTransform = TransformsService.ToMatrix(
+            svgFragment.ViewBox,
+            svgFragment.AspectRatio,
+            fragmentViewport.Left,
+            fragmentViewport.Top,
+            fragmentViewport.Width,
+            fragmentViewport.Height);
         FinalizeDirectStructuralBounds(
             node,
             parentTotalTransform,
-            bounds =>
-            {
-                var transform = TransformsService.ToMatrix(svgFragment.Transforms, svgFragment, bounds, viewport);
-                var viewBoxTransform = TransformsService.ToMatrix(
-                    svgFragment.ViewBox,
-                    svgFragment.AspectRatio,
-                    fragmentViewport.Left,
-                    fragmentViewport.Top,
-                    fragmentViewport.Width,
-                    fragmentViewport.Height);
-                return transform.PreConcat(viewBoxTransform);
-            });
+            bounds,
+            transform.PreConcat(viewBoxTransform));
     }
 
     private static void FinalizeDirectForeignObjectNode(
@@ -1664,8 +1669,16 @@ public static class SvgSceneCompiler
 
     private static void FinalizeDirectStructuralBounds(
         SvgSceneNode node,
-        SKMatrix parentTotalTransform,
-        Func<SKRect, SKMatrix>? resolveTransform = null)
+        SKMatrix parentTotalTransform)
+    {
+        FinalizeDirectStructuralBounds(
+            node,
+            parentTotalTransform,
+            CalculateDirectStructuralBounds(node),
+            node.Transform);
+    }
+
+    private static SKRect CalculateDirectStructuralBounds(SvgSceneNode node)
     {
         var bounds = node.GeometryBounds;
         for (var i = 0; i < node.Children.Count; i++)
@@ -1692,12 +1705,18 @@ public static class SvgSceneCompiler
                 : SKRect.Union(bounds, childBounds);
         }
 
+        return bounds;
+    }
+
+    private static void FinalizeDirectStructuralBounds(
+        SvgSceneNode node,
+        SKMatrix parentTotalTransform,
+        SKRect bounds,
+        SKMatrix transform)
+    {
         var previousTotalTransform = node.TotalTransform;
         node.GeometryBounds = bounds;
-        if (resolveTransform is not null)
-        {
-            node.Transform = resolveTransform(bounds);
-        }
+        node.Transform = transform;
 
         node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
         node.TransformedBounds = node.TotalTransform.MapRect(node.GeometryBounds);
@@ -2104,10 +2123,12 @@ public static class SvgSceneCompiler
 
         AssignGeneratedHitTestTarget(referencedNode, svgUse);
         useNode.AddChild(referencedNode);
+        var useBounds = CalculateDirectStructuralBounds(useNode);
         FinalizeDirectStructuralBounds(
             useNode,
             parentTotalTransform,
-            bounds => ResolveUseTransform(svgUse, referencedElement, x, y, bounds, viewport));
+            useBounds,
+            ResolveUseTransform(svgUse, referencedElement, x, y, useBounds, viewport));
         node = useNode;
         return true;
     }
@@ -2522,17 +2543,16 @@ public static class SvgSceneCompiler
             }
         }
 
+        var bounds = CalculateDirectStructuralBounds(node);
+        var resolvedTransform = TransformsService.ToMatrix(svgSymbol.Transforms, svgSymbol, bounds, symbolViewport);
+        var resolvedViewBoxTransform = TransformsService.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
+        var resolvedSymbolViewport = symbolViewport;
+        resolvedViewBoxTransform = ApplySymbolReferencePoint(svgSymbol, resolvedViewBoxTransform, x, y, viewport, ref resolvedSymbolViewport);
         FinalizeDirectStructuralBounds(
             node,
             parentTotalTransform,
-            bounds =>
-            {
-                var transform = TransformsService.ToMatrix(svgSymbol.Transforms, svgSymbol, bounds, symbolViewport);
-                var viewBoxTransform = TransformsService.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
-                var resolvedSymbolViewport = symbolViewport;
-                viewBoxTransform = ApplySymbolReferencePoint(svgSymbol, viewBoxTransform, x, y, viewport, ref resolvedSymbolViewport);
-                return transform.PreConcat(viewBoxTransform);
-            });
+            bounds,
+            resolvedTransform.PreConcat(resolvedViewBoxTransform));
         return node;
     }
 
