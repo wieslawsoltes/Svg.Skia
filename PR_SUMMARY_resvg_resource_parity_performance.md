@@ -71,6 +71,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Layer-depth-only native picture replay state tracking for save/restore-heavy scenes.
 - Bounded rendered text local-bounds caching for repeated retained text metrics.
 - Read-only codepoint split reuse for text-DOM and prepared-text read paths.
+- Source-text reuse and simple natural codepoint advance caching for repeated prepared text measurement.
 - Closed line-only SVG path conversion for generated path-heavy scenes.
 - Versioned shim path-bounds caching for retained compile bounds scans.
 - Inline shim path command-list storage for one- and two-command paths.
@@ -172,6 +173,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added a root retained compile branch for simple horizontal ASCII `lengthAdjust="spacingAndGlyphs"` textLength runs, resolving scaled draw bounds once and recording the scaled text command directly instead of falling through to generic text bounds estimation plus draw traversal.
 - Reused aligned placement codepoint splits during retained aligned bounds measurement, avoiding a second codepoint read/allocation pass for simple aligned retained runs.
 - Reused immutable one-character ASCII codepoint strings during codepoint splitting, pre-sized uncached split lists, and stored freshly measured natural codepoint advances directly in the internal cache once callers had finished mutating reconciliation data.
+- Added source-text side caching for read-only split codepoint arrays and a cheaper simple natural-codepoint advance cache keyed by text/font/bidi metrics before paint allocation, reducing repeated prepared-text measurement allocations while keeping mutable split callers on fresh lists.
 - Bypassed one-item `List<SimplePositionedSequentialCompileRun>` materialization for single-run simple aligned retained spacing/textLength compilation by drawing the resolved positioned run directly.
 - Deferred text reference-set allocation until filtered textPath rendering actually constructs a filter context, while preserving document URI seeding through `SvgService.ExtendImageReferences`.
 - Trimmed flattened textLength run materialization by avoiding LINQ glyph-scale seeding, temporary spacing gap-index lists, chunk arrays for one-chunk textLength runs, and placement-list copies for simple one-style retained textLength runs.
@@ -428,7 +430,20 @@ Focused post-sidecar text internals scan:
 - `SplitCodepointsAcrossFragments | generated-aligned-text-length-192`: `7.397 us / 53.14 KB`.
 - `MeasureNaturalCodepointAdvancesAcrossFragments | generated-aligned-text-length-192`: `133.149 us / 67.5 KB`.
 - `MeasureNaturalTextAdvanceAcrossFragments | generated-aligned-text-length-192`: `197.668 us / 12 KB`.
-- The next text-focused allocation target is natural codepoint advance measurement; natural full-text advance remains the larger timing hotspot.
+- This identified natural codepoint advance measurement as the next text-focused allocation target; natural full-text advance remained the larger timing hotspot.
+
+Focused source-text/simple natural-codepoint cache text internals scan:
+
+- `SplitCodepointsAcrossFragments | generated-aligned-letter-spacing-192`: `10.96 us / 57.64 KB`.
+- `MeasureNaturalCodepointAdvancesAcrossFragments | generated-aligned-letter-spacing-192`: `161.82 us / 12 KB`.
+- `MeasureNaturalTextAdvanceAcrossFragments | generated-aligned-letter-spacing-192`: `195.26 us / 12 KB`.
+- `SplitCodepointsAcrossFragments | generated-aligned-text-length-192`: `10.72 us / 53.14 KB`.
+- `MeasureNaturalCodepointAdvancesAcrossFragments | generated-aligned-text-length-192`: `159.53 us / 12 KB`.
+- `MeasureNaturalTextAdvanceAcrossFragments | generated-aligned-text-length-192`: `196.02 us / 12 KB`.
+- `SplitCodepointsAcrossFragments | generated-text-192`: `29.48 us / 76.28 KB`.
+- `MeasureNaturalCodepointAdvancesAcrossFragments | generated-text-192`: `632.37 us / 45 KB`.
+- `MeasureNaturalTextAdvanceAcrossFragments | generated-text-192`: `702.85 us / 45 KB`.
+- Split-codepoint allocation stayed at the earlier read-only split-cache levels, while natural codepoint advance allocation dropped from `69 KB`/`67.5 KB`/`187.92 KB` to `12 KB`/`12 KB`/`45 KB` across the aligned letter-spacing, aligned textLength, and generated text rows.
 
 Focused SVG-font metrics-guard retained/text benchmark scan:
 
@@ -437,7 +452,7 @@ Focused SVG-font metrics-guard retained/text benchmark scan:
 - `CompileNodeTreeOnly | generated-text-192`: `2.66 MB`.
 - `CompileNodeTreeOnly | generated-text-path-curves-96`: `1.23 MB`.
 - Expanded `SvgTextCompileInternalsBenchmarks` scenario selection now includes generated spacing rows; `generated-aligned-letter-spacing-192` measured `57.64 KB`, `69 KB`, and `12 KB` across split, natural-codepoint, and natural-text advance rows.
-- `generated-text-192` remains the next text-focused allocation target at `187.92 KB` for natural codepoint advance measurement and `45 KB` for natural text advance.
+- Before the source-text/simple natural-codepoint cache work, `generated-text-192` remained a text-focused allocation target at `187.92 KB` for natural codepoint advance measurement and `45 KB` for natural text advance.
 
 Focused retained-scene address-key cache measurements:
 
