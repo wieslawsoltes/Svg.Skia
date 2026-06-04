@@ -89,10 +89,11 @@ The branch focuses on cases found while validating the resource parity lane:
 - Structural transform-origin reuse and direct path cull-bounds reuse for retained primitive/group compile.
 - Direct visual fill/stroke validity reuse for retained shape compile.
 - Retained paint-hit validity reuse during runtime payload refresh for direct path, shape, and text nodes.
+- Runtime payload paint reuse and compact retained-node opacity state for direct shape nodes.
 - Inline `SKPath` command storage without a per-path change-tracking wrapper.
 - Own-`textLength` guard for retained textLength fast-path probes on ordinary text.
 - Lazy retained-node visual/resource sidecar storage for rare cursor, background, blend, and resource-key state.
-- Lazy retained-node effect sidecar storage for rare clip, mask, filter, and opacity state.
+- Lazy retained-node effect sidecar storage for rare clip, mask, and filter state.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -215,9 +216,10 @@ The branch focuses on cases found while validating the resource parity lane:
 - Reused precomputed structural transforms when applying transform-origin during direct retained group, anchor, and switch finalization, and reused already computed direct path geometry bounds for local cull rectangles.
 - Reused direct visual fill/stroke hit-test validity checks when creating retained local paints, avoiding duplicate paint-server and stroke-width validity work for every direct shape node.
 - Reused retained fill/stroke hit-test flags while refreshing runtime paint payloads for direct path, shape, and text nodes, avoiding duplicate paint-validity checks after retained compile has already computed them.
+- Reused direct-path local fill/stroke paints while refreshing retained runtime payloads, and split opacity into a compact retained-node sidecar so opacity-only leaf nodes no longer allocate the larger clip/mask/filter effect state.
 - Skipped retained textLength-specific compile probes before run collection when a text element has no own `textLength`, avoiding duplicate sequential-run collection for ordinary retained text while preserving the specialized paths for real `textLength` rows.
 - Moved rare retained-node visual and resource-key state into lazy sidecars, so ordinary retained nodes do not carry cursor, background-layer, isolation/blend, clip, mask, or filter fields directly.
-- Moved rare retained-node clip/mask/filter/opacity effect state into a lazy effect sidecar, including overflow/clip rectangles, filter clips, mask paints, opacity paint/value, and mask child nodes.
+- Moved rare retained-node clip/mask/filter effect state into a lazy effect sidecar, including overflow/clip rectangles, filter clips, mask paints, and mask child nodes.
 - Added cursor and `enable-background` to cascaded-style feature analysis so retained visual-state probes are skipped when the element's own declarations cannot contain those features.
 
 Focused benchmark results for W3C-safe primitive fill replay:
@@ -1453,6 +1455,14 @@ Focused simple natural text advance cache-hit measurements:
   - Focused text/retained validation: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgTextSelectionDomTests|FullyQualifiedName~HitTestTests"` passed 492.
   - Current retained text compile: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192" SVG_SKIA_BENCHMARK_RUN_LABEL="resolved-sequential-fill-only-retained-text" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
   - `CompileNodeTreeOnly | generated-text-192` measured `5.297 ms / 2.49 MB`; timing remains short-run evidence, while allocation moved below the previous `2624.44 KB` row by avoiding the generic paint-order path for fill-only resolved sequential runs.
+- Focused runtime payload paint reuse and compact opacity-state validation:
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore` passed with no warnings.
+  - Focused retained/resource/hit-test validation: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgResourceRenderingParityTests|FullyQualifiedName~HitTestTests|FullyQualifiedName~SKSvgRebuildFromModelTests"` passed 415.
+  - Baseline shape phase scan: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="next-shape-phase-scan-post-fill-only" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Baseline rows: `ResolveRuntimePayloadsOnly` `5.506 ms / 363064 B`, `CreateSceneDocumentFromCompiledTree` `4.398 ms / 782748 B`, `CompileViaSceneCompiler` `16.690 ms / 3839219 B`, `CompileViaSceneRuntime` `18.887 ms / 3839769 B`, and `CompileNodeTreeOnly` `8.003 ms / 2695720 B`.
+  - Current shape phase scan: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="split-opacity-payload-shape-phase" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Current rows: `ResolveRuntimePayloadsOnly` `807.327 us / 116304 B`, `CreateSceneDocumentFromCompiledTree` `1.081 ms / 634236 B`, `CompileViaSceneCompiler` `6.289 ms / 3420428 B`, `CompileViaSceneRuntime` `6.803 ms / 3421054 B`, and `CompileNodeTreeOnly` `3.166 ms / 2720267 B`.
+  - Timing remains short-run evidence, while the main allocation win is from reusing already-created local paints and avoiding the large effect sidecar for opacity-only retained leaf nodes.
 - Pre-publish validation for the current stack:
   - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
   - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
