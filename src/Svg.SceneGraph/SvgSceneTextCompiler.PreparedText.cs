@@ -488,8 +488,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var paint = CreateTextMetricsPaint(run.StyleSource, geometryBounds);
-        return !SvgFontTextRenderer.TryGetLayout(run.StyleSource, run.Text, paint, assetLoader, out _);
+        return CanUseSkiaTextMetrics(run.StyleSource, run.Text, geometryBounds, assetLoader);
     }
 
     private static void ClearPreparedTextCaches()

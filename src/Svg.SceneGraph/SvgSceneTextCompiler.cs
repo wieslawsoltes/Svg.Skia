@@ -2693,8 +2693,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var paint = CreateTextMetricsPaint(styleSource, geometryBounds);
-        return !SvgFontTextRenderer.TryGetLayout(styleSource, run.Text, paint, assetLoader, out _);
+        return CanUseSkiaTextMetrics(styleSource, run.Text, geometryBounds, assetLoader);
     }
 
     private static SKRect CreateScaledTextLengthRelativeBounds(SKRect localBounds, float specifiedLength, float scaleX)
@@ -2735,8 +2734,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var paint = CreateTextMetricsPaint(styleSource, geometryBounds);
-        return !SvgFontTextRenderer.TryGetLayout(styleSource, run.Text, paint, assetLoader, out _);
+        return CanUseSkiaTextMetrics(styleSource, run.Text, geometryBounds, assetLoader);
     }
 
     private static bool TryCreateSimpleAlignedSpacingSequentialCompileRun(
@@ -2887,8 +2885,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var paint = CreateTextMetricsPaint(styleSource, geometryBounds);
-        return !SvgFontTextRenderer.TryGetLayout(styleSource, run.Text, paint, assetLoader, out _);
+        return CanUseSkiaTextMetrics(styleSource, run.Text, geometryBounds, assetLoader);
     }
 
     private static bool CanUseAlignedSequentialCompileRun(
@@ -2920,8 +2917,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var paint = CreateTextMetricsPaint(styleSource, geometryBounds);
-        return !SvgFontTextRenderer.TryGetLayout(styleSource, run.Text, paint, assetLoader, out _);
+        return CanUseSkiaTextMetrics(styleSource, run.Text, geometryBounds, assetLoader);
     }
 
     private static bool HasSupportedAlignedSequentialCompileSpacing(SvgTextBase styleSource, string text)
@@ -3244,7 +3240,7 @@ internal static partial class SvgSceneTextCompiler
         PaintingService.SetPaintText(svgTextBase, geometryBounds, paint);
         paint.TextAlign = SKTextAlign.Left;
 
-        if (SvgFontTextRenderer.TryGetLayout(svgTextBase, text, paint, assetLoader, out _))
+        if (!CanUseSkiaTextMetrics(svgTextBase, text, paint, assetLoader))
         {
             return false;
         }
@@ -3310,7 +3306,7 @@ internal static partial class SvgSceneTextCompiler
         PaintingService.SetPaintText(svgTextBase, geometryBounds, paint);
         paint.TextAlign = SKTextAlign.Left;
 
-        if (SvgFontTextRenderer.TryGetLayout(svgTextBase, text, paint, assetLoader, out _))
+        if (!CanUseSkiaTextMetrics(svgTextBase, text, paint, assetLoader))
         {
             return false;
         }
@@ -8583,6 +8579,35 @@ internal static partial class SvgSceneTextCompiler
         PaintingService.SetPaintText(svgTextBase, geometryBounds, paint);
         paint.TextAlign = SKTextAlign.Left;
         return paint;
+    }
+
+    private static bool CanUseSkiaTextMetrics(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader)
+    {
+        if (!SvgFontTextRenderer.HasFontEntries(svgTextBase, assetLoader))
+        {
+            return true;
+        }
+
+        var paint = CreateTextMetricsPaint(svgTextBase, geometryBounds);
+        return !SvgFontTextRenderer.TryGetLayout(svgTextBase, text, paint, assetLoader, out _);
+    }
+
+    private static bool CanUseSkiaTextMetrics(
+        SvgTextBase svgTextBase,
+        string text,
+        SKPaint paint,
+        ISvgAssetLoader assetLoader)
+    {
+        if (!SvgFontTextRenderer.HasFontEntries(svgTextBase, assetLoader))
+        {
+            return true;
+        }
+
+        return !SvgFontTextRenderer.TryGetLayout(svgTextBase, text, paint, assetLoader, out _);
     }
 
     private static IEnumerable<ISvgNode> GetContentNodes(SvgElement element)
@@ -20140,7 +20165,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        if (SvgFontTextRenderer.TryGetLayout(svgTextBase, text, paint, assetLoader, out _))
+        if (!CanUseSkiaTextMetrics(svgTextBase, text, paint, assetLoader))
         {
             return false;
         }
