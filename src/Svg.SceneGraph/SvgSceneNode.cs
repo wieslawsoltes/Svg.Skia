@@ -14,6 +14,9 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
 
     private object? _children;
     private SvgSceneNode? _child1;
+    private VisualState? _visualState;
+    private ResourceKeyState? _resourceKeys;
+    private EffectState? _effectState;
     private SvgSceneTextCompiler.SvgTextContentMetrics? _textContentMetrics;
     private bool _hasLazyTextContentMetrics;
 
@@ -52,19 +55,138 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
 
     public bool IsDisplayNone { get; internal set; }
 
-    public string? Cursor { get; internal set; }
+    public string? Cursor
+    {
+        get => _visualState?.Cursor;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_visualState is not null)
+                {
+                    _visualState.Cursor = null;
+                }
 
-    public bool CreatesBackgroundLayer { get; internal set; }
+                return;
+            }
 
-    public SKRect? BackgroundClip { get; internal set; }
+            EnsureVisualState().Cursor = value;
+        }
+    }
 
-    public bool IsIsolationGroup { get; internal set; }
+    public bool CreatesBackgroundLayer
+    {
+        get => _visualState?.CreatesBackgroundLayer ?? false;
+        internal set
+        {
+            if (!value)
+            {
+                if (_visualState is not null)
+                {
+                    _visualState.CreatesBackgroundLayer = false;
+                }
 
-    public string? ClipResourceKey { get; internal set; }
+                return;
+            }
 
-    public string? MaskResourceKey { get; internal set; }
+            EnsureVisualState().CreatesBackgroundLayer = true;
+        }
+    }
 
-    public string? FilterResourceKey { get; internal set; }
+    public SKRect? BackgroundClip
+    {
+        get => _visualState?.BackgroundClip;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_visualState is not null)
+                {
+                    _visualState.BackgroundClip = null;
+                }
+
+                return;
+            }
+
+            EnsureVisualState().BackgroundClip = value;
+        }
+    }
+
+    public bool IsIsolationGroup
+    {
+        get => _visualState?.IsIsolationGroup ?? false;
+        internal set
+        {
+            if (!value)
+            {
+                if (_visualState is not null)
+                {
+                    _visualState.IsIsolationGroup = false;
+                }
+
+                return;
+            }
+
+            EnsureVisualState().IsIsolationGroup = true;
+        }
+    }
+
+    public string? ClipResourceKey
+    {
+        get => _resourceKeys?.ClipResourceKey;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_resourceKeys is not null)
+                {
+                    _resourceKeys.ClipResourceKey = null;
+                }
+
+                return;
+            }
+
+            EnsureResourceKeys().ClipResourceKey = value;
+        }
+    }
+
+    public string? MaskResourceKey
+    {
+        get => _resourceKeys?.MaskResourceKey;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_resourceKeys is not null)
+                {
+                    _resourceKeys.MaskResourceKey = null;
+                }
+
+                return;
+            }
+
+            EnsureResourceKeys().MaskResourceKey = value;
+        }
+    }
+
+    public string? FilterResourceKey
+    {
+        get => _resourceKeys?.FilterResourceKey;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_resourceKeys is not null)
+                {
+                    _resourceKeys.FilterResourceKey = null;
+                }
+
+                return;
+            }
+
+            EnsureResourceKeys().FilterResourceKey = value;
+        }
+    }
 
     public string? CompilationRootKey { get; private set; }
 
@@ -81,7 +203,7 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
                 ? Array.Empty<SvgSceneNode>()
                 : this;
 
-    public SvgSceneNode? MaskNode { get; private set; }
+    public SvgSceneNode? MaskNode => _effectState?.MaskNode;
 
     public SKPicture? LocalModel { get; internal set; }
 
@@ -113,31 +235,252 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
 
     public SKMatrix TotalTransform { get; internal set; }
 
-    public SKRect? Overflow { get; internal set; }
+    public SKRect? Overflow
+    {
+        get => _effectState?.Overflow;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.Overflow = null;
+                }
 
-    public SKRect? Clip { get; internal set; }
+                return;
+            }
 
-    public SKRect? InnerClip { get; internal set; }
+            EnsureEffectState().Overflow = value;
+        }
+    }
 
-    public ClipPath? ClipPath { get; internal set; }
+    public SKRect? Clip
+    {
+        get => _effectState?.Clip;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.Clip = null;
+                }
 
-    public SKPaint? MaskPaint { get; internal set; }
+                return;
+            }
 
-    public SKPaint? MaskDstIn { get; internal set; }
+            EnsureEffectState().Clip = value;
+        }
+    }
 
-    public SKPaint? Opacity { get; internal set; }
+    public SKRect? InnerClip
+    {
+        get => _effectState?.InnerClip;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.InnerClip = null;
+                }
 
-    public float OpacityValue { get; internal set; } = 1f;
+                return;
+            }
 
-    public SKPaint? BlendModePaint { get; internal set; }
+            EnsureEffectState().InnerClip = value;
+        }
+    }
 
-    public SKPaint? Filter { get; internal set; }
+    public ClipPath? ClipPath
+    {
+        get => _effectState?.ClipPath;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.ClipPath = null;
+                }
 
-    public SKRect? FilterClip { get; internal set; }
+                return;
+            }
 
-    public bool FilterUsesGlobalLayer { get; internal set; }
+            EnsureEffectState().ClipPath = value;
+        }
+    }
 
-    public SKRect? FilterGlobalClip { get; internal set; }
+    public SKPaint? MaskPaint
+    {
+        get => _effectState?.MaskPaint;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.MaskPaint = null;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().MaskPaint = value;
+        }
+    }
+
+    public SKPaint? MaskDstIn
+    {
+        get => _effectState?.MaskDstIn;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.MaskDstIn = null;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().MaskDstIn = value;
+        }
+    }
+
+    public SKPaint? Opacity
+    {
+        get => _effectState?.Opacity;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.Opacity = null;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().Opacity = value;
+        }
+    }
+
+    public float OpacityValue
+    {
+        get => _effectState?.OpacityValue ?? 1f;
+        internal set
+        {
+            if (value == 1f)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.OpacityValue = 1f;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().OpacityValue = value;
+        }
+    }
+
+    public SKPaint? BlendModePaint
+    {
+        get => _visualState?.BlendModePaint;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_visualState is not null)
+                {
+                    _visualState.BlendModePaint = null;
+                }
+
+                return;
+            }
+
+            EnsureVisualState().BlendModePaint = value;
+        }
+    }
+
+    public SKPaint? Filter
+    {
+        get => _effectState?.Filter;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.Filter = null;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().Filter = value;
+        }
+    }
+
+    public SKRect? FilterClip
+    {
+        get => _effectState?.FilterClip;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.FilterClip = null;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().FilterClip = value;
+        }
+    }
+
+    public bool FilterUsesGlobalLayer
+    {
+        get => _effectState?.FilterUsesGlobalLayer ?? false;
+        internal set
+        {
+            if (!value)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.FilterUsesGlobalLayer = false;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().FilterUsesGlobalLayer = true;
+        }
+    }
+
+    public SKRect? FilterGlobalClip
+    {
+        get => _effectState?.FilterGlobalClip;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.FilterGlobalClip = null;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().FilterGlobalClip = value;
+        }
+    }
 
     public SKPaint? Fill { get; internal set; }
 
@@ -164,6 +507,21 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
     public bool HasLocalVisuals =>
         LocalModel?.Commands is { Count: > 0 } ||
         (LocalPath is not null && (LocalFill is not null || LocalStroke is not null));
+
+    private VisualState EnsureVisualState()
+    {
+        return _visualState ??= new VisualState();
+    }
+
+    private ResourceKeyState EnsureResourceKeys()
+    {
+        return _resourceKeys ??= new ResourceKeyState();
+    }
+
+    private EffectState EnsureEffectState()
+    {
+        return _effectState ??= new EffectState();
+    }
 
     internal void AddChild(SvgSceneNode child)
     {
@@ -199,11 +557,18 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
 
     internal void SetMask(SvgSceneNode? maskNode)
     {
-        MaskNode = maskNode;
-        if (maskNode is not null)
+        if (maskNode is null)
         {
-            maskNode.Parent = this;
+            if (_effectState is not null)
+            {
+                _effectState.MaskNode = null;
+            }
+
+            return;
         }
+
+        EnsureEffectState().MaskNode = maskNode;
+        maskNode.Parent = this;
     }
 
     internal void ReplaceWith(SvgSceneNode replacement)
@@ -267,7 +632,7 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
             AddChild(replacement.Children[i], replacement.Children.Count);
         }
 
-        MaskNode = null;
+        SetMask(null);
         SetMask(replacement.MaskNode);
         MarkDirty();
     }
@@ -467,5 +832,38 @@ public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
         public void Dispose()
         {
         }
+    }
+
+    private sealed class VisualState
+    {
+        public string? Cursor;
+        public bool CreatesBackgroundLayer;
+        public SKRect? BackgroundClip;
+        public bool IsIsolationGroup;
+        public SKPaint? BlendModePaint;
+    }
+
+    private sealed class ResourceKeyState
+    {
+        public string? ClipResourceKey;
+        public string? MaskResourceKey;
+        public string? FilterResourceKey;
+    }
+
+    private sealed class EffectState
+    {
+        public SvgSceneNode? MaskNode;
+        public SKRect? Overflow;
+        public SKRect? Clip;
+        public SKRect? InnerClip;
+        public ClipPath? ClipPath;
+        public SKPaint? MaskPaint;
+        public SKPaint? MaskDstIn;
+        public SKPaint? Opacity;
+        public float OpacityValue = 1f;
+        public SKPaint? Filter;
+        public SKRect? FilterClip;
+        public bool FilterUsesGlobalLayer;
+        public SKRect? FilterGlobalClip;
     }
 }
