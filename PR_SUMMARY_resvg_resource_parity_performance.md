@@ -21,6 +21,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Simple ASCII positioned textPath bounds and draw fast path using one full-run paint.
 - Compact retained command recording for long simple positioned textPath runs.
 - Fast metric bounds reuse for simple positioned textPath retained compile.
+- SVG-font registry guard for positioned textPath bounds probes in documents without SVG-font entries.
 - Whole-run natural text advance caching for repeated text measurement.
 - Simple natural text advance cache-hit fast path for repeated prepared text measurement.
 - Short shaped-text layout caching for repeated positioned glyph runs.
@@ -162,6 +163,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Skipped grapheme-cluster draw probing for simple ASCII positioned textPath runs and skipped empty decoration phases for positioned/stretch textPath recordings, while leaving complex clusters and decorated textPath runs on the existing paths.
 - Skipped the eager textPath total-advance measurement when the resolved text anchor is left and the textPath is not rendered on the right side of a positive-length path; centered, right-aligned, and right-side textPath runs still measure advance before offset adjustment.
 - Added a guarded simple ASCII positioned textPath bounds and draw path that resolves one full-run paint/typeface and reuses cached codepoint splits, while leaving SVG-font text, browser-compatible fallback substitutions, synthetic small-caps, mixed typeface fallback, and complex text on the existing per-codepoint resolver.
+- Reused the SVG-font renderer's document registry cache to skip positioned per-codepoint SVG-font layout probes when a document has no SVG-font entries, avoiding paint clones during simple textPath bounds checks while preserving the existing SVG-font path for matching documents.
 - Added a bounded short rendered-text local-bounds cache keyed by asset loader and text paint/font signature so repeated text-DOM, prepared-text, and text-path bounds checks reuse successful glyph/path bounds while preserving precise hit extents for letter-spacing gaps.
 - Trimmed retained text fallback paint cloning so single-span typeface fallback commands record one isolated paint clone and multi-span fallback loops skip the unused clone after the final span.
 - Reused cached read-only codepoint split arrays across text-DOM, prepared-text, and shared-layout read paths, leaving the lone mutable split at the reverse-by-codepoint call site.
@@ -447,6 +449,11 @@ Focused fast positioned textPath bounds measurements for `generated-text-path-cu
 
 - Fresh retained hotspot scan: `27.579 ms / 9403.67 KB`.
 - Fast metric bounds reuse for simple positioned textPath runs: `4.542 ms / 6.77 MB`.
+
+Focused SVG-font registry guard measurements for `generated-text-path-curves-96`:
+
+- `CreateTextPathPlacementsFromPrebuiltGeometryAcrossFragments`: allocation dropped from the current retained placement audit's `3,281,936 B` to `400,657 B`; the focused short-run mean measured `2.137 ms`.
+- `CompileNodeTreeOnly`: the current post-RSXForm text-path retained compile scan measured `9.794 ms / 7,115,064 B`; skipping per-codepoint SVG-font probes in non-SVG-font documents measured `2.207 ms / 1.28 MB`.
 
 Focused positioned text-blob retained compile measurements:
 
