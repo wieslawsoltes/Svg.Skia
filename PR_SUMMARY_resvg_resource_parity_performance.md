@@ -44,6 +44,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Direct simple spacing text-DOM metrics for retained text.
 - Direct simple unpositioned text-DOM metrics for simple retained text.
 - Bounded prepared line-stats caching for repeated retained sequential text runs.
+- SVG-font-aware retained sequential text compile eligibility probe skip for non-SVG-font documents.
 - Simple aligned retained text compile fast path for horizontal spacing/textLength runs.
 - Direct fixed-spacing positioned text-blob recording for simple retained aligned text runs.
 - Direct positioned text-blob recording for simple root `lengthAdjust="spacing"` textLength runs.
@@ -148,6 +149,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added direct text-DOM metrics for simple horizontal ASCII letter/word-spacing runs by reusing aligned codepoint placements and natural advances, bypassing generic shaped cluster-source allocation while leaving SVG-font, bidi, synthetic small-caps, textLength, rotation/scale, vertical, and complex text on the existing paths.
 - Added direct text-DOM metrics for simple unpositioned horizontal ASCII runs by creating per-codepoint metrics from natural advances and fallback bounds, bypassing shaped cluster-source construction while leaving SVG-font, bidi, spacing, textLength, rotations, vertical, and complex text on the existing paths.
 - Added a bounded prepared line-stats cache keyed by asset loader, document, text, font, bidi, and paint metric signature so repeated retained sequential text fragments reuse measured draw text, resolved typeface, advance, and local bounds while ignoring paint color differences that do not affect text metrics.
+- Skipped the redundant per-run prepared-text eligibility probe for retained sequential text when none of the runs can use SVG-font layout, while keeping the exact `SvgFontTextRenderer.TryGetLayout` guard for documents that do contain SVG-font entries.
 - Added a guarded retained compile fast path for simple horizontal ASCII aligned runs with fixed letter/word spacing or non-relative textLength, resolving codepoint placements once and reusing them for both bounds and drawing while leaving rotations, baseline shifts, decorations, vertical text, relative spacing/textLength, SVG-font text, custom OpenType properties, and complex bidi text on the existing path.
 - Added a narrower retained compile path for simple fixed non-negative letter/word-spacing runs that builds positioned text-blob points directly from natural advances and full-run local bounds, bypassing placement structs and per-codepoint bounds resolution while leaving percentages, negative spacing, textLength, SVG fonts, rotations, baseline shifts, decorations, vertical text, custom OpenType properties, and complex text on the existing aligned placement path.
 - Added a root retained compile path for simple horizontal ASCII `lengthAdjust="spacing"` textLength runs that records one positioned text blob from natural advances plus the distributed textLength gap, bypassing flattened textLength layout, per-codepoint placement structs, and per-codepoint text commands while leaving inline-size, positioned descendants, nested textLength, rotations, baseline shifts, decorations, vertical text, SVG fonts, relative textLength units, custom OpenType properties, explicit spacing, and complex text on existing paths.
@@ -565,6 +567,12 @@ Focused retained sequential line-stats cache measurements:
 
 - `CompileNodeTreeOnly | generated-text-192`: `3.829 ms / 3.14 MB`, down from the fresh retained hotspot scan's `66.16 ms / 9.49 MB`, after caching repeated simple sequential line stats across the generated `Item `, ` sample `, and `glyphs` fragments.
 - `CompileNodeTreeOnly | generated-aligned-text-length-192`: `7.199 ms / 6 MB` and `CompileNodeTreeOnly | generated-text-path-curves-96`: `12.251 ms / 9.92 MB` in the same control run.
+
+Focused SVG-font sequential eligibility probe measurements:
+
+- Fresh retained hotspot scan: `CompileNodeTreeOnly | generated-text-192` measured `24.857 ms / 4059.38 KB`.
+- Skipping the redundant SVG-font layout eligibility probe for non-SVG-font documents measured `CompileNodeTreeOnly | generated-text-192` at `12.758 ms / 2.9 MB`.
+- Control rows in the same focused run measured `CompileNodeTreeOnly | generated-aligned-letter-spacing-192` at `10.979 ms / 3.14 MB` and `CompileNodeTreeOnly | generated-text-path-curves-96` at `7.794 ms / 1.27 MB`; short-run timings remained noisy, so the allocation drop on `generated-text-192` is the primary signal.
 
 Focused aligned compile codepoint-bound reuse measurements:
 
@@ -1264,6 +1272,16 @@ Focused simple natural text advance cache-hit measurements:
   - Constructor benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-inline-styles-512 SVG_SKIA_BENCHMARK_RUN_LABEL=on-demand-roots-scenedoc-create dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CreateSceneDocumentFromCompiledTree*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
   - Full compile benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-inline-styles-512 SVG_SKIA_BENCHMARK_RUN_LABEL=on-demand-roots-full-retained-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileViaSceneRuntime*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
   - Focused mutation tests: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgAnimationControllerTests"` passed 351.
+  - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release` passed with existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2599, skipped 40; other test projects passed.
+- Focused SVG-font sequential eligibility probe validation:
+  - Hotspot scan: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-flood-filters-256,generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=next-optimization-retained-hotspot-scan dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Text internals scan: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192 SVG_SKIA_BENCHMARK_RUN_LABEL=next-optimization-text-internals-scan dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextCompileInternalsBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Current retained compile: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-192,generated-aligned-letter-spacing-192,generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=skip-sequential-svgfont-probe-retained-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore` passed with existing warnings.
+  - Focused text/retained tests: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgTextSelectionDomTests|FullyQualifiedName~HitTestTests|FullyQualifiedName~WptSvg2StaticSubsetTests"` passed 538.
   - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
   - `dotnet build Svg.Skia.slnx -c Release` passed with existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release`
