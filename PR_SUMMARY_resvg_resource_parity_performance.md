@@ -77,6 +77,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Direct-matrix native replay for transformed retained positioned text runs.
 - Rotation-scale native text blob replay for simple positioned text runs.
 - Retained resource-key feature gates for documents without clip-path, mask, or filter declarations.
+- On-demand retained compilation-root lookup for no-reference scene documents.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -186,6 +187,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Replayed compact retained positioned text runs by scanning for untransformed fragments first, drawing those directly, and using direct canvas matrix resets for transformed fragments instead of per-fragment save/restore pairs.
 - Added a guarded native `SKTextBlob.CreateRotationScale` replay path for left-aligned simple ASCII positioned text runs, collapsing eligible fragment runs into one native blob draw while keeping scaled, non-ASCII, non-left-aligned, and other complex runs on the existing per-fragment fallback.
 - Reused the cached document-wide cascaded-style feature analysis to skip retained clip/mask/filter resource-key lookup attempts when the active document has no matching declarations, preserving precise lookup behavior for documents that do declare those resources.
+- Switched no-reference retained scene documents from eager descendant-address dependency map construction to on-demand ancestor-root lookup during mutation, including parent-address fallback for non-rendered DOM children such as animation elements.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -318,6 +320,13 @@ Focused no-reference node-tree dependency registration measurements:
 - Before phase audit on `generated-shapes-1024`: `CreateSceneDocumentFromCompiledTree` measured `7.893 ms / 1,990,882 B`, `CompileViaSceneCompiler` measured `29.002 ms / 6,259,499 B`, and `CompileViaSceneRuntime` measured `30.226 ms / 6,285,190 B` in a noisy short run.
 - Node-tree dependency registration for fully retained no-reference scenes measured `CreateSceneDocumentFromCompiledTree` at `2.002 ms / 1,424,403 B`, `CompileViaSceneCompiler` at `10.762 ms / 5,693,191 B`, and `CompileViaSceneRuntime` at `10.815 ms / 5,669,237 B`.
 - `CompileNodeTreeOnly | generated-shapes-1024` stayed allocation-flat at about `4,268 KB`; this change targets scene-document dependency registration after the retained node tree is built.
+
+Focused on-demand retained compilation-root lookup measurements:
+
+- `CreateSceneDocumentFromCompiledTree | generated-shapes-1024`: `3.904 ms / 782866 B` to `1.629 ms / 764.34 KB`.
+- `CreateSceneDocumentFromCompiledTree | generated-text-192`: `510.477 us / 698881 B` to `187.1 us / 582.7 KB`.
+- `CompileViaSceneRuntime | generated-shapes-1024`: `15.839 ms / 4726099 B` to `9.532 ms / 4.53 MB`.
+- `CompileViaSceneRuntime | generated-text-192`: `10.741 ms / 3992450 B` to `4.455 ms / 3.71 MB`.
 
 Focused shim path-bounds cache measurement:
 
@@ -680,7 +689,7 @@ Focused simple natural text advance cache-hit measurements:
 - `dotnet build Svg.Skia.slnx -c Release`
   - Succeeded with 297 existing warnings.
 - `dotnet test Svg.Skia.slnx -c Release`
-  - `Svg.Skia.UnitTests`: Passed 2598, skipped 40.
+  - `Svg.Skia.UnitTests`: Passed 2599, skipped 40.
   - Other test projects in the solution passed.
 - Focused natural text advance cache validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests.MeasureNaturalTextAdvance"`
@@ -1248,6 +1257,15 @@ Focused simple natural text advance cache-hit measurements:
   - Completed; formatter-only `externals/SVG` submodule changes were restored.
   - `dotnet build Svg.Skia.slnx -c Release`
   - Build passed with existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2599, skipped 40; other test projects passed.
+- Focused on-demand retained compilation-root lookup validation:
+  - Baseline phase scan: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-inline-styles-512 SVG_SKIA_BENCHMARK_RUN_LABEL=next-retained-phase-scan dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Constructor benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-inline-styles-512 SVG_SKIA_BENCHMARK_RUN_LABEL=on-demand-roots-scenedoc-create dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CreateSceneDocumentFromCompiledTree*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Full compile benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-inline-styles-512 SVG_SKIA_BENCHMARK_RUN_LABEL=on-demand-roots-full-retained-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileViaSceneRuntime*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Focused mutation tests: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgAnimationControllerTests"` passed 351.
+  - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release` passed with existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release`
   - `Svg.Skia.UnitTests`: Passed 2599, skipped 40; other test projects passed.
 
