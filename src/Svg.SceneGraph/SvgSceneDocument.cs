@@ -36,6 +36,7 @@ public sealed class SvgSceneDocument
     private bool _mayContainReferenceDependencies = true;
     private bool _mayContainMarkerReferenceDeclarations = true;
     private bool _mayContainClipPathDeclarations = true;
+    private int _addressableElementCount;
 
     internal SvgSceneDocument(
         SvgDocument? sourceDocument,
@@ -379,13 +380,15 @@ public sealed class SvgSceneDocument
     private void RebuildIndexesAndDependencies(bool? knownMarkerReferenceDeclarations)
     {
         var addressKeyCache = new SvgElementAddressKeyCache();
-        var (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, addressableElementCount) =
+        var (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, addressableElementCount, elementIdCount) =
             AnalyzeDependencyRequirements(knownMarkerReferenceDeclarations);
         _mayContainResourceElements = hasResourceElements;
         _mayContainReferenceDependencies = hasReferenceDependencies;
         _mayContainMarkerReferenceDeclarations = hasMarkerReferenceDeclarations;
         _mayContainClipPathDeclarations = hasClipPathDeclarations;
+        _addressableElementCount = addressableElementCount;
         ClearIndexesAndDependencies();
+        EnsureIndexCapacity(addressableElementCount, elementIdCount);
         ReindexNodes();
         if (hasResourceElements)
         {
@@ -414,6 +417,23 @@ public sealed class SvgSceneDocument
         _resourcesByKey.Clear();
         _resourcesById.Clear();
         _resourcesByAddress.Clear();
+    }
+
+    private void EnsureIndexCapacity(int addressableElementCount, int elementIdCount)
+    {
+#if NET6_0_OR_GREATER
+        if (addressableElementCount > 0)
+        {
+            _nodesByAddress.EnsureCapacity(addressableElementCount);
+            _compilationRootsByKey.EnsureCapacity(addressableElementCount);
+            _compilationRootsByDependentAddress.EnsureCapacity(addressableElementCount);
+        }
+
+        if (elementIdCount > 0)
+        {
+            _nodesById.EnsureCapacity(elementIdCount);
+        }
+#endif
     }
 
     internal void ReindexNodes()
@@ -611,11 +631,15 @@ public sealed class SvgSceneDocument
 
     internal void RegisterNodeDependencies(SvgElementAddressKeyCache addressKeyCache, bool includeReferencedDependencies)
     {
+        var useNodeSubtreeRegistration = !includeReferencedDependencies &&
+                                         _addressableElementCount > 0 &&
+                                         _nodesByAddress.Count >= _addressableElementCount;
         RegisterNodeDependencies(
             addressKeyCache,
             includeReferencedDependencies,
             _mayContainMarkerReferenceDeclarations,
-            _mayContainClipPathDeclarations);
+            _mayContainClipPathDeclarations,
+            useNodeSubtreeRegistration);
     }
 
     private void RegisterNodeDependencies(
@@ -656,11 +680,11 @@ public sealed class SvgSceneDocument
         }
     }
 
-    private (bool HasResourceElements, bool HasReferenceDependencies, bool HasMarkerReferenceDeclarations, bool HasClipPathDeclarations, int AddressableElementCount) AnalyzeDependencyRequirements(bool? knownMarkerReferenceDeclarations)
+    private (bool HasResourceElements, bool HasReferenceDependencies, bool HasMarkerReferenceDeclarations, bool HasClipPathDeclarations, int AddressableElementCount, int ElementIdCount) AnalyzeDependencyRequirements(bool? knownMarkerReferenceDeclarations)
     {
         if (SourceDocument is null)
         {
-            return (false, false, false, false, 0);
+            return (false, false, false, false, 0, 0);
         }
 
         var hasResourceElements = false;
@@ -668,6 +692,7 @@ public sealed class SvgSceneDocument
         var hasMarkerReferenceDeclarations = knownMarkerReferenceDeclarations.GetValueOrDefault();
         var hasClipPathDeclarations = false;
         var addressableElementCount = 0;
+        var elementIdCount = 0;
         var traversalStack = _elementTraversalStack;
         traversalStack.Clear();
         traversalStack.Push(SourceDocument);
@@ -678,6 +703,11 @@ public sealed class SvgSceneDocument
             if (!ReferenceEquals(element, SourceDocument))
             {
                 addressableElementCount++;
+            }
+
+            if (!string.IsNullOrWhiteSpace(element.ID))
+            {
+                elementIdCount++;
             }
 
             if (!hasResourceElements &&
@@ -721,7 +751,7 @@ public sealed class SvgSceneDocument
 
         traversalStack.Clear();
 
-        return (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, addressableElementCount);
+        return (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, addressableElementCount, elementIdCount);
     }
 
     private void RegisterCompilationRootSubtreeAddressesFromNodes()
