@@ -6187,6 +6187,33 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_AddressKeyCacheInvalidatesAfterChildReorder()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <rect id="a" x="0" y="0" width="10" height="10" />
+              <rect id="b" x="10" y="0" width="10" height="10" />
+              <rect id="c" x="20" y="0" width="10" height="10" />
+            </svg>
+            """);
+        Assert.NotNull(document);
+        var viewport = SKRect.Create(0f, 0f, 100f, 100f);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+
+        Assert.True(SvgSceneCompiler.TryCompile(document, viewport, assetLoader, DrawAttributes.None, out var firstScene));
+        Assert.True(firstScene!.TryGetNodeById("a", out var firstA));
+        Assert.Equal("0", firstA!.ElementAddressKey);
+
+        var rectA = Assert.IsType<SvgRectangle>(document.GetElementById("a"));
+        Assert.True(document.Children.Remove(rectA));
+        document.Children.Insert(2, rectA);
+
+        Assert.True(SvgSceneCompiler.TryCompile(document, viewport, assetLoader, DrawAttributes.None, out var secondScene));
+        Assert.True(secondScene!.TryGetNodeById("a", out var secondA));
+        Assert.Equal("2", secondA!.ElementAddressKey);
+    }
+
+    [Fact]
     public void CreateRetainedSceneGraphPicture_MatchesCurrentPicture_ForSimpleDocument()
     {
         using var svg = new SKSvg();
