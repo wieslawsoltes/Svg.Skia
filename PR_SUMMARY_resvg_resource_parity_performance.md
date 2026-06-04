@@ -37,6 +37,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Retained-scene child-list capacity hints during compile traversal.
 - Compact retained-scene node child storage for one- and two-child nodes.
 - Lazy retained-scene compile-context storage for rarely used caches.
+- Cached retained SVG element metadata names and inline retained compile-context marker state for common single-document compiles.
 - Retained-scene address-key cache pre-sizing, cached small child-index strings, and lazy child-index lookup storage.
 - Retained-scene document index capacity hints and no-reference dependency registration reuse.
 - Bounded typeface-span lookup caching for repeated short text runs.
@@ -175,6 +176,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Preallocated retained scene node child lists when the compiler already knows the source child count, avoiding repeated `List<T>` growth in generated child-heavy scenes.
 - Changed retained scene nodes to keep one or two children inline before allocating overflow list storage, preserving the public `IReadOnlyList<SvgSceneNode>` child surface while trimming low-fanout retained compile allocations.
 - Allocated retained scene compile-context gradient, fragment viewport, marker-reference, and resolved-reference caches only when those features are used; the active-document guard also keeps the common single-document case inline before allocating a `HashSet<T>`.
+- Cached common SVG element type-name metadata for retained nodes and text command sources, and kept the single active marker-reference compile scope inline before allocating the nested-document stack.
 - Pre-sized retained scene address-key caches from shallow source-tree counts, reused cached small child-index strings, and kept child-index lookup dictionaries lazy so generated retained scenes avoid dictionary growth and temporary index-string churn.
 - Cached retained element address-key strings per element with parent/index/parent-key validation, so repeated retained compiles skip recreating unchanged address strings while DOM reorders force recomputation.
 - Reused dependency-analysis element/id counts to pre-size retained scene-document indexes on modern targets, and let no-reference standalone dependency registration reuse node subtree metadata once reindexing has proven address coverage.
@@ -1584,10 +1586,16 @@ Focused text OpenType gate and prefix validation/cache measurements:
   - Focused retained/model validation passed: retained CSS geometry and SVG 2 geometry tests passed 4 tests, and `Svg.Model.UnitTests` style/path filters passed 45 tests.
   - Direct allocation probe for `generated-shapes-1024` stayed allocation-flat at `2065052.20 B` per compile.
   - Focused retained compile benchmark `geometry-css-feature-gate-reused-shape-flag` measured `CompileNodeTreeOnly | generated-shapes-1024` at `2.637 ms / 1.97 MB`, compared with the previous post-geometry hotspot scan row of `4.225 ms / 2016.66 KB`.
+- Focused retained compile metadata allocation validation:
+  - Cached common SVG element type names for retained scene nodes and text command sources, while leaving a fallback for custom/rare element subclasses.
+  - Kept the active marker-reference compile scope inline for common single-document compiles and made the solid fill paint cache lazy until a cacheable fill is requested.
+  - Focused retained/text validation passed: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SKSvgRebuildFromModelTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SvgTextSelectionDomTests"` passed 495 tests.
+  - Retained phase benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="node-context-names-retained-phase" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`.
+  - `CompileNodeTreeOnly | generated-text-192` allocation moved from `1856714 B` to `1856346 B`; `CompileNodeTreeOnly | generated-shapes-1024` moved from `2065055 B` to `2064720 B`. Timing remains short-run/noisy, so this is kept as a small metadata/context allocation trim.
 - Pre-publish validation for the current stack:
   - `dotnet format Svg.Skia.slnx --no-restore` completed.
-  - Formatter-only `externals/SVG` submodule churn was stashed as `codex-format-submodule-churn`.
+  - Formatter-only `externals/SVG` submodule churn was stashed as `codex-format-submodule-churn-node-context-round`.
   - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
-  - `dotnet test Svg.Skia.slnx -c Release` passed; `Svg.Skia.UnitTests` reported 2602 passed and 40 skipped, and all other test assemblies passed.
+  - `dotnet test Svg.Skia.slnx -c Release` passed; `Svg.Skia.UnitTests` reported 2603 passed and 40 skipped, and all other test assemblies passed.
 
 The release build currently reports 297 existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
