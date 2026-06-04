@@ -45,6 +45,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Direct simple unpositioned text-DOM metrics for simple retained text.
 - Bounded prepared line-stats caching for repeated retained sequential text runs.
 - SVG-font-aware retained sequential text compile eligibility probe skip for non-SVG-font documents.
+- SVG-font-aware retained text metric probe skip for simple Skia text paths in non-SVG-font documents.
 - Simple aligned retained text compile fast path for horizontal spacing/textLength runs.
 - Direct fixed-spacing positioned text-blob recording for simple retained aligned text runs.
 - Direct positioned text-blob recording for simple root `lengthAdjust="spacing"` textLength runs.
@@ -159,6 +160,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added direct text-DOM metrics for simple unpositioned horizontal ASCII runs by creating per-codepoint metrics from natural advances and fallback bounds, bypassing shaped cluster-source construction while leaving SVG-font, bidi, spacing, textLength, rotations, vertical, and complex text on the existing paths.
 - Added a bounded prepared line-stats cache keyed by asset loader, document, text, font, bidi, and paint metric signature so repeated retained sequential text fragments reuse measured draw text, resolved typeface, advance, and local bounds while ignoring paint color differences that do not affect text metrics.
 - Skipped the redundant per-run prepared-text eligibility probe for retained sequential text when none of the runs can use SVG-font layout, while keeping the exact `SvgFontTextRenderer.TryGetLayout` guard for documents that do contain SVG-font entries.
+- Reused an SVG-font entry guard for simple retained text metric probes and positioned/scaled text-blob eligibility checks, avoiding metrics-paint or SVG-font layout work in documents without SVG-font entries while preserving the exact SVG-font fallback for documents that do contain entries.
 - Added a guarded retained compile fast path for simple horizontal ASCII aligned runs with fixed letter/word spacing or non-relative textLength, resolving codepoint placements once and reusing them for both bounds and drawing while leaving rotations, baseline shifts, decorations, vertical text, relative spacing/textLength, SVG-font text, custom OpenType properties, and complex bidi text on the existing path.
 - Added a narrower retained compile path for simple fixed non-negative letter/word-spacing runs that builds positioned text-blob points directly from natural advances and full-run local bounds, bypassing placement structs and per-codepoint bounds resolution while leaving percentages, negative spacing, textLength, SVG fonts, rotations, baseline shifts, decorations, vertical text, custom OpenType properties, and complex text on the existing aligned placement path.
 - Added a root retained compile path for simple horizontal ASCII `lengthAdjust="spacing"` textLength runs that records one positioned text blob from natural advances plus the distributed textLength gap, bypassing flattened textLength layout, per-codepoint placement structs, and per-codepoint text commands while leaving inline-size, positioned descendants, nested textLength, rotations, baseline shifts, decorations, vertical text, SVG fonts, relative textLength units, custom OpenType properties, explicit spacing, and complex text on existing paths.
@@ -427,6 +429,15 @@ Focused post-sidecar text internals scan:
 - `MeasureNaturalCodepointAdvancesAcrossFragments | generated-aligned-text-length-192`: `133.149 us / 67.5 KB`.
 - `MeasureNaturalTextAdvanceAcrossFragments | generated-aligned-text-length-192`: `197.668 us / 12 KB`.
 - The next text-focused allocation target is natural codepoint advance measurement; natural full-text advance remains the larger timing hotspot.
+
+Focused SVG-font metrics-guard retained/text benchmark scan:
+
+- `CompileNodeTreeOnly | generated-aligned-text-length-192`: `1.83 MB`.
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: `2.65 MB`.
+- `CompileNodeTreeOnly | generated-text-192`: `2.66 MB`.
+- `CompileNodeTreeOnly | generated-text-path-curves-96`: `1.23 MB`.
+- Expanded `SvgTextCompileInternalsBenchmarks` scenario selection now includes generated spacing rows; `generated-aligned-letter-spacing-192` measured `57.64 KB`, `69 KB`, and `12 KB` across split, natural-codepoint, and natural-text advance rows.
+- `generated-text-192` remains the next text-focused allocation target at `187.92 KB` for natural codepoint advance measurement and `45 KB` for natural text advance.
 
 Focused retained-scene address-key cache measurements:
 
@@ -1398,7 +1409,7 @@ Focused simple natural text advance cache-hit measurements:
   - Focused retained/resource/text validation: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgInteractionDispatcherTests|FullyQualifiedName~SvgResourceRenderingParityTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SKSvgRebuildFromModelTests"` passed 613.
 - Pre-publish validation for the current stack:
   - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
-  - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
+  - `dotnet build Svg.Skia.slnx -c Release` passed with 349 existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release` passed; `Svg.Skia.UnitTests` reported 2599 passed and 40 skipped, and the other test projects passed.
 
 The release build currently reports existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
