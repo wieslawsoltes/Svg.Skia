@@ -11,6 +11,7 @@ namespace Svg.Skia.Benchmarks;
 public class SvgTextCompileInternalsBenchmarks
 {
     private delegate List<string> SplitCodepointsDelegate(string text);
+    private delegate IReadOnlyList<string> SplitCodepointsReadOnlyDelegate(string text);
     private delegate float MeasureNaturalTextAdvanceDelegate(SvgTextBase svgTextBase, string text, SKRect geometryBounds, ISvgAssetLoader assetLoader);
     private delegate float[] MeasureNaturalCodepointAdvancesDelegate(SvgTextBase svgTextBase, IReadOnlyList<string> codepoints, SKRect geometryBounds, ISvgAssetLoader assetLoader);
 
@@ -18,6 +19,9 @@ public class SvgTextCompileInternalsBenchmarks
 
     private static readonly SplitCodepointsDelegate s_splitCodepoints =
         CreateDelegate<SplitCodepointsDelegate>("SplitCodepoints");
+
+    private static readonly SplitCodepointsReadOnlyDelegate s_splitCodepointsReadOnly =
+        CreateDelegate<SplitCodepointsReadOnlyDelegate>("SplitCodepointsReadOnly");
 
     private static readonly MeasureNaturalTextAdvanceDelegate s_measureNaturalTextAdvance =
         CreateDelegate<MeasureNaturalTextAdvanceDelegate>("MeasureNaturalTextAdvance");
@@ -71,7 +75,7 @@ public class SvgTextCompileInternalsBenchmarks
 
         textFragments = fragments.ToArray();
         splitCodepoints = textFragments
-            .Select(static fragment => (IReadOnlyList<string>)s_splitCodepoints(fragment.Text))
+            .Select(static fragment => s_splitCodepointsReadOnly(fragment.Text))
             .ToArray();
     }
 
