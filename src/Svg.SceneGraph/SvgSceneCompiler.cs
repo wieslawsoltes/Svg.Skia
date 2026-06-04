@@ -1524,7 +1524,7 @@ public static class SvgSceneCompiler
         FinalizeDirectStructuralBounds(
             node,
             parentTotalTransform,
-            bounds => TransformsService.ToMatrix(svgGroup.Transforms, svgGroup, bounds, viewport));
+            bounds => TransformsService.ApplyTransformOrigin(svgGroup, bounds, viewport, node.Transform));
     }
 
     private static void FinalizeDirectAnchorNode(
@@ -1537,7 +1537,7 @@ public static class SvgSceneCompiler
         FinalizeDirectStructuralBounds(
             node,
             parentTotalTransform,
-            bounds => TransformsService.ToMatrix(svgAnchor.Transforms, svgAnchor, bounds, viewport));
+            bounds => TransformsService.ApplyTransformOrigin(svgAnchor, bounds, viewport, node.Transform));
         node.ClipPath = null;
         node.MaskPaint = null;
         node.MaskDstIn = null;
@@ -1557,7 +1557,7 @@ public static class SvgSceneCompiler
         FinalizeDirectStructuralBounds(
             node,
             parentTotalTransform,
-            bounds => TransformsService.ToMatrix(svgSwitch.Transforms, svgSwitch, bounds, viewport));
+            bounds => TransformsService.ApplyTransformOrigin(svgSwitch, bounds, viewport, node.Transform));
         node.ClipPath = null;
         node.MaskPaint = null;
         node.MaskDstIn = null;
@@ -4229,7 +4229,7 @@ public static class SvgSceneCompiler
             return null;
         }
 
-        var cullRect = CreateLocalCullRect(path.Bounds);
+        var cullRect = CreateLocalCullRect(geometryBounds);
         if (cullRect.IsEmpty)
         {
             return null;
