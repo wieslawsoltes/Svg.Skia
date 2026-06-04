@@ -92,6 +92,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Runtime payload paint reuse and compact retained-node opacity state for direct shape nodes.
 - Empty document-font scope fast path for no-font retained compile/render paths.
 - Inline `SKPath` command storage without a per-path change-tracking wrapper.
+- Inline small `AddPoly` point storage for internally generated triangle and quad paths.
 - Own-`textLength` guard for retained textLength fast-path probes on ordinary text.
 - Lazy retained-node visual/resource sidecar storage for rare cursor, background, blend, and resource-key state.
 - Lazy retained-node effect sidecar storage for rare clip, mask, and filter state.
@@ -207,6 +208,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Changed shim path command lists to keep one- and two-command paths inline before allocating overflow list storage, preserving the mutable `IList<PathCommand>` command surface while trimming generated simple-path retained compile allocations.
 - Moved the inline command-list storage directly onto `SKPath`, so `Commands` returns the path's own mutable `IList<PathCommand>` implementation and simple paths no longer allocate a separate change-tracking wrapper.
 - Reused the small `AddPoly` native path value-cache key to derive one-command small-poly path revisions, avoiding a second point-list hash pass while preserving mutable-point invalidation.
+- Added inline point storage to `AddPolyPathCommand` for internally generated three- and four-point polygons, while keeping array/list-backed `AddPoly` commands mutation-sensitive for existing public callers.
 - Flattened transform-only retained groups whose children are simple solid-filled leaf paths by pre-transforming rectangle, polygon, and closed line-only path commands during retained recording; this removes save/set-matrix/restore command wrappers and simple leaf opacity save-layers while preserving source-element metadata and keeping clips, masks, filters, strokes, blend modes, isolation, nested children, shaders, and complex paths on the existing rendering path.
 - Changed the transformed simple-child renderer fallback to inspect path command shapes during eligibility instead of creating a throwaway transformed path, and to map closed line-only command lists directly into the final transformed point array during recording.
 - Replayed compact retained positioned text runs by scanning for untransformed fragments first, drawing those directly, and using direct canvas matrix resets for transformed fragments instead of per-fragment save/restore pairs.
@@ -1470,9 +1472,17 @@ Focused simple natural text advance cache-hit measurements:
   - Focused retained/font/source validation: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgFont|FullyQualifiedName~SKSvgSettingsTests|FullyQualifiedName~SKSvgTests"` passed 369, `dotnet test tests/Svg.Controls.Skia.Avalonia.UnitTests/Svg.Controls.Skia.Avalonia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgSourceTests"` passed 19, and `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SkiaSvgAssetLoaderCachingTests"` passed 18.
   - Current retained compile: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-text-path-curves-96" SVG_SKIA_BENCHMARK_RUN_LABEL="empty-document-font-scope-retained-compile" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
   - Short-run allocation rows measured `generated-filtered-shapes-256` at `637.27 KB`, `generated-shapes-1024` at `2655.82 KB`, `generated-text-192` at `2552.81 KB`, and `generated-text-path-curves-96` at `1235.85 KB`; timing remained noisy, so this is kept as a small no-font setup allocation trim and behavior guard.
+- Focused inline small `AddPoly` point storage validation:
+  - `dotnet build src/ShimSkiaSharp/ShimSkiaSharp.csproj -c Release --no-restore` passed with no warnings.
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore` passed with existing `SvgDeferredPaintServer` obsolete warnings and no errors.
+  - Focused shim/model/retained validation passed: `ShimSkiaSharp.UnitTests` path/clone filters passed 45, `Svg.Model.UnitTests` `PathingServiceTests` passed 11, and `Svg.Skia.UnitTests` retained/rebuild/resource/hit-test filters passed 415.
+  - Path conversion benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="inline-small-poly-path-conversion" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgPathConversionBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Current path conversion rows measured `ConvertPrimitiveShapesOnly` at `530.8 us / 104 KB`, `ConvertSvgPathsOnly` at `979.5 us / 664 KB`, and `ConvertAllVisualPaths` at `2.443 ms / 768.01 KB`; compared with the prior focused path-conversion scan, SVG-path and all-visual path allocations moved from `680 KB` to `664 KB` and from `784.01 KB` to `768.01 KB`.
+  - Retained compile benchmark: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="inline-small-poly-retained-compile" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `CompileNodeTreeOnly | generated-shapes-1024` measured `7.024 ms / 2.58 MB`; timing remains short-run/noisy, while allocation is slightly below the previous `2655.82 KB` generated-shapes row.
 - Pre-publish validation for the current stack:
   - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
-  - `dotnet build Svg.Skia.slnx -c Release` passed with 193 existing warnings.
+  - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release` passed; `Svg.Skia.UnitTests` reported 2599 passed and 40 skipped, and the other test projects passed.
 
-The release build currently reports existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
+The release build currently reports 297 existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
