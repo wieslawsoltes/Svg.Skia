@@ -19,6 +19,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Simple textPath recording guards for ASCII grapheme probes and empty decoration phases.
 - TextPath offset measurement skip for left-aligned, left-side positioned textPath runs.
 - Simple ASCII positioned textPath bounds and draw fast path using one full-run paint.
+- Compact retained command recording for long simple positioned textPath runs.
 - Whole-run natural text advance caching for repeated text measurement.
 - Simple natural text advance cache-hit fast path for repeated prepared text measurement.
 - Short shaped-text layout caching for repeated positioned glyph runs.
@@ -391,6 +392,10 @@ Focused simple positioned textPath run measurements for `generated-text-path-cur
 
 - `CompileNodeTreeOnly`: the post-offset retained scan measured `42.771 ms / 9,155.47 KB`; the guarded simple ASCII positioned textPath bounds/draw path measured `10.603 ms / 10.65 MB` in the focused retained compile run.
 
+Focused compact positioned textPath command measurements for `generated-text-path-curves-96`:
+
+- `CompileNodeTreeOnly`: the latest retained textPath scan before compaction measured `15.821 ms / 10,905.51 KB`; compact long simple positioned textPath command recording measured `6.492 ms / 9.16 MB` in the focused retained compile run.
+
 Focused positioned text-blob retained compile measurements:
 
 - `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: the post-direct-textPath retained scan measured `73.072 ms / 12.26 MB`; positioned text-blob recording measured `10.44 ms / 11.17 MB`.
@@ -562,7 +567,7 @@ Focused simple natural text advance cache-hit measurements:
 - `dotnet build Svg.Skia.slnx -c Release`
   - Succeeded with existing warnings only.
 - `dotnet test Svg.Skia.slnx -c Release`
-  - `Svg.Skia.UnitTests`: Passed 2595, skipped 40.
+  - `Svg.Skia.UnitTests`: Passed 2597, skipped 40.
   - Other test projects in the solution passed.
 - Focused natural text advance cache validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests.MeasureNaturalTextAdvance"`
@@ -957,6 +962,19 @@ Focused simple natural text advance cache-hit measurements:
   - Build passed with 277 existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release`
   - `Svg.Skia.UnitTests`: Passed 2597, skipped 40; other test projects passed.
+- Focused compact positioned textPath command validation:
+  - `dotnet test tests/ShimSkiaSharp.UnitTests/ShimSkiaSharp.UnitTests.csproj -f net10.0 -c Release --no-build --filter "CloneCommandTests|EditingHelpersTests"`
+  - Passed 34.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgRetainedSceneGraphTests"`
+  - Passed 265.
+  - `SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=compact-positioned-text-run dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `dotnet format Svg.Skia.slnx --no-restore`
+  - Completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release`
+  - Build passed with existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2597, skipped 40; other test projects passed.
+- Focused read-only codepoint DOM-metrics validation:
   - Current: `SVG_SKIA_BENCHMARK_SCENARIOS=text-regression-positioned-layout,text-regression-vertical-rtl-layout,text-regression-vertical-rtl-shape-layout,text-regression-wrapped-textlength-positioned-descendants SVG_SKIA_BENCHMARK_RUN_LABEL=current-readonly-codepoint-dom-metrics dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextRegressionValidationBenchmarks.ValidateTextContentDomMetrics" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
   - Control: `SVG_SKIA_BENCHMARK_SCENARIOS=text-regression-positioned-layout,text-regression-vertical-rtl-layout,text-regression-vertical-rtl-shape-layout,text-regression-wrapped-textlength-positioned-descendants SVG_SKIA_BENCHMARK_RUN_LABEL=control-codepoint-dom-metrics dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgTextRegressionValidationBenchmarks.ValidateTextContentDomMetrics" --warmupCount 2 --minIterationCount 3 --maxIterationCount 5`
 - Focused text internals benchmark comparison:
