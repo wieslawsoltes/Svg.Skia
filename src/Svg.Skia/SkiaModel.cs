@@ -2270,10 +2270,7 @@ public partial class SkiaModel
             : paint;
         try
         {
-            foreach (var fragment in command.Fragments)
-            {
-                DrawPositionedTextRunFragment(fragment, skCanvas, textPaint);
-            }
+            DrawPositionedTextRunFragments(command.Fragments, skCanvas, textPaint);
         }
         finally
         {
@@ -2281,18 +2278,61 @@ public partial class SkiaModel
         }
     }
 
-    private void DrawPositionedTextRunFragment(
-        PositionedTextRunFragment fragment,
+    private void DrawPositionedTextRunFragments(
+        IReadOnlyList<PositionedTextRunFragment> fragments,
         SkiaSharp.SKCanvas skCanvas,
         SkiaSharp.SKPaint paint)
     {
+        var hasTransformedFragment = false;
+        for (var i = 0; i < fragments.Count; i++)
+        {
+            var fragment = fragments[i];
+            if (fragment.RotationDegrees != 0f || fragment.ScaleX != 1f)
+            {
+                hasTransformedFragment = true;
+                break;
+            }
+        }
+
+        if (!hasTransformedFragment)
+        {
+            for (var i = 0; i < fragments.Count; i++)
+            {
+                var fragment = fragments[i];
+                skCanvas.DrawText(fragment.Text, fragment.Point.X, fragment.Point.Y, paint);
+            }
+
+            return;
+        }
+
+        var entryMatrix = skCanvas.TotalMatrix;
+        try
+        {
+            for (var i = 0; i < fragments.Count; i++)
+            {
+                DrawPositionedTextRunFragment(fragments[i], skCanvas, paint, entryMatrix);
+            }
+        }
+        finally
+        {
+            skCanvas.SetMatrix(entryMatrix);
+        }
+    }
+
+    private void DrawPositionedTextRunFragment(
+        PositionedTextRunFragment fragment,
+        SkiaSharp.SKCanvas skCanvas,
+        SkiaSharp.SKPaint paint,
+        SkiaSharp.SKMatrix entryMatrix)
+    {
         if (fragment.RotationDegrees == 0f && fragment.ScaleX == 1f)
         {
+            skCanvas.SetMatrix(entryMatrix);
             skCanvas.DrawText(fragment.Text, fragment.Point.X, fragment.Point.Y, paint);
             return;
         }
 
-        skCanvas.Save();
+        skCanvas.SetMatrix(entryMatrix);
         if (fragment.RotationDegrees != 0f)
         {
             var matrix = ToSKMatrix(SKMatrix.CreateRotationDegrees(
@@ -2313,7 +2353,6 @@ public partial class SkiaModel
         }
 
         skCanvas.DrawText(fragment.Text, fragment.Point.X, fragment.Point.Y, paint);
-        skCanvas.Restore();
     }
 
     public void Draw(CanvasCommand canvasCommand, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
