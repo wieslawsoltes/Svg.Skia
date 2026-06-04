@@ -75,10 +75,13 @@ The branch focuses on cases found while validating the resource parity lane:
 - Inline shim path command-list storage for one- and two-command paths.
 - Small `AddPoly` native path revision-key reuse for generated path-heavy replay.
 - Transform-only simple shape group flattening for retained command streams and native replay.
+- Allocation-free transformed simple-child render eligibility for retained renderer fallback replay.
 - Direct-matrix native replay for transformed retained positioned text runs.
 - Rotation-scale native text blob replay for simple positioned text runs.
 - Retained resource-key feature gates for documents without clip-path, mask, or filter declarations.
 - On-demand retained compilation-root lookup for no-reference scene documents.
+- Structural transform-origin reuse and direct path cull-bounds reuse for retained primitive/group compile.
+- Direct visual fill/stroke validity reuse for retained shape compile.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -186,10 +189,13 @@ The branch focuses on cases found while validating the resource parity lane:
 - Changed shim path command lists to keep one- and two-command paths inline before allocating overflow list storage, preserving the mutable `IList<PathCommand>` command surface while trimming generated simple-path retained compile allocations.
 - Reused the small `AddPoly` native path value-cache key to derive one-command small-poly path revisions, avoiding a second point-list hash pass while preserving mutable-point invalidation.
 - Flattened transform-only retained groups whose children are simple solid-filled leaf paths by pre-transforming rectangle, polygon, and closed line-only path commands during retained recording; this removes save/set-matrix/restore command wrappers and simple leaf opacity save-layers while preserving source-element metadata and keeping clips, masks, filters, strokes, blend modes, isolation, nested children, shaders, and complex paths on the existing rendering path.
+- Changed the transformed simple-child renderer fallback to inspect path command shapes during eligibility instead of creating a throwaway transformed path, and to map closed line-only command lists directly into the final transformed point array during recording.
 - Replayed compact retained positioned text runs by scanning for untransformed fragments first, drawing those directly, and using direct canvas matrix resets for transformed fragments instead of per-fragment save/restore pairs.
 - Added a guarded native `SKTextBlob.CreateRotationScale` replay path for left-aligned simple ASCII positioned text runs, collapsing eligible fragment runs into one native blob draw while keeping scaled, non-ASCII, non-left-aligned, and other complex runs on the existing per-fragment fallback.
 - Reused the cached document-wide cascaded-style feature analysis to skip retained clip/mask/filter resource-key lookup attempts when the active document has no matching declarations, preserving precise lookup behavior for documents that do declare those resources.
 - Switched no-reference retained scene documents from eager descendant-address dependency map construction to on-demand ancestor-root lookup during mutation, including parent-address fallback for non-rendered DOM children such as animation elements.
+- Reused precomputed structural transforms when applying transform-origin during direct retained group, anchor, and switch finalization, and reused already computed direct path geometry bounds for local cull rectangles.
+- Reused direct visual fill/stroke hit-test validity checks when creating retained local paints, avoiding duplicate paint-server and stroke-width validity work for every direct shape node.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -236,6 +242,14 @@ Focused transform-only simple shape group flattening measurements:
 - `CompileNodeTreeOnly | generated-shapes-1024`: `11.118 ms / 4168.41 KB` to `5.388 ms / 4168.43 KB`.
 - `CompileNodeTreeOnly | generated-filtered-shapes-256`: `2.291 ms / 970.12 KB` to `851.3 us / 970.11 KB`.
 - `CompileNodeTreeOnly | generated-text-path-curves-96`: `10.431 ms / 6934.63 KB` to `5.739 ms / 6934.46 KB` in a noisy short run.
+
+Focused transformed simple-child renderer fallback measurements:
+
+- `ReplayFullModelIntoRecorderCanvasUsingCurrentLoop | generated-shapes-1024`: current focused run measured `183.0 us / 1.63 KB`.
+- `ReplayFullModelIntoRecorderCanvasUsingCurrentLoop | generated-filtered-shapes-256`: current focused run measured `1.503 ms / 51.69 KB`.
+- `ReplayFullModelIntoRecorderCanvasUsingCurrentLoop | generated-inline-styles-512`: current focused run measured `217.9 us / 1.63 KB`.
+- `ReplayFullModelIntoRecorderCanvasUsingCurrentLoop | generated-text-path-curves-96`: current focused run measured `135.5 us / 112.39 KB`.
+- The generated scenarios stayed effectively flat against the existing post-flattening rows because they are already handled by compile-time transform-only group flattening; this change is retained as a no-allocation fallback cleanup rather than a new generated-scenario benchmark win.
 
 Focused direct positioned text run replay measurements:
 
@@ -329,6 +343,22 @@ Focused on-demand retained compilation-root lookup measurements:
 - `CreateSceneDocumentFromCompiledTree | generated-text-192`: `510.477 us / 698881 B` to `187.1 us / 582.7 KB`.
 - `CompileViaSceneRuntime | generated-shapes-1024`: `15.839 ms / 4726099 B` to `9.532 ms / 4.53 MB`.
 - `CompileViaSceneRuntime | generated-text-192`: `10.741 ms / 3992450 B` to `4.455 ms / 3.71 MB`.
+
+Focused structural transform-origin and direct path bounds reuse measurements:
+
+- `CompileNodeTreeOnly | generated-shapes-1024`: the shape phase audit measured `18.141 ms / 3,967,036 B`; the structural transform/path-bounds reuse run measured `13.724 ms / 3416.82 KB`.
+- `CompileNodeTreeOnly | generated-filtered-shapes-256`: the retained hotspot scan measured `5.480 ms / 904.35 KB`; the structural transform/path-bounds reuse run measured `2.299 ms / 848.36 KB`.
+- `CompileNodeTreeOnly | generated-text-192`: allocation stayed effectively flat at `2970.81 KB` to `2970.88 KB`.
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: allocation stayed effectively flat/slightly lower at `3229.61 KB` to `3219.96 KB`.
+- Short-run timings remained visibly noisy, so the retained shape allocation drop is the primary signal for this change.
+
+Focused direct visual validity reuse measurements:
+
+- `CompileNodeTreeOnly | generated-filtered-shapes-256`: the post-structural hotspot scan measured `848.37 KB`; reusing direct visual fill/stroke validity measured `818.36 KB` in the focused control rerun.
+- `CompileNodeTreeOnly | generated-shapes-1024`: allocation stayed flat at `3416.79 KB` to `3416.81 KB`.
+- `CompileNodeTreeOnly | generated-text-192`: allocation stayed flat at `2970.83 KB`.
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: the focused control rerun measured `3230.5 KB`, effectively flat against the post-structural scan's `3220.44 KB`.
+- Short-run timings were noisy, so the filtered-shape allocation drop is the primary signal for this small cleanup.
 
 Focused shim path-bounds cache measurement:
 
@@ -1286,5 +1316,26 @@ Focused simple natural text advance cache-hit measurements:
   - `dotnet build Svg.Skia.slnx -c Release` passed with existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release`
   - `Svg.Skia.UnitTests`: Passed 2599, skipped 40; other test projects passed.
+- Focused structural transform-origin and direct path bounds reuse validation:
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore` passed with existing warnings.
+  - Focused retained/text hit-test validation: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgAnimationControllerTests|FullyQualifiedName~HitTestTests"` passed 372.
+  - Focused transform-origin resource parity validation: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgStructureResourceParityTests.TransformOrigin_ContentBox_UsesElementGeometryReferenceBox|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_StructuralTransformOriginAppliesToGroup|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_TransformOriginAbsoluteFillBoxOffsetsReferenceBox|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_UseTransformOriginUsesReferencedFillBox"` passed 4.
+  - Hotspot scan: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-flood-filters-256,generated-text-192,generated-aligned-letter-spacing-192,generated-aligned-text-length-192,generated-text-path-curves-96,generated-inline-styles-512 SVG_SKIA_BENCHMARK_RUN_LABEL=next-hotspot-scan-after-svgfont-probe-skip dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Shape phase audit: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024 SVG_SKIA_BENCHMARK_RUN_LABEL=next-shape-phase-scan-after-svgfont-probe-skip dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Current retained compile: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-aligned-letter-spacing-192 SVG_SKIA_BENCHMARK_RUN_LABEL=structural-transform-bounds-reuse-retained-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+- Focused transformed simple-child renderer fallback validation:
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore` passed with no warnings.
+  - Focused retained/rebuild validation: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_FoldsSimpleTransformOnlyShapeGroups|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph|FullyQualifiedName~SKSvgRebuildFromModelTests"` passed 260.
+  - Draw replay check: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-inline-styles-512,generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=transformed-simple-child-render-check dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRenderBitmapBenchmarks.DrawNativePicture1x*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Recorder replay check: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-inline-styles-512,generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=transformed-simple-child-replay-check dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks.ReplayFullModelIntoRecorderCanvasUsingCurrentLoop*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+- Focused direct visual validity reuse validation:
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore` passed with no warnings.
+  - Focused retained/resource/hit-test validation: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgResourceRenderingParityTests|FullyQualifiedName~HitTestTests|FullyQualifiedName~SKSvgRebuildFromModelTests"` passed 415.
+  - Current retained compile: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-aligned-letter-spacing-192 SVG_SKIA_BENCHMARK_RUN_LABEL=direct-visual-validity-reuse-retained-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Control rerun: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-filtered-shapes-256,generated-aligned-letter-spacing-192,generated-text-192 SVG_SKIA_BENCHMARK_RUN_LABEL=direct-visual-validity-reuse-control-rerun dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+- Pre-publish validation for the current stack:
+  - `dotnet format Svg.Skia.slnx --no-restore` completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release` passed; `Svg.Skia.UnitTests` reported 2599 passed and 40 skipped, and the other test projects passed.
 
 The release build currently reports existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
