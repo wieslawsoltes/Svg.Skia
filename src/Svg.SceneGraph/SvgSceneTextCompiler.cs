@@ -20155,7 +20155,6 @@ internal static partial class SvgSceneTextCompiler
 
         if (s_splitCodepointCache.TryGetValue(text, out var cachedCodepoints))
         {
-            CacheSplitCodepointText(cachedCodepoints, text);
             return cachedCodepoints;
         }
 
