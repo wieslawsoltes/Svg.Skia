@@ -1092,6 +1092,11 @@ internal static class PaintingService
 
     private static bool HasInheritedTextOpenTypePaintProperty(SvgElement element)
     {
+        if (!element.MayHaveTextOpenTypeDeclarations())
+        {
+            return false;
+        }
+
         for (SvgElement? current = element; current is not null; current = current.Parent)
         {
             if ((current.GetOwnCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags.TextOpenType) &

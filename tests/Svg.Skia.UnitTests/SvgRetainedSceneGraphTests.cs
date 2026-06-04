@@ -2245,6 +2245,37 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_ApplyMutation_InvalidatesTextOpenTypeFeatureCache()
+    {
+        const string featureSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="80" viewBox="0 0 220 80">
+              <text id="features" x="10" y="40" font-size="24">office</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(featureSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+
+        var initialModel = svg.CreateRetainedSceneGraphModel();
+        var initialDraw = Assert.Single(initialModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("features"));
+        Assert.Null(initialDraw.Paint!.FontKerning);
+
+        var sourceDocument = Assert.IsType<SvgDocument>(scene!.SourceDocument);
+        var target = Assert.IsType<SvgText>(sourceDocument.GetElementById("features"));
+        target.CustomAttributes["font-kerning"] = "none";
+
+        var result = scene.ApplyMutation(target, new[] { "font-kerning" });
+
+        Assert.True(result.Succeeded);
+        var updatedModel = svg.CreateRetainedSceneGraphModel();
+        var updatedDraw = Assert.Single(updatedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("features"));
+        Assert.Equal("none", updatedDraw.Paint!.FontKerning);
+    }
+
+    [Fact]
     public void RetainedSceneGraph_FontSizeFromStylesheet_FlowsIntoTextPaint()
     {
         const string svgMarkup = """

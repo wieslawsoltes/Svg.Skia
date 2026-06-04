@@ -21423,6 +21423,11 @@ internal static partial class SvgSceneTextCompiler
 
     private static bool HasCustomTextOpenTypePaintProperty(SvgElement element)
     {
+        if (!element.MayHaveTextOpenTypeDeclarations())
+        {
+            return false;
+        }
+
         for (SvgElement? current = element; current is not null; current = current.Parent)
         {
             if (HasCustomTextOpenTypePaintProperty(current, "font-feature-settings", "normal") ||

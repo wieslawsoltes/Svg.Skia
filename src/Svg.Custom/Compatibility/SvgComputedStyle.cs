@@ -2297,6 +2297,15 @@ public abstract partial class SvgElement
                    SvgCascadedStyleFeatureFlags.GeometryLength);
     }
 
+    internal bool MayHaveTextOpenTypeDeclarations()
+    {
+        var document = this as SvgDocument ?? OwnerDocument;
+        return document is null ||
+               HasFeatureFlag(
+                   document.GetCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags.TextOpenType),
+                   SvgCascadedStyleFeatureFlags.TextOpenType);
+    }
+
     internal bool TryGetOwnCascadedStyleValue(string propertyName, out string value)
     {
         if (_styles.TryGetValue(propertyName, out var rules) && rules.Count > 0)
@@ -2978,6 +2987,7 @@ public partial class SvgDocument
     private SvgComputedStyleCache? _computedStyleCache;
     private SvgComputedStyleCache? _temporaryParentComputedStyleCache;
     private SvgCascadedStyleFeatureFlags? _cascadedStyleFeatureFlags;
+    private SvgCascadedStyleFeatureFlags? _textOpenTypeCascadedStyleFeatureFlags;
     private SvgConditionalProcessingFeatureFlags? _conditionalProcessingFeatureFlags;
     private int _temporaryParentComputedStyleScopeDepth;
 
@@ -3005,13 +3015,32 @@ public partial class SvgDocument
         _computedStyleCache = null;
         _temporaryParentComputedStyleCache = null;
         _cascadedStyleFeatureFlags = null;
+        _textOpenTypeCascadedStyleFeatureFlags = null;
         _conditionalProcessingFeatureFlags = null;
     }
 
     internal SvgCascadedStyleFeatureFlags GetCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags requestedFlags)
     {
-        _cascadedStyleFeatureFlags ??= GetSubtreeCascadedStyleFeatureFlags();
-        return _cascadedStyleFeatureFlags.Value & requestedFlags;
+        if (requestedFlags == SvgCascadedStyleFeatureFlags.None)
+        {
+            return SvgCascadedStyleFeatureFlags.None;
+        }
+
+        var flags = SvgCascadedStyleFeatureFlags.None;
+        var standardRequestedFlags = requestedFlags & ~SvgCascadedStyleFeatureFlags.TextOpenType;
+        if (standardRequestedFlags != SvgCascadedStyleFeatureFlags.None)
+        {
+            _cascadedStyleFeatureFlags ??= GetSubtreeCascadedStyleFeatureFlags();
+            flags |= _cascadedStyleFeatureFlags.Value & standardRequestedFlags;
+        }
+
+        if ((requestedFlags & SvgCascadedStyleFeatureFlags.TextOpenType) != 0)
+        {
+            _textOpenTypeCascadedStyleFeatureFlags ??= GetSubtreeCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags.TextOpenType);
+            flags |= _textOpenTypeCascadedStyleFeatureFlags.Value & SvgCascadedStyleFeatureFlags.TextOpenType;
+        }
+
+        return flags;
     }
 
     internal SvgConditionalProcessingFeatureFlags GetConditionalProcessingFeatureFlags(SvgConditionalProcessingFeatureFlags requestedFlags)
