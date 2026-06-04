@@ -68,6 +68,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Versioned shim path-bounds caching for retained compile bounds scans.
 - Small `AddPoly` native path revision-key reuse for generated path-heavy replay.
 - Transform-only simple shape group flattening for retained command streams and native replay.
+- Direct-matrix native replay for transformed retained positioned text runs.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -167,6 +168,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Kept the shim path command storage concrete internally so bounds scans avoid interface enumeration allocation while preserving the public `IList<PathCommand>? Commands` surface.
 - Reused the small `AddPoly` native path value-cache key to derive one-command small-poly path revisions, avoiding a second point-list hash pass while preserving mutable-point invalidation.
 - Flattened transform-only retained groups whose children are simple solid-filled leaf paths by pre-transforming rectangle, polygon, and closed line-only path commands during retained recording; this removes save/set-matrix/restore command wrappers and simple leaf opacity save-layers while preserving source-element metadata and keeping clips, masks, filters, strokes, blend modes, isolation, nested children, shaders, and complex paths on the existing rendering path.
+- Replayed compact retained positioned text runs by scanning for untransformed fragments first, drawing those directly, and using direct canvas matrix resets for transformed fragments instead of per-fragment save/restore pairs.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -205,6 +207,14 @@ Focused transform-only simple shape group flattening measurements:
 - `CompileNodeTreeOnly | generated-shapes-1024`: `11.118 ms / 4168.41 KB` to `5.388 ms / 4168.43 KB`.
 - `CompileNodeTreeOnly | generated-filtered-shapes-256`: `2.291 ms / 970.12 KB` to `851.3 us / 970.11 KB`.
 - `CompileNodeTreeOnly | generated-text-path-curves-96`: `10.431 ms / 6934.63 KB` to `5.739 ms / 6934.46 KB` in a noisy short run.
+
+Focused direct positioned text run replay measurements:
+
+- `DrawNativePicture1x | generated-text-path-curves-96`: `4.543 ms` to `2.272 ms`.
+- `DrawNativePicture1x | generated-aligned-letter-spacing-192`: latest focused run measured `521.3 us`.
+- `DrawNativePicture1x | generated-aligned-text-length-192`: latest focused run measured `450.3 us`.
+- `DrawNativePicture1x | generated-shapes-1024`: latest focused run measured `1.397 ms`.
+- `DrawNativePicture1x | generated-filtered-shapes-256`: latest focused run measured `1.369 ms`.
 
 Focused layer-depth replay-state measurements:
 
@@ -594,9 +604,9 @@ Focused simple natural text advance cache-hit measurements:
 
 - `dotnet format Svg.Skia.slnx --no-restore`
 - `dotnet build Svg.Skia.slnx -c Release`
-  - Succeeded with existing warnings only.
+  - Succeeded with 193 existing warnings.
 - `dotnet test Svg.Skia.slnx -c Release`
-  - `Svg.Skia.UnitTests`: Passed 2597, skipped 40.
+  - `Svg.Skia.UnitTests`: Passed 2598, skipped 40.
   - Other test projects in the solution passed.
 - Focused natural text advance cache validation:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgSceneTextCompilerTests.MeasureNaturalTextAdvance"`
@@ -1092,5 +1102,11 @@ Focused simple natural text advance cache-hit measurements:
   - Build passed with 293 existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release`
   - `Svg.Skia.UnitTests`: Passed 2598, skipped 40; other test projects passed.
+- Focused direct positioned text run replay validation:
+  - `dotnet build src/Svg.Skia/Svg.Skia.csproj -c Release --no-restore`
+  - Build passed with existing warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgTextPathParityTests|FullyQualifiedName~SvgSceneTextCompilerTests|FullyQualifiedName~SKSvgRebuildFromModelTests"`
+  - Passed 472.
+  - `SVG_SKIA_BENCHMARK_RUN_LABEL=positioned-text-run-direct-matrix-draw SVG_SKIA_BENCHMARK_SCENARIOS=generated-text-path-curves-96,generated-shapes-1024,generated-filtered-shapes-256,generated-aligned-letter-spacing-192,generated-aligned-text-length-192 dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRenderBitmapBenchmarks.DrawNativePicture1x*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
 
 The release build currently reports existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
