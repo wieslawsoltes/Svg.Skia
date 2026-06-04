@@ -16,7 +16,10 @@ internal enum SvgCascadedStyleFeatureFlags
     MarkerReference = 1,
     MixBlendMode = 2,
     Isolation = 4,
-    TextOpenType = 8
+    TextOpenType = 8,
+    ClipPath = 16,
+    Mask = 32,
+    Filter = 64
 }
 
 internal sealed class SvgComputedStyleCache
@@ -2255,7 +2258,10 @@ public abstract partial class SvgElement
     private const SvgCascadedStyleFeatureFlags AllCascadedStyleFeatureFlags =
         SvgCascadedStyleFeatureFlags.MarkerReference |
         SvgCascadedStyleFeatureFlags.MixBlendMode |
-        SvgCascadedStyleFeatureFlags.Isolation;
+        SvgCascadedStyleFeatureFlags.Isolation |
+        SvgCascadedStyleFeatureFlags.ClipPath |
+        SvgCascadedStyleFeatureFlags.Mask |
+        SvgCascadedStyleFeatureFlags.Filter;
 
     internal SvgComputedStyleSnapshot ComputedStyle =>
         OwnerDocument is not null
@@ -2415,6 +2421,21 @@ public abstract partial class SvgElement
                 flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "isolation");
             }
 
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.ClipPath))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "clip-path");
+            }
+
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Mask))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "mask");
+            }
+
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Filter))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "filter");
+            }
+
             if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.TextOpenType))
             {
                 flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "font-feature-settings");
@@ -2461,6 +2482,21 @@ public abstract partial class SvgElement
             flags = AddAttributeFeatureFlag(flags, requestedFlags, "isolation");
         }
 
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.ClipPath))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "clip-path");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Mask))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "mask");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Filter))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "filter");
+        }
+
         if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.TextOpenType))
         {
             flags = AddAttributeFeatureFlag(flags, requestedFlags, "font-feature-settings");
@@ -2489,6 +2525,21 @@ public abstract partial class SvgElement
         if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Isolation))
         {
             flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "isolation");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.ClipPath))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "clip-path");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Mask))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "mask");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Filter))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "filter");
         }
 
         if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.TextOpenType))
@@ -2616,6 +2667,30 @@ public abstract partial class SvgElement
             IsDeclaredComputedStyleFeatureCandidate(value, "auto"))
         {
             flags |= SvgCascadedStyleFeatureFlags.Isolation;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.ClipPath) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.ClipPath) &&
+            string.Equals(propertyName, "clip-path", StringComparison.OrdinalIgnoreCase) &&
+            IsDeclaredComputedStyleFeatureCandidate(value, "none"))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.ClipPath;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Mask) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.Mask) &&
+            string.Equals(propertyName, "mask", StringComparison.OrdinalIgnoreCase) &&
+            IsDeclaredComputedStyleFeatureCandidate(value, "none"))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.Mask;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Filter) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.Filter) &&
+            string.Equals(propertyName, "filter", StringComparison.OrdinalIgnoreCase) &&
+            IsDeclaredComputedStyleFeatureCandidate(value, "none"))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.Filter;
         }
 
         if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.TextOpenType) &&

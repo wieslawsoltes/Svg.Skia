@@ -20,7 +20,10 @@ public static class SvgSceneCompiler
         private const SvgCascadedStyleFeatureFlags AllCascadedStyleFeatureFlags =
             SvgCascadedStyleFeatureFlags.MarkerReference |
             SvgCascadedStyleFeatureFlags.MixBlendMode |
-            SvgCascadedStyleFeatureFlags.Isolation;
+            SvgCascadedStyleFeatureFlags.Isolation |
+            SvgCascadedStyleFeatureFlags.ClipPath |
+            SvgCascadedStyleFeatureFlags.Mask |
+            SvgCascadedStyleFeatureFlags.Filter;
 
         private string? _activeDocumentKey;
         private HashSet<string>? _activeDocumentKeys;
@@ -51,6 +54,15 @@ public static class SvgSceneCompiler
             _activeDocumentCascadedStyleFeatureFlags;
 
         public bool ActiveDocumentMayContainMarkerReferenceDeclarations => _activeDocumentMayContainMarkerReferenceDeclarations;
+
+        public bool ActiveDocumentMayContainClipPathDeclarations =>
+            HasFeatureFlag(_activeDocumentCascadedStyleFeatureFlags, SvgCascadedStyleFeatureFlags.ClipPath);
+
+        public bool ActiveDocumentMayContainMaskDeclarations =>
+            HasFeatureFlag(_activeDocumentCascadedStyleFeatureFlags, SvgCascadedStyleFeatureFlags.Mask);
+
+        public bool ActiveDocumentMayContainFilterDeclarations =>
+            HasFeatureFlag(_activeDocumentCascadedStyleFeatureFlags, SvgCascadedStyleFeatureFlags.Filter);
 
         public IDisposable PushContextPaint(SvgVisualElement contextPaintElement, SKRect contextPaintBounds)
         {
@@ -4448,7 +4460,8 @@ public static class SvgSceneCompiler
         node.MaskResourceKey = null;
         node.FilterResourceKey = null;
 
-        if (element is not null &&
+        if (compileContext.ActiveDocumentMayContainClipPathDeclarations &&
+            element is not null &&
             IsClipPathApplicableElement(element))
         {
             node.ClipResourceKey = compileContext.GetClipResourceKey(element);
@@ -4456,7 +4469,11 @@ public static class SvgSceneCompiler
 
         if (element is SvgMask)
         {
-            node.MaskResourceKey = compileContext.GetMaskResourceKey(element);
+            if (compileContext.ActiveDocumentMayContainMaskDeclarations)
+            {
+                node.MaskResourceKey = compileContext.GetMaskResourceKey(element);
+            }
+
             return;
         }
 
@@ -4465,8 +4482,15 @@ public static class SvgSceneCompiler
             return;
         }
 
-        node.MaskResourceKey = compileContext.GetMaskResourceKey(visualElement);
-        node.FilterResourceKey = compileContext.GetFilterResourceKey(visualElement);
+        if (compileContext.ActiveDocumentMayContainMaskDeclarations)
+        {
+            node.MaskResourceKey = compileContext.GetMaskResourceKey(visualElement);
+        }
+
+        if (compileContext.ActiveDocumentMayContainFilterDeclarations)
+        {
+            node.FilterResourceKey = compileContext.GetFilterResourceKey(visualElement);
+        }
     }
 
     internal static void AssignRetainedVisualState(
