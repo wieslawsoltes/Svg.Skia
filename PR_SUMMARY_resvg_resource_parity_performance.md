@@ -79,9 +79,13 @@ The branch focuses on cases found while validating the resource parity lane:
 - Direct-matrix native replay for transformed retained positioned text runs.
 - Rotation-scale native text blob replay for simple positioned text runs.
 - Retained resource-key feature gates for documents without clip-path, mask, or filter declarations.
+- Retained runtime resource-payload feature gates for documents without clip-path, mask, or filter declarations.
 - On-demand retained compilation-root lookup for no-reference scene documents.
 - Structural transform-origin reuse and direct path cull-bounds reuse for retained primitive/group compile.
 - Direct visual fill/stroke validity reuse for retained shape compile.
+- Retained paint-hit validity reuse during runtime payload refresh for direct path, shape, and text nodes.
+- Inline `SKPath` command storage without a per-path change-tracking wrapper.
+- Own-`textLength` guard for retained textLength fast-path probes on ordinary text.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -187,15 +191,19 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added versioned `SKPath.Bounds` caching for command sequences whose command data is stable, while continuing to recompute `AddPoly` paths whose point lists can be mutated by callers.
 - Kept the shim path command storage concrete internally so bounds scans avoid interface enumeration allocation while preserving the public `IList<PathCommand>? Commands` surface.
 - Changed shim path command lists to keep one- and two-command paths inline before allocating overflow list storage, preserving the mutable `IList<PathCommand>` command surface while trimming generated simple-path retained compile allocations.
+- Moved the inline command-list storage directly onto `SKPath`, so `Commands` returns the path's own mutable `IList<PathCommand>` implementation and simple paths no longer allocate a separate change-tracking wrapper.
 - Reused the small `AddPoly` native path value-cache key to derive one-command small-poly path revisions, avoiding a second point-list hash pass while preserving mutable-point invalidation.
 - Flattened transform-only retained groups whose children are simple solid-filled leaf paths by pre-transforming rectangle, polygon, and closed line-only path commands during retained recording; this removes save/set-matrix/restore command wrappers and simple leaf opacity save-layers while preserving source-element metadata and keeping clips, masks, filters, strokes, blend modes, isolation, nested children, shaders, and complex paths on the existing rendering path.
 - Changed the transformed simple-child renderer fallback to inspect path command shapes during eligibility instead of creating a throwaway transformed path, and to map closed line-only command lists directly into the final transformed point array during recording.
 - Replayed compact retained positioned text runs by scanning for untransformed fragments first, drawing those directly, and using direct canvas matrix resets for transformed fragments instead of per-fragment save/restore pairs.
 - Added a guarded native `SKTextBlob.CreateRotationScale` replay path for left-aligned simple ASCII positioned text runs, collapsing eligible fragment runs into one native blob draw while keeping scaled, non-ASCII, non-left-aligned, and other complex runs on the existing per-fragment fallback.
 - Reused the cached document-wide cascaded-style feature analysis to skip retained clip/mask/filter resource-key lookup attempts when the active document has no matching declarations, preserving precise lookup behavior for documents that do declare those resources.
+- Reused the same document-wide feature analysis during retained runtime payload refresh so main-document nodes skip clip-path, mask, and filter resolver work entirely when the document has no matching declarations; non-root payload trees remain conservative for externally scoped resources.
 - Switched no-reference retained scene documents from eager descendant-address dependency map construction to on-demand ancestor-root lookup during mutation, including parent-address fallback for non-rendered DOM children such as animation elements.
 - Reused precomputed structural transforms when applying transform-origin during direct retained group, anchor, and switch finalization, and reused already computed direct path geometry bounds for local cull rectangles.
 - Reused direct visual fill/stroke hit-test validity checks when creating retained local paints, avoiding duplicate paint-server and stroke-width validity work for every direct shape node.
+- Reused retained fill/stroke hit-test flags while refreshing runtime paint payloads for direct path, shape, and text nodes, avoiding duplicate paint-validity checks after retained compile has already computed them.
+- Skipped retained textLength-specific compile probes before run collection when a text element has no own `textLength`, avoiding duplicate sequential-run collection for ordinary retained text while preserving the specialized paths for real `textLength` rows.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -360,10 +368,25 @@ Focused direct visual validity reuse measurements:
 - `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: the focused control rerun measured `3230.5 KB`, effectively flat against the post-structural scan's `3220.44 KB`.
 - Short-run timings were noisy, so the filtered-shape allocation drop is the primary signal for this small cleanup.
 
+Focused retained runtime feature-gate and paint-hit flag reuse measurements:
+
+- `ResolveRuntimePayloadsOnly | generated-shapes-1024`: current shape phase audit measured `4.015 ms / 363,160 B`; after retained clip/mask/filter runtime feature gates it measured `2.192 ms / 363,352 B`.
+- `ResolveRuntimePayloadsOnly | generated-shapes-1024`: after runtime paint-hit flag reuse it measured `1.915 ms / 363,064 B`.
+- `CreateSceneDocumentFromCompiledTree | generated-shapes-1024`: current shape phase audit measured `2.182 ms / 758,177 B`; after runtime paint-hit flag reuse it measured `1.405 ms / 758,133 B`.
+- `CompileViaSceneRuntime | generated-shapes-1024`: current shape phase audit measured `12.856 ms / 4,282,457 B`; after runtime feature gates and paint-hit flag reuse it measured `7.817 ms / 4,282,551 B`.
+- Short-run timings are phase-audit evidence for resolver work reduction; allocation stayed effectively flat because the change avoids lookups and paint-validity work rather than removing retained node storage.
+
 Focused shim path-bounds cache measurement:
 
 - `CompileNodeTreeOnly | generated-shapes-1024`: allocation dropped from the prior compact-root lookup row of `4,474,041 B` to `4.09 MB`.
 - The same short-run benchmark measured `5.476 ms`, so this change is treated as an allocation reduction and regression guard rather than a wall-clock speed claim.
+
+Focused `SKPath`-owned inline command storage measurements:
+
+- `CompileNodeTreeOnly | generated-shapes-1024`: after the runtime feature-gate and paint-hit cleanup, the shape phase audit measured `3,498,792 B`; after moving inline command storage directly onto `SKPath`, it measured `3,285,771 B`.
+- `CompileViaSceneCompiler | generated-shapes-1024`: after moving inline command storage directly onto `SKPath`, the focused phase scan measured `7.693 ms / 4,068,825 B`.
+- `CompileViaSceneRuntime | generated-shapes-1024`: after moving inline command storage directly onto `SKPath`, the focused phase scan measured `7.844 ms / 4,069,568 B`, down from the pre-wrapper-removal allocation row around `4.28 MB`.
+- This preserves the mutable `Commands` surface by making `SKPath` itself implement `IList<PathCommand>` while avoiding one command-list wrapper allocation per path.
 
 Focused retained-scene child-list capacity and lazy compile-context measurements:
 
@@ -477,8 +500,15 @@ Focused ASCII codepoint and single-run aligned retained compile measurements:
 - `CompileNodeTreeOnly | generated-aligned-text-length-192`: current retained hotspot scan allocation moved from `1980.55 KB` to `1965.55 KB`.
 - `CreateAlignedPlacementsAcrossFragments` stayed allocation-flat at `574.27 KB` and `213.43 KB`, which confirms the retained compile reduction comes from compile-path collection/cache cleanup rather than the standalone placement benchmark's warmed-cache loop.
 - Updated retained hotspot scan after this change: `generated-shapes-1024` remains the largest retained compile allocation at `4168.46 KB`; `generated-text-192` is `3218.43 KB`; `generated-aligned-letter-spacing-192` is `3223.03 KB`; `generated-text-path-curves-96` is `1305.75 KB`; `generated-aligned-text-length-192` is `1965.55 KB`; `generated-filtered-shapes-256` is `970.11 KB`.
-- After inline shim path command-list storage, the focused `generated-shapes-1024` retained compile row measured `3.83 MB`; text scenarios remain the next retained compile allocation targets.
+- After moving inline command storage directly onto `SKPath`, the focused `generated-shapes-1024` retained compile row measured `3,285,771 B`; plain and aligned text scenarios remain the next retained compile allocation targets.
 - `generated-text-192` phase audit shows remaining plain-text allocation is still dominated by `CompileNodeTreeOnly` (`3.996 ms / 3,295,669 B`), while scene-document creation is `737,417 B`, dependency registration is `95,168 B`, and runtime payload resolution is `57,416 B`.
+
+Focused own-`textLength` probe guard measurements:
+
+- `CompileNodeTreeOnly | generated-text-192`: current focused benchmark measured `2.943 ms / 2.70 MB` after skipping textLength-only run collection for ordinary text.
+- `CompileNodeTreeOnly | generated-aligned-letter-spacing-192`: current focused benchmark measured `2.016 ms / 2.75 MB`; short-run timing was noisy, but allocation stays below the prior post-text cleanup rows.
+- `CompileNodeTreeOnly | generated-aligned-text-length-192`: current focused benchmark measured `1.357 ms / 1.93 MB`, confirming real `textLength` rows still use the specialized branch.
+- `CompileNodeTreeOnly | generated-shapes-1024`: current focused control row measured `3.026 ms / 3.13 MB`, so shape allocation remains the largest retained compile row after the text probe cleanup.
 
 ### Text Path Performance
 
