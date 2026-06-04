@@ -23,7 +23,9 @@ public static class SvgSceneCompiler
             SvgCascadedStyleFeatureFlags.Isolation |
             SvgCascadedStyleFeatureFlags.ClipPath |
             SvgCascadedStyleFeatureFlags.Mask |
-            SvgCascadedStyleFeatureFlags.Filter;
+            SvgCascadedStyleFeatureFlags.Filter |
+            SvgCascadedStyleFeatureFlags.Cursor |
+            SvgCascadedStyleFeatureFlags.EnableBackground;
 
         private string? _activeDocumentKey;
         private HashSet<string>? _activeDocumentKeys;
@@ -1254,7 +1256,9 @@ public static class SvgSceneCompiler
             node,
             element,
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.MixBlendMode),
-            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation));
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground));
         AssignRetainedResourceKeys(node, element, compileContext);
 
         return true;
@@ -1479,7 +1483,9 @@ public static class SvgSceneCompiler
             node,
             element,
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.MixBlendMode),
-            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation));
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground));
         AssignRetainedResourceKeys(node, element, compileContext);
         return node;
     }
@@ -1830,6 +1836,8 @@ public static class SvgSceneCompiler
                 compileContext.GetElementAddressKey,
                 HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.MixBlendMode),
                 HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation),
+                HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
+                HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground),
                 compileContext.ContextPaint,
                 out node);
         }
@@ -1878,7 +1886,9 @@ public static class SvgSceneCompiler
             node,
             element,
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.MixBlendMode),
-            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation));
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground));
         AssignRetainedResourceKeys(node, element, compileContext);
         var markerElement = !ignoreAttributes.HasFlag(DrawAttributes.Markers) &&
             compileContext.ActiveMarkerReferenceDeclarationCandidate &&
@@ -1991,7 +2001,9 @@ public static class SvgSceneCompiler
             useNode,
             svgUse,
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.MixBlendMode),
-            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation));
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground));
 
         var x = SvgGeometryService.GetComputedUnit(svgUse, "x", svgUse.X).ToDeviceValue(UnitRenderingType.Horizontal, svgUse, viewport);
         var y = SvgGeometryService.GetComputedUnit(svgUse, "y", svgUse.Y).ToDeviceValue(UnitRenderingType.Vertical, svgUse, viewport);
@@ -2247,7 +2259,9 @@ public static class SvgSceneCompiler
             node,
             svgImage,
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.MixBlendMode),
-            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation));
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground));
 
         var widthUnit = SvgGeometryService.GetComputedUnit(svgImage, "width", svgImage.Width, out var widthAuto, out var widthAuthorSpecified);
         var heightUnit = SvgGeometryService.GetComputedUnit(svgImage, "height", svgImage.Height, out var heightAuto, out var heightAuthorSpecified);
@@ -2445,7 +2459,9 @@ public static class SvgSceneCompiler
             node,
             svgSymbol,
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.MixBlendMode),
-            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation));
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground));
 
         var transform = TransformsService.ToMatrix(svgSymbol.Transforms);
         var viewBoxTransform = TransformsService.ToMatrix(svgSymbol.ViewBox, svgSymbol.AspectRatio, x, y, width, height);
@@ -3685,7 +3701,9 @@ public static class SvgSceneCompiler
             node,
             svgMarker,
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.MixBlendMode),
-            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation));
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground));
         AssignRetainedResourceKeys(node, svgMarker, compileContext);
         node.IsVisible = true;
         node.IsDisplayNone = false;
@@ -3980,12 +3998,14 @@ public static class SvgSceneCompiler
 
         if (element is SvgVisualElement || element.IsContainerElement())
         {
-            flags |= SvgCascadedStyleFeatureFlags.MixBlendMode;
+            flags |= SvgCascadedStyleFeatureFlags.MixBlendMode |
+                     SvgCascadedStyleFeatureFlags.Cursor;
         }
 
         if (element.IsContainerElement())
         {
-            flags |= SvgCascadedStyleFeatureFlags.Isolation;
+            flags |= SvgCascadedStyleFeatureFlags.Isolation |
+                     SvgCascadedStyleFeatureFlags.EnableBackground;
         }
 
         return flags;
@@ -4096,7 +4116,9 @@ public static class SvgSceneCompiler
             root,
             owner,
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.MixBlendMode),
-            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation));
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground));
         AssignRetainedResourceKeys(root, owner, compileContext);
 
         try
@@ -4503,7 +4525,9 @@ public static class SvgSceneCompiler
         SvgSceneNode node,
         SvgElement? element,
         bool mayContainMixBlendModeDeclarations = true,
-        bool mayContainIsolationDeclarations = true)
+        bool mayContainIsolationDeclarations = true,
+        bool mayContainCursorDeclarations = true,
+        bool mayContainEnableBackgroundDeclarations = true)
     {
         node.PointerEvents = SvgPointerEvents.VisiblePainted;
         node.IsVisible = true;
@@ -4514,7 +4538,8 @@ public static class SvgSceneCompiler
         node.IsIsolationGroup = false;
         node.BlendModePaint = null;
 
-        if (element is not null &&
+        if (mayContainCursorDeclarations &&
+            element is not null &&
             TryGetCursorAttribute(element, out var cursor))
         {
             node.Cursor = cursor;
@@ -4527,7 +4552,8 @@ public static class SvgSceneCompiler
             node.IsDisplayNone = string.Equals(visualElement.Display?.Trim(), "none", StringComparison.OrdinalIgnoreCase);
         }
 
-        if (element is not null &&
+        if (mayContainEnableBackgroundDeclarations &&
+            element is not null &&
             element.IsContainerElement() &&
             TryParseEnableBackground(element, out var backgroundClip))
         {
@@ -4940,7 +4966,9 @@ public static class SvgSceneCompiler
             node,
             svgMask,
             HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.MixBlendMode),
-            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation));
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Isolation),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.Cursor),
+            HasFeatureFlag(ownFeatureFlags, SvgCascadedStyleFeatureFlags.EnableBackground));
         AssignRetainedResourceKeys(node, svgMask, compileContext);
 
         try

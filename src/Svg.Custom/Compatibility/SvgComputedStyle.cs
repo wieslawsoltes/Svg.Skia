@@ -19,7 +19,9 @@ internal enum SvgCascadedStyleFeatureFlags
     TextOpenType = 8,
     ClipPath = 16,
     Mask = 32,
-    Filter = 64
+    Filter = 64,
+    Cursor = 128,
+    EnableBackground = 256
 }
 
 internal sealed class SvgComputedStyleCache
@@ -2261,7 +2263,9 @@ public abstract partial class SvgElement
         SvgCascadedStyleFeatureFlags.Isolation |
         SvgCascadedStyleFeatureFlags.ClipPath |
         SvgCascadedStyleFeatureFlags.Mask |
-        SvgCascadedStyleFeatureFlags.Filter;
+        SvgCascadedStyleFeatureFlags.Filter |
+        SvgCascadedStyleFeatureFlags.Cursor |
+        SvgCascadedStyleFeatureFlags.EnableBackground;
 
     internal SvgComputedStyleSnapshot ComputedStyle =>
         OwnerDocument is not null
@@ -2421,6 +2425,16 @@ public abstract partial class SvgElement
                 flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "isolation");
             }
 
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Cursor))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "cursor");
+            }
+
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.EnableBackground))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "enable-background");
+            }
+
             if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.ClipPath))
             {
                 flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "clip-path");
@@ -2482,6 +2496,16 @@ public abstract partial class SvgElement
             flags = AddAttributeFeatureFlag(flags, requestedFlags, "isolation");
         }
 
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Cursor))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "cursor");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.EnableBackground))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "enable-background");
+        }
+
         if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.ClipPath))
         {
             flags = AddAttributeFeatureFlag(flags, requestedFlags, "clip-path");
@@ -2525,6 +2549,16 @@ public abstract partial class SvgElement
         if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Isolation))
         {
             flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "isolation");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Cursor))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "cursor");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.EnableBackground))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "enable-background");
         }
 
         if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.ClipPath))
@@ -2669,6 +2703,22 @@ public abstract partial class SvgElement
             flags |= SvgCascadedStyleFeatureFlags.Isolation;
         }
 
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Cursor) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.Cursor) &&
+            string.Equals(propertyName, "cursor", StringComparison.OrdinalIgnoreCase) &&
+            IsCursorDeclarationCandidateValue(value))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.Cursor;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.EnableBackground) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.EnableBackground) &&
+            string.Equals(propertyName, "enable-background", StringComparison.OrdinalIgnoreCase) &&
+            IsEnableBackgroundDeclarationCandidateValue(value))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.EnableBackground;
+        }
+
         if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.ClipPath) &&
             !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.ClipPath) &&
             string.Equals(propertyName, "clip-path", StringComparison.OrdinalIgnoreCase) &&
@@ -2721,6 +2771,22 @@ public abstract partial class SvgElement
 
         initialValue = string.Empty;
         return false;
+    }
+
+    private static bool IsCursorDeclarationCandidateValue(string value)
+    {
+        var normalizedValue = value.Trim();
+        return normalizedValue.Length > 0 &&
+               !normalizedValue.Equals("inherit", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsEnableBackgroundDeclarationCandidateValue(string value)
+    {
+        var normalizedValue = value.Trim();
+        return normalizedValue.StartsWith("new", StringComparison.OrdinalIgnoreCase) &&
+               (normalizedValue.Length == 3 ||
+                char.IsWhiteSpace(normalizedValue[3]) ||
+                normalizedValue[3] == ',');
     }
 
     private static bool HasFeatureFlag(

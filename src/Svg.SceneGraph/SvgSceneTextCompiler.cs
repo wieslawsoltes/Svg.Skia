@@ -1413,6 +1413,8 @@ internal static partial class SvgSceneTextCompiler
         Func<SvgElement?, string?>? getElementAddressKey,
         bool mayContainMixBlendModeDeclaration,
         bool mayContainIsolationDeclaration,
+        bool mayContainCursorDeclaration,
+        bool mayContainEnableBackgroundDeclaration,
         SvgSceneContextPaint? contextPaint,
         out SvgSceneNode? node)
     {
@@ -1436,7 +1438,9 @@ internal static partial class SvgSceneTextCompiler
             node,
             svgTextBase,
             mayContainMixBlendModeDeclaration,
-            mayContainIsolationDeclaration);
+            mayContainIsolationDeclaration,
+            mayContainCursorDeclaration,
+            mayContainEnableBackgroundDeclaration);
         SvgSceneCompiler.AssignRetainedResourceKeys(node, svgTextBase, getElementAddressKey);
         node.SupportsFillHitTest = SvgScenePaintingService.IsValidFill(svgTextBase);
         node.SupportsStrokeHitTest = SvgScenePaintingService.IsValidStroke(svgTextBase, SKRect.Empty);
