@@ -16,7 +16,22 @@ internal enum SvgCascadedStyleFeatureFlags
     MarkerReference = 1,
     MixBlendMode = 2,
     Isolation = 4,
-    TextOpenType = 8
+    TextOpenType = 8,
+    ClipPath = 16,
+    Mask = 32,
+    Filter = 64,
+    Cursor = 128,
+    EnableBackground = 256,
+    GeometryLength = 512
+}
+
+[Flags]
+internal enum SvgConditionalProcessingFeatureFlags
+{
+    None = 0,
+    RequiredFeatures = 1,
+    RequiredExtensions = 2,
+    SystemLanguage = 4
 }
 
 internal sealed class SvgComputedStyleCache
@@ -2255,12 +2270,41 @@ public abstract partial class SvgElement
     private const SvgCascadedStyleFeatureFlags AllCascadedStyleFeatureFlags =
         SvgCascadedStyleFeatureFlags.MarkerReference |
         SvgCascadedStyleFeatureFlags.MixBlendMode |
-        SvgCascadedStyleFeatureFlags.Isolation;
+        SvgCascadedStyleFeatureFlags.Isolation |
+        SvgCascadedStyleFeatureFlags.ClipPath |
+        SvgCascadedStyleFeatureFlags.Mask |
+        SvgCascadedStyleFeatureFlags.Filter |
+        SvgCascadedStyleFeatureFlags.Cursor |
+        SvgCascadedStyleFeatureFlags.EnableBackground |
+        SvgCascadedStyleFeatureFlags.GeometryLength;
+
+    private const SvgConditionalProcessingFeatureFlags AllConditionalProcessingFeatureFlags =
+        SvgConditionalProcessingFeatureFlags.RequiredFeatures |
+        SvgConditionalProcessingFeatureFlags.RequiredExtensions |
+        SvgConditionalProcessingFeatureFlags.SystemLanguage;
 
     internal SvgComputedStyleSnapshot ComputedStyle =>
         OwnerDocument is not null
             ? OwnerDocument.GetComputedStyle(this)
             : new SvgComputedStyleSnapshot(new SvgComputedStyleCache(), this);
+
+    internal bool MayHaveGeometryLengthCssDeclarations()
+    {
+        var document = this as SvgDocument ?? OwnerDocument;
+        return document is null ||
+               HasFeatureFlag(
+                   document.GetCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags.GeometryLength),
+                   SvgCascadedStyleFeatureFlags.GeometryLength);
+    }
+
+    internal bool MayHaveTextOpenTypeDeclarations()
+    {
+        var document = this as SvgDocument ?? OwnerDocument;
+        return document is null ||
+               HasFeatureFlag(
+                   document.GetCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags.TextOpenType),
+                   SvgCascadedStyleFeatureFlags.TextOpenType);
+    }
 
     internal bool TryGetOwnCascadedStyleValue(string propertyName, out string value)
     {
@@ -2415,12 +2459,39 @@ public abstract partial class SvgElement
                 flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "isolation");
             }
 
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Cursor))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "cursor");
+            }
+
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.EnableBackground))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "enable-background");
+            }
+
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.ClipPath))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "clip-path");
+            }
+
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Mask))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "mask");
+            }
+
+            if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Filter))
+            {
+                flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "filter");
+            }
+
             if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.TextOpenType))
             {
                 flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "font-feature-settings");
                 flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "font-kerning");
                 flags = AddStyleRulesFeatureFlag(flags, requestedFlags, "font-variant-ligatures");
             }
+
+            flags = AddGeometryLengthCssFeatureFlag(flags, requestedFlags);
 
             if (flags == requestedFlags)
             {
@@ -2461,6 +2532,31 @@ public abstract partial class SvgElement
             flags = AddAttributeFeatureFlag(flags, requestedFlags, "isolation");
         }
 
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Cursor))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "cursor");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.EnableBackground))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "enable-background");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.ClipPath))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "clip-path");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Mask))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "mask");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Filter))
+        {
+            flags = AddAttributeFeatureFlag(flags, requestedFlags, "filter");
+        }
+
         if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.TextOpenType))
         {
             flags = AddAttributeFeatureFlag(flags, requestedFlags, "font-feature-settings");
@@ -2489,6 +2585,31 @@ public abstract partial class SvgElement
         if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Isolation))
         {
             flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "isolation");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Cursor))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "cursor");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.EnableBackground))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "enable-background");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.ClipPath))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "clip-path");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Mask))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "mask");
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Filter))
+        {
+            flags = AddCustomAttributeFeatureFlag(flags, requestedFlags, "filter");
         }
 
         if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.TextOpenType))
@@ -2558,6 +2679,64 @@ public abstract partial class SvgElement
         return flags;
     }
 
+    internal SvgConditionalProcessingFeatureFlags GetOwnConditionalProcessingFeatureFlags(
+        SvgConditionalProcessingFeatureFlags requestedFlags = AllConditionalProcessingFeatureFlags)
+    {
+        if (requestedFlags == SvgConditionalProcessingFeatureFlags.None)
+        {
+            return SvgConditionalProcessingFeatureFlags.None;
+        }
+
+        var flags = SvgConditionalProcessingFeatureFlags.None;
+
+        if (HasFeatureFlag(requestedFlags, SvgConditionalProcessingFeatureFlags.RequiredFeatures) &&
+            TryGetAttribute("requiredFeatures", out _))
+        {
+            flags |= SvgConditionalProcessingFeatureFlags.RequiredFeatures;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgConditionalProcessingFeatureFlags.RequiredExtensions) &&
+            TryGetAttribute("requiredExtensions", out _))
+        {
+            flags |= SvgConditionalProcessingFeatureFlags.RequiredExtensions;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgConditionalProcessingFeatureFlags.SystemLanguage) &&
+            TryGetAttribute("systemLanguage", out _))
+        {
+            flags |= SvgConditionalProcessingFeatureFlags.SystemLanguage;
+        }
+
+        return flags;
+    }
+
+    internal SvgConditionalProcessingFeatureFlags GetSubtreeConditionalProcessingFeatureFlags(
+        SvgConditionalProcessingFeatureFlags requestedFlags = AllConditionalProcessingFeatureFlags)
+    {
+        if (requestedFlags == SvgConditionalProcessingFeatureFlags.None)
+        {
+            return SvgConditionalProcessingFeatureFlags.None;
+        }
+
+        var flags = GetOwnConditionalProcessingFeatureFlags(requestedFlags);
+        if (flags == requestedFlags)
+        {
+            return flags;
+        }
+
+        for (var i = 0; i < Children.Count; i++)
+        {
+            var remainingFlags = requestedFlags & ~flags;
+            flags |= Children[i].GetSubtreeConditionalProcessingFeatureFlags(remainingFlags);
+            if (flags == requestedFlags)
+            {
+                return flags;
+            }
+        }
+
+        return flags;
+    }
+
     private SvgCascadedStyleFeatureFlags AddStyleRulesFeatureFlag(
         SvgCascadedStyleFeatureFlags flags,
         SvgCascadedStyleFeatureFlags requestedFlags,
@@ -2566,6 +2745,29 @@ public abstract partial class SvgElement
         return _styles.TryGetValue(propertyName, out var rules) && rules.Count > 0
             ? AddCascadedStyleFeatureFlag(flags, requestedFlags, propertyName, rules.Last().Value)
             : flags;
+    }
+
+    private SvgCascadedStyleFeatureFlags AddGeometryLengthCssFeatureFlag(
+        SvgCascadedStyleFeatureFlags flags,
+        SvgCascadedStyleFeatureFlags requestedFlags)
+    {
+        if (!HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.GeometryLength) ||
+            HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.GeometryLength))
+        {
+            return flags;
+        }
+
+        foreach (var style in _styles)
+        {
+            if (IsGeometryLengthCssProperty(style.Key) &&
+                TryGetHighestCssDeclaration(style.Value, out var value) &&
+                !string.IsNullOrWhiteSpace(value))
+            {
+                return flags | SvgCascadedStyleFeatureFlags.GeometryLength;
+            }
+        }
+
+        return flags;
     }
 
     private SvgCascadedStyleFeatureFlags AddAttributeFeatureFlag(
@@ -2618,6 +2820,46 @@ public abstract partial class SvgElement
             flags |= SvgCascadedStyleFeatureFlags.Isolation;
         }
 
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Cursor) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.Cursor) &&
+            string.Equals(propertyName, "cursor", StringComparison.OrdinalIgnoreCase) &&
+            IsCursorDeclarationCandidateValue(value))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.Cursor;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.EnableBackground) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.EnableBackground) &&
+            string.Equals(propertyName, "enable-background", StringComparison.OrdinalIgnoreCase) &&
+            IsEnableBackgroundDeclarationCandidateValue(value))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.EnableBackground;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.ClipPath) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.ClipPath) &&
+            string.Equals(propertyName, "clip-path", StringComparison.OrdinalIgnoreCase) &&
+            IsDeclaredComputedStyleFeatureCandidate(value, "none"))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.ClipPath;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Mask) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.Mask) &&
+            string.Equals(propertyName, "mask", StringComparison.OrdinalIgnoreCase) &&
+            IsDeclaredComputedStyleFeatureCandidate(value, "none"))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.Mask;
+        }
+
+        if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.Filter) &&
+            !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.Filter) &&
+            string.Equals(propertyName, "filter", StringComparison.OrdinalIgnoreCase) &&
+            IsDeclaredComputedStyleFeatureCandidate(value, "none"))
+        {
+            flags |= SvgCascadedStyleFeatureFlags.Filter;
+        }
+
         if (HasFeatureFlag(requestedFlags, SvgCascadedStyleFeatureFlags.TextOpenType) &&
             !HasFeatureFlag(flags, SvgCascadedStyleFeatureFlags.TextOpenType) &&
             IsTextOpenTypeFeatureProperty(propertyName, out var initialValue) &&
@@ -2648,9 +2890,32 @@ public abstract partial class SvgElement
         return false;
     }
 
+    private static bool IsCursorDeclarationCandidateValue(string value)
+    {
+        var normalizedValue = value.Trim();
+        return normalizedValue.Length > 0 &&
+               !normalizedValue.Equals("inherit", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsEnableBackgroundDeclarationCandidateValue(string value)
+    {
+        var normalizedValue = value.Trim();
+        return normalizedValue.StartsWith("new", StringComparison.OrdinalIgnoreCase) &&
+               (normalizedValue.Length == 3 ||
+                char.IsWhiteSpace(normalizedValue[3]) ||
+                normalizedValue[3] == ',');
+    }
+
     private static bool HasFeatureFlag(
         SvgCascadedStyleFeatureFlags flags,
         SvgCascadedStyleFeatureFlags flag)
+    {
+        return (flags & flag) != 0;
+    }
+
+    private static bool HasFeatureFlag(
+        SvgConditionalProcessingFeatureFlags flags,
+        SvgConditionalProcessingFeatureFlags flag)
     {
         return (flags & flag) != 0;
     }
@@ -2661,6 +2926,23 @@ public abstract partial class SvgElement
                string.Equals(propertyName, "marker-start", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(propertyName, "marker-mid", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(propertyName, "marker-end", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsGeometryLengthCssProperty(string propertyName)
+    {
+        return string.Equals(propertyName, "x", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "y", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "width", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "height", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "rx", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "ry", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "cx", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "cy", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "r", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "x1", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "y1", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "x2", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(propertyName, "y2", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsMarkerReferenceDeclarationCandidateValue(string value)
@@ -2705,6 +2987,8 @@ public partial class SvgDocument
     private SvgComputedStyleCache? _computedStyleCache;
     private SvgComputedStyleCache? _temporaryParentComputedStyleCache;
     private SvgCascadedStyleFeatureFlags? _cascadedStyleFeatureFlags;
+    private SvgCascadedStyleFeatureFlags? _textOpenTypeCascadedStyleFeatureFlags;
+    private SvgConditionalProcessingFeatureFlags? _conditionalProcessingFeatureFlags;
     private int _temporaryParentComputedStyleScopeDepth;
 
     internal SvgComputedStyleSnapshot GetComputedStyle(SvgElement element)
@@ -2731,12 +3015,38 @@ public partial class SvgDocument
         _computedStyleCache = null;
         _temporaryParentComputedStyleCache = null;
         _cascadedStyleFeatureFlags = null;
+        _textOpenTypeCascadedStyleFeatureFlags = null;
+        _conditionalProcessingFeatureFlags = null;
     }
 
     internal SvgCascadedStyleFeatureFlags GetCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags requestedFlags)
     {
-        _cascadedStyleFeatureFlags ??= GetSubtreeCascadedStyleFeatureFlags();
-        return _cascadedStyleFeatureFlags.Value & requestedFlags;
+        if (requestedFlags == SvgCascadedStyleFeatureFlags.None)
+        {
+            return SvgCascadedStyleFeatureFlags.None;
+        }
+
+        var flags = SvgCascadedStyleFeatureFlags.None;
+        var standardRequestedFlags = requestedFlags & ~SvgCascadedStyleFeatureFlags.TextOpenType;
+        if (standardRequestedFlags != SvgCascadedStyleFeatureFlags.None)
+        {
+            _cascadedStyleFeatureFlags ??= GetSubtreeCascadedStyleFeatureFlags();
+            flags |= _cascadedStyleFeatureFlags.Value & standardRequestedFlags;
+        }
+
+        if ((requestedFlags & SvgCascadedStyleFeatureFlags.TextOpenType) != 0)
+        {
+            _textOpenTypeCascadedStyleFeatureFlags ??= GetSubtreeCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags.TextOpenType);
+            flags |= _textOpenTypeCascadedStyleFeatureFlags.Value & SvgCascadedStyleFeatureFlags.TextOpenType;
+        }
+
+        return flags;
+    }
+
+    internal SvgConditionalProcessingFeatureFlags GetConditionalProcessingFeatureFlags(SvgConditionalProcessingFeatureFlags requestedFlags)
+    {
+        _conditionalProcessingFeatureFlags ??= GetSubtreeConditionalProcessingFeatureFlags();
+        return _conditionalProcessingFeatureFlags.Value & requestedFlags;
     }
 
     private void EndComputedStyleTemporaryParentScope()

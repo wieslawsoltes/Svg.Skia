@@ -1,13 +1,25 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using ShimSkiaSharp;
 using Svg;
+using Svg.Model;
 using Svg.Model.Services;
 
 namespace Svg.Skia;
 
-public sealed class SvgSceneNode
+public sealed class SvgSceneNode : IReadOnlyList<SvgSceneNode>
 {
-    private readonly List<SvgSceneNode> _children = new();
+    private const int InlineChildCapacity = 2;
+
+    private object? _children;
+    private SvgSceneNode? _child1;
+    private VisualState? _visualState;
+    private ResourceKeyState? _resourceKeys;
+    private EffectState? _effectState;
+    private OpacityState? _opacityState;
+    private SvgSceneTextCompiler.SvgTextContentMetrics? _textContentMetrics;
+    private bool _hasLazyTextContentMetrics;
 
     internal SvgSceneNode(
         SvgSceneNodeKind kind,
@@ -44,19 +56,138 @@ public sealed class SvgSceneNode
 
     public bool IsDisplayNone { get; internal set; }
 
-    public string? Cursor { get; internal set; }
+    public string? Cursor
+    {
+        get => _visualState?.Cursor;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_visualState is not null)
+                {
+                    _visualState.Cursor = null;
+                }
 
-    public bool CreatesBackgroundLayer { get; internal set; }
+                return;
+            }
 
-    public SKRect? BackgroundClip { get; internal set; }
+            EnsureVisualState().Cursor = value;
+        }
+    }
 
-    public bool IsIsolationGroup { get; internal set; }
+    public bool CreatesBackgroundLayer
+    {
+        get => _visualState?.CreatesBackgroundLayer ?? false;
+        internal set
+        {
+            if (!value)
+            {
+                if (_visualState is not null)
+                {
+                    _visualState.CreatesBackgroundLayer = false;
+                }
 
-    public string? ClipResourceKey { get; internal set; }
+                return;
+            }
 
-    public string? MaskResourceKey { get; internal set; }
+            EnsureVisualState().CreatesBackgroundLayer = true;
+        }
+    }
 
-    public string? FilterResourceKey { get; internal set; }
+    public SKRect? BackgroundClip
+    {
+        get => _visualState?.BackgroundClip;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_visualState is not null)
+                {
+                    _visualState.BackgroundClip = null;
+                }
+
+                return;
+            }
+
+            EnsureVisualState().BackgroundClip = value;
+        }
+    }
+
+    public bool IsIsolationGroup
+    {
+        get => _visualState?.IsIsolationGroup ?? false;
+        internal set
+        {
+            if (!value)
+            {
+                if (_visualState is not null)
+                {
+                    _visualState.IsIsolationGroup = false;
+                }
+
+                return;
+            }
+
+            EnsureVisualState().IsIsolationGroup = true;
+        }
+    }
+
+    public string? ClipResourceKey
+    {
+        get => _resourceKeys?.ClipResourceKey;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_resourceKeys is not null)
+                {
+                    _resourceKeys.ClipResourceKey = null;
+                }
+
+                return;
+            }
+
+            EnsureResourceKeys().ClipResourceKey = value;
+        }
+    }
+
+    public string? MaskResourceKey
+    {
+        get => _resourceKeys?.MaskResourceKey;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_resourceKeys is not null)
+                {
+                    _resourceKeys.MaskResourceKey = null;
+                }
+
+                return;
+            }
+
+            EnsureResourceKeys().MaskResourceKey = value;
+        }
+    }
+
+    public string? FilterResourceKey
+    {
+        get => _resourceKeys?.FilterResourceKey;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_resourceKeys is not null)
+                {
+                    _resourceKeys.FilterResourceKey = null;
+                }
+
+                return;
+            }
+
+            EnsureResourceKeys().FilterResourceKey = value;
+        }
+    }
 
     public string? CompilationRootKey { get; private set; }
 
@@ -66,11 +197,18 @@ public sealed class SvgSceneNode
 
     public SvgSceneNode? Parent { get; private set; }
 
-    public IReadOnlyList<SvgSceneNode> Children => _children;
+    public IReadOnlyList<SvgSceneNode> Children =>
+        _children is List<SvgSceneNode> children
+            ? children
+            : _children is null
+                ? Array.Empty<SvgSceneNode>()
+                : this;
 
-    public SvgSceneNode? MaskNode { get; private set; }
+    public SvgSceneNode? MaskNode => _effectState?.MaskNode;
 
     public SKPicture? LocalModel { get; internal set; }
+
+    internal bool LocalModelSourceMetadataApplied { get; set; }
 
     internal SKPath? LocalPath { get; set; }
 
@@ -80,7 +218,15 @@ public sealed class SvgSceneNode
 
     public SKPath? HitTestPath { get; internal set; }
 
-    internal SvgSceneTextCompiler.SvgTextContentMetrics? TextContentMetrics { get; set; }
+    internal SvgSceneTextCompiler.SvgTextContentMetrics? TextContentMetrics
+    {
+        get => _textContentMetrics;
+        set
+        {
+            _textContentMetrics = value;
+            _hasLazyTextContentMetrics = false;
+        }
+    }
 
     public SKRect GeometryBounds { get; internal set; }
 
@@ -90,31 +236,254 @@ public sealed class SvgSceneNode
 
     public SKMatrix TotalTransform { get; internal set; }
 
-    public SKRect? Overflow { get; internal set; }
+    public SKRect? Overflow
+    {
+        get => _effectState?.Overflow;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.Overflow = null;
+                }
 
-    public SKRect? Clip { get; internal set; }
+                return;
+            }
 
-    public SKRect? InnerClip { get; internal set; }
+            EnsureEffectState().Overflow = value;
+        }
+    }
 
-    public ClipPath? ClipPath { get; internal set; }
+    public SKRect? Clip
+    {
+        get => _effectState?.Clip;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.Clip = null;
+                }
 
-    public SKPaint? MaskPaint { get; internal set; }
+                return;
+            }
 
-    public SKPaint? MaskDstIn { get; internal set; }
+            EnsureEffectState().Clip = value;
+        }
+    }
 
-    public SKPaint? Opacity { get; internal set; }
+    public SKRect? InnerClip
+    {
+        get => _effectState?.InnerClip;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.InnerClip = null;
+                }
 
-    public float OpacityValue { get; internal set; } = 1f;
+                return;
+            }
 
-    public SKPaint? BlendModePaint { get; internal set; }
+            EnsureEffectState().InnerClip = value;
+        }
+    }
 
-    public SKPaint? Filter { get; internal set; }
+    public ClipPath? ClipPath
+    {
+        get => _effectState?.ClipPath;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.ClipPath = null;
+                }
 
-    public SKRect? FilterClip { get; internal set; }
+                return;
+            }
 
-    public bool FilterUsesGlobalLayer { get; internal set; }
+            EnsureEffectState().ClipPath = value;
+        }
+    }
 
-    public SKRect? FilterGlobalClip { get; internal set; }
+    public SKPaint? MaskPaint
+    {
+        get => _effectState?.MaskPaint;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.MaskPaint = null;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().MaskPaint = value;
+        }
+    }
+
+    public SKPaint? MaskDstIn
+    {
+        get => _effectState?.MaskDstIn;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.MaskDstIn = null;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().MaskDstIn = value;
+        }
+    }
+
+    public SKPaint? Opacity
+    {
+        get => _opacityState?.Opacity;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_opacityState is not null)
+                {
+                    _opacityState.Opacity = null;
+                    ClearOpacityStateIfDefault();
+                }
+
+                return;
+            }
+
+            EnsureOpacityState().Opacity = value;
+        }
+    }
+
+    public float OpacityValue
+    {
+        get => _opacityState?.OpacityValue ?? 1f;
+        internal set
+        {
+            if (value == 1f)
+            {
+                if (_opacityState is not null)
+                {
+                    _opacityState.OpacityValue = 1f;
+                    ClearOpacityStateIfDefault();
+                }
+
+                return;
+            }
+
+            EnsureOpacityState().OpacityValue = value;
+        }
+    }
+
+    public SKPaint? BlendModePaint
+    {
+        get => _visualState?.BlendModePaint;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_visualState is not null)
+                {
+                    _visualState.BlendModePaint = null;
+                }
+
+                return;
+            }
+
+            EnsureVisualState().BlendModePaint = value;
+        }
+    }
+
+    public SKPaint? Filter
+    {
+        get => _effectState?.Filter;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.Filter = null;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().Filter = value;
+        }
+    }
+
+    public SKRect? FilterClip
+    {
+        get => _effectState?.FilterClip;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.FilterClip = null;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().FilterClip = value;
+        }
+    }
+
+    public bool FilterUsesGlobalLayer
+    {
+        get => _effectState?.FilterUsesGlobalLayer ?? false;
+        internal set
+        {
+            if (!value)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.FilterUsesGlobalLayer = false;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().FilterUsesGlobalLayer = true;
+        }
+    }
+
+    public SKRect? FilterGlobalClip
+    {
+        get => _effectState?.FilterGlobalClip;
+        internal set
+        {
+            if (value is null)
+            {
+                if (_effectState is not null)
+                {
+                    _effectState.FilterGlobalClip = null;
+                }
+
+                return;
+            }
+
+            EnsureEffectState().FilterGlobalClip = value;
+        }
+    }
 
     public SKPaint? Fill { get; internal set; }
 
@@ -142,19 +511,80 @@ public sealed class SvgSceneNode
         LocalModel?.Commands is { Count: > 0 } ||
         (LocalPath is not null && (LocalFill is not null || LocalStroke is not null));
 
+    private VisualState EnsureVisualState()
+    {
+        return _visualState ??= new VisualState();
+    }
+
+    private ResourceKeyState EnsureResourceKeys()
+    {
+        return _resourceKeys ??= new ResourceKeyState();
+    }
+
+    private EffectState EnsureEffectState()
+    {
+        return _effectState ??= new EffectState();
+    }
+
+    private OpacityState EnsureOpacityState()
+    {
+        return _opacityState ??= new OpacityState();
+    }
+
+    private void ClearOpacityStateIfDefault()
+    {
+        if (_opacityState is { Opacity: null, OpacityValue: 1f })
+        {
+            _opacityState = null;
+        }
+    }
+
     internal void AddChild(SvgSceneNode child)
     {
+        AddChild(child, expectedChildCount: 0);
+    }
+
+    internal void AddChild(SvgSceneNode child, int expectedChildCount)
+    {
         child.Parent = this;
-        _children.Add(child);
+        if (_children is List<SvgSceneNode> children)
+        {
+            children.Add(child);
+            return;
+        }
+
+        if (expectedChildCount <= InlineChildCapacity)
+        {
+            if (_children is null)
+            {
+                _children = child;
+                return;
+            }
+
+            if (_child1 is null)
+            {
+                _child1 = child;
+                return;
+            }
+        }
+
+        PromoteChildrenToList(Math.Max(expectedChildCount, ChildCount + 1)).Add(child);
     }
 
     internal void SetMask(SvgSceneNode? maskNode)
     {
-        MaskNode = maskNode;
-        if (maskNode is not null)
+        if (maskNode is null)
         {
-            maskNode.Parent = this;
+            if (_effectState is not null)
+            {
+                _effectState.MaskNode = null;
+            }
+
+            return;
         }
+
+        EnsureEffectState().MaskNode = maskNode;
+        maskNode.Parent = this;
     }
 
     internal void ReplaceWith(SvgSceneNode replacement)
@@ -178,11 +608,13 @@ public sealed class SvgSceneNode
         CompilationRootKey = replacement.CompilationRootKey;
         IsCompilationRootBoundary = replacement.IsCompilationRootBoundary;
         LocalModel = replacement.LocalModel;
+        LocalModelSourceMetadataApplied = replacement.LocalModelSourceMetadataApplied;
         LocalPath = replacement.LocalPath;
         LocalFill = replacement.LocalFill;
         LocalStroke = replacement.LocalStroke;
         HitTestPath = replacement.HitTestPath?.DeepClone();
-        TextContentMetrics = replacement.TextContentMetrics;
+        _textContentMetrics = replacement._textContentMetrics;
+        _hasLazyTextContentMetrics = replacement._hasLazyTextContentMetrics;
         GeometryBounds = replacement.GeometryBounds;
         TransformedBounds = replacement.TransformedBounds;
         Transform = replacement.Transform;
@@ -210,22 +642,53 @@ public sealed class SvgSceneNode
         IsAntialias = replacement.IsAntialias;
         SuppressSubtreeRendering = replacement.SuppressSubtreeRendering;
 
-        _children.Clear();
+        ClearChildren();
         for (var i = 0; i < replacement.Children.Count; i++)
         {
-            AddChild(replacement.Children[i]);
+            AddChild(replacement.Children[i], replacement.Children.Count);
         }
 
-        MaskNode = null;
+        SetMask(null);
         SetMask(replacement.MaskNode);
         MarkDirty();
+    }
+
+    internal void SetLazyTextContentMetrics()
+    {
+        _textContentMetrics = null;
+        _hasLazyTextContentMetrics = true;
+    }
+
+    internal SvgSceneTextCompiler.SvgTextContentMetrics? GetTextContentMetrics(
+        SKRect viewport,
+        ISvgAssetLoader assetLoader)
+    {
+        if (_textContentMetrics is not null)
+        {
+            return _textContentMetrics;
+        }
+
+        if (!_hasLazyTextContentMetrics ||
+            Element is not SvgTextBase textContentElement)
+        {
+            return null;
+        }
+
+        if (SvgSceneTextCompiler.TryCreateTextContentMetrics(textContentElement, viewport, assetLoader, out var metrics) &&
+            metrics.HasHitTestCells)
+        {
+            _textContentMetrics = metrics;
+        }
+
+        _hasLazyTextContentMetrics = false;
+        return _textContentMetrics;
     }
 
     internal void RefreshElementIdentity(string? elementAddressKey)
     {
         ElementAddressKey = elementAddressKey;
         ElementId = Element?.ID;
-        ElementTypeName = Element?.GetType().Name ?? ElementTypeName;
+        ElementTypeName = Element is null ? ElementTypeName : SvgSceneCompiler.GetElementTypeName(Element);
     }
 
     public void MarkDirty()
@@ -238,9 +701,9 @@ public sealed class SvgSceneNode
     {
         MarkDirty();
 
-        for (var i = 0; i < _children.Count; i++)
+        for (var i = 0; i < ChildCount; i++)
         {
-            _children[i].MarkSubtreeDirty();
+            GetChild(i).MarkSubtreeDirty();
         }
 
         MaskNode?.MarkSubtreeDirty();
@@ -250,11 +713,177 @@ public sealed class SvgSceneNode
     {
         IsDirty = false;
 
-        for (var i = 0; i < _children.Count; i++)
+        for (var i = 0; i < ChildCount; i++)
         {
-            _children[i].ClearDirty();
+            GetChild(i).ClearDirty();
         }
 
         MaskNode?.ClearDirty();
+    }
+
+    private int ChildCount
+    {
+        get
+        {
+            return _children switch
+            {
+                null => 0,
+                List<SvgSceneNode> children => children.Count,
+                SvgSceneNode => _child1 is null ? 1 : 2,
+                _ => 0
+            };
+        }
+    }
+
+    private SvgSceneNode GetChild(int index)
+    {
+        if (_children is List<SvgSceneNode> children)
+        {
+            return children[index];
+        }
+
+        if (_children is SvgSceneNode child0)
+        {
+            return index switch
+            {
+                0 => child0,
+                1 when _child1 is not null => _child1,
+                _ => throw new ArgumentOutOfRangeException(nameof(index))
+            };
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(index));
+    }
+
+    private void ClearChildren()
+    {
+        _children = null;
+        _child1 = null;
+    }
+
+    private List<SvgSceneNode> PromoteChildrenToList(int capacity)
+    {
+        var children = new List<SvgSceneNode>(capacity);
+        if (_children is SvgSceneNode child0)
+        {
+            children.Add(child0);
+
+            if (_child1 is not null)
+            {
+                children.Add(_child1);
+            }
+        }
+
+        _child1 = null;
+        _children = children;
+        return children;
+    }
+
+    int IReadOnlyCollection<SvgSceneNode>.Count => ChildCount;
+
+    SvgSceneNode IReadOnlyList<SvgSceneNode>.this[int index] => GetChild(index);
+
+    IEnumerator<SvgSceneNode> IEnumerable<SvgSceneNode>.GetEnumerator()
+    {
+        if (_children is List<SvgSceneNode> children)
+        {
+            return children.GetEnumerator();
+        }
+
+        return _children is SvgSceneNode child0
+            ? new InlineChildEnumerator(child0, _child1, _child1 is null ? 1 : 2)
+            : new InlineChildEnumerator(null, null, 0);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return ((IEnumerable<SvgSceneNode>)this).GetEnumerator();
+    }
+
+    private sealed class InlineChildEnumerator : IEnumerator<SvgSceneNode>
+    {
+        private readonly SvgSceneNode? _child0;
+        private readonly SvgSceneNode? _child1;
+        private readonly int _count;
+        private int _index = -1;
+
+        public InlineChildEnumerator(SvgSceneNode? child0, SvgSceneNode? child1, int count)
+        {
+            _child0 = child0;
+            _child1 = child1;
+            _count = count;
+        }
+
+        public SvgSceneNode Current
+        {
+            get
+            {
+                return _index switch
+                {
+                    0 => _child0!,
+                    1 => _child1!,
+                    _ => throw new InvalidOperationException()
+                };
+            }
+        }
+
+        object IEnumerator.Current => Current;
+
+        public bool MoveNext()
+        {
+            if (_index + 1 >= _count)
+            {
+                return false;
+            }
+
+            _index++;
+            return true;
+        }
+
+        public void Reset()
+        {
+            _index = -1;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    private sealed class VisualState
+    {
+        public string? Cursor;
+        public bool CreatesBackgroundLayer;
+        public SKRect? BackgroundClip;
+        public bool IsIsolationGroup;
+        public SKPaint? BlendModePaint;
+    }
+
+    private sealed class ResourceKeyState
+    {
+        public string? ClipResourceKey;
+        public string? MaskResourceKey;
+        public string? FilterResourceKey;
+    }
+
+    private sealed class OpacityState
+    {
+        public SKPaint? Opacity;
+        public float OpacityValue = 1f;
+    }
+
+    private sealed class EffectState
+    {
+        public SvgSceneNode? MaskNode;
+        public SKRect? Overflow;
+        public SKRect? Clip;
+        public SKRect? InnerClip;
+        public ClipPath? ClipPath;
+        public SKPaint? MaskPaint;
+        public SKPaint? MaskDstIn;
+        public SKPaint? Filter;
+        public SKRect? FilterClip;
+        public bool FilterUsesGlobalLayer;
+        public SKRect? FilterGlobalClip;
     }
 }

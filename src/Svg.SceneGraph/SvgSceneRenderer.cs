@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ShimSkiaSharp;
 using Svg;
 using Svg.Model;
@@ -130,10 +131,10 @@ public static class SvgSceneRenderer
             node.ElementAddressKey,
             node.ElementTypeName);
 
-        var enableClip = !ignoreAttributes.HasFlag(DrawAttributes.ClipPath);
-        var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask) && !ignoreCurrentMask;
-        var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity) && !ignoreCurrentOpacity;
-        var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter) && !ignoreCurrentFilter;
+        var enableClip = !ignoreAttributes.Has(DrawAttributes.ClipPath);
+        var enableMask = !ignoreAttributes.Has(DrawAttributes.Mask) && !ignoreCurrentMask;
+        var enableOpacity = !ignoreAttributes.Has(DrawAttributes.Opacity) && !ignoreCurrentOpacity;
+        var enableFilter = !ignoreAttributes.Has(DrawAttributes.Filter) && !ignoreCurrentFilter;
         var enableBlendMode = node.BlendModePaint is not null;
         var enableIsolation = node.IsIsolationGroup &&
             !enableBlendMode &&
@@ -143,6 +144,21 @@ public static class SvgSceneRenderer
         if (IsStateFreeNode(node, enableTransform, enableClip, enableMask, enableOpacity, enableFilter, enableBlendMode, enableIsolation))
         {
             return RenderNodeContentToCanvas(sceneDocument, node, canvas, ignoreAttributes, until);
+        }
+
+        if (TryRenderTransformOnlySimpleChildrenToCanvas(
+                node,
+                canvas,
+                until,
+                enableTransform,
+                enableClip,
+                enableMask,
+                enableOpacity,
+                enableFilter,
+                enableBlendMode,
+                enableIsolation))
+        {
+            return true;
         }
 
         canvas.Save();
@@ -172,24 +188,32 @@ public static class SvgSceneRenderer
             canvas.ClipRect(innerClip, SKClipOperation.Intersect);
         }
 
+        var needsLocalLayerBounds =
+            enableIsolation ||
+            enableBlendMode ||
+            (node.MaskPaint is { } && node.MaskNode is not null && enableMask) ||
+            (node.Opacity is { } && enableOpacity);
+        SKRect layerBounds = default;
+        var hasLayerBounds = needsLocalLayerBounds && TryGetLocalLayerBounds(node, out layerBounds);
+
         if (enableIsolation)
         {
-            canvas.SaveLayer(new SKPaint());
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, new SKPaint());
         }
 
         if (enableBlendMode)
         {
-            canvas.SaveLayer(node.BlendModePaint!);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, node.BlendModePaint!);
         }
 
         if (node.MaskPaint is { } maskPaint && node.MaskNode is not null && enableMask)
         {
-            canvas.SaveLayer(maskPaint);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, maskPaint);
         }
 
         if (node.Opacity is { } opacity && enableOpacity)
         {
-            canvas.SaveLayer(opacity);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, opacity);
         }
 
         var enableGlobalFilterLayer = false;
@@ -206,7 +230,7 @@ public static class SvgSceneRenderer
 
         if (node.MaskNode is { } maskNode && node.MaskDstIn is { } maskDstIn && enableMask)
         {
-            canvas.SaveLayer(maskDstIn);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, maskDstIn);
             RenderNodeToCanvasCore(sceneDocument, maskNode, canvas, ignoreAttributes, until: null);
             canvas.Restore();
         }
@@ -298,24 +322,32 @@ public static class SvgSceneRenderer
             !enableOpacity &&
             !enableFilter;
 
+        var needsLocalLayerBounds =
+            enableIsolation ||
+            enableBlendMode ||
+            enableMask ||
+            enableOpacity;
+        SKRect layerBounds = default;
+        var hasLayerBounds = needsLocalLayerBounds && TryGetLocalLayerBounds(node, out layerBounds);
+
         if (enableIsolation)
         {
-            canvas.SaveLayer(new SKPaint());
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, new SKPaint());
         }
 
         if (enableBlendMode)
         {
-            canvas.SaveLayer(node.BlendModePaint!);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, node.BlendModePaint!);
         }
 
         if (enableMask)
         {
-            canvas.SaveLayer(node.MaskPaint!);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, node.MaskPaint!);
         }
 
         if (enableOpacity)
         {
-            canvas.SaveLayer(node.Opacity!);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, node.Opacity!);
         }
 
         var enableGlobalFilterLayer = false;
@@ -332,7 +364,7 @@ public static class SvgSceneRenderer
 
         if (enableMask && node.MaskNode is { } maskNode && node.MaskDstIn is { } maskDstIn)
         {
-            canvas.SaveLayer(maskDstIn);
+            SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, maskDstIn);
             RenderNodeToCanvasCore(sceneDocument, maskNode, canvas, until: null);
             canvas.Restore();
         }
@@ -345,7 +377,12 @@ public static class SvgSceneRenderer
     {
         if (node.LocalModel is { } localModel)
         {
-            ApplySourceMetadata(localModel, node, overwrite: false);
+            if (!node.LocalModelSourceMetadataApplied)
+            {
+                ApplySourceMetadata(localModel, node, overwrite: false);
+                node.LocalModelSourceMetadataApplied = true;
+            }
+
             canvas.DrawPicture(localModel);
             return;
         }
@@ -771,6 +808,298 @@ public static class SvgSceneRenderer
                !enableIsolation;
     }
 
+    private static bool TryRenderTransformOnlySimpleChildrenToCanvas(
+        SvgSceneNode node,
+        SKCanvas canvas,
+        SvgSceneNode? until,
+        bool enableTransform,
+        bool enableClip,
+        bool enableMask,
+        bool enableOpacity,
+        bool enableFilter,
+        bool enableBlendMode,
+        bool enableIsolation)
+    {
+        if (until is not null ||
+            !enableTransform ||
+            node.Transform.IsIdentity ||
+            node.HasLocalVisuals ||
+            node.Children.Count == 0 ||
+            node.Overflow is not null ||
+            node.Clip is not null ||
+            (node.ClipPath is not null && enableClip) ||
+            node.InnerClip is not null ||
+            (node.MaskNode is not null && enableMask) ||
+            (node.Opacity is not null && enableOpacity) ||
+            (node.Filter is not null && enableFilter) ||
+            enableBlendMode ||
+            enableIsolation)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            if (!CanRenderTransformedSimpleChild(node.Children[i], enableClip, enableMask, enableOpacity, enableFilter))
+            {
+                return false;
+            }
+        }
+
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            RenderTransformedSimpleChild(node.Children[i], node.Transform, canvas, enableOpacity);
+        }
+
+        return true;
+    }
+
+    private static bool CanRenderTransformedSimpleChild(
+        SvgSceneNode child,
+        bool enableClip,
+        bool enableMask,
+        bool enableOpacity,
+        bool enableFilter)
+    {
+        if (child.IsDisplayNone || child.SuppressSubtreeRendering)
+        {
+            return true;
+        }
+
+        if (!child.IsRenderable ||
+            child.LocalPath is null ||
+            child.LocalFill is null ||
+            child.LocalStroke is not null ||
+            child.LocalModel is not null ||
+            child.Children.Count != 0 ||
+            child.Overflow is not null ||
+            child.Clip is not null ||
+            (child.ClipPath is not null && enableClip) ||
+            child.InnerClip is not null ||
+            (child.MaskNode is not null && enableMask) ||
+            !CanInlineSimpleLeafOpacity(child, enableOpacity) ||
+            (child.Filter is not null && enableFilter) ||
+            child.BlendModePaint is not null ||
+            child.IsIsolationGroup ||
+            !IsSimpleSolidFill(child.LocalFill) ||
+            !CanCreateTransformedSimpleFillPath(child.LocalPath))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsSimpleSolidFill(SKPaint paint)
+    {
+        return paint.Style == SKPaintStyle.Fill &&
+               !paint.IsStrokeNonScaling &&
+               paint.Color is not null &&
+               paint.Shader is null &&
+               paint.ColorFilter is null &&
+               paint.ImageFilter is null &&
+               paint.PathEffect is null &&
+               paint.BlendMode == SKBlendMode.SrcOver;
+    }
+
+    private static bool CanInlineSimpleLeafOpacity(SvgSceneNode child, bool enableOpacity)
+    {
+        return !enableOpacity ||
+               child.Opacity is null ||
+               child.OpacityValue is >= 0f and <= 1f;
+    }
+
+    private static void RenderTransformedSimpleChild(
+        SvgSceneNode child,
+        SKMatrix parentTransform,
+        SKCanvas canvas,
+        bool enableOpacity)
+    {
+        if (child.IsDisplayNone || child.SuppressSubtreeRendering)
+        {
+            return;
+        }
+
+        var transform = parentTransform.PreConcat(child.Transform);
+        var path = CreateTransformedSimpleFillPath(child.LocalPath!, transform)!;
+        var fill = GetSimpleLeafFill(child, enableOpacity);
+        using var commandSource = canvas.PushCommandSource(
+            child.ElementId,
+            child.ElementAddressKey,
+            child.ElementTypeName);
+        canvas.DrawPath(path, fill);
+    }
+
+    private static SKPaint GetSimpleLeafFill(SvgSceneNode child, bool enableOpacity)
+    {
+        var fill = child.LocalFill!;
+        if (!enableOpacity || child.Opacity is null || child.OpacityValue >= 1f)
+        {
+            return fill;
+        }
+
+        var color = fill.Color!.Value;
+        var alpha = (byte)Math.Round(color.Alpha * child.OpacityValue);
+        var adjusted = fill.Clone();
+        adjusted.Color = new SKColor(color.Red, color.Green, color.Blue, alpha);
+        return adjusted;
+    }
+
+    private static bool CanCreateTransformedSimpleFillPath(SKPath sourcePath)
+    {
+        return sourcePath.Commands is { Count: > 0 } commands &&
+               CanCreateTransformedSimpleFillPath(commands);
+    }
+
+    private static bool CanCreateTransformedSimpleFillPath(IList<PathCommand> commands)
+    {
+        if (commands.Count == 1)
+        {
+            return commands[0] is AddRectPathCommand or AddPolyPathCommand { Points.Count: >= 3 };
+        }
+
+        return IsClosedPolyline(commands);
+    }
+
+    private static SKPath? CreateTransformedSimpleFillPath(SKPath sourcePath, SKMatrix transform)
+    {
+        return sourcePath.Commands is { Count: > 0 } commands &&
+               TryCreateTransformedSimpleFillPath(commands, transform, sourcePath.FillType, out var transformedPath)
+            ? transformedPath
+            : null;
+    }
+
+    private static bool TryCreateTransformedSimpleFillPath(
+        IList<PathCommand> commands,
+        SKMatrix transform,
+        SKPathFillType fillType,
+        out SKPath? transformedPath)
+    {
+        transformedPath = null;
+        if (commands.Count == 1)
+        {
+            switch (commands[0])
+            {
+                case AddRectPathCommand addRect:
+                    transformedPath = CreatePolygonPath(
+                        fillType,
+                        transform.MapPoint(new SKPoint(addRect.Rect.Left, addRect.Rect.Top)),
+                        transform.MapPoint(new SKPoint(addRect.Rect.Right, addRect.Rect.Top)),
+                        transform.MapPoint(new SKPoint(addRect.Rect.Right, addRect.Rect.Bottom)),
+                        transform.MapPoint(new SKPoint(addRect.Rect.Left, addRect.Rect.Bottom)));
+                    return true;
+                case AddPolyPathCommand { Points: { Count: >= 3 } points } addPoly:
+                    transformedPath = CreateTransformedPolygonPath(fillType, points, addPoly.Close, transform);
+                    return true;
+            }
+
+            return false;
+        }
+
+        if (!IsClosedPolyline(commands))
+        {
+            return false;
+        }
+
+        transformedPath = CreateTransformedClosedPolylinePath(fillType, commands, transform);
+        return true;
+    }
+
+    private static bool IsClosedPolyline(IList<PathCommand> commands)
+    {
+        if (commands.Count < 4 ||
+            commands[0] is not MoveToPathCommand ||
+            commands[commands.Count - 1] is not ClosePathCommand)
+        {
+            return false;
+        }
+
+        for (var i = 1; i < commands.Count - 1; i++)
+        {
+            if (commands[i] is not LineToPathCommand)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static SKPath CreatePolygonPath(
+        SKPathFillType fillType,
+        SKPoint point0,
+        SKPoint point1,
+        SKPoint point2,
+        SKPoint point3)
+    {
+        var path = new SKPath { FillType = fillType };
+        path.AddPoly(point0, point1, point2, point3, close: true);
+        return path;
+    }
+
+    private static SKPath CreateTransformedClosedPolylinePath(
+        SKPathFillType fillType,
+        IList<PathCommand> commands,
+        SKMatrix transform)
+    {
+        var transformed = new SKPoint[commands.Count - 1];
+        if (commands[0] is MoveToPathCommand moveTo)
+        {
+            transformed[0] = transform.MapPoint(new SKPoint(moveTo.X, moveTo.Y));
+        }
+
+        for (var i = 1; i < commands.Count - 1; i++)
+        {
+            if (commands[i] is LineToPathCommand lineTo)
+            {
+                transformed[i] = transform.MapPoint(new SKPoint(lineTo.X, lineTo.Y));
+            }
+        }
+
+        var path = new SKPath { FillType = fillType };
+        path.AddPoly(transformed, close: true);
+        return path;
+    }
+
+    private static SKPath CreateTransformedPolygonPath(
+        SKPathFillType fillType,
+        IList<SKPoint> points,
+        bool close,
+        SKMatrix transform)
+    {
+        var pointCount = points.Count;
+        var path = new SKPath { FillType = fillType };
+        if (pointCount == 3)
+        {
+            path.AddPoly(
+                transform.MapPoint(points[0]),
+                transform.MapPoint(points[1]),
+                transform.MapPoint(points[2]),
+                close);
+            return path;
+        }
+
+        if (pointCount == 4)
+        {
+            path.AddPoly(
+                transform.MapPoint(points[0]),
+                transform.MapPoint(points[1]),
+                transform.MapPoint(points[2]),
+                transform.MapPoint(points[3]),
+                close);
+            return path;
+        }
+
+        var transformed = new SKPoint[pointCount];
+        for (var i = 0; i < pointCount; i++)
+        {
+            transformed[i] = transform.MapPoint(points[i]);
+        }
+
+        path.AddPoly(transformed, close);
+        return path;
+    }
+
     private static bool IsSelfOrAncestor(SvgSceneNode node, SvgSceneNode descendant)
     {
         for (var current = descendant; current is not null; current = current.Parent)
@@ -784,6 +1113,161 @@ public static class SvgSceneRenderer
         return false;
     }
 
+    internal static bool TryGetLocalLayerBounds(SvgSceneNode node, out SKRect bounds)
+    {
+        bounds = SKRect.Empty;
+
+        if (node.IsDisplayNone || node.SuppressSubtreeRendering)
+        {
+            return true;
+        }
+
+        if (node.Filter is not null)
+        {
+            if (!TryGetLocalFilterBounds(node, out bounds))
+            {
+                return false;
+            }
+
+            ApplyLocalClipBounds(node, ref bounds);
+            return true;
+        }
+
+        if (node.IsRenderable)
+        {
+            if (!TryGetLocalVisualBounds(node, out var localBounds))
+            {
+                return false;
+            }
+
+            bounds = SvgSceneNodeBoundsService.UnionNonEmpty(bounds, localBounds);
+        }
+
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            var child = node.Children[i];
+            if (!TryGetLocalLayerBounds(child, out var childBounds))
+            {
+                return false;
+            }
+
+            if (HasPositiveArea(childBounds))
+            {
+                bounds = SvgSceneNodeBoundsService.UnionNonEmpty(bounds, child.Transform.MapRect(childBounds));
+            }
+        }
+
+        ApplyLocalClipBounds(node, ref bounds);
+        return true;
+    }
+
+    private static bool TryGetLocalFilterBounds(SvgSceneNode node, out SKRect bounds)
+    {
+        if (node.FilterClip is { } filterClip)
+        {
+            bounds = filterClip;
+            return true;
+        }
+
+        if (node.FilterUsesGlobalLayer &&
+            node.FilterGlobalClip is { } globalClip &&
+            node.TotalTransform.TryInvert(out var inverseTotalTransform))
+        {
+            bounds = inverseTotalTransform.MapRect(globalClip);
+            return true;
+        }
+
+        bounds = SKRect.Empty;
+        return false;
+    }
+
+    private static bool TryGetLocalVisualBounds(SvgSceneNode node, out SKRect bounds)
+    {
+        bounds = node.GeometryBounds;
+        if (!HasPositiveArea(bounds) && node.LocalPath is { } localPath)
+        {
+            bounds = localPath.Bounds;
+        }
+
+        if (!HasPositiveArea(bounds) || node.StrokeWidth <= 0f)
+        {
+            return true;
+        }
+
+        var inflation = node.StrokeWidth * 0.5f;
+        if (node.IsStrokeNonScaling)
+        {
+            if (!node.TotalTransform.TryInvert(out var inverseTotalTransform))
+            {
+                bounds = SKRect.Empty;
+                return false;
+            }
+
+            var scaleX = Math.Sqrt((inverseTotalTransform.ScaleX * inverseTotalTransform.ScaleX) + (inverseTotalTransform.SkewY * inverseTotalTransform.SkewY));
+            var scaleY = Math.Sqrt((inverseTotalTransform.SkewX * inverseTotalTransform.SkewX) + (inverseTotalTransform.ScaleY * inverseTotalTransform.ScaleY));
+            inflation = (float)(Math.Max(scaleX, scaleY) * inflation);
+        }
+
+        bounds.Left -= inflation;
+        bounds.Top -= inflation;
+        bounds.Right += inflation;
+        bounds.Bottom += inflation;
+        return true;
+    }
+
+    private static void ApplyLocalClipBounds(SvgSceneNode node, ref SKRect bounds)
+    {
+        if (TryIntersect(bounds, node.Overflow, out var clippedBounds))
+        {
+            bounds = clippedBounds;
+        }
+
+        if (TryIntersect(bounds, node.Clip, out clippedBounds))
+        {
+            bounds = clippedBounds;
+        }
+
+        if (TryIntersect(bounds, node.InnerClip, out clippedBounds))
+        {
+            bounds = clippedBounds;
+        }
+    }
+
+    private static bool TryIntersect(SKRect bounds, SKRect? clip, out SKRect result)
+    {
+        result = bounds;
+        if (clip is not { } clipRect || !HasPositiveArea(bounds))
+        {
+            return false;
+        }
+
+        var left = Math.Max(bounds.Left, clipRect.Left);
+        var top = Math.Max(bounds.Top, clipRect.Top);
+        var right = Math.Min(bounds.Right, clipRect.Right);
+        var bottom = Math.Min(bounds.Bottom, clipRect.Bottom);
+        result = right > left && bottom > top
+            ? new SKRect(left, top, right, bottom)
+            : SKRect.Empty;
+        return true;
+    }
+
+    private static bool HasPositiveArea(SKRect bounds)
+    {
+        return bounds.Width > 0f && bounds.Height > 0f;
+    }
+
+    internal static void SaveLayerToCanvas(SKCanvas canvas, SKRect? bounds, SKPaint paint)
+    {
+        if (bounds is { } layerBounds && HasPositiveArea(layerBounds))
+        {
+            canvas.SaveLayer(layerBounds, paint);
+        }
+        else
+        {
+            canvas.SaveLayer(paint);
+        }
+    }
+
     private static bool SaveFilterLayerToCanvas(SvgSceneNode node, SKCanvas canvas, SKPaint filter)
     {
         if (node.FilterUsesGlobalLayer &&
@@ -795,9 +1279,12 @@ public static class SvgSceneRenderer
             if (node.FilterGlobalClip is { } globalClip)
             {
                 canvas.ClipRect(globalClip, SKClipOperation.Intersect);
+                canvas.SaveLayer(globalClip, filter);
             }
-
-            canvas.SaveLayer(filter);
+            else
+            {
+                canvas.SaveLayer(filter);
+            }
             canvas.SetMatrix(node.TotalTransform);
             return true;
         }
@@ -805,9 +1292,12 @@ public static class SvgSceneRenderer
         if (node.FilterClip is { } filterClip)
         {
             canvas.ClipRect(filterClip, SKClipOperation.Intersect);
+            canvas.SaveLayer(filterClip, filter);
         }
-
-        canvas.SaveLayer(filter);
+        else
+        {
+            canvas.SaveLayer(filter);
+        }
         return false;
     }
 

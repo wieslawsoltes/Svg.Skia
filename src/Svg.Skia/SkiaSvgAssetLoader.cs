@@ -84,20 +84,29 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
     /// <inheritdoc />
     public List<Model.TypefaceSpan> FindTypefaces(string? text, ShimSkiaSharp.SKPaint paintPreferredTypeface)
     {
-        var ret = new List<Model.TypefaceSpan>();
-
         if (text is null || string.IsNullOrEmpty(text))
         {
-            return ret;
+            return new List<Model.TypefaceSpan>();
         }
 
         EnsureTypefaceProviderCaches();
+        var canCacheSpans = text.Length <= TypefaceSpanCacheMaxTextLength;
+        var cacheKey = canCacheSpans
+            ? new TypefaceSpanCacheKey(text, paintPreferredTypeface)
+            : default;
+        if (canCacheSpans &&
+            _typefaceSpanCache.TryGetValue(cacheKey, out var cachedSpans))
+        {
+            return new List<Model.TypefaceSpan>(cachedSpans);
+        }
 
         using var runningPaint = _skiaModel.ToSKTextPaint(paintPreferredTypeface);
         if (runningPaint is null)
         {
-            return ret;
+            return new List<Model.TypefaceSpan>();
         }
+
+        var ret = new List<Model.TypefaceSpan>();
 
         var preferredTypeface = paintPreferredTypeface.Typeface;
         var weight = _skiaModel.ToSKFontStyleWeight(preferredTypeface?.FontWeight ?? ShimSkiaSharp.SKFontStyleWeight.Normal);
@@ -176,6 +185,12 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
         }
 
         YieldCurrentTypefaceText();
+
+        if (canCacheSpans)
+        {
+            _typefaceSpanCache.TryAdd(cacheKey, ret.ToArray());
+            TrimTypefaceSpanCacheIfNeeded();
+        }
 
         return ret;
     }
@@ -382,7 +397,16 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
             _providerStateHash = hash;
             _matchCharacterCache.Clear();
             _providerTypefaceCache.Clear();
+            _typefaceSpanCache.Clear();
             ClearPaintCache();
+        }
+    }
+
+    private void TrimTypefaceSpanCacheIfNeeded()
+    {
+        if (_typefaceSpanCache.Count > TypefaceSpanCacheLimit)
+        {
+            _typefaceSpanCache.Clear();
         }
     }
 

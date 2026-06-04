@@ -47,6 +47,22 @@ public class CloneCommandTests
     }
 
     [Fact]
+    public void AddPolyPathCommand_Equality_UsesPointReferenceAndClose()
+    {
+        var points = new List<SKPoint> { new SKPoint(1, 2), new SKPoint(3, 4) };
+
+        Assert.Equal(
+            new AddPolyPathCommand(points, true),
+            new AddPolyPathCommand(points, true));
+        Assert.NotEqual(
+            new AddPolyPathCommand(points, true),
+            new AddPolyPathCommand(points, false));
+        Assert.NotEqual(
+            new AddPolyPathCommand(points, true),
+            new AddPolyPathCommand(new List<SKPoint>(points), true));
+    }
+
+    [Fact]
     public void CanvasCommand_DeepClone_CopiesValueCommands()
     {
         var commands = new CanvasCommand[]
@@ -184,6 +200,25 @@ public class CloneCommandTests
     }
 
     [Fact]
+    public void CanvasCommand_DeepClone_ClonesDrawPositionedTextRun()
+    {
+        var fragments = new[]
+        {
+            new PositionedTextRunFragment("A", new SKPoint(1, 2), 15, 1, 1),
+            new PositionedTextRunFragment("B", new SKPoint(3, 4), 25, 1.5f, 3)
+        };
+        var paint = CloneTestData.CreatePaint();
+        CanvasCommand command = new DrawPositionedTextRunCanvasCommand(fragments, paint);
+
+        var clone = command.DeepClone();
+        var typed = Assert.IsType<DrawPositionedTextRunCanvasCommand>(clone);
+
+        Assert.NotSame(fragments, typed.Fragments);
+        Assert.Equal(fragments, typed.Fragments);
+        Assert.NotSame(paint, typed.Paint);
+    }
+
+    [Fact]
     public void CanvasCommand_DeepClone_ClonesDrawTextOnPath()
     {
         var path = CloneTestData.CreatePath();
@@ -204,12 +239,14 @@ public class CloneCommandTests
     public void CanvasCommand_DeepClone_ClonesSaveLayer()
     {
         var paint = CloneTestData.CreatePaint();
-        CanvasCommand command = new SaveLayerCanvasCommand(1, paint);
+        var bounds = SKRect.Create(1, 2, 3, 4);
+        CanvasCommand command = new SaveLayerCanvasCommand(1, paint, bounds);
 
         var clone = command.DeepClone();
         var typed = Assert.IsType<SaveLayerCanvasCommand>(clone);
 
         Assert.Equal(1, typed.Count);
+        Assert.Equal(bounds, typed.Bounds);
         Assert.NotSame(paint, typed.Paint);
     }
 }

@@ -338,6 +338,11 @@ public partial class SKSvg
 
     private void DrawAnimationLayer(SKPicture? model, SkiaSharp.SKPicture? picture, SkiaSharp.SKCanvas canvas)
     {
+        if (model is { } layerModel && !CanDrawLayerModel(layerModel, canvas))
+        {
+            return;
+        }
+
         if (model is { } && ContainsNonScalingStroke(model))
         {
             SkiaModel.Draw(model, canvas);
@@ -346,7 +351,10 @@ public partial class SKSvg
 
         if (picture is { })
         {
-            canvas.DrawPicture(picture);
+            if (SKPictureExtensions.CanDrawPicture(picture, canvas))
+            {
+                canvas.DrawPicture(picture);
+            }
             return;
         }
 
@@ -756,7 +764,10 @@ public partial class SKSvg
         {
             if (layerEntries[i].Model is { } layerModel)
             {
-                canvas.DrawPicture(layerModel);
+                if (CanDrawModelInCull(layerModel, cullRect))
+                {
+                    canvas.DrawPicture(layerModel);
+                }
             }
         }
 
@@ -770,12 +781,18 @@ public partial class SKSvg
 
         if (staticLayerModel is { })
         {
-            canvas.DrawPicture(staticLayerModel);
+            if (CanDrawModelInCull(staticLayerModel, cullRect))
+            {
+                canvas.DrawPicture(staticLayerModel);
+            }
         }
 
         if (dynamicLayerModel is { })
         {
-            canvas.DrawPicture(dynamicLayerModel);
+            if (CanDrawModelInCull(dynamicLayerModel, cullRect))
+            {
+                canvas.DrawPicture(dynamicLayerModel);
+            }
         }
 
         return recorder.EndRecording();
@@ -786,7 +803,7 @@ public partial class SKSvg
         SvgSceneNode node,
         DrawAttributes ignoreAttributes)
     {
-        var bounds = SvgSceneNodeBoundsService.GetRenderableBounds(node);
+        var bounds = SvgSceneNodeBoundsService.GetRenderablePaintBounds(node);
         if (bounds.IsEmpty || bounds.Width <= 0f || bounds.Height <= 0f)
         {
             return null;
@@ -828,7 +845,7 @@ public partial class SKSvg
 
         canvas.Save();
 
-        var enableClip = !ignoreAttributes.HasFlag(DrawAttributes.ClipPath);
+        var enableClip = !ignoreAttributes.Has(DrawAttributes.ClipPath);
         if (node.Overflow is { } overflow)
         {
             canvas.ClipRect(overflow, SKClipOperation.Intersect);
@@ -854,9 +871,9 @@ public partial class SKSvg
             canvas.ClipRect(innerClip, SKClipOperation.Intersect);
         }
 
-        var enableMask = !ignoreAttributes.HasFlag(DrawAttributes.Mask);
-        var enableOpacity = !ignoreAttributes.HasFlag(DrawAttributes.Opacity);
-        var enableFilter = !ignoreAttributes.HasFlag(DrawAttributes.Filter);
+        var enableMask = !ignoreAttributes.Has(DrawAttributes.Mask);
+        var enableOpacity = !ignoreAttributes.Has(DrawAttributes.Opacity);
+        var enableFilter = !ignoreAttributes.Has(DrawAttributes.Filter);
         var enableBlendMode = node.BlendModePaint is not null;
         var enableIsolation = node.IsIsolationGroup &&
             !enableBlendMode &&
@@ -864,24 +881,26 @@ public partial class SKSvg
             (node.Opacity is null || !enableOpacity) &&
             (node.Filter is null || !enableFilter);
 
+        var hasLayerBounds = SvgSceneRenderer.TryGetLocalLayerBounds(node, out var layerBounds);
+
         if (enableIsolation)
         {
-            canvas.SaveLayer(new SKPaint());
+            SvgSceneRenderer.SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, new SKPaint());
         }
 
         if (enableBlendMode)
         {
-            canvas.SaveLayer(node.BlendModePaint!);
+            SvgSceneRenderer.SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, node.BlendModePaint!);
         }
 
         if (node.MaskPaint is { } maskPaint && node.MaskNode is not null && enableMask)
         {
-            canvas.SaveLayer(maskPaint);
+            SvgSceneRenderer.SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, maskPaint);
         }
 
         if (node.Opacity is { } opacity && enableOpacity)
         {
-            canvas.SaveLayer(opacity);
+            SvgSceneRenderer.SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, opacity);
         }
 
         if (node.Filter is { } filter && enableFilter)
@@ -889,9 +908,12 @@ public partial class SKSvg
             if (node.FilterClip is { } filterClip)
             {
                 canvas.ClipRect(filterClip, SKClipOperation.Intersect);
+                canvas.SaveLayer(filterClip, filter);
             }
-
-            canvas.SaveLayer(filter);
+            else
+            {
+                SvgSceneRenderer.SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, filter);
+            }
         }
 
         SvgSceneRenderer.DrawNodeLocalVisuals(node, canvas);
@@ -907,7 +929,7 @@ public partial class SKSvg
 
         if (node.MaskNode is { } maskNode && node.MaskDstIn is { } maskDstIn && enableMask)
         {
-            canvas.SaveLayer(maskDstIn);
+            SvgSceneRenderer.SaveLayerToCanvas(canvas, hasLayerBounds ? layerBounds : null, maskDstIn);
             _ = RenderStaticNodeToCanvas(maskNode, canvas, cutRoots, ignoreAttributes);
             canvas.Restore();
         }
@@ -951,5 +973,30 @@ public partial class SKSvg
         }
 
         canvas.Restore();
+    }
+
+    private bool CanDrawLayerModel(SKPicture model, SkiaSharp.SKCanvas canvas)
+    {
+        return SKPictureExtensions.CanDrawPictureCullRect(SkiaModel.ToSKRect(model.CullRect), canvas);
+    }
+
+    private static bool CanDrawModelInCull(SKPicture model, SKRect cullRect)
+    {
+        return !HasPositiveArea(model.CullRect) ||
+               !HasPositiveArea(cullRect) ||
+               RectsIntersect(model.CullRect, cullRect);
+    }
+
+    private static bool RectsIntersect(SKRect left, SKRect right)
+    {
+        return left.Left < right.Right &&
+               right.Left < left.Right &&
+               left.Top < right.Bottom &&
+               right.Top < left.Bottom;
+    }
+
+    private static bool HasPositiveArea(SKRect bounds)
+    {
+        return bounds.Width > 0f && bounds.Height > 0f;
     }
 }

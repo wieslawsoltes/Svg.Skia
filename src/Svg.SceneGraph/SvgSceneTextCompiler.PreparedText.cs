@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using ShimSkiaSharp;
+using Svg;
 using Svg.Model;
 using Svg.Model.Services;
 
@@ -13,9 +14,20 @@ namespace Svg.Skia;
 internal static partial class SvgSceneTextCompiler
 {
     private static readonly ConcurrentDictionary<SimpleCodepointAdvanceCacheKey, float> s_simpleCodepointAdvanceCache = new();
+    private static readonly ConcurrentDictionary<SimpleNaturalTextAdvanceCacheKey, float> s_simpleNaturalTextAdvanceCache = new();
+    private static readonly ConcurrentDictionary<SimpleNaturalCodepointAdvanceCacheKey, float[]> s_simpleNaturalCodepointAdvanceCache = new();
+    private static readonly ConcurrentDictionary<NaturalTextAdvanceCacheKey, float> s_naturalTextAdvanceCache = new();
     private static readonly ConcurrentDictionary<NaturalCodepointAdvanceCacheKey, float[]> s_naturalCodepointAdvanceCache = new();
+    private static readonly ConcurrentDictionary<RenderedTextLocalBoundsCacheKey, SKRect> s_renderedTextLocalBoundsCache = new();
+    private static readonly ConcurrentDictionary<LineStatsCacheKey, PreparedLineStats> s_lineStatsCache = new();
     private const int SimpleCodepointAdvanceCacheLimit = 4096;
+    private const int SimpleNaturalTextAdvanceCacheLimit = 4096;
+    private const int SimpleNaturalCodepointAdvanceCacheLimit = 2048;
+    private const int NaturalTextAdvanceCacheLimit = 2048;
     private const int NaturalCodepointAdvanceCacheLimit = 1024;
+    private const int RenderedTextLocalBoundsCacheLimit = 4096;
+    private const int LineStatsCacheLimit = 4096;
+    private const int RenderedTextLocalBoundsCacheMaxTextLength = 64;
 
     private readonly record struct SimpleCodepointAdvanceCacheKey(
         int AssetLoaderId,
@@ -31,6 +43,71 @@ internal static partial class SvgSceneTextCompiler
         SKFontStyleWeight TypefaceWeight,
         SKFontStyleWidth TypefaceWidth,
         SKFontStyleSlant TypefaceSlant);
+
+    private readonly record struct SimpleNaturalTextAdvanceCacheKey(
+        int AssetLoaderId,
+        int OwnerDocumentId,
+        string Text,
+        string? FontFamily,
+        SvgFontStyle FontStyle,
+        SvgFontVariant FontVariant,
+        SvgFontWeight FontWeight,
+        SvgTextDirection Direction,
+        SvgUnicodeBidiMode UnicodeBidi,
+        string? Language,
+        bool EnableSvgFonts,
+        float TextSize,
+        SKFontStyleWeight TypefaceWeight,
+        SKFontStyleWidth TypefaceWidth,
+        SKFontStyleSlant TypefaceSlant,
+        bool RightToLeft,
+        bool RequiresSyntheticSmallCaps,
+        bool UsesBrowserCompatibleRunTypeface);
+
+    private readonly record struct SimpleNaturalCodepointAdvanceCacheKey(
+        int AssetLoaderId,
+        int OwnerDocumentId,
+        string Text,
+        string? FontFamily,
+        SvgFontStyle FontStyle,
+        SvgFontVariant FontVariant,
+        SvgFontWeight FontWeight,
+        SvgTextDirection Direction,
+        SvgUnicodeBidiMode UnicodeBidi,
+        string? Language,
+        bool EnableSvgFonts,
+        float TextSize,
+        SKFontStyleWeight TypefaceWeight,
+        SKFontStyleWidth TypefaceWidth,
+        SKFontStyleSlant TypefaceSlant);
+
+    private readonly record struct NaturalTextAdvanceCacheKey(
+        int AssetLoaderId,
+        int OwnerDocumentId,
+        int AltGlyphId,
+        string Text,
+        string? FontFamily,
+        SvgFontStyle FontStyle,
+        SvgFontVariant FontVariant,
+        SvgFontWeight FontWeight,
+        SvgTextDirection Direction,
+        SvgUnicodeBidiMode UnicodeBidi,
+        string? Language,
+        bool EnableSvgFonts,
+        float TextSize,
+        bool LcdRenderText,
+        bool SubpixelText,
+        SKTextEncoding TextEncoding,
+        string? FontFeatureSettings,
+        string? FontKerning,
+        string? FontVariantLigatures,
+        string? TypefaceFamilyName,
+        SKFontStyleWeight TypefaceWeight,
+        SKFontStyleWidth TypefaceWidth,
+        SKFontStyleSlant TypefaceSlant,
+        bool RightToLeft,
+        bool RequiresSyntheticSmallCaps,
+        bool UsesBrowserCompatibleRunTypeface);
 
     private readonly record struct NaturalCodepointAdvanceCacheKey(
         int AssetLoaderId,
@@ -49,6 +126,51 @@ internal static partial class SvgSceneTextCompiler
         bool RightToLeft,
         bool RequiresSyntheticSmallCaps,
         bool UsesBrowserCompatibleRunTypeface);
+
+    private readonly record struct LineStatsCacheKey(
+        int AssetLoaderId,
+        int OwnerDocumentId,
+        int AltGlyphId,
+        string Text,
+        string? FontFamily,
+        SvgFontStyle FontStyle,
+        SvgFontVariant FontVariant,
+        SvgFontWeight FontWeight,
+        SvgFontStretch FontStretch,
+        SvgTextDirection Direction,
+        SvgUnicodeBidiMode UnicodeBidi,
+        string? Language,
+        bool EnableSvgFonts,
+        float TextSize,
+        bool LcdRenderText,
+        bool SubpixelText,
+        SKTextEncoding TextEncoding,
+        string? FontFeatureSettings,
+        string? FontKerning,
+        string? FontVariantLigatures,
+        string? TypefaceFamilyName,
+        SKFontStyleWeight TypefaceWeight,
+        SKFontStyleWidth TypefaceWidth,
+        SKFontStyleSlant TypefaceSlant,
+        bool RightToLeft,
+        bool RequiresSyntheticSmallCaps,
+        bool UsesBrowserCompatibleRunTypeface);
+
+    private readonly record struct RenderedTextLocalBoundsCacheKey(
+        int AssetLoaderId,
+        string Text,
+        float TextSize,
+        bool LcdRenderText,
+        bool SubpixelText,
+        SKTextEncoding TextEncoding,
+        SKTextAlign TextAlign,
+        string? FontFeatureSettings,
+        string? FontKerning,
+        string? FontVariantLigatures,
+        string? TypefaceFamilyName,
+        SKFontStyleWeight TypefaceWeight,
+        SKFontStyleWidth TypefaceWidth,
+        SKFontStyleSlant TypefaceSlant);
 
     // Keep flat sequential text preparation behind a swappable boundary so a future
     // Pretext-backed implementation can plug in without taking ownership of SVG placement.
@@ -175,7 +297,7 @@ internal static partial class SvgSceneTextCompiler
             ISvgAssetLoader assetLoader,
             out PreparedFlatTextRun preparedText)
         {
-            var naturalCodepointAdvances = MeasureNaturalCodepointAdvancesCore(styleSource, text, SplitCodepoints(text), geometryBounds, assetLoader);
+            var naturalCodepointAdvances = MeasureNaturalCodepointAdvancesCore(styleSource, text, SplitCodepointsReadOnly(text), geometryBounds, assetLoader);
             preparedText = new PreparedFlatTextRun(
                 styleSource,
                 text,
@@ -236,7 +358,7 @@ internal static partial class SvgSceneTextCompiler
             SKRect geometryBounds,
             ISvgAssetLoader assetLoader)
         {
-            return MeasureLineStatsCore(styleSource, text, geometryBounds, assetLoader);
+            return MeasureLineStatsCached(styleSource, text, geometryBounds, assetLoader);
         }
 
         public float[] MeasureNaturalCodepointAdvances(
@@ -251,7 +373,12 @@ internal static partial class SvgSceneTextCompiler
         public void ClearCaches()
         {
             s_simpleCodepointAdvanceCache.Clear();
+            s_simpleNaturalTextAdvanceCache.Clear();
+            s_simpleNaturalCodepointAdvanceCache.Clear();
+            s_naturalTextAdvanceCache.Clear();
             s_naturalCodepointAdvanceCache.Clear();
+            s_renderedTextLocalBoundsCache.Clear();
+            s_lineStatsCache.Clear();
         }
     }
 
@@ -319,6 +446,35 @@ internal static partial class SvgSceneTextCompiler
         return s_preparedTextEngine.MeasureLineStats(svgTextBase, text, geometryBounds, assetLoader);
     }
 
+    private static PreparedLineStats MeasureLineStatsCached(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect geometryBounds,
+        ISvgAssetLoader assetLoader)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return MeasureLineStatsCore(svgTextBase, text, geometryBounds, assetLoader);
+        }
+
+        var paint = CreateTextMetricsPaint(svgTextBase, geometryBounds);
+        var fallbackText = GetBrowserCompatibleFallbackText(svgTextBase, text, assetLoader);
+        if (string.IsNullOrEmpty(fallbackText) ||
+            !TryCreateLineStatsCacheKey(svgTextBase, fallbackText, paint, assetLoader, out var cacheKey))
+        {
+            return MeasureLineStatsCore(svgTextBase, text, geometryBounds, assetLoader);
+        }
+
+        if (TryGetCachedLineStats(cacheKey, out var cachedStats))
+        {
+            return cachedStats;
+        }
+
+        var stats = MeasureLineStatsCore(svgTextBase, text, geometryBounds, assetLoader);
+        CacheLineStats(cacheKey, stats);
+        return stats;
+    }
+
     private static bool CanPrepareSequentialTextRuns(
         IReadOnlyList<SequentialTextRun> runs,
         SKRect geometryBounds,
@@ -352,8 +508,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var paint = CreateTextMetricsPaint(run.StyleSource, geometryBounds);
-        return !SvgFontTextRenderer.TryGetLayout(run.StyleSource, run.Text, paint, assetLoader, out _);
+        return CanUseSkiaTextMetrics(run.StyleSource, run.Text, geometryBounds, assetLoader);
     }
 
     private static void ClearPreparedTextCaches()
@@ -384,44 +539,46 @@ internal static partial class SvgSceneTextCompiler
             return verticalAdvances;
         }
 
-        text ??= string.Concat(codepoints);
+        text ??= GetSplitCodepointTextOrConcat(codepoints);
         if (string.IsNullOrEmpty(text))
         {
             return Array.Empty<float>();
         }
 
+        var hasSimpleCacheKey = TryCreateSimpleNaturalCodepointAdvanceCacheKey(
+            svgTextBase,
+            assetLoader,
+            text,
+            geometryBounds,
+            out var simpleCacheKey);
+        if (hasSimpleCacheKey &&
+            TryGetCachedSimpleNaturalCodepointAdvances(simpleCacheKey, out var cachedSimpleAdvances))
+        {
+            return cachedSimpleAdvances;
+        }
+
+        var isRightToLeft = IsRightToLeft(svgTextBase);
+        var requiresSyntheticSmallCaps = RequiresSyntheticSmallCaps(svgTextBase, text);
+        var usesBrowserCompatibleRunTypeface = ShouldUseBrowserCompatibleRunTypeface(svgTextBase, text);
         var paint = new SKPaint();
         PaintingService.SetPaintText(svgTextBase, geometryBounds, paint);
         paint.TextAlign = SKTextAlign.Left;
 
-        var isRightToLeft = IsRightToLeft(svgTextBase);
-        var requiresSyntheticSmallCaps = RequiresSyntheticSmallCaps(svgTextBase, text);
         var cacheKey = CreateNaturalCodepointAdvanceCacheKey(
             assetLoader,
             text,
             paint,
             isRightToLeft,
             requiresSyntheticSmallCaps,
-            usesBrowserCompatibleRunTypeface: false);
+            usesBrowserCompatibleRunTypeface);
         if (TryGetCachedNaturalCodepointAdvances(cacheKey, out var cachedAdvances))
         {
-            return cachedAdvances;
-        }
-
-        var usesBrowserCompatibleRunTypeface = ShouldUseBrowserCompatibleRunTypeface(svgTextBase, text);
-        if (usesBrowserCompatibleRunTypeface)
-        {
-            cacheKey = CreateNaturalCodepointAdvanceCacheKey(
-                assetLoader,
-                text,
-                paint,
-                isRightToLeft,
-                requiresSyntheticSmallCaps,
-                usesBrowserCompatibleRunTypeface: true);
-            if (TryGetCachedNaturalCodepointAdvances(cacheKey, out cachedAdvances))
+            if (hasSimpleCacheKey)
             {
-                return cachedAdvances;
+                CacheSimpleNaturalCodepointAdvances(simpleCacheKey, cachedAdvances);
             }
+
+            return cachedAdvances;
         }
 
         if (TryMeasureNaturalCodepointAdvancesFromSimpleShapedRun(
@@ -437,6 +594,11 @@ internal static partial class SvgSceneTextCompiler
                 out var shapedAdvances))
         {
             CacheNaturalCodepointAdvances(cacheKey, shapedAdvances);
+            if (hasSimpleCacheKey)
+            {
+                CacheSimpleNaturalCodepointAdvances(simpleCacheKey, shapedAdvances);
+            }
+
             return shapedAdvances;
         }
 
@@ -452,6 +614,11 @@ internal static partial class SvgSceneTextCompiler
         {
             PreserveMeasuredTotalAdvance(svgTextBase, codepoints, geometryBounds, assetLoader, clusteredAdvances);
             CacheNaturalCodepointAdvances(cacheKey, clusteredAdvances);
+            if (hasSimpleCacheKey)
+            {
+                CacheSimpleNaturalCodepointAdvances(simpleCacheKey, clusteredAdvances);
+            }
+
             return clusteredAdvances;
         }
 
@@ -489,6 +656,11 @@ internal static partial class SvgSceneTextCompiler
         }
 
         CacheNaturalCodepointAdvances(cacheKey, advances);
+        if (hasSimpleCacheKey)
+        {
+            CacheSimpleNaturalCodepointAdvances(simpleCacheKey, advances);
+        }
+
         return advances;
     }
 
@@ -510,7 +682,7 @@ internal static partial class SvgSceneTextCompiler
             return;
         }
 
-        var text = string.Concat(codepoints);
+        var text = GetSplitCodepointTextOrConcat(codepoints);
         var measuredAdvance = MeasureNaturalTextAdvanceCore(svgTextBase, text, geometryBounds, assetLoader);
         var distributedAdvance = advances.Sum();
         var delta = measuredAdvance - distributedAdvance;
@@ -588,7 +760,7 @@ internal static partial class SvgSceneTextCompiler
     {
         if (IsVerticalWritingMode(svgTextBase))
         {
-            var codepoints = SplitCodepoints(text);
+            var codepoints = SplitCodepointsReadOnly(text);
             var totalAdvance = 0f;
             for (var i = 0; i < codepoints.Count; i++)
             {
@@ -599,6 +771,162 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return MeasureNaturalTextAdvanceHorizontal(svgTextBase, text, geometryBounds, assetLoader);
+    }
+
+    private static bool TryGetCachedNaturalTextAdvance(
+        NaturalTextAdvanceCacheKey cacheKey,
+        out float advance)
+    {
+        return s_naturalTextAdvanceCache.TryGetValue(cacheKey, out advance);
+    }
+
+    private static void CacheNaturalTextAdvance(
+        NaturalTextAdvanceCacheKey cacheKey,
+        float advance)
+    {
+        s_naturalTextAdvanceCache.TryAdd(cacheKey, advance);
+        TrimNaturalTextAdvanceCacheIfNeeded();
+    }
+
+    private static NaturalTextAdvanceCacheKey CreateNaturalTextAdvanceCacheKey(
+        SvgTextBase svgTextBase,
+        ISvgAssetLoader assetLoader,
+        string text,
+        SKPaint paint,
+        bool isRightToLeft,
+        bool requiresSyntheticSmallCaps,
+        bool usesBrowserCompatibleRunTypeface)
+    {
+        var ownerDocument = svgTextBase.OwnerDocument;
+        return new NaturalTextAdvanceCacheKey(
+            RuntimeHelpers.GetHashCode(assetLoader),
+            ownerDocument is null ? 0 : RuntimeHelpers.GetHashCode(ownerDocument),
+            svgTextBase is SvgAltGlyph ? RuntimeHelpers.GetHashCode(svgTextBase) : 0,
+            text,
+            svgTextBase.FontFamily,
+            svgTextBase.FontStyle,
+            svgTextBase.FontVariant,
+            svgTextBase.FontWeight,
+            SvgTextBidiResolver.ResolveDirection(svgTextBase),
+            SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase),
+            GetNaturalTextAdvanceLanguage(svgTextBase),
+            assetLoader.EnableSvgFonts,
+            paint.TextSize,
+            paint.LcdRenderText,
+            paint.SubpixelText,
+            paint.TextEncoding,
+            paint.FontFeatureSettings,
+            paint.FontKerning,
+            paint.FontVariantLigatures,
+            paint.Typeface?.FamilyName,
+            paint.Typeface?.FontWeight ?? SKFontStyleWeight.Normal,
+            paint.Typeface?.FontWidth ?? SKFontStyleWidth.Normal,
+            paint.Typeface?.FontSlant ?? SKFontStyleSlant.Upright,
+            isRightToLeft,
+            requiresSyntheticSmallCaps,
+            usesBrowserCompatibleRunTypeface);
+    }
+
+    private static string? GetNaturalTextAdvanceLanguage(SvgTextBase svgTextBase)
+    {
+        for (SvgElement? current = svgTextBase; current is not null; current = current.Parent)
+        {
+            if (current.TryGetAttribute("xml:lang", out var xmlLang) && !string.IsNullOrWhiteSpace(xmlLang))
+            {
+                return NormalizeNaturalTextAdvanceLanguage(xmlLang);
+            }
+
+            if (current.TryGetAttribute("lang", out var lang) && !string.IsNullOrWhiteSpace(lang))
+            {
+                return NormalizeNaturalTextAdvanceLanguage(lang);
+            }
+        }
+
+        return null;
+    }
+
+    private static string NormalizeNaturalTextAdvanceLanguage(string value)
+    {
+        return value.Trim().Replace('_', '-');
+    }
+
+    private static bool TryGetCachedLineStats(
+        LineStatsCacheKey cacheKey,
+        out PreparedLineStats stats)
+    {
+        return s_lineStatsCache.TryGetValue(cacheKey, out stats!);
+    }
+
+    private static void CacheLineStats(
+        LineStatsCacheKey cacheKey,
+        PreparedLineStats stats)
+    {
+        s_lineStatsCache.TryAdd(cacheKey, stats);
+        TrimLineStatsCacheIfNeeded();
+    }
+
+    private static bool TryCreateLineStatsCacheKey(
+        SvgTextBase svgTextBase,
+        string text,
+        SKPaint paint,
+        ISvgAssetLoader assetLoader,
+        out LineStatsCacheKey cacheKey)
+    {
+        cacheKey = default;
+        if (string.IsNullOrEmpty(text))
+        {
+            return false;
+        }
+
+        var isRightToLeft = IsRightToLeft(svgTextBase);
+        var requiresSyntheticSmallCaps = RequiresSyntheticSmallCaps(svgTextBase, text);
+        var usesBrowserCompatibleRunTypeface = ShouldUseBrowserCompatibleRunTypeface(svgTextBase, text);
+        var ownerDocument = svgTextBase.OwnerDocument;
+        cacheKey = new LineStatsCacheKey(
+            RuntimeHelpers.GetHashCode(assetLoader),
+            ownerDocument is null ? 0 : RuntimeHelpers.GetHashCode(ownerDocument),
+            svgTextBase is SvgAltGlyph ? RuntimeHelpers.GetHashCode(svgTextBase) : 0,
+            text,
+            svgTextBase.FontFamily,
+            svgTextBase.FontStyle,
+            svgTextBase.FontVariant,
+            svgTextBase.FontWeight,
+            svgTextBase.FontStretch,
+            SvgTextBidiResolver.ResolveDirection(svgTextBase),
+            SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase),
+            GetNaturalTextAdvanceLanguage(svgTextBase),
+            assetLoader.EnableSvgFonts,
+            paint.TextSize,
+            paint.LcdRenderText,
+            paint.SubpixelText,
+            paint.TextEncoding,
+            paint.FontFeatureSettings,
+            paint.FontKerning,
+            paint.FontVariantLigatures,
+            paint.Typeface?.FamilyName,
+            paint.Typeface?.FontWeight ?? SKFontStyleWeight.Normal,
+            paint.Typeface?.FontWidth ?? SKFontStyleWidth.Normal,
+            paint.Typeface?.FontSlant ?? SKFontStyleSlant.Upright,
+            isRightToLeft,
+            requiresSyntheticSmallCaps,
+            usesBrowserCompatibleRunTypeface);
+        return true;
+    }
+
+    private static void TrimLineStatsCacheIfNeeded()
+    {
+        if (s_lineStatsCache.Count > LineStatsCacheLimit)
+        {
+            s_lineStatsCache.Clear();
+        }
+    }
+
+    private static void TrimNaturalTextAdvanceCacheIfNeeded()
+    {
+        if (s_naturalTextAdvanceCache.Count > NaturalTextAdvanceCacheLimit)
+        {
+            s_naturalTextAdvanceCache.Clear();
+        }
     }
 
     private static PreparedLineStats MeasureLineStatsCore(
@@ -638,6 +966,40 @@ internal static partial class SvgSceneTextCompiler
         var spans = assetLoader.FindTypefaces(fallbackText, paint);
         if (spans.Count > 0)
         {
+            if (spans.Count == 1 &&
+                spans[0] is var span &&
+                span.Typeface is { } spanTypeface &&
+                string.Equals(span.Text, fallbackText, StringComparison.Ordinal))
+            {
+                var runPaint = paint.Clone();
+                runPaint.Typeface = spanTypeface;
+
+                var measureBounds = new SKRect();
+                var measuredAdvance = assetLoader.MeasureText(fallbackText, runPaint, ref measureBounds);
+                var advance = EnsureWhitespaceAdvance(
+                    fallbackText,
+                    runPaint,
+                    assetLoader,
+                    span.Advance > 0f ? span.Advance : measuredAdvance);
+                var relativeBounds = measureBounds;
+                if (relativeBounds.IsEmpty &&
+                    !TryGetRenderedTextLocalBounds(fallbackText, runPaint, assetLoader, out relativeBounds))
+                {
+                    relativeBounds = GetTextAdvanceBox(svgTextBase, 0f, 0f, advance, runPaint, assetLoader);
+                }
+                else
+                {
+                    relativeBounds = ExpandTextBoundsWithAdvanceBox(svgTextBase, relativeBounds, 0f, 0f, advance, runPaint, assetLoader);
+                }
+
+                return new PreparedLineStats(
+                    ApplyBrowserCompatibleBidiControls(svgTextBase, fallbackText),
+                    spanTypeface,
+                    advance,
+                    relativeBounds,
+                    usesResolvedRunTypeface: true);
+            }
+
             var currentX = 0f;
             var totalAdvance = 0f;
             var bounds = SKRect.Empty;

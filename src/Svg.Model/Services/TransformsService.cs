@@ -226,6 +226,15 @@ internal static class TransformsService
         SKRect viewport)
     {
         var transform = ToMatrix(svgTransformCollection);
+        return ApplyTransformOrigin(svgElement, geometryBounds, viewport, transform);
+    }
+
+    internal static SKMatrix ApplyTransformOrigin(
+        SvgElement svgElement,
+        SKRect geometryBounds,
+        SKRect viewport,
+        SKMatrix transform)
+    {
         if (transform.IsIdentity ||
             !TryResolveTransformOrigin(svgElement, geometryBounds, viewport, out var origin))
         {
@@ -305,7 +314,10 @@ internal static class TransformsService
 
     private static SKRect ResolveTransformReferenceBox(SvgElement svgElement, SKRect geometryBounds, SKRect viewport)
     {
-        if (svgElement.TransformBox is SvgTransformBox.FillBox or SvgTransformBox.StrokeBox)
+        if (svgElement.TransformBox is SvgTransformBox.FillBox or
+            SvgTransformBox.StrokeBox or
+            SvgTransformBox.ContentBox or
+            SvgTransformBox.BorderBox)
         {
             return geometryBounds.IsEmpty ? viewport : geometryBounds;
         }

@@ -33,12 +33,13 @@ public abstract record CanvasCommand : IDeepCloneable<CanvasCommand>
                 DrawImageCanvasCommand drawImageCanvasCommand => new DrawImageCanvasCommand(drawImageCanvasCommand.Image?.DeepClone(context), drawImageCanvasCommand.Source, drawImageCanvasCommand.Dest, drawImageCanvasCommand.Paint?.DeepClone(context), drawImageCanvasCommand.Sampling),
                 DrawPictureCanvasCommand drawPictureCanvasCommand => new DrawPictureCanvasCommand(drawPictureCanvasCommand.Picture?.DeepClone(context)),
                 DrawPathCanvasCommand drawPathCanvasCommand => new DrawPathCanvasCommand(drawPathCanvasCommand.Path?.DeepClone(context), drawPathCanvasCommand.Paint?.DeepClone(context)),
+                DrawPositionedTextRunCanvasCommand drawPositionedTextRunCanvasCommand => new DrawPositionedTextRunCanvasCommand(ClonePositionedTextRunFragments(drawPositionedTextRunCanvasCommand.Fragments), drawPositionedTextRunCanvasCommand.Paint?.DeepClone(context), drawPositionedTextRunCanvasCommand.TextAlign, drawPositionedTextRunCanvasCommand.Font?.DeepClone(context)),
                 DrawTextBlobCanvasCommand drawTextBlobCanvasCommand => new DrawTextBlobCanvasCommand(drawTextBlobCanvasCommand.TextBlob?.DeepClone(context), drawTextBlobCanvasCommand.X, drawTextBlobCanvasCommand.Y, drawTextBlobCanvasCommand.Paint?.DeepClone(context)),
                 DrawTextCanvasCommand drawTextCanvasCommand => new DrawTextCanvasCommand(drawTextCanvasCommand.Text, drawTextCanvasCommand.X, drawTextCanvasCommand.Y, drawTextCanvasCommand.Paint?.DeepClone(context), drawTextCanvasCommand.TextAlign, drawTextCanvasCommand.Font?.DeepClone(context)),
                 DrawTextOnPathCanvasCommand drawTextOnPathCanvasCommand => new DrawTextOnPathCanvasCommand(drawTextOnPathCanvasCommand.Text, drawTextOnPathCanvasCommand.Path?.DeepClone(context), drawTextOnPathCanvasCommand.HOffset, drawTextOnPathCanvasCommand.VOffset, drawTextOnPathCanvasCommand.Paint?.DeepClone(context), drawTextOnPathCanvasCommand.TextAlign, drawTextOnPathCanvasCommand.Font?.DeepClone(context)),
                 RestoreCanvasCommand restoreCanvasCommand => new RestoreCanvasCommand(restoreCanvasCommand.Count),
                 SaveCanvasCommand saveCanvasCommand => new SaveCanvasCommand(saveCanvasCommand.Count),
-                SaveLayerCanvasCommand saveLayerCanvasCommand => new SaveLayerCanvasCommand(saveLayerCanvasCommand.Count, saveLayerCanvasCommand.Paint?.DeepClone(context)),
+                SaveLayerCanvasCommand saveLayerCanvasCommand => new SaveLayerCanvasCommand(saveLayerCanvasCommand.Count, saveLayerCanvasCommand.Paint?.DeepClone(context), saveLayerCanvasCommand.Bounds),
                 SetMatrixCanvasCommand setMatrixCanvasCommand => new SetMatrixCanvasCommand(setMatrixCanvasCommand.DeltaMatrix, setMatrixCanvasCommand.TotalMatrix),
                 _ => throw new NotSupportedException($"Unsupported {nameof(CanvasCommand)} type: {GetType().Name}.")
             };
@@ -59,6 +60,22 @@ public abstract record CanvasCommand : IDeepCloneable<CanvasCommand>
         command.SourceElementAddress = SourceElementAddress;
         command.SourceElementTypeName = SourceElementTypeName;
     }
+
+    private static PositionedTextRunFragment[]? ClonePositionedTextRunFragments(IReadOnlyList<PositionedTextRunFragment>? fragments)
+    {
+        if (fragments is null)
+        {
+            return null;
+        }
+
+        var clone = new PositionedTextRunFragment[fragments.Count];
+        for (var i = 0; i < fragments.Count; i++)
+        {
+            clone[i] = fragments[i];
+        }
+
+        return clone;
+    }
 }
 
 public record ClipPathCanvasCommand(ClipPath? ClipPath, SKClipOperation Operation, bool Antialias) : CanvasCommand;
@@ -71,6 +88,19 @@ public record DrawPictureCanvasCommand(SKPicture? Picture) : CanvasCommand;
 
 public record DrawPathCanvasCommand(SKPath? Path, SKPaint? Paint) : CanvasCommand;
 
+public readonly record struct PositionedTextRunFragment(
+    string Text,
+    SKPoint Point,
+    float RotationDegrees,
+    float ScaleX,
+    float ScaleOriginX);
+
+public record DrawPositionedTextRunCanvasCommand(
+    IReadOnlyList<PositionedTextRunFragment>? Fragments,
+    SKPaint? Paint,
+    SKTextAlign? TextAlign = null,
+    SKFont? Font = null) : CanvasCommand;
+
 public record DrawTextBlobCanvasCommand(SKTextBlob? TextBlob, float X, float Y, SKPaint? Paint) : CanvasCommand;
 
 public record DrawTextCanvasCommand(string Text, float X, float Y, SKPaint? Paint, SKTextAlign? TextAlign = null, SKFont? Font = null) : CanvasCommand;
@@ -81,7 +111,7 @@ public record RestoreCanvasCommand(int Count) : CanvasCommand;
 
 public record SaveCanvasCommand(int Count) : CanvasCommand;
 
-public record SaveLayerCanvasCommand(int Count, SKPaint? Paint = null) : CanvasCommand;
+public record SaveLayerCanvasCommand(int Count, SKPaint? Paint = null, SKRect? Bounds = null) : CanvasCommand;
 
 public record SetMatrixCanvasCommand(SKMatrix DeltaMatrix, SKMatrix TotalMatrix) : CanvasCommand;
 
@@ -226,6 +256,16 @@ public class SKCanvas : ICloneable, IDeepCloneable<SKCanvas>
         AddCommand(new DrawTextBlobCanvasCommand(textBlob, x, y, paint));
     }
 
+    public void DrawPositionedTextRun(IReadOnlyList<PositionedTextRunFragment> fragments, SKPaint paint)
+    {
+        AddCommand(new DrawPositionedTextRunCanvasCommand(fragments, paint));
+    }
+
+    public void DrawPositionedTextRun(IReadOnlyList<PositionedTextRunFragment> fragments, SKTextAlign textAlign, SKFont font, SKPaint paint)
+    {
+        AddCommand(new DrawPositionedTextRunCanvasCommand(fragments, paint, textAlign, font));
+    }
+
     public void DrawText(string text, float x, float y, SKPaint paint)
     {
         AddCommand(new DrawTextCanvasCommand(text, x, y, paint));
@@ -264,6 +304,14 @@ public class SKCanvas : ICloneable, IDeepCloneable<SKCanvas>
     {
         _totalMatrices.Push(TotalMatrix);
         AddCommand(new SaveLayerCanvasCommand(_saveCount, paint));
+        _saveCount++;
+        return _saveCount;
+    }
+
+    public int SaveLayer(SKRect bounds, SKPaint? paint)
+    {
+        _totalMatrices.Push(TotalMatrix);
+        AddCommand(new SaveLayerCanvasCommand(_saveCount, paint, bounds));
         _saveCount++;
         return _saveCount;
     }

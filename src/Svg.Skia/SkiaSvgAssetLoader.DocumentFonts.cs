@@ -107,11 +107,31 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
         lock (_documentFontsLock)
         {
             var previousProviders = _skiaModel.Settings.DocumentTypefaceProviders;
+            if (provider.IsEmpty &&
+                previousProviders is null)
+            {
+                provider.Dispose();
+                return EmptyDocumentFontScope.Instance;
+            }
+
             _skiaModel.Settings.DocumentTypefaceProviders = provider.IsEmpty
                 ? null
                 : new List<ITypefaceProvider> { provider };
             ClearPaintCache();
             return new DocumentFontScope(this, provider, previousProviders);
+        }
+    }
+
+    private sealed class EmptyDocumentFontScope : IDisposable
+    {
+        public static readonly EmptyDocumentFontScope Instance = new();
+
+        private EmptyDocumentFontScope()
+        {
+        }
+
+        public void Dispose()
+        {
         }
     }
 

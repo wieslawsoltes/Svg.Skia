@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ShimSkiaSharp;
 using Svg.DataTypes;
+using Svg.Model;
 using Svg.Model.Services;
 
 namespace Svg.Skia;
@@ -10,7 +11,7 @@ internal static class SvgSceneHitTestService
 {
     public static IEnumerable<SvgSceneNode> HitTest(SvgSceneDocument sceneDocument, SKPoint point)
     {
-        return HitTest(sceneDocument.Root, point, new HitTestContext());
+        return HitTest(sceneDocument.Root, point, new HitTestContext(sceneDocument.CompilationViewport, sceneDocument.AssetLoader));
     }
 
     public static IEnumerable<SvgSceneNode> HitTest(SvgSceneDocument sceneDocument, SKRect rect)
@@ -20,10 +21,10 @@ internal static class SvgSceneHitTestService
 
     public static SvgSceneNode? HitTestTopmostNode(SvgSceneDocument sceneDocument, SKPoint point)
     {
-        return HitTestTopmostNode(sceneDocument.Root, point, new HitTestContext());
+        return HitTestTopmostNode(sceneDocument.Root, point, new HitTestContext(sceneDocument.CompilationViewport, sceneDocument.AssetLoader));
     }
 
-    public static bool HitTestPointer(SvgSceneNode node, SKPoint point)
+    private static bool HitTestPointer(SvgSceneNode node, SKPoint point, HitTestContext context)
     {
         if (node.SuppressSubtreeRendering)
         {
@@ -42,7 +43,7 @@ internal static class SvgSceneHitTestService
 
         if (node.Kind == SvgSceneNodeKind.Text)
         {
-            return HitTestTextPointer(node, point);
+            return HitTestTextPointer(node, point, context);
         }
 
         return node.PointerEvents switch
@@ -60,20 +61,20 @@ internal static class SvgSceneHitTestService
         };
     }
 
-    private static bool HitTestTextPointer(SvgSceneNode node, SKPoint point)
+    private static bool HitTestTextPointer(SvgSceneNode node, SKPoint point, HitTestContext context)
     {
         return node.PointerEvents switch
         {
             SvgPointerEvents.None => false,
-            SvgPointerEvents.VisiblePainted => node.IsVisible && IsTextPainted(node) && HitTestTextCell(node, point),
-            SvgPointerEvents.VisibleFill => node.IsVisible && HitTestTextCell(node, point),
-            SvgPointerEvents.VisibleStroke => node.IsVisible && HitTestTextCell(node, point),
-            SvgPointerEvents.Visible => node.IsVisible && HitTestTextCell(node, point),
-            SvgPointerEvents.Painted => IsTextPainted(node) && HitTestTextCell(node, point),
-            SvgPointerEvents.Fill => HitTestTextCell(node, point),
-            SvgPointerEvents.Stroke => HitTestTextCell(node, point),
-            SvgPointerEvents.All => HitTestTextCell(node, point),
-            _ => node.IsVisible && IsTextPainted(node) && HitTestTextCell(node, point)
+            SvgPointerEvents.VisiblePainted => node.IsVisible && IsTextPainted(node) && HitTestTextCell(node, point, context),
+            SvgPointerEvents.VisibleFill => node.IsVisible && HitTestTextCell(node, point, context),
+            SvgPointerEvents.VisibleStroke => node.IsVisible && HitTestTextCell(node, point, context),
+            SvgPointerEvents.Visible => node.IsVisible && HitTestTextCell(node, point, context),
+            SvgPointerEvents.Painted => IsTextPainted(node) && HitTestTextCell(node, point, context),
+            SvgPointerEvents.Fill => HitTestTextCell(node, point, context),
+            SvgPointerEvents.Stroke => HitTestTextCell(node, point, context),
+            SvgPointerEvents.All => HitTestTextCell(node, point, context),
+            _ => node.IsVisible && IsTextPainted(node) && HitTestTextCell(node, point, context)
         };
     }
 
@@ -97,7 +98,7 @@ internal static class SvgSceneHitTestService
             }
         }
 
-        if (HitTestPointer(node, point))
+        if (HitTestPointer(node, point, context))
         {
             yield return node;
         }
@@ -135,7 +136,7 @@ internal static class SvgSceneHitTestService
             }
         }
 
-        return HitTestPointer(node, point)
+        return HitTestPointer(node, point, context)
             ? node
             : null;
     }
@@ -241,9 +242,9 @@ internal static class SvgSceneHitTestService
         return CanHitTestPoint(node, point) && HitTestStrokeCore(node, point);
     }
 
-    private static bool HitTestTextCell(SvgSceneNode node, SKPoint point)
+    private static bool HitTestTextCell(SvgSceneNode node, SKPoint point, HitTestContext context)
     {
-        if (node.TextContentMetrics is { } metrics)
+        if (node.GetTextContentMetrics(context.CompilationViewport, context.AssetLoader) is { } metrics)
         {
             if (!GetTextCellBounds(node).Contains(point) ||
                 !TryGetLocalPoint(node, point, out var metricPoint) ||
@@ -504,6 +505,16 @@ internal static class SvgSceneHitTestService
     private sealed class HitTestContext
     {
         private readonly Dictionary<SvgSceneNode, SKRect> _subtreeHitTestBounds = new();
+
+        public HitTestContext(SKRect compilationViewport, ISvgAssetLoader assetLoader)
+        {
+            CompilationViewport = compilationViewport;
+            AssetLoader = assetLoader;
+        }
+
+        public SKRect CompilationViewport { get; }
+
+        public ISvgAssetLoader AssetLoader { get; }
 
         public SKRect GetSubtreeHitTestBounds(SvgSceneNode node)
         {

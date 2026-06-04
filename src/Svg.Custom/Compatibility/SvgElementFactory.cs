@@ -294,11 +294,6 @@ namespace Svg
             return false;
         }
 
-        private static bool IsNonInheritedOpacityAttribute(string name)
-        {
-            return name == "opacity";
-        }
-
         private static bool ShouldIgnoreInvalidPresentationStyleAttribute(string attributeName, string attributeValue)
         {
             return IsCaseSensitivePresentationLengthAttribute(attributeName) &&
@@ -449,13 +444,18 @@ namespace Svg
                 return true;
             }
 
-            if (parsedPercentage == 100f && IsNonInheritedOpacityAttribute(attributeName))
+            normalizedValue = Clamp(parsedPercentage / 100f, 0f, 1f).ToString("0.########", CultureInfo.InvariantCulture);
+            return false;
+        }
+
+        private static float Clamp(float value, float min, float max)
+        {
+            if (value < min)
             {
-                normalizedValue = "1";
-                return false;
+                return min;
             }
 
-            return true;
+            return value > max ? max : value;
         }
 
         internal static bool SetPropertyValue(
@@ -532,10 +532,8 @@ namespace Svg
 
             if (TryHandlePercentageOpacityAttribute(attributeName, attributeValue, out var normalizedOpacityValue))
             {
-                // SVG 1.1 opacity properties are numeric, not percentages. Treat percentage tokens
-                // as invalid declarations, except for the non-inherited "opacity" property where
-                // the browser-authored "100%" case can be normalized to the default value without
-                // overriding inherited paint-opacity state.
+                // Percentage opacity values are normalized before reaching the upstream float
+                // converters. Malformed percentage tokens are ignored as invalid declarations.
                 return true;
             }
 

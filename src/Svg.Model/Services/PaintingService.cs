@@ -26,7 +26,7 @@ internal static class PaintingService
     internal static SKColor GetColor(SvgColourServer svgColourServer, float opacity, DrawAttributes ignoreAttributes)
     {
         var colour = svgColourServer.Colour;
-        var alpha = ignoreAttributes.HasFlag(DrawAttributes.Opacity) ?
+        var alpha = ignoreAttributes.Has(DrawAttributes.Opacity) ?
             svgColourServer.Colour.A :
             CombineWithOpacity(svgColourServer.Colour.A, opacity);
 
@@ -570,6 +570,11 @@ internal static class PaintingService
         }
 
         focalRadius = Math.Max(0f, focalRadius);
+        if (svgGradientUnits != SvgCoordinateUnits.ObjectBoundingBox)
+        {
+            skFocal = CorrectRadialGradientFocalPoint(skCenter, radius, skFocal, focalRadius);
+        }
+
         var isRadialGradient = focalRadius == 0f && skCenter.X == skFocal.X && skCenter.Y == skFocal.Y;
 
         if (svgGradientUnits == SvgCoordinateUnits.ObjectBoundingBox)
@@ -669,6 +674,26 @@ internal static class PaintingService
             SvgShapeRendering.CrispEdges => false,
             _ => true
         };
+    }
+
+    internal static SKPoint CorrectRadialGradientFocalPoint(SKPoint center, float radius, SKPoint focal, float focalRadius)
+    {
+        if (radius <= 0f)
+        {
+            return focal;
+        }
+
+        var maxDistance = Math.Max(0f, radius - Math.Max(0f, focalRadius));
+        var dx = focal.X - center.X;
+        var dy = focal.Y - center.Y;
+        var distance = (float)Math.Sqrt((dx * dx) + (dy * dy));
+        if (distance <= maxDistance || distance <= 0f)
+        {
+            return focal;
+        }
+
+        var scale = maxDistance / distance;
+        return new SKPoint(center.X + (dx * scale), center.Y + (dy * scale));
     }
 
     internal static bool IsValidFill(SvgElement svgElement)
@@ -1002,6 +1027,21 @@ internal static class PaintingService
 
     internal static void SetPaintText(SvgTextBase svgText, SKRect skBounds, SKPaint skPaint)
     {
+        SetPaintText(svgText, skBounds, skPaint, resolveTypeface: true, resolvedTypeface: null);
+    }
+
+    internal static void SetPaintText(SvgTextBase svgText, SKRect skBounds, SKPaint skPaint, SKTypeface? resolvedTypeface)
+    {
+        SetPaintText(svgText, skBounds, skPaint, resolveTypeface: false, resolvedTypeface);
+    }
+
+    private static void SetPaintText(
+        SvgTextBase svgText,
+        SKRect skBounds,
+        SKPaint skPaint,
+        bool resolveTypeface,
+        SKTypeface? resolvedTypeface)
+    {
         skPaint.LcdRenderText = true;
         skPaint.SubpixelText = true;
         skPaint.TextEncoding = SKTextEncoding.Utf16;
@@ -1040,11 +1080,23 @@ internal static class PaintingService
 
         skPaint.TextSize = fontSize;
 
-        SetTypeface(svgText, skPaint);
+        if (resolveTypeface)
+        {
+            SetTypeface(svgText, skPaint);
+        }
+        else
+        {
+            skPaint.Typeface = resolvedTypeface;
+        }
     }
 
     private static bool HasInheritedTextOpenTypePaintProperty(SvgElement element)
     {
+        if (!element.MayHaveTextOpenTypeDeclarations())
+        {
+            return false;
+        }
+
         for (SvgElement? current = element; current is not null; current = current.Parent)
         {
             if ((current.GetOwnCascadedStyleFeatureFlags(SvgCascadedStyleFeatureFlags.TextOpenType) &

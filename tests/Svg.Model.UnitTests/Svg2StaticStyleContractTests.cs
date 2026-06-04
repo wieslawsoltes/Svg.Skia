@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Drawing;
 using ShimSkiaSharp;
 using Svg.Model.Services;
 using Xunit;
@@ -229,6 +230,66 @@ public class Svg2StaticStyleContractTests
         Assert.Equal("glyphA", altGlyph.GlyphRef);
         Assert.Equal("svg", altGlyph.Format);
         Assert.Equal("A", altGlyph.Text);
+    }
+
+    [Theory]
+    [InlineData("""<svg xmlns="http://www.w3.org/2000/svg"><rect id="target" fill="currentColor" /></svg>""")]
+    [InlineData("""<svg xmlns="http://www.w3.org/2000/svg" color="currentColor"><rect id="target" fill="currentColor" /></svg>""")]
+    public void PaintServer_CurrentColorWithoutConcreteAncestorResolvesToInitialBlack(string svg)
+    {
+        var document = SvgService.FromSvg(svg, null);
+        var rect = Assert.IsType<SvgRectangle>(document!.GetElementById("target"));
+        var fill = Assert.IsType<SvgDeferredPaintServer>(rect.Fill);
+
+        var resolved = Assert.IsType<SvgColourServer>(SvgDeferredPaintServer.TryGet<SvgPaintServer>(fill, rect));
+
+        Assert.Equal(Color.Black.ToArgb(), resolved.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void PaintServer_ParsesLegacyIccColorFallbackAsSrgbColor()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="lg1">
+                  <stop offset="0" stop-color="white" />
+                  <stop offset="1" stop-color="black" />
+                </linearGradient>
+              </defs>
+              <rect id="target" fill="url(#lg1) green icc-color(acmecmyk, 0.11, 0.48, 0.83, 0.00)" />
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+        var rect = Assert.IsType<SvgRectangle>(document!.GetElementById("target"));
+        var fill = Assert.IsType<SvgDeferredPaintServer>(rect.Fill);
+        var fallback = Assert.IsType<SvgColourServer>(fill.FallbackServer);
+
+        Assert.Equal(Color.Green.ToArgb(), fallback.Colour.ToArgb());
+    }
+
+    [Fact]
+    public void PaintOpacity_PercentageValuesNormalizeToUnitOpacity()
+    {
+        const string svg = """
+            <svg xmlns="http://www.w3.org/2000/svg" style="opacity: 0.1%">
+              <g fill-opacity="0.3" stroke-opacity="0.4">
+                <rect id="target"
+                      width="10"
+                      height="10"
+                      fill-opacity="50%"
+                      stroke-opacity="25%" />
+              </g>
+            </svg>
+            """;
+
+        var document = SvgService.FromSvg(svg, null);
+        var rect = Assert.IsType<SvgRectangle>(document!.GetElementById("target"));
+
+        Assert.Equal(0.001f, document.Opacity, 3);
+        Assert.Equal(0.5f, rect.FillOpacity, 3);
+        Assert.Equal(0.25f, rect.StrokeOpacity, 3);
     }
 
     [Fact]

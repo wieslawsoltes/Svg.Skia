@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using ShimSkiaSharp;
 using Svg;
 using Svg.Model;
@@ -544,7 +545,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var text = string.Concat(codepoints.Skip(start).Take(count).Select(static item => item.Codepoint));
+        var text = CreateFlattenedText(codepoints, start, count);
         if (string.IsNullOrEmpty(text))
         {
             return false;
@@ -708,7 +709,7 @@ internal static partial class SvgSceneTextCompiler
             segmentAdvance += Math.Max(0f, wrapAdvance);
         }
 
-        var codepointTexts = codepoints.Select(static item => item.Codepoint).ToArray();
+        var codepointTexts = new FlattenedCodepointTextList(codepoints);
         var bidiFormattingDepth = 0;
         string? previousCodepoint = null;
         for (var i = 0; i < codepoints.Count; i++)
@@ -1518,34 +1519,18 @@ internal static partial class SvgSceneTextCompiler
         SKPoint baselineOrigin)
     {
         var spans = new List<SvgTextPositionedSpan>();
-        var renderedPlacements = placements
-            .Where(item => IsSharedRenderedCodepoint(codepoints[item.SourceCodepointIndex]))
-            .ToArray();
         var start = 0;
-        while (start < renderedPlacements.Length)
+        while (TryGetNextSharedRenderedPlacementGroup(placements, codepoints, ref start, out var groupStart, out var groupEnd, out var styleSource))
         {
-            var styleSource = codepoints[renderedPlacements[start].SourceCodepointIndex].StyleSource;
-            var end = start + 1;
-            while (end < renderedPlacements.Length &&
-                   ReferenceEquals(codepoints[renderedPlacements[end].SourceCodepointIndex].StyleSource, styleSource) &&
-                   renderedPlacements[end].SourceCodepointIndex == renderedPlacements[end - 1].SourceCodepointIndex + 1)
-            {
-                end++;
-            }
-
-            var text = string.Concat(renderedPlacements.Skip(start).Take(end - start).Select(item => codepoints[item.SourceCodepointIndex].Codepoint));
-            var compilerPlacements = renderedPlacements.Skip(start).Take(end - start).Select(static item => item.CompilerPlacement).ToArray();
-            var layoutPlacements = renderedPlacements.Skip(start).Take(end - start).Select(static item => item.LayoutPlacement).ToArray();
+            var text = CreateSharedPlacementText(placements, codepoints, groupStart, groupEnd);
+            var compilerPlacements = CreateSharedCompilerPlacements(placements, groupStart, groupEnd);
+            var layoutPlacements = CreateSharedLayoutPlacements(placements, groupStart, groupEnd);
             var bounds = MeasureCodepointPlacementBounds(styleSource, text, compilerPlacements, viewport, assetLoader, out var advance);
-            var firstSourceIndex = renderedPlacements[start].SourceCodepointIndex;
-            var lastSourceIndex = renderedPlacements[end - 1].SourceCodepointIndex;
+            var firstSourceIndex = placements[groupStart].SourceCodepointIndex;
+            var lastSourceIndex = placements[groupEnd - 1].SourceCodepointIndex;
             var utf16Start = charStarts[firstSourceIndex];
             var utf16End = charStarts[lastSourceIndex] + codepoints[lastSourceIndex].Codepoint.Length;
-            var naturalAdvance = 0f;
-            for (var i = start; i < end; i++)
-            {
-                naturalAdvance += naturalAdvances[renderedPlacements[i].SourceCodepointIndex];
-            }
+            var naturalAdvance = SumSharedNaturalAdvances(placements, naturalAdvances, groupStart, groupEnd);
 
             var textLengthSource = HasOwnTextLengthAdjustment(styleSource) ? styleSource : null;
             var appliedTextLength = textLengthSource is not null &&
@@ -1566,7 +1551,6 @@ internal static partial class SvgSceneTextCompiler
                 naturalAdvance,
                 appliedTextLength,
                 baselineOrigin));
-            start = end;
         }
 
         return spans;
@@ -1576,29 +1560,141 @@ internal static partial class SvgSceneTextCompiler
         IReadOnlyList<SharedInlineSizeRunPlacement> placements,
         IReadOnlyList<FlattenedTextCodepoint> codepoints)
     {
-        var renderedPlacements = placements
-            .Where(item => IsSharedRenderedCodepoint(codepoints[item.SourceCodepointIndex]))
-            .ToArray();
-        var runs = new List<PositionedCodepointRun>();
-        var start = 0;
-        while (start < renderedPlacements.Length)
+        var groupCount = CountSharedRenderedPlacementGroups(placements, codepoints);
+        if (groupCount == 0)
         {
-            var styleSource = codepoints[renderedPlacements[start].SourceCodepointIndex].StyleSource;
-            var end = start + 1;
-            while (end < renderedPlacements.Length &&
-                   ReferenceEquals(codepoints[renderedPlacements[end].SourceCodepointIndex].StyleSource, styleSource) &&
-                   renderedPlacements[end].SourceCodepointIndex == renderedPlacements[end - 1].SourceCodepointIndex + 1)
-            {
-                end++;
-            }
-
-            var text = string.Concat(renderedPlacements.Skip(start).Take(end - start).Select(item => codepoints[item.SourceCodepointIndex].Codepoint));
-            var compilerPlacements = renderedPlacements.Skip(start).Take(end - start).Select(static item => item.CompilerPlacement).ToArray();
-            runs.Add(new PositionedCodepointRun(styleSource, text, compilerPlacements));
-            start = end;
+            return Array.Empty<PositionedCodepointRun>();
         }
 
-        return runs.ToArray();
+        var runs = new PositionedCodepointRun[groupCount];
+        var runIndex = 0;
+        var start = 0;
+        while (TryGetNextSharedRenderedPlacementGroup(placements, codepoints, ref start, out var groupStart, out var groupEnd, out var styleSource))
+        {
+            var text = CreateSharedPlacementText(placements, codepoints, groupStart, groupEnd);
+            var compilerPlacements = CreateSharedCompilerPlacements(placements, groupStart, groupEnd);
+            runs[runIndex] = new PositionedCodepointRun(styleSource, text, compilerPlacements);
+            runIndex++;
+        }
+
+        return runs;
+    }
+
+    private static int CountSharedRenderedPlacementGroups(
+        IReadOnlyList<SharedInlineSizeRunPlacement> placements,
+        IReadOnlyList<FlattenedTextCodepoint> codepoints)
+    {
+        var groupCount = 0;
+        var start = 0;
+        while (TryGetNextSharedRenderedPlacementGroup(placements, codepoints, ref start, out _, out _, out _))
+        {
+            groupCount++;
+        }
+
+        return groupCount;
+    }
+
+    private static bool TryGetNextSharedRenderedPlacementGroup(
+        IReadOnlyList<SharedInlineSizeRunPlacement> placements,
+        IReadOnlyList<FlattenedTextCodepoint> codepoints,
+        ref int start,
+        out int groupStart,
+        out int groupEnd,
+        out SvgTextBase styleSource)
+    {
+        while (start < placements.Count &&
+               !IsSharedRenderedCodepoint(codepoints[placements[start].SourceCodepointIndex]))
+        {
+            start++;
+        }
+
+        if (start >= placements.Count)
+        {
+            groupStart = 0;
+            groupEnd = 0;
+            styleSource = null!;
+            return false;
+        }
+
+        groupStart = start;
+        var previousSourceIndex = placements[start].SourceCodepointIndex;
+        styleSource = codepoints[previousSourceIndex].StyleSource;
+        start++;
+
+        while (start < placements.Count)
+        {
+            var sourceIndex = placements[start].SourceCodepointIndex;
+            if (!IsSharedRenderedCodepoint(codepoints[sourceIndex]) ||
+                !ReferenceEquals(codepoints[sourceIndex].StyleSource, styleSource) ||
+                sourceIndex != previousSourceIndex + 1)
+            {
+                break;
+            }
+
+            previousSourceIndex = sourceIndex;
+            start++;
+        }
+
+        groupEnd = start;
+        return groupEnd > groupStart;
+    }
+
+    private static string CreateSharedPlacementText(
+        IReadOnlyList<SharedInlineSizeRunPlacement> placements,
+        IReadOnlyList<FlattenedTextCodepoint> codepoints,
+        int start,
+        int end)
+    {
+        var builder = new StringBuilder(end - start);
+        for (var i = start; i < end; i++)
+        {
+            builder.Append(codepoints[placements[i].SourceCodepointIndex].Codepoint);
+        }
+
+        return builder.ToString();
+    }
+
+    private static PositionedCodepointPlacement[] CreateSharedCompilerPlacements(
+        IReadOnlyList<SharedInlineSizeRunPlacement> placements,
+        int start,
+        int end)
+    {
+        var result = new PositionedCodepointPlacement[end - start];
+        for (var i = start; i < end; i++)
+        {
+            result[i - start] = placements[i].CompilerPlacement;
+        }
+
+        return result;
+    }
+
+    private static SvgTextCodepointPlacement[] CreateSharedLayoutPlacements(
+        IReadOnlyList<SharedInlineSizeRunPlacement> placements,
+        int start,
+        int end)
+    {
+        var result = new SvgTextCodepointPlacement[end - start];
+        for (var i = start; i < end; i++)
+        {
+            result[i - start] = placements[i].LayoutPlacement;
+        }
+
+        return result;
+    }
+
+    private static float SumSharedNaturalAdvances(
+        IReadOnlyList<SharedInlineSizeRunPlacement> placements,
+        IReadOnlyList<float> naturalAdvances,
+        int start,
+        int end)
+    {
+        var advance = 0f;
+        for (var i = start; i < end; i++)
+        {
+            advance += naturalAdvances[placements[i].SourceCodepointIndex];
+        }
+
+        return advance;
     }
 
     private static bool IsSharedRenderedCodepoint(FlattenedTextCodepoint codepoint)
@@ -1764,7 +1860,7 @@ internal static partial class SvgSceneTextCompiler
         List<SvgTextDomClusterMetric> domClusters,
         ref int domCharIndex)
     {
-        var codepoints = SplitCodepoints(run.Text);
+        var codepoints = SplitCodepointsReadOnly(run.Text);
         var inlineDirection = GetInlineAdvanceDirection(run.StyleSource);
         var localOffset = 0f;
         var localCharIndex = 0;

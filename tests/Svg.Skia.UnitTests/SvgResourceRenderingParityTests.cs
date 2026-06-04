@@ -20,7 +20,7 @@ namespace Svg.Skia.UnitTests;
 public class SvgResourceRenderingParityTests
 {
     [Fact]
-    public void RetainedSceneGraph_PreservesOutOfCircleRadialGradientFocalPoint()
+    public void RetainedSceneGraph_ClampsOutOfCircleRadialGradientFocalPoint()
     {
         const string radialGradientSvg = """
             <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
@@ -48,7 +48,7 @@ public class SvgResourceRenderingParityTests
             static command => command.Paint?.Style == SKPaintStyle.Fill);
         var shader = Assert.IsType<TwoPointConicalGradientShader>(command.Paint!.Shader);
 
-        AssertApproximately(100f, shader.Start.X);
+        AssertApproximately(60f, shader.Start.X);
         AssertApproximately(40f, shader.Start.Y);
         AssertApproximately(0f, shader.StartRadius);
         AssertApproximately(40f, shader.End.X);
@@ -154,6 +154,168 @@ public class SvgResourceRenderingParityTests
         var colorFilter = AssertFilter<ColorFilterImageFilter>(svg, "target");
         var colorMatrix = Assert.IsType<ColorMatrixColorFilter>(colorFilter.ColorFilter);
         Assert.Equal(CreateIdentityColorMatrix(), colorMatrix.Matrix);
+    }
+
+    [Theory]
+    [InlineData("-1", 0f)]
+    [InlineData("99999", 1f)]
+    public void RetainedSceneGraph_ColorMatrixSaturateClampsCoefficient(string value, float expectedCoefficient)
+    {
+        var colorMatrixSvg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <defs>
+                <filter id="f" color-interpolation-filters="sRGB">
+                  <feColorMatrix type="saturate" values="{{value}}" />
+                </filter>
+              </defs>
+              <rect id="target" width="20" height="20" fill="#123456" filter="url(#f)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(colorMatrixSvg);
+
+        var colorFilter = AssertFilter<ColorFilterImageFilter>(svg, "target");
+        var colorMatrix = Assert.IsType<ColorMatrixColorFilter>(colorFilter.ColorFilter);
+
+        Assert.Equal(CreateSaturateColorMatrix(expectedCoefficient), colorMatrix.Matrix!);
+    }
+
+    [Theory]
+    [InlineData("<feBlend/>")]
+    [InlineData("<feComposite/>")]
+    public void RetainedSceneGraph_EmptyBinaryFilterPrimitiveKeepsSourceGraphic(string primitiveMarkup)
+    {
+        var filterSvg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+              <defs>
+                <filter id="f" color-interpolation-filters="sRGB">
+                  {{primitiveMarkup}}
+                </filter>
+              </defs>
+              <rect id="target" x="5" y="5" width="30" height="30" fill="seagreen" filter="url(#f)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(filterSvg);
+
+        Assert.NotNull(svg.Picture);
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+        var pixel = bitmap.GetPixel(20, 20);
+
+        Assert.True(
+            pixel.Green > 100 && pixel.Red < 80 && pixel.Blue is > 50 and < 130 && pixel.Alpha > 200,
+            $"Expected empty binary filter primitive to preserve seagreen source, but pixel was {pixel}.");
+    }
+
+    [Theory]
+    [InlineData("""<feGaussianBlur stdDeviation="-50"/>""")]
+    [InlineData("""<feMorphology radius="" operator="dilate"/>""")]
+    public void RetainedSceneGraph_InvalidUnaryFilterPrimitiveKeepsSourceGraphic(string primitiveMarkup)
+    {
+        var filterSvg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+              <defs>
+                <filter id="f" color-interpolation-filters="sRGB">
+                  {{primitiveMarkup}}
+                </filter>
+              </defs>
+              <rect id="target" x="5" y="5" width="30" height="30" fill="seagreen" filter="url(#f)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(filterSvg);
+
+        Assert.NotNull(svg.Picture);
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+        var pixel = bitmap.GetPixel(20, 20);
+
+        Assert.True(
+            pixel.Green > 100 && pixel.Red < 80 && pixel.Blue is > 50 and < 130 && pixel.Alpha > 200,
+            $"Expected invalid unary filter primitive to preserve seagreen source, but pixel was {pixel}.");
+    }
+
+    [Theory]
+    [InlineData("""<feGaussianBlur in="SourceGraphic" stdDeviation="0" result="m" />""", typeof(BlurImageFilter))]
+    [InlineData("""<feMorphology in="SourceGraphic" radius="0" operator="dilate" result="m" />""", typeof(DilateImageFilter))]
+    public void RetainedSceneGraph_ZeroUnaryFilterPrimitiveAliasesResultForLaterInputs(string primitiveMarkup, Type skippedFilterType)
+    {
+        var filterSvg = $$"""
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="20">
+              <defs>
+                <filter id="f" color-interpolation-filters="sRGB">
+                  {{primitiveMarkup}}
+                  <feOffset in="m" dx="4" dy="0" />
+                </filter>
+              </defs>
+              <rect id="target" x="5" y="5" width="10" height="10" fill="#ff0000" filter="url(#f)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(filterSvg);
+
+        Assert.False(ContainsImageFilter(svg, "target", skippedFilterType));
+        var offset = AssertFilter<OffsetImageFilter>(svg, "target");
+        Assert.NotNull(offset.Input);
+        Assert.Equal(4f, offset.Dx);
+        Assert.Equal(0f, offset.Dy);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ExplicitZeroConvolveDivisorInvalidatesPrimitive()
+    {
+        const string filterSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+              <defs>
+                <filter id="f" color-interpolation-filters="sRGB">
+                  <feConvolveMatrix divisor="0"
+                                    kernelMatrix="0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1" />
+                </filter>
+              </defs>
+              <rect id="target" x="5" y="5" width="30" height="30" fill="seagreen" filter="url(#f)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(filterSvg);
+
+        Assert.False(ContainsImageFilter(svg, "target", typeof(MatrixConvolutionImageFilter)));
+        Assert.NotNull(svg.Picture);
+        using var bitmap = ToBitmap(svg, svg.Picture!);
+        Assert.Equal(0, bitmap.GetPixel(20, 20).Alpha);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_FilterNumberOffsetsRejectPercentages()
+    {
+        const string filterSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="40">
+              <defs>
+                <filter id="offset-filter" color-interpolation-filters="sRGB">
+                  <feOffset dx="20%" dy="40%" />
+                </filter>
+                <filter id="shadow-filter" color-interpolation-filters="sRGB">
+                  <feDropShadow dx="10%" dy="20%" stdDeviation="0" />
+                </filter>
+              </defs>
+              <rect id="offset-target" x="5" y="5" width="10" height="10" fill="seagreen" filter="url(#offset-filter)" />
+              <rect id="shadow-target" x="45" y="5" width="10" height="10" fill="seagreen" filter="url(#shadow-filter)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(filterSvg);
+
+        var offset = AssertFilter<OffsetImageFilter>(svg, "offset-target");
+        Assert.Equal(0f, offset.Dx);
+        Assert.Equal(0f, offset.Dy);
+
+        var shadowOffset = AssertFilter<OffsetImageFilter>(svg, "shadow-target");
+        Assert.Equal(2f, shadowOffset.Dx);
+        Assert.Equal(2f, shadowOffset.Dy);
     }
 
     [Theory]
@@ -1900,6 +2062,208 @@ public class SvgResourceRenderingParityTests
         Assert.True(bitmap.GetPixel(16, 10).Alpha < 20, $"Expected right side outside objectBoundingBox mask region to be clipped but was {bitmap.GetPixel(16, 10)}.");
     }
 
+    [Fact]
+    public void RetainedSceneGraph_CssCircleClipPathUsesFillBox()
+    {
+        const string cssCircleClipSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+              <rect id="target" x="2" y="2" width="16" height="16" fill="#00ff00" clip-path="circle()" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(cssCircleClipSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+
+        AssertMostlyGreen(bitmap.GetPixel(10, 10), "Expected SVG 2 circle() clip-path to reveal the fill-box center.");
+        Assert.True(
+            bitmap.GetPixel(3, 3).Alpha < 20,
+            $"Expected SVG 2 circle() clip-path to hide the fill-box corner but was {bitmap.GetPixel(3, 3)}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_CssCircleClipPathUsesStrokeBox()
+    {
+        const string cssCircleStrokeBoxClipSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+              <rect id="target" x="4" y="4" width="12" height="12"
+                    fill="#00ff00" stroke="#0000ff" stroke-width="2"
+                    clip-path="circle() stroke-box" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(cssCircleStrokeBoxClipSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+
+        var strokePixel = bitmap.GetPixel(10, 3);
+        Assert.True(
+            strokePixel.Blue > 200 && strokePixel.Alpha > 200,
+            $"Expected stroke-box circle() clip-path to include the stroked top edge but was {strokePixel}.");
+        Assert.True(
+            bitmap.GetPixel(3, 3).Alpha < 20,
+            $"Expected stroke-box circle() clip-path to hide the outer corner but was {bitmap.GetPixel(3, 3)}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_CssCircleClipPathResolvesKeywordRadiusAfterPosition()
+    {
+        const string cssCircleClipSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+              <rect id="target" width="20" height="20" fill="#00ff00"
+                    clip-path="circle(closest-side at 5 5)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(cssCircleClipSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+
+        AssertMostlyGreen(bitmap.GetPixel(5, 5), "Expected off-center closest-side circle() to reveal its center.");
+        Assert.True(
+            bitmap.GetPixel(12, 5).Alpha < 20,
+            $"Expected off-center closest-side circle() to use distance from center to nearest side but was {bitmap.GetPixel(12, 5)}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_CssEllipseClipPathResolvesKeywordRadiiAfterPosition()
+    {
+        const string cssEllipseClipSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+              <rect id="target" width="20" height="20" fill="#00ff00"
+                    clip-path="ellipse(closest-side closest-side at 5 10)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(cssEllipseClipSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+
+        AssertMostlyGreen(bitmap.GetPixel(5, 10), "Expected off-center closest-side ellipse() to reveal its center.");
+        Assert.True(
+            bitmap.GetPixel(12, 10).Alpha < 20,
+            $"Expected off-center closest-side ellipse() to use horizontal side distance but was {bitmap.GetPixel(12, 10)}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_CssPathClipPathHonorsEvenOddFillRule()
+    {
+        const string cssPathClipSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+              <rect id="target" width="20" height="20" fill="#ff0000"
+                    clip-path="path(evenodd, 'M0 0 H20 V20 H0 Z M5 5 H15 V15 H5 Z')" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(cssPathClipSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+
+        AssertMostlyRed(bitmap.GetPixel(3, 3), "Expected evenodd path() clip-path to reveal the outer path area.");
+        Assert.True(
+            bitmap.GetPixel(10, 10).Alpha < 20,
+            $"Expected evenodd path() clip-path to punch the inner path hole but was {bitmap.GetPixel(10, 10)}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_RootSvgClipPathClipsDocumentContent()
+    {
+        const string rootClipSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" clip-path="url(#clip)">
+              <defs>
+                <clipPath id="clip">
+                  <rect x="0" y="0" width="10" height="20" />
+                </clipPath>
+              </defs>
+              <rect width="20" height="20" fill="#ff0000" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(rootClipSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+
+        AssertMostlyRed(bitmap.GetPixel(5, 10), "Expected root clip-path to preserve content inside the clip.");
+        Assert.True(
+            bitmap.GetPixel(15, 10).Alpha < 20,
+            $"Expected root clip-path to hide content outside the clip but was {bitmap.GetPixel(15, 10)}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ClipPathWithOnlyReferencedClipKeepsReferenceGeometry()
+    {
+        const string referencedOnlyClipSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <defs>
+                <clipPath id="inner">
+                  <rect x="0" y="0" width="10" height="20" />
+                </clipPath>
+                <clipPath id="outer" clip-path="url(#inner)" />
+              </defs>
+              <rect width="20" height="20" fill="#ff0000" clip-path="url(#outer)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(referencedOnlyClipSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+
+        AssertMostlyRed(bitmap.GetPixel(5, 10), "Expected referenced-only clipPath to preserve referenced geometry.");
+        Assert.True(
+            bitmap.GetPixel(15, 10).Alpha < 20,
+            $"Expected referenced-only clipPath to hide outside referenced geometry but was {bitmap.GetPixel(15, 10)}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ObjectBoundingBoxMaskContentClipsInMaskRegion()
+    {
+        const string maskBoxSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+              <defs>
+                <mask id="middle-mask"
+                      maskUnits="objectBoundingBox"
+                      maskContentUnits="objectBoundingBox"
+                      x="0.25" y="0" width="0.5" height="1">
+                  <rect x="0" y="0" width="1" height="1" fill="#ffffff" />
+                </mask>
+              </defs>
+              <rect id="target" width="20" height="20" fill="#ff0000" mask="url(#middle-mask)" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(maskBoxSvg);
+
+        using var retainedPicture = svg.CreateRetainedSceneGraphPicture();
+        Assert.NotNull(retainedPicture);
+        using var bitmap = ToBitmap(svg, retainedPicture!);
+
+        Assert.True(bitmap.GetPixel(4, 10).Alpha < 20, $"Expected objectBoundingBox mask region to clip the left side but was {bitmap.GetPixel(4, 10)}.");
+        AssertMostlyRed(bitmap.GetPixel(10, 10), "Expected objectBoundingBox mask region to reveal the middle.");
+        Assert.True(bitmap.GetPixel(16, 10).Alpha < 20, $"Expected objectBoundingBox mask region to clip the right side but was {bitmap.GetPixel(16, 10)}.");
+    }
+
     [Theory]
     [InlineData("", false)]
     [InlineData("overflow=\"hidden\"", false)]
@@ -2521,6 +2885,15 @@ public class SvgResourceRenderingParityTests
             0, 1, 0, 0, 0,
             0, 0, 1, 0, 0,
             0, 0, 0, 1, 0
+        ];
+
+    private static float[] CreateSaturateColorMatrix(float value)
+        =>
+        [
+            0.213f + (0.787f * value), 0.715f - (0.715f * value), 0.072f - (0.072f * value), 0f, 0f,
+            0.213f - (0.213f * value), 0.715f + (0.285f * value), 0.072f - (0.072f * value), 0f, 0f,
+            0.213f - (0.213f * value), 0.715f - (0.715f * value), 0.072f + (0.928f * value), 0f, 0f,
+            0f, 0f, 0f, 1f, 0f
         ];
 
     private static void AssertApproximately(float expected, float actual, float tolerance = 0.001f)

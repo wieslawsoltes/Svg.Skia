@@ -26,6 +26,40 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
 {
     private readonly record struct PathDrawInfo(SKRect Bounds, SKMatrix Matrix);
 
+    private static Dictionary<string, SKPoint> GetPositionedGlyphPoints(SKPicture retainedModel, params string[] glyphs)
+    {
+        var result = new Dictionary<string, SKPoint>(StringComparer.Ordinal);
+        var glyphSet = new HashSet<string>(glyphs, StringComparer.Ordinal);
+        foreach (var command in retainedModel.FindCommands<DrawTextCanvasCommand>())
+        {
+            if (glyphSet.Contains(command.Text))
+            {
+                result.TryAdd(command.Text, new SKPoint(command.X, command.Y));
+            }
+        }
+
+        foreach (var command in retainedModel.FindCommands<DrawTextBlobCanvasCommand>())
+        {
+            if (command.TextBlob?.Text is not { } text ||
+                command.TextBlob.Points is not { } points ||
+                text.Length != points.Length)
+            {
+                continue;
+            }
+
+            for (var i = 0; i < text.Length; i++)
+            {
+                var glyph = text[i].ToString();
+                if (glyphSet.Contains(glyph))
+                {
+                    result.TryAdd(glyph, points[i]);
+                }
+            }
+        }
+
+        return result;
+    }
+
     [Fact]
     public void RetainedSceneGraph_BuildsIndexesForSimpleDocument()
     {
@@ -53,6 +87,82 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.NotNull(picture);
         Assert.NotNull(picture!.Commands);
         Assert.NotEmpty(picture.Commands!);
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_FoldsSimpleTransformOnlyShapeGroups()
+    {
+        const string svgText = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+              <g id="group" transform="translate(20 10) rotate(15)">
+                <rect id="rect" x="0" y="0" width="14" height="14" fill="seagreen" opacity="0.85" />
+                <path id="triangle" d="M 0 14 L 7 0 L 14 14 Z" fill="white" opacity="0.25" />
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(svgText);
+
+        var retainedModel = svg.CreateRetainedSceneGraphModel();
+        Assert.NotNull(retainedModel);
+
+        Assert.Empty(retainedModel!.FindCommands<SaveCanvasCommand>());
+        Assert.Empty(retainedModel.FindCommands<SetMatrixCanvasCommand>());
+        Assert.Empty(retainedModel.FindCommands<RestoreCanvasCommand>());
+
+        var rect = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawPathCanvasCommand>("rect"));
+        var triangle = Assert.Single(retainedModel.FindCommandsBySourceElementId<DrawPathCanvasCommand>("triangle"));
+
+        Assert.IsType<AddPolyPathCommand>(Assert.Single(rect.Path!.Commands!));
+        Assert.IsType<AddPolyPathCommand>(Assert.Single(triangle.Path!.Commands!));
+        Assert.True(rect.Path!.Bounds.Left > 15f, $"Expected transformed rect bounds, but got {rect.Path.Bounds}.");
+        Assert.True(triangle.Path!.Bounds.Top > 9f, $"Expected transformed triangle bounds, but got {triangle.Path.Bounds}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ChildrenSupportInlineAndOverflowStorage()
+    {
+        const string svgText = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+              <g id="two">
+                <rect id="a" x="0" y="0" width="10" height="10" />
+                <circle id="b" cx="20" cy="5" r="5" />
+              </g>
+              <g id="one">
+                <rect id="c" x="30" y="0" width="10" height="10" />
+              </g>
+              <g id="three">
+                <rect id="d" x="0" y="20" width="10" height="10" />
+                <rect id="e" x="12" y="20" width="10" height="10" />
+                <rect id="f" x="24" y="20" width="10" height="10" />
+              </g>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(svgText);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.Equal(3, scene!.Root.Children.Count);
+        Assert.Equal(new[] { "two", "one", "three" }, scene.Root.Children.Select(static node => node.ElementId).ToArray());
+
+        Assert.True(scene.TryGetNodeById("two", out var twoChildGroup));
+        Assert.Equal(2, twoChildGroup!.Children.Count);
+        Assert.Equal("a", twoChildGroup.Children[0].ElementId);
+        Assert.Equal("b", twoChildGroup.Children[1].ElementId);
+        Assert.Equal(new[] { "a", "b" }, twoChildGroup.Children.Select(static node => node.ElementId).ToArray());
+
+        Assert.True(scene.TryGetNodeById("three", out var overflowGroup));
+        Assert.Equal(3, overflowGroup!.Children.Count);
+        Assert.Equal(new[] { "d", "e", "f" }, overflowGroup.Children.Select(static node => node.ElementId).ToArray());
+
+        twoChildGroup.MarkSubtreeDirty();
+        Assert.All(twoChildGroup.Children, static child => Assert.True(child.IsDirty));
+
+        twoChildGroup.ClearDirty();
+        Assert.All(twoChildGroup.Children, static child => Assert.False(child.IsDirty));
     }
 
     [Fact]
@@ -2135,6 +2245,37 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_ApplyMutation_InvalidatesTextOpenTypeFeatureCache()
+    {
+        const string featureSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="80" viewBox="0 0 220 80">
+              <text id="features" x="10" y="40" font-size="24">office</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(featureSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+
+        var initialModel = svg.CreateRetainedSceneGraphModel();
+        var initialDraw = Assert.Single(initialModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("features"));
+        Assert.Null(initialDraw.Paint!.FontKerning);
+
+        var sourceDocument = Assert.IsType<SvgDocument>(scene!.SourceDocument);
+        var target = Assert.IsType<SvgText>(sourceDocument.GetElementById("features"));
+        target.CustomAttributes["font-kerning"] = "none";
+
+        var result = scene.ApplyMutation(target, new[] { "font-kerning" });
+
+        Assert.True(result.Succeeded);
+        var updatedModel = svg.CreateRetainedSceneGraphModel();
+        var updatedDraw = Assert.Single(updatedModel!.FindCommandsBySourceElementId<DrawTextCanvasCommand>("features"));
+        Assert.Equal("none", updatedDraw.Paint!.FontKerning);
+    }
+
+    [Fact]
     public void RetainedSceneGraph_FontSizeFromStylesheet_FlowsIntoTextPaint()
     {
         const string svgMarkup = """
@@ -3250,7 +3391,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     {
         const string textLengthSvg = """
             <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-              <text x="20" y="100" font-family="Noto Sans" font-size="48" textLength="150">Text</text>
+              <text id="spaced-length" x="20" y="100" font-family="Noto Sans" font-size="48" textLength="150">Text</text>
             </svg>
             """;
 
@@ -3258,19 +3399,83 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         SetTypefaceProviders(svg.Settings);
         svg.FromSvg(textLengthSvg);
 
-        var retainedModel = svg.CreateRetainedSceneGraphModel();
-        Assert.NotNull(retainedModel);
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        AssertCompilationStrategy(scene!, "spaced-length", SvgSceneCompilationStrategy.DirectRetained);
+        Assert.True(scene.TryGetNodeById("spaced-length", out var textNode));
+        Assert.NotNull(textNode?.LocalModel);
 
-        var positions = retainedModel!
-            .FindCommands<DrawTextCanvasCommand>()
-            .Where(static cmd => cmd.Y == 100f)
-            .Select(static cmd => cmd.X)
-            .OrderBy(static x => x)
-            .ToArray();
+        var blobs = textNode!.LocalModel!.FindCommands<DrawTextBlobCanvasCommand>().ToArray();
+        Assert.Single(blobs);
+        Assert.Equal("Text", blobs[0].TextBlob?.Text);
+        var positions = Assert.IsType<SKPoint[]>(blobs[0].TextBlob?.Points);
 
         Assert.Equal(4, positions.Length);
-        Assert.Equal(20f, positions[0], 1);
-        Assert.True(positions[^1] > 120f, $"Expected textLength spacing to spread the glyph origins, but got final X={positions[^1]}.");
+        Assert.Equal(20f, positions[0].X, 1);
+        Assert.Equal(100f, positions[0].Y, 1);
+        Assert.True(positions[^1].X > 120f, $"Expected textLength spacing to spread the glyph origins, but got final X={positions[^1].X}.");
+        Assert.Empty(textNode.LocalModel.FindCommands<DrawTextCanvasCommand>());
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_TextLengthSpacingAndGlyphs_RecordsScaledTextCommand()
+    {
+        const string textLengthSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="160" viewBox="0 0 220 160">
+              <text id="scaled-length" x="20" y="90" font-family="Noto Sans" font-size="36" textLength="150" lengthAdjust="spacingAndGlyphs">Text</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(textLengthSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        AssertCompilationStrategy(scene!, "scaled-length", SvgSceneCompilationStrategy.DirectRetained);
+        Assert.True(scene.TryGetNodeById("scaled-length", out var textNode));
+        Assert.NotNull(textNode?.LocalModel);
+
+        var draws = textNode!.LocalModel!.FindCommands<DrawTextCanvasCommand>().ToArray();
+        Assert.True(
+            draws.Length == 1,
+            $"Expected one scaled text command, but found {draws.Length}. Commands: {string.Join(", ", textNode.LocalModel.Commands!.Select(static command => command.GetType().Name))}");
+
+        var draw = draws[0];
+        Assert.Equal("Text", draw.Text);
+        Assert.True(draw.Font?.ScaleX > 1.1f, $"Expected scaled text command font, but got {draw.Font?.ScaleX}.");
+        Assert.Empty(textNode.LocalModel.FindCommands<SetMatrixCanvasCommand>());
+        Assert.Empty(textNode.LocalModel.FindCommands<DrawTextBlobCanvasCommand>());
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_LetterAndWordSpacing_RecordsPositionedTextBlob()
+    {
+        const string spacedTextSvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="220" height="120" viewBox="0 0 220 120">
+              <text id="spaced-text" x="20" y="70" font-family="Noto Sans" font-size="28" letter-spacing="4" word-spacing="12">A B</text>
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        SetTypefaceProviders(svg.Settings);
+        svg.FromSvg(spacedTextSvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        AssertCompilationStrategy(scene!, "spaced-text", SvgSceneCompilationStrategy.DirectRetained);
+        Assert.True(scene.TryGetNodeById("spaced-text", out var textNode));
+        Assert.NotNull(textNode?.LocalModel);
+
+        var blobs = textNode!.LocalModel!.FindCommands<DrawTextBlobCanvasCommand>().ToArray();
+        Assert.Single(blobs);
+        Assert.Equal("A B", blobs[0].TextBlob?.Text);
+        var points = Assert.IsType<SKPoint[]>(blobs[0].TextBlob?.Points);
+        Assert.Equal(3, points.Length);
+        Assert.Equal(20f, points[0].X, 1);
+        Assert.True(points[1].X > points[0].X + 10f, $"Expected letter spacing after A, but points were {string.Join(", ", points.Select(static point => point.X.ToString(CultureInfo.InvariantCulture)))}.");
+        Assert.True(points[2].X > points[1].X + 20f, $"Expected word spacing before B, but points were {string.Join(", ", points.Select(static point => point.X.ToString(CultureInfo.InvariantCulture)))}.");
+        Assert.Empty(textNode.LocalModel.FindCommands<DrawTextCanvasCommand>());
     }
 
     [Fact]
@@ -3428,10 +3633,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.Empty(retainedModel!.FindCommands<ClipRectCanvasCommand>());
         Assert.DoesNotContain(retainedModel.FindCommands<DrawTextCanvasCommand>(), static command => command.Text == "\u2026");
 
-        var glyphs = retainedModel
-            .FindCommands<DrawTextCanvasCommand>()
-            .Where(static command => command.Text is "A" or "B" or "C")
-            .ToDictionary(static command => command.Text, static command => new SKPoint(command.X, command.Y), StringComparer.Ordinal);
+        var glyphs = GetPositionedGlyphPoints(retainedModel, "A", "B", "C");
 
         Assert.True(glyphs.TryGetValue("A", out var a), "Expected flattened textLength glyph A.");
         Assert.True(glyphs.TryGetValue("B", out var b), "Expected flattened textLength glyph B.");
@@ -3458,10 +3660,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         var retainedModel = svg.CreateRetainedSceneGraphModel();
         Assert.NotNull(retainedModel);
 
-        var glyphs = retainedModel!
-            .FindCommands<DrawTextCanvasCommand>()
-            .Where(static command => command.Text is "A" or "B" or "C")
-            .ToDictionary(static command => command.Text, static command => new SKPoint(command.X, command.Y), StringComparer.Ordinal);
+        var glyphs = GetPositionedGlyphPoints(retainedModel!, "A", "B", "C");
 
         Assert.True(glyphs.TryGetValue("A", out var a), "Expected flattened textLength glyph A.");
         Assert.True(glyphs.TryGetValue("B", out var b), "Expected flattened textLength glyph B.");
@@ -3571,7 +3770,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
-    public void RetainedSceneGraph_LengthAdjustSpacingAndGlyphs_UsesHorizontalScaleTransform()
+    public void RetainedSceneGraph_LengthAdjustSpacingAndGlyphs_UsesScaledTextCommandFont()
     {
         const string lengthAdjustSvg = """
             <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
@@ -3586,13 +3785,12 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         var retainedModel = svg.CreateRetainedSceneGraphModel();
         Assert.NotNull(retainedModel);
 
-        var scaleMatrices = retainedModel!
-            .FindCommands<SetMatrixCanvasCommand>()
-            .Select(static cmd => cmd.DeltaMatrix)
-            .Where(static matrix => matrix.ScaleX > 1.1f)
+        var scaledCommands = retainedModel!
+            .FindCommands<DrawTextCanvasCommand>()
+            .Where(static command => command.Font?.ScaleX > 1.1f)
             .ToArray();
 
-        Assert.NotEmpty(scaleMatrices);
+        Assert.NotEmpty(scaledCommands);
     }
 
     [Fact]
@@ -4903,6 +5101,31 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
+    public void RetainedSceneGraph_AppliesCaseInsensitiveCssGeometryDuringCompilation()
+    {
+        const string cssGeometrySvg = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+              <style>
+                #rect-target { X: 11px; Y: 13px; WIDTH: 17px; HEIGHT: 19px; }
+              </style>
+              <rect id="rect-target" x="1" y="1" width="2" height="2" fill="red" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(cssGeometrySvg);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("rect-target", out var rectNode));
+
+        AssertApproximately(11f, rectNode!.GeometryBounds.Left);
+        AssertApproximately(13f, rectNode.GeometryBounds.Top);
+        AssertApproximately(17f, rectNode.GeometryBounds.Width);
+        AssertApproximately(19f, rectNode.GeometryBounds.Height);
+    }
+
+    [Fact]
     public void RetainedSceneGraph_CompilesMarkerChildrenWithDirectRetainedStrategy()
     {
         using var svg = new SKSvg();
@@ -5928,7 +6151,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
     }
 
     [Fact]
-    public void RetainedSceneGraph_HandlesConditionalAttributesWithChromeCompatibleBehavior()
+    public void RetainedSceneGraph_HandlesConditionalAttributesWithStandardsBehavior()
     {
         using var svg = new SKSvg();
         svg.FromSvg(ConditionalReferenceSvg);
@@ -5938,7 +6161,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.True(scene!.TryGetNodeById("feature-group", out var featureGroup));
         Assert.True(scene.TryGetNodeById("extension-group", out var extensionGroup));
         Assert.True(scene.TryGetNodeById("language-group", out var languageGroup));
-        Assert.False(featureGroup!.SuppressSubtreeRendering);
+        Assert.True(featureGroup!.SuppressSubtreeRendering);
         Assert.True(extensionGroup!.SuppressSubtreeRendering);
         Assert.True(languageGroup!.SuppressSubtreeRendering);
 
@@ -5946,7 +6169,7 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
 
         using var bitmap = ToBitmap(svg, svg.Picture!);
 
-        var directFeaturePixel = bitmap.GetPixel(6, 6);
+        Assert.Equal(0, bitmap.GetPixel(6, 6).Alpha);
         Assert.Equal(0, bitmap.GetPixel(6, 22).Alpha);
         Assert.Equal(0, bitmap.GetPixel(6, 38).Alpha);
 
@@ -5954,10 +6177,37 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         var extensionPixel = bitmap.GetPixel(22, 22);
         var languagePixel = bitmap.GetPixel(22, 38);
 
-        Assert.True(directFeaturePixel.Red > 200 && directFeaturePixel.Alpha > 0, $"Expected requiredFeatures rect to render but was {directFeaturePixel}.");
         Assert.True(featurePixel.Red > 200 && featurePixel.Alpha > 0, $"Expected referenced feature rect to render but was {featurePixel}.");
         Assert.True(extensionPixel.Green > 200 && extensionPixel.Alpha > 0, $"Expected referenced extension rect to render but was {extensionPixel}.");
         Assert.True(languagePixel.Blue > 200 && languagePixel.Alpha > 0, $"Expected referenced language rect to render but was {languagePixel}.");
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_ApplyMutation_InvalidatesConditionalProcessingFeatureCache()
+    {
+        const string svgText = """
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <rect id="target" x="2" y="2" width="20" height="20" fill="#ff0000" />
+            </svg>
+            """;
+
+        using var svg = new SKSvg();
+        svg.FromSvg(svgText);
+
+        var scene = svg.RetainedSceneGraph;
+        Assert.NotNull(scene);
+        Assert.True(scene!.TryGetNodeById("target", out var initialNode));
+        Assert.True(initialNode!.IsRenderable);
+
+        var sourceDocument = Assert.IsType<SvgDocument>(scene.SourceDocument);
+        var target = Assert.IsType<SvgRectangle>(sourceDocument.GetElementById("target"));
+        target.CustomAttributes["requiredFeatures"] = "http://example.invalid/unsupported-feature";
+
+        var result = scene.ApplyMutation(target, new[] { "requiredFeatures" });
+
+        Assert.True(result.Succeeded);
+        Assert.True(scene.TryGetNodeById("target", out var updatedNode));
+        Assert.False(updatedNode!.IsRenderable);
     }
 
     [Fact]
@@ -6018,6 +6268,33 @@ public class SvgRetainedSceneGraphTests : SvgUnitTest
         Assert.All(indexedNodes, static node => Assert.False(string.IsNullOrWhiteSpace(node.ElementAddressKey)));
         Assert.Contains('/', Assert.IsType<string>(indexedNodes[0].ElementAddressKey));
         Assert.All(indexedNodes, static node => Assert.Equal("leaf", node.ElementId));
+    }
+
+    [Fact]
+    public void RetainedSceneGraph_AddressKeyCacheInvalidatesAfterChildReorder()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <rect id="a" x="0" y="0" width="10" height="10" />
+              <rect id="b" x="10" y="0" width="10" height="10" />
+              <rect id="c" x="20" y="0" width="10" height="10" />
+            </svg>
+            """);
+        Assert.NotNull(document);
+        var viewport = SKRect.Create(0f, 0f, 100f, 100f);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+
+        Assert.True(SvgSceneCompiler.TryCompile(document, viewport, assetLoader, DrawAttributes.None, out var firstScene));
+        Assert.True(firstScene!.TryGetNodeById("a", out var firstA));
+        Assert.Equal("0", firstA!.ElementAddressKey);
+
+        var rectA = Assert.IsType<SvgRectangle>(document.GetElementById("a"));
+        Assert.True(document.Children.Remove(rectA));
+        document.Children.Insert(2, rectA);
+
+        Assert.True(SvgSceneCompiler.TryCompile(document, viewport, assetLoader, DrawAttributes.None, out var secondScene));
+        Assert.True(secondScene!.TryGetNodeById("a", out var secondA));
+        Assert.Equal("2", secondA!.ElementAddressKey);
     }
 
     [Fact]

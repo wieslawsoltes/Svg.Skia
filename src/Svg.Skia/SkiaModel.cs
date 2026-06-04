@@ -12,6 +12,60 @@ public partial class SkiaModel
 {
     private static readonly char[] s_fontFamilyTrimChars = { '\'', '"' };
 
+    private sealed class DrawPictureState
+    {
+        private int _saveDepth;
+        private int _saveLayerDepth;
+        private int _singleLayerSaveDepth;
+        private List<int>? _nestedLayerSaveDepths;
+
+        public int SaveLayerDepth => _saveLayerDepth;
+
+        public void Save(bool isLayer)
+        {
+            _saveDepth++;
+            if (isLayer)
+            {
+                _saveLayerDepth++;
+                if (_saveLayerDepth == 1)
+                {
+                    _singleLayerSaveDepth = _saveDepth;
+                }
+                else
+                {
+                    (_nestedLayerSaveDepths ??= new List<int>(2)).Add(_saveDepth);
+                }
+            }
+        }
+
+        public void Restore()
+        {
+            if (_saveDepth == 0)
+            {
+                return;
+            }
+
+            if (_saveLayerDepth > 0 && CurrentLayerSaveDepth == _saveDepth)
+            {
+                if (_saveLayerDepth == 1)
+                {
+                    _singleLayerSaveDepth = 0;
+                }
+                else
+                {
+                    _nestedLayerSaveDepths!.RemoveAt(_saveLayerDepth - 2);
+                }
+
+                _saveLayerDepth--;
+            }
+
+            _saveDepth--;
+        }
+
+        private int CurrentLayerSaveDepth
+            => _saveLayerDepth == 1 ? _singleLayerSaveDepth : _nestedLayerSaveDepths![_saveLayerDepth - 2];
+    }
+
     private static readonly Dictionary<string, string[]> s_genericFontFamilyMap = new(StringComparer.OrdinalIgnoreCase)
     {
         ["sans-serif"] = new[] { "sans-serif", "Helvetica Neue", "Helvetica", "Arial", "Roboto", "Segoe UI", "DejaVu Sans" },
@@ -363,6 +417,9 @@ public partial class SkiaModel
 
             _positionedTextCacheRefs.Clear();
             _positionedTextCache = new ConditionalWeakTable<DrawTextBlobCanvasCommand, PositionedTextCache>();
+            _shapedTextCache = null;
+            _lastConvertedPicture = null;
+            _previousConvertedPicture = null;
         }
     }
 
@@ -609,7 +666,9 @@ public partial class SkiaModel
 
     internal SkiaSharp.SKPaint? ToSKTextPaint(SKPaint? paint)
     {
-        var skPaint = ToSKPaint(paint);
+        var skPaint = paint is null
+            ? null
+            : CreateRenderPaint(paint);
         if (paint is null || skPaint is null)
         {
             return skPaint;
@@ -834,7 +893,7 @@ public partial class SkiaModel
                     }
 
                     return SkiaSharp.SKShader.CreatePicture(
-                        ToSKPicture(pictureShader.Src),
+                        GetRenderPicture(pictureShader.Src),
                         SkiaSharp.SKShaderTileMode.Repeat,
                         SkiaSharp.SKShaderTileMode.Repeat,
                         ToSKMatrix(pictureShader.LocalMatrix),
@@ -927,8 +986,13 @@ public partial class SkiaModel
         }
 
         var skShader = skPaint.Shader is null
-            ? SkiaSharp.SKShader.CreateColor(ToSKColor(skPaint.Color!.Value), SkiaSharp.SKColorSpace.CreateSrgb())
-            : ToSKShader(skPaint.Shader);
+            ? SkiaSharp.SKShader.CreateColor(ToSKColor(skPaint.Color!.Value), Settings.Srgb)
+            : GetRenderShader(skPaint.Shader);
+
+        if (skShader is null)
+        {
+            return null;
+        }
 
         if (skCropRect == null)
         {
@@ -960,8 +1024,8 @@ public partial class SkiaModel
                             arithmeticImageFilter.K3,
                             arithmeticImageFilter.K4,
                             arithmeticImageFilter.EforcePMColor,
-                            ToSKImageFilter(arithmeticImageFilter.Background),
-                            ToSKImageFilter(arithmeticImageFilter.Foreground),
+                            GetRenderImageFilter(arithmeticImageFilter.Background),
+                            GetRenderImageFilter(arithmeticImageFilter.Foreground),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateArithmetic(
                             arithmeticImageFilter.K1,
@@ -969,8 +1033,8 @@ public partial class SkiaModel
                             arithmeticImageFilter.K3,
                             arithmeticImageFilter.K4,
                             arithmeticImageFilter.EforcePMColor,
-                            ToSKImageFilter(arithmeticImageFilter.Background),
-                            ToSKImageFilter(arithmeticImageFilter.Foreground));
+                            GetRenderImageFilter(arithmeticImageFilter.Background),
+                            GetRenderImageFilter(arithmeticImageFilter.Foreground));
                 }
             case BlendModeImageFilter blendModeImageFilter:
                 {
@@ -982,13 +1046,13 @@ public partial class SkiaModel
                     return blendModeImageFilter.Clip is { } clip
                         ? SkiaSharp.SKImageFilter.CreateBlendMode(
                             ToSKBlendMode(blendModeImageFilter.Mode),
-                            ToSKImageFilter(blendModeImageFilter.Background),
-                            ToSKImageFilter(blendModeImageFilter.Foreground),
+                            GetRenderImageFilter(blendModeImageFilter.Background),
+                            GetRenderImageFilter(blendModeImageFilter.Foreground),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateBlendMode(
                             ToSKBlendMode(blendModeImageFilter.Mode),
-                            ToSKImageFilter(blendModeImageFilter.Background),
-                            ToSKImageFilter(blendModeImageFilter.Foreground));
+                            GetRenderImageFilter(blendModeImageFilter.Background),
+                            GetRenderImageFilter(blendModeImageFilter.Foreground));
                 }
             case BlurImageFilter blurImageFilter:
                 {
@@ -996,28 +1060,31 @@ public partial class SkiaModel
                         ? SkiaSharp.SKImageFilter.CreateBlur(
                             blurImageFilter.SigmaX,
                             blurImageFilter.SigmaY,
-                            ToSKImageFilter(blurImageFilter.Input),
+                            SkiaSharp.SKShaderTileMode.Decal,
+                            GetRenderImageFilter(blurImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateBlur(
                             blurImageFilter.SigmaX,
                             blurImageFilter.SigmaY,
-                            ToSKImageFilter(blurImageFilter.Input));
+                            SkiaSharp.SKShaderTileMode.Decal,
+                            GetRenderImageFilter(blurImageFilter.Input));
                 }
             case ColorFilterImageFilter colorFilterImageFilter:
                 {
-                    if (colorFilterImageFilter.ColorFilter is null)
+                    if (colorFilterImageFilter.ColorFilter is null ||
+                        GetRenderColorFilter(colorFilterImageFilter.ColorFilter) is not { } colorFilter)
                     {
                         return null;
                     }
 
                     return colorFilterImageFilter.Clip is { } clip
                         ? SkiaSharp.SKImageFilter.CreateColorFilter(
-                            ToSKColorFilter(colorFilterImageFilter.ColorFilter),
-                            ToSKImageFilter(colorFilterImageFilter.Input),
+                            colorFilter,
+                            GetRenderImageFilter(colorFilterImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateColorFilter(
-                            ToSKColorFilter(colorFilterImageFilter.ColorFilter),
-                            ToSKImageFilter(colorFilterImageFilter.Input));
+                            colorFilter,
+                            GetRenderImageFilter(colorFilterImageFilter.Input));
                 }
             case DilateImageFilter dilateImageFilter:
                 {
@@ -1025,16 +1092,17 @@ public partial class SkiaModel
                         ? SkiaSharp.SKImageFilter.CreateDilate(
                             dilateImageFilter.RadiusX,
                             dilateImageFilter.RadiusY,
-                            ToSKImageFilter(dilateImageFilter.Input),
+                            GetRenderImageFilter(dilateImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateDilate(
                             dilateImageFilter.RadiusX,
                             dilateImageFilter.RadiusY,
-                            ToSKImageFilter(dilateImageFilter.Input));
+                            GetRenderImageFilter(dilateImageFilter.Input));
                 }
             case DisplacementMapEffectImageFilter displacementMapEffectImageFilter:
                 {
-                    if (displacementMapEffectImageFilter.Displacement is null)
+                    if (displacementMapEffectImageFilter.Displacement is null ||
+                        GetRenderImageFilter(displacementMapEffectImageFilter.Displacement) is not { } displacement)
                     {
                         return null;
                     }
@@ -1044,15 +1112,15 @@ public partial class SkiaModel
                             ToSKColorChannel(displacementMapEffectImageFilter.XChannelSelector),
                             ToSKColorChannel(displacementMapEffectImageFilter.YChannelSelector),
                             displacementMapEffectImageFilter.Scale,
-                            ToSKImageFilter(displacementMapEffectImageFilter.Displacement),
-                            ToSKImageFilter(displacementMapEffectImageFilter.Input),
+                            displacement,
+                            GetRenderImageFilter(displacementMapEffectImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateDisplacementMapEffect(
                             ToSKColorChannel(displacementMapEffectImageFilter.XChannelSelector),
                             ToSKColorChannel(displacementMapEffectImageFilter.YChannelSelector),
                             displacementMapEffectImageFilter.Scale,
-                            ToSKImageFilter(displacementMapEffectImageFilter.Displacement),
-                            ToSKImageFilter(displacementMapEffectImageFilter.Input));
+                            displacement,
+                            GetRenderImageFilter(displacementMapEffectImageFilter.Input));
                 }
             case DistantLitDiffuseImageFilter distantLitDiffuseImageFilter:
                 {
@@ -1062,14 +1130,14 @@ public partial class SkiaModel
                             ToSKColor(distantLitDiffuseImageFilter.LightColor),
                             distantLitDiffuseImageFilter.SurfaceScale,
                             distantLitDiffuseImageFilter.Kd,
-                            ToSKImageFilter(distantLitDiffuseImageFilter.Input),
+                            GetRenderImageFilter(distantLitDiffuseImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateDistantLitDiffuse(
                             ToSKPoint3(distantLitDiffuseImageFilter.Direction),
                             ToSKColor(distantLitDiffuseImageFilter.LightColor),
                             distantLitDiffuseImageFilter.SurfaceScale,
                             distantLitDiffuseImageFilter.Kd,
-                            ToSKImageFilter(distantLitDiffuseImageFilter.Input));
+                            GetRenderImageFilter(distantLitDiffuseImageFilter.Input));
                 }
             case DistantLitSpecularImageFilter distantLitSpecularImageFilter:
                 {
@@ -1080,7 +1148,7 @@ public partial class SkiaModel
                             distantLitSpecularImageFilter.SurfaceScale,
                             distantLitSpecularImageFilter.Ks,
                             distantLitSpecularImageFilter.Shininess,
-                            ToSKImageFilter(distantLitSpecularImageFilter.Input),
+                            GetRenderImageFilter(distantLitSpecularImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateDistantLitSpecular(
                             ToSKPoint3(distantLitSpecularImageFilter.Direction),
@@ -1088,7 +1156,7 @@ public partial class SkiaModel
                             distantLitSpecularImageFilter.SurfaceScale,
                             distantLitSpecularImageFilter.Ks,
                             distantLitSpecularImageFilter.Shininess,
-                            ToSKImageFilter(distantLitSpecularImageFilter.Input));
+                            GetRenderImageFilter(distantLitSpecularImageFilter.Input));
                 }
             case ErodeImageFilter erodeImageFilter:
                 {
@@ -1096,22 +1164,23 @@ public partial class SkiaModel
                         ? SkiaSharp.SKImageFilter.CreateErode(
                             erodeImageFilter.RadiusX,
                             erodeImageFilter.RadiusY,
-                            ToSKImageFilter(erodeImageFilter.Input),
+                            GetRenderImageFilter(erodeImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateErode(
                             erodeImageFilter.RadiusX,
                             erodeImageFilter.RadiusY,
-                            ToSKImageFilter(erodeImageFilter.Input));
+                            GetRenderImageFilter(erodeImageFilter.Input));
                 }
             case ImageImageFilter imageImageFilter:
                 {
-                    if (imageImageFilter.Image is null)
+                    if (imageImageFilter.Image is null ||
+                        GetRenderImage(imageImageFilter.Image) is not { } image)
                     {
                         return null;
                     }
 
                     return SkiaSharp.SKImageFilter.CreateImage(
-                        ToSKImage(imageImageFilter.Image),
+                        image,
                         ToSKRect(imageImageFilter.Src),
                         ToSKRect(imageImageFilter.Dst),
                         ToSKSamplingOptions(imageImageFilter.FilterQuality));
@@ -1132,7 +1201,7 @@ public partial class SkiaModel
                             ToSKPointI(matrixConvolutionImageFilter.KernelOffset),
                             ToSKShaderTileMode(matrixConvolutionImageFilter.TileMode),
                             matrixConvolutionImageFilter.ConvolveAlpha,
-                            ToSKImageFilter(matrixConvolutionImageFilter.Input),
+                            GetRenderImageFilter(matrixConvolutionImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateMatrixConvolution(
                             ToSKSizeI(matrixConvolutionImageFilter.KernelSize),
@@ -1142,7 +1211,7 @@ public partial class SkiaModel
                             ToSKPointI(matrixConvolutionImageFilter.KernelOffset),
                             ToSKShaderTileMode(matrixConvolutionImageFilter.TileMode),
                             matrixConvolutionImageFilter.ConvolveAlpha,
-                            ToSKImageFilter(matrixConvolutionImageFilter.Input));
+                            GetRenderImageFilter(matrixConvolutionImageFilter.Input));
                 }
             case MergeImageFilter mergeImageFilter:
                 {
@@ -1164,12 +1233,12 @@ public partial class SkiaModel
                         ? SkiaSharp.SKImageFilter.CreateOffset(
                             offsetImageFilter.Dx,
                             offsetImageFilter.Dy,
-                            ToSKImageFilter(offsetImageFilter.Input),
+                            GetRenderImageFilter(offsetImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateOffset(
                             offsetImageFilter.Dx,
                             offsetImageFilter.Dy,
-                            ToSKImageFilter(offsetImageFilter.Input));
+                            GetRenderImageFilter(offsetImageFilter.Input));
                 }
             case PaintImageFilter paintImageFilter:
                 {
@@ -1184,29 +1253,31 @@ public partial class SkiaModel
                 }
             case ShaderImageFilter shaderImageFilter:
                 {
-                    if (shaderImageFilter.Shader is null)
+                    if (shaderImageFilter.Shader is null ||
+                        GetRenderShader(shaderImageFilter.Shader) is not { } shader)
                     {
                         return null;
                     }
 
                     return shaderImageFilter.Clip is { } clip
                         ? SkiaSharp.SKImageFilter.CreateShader(
-                            ToSKShader(shaderImageFilter.Shader),
+                            shader,
                             shaderImageFilter.Dither,
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateShader(
-                            ToSKShader(shaderImageFilter.Shader),
+                            shader,
                             shaderImageFilter.Dither);
                 }
             case PictureImageFilter pictureImageFilter:
                 {
-                    if (pictureImageFilter.Picture is null)
+                    if (pictureImageFilter.Picture is null ||
+                        GetRenderPicture(pictureImageFilter.Picture) is not { } picture)
                     {
                         return null;
                     }
 
                     return SkiaSharp.SKImageFilter.CreatePicture(
-                        ToSKPicture(pictureImageFilter.Picture),
+                        picture,
                         ToSKRect(pictureImageFilter.Clip ?? pictureImageFilter.Picture.CullRect));
                 }
             case PointLitDiffuseImageFilter pointLitDiffuseImageFilter:
@@ -1217,14 +1288,14 @@ public partial class SkiaModel
                             ToSKColor(pointLitDiffuseImageFilter.LightColor),
                             pointLitDiffuseImageFilter.SurfaceScale,
                             pointLitDiffuseImageFilter.Kd,
-                            ToSKImageFilter(pointLitDiffuseImageFilter.Input),
+                            GetRenderImageFilter(pointLitDiffuseImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreatePointLitDiffuse(
                             ToSKPoint3(pointLitDiffuseImageFilter.Location),
                             ToSKColor(pointLitDiffuseImageFilter.LightColor),
                             pointLitDiffuseImageFilter.SurfaceScale,
                             pointLitDiffuseImageFilter.Kd,
-                            ToSKImageFilter(pointLitDiffuseImageFilter.Input));
+                            GetRenderImageFilter(pointLitDiffuseImageFilter.Input));
                 }
             case PointLitSpecularImageFilter pointLitSpecularImageFilter:
                 {
@@ -1235,7 +1306,7 @@ public partial class SkiaModel
                             pointLitSpecularImageFilter.SurfaceScale,
                             pointLitSpecularImageFilter.Ks,
                             pointLitSpecularImageFilter.Shininess,
-                            ToSKImageFilter(pointLitSpecularImageFilter.Input),
+                            GetRenderImageFilter(pointLitSpecularImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreatePointLitSpecular(
                             ToSKPoint3(pointLitSpecularImageFilter.Location),
@@ -1243,7 +1314,7 @@ public partial class SkiaModel
                             pointLitSpecularImageFilter.SurfaceScale,
                             pointLitSpecularImageFilter.Ks,
                             pointLitSpecularImageFilter.Shininess,
-                            ToSKImageFilter(pointLitSpecularImageFilter.Input));
+                            GetRenderImageFilter(pointLitSpecularImageFilter.Input));
                 }
             case SpotLitDiffuseImageFilter spotLitDiffuseImageFilter:
                 {
@@ -1256,7 +1327,7 @@ public partial class SkiaModel
                             ToSKColor(spotLitDiffuseImageFilter.LightColor),
                             spotLitDiffuseImageFilter.SurfaceScale,
                             spotLitDiffuseImageFilter.Kd,
-                            ToSKImageFilter(spotLitDiffuseImageFilter.Input),
+                            GetRenderImageFilter(spotLitDiffuseImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateSpotLitDiffuse(
                             ToSKPoint3(spotLitDiffuseImageFilter.Location),
@@ -1266,7 +1337,7 @@ public partial class SkiaModel
                             ToSKColor(spotLitDiffuseImageFilter.LightColor),
                             spotLitDiffuseImageFilter.SurfaceScale,
                             spotLitDiffuseImageFilter.Kd,
-                            ToSKImageFilter(spotLitDiffuseImageFilter.Input));
+                            GetRenderImageFilter(spotLitDiffuseImageFilter.Input));
                 }
             case SpotLitSpecularImageFilter spotLitSpecularImageFilter:
                 {
@@ -1280,7 +1351,7 @@ public partial class SkiaModel
                             spotLitSpecularImageFilter.SurfaceScale,
                             spotLitSpecularImageFilter.Ks,
                             spotLitSpecularImageFilter.Shininess,
-                            ToSKImageFilter(spotLitSpecularImageFilter.Input),
+                            GetRenderImageFilter(spotLitSpecularImageFilter.Input),
                             ToSKRect(clip))
                         : SkiaSharp.SKImageFilter.CreateSpotLitSpecular(
                             ToSKPoint3(spotLitSpecularImageFilter.Location),
@@ -1291,14 +1362,14 @@ public partial class SkiaModel
                             spotLitSpecularImageFilter.SurfaceScale,
                             spotLitSpecularImageFilter.Ks,
                             spotLitSpecularImageFilter.Shininess,
-                            ToSKImageFilter(spotLitSpecularImageFilter.Input));
+                            GetRenderImageFilter(spotLitSpecularImageFilter.Input));
                 }
             case TileImageFilter tileImageFilter:
                 {
                     return SkiaSharp.SKImageFilter.CreateTile(
                         ToSKRect(tileImageFilter.Src),
                         ToSKRect(tileImageFilter.Dst),
-                        ToSKImageFilter(tileImageFilter.Input));
+                        GetRenderImageFilter(tileImageFilter.Input));
                 }
             default:
                 {
@@ -1319,7 +1390,7 @@ public partial class SkiaModel
         for (var i = 0; i < imageFilters.Length; i++)
         {
             var imageFilter = imageFilters[i];
-            var skImageFilter = ToSKImageFilter(imageFilter);
+            var skImageFilter = GetRenderImageFilter(imageFilter);
             if (skImageFilter is { })
             {
                 skImageFilters[i] = skImageFilter;
@@ -1636,6 +1707,185 @@ public partial class SkiaModel
         }
     }
 
+    private bool TryGetOrCreateShapedTextBlob(
+        DrawTextCanvasCommand command,
+        SkiaSharp.SKFont font,
+        string? fontFeatureSettings,
+        string? fontKerning,
+        string? fontVariantLigatures,
+        out SkiaSharp.SKTextBlob textBlob,
+        out float width,
+        out bool disposeAfterUse)
+    {
+        textBlob = null!;
+        width = 0f;
+        disposeAfterUse = false;
+        if (string.IsNullOrEmpty(command.Text) || font.Typeface is null)
+        {
+            return false;
+        }
+
+        var signature = new ShapedTextSignature(
+            new FontSignature(font),
+            fontFeatureSettings,
+            fontKerning,
+            fontVariantLigatures);
+
+        if (!_cacheShapedTextBlobsForCurrentPicture)
+        {
+            if (!TryCreateShapedTextBlob(
+                    command,
+                    font,
+                    fontFeatureSettings,
+                    fontKerning,
+                    fontVariantLigatures,
+                    signature,
+                    useLayoutCache: true,
+                    out textBlob,
+                    out width))
+            {
+                return false;
+            }
+
+            disposeAfterUse = true;
+            return true;
+        }
+
+        lock (_positionedTextCacheLock)
+        {
+            ShapedTextCache? cached = null;
+            var shapedTextCache = _shapedTextCache ??= new ConditionalWeakTable<DrawTextCanvasCommand, ShapedTextCache>();
+            if (shapedTextCache.TryGetValue(command, out var existing))
+            {
+                if (existing.Signature.Equals(signature))
+                {
+                    if (existing.TextBlob.Handle != IntPtr.Zero)
+                    {
+                        textBlob = existing.TextBlob;
+                        width = existing.Width;
+                        return true;
+                    }
+
+                    cached = existing;
+                }
+                else
+                {
+                    cached = existing;
+                }
+
+                shapedTextCache.Remove(command);
+            }
+
+            if (!TryCreateShapedTextBlob(
+                    command,
+                    font,
+                    fontFeatureSettings,
+                    fontKerning,
+                    fontVariantLigatures,
+                    signature,
+                    useLayoutCache: false,
+                    out var created,
+                    out var createdWidth))
+            {
+                DisposeCachedTextBlob(cached?.TextBlob);
+                return false;
+            }
+
+            DisposeCachedTextBlob(cached?.TextBlob);
+            shapedTextCache.Add(command, new ShapedTextCache(signature, created, createdWidth));
+            _positionedTextCacheRefs.Add(new WeakReference<SkiaSharp.SKTextBlob>(created));
+            TrimPositionedTextCacheRefsIfNeeded();
+            textBlob = created;
+            width = createdWidth;
+            return true;
+        }
+    }
+
+    private bool TryCreateShapedTextBlob(
+        DrawTextCanvasCommand command,
+        SkiaSharp.SKFont font,
+        string? fontFeatureSettings,
+        string? fontKerning,
+        string? fontVariantLigatures,
+        ShapedTextSignature signature,
+        bool useLayoutCache,
+        out SkiaSharp.SKTextBlob textBlob,
+        out float width)
+    {
+        textBlob = null!;
+        width = 0f;
+        if (useLayoutCache &&
+            TryGetCachedShapedTextLayout(command.Text, signature, out var cachedResult))
+        {
+            return TryCreatePositionedShapedTextBlob(cachedResult, command.X, command.Y, font, out textBlob, out width);
+        }
+
+        if (!TryShapeText(
+                command.Text,
+                useLayoutCache ? 0f : command.X,
+                useLayoutCache ? 0f : command.Y,
+                font,
+                rightToLeft: null,
+                fontFeatureSettings,
+                fontKerning,
+                fontVariantLigatures,
+                out var result))
+        {
+            return false;
+        }
+
+        if (useLayoutCache)
+        {
+            CacheShapedTextLayout(command.Text, signature, result);
+            return TryCreatePositionedShapedTextBlob(result, command.X, command.Y, font, out textBlob, out width);
+        }
+
+        return TryCreatePositionedShapedTextBlob(result, 0f, 0f, font, out textBlob, out width);
+    }
+
+    private static bool TryCreatePositionedShapedTextBlob(
+        ShapedTextResult result,
+        float x,
+        float y,
+        SkiaSharp.SKFont font,
+        out SkiaSharp.SKTextBlob textBlob,
+        out float width)
+    {
+        textBlob = null!;
+        width = 0f;
+        using var builder = new SkiaSharp.SKTextBlobBuilder();
+        var points = x == 0f && y == 0f ? result.Points : OffsetShapedTextPoints(result.Points, x, y);
+        builder.AddPositionedRun(result.Codepoints, font, points);
+        var created = builder.Build();
+        if (created is null)
+        {
+            return false;
+        }
+
+        textBlob = created;
+        width = result.Width;
+        return true;
+    }
+
+    private static SkiaSharp.SKPoint[] OffsetShapedTextPoints(SkiaSharp.SKPoint[] source, float x, float y)
+    {
+        var points = new SkiaSharp.SKPoint[source.Length];
+        for (var i = 0; i < source.Length; i++)
+        {
+            points[i] = new SkiaSharp.SKPoint(source[i].X + x, source[i].Y + y);
+        }
+
+        return points;
+    }
+
+    private static void DisposeCachedTextBlob(SkiaSharp.SKTextBlob? textBlob)
+    {
+        if (textBlob is not null && textBlob.Handle != IntPtr.Zero)
+        {
+            textBlob.Dispose();
+        }
+    }
+
     public SkiaSharp.SKClipOperation ToSKClipOperation(SKClipOperation clipOperation)
     {
         return clipOperation switch
@@ -1875,7 +2125,11 @@ public partial class SkiaModel
             }
         }
 
-        if (skPathResult is { })
+        if (skPathResult is null && clipPath.Clip?.Clips is { })
+        {
+            skPathResult = ToSKPath(clipPath.Clip);
+        }
+        else if (skPathResult is { })
         {
             if (clipPath.Clip?.Clips is { })
             {
@@ -1883,12 +2137,12 @@ public partial class SkiaModel
                 if (skPathClip is { })
                     skPathResult = skPathResult.Op(skPathClip, SkiaSharp.SKPathOp.Intersect);
             }
+        }
 
-            if (clipPath.Transform is { })
-            {
-                var skMatrix = ToSKMatrix(clipPath.Transform.Value);
-                skPathResult.Transform(skMatrix);
-            }
+        if (skPathResult is { } && clipPath.Transform is { })
+        {
+            var skMatrix = ToSKMatrix(clipPath.Transform.Value);
+            skPathResult.Transform(skMatrix);
         }
 
         return skPathResult;
@@ -1906,16 +2160,45 @@ public partial class SkiaModel
         using var skPictureRecorder = new SkiaSharp.SKPictureRecorder();
         using var skCanvas = skPictureRecorder.BeginRecording(skRect);
 
-        if (commands is { Count: > 0 })
+        var previousCacheShapedTextBlobs = _cacheShapedTextBlobsForCurrentPicture;
+        var previousCacheComplexRenderPaints = _cacheComplexRenderPaintsForCurrentPicture;
+        var cacheRepeatedPictureObjects = ShouldCacheRepeatedPictureObjects(picture);
+        _cacheShapedTextBlobsForCurrentPicture = cacheRepeatedPictureObjects;
+        _cacheComplexRenderPaintsForCurrentPicture = cacheRepeatedPictureObjects;
+        try
         {
-            Draw(picture, skCanvas);
+            if (commands is { Count: > 0 })
+            {
+                DrawPictureCommandsCore(picture, skCanvas, state: new DrawPictureState());
+            }
+            else
+            {
+                PreserveCullRect(skCanvas, skRect);
+            }
         }
-        else
+        finally
         {
-            PreserveCullRect(skCanvas, skRect);
+            _cacheShapedTextBlobsForCurrentPicture = previousCacheShapedTextBlobs;
+            _cacheComplexRenderPaintsForCurrentPicture = previousCacheComplexRenderPaints;
         }
 
         return skPictureRecorder.EndRecording();
+    }
+
+    private bool ShouldCacheRepeatedPictureObjects(SKPicture picture)
+    {
+        lock (_pictureCacheLock)
+        {
+            if (ReferenceEquals(_lastConvertedPicture, picture) ||
+                ReferenceEquals(_previousConvertedPicture, picture))
+            {
+                return true;
+            }
+
+            _previousConvertedPicture = _lastConvertedPicture;
+            _lastConvertedPicture = picture;
+            return false;
+        }
     }
 
     public SkiaSharp.SKPicture? ToWireframePicture(SKPicture? picture)
@@ -1932,7 +2215,7 @@ public partial class SkiaModel
 
         if (commands is { Count: > 0 })
         {
-            Draw(picture, skCanvas, true);
+            DrawPictureCommandsCore(picture, skCanvas, true);
         }
         else
         {
@@ -1954,7 +2237,190 @@ public partial class SkiaModel
         skCanvas.DrawRect(skRect, paint);
     }
 
+    private void DrawPositionedTextRun(
+        DrawPositionedTextRunCanvasCommand command,
+        SkiaSharp.SKCanvas skCanvas,
+        bool wireframe)
+    {
+        if (command.Fragments is not { Count: > 0 } || command.Paint is not { })
+        {
+            return;
+        }
+
+        using var paint = wireframe
+            ? ToWireframePaint(command.Paint)
+            : ToSKTextPaint(command.Paint);
+        if (paint is null)
+        {
+            return;
+        }
+
+        var textAlign = ToSKTextAlign(command.TextAlign ?? command.Paint.TextAlign);
+        var applyFont = command.Font is not null;
+        using var font = command.Font is { } textFont
+            ? ToSKFont(textFont)
+            : ToSKFont(command.Paint);
+        if (font is null)
+        {
+            return;
+        }
+
+        var textPaint = applyFont || command.TextAlign.HasValue
+            ? CreateTextRenderPaint(paint, textAlign, font, applyFont)
+            : paint;
+        try
+        {
+            DrawPositionedTextRunFragments(command.Fragments, skCanvas, textPaint, font, textAlign);
+        }
+        finally
+        {
+            DisposeIfCloned(textPaint, paint);
+        }
+    }
+
+    private void DrawPositionedTextRunFragments(
+        IReadOnlyList<PositionedTextRunFragment> fragments,
+        SkiaSharp.SKCanvas skCanvas,
+        SkiaSharp.SKPaint paint,
+        SkiaSharp.SKFont font,
+        SkiaSharp.SKTextAlign textAlign)
+    {
+        if (TryDrawRotationScalePositionedTextRunBlob(fragments, skCanvas, paint, font, textAlign))
+        {
+            return;
+        }
+
+        var hasTransformedFragment = false;
+        for (var i = 0; i < fragments.Count; i++)
+        {
+            var fragment = fragments[i];
+            if (fragment.RotationDegrees != 0f || fragment.ScaleX != 1f)
+            {
+                hasTransformedFragment = true;
+                break;
+            }
+        }
+
+        if (!hasTransformedFragment)
+        {
+            for (var i = 0; i < fragments.Count; i++)
+            {
+                var fragment = fragments[i];
+                skCanvas.DrawText(fragment.Text, fragment.Point.X, fragment.Point.Y, paint);
+            }
+
+            return;
+        }
+
+        var entryMatrix = skCanvas.TotalMatrix;
+        try
+        {
+            for (var i = 0; i < fragments.Count; i++)
+            {
+                DrawPositionedTextRunFragment(fragments[i], skCanvas, paint, entryMatrix);
+            }
+        }
+        finally
+        {
+            skCanvas.SetMatrix(entryMatrix);
+        }
+    }
+
+    private void DrawPositionedTextRunFragment(
+        PositionedTextRunFragment fragment,
+        SkiaSharp.SKCanvas skCanvas,
+        SkiaSharp.SKPaint paint,
+        SkiaSharp.SKMatrix entryMatrix)
+    {
+        if (fragment.RotationDegrees == 0f && fragment.ScaleX == 1f)
+        {
+            skCanvas.SetMatrix(entryMatrix);
+            skCanvas.DrawText(fragment.Text, fragment.Point.X, fragment.Point.Y, paint);
+            return;
+        }
+
+        skCanvas.SetMatrix(entryMatrix);
+        if (fragment.RotationDegrees != 0f)
+        {
+            var matrix = ToSKMatrix(SKMatrix.CreateRotationDegrees(
+                fragment.RotationDegrees,
+                fragment.Point.X,
+                fragment.Point.Y));
+            skCanvas.Concat(ref matrix);
+        }
+
+        if (fragment.ScaleX != 1f)
+        {
+            var matrix = ToSKMatrix(SKMatrix.CreateScale(
+                fragment.ScaleX,
+                1f,
+                fragment.ScaleOriginX,
+                fragment.Point.Y));
+            skCanvas.Concat(ref matrix);
+        }
+
+        skCanvas.DrawText(fragment.Text, fragment.Point.X, fragment.Point.Y, paint);
+    }
+
+    private static bool TryDrawRotationScalePositionedTextRunBlob(
+        IReadOnlyList<PositionedTextRunFragment> fragments,
+        SkiaSharp.SKCanvas skCanvas,
+        SkiaSharp.SKPaint paint,
+        SkiaSharp.SKFont font,
+        SkiaSharp.SKTextAlign textAlign)
+    {
+        if (textAlign != SkiaSharp.SKTextAlign.Left)
+        {
+            return false;
+        }
+
+        var count = fragments.Count;
+        for (var i = 0; i < count; i++)
+        {
+            var fragment = fragments[i];
+            if (fragment.Text.Length != 1 ||
+                fragment.Text[0] > '\u007F' ||
+                fragment.ScaleX != 1f)
+            {
+                return false;
+            }
+        }
+
+        var text = new char[count];
+        var positions = new SkiaSharp.SKRotationScaleMatrix[count];
+        for (var i = 0; i < count; i++)
+        {
+            var fragment = fragments[i];
+            text[i] = fragment.Text[0];
+            positions[i] = SkiaSharp.SKRotationScaleMatrix.CreateDegrees(
+                scale: 1f,
+                degrees: fragment.RotationDegrees,
+                tx: fragment.Point.X,
+                ty: fragment.Point.Y,
+                anchorX: 0f,
+                anchorY: 0f);
+        }
+
+        using var textBlob = SkiaSharp.SKTextBlob.CreateRotationScale(text.AsSpan(), font, positions);
+        if (textBlob is null)
+        {
+            return false;
+        }
+
+        skCanvas.DrawText(textBlob, 0f, 0f, paint);
+        return true;
+    }
+
     public void Draw(CanvasCommand canvasCommand, SkiaSharp.SKCanvas skCanvas, bool wireframe = false)
+    {
+        Draw(canvasCommand, skCanvas, wireframe, null);
+    }
+
+    private void Draw(
+        CanvasCommand canvasCommand,
+        SkiaSharp.SKCanvas skCanvas,
+        bool wireframe,
+        DrawPictureState? state)
     {
         switch (canvasCommand)
         {
@@ -1980,11 +2446,13 @@ public partial class SkiaModel
             case SaveCanvasCommand _:
                 {
                     skCanvas.Save();
+                    state?.Save(isLayer: false);
                     break;
                 }
             case RestoreCanvasCommand _:
                 {
                     skCanvas.Restore();
+                    state?.Restore();
                     break;
                 }
             case SetMatrixCanvasCommand setMatrixCanvasCommand:
@@ -2000,12 +2468,24 @@ public partial class SkiaModel
                         var paint = wireframe
                             ? ToWireframePaint(saveLayerCanvasCommand.Paint)
                             : GetRenderPaint(saveLayerCanvasCommand.Paint);
-                        skCanvas.SaveLayer(paint);
+                        if (saveLayerCanvasCommand.Bounds is { } bounds)
+                        {
+                            skCanvas.SaveLayer(ToSKRect(bounds), paint);
+                        }
+                        else
+                        {
+                            skCanvas.SaveLayer(paint);
+                        }
+                    }
+                    else if (saveLayerCanvasCommand.Bounds is { } bounds)
+                    {
+                        skCanvas.SaveLayer(ToSKRect(bounds), null);
                     }
                     else
                     {
                         skCanvas.SaveLayer();
                     }
+                    state?.Save(isLayer: true);
                     break;
                 }
             case DrawImageCanvasCommand drawImageCanvasCommand:
@@ -2041,13 +2521,14 @@ public partial class SkiaModel
                 {
                     if (drawPictureCanvasCommand.Picture is { } picture)
                     {
-                        if (!wireframe && TryGetCachedPicture(picture, out var cachedPicture))
+                        if (!wireframe &&
+                            TryGetReusableRenderPicture(picture, _cacheComplexRenderPaintsForCurrentPicture, out var cachedPicture))
                         {
                             skCanvas.DrawPicture(cachedPicture);
                         }
                         else
                         {
-                            Draw(picture, skCanvas, wireframe);
+                            DrawPictureCommandsCore(picture, skCanvas, wireframe, state);
                         }
                     }
                     break;
@@ -2056,17 +2537,32 @@ public partial class SkiaModel
                 {
                     if (drawPathCanvasCommand.Path is { } && drawPathCanvasCommand.Paint is { })
                     {
+                        var paint = wireframe
+                            ? ToWireframePaint(drawPathCanvasCommand.Paint)
+                            : GetRenderPaint(drawPathCanvasCommand.Paint);
+                        if (paint is null)
+                        {
+                            break;
+                        }
+
+                        if (TryDrawDirectFilledPrimitivePath(skCanvas, paint, drawPathCanvasCommand.Paint, drawPathCanvasCommand.Path, state))
+                        {
+                            break;
+                        }
+
                         var path = GetRenderPath(drawPathCanvasCommand.Path);
                         if (path is null)
                         {
                             break;
                         }
 
-                        var paint = wireframe
-                            ? ToWireframePaint(drawPathCanvasCommand.Paint)
-                            : GetRenderPaint(drawPathCanvasCommand.Paint);
                         DrawPath(skCanvas, path, paint, drawPathCanvasCommand.Paint);
                     }
+                    break;
+                }
+            case DrawPositionedTextRunCanvasCommand drawPositionedTextRunCanvasCommand:
+                {
+                    DrawPositionedTextRun(drawPositionedTextRunCanvasCommand, skCanvas, wireframe);
                     break;
                 }
             case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:
@@ -2128,17 +2624,36 @@ public partial class SkiaModel
                             : paint;
                         try
                         {
-                            if (!TryDrawShapedText(
-                                    skCanvas,
-                                    text,
-                                    x,
-                                    y,
-                                    textAlign,
+                            if (TryGetOrCreateShapedTextBlob(
+                                    drawTextCanvasCommand,
                                     font,
-                                    textPaint,
                                     drawTextCanvasCommand.Paint.FontFeatureSettings,
                                     drawTextCanvasCommand.Paint.FontKerning,
-                                    drawTextCanvasCommand.Paint.FontVariantLigatures))
+                                    drawTextCanvasCommand.Paint.FontVariantLigatures,
+                                    out var textBlob,
+                                    out var shapedTextWidth,
+                                    out var disposeTextBlobAfterUse))
+                            {
+                                try
+                                {
+                                    var xOffset = textAlign switch
+                                    {
+                                        SkiaSharp.SKTextAlign.Center => -(shapedTextWidth * 0.5f),
+                                        SkiaSharp.SKTextAlign.Right => -shapedTextWidth,
+                                        _ => 0f
+                                    };
+
+                                    skCanvas.DrawText(textBlob, xOffset, 0, textPaint);
+                                }
+                                finally
+                                {
+                                    if (disposeTextBlobAfterUse)
+                                    {
+                                        textBlob.Dispose();
+                                    }
+                                }
+                            }
+                            else
                             {
                                 skCanvas.DrawText(text, x, y, textPaint);
                             }
@@ -2201,9 +2716,43 @@ public partial class SkiaModel
             return;
         }
 
+        if (wireframe)
+        {
+            DrawPictureCommandsCore(picture, skCanvas, wireframe: true);
+            return;
+        }
+
+        var previousCacheShapedTextBlobs = _cacheShapedTextBlobsForCurrentPicture;
+        var previousCacheComplexRenderPaints = _cacheComplexRenderPaintsForCurrentPicture;
+        var cacheRepeatedPictureObjects = ShouldCacheRepeatedPictureObjects(picture);
+        _cacheShapedTextBlobsForCurrentPicture |= cacheRepeatedPictureObjects;
+        _cacheComplexRenderPaintsForCurrentPicture |= cacheRepeatedPictureObjects;
+        try
+        {
+            DrawPictureCommandsCore(picture, skCanvas, state: new DrawPictureState());
+        }
+        finally
+        {
+            _cacheShapedTextBlobsForCurrentPicture = previousCacheShapedTextBlobs;
+            _cacheComplexRenderPaintsForCurrentPicture = previousCacheComplexRenderPaints;
+        }
+    }
+
+    private void DrawPictureCommandsCore(
+        SKPicture picture,
+        SkiaSharp.SKCanvas skCanvas,
+        bool wireframe = false,
+        DrawPictureState? state = null)
+    {
+        var commands = picture.Commands;
+        if (commands is null)
+        {
+            return;
+        }
+
         for (var i = 0; i < commands.Count; i++)
         {
-            Draw(commands[i], skCanvas, wireframe);
+            Draw(commands[i], skCanvas, wireframe, state);
         }
     }
 
@@ -2238,6 +2787,47 @@ public partial class SkiaModel
         skCanvas.ResetMatrix();
         skCanvas.DrawPath(transformedPath, paint);
         skCanvas.Restore();
+    }
+
+    private bool TryDrawDirectFilledPrimitivePath(
+        SkiaSharp.SKCanvas skCanvas,
+        SkiaSharp.SKPaint paint,
+        SKPaint sourcePaint,
+        SKPath? sourcePath,
+        DrawPictureState? state)
+    {
+        if (sourcePath?.Commands is not { Count: 1 } commands)
+        {
+            return false;
+        }
+
+        if (sourcePaint.Style != SKPaintStyle.Fill)
+        {
+            return false;
+        }
+
+        if (state is null || state.SaveLayerDepth > 0)
+        {
+            return false;
+        }
+
+        switch (commands[0])
+        {
+            case AddRectPathCommand addRect:
+                skCanvas.DrawRect(ToSKRect(addRect.Rect), paint);
+                return true;
+            case AddRoundRectPathCommand addRoundRect:
+                skCanvas.DrawRoundRect(ToSKRect(addRoundRect.Rect), addRoundRect.Rx, addRoundRect.Ry, paint);
+                return true;
+            case AddOvalPathCommand addOval:
+                skCanvas.DrawOval(ToSKRect(addOval.Rect), paint);
+                return true;
+            case AddCirclePathCommand addCircle:
+                skCanvas.DrawCircle(addCircle.X, addCircle.Y, addCircle.Radius, paint);
+                return true;
+            default:
+                return false;
+        }
     }
 
     private SkiaSharp.SKPaint ToWireframePaint(SKPaint? paint)

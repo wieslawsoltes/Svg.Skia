@@ -10,6 +10,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Svg;
 using Svg.JavaScript;
+using Svg.Model;
 using Svg.Model.Services;
 using Svg.Pathing;
 using Svg.Skia.UnitTests.Common;
@@ -212,6 +213,7 @@ public class W3CTestSuiteTests : SvgUnitTest
         }
 
         var svg = new SKSvg();
+        svg.IgnoreAttributes = GetBrowserCompatibilityIgnoreAttributes(name, useChromeOverride);
         var useBrowserCompatibleFonts = ShouldUseBrowserCompatibleFontFallback(name) || ShouldUseBrowserCompatibleSvgFontFallback(name);
         // Any checked Chrome override should render with browser-compatible SVG text behavior.
         // Legacy W3C PNG rows without a Chrome override still keep spec-path SVG font coverage.
@@ -254,6 +256,25 @@ public class W3CTestSuiteTests : SvgUnitTest
             File.Delete(actualPng);
         }
 #endif
+    }
+
+    private static DrawAttributes GetBrowserCompatibilityIgnoreAttributes(string name, bool useChromeOverride)
+    {
+        if (!useChromeOverride)
+        {
+            return DrawAttributes.None;
+        }
+
+        return name switch
+        {
+            // Current Chrome ignores requiredFeatures for these standalone SVG
+            // rows while still honoring requiredExtensions and systemLanguage.
+            "struct-cond-overview-02-f" or
+            "struct-cond-overview-03-f" or
+            "struct-cond-overview-04-f" or
+            "struct-cond-overview-05-f" => DrawAttributes.RequiredFeatures,
+            _ => DrawAttributes.None
+        };
     }
 
     private static bool ShouldUseBrowserCompatibleFontFallback(string name)

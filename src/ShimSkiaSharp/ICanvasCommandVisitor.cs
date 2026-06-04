@@ -11,6 +11,7 @@ public interface ICanvasCommandVisitor
     void Visit(DrawImageCanvasCommand cmd);
     void Visit(DrawPictureCanvasCommand cmd);
     void Visit(DrawPathCanvasCommand cmd);
+    void Visit(DrawPositionedTextRunCanvasCommand cmd);
     void Visit(DrawTextBlobCanvasCommand cmd);
     void Visit(DrawTextCanvasCommand cmd);
     void Visit(DrawTextOnPathCanvasCommand cmd);

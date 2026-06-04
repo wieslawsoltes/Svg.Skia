@@ -326,6 +326,152 @@ public class SKSvgRebuildFromModelTests
     }
 
     [Fact]
+    public void DirectDraw_ReflectsMutatedComplexPaintAfterCachedReplay()
+    {
+        var paint = new ShimSkiaSharp.SKPaint
+        {
+            Style = ShimSkiaSharp.SKPaintStyle.Fill,
+            Color = new ShimSkiaSharp.SKColor(255, 0, 0, 255),
+            ImageFilter = ShimSkiaSharp.SKImageFilter.CreateBlur(0.1f, 0.1f)
+        };
+        var path = new ShimSkiaSharp.SKPath();
+        path.AddRect(ShimSkiaSharp.SKRect.Create(0, 0, 10, 10));
+        var picture = new ShimSkiaSharp.SKPicture(
+            ShimSkiaSharp.SKRect.Create(0, 0, 10, 10),
+            new CanvasCommand[]
+            {
+                new DrawPathCanvasCommand(path, paint)
+            });
+        var skiaModel = new SkiaModel(new SKSvgSettings());
+
+        using var originalBitmap = RenderModelBitmap(skiaModel, picture, 10, 10);
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), originalBitmap.GetPixel(5, 5));
+
+        using var cachedBitmap = RenderModelBitmap(skiaModel, picture, 10, 10);
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), cachedBitmap.GetPixel(5, 5));
+
+        paint.Color = new ShimSkiaSharp.SKColor(0, 0, 255, 255);
+
+        using var mutatedBitmap = RenderModelBitmap(skiaModel, picture, 10, 10);
+        Assert.Equal(new SkiaColor(0, 0, 255, 255), mutatedBitmap.GetPixel(5, 5));
+    }
+
+    [Fact]
+    public void DirectDraw_ReflectsMutatedTextShaderAfterCachedReplay()
+    {
+        var colors = new[]
+        {
+            new ShimSkiaSharp.SKColorF(1f, 0f, 0f, 1f),
+            new ShimSkiaSharp.SKColorF(1f, 0f, 0f, 1f)
+        };
+        var paint = new ShimSkiaSharp.SKPaint
+        {
+            Style = ShimSkiaSharp.SKPaintStyle.Fill,
+            TextSize = 24f,
+            Shader = ShimSkiaSharp.SKShader.CreateLinearGradient(
+                new ShimSkiaSharp.SKPoint(0f, 0f),
+                new ShimSkiaSharp.SKPoint(40f, 0f),
+                colors,
+                ShimSkiaSharp.SKColorSpace.Srgb,
+                null,
+                ShimSkiaSharp.SKShaderTileMode.Clamp)
+        };
+        var picture = new ShimSkiaSharp.SKPicture(
+            ShimSkiaSharp.SKRect.Create(0, 0, 48, 32),
+            new CanvasCommand[]
+            {
+                new DrawTextCanvasCommand("X", 4f, 24f, paint)
+            });
+        var skiaModel = new SkiaModel(new SKSvgSettings());
+
+        using var originalBitmap = RenderModelBitmap(skiaModel, picture, 48, 32);
+        Assert.True(CountPixels(originalBitmap, IsRed) > 0);
+
+        using var cachedBitmap = RenderModelBitmap(skiaModel, picture, 48, 32);
+        Assert.True(CountPixels(cachedBitmap, IsRed) > 0);
+
+        colors[0] = new ShimSkiaSharp.SKColorF(0f, 0f, 1f, 1f);
+        colors[1] = new ShimSkiaSharp.SKColorF(0f, 0f, 1f, 1f);
+
+        using var mutatedBitmap = RenderModelBitmap(skiaModel, picture, 48, 32);
+        Assert.True(CountPixels(mutatedBitmap, IsBlue) > 0);
+        Assert.Equal(0, CountPixels(mutatedBitmap, IsRed));
+    }
+
+    [Fact]
+    public void DirectDraw_ReflectsMutatedNestedPictureAfterCachedReplay()
+    {
+        var paint = new ShimSkiaSharp.SKPaint
+        {
+            Style = ShimSkiaSharp.SKPaintStyle.Fill,
+            Color = new ShimSkiaSharp.SKColor(255, 0, 0, 255)
+        };
+        var path = new ShimSkiaSharp.SKPath();
+        path.AddRect(ShimSkiaSharp.SKRect.Create(0, 0, 10, 10));
+        var nestedPicture = new ShimSkiaSharp.SKPicture(
+            ShimSkiaSharp.SKRect.Create(0, 0, 10, 10),
+            new CanvasCommand[]
+            {
+                new DrawPathCanvasCommand(path, paint)
+            });
+        var picture = new ShimSkiaSharp.SKPicture(
+            ShimSkiaSharp.SKRect.Create(0, 0, 10, 10),
+            new CanvasCommand[]
+            {
+                new DrawPictureCanvasCommand(nestedPicture)
+            });
+        var skiaModel = new SkiaModel(new SKSvgSettings());
+
+        using var originalBitmap = RenderModelBitmap(skiaModel, picture, 10, 10);
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), originalBitmap.GetPixel(5, 5));
+
+        using var cachedBitmap = RenderModelBitmap(skiaModel, picture, 10, 10);
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), cachedBitmap.GetPixel(5, 5));
+
+        paint.Color = new ShimSkiaSharp.SKColor(0, 0, 255, 255);
+
+        using var mutatedBitmap = RenderModelBitmap(skiaModel, picture, 10, 10);
+        Assert.Equal(new SkiaColor(0, 0, 255, 255), mutatedBitmap.GetPixel(5, 5));
+    }
+
+    [Fact]
+    public void DirectDraw_ReflectsReplacedCommandAfterCachedReplay()
+    {
+        static DrawPathCanvasCommand CreateCommand(SkiaColor color)
+        {
+            var path = new ShimSkiaSharp.SKPath();
+            path.AddRect(ShimSkiaSharp.SKRect.Create(0, 0, 10, 10));
+            return new DrawPathCanvasCommand(
+                path,
+                new ShimSkiaSharp.SKPaint
+                {
+                    Style = ShimSkiaSharp.SKPaintStyle.Fill,
+                    Color = new ShimSkiaSharp.SKColor(color.Red, color.Green, color.Blue, color.Alpha)
+                });
+        }
+
+        var commands = new List<CanvasCommand>
+        {
+            CreateCommand(new SkiaColor(255, 0, 0, 255))
+        };
+        var picture = new ShimSkiaSharp.SKPicture(
+            ShimSkiaSharp.SKRect.Create(0, 0, 10, 10),
+            commands);
+        var skiaModel = new SkiaModel(new SKSvgSettings());
+
+        using var originalBitmap = RenderModelBitmap(skiaModel, picture, 10, 10);
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), originalBitmap.GetPixel(5, 5));
+
+        using var cachedBitmap = RenderModelBitmap(skiaModel, picture, 10, 10);
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), cachedBitmap.GetPixel(5, 5));
+
+        commands[0] = CreateCommand(new SkiaColor(0, 0, 255, 255));
+
+        using var mutatedBitmap = RenderModelBitmap(skiaModel, picture, 10, 10);
+        Assert.Equal(new SkiaColor(0, 0, 255, 255), mutatedBitmap.GetPixel(5, 5));
+    }
+
+    [Fact]
     public void ToSKPicture_UsesRecordedImageSampling()
     {
         var image = new ShimSkiaSharp.SKImage
@@ -444,6 +590,58 @@ public class SKSvgRebuildFromModelTests
         Assert.Equal(new SkiaColor(255, 0, 0, 255), rebuiltBitmap.GetPixel(8, 5));
     }
 
+    [Fact]
+    public void ToSKPicture_ReflectsMutatedEquivalentPolyPathAfterValueCacheReuse()
+    {
+        var stablePoints = new List<ShimSkiaSharp.SKPoint>
+        {
+            new(0f, 0f),
+            new(4f, 0f),
+            new(4f, 10f),
+            new(0f, 10f)
+        };
+        var mutablePoints = new List<ShimSkiaSharp.SKPoint>
+        {
+            new(0f, 0f),
+            new(4f, 0f),
+            new(4f, 10f),
+            new(0f, 10f)
+        };
+        var stablePath = new ShimSkiaSharp.SKPath();
+        stablePath.Commands!.Add(new AddPolyPathCommand(stablePoints, true));
+        var mutablePath = new ShimSkiaSharp.SKPath();
+        mutablePath.Commands!.Add(new AddPolyPathCommand(mutablePoints, true));
+        var paint = new ShimSkiaSharp.SKPaint
+        {
+            Style = ShimSkiaSharp.SKPaintStyle.Fill,
+            Color = new ShimSkiaSharp.SKColor(255, 0, 0, 255)
+        };
+
+        var picture = new ShimSkiaSharp.SKPicture(
+            ShimSkiaSharp.SKRect.Create(0, 0, 10, 10),
+            new CanvasCommand[]
+            {
+                new DrawPathCanvasCommand(stablePath, paint),
+                new DrawPathCanvasCommand(mutablePath, paint)
+            });
+        var skiaModel = new SkiaModel(new SKSvgSettings());
+
+        using var originalPicture = skiaModel.ToSKPicture(picture);
+        using var originalBitmap = RenderBitmap(Assert.IsType<SkiaPicture>(originalPicture));
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), originalBitmap.GetPixel(2, 5));
+        Assert.Equal(SKColors.White, originalBitmap.GetPixel(8, 5));
+
+        mutablePoints[0] = new ShimSkiaSharp.SKPoint(6f, 0f);
+        mutablePoints[1] = new ShimSkiaSharp.SKPoint(10f, 0f);
+        mutablePoints[2] = new ShimSkiaSharp.SKPoint(10f, 10f);
+        mutablePoints[3] = new ShimSkiaSharp.SKPoint(6f, 10f);
+
+        using var rebuiltPicture = skiaModel.ToSKPicture(picture);
+        using var rebuiltBitmap = RenderBitmap(Assert.IsType<SkiaPicture>(rebuiltPicture));
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), rebuiltBitmap.GetPixel(2, 5));
+        Assert.Equal(new SkiaColor(255, 0, 0, 255), rebuiltBitmap.GetPixel(8, 5));
+    }
+
     private static SkiaBitmap RenderBitmap(SkiaPicture picture)
     {
         var bitmap = picture.ToBitmap(
@@ -455,6 +653,15 @@ public class SKSvgRebuildFromModelTests
             SkiaColorSpace.CreateSrgb());
 
         return Assert.IsType<SkiaBitmap>(bitmap);
+    }
+
+    private static SkiaBitmap RenderModelBitmap(SkiaModel skiaModel, ShimSkiaSharp.SKPicture picture, int width, int height)
+    {
+        var bitmap = new SkiaBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
+        using var canvas = new SkiaSharp.SKCanvas(bitmap);
+        canvas.Clear(SKColors.White);
+        skiaModel.Draw(picture, canvas);
+        return bitmap;
     }
 
     private static int CountPixels(SkiaBitmap bitmap, Func<SkiaColor, bool> predicate)
@@ -494,6 +701,16 @@ public class SKSvgRebuildFromModelTests
     private static bool IsDark(SkiaColor color)
     {
         return color.Red < 128 && color.Green < 128 && color.Blue < 128;
+    }
+
+    private static bool IsRed(SkiaColor color)
+    {
+        return color.Red > 160 && color.Green < 96 && color.Blue < 96;
+    }
+
+    private static bool IsBlue(SkiaColor color)
+    {
+        return color.Blue > 160 && color.Red < 96 && color.Green < 96;
     }
 
     private static void AssertTextPathCommandSource(CanvasCommand command)

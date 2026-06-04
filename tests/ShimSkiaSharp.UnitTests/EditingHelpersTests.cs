@@ -441,6 +441,7 @@ public class EditingHelpersTests
         public void Visit(DrawImageCanvasCommand cmd) => _visited.Add(nameof(DrawImageCanvasCommand));
         public void Visit(DrawPictureCanvasCommand cmd) => _visited.Add(nameof(DrawPictureCanvasCommand));
         public void Visit(DrawPathCanvasCommand cmd) => _visited.Add(nameof(DrawPathCanvasCommand));
+        public void Visit(DrawPositionedTextRunCanvasCommand cmd) => _visited.Add(nameof(DrawPositionedTextRunCanvasCommand));
         public void Visit(DrawTextBlobCanvasCommand cmd) => _visited.Add(nameof(DrawTextBlobCanvasCommand));
         public void Visit(DrawTextCanvasCommand cmd) => _visited.Add(nameof(DrawTextCanvasCommand));
         public void Visit(DrawTextOnPathCanvasCommand cmd) => _visited.Add(nameof(DrawTextOnPathCanvasCommand));

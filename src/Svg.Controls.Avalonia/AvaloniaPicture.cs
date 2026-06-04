@@ -114,6 +114,54 @@ public sealed class AvaloniaPicture : IDisposable
         }
     }
 
+    private static void RecordPositionedTextRunCommand(
+        DrawPositionedTextRunCanvasCommand drawPositionedTextRunCanvasCommand,
+        List<DrawCommand> commands)
+    {
+        if (drawPositionedTextRunCanvasCommand.Fragments is not { Count: > 0 } ||
+            drawPositionedTextRunCanvasCommand.Paint is not { } paint)
+        {
+            return;
+        }
+
+        var bounds = new SKRect(0f, 0f, 0f, 0f);
+        var (brush, _) = paint.ToBrushAndPen(bounds);
+        foreach (var fragment in drawPositionedTextRunCanvasCommand.Fragments)
+        {
+            var text = paint.ToFormattedText(fragment.Text, brush);
+            var origin = new A.Point(fragment.Point.X, fragment.Point.Y - paint.TextSize);
+
+            if (fragment.RotationDegrees == 0f && fragment.ScaleX == 1f)
+            {
+                commands.Add(new TextDrawCommand(origin, text));
+                continue;
+            }
+
+            commands.Add(new SaveDrawCommand());
+            if (fragment.RotationDegrees != 0f)
+            {
+                var matrix = SKMatrix.CreateRotationDegrees(
+                    fragment.RotationDegrees,
+                    fragment.Point.X,
+                    fragment.Point.Y).ToMatrix();
+                commands.Add(new PushTransformDrawCommand(matrix));
+            }
+
+            if (fragment.ScaleX != 1f)
+            {
+                var matrix = SKMatrix.CreateScale(
+                    fragment.ScaleX,
+                    1f,
+                    fragment.ScaleOriginX,
+                    fragment.Point.Y).ToMatrix();
+                commands.Add(new PushTransformDrawCommand(matrix));
+            }
+
+            commands.Add(new TextDrawCommand(origin, text));
+            commands.Add(new RestoreDrawCommand());
+        }
+    }
+
     private static void RecordCommand(CanvasCommand canvasCommand, List<DrawCommand> commands)
     {
         switch (canvasCommand)
@@ -193,6 +241,11 @@ public sealed class AvaloniaPicture : IDisposable
             case DrawPathCanvasCommand drawPathCanvasCommand:
                 {
                     RecordPathCommand(drawPathCanvasCommand, commands);
+                    break;
+                }
+            case DrawPositionedTextRunCanvasCommand drawPositionedTextRunCanvasCommand:
+                {
+                    RecordPositionedTextRunCommand(drawPositionedTextRunCanvasCommand, commands);
                     break;
                 }
             case DrawTextBlobCanvasCommand drawPositionedTextCanvasCommand:

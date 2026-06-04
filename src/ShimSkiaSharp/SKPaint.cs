@@ -294,7 +294,8 @@ public sealed class SKPaint : ICloneable, IDeepCloneable<SKPaint>
         get => _color;
         set
         {
-            if (_color.Equals(value))
+            if (_color.HasValue == value.HasValue &&
+                (!_color.HasValue || _color.GetValueOrDefault().Equals(value.GetValueOrDefault())))
             {
                 return;
             }

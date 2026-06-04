@@ -228,7 +228,8 @@ internal static partial class SvgSceneTextCompiler
             assetLoader,
             out _,
             out var placements,
-            out totalAdvance);
+            out totalAdvance,
+            out _);
 
         placementCount = succeeded ? placements.Length : 0;
         return succeeded;
@@ -307,7 +308,7 @@ internal static partial class SvgSceneTextCompiler
         out float placementScaleX,
         out float currentVOffset)
     {
-        var codepoints = SplitCodepoints(text);
+        var codepoints = SplitCodepointsReadOnly(text);
         if (codepoints.Count == 0)
         {
             visibleGlyphMidOffsets = Array.Empty<float>();

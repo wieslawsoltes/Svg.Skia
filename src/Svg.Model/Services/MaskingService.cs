@@ -17,12 +17,12 @@ internal static class MaskingService
 
     internal static bool IsVisible(SvgVisualElement svgVisualElement, DrawAttributes ignoreAttributes)
     {
-        return ignoreAttributes.HasFlag(DrawAttributes.Visibility) || svgVisualElement.Visible;
+        return ignoreAttributes.Has(DrawAttributes.Visibility) || svgVisualElement.Visible;
     }
 
     internal static bool IsDisplayRendered(SvgVisualElement svgVisualElement, DrawAttributes ignoreAttributes)
     {
-        return ignoreAttributes.HasFlag(DrawAttributes.Display) ||
+        return ignoreAttributes.Has(DrawAttributes.Display) ||
                !string.Equals(svgVisualElement.Display, "none", StringComparison.OrdinalIgnoreCase);
     }
 
@@ -373,7 +373,7 @@ internal static class MaskingService
         // TODO: clipPath.Transform
         clipPath.Transform = skMatrix;
 
-        if (clipPath.Clips is { } && clipPath.Clips.Count == 0)
+        if (clipPath.Clips is { } && clipPath.Clips.Count == 0 && !HasClipGeometry(clipPath.Clip))
         {
             var pathClip = new PathClip
             {
@@ -383,6 +383,21 @@ internal static class MaskingService
             };
             clipPath.Clips.Add(pathClip);
         }
+    }
+
+    private static bool HasClipGeometry(ClipPath? clipPath)
+    {
+        if (clipPath is null)
+        {
+            return false;
+        }
+
+        if (clipPath.Clips is { Count: > 0 })
+        {
+            return true;
+        }
+
+        return HasClipGeometry(clipPath.Clip);
     }
 
     internal static void GetSvgVisualElementClipPath(SvgVisualElement? svgVisualElement, SKRect skBounds, HashSet<Uri> uris, ClipPath clipPath)

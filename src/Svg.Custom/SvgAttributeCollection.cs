@@ -212,6 +212,7 @@ namespace Svg
 
         private void OnAttributeChanged(string attribute, string value)
         {
+            _owner.OwnerDocument?.InvalidateComputedStyleCache();
             var handler = AttributeChanged;
             if (handler != null)
                 handler(_owner, new AttributeEventArgs { Attribute = attribute, Value = value });

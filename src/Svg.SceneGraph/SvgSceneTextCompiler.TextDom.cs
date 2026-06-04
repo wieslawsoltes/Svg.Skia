@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ShimSkiaSharp;
 using Svg;
 using Svg.Model;
@@ -13,8 +14,10 @@ internal static partial class SvgSceneTextCompiler
     internal sealed class SvgTextContentMetrics
     {
         private readonly TextDomClusterMetric[] _clusters;
-        private readonly TextDomHitCell[] _hitCells;
         private readonly int _numberOfChars;
+        private readonly bool _hasHitTestCells;
+        private readonly TextDomHitCell[]? _extraHitCells;
+        private TextDomHitCell[]? _hitCells;
 
         internal static SvgTextContentMetrics Empty { get; } = new(Array.Empty<TextDomClusterMetric>(), 0, 0f, Array.Empty<TextDomHitCell>());
 
@@ -33,7 +36,8 @@ internal static partial class SvgSceneTextCompiler
             TextDomHitCell[]? hitCells)
         {
             _clusters = clusters;
-            _hitCells = hitCells is { Length: > 0 } ? hitCells : CreateHitCells(clusters);
+            _extraHitCells = hitCells is { Length: > 0 } ? hitCells : null;
+            _hasHitTestCells = _extraHitCells is { Length: > 0 } || HasHitCellCandidate(clusters);
             _numberOfChars = numberOfChars;
             ComputedTextLength = computedTextLength;
         }
@@ -42,7 +46,7 @@ internal static partial class SvgSceneTextCompiler
 
         public float ComputedTextLength { get; }
 
-        internal bool HasHitTestCells => _hitCells.Length > 0;
+        internal bool HasHitTestCells => _hasHitTestCells;
 
         public float GetSubStringLength(int charnum, int nchars)
         {
@@ -148,9 +152,15 @@ internal static partial class SvgSceneTextCompiler
 
         internal bool HitTestCharacterCell(SKPoint point)
         {
-            for (var i = 0; i < _hitCells.Length; i++)
+            if (!_hasHitTestCells)
             {
-                if (ContainsPoint(_hitCells[i].Extent, point))
+                return false;
+            }
+
+            var hitCells = GetHitCells();
+            for (var i = 0; i < hitCells.Length; i++)
+            {
+                if (ContainsPoint(hitCells[i].Extent, point))
                 {
                     return true;
                 }
@@ -220,6 +230,18 @@ internal static partial class SvgSceneTextCompiler
             }
 
             throw new ArgumentOutOfRangeException(nameof(charnum));
+        }
+
+        private TextDomHitCell[] GetHitCells()
+        {
+            var hitCells = _hitCells;
+            if (hitCells is not null)
+            {
+                return hitCells;
+            }
+
+            hitCells = CreateHitCells(_clusters, _extraHitCells);
+            return Interlocked.CompareExchange(ref _hitCells, hitCells, null) ?? hitCells;
         }
 
         private void ValidateCharacterIndex(int charnum)
@@ -297,14 +319,22 @@ internal static partial class SvgSceneTextCompiler
             return true;
         }
 
-        private static TextDomHitCell[] CreateHitCells(IReadOnlyList<TextDomClusterMetric> clusters)
+        private static TextDomHitCell[] CreateHitCells(
+            IReadOnlyList<TextDomClusterMetric> clusters,
+            TextDomHitCell[]? extraHitCells)
         {
+            var extraHitCellCount = extraHitCells?.Length ?? 0;
             if (clusters.Count == 0)
             {
-                return Array.Empty<TextDomHitCell>();
+                return extraHitCellCount == 0 ? Array.Empty<TextDomHitCell>() : extraHitCells!;
             }
 
-            var hitCells = new List<TextDomHitCell>(clusters.Count);
+            var hitCells = new List<TextDomHitCell>(clusters.Count + extraHitCellCount);
+            if (extraHitCells is not null)
+            {
+                hitCells.AddRange(extraHitCells);
+            }
+
             for (var i = 0; i < clusters.Count; i++)
             {
                 if (!clusters[i].HitExtent.IsEmpty)
@@ -314,6 +344,19 @@ internal static partial class SvgSceneTextCompiler
             }
 
             return hitCells.ToArray();
+        }
+
+        private static bool HasHitCellCandidate(IReadOnlyList<TextDomClusterMetric> clusters)
+        {
+            for (var i = 0; i < clusters.Count; i++)
+            {
+                if (!clusters[i].HitExtent.IsEmpty)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool ContainsPoint(SKRect bounds, SKPoint point)
@@ -392,7 +435,7 @@ internal static partial class SvgSceneTextCompiler
     private sealed class SvgTextContentMetricsBuilder
     {
         private readonly List<TextDomClusterMetric> _clusters = new();
-        private readonly List<TextDomHitCell> _hitCells = new();
+        private List<TextDomHitCell>? _extraHitCells;
         private int _numberOfChars;
         private float _computedTextLength;
 
@@ -402,9 +445,9 @@ internal static partial class SvgSceneTextCompiler
             for (var clusterIndex = 0; clusterIndex < runClusters.Count; clusterIndex++)
             {
                 var runCluster = runClusters[clusterIndex];
-                AppendHitCell(runCluster);
                 if (runCluster.CharLength <= 0)
                 {
+                    AppendExtraHitCell(runCluster);
                     continue;
                 }
 
@@ -446,9 +489,9 @@ internal static partial class SvgSceneTextCompiler
             for (var clusterIndex = 0; clusterIndex < runClusters.Count; clusterIndex++)
             {
                 var runCluster = runClusters[clusterIndex];
-                AppendHitCell(runCluster);
                 if (runCluster.CharLength <= 0)
                 {
+                    AppendExtraHitCell(runCluster);
                     continue;
                 }
 
@@ -480,16 +523,124 @@ internal static partial class SvgSceneTextCompiler
                 _clusters.ToArray(),
                 _numberOfChars,
                 _computedTextLength,
-                _hitCells.ToArray());
+                _extraHitCells?.ToArray());
         }
 
-        private void AppendHitCell(TextDomRunClusterMetric runCluster)
+        private void AppendExtraHitCell(TextDomRunClusterMetric runCluster)
         {
-            if (!runCluster.HitExtent.IsEmpty)
+            if (runCluster.HitExtent.IsEmpty)
             {
-                _hitCells.Add(new TextDomHitCell(runCluster.HitExtent));
+                return;
+            }
+
+            (_extraHitCells ??= new List<TextDomHitCell>()).Add(new TextDomHitCell(runCluster.HitExtent));
+        }
+    }
+
+    private static SvgTextContentMetrics CreateSingleRunTextContentMetrics(
+        IReadOnlyList<TextDomRunClusterMetric> runClusters,
+        float runLength)
+    {
+        var clusterCount = 0;
+        var extraHitCellCount = 0;
+        for (var i = 0; i < runClusters.Count; i++)
+        {
+            if (runClusters[i].CharLength <= 0)
+            {
+                if (!runClusters[i].HitExtent.IsEmpty)
+                {
+                    extraHitCellCount++;
+                }
+
+                continue;
+            }
+
+            clusterCount++;
+        }
+
+        if (clusterCount == 0)
+        {
+            var hitCells = extraHitCellCount == 0
+                ? null
+                : CreateSingleRunExtraHitCells(runClusters, extraHitCellCount);
+            return new SvgTextContentMetrics(
+                Array.Empty<TextDomClusterMetric>(),
+                0,
+                Math.Max(0f, runLength),
+                hitCells);
+        }
+
+        var clusters = new TextDomClusterMetric[clusterCount];
+        var extraHitCells = extraHitCellCount == 0 ? null : new TextDomHitCell[extraHitCellCount];
+        var numberOfChars = 0;
+        var clusterIndex = 0;
+        var extraHitCellIndex = 0;
+        var hasExplicitStartCharIndex = false;
+        for (var i = 0; i < runClusters.Count; i++)
+        {
+            var runCluster = runClusters[i];
+            if (runCluster.CharLength <= 0)
+            {
+                if (!runCluster.HitExtent.IsEmpty && extraHitCells is not null)
+                {
+                    extraHitCells[extraHitCellIndex++] = new TextDomHitCell(runCluster.HitExtent);
+                }
+
+                continue;
+            }
+
+            var startCharIndex = numberOfChars;
+            if (runCluster.StartCharIndex is { } explicitStartCharIndex)
+            {
+                startCharIndex = explicitStartCharIndex;
+                hasExplicitStartCharIndex = true;
+            }
+
+            clusters[clusterIndex++] = new TextDomClusterMetric(
+                startCharIndex,
+                runCluster.CharLength,
+                runCluster.StartOffset,
+                runCluster.EndOffset,
+                runCluster.StartPoint,
+                runCluster.EndPoint,
+                runCluster.Extent,
+                runCluster.RotationDegrees)
+            {
+                HitExtent = runCluster.HitExtent
+            };
+            numberOfChars = runCluster.StartCharIndex is { }
+                ? Math.Max(numberOfChars, startCharIndex + runCluster.CharLength)
+                : numberOfChars + runCluster.CharLength;
+        }
+
+        if (hasExplicitStartCharIndex && clusters.Length > 1)
+        {
+            Array.Sort(clusters, static (left, right) => left.StartCharIndex.CompareTo(right.StartCharIndex));
+        }
+
+        return new SvgTextContentMetrics(
+            clusters,
+            numberOfChars,
+            Math.Max(0f, runLength),
+            extraHitCells);
+    }
+
+    private static TextDomHitCell[] CreateSingleRunExtraHitCells(
+        IReadOnlyList<TextDomRunClusterMetric> runClusters,
+        int extraHitCellCount)
+    {
+        var extraHitCells = new TextDomHitCell[extraHitCellCount];
+        var extraHitCellIndex = 0;
+        for (var i = 0; i < runClusters.Count; i++)
+        {
+            var runCluster = runClusters[i];
+            if (runCluster.CharLength <= 0 && !runCluster.HitExtent.IsEmpty)
+            {
+                extraHitCells[extraHitCellIndex++] = new TextDomHitCell(runCluster.HitExtent);
             }
         }
+
+        return extraHitCells;
     }
 
     internal readonly record struct TextDomClusterMetric(
@@ -868,14 +1019,14 @@ internal static partial class SvgSceneTextCompiler
                 out var runs,
                 out var totalAdvance,
                 out _) ||
-            runs.Count == 0)
+            runs.Length == 0)
         {
             return false;
         }
 
         var globalOriginX = runs[0].Placements[0].Point.X;
         var clusters = new List<TextDomRunClusterMetric>();
-        for (var i = 0; i < runs.Count; i++)
+        for (var i = 0; i < runs.Length; i++)
         {
             var run = runs[i];
             if (!TryCreatePlacedTextRunMetrics(
@@ -899,9 +1050,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var builder = new SvgTextContentMetricsBuilder();
-        builder.AppendRun(clusters, totalAdvance);
-        metrics = builder.Build();
+        metrics = CreateSingleRunTextContentMetrics(clusters, totalAdvance);
         return metrics.NumberOfChars > 0;
     }
 
@@ -1174,7 +1323,7 @@ internal static partial class SvgSceneTextCompiler
             : GetAlignedStartCoordinate(currentX, totalAdvance, textAlign);
         var drawX = isVertical ? currentX : inlineOrigin;
         var drawY = isVertical ? inlineOrigin : currentY;
-        var builder = new SvgTextContentMetricsBuilder();
+        SvgTextContentMetricsBuilder? builder = null;
         for (var i = 0; i < runs.Count; i++)
         {
             var run = runs[i];
@@ -1193,11 +1342,18 @@ internal static partial class SvgSceneTextCompiler
                 return false;
             }
 
+            if (runs.Count == 1)
+            {
+                metrics = CreateSingleRunTextContentMetrics(clusters, runLength);
+                return true;
+            }
+
+            builder ??= new SvgTextContentMetricsBuilder();
             builder.AppendRun(clusters, runLength);
             ApplyInlineAdvance(run.StyleSource, ref drawX, ref drawY, runLength);
         }
 
-        metrics = builder.Build();
+        metrics = builder?.Build() ?? SvgTextContentMetrics.Empty;
         return true;
     }
 
@@ -1263,9 +1419,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var builder = new SvgTextContentMetricsBuilder();
-        builder.AppendRun(clusters, runLength);
-        metrics = builder.Build();
+        metrics = CreateSingleRunTextContentMetrics(clusters, runLength);
         return metrics.NumberOfChars > 0;
     }
 
@@ -1728,9 +1882,34 @@ internal static partial class SvgSceneTextCompiler
             return TryCreateVerticalTextRunMetrics(svgTextBase, verticalPlacements, verticalAdvance, viewport, assetLoader, out clusters, out runLength);
         }
 
-        if (TryCreateAlignedCodepointPlacements(svgTextBase, text, anchorX, anchorY, viewport, textAlign, assetLoader, rotations, out var placements, out _))
+        if (TryCreateAlignedCodepointPlacements(svgTextBase, text, anchorX, anchorY, viewport, textAlign, assetLoader, rotations, out var placements, out _, out var placementCodepoints, out var naturalAdvances))
         {
-            return TryCreatePlacedTextRunMetrics(svgTextBase, text, viewport, assetLoader, placements, out clusters, out runLength);
+            return TryCreatePlacedTextRunMetrics(
+                svgTextBase,
+                text,
+                viewport,
+                assetLoader,
+                placements,
+                placements.Length > 0 ? placements[0].Point.X : 0f,
+                out clusters,
+                out runLength,
+                placementCodepoints,
+                naturalAdvances);
+        }
+
+        if (TryCreateSimpleUnpositionedTextRunMetrics(
+                svgTextBase,
+                text,
+                viewport,
+                assetLoader,
+                paint,
+                anchorX,
+                anchorY,
+                textAlign,
+                out clusters,
+                out runLength))
+        {
+            return true;
         }
 
         if (rotations is not { Length: > 0 } &&
@@ -1835,7 +2014,9 @@ internal static partial class SvgSceneTextCompiler
         PositionedCodepointPlacement[] placements,
         float originX,
         out TextDomRunClusterMetric[] clusters,
-        out float runLength)
+        out float runLength,
+        IReadOnlyList<string>? knownCodepoints = null,
+        float[]? knownNaturalAdvances = null)
     {
         clusters = Array.Empty<TextDomRunClusterMetric>();
         runLength = 0f;
@@ -1846,6 +2027,22 @@ internal static partial class SvgSceneTextCompiler
 
         var paint = new SKPaint();
         PaintingService.SetPaintText(svgTextBase, viewport, paint);
+        if (TryCreateSimpleSpacingPlacedTextRunMetrics(
+                svgTextBase,
+                text,
+                viewport,
+                assetLoader,
+                paint,
+                placements,
+                originX,
+                out clusters,
+                out runLength,
+                knownCodepoints,
+                knownNaturalAdvances))
+        {
+            return true;
+        }
+
         if (!TryCreateClusterSources(svgTextBase, text, viewport, paint, assetLoader, out var sources, out _, out var sourcesUseSvgFont))
         {
             return false;
@@ -1915,6 +2112,187 @@ internal static partial class SvgSceneTextCompiler
 
         clusters = MergeTextDomRunClustersByGraphemeClusters(text, runClusters);
         runLength = maxEndOffset;
+        return true;
+    }
+
+    private static bool TryCreateSimpleSpacingPlacedTextRunMetrics(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader,
+        SKPaint paint,
+        PositionedCodepointPlacement[] placements,
+        float originX,
+        out TextDomRunClusterMetric[] clusters,
+        out float runLength,
+        IReadOnlyList<string>? knownCodepoints = null,
+        float[]? knownNaturalAdvances = null)
+    {
+        clusters = Array.Empty<TextDomRunClusterMetric>();
+        runLength = 0f;
+        if (placements.Length == 0 ||
+            HasOwnTextLengthAdjustment(svgTextBase) ||
+            IsRightToLeft(svgTextBase) ||
+            SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase) != SvgUnicodeBidiMode.Normal ||
+            RequiresSyntheticSmallCaps(svgTextBase, text) ||
+            !IsSimpleAsciiSequentialCompileText(text))
+        {
+            return false;
+        }
+
+        for (var i = 0; i < placements.Length; i++)
+        {
+            if (placements[i].RotationDegrees != 0f ||
+                placements[i].ScaleX != 1f)
+            {
+                return false;
+            }
+        }
+
+        if (TryCreateSvgFontClusterSources(svgTextBase, text, paint, assetLoader, out _, out _))
+        {
+            return false;
+        }
+
+        var codepoints = knownCodepoints ?? SplitCodepointsReadOnly(text);
+        if (codepoints.Count == 0 ||
+            codepoints.Count != placements.Length ||
+            !HasEffectiveSpacingAdjustments(svgTextBase, codepoints))
+        {
+            return false;
+        }
+
+        var advances = knownNaturalAdvances ?? MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, viewport, assetLoader);
+        if (advances.Length != codepoints.Count)
+        {
+            return false;
+        }
+
+        var includeWhitespaceMetrics = PreservesTextDomWhitespace(svgTextBase);
+        var runClusters = new TextDomRunClusterMetric[codepoints.Count];
+        var maxEndOffset = 0f;
+        for (var i = 0; i < codepoints.Count; i++)
+        {
+            var codepoint = codepoints[i];
+            var placement = placements[i];
+            var startOffset = placement.Point.X - originX;
+            var advance = advances[i];
+            var endOffset = startOffset + advance;
+            var extent = CreateFallbackTextDomClusterBounds(
+                svgTextBase,
+                placement.Point,
+                advance,
+                placement.ScaleX,
+                GetScalePivot(placement),
+                placement.RotationDegrees,
+                paint,
+                assetLoader,
+                codepoint,
+                out var hitExtent);
+            var isWhitespace = IsWhitespaceOnlyText(codepoint);
+            runClusters[i] = new TextDomRunClusterMetric(
+                includeWhitespaceMetrics || !isWhitespace ? codepoint.Length : 0,
+                startOffset,
+                endOffset,
+                placement.Point,
+                new SKPoint(placement.Point.X + advance, placement.Point.Y),
+                extent,
+                placement.RotationDegrees)
+            {
+                HitExtent = hitExtent
+            };
+
+            maxEndOffset = Math.Max(maxEndOffset, endOffset);
+        }
+
+        clusters = runClusters;
+        runLength = maxEndOffset;
+        return true;
+    }
+
+    private static bool TryCreateSimpleUnpositionedTextRunMetrics(
+        SvgTextBase svgTextBase,
+        string text,
+        SKRect viewport,
+        ISvgAssetLoader assetLoader,
+        SKPaint paint,
+        float anchorX,
+        float anchorY,
+        SKTextAlign textAlign,
+        out TextDomRunClusterMetric[] clusters,
+        out float runLength)
+    {
+        clusters = Array.Empty<TextDomRunClusterMetric>();
+        runLength = 0f;
+        if (HasOwnTextLengthAdjustment(svgTextBase) ||
+            IsVerticalWritingMode(svgTextBase) ||
+            IsRightToLeft(svgTextBase) ||
+            SvgTextBidiResolver.ResolveUnicodeBidi(svgTextBase) != SvgUnicodeBidiMode.Normal ||
+            RequiresSyntheticSmallCaps(svgTextBase, text) ||
+            !IsSimpleAsciiSequentialCompileText(text))
+        {
+            return false;
+        }
+
+        var codepoints = SplitCodepointsReadOnly(text);
+        if (codepoints.Count == 0 ||
+            HasEffectiveSpacingAdjustments(svgTextBase, codepoints))
+        {
+            return false;
+        }
+
+        if (TryCreateSvgFontClusterSources(svgTextBase, text, paint, assetLoader, out _, out _))
+        {
+            return false;
+        }
+
+        var advances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, viewport, assetLoader);
+        if (advances.Length != codepoints.Count)
+        {
+            return false;
+        }
+
+        var totalAdvance = 0f;
+        for (var i = 0; i < advances.Length; i++)
+        {
+            totalAdvance += advances[i];
+        }
+
+        var startX = GetAlignedStartCoordinate(anchorX, totalAdvance, textAlign);
+        var runClusters = new TextDomRunClusterMetric[codepoints.Count];
+        var relativeOffset = 0f;
+        for (var i = 0; i < codepoints.Count; i++)
+        {
+            var codepoint = codepoints[i];
+            var advance = advances[i];
+            var point = new SKPoint(startX + relativeOffset, anchorY);
+            var extent = CreateFallbackTextDomClusterBounds(
+                svgTextBase,
+                point,
+                advance,
+                1f,
+                point,
+                0f,
+                paint,
+                assetLoader,
+                codepoint,
+                out var hitExtent);
+            runClusters[i] = new TextDomRunClusterMetric(
+                codepoint.Length,
+                relativeOffset,
+                relativeOffset + advance,
+                point,
+                new SKPoint(point.X + advance, point.Y),
+                extent,
+                0f)
+            {
+                HitExtent = hitExtent
+            };
+            relativeOffset += advance;
+        }
+
+        clusters = runClusters;
+        runLength = totalAdvance;
         return true;
     }
 
@@ -2358,7 +2736,7 @@ internal static partial class SvgSceneTextCompiler
             visualRuns = visualRuns.OrderBy(static run => run.StartCharIndex).ToList();
         }
 
-        var codepoints = SplitCodepoints(text);
+        var codepoints = SplitCodepointsReadOnly(text);
         if (codepoints.Count == 0)
         {
             return false;
@@ -2424,7 +2802,7 @@ internal static partial class SvgSceneTextCompiler
 
     private static SvgTextDirection ResolvePlainTextDirection(string text, SvgTextDirection fallback)
     {
-        var codepoints = SplitCodepoints(text);
+        var codepoints = SplitCodepointsReadOnly(text);
         for (var i = 0; i < codepoints.Count; i++)
         {
             var direction = SvgTextBidiResolver.GetStrongDirection(codepoints[i]);
@@ -2554,7 +2932,7 @@ internal static partial class SvgSceneTextCompiler
             return false;
         }
 
-        var codepoints = SplitCodepoints(text);
+        var codepoints = SplitCodepointsReadOnly(text);
         if (codepoints.Count == 0 ||
             shapedRun.Glyphs.Length == 0 ||
             shapedRun.Points.Length != shapedRun.Glyphs.Length ||
@@ -2620,7 +2998,7 @@ internal static partial class SvgSceneTextCompiler
             return CopyTextDomClusterSources(sources);
         }
 
-        var codepoints = SplitCodepoints(text);
+        var codepoints = SplitCodepointsReadOnly(text);
         var codepointCharOffsets = CreateCodepointCharOffsets(codepoints);
         var mergedSources = new List<TextDomClusterSource>(clusterStarts.Count);
         var sourceIndex = 0;
@@ -2701,10 +3079,15 @@ internal static partial class SvgSceneTextCompiler
         ISvgAssetLoader assetLoader,
         out float totalAdvance)
     {
-        var codepoints = SplitCodepoints(text);
+        var codepoints = SplitCodepointsReadOnly(text);
         var advances = MeasureNaturalCodepointAdvances(svgTextBase, text, codepoints, viewport, assetLoader);
         var clusterStarts = SvgTextBoundaryResolver.Default.GetGraphemeClusterStartCharIndexes(text);
         var codepointCharOffsets = CreateCodepointCharOffsets(codepoints);
+        if (clusterStarts.Count >= codepoints.Count)
+        {
+            return CreateCodepointFallbackClusterSources(codepoints, advances, out totalAdvance);
+        }
+
         if (clusterStarts.Count > 0)
         {
             var clusterSources = new List<TextDomClusterSource>(clusterStarts.Count);
