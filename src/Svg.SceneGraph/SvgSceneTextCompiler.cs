@@ -2086,9 +2086,7 @@ internal static partial class SvgSceneTextCompiler
 
         ResolveTextPathChunkOffsets(svgTextPath, useCurrentPositionOffset, currentX, currentY, viewport, assetLoader, pathSamples, out var horizontalOffset, out var verticalOffset);
         var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
-        var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
-        var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
-        hOffset = ApplyTextPathSideOffset(svgTextPath, hOffset, pathLength, totalAdvance);
+        var hOffset = ResolveTextPathHorizontalOffset(svgTextPath, startOffset, pathLength, geometryBounds, runs, assetLoader);
 
         if (!TryCreateTextPathRunPlacements(runs, pathSamples, isClosedLoop, hOffset, verticalOffset, viewport, geometryBounds, assetLoader, out var positionedRuns, out var endOffset, out var endVOffset))
         {
@@ -6077,9 +6075,7 @@ internal static partial class SvgSceneTextCompiler
 
         ResolveTextPathChunkOffsets(svgTextPath, useCurrentPositionOffset, currentX, currentY, viewport, assetLoader, pathSamples, out var horizontalOffset, out var verticalOffset);
         var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
-        var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
-        var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
-        hOffset = ApplyTextPathSideOffset(svgTextPath, hOffset, pathLength, totalAdvance);
+        var hOffset = ResolveTextPathHorizontalOffset(svgTextPath, startOffset, pathLength, geometryBounds, runs, assetLoader);
 
         if (svgTextPath.Method == SvgTextPathMethod.Stretch)
         {
@@ -6131,9 +6127,7 @@ internal static partial class SvgSceneTextCompiler
 
         ResolveTextPathChunkOffsets(svgTextPath, useCurrentPositionOffset, currentX, currentY, viewport, assetLoader, pathSamples, out var horizontalOffset, out var verticalOffset);
         var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
-        var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
-        var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
-        hOffset = ApplyTextPathSideOffset(svgTextPath, hOffset, pathLength, totalAdvance);
+        var hOffset = ResolveTextPathHorizontalOffset(svgTextPath, startOffset, pathLength, geometryBounds, runs, assetLoader);
 
         if (svgTextPath.Method == SvgTextPathMethod.Stretch)
         {
@@ -6623,9 +6617,7 @@ internal static partial class SvgSceneTextCompiler
 
         ResolveTextPathChunkOffsets(svgTextPath, useCurrentPositionOffset, currentX, currentY, viewport, assetLoader, pathSamples, out var horizontalOffset, out var verticalOffset);
         var startOffset = horizontalOffset + ResolveTextPathStartOffset(svgTextPath, skPath, viewport, pathLength);
-        var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
-        var hOffset = ApplyTextAnchor(svgTextPath, startOffset, geometryBounds, totalAdvance);
-        hOffset = ApplyTextPathSideOffset(svgTextPath, hOffset, pathLength, totalAdvance);
+        var hOffset = ResolveTextPathHorizontalOffset(svgTextPath, startOffset, pathLength, geometryBounds, runs, assetLoader);
 
         if (svgTextPath.Method == SvgTextPathMethod.Stretch)
         {
@@ -15038,6 +15030,26 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return totalAdvance;
+    }
+
+    private static float ResolveTextPathHorizontalOffset(
+        SvgTextPath svgTextPath,
+        float startOffset,
+        float pathLength,
+        SKRect geometryBounds,
+        IReadOnlyList<TextPathRun> runs,
+        ISvgAssetLoader assetLoader)
+    {
+        var textAlign = GetTextAnchorAlign(svgTextPath, geometryBounds);
+        if (textAlign == SKTextAlign.Left &&
+            (svgTextPath.Side != SvgTextPathSide.Right || pathLength <= 0f))
+        {
+            return startOffset;
+        }
+
+        var totalAdvance = MeasureTextPathRunsAdvance(runs, geometryBounds, assetLoader);
+        var hOffset = GetAlignedStartCoordinate(startOffset, totalAdvance, textAlign);
+        return ApplyTextPathSideOffset(svgTextPath, hOffset, pathLength, totalAdvance);
     }
 
     private static bool TryMeasureInlineSizeTextPathRunsAdvance(
