@@ -98,6 +98,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Lazy retained-node visual/resource sidecar storage for rare cursor, background, blend, and resource-key state.
 - Lazy retained-node effect sidecar storage for rare clip, mask, and filter state.
 - Boxing-free `DrawAttributes` flag checks across retained compile, scene rendering, and SKSvg layer paths.
+- Boxing-free `SKColor` equality checks for unchanged retained paint color assignments.
 - Delegate-free retained structural finalization for group, anchor, switch, fragment, `<use>`, and symbol compile paths.
 - ASCII bidi-probe fast paths for simple retained text so direction/control checks skip codepoint-object allocation.
 - Resolved-typeface text paint setup so retained text recording skips redundant `SKTypeface` resolution.
@@ -1525,8 +1526,14 @@ Focused simple natural text advance cache-hit measurements:
   - Direct allocation probe for `generated-text-192` moved from `2654501.08 B` to `2019516.68 B` allocated per compile after skipping the duplicated fill-validity probe; `generated-shapes-1024` stayed flat at `2588412.52 B`, and `generated-aligned-letter-spacing-192` moved from `2122819.52 B` to `2089455.12 B`.
   - BenchmarkDotNet retained compile row: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-text-192,generated-aligned-letter-spacing-192,generated-shapes-1024" SVG_SKIA_BENCHMARK_RUN_LABEL="skip-fill-validity-probe-retained-text" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3` measured `generated-text-192` at `1.83 MB`, `generated-aligned-letter-spacing-192` at `1.89 MB`, and `generated-shapes-1024` at `2.47 MB`; timing remained short-run/noisy.
   - Focused text/retained/paint-order/hit/static validation passed 540 tests.
+- Focused `SKColor` typed-equality validation:
+  - Direct allocation probes moved `generated-shapes-1024` from `2588412.52 B` to `2440868.44 B`, `generated-text-192` from `2019516.68 B` to `1949470.60 B`, and `generated-aligned-letter-spacing-192` from `2089455.12 B` to `2040662.56 B` allocated per retained compile by avoiding boxed nullable color comparisons.
+  - EventPipe allocation sampling for `generated-shapes-1024` no longer showed `ShimSkiaSharp.SKColor` in the hot type list; before this change the sampled `SKColor` bucket was `33243560 B`.
+  - BenchmarkDotNet retained compile row: `SVG_SKIA_BENCHMARK_SCENARIOS="generated-shapes-1024,generated-text-192,generated-aligned-letter-spacing-192" SVG_SKIA_BENCHMARK_RUN_LABEL="skcolor-typed-equality-retained-compile" dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3` measured `generated-text-192` at `7.224 ms / 1.79 MB`, `generated-aligned-letter-spacing-192` at `8.364 ms / 1.97 MB`, and `generated-shapes-1024` at `9.438 ms / 2.33 MB`; timing remained short-run/noisy, so this is kept as allocation evidence.
+  - Focused validation passed: `ShimSkiaSharp.UnitTests` paint/canvas/clone/editing filters passed 41 tests, and the retained/rebuild/resource/hit-test Svg.Skia slice passed 415 tests.
 - Pre-publish validation for the current stack:
   - `dotnet format Svg.Skia.slnx --no-restore` completed.
+  - Formatter-only `externals/SVG` submodule churn was stashed as `codex-format-submodule-churn`.
   - `dotnet build Svg.Skia.slnx -c Release` passed with 297 existing warnings.
   - `dotnet test Svg.Skia.slnx -c Release` passed; `Svg.Skia.UnitTests` reported 2599 passed and 40 skipped, and the other test projects passed.
 
