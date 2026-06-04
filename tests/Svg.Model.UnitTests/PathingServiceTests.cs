@@ -195,6 +195,34 @@ public class PathingServiceTests
         Assert.Equal(SKRect.Create(30f, 40f, 40f, 20f), oval.Rect);
     }
 
+    [Fact]
+    public void TryCreateEquivalentPath_ComputedPathDataCacheInvalidatesWhenPathDataChanges()
+    {
+        var document = SvgService.FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <path id="target" d="M 0 0 H 20 V 20 H 0 Z" />
+            </svg>
+            """);
+        var svgPath = Assert.IsType<SvgPath>(document!.GetElementById("target"));
+        var viewport = SKRect.Create(0f, 0f, 100f, 100f);
+
+        var createdFirst = SvgGeometryService.TryCreateEquivalentPath(svgPath, viewport, out var firstPath);
+
+        Assert.True(createdFirst);
+        var first = Assert.IsType<SKPath>(firstPath);
+        Assert.Equal(20f, first.Bounds.Right, 3);
+        Assert.Equal(20f, first.Bounds.Bottom, 3);
+
+        svgPath.PathData = SvgPathBuilder.Parse("M 0 0 H 30 V 30 H 0 Z".AsSpan());
+
+        var createdSecond = SvgGeometryService.TryCreateEquivalentPath(svgPath, viewport, out var secondPath);
+
+        Assert.True(createdSecond);
+        var second = Assert.IsType<SKPath>(secondPath);
+        Assert.Equal(30f, second.Bounds.Right, 3);
+        Assert.Equal(30f, second.Bounds.Bottom, 3);
+    }
+
     private static void AssertPathsEqual(SKPath expected, SKPath actual)
     {
         Assert.Equal(expected.FillType, actual.FillType);

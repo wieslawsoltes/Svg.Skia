@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using ShimSkiaSharp;
 using Svg.Pathing;
 
@@ -9,6 +10,8 @@ namespace Svg.Model.Services;
 
 internal static class SvgGeometryService
 {
+    private static readonly ConditionalWeakTable<SvgPath, ComputedPathDataCacheEntry> s_computedPathDataCache = new();
+
     internal readonly record struct PathLengthNormalization(float ActualLength, float SpecifiedLength)
     {
         public bool IsSpecified => SpecifiedLength > 0f && ActualLength > 0f;
@@ -335,23 +338,38 @@ internal static class SvgGeometryService
             return false;
         }
 
-        hasComputedPathData = true;
-        var normalized = NormalizeCssPathData(rawValue);
-        if (string.IsNullOrWhiteSpace(normalized) ||
-            string.Equals(normalized, "none", StringComparison.OrdinalIgnoreCase))
+        var cacheEntry = s_computedPathDataCache.GetOrCreateValue(svgPath);
+        lock (cacheEntry)
         {
-            return false;
-        }
+            if (string.Equals(cacheEntry.RawValue, rawValue, StringComparison.Ordinal))
+            {
+                pathData = cacheEntry.PathData!;
+                hasComputedPathData = cacheEntry.HasComputedPathData;
+                return pathData is { Count: > 0 };
+            }
 
-        try
-        {
-            pathData = SvgPathBuilder.Parse(normalized);
-            pathData.Owner = svgPath;
-            return pathData.Count > 0;
-        }
-        catch
-        {
-            pathData = null!;
+            hasComputedPathData = true;
+            var normalized = NormalizeCssPathData(rawValue);
+            if (string.IsNullOrWhiteSpace(normalized) ||
+                string.Equals(normalized, "none", StringComparison.OrdinalIgnoreCase))
+            {
+                cacheEntry.Set(rawValue, hasComputedPathData: true, pathData: null);
+                return false;
+            }
+
+            try
+            {
+                pathData = SvgPathBuilder.Parse(normalized);
+                pathData.Owner = svgPath;
+                cacheEntry.Set(rawValue, hasComputedPathData: true, pathData);
+                return pathData.Count > 0;
+            }
+            catch
+            {
+                pathData = null!;
+                cacheEntry.Set(rawValue, hasComputedPathData: true, pathData: null);
+            }
+
             return false;
         }
     }
@@ -374,6 +392,22 @@ internal static class SvgGeometryService
         }
 
         return inner;
+    }
+
+    private sealed class ComputedPathDataCacheEntry
+    {
+        public string? RawValue { get; private set; }
+
+        public bool HasComputedPathData { get; private set; }
+
+        public SvgPathSegmentList? PathData { get; private set; }
+
+        public void Set(string rawValue, bool hasComputedPathData, SvgPathSegmentList? pathData)
+        {
+            RawValue = rawValue;
+            HasComputedPathData = hasComputedPathData;
+            PathData = pathData;
+        }
     }
 
     internal static PathLengthNormalization CreatePathLengthNormalization(SvgElement element, SKPath? path)
