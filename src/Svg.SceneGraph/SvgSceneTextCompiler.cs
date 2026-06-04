@@ -2369,9 +2369,8 @@ internal static partial class SvgSceneTextCompiler
                             var fillPaint = SvgScenePaintingService.GetFillPaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes, contextPaint);
                             if (fillPaint is not null)
                             {
-                                PaintingService.SetPaintText(run.StyleSource, geometryBounds, fillPaint);
+                                PaintingService.SetPaintText(run.StyleSource, geometryBounds, fillPaint, run.Typeface);
                                 fillPaint.TextAlign = SKTextAlign.Left;
-                                fillPaint.Typeface = run.Typeface;
                                 canvas.DrawText(run.DrawText, currentX, currentY, fillPaint);
                             }
                         }
@@ -2384,9 +2383,8 @@ internal static partial class SvgSceneTextCompiler
                             var strokePaint = SvgScenePaintingService.GetStrokePaint(run.StyleSource, geometryBounds, assetLoader, ignoreAttributes, contextPaint);
                             if (strokePaint is not null)
                             {
-                                PaintingService.SetPaintText(run.StyleSource, geometryBounds, strokePaint);
+                                PaintingService.SetPaintText(run.StyleSource, geometryBounds, strokePaint, run.Typeface);
                                 strokePaint.TextAlign = SKTextAlign.Left;
-                                strokePaint.Typeface = run.Typeface;
                                 canvas.DrawText(run.DrawText, currentX, currentY, strokePaint);
                             }
                         }
@@ -2439,9 +2437,8 @@ internal static partial class SvgSceneTextCompiler
             return;
         }
 
-        PaintingService.SetPaintText(run.StyleSource, geometryBounds, fillPaint);
+        PaintingService.SetPaintText(run.StyleSource, geometryBounds, fillPaint, run.Typeface);
         fillPaint.TextAlign = SKTextAlign.Left;
-        fillPaint.Typeface = run.Typeface;
         canvas.DrawText(run.DrawText, x, y, fillPaint);
     }
 
@@ -3202,9 +3199,8 @@ internal static partial class SvgSceneTextCompiler
         SKCanvas canvas,
         ref SKTextBlob? textBlob)
     {
-        PaintingService.SetPaintText(run.StyleSource, geometryBounds, paint);
+        PaintingService.SetPaintText(run.StyleSource, geometryBounds, paint, run.Typeface);
         paint.TextAlign = SKTextAlign.Left;
-        paint.Typeface = run.Typeface;
 
         if (textBlob is null)
         {
@@ -3227,9 +3223,8 @@ internal static partial class SvgSceneTextCompiler
         SKPaint paint,
         SKCanvas canvas)
     {
-        PaintingService.SetPaintText(run.StyleSource, geometryBounds, paint);
+        PaintingService.SetPaintText(run.StyleSource, geometryBounds, paint, run.Typeface);
         paint.TextAlign = SKTextAlign.Left;
-        paint.Typeface = run.Typeface;
 
         var font = new SKFont(run.Typeface, paint.TextSize, run.ScaleX)
         {

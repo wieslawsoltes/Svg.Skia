@@ -1027,6 +1027,21 @@ internal static class PaintingService
 
     internal static void SetPaintText(SvgTextBase svgText, SKRect skBounds, SKPaint skPaint)
     {
+        SetPaintText(svgText, skBounds, skPaint, resolveTypeface: true, resolvedTypeface: null);
+    }
+
+    internal static void SetPaintText(SvgTextBase svgText, SKRect skBounds, SKPaint skPaint, SKTypeface? resolvedTypeface)
+    {
+        SetPaintText(svgText, skBounds, skPaint, resolveTypeface: false, resolvedTypeface);
+    }
+
+    private static void SetPaintText(
+        SvgTextBase svgText,
+        SKRect skBounds,
+        SKPaint skPaint,
+        bool resolveTypeface,
+        SKTypeface? resolvedTypeface)
+    {
         skPaint.LcdRenderText = true;
         skPaint.SubpixelText = true;
         skPaint.TextEncoding = SKTextEncoding.Utf16;
@@ -1065,7 +1080,14 @@ internal static class PaintingService
 
         skPaint.TextSize = fontSize;
 
-        SetTypeface(svgText, skPaint);
+        if (resolveTypeface)
+        {
+            SetTypeface(svgText, skPaint);
+        }
+        else
+        {
+            skPaint.Typeface = resolvedTypeface;
+        }
     }
 
     private static bool HasInheritedTextOpenTypePaintProperty(SvgElement element)
