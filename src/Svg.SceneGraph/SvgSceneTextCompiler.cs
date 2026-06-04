@@ -1647,7 +1647,8 @@ internal static partial class SvgSceneTextCompiler
         }
 
         if (!CanUseSequentialCompileFastPath(runs) ||
-            !CanPrepareSequentialTextRuns(runs, viewport, assetLoader) ||
+            (MayUseSvgFontSequentialTextRuns(runs, assetLoader) &&
+             !CanPrepareSequentialTextRuns(runs, viewport, assetLoader)) ||
             !TryResolveSequentialCompileRuns(runs, viewport, assetLoader, out var resolvedRuns))
         {
             return TryCompileAlignedSequentialText(
@@ -2177,6 +2178,21 @@ internal static partial class SvgSceneTextCompiler
         }
 
         return true;
+    }
+
+    private static bool MayUseSvgFontSequentialTextRuns(
+        IReadOnlyList<SequentialTextRun> runs,
+        ISvgAssetLoader assetLoader)
+    {
+        for (var i = 0; i < runs.Count; i++)
+        {
+            if (SvgFontTextRenderer.HasFontEntries(runs[i].StyleSource, assetLoader))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool HasGenericSequentialCompileFontFamily(SvgTextBase svgTextBase)
