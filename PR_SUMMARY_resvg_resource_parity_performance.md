@@ -76,6 +76,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Transform-only simple shape group flattening for retained command streams and native replay.
 - Direct-matrix native replay for transformed retained positioned text runs.
 - Rotation-scale native text blob replay for simple positioned text runs.
+- Retained resource-key feature gates for documents without clip-path, mask, or filter declarations.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -184,6 +185,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Flattened transform-only retained groups whose children are simple solid-filled leaf paths by pre-transforming rectangle, polygon, and closed line-only path commands during retained recording; this removes save/set-matrix/restore command wrappers and simple leaf opacity save-layers while preserving source-element metadata and keeping clips, masks, filters, strokes, blend modes, isolation, nested children, shaders, and complex paths on the existing rendering path.
 - Replayed compact retained positioned text runs by scanning for untransformed fragments first, drawing those directly, and using direct canvas matrix resets for transformed fragments instead of per-fragment save/restore pairs.
 - Added a guarded native `SKTextBlob.CreateRotationScale` replay path for left-aligned simple ASCII positioned text runs, collapsing eligible fragment runs into one native blob draw while keeping scaled, non-ASCII, non-left-aligned, and other complex runs on the existing per-fragment fallback.
+- Reused the cached document-wide cascaded-style feature analysis to skip retained clip/mask/filter resource-key lookup attempts when the active document has no matching declarations, preserving precise lookup behavior for documents that do declare those resources.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -1229,6 +1231,19 @@ Focused simple natural text advance cache-hit measurements:
   - Build passed with no warnings.
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests"`
   - Passed 267.
+  - `dotnet format Svg.Skia.slnx --no-restore`
+  - Completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release`
+  - Build passed with existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2599, skipped 40; other test projects passed.
+- Focused retained resource-key feature gate validation:
+  - Baseline clean-head retained compile: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024 SVG_SKIA_BENCHMARK_RUN_LABEL=baseline-shapes-compile-clean-head dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Current retained compile: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024 SVG_SKIA_BENCHMARK_RUN_LABEL=resource-key-feature-gate-shapes-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - `CompileNodeTreeOnly | generated-shapes-1024`: `4.552 ms / 3.78 MB` to `4.327 ms / 3.78 MB`.
+  - Compile smoke: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-192,generated-inline-styles-512 SVG_SKIA_BENCHMARK_RUN_LABEL=resource-key-feature-gate-compile-smoke dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Smoke results: `generated-shapes-1024` `4.363 ms / 3874.03 KB`, `generated-filtered-shapes-256` `782.3 us / 904.33 KB`, `generated-text-192` `3.824 ms / 3215.36 KB`, `generated-inline-styles-512` `741.7 us / 1069.47 KB`.
+  - Focused resource-key tests: `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_AssignsRetainedResourceKeysForClipMaskAndFilter|FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_AssignsResourceKeysForAbsoluteSameDocumentReferences|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_CssFilterComposesUrlAndFunctionChain|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_MaskElementCanBeMaskedByAnotherMask|FullyQualifiedName~SvgResourceRenderingParityTests.RetainedSceneGraph_RootSvgClipPathClipsDocumentContent"` passed 5.
   - `dotnet format Svg.Skia.slnx --no-restore`
   - Completed; formatter-only `externals/SVG` submodule changes were restored.
   - `dotnet build Svg.Skia.slnx -c Release`
