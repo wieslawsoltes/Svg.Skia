@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Wiesław Šoltés. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for details.
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace ShimSkiaSharp;
@@ -67,21 +68,30 @@ public record MoveToPathCommand(float X, float Y) : PathCommand;
 
 public record QuadToPathCommand(float X0, float Y0, float X1, float Y1) : PathCommand;
 
-public class SKPath : ICloneable, IDeepCloneable<SKPath>
+public class SKPath : ICloneable, IDeepCloneable<SKPath>, IList<PathCommand>
 {
+    private const int InlineCommandCapacity = 2;
+
     private SKPathFillType _fillType;
     private SKRect _cachedBounds;
     private int _cachedBoundsVersion = -1;
     private int _version;
-    private ChangeTrackingList<PathCommand>? _commands;
+    private List<PathCommand>? _commands;
+    private PathCommand? _command0;
+    private PathCommand? _command1;
+    private int _commandCount;
 
-    public IList<PathCommand>? Commands => _commands;
+    public IList<PathCommand>? Commands => this;
 
-    public bool IsEmpty => _commands is null || _commands.Count == 0;
+    public bool IsEmpty => Count == 0;
 
     public SKRect Bounds => GetBounds();
 
     internal int Version => _version;
+
+    public int Count => _commands?.Count ?? _commandCount;
+
+    public bool IsReadOnly => false;
 
     public SKPathFillType FillType
     {
@@ -100,7 +110,47 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
 
     public SKPath()
     {
-        _commands = new ChangeTrackingList<PathCommand>(IncrementVersion);
+    }
+
+    public PathCommand this[int index]
+    {
+        get
+        {
+            if (_commands is not null)
+            {
+                return _commands[index];
+            }
+
+            return index switch
+            {
+                0 when _commandCount > 0 => _command0!,
+                1 when _commandCount > 1 => _command1!,
+                _ => throw new ArgumentOutOfRangeException(nameof(index))
+            };
+        }
+        set
+        {
+            if (_commands is not null)
+            {
+                _commands[index] = value;
+                IncrementVersion();
+                return;
+            }
+
+            switch (index)
+            {
+                case 0 when _commandCount > 0:
+                    _command0 = value;
+                    break;
+                case 1 when _commandCount > 1:
+                    _command1 = value;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
+            IncrementVersion();
+        }
     }
 
     public SKPath Clone() => DeepClone(new CloneContext());
@@ -120,9 +170,10 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
         context.Add(this, clone);
 
         clone.FillType = FillType;
-        clone._commands = new ChangeTrackingList<PathCommand>(
-            CloneHelpers.CloneList(_commands, context, command => command.DeepClone(context)),
-            clone.IncrementVersion);
+        for (var i = 0; i < Count; i++)
+        {
+            clone.AddInitial(this[i].DeepClone(context));
+        }
 
         return clone;
     }
@@ -152,13 +203,12 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
     private SKRect ComputeBounds(out bool canCache)
     {
         canCache = true;
-        var commands = _commands;
-        if (commands is null || commands.Count == 0)
+        if (Count == 0)
         {
             return SKRect.Empty;
         }
 
-        var commandCount = commands.Count;
+        var commandCount = Count;
         var bounds = new SKRect(float.MaxValue, float.MaxValue, float.MinValue, float.MinValue);
 
         var last = new SKPoint();
@@ -166,7 +216,7 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
 
         for (var i = 0; i < commandCount; i++)
         {
-            var pathCommand = commands[i];
+            var pathCommand = this[i];
             switch (pathCommand)
             {
                 case MoveToPathCommand moveToPathCommand:
@@ -311,36 +361,340 @@ public class SKPath : ICloneable, IDeepCloneable<SKPath>
         return bounds;
     }
 
+    public void Add(PathCommand item)
+    {
+        if (_commands is not null)
+        {
+            _commands.Add(item);
+            IncrementVersion();
+            return;
+        }
+
+        if (_commandCount < InlineCommandCapacity)
+        {
+            SetInline(_commandCount, item);
+            _commandCount++;
+            IncrementVersion();
+            return;
+        }
+
+        PromoteToList(_commandCount + 1);
+        _commands!.Add(item);
+        IncrementVersion();
+    }
+
+    public void Clear()
+    {
+        if (Count == 0)
+        {
+            return;
+        }
+
+        if (_commands is not null)
+        {
+            _commands.Clear();
+        }
+        else
+        {
+            ClearInline();
+        }
+
+        IncrementVersion();
+    }
+
+    public bool Contains(PathCommand item)
+    {
+        return _commands is not null
+            ? _commands.Contains(item)
+            : IndexOfInline(item) >= 0;
+    }
+
+    public void CopyTo(PathCommand[] array, int arrayIndex)
+    {
+        if (_commands is not null)
+        {
+            _commands.CopyTo(array, arrayIndex);
+            return;
+        }
+
+        if (array is null)
+        {
+            throw new ArgumentNullException(nameof(array));
+        }
+
+        if (arrayIndex < 0 || array.Length - arrayIndex < _commandCount)
+        {
+            throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+        }
+
+        if (_commandCount > 0)
+        {
+            array[arrayIndex] = _command0!;
+        }
+
+        if (_commandCount > 1)
+        {
+            array[arrayIndex + 1] = _command1!;
+        }
+    }
+
+    public IEnumerator<PathCommand> GetEnumerator()
+    {
+        return _commands is not null
+            ? _commands.GetEnumerator()
+            : new InlineCommandEnumerator(_command0, _command1, _commandCount);
+    }
+
+    public int IndexOf(PathCommand item)
+    {
+        return _commands is not null
+            ? _commands.IndexOf(item)
+            : IndexOfInline(item);
+    }
+
+    public void Insert(int index, PathCommand item)
+    {
+        if (_commands is not null)
+        {
+            _commands.Insert(index, item);
+            IncrementVersion();
+            return;
+        }
+
+        if (index < 0 || index > _commandCount)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        if (_commandCount >= InlineCommandCapacity)
+        {
+            PromoteToList(_commandCount + 1);
+            _commands!.Insert(index, item);
+            IncrementVersion();
+            return;
+        }
+
+        if (index == 0)
+        {
+            _command1 = _command0;
+            _command0 = item;
+        }
+        else
+        {
+            _command1 = item;
+        }
+
+        _commandCount++;
+        IncrementVersion();
+    }
+
+    public bool Remove(PathCommand item)
+    {
+        if (_commands is not null)
+        {
+            var removed = _commands.Remove(item);
+            if (removed)
+            {
+                IncrementVersion();
+            }
+
+            return removed;
+        }
+
+        var index = IndexOfInline(item);
+        if (index < 0)
+        {
+            return false;
+        }
+
+        RemoveAt(index);
+        return true;
+    }
+
+    public void RemoveAt(int index)
+    {
+        if (_commands is not null)
+        {
+            _commands.RemoveAt(index);
+            IncrementVersion();
+            return;
+        }
+
+        if (index < 0 || index >= _commandCount)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        if (index == 0 && _commandCount > 1)
+        {
+            _command0 = _command1;
+        }
+
+        _command1 = default;
+        _commandCount--;
+        if (_commandCount == 0)
+        {
+            _command0 = default;
+        }
+
+        IncrementVersion();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
     public void MoveTo(float x, float y)
-        => _commands?.Add(new MoveToPathCommand(x, y));
+        => Add(new MoveToPathCommand(x, y));
 
     public void LineTo(float x, float y)
-        => _commands?.Add(new LineToPathCommand(x, y));
+        => Add(new LineToPathCommand(x, y));
 
     public void ArcTo(float rx, float ry, float xAxisRotate, SKPathArcSize largeArc, SKPathDirection sweep, float x, float y)
-        => _commands?.Add(new ArcToPathCommand(rx, ry, xAxisRotate, largeArc, sweep, x, y));
+        => Add(new ArcToPathCommand(rx, ry, xAxisRotate, largeArc, sweep, x, y));
 
     public void QuadTo(float x0, float y0, float x1, float y1)
-        => _commands?.Add(new QuadToPathCommand(x0, y0, x1, y1));
+        => Add(new QuadToPathCommand(x0, y0, x1, y1));
 
     public void CubicTo(float x0, float y0, float x1, float y1, float x2, float y2)
-        => _commands?.Add(new CubicToPathCommand(x0, y0, x1, y1, x2, y2));
+        => Add(new CubicToPathCommand(x0, y0, x1, y1, x2, y2));
 
     public void Close()
-        => _commands?.Add(new ClosePathCommand());
+        => Add(new ClosePathCommand());
 
     public void AddRect(SKRect rect)
-        => _commands?.Add(new AddRectPathCommand(rect));
+        => Add(new AddRectPathCommand(rect));
 
     public void AddRoundRect(SKRect rect, float rx, float ry)
-        => _commands?.Add(new AddRoundRectPathCommand(rect, rx, ry));
+        => Add(new AddRoundRectPathCommand(rect, rx, ry));
 
     public void AddOval(SKRect rect)
-        => _commands?.Add(new AddOvalPathCommand(rect));
+        => Add(new AddOvalPathCommand(rect));
 
     public void AddCircle(float x, float y, float radius)
-        => _commands?.Add(new AddCirclePathCommand(x, y, radius));
+        => Add(new AddCirclePathCommand(x, y, radius));
 
     public void AddPoly(SKPoint[] points, bool close = true)
-        => _commands?.Add(new AddPolyPathCommand(points, close));
+        => Add(new AddPolyPathCommand(points, close));
+
+    private void AddInitial(PathCommand item)
+    {
+        if (_commands is not null)
+        {
+            _commands.Add(item);
+            return;
+        }
+
+        if (_commandCount < InlineCommandCapacity)
+        {
+            SetInline(_commandCount, item);
+            _commandCount++;
+            return;
+        }
+
+        PromoteToList(_commandCount + 1);
+        _commands!.Add(item);
+    }
+
+    private void SetInline(int index, PathCommand item)
+    {
+        if (index == 0)
+        {
+            _command0 = item;
+        }
+        else
+        {
+            _command1 = item;
+        }
+    }
+
+    private void ClearInline()
+    {
+        _command0 = default;
+        _command1 = default;
+        _commandCount = 0;
+    }
+
+    private int IndexOfInline(PathCommand item)
+    {
+        var comparer = EqualityComparer<PathCommand>.Default;
+        if (_commandCount > 0 && comparer.Equals(_command0!, item))
+        {
+            return 0;
+        }
+
+        if (_commandCount > 1 && comparer.Equals(_command1!, item))
+        {
+            return 1;
+        }
+
+        return -1;
+    }
+
+    private void PromoteToList(int capacity)
+    {
+        var commands = new List<PathCommand>(capacity);
+        if (_commandCount > 0)
+        {
+            commands.Add(_command0!);
+        }
+
+        if (_commandCount > 1)
+        {
+            commands.Add(_command1!);
+        }
+
+        _command0 = default;
+        _command1 = default;
+        _commandCount = 0;
+        _commands = commands;
+    }
+
+    private sealed class InlineCommandEnumerator : IEnumerator<PathCommand>
+    {
+        private readonly PathCommand? _command0;
+        private readonly PathCommand? _command1;
+        private readonly int _count;
+        private int _index = -1;
+
+        public InlineCommandEnumerator(PathCommand? command0, PathCommand? command1, int count)
+        {
+            _command0 = command0;
+            _command1 = command1;
+            _count = count;
+        }
+
+        public PathCommand Current
+        {
+            get
+            {
+                return _index switch
+                {
+                    0 => _command0!,
+                    1 => _command1!,
+                    _ => throw new InvalidOperationException()
+                };
+            }
+        }
+
+        object? IEnumerator.Current => Current;
+
+        public bool MoveNext()
+        {
+            if (_index + 1 >= _count)
+            {
+                return false;
+            }
+
+            _index++;
+            return true;
+        }
+
+        public void Reset()
+        {
+            _index = -1;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
 }
