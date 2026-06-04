@@ -67,6 +67,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Closed line-only SVG path conversion for generated path-heavy scenes.
 - Versioned shim path-bounds caching for retained compile bounds scans.
 - Small `AddPoly` native path revision-key reuse for generated path-heavy replay.
+- Transform-only simple shape group flattening for retained command streams and native replay.
 - Benchmark and profiling support for focused performance regression checks.
 - Explicit resvg non-text fixture grouping so remaining disabled rows are easier to audit by feature area.
 
@@ -165,6 +166,7 @@ The branch focuses on cases found while validating the resource parity lane:
 - Added versioned `SKPath.Bounds` caching for command sequences whose command data is stable, while continuing to recompute `AddPoly` paths whose point lists can be mutated by callers.
 - Kept the shim path command storage concrete internally so bounds scans avoid interface enumeration allocation while preserving the public `IList<PathCommand>? Commands` surface.
 - Reused the small `AddPoly` native path value-cache key to derive one-command small-poly path revisions, avoiding a second point-list hash pass while preserving mutable-point invalidation.
+- Flattened transform-only retained groups whose children are simple solid-filled leaf paths by pre-transforming rectangle, polygon, and closed line-only path commands during retained recording; this removes save/set-matrix/restore command wrappers and simple leaf opacity save-layers while preserving source-element metadata and keeping clips, masks, filters, strokes, blend modes, isolation, nested children, shaders, and complex paths on the existing rendering path.
 
 Focused benchmark results for W3C-safe primitive fill replay:
 
@@ -189,6 +191,20 @@ Focused small `AddPoly` revision-key reuse measurements:
 
 - `ReplayFullModelIntoRecorderCanvasUsingCurrentLoop | generated-shapes-1024`: `1,993.8 us / 1.63 KB` to `1,149 us / 1.63 KB`.
 - `ReplayFullModelIntoRecorderCanvasUsingCurrentLoop | generated-filtered-shapes-256`: `2,543.4 us / 51.69 KB` to `1,985 us / 51.69 KB`.
+
+Focused transform-only simple shape group flattening measurements:
+
+- `DrawNativePicture1x | generated-shapes-1024`: `4.985 ms` to `1.403 ms`.
+- `DrawNativePicture1x | generated-filtered-shapes-256`: `3.054 ms` to `1.357 ms`.
+- `DrawNativePicture1x | generated-text-path-curves-96`: `4.372 ms` to `2.322 ms`.
+- `DrawNativePicture1x | generated-inline-styles-512`: `1.376 ms` to `751.7 us`.
+- `DrawNativePicture1x | generated-flood-filters-256`: `339.6 us` to `192.3 us`.
+- `CreateNativePictureFromFullModel | generated-shapes-1024`: latest focused run measured `185.5 us / 1.63 KB`.
+- `CreateNativePictureFromFullModel | generated-filtered-shapes-256`: latest focused run measured `1.541 ms / 51.69 KB`.
+- `CreateNativePictureFromFullModel | generated-text-path-curves-96`: latest focused run measured `132.5 us / 112.52 KB`.
+- `CompileNodeTreeOnly | generated-shapes-1024`: `11.118 ms / 4168.41 KB` to `5.388 ms / 4168.43 KB`.
+- `CompileNodeTreeOnly | generated-filtered-shapes-256`: `2.291 ms / 970.12 KB` to `851.3 us / 970.11 KB`.
+- `CompileNodeTreeOnly | generated-text-path-curves-96`: `10.431 ms / 6934.63 KB` to `5.739 ms / 6934.46 KB` in a noisy short run.
 
 Focused layer-depth replay-state measurements:
 
@@ -1059,5 +1075,22 @@ Focused simple natural text advance cache-hit measurements:
 - Focused W3C retained-suite check:
   - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-restore --filter "FullyQualifiedName~W3CTestSuiteTests.Tests"`
   - Passed 523, skipped 3.
+- Focused transform-only simple shape group validation:
+  - `dotnet build src/Svg.SceneGraph/Svg.SceneGraph.csproj -c Release --no-restore`
+  - Build passed with no warnings.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --filter "FullyQualifiedName~SvgRetainedSceneGraphTests.RetainedSceneGraph_FoldsSimpleTransformOnlyShapeGroups"`
+  - Passed 1.
+  - `dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -f net10.0 -c Release --no-build --filter "FullyQualifiedName~SvgRetainedSceneGraphTests|FullyQualifiedName~SvgResourceRenderingParityTests|FullyQualifiedName~SKSvgRebuildFromModelTests"`
+  - Passed 393.
+  - Before draw: `SVG_SKIA_BENCHMARK_RUN_LABEL=current-render-draw-hotspots-after-node-dependencies SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-flood-filters-256,generated-filtered-shapes-256,generated-inline-styles-512,generated-text-path-curves-96 dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRenderBitmapBenchmarks.DrawNativePicture1x*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - After draw: `SVG_SKIA_BENCHMARK_RUN_LABEL=transform-only-simple-shape-fold-draw SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-flood-filters-256,generated-filtered-shapes-256,generated-inline-styles-512,generated-text-path-curves-96 dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRenderBitmapBenchmarks.DrawNativePicture1x*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - Retained compile: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=transform-only-simple-shape-fold-retained-compile dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgRetainedSceneCompileBenchmarks.CompileNodeTreeOnly*" --warmupCount 1 --minIterationCount 2 --maxIterationCount 3`
+  - Native picture: `SVG_SKIA_BENCHMARK_SCENARIOS=generated-shapes-1024,generated-filtered-shapes-256,generated-text-path-curves-96 SVG_SKIA_BENCHMARK_RUN_LABEL=transform-only-simple-shape-fold-native-picture dotnet run -c Release -f net10.0 --project tests/Svg.Skia.Benchmarks/Svg.Skia.Benchmarks.csproj -- --filter "*SvgNativeSkPictureBenchmarks.CreateNativePictureFromFullModel*" --warmupCount 3 --minIterationCount 6 --maxIterationCount 12`
+  - `dotnet format Svg.Skia.slnx --no-restore`
+  - Completed; formatter-only `externals/SVG` submodule changes were restored.
+  - `dotnet build Svg.Skia.slnx -c Release`
+  - Build passed with 293 existing warnings.
+  - `dotnet test Svg.Skia.slnx -c Release`
+  - `Svg.Skia.UnitTests`: Passed 2598, skipped 40; other test projects passed.
 
 The release build currently reports existing warnings only, including package vulnerability warnings and existing nullable/obsolete API warnings. No build errors were reported.
