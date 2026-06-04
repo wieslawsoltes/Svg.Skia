@@ -36,6 +36,8 @@ public sealed class SvgSceneDocument
     private bool _mayContainReferenceDependencies = true;
     private bool _mayContainMarkerReferenceDeclarations = true;
     private bool _mayContainClipPathDeclarations = true;
+    private bool _mayContainMaskDeclarations = true;
+    private bool _mayContainFilterDeclarations = true;
     private bool _useOnDemandSubtreeCompilationRoots;
     private int _addressableElementCount;
 
@@ -401,12 +403,14 @@ public sealed class SvgSceneDocument
     private void RebuildIndexesAndDependencies(bool? knownMarkerReferenceDeclarations)
     {
         var addressKeyCache = new SvgElementAddressKeyCache();
-        var (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, addressableElementCount, elementIdCount) =
+        var (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, hasMaskDeclarations, hasFilterDeclarations, addressableElementCount, elementIdCount) =
             AnalyzeDependencyRequirements(knownMarkerReferenceDeclarations);
         _mayContainResourceElements = hasResourceElements;
         _mayContainReferenceDependencies = hasReferenceDependencies;
         _mayContainMarkerReferenceDeclarations = hasMarkerReferenceDeclarations;
         _mayContainClipPathDeclarations = hasClipPathDeclarations;
+        _mayContainMaskDeclarations = hasMaskDeclarations;
+        _mayContainFilterDeclarations = hasFilterDeclarations;
         _addressableElementCount = addressableElementCount;
         ClearIndexesAndDependencies();
         EnsureIndexCapacity(addressableElementCount, elementIdCount);
@@ -702,17 +706,23 @@ public sealed class SvgSceneDocument
         }
     }
 
-    private (bool HasResourceElements, bool HasReferenceDependencies, bool HasMarkerReferenceDeclarations, bool HasClipPathDeclarations, int AddressableElementCount, int ElementIdCount) AnalyzeDependencyRequirements(bool? knownMarkerReferenceDeclarations)
+    private (bool HasResourceElements, bool HasReferenceDependencies, bool HasMarkerReferenceDeclarations, bool HasClipPathDeclarations, bool HasMaskDeclarations, bool HasFilterDeclarations, int AddressableElementCount, int ElementIdCount) AnalyzeDependencyRequirements(bool? knownMarkerReferenceDeclarations)
     {
         if (SourceDocument is null)
         {
-            return (false, false, false, false, 0, 0);
+            return (false, false, false, false, false, false, 0, 0);
         }
 
+        var featureFlags = SourceDocument.GetCascadedStyleFeatureFlags(
+            SvgCascadedStyleFeatureFlags.ClipPath |
+            SvgCascadedStyleFeatureFlags.Mask |
+            SvgCascadedStyleFeatureFlags.Filter);
         var hasResourceElements = false;
         var hasReferenceDependencies = false;
         var hasMarkerReferenceDeclarations = knownMarkerReferenceDeclarations.GetValueOrDefault();
-        var hasClipPathDeclarations = false;
+        var hasClipPathDeclarations = (featureFlags & SvgCascadedStyleFeatureFlags.ClipPath) != 0;
+        var hasMaskDeclarations = (featureFlags & SvgCascadedStyleFeatureFlags.Mask) != 0;
+        var hasFilterDeclarations = (featureFlags & SvgCascadedStyleFeatureFlags.Filter) != 0;
         var addressableElementCount = 0;
         var elementIdCount = 0;
         var traversalStack = _elementTraversalStack;
@@ -745,12 +755,6 @@ public sealed class SvgSceneDocument
                 hasMarkerReferenceDeclarations = true;
             }
 
-            if (!hasClipPathDeclarations &&
-                SvgSceneCompiler.HasOwnClipPathDeclarationCandidate(element))
-            {
-                hasClipPathDeclarations = true;
-            }
-
             if (!hasReferenceDependencies &&
                 SvgSceneCompiler.MayReferenceOtherElements(element, hasMarkerReferenceDeclarations, hasClipPathDeclarations))
             {
@@ -773,7 +777,7 @@ public sealed class SvgSceneDocument
 
         traversalStack.Clear();
 
-        return (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, addressableElementCount, elementIdCount);
+        return (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, hasMaskDeclarations, hasFilterDeclarations, addressableElementCount, elementIdCount);
     }
 
     private bool TryGetOnDemandSubtreeCompilationRoots(string addressKey, out CompilationRootKeySet compilationRootKeys)
@@ -1095,6 +1099,17 @@ public sealed class SvgSceneDocument
         opacityPaintCache ??= new Dictionary<float, SKPaint>();
         solidFillPaintCache ??= new Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint>();
 
+        var useDocumentFeatureHints = ReferenceEquals(root, Root);
+        var mayContainClipPathDeclarations = useDocumentFeatureHints
+            ? _mayContainClipPathDeclarations
+            : true;
+        var mayContainMaskDeclarations = useDocumentFeatureHints
+            ? _mayContainMaskDeclarations
+            : true;
+        var mayContainFilterDeclarations = useDocumentFeatureHints
+            ? _mayContainFilterDeclarations
+            : true;
+
         var traversalStack = _runtimePayloadTraversalStackInUse
             ? new Stack<SvgSceneNode>()
             : _runtimePayloadTraversalStack;
@@ -1108,7 +1123,16 @@ public sealed class SvgSceneDocument
             while (traversalStack.Count > 0)
             {
                 var node = traversalStack.Pop();
-                ResolveRuntimePayload(node, refreshRetainedMetadata, addressKeyCache, gradientPaintCache, opacityPaintCache, solidFillPaintCache);
+                ResolveRuntimePayload(
+                    node,
+                    refreshRetainedMetadata,
+                    addressKeyCache,
+                    gradientPaintCache,
+                    opacityPaintCache,
+                    solidFillPaintCache,
+                    mayContainClipPathDeclarations,
+                    mayContainMaskDeclarations,
+                    mayContainFilterDeclarations);
 
                 for (var i = node.Children.Count - 1; i >= 0; i--)
                 {
@@ -1129,7 +1153,10 @@ public sealed class SvgSceneDocument
         SvgElementAddressKeyCache? addressKeyCache,
         SvgScenePaintingService.GradientPaintCache gradientPaintCache,
         Dictionary<float, SKPaint> opacityPaintCache,
-        Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> solidFillPaintCache)
+        Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint> solidFillPaintCache,
+        bool mayContainClipPathDeclarations,
+        bool mayContainMaskDeclarations,
+        bool mayContainFilterDeclarations)
     {
         if (!node.IsRenderable || node.Element is not SvgElement element)
         {
@@ -1169,7 +1196,8 @@ public sealed class SvgSceneDocument
         node.MaskPaint = null;
         node.MaskDstIn = null;
 
-        if (!IgnoreAttributes.HasFlag(DrawAttributes.Mask))
+        if (mayContainMaskDeclarations &&
+            !IgnoreAttributes.HasFlag(DrawAttributes.Mask))
         {
             if (ResolveMaskPayload(node) is { } maskPayload)
             {
@@ -1179,14 +1207,15 @@ public sealed class SvgSceneDocument
             }
         }
 
-        if (IgnoreAttributes.HasFlag(DrawAttributes.ClipPath))
+        if (IgnoreAttributes.HasFlag(DrawAttributes.ClipPath) ||
+            !mayContainClipPathDeclarations)
         {
             node.ClipPath = null;
         }
         else
         {
             var clipPath = ResolveClipPath(node);
-            node.ClipPath = clipPath is not null || !_mayContainClipPathDeclarations
+            node.ClipPath = clipPath is not null || !mayContainClipPathDeclarations
                 ? clipPath
                 : SvgSceneClipCompiler.CompileBasicShapeClipPath(element, node.GeometryBounds, CompilationViewport);
         }
@@ -1195,10 +1224,11 @@ public sealed class SvgSceneDocument
         {
             var hasOwnPaintPayload = HasOwnPaintPayload(node);
             var resolveFillPayload = hasOwnPaintPayload && RequiresResolvedFillPayload(node);
-            var hasFillPayload = node.Kind == SvgSceneNodeKind.Text
+            var canUseRetainedPaintHitTestFlags = CanUseRetainedPaintHitTestFlags(node);
+            var hasFillPayload = canUseRetainedPaintHitTestFlags
                 ? node.SupportsFillHitTest
                 : SvgScenePaintingService.IsValidFill(visualElement);
-            var hasStrokePayload = node.Kind == SvgSceneNodeKind.Text
+            var hasStrokePayload = canUseRetainedPaintHitTestFlags
                 ? node.SupportsStrokeHitTest
                 : SvgScenePaintingService.IsValidStroke(visualElement, node.GeometryBounds);
             node.Fill = resolveFillPayload && hasFillPayload
@@ -1215,7 +1245,8 @@ public sealed class SvgSceneDocument
             node.FilterGlobalClip = null;
             node.SuppressSubtreeRendering = false;
 
-            if (!IgnoreAttributes.HasFlag(DrawAttributes.Filter))
+            if (mayContainFilterDeclarations &&
+                !IgnoreAttributes.HasFlag(DrawAttributes.Filter))
             {
                 if (ResolveFilterPayload(node) is { } filterPayload)
                 {
@@ -1290,6 +1321,11 @@ public sealed class SvgSceneDocument
     {
         return node.Kind != SvgSceneNodeKind.Text ||
                node.HitTestPath is not null;
+    }
+
+    private static bool CanUseRetainedPaintHitTestFlags(SvgSceneNode node)
+    {
+        return node.Kind is SvgSceneNodeKind.Path or SvgSceneNodeKind.Shape or SvgSceneNodeKind.Text;
     }
 
     private ClipPath? ResolveClipPath(SvgSceneNode node)
