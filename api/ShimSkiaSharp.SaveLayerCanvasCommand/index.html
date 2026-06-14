@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.ff9fd5cf112f176f359456decc1b9aa3.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-918,menu-id-menu-516' data-lunet-menu-active='menu-item-menu-918,menu-item-menu-516,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.b1f6f868b075fd7052a64d8a6b3f0f40.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-941,menu-id-menu-516' data-lunet-menu-active='menu-item-menu-941,menu-item-menu-516,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -155,7 +155,7 @@
 <div><span class="api-dotnet-label">Implements</span> <span class="api-dotnet-inline-list"><a href="/Svg.Skia/api/ShimSkiaSharp.IDeepCloneable-1/">IDeepCloneable&lt;T&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1">IEquatable&lt;CanvasCommand&gt;</a>, <a href="https://docs.microsoft.com/en-us/dotnet/api/System.IEquatable-1">IEquatable&lt;SaveLayerCanvasCommand&gt;</a></span></div>
 </div>
 <div class="api-dotnet-definition-actions">
-<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/src/ShimSkiaSharp/SKCanvas.cs#L83" target="_blank" rel="noopener">View source</a>
+<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/src/ShimSkiaSharp/SKCanvas.cs#L113" target="_blank" rel="noopener">View source</a>
 </div>
 </div>
 <details class="api-dotnet-inherited">
@@ -175,7 +175,7 @@
 </ul>
 </details>
 </div>
-<pre><code class="language-csharp">public record SaveLayerCanvasCommand(int Count, SKPaint? Paint = null) : CanvasCommand, IDeepCloneable&lt;CanvasCommand&gt;, IEquatable&lt;CanvasCommand&gt;, IEquatable&lt;SaveLayerCanvasCommand&gt;
+<pre><code class="language-csharp">public record SaveLayerCanvasCommand(int Count, SKPaint? Paint = null, SKRect? Bounds = default(SKRect? )) : CanvasCommand, IDeepCloneable&lt;CanvasCommand&gt;, IEquatable&lt;CanvasCommand&gt;, IEquatable&lt;SaveLayerCanvasCommand&gt;
 </code></pre>
 <div class="api-dotnet-member-filter" data-api-dotnet-filter>
 <div class="api-dotnet-member-filter-row">
@@ -187,10 +187,11 @@
 </div>
 <h2 id="constructors">Constructors <span class="api-dotnet-count">(1)</span></h2>
 <div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="constructors">
-<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Constructor"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/ShimSkiaSharp.SaveLayerCanvasCommand.-ctor-System.Int32-ShimSkiaSharp.SKPaint/"><i class="bi bi-hammer api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SaveLayerCanvasCommand(Int32, SKPaint?)</code></a></div>
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Constructor"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/ShimSkiaSharp.SaveLayerCanvasCommand.-ctor-System.Int32-ShimSkiaSharp.SKPaint-Syste-c57f8710c119/"><i class="bi bi-hammer api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">SaveLayerCanvasCommand(Int32, SKPaint?, Nullable&lt;SKRect&gt;)</code></a></div>
 </div>
-<h2 id="properties">Properties <span class="api-dotnet-count">(2)</span></h2>
+<h2 id="properties">Properties <span class="api-dotnet-count">(3)</span></h2>
 <div class="api-dotnet-members list-group list-group-flush" data-api-dotnet-members="properties">
+<div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/ShimSkiaSharp.SaveLayerCanvasCommand.Bounds/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Bounds</code></a></div>
 <div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/ShimSkiaSharp.SaveLayerCanvasCommand.Count/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Count</code></a></div>
 <div class="api-dotnet-member-item list-group-item api-dotnet-member-item-has-link" data-api-kind="Property"><a class="api-dotnet-member-title api-dotnet-member-title-link" href="/Svg.Skia/api/ShimSkiaSharp.SaveLayerCanvasCommand.Paint/"><i class="bi bi-sliders api-dotnet-kind-icon" aria-hidden="true"></i><code class="api-dotnet-member-name">Paint</code></a></div>
 </div>
