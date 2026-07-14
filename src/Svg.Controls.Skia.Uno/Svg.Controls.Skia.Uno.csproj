@@ -25,6 +25,7 @@
   </PropertyGroup>
 
   <Import Project="..\..\build\SourceLink.props" />
+  <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
 
   <ItemGroup>
