@@ -200,6 +200,16 @@ public class SvgSourceTests
     }
 
     [AvaloniaFact]
+    public void NormalizePath_SchemeRelativePath_PreservesAuthority()
+    {
+        var uri = SvgSource.NormalizePath(
+            "//cdn.example.com/icon.svg",
+            new Uri("https://app.example.com/Assets/Icon.svg"));
+
+        Assert.Equal("https://cdn.example.com/icon.svg", uri.ToString());
+    }
+
+    [AvaloniaFact]
     public void TypeConverter_String_CreatesPathBackedSourceWithoutEagerLoad()
     {
         var path = CreateTempSvgFile(SampleSvg);
