@@ -11,6 +11,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Svg.Skia;
+using Avalonia.Svg.Skia.UnitTests.Views;
 using Avalonia.Threading;
 using ShimSkiaSharp;
 using ShimSkiaSharp.Editing;
@@ -277,6 +278,43 @@ public class SvgControlTests
         await WaitForSourceChangeAsync(svg, initialPicture);
 
         Assert.Equal(new SKColor(0, 128, 255, 255), GetFirstFillColor(svg.SkSvg));
+    }
+
+    [AvaloniaFact]
+    public async Task XamlPath_AppliesInlineAndStyledRecolorOverrides()
+    {
+        var view = new Issue545RecolorView();
+        var window = new Window
+        {
+            Content = view
+        };
+
+        window.Show();
+        try
+        {
+            await WaitForSourceAsync(view.InlineCurrentColorControl);
+            await WaitForSourceAsync(view.InlineCssControl);
+            await WaitForSourceAsync(view.StyledCurrentColorControl);
+            await WaitForSourceAsync(view.StyledCssControl);
+            await WaitForPendingLoadToClearAsync(view.InlineCurrentColorControl);
+            await WaitForPendingLoadToClearAsync(view.InlineCssControl);
+            await WaitForPendingLoadToClearAsync(view.StyledCurrentColorControl);
+            await WaitForPendingLoadToClearAsync(view.StyledCssControl);
+            var currentColor = new SKColor(0, 128, 255, 255);
+            var cssColor = new SKColor(0, 255, 0, 255);
+            Assert.Equal(Color.FromRgb(0, 128, 255), view.InlineCurrentColorControl.CurrentColor);
+            Assert.Equal("rect { fill: #00FF00; }", Svg.GetCss(view.InlineCssControl));
+            Assert.Equal(Color.FromRgb(0, 128, 255), view.StyledCurrentColorControl.CurrentColor);
+            Assert.Equal("rect { fill: #00FF00; }", Svg.GetCss(view.StyledCssControl));
+            Assert.Equal(currentColor, GetFirstFillColor(view.InlineCurrentColorControl.SkSvg));
+            Assert.Equal(cssColor, GetFirstFillColor(view.InlineCssControl.SkSvg));
+            Assert.Equal(currentColor, GetFirstFillColor(view.StyledCurrentColorControl.SkSvg));
+            Assert.Equal(cssColor, GetFirstFillColor(view.StyledCssControl.SkSvg));
+        }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [AvaloniaFact]

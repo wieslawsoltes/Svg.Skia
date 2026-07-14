@@ -132,6 +132,26 @@ public class SvgSourceTests
     }
 
     [AvaloniaFact]
+    public async Task LoadAsync_RootRelativeResource_AppliesCurrentColor()
+    {
+        var baseUri = new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/Views/Issue545RecolorView.axaml");
+        var currentColor = System.Drawing.Color.FromArgb(255, 0, 128, 255);
+        var parameters = new SvgParameters(null, null, currentColor);
+
+        using var source = await SvgSource.LoadAsync(
+            "/Assets/Issue545CurrentColor.svg",
+            baseUri,
+            parameters);
+
+        Assert.NotNull(source.Svg);
+        Assert.Equal(currentColor, source.Parameters?.CurrentColor);
+        var command = source.Svg.Model?
+            .FindCommands<DrawPathCanvasCommand>()
+            .FirstOrDefault(x => x.Paint?.Style == SKPaintStyle.Fill);
+        Assert.Equal(new SKColor(0, 128, 255, 255), command?.Paint?.Color);
+    }
+
+    [AvaloniaFact]
     public async Task ReLoadAsync_PathBackedSource_PreservesPicture()
     {
         var path = CreateTempSvgFile(SampleSvg);
@@ -165,6 +185,16 @@ public class SvgSourceTests
     public void NormalizePath_RelativePath_UsesBaseUri()
     {
         var uri = SvgSource.NormalizePath("Assets/Icon.svg", new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/"));
+
+        Assert.Equal("avares://Svg.Controls.Skia.Avalonia.UnitTests/Assets/Icon.svg", uri.ToString());
+    }
+
+    [AvaloniaFact]
+    public void NormalizePath_RootRelativePath_UsesBaseUriAuthority()
+    {
+        var uri = SvgSource.NormalizePath(
+            "/Assets/Icon.svg",
+            new Uri("avares://Svg.Controls.Skia.Avalonia.UnitTests/Views/Sample.axaml"));
 
         Assert.Equal("avares://Svg.Controls.Skia.Avalonia.UnitTests/Assets/Icon.svg", uri.ToString());
     }

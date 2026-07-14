@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Avalonia.Svg.Skia.UnitTests.Views.Issue545RecolorView">
+  <UserControl.Styles>
+    <Style Selector="Svg.current-color-style">
+      <Setter Property="CurrentColor" Value="#FF0080FF" />
+    </Style>
+    <Style Selector="Svg.css-style">
+      <Setter Property="(Svg.Css)" Value="rect { fill: #00FF00; }" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel>
+    <Svg x:Name="InlineCurrentColor"
+         Width="10"
+         Height="10"
+         Path="/Assets/Issue545CurrentColor.svg"
+         CurrentColor="#FF0080FF" />
+    <Svg x:Name="InlineCss"
+         Width="10"
+         Height="10"
+         Path="/Assets/Issue545Css.svg"
+         Css="rect { fill: #00FF00; }" />
+    <Svg x:Name="StyledCurrentColor"
+         Width="10"
+         Height="10"
+         Path="/Assets/Issue545CurrentColor.svg"
+         Classes="current-color-style" />
+    <Svg x:Name="StyledCss"
+         Width="10"
+         Height="10"
+         Path="/Assets/Issue545Css.svg"
+         Classes="css-style" />
+  </StackPanel>
+</UserControl>
