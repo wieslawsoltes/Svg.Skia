@@ -587,7 +587,8 @@ public partial class SkiaModel
                 var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
                 if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                 {
-                    return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, candidate, providerTypeface));
+                    var resolvedProviderTypeface = ApplyVariableFontWeight(providerTypeface, style);
+                    return CacheTypefaceResolution(cacheKey, resolvedProviderTypeface, ShouldSuppressSyntheticBold(typefaceProvider, candidate, resolvedProviderTypeface));
                 }
             }
 
@@ -609,7 +610,8 @@ public partial class SkiaModel
                     var providerTypeface = ResolveProviderTypeface(typefaceProvider, candidate, fontWeight, fontWidth, fontStyle);
                     if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
                     {
-                        return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, candidate, providerTypeface));
+                        var resolvedProviderTypeface = ApplyVariableFontWeight(providerTypeface, style);
+                        return CacheTypefaceResolution(cacheKey, resolvedProviderTypeface, ShouldSuppressSyntheticBold(typefaceProvider, candidate, resolvedProviderTypeface));
                     }
                 }
 
@@ -628,7 +630,8 @@ public partial class SkiaModel
             var providerTypeface = ResolveProviderTypeface(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, fontWeight, fontWidth, fontStyle);
             if (providerTypeface is { } && providerTypeface.Handle != IntPtr.Zero)
             {
-                return CacheTypefaceResolution(cacheKey, providerTypeface, ShouldSuppressSyntheticBold(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, providerTypeface));
+                var resolvedProviderTypeface = ApplyVariableFontWeight(providerTypeface, style);
+                return CacheTypefaceResolution(cacheKey, resolvedProviderTypeface, ShouldSuppressSyntheticBold(typefaceProvider, SkiaSharp.SKTypeface.Default.FamilyName, resolvedProviderTypeface));
             }
         }
 
@@ -675,7 +678,76 @@ public partial class SkiaModel
         }
 
         restyled?.Dispose();
+
+        var varied = ApplyVariableFontWeight(resolved, style);
+        if (!ReferenceEquals(varied, resolved))
+        {
+            resolved.Dispose();
+            return varied;
+        }
+
         return resolved;
+    }
+
+    private static SkiaSharp.SKTypeface ApplyVariableFontWeight(
+        SkiaSharp.SKTypeface typeface,
+        SkiaSharp.SKFontStyle style)
+    {
+        var axes = typeface.VariationDesignParameters;
+        if (axes.Length == 0)
+        {
+            return typeface;
+        }
+
+        var weightTag = SkiaSharp.SKFourByteTag.Parse("wght");
+        var weightAxis = default(SkiaSharp.SKFontVariationAxis?);
+        for (var i = 0; i < axes.Length; i++)
+        {
+            if (axes[i].Tag == weightTag)
+            {
+                weightAxis = axes[i];
+                break;
+            }
+        }
+
+        if (weightAxis is not { } axis)
+        {
+            return typeface;
+        }
+
+        var requestedWeight = Math.Min(Math.Max(style.Weight, axis.Min), axis.Max);
+        var position = typeface.VariationDesignPosition;
+        var weightCoordinateIndex = -1;
+        for (var i = 0; i < position.Length; i++)
+        {
+            if (position[i].Axis == weightTag)
+            {
+                weightCoordinateIndex = i;
+                break;
+            }
+        }
+
+        if (weightCoordinateIndex >= 0 && position[weightCoordinateIndex].Value == requestedWeight)
+        {
+            return typeface;
+        }
+
+        if (weightCoordinateIndex < 0)
+        {
+            Array.Resize(ref position, position.Length + 1);
+            weightCoordinateIndex = position.Length - 1;
+            position[weightCoordinateIndex].Axis = weightTag;
+        }
+
+        position[weightCoordinateIndex].Value = requestedWeight;
+        var varied = typeface.Clone(position);
+        if (varied is { } && varied.Handle != IntPtr.Zero)
+        {
+            return varied;
+        }
+
+        varied?.Dispose();
+        return typeface;
     }
 
     private static bool IsExactStyleMatch(SkiaSharp.SKTypeface typeface, SkiaSharp.SKFontStyle style)
