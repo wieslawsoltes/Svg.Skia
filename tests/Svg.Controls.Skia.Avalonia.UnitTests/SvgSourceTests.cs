@@ -200,6 +200,16 @@ public class SvgSourceTests
     }
 
     [AvaloniaFact]
+    public void NormalizePath_RootRelativePath_PreservesBaseUriUserInfo()
+    {
+        var uri = SvgSource.NormalizePath(
+            "/icon.svg",
+            new Uri("https://user:pass@app.example.com/Assets/Icon.svg"));
+
+        Assert.Equal("https://user:pass@app.example.com/icon.svg", uri.ToString());
+    }
+
+    [AvaloniaFact]
     public void NormalizePath_SchemeRelativePath_PreservesAuthority()
     {
         var uri = SvgSource.NormalizePath(

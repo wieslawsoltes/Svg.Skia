@@ -212,7 +212,7 @@ public sealed class SvgSource : IDisposable
             baseUri is { IsAbsoluteUri: true } &&
             !baseUri.IsFile)
         {
-            return new Uri($"{baseUri.Scheme}://{baseUri.Authority}{path}", UriKind.Absolute);
+            return new Uri(baseUri, path);
         }
 
         if (Uri.TryCreate(path, UriKind.Absolute, out var absoluteUri))
