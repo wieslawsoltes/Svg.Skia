@@ -194,20 +194,18 @@ internal static class SvgGeometryService
 
         try
         {
-            if (TypeDescriptor.GetConverter(typeof(SvgUnit)).ConvertFromInvariantString(rawValue) is SvgUnit unit)
-            {
-                isAuto = false;
-                isAuthorSpecified = true;
-                return unit;
-            }
+            var unit = SvgUnitConverter.Parse(rawValue.AsSpan().Trim());
+
+            isAuto = false;
+            isAuthorSpecified = true;
+            return unit;
         }
         catch
         {
+            isAuto = false;
+            isAuthorSpecified = element.ContainsAttribute(propertyName);
+            return fallback;
         }
-
-        isAuto = false;
-        isAuthorSpecified = element.ContainsAttribute(propertyName);
-        return fallback;
     }
 
     private static SKPath? CreateRectanglePath(SvgRectangle svgRectangle, SvgFillRule fillRule, SKRect viewport)

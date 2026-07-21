@@ -343,26 +343,27 @@ internal static class TransformsService
 
         try
         {
-            if (TypeDescriptor.GetConverter(typeof(SvgUnit)).ConvertFromInvariantString(token) is SvgUnit unit)
-            {
-                value = unit.ToDeviceValue(
-                    isHorizontal ? UnitRenderingType.HorizontalOffset : UnitRenderingType.VerticalOffset,
-                    svgElement,
-                    referenceBox);
-                if (unit.Type != SvgUnitType.Percentage)
-                {
-                    value += isHorizontal ? referenceBox.Left : referenceBox.Top;
-                }
+            var unit = SvgUnitConverter.Parse(token.AsSpan().Trim());
 
-                return true;
+            value = unit.ToDeviceValue(
+                isHorizontal
+                    ? UnitRenderingType.HorizontalOffset
+                    : UnitRenderingType.VerticalOffset,
+                svgElement,
+                referenceBox);
+
+            if (unit.Type != SvgUnitType.Percentage)
+            {
+                value += isHorizontal ? referenceBox.Left : referenceBox.Top;
             }
+
+            return true;
         }
         catch
         {
+            value = 0f;
+            return false;
         }
-
-        value = 0f;
-        return false;
     }
 
     private static bool TryGetTransformOriginKeywordUnit(string token, bool isHorizontal, out SvgUnit unit)
