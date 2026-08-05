@@ -756,9 +756,31 @@ public partial class SkiaModel
             var font = new Font(face);
             font.SetScale(HarfBuzzFontScale, HarfBuzzFontScale);
             font.SetFunctionsOpenType();
+            ApplyVariations(typeface, font);
 
             shaper = new HarfBuzzTextShaper(typeface, font);
             return true;
+        }
+
+        private static void ApplyVariations(SkiaSharp.SKTypeface typeface, Font font)
+        {
+            var position = typeface.VariationDesignPosition;
+            if (position.Length == 0)
+            {
+                return;
+            }
+
+            var variations = new Variation[position.Length];
+            for (var i = 0; i < position.Length; i++)
+            {
+                variations[i] = new Variation
+                {
+                    Tag = position[i].Axis,
+                    Value = position[i].Value
+                };
+            }
+
+            font.SetVariations(variations);
         }
 
         public SkiaSharp.SKTypeface Typeface { get; }
