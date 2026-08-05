@@ -27,6 +27,7 @@
   </PropertyGroup>
 
   <Import Project="..\..\build\SourceLink.props" />
+  <Import Project="..\..\build\SignAssembly.props" />
   <Import Project="..\..\build\SkiaSharp.props" />
   <Import Project="..\..\build\SvgML.Weaving.targets" />
 
