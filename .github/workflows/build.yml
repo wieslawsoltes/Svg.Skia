@@ -190,6 +190,9 @@ jobs:
       - name: Pack
         run: dotnet pack Svg.Skia.slnx -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}" -o artifacts/packages
 
+      - name: Verify Linux package dependencies
+        run: bash scripts/verify_linux_package_dependencies.sh artifacts/packages
+
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v4
         with:
