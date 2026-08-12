@@ -43,6 +43,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Svg.Skia\Svg.Skia.csproj" />
+    <!-- Avalonia.Skia 12 supplies SkiaSharp 3 native assets, while Svg.Skia uses SkiaSharp 4. -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" />
   </ItemGroup>
 
   <ItemGroup>
