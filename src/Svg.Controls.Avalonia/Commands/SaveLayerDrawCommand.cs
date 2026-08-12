@@ -4,7 +4,10 @@ namespace Avalonia.Svg.Commands;
 
 public sealed class SaveLayerDrawCommand : DrawCommand
 {
-    public SaveLayerDrawCommand()
+    public double? Opacity { get; }
+
+    public SaveLayerDrawCommand(double? opacity)
     {
+        Opacity = opacity;
     }
 }

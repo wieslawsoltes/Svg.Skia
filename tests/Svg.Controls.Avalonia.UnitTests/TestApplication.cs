@@ -10,7 +10,11 @@ internal static class SvgControlsAvaloniaTestsAppBuilder
 {
     public static AppBuilder BuildAvaloniaApp() =>
         AppBuilder.Configure<SvgControlsAvaloniaTestsApp>()
-            .UseHeadless(new AvaloniaHeadlessPlatformOptions())
+            .UseSkia()
+            .UseHeadless(new AvaloniaHeadlessPlatformOptions
+            {
+                UseHeadlessDrawing = false
+            })
             .LogToTrace();
 }
 

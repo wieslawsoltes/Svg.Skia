@@ -208,8 +208,7 @@ public sealed class AvaloniaPicture : IDisposable
                 }
             case SaveLayerCanvasCommand saveLayerCanvasCommand:
                 {
-                    // TODO: SaveLayerCanvasCommand
-                    commands.Add(new SaveLayerDrawCommand());
+                    commands.Add(new SaveLayerDrawCommand(GetSimpleLayerOpacity(saveLayerCanvasCommand.Paint)));
                     break;
                 }
             case DrawImageCanvasCommand drawImageCanvasCommand:
@@ -342,7 +341,18 @@ public sealed class AvaloniaPicture : IDisposable
                 }
             case SaveLayerDrawCommand saveLayerDrawCommand:
                 {
-                    pushedStates.Push(new Stack<IDisposable>());
+                    var layerStates = new Stack<IDisposable>();
+                    pushedStates.Push(layerStates);
+                    if (saveLayerDrawCommand.Opacity is { } opacity)
+                    {
+                        // SVG opacity composites the layer before applying alpha; prevent Avalonia from
+                        // folding opacity into each draw operation inside the layer.
+                        layerStates.Push(context.PushRenderOptions(new AM.RenderOptions
+                        {
+                            RequiresFullOpacityHandling = true
+                        }));
+                        layerStates.Push(context.PushOpacity(opacity));
+                    }
                     break;
                 }
             case ImageDrawCommand imageDrawCommand:
@@ -411,6 +421,22 @@ public sealed class AvaloniaPicture : IDisposable
         {
             Draw(context, command, pushedStates);
         }
+    }
+
+    private static double? GetSimpleLayerOpacity(SKPaint? paint)
+    {
+        if (paint?.Color is not { } color ||
+            color.Alpha >= byte.MaxValue ||
+            paint.BlendMode != SKBlendMode.SrcOver ||
+            paint.Shader is not null ||
+            paint.ColorFilter is not null ||
+            paint.ImageFilter is not null ||
+            paint.PathEffect is not null)
+        {
+            return null;
+        }
+
+        return color.Alpha / 255d;
     }
 
     public void Dispose()

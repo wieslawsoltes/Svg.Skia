@@ -11,6 +11,7 @@
   <Import Project="..\..\build\ReferenceAssemblies.props" />
   <Import Project="..\..\build\XUnit.v3.props" />
   <Import Project="..\..\build\Avalonia.props" />
+  <Import Project="..\..\build\Avalonia.Skia.props" />
  
   <ItemGroup>
     <AvaloniaResource Include="Assets\*" />
