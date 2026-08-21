@@ -154,6 +154,19 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
             else
             {
                 typeface = MatchCharacterForSpan(GetCodepoint(text, i, ch), out var familyOverride);
+                if (typeface is null && runningFont.Typeface is { } resolvedTypeface)
+                {
+                    // No installed font claims this character. That is not a reason to draw it
+                    // with no font at all: clearing the running typeface leaves the font with
+                    // no metrics, so GetTextAdvance below returns 0 for every span and the
+                    // caller, which positions each span by accumulating those advances, paints
+                    // the whole run at one x. Keeping the face already resolved for the run
+                    // preserves its metrics and degrades to a missing-glyph box instead of an
+                    // unreadable pile of glyphs.
+                    typeface = resolvedTypeface;
+                    familyOverride = null;
+                }
+
                 matchedShimTypeface = ToShimTypeface(typeface, requestedWeight, familyOverride);
             }
 
