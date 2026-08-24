@@ -152,6 +152,23 @@ public class SvgSourceTests
     }
 
     [AvaloniaFact]
+    public void Load_Path_Preserves_Source_For_Css_Reload()
+    {
+        var source = SvgSource.Load(
+            "/Assets/Icon.svg",
+            new Uri("avares://Svg.Controls.Avalonia.UnitTests/"));
+
+        source.Css = "#background { fill: #070809; }";
+
+        var background = source.Picture?
+            .FindCommands<DrawPathCanvasCommand>()
+            .FirstOrDefault();
+        Assert.Equal("/Assets/Icon.svg", source.Path);
+        Assert.NotNull(background?.Paint);
+        Assert.Equal(new SKColor(7, 8, 9, 255), background!.Paint!.Color);
+    }
+
+    [AvaloniaFact]
     public void LoadFromSvg_UsesSvgGlyphPaths()
     {
         var source = SvgSource.LoadFromSvg(SvgFontGlyphSvg);

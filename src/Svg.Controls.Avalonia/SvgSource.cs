@@ -27,6 +27,7 @@ public class SvgSource : MarkupExtension, ISupportInitialize
     private Uri? _baseUri;
     private string? _path;
     private string? _css;
+    private SvgParameters? _parameters;
     private SKPicture? _picture;
     private bool _isInitializing;
     private bool _isDirty;
@@ -200,7 +201,13 @@ public class SvgSource : MarkupExtension, ISupportInitialize
     /// <returns>The svg source.</returns>
     public static SvgSource Load(string path, Uri? baseUri, SvgParameters? parameters = null)
     {
-        return new() { Picture = LoadPicture(path, baseUri, parameters) };
+        return new SvgSource(baseUri)
+        {
+            _path = path,
+            _css = parameters?.Css,
+            _parameters = parameters,
+            _picture = LoadPicture(path, baseUri, parameters)
+        };
     }
 
     /// <summary>
@@ -275,6 +282,7 @@ public class SvgSource : MarkupExtension, ISupportInitialize
         {
             _path = _path,
             _css = _css,
+            _parameters = _parameters,
             _picture = Picture?.DeepClone()
         };
     }
@@ -305,7 +313,10 @@ public class SvgSource : MarkupExtension, ISupportInitialize
             }
         }
 
-        Picture = LoadPicture(_path, _baseUri, new SvgParameters(null, _css));
+        var parameters = _parameters is { } existingParameters
+            ? existingParameters with { Css = _css }
+            : new SvgParameters(null, _css);
+        Picture = LoadPicture(_path, _baseUri, parameters);
         _isDirty = false;
     }
 
