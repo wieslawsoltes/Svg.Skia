@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using Avalonia.Markup.Xaml;
+using Avalonia.Metadata;
 using Avalonia.Platform;
 using ShimSkiaSharp;
 using Svg;
@@ -22,8 +24,74 @@ namespace Avalonia.Svg;
 public class SvgSource
 {
     private static readonly SM.ISvgAssetLoader s_assetLoader = new AvaloniaSvgAssetLoader();
+    private readonly Uri? _baseUri;
+    private string? _path;
+    private string? _css;
+    private SKPicture? _picture;
 
-    public SKPicture? Picture { get; set; }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SvgSource"/> class.
+    /// </summary>
+    /// <param name="baseUri">The base URL used to resolve relative SVG paths.</param>
+    public SvgSource(Uri? baseUri = null)
+    {
+        _baseUri = baseUri;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SvgSource"/> class.
+    /// </summary>
+    /// <param name="serviceProvider">The XAML service provider.</param>
+    public SvgSource(IServiceProvider serviceProvider)
+        : this(serviceProvider.GetContextBaseUri())
+    {
+    }
+
+    /// <summary>
+    /// Gets or sets the SVG resource or file path.
+    /// </summary>
+    [Content]
+    public string? Path
+    {
+        get => _path;
+        set
+        {
+            if (string.Equals(_path, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _path = value;
+            Reload();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the CSS applied when loading <see cref="Path"/>.
+    /// </summary>
+    public string? Css
+    {
+        get => _css;
+        set
+        {
+            if (string.Equals(_css, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _css = value;
+            Reload();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the loaded SVG picture.
+    /// </summary>
+    public SKPicture? Picture
+    {
+        get => _picture;
+        set => _picture = value;
+    }
 
     /// <summary>
     /// Loads svg picture from file or resource.
@@ -159,9 +227,18 @@ public class SvgSource
     /// <returns>A new <see cref="SvgSource"/> instance.</returns>
     public SvgSource Clone()
     {
-        return new SvgSource
+        return new SvgSource(_baseUri)
         {
-            Picture = Picture?.DeepClone()
+            _path = _path,
+            _css = _css,
+            _picture = Picture?.DeepClone()
         };
+    }
+
+    private void Reload()
+    {
+        Picture = string.IsNullOrWhiteSpace(_path)
+            ? null
+            : LoadPicture(_path, _baseUri, new SvgParameters(null, _css));
     }
 }

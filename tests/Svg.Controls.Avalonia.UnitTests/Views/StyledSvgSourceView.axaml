@@ -1,0 +1,11 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:svg="clr-namespace:Avalonia.Svg;assembly=Svg.Controls.Avalonia"
+             x:Class="Avalonia.Svg.UnitTests.Views.StyledSvgSourceView">
+  <UserControl.Resources>
+    <svg:SvgSource x:Key="StyledIcon"
+                   Path="/Assets/Icon.svg"
+                   Css="#background { fill: #010203; }" />
+    <svg:SvgSource x:Key="ContentIcon">/Assets/Icon.svg</svg:SvgSource>
+  </UserControl.Resources>
+</UserControl>

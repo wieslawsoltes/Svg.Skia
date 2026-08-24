@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Headless.XUnit;
 using Avalonia.Svg;
 using Avalonia.Svg.Commands;
+using Avalonia.Svg.UnitTests.Views;
 using ShimSkiaSharp;
 using ShimSkiaSharp.Editing;
 using Xunit;
@@ -69,6 +70,31 @@ public class SvgSourceTests
 
         Assert.NotSame(source, clone);
         Assert.NotSame(source.Picture, clone.Picture);
+    }
+
+    [AvaloniaFact]
+    public void Xaml_Resource_Loads_Path_With_Css()
+    {
+        var view = new StyledSvgSourceView();
+        var source = Assert.IsType<SvgSource>(view.Resources["StyledIcon"]);
+        var background = source.Picture?
+            .FindCommands<DrawPathCanvasCommand>()
+            .FirstOrDefault();
+
+        Assert.Equal("/Assets/Icon.svg", source.Path);
+        Assert.Equal("#background { fill: #010203; }", source.Css);
+        Assert.NotNull(background?.Paint);
+        Assert.Equal(new SKColor(1, 2, 3, 255), background!.Paint!.Color);
+    }
+
+    [AvaloniaFact]
+    public void Xaml_Resource_Uses_Path_As_Content()
+    {
+        var view = new StyledSvgSourceView();
+        var source = Assert.IsType<SvgSource>(view.Resources["ContentIcon"]);
+
+        Assert.Equal("/Assets/Icon.svg", source.Path);
+        Assert.NotNull(source.Picture);
     }
 
     [AvaloniaFact]
