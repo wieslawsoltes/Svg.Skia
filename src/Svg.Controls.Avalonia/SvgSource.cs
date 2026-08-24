@@ -21,13 +21,15 @@ namespace Avalonia.Svg;
 /// Represents a Svg based image.
 /// </summary>
 [TypeConverter(typeof(SvgSourceTypeConverter))]
-public class SvgSource : MarkupExtension
+public class SvgSource : MarkupExtension, ISupportInitialize
 {
     private static readonly SM.ISvgAssetLoader s_assetLoader = new AvaloniaSvgAssetLoader();
     private Uri? _baseUri;
     private string? _path;
     private string? _css;
     private SKPicture? _picture;
+    private bool _isInitializing;
+    private bool _isDirty;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SvgSource"/> class.
@@ -74,7 +76,7 @@ public class SvgSource : MarkupExtension
             }
 
             _path = value;
-            Reload();
+            QueueReload();
         }
     }
 
@@ -92,7 +94,7 @@ public class SvgSource : MarkupExtension
             }
 
             _css = value;
-            Reload();
+            QueueReload();
         }
     }
 
@@ -120,6 +122,19 @@ public class SvgSource : MarkupExtension
         _baseUri ??= serviceProvider.GetContextBaseUri();
         Reload();
         return this;
+    }
+
+    /// <inheritdoc/>
+    public void BeginInit()
+    {
+        _isInitializing = true;
+    }
+
+    /// <inheritdoc/>
+    public void EndInit()
+    {
+        _isInitializing = false;
+        Reload();
     }
 
     /// <summary>
@@ -266,9 +281,15 @@ public class SvgSource : MarkupExtension
 
     private void Reload()
     {
+        if (!_isDirty)
+        {
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(_path))
         {
             Picture = null;
+            _isDirty = false;
             return;
         }
 
@@ -285,5 +306,15 @@ public class SvgSource : MarkupExtension
         }
 
         Picture = LoadPicture(_path, _baseUri, new SvgParameters(null, _css));
+        _isDirty = false;
+    }
+
+    private void QueueReload()
+    {
+        _isDirty = true;
+        if (!_isInitializing)
+        {
+            Reload();
+        }
     }
 }

@@ -13,6 +13,11 @@ namespace Avalonia.Svg.UnitTests;
 
 public class SvgSourceTests
 {
+    private sealed class EmptyServiceProvider : IServiceProvider
+    {
+        public object? GetService(Type serviceType) => null;
+    }
+
     private const string SampleSvg = "<svg width=\"10\" height=\"10\"><rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"red\" /></svg>";
     private const string ClipPathSvg = """
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -46,6 +51,29 @@ public class SvgSourceTests
     public void Exposes_Parameterless_Constructor()
     {
         Assert.NotNull(typeof(SvgSource).GetConstructor(Type.EmptyTypes));
+    }
+
+    [AvaloniaFact]
+    public void Initialization_Batches_Path_And_Css_Reload()
+    {
+        var source = new SvgSource(new Uri("avares://Svg.Controls.Avalonia.UnitTests/"));
+        var invalidated = 0;
+        source.Invalidated += (_, _) => invalidated++;
+
+        source.BeginInit();
+        source.Path = "/Assets/Icon.svg";
+        source.Css = "#background { fill: #010203; }";
+
+        Assert.Null(source.Picture);
+        Assert.Equal(0, invalidated);
+
+        source.EndInit();
+
+        Assert.NotNull(source.Picture);
+        Assert.Equal(1, invalidated);
+
+        Assert.Same(source, source.ProvideValue(new EmptyServiceProvider()));
+        Assert.Equal(1, invalidated);
     }
 
     [AvaloniaFact]
