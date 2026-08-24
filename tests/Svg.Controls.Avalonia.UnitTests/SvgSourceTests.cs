@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Headless.XUnit;
@@ -40,6 +41,12 @@ public class SvgSourceTests
           <text x="10" y="110" fill="black" font-family="DefaultFont" font-size="100">A</text>
         </svg>
         """;
+
+    [AvaloniaFact]
+    public void Exposes_Parameterless_Constructor()
+    {
+        Assert.NotNull(typeof(SvgSource).GetConstructor(Type.EmptyTypes));
+    }
 
     [AvaloniaFact]
     public void RebuildFromModel_RefreshesPicture()
@@ -95,6 +102,25 @@ public class SvgSourceTests
 
         Assert.Equal("/Assets/Icon.svg", source.Path);
         Assert.NotNull(source.Picture);
+    }
+
+    [AvaloniaFact]
+    public void Css_Reload_Invalidates_Consuming_Image()
+    {
+        var view = new StyledSvgSourceView();
+        var source = Assert.IsType<SvgSource>(view.Resources["StyledIcon"]);
+        var image = new SvgImage { Source = source };
+        var invalidated = 0;
+        image.Invalidated += (_, _) => invalidated++;
+
+        source.Css = "#background { fill: #040506; }";
+
+        var background = source.Picture?
+            .FindCommands<DrawPathCanvasCommand>()
+            .FirstOrDefault();
+        Assert.Equal(1, invalidated);
+        Assert.NotNull(background?.Paint);
+        Assert.Equal(new SKColor(4, 5, 6, 255), background!.Paint!.Color);
     }
 
     [AvaloniaFact]

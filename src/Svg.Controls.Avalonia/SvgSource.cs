@@ -21,10 +21,10 @@ namespace Avalonia.Svg;
 /// Represents a Svg based image.
 /// </summary>
 [TypeConverter(typeof(SvgSourceTypeConverter))]
-public class SvgSource
+public class SvgSource : MarkupExtension
 {
     private static readonly SM.ISvgAssetLoader s_assetLoader = new AvaloniaSvgAssetLoader();
-    private readonly Uri? _baseUri;
+    private Uri? _baseUri;
     private string? _path;
     private string? _css;
     private SKPicture? _picture;
@@ -32,8 +32,15 @@ public class SvgSource
     /// <summary>
     /// Initializes a new instance of the <see cref="SvgSource"/> class.
     /// </summary>
+    public SvgSource()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SvgSource"/> class.
+    /// </summary>
     /// <param name="baseUri">The base URL used to resolve relative SVG paths.</param>
-    public SvgSource(Uri? baseUri = null)
+    public SvgSource(Uri? baseUri)
     {
         _baseUri = baseUri;
     }
@@ -46,6 +53,11 @@ public class SvgSource
         : this(serviceProvider.GetContextBaseUri())
     {
     }
+
+    /// <summary>
+    /// Raised when the loaded picture changes.
+    /// </summary>
+    public event EventHandler? Invalidated;
 
     /// <summary>
     /// Gets or sets the SVG resource or file path.
@@ -90,7 +102,24 @@ public class SvgSource
     public SKPicture? Picture
     {
         get => _picture;
-        set => _picture = value;
+        set
+        {
+            if (ReferenceEquals(_picture, value))
+            {
+                return;
+            }
+
+            _picture = value;
+            Invalidated?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <inheritdoc/>
+    public override object ProvideValue(IServiceProvider serviceProvider)
+    {
+        _baseUri ??= serviceProvider.GetContextBaseUri();
+        Reload();
+        return this;
     }
 
     /// <summary>
@@ -237,8 +266,24 @@ public class SvgSource
 
     private void Reload()
     {
-        Picture = string.IsNullOrWhiteSpace(_path)
-            ? null
-            : LoadPicture(_path, _baseUri, new SvgParameters(null, _css));
+        if (string.IsNullOrWhiteSpace(_path))
+        {
+            Picture = null;
+            return;
+        }
+
+        if (_baseUri is null && !File.Exists(_path))
+        {
+            var uri = _path.StartsWith("/")
+                ? new Uri(_path, UriKind.Relative)
+                : new Uri(_path, UriKind.RelativeOrAbsolute);
+            if (!uri.IsAbsoluteUri)
+            {
+                Picture = null;
+                return;
+            }
+        }
+
+        Picture = LoadPicture(_path, _baseUri, new SvgParameters(null, _css));
     }
 }

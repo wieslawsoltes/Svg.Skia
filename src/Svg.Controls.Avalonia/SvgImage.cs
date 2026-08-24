@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Metadata;
+using Avalonia.Utilities;
 using ShimSkiaSharp;
 using SP = Svg.Model;
 
@@ -13,8 +14,13 @@ namespace Avalonia.Svg;
 /// <summary>
 /// An <see cref="IImage"/> that uses a <see cref="SvgSource"/> for content.
 /// </summary>
-public class SvgImage : AvaloniaObject, IImage
+public class SvgImage : AvaloniaObject, IImage, IWeakEventSubscriber<EventArgs>
 {
+    private static readonly WeakEvent<SvgSource, EventArgs> s_sourceInvalidatedWeakEvent =
+        WeakEvent.Register<SvgSource>(
+            static (source, handler) => source.Invalidated += handler,
+            static (source, handler) => source.Invalidated -= handler);
+
     /// <summary>
     /// Raised when the resource changes visually.
     /// </summary>
@@ -102,8 +108,25 @@ public class SvgImage : AvaloniaObject, IImage
 
         if (change.Property == SourceProperty)
         {
-            // TODO: Invalidate IImage
+            if (change.GetOldValue<SvgSource?>() is { } oldSource)
+            {
+                s_sourceInvalidatedWeakEvent.Unsubscribe(oldSource, this);
+            }
+
+            if (change.GetNewValue<SvgSource?>() is { } newSource)
+            {
+                s_sourceInvalidatedWeakEvent.Subscribe(newSource, this);
+            }
+
             RaiseInvalidated(EventArgs.Empty);
+        }
+    }
+
+    void IWeakEventSubscriber<EventArgs>.OnEvent(object? sender, WeakEvent ev, EventArgs e)
+    {
+        if (ev == s_sourceInvalidatedWeakEvent)
+        {
+            RaiseInvalidated(e);
         }
     }
 
