@@ -588,6 +588,26 @@ public class SkiaSvgAssetLoaderCachingTests
         AssertDocumentTypefaceNotFamily(assetLoader, childFamily, "S", childExpectedFamily);
     }
 
+    [Fact]
+    public void FindTypefaces_KeepsAdvancesWhenNoFontClaimsTheCharacter()
+    {
+        // A private-use codepoint that no installed font is expected to claim, so character
+        // fallback finds nothing. The span must still carry an advance: the callers position
+        // consecutive spans by accumulating these values, so a zero advance draws every span
+        // of the run at the same x. On a platform whose font manager matches nothing at all -
+        // browser-wasm has a single embedded face and answers no family or character query -
+        // every span of every label took that path and each label rendered as one dense mark.
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings()));
+        var paint = CreateTextPaint(24f);
+
+        var spans = assetLoader.FindTypefaces("A\uE000B", paint);
+
+        Assert.NotEmpty(spans);
+        Assert.All(spans, span => Assert.True(
+            span.Advance > 0f,
+            $"span \"{span.Text}\" reported an advance of {span.Advance}"));
+    }
+
     private static SKPaint CreateTextPaint(float textSize)
     {
         return new SKPaint
