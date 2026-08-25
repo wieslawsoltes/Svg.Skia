@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using Avalonia.Markup.Xaml;
+using Avalonia.Metadata;
 using Avalonia.Platform;
 using ShimSkiaSharp;
 using Svg;
@@ -19,11 +21,122 @@ namespace Avalonia.Svg;
 /// Represents a Svg based image.
 /// </summary>
 [TypeConverter(typeof(SvgSourceTypeConverter))]
-public class SvgSource
+public class SvgSource : MarkupExtension, ISupportInitialize
 {
     private static readonly SM.ISvgAssetLoader s_assetLoader = new AvaloniaSvgAssetLoader();
+    private Uri? _baseUri;
+    private string? _path;
+    private string? _css;
+    private SvgParameters? _parameters;
+    private SKPicture? _picture;
+    private bool _isInitializing;
+    private bool _isDirty;
 
-    public SKPicture? Picture { get; set; }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SvgSource"/> class.
+    /// </summary>
+    public SvgSource()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SvgSource"/> class.
+    /// </summary>
+    /// <param name="baseUri">The base URL used to resolve relative SVG paths.</param>
+    public SvgSource(Uri? baseUri)
+    {
+        _baseUri = baseUri;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SvgSource"/> class.
+    /// </summary>
+    /// <param name="serviceProvider">The XAML service provider.</param>
+    public SvgSource(IServiceProvider serviceProvider)
+        : this(serviceProvider.GetContextBaseUri())
+    {
+    }
+
+    /// <summary>
+    /// Raised when the loaded picture changes.
+    /// </summary>
+    public event EventHandler? Invalidated;
+
+    /// <summary>
+    /// Gets or sets the SVG resource or file path.
+    /// </summary>
+    [Content]
+    public string? Path
+    {
+        get => _path;
+        set
+        {
+            if (string.Equals(_path, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _path = value;
+            QueueReload();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the CSS applied when loading <see cref="Path"/>.
+    /// </summary>
+    public string? Css
+    {
+        get => _css;
+        set
+        {
+            if (string.Equals(_css, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _css = value;
+            QueueReload();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the loaded SVG picture.
+    /// </summary>
+    public SKPicture? Picture
+    {
+        get => _picture;
+        set
+        {
+            if (ReferenceEquals(_picture, value))
+            {
+                return;
+            }
+
+            _picture = value;
+            Invalidated?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <inheritdoc/>
+    public override object ProvideValue(IServiceProvider serviceProvider)
+    {
+        _baseUri ??= serviceProvider.GetContextBaseUri();
+        Reload();
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public void BeginInit()
+    {
+        _isInitializing = true;
+    }
+
+    /// <inheritdoc/>
+    public void EndInit()
+    {
+        _isInitializing = false;
+        Reload();
+    }
 
     /// <summary>
     /// Loads svg picture from file or resource.
@@ -88,7 +201,13 @@ public class SvgSource
     /// <returns>The svg source.</returns>
     public static SvgSource Load(string path, Uri? baseUri, SvgParameters? parameters = null)
     {
-        return new() { Picture = LoadPicture(path, baseUri, parameters) };
+        return new SvgSource(baseUri)
+        {
+            _path = path,
+            _css = parameters?.Css,
+            _parameters = parameters,
+            _picture = LoadPicture(path, baseUri, parameters)
+        };
     }
 
     /// <summary>
@@ -159,9 +278,54 @@ public class SvgSource
     /// <returns>A new <see cref="SvgSource"/> instance.</returns>
     public SvgSource Clone()
     {
-        return new SvgSource
+        return new SvgSource(_baseUri)
         {
-            Picture = Picture?.DeepClone()
+            _path = _path,
+            _css = _css,
+            _parameters = _parameters,
+            _picture = Picture?.DeepClone()
         };
+    }
+
+    private void Reload()
+    {
+        if (!_isDirty)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_path))
+        {
+            Picture = null;
+            _isDirty = false;
+            return;
+        }
+
+        if (_baseUri is null && !File.Exists(_path))
+        {
+            var uri = _path.StartsWith("/")
+                ? new Uri(_path, UriKind.Relative)
+                : new Uri(_path, UriKind.RelativeOrAbsolute);
+            if (!uri.IsAbsoluteUri)
+            {
+                Picture = null;
+                return;
+            }
+        }
+
+        var parameters = _parameters is { } existingParameters
+            ? existingParameters with { Css = _css }
+            : new SvgParameters(null, _css);
+        Picture = LoadPicture(_path, _baseUri, parameters);
+        _isDirty = false;
+    }
+
+    private void QueueReload()
+    {
+        _isDirty = true;
+        if (!_isInitializing)
+        {
+            Reload();
+        }
     }
 }
