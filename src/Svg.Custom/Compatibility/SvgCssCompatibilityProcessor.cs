@@ -1367,7 +1367,7 @@ internal static class SvgCssCompatibilityProcessor
         return true;
     }
 
-    public static bool ShouldApplyStyleElement(SvgUnknownElement styleElement)
+    public static bool ShouldApplyStyleElement(SvgElement styleElement)
     {
         if (!styleElement.TryGetAttribute("type", out var styleType))
         {

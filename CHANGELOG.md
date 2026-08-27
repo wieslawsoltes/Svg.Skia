@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+* Updated the bundled SVG sources and fallback package reference to upstream 3.4.8, including compatibility-loader support for the typed `style` element.
 * Added SVG 1.1 animation object-model coverage in `Svg.Custom` for `animate`, `set`, `animateMotion`, `animateColor`, `animateTransform`, and `mpath`.
 * Added typed `pointer-events` support, geometry-aware hit testing, topmost-element targeting, and routed interaction dispatch with capture, tunnel, bubble, and cursor resolution.
 * Added shared animation playback in `SKSvg`, including animation time control, invalidation events, layered redraw, throttling helpers, and native-composition scene extraction.
