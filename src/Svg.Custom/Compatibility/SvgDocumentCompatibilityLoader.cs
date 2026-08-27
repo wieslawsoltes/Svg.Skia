@@ -467,14 +467,14 @@ public static class SvgDocumentCompatibilityLoader
                             element.Nodes.Clear();
                         }
 
-                        if (element is SvgUnknownElement unknown &&
-                            unknown.ElementName == "style" &&
-                            SvgCssCompatibilityProcessor.ShouldApplyStyleElement(unknown))
+                        if ((element is SvgStyle ||
+                             element is SvgUnknownElement { ElementName: "style" }) &&
+                            SvgCssCompatibilityProcessor.ShouldApplyStyleElement(element))
                         {
                             // Preserve the document base URI with every collected <style> block so
                             // any nested @import inside that block resolves relative to the SVG file
                             // that declared it, not to the current process working directory.
-                            (styles ??= new List<SvgCssStyleSource>()).Add(new SvgCssStyleSource(unknown.Content ?? string.Empty, svgDocument?.BaseUri));
+                            (styles ??= new List<SvgCssStyleSource>()).Add(new SvgCssStyleSource(element.Content ?? string.Empty, svgDocument?.BaseUri));
                         }
                         else if (loadLinkedStylesheets &&
                                  element is SvgUnknownElement link &&
