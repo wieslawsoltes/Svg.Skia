@@ -1699,11 +1699,21 @@ public partial class SkiaModel
         return skPaint;
     }
 
+    /// <summary>
+    /// Horizontal skew used to simulate italic/oblique text when the resolved typeface has no slanted face.
+    /// </summary>
+    private const float SyntheticObliqueSkewX = -0.25f;
+    
     private void ApplyTypefaceAdjustments(ShimSkiaSharp.SKPaint sourcePaint, SkiaSharp.SKFont targetFont, bool suppressSyntheticBold)
     {
         if (ShouldEmboldenTypeface(sourcePaint.Typeface, targetFont.Typeface, suppressSyntheticBold))
         {
             targetFont.Embolden = true;
+        }
+
+        if (ShouldSkewTypeface(sourcePaint.Typeface, targetFont.Typeface, suppressSyntheticBold))
+        {
+            targetFont.SkewX = SyntheticObliqueSkewX;
         }
     }
 
@@ -1713,6 +1723,29 @@ public partial class SkiaModel
         {
             targetFont.Embolden = true;
         }
+
+        // Leave an explicit skew from the source font untouched.
+        if (sourceFont.SkewX == 0f && ShouldSkewTypeface(sourceFont.Typeface, targetFont.Typeface, suppressSyntheticBold))
+        {
+            targetFont.SkewX = SyntheticObliqueSkewX;
+        }
+    }
+
+    private bool ShouldSkewTypeface(SKTypeface? sourceTypeface, SkiaSharp.SKTypeface? targetTypeface, bool suppressSyntheticStyle)
+    {
+        if (suppressSyntheticStyle || sourceTypeface is null || sourceTypeface.FontSlant == SKFontStyleSlant.Upright)
+        {
+            return false;
+        }
+
+        if (targetTypeface is null)
+        {
+            return !HasExplicitTypeface(sourceTypeface);
+        }
+
+        // A typeface that is italic or oblique already - including one the platform simulates, such as DirectWrite
+        // does - must not be skewed a second time.
+        return targetTypeface.FontSlant == SkiaSharp.SKFontStyleSlant.Upright;
     }
 
     private bool ShouldEmboldenTypeface(SKTypeface? sourceTypeface, SkiaSharp.SKTypeface? targetTypeface, bool suppressSyntheticBold)
