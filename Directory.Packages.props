@@ -3,7 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <AvaloniaVersion>12.0.0</AvaloniaVersion>
     <SkiaSharpVersion Condition="'$(SkiaSharpVersion)' == ''">4.148.0</SkiaSharpVersion>
-    <HarfBuzzSharpVersion Condition="'$(HarfBuzzSharpVersion)' == ''">14.2.0</HarfBuzzSharpVersion>
+    <HarfBuzzSharpVersion Condition="'$(HarfBuzzSharpVersion)' == ''">14.2.1.301</HarfBuzzSharpVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
