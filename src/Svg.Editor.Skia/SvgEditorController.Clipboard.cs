@@ -47,7 +47,7 @@ public sealed partial class SvgEditorController
             throw new InvalidOperationException("Select artwork to create a symbol.");
         if (Document.GetElementById(id) is not null || Document.ID == id)
             throw new ArgumentException("The symbol ID must be unique.", nameof(id));
-        var root = GetSceneNode(Document);
+        var root = GetSceneNode(Document) ?? Renderer.RetainedSceneGraph?.Root;
         var matrix = root is null ? SK.SKMatrix.Identity : ToMatrix(root.TotalTransform);
         if (!matrix.TryInvert(out var inverse))
             throw new InvalidOperationException("The document viewport has a singular transform.");
