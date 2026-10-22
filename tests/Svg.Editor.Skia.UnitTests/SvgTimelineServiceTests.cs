@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using Svg;
 using Svg.Editor.Skia;
 using Svg.Skia;
@@ -85,6 +87,40 @@ public class SvgTimelineServiceTests
         Assert.Equal("shape", editor.Renderer.HitTestTopmostElement(new ShimSkiaSharp.SKPoint(30, 15))?.ID);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SaveAndSaveAsPreservePlayheadAndNativeAnimation(bool saveAs)
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "unodraw-animation-save-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        try
+        {
+            var sourcePath = Path.Combine(directory, "drawing.svg");
+            var targetPath = saveAs ? Path.Combine(directory, "renamed.svg") : sourcePath;
+            using var editor = new SvgEditorController();
+            editor.LoadSvg(Drawing, sourcePath);
+            var track = SvgTimelineService.CreateTrack(editor.Document!.GetElementById("shape"), "x", "0", "100");
+            editor.Execute("Animate shape", () => SvgTimelineService.Apply(editor.Document!, track));
+            editor.Renderer.SetAnimationTime(TimeSpan.FromSeconds(1));
+            editor.Save(targetPath);
+            Assert.Equal(TimeSpan.FromSeconds(1), editor.Renderer.AnimationTime);
+            Assert.Equal("shape", editor.Renderer.HitTestTopmostElement(new ShimSkiaSharp.SKPoint(55, 15))?.ID);
+            Assert.Equal(0, editor.Document!.GetElementById<SvgRectangle>("shape").X.Value);
+            Assert.Single(SvgTimelineService.ReadTracks(editor.Document!));
+            using var restored = new SvgEditorController();
+            restored.LoadSvg(File.ReadAllText(targetPath), targetPath);
+            Assert.Single(SvgTimelineService.ReadTracks(restored.Document!));
+            Assert.Equal(0, restored.Document!.GetElementById<SvgRectangle>("shape").X.Value);
+            restored.Renderer.SetAnimationTime(TimeSpan.FromSeconds(1));
+            Assert.Equal("shape", restored.Renderer.HitTestTopmostElement(new ShimSkiaSharp.SKPoint(55, 15))?.ID);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
     [Fact]
     public void FreezeSurvivesSerializationAndHoldsTheFinalFrame()
     {
@@ -96,6 +132,11 @@ public class SvgTimelineServiceTests
         Assert.True(Assert.Single(SvgTimelineService.ReadTracks(restored.Document!)).Freeze);
         Assert.Contains("fill=\"freeze\"", restored.GetSvg());
         Assert.DoesNotContain("fill:freeze", restored.GetSvg());
+        var animation = XDocument.Parse(restored.GetSvg()).Descendants(XName.Get("animate", "http://www.w3.org/2000/svg")).Single();
+        Assert.Equal("x", animation.Attribute("attributeName")?.Value);
+        Assert.Equal("0;100", animation.Attribute("values")?.Value);
+        Assert.Equal("2s", animation.Attribute("dur")?.Value);
+        Assert.DoesNotContain(animation.Attributes(), attribute => attribute.Name.NamespaceName == "http://www.w3.org/2000/svg");
         using var animator = new SvgAnimationController(restored.Document!);
         Assert.Equal(100, animator.CreateAnimatedDocument(TimeSpan.FromSeconds(4)).GetElementById<SvgRectangle>("shape").X.Value);
     }

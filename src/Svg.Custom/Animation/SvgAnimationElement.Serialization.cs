@@ -21,7 +21,7 @@ public abstract partial class SvgAnimationElement
         var text = new StringBuilder();
         using (var attributes = XmlWriter.Create(text, new XmlWriterSettings { OmitXmlDeclaration = true }))
         {
-            attributes.WriteStartElement("animation");
+            attributes.WriteStartElement("animation", SvgNamespaces.SvgNamespace);
             base.WriteAttributes(attributes);
             attributes.WriteEndElement();
         }
@@ -36,7 +36,10 @@ public abstract partial class SvgAnimationElement
                     writer.WriteAttributeString("style", style);
             }
             else if (attribute.IsNamespaceDeclaration)
-                writer.WriteAttributeString(attribute.Name.LocalName == "xmlns" ? null : "xmlns", attribute.Name.LocalName, "http://www.w3.org/2000/xmlns/", attribute.Value);
+            {
+                if (attribute.Name.LocalName != "xmlns" || attribute.Value != SvgNamespaces.SvgNamespace || writer.LookupPrefix(SvgNamespaces.SvgNamespace) is null)
+                    writer.WriteAttributeString(attribute.Name.LocalName == "xmlns" ? null : "xmlns", attribute.Name.LocalName, "http://www.w3.org/2000/xmlns/", attribute.Value);
+            }
             else
                 writer.WriteAttributeString(attribute.Name.LocalName, attribute.Name.NamespaceName, attribute.Value);
         }

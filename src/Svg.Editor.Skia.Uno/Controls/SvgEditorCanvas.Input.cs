@@ -35,27 +35,41 @@ public sealed partial class SvgEditorCanvas
             return;
         }
 
-        InteractionStarting?.Invoke(this, EventArgs.Empty);
-
         var point = e.GetCurrentPoint(this);
         var view = new SKPoint((float)point.Position.X, (float)point.Position.Y);
         if (e.Pointer.PointerDeviceType == PointerDeviceType.Touch)
         {
-            _touches[e.Pointer.PointerId] = view;
-            if (_touches.Count >= 2)
+            // A resting palm must not cancel an active stylus or mouse stroke.
+            if (_activePointer is not null && _activePointerDevice != PointerDeviceType.Touch)
             {
-                ReleaseSelectionGhost();
+                e.Handled = true;
+                return;
+            }
+            var startedNavigation = _touchNavigation.AddContact(e.Pointer.PointerId, view);
+            if (startedNavigation)
+            {
+                CancelDrawingPreview();
                 _gesture = Gesture.Pinch;
-                _activePointer = null;
-                _previewTransform = SKMatrix.Identity;
+                _suppressTouchDoubleTap = true;
                 RefreshNodePreview();
-                GetPinch(out _pinchCenter, out _pinchDistance);
+                UpdateCursor();
+            }
+            if (_touchNavigation.IsNavigating)
+            {
                 CapturePointer(e.Pointer);
                 e.Handled = true;
                 Invalidate();
                 return;
             }
+            _suppressTouchDoubleTap = false;
         }
+        else if (_touchNavigation.IsNavigating)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        InteractionStarting?.Invoke(this, EventArgs.Empty);
 
         if (point.Properties.IsRightButtonPressed)
         {
@@ -70,6 +84,7 @@ public sealed partial class SvgEditorCanvas
         }
 
         _activePointer = e.Pointer.PointerId;
+        _activePointerDevice = e.Pointer.PointerDeviceType;
         _startView = _lastView = view;
         _startWorld = _currentWorld = Snap(Viewport.ViewToWorld(view));
         _shift = e.KeyModifiers.HasFlag(VirtualKeyModifiers.Shift);
@@ -130,6 +145,7 @@ public sealed partial class SvgEditorCanvas
         {
             CommitPenPath(true);
             _activePointer = null;
+            _activePointerDevice = null;
             ReleasePointerCapture(e.Pointer);
             return;
         }
@@ -166,23 +182,10 @@ public sealed partial class SvgEditorCanvas
         var view = new SKPoint((float)point.Position.X, (float)point.Position.Y);
         PointerPosition = Viewport.ViewToWorld(view);
         PointerPositionChanged?.Invoke(this, EventArgs.Empty);
-        if (_touches.ContainsKey(e.Pointer.PointerId))
+        if (_touchNavigation.MoveContact(e.Pointer.PointerId, view, Viewport))
         {
-            _touches[e.Pointer.PointerId] = view;
-            if (_gesture == Gesture.Pinch && _touches.Count >= 2)
-            {
-                GetPinch(out var center, out var distance);
-                if (_pinchDistance > 1 && distance > 1)
-                {
-                    Viewport.ZoomAt(distance / _pinchDistance, _pinchCenter);
-                }
-
-                Viewport.Pan(center.X - _pinchCenter.X, center.Y - _pinchCenter.Y);
-                _pinchCenter = center;
-                _pinchDistance = distance;
-                e.Handled = true;
-                return;
-            }
+            e.Handled = true;
+            return;
         }
 
         if (_activePointer != e.Pointer.PointerId)
@@ -267,15 +270,16 @@ public sealed partial class SvgEditorCanvas
 
     private void HandlePointerReleased(PointerRoutedEventArgs e)
     {
-        _touches.Remove(e.Pointer.PointerId);
-        if (_gesture == Gesture.Pinch)
+        if (_touchNavigation.IsNavigating)
         {
-            if (_touches.Count < 2)
-            {
-                _gesture = Gesture.None;
-            }
-
+            var finalPoint = e.GetCurrentPoint(this).Position;
+            _touchNavigation.MoveContact(e.Pointer.PointerId, new SKPoint((float)finalPoint.X, (float)finalPoint.Y), Viewport);
+        }
+        if (_touchNavigation.RemoveContact(e.Pointer.PointerId))
+        {
+            _gesture = _touchNavigation.IsNavigating ? Gesture.Pinch : Gesture.None;
             ReleasePointerCapture(e.Pointer);
+            UpdateCursor();
             e.Handled = true;
             return;
         }
@@ -291,6 +295,7 @@ public sealed partial class SvgEditorCanvas
         var completedGesture = _gesture;
         _gesture = Gesture.None;
         _activePointer = null;
+        _activePointerDevice = null;
         ReleasePointerCapture(e.Pointer);
         e.Handled = true;
 
@@ -408,7 +413,7 @@ public sealed partial class SvgEditorCanvas
 
     private void OnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
     {
-        if (_activePointer is not null)
+        if (_activePointer is not null || _touchNavigation.IsNavigating)
         {
             // Keep the gesture's document-space anchors stable until the captured drag ends.
             e.Handled = true;
@@ -432,7 +437,7 @@ public sealed partial class SvgEditorCanvas
 
     private void OnPointerCanceled(object sender, PointerRoutedEventArgs e)
     {
-        if (_activePointer == e.Pointer.PointerId || _touches.ContainsKey(e.Pointer.PointerId))
+        if (_activePointer == e.Pointer.PointerId || _touchNavigation.Contains(e.Pointer.PointerId))
         {
             CancelGesture();
             e.Handled = true;
@@ -441,18 +446,22 @@ public sealed partial class SvgEditorCanvas
 
     private void OnPointerCaptureLost(object sender, PointerRoutedEventArgs e)
     {
-        if (_activePointer == e.Pointer.PointerId)
+        if (_activePointer == e.Pointer.PointerId || _touchNavigation.Contains(e.Pointer.PointerId))
         {
+            // Unexpected capture loss cancels the whole gesture, including any
+            // remaining contact. Normal releases remove the contact first.
             CancelGesture();
-        }
-        else if (_touches.Remove(e.Pointer.PointerId) && _gesture == Gesture.Pinch && _touches.Count < 2)
-        {
-            _gesture = Gesture.None;
         }
     }
 
     private void OnDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
+        if (_touchNavigation.IsNavigating || (e.PointerDeviceType == PointerDeviceType.Touch && _suppressTouchDoubleTap))
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (IsNodeTool(Tool) && _vertexOriginal is not null)
         {
             try
@@ -518,17 +527,6 @@ public sealed partial class SvgEditorCanvas
             PanMode = false;
             e.Handled = true;
         }
-    }
-
-    private void GetPinch(out SKPoint center, out float distance)
-    {
-        using var points = _touches.Values.GetEnumerator();
-        points.MoveNext();
-        var first = points.Current;
-        points.MoveNext();
-        var second = points.Current;
-        center = new SKPoint((first.X + second.X) / 2, (first.Y + second.Y) / 2);
-        distance = SKPoint.Distance(first, second);
     }
 
 }

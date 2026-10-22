@@ -181,10 +181,12 @@ public sealed partial class SvgEditorController : IDisposable
         if (_savedXml != "\0" && _savedXml.Length != 0)
             Relocate(_savedXml);
         var selected = CaptureSelection();
+        var animationTime = Renderer.AnimationTime;
         var renderer = CreateRenderer(document);
         var adopted = false;
         try
         {
+            renderer.SetAnimationTime(animationTime);
             Session.TransformHistory(Relocate);
             ReplaceRenderer(renderer);
             adopted = true;

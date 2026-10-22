@@ -29,18 +29,18 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private readonly List<SKPoint> _freehandPoints = new();
     private readonly List<PenNode> _penNodes = new();
-    private readonly Dictionary<uint, SKPoint> _touches = new();
+    private readonly SvgEditorTouchNavigation _touchNavigation = new();
     private readonly PathService _nodePreview = new();
     private SvgEditorController? _controller;
     private SvgEditorToolKind _tool;
     private Gesture _gesture;
     private uint? _activePointer;
+    private PointerDeviceType? _activePointerDevice;
+    private bool _suppressTouchDoubleTap;
     private SKPoint _startView;
     private SKPoint _lastView;
     private SKPoint _startWorld;
     private SKPoint _currentWorld;
-    private SKPoint _pinchCenter;
-    private float _pinchDistance;
     private SKRect _startBounds;
     private SKMatrix _previewTransform = SKMatrix.Identity;
     private SKPathBuilder? _freehandPreview;
@@ -62,6 +62,8 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     public SvgEditorCanvas()
     {
+        // The canvas handles touch directly; parent scrollers must not take over.
+        ManipulationMode = ManipulationModes.None;
         Viewport.Changed += OnViewportChanged;
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
@@ -192,19 +194,27 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     public void CancelGesture()
     {
+        CancelDrawingPreview();
+        _touchNavigation.Reset();
+        ReleasePointerCaptures();
+        RefreshNodePreview();
+        UpdateCursor();
+        Invalidate();
+    }
+
+    private void CancelDrawingPreview()
+    {
+        // Tools mutate only their preview until release. Clearing it cancels the
+        // entire provisional stroke/path without adding a document undo entry.
         ReleaseSelectionGhost();
         _gesture = Gesture.None;
         _activePointer = null;
+        _activePointerDevice = null;
         _moved = false;
         _previewTransform = SKMatrix.Identity;
         _freehandPoints.Clear();
         _freehandPreview?.Reset();
         _penNodes.Clear();
-        _touches.Clear();
-        ReleasePointerCaptures();
-        RefreshNodePreview();
-        UpdateCursor();
-        Invalidate();
     }
 
     /// <summary>Commits an open pen or polygon path. Escape discards the provisional path.</summary>
@@ -291,10 +301,11 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
         ReleaseSelectionGhost();
         _gesture = Gesture.None;
         _activePointer = null;
+        _activePointerDevice = null;
         _moved = false;
         _previewTransform = SKMatrix.Identity;
         _penNodes.Clear();
-        _touches.Clear();
+        _touchNavigation.Reset();
         _freehandPoints.Clear();
         _freehandPreview?.Reset();
         _nodePreview.Stop();

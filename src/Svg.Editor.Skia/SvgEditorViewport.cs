@@ -120,6 +120,28 @@ public sealed class SvgEditorViewport
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>
+    /// Applies a scale and moving anchor atomically, keeping the world point under
+    /// the previous midpoint beneath the new midpoint, including at zoom limits.
+    /// </summary>
+    public void PanAndZoomAt(double factor, SKPoint previousAnchor, SKPoint currentAnchor)
+    {
+        var zoom = Zoom * factor;
+        if (!IsFinite(zoom) || zoom <= 0 || !IsFinite(previousAnchor.X) || !IsFinite(previousAnchor.Y)
+            || !IsFinite(currentAnchor.X) || !IsFinite(currentAnchor.Y))
+            return;
+        zoom = Math.Max(MinimumZoom, Math.Min(MaximumZoom, zoom));
+        var x = currentAnchor.X - ((previousAnchor.X - OffsetX) / Zoom) * zoom;
+        var y = currentAnchor.Y - ((previousAnchor.Y - OffsetY) / Zoom) * zoom;
+        if (!IsValidCamera(zoom, x, y, Width, Height)
+            || (zoom == Zoom && x == OffsetX && y == OffsetY))
+            return;
+        Zoom = zoom;
+        OffsetX = x;
+        OffsetY = y;
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
     public void Fit(SKRect bounds, double padding = 48, double maximumZoom = 4)
     {
         if (Width <= 0 || Height <= 0 || !IsFinite(bounds.Left) || !IsFinite(bounds.Top)
