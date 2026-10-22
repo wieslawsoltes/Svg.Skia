@@ -479,7 +479,8 @@ public sealed partial class SvgEditorController
     private string CreateId(string prefix)
     {
         string id;
-        do { id = prefix + (++_nextId).ToString(System.Globalization.CultureInfo.InvariantCulture); } while (Document?.GetElementById(id) is not null || Document?.ID == id);
+        do
+        { id = prefix + (++_nextId).ToString(System.Globalization.CultureInfo.InvariantCulture); } while (Document?.GetElementById(id) is not null || Document?.ID == id);
         return id;
     }
 
@@ -490,8 +491,10 @@ public sealed partial class SvgEditorController
             var path = new SK.SKPath();
             var rx = rectangle.CornerRadiusX.Value;
             var ry = rectangle.CornerRadiusY.Value;
-            if (rx == 0) rx = ry;
-            if (ry == 0) ry = rx;
+            if (rx == 0)
+                rx = ry;
+            if (ry == 0)
+                ry = rx;
             path.AddRoundRect(SK.SKRect.Create(rectangle.X.Value, rectangle.Y.Value, rectangle.Width.Value, rectangle.Height.Value), rx, ry);
             return path;
         }

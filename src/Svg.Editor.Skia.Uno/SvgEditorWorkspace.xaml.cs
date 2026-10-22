@@ -51,10 +51,16 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         _recoveryTimer.Tick += async (_, _) => await SaveRecoveryAsync();
         _animationTimer.Tick += (_, _) =>
         {
-            if (Controller is not { } controller)
+            _animationTimer.Stop();
+            if (_disposed || !_animationClock.IsRunning || Controller is not { } controller)
                 return;
             controller.Renderer.SetAnimationTime(_animationPlaybackOrigin + _animationClock.Elapsed);
             Canvas.Invalidate();
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+            {
+                if (!_disposed && _animationClock.IsRunning && ReferenceEquals(Controller, controller))
+                    _animationTimer.Start();
+            });
         };
         Loaded += (_, _) =>
         {
@@ -66,6 +72,7 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         {
             _recoveryTimer.Stop();
             _animationTimer.Stop();
+            _animationClock.Stop();
             Canvas.CancelGesture();
         };
     }

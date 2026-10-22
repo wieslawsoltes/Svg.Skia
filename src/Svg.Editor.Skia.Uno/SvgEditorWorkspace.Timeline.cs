@@ -35,8 +35,11 @@ public sealed partial class SvgEditorWorkspace
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
         var clock = new Stopwatch();
         var playStart = 0d;
+        var playhead = 0d;
+        var displayClock = Stopwatch.StartNew();
         var changing = false;
         var closed = false;
+        var playing = false;
         SvgTimelineTrack? current = null;
         var loadedSignature = string.Empty;
         var tracks = new List<SvgTimelineTrack>();
@@ -146,16 +149,22 @@ public sealed partial class SvgEditorWorkspace
         {
             timer.Stop();
             clock.Stop();
+            playing = false;
             play.Content = "▶ Play";
             error.Text = exception.Message;
         }
 
-        void Seek(double seconds)
+        void Seek(double seconds, bool updateTimeDisplay = true)
         {
             seconds = Math.Clamp(seconds, 0, span.Value);
-            changing = true;
-            time.Value = seconds;
-            changing = false;
+            playhead = seconds;
+            if (updateTimeDisplay || displayClock.ElapsedMilliseconds >= 100)
+            {
+                changing = true;
+                time.Value = seconds;
+                changing = false;
+                displayClock.Restart();
+            }
             draft.Renderer.SetAnimationTime(TimeSpan.FromSeconds(seconds));
             ruler.Time = seconds;
             ruler.Invalidate();
@@ -207,7 +216,7 @@ public sealed partial class SvgEditorWorkspace
                 error.Text = string.Empty;
                 undo.IsEnabled = draft.CanUndo;
                 redo.IsEnabled = draft.CanRedo;
-                Seek(time.Value);
+                Seek(playhead);
                 UpdateRuler();
                 return true;
             }
@@ -328,7 +337,7 @@ public sealed partial class SvgEditorWorkspace
                 { track.ValueMode = SvgTimelineValueMode.To; track.To = "1"; }
                 draft.Execute("Add animation track", () => SvgTimelineService.Apply(draft.Document!, track));
                 RebuildTracks(track.Source?.ID);
-                Seek(time.Value);
+                Seek(playhead);
                 error.Text = string.Empty;
             }
             catch (Exception exception) { Fail(exception); }
@@ -342,7 +351,7 @@ public sealed partial class SvgEditorWorkspace
                 draft.Execute("Delete animation track", () => SvgTimelineService.Delete(draft.Document!, current));
                 current = null;
                 RebuildTracks();
-                Seek(time.Value);
+                Seek(playhead);
                 error.Text = string.Empty;
             }
             catch (Exception exception) { Fail(exception); }
@@ -359,7 +368,7 @@ public sealed partial class SvgEditorWorkspace
                 copy = SvgTimelineService.DuplicateTrack(copy);
                 draft.Execute("Duplicate animation track", () => SvgTimelineService.Apply(draft.Document!, copy));
                 RebuildTracks(copy.Source?.ID);
-                Seek(time.Value);
+                Seek(playhead);
             }
             catch (Exception exception) { Fail(exception); }
         };
@@ -371,7 +380,7 @@ public sealed partial class SvgEditorWorkspace
             try
             {
                 ReadFields();
-                var offset = Math.Clamp((time.Value - current.BeginSeconds) / Math.Max(.000001, current.DurationSeconds), 0, 1);
+                var offset = Math.Clamp((playhead - current.BeginSeconds) / Math.Max(.000001, current.DurationSeconds), 0, 1);
                 if (current.Keys.Any(key => Math.Abs(key.Offset - offset) < .0000001))
                 {
                     var ordered = current.Keys.OrderBy(key => key.Offset).ToArray();
@@ -390,12 +399,13 @@ public sealed partial class SvgEditorWorkspace
             }
             catch (Exception exception) { Fail(exception); }
         };
-        undo.Click += (_, _) => { draft.Undo(); current = null; RebuildTracks(); Seek(time.Value); error.Text = string.Empty; };
-        redo.Click += (_, _) => { draft.Redo(); current = null; RebuildTracks(); Seek(time.Value); error.Text = string.Empty; };
+        undo.Click += (_, _) => { draft.Undo(); current = null; RebuildTracks(); Seek(playhead); error.Text = string.Empty; };
+        redo.Click += (_, _) => { draft.Redo(); current = null; RebuildTracks(); Seek(playhead); error.Text = string.Empty; };
         ruler.SeekRequested += value =>
         {
             timer.Stop();
             clock.Stop();
+            playing = false;
             play.Content = "▶ Play";
             Seek(value);
         };
@@ -415,26 +425,28 @@ public sealed partial class SvgEditorWorkspace
             BuildKeys();
             UpdateRuler();
         };
-        rewind.Click += (_, _) => { clock.Restart(); playStart = 0; Seek(0); };
+        rewind.Click += (_, _) => { clock.Reset(); if (playing) clock.Start(); playStart = 0; Seek(0); };
         play.Click += (_, _) =>
         {
-            if (timer.IsEnabled)
-            { timer.Stop(); clock.Stop(); play.Content = "▶ Play"; return; }
+            if (playing)
+            { timer.Stop(); clock.Stop(); playing = false; play.Content = "▶ Play"; Seek(playhead); return; }
             if (!CommitTrack())
                 return;
             if (!double.IsFinite(span.Value) || span.Value <= 0)
             { error.Text = "Enter a positive preview duration."; return; }
-            if (time.Value >= span.Value)
+            if (playhead >= span.Value)
                 Seek(0);
-            playStart = time.Value;
+            playStart = playhead;
             clock.Restart();
+            playing = true;
             timer.Start();
             play.Content = "Ⅱ Pause";
         };
         timer.Tick += (_, _) =>
         {
-            if (closed || _disposed)
-            { timer.Stop(); return; }
+            timer.Stop();
+            if (closed || _disposed || !playing)
+                return;
             try
             {
                 var next = playStart + clock.Elapsed.TotalSeconds;
@@ -443,9 +455,15 @@ public sealed partial class SvgEditorWorkspace
                     if (loop.IsChecked == true)
                     { next %= span.Value; playStart = next; clock.Restart(); }
                     else
-                    { next = span.Value; timer.Stop(); clock.Stop(); play.Content = "▶ Play"; }
+                    { next = span.Value; timer.Stop(); clock.Stop(); playing = false; play.Content = "▶ Play"; }
                 }
-                Seek(next);
+                Seek(next, updateTimeDisplay: !playing);
+                // Yield to input and finish this frame before scheduling another one.
+                DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+                {
+                    if (!closed && !_disposed && playing)
+                        timer.Start();
+                });
             }
             catch (Exception exception) { Fail(exception); }
         };
@@ -454,7 +472,9 @@ public sealed partial class SvgEditorWorkspace
             if (changing || !double.IsFinite(time.Value))
                 return;
             playStart = time.Value;
-            clock.Restart();
+            clock.Reset();
+            if (playing)
+                clock.Start();
             Seek(time.Value);
         };
         span.ValueChanged += (_, _) =>
@@ -462,7 +482,7 @@ public sealed partial class SvgEditorWorkspace
             if (!double.IsFinite(span.Value) || span.Value <= 0)
                 return;
             UpdateRuler();
-            Seek(Math.Min(time.Value, span.Value));
+            Seek(Math.Min(playhead, span.Value));
         };
         dialog.PrimaryButtonClick += (_, args) =>
         {
@@ -474,7 +494,7 @@ public sealed partial class SvgEditorWorkspace
                     throw new InvalidOperationException("The source document changed while the timeline was open. Cancel and reopen it before saving.");
                 if (draft.IsDirty)
                     controller.ReplaceSvg(draft.GetSvg(), "Edit animation timeline");
-                returnTime = TimeSpan.FromSeconds(time.Value);
+                returnTime = TimeSpan.FromSeconds(playhead);
             }
             catch (Exception exception) { args.Cancel = true; Fail(exception); }
         };
@@ -494,6 +514,7 @@ public sealed partial class SvgEditorWorkspace
         finally
         {
             closed = true;
+            playing = false;
             timer.Stop();
             clock.Stop();
             if (!_disposed && Controller == controller)

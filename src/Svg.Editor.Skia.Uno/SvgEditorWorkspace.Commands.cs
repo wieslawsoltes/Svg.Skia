@@ -247,7 +247,7 @@ public sealed partial class SvgEditorWorkspace
 
     private void ToggleAnimation()
     {
-        if (_animationTimer.IsEnabled)
+        if (_animationClock.IsRunning)
         {
             _animationTimer.Stop();
             _animationClock.Stop();

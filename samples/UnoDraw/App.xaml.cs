@@ -20,7 +20,8 @@ public sealed partial class App : Application
         Suspending += async (_, args) =>
         {
             var deferral = args.SuspendingOperation.GetDeferral();
-            try { if (_workspace is { } workspace) await workspace.SaveRecoveryCheckpointAsync(); }
+            try
+            { if (_workspace is { } workspace) await workspace.SaveRecoveryCheckpointAsync(); }
             finally { deferral.Complete(); }
         };
     }
@@ -35,7 +36,8 @@ public sealed partial class App : Application
         if (desktop)
             _window.AppWindow.Resize(new Windows.Graphics.SizeInt32 { Width = 1440, Height = 960 });
         workspace.WorkspaceTitleChanged += (_, title) => _window.Title = title;
-        if (desktop) _window.AppWindow.Closing += async (_, closing) =>
+        if (desktop)
+            _window.AppWindow.Closing += async (_, closing) =>
         {
             if (_allowClose)
                 return;
@@ -61,7 +63,8 @@ public sealed partial class App : Application
                     using var reader = new StreamReader(source);
                     await workspace.OpenSvgSourceAsync(await reader.ReadToEndAsync(), "Welcome.svg");
                 }
-                else workspace.NewDocument();
+                else
+                    workspace.NewDocument();
             }
             await workspace.OfferRecoveryAsync();
         };
