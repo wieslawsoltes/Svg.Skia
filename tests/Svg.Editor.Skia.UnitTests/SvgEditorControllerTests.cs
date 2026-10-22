@@ -463,10 +463,11 @@ public class SvgEditorControllerTests
     public void SourceReplacementIsUndoableAndKeepsFileAndSavepoint()
     {
         using var editor = new SvgEditorController();
-        editor.LoadSvg(RectangleSvg, "/tmp/artwork.svg");
+        var fileName = Path.Combine(Path.GetTempPath(), "artwork.svg");
+        editor.LoadSvg(RectangleSvg, fileName);
         var before = editor.GetSvg();
         editor.ReplaceSvg(RectangleSvg.Replace("fill='red'", "fill='blue'"));
-        Assert.Equal("/tmp/artwork.svg", editor.Session.CurrentFile);
+        Assert.Equal(fileName, editor.Session.CurrentFile);
         Assert.True(editor.IsDirty);
         Assert.Equal(1, editor.Session.UndoCount);
         var current = editor.Document;
@@ -484,28 +485,32 @@ public class SvgEditorControllerTests
     public void AcceptSaveRelocatesUndoRedoAndKeepsNewerEditsDirty()
     {
         using var editor = new SvgEditorController();
+        var directory = Path.Combine(Path.GetTempPath(), "unodraw-save");
+        var originalFile = Path.Combine(directory, "source", "drawing.svg");
+        var savedFile = Path.Combine(directory, "destination", "copy.svg");
+        var originalResource = new Uri(Path.Combine(directory, "source", "assets", "page.svg"));
+        var savedUri = new Uri(savedFile);
         editor.LoadSvg("""
             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200">
               <a id="link" xlink:href="assets/page.svg"><rect id="shape" width="30" height="40"/></a>
             </svg>
-            """, "/tmp/unodraw-save/source/drawing.svg");
+            """, originalFile);
         editor.Select(editor.Document!.GetElementById<SvgRectangle>("shape"));
         editor.MoveSelection(10, 0);
         var saved = SvgResourcePathService.Rebase(editor.GetSvg(), editor.Document.BaseUri,
-            new Uri("file:///tmp/unodraw-save/destination/copy.svg"));
+            savedUri);
         editor.MoveSelection(20, 0);
         editor.MoveSelection(30, 0);
         editor.Undo();
         var undoCount = editor.Session.UndoCount;
         var redoCount = editor.Session.RedoCount;
-        editor.AcceptSave(saved, "/tmp/unodraw-save/destination/copy.svg");
+        editor.AcceptSave(saved, savedFile);
 
         void AssertResourceIdentity()
         {
             var anchor = editor.Document!.GetElementById<SvgAnchor>("link");
-            Assert.Equal(new Uri("file:///tmp/unodraw-save/source/assets/page.svg"),
-                new Uri(editor.Document.BaseUri, anchor.Href));
-            Assert.Equal(new Uri("file:///tmp/unodraw-save/destination/copy.svg"), editor.Document.BaseUri);
+            Assert.Equal(originalResource, new Uri(editor.Document.BaseUri, anchor.Href));
+            Assert.Equal(savedUri, editor.Document.BaseUri);
         }
         AssertResourceIdentity();
         Assert.Equal(undoCount, editor.Session.UndoCount);
@@ -531,17 +536,19 @@ public class SvgEditorControllerTests
     public void InvalidSaveAcceptanceLeavesDocumentHistoryAndCheckpointUntouched()
     {
         using var editor = new SvgEditorController();
-        editor.LoadSvg(RectangleSvg, "/tmp/original.svg");
+        var originalFile = Path.Combine(Path.GetTempPath(), "original.svg");
+        var invalidFile = Path.Combine(Path.GetTempPath(), "another", "new.svg");
+        editor.LoadSvg(RectangleSvg, originalFile);
         editor.Select(editor.Document!.GetElementById<SvgRectangle>("shape"));
         editor.MoveSelection(10, 0);
         var document = editor.Document;
         var picture = editor.Renderer.Picture;
         var xml = editor.GetSvg();
-        Assert.Throws<XmlException>(() => editor.AcceptSave("<svg><broken></svg>", "/tmp/another/new.svg"));
+        Assert.Throws<XmlException>(() => editor.AcceptSave("<svg><broken></svg>", invalidFile));
         Assert.Same(document, editor.Document);
         Assert.Same(picture, editor.Renderer.Picture);
         Assert.Equal(xml, editor.GetSvg());
-        Assert.Equal("/tmp/original.svg", editor.Session.CurrentFile);
+        Assert.Equal(originalFile, editor.Session.CurrentFile);
         Assert.Equal(1, editor.Session.UndoCount);
         editor.Undo();
         Assert.False(editor.IsDirty);
@@ -551,19 +558,20 @@ public class SvgEditorControllerTests
     public void FirstSaveDuringGesturePreservesCancellationAndAdoptsDestination()
     {
         using var editor = new SvgEditorController();
+        var fileName = Path.Combine(Path.GetTempPath(), "new-artwork.svg");
         editor.NewDocument();
         editor.CreateElement(ToolService.Tool.Rect, new SKPoint(10, 10), new SKPoint(60, 70));
         var saved = editor.GetSvg();
         editor.BeginEdit("Drag during save");
         editor.MoveSelection(20, 30);
-        editor.AcceptSave(saved, "/tmp/new-artwork.svg");
+        editor.AcceptSave(saved, fileName);
         Assert.True(editor.IsEditing);
         Assert.True(editor.IsDirty);
         Assert.Equal(1, editor.Session.UndoCount);
         editor.CancelEdit();
         Assert.Equal(saved, editor.GetSvg());
         Assert.False(editor.IsDirty);
-        Assert.Equal(new Uri("file:///tmp/new-artwork.svg"), editor.Document!.BaseUri);
+        Assert.Equal(new Uri(fileName), editor.Document!.BaseUri);
     }
 
     [Fact]
