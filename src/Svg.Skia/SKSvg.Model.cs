@@ -610,6 +610,9 @@ public partial class SKSvg : IDisposable
             return null;
         }
 
+        // Structural DOM edits can introduce the first clip, filter, mask or stylesheet
+        // declaration without passing through an attribute setter on this document.
+        sourceDocument.InvalidateComputedStyleCache();
         InvalidateRetainedSceneGraph();
         if (AnimationController is { })
         {

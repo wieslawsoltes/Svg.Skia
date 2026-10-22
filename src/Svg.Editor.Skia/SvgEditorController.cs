@@ -126,8 +126,12 @@ public sealed partial class SvgEditorController : IDisposable
             throw new InvalidOperationException("No document is open.");
         if (IsEditing)
             CommitEdit();
-        Document.Write(path);
-        MarkSaved(path);
+        var targetPath = Path.GetFullPath(path);
+        var xml = GetSvg();
+        if (Document.BaseUri is { } originalUri)
+            xml = SvgResourcePathService.Rebase(xml, originalUri, new Uri(targetPath));
+        File.WriteAllText(targetPath, xml);
+        AcceptSave(xml, targetPath);
     }
 
     public void MarkSaved(string? fileName = null)
@@ -138,6 +142,72 @@ public sealed partial class SvgEditorController : IDisposable
         if (fileName is not null)
             Session.CurrentFile = fileName;
         NotifyChanged();
+    }
+
+    /// <summary>
+    /// Accepts a successfully written SVG snapshot, relocating current and historical
+    /// resource references without creating an edit. Edits made during the write remain dirty.
+    /// </summary>
+    /// <param name="savedXml">The exact snapshot written with references based at the destination.</param>
+    /// <param name="fileName">The destination SVG file.</param>
+    public void AcceptSave(string savedXml, string fileName)
+    {
+        ThrowIfDisposed();
+        if (Document is null)
+            throw new InvalidOperationException("No document is open.");
+        if (string.IsNullOrWhiteSpace(fileName))
+            throw new ArgumentException("A destination file is required.", nameof(fileName));
+
+        var targetPath = Path.GetFullPath(fileName);
+        var targetUri = new Uri(targetPath);
+        var originalUri = Document.BaseUri;
+        var relocated = new Dictionary<string, string>(StringComparer.Ordinal);
+        string Relocate(string xml)
+        {
+            if (originalUri is null)
+                return xml;
+            if (!relocated.TryGetValue(xml, out var result))
+                relocated.Add(xml, result = SvgResourcePathService.Rebase(xml, originalUri, targetUri));
+            return result;
+        }
+
+        // Parse everything that may fail before adopting the new URI or history. The saved
+        // snapshot can precede the current document when an asynchronous write is in flight.
+        var savedDocument = ParseDocument(savedXml, targetUri);
+        var savedCheckpoint = savedDocument.GetXML();
+        var document = ParseDocument(Relocate(GetSvg()), targetUri);
+        var currentXml = document.GetXML();
+        var editXml = _editXml is null ? null : Relocate(_editXml);
+        if (_savedXml != "\0" && _savedXml.Length != 0)
+            Relocate(_savedXml);
+        var selected = CaptureSelection();
+        var renderer = CreateRenderer(document);
+        var adopted = false;
+        try
+        {
+            Session.TransformHistory(Relocate);
+            ReplaceRenderer(renderer);
+            adopted = true;
+            Session.Document = document;
+            Session.CurrentFile = targetPath;
+            _currentXml = currentXml;
+            _editXml = editXml;
+            _savedXml = savedCheckpoint;
+            DocumentRevision++;
+            Paths.Stop();
+            _selection.Clear();
+            foreach (var key in selected)
+                if (ResolveSelectionKey(key) is SvgVisualElement element && !_selection.Contains(element))
+                    _selection.Add(element);
+            SyncSelection();
+            RebuildOutline();
+            NotifyChanged();
+        }
+        finally
+        {
+            if (!adopted)
+                renderer.Dispose();
+        }
     }
 
     /// <summary>Replaces SVG source as one undoable command, preserving file and savepoint.</summary>
@@ -299,8 +369,12 @@ public sealed partial class SvgEditorController : IDisposable
 
     public void SelectAt(SK.SKPoint point, bool additive = false)
     {
-        var element = Renderer.HitTestElements(new ShimSkiaSharp.SKPoint(point.X, point.Y))
-            .OfType<SvgVisualElement>().FirstOrDefault(e => !IsLocked(e));
+        var position = new ShimSkiaSharp.SKPoint(point.X, point.Y);
+        // The full enumeration follows paint order (back to front); the dedicated topmost
+        // query traverses in reverse and stops at the first painted object under the pointer.
+        var element = Renderer.HitTestTopmostElement(position) as SvgVisualElement;
+        if (element is null || IsLocked(element))
+            element = Renderer.HitTestElements(position).OfType<SvgVisualElement>().LastOrDefault(e => !IsLocked(e));
         Select(element, additive);
     }
 
@@ -373,16 +447,15 @@ public sealed partial class SvgEditorController : IDisposable
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("An SVG attribute name is required.", nameof(name));
+        if (name == "id")
+        {
+            RenameSelectedId(value);
+            return;
+        }
         Execute("Change " + name, () =>
         {
             foreach (var element in _selection)
             {
-                if (name == "id")
-                {
-                    if (_selection.Count != 1 || Document!.Descendants().Any(e => !ReferenceEquals(e, element) && e.ID == value))
-                        throw new ArgumentException("The ID must be unique in the document.", nameof(value));
-                    XmlConvert.VerifyNCName(value);
-                }
                 var property = element.GetType().GetProperties().FirstOrDefault(p => p.CanWrite &&
                     p.GetCustomAttributes(typeof(SvgAttributeAttribute), true).OfType<SvgAttributeAttribute>().Any(a => a.Name == name));
                 if (property is null)
@@ -390,6 +463,47 @@ public sealed partial class SvgEditorController : IDisposable
                 else
                     property.SetValue(element, TypeDescriptor.GetConverter(property.PropertyType).ConvertFromInvariantString(value), null);
             }
+        });
+    }
+
+    public void RenameSelectedId(string id)
+    {
+        if (_selection.Count != 1)
+            throw new InvalidOperationException("Select exactly one object to rename its ID.");
+        RenameElementId(_selection[0], id);
+    }
+
+    /// <summary>Renames any SVG element and its document-local references in one edit.</summary>
+    public void RenameElementId(SvgElement element, string id)
+    {
+        ThrowIfDisposed();
+        if (element is null)
+            throw new ArgumentNullException(nameof(element));
+        if (!BelongsToDocument(element))
+            throw new ArgumentException("The element must belong to this document.", nameof(element));
+        XmlConvert.VerifyNCName(id);
+        var existing = Document!.GetElementById(id);
+        if (existing is not null && !ReferenceEquals(existing, element))
+            throw new ArgumentException("The ID must be unique in the document.", nameof(id));
+        var previousId = element.ID;
+        if (previousId == id)
+            return;
+        var selected = _selection.Select(e => ReferenceEquals(e, element) ? "#" + id : GetSelectionKey(e)).ToArray();
+        Execute("Rename object", () =>
+        {
+            element.ID = id;
+            var tree = XDocument.Parse(Document.GetXML(), LoadOptions.PreserveWhitespace);
+            if (!string.IsNullOrEmpty(previousId))
+                RewriteTreeReferences(tree, new Dictionary<string, string>(StringComparer.Ordinal) { [previousId] = id });
+            var document = ParseDocument(tree.ToString(SaveOptions.DisableFormatting), Document.BaseUri);
+            var renderer = CreateRenderer(document);
+            ReplaceRenderer(renderer);
+            Session.Document = document;
+            Paths.Stop();
+            _selection.Clear();
+            foreach (var key in selected)
+                if (ResolveSelectionKey(key) is SvgVisualElement visual && !_selection.Contains(visual))
+                    _selection.Add(visual);
         });
     }
 
@@ -440,6 +554,7 @@ public sealed partial class SvgEditorController : IDisposable
         try
         {
             renderer.Wireframe = Session.Settings.WireframeEnabled;
+            renderer.IgnoreAttributes = Session.Settings.FiltersDisabled ? Model.DrawAttributes.Filter : Model.DrawAttributes.None;
             renderer.FromSvgDocument(document);
             return renderer;
         }
@@ -564,6 +679,11 @@ public sealed partial class SvgEditorController : IDisposable
         Selection.GridSize = Session.Settings.GridSize;
         if (e.PropertyName == nameof(SvgEditorSettings.WireframeEnabled))
             Renderer.Wireframe = Session.Settings.WireframeEnabled;
+        if (e.PropertyName == nameof(SvgEditorSettings.FiltersDisabled))
+        {
+            Renderer.IgnoreAttributes = Session.Settings.FiltersDisabled ? Model.DrawAttributes.Filter : Model.DrawAttributes.None;
+            RefreshPicture();
+        }
         NotifyChanged();
     }
 

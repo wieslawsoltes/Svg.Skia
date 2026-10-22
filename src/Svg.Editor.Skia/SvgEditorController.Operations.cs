@@ -371,9 +371,8 @@ public sealed partial class SvgEditorController
 
     private string CreateId(string prefix)
     {
-        var used = new HashSet<string>(Document?.Descendants().Select(e => e.ID).Where(id => !string.IsNullOrEmpty(id)) ?? Enumerable.Empty<string>(), StringComparer.Ordinal);
         string id;
-        do { id = prefix + (++_nextId).ToString(System.Globalization.CultureInfo.InvariantCulture); } while (used.Contains(id));
+        do { id = prefix + (++_nextId).ToString(System.Globalization.CultureInfo.InvariantCulture); } while (Document?.GetElementById(id) is not null || Document?.ID == id);
         return id;
     }
 
@@ -446,14 +445,23 @@ public sealed partial class SvgEditorController
     {
         if (matrix.IsIdentity)
             return;
+        ValidateMatrix(matrix);
+        var skip = 0;
+        if (element.Transforms is { Count: > 0 } existing && existing[0] is SvgMatrix first && first.Points.Count == 6)
+        {
+            var p = first.Points;
+            matrix = Multiply(matrix, new SK.SKMatrix(p[0], p[2], p[4], p[1], p[3], p[5], 0, 0, 1));
+            ValidateMatrix(matrix);
+            skip = 1;
+        }
         var transforms = new SvgTransformCollection
         {
             new SvgMatrix(new List<float> { matrix.ScaleX, matrix.SkewY, matrix.SkewX, matrix.ScaleY, matrix.TransX, matrix.TransY })
         };
         if (element.Transforms is not null)
         {
-            foreach (var transform in element.Transforms)
-                transforms.Add(transform);
+            for (var i = skip; i < element.Transforms.Count; i++)
+                transforms.Add(element.Transforms[i]);
         }
         element.Transforms = transforms;
     }

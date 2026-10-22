@@ -4,8 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Svg.Model.Services;
-using Svg.Transforms;
 using SK = SkiaSharp;
 
 namespace Svg.Editor.Skia;
@@ -99,32 +97,58 @@ public sealed partial class SvgEditorController
 
     private SvgDocument CreateClipboardDocument()
     {
-        var clipboard = CreateFragmentDocument();
-        var selected = TopLevelSelection();
-        var rootMatrix = GetSceneNode(Document!) is { } root ? ToMatrix(root.TotalTransform) : SK.SKMatrix.Identity;
-        if (!rootMatrix.TryInvert(out var rootInverse))
-            throw new InvalidOperationException("The document viewport has a singular transform.");
-        // Resources remain real SVG definitions. Copying them also makes clipboard data portable.
-        var definitions = new SvgDefinitionList();
-        foreach (var source in Document!.Descendants().OfType<SvgDefinitionList>())
+        var tree = XDocument.Parse(Document!.GetXML(), LoadOptions.PreserveWhitespace);
+        var root = tree.Root!;
+        var selected = new HashSet<XElement>(TopLevelSelection().Select(element =>
         {
-            if (selected.Any(e => IsDescendantOf(source, e)))
-                continue;
-            foreach (var resource in source.Children)
-                definitions.Children.Add(resource.DeepCopy());
-        }
-        if (definitions.Children.Count > 0)
-            clipboard.Children.Add(definitions);
-        foreach (var element in selected)
+            var key = GetSelectionKey(element);
+            if (key.StartsWith("#", StringComparison.Ordinal))
+                return root.Descendants().Single(e => (string?)e.Attribute("id") == key.Substring(1));
+            var node = root;
+            foreach (var part in key.Split('/'))
+                node = node.Elements().ElementAt(int.Parse(part, CultureInfo.InvariantCulture));
+            return node;
+        }));
+        var selectedBranches = new HashSet<XElement>(selected.SelectMany(e => e.AncestorsAndSelf()));
+        var resources = new HashSet<XElement>(root.Descendants().Where(IsClipboardResource));
+        var resourceBranches = new HashSet<XElement>(resources.SelectMany(e => e.AncestorsAndSelf()));
+
+        void Prune(XElement parent)
         {
-            var clone = (SvgVisualElement)element.DeepCopy();
-            MaterializePresentation(element, clone);
-            if (GetSceneNode(element)?.Parent is { } parent)
-                PrependTransform(clone, Multiply(rootInverse, ToMatrix(parent.TotalTransform)));
-            clipboard.Children.Add(clone);
+            if (selected.Contains(parent) || resources.Contains(parent))
+                return;
+            foreach (var child in parent.Elements().ToArray())
+            {
+                if (!selectedBranches.Contains(child) && !resourceBranches.Contains(child))
+                {
+                    child.Remove();
+                    continue;
+                }
+                Prune(child);
+                // Retain resource ancestry for inherited paint and xml:base, while preventing
+                // resource-only groups from becoming visible or selected after pasting.
+                if (!selectedBranches.Contains(child) && !IsClipboardResource(child))
+                    child.ReplaceWith(new XElement(root.Name.Namespace + "defs", child));
+            }
         }
-        return clipboard;
+        Prune(root);
+
+        // Preserve shared ancestor compositing as shared groups: applying group opacity or
+        // clipping separately to each copied child changes overlapping artwork.
+        var clipboard = XDocument.Parse(CreateFragmentDocument().GetXML());
+        var presentation = root.Attributes().Where(a => !a.IsNamespaceDeclaration &&
+            a.Name.LocalName is not ("width" or "height" or "x" or "y" or "viewBox" or "preserveAspectRatio" or "version" or "baseProfile")).ToArray();
+        if (presentation.Length > 0)
+            clipboard.Root!.Add(new XElement(root.Name.Namespace + "g", presentation, root.Nodes()));
+        else
+            clipboard.Root!.Add(root.Nodes());
+        return ParseDocument(clipboard.ToString(SaveOptions.DisableFormatting), Document!.BaseUri);
     }
+
+    private static bool IsClipboardResource(XElement element)
+        => element.Name.LocalName is "defs" or "style" or "symbol" or "clipPath" or "mask" or "filter"
+            or "linearGradient" or "radialGradient" or "pattern" or "marker" or "font" or "font-face"
+            or "color-profile" or "metadata" or "title" or "desc";
 
     private SvgDocument CreateFragmentDocument()
     {
@@ -161,7 +185,13 @@ public sealed partial class SvgEditorController
             mapping.Add(original, candidate);
             id.Value = candidate;
         }
-        foreach (var element in tree.Root.DescendantsAndSelf())
+        RewriteTreeReferences(tree, mapping);
+        return tree.ToString(SaveOptions.DisableFormatting);
+    }
+
+    private static void RewriteTreeReferences(XDocument tree, Dictionary<string, string> mapping)
+    {
+        foreach (var element in tree.Root!.DescendantsAndSelf())
         {
             foreach (var attribute in element.Attributes().Where(a => a.Name.LocalName != "id" && !a.IsNamespaceDeclaration))
                 attribute.Value = RemapReferences(attribute.Value, mapping,
@@ -169,7 +199,6 @@ public sealed partial class SvgEditorController
             if (element.Name.LocalName == "style")
                 element.Value = RemapReferences(element.Value, mapping, false, true);
         }
-        return tree.ToString(SaveOptions.DisableFormatting);
     }
 
     private static string RemapReferences(string value, Dictionary<string, string> mapping, bool directReference, bool css = false)
@@ -213,11 +242,4 @@ public sealed partial class SvgEditorController
         => new(Document!, deferred.DeferredId,
             deferred.FallbackServer is SvgDeferredPaintServer fallback ? RebindPaint(fallback) : deferred.FallbackServer);
 
-    private static bool IsDescendantOf(SvgElement element, SvgElement ancestor)
-    {
-        for (var current = element; current is not null; current = current.Parent)
-            if (ReferenceEquals(current, ancestor))
-                return true;
-        return false;
-    }
 }
