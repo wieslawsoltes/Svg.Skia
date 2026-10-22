@@ -302,40 +302,10 @@ public static class SvgSpotSeparationService
 
     private static SvgDocument Snapshot(SvgDocument source)
     {
-        var copy = (SvgDocument)source.DeepCopy();
-        // SvgElement serializes a translucent solid paint with both its color alpha and
-        // a multiplied paint-opacity attribute. Fold alpha once before serialization,
-        // including inherited/currentColor paints, without touching the source tree.
-        var paints = new[] { (SvgElement)copy }.Concat(copy.Descendants())
-            .Where(element => element is SvgVisualElement or SvgDocument)
-            .Select(element => (Element: element, Fill: ResolvePaint(element, element.Fill, true),
-                Stroke: ResolvePaint(element, element.Stroke, false), element.FillOpacity, element.StrokeOpacity)).ToArray();
-        foreach (var paint in paints)
-        {
-            var style = string.Empty;
-            if (paint.Fill is SvgColourServer fill && fill.Colour.A < 255)
-            {
-                var color = fill.Colour;
-                paint.Element.Fill = new SvgColourServer(Color.FromArgb(color.R, color.G, color.B));
-                paint.Element.FillOpacity = paint.FillOpacity * color.A / 255f;
-                style += ";fill:" + paint.Element.Fill + "!important;fill-opacity:"
-                    + paint.Element.FillOpacity.ToString(System.Globalization.CultureInfo.InvariantCulture) + "!important;";
-            }
-            if (paint.Stroke is SvgColourServer stroke && stroke.Colour.A < 255)
-            {
-                var color = stroke.Colour;
-                paint.Element.Stroke = new SvgColourServer(Color.FromArgb(color.R, color.G, color.B));
-                paint.Element.StrokeOpacity = paint.StrokeOpacity * color.A / 255f;
-                style += ";stroke:" + paint.Element.Stroke + "!important;stroke-opacity:"
-                    + paint.Element.StrokeOpacity.ToString(System.Globalization.CultureInfo.InvariantCulture) + "!important;";
-            }
-            if (style.Length > 0)
-            {
-                paint.Element.CustomAttributes.TryGetValue("style", out var existing);
-                paint.Element.CustomAttributes["style"] = existing + style;
-            }
-        }
-        return Parse(copy.GetXML(), source.BaseUri);
+        // Svg.Custom preserves solid color alpha independently of paint opacity.
+        // Reparse a complete SVG snapshot so CSS and resource references are bound to
+        // the separation document, without rewriting paint on the source tree.
+        return Parse(source.GetXML(), source.BaseUri);
     }
 
     private static SvgDocument Parse(string xml, Uri? baseUri)
