@@ -104,9 +104,12 @@ source of truth. Its direct `SKCanvasElement` surface replays cached Skia pictur
 while panning, zooming, and previewing gestures, with acceleration provided by the
 desktop host when available.
 
+![UnoDraw SVG workspace in its dark theme](docs/images/unodraw-workspace-dark.png)
+
 The workspace includes document tabs, light and dark themes, an SVG outline,
 searchable commands, a contextual inspector, drawing and node tools, alignment,
-path operations, reusable SVG resources, export, undo/redo, and recovery. It uses
+path operations, variable-width stroke outlines, shared swatches, reusable SVG
+resources, export, undo/redo, and recovery. It uses
 the reusable `Svg.Editor.Skia.Uno` workspace and a UI-independent
 `SvgEditorController`, so editor behavior can be tested independently of the host.
 

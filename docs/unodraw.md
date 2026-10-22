@@ -4,6 +4,14 @@ UnoDraw is the Uno Platform successor to the AvalonDraw sample. It edits SVG doc
 
 The application migration does not remove the reusable Avalonia editor packages. Existing consumers can continue using `Svg.Editor.Avalonia` and `Svg.Editor.Skia.Avalonia`.
 
+## Workspace preview
+
+These are native Linux captures of UnoDraw editing the bundled welcome SVG.
+
+| Light theme | Dark theme |
+| --- | --- |
+| ![UnoDraw light workspace](images/unodraw-workspace-light.png) | ![UnoDraw dark workspace](images/unodraw-workspace-dark.png) |
+
 ## Build and run
 
 Use the .NET 10 SDK selected by the repository's `global.json`. The UnoDraw project targets `net10.0-desktop`, supporting Windows, macOS and Linux/X11 through Uno's Skia desktop host. Android, iOS and WebAssembly are not application targets in this migration, so their workloads are not required to build UnoDraw.
@@ -175,7 +183,7 @@ dotnet test Svg.Skia.slnx -c Release
 
 ### Migration validation record
 
-The following results were recorded on Linux with .NET SDK 10.0.402:
+The following full-solution results were recorded on Linux with .NET SDK 10.0.402 at commit `a313cc429ee12d6f448f9d75f0ed0ef40a7780f7`:
 
 | Test assembly | Passed | Skipped |
 | --- | ---: | ---: |
@@ -185,14 +193,20 @@ The following results were recorded on Linux with .NET SDK 10.0.402:
 | `Svg.Model.UnitTests` | 212 | 0 |
 | `ShimSkiaSharp.UnitTests` | 141 | 0 |
 | `Svg.JavaScript.UnitTests` | 27 | 0 |
+| `Svg.Controls.Avalonia.UnitTests` | 19 | 0 |
+| `Svg.Controls.Skia.Avalonia.InvariantGlobalization.UnitTests` | 3 | 0 |
+| `Svg.Controls.Skia.Avalonia.UnitTests` | 56 | 0 |
+| `Svg.Controls.Skia.Uno.UnitTests` | 28 | 0 |
+| `Svg.Editor.Skia.Avalonia.UnitTests` | 18 | 0 |
+| **Total: 11 test assemblies** | **1,726** | **44** |
 
-These suites total **1,602 passing tests**, with 44 renderer tests skipped. The UnoDraw Release build and the reusable editor builds for `net461`, `netstandard2.0`, `net6.0`, `net8.0` and `net10.0` also passed.
+The complete solution restore, Release build and test run all passed, with **1,726 passing tests, zero failures and 44 existing renderer skips**. The Release solution build completed with zero errors; existing dependency and obsolete-API warnings remain. The UnoDraw Release build and the reusable editor builds for `net461`, `netstandard2.0`, `net6.0`, `net8.0` and `net10.0` also passed.
 
-Native Linux checks under Xvfb exercised startup, selection, drawing, undo, recovery, pending inspector edits, native SVG Save As, subsequent save after drawing, and PNG export. The saved file contained the new editable SVG rectangle, and the exported image retained the document dimensions. These checks validate runtime behavior on the virtual display, not physical GPU performance.
+The [UnoDraw desktop CI run](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/39800904057) passed the application build and both editor suites on Windows, macOS and Linux, including the Linux native-startup check. The [documentation build](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/39800903927) also passed.
 
-The renderer result includes all 272 retained-scene tests. Its initial run as root produced one environment-specific failure: `OpenPath_IgnoresUnreadableImportedStylesheets` expects a file with Unix mode `000` to be unreadable, while root's read-bypass capability can still read it. The complete renderer rerun passed with those capabilities removed; no test or reference image was changed.
+Native Linux checks under Xvfb exercised startup, selection, drawing, undo, recovery, pending inspector edits, native SVG open and Save As, subsequent save after drawing, PNG export, shared swatch creation, keyboard command search, tab closure and both themes. The width-profile dialog rendered a live tapered curve, saved its portable outline and centerline metadata, and restored the original path with one undo. The saved drawing contained the new editable SVG rectangle, and the exported image retained the document dimensions. These checks validate runtime behavior on the virtual display, not physical GPU performance.
 
-The complete solution restore exhausted the local package-cache filesystem, leaving some projects without restore assets. The subsequent solution build could not complete. The final `dotnet test Svg.Skia.slnx -c Release --no-build --no-restore` ran the available assemblies successfully but returned failure because the invariant-globalization Avalonia control tests and the Avalonia editor tests had no built assemblies. Other unrestored UI projects were not executed. The repository-wide gate therefore remains incomplete and needs a clean CI run with sufficient storage.
+The renderer result includes all 272 retained-scene tests. Solution projects and test assemblies ran serially to fit the validation host. UI tests used Xvfb. Because the container runs as root, the test process dropped its read-bypass capabilities so `OpenPath_IgnoresUnreadableImportedStylesheets` exercised normal Unix file permissions; no test or reference image was changed for that environment. Tests ran against the completed Release build with `--no-build --no-restore`. The separate legacy `Avalonia.Svg.Skia.UiTests` project is outside `Svg.Skia.slnx` and was not part of this solution gate.
 
 Existing NuGet audit warnings were recorded for pinned `Microsoft.Build.Tasks.Git`, `Tmds.DBus.Protocol` and `SixLabors.ImageSharp` dependencies. Broader dependency upgrades are outside this migration.
 
