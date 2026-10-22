@@ -96,6 +96,28 @@ and [SVG 2 static subset support](site/articles/reference/svg-2-static-subset-su
 - Avalonia adds an optional `NativeComposition` animation backend with fallback to `RenderLoop` or `DispatcherTimer` when retained composition is unavailable.
 - `tests/Svg.Skia.Benchmarks` adds a local BenchmarkDotNet harness for the shared animation renderer, and `samples/TestApp` exposes backend and playback controls for manual verification.
 
+## UnoDraw SVG editor
+
+[UnoDraw](samples/UnoDraw/README.md) is the desktop SVG editor built with Uno Platform
+and the existing Svg.Skia rendering pipeline. The editable SVG document stays the
+source of truth. Its direct `SKCanvasElement` surface replays cached Skia pictures
+while panning, zooming, and previewing gestures, with acceleration provided by the
+desktop host when available.
+
+The workspace includes document tabs, light and dark themes, an SVG outline,
+searchable commands, a contextual inspector, drawing and node tools, alignment,
+path operations, reusable SVG resources, export, undo/redo, and recovery. It uses
+the reusable `Svg.Editor.Skia.Uno` workspace and a UI-independent
+`SvgEditorController`, so editor behavior can be tested independently of the host.
+
+```sh
+git submodule update --init --recursive
+dotnet run --project samples/UnoDraw/UnoDraw.csproj -f net10.0-desktop
+```
+
+See the [UnoDraw guide](docs/unodraw.md) for the implemented tools, shortcuts,
+rendering architecture, validation commands, and remaining authoring work.
+
 ## NuGet
 
 Svg.Skia is delivered as a NuGet package.

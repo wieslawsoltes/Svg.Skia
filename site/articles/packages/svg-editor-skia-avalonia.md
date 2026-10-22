@@ -4,7 +4,7 @@ title: "Svg.Editor.Skia.Avalonia"
 
 # Svg.Editor.Skia.Avalonia
 
-`Svg.Editor.Skia.Avalonia` is the highest-level editor package. It exposes the interactive surface and the ready-made workspace extracted from AvalonDraw.
+`Svg.Editor.Skia.Avalonia` is the complete editor composition for Avalonia. It exposes the interactive surface and ready-made workspace originally extracted from AvalonDraw. The desktop application has moved to UnoDraw; this Avalonia library remains available with its existing hosting API. For the Uno workspace, see [Svg.Editor.Skia.Uno](svg-editor-skia-uno).
 
 ## Install
 
@@ -16,7 +16,7 @@ dotnet add package Svg.Editor.Skia.Avalonia
 
 - you want an embeddable SVG editor in an Avalonia app,
 - you need the Skia-backed editing surface plus the default side panels,
-- you want the same reusable stack that `samples/AvalonDraw` now hosts,
+- you want to keep an existing Avalonia editor integration,
 - you want a packaged entry point that already composes the lower editor libraries.
 
 ## Main types

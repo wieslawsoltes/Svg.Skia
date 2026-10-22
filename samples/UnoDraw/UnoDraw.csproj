@@ -1,0 +1,26 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-desktop</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <ApplicationTitle>UnoDraw</ApplicationTitle>
+    <ApplicationId>com.wieslawsoltes.unodraw</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationPublisher>Svg.Skia</ApplicationPublisher>
+    <Description>A native SVG design workspace built with Uno Platform and Svg.Skia.</Description>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UnoFeatures>SkiaRenderer;</UnoFeatures>
+    <!-- These SVG files are editable documents, not rasterized UI image assets. -->
+    <DisableDefaultUnoResizetizerItems>true</DisableDefaultUnoResizetizerItems>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Uno's desktop host and Svg.Skia must load the same native Skia ABI. -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" />
+    <ProjectReference Include="../../src/Svg.Editor.Skia.Uno/Svg.Editor.Skia.Uno.csproj" />
+    <ProjectReference Include="../../src/Svg.Skia.JavaScript/Svg.Skia.JavaScript.csproj" />
+    <Content Include="Assets/*.svg" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

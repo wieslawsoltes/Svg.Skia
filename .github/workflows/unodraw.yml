@@ -1,0 +1,112 @@
+name: UnoDraw
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, main]
+    paths:
+      - '.github/workflows/unodraw.yml'
+      - 'global.json'
+      - 'Directory.*.props'
+      - 'build/**'
+      - 'externals/**'
+      - 'src/**'
+      - 'samples/UnoDraw/**'
+      - 'tests/Svg.Editor.*/**'
+  pull_request:
+    branches: [master, main, develop]
+    paths:
+      - '.github/workflows/unodraw.yml'
+      - 'global.json'
+      - 'Directory.*.props'
+      - 'build/**'
+      - 'externals/**'
+      - 'src/**'
+      - 'samples/UnoDraw/**'
+      - 'tests/Svg.Editor.*/**'
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+concurrency:
+  group: unodraw-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop:
+    name: Desktop and editor tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore desktop application
+        run: dotnet restore samples/UnoDraw/UnoDraw.csproj
+
+      - name: Build desktop application
+        run: dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-desktop -c Release --no-restore
+
+      - name: Smoke test Linux native startup
+        if: runner.os == 'Linux'
+        timeout-minutes: 2
+        shell: bash
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          mkdir -p artifacts/unodraw-smoke
+          export XDG_DATA_HOME="$RUNNER_TEMP/unodraw-smoke-data"
+          export XDG_CACHE_HOME="$RUNNER_TEMP/unodraw-smoke-cache"
+          mkdir -p "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
+          set +e
+          timeout --signal=TERM --kill-after=5s 15s \
+            xvfb-run --auto-servernum --server-args="-screen 0 1440x960x24 -nolisten tcp" \
+            dbus-run-session -- \
+            dotnet samples/UnoDraw/bin/Release/net10.0-desktop/UnoDraw.dll \
+            samples/UnoDraw/Assets/Welcome.svg \
+            > artifacts/unodraw-smoke/startup.log 2>&1
+          startup_status=$?
+          set -e
+          cat artifacts/unodraw-smoke/startup.log
+          # A healthy desktop app stays running until the bounded smoke interval ends.
+          if [[ "$startup_status" -ne 124 ]]; then
+            echo "UnoDraw exited before the startup check completed (status $startup_status)." >&2
+            exit 1
+          fi
+          if grep -Eiq 'Unhandled exception|DllNotFoundException|EntryPointNotFoundException|incompatible with this version of SkiaSharp' artifacts/unodraw-smoke/startup.log; then
+            echo "UnoDraw reported a native runtime failure during startup." >&2
+            exit 1
+          fi
+
+      - name: Test editor commands, geometry and history
+        run: dotnet test tests/Svg.Editor.Skia.UnitTests/Svg.Editor.Skia.UnitTests.csproj -c Release --logger "trx;LogFileName=editor-skia.trx" --results-directory artifacts/unodraw-tests
+
+      - name: Test SVG document services
+        run: dotnet test tests/Svg.Editor.Svg.UnitTests/Svg.Editor.Svg.UnitTests.csproj -c Release --logger "trx;LogFileName=editor-svg.trx" --results-directory artifacts/unodraw-tests
+
+      - name: Upload test and startup results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unodraw-tests-${{ matrix.os }}
+          path: |
+            artifacts/unodraw-tests/*.trx
+            artifacts/unodraw-smoke/*.log
+          if-no-files-found: warn
+          retention-days: 14
