@@ -153,7 +153,7 @@ jobs:
       - name: Install required Android SDK components
         run: dotnet build samples/UnoDraw/UnoDraw.csproj -t:InstallAndroidDependencies -f net10.0-android -p:UnoDrawTargetFrameworks=net10.0-android -p:AndroidSdkDirectory="$ANDROID_HOME" -p:AcceptAndroidSdkLicenses=true
       - name: Publish Android application
-        run: dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-android -p:UnoDrawTargetFrameworks=net10.0-android -c Release -p:AndroidKeyStore=false
+        run: dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-android -p:UnoDrawTargetFrameworks=net10.0-android -r android-arm64 -c Release -p:AndroidKeyStore=false
       - uses: actions/upload-artifact@v4
         with:
           name: unodraw-android
@@ -188,7 +188,7 @@ jobs:
         with:
           global-json-file: global.json
       - name: Install iOS workload
-        run: dotnet workload install ios --version 10.0.401
+        run: dotnet workload install ios
       - name: Build simulator application
         run: dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-ios -p:UnoDrawTargetFrameworks=net10.0-ios -c Release -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false
       - name: Archive simulator application

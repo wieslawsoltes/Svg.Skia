@@ -141,8 +141,25 @@ public sealed partial class SvgEditorWorkspace
         AddAsync("help", "Keyboard shortcuts…", "View", ShowHelpAsync, "F1");
     }
 
+    private string? _pendingCompactMenuCommand;
+
     private void BuildMenus()
     {
+        CompactMenu.Closed += (_, _) =>
+        {
+            var pending = _pendingCompactMenuCommand;
+            _pendingCompactMenuCommand = null;
+            if (pending is null)
+                return;
+            // The root popup must finish dismissing its submenu chain before a
+            // command opens another flyout or dialog. A queue hop from Click alone
+            // can run before the menu's closing animation has completed.
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (!_disposed)
+                    _ = RunCommandAsync(pending);
+            });
+        };
         foreach (var group in _commands.GroupBy(command => command.Group))
         {
             var menu = new MenuBarItem { Title = group.Key };
@@ -153,7 +170,11 @@ public sealed partial class SvgEditorWorkspace
                 item.Click += async (_, _) => await RunCommandAsync(command.Id);
                 menu.Items.Add(item);
                 var compactItem = new MenuFlyoutItem { Text = command.Label, KeyboardAcceleratorTextOverride = command.Shortcut };
-                compactItem.Click += async (_, _) => await RunCommandAsync(command.Id);
+                compactItem.Click += (_, _) =>
+                {
+                    _pendingCompactMenuCommand = command.Id;
+                    CompactMenu.Hide();
+                };
                 compact.Items.Add(compactItem);
             }
             WorkspaceMenu.Items.Add(menu);

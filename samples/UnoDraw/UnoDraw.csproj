@@ -21,8 +21,13 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
     <WasmShellEnableIDBFS>true</WasmShellEnableIDBFS>
     <WasmShellMonoRuntimeExecutionMode Condition="'$(WasmShellMonoRuntimeExecutionMode)' == ''">Interpreter</WasmShellMonoRuntimeExecutionMode>
-    <!-- SVG.NET discovers element and attribute converters through reflection. -->
+    <!-- SVG.NET discovers element and attribute converters through reflection.
+         AOT requires the linker pipeline, whose copy actions below retain metadata. -->
     <PublishTrimmed>false</PublishTrimmed>
+    <PublishTrimmed Condition="'$(WasmShellMonoRuntimeExecutionMode)' == 'InterpreterAndAOT'">true</PublishTrimmed>
+    <TrimMode Condition="'$(WasmShellMonoRuntimeExecutionMode)' == 'InterpreterAndAOT'">copy</TrimMode>
+    <!-- Recovery JSON and reflected SVG properties must remain usable under AOT. -->
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>
   <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
     <SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
@@ -54,4 +59,13 @@
     <PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" />
     <PackageReference Include="System.Security.Cryptography.Xml" />
   </ItemGroup>
+  <!-- TrimMode=copy alone applies only to assemblies marked IsTrimmable. Use the
+       SDK's PrepareForILLink metadata extension point to also preserve unmarked
+       SVG, editor and dependency assemblies; no types or converters are removed. -->
+  <Target Name="PreserveUnoDrawBrowserReflectionMetadata" AfterTargets="PrepareForILLink"
+          Condition="'$(TargetFramework)' == 'net10.0-browserwasm' and '$(PublishTrimmed)' == 'true' and '$(TrimMode)' == 'copy'">
+    <ItemGroup>
+      <ManagedAssemblyToLink Update="@(ManagedAssemblyToLink)" TrimMode="copy" />
+    </ItemGroup>
+  </Target>
 </Project>

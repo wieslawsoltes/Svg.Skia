@@ -45,6 +45,9 @@ public sealed partial class SvgEditorWorkspace
         var maximumWidth = Math.Max(260, Math.Min(1120, (XamlRoot?.Size.Width ?? ActualWidth) - 32));
         dialog.Resources["ContentDialogMaxWidth"] = maximumWidth;
         dialog.Resources["ContentDialogMinWidth"] = Math.Min(320, maximumWidth);
+        // Keep the content viewport inside the dialog instead of letting the
+        // default height cap clip controls that the ScrollViewer thinks fit.
+        dialog.Resources["ContentDialogMaxHeight"] = Math.Max(240, (XamlRoot?.Size.Height ?? ActualHeight) - 32);
         return dialog;
     }
 
