@@ -189,8 +189,11 @@ jobs:
           global-json-file: global.json
       - name: Install iOS workload
         run: dotnet workload install ios
+      # This artifact validates the simulator host and native integrations. Keeping
+      # the preserved SVG assembly graph interpreted avoids a full LLVM/AOT pass;
+      # device Release builds retain the project's normal AOT configuration.
       - name: Build simulator application
-        run: dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-ios -p:UnoDrawTargetFrameworks=net10.0-ios -c Release -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false
+        run: dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-ios -p:UnoDrawTargetFrameworks=net10.0-ios -c Release -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false -p:UseInterpreter=true -p:MtouchUseLlvm=false -v:normal
       - name: Archive simulator application
         run: |
           mkdir -p artifacts

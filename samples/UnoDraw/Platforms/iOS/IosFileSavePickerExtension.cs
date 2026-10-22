@@ -41,7 +41,9 @@ public sealed class IosFileSavePickerExtension : IFileSavePickerExtension
         if (folder is null)
             return null;
 
-        var choice = choices.FirstOrDefault(value => value.Extension.Equals(_picker.DefaultFileExtension, StringComparison.OrdinalIgnoreCase)) ?? choices[0];
+        // Uno's iOS DefaultFileExtension getter throws. The shared save workflow
+        // provides ordered FileTypeChoices, including a single choice for exports.
+        var choice = choices[0];
         if (choices.Length > 1)
         {
             var selected = await PromptAsync("Choose file format", "Your file keeps the selected format's extension.", UIAlertControllerStyle.ActionSheet,

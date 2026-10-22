@@ -69,10 +69,10 @@ Build the iOS simulator application on an Apple Silicon Mac:
 
 ```sh
 dotnet workload install ios --skip-manifest-update
-dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-ios -p:UnoDrawTargetFrameworks=net10.0-ios -c Release -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false
+dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-ios -p:UnoDrawTargetFrameworks=net10.0-ios -c Release -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false -p:UseInterpreter=true -p:MtouchUseLlvm=false
 ```
 
-The iOS CI job pins .NET SDK/workload 10.0.401 with Xcode 26.6 on macOS 26; keep the workload and Xcode versions compatible when building locally. The iOS head supplies native folder, format, file-name and overwrite prompts because Uno 6.5 does not provide a default save picker. Its application delegate obtains background time to finish a recovery checkpoint when the app leaves the foreground.
+The iOS CI job pins .NET SDK/workload 10.0.401 with Xcode 26.6 on macOS 26; keep the workload and Xcode versions compatible when building locally. This simulator command uses the interpreter to avoid AOT-compiling the entire preserved SVG dependency graph; device Release builds retain the normal AOT configuration. The iOS head supplies native folder, format, file-name and overwrite prompts because Uno 6.5 does not provide a default save picker. Its application delegate obtains background time to finish a recovery checkpoint when the app leaves the foreground.
 
 Use `iossimulator-x64` for an Intel simulator host. Physical-device and distribution builds need the corresponding runtime identifier and signing configuration. These targets share the same workspace and SVG engine; file access, fonts, GPU backends and pointer behavior still depend on the host. Desktop startup paths are a desktop feature; the embedded welcome SVG supplies the initial document on all targets.
 
