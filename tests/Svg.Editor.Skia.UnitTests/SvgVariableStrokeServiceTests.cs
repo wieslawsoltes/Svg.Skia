@@ -105,13 +105,44 @@ public class SvgVariableStrokeServiceTests
             Profile((firstOffset, firstWidth), (secondOffset, secondWidth))));
     }
 
-    [Theory]
-    [InlineData("M0 0 L100 0 L50 50 Z")]
-    [InlineData("M10 10")]
-    public void ClosedAndZeroLengthCenterlinesAreRejected(string data)
+    [Fact]
+    public void ZeroLengthCenterlineIsRejected()
     {
-        using var source = SKPath.ParseSvgPathData(data);
+        using var source = SKPath.ParseSvgPathData("M10 10");
         Assert.Throws<ArgumentException>(() => SvgVariableStrokeService.CreateOutline(source, Profile((0, 10), (1, 10))));
+    }
+
+    [Fact]
+    public void SquareCapsExtendByEachEndpointHalfWidth()
+    {
+        using var source = SKPath.ParseSvgPathData("M10 20 L110 20");
+        using var outline = SvgVariableStrokeService.CreateOutline(source, Profile((0, 10), (1, 20)), SKStrokeCap.Square);
+        Assert.Equal(new SKRect(5, 10, 120, 30), outline.Bounds);
+        Assert.True(outline.Contains(6, 16));
+        Assert.True(outline.Contains(119, 29));
+        Assert.False(outline.Contains(4, 20));
+    }
+
+    [Fact]
+    public void ClosedContourProducesAHollowBandAndIgnoresEndCaps()
+    {
+        using var source = SKPath.ParseSvgPathData("M100 50 A50 50 0 1 1 0 50 A50 50 0 1 1 100 50 Z");
+        using var outline = SvgVariableStrokeService.CreateOutline(source, Profile((0, 10), (0.5, 20), (1, 10)), SKStrokeCap.Square, 0.1f);
+        Assert.False(outline.Contains(50, 50));
+        Assert.True(outline.Contains(100, 50));
+        Assert.True(outline.Contains(-8, 50));
+        Assert.False(outline.Contains(-12, 50));
+        using var measure = new SKPathMeasure(outline, false);
+        Assert.True(measure.IsClosed);
+        Assert.True(measure.NextContour());
+        Assert.True(measure.IsClosed);
+    }
+
+    [Fact]
+    public void ClosedProfileRejectsDiscontinuousSeamBeforeMutatingDocument()
+    {
+        using var source = SKPath.ParseSvgPathData("M0 0 L100 0 L50 50 Z");
+        Assert.Throws<ArgumentException>(() => SvgVariableStrokeService.CreateOutline(source, Profile((0, 10), (1, 20))));
     }
 
     [Fact]

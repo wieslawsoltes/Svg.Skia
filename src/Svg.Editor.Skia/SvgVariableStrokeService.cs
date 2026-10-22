@@ -26,8 +26,9 @@ public static class SvgVariableStrokeService
     private const float QuarterCircleControl = 0.5522847498307936f;
 
     /// <summary>
-    /// Creates a smooth sampled outline of each open contour. Width is interpolated by arc
-    /// length, with flat or round caps. Closed contours are deliberately rejected.
+    /// Creates an adaptively sampled outline of each contour. Width is interpolated by arc
+    /// length, with flat, round or square caps on open contours. Closed contours use opposed
+    /// winding boundaries and require matching widths at the seam.
     /// The caller owns the returned path; the centerline and profile are left unchanged.
     /// </summary>
     public static SKPath CreateOutline(SKPath centerline, StrokeProfile profile,
@@ -38,8 +39,8 @@ public static class SvgVariableStrokeService
         var points = ValidateProfile(profile);
         if (!IsFinite(tolerance) || tolerance <= 0)
             throw new ArgumentOutOfRangeException(nameof(tolerance), "Outline tolerance must be positive and finite.");
-        if (cap is not (SKStrokeCap.Butt or SKStrokeCap.Round))
-            throw new ArgumentOutOfRangeException(nameof(cap), "Choose a flat or round cap.");
+        if (cap is not (SKStrokeCap.Butt or SKStrokeCap.Round or SKStrokeCap.Square))
+            throw new ArgumentOutOfRangeException(nameof(cap), "Choose a flat, round or square cap.");
 
         using var measure = new SKPathMeasure(centerline, false, 2);
         using var builder = new SKPathBuilder();
@@ -50,8 +51,8 @@ public static class SvgVariableStrokeService
         {
             if (++contourCount > MaximumContours)
                 throw new InvalidOperationException("The path has too many contours for a width profile.");
-            if (measure.IsClosed)
-                throw new ArgumentException("Choose an open path to apply a variable width stroke.", nameof(centerline));
+            if (measure.IsClosed && Math.Abs(points[0].Width - points[points.Length - 1].Width) > 0.00001)
+                throw new ArgumentException("A closed contour needs the same width at the start and end of its profile.", nameof(profile));
             var length = measure.Length;
             if (!IsFinite(length))
                 throw new ArgumentException("The path contains invalid coordinates.", nameof(centerline));
@@ -72,7 +73,10 @@ public static class SvgVariableStrokeService
                 first = last;
             }
 
-            AppendContour(builder, samples, cap);
+            if (measure.IsClosed)
+                AppendClosedContour(builder, samples);
+            else
+                AppendContour(builder, samples, cap);
             hasGeometry = true;
 
             void Subdivide(Sample start, Sample end, int depth)
@@ -108,7 +112,7 @@ public static class SvgVariableStrokeService
         while (measure.NextContour());
 
         if (!hasGeometry)
-            throw new ArgumentException("Choose an open path with a nonzero length.", nameof(centerline));
+            throw new ArgumentException("Choose a path with a nonzero length.", nameof(centerline));
         var result = builder.Detach();
         result.FillType = SKPathFillType.Winding;
         return result;
@@ -127,7 +131,7 @@ public static class SvgVariableStrokeService
             if (!path.CustomAttributes.TryGetValue(OutlineAttribute, out var fingerprint)
                 || !string.Equals(fingerprint, Fingerprint(path.PathData?.ToString() ?? string.Empty), StringComparison.Ordinal))
             {
-                throw new InvalidOperationException("This outline's nodes have changed. Undo the node edits or choose a new open centerline to edit its width profile.");
+                throw new InvalidOperationException("This outline's nodes have changed. Undo the node edits or choose a new centerline to edit its width profile.");
             }
 
             var source = new SvgPath { PathData = SvgPathBuilder.Parse(data.AsSpan()) };
@@ -178,7 +182,7 @@ public static class SvgVariableStrokeService
         path.MarkerEnd = new Uri("none", UriKind.Relative);
         path.CustomAttributes[CenterlineAttribute] = source;
         path.CustomAttributes[ProfileAttribute] = canonicalProfile.ToString();
-        path.CustomAttributes[CapAttribute] = cap == SKStrokeCap.Round ? "round" : "butt";
+        path.CustomAttributes[CapAttribute] = cap == SKStrokeCap.Round ? "round" : cap == SKStrokeCap.Square ? "square" : "butt";
         path.CustomAttributes[OutlineAttribute] = Fingerprint(path.PathData.ToString());
         path.CustomAttributes.Remove("stroke-profile");
         path.OnPathUpdated();
@@ -241,17 +245,41 @@ public static class SvgVariableStrokeService
     {
         var first = samples[0];
         var last = samples[samples.Count - 1];
-        builder.MoveTo(first.Left);
+        var startExtension = cap == SKStrokeCap.Square ? Multiply(first.Tangent, -first.Radius) : new SKPoint();
+        var endExtension = cap == SKStrokeCap.Square ? Multiply(last.Tangent, last.Radius) : new SKPoint();
+        builder.MoveTo(Add(first.Left, startExtension));
+        builder.LineTo(first.Left);
         for (var i = 1; i < samples.Count; i++)
             builder.LineTo(samples[i].Left);
+        if (cap == SKStrokeCap.Square)
+        {
+            builder.LineTo(Add(last.Left, endExtension));
+            builder.LineTo(Add(last.Right, endExtension));
+        }
         if (cap == SKStrokeCap.Round && last.Radius > 0)
             AppendRoundCap(builder, last.Position, new SKPoint(-last.Tangent.Y, last.Tangent.X), last.Tangent, last.Radius);
         else
             builder.LineTo(last.Right);
         for (var i = samples.Count - 2; i >= 0; i--)
             builder.LineTo(samples[i].Right);
+        if (cap == SKStrokeCap.Square)
+            builder.LineTo(Add(first.Right, startExtension));
         if (cap == SKStrokeCap.Round && first.Radius > 0)
             AppendRoundCap(builder, first.Position, new SKPoint(first.Tangent.Y, -first.Tangent.X), Multiply(first.Tangent, -1), first.Radius);
+        builder.Close();
+    }
+
+    private static void AppendClosedContour(SKPathBuilder builder, List<Sample> samples)
+    {
+        // Opposite contour directions preserve the centre hole with the nonzero fill rule,
+        // including mirrored source contours and subsequent SVG transformations.
+        builder.MoveTo(samples[0].Left);
+        for (var i = 1; i < samples.Count; i++)
+            builder.LineTo(samples[i].Left);
+        builder.Close();
+        builder.MoveTo(samples[samples.Count - 1].Right);
+        for (var i = samples.Count - 2; i >= 0; i--)
+            builder.LineTo(samples[i].Right);
         builder.Close();
     }
 

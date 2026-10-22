@@ -18,17 +18,9 @@ public sealed partial class SvgEditorWorkspace
     {
         if (Controller is not { } controller || controller.SelectedElements.Count != 1
             || controller.SelectedElements[0] is not SvgPath path)
-            throw new InvalidOperationException("Select one open path. Lines and shapes can first be converted with Path → Convert to paths.");
+            throw new InvalidOperationException("Select one path. Lines and shapes can first be converted with Path → Convert to paths.");
         controller.EnsureSelectionEditable();
         using var centerline = SvgVariableStrokeService.GetCenterline(path);
-        using (var measure = new SKPathMeasure(centerline, false))
-        {
-            do
-            {
-                if (measure.IsClosed)
-                    throw new InvalidOperationException("Width profiles currently work with open paths. Choose an open pen or pencil path.");
-            } while (measure.NextContour());
-        }
 
         var profile = path.CustomAttributes.TryGetValue(SvgVariableStrokeService.ProfileAttribute, out var stored)
             || path.CustomAttributes.TryGetValue("stroke-profile", out stored)
@@ -56,9 +48,11 @@ public sealed partial class SvgEditorWorkspace
         var cap = new ComboBox { Header = "Ends", HorizontalAlignment = HorizontalAlignment.Stretch };
         cap.Items.Add("Flat");
         cap.Items.Add("Round");
+        cap.Items.Add("Square");
         cap.SelectedIndex = path.CustomAttributes.TryGetValue(SvgVariableStrokeService.CapAttribute, out var savedCap)
-            ? string.Equals(savedCap, nameof(SKStrokeCap.Round), StringComparison.OrdinalIgnoreCase) ? 1 : 0
-            : path.StrokeLineCap == SvgStrokeLineCap.Round ? 1 : 0;
+            ? string.Equals(savedCap, nameof(SKStrokeCap.Round), StringComparison.OrdinalIgnoreCase) ? 1
+                : string.Equals(savedCap, nameof(SKStrokeCap.Square), StringComparison.OrdinalIgnoreCase) ? 2 : 0
+            : path.StrokeLineCap == SvgStrokeLineCap.Round ? 1 : path.StrokeLineCap == SvgStrokeLineCap.Square ? 2 : 0;
         var paint = new TextBox { Header = "Paint · color or url(#swatch)", Text = paintText };
         var rows = new StackPanel { Spacing = 8 };
         var add = new Button { Content = "Add width point", HorizontalAlignment = HorizontalAlignment.Left };
@@ -75,7 +69,7 @@ public sealed partial class SvgEditorWorkspace
         panel.Children.Add(PaintColumns(preset, width, cap));
         panel.Children.Add(new TextBlock
         {
-            Text = "Widths use the path’s SVG units and follow its transform.",
+            Text = "Widths use the path’s SVG units and follow its transform. Closed contours need equal first and last widths; end caps apply to open contours.",
             FontSize = 12,
             Opacity = 0.65,
             TextWrapping = TextWrapping.Wrap
@@ -113,7 +107,7 @@ public sealed partial class SvgEditorWorkspace
             {
                 var selectedPaint = CurrentPaint();
                 var color = SvgDeferredPaintServer.TryGet<SvgColourServer>(selectedPaint, path)?.Colour;
-                preview.Update(CurrentProfile(), cap.SelectedIndex == 1 ? SKStrokeCap.Round : SKStrokeCap.Butt,
+                preview.Update(CurrentProfile(), cap.SelectedIndex == 1 ? SKStrokeCap.Round : cap.SelectedIndex == 2 ? SKStrokeCap.Square : SKStrokeCap.Butt,
                     color is { } c ? new SKColor(c.R, c.G, c.B, c.A) : new SKColor(112, 97, 220));
                 error.Text = string.Empty;
                 dialog.IsPrimaryButtonEnabled = true;
@@ -235,7 +229,7 @@ public sealed partial class SvgEditorWorkspace
                 {
                     controller.EnsureSelectionEditable();
                     SvgVariableStrokeService.Apply(path, selectedProfile, selectedPaint,
-                        cap.SelectedIndex == 1 ? SKStrokeCap.Round : SKStrokeCap.Butt);
+                        cap.SelectedIndex == 1 ? SKStrokeCap.Round : cap.SelectedIndex == 2 ? SKStrokeCap.Square : SKStrokeCap.Butt);
                 });
             }
             catch (Exception exception) { args.Cancel = true; error.Text = exception.Message; }
@@ -274,6 +268,7 @@ public sealed partial class SvgEditorWorkspace
         }
         palette.SelectedIndex = 0;
         var name = new TextBox { Header = "Swatch name", Text = UniqueId("swatch") };
+        var spotName = new TextBox { Header = "Spot ink name · optional", PlaceholderText = "Leave empty for a process color", MaxLength = 128 };
         var hex = new TextBox { Header = "Color · #RRGGBB", Text = "#7061dc", MaxLength = 7 };
         var opacity = NumberInput("Opacity %", 100, 0, 100);
         var sample = new Border { Height = 54, CornerRadius = new CornerRadius(9), Background = BrushFromHex(hex.Text) };
@@ -293,6 +288,7 @@ public sealed partial class SvgEditorWorkspace
         panel.Children.Add(palette);
         panel.Children.Add(sample);
         panel.Children.Add(name);
+        panel.Children.Add(spotName);
         panel.Children.Add(PaintColumns(hex, opacity));
         panel.Children.Add(target);
         panel.Children.Add(error);
@@ -332,6 +328,7 @@ public sealed partial class SvgEditorWorkspace
                 var color = entry.Swatch.Stops[0].GetColor(entry.Swatch);
                 name.Text = string.IsNullOrEmpty(entry.Swatch.ID) ? UniqueId("swatch") : entry.Swatch.ID;
                 name.IsReadOnly = !string.IsNullOrEmpty(entry.Swatch.ID);
+                spotName.Text = entry.Swatch.CustomAttributes.TryGetValue("data-unodraw-spot-name", out var ink) ? ink : string.Empty;
                 hex.Text = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
                 opacity.Value = entry.Swatch.Stops[0].StopOpacity * color.A / 255d * 100;
                 dialog.PrimaryButtonText = "Update swatch";
@@ -340,6 +337,7 @@ public sealed partial class SvgEditorWorkspace
             {
                 name.Text = UniqueId("swatch");
                 name.IsReadOnly = false;
+                spotName.Text = string.Empty;
                 dialog.PrimaryButtonText = "Create swatch";
             }
             loading = false;
@@ -377,6 +375,11 @@ public sealed partial class SvgEditorWorkspace
                     }
                     else if (string.IsNullOrEmpty(resource.ID))
                         resource.ID = id;
+                    var ink = spotName.Text.Trim();
+                    if (ink.Length > 0)
+                        resource.CustomAttributes["data-unodraw-spot-name"] = ink;
+                    else
+                        resource.CustomAttributes.Remove("data-unodraw-spot-name");
                     // Keep stop IDs, metadata and other child nodes on existing resources.
                     foreach (var stop in resource.Stops)
                     {
