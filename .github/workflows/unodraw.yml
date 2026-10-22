@@ -125,7 +125,22 @@ jobs:
       - name: Install WebAssembly tools
         run: dotnet workload install wasm-tools --skip-manifest-update
       - name: Publish browser application
-        run: dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm -c Release -p:WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT -o artifacts/unodraw-browser
+        env:
+          # Bound optimizer memory use for the preserved SVG/Uno assembly graph.
+          # This keeps the existing AOT and optimization settings.
+          BINARYEN_CORES: '1'
+        run: |
+          (
+            while true; do
+              date -u '+Optimizer resource sample: %Y-%m-%dT%H:%M:%SZ'
+              free -m
+              ps -C wasm-opt -o pid,rss,vsz,etime,nlwp || true
+              sleep 30
+            done
+          ) &
+          unodraw_resource_monitor_pid=$!
+          trap 'kill "$unodraw_resource_monitor_pid" 2>/dev/null || true' EXIT
+          /usr/bin/time --verbose dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm -c Release -p:WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT -o artifacts/unodraw-browser
       - uses: actions/upload-artifact@v4
         with:
           name: unodraw-browser
