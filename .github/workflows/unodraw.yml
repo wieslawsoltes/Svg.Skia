@@ -140,7 +140,7 @@ jobs:
           ) &
           unodraw_resource_monitor_pid=$!
           trap 'kill "$unodraw_resource_monitor_pid" 2>/dev/null || true' EXIT
-          /usr/bin/time --verbose dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm -c Release -p:WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT -o artifacts/unodraw-browser
+          /usr/bin/time --verbose dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm -c Release -p:WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false -o artifacts/unodraw-browser
       - uses: actions/upload-artifact@v4
         with:
           name: unodraw-browser

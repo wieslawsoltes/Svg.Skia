@@ -55,6 +55,8 @@ dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-browserwasm -p:UnoDrawT
 
 Serve the published WebAssembly web assets over HTTP or HTTPS. The browser CI job additionally requests `-p:WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT`; the default project setting remains `Interpreter` so local development does not require an AOT publish. AOT enables the required linker pipeline while assigning the `copy` action to every managed assembly, preserving SVG reflection metadata and JSON recovery serialization. Browser builds enable IndexedDB-backed filesystem persistence for recovery storage. File pickers and saves use Uno storage providers, including completion of provider-managed downloads, rather than assuming every selected file exposes a writable native path.
 
+Release browser packages omit native DWARF debug information before AOT/native optimization to reduce build memory pressure. This does not trim managed assemblies or SVG reflection metadata. Use `-p:WasmNativeDebugSymbols=true` when native WebAssembly debugging is needed and the build host has sufficient memory. CI also limits Binaryen to one worker and publishes with serial MSBuild execution and no shared C# compiler process; AOT and the optimization level remain enabled.
+
 Build a local Android APK after installing the Android SDK and JDK (CI uses JDK 21):
 
 ```sh

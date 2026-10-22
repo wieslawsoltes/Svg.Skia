@@ -28,6 +28,9 @@
     <TrimMode Condition="'$(WasmShellMonoRuntimeExecutionMode)' == 'InterpreterAndAOT'">copy</TrimMode>
     <!-- Recovery JSON and reflected SVG properties must remain usable under AOT. -->
     <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+    <!-- Native DWARF is separate from managed reflection metadata. Omit it from
+         Release packages before the memory-intensive native optimization pass. -->
+    <WasmNativeDebugSymbols Condition="'$(Configuration)' == 'Release'">false</WasmNativeDebugSymbols>
   </PropertyGroup>
   <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
     <SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
