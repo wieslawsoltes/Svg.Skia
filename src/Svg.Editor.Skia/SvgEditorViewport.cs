@@ -37,7 +37,7 @@ public sealed class SvgEditorViewport
 
     public void Resize(double width, double height)
     {
-        if (!IsFinite(width) || !IsFinite(height) || width < 0 || height < 0)
+        if (!IsFiniteFloat(width) || !IsFiniteFloat(height) || width < 0 || height < 0)
         {
             return;
         }
@@ -47,12 +47,21 @@ public sealed class SvgEditorViewport
             return;
         }
 
+        var x = OffsetX;
+        var y = OffsetY;
         if (Width > 0 && Height > 0)
         {
-            OffsetX += (width - Width) / 2;
-            OffsetY += (height - Height) / 2;
+            x += (width - Width) / 2;
+            y += (height - Height) / 2;
         }
 
+        if (!IsValidCamera(Zoom, x, y, width, height))
+        {
+            return;
+        }
+
+        OffsetX = x;
+        OffsetY = y;
         Width = width;
         Height = height;
         Changed?.Invoke(this, EventArgs.Empty);
@@ -62,7 +71,7 @@ public sealed class SvgEditorViewport
     {
         var x = OffsetX + deltaX;
         var y = OffsetY + deltaY;
-        if (!IsFinite(x) || !IsFinite(y) || (x == OffsetX && y == OffsetY))
+        if (!IsValidCamera(Zoom, x, y, Width, Height) || (x == OffsetX && y == OffsetY))
         {
             return;
         }
@@ -98,8 +107,15 @@ public sealed class SvgEditorViewport
         // Compute in double precision: repeated reciprocal zooms must not accumulate camera drift.
         var worldX = (anchor.X - OffsetX) / Zoom;
         var worldY = (anchor.Y - OffsetY) / Zoom;
-        OffsetX = anchor.X - worldX * zoom;
-        OffsetY = anchor.Y - worldY * zoom;
+        var x = anchor.X - worldX * zoom;
+        var y = anchor.Y - worldY * zoom;
+        if (!IsValidCamera(zoom, x, y, Width, Height))
+        {
+            return;
+        }
+
+        OffsetX = x;
+        OffsetY = y;
         Zoom = zoom;
         Changed?.Invoke(this, EventArgs.Empty);
     }
@@ -108,6 +124,7 @@ public sealed class SvgEditorViewport
     {
         if (Width <= 0 || Height <= 0 || !IsFinite(bounds.Left) || !IsFinite(bounds.Top)
             || !IsFinite(bounds.Right) || !IsFinite(bounds.Bottom)
+            || !IsFinite(bounds.Width) || !IsFinite(bounds.Height)
             || bounds.Width <= 0 || bounds.Height <= 0 || !IsFinite(padding)
             || !IsFinite(maximumZoom) || maximumZoom <= 0)
         {
@@ -116,13 +133,28 @@ public sealed class SvgEditorViewport
 
         padding = Math.Max(0, Math.Min(padding, Math.Min(Width, Height) * 0.4));
         var zoom = Math.Min((Width - padding * 2) / bounds.Width, (Height - padding * 2) / bounds.Height);
-        Zoom = Math.Max(MinimumZoom, Math.Min(Math.Min(MaximumZoom, maximumZoom), zoom));
-        OffsetX = Width / 2 - ((double)bounds.Left + bounds.Right) / 2 * Zoom;
-        OffsetY = Height / 2 - ((double)bounds.Top + bounds.Bottom) / 2 * Zoom;
+        zoom = Math.Max(MinimumZoom, Math.Min(Math.Min(MaximumZoom, maximumZoom), zoom));
+        var x = Width / 2 - ((double)bounds.Left + bounds.Right) / 2 * zoom;
+        var y = Height / 2 - ((double)bounds.Top + bounds.Bottom) / 2 * zoom;
+        if (!IsValidCamera(zoom, x, y, Width, Height))
+        {
+            return;
+        }
+
+        Zoom = zoom;
+        OffsetX = x;
+        OffsetY = y;
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
     public void ResetZoom() => SetZoomAt(1, new SKPoint((float)(Width / 2), (float)(Height / 2)));
 
     private static bool IsFinite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
+
+    private static bool IsFiniteFloat(double value) => IsFinite(value) && Math.Abs(value) <= float.MaxValue;
+
+    private static bool IsValidCamera(double zoom, double x, double y, double width, double height) =>
+        IsFiniteFloat(x) && IsFiniteFloat(y)
+        && IsFiniteFloat(-x / zoom) && IsFiniteFloat(-y / zoom)
+        && IsFiniteFloat((width - x) / zoom) && IsFiniteFloat((height - y) / zoom);
 }

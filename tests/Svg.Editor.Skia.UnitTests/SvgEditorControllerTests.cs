@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
@@ -276,6 +277,188 @@ public class SvgEditorControllerTests
         editor.Select(shape, allowLocked: true);
         Assert.Same(shape, Assert.Single(editor.SelectedElements));
     }
+
+    [Fact]
+    public void LockedOutlineSelectionCannotMutateArtworkButCanUnlockOrDraw()
+    {
+        using var editor = new SvgEditorController();
+        editor.LoadSvg("<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><g id='layer' data-lock='true'><rect id='shape' width='20' height='20'/></g></svg>");
+        var layer = editor.Document!.GetElementById<SvgGroup>("layer");
+        var shape = editor.Document.GetElementById<SvgRectangle>("shape");
+        editor.Select(shape, allowLocked: true);
+        var before = editor.GetSvg();
+        Assert.Throws<InvalidOperationException>(() => editor.MoveSelection(10, 0));
+        Assert.Throws<InvalidOperationException>(() => editor.DeleteSelection());
+        Assert.Throws<InvalidOperationException>(() => editor.SetFill("red"));
+        Assert.Throws<InvalidOperationException>(() => editor.ConvertSelectionToPaths());
+        Assert.Throws<InvalidOperationException>(() => editor.RenameElementId(shape, "renamed"));
+        Assert.Equal(before, editor.GetSvg());
+        Assert.False(editor.CanUndo);
+        Assert.False(editor.IsDirty);
+        Assert.NotEmpty(editor.CopySelection());
+        editor.CreateElement(ToolService.Tool.Rect, new SKPoint(40, 40), new SKPoint(60, 60));
+        Assert.Equal(1, editor.Session.UndoCount);
+        editor.Select(layer, allowLocked: true);
+        editor.SetLocked(false);
+        editor.Select(shape);
+        editor.MoveSelection(10, 0);
+        Assert.False(SvgEditorController.IsLocked(shape));
+        Assert.Equal(3, editor.Session.UndoCount);
+    }
+
+    [Fact]
+    public void EditingAParentCannotMoveItsLockedDescendant()
+    {
+        using var editor = new SvgEditorController();
+        editor.LoadSvg("<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><g id='group'><rect id='shape' width='20' height='20' data-unodraw-locked='true'/></g></svg>");
+        var group = editor.Document!.GetElementById<SvgGroup>("group");
+        editor.Select(group);
+        Assert.True(SvgEditorController.IsEditLocked(group));
+        Assert.Throws<InvalidOperationException>(() => editor.MoveSelection(10, 0));
+        Assert.Throws<InvalidOperationException>(() => editor.UngroupSelection());
+        Assert.False(editor.IsDirty);
+    }
+
+    [Fact]
+    public void TypographyOnlyChangesSuppliedFieldsAndPreservesRichText()
+    {
+        using var editor = new SvgEditorController();
+        editor.LoadSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200">
+              <defs><path id="guide" d="M10 50H190"/></defs>
+              <text id="first" font-size="12"><textPath xlink:href="#guide"><tspan fill="blue">Alpha</tspan></textPath><title>A label</title></text>
+              <text id="second" x="10" y="100" font-size="18">Beta</text>
+            </svg>
+            """);
+        var first = editor.Document!.GetElementById<SvgText>("first");
+        var second = editor.Document.GetElementById<SvgText>("second");
+        var descendants = first.Descendants().ToArray();
+        editor.Select(first);
+        editor.Select(second, true);
+        editor.SetTypography(fontFamily: "serif");
+        Assert.Equal(descendants, first.Descendants());
+        Assert.Equal(12, first.FontSize.Value);
+        Assert.Equal(18, second.FontSize.Value);
+        Assert.Equal("Beta", second.Text);
+        Assert.Contains("Alpha", editor.GetSvg());
+        Assert.Contains("#guide", editor.GetSvg());
+        Assert.Equal("serif", first.FontFamily);
+        Assert.Equal("serif", second.FontFamily);
+        Assert.Equal(1, editor.Session.UndoCount);
+        editor.Undo();
+        Assert.False(editor.IsDirty);
+    }
+
+    [Fact]
+    public void ImportedPatternRemapsCollisionsAndRendersItsOwnGradient()
+    {
+        using var editor = new SvgEditorController();
+        editor.LoadSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+              <defs><linearGradient id="paint"><stop offset="0" stop-color="blue"/></linearGradient></defs>
+              <rect id="shape" width="80" height="80" fill="blue"/>
+            </svg>
+            """);
+        var resourceDocument = new SvgDocumentService().FromSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg">
+              <pattern id="texture" patternUnits="userSpaceOnUse" width="20" height="20">
+                <defs><linearGradient id="paint"><stop offset="0" stop-color="red"/><stop offset="1" stop-color="red"/></linearGradient></defs>
+                <rect id="tile" width="20" height="20" fill="url(#paint)"/>
+              </pattern>
+            </svg>
+            """)!;
+        var resource = resourceDocument.Children.Single();
+        resourceDocument.Children.Remove(resource);
+        editor.Select(editor.Document!.GetElementById<SvgRectangle>("shape"));
+        editor.Execute("Apply pattern", () =>
+        {
+            var adopted = editor.AddResource(resource);
+            Assert.Equal("texture", adopted.ID);
+            editor.SetFill("url(#" + adopted.ID + ")");
+        });
+        using var bitmap = new SKBitmap(100, 100);
+        using var canvas = new SKCanvas(bitmap);
+        canvas.Clear(SKColors.Transparent);
+        editor.Renderer.Draw(canvas);
+        Assert.Equal(SKColors.Red, bitmap.GetPixel(10, 10));
+        Assert.NotNull(editor.Document.GetElementById("paint-copy"));
+        Assert.Equal(1, editor.Session.UndoCount);
+        editor.Undo();
+        Assert.False(editor.IsDirty);
+    }
+
+    [Fact]
+    public void SymbolInstanceKeepsPositionAndRootPresentationUnderViewBoxScaling()
+    {
+        using var editor = new SvgEditorController();
+        editor.LoadSvg("<svg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='10 20 200 100' opacity='0.5'><rect id='shape' x='20' y='30' width='30' height='20' fill='red'/></svg>");
+        var original = editor.Document!.GetElementById<SvgRectangle>("shape");
+        editor.Select(original);
+        var expectedBounds = editor.SelectionBounds;
+        var instance = editor.CreateSymbol("component");
+        Assert.NotNull(editor.Document.GetElementById<SvgSymbol>("component"));
+        Assert.Equal(expectedBounds, editor.SelectionBounds);
+        Assert.Same(instance, Assert.Single(editor.SelectedElements));
+        Assert.Equal(1, editor.Session.UndoCount);
+        editor.Execute("Hide original", () => original.Display = "none");
+        using var bitmap = new SKBitmap(400, 200);
+        using var canvas = new SKCanvas(bitmap);
+        canvas.Clear(SKColors.Transparent);
+        editor.Renderer.Draw(canvas);
+        Assert.InRange(bitmap.GetPixel(30, 30).Alpha, (byte)127, (byte)129);
+    }
+
+    [Fact]
+    public void OffsetUsesWorldDistanceAndPreservesAppearanceAndMetadata()
+    {
+        using var editor = new SvgEditorController();
+        editor.LoadSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+              <defs><clipPath id="crop"><rect width="100" height="100"/></clipPath></defs>
+              <g transform="translate(40 20) scale(2 3)">
+                <rect id="shape" x="5" y="5" width="20" height="10" rx="2" fill="red" opacity="0.4" clip-path="url(#crop)" data-note="keep"><title id="label">Offset label</title></rect>
+              </g>
+            </svg>
+            """);
+        editor.Select(editor.Document!.GetElementById<SvgRectangle>("shape"));
+        var before = editor.SelectionBounds!.Value;
+        editor.OffsetSelection(5);
+        var path = Assert.IsType<SvgPath>(Assert.Single(editor.SelectedElements));
+        var after = editor.SelectionBounds!.Value;
+        Assert.InRange(after.Left, before.Left - 5.01f, before.Left - 4.99f);
+        Assert.InRange(after.Right, before.Right + 4.99f, before.Right + 5.01f);
+        Assert.InRange(after.Top, before.Top - 5.01f, before.Top - 4.99f);
+        Assert.InRange(after.Bottom, before.Bottom + 4.99f, before.Bottom + 5.01f);
+        Assert.Equal(0.4f, path.Opacity);
+        Assert.Equal(editor.Document.GetElementById<SvgRectangle>("shape").ClipPath, path.ClipPath);
+        Assert.Equal("keep", path.CustomAttributes["data-note"]);
+        Assert.NotNull(editor.Document.GetElementById("label-copy"));
+        Assert.Equal(1, editor.Session.UndoCount);
+        editor.Undo();
+        Assert.False(editor.IsDirty);
+    }
+
+    [Fact]
+    public void RelativeStylesheetsResolveAgainstTheFileDuringParsing()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "unodraw-css-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        try
+        {
+            File.WriteAllText(Path.Combine(directory, "theme.css"), "#shape { fill: #00ff00; }");
+            using var editor = new SvgEditorController();
+            editor.LoadSvg("<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><style>@import url('theme.css');</style><rect id='shape' width='40' height='40'/></svg>", Path.Combine(directory, "drawing.svg"));
+            using var bitmap = new SKBitmap(50, 50);
+            using var canvas = new SKCanvas(bitmap);
+            canvas.Clear(SKColors.Transparent);
+            editor.Renderer.Draw(canvas);
+            Assert.Equal(SKColors.Lime, bitmap.GetPixel(10, 10));
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
     [Fact]
     public void SourceReplacementIsUndoableAndKeepsFileAndSavepoint()
     {
@@ -486,6 +669,42 @@ public class SvgEditorControllerTests
         canvas.Clear(SKColors.Transparent);
         editor.Renderer.Draw(canvas);
         Assert.Equal(blurred, bitmap.GetPixel(20, 40).Alpha);
+    }
+
+    [Fact]
+    public void ClippingMaskRetainsInheritedRulesAndCssTransforms()
+    {
+        using var editor = new SvgEditorController();
+        editor.LoadSvg("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+              <g id="layer" transform="scale(2)" font-size="32" clip-rule="evenodd">
+                <rect id="artwork" width="90" height="90" fill="red" style="transform: matrix(1, 0, 0, 1, 10, 0)"/>
+                <path id="ring" d="M20 20H60V60H20Z M30 30H50V50H30Z" style="transform: matrix(1, 0, 0, 1, 5, 0)"/>
+              </g>
+            </svg>
+            """);
+        var original = editor.GetSvg();
+        var artwork = editor.Document!.GetElementById<SvgRectangle>("artwork");
+        var ring = editor.Document.GetElementById<SvgPath>("ring");
+        Assert.Equal(10, editor.GetSceneNode(artwork)!.Transform.TransX);
+        Assert.Equal(5, editor.GetSceneNode(ring)!.Transform.TransX);
+        editor.Select(artwork);
+        editor.Select(ring, additive: true);
+        editor.CreateClippingMask();
+        Assert.Equal(SvgClipRule.EvenOdd, ring.ClipRule);
+        Assert.Equal(32, ring.FontSize.Value);
+        Assert.Same(artwork, Assert.Single(editor.SelectedElements));
+        using var bitmap = new SKBitmap(200, 200);
+        using var canvas = new SKCanvas(bitmap);
+        canvas.Clear(SKColors.Transparent);
+        editor.Renderer.Draw(canvas);
+        Assert.Equal(SKColors.Red, bitmap.GetPixel(54, 50));
+        Assert.Equal(0, bitmap.GetPixel(80, 80).Alpha);
+        Assert.Equal(0, bitmap.GetPixel(44, 50).Alpha);
+        Assert.Equal(1, editor.Session.UndoCount);
+        editor.Undo();
+        Assert.Equal(original, editor.GetSvg());
+        Assert.False(editor.IsDirty);
     }
 
     [Fact]

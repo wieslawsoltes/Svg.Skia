@@ -79,8 +79,11 @@ public class SvgEditorViewportTests
         viewport.SetZoomAt(-1, default);
         viewport.SetZoomAt(2, new SKPoint(float.NaN, 0));
         viewport.Pan(double.PositiveInfinity, 0);
+        viewport.Pan(double.MaxValue, 0);
+        viewport.Resize(double.MaxValue, 600);
         viewport.Fit(new SKRect(float.NaN, 0, 10, 10));
         viewport.Fit(new SKRect(0, 0, 10, 0));
+        viewport.Fit(new SKRect(-float.MaxValue, 0, float.MaxValue, 100));
 
         Assert.Equal(1, viewport.Zoom);
         Assert.Equal(0, viewport.OffsetX);

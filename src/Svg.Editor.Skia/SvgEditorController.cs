@@ -406,6 +406,7 @@ public sealed partial class SvgEditorController : IDisposable
 
     public void SetFill(string value)
     {
+        EnsureSelectionEditable();
         var paint = ParsePaint(value);
         CurrentFill = value;
         if (_selection.Count > 0)
@@ -416,6 +417,7 @@ public sealed partial class SvgEditorController : IDisposable
 
     public void SetStroke(string value)
     {
+        EnsureSelectionEditable();
         var paint = ParsePaint(value);
         CurrentStroke = value;
         if (_selection.Count > 0)
@@ -426,6 +428,7 @@ public sealed partial class SvgEditorController : IDisposable
 
     public void SetStrokeWidth(float value)
     {
+        EnsureSelectionEditable();
         if (!IsFinite(value) || value < 0)
             throw new ArgumentOutOfRangeException(nameof(value));
         CurrentStrokeWidth = value;
@@ -438,6 +441,7 @@ public sealed partial class SvgEditorController : IDisposable
 
     public void SetOpacity(float value)
     {
+        EnsureSelectionEditable();
         if (!IsFinite(value) || value < 0 || value > 1)
             throw new ArgumentOutOfRangeException(nameof(value));
         Execute("Change opacity", () => { foreach (var element in _selection) element.Opacity = value; });
@@ -452,6 +456,7 @@ public sealed partial class SvgEditorController : IDisposable
             RenameSelectedId(value);
             return;
         }
+        EnsureSelectionEditable();
         Execute("Change " + name, () =>
         {
             foreach (var element in _selection)
@@ -481,6 +486,7 @@ public sealed partial class SvgEditorController : IDisposable
             throw new ArgumentNullException(nameof(element));
         if (!BelongsToDocument(element))
             throw new ArgumentException("The element must belong to this document.", nameof(element));
+        EnsureElementEditable(element);
         XmlConvert.VerifyNCName(id);
         var existing = Document!.GetElementById(id);
         if (existing is not null && !ReferenceEquals(existing, element))
@@ -508,10 +514,41 @@ public sealed partial class SvgEditorController : IDisposable
     }
 
     public void SetText(string text)
-        => Execute("Edit text", () => { foreach (var element in _selection.OfType<SvgTextBase>()) element.Text = text; });
+    {
+        EnsureSelectionEditable();
+        Execute("Edit text", () => { foreach (var element in _selection.OfType<SvgTextBase>()) element.Text = text; });
+    }
+
+    /// <summary>Changes only supplied typography fields, retaining spans and text paths for style-only edits.</summary>
+    public void SetTypography(string? text = null, string? fontFamily = null, SvgUnit? fontSize = null, SvgUnit? letterSpacing = null)
+    {
+        EnsureSelectionEditable();
+        if (fontSize is { } size)
+            ValidatePositive(size.Value, nameof(fontSize));
+        if (letterSpacing is { } spacing && !IsFinite(spacing.Value))
+            throw new ArgumentOutOfRangeException(nameof(letterSpacing));
+        if (text is null && fontFamily is null && fontSize is null && letterSpacing is null)
+            return;
+        Execute("Edit typography", () =>
+        {
+            foreach (var element in _selection.OfType<SvgTextBase>())
+            {
+                if (text is not null)
+                    element.Text = text;
+                if (fontFamily is not null)
+                    element.FontFamily = fontFamily;
+                if (fontSize is { } newSize)
+                    element.FontSize = newSize;
+                if (letterSpacing is { } newSpacing)
+                    element.LetterSpacing = newSpacing;
+            }
+        });
+    }
 
     public void SetVisibility(bool visible)
-        => Execute(visible ? "Show objects" : "Hide objects", () =>
+    {
+        EnsureSelectionEditable();
+        Execute(visible ? "Show objects" : "Hide objects", () =>
         {
             foreach (var element in _selection)
             {
@@ -519,9 +556,13 @@ public sealed partial class SvgEditorController : IDisposable
                 element.Visibility = visible ? "visible" : "hidden";
             }
         });
+    }
 
     public void SetLocked(bool locked)
-        => Execute(locked ? "Lock objects" : "Unlock objects", () =>
+    {
+        if (locked)
+            EnsureSelectionEditable();
+        Execute(locked ? "Lock objects" : "Unlock objects", () =>
         {
             foreach (var element in _selection)
             {
@@ -530,12 +571,32 @@ public sealed partial class SvgEditorController : IDisposable
                     element.CustomAttributes["data-lock"] = locked ? "true" : "false";
             }
         });
+    }
+
+    /// <summary>Rejects edits that would modify a locked object or one of its descendants.</summary>
+    public void EnsureSelectionEditable()
+    {
+        foreach (var element in _selection)
+            EnsureElementEditable(element);
+    }
+
+    public static bool IsEditLocked(SvgElement element)
+        => IsLocked(element) || element.Descendants().Any(HasOwnLock);
+
+    private static void EnsureElementEditable(SvgElement element)
+    {
+        if (IsEditLocked(element))
+            throw new InvalidOperationException("Unlock the object or its locked layer before editing it.");
+    }
+
+    private static bool HasOwnLock(SvgElement element)
+        => (element.CustomAttributes.TryGetValue("data-unodraw-locked", out var value) && value == "true") ||
+           (element.CustomAttributes.TryGetValue("data-lock", out var legacy) && legacy == "true");
 
     public static bool IsLocked(SvgElement element)
     {
         for (var current = element; current is not null; current = current.Parent)
-            if ((current.CustomAttributes.TryGetValue("data-unodraw-locked", out var value) && value == "true") ||
-                (current.CustomAttributes.TryGetValue("data-lock", out var legacy) && legacy == "true"))
+            if (HasOwnLock(current))
                 return true;
         return false;
     }
@@ -602,7 +663,9 @@ public sealed partial class SvgEditorController : IDisposable
                 (root.Name.NamespaceName.Length != 0 && root.Name.NamespaceName != "http://www.w3.org/2000/svg"))
                 throw new XmlException("The document root must be an SVG element.");
         }
-        var document = SvgService.FromSvg(xml) ?? throw new XmlException("The SVG document could not be parsed.");
+        using var source = XmlReader.Create(new StringReader(xml),
+            new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore, XmlResolver = null }, baseUri?.AbsoluteUri ?? string.Empty);
+        var document = SvgService.Open(source) ?? throw new XmlException("The SVG document could not be parsed.");
         if (baseUri is not null)
             document.BaseUri = baseUri;
         return document;

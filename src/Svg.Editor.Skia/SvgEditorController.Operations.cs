@@ -54,6 +54,7 @@ public sealed partial class SvgEditorController
     {
         if (_selection.Count == 0)
             return;
+        EnsureSelectionEditable();
         Execute("Delete objects", () =>
         {
             foreach (var element in TopLevelSelection())
@@ -78,6 +79,7 @@ public sealed partial class SvgEditorController
         ValidateMatrix(transform);
         if (_selection.Count == 0 || transform.IsIdentity)
             return;
+        EnsureSelectionEditable();
         // Capture all parent matrices before mutating any selected element.
         var targets = TopLevelSelection().Select(element =>
         {
@@ -116,6 +118,7 @@ public sealed partial class SvgEditorController
 
     public void GroupSelection()
     {
+        EnsureSelectionEditable();
         var elements = TopLevelSelection();
         if (elements.Length == 0)
             return;
@@ -140,6 +143,7 @@ public sealed partial class SvgEditorController
 
     public void UngroupSelection()
     {
+        EnsureSelectionEditable();
         var groups = TopLevelSelection().OfType<SvgGroup>().ToArray();
         if (groups.Length == 0)
             return;
@@ -185,6 +189,7 @@ public sealed partial class SvgEditorController
     {
         if (_selection.Count == 0)
             return;
+        EnsureSelectionEditable();
         Execute(forward ? "Raise objects" : "Lower objects", () =>
         {
             foreach (var grouping in TopLevelSelection().GroupBy(e => e.Parent))
@@ -222,6 +227,7 @@ public sealed partial class SvgEditorController
 
     public void Align(AlignService.AlignType alignment)
     {
+        EnsureSelectionEditable();
         var targets = GetSelectionGeometry();
         if (targets.Length < 2)
             return;
@@ -254,6 +260,7 @@ public sealed partial class SvgEditorController
 
     public void Distribute(AlignService.DistributeType direction)
     {
+        EnsureSelectionEditable();
         var horizontal = direction == AlignService.DistributeType.Horizontal;
         var targets = GetSelectionGeometry().OrderBy(t => horizontal ? t.Bounds.MidX : t.Bounds.MidY).ToArray();
         if (targets.Length < 3)
@@ -273,6 +280,7 @@ public sealed partial class SvgEditorController
 
     public void ApplyBoolean(SK.SKPathOp operation)
     {
+        EnsureSelectionEditable();
         var elements = TopLevelSelection();
         if (elements.Length < 2)
             return;
@@ -319,6 +327,7 @@ public sealed partial class SvgEditorController
 
     public void ConvertSelectionToPaths()
     {
+        EnsureSelectionEditable();
         var replacements = TopLevelSelection().Select(element =>
         {
             using var geometry = CreateGeometryPath(element) ?? throw new InvalidOperationException("This object cannot be converted to a geometric path.");
@@ -340,7 +349,105 @@ public sealed partial class SvgEditorController
     }
 
     public void SimplifySelection()
-        => Execute("Simplify paths", () => { foreach (var path in _selection.OfType<SvgPath>()) Paths.SimplifyPath(path); });
+    {
+        EnsureSelectionEditable();
+        Execute("Simplify paths", () => { foreach (var path in _selection.OfType<SvgPath>()) Paths.SimplifyPath(path); });
+    }
+
+    /// <summary>Uses the second selected shape to clip the first, retaining its inherited SVG presentation.</summary>
+    public void CreateClippingMask()
+    {
+        EnsureSelectionEditable();
+        if (_selection.Count != 2)
+            throw new InvalidOperationException("Select the artwork first and the clipping shape second.");
+        var artwork = _selection[0];
+        var shape = _selection[1];
+        if (shape is not (SvgPath or SvgRectangle or SvgCircle or SvgEllipse or SvgLine or SvgPolyline or SvgPolygon or SvgText or SvgUse))
+            throw new InvalidOperationException("Use a path, basic shape or text as the clipping shape.");
+        var parent = artwork.Parent;
+        if (parent is null || !ReferenceEquals(parent, shape.Parent))
+            throw new InvalidOperationException("Place the artwork and clipping shape in the same group first.");
+        var node = GetSceneNode(artwork)
+            ?? throw new InvalidOperationException("The selected artwork has no editable geometry.");
+        if (!ToMatrix(node.Transform).TryInvert(out var inverse))
+            throw new InvalidOperationException("Cannot clip an object with a singular transform.");
+        var clip = new SvgClipPath
+        {
+            ID = CreateId("clip"),
+            ClipPathUnits = SvgCoordinateUnits.UserSpaceOnUse,
+            // The reference is evaluated in the artwork's local coordinates. Keep the
+            // compensating matrix on the resource so the shape's own CSS transform survives.
+            Transforms = new SvgTransformCollection
+            {
+                new SvgMatrix(new List<float> { inverse.ScaleX, inverse.SkewY, inverse.SkewX, inverse.ScaleY, inverse.TransX, inverse.TransY })
+            }
+        };
+        Execute("Create clipping mask", () =>
+        {
+            parent.Children.Remove(shape);
+            clip.Children.Add(shape);
+            // Keep the original style and xml:base ancestry for typography, clip-rule,
+            // custom properties and linked resources instead of moving them to root defs.
+            var definitions = parent.Children.OfType<SvgDefinitionList>().FirstOrDefault();
+            if (definitions is null)
+            {
+                definitions = new SvgDefinitionList();
+                parent.Children.Insert(0, definitions);
+            }
+            definitions.Children.Add(clip);
+            artwork.ClipPath = new Uri("#" + clip.ID, UriKind.Relative);
+            _selection.Clear();
+            _selection.Add(artwork);
+        });
+    }
+
+    /// <summary>Adds offset paths using a constant picture-space distance and preserves SVG appearance.</summary>
+    public void OffsetSelection(float distance)
+    {
+        EnsureSelectionEditable();
+        if (!IsFinite(distance))
+            throw new ArgumentOutOfRangeException(nameof(distance));
+        if (_selection.Count == 0 || distance == 0)
+            return;
+        var originals = TopLevelSelection();
+        var fragment = CreateFragmentDocument();
+        foreach (var element in originals)
+        {
+            using var source = CreateGeometryPath(element)
+                ?? throw new InvalidOperationException("Convert the selected object to a path before offsetting it.");
+            var node = GetSceneNode(element) ?? throw new InvalidOperationException("The selected object has no editable geometry.");
+            var matrix = ToMatrix(node.TotalTransform);
+            if (!matrix.TryInvert(out var inverse))
+                throw new InvalidOperationException("An object with a singular transform cannot be offset.");
+            source.Transform(matrix);
+            using var paint = new SK.SKPaint { Style = SK.SKPaintStyle.Stroke, StrokeWidth = Math.Abs(distance) * 2, StrokeJoin = SK.SKStrokeJoin.Round };
+            using var builder = new SK.SKPathBuilder();
+            if (!paint.GetFillPath(source, builder))
+                throw new InvalidOperationException("The path outline could not be calculated.");
+            using var stroke = builder.Detach();
+            using var result = source.Op(stroke, distance > 0 ? SK.SKPathOp.Union : SK.SKPathOp.Difference)
+                ?? throw new InvalidOperationException("The path offset could not be completed.");
+            result.Transform(inverse);
+            fragment.Children.Add(CloneAsPath(element, PathService.ToSvgPathData(result), true));
+        }
+        var imported = ParseDocument(RemapCloneIds(fragment.GetXML()), Document!.BaseUri);
+        var paths = imported.Children.OfType<SvgPath>().ToArray();
+        Execute("Offset paths", () =>
+        {
+            _selection.Clear();
+            for (var i = 0; i < originals.Length; i++)
+            {
+                var path = paths[i];
+                imported.Children.Remove(path);
+                if (string.IsNullOrEmpty(path.ID))
+                    path.ID = CreateId("offset");
+                var parent = originals[i].Parent!;
+                parent.Children.Insert(parent.Children.IndexOf(originals[i]) + 1, path);
+                RebindPaintServers(path);
+                _selection.Add(path);
+            }
+        });
+    }
 
     private (SvgVisualElement Element, SK.SKRect Bounds)[] GetSelectionGeometry()
         => TopLevelSelection().Select(e => (Element: e, Node: GetSceneNode(e)))
