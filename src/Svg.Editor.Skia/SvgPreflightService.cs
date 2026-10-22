@@ -22,6 +22,8 @@ public static class SvgPreflightService
         void Report(string code, SvgPreflightSeverity severity, string message, string? id = null)
             => issues.Add(new SvgPreflightIssue(code, severity, message, id));
         var elements = new[] { (SvgElement)document }.Concat(document.Descendants()).ToArray();
+        if (elements.Any(element => element.CustomAttributes.ContainsKey("data-unodraw-spot-name")))
+            Report("named-inks", SvgPreflightSeverity.Warning, "Named inks are retained by the separation package. PDF export requires explicit conversion to process colors.");
         var ids = new HashSet<string>(StringComparer.Ordinal);
         foreach (var element in elements)
             if (!string.IsNullOrEmpty(element.ID) && !ids.Add(element.ID))
@@ -35,7 +37,8 @@ public static class SvgPreflightService
                 foreach (Match match in Regex.Matches(attribute.Value, @"url\(\s*['""\s]*#([^)'""\s]+)"))
                     if (!ids.Contains(Uri.UnescapeDataString(match.Groups[1].Value)))
                         Report("missing-resource", SvgPreflightSeverity.Error, $"The resource #{match.Groups[1].Value} does not exist.", id);
-                if (attribute.Name.LocalName != "href" || element.Name.LocalName == "a") continue;
+                if (attribute.Name.LocalName != "href" || element.Name.LocalName == "a")
+                    continue;
                 var href = attribute.Value;
                 if (href.StartsWith("#", StringComparison.Ordinal))
                 {
@@ -49,9 +52,12 @@ public static class SvgPreflightService
                     foreach (var ancestor in element.AncestorsAndSelf().Reverse())
                     {
                         var xmlBase = (string?)ancestor.Attribute(XNamespace.Xml + "base");
-                        if (string.IsNullOrEmpty(xmlBase)) continue;
-                        if (Uri.TryCreate(xmlBase, UriKind.Absolute, out var absoluteBase)) baseUri = absoluteBase;
-                        else if (baseUri is not null && Uri.TryCreate(baseUri, xmlBase, out var relativeBase)) baseUri = relativeBase;
+                        if (string.IsNullOrEmpty(xmlBase))
+                            continue;
+                        if (Uri.TryCreate(xmlBase, UriKind.Absolute, out var absoluteBase))
+                            baseUri = absoluteBase;
+                        else if (baseUri is not null && Uri.TryCreate(baseUri, xmlBase, out var relativeBase))
+                            baseUri = relativeBase;
                     }
                     if (!Uri.TryCreate(href, UriKind.Absolute, out uri) && baseUri is not null)
                         Uri.TryCreate(baseUri, href, out uri);
@@ -86,7 +92,8 @@ public static class SvgPreflightService
                         Report("font-substitution", SvgPreflightSeverity.Warning, $"Font '{family}' is unavailable or substituted on this machine.", element.ID);
                 }
             }
-            if (element is not SvgImage image || string.IsNullOrEmpty(image.Href)) continue;
+            if (element is not SvgImage image || string.IsNullOrEmpty(image.Href))
+                continue;
             try
             {
                 byte[]? bytes = null;
@@ -96,13 +103,17 @@ public static class SvgPreflightService
                     if (comma > 0 && image.Href.Substring(0, comma).EndsWith(";base64", StringComparison.OrdinalIgnoreCase))
                         bytes = Convert.FromBase64String(image.Href.Substring(comma + 1));
                 }
-                if (bytes is null) continue;
+                if (bytes is null)
+                    continue;
                 using var encoded = new SKMemoryStream(bytes);
                 using var codec = SKCodec.Create(encoded);
-                if (codec is null) continue; // Embedded SVG is vector, not a low-resolution bitmap.
-                if (controller.GetSceneNode(image) is not { } node) continue;
+                if (codec is null)
+                    continue; // Embedded SVG is vector, not a low-resolution bitmap.
+                if (controller.GetSceneNode(image) is not { } node)
+                    continue;
                 var bounds = node.TransformedBounds;
-                if (bounds.Width <= 0 || bounds.Height <= 0) continue;
+                if (bounds.Width <= 0 || bounds.Height <= 0)
+                    continue;
                 var dpi = Math.Min(codec.Info.Width / bounds.Width, codec.Info.Height / bounds.Height) * 96 / scale;
                 if (dpi < minimumImageDpi)
                     Report("image-resolution", SvgPreflightSeverity.Warning, $"Effective image resolution is {dpi.ToString("0", CultureInfo.InvariantCulture)} dpi; the requested minimum is {minimumImageDpi:0} dpi.", image.ID);

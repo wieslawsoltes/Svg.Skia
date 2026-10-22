@@ -53,20 +53,24 @@ public class SvgPrintServiceTests
     [Fact]
     public void PrintSettingsRoundTripInSvgAndUndoAsOneEdit()
     {
-        using var editor = new SvgEditorController(); editor.NewDocument();
+        using var editor = new SvgEditorController();
+        editor.NewDocument();
         var before = editor.GetSvg();
         var settings = new SvgPrintSettings { WidthMillimeters = 320, HeightMillimeters = 180, RegistrationMarks = true, ColorMode = SvgPrintColorMode.Cmyk, Scale = 1.25 };
         settings.Apply(editor);
-        using var roundTrip = new SvgEditorController(); roundTrip.LoadSvg(editor.GetSvg());
+        using var roundTrip = new SvgEditorController();
+        roundTrip.LoadSvg(editor.GetSvg());
         var loaded = SvgPrintSettings.FromDocument(roundTrip.Document!);
         Assert.Equal(settings.Serialize(), loaded.Serialize());
-        editor.Undo(); Assert.Equal(before, editor.GetSvg());
+        editor.Undo();
+        Assert.Equal(before, editor.GetSvg());
     }
 
     [Fact]
     public void VectorPdfContainsPageBoxesAndRetainsVectorArtwork()
     {
-        using var renderer = Svg(); using var output = new MemoryStream();
+        using var renderer = Svg();
+        using var output = new MemoryStream();
         SvgPrintService.ExportPdf(renderer.Picture!, output, SmallSettings());
         var text = Encoding.GetEncoding(28591).GetString(output.ToArray());
         Assert.StartsWith("%PDF-", text);
@@ -80,8 +84,10 @@ public class SvgPrintServiceTests
     [Fact]
     public void CmykPdfUsesFourChannelImageAndEmbedsSelectedProfile()
     {
-        using var renderer = Svg(); using var output = new MemoryStream();
-        var settings = SmallSettings(); settings.ColorMode = SvgPrintColorMode.Cmyk;
+        using var renderer = Svg();
+        using var output = new MemoryStream();
+        var settings = SmallSettings();
+        settings.ColorMode = SvgPrintColorMode.Cmyk;
         var profile = new SvgIccCmykProfile(IccProfile("mft2"));
         SvgPrintService.ExportPdf(renderer.Picture!, output, settings, profile);
         var text = Encoding.GetEncoding(28591).GetString(output.ToArray());
@@ -95,7 +101,8 @@ public class SvgPrintServiceTests
     [Fact]
     public void SeparationsEncodeActualInkCoverageAndResolution()
     {
-        using var renderer = Svg(); using var output = new MemoryStream();
+        using var renderer = Svg();
+        using var output = new MemoryStream();
         var settings = SmallSettings();
         SvgPrintService.ExportSeparations(renderer.Picture!, output, settings, svgSource: "<svg/>");
         output.Position = 0;
@@ -104,7 +111,8 @@ public class SvgPrintServiceTests
         foreach (var (channel, expected) in new[] { ("Cyan", (byte)255), ("Magenta", (byte)0), ("Yellow", (byte)0), ("Black", (byte)255) })
         {
             using var stream = zip.GetEntry("page-001-" + channel + ".png")!.Open();
-            using var memory = new MemoryStream(); stream.CopyTo(memory);
+            using var memory = new MemoryStream();
+            stream.CopyTo(memory);
             var bytes = memory.ToArray();
             Assert.Contains("pHYs", Encoding.GetEncoding(28591).GetString(bytes));
             using var bitmap = SKBitmap.Decode(bytes);
@@ -117,8 +125,11 @@ public class SvgPrintServiceTests
     [Fact]
     public void RegistrationMarksPrintOnAllFourPlates()
     {
-        using var renderer = Svg(); using var output = new MemoryStream();
-        var settings = SmallSettings(); settings.CropMarks = true; settings.RegistrationMarks = true;
+        using var renderer = Svg();
+        using var output = new MemoryStream();
+        var settings = SmallSettings();
+        settings.CropMarks = true;
+        settings.RegistrationMarks = true;
         SvgPrintService.ExportSeparations(renderer.Picture!, output, settings);
         output.Position = 0;
         using var zip = new ZipArchive(output, ZipArchiveMode.Read);
@@ -128,10 +139,37 @@ public class SvgPrintServiceTests
             using var bitmap = SKBitmap.Decode(stream);
             var found = false;
             for (var y = 0; y < 12; y++)
-            for (var x = 0; x < bitmap.Width; x++)
-                found |= bitmap.GetPixel(x, y).Red < 220;
+                for (var x = 0; x < bitmap.Width; x++)
+                    found |= bitmap.GetPixel(x, y).Red < 220;
             Assert.True(found, channel + " has no registration or crop marks.");
         }
+    }
+
+    [Fact]
+    public void NamedInkPackageSeparatesCoverageAndKnocksOutProcessInk()
+    {
+        using var editor = new SvgEditorController();
+        editor.LoadSvg("<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96'><defs><linearGradient id='ink' data-unodraw-spot-name='../Gold'><stop stop-color='#D9A520'/><stop offset='1' stop-color='#D9A520'/></linearGradient></defs><rect width='96' height='96' fill='red'/><rect x='24' y='24' width='48' height='48' fill='url(#ink)'/></svg>");
+        var before = editor.GetSvg();
+        using var output = new MemoryStream();
+        SvgPrintService.ExportSpotSeparations(editor.Document!, output, SmallSettings());
+        Assert.Equal(before, editor.GetSvg());
+        output.Position = 0;
+        using var zip = new ZipArchive(output, ZipArchiveMode.Read);
+        using var inkStream = zip.GetEntry("page-001-Spot-001.png")!.Open();
+        using var ink = SKBitmap.Decode(inkStream);
+        Assert.Equal((byte)0, ink.GetPixel(36, 36).Red);
+        Assert.Equal((byte)255, ink.GetPixel(4, 4).Red);
+        foreach (var channel in new[] { "Cyan", "Magenta", "Yellow", "Black" })
+        {
+            using var stream = zip.GetEntry("page-001-" + channel + ".png")!.Open();
+            using var bitmap = SKBitmap.Decode(stream);
+            Assert.Equal((byte)255, bitmap.GetPixel(36, 36).Red);
+        }
+        using var manifestStream = zip.GetEntry("print-job.xml")!.Open();
+        using var reader = new StreamReader(manifestStream);
+        Assert.Contains("../Gold", reader.ReadToEnd());
+        Assert.All(zip.Entries, entry => Assert.DoesNotContain("..", entry.FullName));
     }
 
     [Theory]
@@ -157,9 +195,11 @@ public class SvgPrintServiceTests
     [Fact]
     public void IccMalformedOffsetsAndUntrustedSizesAreRejected()
     {
-        var bytes = IccProfile("mft2"); bytes[139] = 1;
+        var bytes = IccProfile("mft2");
+        bytes[139] = 1;
         Assert.Throws<InvalidDataException>(() => new SvgIccCmykProfile(bytes));
-        bytes = IccProfile("mft2"); bytes[138] = 255;
+        bytes = IccProfile("mft2");
+        bytes[138] = 255;
         Assert.Throws<InvalidDataException>(() => new SvgIccCmykProfile(bytes));
         Assert.Throws<InvalidDataException>(() => new SvgIccCmykProfile(new byte[20]));
     }
@@ -168,7 +208,8 @@ public class SvgPrintServiceTests
     public void GenericSeparationPreservesPureBlackAndHonorsInkLimit()
     {
         var black = SvgCmykColor.FromSrgb(SKColors.Black);
-        Assert.Equal(0, black.Cyan); Assert.Equal(1, black.Black);
+        Assert.Equal(0, black.Cyan);
+        Assert.Equal(1, black.Black);
         var rich = SvgCmykColor.FromSrgb(new SKColor(15, 20, 25), 0.4, 1.8);
         Assert.InRange(rich.TotalInk, 0, 1.800001);
         var transparent = SvgCmykColor.FromSrgb(SKColors.Transparent);
@@ -204,37 +245,57 @@ public class SvgPrintServiceTests
         var outputBytes = type == "mBA " ? 0 : 4 * tableEntries * (sixteen ? 2 : 1);
         var tagLength = header + inputBytes + 32 * (sixteen ? 2 : 1) + outputBytes;
         var bytes = new byte[144 + tagLength];
-        void U32(int at, uint value) { bytes[at] = (byte)(value >> 24); bytes[at + 1] = (byte)(value >> 16); bytes[at + 2] = (byte)(value >> 8); bytes[at + 3] = (byte)value; }
-        void U16(int at, int value) { bytes[at] = (byte)(value >> 8); bytes[at + 1] = (byte)value; }
+        void U32(int at, uint value)
+        { bytes[at] = (byte)(value >> 24); bytes[at + 1] = (byte)(value >> 16); bytes[at + 2] = (byte)(value >> 8); bytes[at + 3] = (byte)value; }
+        void U16(int at, int value)
+        { bytes[at] = (byte)(value >> 8); bytes[at + 1] = (byte)value; }
         void Sig(int at, string value) => Encoding.ASCII.GetBytes(value).CopyTo(bytes, at);
-        U32(0, (uint)bytes.Length); bytes[8] = 4; Sig(12, "prtr"); Sig(16, "CMYK"); Sig(20, "Lab "); Sig(36, "acsp");
-        U32(128, 1); Sig(132, "B2A0"); U32(136, 144); U32(140, (uint)tagLength);
-        const int start = 144; Sig(start, type); bytes[start + 8] = 3; bytes[start + 9] = 4;
+        U32(0, (uint)bytes.Length);
+        bytes[8] = 4;
+        Sig(12, "prtr");
+        Sig(16, "CMYK");
+        Sig(20, "Lab ");
+        Sig(36, "acsp");
+        U32(128, 1);
+        Sig(132, "B2A0");
+        U32(136, 144);
+        U32(140, (uint)tagLength);
+        const int start = 144;
+        Sig(start, type);
+        bytes[start + 8] = 3;
+        bytes[start + 9] = 4;
         var at = start + header;
         if (type == "mBA ")
         {
-            U32(start + 12, 32); U32(start + 24, 68);
-            for (var i = 0; i < 3; i++) Sig(start + 32 + i * 12, "curv");
-            bytes[at] = bytes[at + 1] = bytes[at + 2] = 2; bytes[at + 16] = 2; at += 20;
+            U32(start + 12, 32);
+            U32(start + 24, 68);
+            for (var i = 0; i < 3; i++)
+                Sig(start + 32 + i * 12, "curv");
+            bytes[at] = bytes[at + 1] = bytes[at + 2] = 2;
+            bytes[at + 16] = 2;
+            at += 20;
         }
         else
         {
             bytes[start + 10] = 2;
-            U32(start + 12, 65536); U32(start + 28, 65536); U32(start + 44, 65536);
-            if (sixteen) { U16(start + 48, tableEntries); U16(start + 50, tableEntries); }
+            U32(start + 12, 65536);
+            U32(start + 28, 65536);
+            U32(start + 44, 65536);
+            if (sixteen)
+            { U16(start + 48, tableEntries); U16(start + 50, tableEntries); }
             for (var channel = 0; channel < 3; channel++)
-            for (var i = 0; i < tableEntries; i++)
-            { if (sixteen) { U16(at, i * 65535); at += 2; } else bytes[at++] = (byte)i; }
+                for (var i = 0; i < tableEntries; i++)
+                { if (sixteen) { U16(at, i * 65535); at += 2; } else bytes[at++] = (byte)i; }
         }
         for (var x = 0; x < 2; x++)
-        for (var y = 0; y < 2; y++)
-        for (var z = 0; z < 2; z++)
-        foreach (var value in new[] { x, y, z, 1 - x })
-        { if (sixteen) { U16(at, value * 65535); at += 2; } else bytes[at++] = (byte)(value * 255); }
+            for (var y = 0; y < 2; y++)
+                for (var z = 0; z < 2; z++)
+                    foreach (var value in new[] { x, y, z, 1 - x })
+                    { if (sixteen) { U16(at, value * 65535); at += 2; } else bytes[at++] = (byte)(value * 255); }
         if (type != "mBA ")
             for (var channel = 0; channel < 4; channel++)
-            for (var i = 0; i < tableEntries; i++)
-            { if (sixteen) { U16(at, i * 65535); at += 2; } else bytes[at++] = (byte)i; }
+                for (var i = 0; i < tableEntries; i++)
+                { if (sixteen) { U16(at, i * 65535); at += 2; } else bytes[at++] = (byte)i; }
         return bytes;
     }
 }

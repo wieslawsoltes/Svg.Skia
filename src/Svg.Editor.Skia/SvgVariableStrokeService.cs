@@ -185,6 +185,9 @@ public static class SvgVariableStrokeService
         path.CustomAttributes[CapAttribute] = cap == SKStrokeCap.Round ? "round" : cap == SKStrokeCap.Square ? "square" : "butt";
         path.CustomAttributes[OutlineAttribute] = Fingerprint(path.PathData.ToString());
         path.CustomAttributes.Remove("stroke-profile");
+        path.CustomAttributes.Remove(SvgBrushLibraryService.BrushIdAttribute);
+        path.CustomAttributes.Remove(SvgBrushLibraryService.SettingsAttribute);
+        path.CustomAttributes.Remove(SvgBrushLibraryService.BaseOpacityAttribute);
         path.OnPathUpdated();
     }
 

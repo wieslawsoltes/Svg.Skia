@@ -68,7 +68,8 @@ public sealed class SvgPrintSettings
             return settings;
         try
         {
-            if (value.Length > 16384) throw new ArgumentException("Print settings are too large.");
+            if (value.Length > 16384)
+                throw new ArgumentException("Print settings are too large.");
             var xml = XElement.Parse(value);
             if (xml.Name != "print" || (string?)xml.Attribute("version") != "1")
                 throw new ArgumentException("Unsupported print settings version.");
@@ -85,8 +86,10 @@ public sealed class SvgPrintSettings
             settings.RegistrationMarks = Flag("registration", settings.RegistrationMarks);
             settings.BlackGeneration = Number("black", settings.BlackGeneration);
             settings.TotalInkLimit = Number("ink", settings.TotalInkLimit);
-            if (Enum.TryParse<SvgPrintLayout>((string?)xml.Attribute("layout"), out var layout)) settings.Layout = layout;
-            if (Enum.TryParse<SvgPrintColorMode>((string?)xml.Attribute("color"), out var color)) settings.ColorMode = color;
+            if (Enum.TryParse<SvgPrintLayout>((string?)xml.Attribute("layout"), out var layout))
+                settings.Layout = layout;
+            if (Enum.TryParse<SvgPrintColorMode>((string?)xml.Attribute("color"), out var color))
+                settings.ColorMode = color;
             settings.Validate();
             return settings;
         }
@@ -136,7 +139,8 @@ public static class SvgPrintLayoutService
 
     public static IReadOnlyList<SvgPrintPage> CreatePages(SKRect artworkBounds, SvgPrintSettings settings)
     {
-        if (settings is null) throw new ArgumentNullException(nameof(settings));
+        if (settings is null)
+            throw new ArgumentNullException(nameof(settings));
         settings.Validate();
         if (float.IsNaN(artworkBounds.Left) || float.IsInfinity(artworkBounds.Left) ||
             float.IsNaN(artworkBounds.Top) || float.IsInfinity(artworkBounds.Top) ||
@@ -169,16 +173,16 @@ public static class SvgPrintLayoutService
         var media = new SKSize((float)(width + 2 * inset), (float)(height + 2 * inset));
         var pages = new List<SvgPrintPage>(columns * rows);
         for (var row = 0; row < rows; row++)
-        for (var column = 0; column < columns; column++)
-        {
-            var x = settings.Layout == SvgPrintLayout.Tile ? inset + margin - column * (contentWidth - overlap)
-                : inset + (width - artworkBounds.Width * scale) / 2;
-            var y = settings.Layout == SvgPrintLayout.Tile ? inset + margin - row * (contentHeight - overlap)
-                : inset + (height - artworkBounds.Height * scale) / 2;
-            var transform = new SKMatrix((float)scale, 0, (float)(x - artworkBounds.Left * scale), 0, (float)scale,
-                (float)(y - artworkBounds.Top * scale), 0, 0, 1);
-            pages.Add(new SvgPrintPage(pages.Count + 1, column, row, media, trim, bleed, transform));
-        }
+            for (var column = 0; column < columns; column++)
+            {
+                var x = settings.Layout == SvgPrintLayout.Tile ? inset + margin - column * (contentWidth - overlap)
+                    : inset + (width - artworkBounds.Width * scale) / 2;
+                var y = settings.Layout == SvgPrintLayout.Tile ? inset + margin - row * (contentHeight - overlap)
+                    : inset + (height - artworkBounds.Height * scale) / 2;
+                var transform = new SKMatrix((float)scale, 0, (float)(x - artworkBounds.Left * scale), 0, (float)scale,
+                    (float)(y - artworkBounds.Top * scale), 0, 0, 1);
+                pages.Add(new SvgPrintPage(pages.Count + 1, column, row, media, trim, bleed, transform));
+            }
         return pages;
     }
 }

@@ -19,7 +19,8 @@ public sealed partial class SvgEditorWorkspace
             return;
         var controller = document.Controller;
         SvgPrintSettings initial;
-        try { initial = SvgPrintSettings.FromDocument(svg); }
+        try
+        { initial = SvgPrintSettings.FromDocument(svg); }
         catch (InvalidOperationException) { initial = new SvgPrintSettings(); }
         var width = NumberInput("Trim width · mm", initial.WidthMillimeters, 1, 5000);
         var height = NumberInput("Trim height · mm", initial.HeightMillimeters, 1, 5000);
@@ -31,15 +32,25 @@ public sealed partial class SvgEditorWorkspace
         var ink = NumberInput("Generic ink limit · %", initial.TotalInkLimit * 100, 100, 400);
         var black = NumberInput("Generic black generation · %", initial.BlackGeneration * 100, 0, 100);
         var layout = new ComboBox { Header = "Placement", HorizontalAlignment = HorizontalAlignment.Stretch };
-        foreach (var item in new[] { "Fit to page", "Actual size / custom scale", "Tile across pages" }) layout.Items.Add(item);
+        foreach (var item in new[] { "Fit to page", "Actual size / custom scale", "Tile across pages" })
+            layout.Items.Add(item);
         layout.SelectedIndex = (int)initial.Layout;
         var color = new ComboBox { Header = "PDF color and content", HorizontalAlignment = HorizontalAlignment.Stretch };
-        color.Items.Add("RGB · retain vectors and text"); color.Items.Add("CMYK · flatten at selected resolution");
+        color.Items.Add("RGB · retain vectors and text");
+        color.Items.Add("CMYK · flatten at selected resolution");
         color.SelectedIndex = (int)initial.ColorMode;
+        var namedInks = svg.Descendants().Where(element => element.CustomAttributes.ContainsKey(SvgSpotSeparationService.SpotNameAttribute))
+            .Select(element => element.CustomAttributes[SvgSpotSeparationService.SpotNameAttribute]).Distinct(StringComparer.Ordinal).ToArray();
+        var convertSpots = new CheckBox
+        {
+            Content = "Convert named inks to process colors in PDF",
+            Visibility = namedInks.Length == 0 ? Visibility.Collapsed : Visibility.Visible
+        };
         var crop = new CheckBox { Content = "Crop marks", IsChecked = initial.CropMarks };
         var registration = new CheckBox { Content = "Registration marks", IsChecked = initial.RegistrationMarks };
         var preset = new ComboBox { Header = "Trim preset", HorizontalAlignment = HorizontalAlignment.Stretch };
-        foreach (var item in new[] { "Custom", "A4 · 210 × 297 mm", "A3 · 297 × 420 mm", "Letter · 215.9 × 279.4 mm", "A5 · 148 × 210 mm" }) preset.Items.Add(item);
+        foreach (var item in new[] { "Custom", "A4 · 210 × 297 mm", "A3 · 297 × 420 mm", "Letter · 215.9 × 279.4 mm", "A5 · 148 × 210 mm" })
+            preset.Items.Add(item);
         preset.SelectedIndex = 0;
         var profileButton = new Button { Content = "Load press ICC profile…", HorizontalAlignment = HorizontalAlignment.Stretch };
         var clearProfile = new Button { Content = "Clear profile" };
@@ -52,6 +63,9 @@ public sealed partial class SvgEditorWorkspace
         settingsPanel.Children.Add(PaintColumns(scale, overlap));
         settingsPanel.Children.Add(PaintColumns(crop, registration));
         settingsPanel.Children.Add(color);
+        settingsPanel.Children.Add(convertSpots);
+        if (namedInks.Length > 0)
+            settingsPanel.Children.Add(new TextBlock { Text = "Named inks: " + string.Join(", ", namedInks) + ". Export separations to retain these ink plates.", TextWrapping = TextWrapping.Wrap, FontSize = 12 });
         settingsPanel.Children.Add(dpi);
         settingsPanel.Children.Add(PaintColumns(black, ink));
         settingsPanel.Children.Add(PaintColumns(profileButton, clearProfile));
@@ -63,8 +77,12 @@ public sealed partial class SvgEditorWorkspace
         var preflight = new Button { Content = "Run preflight", HorizontalAlignment = HorizontalAlignment.Stretch };
         var error = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = new SolidColorBrush(Microsoft.UI.Colors.IndianRed) };
         var reviewPanel = new StackPanel { Spacing = 10 };
-        reviewPanel.Children.Add(pageChoice); reviewPanel.Children.Add(preview); reviewPanel.Children.Add(summary);
-        reviewPanel.Children.Add(preflight); reviewPanel.Children.Add(issues); reviewPanel.Children.Add(error);
+        reviewPanel.Children.Add(pageChoice);
+        reviewPanel.Children.Add(preview);
+        reviewPanel.Children.Add(summary);
+        reviewPanel.Children.Add(preflight);
+        reviewPanel.Children.Add(issues);
+        reviewPanel.Children.Add(error);
         var narrow = XamlRoot is { } root && root.Size.Width < 850;
         var content = new Grid { ColumnSpacing = 24, RowSpacing = 16, MinWidth = narrow ? 280 : 720 };
         if (narrow)
@@ -75,27 +93,38 @@ public sealed partial class SvgEditorWorkspace
         }
         else
         {
-            content.ColumnDefinitions.Add(new ColumnDefinition()); content.ColumnDefinitions.Add(new ColumnDefinition());
+            content.ColumnDefinitions.Add(new ColumnDefinition());
+            content.ColumnDefinitions.Add(new ColumnDefinition());
             Grid.SetColumn(reviewPanel, 1);
         }
-        content.Children.Add(settingsPanel); content.Children.Add(reviewPanel);
+        content.Children.Add(settingsPanel);
+        content.Children.Add(reviewPanel);
         var dialog = MakeDialog("Print studio", new ScrollViewer { Content = content, MaxHeight = 620 }, "Export PDF", "Close");
         dialog.Resources["ContentDialogMaxWidth"] = 900d;
-        dialog.SecondaryButtonText = "Export CMYK plates";
+        dialog.SecondaryButtonText = "Export separations";
         SvgIccCmykProfile? profile = null;
         IReadOnlyList<SvgPrintPage> pages = Array.Empty<SvgPrintPage>();
         var updating = false;
         SvgPrintSettings ReadSettings() => new()
         {
-            WidthMillimeters = width.Value, HeightMillimeters = height.Value, MarginMillimeters = margin.Value,
-            BleedMillimeters = bleed.Value, TileOverlapMillimeters = overlap.Value, Scale = scale.Value / 100,
-            Dpi = dpi.Value, CropMarks = crop.IsChecked == true, RegistrationMarks = registration.IsChecked == true,
-            Layout = (SvgPrintLayout)Math.Max(0, layout.SelectedIndex), ColorMode = (SvgPrintColorMode)Math.Max(0, color.SelectedIndex),
-            TotalInkLimit = ink.Value / 100, BlackGeneration = black.Value / 100
+            WidthMillimeters = width.Value,
+            HeightMillimeters = height.Value,
+            MarginMillimeters = margin.Value,
+            BleedMillimeters = bleed.Value,
+            TileOverlapMillimeters = overlap.Value,
+            Scale = scale.Value / 100,
+            Dpi = dpi.Value,
+            CropMarks = crop.IsChecked == true,
+            RegistrationMarks = registration.IsChecked == true,
+            Layout = (SvgPrintLayout)Math.Max(0, layout.SelectedIndex),
+            ColorMode = (SvgPrintColorMode)Math.Max(0, color.SelectedIndex),
+            TotalInkLimit = ink.Value / 100,
+            BlackGeneration = black.Value / 100
         };
         void Update()
         {
-            if (updating) return;
+            if (updating)
+                return;
             updating = true;
             try
             {
@@ -117,10 +146,14 @@ public sealed partial class SvgEditorWorkspace
             }
             finally { updating = false; }
         }
-        foreach (var number in new[] { width, height, margin, bleed, overlap, scale, dpi, ink, black }) number.ValueChanged += (_, _) => Update();
-        layout.SelectionChanged += (_, _) => Update(); color.SelectionChanged += (_, _) => Update();
-        crop.Checked += (_, _) => Update(); crop.Unchecked += (_, _) => Update();
-        registration.Checked += (_, _) => Update(); registration.Unchecked += (_, _) => Update();
+        foreach (var number in new[] { width, height, margin, bleed, overlap, scale, dpi, ink, black })
+            number.ValueChanged += (_, _) => Update();
+        layout.SelectionChanged += (_, _) => Update();
+        color.SelectionChanged += (_, _) => Update();
+        crop.Checked += (_, _) => Update();
+        crop.Unchecked += (_, _) => Update();
+        registration.Checked += (_, _) => Update();
+        registration.Unchecked += (_, _) => Update();
         pageChoice.SelectionChanged += (_, _) =>
         {
             if (!updating && pageChoice.SelectedIndex >= 0 && pageChoice.SelectedIndex < pages.Count)
@@ -129,17 +162,24 @@ public sealed partial class SvgEditorWorkspace
         preset.SelectionChanged += (_, _) =>
         {
             var size = preset.SelectedIndex switch { 1 => (210d, 297d), 2 => (297d, 420d), 3 => (215.9, 279.4), 4 => (148d, 210d), _ => (width.Value, height.Value) };
-            width.Value = size.Item1; height.Value = size.Item2;
+            width.Value = size.Item1;
+            height.Value = size.Item2;
         };
         profileButton.Click += async (_, _) =>
         {
             try
             {
-                var picker = new FileOpenPicker(); picker.FileTypeFilter.Add(".icc"); picker.FileTypeFilter.Add(".icm"); InitializePicker(picker);
-                if (await picker.PickSingleFileAsync() is not { } file) return;
+                var picker = new FileOpenPicker();
+                picker.FileTypeFilter.Add(".icc");
+                picker.FileTypeFilter.Add(".icm");
+                InitializePicker(picker);
+                if (await picker.PickSingleFileAsync() is not { } file)
+                    return;
                 using var stream = await file.OpenStreamForReadAsync();
-                if (stream.Length > 32 * 1024 * 1024) throw new InvalidOperationException("The ICC profile exceeds 32 MiB.");
-                using var memory = new MemoryStream(); await stream.CopyToAsync(memory);
+                if (stream.Length > 32 * 1024 * 1024)
+                    throw new InvalidOperationException("The ICC profile exceeds 32 MiB.");
+                using var memory = new MemoryStream();
+                await stream.CopyToAsync(memory);
                 profile = new SvgIccCmykProfile(memory.ToArray());
                 profileLabel.Text = profile.Description + " · " + profile.TransformTag;
                 black.IsEnabled = ink.IsEnabled = false;
@@ -158,35 +198,58 @@ public sealed partial class SvgEditorWorkspace
             }
             catch (Exception exception) { error.Text = exception.Message; }
         };
-        void Validate(ContentDialogButtonClickEventArgs args)
+        void Validate(ContentDialogButtonClickEventArgs args, bool separations)
         {
-            try { ReadSettings().Validate(); }
+            try
+            {
+                ReadSettings().Validate();
+                if (namedInks.Length > 0)
+                {
+                    if (!separations && convertSpots.IsChecked != true)
+                        throw new InvalidOperationException("Choose process-color conversion for this PDF, or export separations to retain named inks.");
+                    if (separations)
+                    {
+                        var analysis = SvgSpotSeparationService.Analyze(svg);
+                        if (!analysis.CanSeparate)
+                        {
+                            issues.ItemsSource = analysis.Issues.Select(issue => issue.ToString()).ToArray();
+                            throw new InvalidOperationException("Resolve the named-ink separation issues listed in preflight before exporting plates.");
+                        }
+                    }
+                }
+            }
             catch (Exception exception) { args.Cancel = true; error.Text = exception.Message; }
         }
-        dialog.PrimaryButtonClick += (_, args) => Validate(args);
-        dialog.SecondaryButtonClick += (_, args) => Validate(args);
+        dialog.PrimaryButtonClick += (_, args) => Validate(args, false);
+        dialog.SecondaryButtonClick += (_, args) => Validate(args, true);
         Update();
         var result = await ShowDialogAsync(dialog);
         preview.Clear();
-        if (result == ContentDialogResult.None) return;
+        if (result == ContentDialogResult.None)
+            return;
         var settings = ReadSettings();
         settings.Apply(controller);
         var xml = controller.GetSvg();
         var baseUri = controller.Document?.BaseUri;
         var plates = result == ContentDialogResult.Secondary;
         var save = new FileSavePicker { SuggestedFileName = Path.GetFileNameWithoutExtension(document.Name) + (plates ? "-plates" : "-print"), DefaultFileExtension = plates ? ".zip" : ".pdf" };
-        save.FileTypeChoices.Add(plates ? "CMYK separation package" : "Print PDF", new[] { plates ? ".zip" : ".pdf" });
+        save.FileTypeChoices.Add(plates ? "Ink separation package" : "Print PDF", new[] { plates ? ".zip" : ".pdf" });
         InitializePicker(save);
-        if (await save.PickSaveFileAsync() is not { } destination) return;
-        StatusText.Text = plates ? "Preparing CMYK plates…" : "Preparing print PDF…";
+        if (await save.PickSaveFileAsync() is not { } destination)
+            return;
+        StatusText.Text = plates ? "Preparing ink plates…" : "Preparing print PDF…";
         var bytes = await Task.Run(() =>
         {
             using var renderer = new SKSvg();
             renderer.Load(new MemoryStream(Encoding.UTF8.GetBytes(xml)), null, baseUri);
             using var output = new MemoryStream();
             var artwork = renderer.Picture ?? throw new InvalidOperationException("The document contains no printable artwork.");
-            if (plates) SvgPrintService.ExportSeparations(artwork, output, settings, profile, xml);
-            else SvgPrintService.ExportPdf(artwork, output, settings, profile);
+            if (plates && namedInks.Length > 0)
+                SvgPrintService.ExportSpotSeparations(renderer.SourceDocument!, output, settings, profile);
+            else if (plates)
+                SvgPrintService.ExportSeparations(artwork, output, settings, profile, xml);
+            else
+                SvgPrintService.ExportPdf(artwork, output, settings, profile);
             return output.ToArray();
         });
         await WriteFileAsync(destination, bytes);
@@ -195,7 +258,8 @@ public sealed partial class SvgEditorWorkspace
 
     private async Task PreflightDialogAsync()
     {
-        if (Controller is not { Document: { } document } controller) return;
+        if (Controller is not { Document: { } document } controller)
+            return;
         var issues = SvgPreflightService.Inspect(controller, SvgPrintSettings.FromDocument(document));
         var panel = new StackPanel { Spacing = 12, MinWidth = 380 };
         panel.Children.Add(new TextBlock { Text = issues.Count == 0 ? "No issues detected." : $"{issues.Count(issue => issue.Severity == SvgPreflightSeverity.Error)} errors · {issues.Count(issue => issue.Severity == SvgPreflightSeverity.Warning)} warnings", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
@@ -222,7 +286,8 @@ public sealed partial class SvgEditorWorkspace
         public void Clear() { _picture = null; _page = null; _settings = null; }
         protected override void RenderOverride(SKCanvas canvas, Size area)
         {
-            if (_picture is null || _page is null || _settings is null || area.Width <= 16 || area.Height <= 16) return;
+            if (_picture is null || _page is null || _settings is null || area.Width <= 16 || area.Height <= 16)
+                return;
             using var restore = new SKAutoCanvasRestore(canvas);
             canvas.ClipRect(SKRect.Create((float)area.Width, (float)area.Height));
             canvas.Clear(new SKColor(47, 48, 55));

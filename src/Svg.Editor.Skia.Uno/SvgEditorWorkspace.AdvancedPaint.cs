@@ -58,7 +58,7 @@ public sealed partial class SvgEditorWorkspace
         var add = new Button { Content = "Add width point", HorizontalAlignment = HorizontalAlignment.Left };
         var error = PaintErrorText();
         using var preview = new StrokeWidthPreview(centerline) { Height = 150 };
-        var panel = new StackPanel { Spacing = 12, MinWidth = 420, MaxWidth = 560 };
+        var panel = new StackPanel { Spacing = 12, MaxWidth = PaintDialogWidth(560), Width = PaintDialogWidth(560) };
         panel.Children.Add(new TextBlock
         {
             Text = "Convert this path to a filled stroke outline. Reopen this dialog to adjust widths until you edit the outline’s nodes.",
@@ -278,7 +278,7 @@ public sealed partial class SvgEditorWorkspace
         target.Items.Add("Selection stroke");
         target.SelectedIndex = controller.SelectedElements.Count > 0 ? 1 : 0;
         var error = PaintErrorText();
-        var panel = new StackPanel { Spacing = 14, MinWidth = 380, MaxWidth = 520 };
+        var panel = new StackPanel { Spacing = 14, MaxWidth = PaintDialogWidth(520), Width = PaintDialogWidth(520) };
         panel.Children.Add(new TextBlock
         {
             Text = "Save reusable colors in this SVG. Updating a shared swatch recolors every linked object.",
@@ -292,7 +292,7 @@ public sealed partial class SvgEditorWorkspace
         panel.Children.Add(PaintColumns(hex, opacity));
         panel.Children.Add(target);
         panel.Children.Add(error);
-        var dialog = MakeDialog("Document swatches", panel, "Create swatch");
+        var dialog = MakeDialog("Document swatches", new ScrollViewer { Content = panel, MaxHeight = 560 }, "Create swatch");
         var loading = false;
 
         System.Drawing.Color CurrentColor()
@@ -409,8 +409,17 @@ public sealed partial class SvgEditorWorkspace
         FontSize = 12
     };
 
-    private static Grid PaintColumns(params UIElement[] controls)
+    private double PaintDialogWidth(double preferred) => Math.Max(220, Math.Min(preferred, (XamlRoot?.Size.Width ?? ActualWidth) - 80));
+
+    private Panel PaintColumns(params UIElement[] controls)
     {
+        if ((XamlRoot?.Size.Width ?? ActualWidth) < 650)
+        {
+            var stack = new StackPanel { Spacing = 8 };
+            foreach (var control in controls)
+                stack.Children.Add(control);
+            return stack;
+        }
         var grid = new Grid { ColumnSpacing = 10 };
         for (var index = 0; index < controls.Length; index++)
         {

@@ -11,7 +11,7 @@ using SkiaSharp;
 namespace Svg.Editor.Skia;
 
 /// <summary>Physical-page vector PDF, profiled CMYK PDF and process-plate export.</summary>
-public static class SvgPrintService
+public static partial class SvgPrintService
 {
     public const long MaximumPagePixels = 40_000_000;
     public const long MaximumJobPixels = 160_000_000;
@@ -19,8 +19,10 @@ public static class SvgPrintService
     public static void ExportPdf(SKPicture picture, Stream output, SvgPrintSettings settings,
         SvgIccCmykProfile? profile = null)
     {
-        if (picture is null) throw new ArgumentNullException(nameof(picture));
-        if (output is null) throw new ArgumentNullException(nameof(output));
+        if (picture is null)
+            throw new ArgumentNullException(nameof(picture));
+        if (output is null)
+            throw new ArgumentNullException(nameof(output));
         var pages = SvgPrintLayoutService.CreatePages(picture.CullRect, settings);
         if (settings.ColorMode == SvgPrintColorMode.Cmyk)
         {
@@ -31,7 +33,8 @@ public static class SvgPrintService
         using var buffer = new MemoryStream();
         using (var document = SKDocument.CreatePdf(buffer, (float)settings.Dpi))
         {
-            if (document is null) throw new InvalidOperationException("PDF export is unavailable on this platform.");
+            if (document is null)
+                throw new InvalidOperationException("PDF export is unavailable on this platform.");
             foreach (var page in pages)
             {
                 var canvas = document.BeginPage(page.MediaSize.Width, page.MediaSize.Height);
@@ -87,6 +90,17 @@ public static class SvgPrintService
         var manifest = new XElement("unodraw-print-job", new XAttribute("version", 1),
             new XAttribute("dpi", settings.Dpi), new XAttribute("color", "CMYK"),
             new XAttribute("profile", profile?.Description ?? "Generic arithmetic CMYK"), XElement.Parse(settings.Serialize()));
+        WriteProcessPlates(zip, picture, settings, pages, profile, manifest);
+        AddEntry(zip, "print-job.xml", Encoding.UTF8.GetBytes(manifest.ToString()));
+        if (profile is not null)
+            AddEntry(zip, "output-profile.icc", profile.GetProfileBytes());
+        if (svgSource is not null)
+            AddEntry(zip, "artwork.svg", Encoding.UTF8.GetBytes(svgSource));
+    }
+
+    private static void WriteProcessPlates(ZipArchive zip, SKPicture picture, SvgPrintSettings settings,
+        IReadOnlyList<SvgPrintPage> pages, SvgIccCmykProfile? profile, XElement manifest)
+    {
         var names = new[] { "Cyan", "Magenta", "Yellow", "Black" };
         foreach (var page in pages)
         {
@@ -100,17 +114,14 @@ public static class SvgPrintService
             for (var channel = 0; channel < 4; channel++)
             {
                 for (var y = 0; y < bitmap.Height; y++)
-                for (var x = 0; x < bitmap.Width; x++)
-                    gray[y * rowBytes + x] = (byte)(255 - cmyk[(y * bitmap.Width + x) * 4 + channel]);
+                    for (var x = 0; x < bitmap.Width; x++)
+                        gray[y * rowBytes + x] = (byte)(255 - cmyk[(y * bitmap.Width + x) * 4 + channel]);
                 System.Runtime.InteropServices.Marshal.Copy(gray, 0, plate.GetPixels(), gray.Length);
                 using var image = SKImage.FromBitmap(plate);
                 using var data = image.Encode(SKEncodedImageFormat.Png, 100);
                 AddEntry(zip, $"page-{page.Number:000}-{names[channel]}.png", AddPngResolution(data.ToArray(), settings.Dpi));
             }
         }
-        AddEntry(zip, "print-job.xml", Encoding.UTF8.GetBytes(manifest.ToString()));
-        if (profile is not null) AddEntry(zip, "output-profile.icc", profile.GetProfileBytes());
-        if (svgSource is not null) AddEntry(zip, "artwork.svg", Encoding.UTF8.GetBytes(svgSource));
     }
 
     private static void ValidateRasterJob(IReadOnlyList<SvgPrintPage> pages, SvgPrintSettings settings)
@@ -131,26 +142,28 @@ public static class SvgPrintService
         var cache = new Dictionary<uint, SvgCmykColor>();
         var unitsPerPixel = 72 / settings.Dpi;
         for (var y = 0; y < bitmap.Height; y++)
-        for (var x = 0; x < bitmap.Width; x++)
-        {
-            var at = y * bitmap.RowBytes + x * 4;
-            var color = new SKColor(rgba[at], rgba[at + 1], rgba[at + 2], rgba[at + 3]);
-            var key = (uint)color;
-            if (!cache.TryGetValue(key, out var cmyk))
+            for (var x = 0; x < bitmap.Width; x++)
             {
-                cmyk = profile is not null ? profile.Convert(color) : SvgCmykColor.FromSrgb(color, settings.BlackGeneration, settings.TotalInkLimit);
-                if (cache.Count < 65536) cache.Add(key, cmyk);
+                var at = y * bitmap.RowBytes + x * 4;
+                var color = new SKColor(rgba[at], rgba[at + 1], rgba[at + 2], rgba[at + 3]);
+                var key = (uint)color;
+                if (!cache.TryGetValue(key, out var cmyk))
+                {
+                    cmyk = profile is not null ? profile.Convert(color) : SvgCmykColor.FromSrgb(color, settings.BlackGeneration, settings.TotalInkLimit);
+                    if (cache.Count < 65536)
+                        cache.Add(key, cmyk);
+                }
+                // Printer's marks are registration color: identical coverage on every plate.
+                // Artwork conversion remains profile-controlled, including its black generation.
+                if ((settings.CropMarks || settings.RegistrationMarks) && !page.BleedBox.Contains((float)((x + 0.5) * unitsPerPixel), (float)((y + 0.5) * unitsPerPixel)))
+                {
+                    var coverage = 1 - Math.Min(color.Red, Math.Min(color.Green, color.Blue)) / 255.0;
+                    cmyk = new SvgCmykColor(coverage, coverage, coverage, coverage);
+                }
+                var destination = (y * bitmap.Width + x) * 4;
+                for (var channel = 0; channel < 4; channel++)
+                    result[destination + channel] = cmyk.Channel(channel);
             }
-            // Printer's marks are registration color: identical coverage on every plate.
-            // Artwork conversion remains profile-controlled, including its black generation.
-            if ((settings.CropMarks || settings.RegistrationMarks) && !page.BleedBox.Contains((float)((x + 0.5) * unitsPerPixel), (float)((y + 0.5) * unitsPerPixel)))
-            {
-                var coverage = 1 - Math.Min(color.Red, Math.Min(color.Green, color.Blue)) / 255.0;
-                cmyk = new SvgCmykColor(coverage, coverage, coverage, coverage);
-            }
-            var destination = (y * bitmap.Width + x) * 4;
-            for (var channel = 0; channel < 4; channel++) result[destination + channel] = cmyk.Channel(channel);
-        }
         return result;
     }
 
@@ -207,7 +220,8 @@ public static class SvgPrintService
                 canvas.DrawLine(page.BleedBox.Right + gap, y, page.BleedBox.Right + gap + length, y, paint);
             }
         }
-        if (!settings.RegistrationMarks) return;
+        if (!settings.RegistrationMarks)
+            return;
         foreach (var point in new[] { new SKPoint(page.TrimBox.MidX, page.BleedBox.Top - gap - length / 2),
             new SKPoint(page.TrimBox.MidX, page.BleedBox.Bottom + gap + length / 2),
             new SKPoint(page.BleedBox.Left - gap - length / 2, page.TrimBox.MidY),
@@ -228,18 +242,23 @@ public static class SvgPrintService
 
     private static byte[] AddPngResolution(byte[] png, double dpi)
     {
-        if (png.Length < 33) throw new InvalidDataException("PNG encoder produced a truncated image.");
+        if (png.Length < 33)
+            throw new InvalidDataException("PNG encoder produced a truncated image.");
         var chunk = new byte[21];
-        void U32(int at, uint value) { chunk[at] = (byte)(value >> 24); chunk[at + 1] = (byte)(value >> 16); chunk[at + 2] = (byte)(value >> 8); chunk[at + 3] = (byte)value; }
+        void U32(int at, uint value)
+        { chunk[at] = (byte)(value >> 24); chunk[at + 1] = (byte)(value >> 16); chunk[at + 2] = (byte)(value >> 8); chunk[at + 3] = (byte)value; }
         U32(0, 9);
         Encoding.ASCII.GetBytes("pHYs").CopyTo(chunk, 4);
         var ppm = (uint)Math.Round(dpi / 0.0254);
-        U32(8, ppm); U32(12, ppm); chunk[16] = 1;
+        U32(8, ppm);
+        U32(12, ppm);
+        chunk[16] = 1;
         uint crc = 0xffffffff;
         for (var i = 4; i < 17; i++)
         {
             crc ^= chunk[i];
-            for (var bit = 0; bit < 8; bit++) crc = (crc >> 1) ^ ((crc & 1) != 0 ? 0xedb88320 : 0);
+            for (var bit = 0; bit < 8; bit++)
+                crc = (crc >> 1) ^ ((crc & 1) != 0 ? 0xedb88320 : 0);
         }
         U32(17, crc ^ 0xffffffff);
         var result = new byte[png.Length + chunk.Length];
@@ -267,38 +286,47 @@ internal sealed class SvgPrintPdfWriter : IDisposable
         var compressed = Compress(data);
         _offsets[id] = _position;
         Raw($"{id} 0 obj\n<< {dictionary} /Filter /FlateDecode /Length {compressed.Length} >>\nstream\n");
-        _stream.Write(compressed, 0, compressed.Length); _position += compressed.Length;
+        _stream.Write(compressed, 0, compressed.Length);
+        _position += compressed.Length;
         Raw("\nendstream\nendobj\n");
     }
     public void Complete(int root)
     {
-        if (_offsets.Skip(1).Any(offset => offset < 0)) throw new InvalidOperationException("A PDF object was not written.");
+        if (_offsets.Skip(1).Any(offset => offset < 0))
+            throw new InvalidOperationException("A PDF object was not written.");
         var xref = _position;
         Raw($"xref\n0 {_offsets.Count}\n0000000000 65535 f \n");
-        foreach (var offset in _offsets.Skip(1)) Raw(offset.ToString("0000000000", CultureInfo.InvariantCulture) + " 00000 n \n");
+        foreach (var offset in _offsets.Skip(1))
+            Raw(offset.ToString("0000000000", CultureInfo.InvariantCulture) + " 00000 n \n");
         Raw($"trailer\n<< /Size {_offsets.Count} /Root {root} 0 R >>\nstartxref\n{xref.ToString(CultureInfo.InvariantCulture)}\n%%EOF\n");
         _stream.Flush();
     }
     private void Raw(string value)
     {
         var bytes = Encoding.GetEncoding(28591).GetBytes(value);
-        _stream.Write(bytes, 0, bytes.Length); _position += bytes.Length;
+        _stream.Write(bytes, 0, bytes.Length);
+        _position += bytes.Length;
     }
     public static string String(string text) => "<FEFF" + string.Concat(Encoding.BigEndianUnicode.GetBytes(text).Select(value => value.ToString("X2", CultureInfo.InvariantCulture))) + ">";
     private static byte[] Compress(byte[] data)
     {
         using var buffer = new MemoryStream();
-        buffer.WriteByte(0x78); buffer.WriteByte(0x9c);
-        using (var deflate = new DeflateStream(buffer, CompressionLevel.Optimal, leaveOpen: true)) deflate.Write(data, 0, data.Length);
+        buffer.WriteByte(0x78);
+        buffer.WriteByte(0x9c);
+        using (var deflate = new DeflateStream(buffer, CompressionLevel.Optimal, leaveOpen: true))
+            deflate.Write(data, 0, data.Length);
         uint a = 1, b = 0;
         for (var at = 0; at < data.Length;)
         {
             var end = Math.Min(data.Length, at + 5552);
-            while (at < end) { a += data[at++]; b += a; }
-            a %= 65521; b %= 65521;
+            while (at < end)
+            { a += data[at++]; b += a; }
+            a %= 65521;
+            b %= 65521;
         }
         var checksum = b << 16 | a;
-        for (var shift = 24; shift >= 0; shift -= 8) buffer.WriteByte((byte)(checksum >> shift));
+        for (var shift = 24; shift >= 0; shift -= 8)
+            buffer.WriteByte((byte)(checksum >> shift));
         return buffer.ToArray();
     }
     public void Dispose() { }
