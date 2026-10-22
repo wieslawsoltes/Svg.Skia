@@ -27,6 +27,8 @@ public sealed partial class SvgEditorWorkspace
         AddAsync("saveas", "Save as…", "File", async () => { if (_current is { } d) await SaveAsync(d, true); }, "Ctrl+Shift+S");
         AddAsync("export", "Export image or PDF…", "File", ExportAsync, "Ctrl+E");
         AddAsync("exportselection", "Export selection…", "File", () => ExportAsync(true));
+        AddAsync("print", "Print and page setup…", "File", PrintDialogAsync, "Ctrl+P");
+        AddAsync("preflight", "Preflight document…", "File", PreflightDialogAsync);
         AddAsync("image", "Place image…", "File", PlaceImageAsync);
         AddAsync("source", "Edit SVG source…", "File", EditSourceAsync);
 
@@ -240,6 +242,7 @@ public sealed partial class SvgEditorWorkspace
                 VirtualKey.O => "open",
                 VirtualKey.S => shift ? "saveas" : "save",
                 VirtualKey.E => "export",
+                VirtualKey.P => "print",
                 VirtualKey.K => "commands",
                 VirtualKey.Z when !editingText => shift ? "redo" : "undo",
                 VirtualKey.Y when !editingText => "redo",
