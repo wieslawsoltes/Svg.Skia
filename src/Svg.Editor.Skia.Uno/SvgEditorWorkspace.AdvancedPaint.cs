@@ -58,7 +58,7 @@ public sealed partial class SvgEditorWorkspace
         var add = new Button { Content = "Add width point", HorizontalAlignment = HorizontalAlignment.Left };
         var error = PaintErrorText();
         using var preview = new StrokeWidthPreview(centerline) { Height = 150 };
-        var panel = new StackPanel { Spacing = 12, MaxWidth = PaintDialogWidth(560), Width = PaintDialogWidth(560) };
+        var panel = new StackPanel { Spacing = 12, MaxWidth = DialogContentWidth(560), Width = DialogContentWidth(560) };
         panel.Children.Add(new TextBlock
         {
             Text = "Convert this path to a filled stroke outline. Reopen this dialog to adjust widths until you edit the outline’s nodes.",
@@ -278,7 +278,7 @@ public sealed partial class SvgEditorWorkspace
         target.Items.Add("Selection stroke");
         target.SelectedIndex = controller.SelectedElements.Count > 0 ? 1 : 0;
         var error = PaintErrorText();
-        var panel = new StackPanel { Spacing = 14, MaxWidth = PaintDialogWidth(520), Width = PaintDialogWidth(520) };
+        var panel = new StackPanel { Spacing = 14, MaxWidth = DialogContentWidth(520), Width = DialogContentWidth(520) };
         panel.Children.Add(new TextBlock
         {
             Text = "Save reusable colors in this SVG. Updating a shared swatch recolors every linked object.",
@@ -409,7 +409,6 @@ public sealed partial class SvgEditorWorkspace
         FontSize = 12
     };
 
-    private double PaintDialogWidth(double preferred) => Math.Max(220, Math.Min(preferred, (XamlRoot?.Size.Width ?? ActualWidth) - 80));
 
     private Panel PaintColumns(params UIElement[] controls)
     {

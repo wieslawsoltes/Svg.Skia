@@ -53,7 +53,7 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         {
             if (Controller is not { } controller)
                 return;
-            controller.Renderer.SetAnimationTime(_animationClock.Elapsed);
+            controller.Renderer.SetAnimationTime(_animationPlaybackOrigin + _animationClock.Elapsed);
             Canvas.Invalidate();
         };
         Loaded += (_, _) =>
@@ -110,6 +110,7 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         }
         _animationTimer.Stop();
         _animationClock.Reset();
+        _animationPlaybackOrigin = TimeSpan.Zero;
         _current = document;
         _inspectedElement = null;
         _outlineRevision = -1;
@@ -268,6 +269,14 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         InspectorPanel.Visibility = showInspector ? Visibility.Visible : Visibility.Collapsed;
         EditorBody.ColumnDefinitions[1].Width = new GridLength(showOutline ? 228 : 0);
         EditorBody.ColumnDefinitions[3].Width = new GridLength(showInspector ? 292 : 0);
+        var compact = ActualWidth < 1100;
+        WorkspaceMenu.Visibility = MenuDivider.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+        CompactMenuButton.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
+        BrandTitle.Visibility = ActualWidth < 520 ? Visibility.Collapsed : Visibility.Visible;
+        CommandsLabel.Visibility = CommandsShortcut.Visibility = ActualWidth < 900 ? Visibility.Collapsed : Visibility.Visible;
+        ThemeButton.Visibility = ActualWidth < 480 ? Visibility.Collapsed : Visibility.Visible;
+        ExportButton.Visibility = ActualWidth < 640 ? Visibility.Collapsed : Visibility.Visible;
+        WorkspaceLabel.Visibility = ActualWidth < 760 ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void SnapToggle_Click(object sender, RoutedEventArgs e)
@@ -337,6 +346,7 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         if (_disposed)
             return;
         _disposed = true;
+        _panelFlyout?.Hide();
         _recoveryTimer.Stop();
         _animationTimer.Stop();
         Canvas.CancelGesture();

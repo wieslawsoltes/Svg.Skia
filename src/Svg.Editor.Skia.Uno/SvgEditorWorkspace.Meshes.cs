@@ -41,7 +41,7 @@ public sealed partial class SvgEditorWorkspace
         var opacity = NumberInput("Opacity %", 100, 0, 100);
         var error = PaintErrorText();
         using var preview = new MeshPreview { Height = 270 };
-        var panel = new StackPanel { Spacing = 12, MaxWidth = PaintDialogWidth(640), Width = PaintDialogWidth(640) };
+        var panel = new StackPanel { Spacing = 12, MaxWidth = DialogContentWidth(640), Width = DialogContentWidth(640) };
         panel.Children.Add(new TextBlock
         {
             Text = "Drag a point or its tangent handles. Each patch follows cubic boundaries and blends its corner colors. The SVG stores portable vector polygons and an editable control network.",

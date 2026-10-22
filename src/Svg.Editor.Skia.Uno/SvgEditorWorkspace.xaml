@@ -65,17 +65,20 @@
           <Border Background="#7061DC" Width="30" Height="30" CornerRadius="9">
             <TextBlock Text="u" FontSize="24" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-4,0,0" />
           </Border>
-          <TextBlock Text="UnoDraw" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
-          <Border Width="1" Height="22" Background="{ThemeResource PanelBorder}" Margin="10,0" />
+          <TextBlock x:Name="BrandTitle" Text="UnoDraw" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+          <Border x:Name="MenuDivider" Width="1" Height="22" Background="{ThemeResource PanelBorder}" Margin="10,0" />
           <MenuBar x:Name="WorkspaceMenu" Background="Transparent" VerticalAlignment="Center" />
+          <Button x:Name="CompactMenuButton" Content="Menu" Visibility="Collapsed" Style="{StaticResource CompactButton}">
+            <Button.Flyout><MenuFlyout x:Name="CompactMenu" /></Button.Flyout>
+          </Button>
         </StackPanel>
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
           <Button Style="{StaticResource CompactButton}" Click="Command_Click" Tag="commands" ToolTipService.ToolTip="Search commands (Ctrl+K)">
-            <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon Glyph="&#xE721;" FontSize="13" /><TextBlock Text="Commands" /><TextBlock Text="Ctrl K" Opacity="0.5" FontSize="11" /></StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon Glyph="&#xE721;" FontSize="13" /><TextBlock x:Name="CommandsLabel" Text="Commands" /><TextBlock x:Name="CommandsShortcut" Text="Ctrl K" Opacity="0.5" FontSize="11" /></StackPanel>
           </Button>
-          <Button Style="{StaticResource CompactButton}" Tag="theme" Click="Command_Click" ToolTipService.ToolTip="Switch light and dark theme"><FontIcon Glyph="&#xE708;" FontSize="15" /></Button>
+          <Button x:Name="ThemeButton" Style="{StaticResource CompactButton}" Tag="theme" Click="Command_Click" ToolTipService.ToolTip="Switch light and dark theme"><FontIcon Glyph="&#xE708;" FontSize="15" /></Button>
           <Button Style="{StaticResource CompactButton}" Tag="save" Click="Command_Click" Content="Save" />
-          <Button Style="{StaticResource CompactButton}" Tag="export" Click="Command_Click" Content="Export" Background="#7061DC" Foreground="White" BorderThickness="0" />
+          <Button x:Name="ExportButton" Style="{StaticResource CompactButton}" Tag="export" Click="Command_Click" Content="Export" Background="#7061DC" Foreground="White" BorderThickness="0" />
         </StackPanel>
       </Grid>
     </Border>
@@ -87,7 +90,7 @@
       <TabView x:Name="DocumentTabs" IsAddTabButtonVisible="True" TabWidthMode="SizeToContent"
                AddTabButtonClick="DocumentTabs_AddTabButtonClick" SelectionChanged="DocumentTabs_SelectionChanged"
                TabCloseRequested="DocumentTabs_TabCloseRequested" CanDragTabs="False" CanReorderTabs="True" />
-      <TextBlock Grid.Column="1" Text="SVG WORKSPACE" CharacterSpacing="160" FontSize="10" Foreground="{ThemeResource MutedForeground}" VerticalAlignment="Center" Margin="16,0" />
+      <TextBlock x:Name="WorkspaceLabel" Grid.Column="1" Text="SVG WORKSPACE" CharacterSpacing="160" FontSize="10" Foreground="{ThemeResource MutedForeground}" VerticalAlignment="Center" Margin="16,0" />
     </Grid>
     <Grid Grid.Row="2" x:Name="EditorBody">
       <Grid.ColumnDefinitions>

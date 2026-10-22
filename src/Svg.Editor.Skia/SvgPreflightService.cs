@@ -67,7 +67,7 @@ public static class SvgPreflightService
                 }
             }
             if (element.Name.LocalName is "animate" or "animateTransform" or "animateMotion" or "set")
-                Report("animated-content", SvgPreflightSeverity.Warning, "Print output captures the static SVG document. Choose and bake an animation frame when motion should appear in print.", id);
+                Report("animated-content", SvgPreflightSeverity.Warning, "Print output captures one timeline position. Choose the frame before opening Print studio; bake it before exporting named-ink separations.", id);
             if (element.Name.LocalName is "script" or "foreignObject")
                 Report("dynamic-content", SvgPreflightSeverity.Warning, "Review this dynamic or embedded content in the exported print preview.", id);
             if (int.TryParse((string?)element.Attribute("data-unodraw-text-overflow-count"), NumberStyles.Integer,
@@ -124,7 +124,7 @@ public static class SvgPreflightService
             }
         }
         if (settings.ColorMode == SvgPrintColorMode.Cmyk && !hasOutputProfile)
-            Report("unprofiled-cmyk", SvgPreflightSeverity.Warning, "CMYK output uses device-independent arithmetic separation. Load the press ICC output profile for device-characterized color conversion.");
+            Report("unprofiled-cmyk", SvgPreflightSeverity.Warning, "CMYK output uses generic arithmetic separation. Load the press ICC output profile for device-characterized color conversion.");
         if (settings.ColorMode == SvgPrintColorMode.Cmyk)
             Report("cmyk-rasterization", SvgPreflightSeverity.Information, $"CMYK print output is flattened at {settings.Dpi:0} dpi. RGB PDF output retains vector geometry and text.");
         return issues;

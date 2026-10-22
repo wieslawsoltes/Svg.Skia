@@ -129,7 +129,7 @@ public sealed partial class SvgEditorWorkspace
         var targets = new[] { (SvgElement)document }.Concat(document.Descendants().OfType<SvgGroup>())
             .Where(element => !SvgEditorController.IsLocked(element) && !controller.SelectedElements.Any(selected =>
                 ReferenceEquals(selected, element) || selected.Descendants().Contains(element))).ToArray();
-        var list = new ListView { MaxHeight = 320, MinWidth = 360, ItemsSource = targets.Select(element => new ElementItem(element)).ToArray() };
+        var list = new ListView { MaxHeight = 320, Width = DialogContentWidth(360), ItemsSource = targets.Select(element => new ElementItem(element)).ToArray() };
         list.SelectedIndex = 0;
         var position = new ComboBox { Header = "Stacking position", HorizontalAlignment = HorizontalAlignment.Stretch };
         position.Items.Add("Front of destination");

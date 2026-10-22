@@ -9,19 +9,40 @@ using Svg.Skia;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using Windows.Storage.Provider;
 
 namespace Svg.Editor.Skia.Uno;
 
 public sealed partial class SvgEditorWorkspace
 {
-    private static readonly string RecoveryDirectory = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UnoDraw", "Recovery");
-    private bool _writingRecovery;
+    private static bool UsesPlatformStorage => OperatingSystem.IsBrowser() || OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
+    private static readonly string RecoveryDirectory = Path.Combine(UsesPlatformStorage
+        ? ApplicationData.Current.LocalFolder.Path
+        : Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UnoDraw", "Recovery");
+    private readonly SemaphoreSlim _recoveryGate = new(1, 1);
+
+    // Browser and mobile pickers may return virtual/content-provider paths. All writes
+    // to those files must pass through the StorageFile capability granted by the picker.
+    private static string? NativeFilePath(StorageFile file) => !UsesPlatformStorage &&
+        !string.IsNullOrEmpty(file.Path) && Path.IsPathRooted(file.Path) ? file.Path : null;
 
     private void InitializePicker(object picker)
     {
-        if (HostWindow is { } window)
+        if (!UsesPlatformStorage && HostWindow is { } window)
             WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(window));
+    }
+
+    public async Task OpenSvgSourceAsync(string xml, string name = "Untitled.svg")
+    {
+        if (_disposed)
+            throw new ObjectDisposedException(nameof(SvgEditorWorkspace));
+        var document = new EditorDocument { Name = name };
+        try
+        {
+            await Task.Run(() => document.Controller.LoadSvg(xml));
+            AddDocument(document);
+        }
+        catch { document.Dispose(); throw; }
     }
 
     public async Task OpenPathAsync(string path, bool isExample = false)
@@ -61,10 +82,15 @@ public sealed partial class SvgEditorWorkspace
             ? new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true) : null;
         using var reader = new StreamReader(expanded ?? stream);
         var xml = await reader.ReadToEndAsync();
-        var document = new EditorDocument { Name = isExample ? "Welcome.svg" : file.Name, File = isExample ? null : file };
+        var document = new EditorDocument
+        {
+            Name = isExample ? "Welcome.svg" : file.Name,
+            File = isExample ? null : file,
+            CanWriteBack = !isExample && !UsesPlatformStorage
+        };
         try
         {
-            await Task.Run(() => document.Controller.LoadSvg(xml, file.Path));
+            await Task.Run(() => document.Controller.LoadSvg(xml, NativeFilePath(file)));
             if (isExample)
                 document.Controller.Session.CurrentFile = null;
             AddDocument(document);
@@ -76,14 +102,14 @@ public sealed partial class SvgEditorWorkspace
         }
     }
 
-    private async Task<bool> SaveAsync(EditorDocument document, bool saveAs = false)
+    private async Task<bool> SaveAsync(EditorDocument document, bool saveAs = false, string? extension = null)
     {
         if (ReferenceEquals(document, _current))
             CommitInspectorEdits();
         await document.SaveGate.WaitAsync();
         try
         {
-            return await SaveCoreAsync(document, saveAs);
+            return await SaveCoreAsync(document, saveAs, extension);
         }
         finally
         {
@@ -91,27 +117,30 @@ public sealed partial class SvgEditorWorkspace
         }
     }
 
-    private async Task<bool> SaveCoreAsync(EditorDocument document, bool saveAs)
+    private async Task<bool> SaveCoreAsync(EditorDocument document, bool saveAs, string? extension)
     {
         var file = document.File;
-        if (file is null || saveAs)
+        if (file is null || saveAs || !document.CanWriteBack)
         {
             var picker = new FileSavePicker
             {
                 SuggestedFileName = Path.GetFileNameWithoutExtension(document.Name),
-                DefaultFileExtension = ".svg",
+                DefaultFileExtension = extension ?? ".svg",
                 SuggestedStartLocation = PickerLocationId.DocumentsLibrary
             };
-            picker.FileTypeChoices.Add("SVG document", new List<string> { ".svg" });
-            picker.FileTypeChoices.Add("Compressed SVG", new List<string> { ".svgz" });
+            if (extension is null or ".svg")
+                picker.FileTypeChoices.Add("SVG document", new List<string> { ".svg" });
+            if (extension is null or ".svgz")
+                picker.FileTypeChoices.Add("Compressed SVG", new List<string> { ".svgz" });
             InitializePicker(picker);
             file = await picker.PickSaveFileAsync();
             if (file is null)
                 return false;
         }
         var xml = document.Controller.GetSvg();
-        if (document.Controller.Document?.BaseUri is { } originalUri && !string.IsNullOrEmpty(file.Path))
-            xml = SvgResourcePathService.Rebase(xml, originalUri, new Uri(Path.GetFullPath(file.Path)));
+        var nativePath = NativeFilePath(file);
+        if (document.Controller.Document?.BaseUri is { } originalUri && nativePath is not null)
+            xml = SvgResourcePathService.Rebase(xml, originalUri, new Uri(Path.GetFullPath(nativePath)));
         using var data = new MemoryStream();
         if (file.FileType.Equals(".svgz", StringComparison.OrdinalIgnoreCase))
         {
@@ -126,11 +155,12 @@ public sealed partial class SvgEditorWorkspace
         }
         await WriteFileAsync(file, data.ToArray());
         document.File = file;
+        document.CanWriteBack = true;
         document.Name = file.Name;
         // Rebase current/history references and accept only the snapshot that was written.
         // Newer edits made while I/O awaited must remain dirty.
-        if (!string.IsNullOrEmpty(file.Path))
-            document.Controller.AcceptSave(xml, file.Path);
+        if (nativePath is not null)
+            document.Controller.AcceptSave(xml, nativePath);
         else if (document.Controller.GetSvg() == xml)
             document.Controller.MarkSaved();
         if (!document.Controller.IsDirty)
@@ -142,13 +172,13 @@ public sealed partial class SvgEditorWorkspace
 
     private static async Task WriteFileAsync(StorageFile file, byte[] bytes)
     {
-        if (!string.IsNullOrEmpty(file.Path))
+        if (NativeFilePath(file) is { } nativePath)
         {
-            var temporary = file.Path + ".unodraw-" + Guid.NewGuid().ToString("N") + ".tmp";
+            var temporary = nativePath + ".unodraw-" + Guid.NewGuid().ToString("N") + ".tmp";
             try
             {
                 await File.WriteAllBytesAsync(temporary, bytes);
-                File.Move(temporary, file.Path, overwrite: true);
+                File.Move(temporary, nativePath, overwrite: true);
                 return;
             }
             finally
@@ -157,10 +187,18 @@ public sealed partial class SvgEditorWorkspace
                     File.Delete(temporary);
             }
         }
-        using var stream = await file.OpenStreamForWriteAsync();
-        stream.SetLength(0);
-        await stream.WriteAsync(bytes);
-        await stream.FlushAsync();
+        CachedFileManager.DeferUpdates(file);
+        using (var stream = await file.OpenStreamForWriteAsync())
+        {
+            stream.SetLength(0);
+            await stream.WriteAsync(bytes);
+            await stream.FlushAsync();
+        }
+        // Uno's download picker writes a temporary file. Completing updates delivers
+        // the download; without this call Save would only modify the browser cache.
+        var status = await CachedFileManager.CompleteUpdatesAsync(file);
+        if (status is not (FileUpdateStatus.Complete or FileUpdateStatus.CompleteAndRenamed))
+            throw new IOException($"The file provider could not complete the save ({status}).");
     }
 
     private async Task<bool> ConfirmSaveAsync(EditorDocument document)
@@ -227,25 +265,36 @@ public sealed partial class SvgEditorWorkspace
             throw new InvalidOperationException("Select one or more objects to export.");
         var scale = NumberInput("Scale", 1, 0.01, 16);
         var transparent = new CheckBox { Content = "Transparent background", IsChecked = true };
-        var content = new StackPanel { Spacing = 16, MinWidth = 300 };
+        var formats = new (string Name, string Extension)[]
+        {
+            ("PNG image", ".png"), ("JPEG image", ".jpg"),
+            ("WebP image", ".webp"), ("PDF document", ".pdf"),
+            ("XPS document", ".xps"), ("Editable SVG", ".svg")
+        };
+        var format = new ComboBox
+        {
+            Header = "Format",
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            ItemsSource = formats.Select(item => item.Name).ToArray(),
+            SelectedIndex = 0
+        };
+        var content = new StackPanel { Spacing = 16, Width = DialogContentWidth(300) };
         content.Children.Add(new TextBlock { Text = "SVG keeps editable vectors. PDF and XPS preserve vector output. Image formats use the scale below.", TextWrapping = TextWrapping.Wrap });
+        content.Children.Add(format);
         content.Children.Add(scale);
         content.Children.Add(transparent);
         if (await ShowDialogAsync(MakeDialog("Export artwork", content, "Choose destination")) != ContentDialogResult.Primary)
             return;
+        var selectedFormat = formats[Math.Max(0, format.SelectedIndex)];
         var picker = new FileSavePicker
         {
             SuggestedFileName = Path.GetFileNameWithoutExtension(document.Name),
-            DefaultFileExtension = ".png",
+            DefaultFileExtension = selectedFormat.Extension,
             SuggestedStartLocation = PickerLocationId.DocumentsLibrary
         };
-        foreach (var (name, extensions) in new[]
-        {
-            ("PNG image", new[] { ".png" }), ("JPEG image", new[] { ".jpg" }),
-            ("WebP image", new[] { ".webp" }), ("PDF document", new[] { ".pdf" }),
-            ("XPS document", new[] { ".xps" }), ("Editable SVG", new[] { ".svg" })
-        })
-            picker.FileTypeChoices.Add(name, extensions);
+        // The browser download picker uses the first format without showing a native
+        // format selector, so make the user's explicit choice the only picker filter.
+        picker.FileTypeChoices.Add(selectedFormat.Name, new[] { selectedFormat.Extension });
         InitializePicker(picker);
         var file = await picker.PickSaveFileAsync();
         if (file is null)
@@ -254,19 +303,21 @@ public sealed partial class SvgEditorWorkspace
         var originalUri = document.Controller.Document?.BaseUri;
         if (file.FileType.Equals(".svg", StringComparison.OrdinalIgnoreCase))
         {
-            if (originalUri is not null && !string.IsNullOrEmpty(file.Path))
-                xml = SvgResourcePathService.Rebase(xml, originalUri, new Uri(Path.GetFullPath(file.Path)));
+            if (originalUri is not null && NativeFilePath(file) is { } exportPath)
+                xml = SvgResourcePathService.Rebase(xml, originalUri, new Uri(Path.GetFullPath(exportPath)));
             await WriteFileAsync(file, Encoding.UTF8.GetBytes(xml));
             return;
         }
         var factor = (float)scale.Value;
         var background = transparent.IsChecked == true ? SKColors.Transparent : SKColors.White;
+        var frameTime = document.Controller.Renderer.AnimationTime;
         var bytes = await Task.Run(() =>
         {
             using var renderer = new SKSvg();
             renderer.Load(new MemoryStream(Encoding.UTF8.GetBytes(xml)), null, originalUri);
+            renderer.SetAnimationTime(frameTime);
             using var output = new MemoryStream();
-            var picture = renderer.Picture ?? throw new InvalidOperationException("The document does not contain renderable artwork.");
+            using var picture = SvgRenderSnapshotService.Capture(renderer);
             var bounds = picture.CullRect;
             if (bounds.Width * factor * bounds.Height * factor > 100_000_000)
                 throw new InvalidOperationException("Choose a smaller export scale; this image exceeds 100 million pixels.");
@@ -370,13 +421,35 @@ public sealed partial class SvgEditorWorkspace
 
     private sealed record RecoveryRecord(string Name, string? Path, string Svg);
 
+    private static async Task EnsureRecoveryStorageAsync()
+    {
+        if (!UsesPlatformStorage)
+            return;
+        // On WebAssembly the persistent filesystem mounts asynchronously. StorageFolder
+        // waits for that mount before the subsequent System.IO recovery operations.
+        var root = await ApplicationData.Current.LocalFolder.CreateFolderAsync("UnoDraw", CreationCollisionOption.OpenIfExists);
+        await root.CreateFolderAsync("Recovery", CreationCollisionOption.OpenIfExists);
+    }
+
+    /// <summary>Flushes a recovery snapshot before a host is suspended.</summary>
+    public async Task SaveRecoveryCheckpointAsync()
+    {
+        if (_disposed)
+            return;
+        CommitInspectorEdits();
+        await SaveRecoveryAsync();
+    }
+
     private async Task SaveRecoveryAsync()
     {
-        if (_writingRecovery || _disposed)
+        if (_disposed)
             return;
-        _writingRecovery = true;
+        await _recoveryGate.WaitAsync();
         try
         {
+            if (_disposed)
+                return;
+            await EnsureRecoveryStorageAsync();
             foreach (var document in Documents.ToArray())
             {
                 var controller = document.Controller;
@@ -390,7 +463,7 @@ public sealed partial class SvgEditorWorkspace
                     continue;
                 Directory.CreateDirectory(RecoveryDirectory);
                 var revision = controller.DocumentRevision;
-                var record = new RecoveryRecord(document.Name, document.File?.Path, controller.GetSvg());
+                var record = new RecoveryRecord(document.Name, document.File is { } source ? NativeFilePath(source) : null, controller.GetSvg());
                 var path = Path.Combine(RecoveryDirectory, document.RecoveryId + ".json");
                 await File.WriteAllTextAsync(path + ".tmp", JsonSerializer.Serialize(record));
                 if (_disposed || !Documents.Contains(document) || !controller.IsDirty)
@@ -408,7 +481,7 @@ public sealed partial class SvgEditorWorkspace
         }
         finally
         {
-            _writingRecovery = false;
+            _recoveryGate.Release();
         }
     }
 
@@ -421,6 +494,7 @@ public sealed partial class SvgEditorWorkspace
 
     public async Task OfferRecoveryAsync()
     {
+        await EnsureRecoveryStorageAsync();
         if (!Directory.Exists(RecoveryDirectory))
             return;
         var files = Directory.GetFiles(RecoveryDirectory, "*.json");

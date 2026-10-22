@@ -42,7 +42,7 @@ public sealed partial class SvgEditorCanvas
 
                 // Replays the existing Svg.Skia display list into the host surface. No bitmap
                 // readback, reparsing, or document mutation is performed by a camera redraw.
-                canvas.DrawPicture(picture);
+            Controller.Renderer.Draw(canvas);
                 DrawSelectionGhost(canvas, resources);
             }
 

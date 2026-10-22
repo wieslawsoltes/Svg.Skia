@@ -15,9 +15,11 @@ public sealed partial class SvgEditorWorkspace
 {
     private async Task PrintDialogAsync()
     {
-        if (_current is not { } document || document.Controller.Document is not { } svg || document.Controller.Renderer.Picture is not { } picture)
+        if (_current is not { } document || document.Controller.Document is not { } svg || document.Controller.Renderer.Picture is null)
             return;
         var controller = document.Controller;
+        var frameTime = controller.Renderer.AnimationTime;
+        using var picture = SvgRenderSnapshotService.Capture(controller.Renderer);
         SvgPrintSettings initial;
         try
         { initial = SvgPrintSettings.FromDocument(svg); }
@@ -84,7 +86,7 @@ public sealed partial class SvgEditorWorkspace
         reviewPanel.Children.Add(issues);
         reviewPanel.Children.Add(error);
         var narrow = XamlRoot is { } root && root.Size.Width < 850;
-        var content = new Grid { ColumnSpacing = 24, RowSpacing = 16, MinWidth = narrow ? 280 : 720 };
+        var content = new Grid { ColumnSpacing = 24, RowSpacing = 16, Width = DialogContentWidth(narrow ? 360 : 720) };
         if (narrow)
         {
             content.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -105,6 +107,12 @@ public sealed partial class SvgEditorWorkspace
         SvgIccCmykProfile? profile = null;
         IReadOnlyList<SvgPrintPage> pages = Array.Empty<SvgPrintPage>();
         var updating = false;
+        void ShowIssues(IEnumerable<string> messages) => issues.ItemsSource = messages.Select(message => new TextBlock
+        {
+            Text = message,
+            TextWrapping = TextWrapping.Wrap,
+            MaxWidth = Math.Max(180, reviewPanel.ActualWidth - 48)
+        }).ToArray();
         SvgPrintSettings ReadSettings() => new()
         {
             WidthMillimeters = width.Value,
@@ -194,7 +202,7 @@ public sealed partial class SvgEditorWorkspace
             try
             {
                 var results = SvgPreflightService.Inspect(controller, ReadSettings(), profile is not null);
-                issues.ItemsSource = results.Count == 0 ? new[] { "Preflight passed · no issues detected" } : results.Select(issue => issue.ToString()).ToArray();
+                ShowIssues(results.Count == 0 ? new[] { "Preflight passed · no issues detected" } : results.Select(issue => issue.ToString()));
             }
             catch (Exception exception) { error.Text = exception.Message; }
         };
@@ -212,7 +220,7 @@ public sealed partial class SvgEditorWorkspace
                         var analysis = SvgSpotSeparationService.Analyze(svg);
                         if (!analysis.CanSeparate)
                         {
-                            issues.ItemsSource = analysis.Issues.Select(issue => issue.ToString()).ToArray();
+                            ShowIssues(analysis.Issues.Select(issue => issue.ToString()));
                             throw new InvalidOperationException("Resolve the named-ink separation issues listed in preflight before exporting plates.");
                         }
                     }
@@ -229,8 +237,10 @@ public sealed partial class SvgEditorWorkspace
             return;
         var settings = ReadSettings();
         settings.Apply(controller);
-        var xml = controller.GetSvg();
-        var baseUri = controller.Document?.BaseUri;
+        // Clone the native DOM before asynchronous I/O. This preserves typed paints
+        // and resource context, and prevents later edits from changing the print job.
+        var source = (SvgDocument)controller.Document!.DeepCopy<SvgDocument>();
+        source.BaseUri = controller.Document.BaseUri;
         var plates = result == ContentDialogResult.Secondary;
         var save = new FileSavePicker { SuggestedFileName = Path.GetFileNameWithoutExtension(document.Name) + (plates ? "-plates" : "-print"), DefaultFileExtension = plates ? ".zip" : ".pdf" };
         save.FileTypeChoices.Add(plates ? "Ink separation package" : "Print PDF", new[] { plates ? ".zip" : ".pdf" });
@@ -241,13 +251,14 @@ public sealed partial class SvgEditorWorkspace
         var bytes = await Task.Run(() =>
         {
             using var renderer = new SKSvg();
-            renderer.Load(new MemoryStream(Encoding.UTF8.GetBytes(xml)), null, baseUri);
+            renderer.FromSvgDocument(source);
+            renderer.SetAnimationTime(frameTime);
             using var output = new MemoryStream();
-            var artwork = renderer.Picture ?? throw new InvalidOperationException("The document contains no printable artwork.");
+            using var artwork = SvgRenderSnapshotService.Capture(renderer);
             if (plates && namedInks.Length > 0)
                 SvgPrintService.ExportSpotSeparations(renderer.SourceDocument!, output, settings, profile);
             else if (plates)
-                SvgPrintService.ExportSeparations(artwork, output, settings, profile, xml);
+                SvgPrintService.ExportSeparations(artwork, output, settings, profile, source.GetXML());
             else
                 SvgPrintService.ExportPdf(artwork, output, settings, profile);
             return output.ToArray();
@@ -261,7 +272,7 @@ public sealed partial class SvgEditorWorkspace
         if (Controller is not { Document: { } document } controller)
             return;
         var issues = SvgPreflightService.Inspect(controller, SvgPrintSettings.FromDocument(document));
-        var panel = new StackPanel { Spacing = 12, MinWidth = 380 };
+        var panel = new StackPanel { Spacing = 12, Width = DialogContentWidth(380) };
         panel.Children.Add(new TextBlock { Text = issues.Count == 0 ? "No issues detected." : $"{issues.Count(issue => issue.Severity == SvgPreflightSeverity.Error)} errors · {issues.Count(issue => issue.Severity == SvgPreflightSeverity.Warning)} warnings", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
         foreach (var issue in issues)
         {

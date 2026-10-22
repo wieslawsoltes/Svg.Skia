@@ -1,6 +1,8 @@
 <Project Sdk="Uno.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net10.0-desktop</TargetFrameworks>
+    <!-- Opt in to platform workloads without making a desktop solution build require them. -->
+    <UnoDrawTargetFrameworks Condition="'$(UnoDrawTargetFrameworks)' == ''">net10.0-desktop</UnoDrawTargetFrameworks>
+    <TargetFrameworks>$(UnoDrawTargetFrameworks)</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
     <ApplicationTitle>UnoDraw</ApplicationTitle>
@@ -16,11 +18,40 @@
     <DisableDefaultUnoResizetizerItems>true</DisableDefaultUnoResizetizerItems>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <WasmShellEnableIDBFS>true</WasmShellEnableIDBFS>
+    <WasmShellMonoRuntimeExecutionMode Condition="'$(WasmShellMonoRuntimeExecutionMode)' == ''">Interpreter</WasmShellMonoRuntimeExecutionMode>
+    <!-- SVG.NET discovers element and attribute converters through reflection. -->
+    <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
+    <AndroidPackageFormats>apk</AndroidPackageFormats>
+    <!-- SVG.NET discovers element/converter types through reflection. Keep these
+         assemblies intact while retaining Android's normal AOT pipeline. -->
+    <TrimMode>copy</TrimMode>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
+    <SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+    <!-- The iOS linker must run, but SVG serializers require their full metadata. -->
+    <TrimMode>copy</TrimMode>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+  </PropertyGroup>
   <ItemGroup>
     <!-- Uno's desktop host and Svg.Skia must load the same native Skia ABI. -->
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Condition="'$(TargetFramework)' == 'net10.0-desktop'" />
+    <PackageReference Include="Tmds.DBus.Protocol" Condition="'$(TargetFramework)' == 'net10.0-desktop'" />
     <ProjectReference Include="../../src/Svg.Editor.Skia.Uno/Svg.Editor.Skia.Uno.csproj" />
     <ProjectReference Include="../../src/Svg.Skia.JavaScript/Svg.Skia.JavaScript.csproj" />
-    <Content Include="Assets/*.svg" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets/*.svg" CopyToOutputDirectory="PreserveNewest" Condition="'$(TargetFramework)' == 'net10.0-desktop'" />
+    <EmbeddedResource Include="Assets/Welcome.svg" LogicalName="UnoDraw.Welcome.svg" />
+    <UnoIcon Include="Branding/icon.svg" Color="#7061DC" />
+    <UnoSplashScreen Include="Branding/splash.svg" Color="#19191F" BaseSize="64,64" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <PackageReference Include="SkiaSharp.NativeAssets.WebAssembly" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" />
+    <PackageReference Include="System.Security.Cryptography.Xml" />
   </ItemGroup>
 </Project>

@@ -110,3 +110,94 @@ jobs:
             artifacts/unodraw-smoke/*.log
           if-no-files-found: warn
           retention-days: 14
+
+  browser:
+    name: WebAssembly package
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Install WebAssembly tools
+        run: dotnet workload install wasm-tools --skip-manifest-update
+      - name: Publish browser application
+        run: dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm -c Release -p:WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT -o artifacts/unodraw-browser
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unodraw-browser
+          path: artifacts/unodraw-browser
+          if-no-files-found: error
+          retention-days: 14
+
+  android:
+    name: Android package
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Android workload
+        run: dotnet workload install android --skip-manifest-update
+      - name: Install required Android SDK components
+        run: dotnet build samples/UnoDraw/UnoDraw.csproj -t:InstallAndroidDependencies -f net10.0-android -p:UnoDrawTargetFrameworks=net10.0-android -p:AndroidSdkDirectory="$ANDROID_HOME" -p:AcceptAndroidSdkLicenses=true
+      - name: Publish Android application
+        run: dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-android -p:UnoDrawTargetFrameworks=net10.0-android -c Release -p:AndroidKeyStore=false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unodraw-android
+          path: samples/UnoDraw/bin/Release/net10.0-android/**/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  ios:
+    name: iOS simulator package
+    runs-on: macos-26
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      # Keep the SDK, workload set and Xcode paired. The platform workload has a
+      # stricter Xcode requirement than the repository's portable .NET libraries.
+      - name: Pin iOS SDK and workload set
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("global.json")
+          config = json.loads(path.read_text())
+          config["sdk"] = {"version": "10.0.401", "rollForward": "disable", "allowPrerelease": False, "workloadVersion": "10.0.401"}
+          path.write_text(json.dumps(config, indent=4) + "\n")
+          PY
+          xcodebuild -version
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Install iOS workload
+        run: dotnet workload install ios --version 10.0.401
+      - name: Build simulator application
+        run: dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-ios -p:UnoDrawTargetFrameworks=net10.0-ios -c Release -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false
+      - name: Archive simulator application
+        run: |
+          mkdir -p artifacts
+          tar -czf artifacts/unodraw-ios-simulator.tar.gz -C samples/UnoDraw/bin/Release/net10.0-ios/iossimulator-arm64 UnoDraw.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unodraw-ios-simulator
+          path: artifacts/unodraw-ios-simulator.tar.gz
+          if-no-files-found: error
+          retention-days: 14

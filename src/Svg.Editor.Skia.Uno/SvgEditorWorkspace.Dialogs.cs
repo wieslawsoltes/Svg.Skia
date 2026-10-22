@@ -18,16 +18,35 @@ public sealed partial class SvgEditorWorkspace
 {
     private static readonly XNamespace SvgNamespace = "http://www.w3.org/2000/svg";
 
-    private ContentDialog MakeDialog(string title, object content, string primary = "Apply", string close = "Cancel") => new()
+    private double DialogContentWidth(double preferred) => Math.Max(220, Math.Min(preferred, (XamlRoot?.Size.Width ?? ActualWidth) - 80));
+
+    private ContentDialog MakeDialog(string title, object content, string primary = "Apply", string close = "Cancel")
     {
-        XamlRoot = XamlRoot,
-        Title = title,
-        Content = content,
-        PrimaryButtonText = primary,
-        CloseButtonText = close,
-        DefaultButton = ContentDialogButton.Primary,
-        RequestedTheme = ActualTheme
-    };
+        if (content is FrameworkElement element)
+            element.MaxWidth = Math.Min(element.MaxWidth, DialogContentWidth(double.MaxValue));
+        var scroll = content as ScrollViewer ?? new ScrollViewer { Content = content };
+        scroll.MaxHeight = Math.Min(scroll.MaxHeight, Math.Max(160, (XamlRoot?.Size.Height ?? ActualHeight) - 200));
+        scroll.VerticalScrollMode = ScrollMode.Enabled;
+        scroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+        scroll.HorizontalScrollMode = ScrollMode.Disabled;
+        scroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+        var dialog = new ContentDialog
+        {
+            XamlRoot = XamlRoot,
+            Title = title,
+            Content = scroll,
+            PrimaryButtonText = primary,
+            CloseButtonText = close,
+            DefaultButton = ContentDialogButton.Primary,
+            RequestedTheme = ActualTheme
+        };
+        // The default Fluent dialog cap is narrower than the mesh/brush editors.
+        // Allow their requested width while retaining a margin on small screens.
+        var maximumWidth = Math.Max(260, Math.Min(1120, (XamlRoot?.Size.Width ?? ActualWidth) - 32));
+        dialog.Resources["ContentDialogMaxWidth"] = maximumWidth;
+        dialog.Resources["ContentDialogMinWidth"] = Math.Min(320, maximumWidth);
+        return dialog;
+    }
 
     private async Task<ContentDialogResult> ShowDialogAsync(ContentDialog dialog)
     {
@@ -59,7 +78,7 @@ public sealed partial class SvgEditorWorkspace
     private async Task ShowCommandsAsync()
     {
         var search = new TextBox { PlaceholderText = "Type a command, tool or shortcut…" };
-        var list = new ListView { ItemsSource = _commands, MaxHeight = 400, MinWidth = 480, SelectionMode = ListViewSelectionMode.Single };
+        var list = new ListView { ItemsSource = _commands, MaxHeight = 400, Width = DialogContentWidth(480), SelectionMode = ListViewSelectionMode.Single };
         var content = new StackPanel { Spacing = 12 };
         content.Children.Add(search);
         content.Children.Add(list);
@@ -112,7 +131,7 @@ public sealed partial class SvgEditorWorkspace
     {
         var width = NumberInput("Width", 1200, 1, 1000000);
         var height = NumberInput("Height", 800, 1, 1000000);
-        var content = new StackPanel { Spacing = 16, MinWidth = 320 };
+        var content = new StackPanel { Spacing = 16, Width = DialogContentWidth(320) };
         var presets = new ComboBox { Header = "Preset", HorizontalAlignment = HorizontalAlignment.Stretch };
         foreach (var name in new[] { "Landscape · 1200 × 800", "Square · 1080 × 1080", "Portrait · 800 × 1200", "HD · 1920 × 1080", "A4 · 794 × 1123" })
             presets.Items.Add(name);
@@ -139,7 +158,7 @@ public sealed partial class SvgEditorWorkspace
         var width = NumberInput("Width", originalWidth, 1, 1000000);
         var height = NumberInput("Height", originalHeight, 1, 1000000);
         var grid = NumberInput("Grid spacing", Controller.Session.Settings.GridSize, 0.1, 10000);
-        var panel = new StackPanel { Spacing = 14, MinWidth = 300 };
+        var panel = new StackPanel { Spacing = 14, Width = DialogContentWidth(300) };
         panel.Children.Add(width);
         panel.Children.Add(height);
         panel.Children.Add(grid);
@@ -171,15 +190,15 @@ public sealed partial class SvgEditorWorkspace
         await ShowDialogAsync(dialog);
     }
 
-    private static TextBox SourceEditor(string source) => new()
+    private TextBox SourceEditor(string source) => new()
     {
         Text = source,
         AcceptsReturn = true,
         TextWrapping = TextWrapping.NoWrap,
         FontFamily = new FontFamily("monospace"),
         FontSize = 12,
-        MinWidth = 560,
-        Height = 420,
+        Width = DialogContentWidth(560),
+        Height = Math.Min(420, Math.Max(160, (XamlRoot?.Size.Height ?? ActualHeight) - 260)),
         IsSpellCheckEnabled = false
     };
 
@@ -196,7 +215,7 @@ public sealed partial class SvgEditorWorkspace
         var font = new TextBox { Header = "Font family", Text = originalFont };
         var size = NumberInput("Font size", originalSize, 1, 10000);
         var tracking = NumberInput("Letter spacing", originalTracking, -1000, 1000);
-        var content = new StackPanel { Spacing = 12, MinWidth = 380 };
+        var content = new StackPanel { Spacing = 12, Width = DialogContentWidth(380) };
         content.Children.Add(value);
         content.Children.Add(font);
         content.Children.Add(size);
@@ -233,7 +252,7 @@ public sealed partial class SvgEditorWorkspace
         var sy = NumberInput("Scale Y %", 100, -10000, 10000);
         var rotation = NumberInput("Rotation °", 0, -36000, 36000);
         var skew = NumberInput("Skew X °", 0, -85, 85);
-        var content = new StackPanel { Spacing = 10, MinWidth = 320 };
+        var content = new StackPanel { Spacing = 10, Width = DialogContentWidth(320) };
         foreach (var field in new[] { x, y, sx, sy, rotation, skew })
             content.Children.Add(field);
         if (await ShowDialogAsync(MakeDialog("Transform selection", new ScrollViewer { Content = content, MaxHeight = 480 })) != ContentDialogResult.Primary)
@@ -302,7 +321,7 @@ public sealed partial class SvgEditorWorkspace
         type.SelectedIndex = 0;
         var angle = NumberInput("Angle °", 0, -360, 360);
         var stops = new TextBox { Header = "Stops: position, color, opacity (one per line)", Text = "0, #7061dc, 1\n0.5, #b2a5ef, 1\n1, #f2b99e, 1", AcceptsReturn = true, Height = 160, FontFamily = new FontFamily("monospace") };
-        var panel = new StackPanel { Spacing = 14, MinWidth = 420 };
+        var panel = new StackPanel { Spacing = 14, Width = DialogContentWidth(420) };
         panel.Children.Add(type);
         panel.Children.Add(angle);
         panel.Children.Add(stops);
@@ -344,7 +363,7 @@ public sealed partial class SvgEditorWorkspace
             throw new InvalidOperationException("Select an object to give it a pattern fill.");
         controller.EnsureSelectionEditable();
         var tile = NumberInput("Tile size", 24, 1, 10000);
-        var editor = new TextBox { Header = "Tile SVG", AcceptsReturn = true, Height = 180, MinWidth = 440, Text = "<circle cx=\"12\" cy=\"12\" r=\"4\" fill=\"#7061dc\"/>" };
+        var editor = new TextBox { Header = "Tile SVG", AcceptsReturn = true, Height = 180, Width = DialogContentWidth(440), Text = "<circle cx=\"12\" cy=\"12\" r=\"4\" fill=\"#7061dc\"/>" };
         var panel = new StackPanel { Spacing = 12 };
         panel.Children.Add(tile);
         panel.Children.Add(editor);
@@ -368,7 +387,7 @@ public sealed partial class SvgEditorWorkspace
     {
         if (Controller is not { } controller || controller.SelectionBounds is null)
             throw new InvalidOperationException("Select artwork to make a reusable symbol.");
-        var name = new TextBox { Header = "Symbol ID", Text = UniqueId("symbol"), MinWidth = 320 };
+        var name = new TextBox { Header = "Symbol ID", Text = UniqueId("symbol"), Width = DialogContentWidth(320) };
         if (await ShowDialogAsync(MakeDialog("Create symbol", name)) != ContentDialogResult.Primary)
             return;
         var id = UniqueId(name.Text.Trim());
@@ -401,7 +420,7 @@ public sealed partial class SvgEditorWorkspace
         var y = NumberInput("Offset Y", 8, -10000, 10000);
         var blur = NumberInput("Blur", 8, 0, 1000);
         var opacity = NumberInput("Opacity %", 20, 0, 100);
-        var panel = new StackPanel { Spacing = 12, MinWidth = 320 };
+        var panel = new StackPanel { Spacing = 12, Width = DialogContentWidth(320) };
         foreach (var field in new[] { x, y, blur, opacity })
             panel.Children.Add(field);
         if (await ShowDialogAsync(MakeDialog("Drop shadow", panel)) != ContentDialogResult.Primary)

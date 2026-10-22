@@ -25,6 +25,7 @@ public sealed partial class SvgEditorWorkspace
         AddAsync("open", "Open SVG…", "File", OpenPickerAsync, "Ctrl+O");
         AddAsync("save", "Save", "File", async () => { if (_current is { } d) await SaveAsync(d); }, "Ctrl+S");
         AddAsync("saveas", "Save as…", "File", async () => { if (_current is { } d) await SaveAsync(d, true); }, "Ctrl+Shift+S");
+        AddAsync("savecompressed", "Save compressed SVG…", "File", async () => { if (_current is { } d) await SaveAsync(d, true, ".svgz"); });
         AddAsync("export", "Export image or PDF…", "File", ExportAsync, "Ctrl+E");
         AddAsync("exportselection", "Export selection…", "File", () => ExportAsync(true));
         AddAsync("print", "Print and page setup…", "File", PrintDialogAsync, "Ctrl+P");
@@ -48,6 +49,7 @@ public sealed partial class SvgEditorWorkspace
         Add("selectall", "Select all", "Edit", () => Controller?.SelectAll(), "Ctrl+A");
         Add("deselect", "Clear selection", "Edit", () => { Canvas.CancelGesture(); Controller?.ClearSelection(); }, "Esc");
         AddAsync("text", "Edit text…", "Edit", EditTextAsync, "Ctrl+T");
+        AddAsync("textframes", "Paragraphs and linked text frames…", "Edit", TextFramesDialogAsync);
         AddAsync("insert", "Insert SVG element…", "Edit", InsertElementAsync);
 
         Add("group", "Group", "Object", () => Controller?.GroupSelection(), "Ctrl+G");
@@ -69,6 +71,7 @@ public sealed partial class SvgEditorWorkspace
         Add("moveout", "Move out of group", "Object", MoveSelectionOutOfGroup);
         AddAsync("artboard", "Artboard size…", "Object", ArtboardDialogAsync);
         AddAsync("gradient", "Gradient fill…", "Object", GradientDialogAsync);
+        AddAsync("mesh", "Gradient mesh…", "Object", GradientMeshDialogAsync);
         AddAsync("swatches", "Document swatches…", "Object", SwatchesDialogAsync);
         AddAsync("pattern", "Pattern fill…", "Object", PatternDialogAsync);
         AddAsync("symbol", "Create symbol…", "Object", CreateSymbolAsync);
@@ -85,6 +88,7 @@ public sealed partial class SvgEditorWorkspace
         Add("simplify", "Simplify path", "Path", () => Controller?.SimplifySelection());
         AddAsync("offset", "Offset path…", "Path", OffsetPathAsync);
         AddAsync("strokeprofile", "Variable width stroke…", "Path", StrokeProfileDialogAsync);
+        AddAsync("brushes", "Brush library…", "Path", BrushLibraryDialogAsync);
         AddAsync("blend", "Blend paths…", "Path", BlendPathsAsync);
         Add("smooth", "Smooth active node", "Path", () => EditNode(true));
         Add("corner", "Corner active node", "Path", () => EditNode(false));
@@ -96,6 +100,8 @@ public sealed partial class SvgEditorWorkspace
             Add($"distribute{direction}", $"Distribute {direction}", "Arrange", () => Controller?.Distribute(direction));
 
         Add("fit", "Fit artboard", "View", Canvas.FitDocument, "Shift+1");
+        Add("layers", "Layers and objects…", "View", () => ShowWorkspacePanel(OutlinePanel, "Layers and objects"));
+        Add("inspector", "Object inspector…", "View", () => ShowWorkspacePanel(InspectorPanel, "Object inspector"));
         Add("fitselection", "Fit selection", "View", Canvas.FitSelection, "Shift+2");
         Add("zoomin", "Zoom in", "View", Canvas.ZoomIn, "+");
         Add("zoomout", "Zoom out", "View", Canvas.ZoomOut, "−");
@@ -123,6 +129,8 @@ public sealed partial class SvgEditorWorkspace
             c.Refresh();
         });
         Add("animate", "Play / pause SVG animation", "View", ToggleAnimation);
+        AddAsync("timeline", "Animation timeline…", "View", ShowTimelineAsync);
+        Add("bakeframe", "Bake current animation frame", "Object", BakeAnimationFrame);
         Add("theme", "Switch theme", "View", () =>
         {
             RequestedTheme = ActualTheme == ElementTheme.Dark ? ElementTheme.Light : ElementTheme.Dark;
@@ -138,20 +146,28 @@ public sealed partial class SvgEditorWorkspace
         foreach (var group in _commands.GroupBy(command => command.Group))
         {
             var menu = new MenuBarItem { Title = group.Key };
+            var compact = new MenuFlyoutSubItem { Text = group.Key };
             foreach (var command in group)
             {
                 var item = new MenuFlyoutItem { Text = command.Label, KeyboardAcceleratorTextOverride = command.Shortcut };
                 item.Click += async (_, _) => await RunCommandAsync(command.Id);
                 menu.Items.Add(item);
+                var compactItem = new MenuFlyoutItem { Text = command.Label, KeyboardAcceleratorTextOverride = command.Shortcut };
+                compactItem.Click += async (_, _) => await RunCommandAsync(command.Id);
+                compact.Items.Add(compactItem);
             }
             WorkspaceMenu.Items.Add(menu);
+            CompactMenu.Items.Add(compact);
         }
     }
 
     private async void Command_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: string id })
+        {
+            _panelFlyout?.Hide();
             await RunCommandAsync(id);
+        }
     }
 
     private async Task RunCommandAsync(string id)

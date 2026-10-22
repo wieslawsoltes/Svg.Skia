@@ -9,6 +9,9 @@ public sealed class EditorDocument : IDisposable
     public Guid RecoveryId { get; internal set; } = Guid.NewGuid();
     public SvgEditorController Controller { get; } = new();
     public StorageFile? File { get; internal set; }
+    // An open picker may grant only read access (for example a browser upload).
+    // Save reuses a platform file only after a save picker has granted write access.
+    internal bool CanWriteBack { get; set; }
     public string Name { get; internal set; } = "Untitled.svg";
     public string Title => Controller.IsDirty ? $"{Name} •" : Name;
     internal long RecoveredRevision { get; set; } = -1;

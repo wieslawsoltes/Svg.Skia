@@ -28,7 +28,7 @@ public sealed partial class SvgEditorWorkspace
         var draftDocument = (SvgDocument)source.DeepCopy();
         draftDocument.BaseUri = source.BaseUri;
         draft.LoadDocument(draftDocument, controller.Session.CurrentFile);
-        var availableWidth = Math.Max(280, (XamlRoot?.Size.Width ?? 1100) - 72);
+        var availableWidth = DialogContentWidth(1100);
         var narrow = availableWidth < 780;
         using var preview = new TimelinePreview(draft) { Height = narrow ? 165 : 200, MinWidth = Math.Min(280, availableWidth) };
         using var ruler = new TimelineRuler { MinWidth = 500, Height = 130 };

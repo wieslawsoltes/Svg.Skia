@@ -50,7 +50,7 @@ public sealed partial class SvgEditorWorkspace
             ? SvgVariableStrokeService.GetCenterline(selectedPath)
             : SKPath.ParseSvgPathData("M15 75 C80 -10 160 160 245 50 C285 0 340 35 390 65");
         using var preview = new BrushOutlinePreview(sample) { Height = 170 };
-        var panel = new StackPanel { Spacing = 12, MaxWidth = PaintDialogWidth(620), Width = PaintDialogWidth(620) };
+        var panel = new StackPanel { Spacing = 12, MaxWidth = DialogContentWidth(620), Width = DialogContentWidth(620) };
         panel.Children.Add(new TextBlock { Text = "Author reusable vector brushes in this SVG. Save a library to share presets. Artwork remains ordinary editable SVG paths with its original centerline retained.", TextWrapping = TextWrapping.Wrap, Opacity = 0.72 });
         panel.Children.Add(PaintColumns(library, copy, remove));
         panel.Children.Add(preview);
