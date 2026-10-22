@@ -58,6 +58,9 @@
     <PackageReference Include="SkiaSharp.NativeAssets.WebAssembly" />
     <PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" />
     <PackageReference Include="System.Security.Cryptography.Xml" />
+    <!-- System.Drawing brings Windows-only compatibility code whose Nrbf dependency
+         is unavailable to browser AOT. Keep it interpreted; editor/rendering stay AOT. -->
+    <MonoRuntimeMixedModeExcludedAssembly Include="System.Private.Windows.Core.dll" />
   </ItemGroup>
   <!-- TrimMode=copy alone applies only to assemblies marked IsTrimmable. Use the
        SDK's PrepareForILLink metadata extension point to also preserve unmarked
