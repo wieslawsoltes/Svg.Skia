@@ -37,6 +37,7 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         BuildCommands();
         BuildMenus();
         BuildTools();
+        InitializeHierarchy();
         Canvas.InteractionStarting += (_, _) =>
         {
             if (!_dialogVisible)

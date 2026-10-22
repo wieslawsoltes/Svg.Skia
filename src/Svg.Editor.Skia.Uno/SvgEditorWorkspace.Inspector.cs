@@ -54,35 +54,48 @@ public sealed partial class SvgEditorWorkspace
 
     private void RefreshOutline()
     {
-        var expanded = new HashSet<SvgElement>();
-        void Remember(TreeViewNode node)
-        {
-            if (node.IsExpanded && node.Content is ElementItem item)
-                expanded.Add(item.Element);
-            foreach (var child in node.Children)
-                Remember(child);
-        }
-        foreach (var root in DocumentOutline.RootNodes)
-            Remember(root);
-        DocumentOutline.RootNodes.Clear();
-        if (Controller?.Document is not { } document)
+        if (_outlineDragging)
             return;
-        var query = OutlineSearch.Text.Trim();
-        TreeViewNode? Create(SvgElement element, int depth)
+        _rebuildingOutline = true;
+        try
         {
-            var item = new ElementItem(element);
-            var node = new TreeViewNode { Content = item, IsExpanded = expanded.Contains(element) || depth == 0 || query.Length > 0 };
-            foreach (var child in element.Children.Reverse())
-                if (Create(child, depth + 1) is { } childNode)
-                    node.Children.Add(childNode);
-            if (query.Length > 0 && node.Children.Count == 0 && !item.ToString().Contains(query, StringComparison.OrdinalIgnoreCase)
-                && !SvgElementInfo.GetElementName(element.GetType()).Contains(query, StringComparison.OrdinalIgnoreCase))
-                return null;
-            return node;
+            var expanded = new HashSet<SvgElement>();
+            void Remember(TreeViewNode node)
+            {
+                if (node.IsExpanded && node.Content is ElementItem item)
+                    expanded.Add(item.Element);
+                foreach (var child in node.Children)
+                    Remember(child);
+            }
+            foreach (var root in DocumentOutline.RootNodes)
+                Remember(root);
+            DocumentOutline.RootNodes.Clear();
+            if (Controller?.Document is not { } document)
+                return;
+            var query = OutlineSearch.Text.Trim();
+            TreeViewNode? Create(SvgElement element, int depth)
+            {
+                var item = new ElementItem(element);
+                var node = new TreeViewNode { Content = item, IsExpanded = expanded.Contains(element) || depth == 0 || query.Length > 0 };
+                foreach (var child in element.Children.Reverse())
+                    if (Create(child, depth + 1) is { } childNode)
+                        node.Children.Add(childNode);
+                if (query.Length > 0 && node.Children.Count == 0 && !item.ToString().Contains(query, StringComparison.OrdinalIgnoreCase)
+                    && !SvgElementInfo.GetElementName(element.GetType()).Contains(query, StringComparison.OrdinalIgnoreCase))
+                    return null;
+                return node;
+            }
+            foreach (var element in document.Children.Reverse())
+                if (Create(element, 0) is { } node)
+                    DocumentOutline.RootNodes.Add(node);
+            foreach (var node in EnumerateOutlineNodes(DocumentOutline.RootNodes))
+                if (node.Content is ElementItem { Element: SvgVisualElement visual } && Controller!.SelectedElements.Contains(visual))
+                    DocumentOutline.SelectedNodes.Add(node);
         }
-        foreach (var element in document.Children.Reverse())
-            if (Create(element, 0) is { } node)
-                DocumentOutline.RootNodes.Add(node);
+        finally
+        {
+            _rebuildingOutline = false;
+        }
     }
 
     private void OutlineSearch_TextChanged(object sender, TextChangedEventArgs e)
@@ -105,7 +118,10 @@ public sealed partial class SvgEditorWorkspace
             if (element is null)
                 return;
             if (element is SvgVisualElement visual)
-                controller.Select(visual, false, allowLocked: true);
+            {
+                if (!controller.SelectedElements.Contains(visual))
+                    controller.Select(visual, IsDown(Windows.System.VirtualKey.Control) || IsDown(Windows.System.VirtualKey.Shift), allowLocked: true);
+            }
             else
                 controller.ClearSelection();
             _inspectedElement = element;

@@ -63,6 +63,8 @@ public sealed partial class SvgEditorWorkspace
         Add("hide", "Hide selection", "Object", () => Controller?.SetVisibility(false));
         Add("show", "Show selection", "Object", () => Controller?.SetVisibility(true));
         Add("layer", "New layer", "Object", CreateLayer);
+        AddAsync("movetolayer", "Move to layer…", "Object", MoveToLayerDialogAsync);
+        Add("moveout", "Move out of group", "Object", MoveSelectionOutOfGroup);
         AddAsync("artboard", "Artboard size…", "Object", ArtboardDialogAsync);
         AddAsync("gradient", "Gradient fill…", "Object", GradientDialogAsync);
         AddAsync("swatches", "Document swatches…", "Object", SwatchesDialogAsync);
