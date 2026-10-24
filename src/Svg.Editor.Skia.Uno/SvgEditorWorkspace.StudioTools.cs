@@ -1,5 +1,8 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media;
 using Svg.Editor.Core;
 using Svg.Editor.Skia;
 
@@ -11,18 +14,21 @@ public sealed partial class SvgEditorWorkspace
 
     private void BuildStudioTools()
     {
-        var tools = new (SvgEditorToolKind Tool, string Glyph, string Shortcut)[]
+        var tools = new (SvgEditorToolKind Tool, string Shortcut)[]
         {
-            (SvgEditorToolKind.Select, "\uE8B0", "V"), (SvgEditorToolKind.PathSelect, "\uE809", "A"),
-            (SvgEditorToolKind.PathCubic, "\uED63", "P"), (SvgEditorToolKind.Freehand, "\uE76D", "B"),
-            (SvgEditorToolKind.Rect, "\uE003", "R"), (SvgEditorToolKind.Ellipse, "\uEA3A", "E"),
-            (SvgEditorToolKind.Line, "\uE738", "L"), (SvgEditorToolKind.Polygon, "\uE7C1", "G"),
-            (SvgEditorToolKind.Text, "\uE8D2", "T"), (SvgEditorToolKind.Image, "\uE91B", "")
+            (SvgEditorToolKind.Select, "V"), (SvgEditorToolKind.PathSelect, "A"),
+            (SvgEditorToolKind.PathCubic, "P"), (SvgEditorToolKind.Freehand, "B"),
+            (SvgEditorToolKind.Rect, "R"), (SvgEditorToolKind.Ellipse, "E"),
+            (SvgEditorToolKind.Line, "L"), (SvgEditorToolKind.Polygon, "G"),
+            (SvgEditorToolKind.Text, "T"), (SvgEditorToolKind.Image, "")
         };
         foreach (var tool in tools)
         {
-            var button = new StudioToolButton { Label = ToolLabel(tool.Tool), Shortcut = tool.Shortcut,
-                Content = new FontIcon { Glyph = tool.Glyph, FontSize = 16 }, Tag = tool.Tool };
+            var button = new StudioToolButton { Label = ToolLabel(tool.Tool), Shortcut = tool.Shortcut, Tag = tool.Tool, MinWidth = 0 };
+            var icon = new StudioToolIcon { Kind = tool.Tool };
+            icon.SetBinding(Control.ForegroundProperty, new Binding { Source = button, Path = new PropertyPath(nameof(Control.Foreground)) });
+            button.Content = icon;
+            AutomationProperties.SetAutomationId(button, "studio-tool-" + tool.Tool);
             button.Click += async (_, _) =>
             {
                 if (tool.Tool == SvgEditorToolKind.Image) await RunCommandAsync("image");
@@ -49,18 +55,35 @@ public sealed partial class SvgEditorWorkspace
             ToolRail.Children.Add(button); _toolButtons.Add(tool.Tool, button);
         }
         _studioHand = new StudioToolButton { Label = "Hand", Shortcut = "H / hold Space", Content = new FontIcon { Glyph = "\uE7C9", FontSize = 16 } };
-        _studioHand.Click += (_, _) =>
+        _studioHand.Click += (_, _) => ApplySafely(() =>
         {
-            ApplySafely(() => { CommitInspectorEdits(); Canvas.CancelGesture(); Canvas.PanMode = _studioHand.IsChecked == true; RefreshWorkspace(); });
-        };
+            CommitInspectorEdits(); Canvas.CancelGesture(); Canvas.PanMode = _studioHand.IsChecked == true; RefreshWorkspace();
+        });
         ToolRail.Children.Add(_studioHand);
-        var fit = new StudioIconButton { Label = "Fit artboard", Shortcut = "Shift+1", Content = new FontIcon { Glyph = "\uE9A6", FontSize = 16 }, Width = 30, Height = 32 };
+        var fit = new StudioIconButton { Label = "Fit artboard", Shortcut = "Shift+1", Content = new FontIcon { Glyph = "\uE9A6", FontSize = 16 }, Width = 30, Height = 32, MinWidth = 0 };
         fit.Click += (_, _) => Canvas.FitDocument(); ToolRail.Children.Add(fit);
-        var fill = StudioPaint(false); fill.MinWidth = 0; fill.Width = 58;
-        var stroke = StudioPaint(true); stroke.MinWidth = 0; stroke.Width = 58;
-        ToolPaintShelf.Children.Add(fill); ToolPaintShelf.Children.Add(stroke);
-        ToolPaintShelf.Children.Add(StudioCommand("swappaints", "⇄", 1));
-        ToolPaintShelf.Children.Add(StudioCommand("defaultpaints", "D", 1));
+        // An auto-visible scrollbar reserved enough width to collapse the two-column
+        // rail into one column. Wheel, touch and keyboard scrolling stay enabled.
+        ToolRail.Loaded += (_, _) =>
+        {
+            for (var parent = VisualTreeHelper.GetParent(ToolRail); parent is not null; parent = VisualTreeHelper.GetParent(parent))
+                if (parent is ScrollViewer scroller)
+                { scroller.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden; break; }
+        };
+        var paints = new Grid { Height = 52, Margin = new Thickness(4, 0, 4, 0) };
+        var stroke = StudioPaint(true);
+        stroke.IsCompact = true; stroke.MinWidth = 0; stroke.Width = stroke.Height = 34;
+        stroke.HorizontalAlignment = HorizontalAlignment.Right; stroke.VerticalAlignment = VerticalAlignment.Bottom;
+        var fill = StudioPaint(false);
+        fill.IsCompact = true; fill.MinWidth = 0; fill.Width = fill.Height = 34;
+        fill.HorizontalAlignment = HorizontalAlignment.Left; fill.VerticalAlignment = VerticalAlignment.Top;
+        paints.Children.Add(stroke); paints.Children.Add(fill);
+        ToolPaintShelf.Children.Add(paints);
+        var swap = StudioCommand("swappaints", "⇄", 1);
+        AutomationProperties.SetName(swap, "Swap fill and stroke"); ToolTipService.SetToolTip(swap, "Swap fill and stroke (X)");
+        var defaults = StudioCommand("defaultpaints", "D", 1);
+        AutomationProperties.SetName(defaults, "Default fill and stroke"); ToolTipService.SetToolTip(defaults, "Default fill and stroke (D)");
+        ToolPaintShelf.Children.Add(StudioPair(swap, defaults));
         ApplyStudioMetrics();
     }
 
@@ -77,6 +100,7 @@ public sealed partial class SvgEditorWorkspace
         {
             var panel = _studioPanels[id];
             var button = new StudioIconButton { Label = panel.Title, Content = new FontIcon { Glyph = icons[id], FontSize = 14 }, Width = 28, Height = 32 };
+            AutomationProperties.SetAutomationId(button, "studio-panel-" + id);
             button.Click += (_, _) => ApplySafely(() => OpenStudioPanel(id)); PanelRail.Children.Add(button);
         }
     }
@@ -117,6 +141,7 @@ public sealed partial class SvgEditorWorkspace
         menu.Items.Add(new MenuFlyoutSeparator());
         var reset = new MenuFlyoutItem { Text = "Reset Essentials workspace" };
         reset.Click += (_, _) => ApplySafely(() => ResetStudioLayout(SvgWorkspacePreset.Essentials)); menu.Items.Add(reset);
-        menu.ShowAt(ContextSelectionLabel);
+        // The context label is collapsed on phones; anchor to a visible control instead.
+        menu.ShowAt(PanelRail);
     }
 }
