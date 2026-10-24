@@ -76,7 +76,7 @@ public class PathService
                     var p1 = new Shim.SKPoint(c.FirstControlPoint.X, c.FirstControlPoint.Y);
                     var p2 = new Shim.SKPoint(c.SecondControlPoint.X, c.SecondControlPoint.Y);
                     var end = new Shim.SKPoint(c.End.X, c.End.Y);
-                    _points.Add(new PathPoint { Segment = c, Type = 1, Point = p1 });
+                    _points.Add(new PathPoint { Segment = ccPlaceholder, Type = 1, Point = p1 });
                     _points.Add(new PathPoint { Segment = c, Type = 2, Point = p2 });
                     _points.Add(new PathPoint { Segment = c, Type = 0, Point = end });
                     cur = end;
@@ -124,7 +124,7 @@ public class PathService
             SegmentTool.Arc => new SvgArcSegment(10, 10, 0, SvgArcSize.Small, SvgArcSweep.Positive, false,
                 new System.Drawing.PointF(point.X, point.Y)),
             SegmentTool.Move => new SvgMoveToSegment(false, new System.Drawing.PointF(point.X, point.Y)),
-            _ => new SvgLineSegment(false, new System.Drawing.PointF(point.X, point.Y))
+            _ => null
         };
         _path.PathData.Add(seg);
         if (seg is SvgCubicCurveSegment cc)
@@ -599,6 +599,19 @@ public class PathService
 
     public static string ToSvgPathData(SK.SKPath skPath)
     {
+        if (skPath is null)
+            throw new ArgumentNullException(nameof(skPath));
+        // SVG has no rational quadratic command. Skia's SVG writer subdivides conics
+        // using their actual weights (SkParsePath's 1/1024-unit tolerance). Treating a
+        // Conic verb as one ordinary Q command distorts circles, arcs and boolean results.
+        // Keep the existing lexical representation for paths without conics.
+        using (var probe = skPath.CreateRawIterator())
+        {
+            var points = new SK.SKPoint[4];
+            for (var verb = probe.Next(points); verb != SK.SKPathVerb.Done; verb = probe.Next(points))
+                if (verb == SK.SKPathVerb.Conic)
+                    return skPath.ToSvgPathData();
+        }
         var sb = new System.Text.StringBuilder();
         using var iter = skPath.CreateRawIterator();
         var pts = new SK.SKPoint[4];
@@ -614,7 +627,6 @@ public class PathService
                     sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "L{0},{1} ", pts[1].X, pts[1].Y);
                     break;
                 case SK.SKPathVerb.Quad:
-                case SK.SKPathVerb.Conic:
                     sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "Q{0},{1} {2},{3} ", pts[1].X, pts[1].Y, pts[2].X, pts[2].Y);
                     break;
                 case SK.SKPathVerb.Cubic:
