@@ -84,6 +84,7 @@ public sealed partial class SvgEditorWorkspace
         Add("subtract", "Subtract", "Path", () => Controller?.ApplyBoolean(SKPathOp.Difference));
         Add("intersect", "Intersect", "Path", () => Controller?.ApplyBoolean(SKPathOp.Intersect));
         Add("exclude", "Exclude", "Path", () => Controller?.ApplyBoolean(SKPathOp.Xor));
+        Add("divide", "Divide", "Path", () => Controller?.DivideSelection());
         Add("convertpath", "Convert to paths", "Path", () => Controller?.ConvertSelectionToPaths());
         Add("simplify", "Simplify path", "Path", () => Controller?.SimplifySelection());
         AddAsync("offset", "Offset path…", "Path", OffsetPathAsync);
