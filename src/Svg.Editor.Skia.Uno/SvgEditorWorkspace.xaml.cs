@@ -133,6 +133,7 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
             }
             if (controller.SelectedElements.Count > 0) _inspectedElement = controller.SelectedElements[0];
             else if (_inspectedElement is SvgVisualElement || _inspectedElement?.OwnerDocument != controller.Document) _inspectedElement = controller.Document;
+            SynchronizeStudioLayerSelection(controller);
             RefreshInspector(); RefreshStudioPanels();
             foreach (var pair in _toolButtons)
             {
@@ -149,6 +150,29 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         }
         finally { _refreshing = false; }
     }
+
+    private void SynchronizeStudioLayerSelection(SvgEditorController controller)
+    {
+        if (_outlineDragging || _rebuildingOutline) return;
+        var selected = new HashSet<SvgVisualElement>(controller.SelectedElements);
+        var wanted = EnumerateOutlineNodes(DocumentOutline.RootNodes).Where(node =>
+            node.Content is ElementItem item && (item.Element is SvgVisualElement visual
+                ? selected.Contains(visual) : ReferenceEquals(item.Element, _inspectedElement))).ToArray();
+        var current = DocumentOutline.SelectedNodes.ToArray();
+        if (current.Length == wanted.Length && current.All(wanted.Contains)) return;
+        _rebuildingOutline = true;
+        try
+        {
+            // Selection-only changes do not increment DocumentRevision. Update only
+            // selected nodes, preserving expansion, scroll and retained row controls.
+            foreach (var node in current)
+                if (!wanted.Contains(node)) DocumentOutline.SelectedNodes.Remove(node);
+            foreach (var node in wanted)
+                if (!DocumentOutline.SelectedNodes.Contains(node)) DocumentOutline.SelectedNodes.Add(node);
+        }
+        finally { _rebuildingOutline = false; }
+    }
+
     private void BuildTools() => BuildStudioTools();
     private static string ToolLabel(SvgEditorToolKind tool) => tool switch
     {
