@@ -14,6 +14,7 @@
           <SolidColorBrush x:Key="MutedForeground" Color="#626B78" />
           <SolidColorBrush x:Key="SoftAccent" Color="#D8E5FA" />
           <SolidColorBrush x:Key="AccentForeground" Color="#366ACC" />
+          <SolidColorBrush x:Key="StudioInputBackground" Color="#FCFCFD" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="WorkspaceBackground" Color="#1D2025" />
@@ -22,6 +23,7 @@
           <SolidColorBrush x:Key="MutedForeground" Color="#A7AEBA" />
           <SolidColorBrush x:Key="SoftAccent" Color="#314A6B" />
           <SolidColorBrush x:Key="AccentForeground" Color="#83B0FF" />
+          <SolidColorBrush x:Key="StudioInputBackground" Color="#20242B" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="HighContrast">
           <SolidColorBrush x:Key="WorkspaceBackground" Color="{ThemeResource SystemColorWindowColor}" />
@@ -30,10 +32,11 @@
           <SolidColorBrush x:Key="MutedForeground" Color="{ThemeResource SystemColorWindowTextColor}" />
           <SolidColorBrush x:Key="SoftAccent" Color="{ThemeResource SystemColorHighlightColor}" />
           <SolidColorBrush x:Key="AccentForeground" Color="{ThemeResource SystemColorHighlightTextColor}" />
+          <SolidColorBrush x:Key="StudioInputBackground" Color="{ThemeResource SystemColorWindowColor}" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <x:Double x:Key="ListViewItemMinHeight">28</x:Double>
-      <Style TargetType="TextBox"><Setter Property="MinHeight" Value="28" /><Setter Property="FontSize" Value="12" /><Setter Property="Padding" Value="7,4" /></Style>
+      <Style TargetType="TextBox"><Setter Property="MinHeight" Value="28" /><Setter Property="FontSize" Value="12" /><Setter Property="Padding" Value="7,4" /><Setter Property="Background" Value="{ThemeResource StudioInputBackground}" /></Style>
       <Style TargetType="NumberBox"><Setter Property="MinHeight" Value="28" /><Setter Property="FontSize" Value="12" /><Setter Property="Padding" Value="6,3" /><Setter Property="AcceptsExpression" Value="True" /></Style>
       <Style TargetType="ComboBox"><Setter Property="MinHeight" Value="28" /><Setter Property="FontSize" Value="12" /><Setter Property="Padding" Value="7,4" /></Style>
       <Style x:Key="SectionLabel" TargetType="TextBlock">
@@ -41,9 +44,16 @@
         <Setter Property="Foreground" Value="{ThemeResource MutedForeground}" /><Setter Property="Margin" Value="0,6,0,2" />
       </Style>
       <Style x:Key="CompactButton" TargetType="Button">
-        <Setter Property="MinHeight" Value="28" /><Setter Property="Padding" Value="8,4" />
+        <Setter Property="MinHeight" Value="28" /><Setter Property="MinWidth" Value="0" /><Setter Property="Padding" Value="8,4" />
         <Setter Property="CornerRadius" Value="3" /><Setter Property="FontSize" Value="12" />
       </Style>
+      <Style x:Key="StudioOutlineContainer" TargetType="TreeViewItem">
+        <Setter Property="MinHeight" Value="28" /><Setter Property="Padding" Value="0,0,3,0" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="FontSize" Value="11" />
+      </Style>
+      <DataTemplate x:Key="StudioOutlineRowTemplate" x:DataType="TreeViewNode">
+        <local:StudioLayerRow Element="{Binding Content.Element}" ActionRequested="LayerRow_ActionRequested" />
+      </DataTemplate>
     </ResourceDictionary>
   </UserControl.Resources>
   <Grid x:Name="WorkspaceRoot" Background="{ThemeResource WorkspaceBackground}">
@@ -88,7 +98,7 @@
         <ColumnDefinition Width="34" /><ColumnDefinition x:Name="RightSplitterColumn" Width="6" /><ColumnDefinition x:Name="RightDockColumn" Width="312" />
       </Grid.ColumnDefinitions>
       <Border Background="{ThemeResource PanelBackground}" BorderBrush="{ThemeResource PanelBorder}" BorderThickness="0,0,1,0">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="8" Margin="3,8">
+        <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="8" Margin="3,8">
           <local:StudioWrapPanel x:Name="ToolRail" Spacing="2" />
           <Border Height="1" Background="{ThemeResource PanelBorder}" />
           <StackPanel x:Name="ToolPaintShelf" Spacing="4" />
@@ -140,13 +150,15 @@
         </StackPanel>
       </Grid>
     </Border>
-    <!-- These named views are attached once to retained panel groups by the docking host. -->
+    <!-- Live views are attached to retained panel groups, never copied into popups. -->
     <Grid x:Name="PanelStaging" Visibility="Collapsed">
       <Border x:Name="OutlinePanel">
         <Grid RowSpacing="6" Padding="8">
           <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <TextBox x:Name="OutlineSearch" PlaceholderText="Search layers and objects" TextChanged="OutlineSearch_TextChanged" />
-          <TreeView Grid.Row="1" x:Name="DocumentOutline" SelectionMode="Single" ItemInvoked="DocumentOutline_ItemInvoked" CanDragItems="False" CanReorderItems="False" />
+          <TreeView Grid.Row="1" x:Name="DocumentOutline" SelectionMode="Single" ItemInvoked="DocumentOutline_ItemInvoked"
+                    ItemTemplate="{StaticResource StudioOutlineRowTemplate}" ItemContainerStyle="{StaticResource StudioOutlineContainer}"
+                    CanDragItems="False" CanReorderItems="False" />
           <local:StudioWrapPanel Grid.Row="2" Spacing="4">
             <Button Style="{StaticResource CompactButton}" Tag="layer" Click="Command_Click" Content="＋ Layer" />
             <Button Style="{StaticResource CompactButton}" Tag="group" Click="Command_Click" Content="Group" />
