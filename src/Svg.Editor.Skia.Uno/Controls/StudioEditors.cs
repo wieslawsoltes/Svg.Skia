@@ -2,22 +2,25 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Input;
 using Windows.System;
 
 namespace Svg.Editor.Skia.Uno;
 
 /// <summary>
 /// Retained text field with explicit commit boundaries. Validation failures retain the
-/// user's text; Escape restores the last synchronized value without creating an edit.
+/// user's text; Escape restores the synchronized value without creating an edit.
 /// </summary>
 public sealed class StudioTextField : UserControl
 {
     private readonly TextBox _input;
     private string _baseline = string.Empty;
     private bool _committing;
+    private Func<bool>? _targetIsCurrent;
     public event EventHandler<string>? TextEdited;
     public event EventHandler<Exception>? ValidationFailed;
+    public event EventHandler? EditCanceled;
+    /// <summary>Captures a target-identity check when the field adopts a document value.</summary>
+    public Func<Func<bool>>? CaptureTargetValidation { get; set; }
     public bool HasPendingEdit => _input.Text != _baseline;
     public StudioTextField(string label, bool multiline = false)
     {
@@ -28,7 +31,10 @@ public sealed class StudioTextField : UserControl
         _input.LostFocus += (_, _) => TryCommit();
         _input.KeyDown += (_, args) =>
         {
-            if (args.Key == VirtualKey.Escape) { _input.Text = _baseline; args.Handled = true; }
+            if (args.Key == VirtualKey.Escape)
+            {
+                _input.Text = _baseline; args.Handled = true; EditCanceled?.Invoke(this, EventArgs.Empty);
+            }
             else if (args.Key == VirtualKey.Enter && !multiline) { TryCommit(); args.Handled = true; }
         };
         Content = _input;
@@ -39,10 +45,14 @@ public sealed class StudioTextField : UserControl
         _baseline = mixed ? string.Empty : value ?? string.Empty;
         _input.PlaceholderText = mixed ? "Mixed values" : string.Empty;
         _input.Text = _baseline;
+        _targetIsCurrent = CaptureTargetValidation?.Invoke();
     }
     public void Commit()
     {
-        if (_committing || !IsEnabled || !HasPendingEdit) return;
+        if (_committing || !HasPendingEdit) return;
+        if (_targetIsCurrent?.Invoke() == false)
+            throw new InvalidOperationException("The target of this pending field changed. Press Escape in the field to discard it, or return to its original selection before applying.");
+        if (!IsEnabled) return;
         _committing = true;
         try
         {
@@ -63,7 +73,7 @@ public sealed class StudioTextField : UserControl
 public sealed class StudioReferencePoint : UserControl
 {
     private readonly ToggleButton[] _buttons = new ToggleButton[9];
-    private int _selectedIndex = 0;
+    private int _selectedIndex;
     public event EventHandler? SelectionChanged;
     public int SelectedIndex
     {
