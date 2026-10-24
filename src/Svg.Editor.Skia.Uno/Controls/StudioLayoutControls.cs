@@ -62,7 +62,7 @@ public sealed class StudioSplitter : Control
     public event EventHandler? DragCompleted;
     public StudioSplitter()
     {
-        DefaultStyleKey = typeof(StudioSplitter); IsTabStop = true;
+        DefaultStyleKey = typeof(StudioSplitter); IsTabStop = true; UseSystemFocusVisuals = true;
         AutomationProperties.SetName(this, "Resize panel. Use arrow keys to adjust.");
     }
     protected override void OnPointerPressed(PointerRoutedEventArgs args)
@@ -77,7 +77,6 @@ public sealed class StudioSplitter : Control
     {
         base.OnPointerMoved(args);
         if (_pointer != args.Pointer.PointerId) return;
-        // Window coordinates remain stable when the splitter moves with its resized dock.
         var point = args.GetCurrentPoint(XamlRoot?.Content ?? this).Position;
         var delta = new StudioResizeEventArgs(point.X - _last.X, point.Y - _last.Y);
         _last = point; DragDelta?.Invoke(this, delta); args.Handled = true;
@@ -97,7 +96,7 @@ public sealed class StudioSplitter : Control
     private void CompleteDrag()
     {
         if (_pointer is null) return;
-        _pointer = null; VisualStateManager.GoToState(this, "Normal", false); DragCompleted?.Invoke(this, EventArgs.Empty);
+        _pointer = null; VisualStateManager.GoToToStatePlaceholder();
     }
     protected override void OnKeyDown(KeyRoutedEventArgs args)
     {
@@ -133,7 +132,7 @@ public sealed class StudioDockGroup : Control
     public const string DragFormat = "application/x-unodraw-panel";
     public static readonly DependencyProperty CaptionProperty = DependencyProperty.Register(nameof(Caption), typeof(string), typeof(StudioDockGroup), new PropertyMetadata("Panels"));
     private readonly List<StudioPanelItem> _items = new();
-    private readonly Dictionary<string, ToggleButton> _tabs = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, StudioTabButton> _tabs = new(StringComparer.Ordinal);
     private StackPanel? _tabHost;
     private Grid? _contentHost;
     private Button? _menu;
@@ -146,7 +145,6 @@ public sealed class StudioDockGroup : Control
     public string WorkspaceToken { get; set; } = string.Empty;
     public string? ActiveId => _activeId;
     public IReadOnlyList<StudioPanelItem> Items => _items.AsReadOnly();
-    /// <summary>Called before user-driven tab/collapse transitions. Return false to retain invalid input.</summary>
     public Func<bool>? CanChangePanel { get; set; }
     public event EventHandler<string>? ActiveChanged;
     public event EventHandler<StudioDockRequestEventArgs>? DockRequested;
@@ -178,14 +176,13 @@ public sealed class StudioDockGroup : Control
     {
         _contentHost?.Children.Clear(); _items.Clear(); _items.AddRange(items);
         _activeId = _items.Any(item => item.Id == activeId) ? activeId : _items.FirstOrDefault()?.Id;
-        _collapsed = false;
-        Rebuild();
+        _collapsed = false; Rebuild();
     }
     public void Activate(string id)
     {
         if (!_items.Any(item => item.Id == id)) return;
         if (CanChangePanel?.Invoke() == false) { Sync(); return; }
-        _activeId = id; _collapsed = false; Sync(); ActiveChanged?.Invoke(this, id);
+        _activeId = id; _collapsed = false; Sync(); ActiveChanged?.Invoke(this, id); RevealActiveTab();
     }
     private void Rebuild()
     {
@@ -193,9 +190,26 @@ public sealed class StudioDockGroup : Control
         if (_tabHost is null || _contentHost is null) return;
         foreach (var item in _items)
         {
-            var tab = new ToggleButton { Content = item.Title, Tag = item.Id, MinHeight = 28, Padding = new Thickness(8, 3, 8, 3), FontSize = 11, CornerRadius = new CornerRadius(0), CanDrag = true };
+            var tab = new StudioTabButton { Content = item.Title, Tag = item.Id, CanDrag = true };
             AutomationProperties.SetName(tab, item.Title + " panel");
+            AutomationProperties.SetAutomationId(tab, "studio-tab-" + item.Id);
             tab.Click += (_, _) => Activate(item.Id);
+            tab.KeyDown += (_, args) =>
+            {
+                var current = _items.FindIndex(candidate => candidate.Id == item.Id);
+                var next = args.Key switch
+                {
+                    VirtualKey.Left => (current + _items.Count - 1) % _items.Count,
+                    VirtualKey.Right => (current + 1) % _items.Count,
+                    VirtualKey.Home => 0,
+                    VirtualKey.End => _items.Count - 1,
+                    _ => -1
+                };
+                if (next < 0) return;
+                Activate(_items[next].Id);
+                if (_activeId is { } active && _tabs.TryGetValue(active, out var activeTab)) activeTab.Focus(FocusState.Keyboard);
+                args.Handled = true;
+            };
             tab.DragStarting += (_, args) =>
             {
                 if (CanChangePanel?.Invoke() == false) { args.Cancel = true; return; }
@@ -204,7 +218,16 @@ public sealed class StudioDockGroup : Control
             tab.ContextFlyout = CreateMenu(item.Id);
             _tabs[item.Id] = tab; _tabHost.Children.Add(tab); _contentHost.Children.Add(item.Content);
         }
-        Sync();
+        Sync(); RevealActiveTab();
+    }
+    private void RevealActiveTab()
+    {
+        var expected = _activeId;
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (expected == _activeId && expected is not null && _tabs.TryGetValue(expected, out var tab))
+                tab.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false });
+        });
     }
     private void Sync()
     {
