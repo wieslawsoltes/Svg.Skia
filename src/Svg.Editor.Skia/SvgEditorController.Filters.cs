@@ -70,7 +70,18 @@ public sealed partial class SvgEditorController
             RewriteTreeReferences(fragment, new Dictionary<string, string>(StringComparer.Ordinal) { [previousRootId] = resourceId });
             resource.Remove();
         }
-        if (shared) existing!.ReplaceWith(resource);
+        if (shared)
+        {
+            // Keep IDs stable for outside consumers, but do not let imported source
+            // introduce duplicate IDs belonging to unrelated artwork or definitions.
+            var replaced = new HashSet<XElement>(existing!.DescendantsAndSelf());
+            var reserved = new HashSet<string>(tree.Root!.DescendantsAndSelf().Where(element => !replaced.Contains(element))
+                .Attributes("id").Select(id => id.Value), StringComparer.Ordinal);
+            foreach (var id in resource.DescendantsAndSelf().Attributes("id"))
+                if (reserved.Contains(id.Value))
+                    throw new InvalidOperationException($"The shared filter ID '{id.Value}' belongs to another object. Rename it or apply an isolated filter copy.");
+            existing.ReplaceWith(resource);
+        }
         else if (existing is not null)
         {
             // Retain inherited resource presentation/xml:base without shifting sibling
