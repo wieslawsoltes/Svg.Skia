@@ -13,5 +13,6 @@ public sealed partial class SvgEditorWorkspace
         Add("releasemask", "Release mask and restore artwork", () => Controller?.ReleaseOpacityMasks(true));
         Add("disablemask", "Disable mask", () => Controller?.ReleaseOpacityMasks(false));
         BuildStudioCommands();
+        BuildNamedWorkspaceCommands();
     }
 }
