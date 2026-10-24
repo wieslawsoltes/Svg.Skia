@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -130,6 +131,26 @@ public partial class SvgEditorSession : ISvgEditorSession
         _undo.Clear();
         _redo.Clear();
         NotifyHistoryChanged();
+    }
+
+    /// <summary>Transforms every snapshot atomically, preserving undo and redo order.</summary>
+    public void TransformHistory(Func<string, string> transform)
+    {
+        if (transform is null)
+            throw new ArgumentNullException(nameof(transform));
+
+        // Stage both stacks before changing either. A failed URI relocation must leave
+        // every history entry usable with the document's original resource base URI.
+        string Convert(string xml) => transform(xml)
+            ?? throw new InvalidOperationException("A history transformation returned an empty snapshot.");
+        var undo = _undo.Select(Convert).Reverse().ToArray();
+        var redo = _redo.Select(Convert).Reverse().ToArray();
+        _undo.Clear();
+        _redo.Clear();
+        foreach (var xml in undo)
+            _undo.Push(xml);
+        foreach (var xml in redo)
+            _redo.Push(xml);
     }
 
     public void SetClipboard(SvgElement? element, string? xml)

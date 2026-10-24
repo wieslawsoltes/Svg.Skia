@@ -1,0 +1,10 @@
+{
+  "name": "UnoDraw",
+  "short_name": "UnoDraw",
+  "description": "An SVG design workspace powered by Svg.Skia.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#19191f",
+  "theme_color": "#7061dc"
+}

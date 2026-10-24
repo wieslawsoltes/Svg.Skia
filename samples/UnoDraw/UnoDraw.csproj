@@ -1,0 +1,77 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <!-- Opt in to platform workloads without making a desktop solution build require them. -->
+    <UnoDrawTargetFrameworks Condition="'$(UnoDrawTargetFrameworks)' == ''">net10.0-desktop</UnoDrawTargetFrameworks>
+    <TargetFrameworks>$(UnoDrawTargetFrameworks)</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <ApplicationTitle>UnoDraw</ApplicationTitle>
+    <ApplicationId>com.wieslawsoltes.unodraw</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationPublisher>Svg.Skia</ApplicationPublisher>
+    <Description>A native SVG design workspace built with Uno Platform and Svg.Skia.</Description>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UnoFeatures>SkiaRenderer;</UnoFeatures>
+    <!-- These SVG files are editable documents, not rasterized UI image assets. -->
+    <DisableDefaultUnoResizetizerItems>true</DisableDefaultUnoResizetizerItems>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <WasmShellEnableIDBFS>true</WasmShellEnableIDBFS>
+    <WasmShellMonoRuntimeExecutionMode Condition="'$(WasmShellMonoRuntimeExecutionMode)' == ''">Interpreter</WasmShellMonoRuntimeExecutionMode>
+    <!-- SVG.NET discovers element and attribute converters through reflection.
+         AOT requires the linker pipeline, whose copy actions below retain metadata. -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishTrimmed Condition="'$(WasmShellMonoRuntimeExecutionMode)' == 'InterpreterAndAOT'">true</PublishTrimmed>
+    <TrimMode Condition="'$(WasmShellMonoRuntimeExecutionMode)' == 'InterpreterAndAOT'">copy</TrimMode>
+    <!-- Recovery JSON and reflected SVG properties must remain usable under AOT. -->
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+    <!-- Native DWARF is separate from managed reflection metadata. Omit it from
+         Release packages before the memory-intensive native optimization pass. -->
+    <WasmNativeDebugSymbols Condition="'$(Configuration)' == 'Release'">false</WasmNativeDebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
+    <AndroidPackageFormats>apk</AndroidPackageFormats>
+    <!-- SVG.NET discovers element/converter types through reflection. Keep these
+         assemblies intact while retaining Android's normal AOT pipeline. -->
+    <TrimMode>copy</TrimMode>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
+    <SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+    <!-- The iOS linker must run, but SVG serializers require their full metadata. -->
+    <TrimMode>copy</TrimMode>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Uno's desktop host and Svg.Skia must load the same native Skia ABI. -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Condition="'$(TargetFramework)' == 'net10.0-desktop'" />
+    <PackageReference Include="Tmds.DBus.Protocol" Condition="'$(TargetFramework)' == 'net10.0-desktop'" />
+    <ProjectReference Include="../../src/Svg.Editor.Skia.Uno/Svg.Editor.Skia.Uno.csproj" />
+    <ProjectReference Include="../../src/Svg.Skia.JavaScript/Svg.Skia.JavaScript.csproj" />
+    <Content Include="Assets/*.svg" CopyToOutputDirectory="PreserveNewest" Condition="'$(TargetFramework)' == 'net10.0-desktop'" />
+    <EmbeddedResource Include="Assets/Welcome.svg" LogicalName="UnoDraw.Welcome.svg" />
+    <UnoIcon Include="Branding/icon.svg" Color="#7061DC" />
+    <UnoSplashScreen Include="Branding/splash.svg" Color="#19191F" BaseSize="64,64" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <PackageReference Include="SkiaSharp.NativeAssets.WebAssembly" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" />
+    <PackageReference Include="System.Security.Cryptography.Xml" />
+    <!-- System.Drawing brings Windows-only compatibility code whose Nrbf dependency
+         is unavailable to browser AOT. Keep it interpreted; editor/rendering stay AOT. -->
+    <MonoRuntimeMixedModeExcludedAssembly Include="System.Private.Windows.Core.dll" />
+  </ItemGroup>
+  <!-- TrimMode=copy alone applies only to assemblies marked IsTrimmable. Use the
+       SDK's PrepareForILLink metadata extension point to also preserve unmarked
+       SVG, editor and dependency assemblies; no types or converters are removed. -->
+  <Target Name="PreserveUnoDrawBrowserReflectionMetadata" AfterTargets="PrepareForILLink"
+          Condition="'$(TargetFramework)' == 'net10.0-browserwasm' and '$(PublishTrimmed)' == 'true' and '$(TrimMode)' == 'copy'">
+    <ItemGroup>
+      <ManagedAssemblyToLink Update="@(ManagedAssemblyToLink)" TrimMode="copy" />
+    </ItemGroup>
+  </Target>
+</Project>
