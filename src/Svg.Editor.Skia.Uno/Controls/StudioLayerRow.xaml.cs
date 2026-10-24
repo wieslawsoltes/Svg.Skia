@@ -36,6 +36,10 @@ public sealed partial class StudioLayerRow : UserControl
         rename.Click += (_, _) => Request(StudioLayerAction.Rename);
         menu.Items.Add(rename);
         ContextFlyout = menu;
+        // Click uses RoutedEventArgs, not a handled input event. Suppress any
+        // unhandled tap separately so the enclosing row does not invoke selection.
+        VisibilityButton.Tapped += (_, args) => args.Handled = true;
+        LockButton.Tapped += (_, args) => args.Handled = true;
         RefreshElement();
     }
 
@@ -80,10 +84,8 @@ public sealed partial class StudioLayerRow : UserControl
     {
         if (Element is { } element) ActionRequested?.Invoke(this, new StudioLayerActionEventArgs(element, action));
     }
-    private void Visibility_Click(object sender, RoutedEventArgs args)
-    { args.Handled = true; Request(StudioLayerAction.ToggleVisibility); }
-    private void Lock_Click(object sender, RoutedEventArgs args)
-    { args.Handled = true; Request(StudioLayerAction.ToggleLock); }
+    private void Visibility_Click(object sender, RoutedEventArgs args) => Request(StudioLayerAction.ToggleVisibility);
+    private void Lock_Click(object sender, RoutedEventArgs args) => Request(StudioLayerAction.ToggleLock);
     private void Title_DoubleTapped(object sender, DoubleTappedRoutedEventArgs args)
     { args.Handled = true; Request(StudioLayerAction.Rename); }
 }
