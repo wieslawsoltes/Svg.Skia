@@ -1,6 +1,5 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using Svg.Editor.Skia;
 using Windows.Storage;
 
@@ -24,9 +23,7 @@ public sealed partial class SvgEditorWorkspace
     public void RestoreWorkspaceLayout(string xml)
     {
         var restored = SvgWorkspaceLayout.Parse(xml);
-        CommitInspectorEdits();
-        _studioLayout = restored;
-        _temporaryStudioPanel = null;
+        CommitInspectorEdits(); _studioLayout = restored; _temporaryStudioPanel = null;
         RebuildStudioDocks(); ApplyStudioMetrics(); SaveStudioLayout();
     }
 
@@ -43,8 +40,7 @@ public sealed partial class SvgEditorWorkspace
         _studioGroups.Add(SvgPanelDock.Bottom, BottomDock);
         foreach (var pair in _studioGroups)
         {
-            pair.Value.Dock = pair.Key; pair.Value.WorkspaceToken = _studioToken;
-            WireStudioGroup(pair.Value);
+            pair.Value.Dock = pair.Key; pair.Value.WorkspaceToken = _studioToken; WireStudioGroup(pair.Value);
             var dragX = 0d; var dragY = 0d;
             pair.Value.HeaderDragged += (_, point) => { dragX += point.X; dragY += point.Y; };
             pair.Value.HeaderDragCompleted += (_, _) =>
@@ -58,11 +54,19 @@ public sealed partial class SvgEditorWorkspace
         RegisterStudioPanel("layers", "Layers", OutlinePanel);
         RegisterStudioPanel("attributes", "SVG attributes", AttributesPanel);
         RegisterStudioPanel("resources", "Resources", ResourcesPanel);
-        BuildStudioPanels();
-        BuildStudioContextBar();
-        BuildStudioPanelRail();
-        _studioInitialized = true;
-        RebuildStudioDocks();
+        BuildStudioPanels(); BuildStudioContextBar(); BuildStudioPanelRail();
+        foreach (var field in _studioTextFields)
+        {
+            field.CaptureTargetValidation = () =>
+            {
+                var owner = Controller; var document = owner?.Document;
+                var selection = owner?.SelectedElements.ToArray() ?? Array.Empty<SvgVisualElement>();
+                return () => ReferenceEquals(owner, Controller) && ReferenceEquals(document, owner?.Document)
+                    && owner is not null && selection.SequenceEqual(owner.SelectedElements);
+            };
+            field.EditCanceled += (_, _) => RefreshStudioPanels();
+        }
+        _studioInitialized = true; RebuildStudioDocks();
         LeftDockSplitter.DragDelta += (_, args) => ResizeStudioDock(SvgPanelDock.Left, _studioLayout.LeftWidth + args.HorizontalChange);
         RightDockSplitter.DragDelta += (_, args) => ResizeStudioDock(SvgPanelDock.RightTop, _studioLayout.RightWidth - args.HorizontalChange);
         BottomDockSplitter.DragDelta += (_, args) => ResizeStudioDock(SvgPanelDock.Bottom, _studioLayout.BottomHeight - args.VerticalChange);
@@ -73,8 +77,7 @@ public sealed partial class SvgEditorWorkspace
             splitter.DragCompleted += (_, _) => SaveStudioLayout();
         RightGroupSplitter.DragDelta += (_, args) =>
         {
-            _studioLayout.SetRightSplit(_studioLayout.RightTopRatio + args.VerticalChange / Math.Max(1, RightDockContainer.ActualHeight));
-            ApplyStudioMetrics();
+            _studioLayout.SetRightSplit(_studioLayout.RightTopRatio + args.VerticalChange / Math.Max(1, RightDockContainer.ActualHeight)); ApplyStudioMetrics();
         };
         RightGroupSplitter.KeyboardResize += (_, delta) =>
         { _studioLayout.SetRightSplit(_studioLayout.RightTopRatio + delta / Math.Max(1, RightDockContainer.ActualHeight)); ApplyStudioMetrics(); SaveStudioLayout(); };
@@ -87,39 +90,30 @@ public sealed partial class SvgEditorWorkspace
     private void RegisterStudioPanel(string id, string title, FrameworkElement content)
     {
         PanelStaging.Children.Remove(content);
-        content.HorizontalAlignment = HorizontalAlignment.Stretch;
-        content.VerticalAlignment = VerticalAlignment.Stretch;
+        content.HorizontalAlignment = HorizontalAlignment.Stretch; content.VerticalAlignment = VerticalAlignment.Stretch;
         _studioPanels.Add(id, new StudioPanelItem(id, title, content));
     }
-
     private void WireStudioGroup(StudioDockGroup group)
     {
-        group.DockRequested += (_, args) => MoveStudioPanel(args);
-        group.ActiveChanged += (_, id) =>
+        group.CanChangePanel = () =>
         {
-            // Losing keyboard focus commits NumberBox; explicit text fields are flushed
-            // before a panel is moved/reparented rather than destroying their edit state.
-            _studioLayout.Activate(id); SaveStudioLayout();
+            try { CommitInspectorEdits(); return true; }
+            catch (Exception exception) { StatusText.Text = exception.Message; return false; }
         };
+        group.DockRequested += (_, args) => MoveStudioPanel(args);
+        group.ActiveChanged += (_, id) => { _studioLayout.Activate(id); SaveStudioLayout(); };
     }
-
     private void MoveStudioPanel(StudioDockRequestEventArgs args)
     {
         ApplySafely(() =>
         {
             if (!_studioPanels.ContainsKey(args.PanelId)) return;
             CommitInspectorEdits();
-            if (_temporaryStudioPanel == args.PanelId && args.Destination == SvgPanelDock.Hidden)
-                _temporaryStudioPanel = null;
-            else
-            {
-                _temporaryStudioPanel = null;
-                _studioLayout.Move(args.PanelId, args.Destination, args.Index);
-            }
+            if (_temporaryStudioPanel == args.PanelId && args.Destination == SvgPanelDock.Hidden) _temporaryStudioPanel = null;
+            else { _temporaryStudioPanel = null; _studioLayout.Move(args.PanelId, args.Destination, args.Index); }
             RebuildStudioDocks(); ApplyStudioMetrics(); SaveStudioLayout();
         });
     }
-
     private void RebuildStudioDocks()
     {
         if (!_studioInitialized) return;
@@ -128,15 +122,13 @@ public sealed partial class SvgEditorWorkspace
         FloatingPanelLayer.Children.Clear(); _studioFloating.Clear();
         foreach (var pair in _studioGroups)
         {
-            var items = _studioLayout.Panels.Where(panel => panel.Dock == pair.Key && panel.Id != _temporaryStudioPanel)
-                .Select(panel => _studioPanels[panel.Id]);
+            var items = _studioLayout.Panels.Where(panel => panel.Dock == pair.Key && panel.Id != _temporaryStudioPanel).Select(panel => _studioPanels[panel.Id]);
             pair.Value.SetItems(items, _studioLayout.Active(pair.Key));
         }
         foreach (var panel in _studioLayout.Panels.Where(panel => panel.Dock == SvgPanelDock.Floating || panel.Id == _temporaryStudioPanel))
         {
             var group = new StudioDockGroup { Dock = SvgPanelDock.Floating, WorkspaceToken = _studioToken };
-            WireStudioGroup(group);
-            group.SetItems(new[] { _studioPanels[panel.Id] }, panel.Id);
+            WireStudioGroup(group); group.SetItems(new[] { _studioPanels[panel.Id] }, panel.Id);
             var host = new Grid(); host.Children.Add(group);
             var resize = new StudioSplitter { Width = 14, Height = 14, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom };
             host.Children.Add(resize);
@@ -147,30 +139,27 @@ public sealed partial class SvgEditorWorkspace
             resize.DragCompleted += (_, _) => SaveStudioLayout();
             resize.KeyboardResize += (_, delta) => { AdjustStudioFloat(id, 0, 0, delta, delta); SaveStudioLayout(); };
             host.PointerPressed += (_, _) => Microsoft.UI.Xaml.Controls.Canvas.SetZIndex(host, ++_floatingZ);
-            _studioFloating.Add(id, (host, group)); FloatingPanelLayer.Children.Add(host);
-            PositionStudioFloat(id);
+            _studioFloating.Add(id, (host, group)); FloatingPanelLayer.Children.Add(host); PositionStudioFloat(id);
         }
     }
-
     private void AdjustStudioFloat(string id, double dx, double dy, double dw, double dh)
     {
         var panel = _studioLayout.Find(id);
         _studioLayout.SetFloatingBounds(id, panel.X + dx, panel.Y + dy, panel.Width + dw, panel.Height + dh,
-            Math.Max(1, ActualWidth - 12), Math.Max(1, EditorBody.ActualHeight - 8));
-        PositionStudioFloat(id);
+            Math.Max(1, ActualWidth - 12), Math.Max(1, EditorBody.ActualHeight - 8)); PositionStudioFloat(id);
     }
     private void PositionStudioFloat(string id)
     {
         if (!_studioFloating.TryGetValue(id, out var floating)) return;
         var panel = _studioLayout.Find(id);
-        _studioLayout.SetFloatingBounds(id, panel.X, panel.Y, panel.Width, panel.Height,
-            Math.Max(240, ActualWidth - 12), Math.Max(160, EditorBody.ActualHeight - 8));
+        // Do not overwrite restored bounds during the constructor's zero-size layout.
+        if (ActualWidth > 0 && EditorBody.ActualHeight > 0)
+            _studioLayout.SetFloatingBounds(id, panel.X, panel.Y, panel.Width, panel.Height,
+                Math.Max(1, ActualWidth - 12), Math.Max(1, EditorBody.ActualHeight - 8));
         floating.Host.Width = panel.Width; floating.Host.Height = panel.Height;
-        Microsoft.UI.Xaml.Controls.Canvas.SetLeft(floating.Host, panel.X);
-        Microsoft.UI.Xaml.Controls.Canvas.SetTop(floating.Host, panel.Y);
+        Microsoft.UI.Xaml.Controls.Canvas.SetLeft(floating.Host, panel.X); Microsoft.UI.Xaml.Controls.Canvas.SetTop(floating.Host, panel.Y);
     }
-    private void ResizeStudioDock(SvgPanelDock dock, double extent)
-    { _studioLayout.Resize(dock, extent); ApplyStudioMetrics(); }
+    private void ResizeStudioDock(SvgPanelDock dock, double extent) { _studioLayout.Resize(dock, extent); ApplyStudioMetrics(); }
 
     private void ApplyStudioMetrics()
     {
@@ -179,12 +168,9 @@ public sealed partial class SvgEditorWorkspace
         try
         {
             var metrics = _studioLayout.Measure(Math.Max(0, ActualWidth), Math.Max(0, ActualHeight), _zenMode);
-            LeftDockColumn.Width = new GridLength(metrics.LeftWidth);
-            LeftSplitterColumn.Width = new GridLength(metrics.LeftWidth > 0 ? 6 : 0);
-            RightDockColumn.Width = new GridLength(metrics.RightWidth);
-            RightSplitterColumn.Width = new GridLength(metrics.RightWidth > 0 ? 6 : 0);
-            BottomDockRow.Height = new GridLength(metrics.BottomHeight);
-            BottomSplitterRow.Height = new GridLength(metrics.BottomHeight > 0 ? 6 : 0);
+            LeftDockColumn.Width = new GridLength(metrics.LeftWidth); LeftSplitterColumn.Width = new GridLength(metrics.LeftWidth > 0 ? 6 : 0);
+            RightDockColumn.Width = new GridLength(metrics.RightWidth); RightSplitterColumn.Width = new GridLength(metrics.RightWidth > 0 ? 6 : 0);
+            BottomDockRow.Height = new GridLength(metrics.BottomHeight); BottomSplitterRow.Height = new GridLength(metrics.BottomHeight > 0 ? 6 : 0);
             LeftDock.Visibility = metrics.LeftWidth > 0 ? Visibility.Visible : Visibility.Collapsed;
             RightDockContainer.Visibility = metrics.RightWidth > 0 ? Visibility.Visible : Visibility.Collapsed;
             BottomDock.Visibility = metrics.BottomHeight > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -218,22 +204,18 @@ public sealed partial class SvgEditorWorkspace
         }
         finally { _updatingStudioLayout = false; }
     }
-
     private void OpenStudioPanel(string id)
     {
         if (!_studioPanels.ContainsKey(id)) return;
-        CommitInspectorEdits();
-        _zenMode = false; _studioLayout.PanelsHidden = false;
-        _studioLayout.Activate(id);
+        CommitInspectorEdits(); _zenMode = false; _studioLayout.PanelsHidden = false; _studioLayout.Activate(id);
         var panel = _studioLayout.Find(id);
         var metrics = _studioLayout.Measure(Math.Max(0, ActualWidth), Math.Max(0, ActualHeight));
         var collapsedDock = panel.Dock == SvgPanelDock.Left && metrics.LeftWidth == 0
-            || panel.Dock is SvgPanelDock.RightTop or SvgPanelDock.RightBottom && metrics.RightWidth == 0
+            || (panel.Dock is SvgPanelDock.RightTop or SvgPanelDock.RightBottom) && metrics.RightWidth == 0
             || panel.Dock == SvgPanelDock.Bottom && metrics.BottomHeight == 0;
         _temporaryStudioPanel = collapsedDock ? id : null;
-        RebuildStudioDocks(); ApplyStudioMetrics(); SaveStudioLayout();
+        RebuildStudioDocks(); ApplyStudioMetrics(); RefreshStudioPanels(); SaveStudioLayout();
     }
-
     private void WorkspacePreset_SelectionChanged(object sender, SelectionChangedEventArgs args)
     {
         if (!_studioInitialized || WorkspacePresetPicker.SelectedIndex < 0) return;
@@ -253,8 +235,7 @@ public sealed partial class SvgEditorWorkspace
     private void UpdateStudioRulers()
     {
         if (!_studioInitialized) return;
-        var origin = Canvas.Viewport.WorldToView(default);
-        var pointer = Canvas.Viewport.WorldToView(Canvas.PointerPosition);
+        var origin = Canvas.Viewport.WorldToView(default); var pointer = Canvas.Viewport.WorldToView(Canvas.PointerPosition);
         HorizontalRuler.Update(origin.X, Canvas.Zoom, pointer.X, ActualTheme == ElementTheme.Dark);
         VerticalRuler.Update(origin.Y, Canvas.Zoom, pointer.Y, ActualTheme == ElementTheme.Dark);
     }
@@ -262,7 +243,6 @@ public sealed partial class SvgEditorWorkspace
     {
         foreach (var group in _studioGroups.Values) group.SetItems(Array.Empty<StudioPanelItem>(), null);
         foreach (var floating in _studioFloating.Values) floating.Group.SetItems(Array.Empty<StudioPanelItem>(), null);
-        FloatingPanelLayer.Children.Clear(); _studioFloating.Clear(); _studioPanels.Clear();
-        HorizontalRuler.Dispose(); VerticalRuler.Dispose();
+        FloatingPanelLayer.Children.Clear(); _studioFloating.Clear(); _studioPanels.Clear(); HorizontalRuler.Dispose(); VerticalRuler.Dispose();
     }
 }
