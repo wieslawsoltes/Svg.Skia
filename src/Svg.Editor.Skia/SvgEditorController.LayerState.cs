@@ -28,8 +28,10 @@ public sealed partial class SvgEditorController
         ValidateHierarchyStateTarget(element);
         if (element.Parent is { } parent && IsLocked(parent))
             throw new InvalidOperationException("This lock is inherited. Unlock the parent layer first.");
-        if (locked) EnsureElementEditable(element);
+        // Reassigning this object's existing state is a no-op, not an edit of a
+        // locked object. Descendant-lock validation still protects an actual change.
         if (HasOwnLock(element) == locked) return;
+        if (locked) EnsureElementEditable(element);
         Execute(locked ? "Lock layer object" : "Unlock layer object", () =>
         {
             element.CustomAttributes["data-unodraw-locked"] = locked ? "true" : "false";
