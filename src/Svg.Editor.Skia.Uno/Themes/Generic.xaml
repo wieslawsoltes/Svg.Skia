@@ -37,156 +37,172 @@
   <Style TargetType="local:StudioIconButton">
     <Setter Property="MinWidth" Value="28" /><Setter Property="MinHeight" Value="28" />
     <Setter Property="Padding" Value="6,3" /><Setter Property="FontSize" Value="12" />
-    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="local:StudioIconButton">
-          <Border x:Name="Root" Background="{TemplateBinding Background}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
-            <VisualStateManager.VisualStateGroups>
-              <VisualStateGroup x:Name="CommonStates">
-                <VisualState x:Name="Normal" />
-                <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
-                <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
-                <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.4" /></VisualState.Setters></VisualState>
-              </VisualStateGroup>
-            </VisualStateManager.VisualStateGroups>
-            <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
-          </Border>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="Transparent" />
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioIconButton">
+      <Border x:Name="Root" Background="{TemplateBinding Background}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+        <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.4" /></VisualState.Setters></VisualState>
+        </VisualStateGroup></VisualStateManager.VisualStateGroups>
+        <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+      </Border>
+    </ControlTemplate></Setter.Value></Setter>
   </Style>
 
   <Style TargetType="local:StudioToolButton">
-    <Setter Property="Width" Value="30" /><Setter Property="Height" Value="32" />
-    <Setter Property="Padding" Value="6" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="local:StudioToolButton">
-          <Grid x:Name="Root" Background="Transparent" CornerRadius="3">
-            <VisualStateManager.VisualStateGroups>
-              <VisualStateGroup x:Name="CommonStates">
-                <VisualState x:Name="Normal" />
-                <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
-                <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
-                <VisualState x:Name="Checked"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="SelectionMark.Opacity" Value="1" /></VisualState.Setters></VisualState>
-                <VisualState x:Name="CheckedPointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="SelectionMark.Opacity" Value="1" /></VisualState.Setters></VisualState>
-                <VisualState x:Name="CheckedPressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="SelectionMark.Opacity" Value="1" /></VisualState.Setters></VisualState>
-                <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.4" /></VisualState.Setters></VisualState>
-                <VisualState x:Name="CheckedDisabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.4" /><Setter Target="SelectionMark.Opacity" Value="1" /></VisualState.Setters></VisualState>
-              </VisualStateGroup>
-            </VisualStateManager.VisualStateGroups>
-            <ContentPresenter Content="{TemplateBinding Content}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
-            <Border x:Name="SelectionMark" Width="2" HorizontalAlignment="Left" Margin="0,6" Background="{ThemeResource StudioAccent}" Opacity="0" />
-            <TextBlock Text="{TemplateBinding AlternateMark}" FontSize="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,2,1" IsHitTestVisible="False" />
-          </Grid>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
+    <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" />
+    <Setter Property="Width" Value="30" /><Setter Property="Height" Value="32" /><Setter Property="Padding" Value="4" />
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioToolButton">
+      <Grid x:Name="Root" Background="Transparent" CornerRadius="3">
+        <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Checked"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="SelectionMark.Opacity" Value="1" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="SelectionMark.Opacity" Value="1" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="SelectionMark.Opacity" Value="1" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.4" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedDisabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.4" /><Setter Target="SelectionMark.Opacity" Value="1" /></VisualState.Setters></VisualState>
+        </VisualStateGroup></VisualStateManager.VisualStateGroups>
+        <ContentPresenter Content="{TemplateBinding Content}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+        <Border x:Name="SelectionMark" Width="2" HorizontalAlignment="Left" Margin="0,6" Background="{ThemeResource StudioAccent}" Opacity="0" />
+        <TextBlock Text="{TemplateBinding AlternateMark}" FontSize="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,2,1" IsHitTestVisible="False" />
+      </Grid>
+    </ControlTemplate></Setter.Value></Setter>
   </Style>
 
+  <Style TargetType="local:StudioTabButton">
+    <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="28" /><Setter Property="Padding" Value="10,4" />
+    <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
+    <Setter Property="UseSystemFocusVisuals" Value="True" />
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioTabButton">
+      <Grid x:Name="Root" Background="Transparent">
+        <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Checked"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSurface}" /><Setter Target="ActiveLine.Opacity" Value="1" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /><Setter Target="ActiveLine.Opacity" Value="1" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="ActiveLine.Opacity" Value="1" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.4" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedDisabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.4" /><Setter Target="ActiveLine.Opacity" Value="1" /></VisualState.Setters></VisualState>
+        </VisualStateGroup></VisualStateManager.VisualStateGroups>
+        <ContentPresenter Content="{TemplateBinding Content}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+        <Border x:Name="ActiveLine" Height="2" VerticalAlignment="Bottom" Background="{ThemeResource StudioAccent}" Opacity="0" />
+      </Grid>
+    </ControlTemplate></Setter.Value></Setter>
+  </Style>
+
+  <Style x:Key="StudioSectionHeader" TargetType="ToggleButton">
+    <Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="MinHeight" Value="26" />
+    <Setter Property="FontSize" Value="11" /><Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="UseSystemFocusVisuals" Value="True" />
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
+      <Grid x:Name="Root" Background="Transparent" Padding="4,3" ColumnSpacing="5">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+        <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Checked"><VisualState.Setters><Setter Target="Chevron.Text" Value="⌄" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPointerOver"><VisualState.Setters><Setter Target="Chevron.Text" Value="⌄" /><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPressed"><VisualState.Setters><Setter Target="Chevron.Text" Value="⌄" /><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.4" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedDisabled"><VisualState.Setters><Setter Target="Chevron.Text" Value="⌄" /><Setter Target="Root.Opacity" Value="0.4" /></VisualState.Setters></VisualState>
+        </VisualStateGroup></VisualStateManager.VisualStateGroups>
+        <TextBlock x:Name="Chevron" Text="›" VerticalAlignment="Center" FontSize="12" />
+        <ContentPresenter Grid.Column="1" Content="{TemplateBinding Content}" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" />
+      </Grid>
+    </ControlTemplate></Setter.Value></Setter>
+  </Style>
   <Style TargetType="local:StudioSection">
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="local:StudioSection">
-          <StackPanel Spacing="6">
-            <ToggleButton x:Name="PART_Header" Content="{TemplateBinding Header}" IsChecked="True" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" MinHeight="26" Padding="4,2" FontSize="11" FontWeight="SemiBold" BorderThickness="0" Background="Transparent" />
-            <ContentPresenter x:Name="PART_Content" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalContentAlignment="Stretch" Margin="0,0,0,8" />
-            <Border Height="1" Background="{ThemeResource StudioBorder}" />
-          </StackPanel>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioSection">
+      <StackPanel Spacing="6">
+        <ToggleButton x:Name="PART_Header" Content="{TemplateBinding Header}" IsChecked="True" Style="{StaticResource StudioSectionHeader}" />
+        <ContentPresenter x:Name="PART_Content" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalContentAlignment="Stretch" Margin="0,0,0,8" />
+        <Border Height="1" Background="{ThemeResource StudioBorder}" />
+      </StackPanel>
+    </ControlTemplate></Setter.Value></Setter>
   </Style>
 
   <Style TargetType="local:StudioNumericField">
     <Setter Property="MinHeight" Value="28" /><Setter Property="MinWidth" Value="108" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="local:StudioNumericField">
-          <Grid ColumnSpacing="4" VerticalAlignment="Center">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-            <TextBlock Text="{TemplateBinding Header}" MinWidth="14" VerticalAlignment="Center" FontSize="11" Foreground="{ThemeResource StudioMuted}" />
-            <NumberBox x:Name="PART_Number" Grid.Column="1" MinWidth="64" MinHeight="28" FontSize="12" Padding="5,2" AcceptsExpression="True" SpinButtonPlacementMode="Compact" SmallChange="1" LargeChange="10" HorizontalAlignment="Stretch" />
-            <TextBlock Grid.Column="2" Text="{TemplateBinding Suffix}" VerticalAlignment="Center" FontSize="10" Foreground="{ThemeResource StudioMuted}" />
-          </Grid>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioNumericField">
+      <Grid ColumnSpacing="4" VerticalAlignment="Center">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+        <TextBlock Text="{TemplateBinding Header}" MinWidth="14" VerticalAlignment="Center" FontSize="11" Foreground="{ThemeResource StudioMuted}" />
+        <NumberBox x:Name="PART_Number" Grid.Column="1" MinWidth="64" MinHeight="28" FontSize="12" Padding="5,2" AcceptsExpression="True" SpinButtonPlacementMode="Compact" SmallChange="1" LargeChange="10" HorizontalAlignment="Stretch" />
+        <TextBlock Grid.Column="2" Text="{TemplateBinding Suffix}" VerticalAlignment="Center" FontSize="10" Foreground="{ThemeResource StudioMuted}" />
+      </Grid>
+    </ControlTemplate></Setter.Value></Setter>
   </Style>
 
   <Style TargetType="local:StudioPaintChip">
     <Setter Property="MinHeight" Value="28" /><Setter Property="MinWidth" Value="68" />
     <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="local:StudioPaintChip">
-          <Border x:Name="Root" Background="Transparent" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="1" CornerRadius="3" Padding="5,3">
-            <VisualStateManager.VisualStateGroups>
-              <VisualStateGroup x:Name="CommonStates">
-                <VisualState x:Name="Normal" />
-                <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
-                <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
-                <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.4" /></VisualState.Setters></VisualState>
-              </VisualStateGroup>
-            </VisualStateManager.VisualStateGroups>
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <Border Width="18" Height="18" Background="{TemplateBinding Swatch}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="1"><TextBlock Text="{TemplateBinding Mark}" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
-              <TextBlock Text="{TemplateBinding Label}" FontSize="11" VerticalAlignment="Center" />
-              <TextBlock Text="⌄" FontSize="11" VerticalAlignment="Center" />
-            </StackPanel>
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioPaintChip">
+      <Border x:Name="Root" Background="Transparent" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="1" CornerRadius="3" Padding="5,3">
+        <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.4" /></VisualState.Setters></VisualState>
+        </VisualStateGroup></VisualStateManager.VisualStateGroups>
+        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+          <Border Width="20" Height="20" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="1">
+            <Grid Background="{ThemeResource StudioSurface}">
+              <Grid.RowDefinitions><RowDefinition /><RowDefinition /></Grid.RowDefinitions>
+              <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition /></Grid.ColumnDefinitions>
+              <Rectangle Fill="{ThemeResource StudioBorder}" /><Rectangle Grid.Row="1" Grid.Column="1" Fill="{ThemeResource StudioBorder}" />
+              <Border Grid.RowSpan="2" Grid.ColumnSpan="2" Background="{TemplateBinding Swatch}" />
+              <TextBlock Grid.RowSpan="2" Grid.ColumnSpan="2" Text="{TemplateBinding Mark}" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Grid>
           </Border>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
+          <TextBlock Text="{TemplateBinding Label}" Visibility="{TemplateBinding LabelVisibility}" FontSize="11" VerticalAlignment="Center" />
+          <TextBlock Text="⌄" Visibility="{TemplateBinding LabelVisibility}" FontSize="11" VerticalAlignment="Center" />
+        </StackPanel>
+      </Border>
+    </ControlTemplate></Setter.Value></Setter>
   </Style>
 
   <Style TargetType="local:StudioSplitter">
     <Setter Property="Background" Value="{ThemeResource StudioHeader}" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="local:StudioSplitter">
-          <Grid x:Name="Root" Background="{TemplateBinding Background}">
-            <VisualStateManager.VisualStateGroups>
-              <VisualStateGroup x:Name="CommonStates">
-                <VisualState x:Name="Normal" />
-                <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioAccent}" /></VisualState.Setters></VisualState>
-                <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioAccent}" /></VisualState.Setters></VisualState>
-              </VisualStateGroup>
-            </VisualStateManager.VisualStateGroups>
-          </Grid>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioSplitter">
+      <Grid x:Name="Root" Background="{TemplateBinding Background}">
+        <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioAccent}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioAccent}" /></VisualState.Setters></VisualState>
+        </VisualStateGroup></VisualStateManager.VisualStateGroups>
+      </Grid>
+    </ControlTemplate></Setter.Value></Setter>
   </Style>
 
   <Style TargetType="local:StudioDockGroup">
     <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="local:StudioDockGroup">
-          <Border Background="{ThemeResource StudioSurface}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="1">
-            <Grid>
-              <Grid.RowDefinitions><RowDefinition Height="26" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
-              <Grid Background="{ThemeResource StudioHeader}">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="26" /><ColumnDefinition Width="26" /></Grid.ColumnDefinitions>
-                <Thumb x:Name="PART_Grip" IsTabStop="False">
-                  <Thumb.Template><ControlTemplate TargetType="Thumb"><Grid Background="Transparent"><TextBlock Text="{Binding Caption, RelativeSource={RelativeSource TemplatedParent}}" /></Grid></ControlTemplate></Thumb.Template>
-                </Thumb>
-                <TextBlock Text="{TemplateBinding Caption}" Margin="9,0" VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold" IsHitTestVisible="False" />
-                <Button x:Name="PART_Collapse" Grid.Column="1" Content="−" MinWidth="24" MinHeight="22" Padding="2,0" FontSize="12" BorderThickness="0" Background="Transparent" />
-                <Button x:Name="PART_Menu" Grid.Column="2" Content="⋯" MinWidth="24" MinHeight="22" Padding="2,0" FontSize="14" BorderThickness="0" Background="Transparent" AutomationProperties.Name="Panel docking and tab menu" />
-              </Grid>
-              <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
-                <StackPanel x:Name="PART_Tabs" Orientation="Horizontal" Background="{ThemeResource StudioHeader}" />
-              </ScrollViewer>
-              <Grid x:Name="PART_Content" Grid.Row="2" />
-            </Grid>
-          </Border>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioDockGroup">
+      <Border Background="{ThemeResource StudioSurface}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="1">
+        <Grid>
+          <Grid.RowDefinitions><RowDefinition Height="26" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+          <Grid Background="{ThemeResource StudioHeader}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="26" /><ColumnDefinition Width="26" /></Grid.ColumnDefinitions>
+            <Thumb x:Name="PART_Grip" IsTabStop="False">
+              <Thumb.Template><ControlTemplate TargetType="Thumb"><Grid Background="Transparent" /></ControlTemplate></Thumb.Template>
+            </Thumb>
+            <TextBlock Text="{TemplateBinding Caption}" Margin="9,0" VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold" IsHitTestVisible="False" />
+            <Button x:Name="PART_Collapse" Grid.Column="1" Content="−" MinWidth="24" MinHeight="22" Padding="2,0" FontSize="12" BorderThickness="0" Background="Transparent" />
+            <Button x:Name="PART_Menu" Grid.Column="2" Content="⋯" MinWidth="24" MinHeight="22" Padding="2,0" FontSize="14" BorderThickness="0" Background="Transparent" AutomationProperties.Name="Panel docking and tab menu" />
+          </Grid>
+          <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
+            <StackPanel x:Name="PART_Tabs" Orientation="Horizontal" Background="{ThemeResource StudioHeader}" />
+          </ScrollViewer>
+          <Grid x:Name="PART_Content" Grid.Row="2" />
+        </Grid>
+      </Border>
+    </ControlTemplate></Setter.Value></Setter>
   </Style>
 </ResourceDictionary>
