@@ -13,6 +13,7 @@ on:
       - 'src/**'
       - 'samples/UnoDraw/**'
       - 'tests/Svg.Editor.*/**'
+      - 'tests/UnoDraw.BrowserSmoke/**'
   pull_request:
     branches: [master, main, develop]
     paths:
@@ -24,6 +25,7 @@ on:
       - 'src/**'
       - 'samples/UnoDraw/**'
       - 'tests/Svg.Editor.*/**'
+      - 'tests/UnoDraw.BrowserSmoke/**'
 
 permissions:
   contents: read
@@ -146,6 +148,37 @@ jobs:
           name: unodraw-browser
           path: artifacts/unodraw-browser
           if-no-files-found: error
+          retention-days: 14
+
+  browser-smoke:
+    name: Published WebAssembly runtime smoke
+    needs: browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Download the exact published package
+        uses: actions/download-artifact@v4
+        with:
+          name: unodraw-browser
+          path: artifacts/unodraw-browser
+      - name: Install pinned browser-test dependencies
+        run: |
+          python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
+          python -m py_compile tests/UnoDraw.BrowserSmoke/smoke.py
+          python -m playwright install --with-deps chromium
+      - name: Check runtime startup, command search, compact layout and reload
+        run: python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/unodraw-browser/wwwroot --output artifacts/unodraw-browser-smoke
+      - name: Upload browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unodraw-browser-smoke
+          path: artifacts/unodraw-browser-smoke
+          if-no-files-found: warn
           retention-days: 14
 
   android:
