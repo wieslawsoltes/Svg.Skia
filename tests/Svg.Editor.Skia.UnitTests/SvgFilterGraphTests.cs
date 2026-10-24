@@ -93,7 +93,31 @@ public class SvgFilterGraphTests
         graph.Duplicate(0);
         Assert.Equal("lit", (string?)graph.Nodes[2].Attribute("in"));
         Assert.NotEqual("lit", (string?)graph.Nodes[1].Attribute("result"));
-        Assert.Empty(graph.Nodes[1].DescendantsAndSelf().Attributes("id"));
+        Assert.Equal("light-copy", (string?)graph.Nodes[1].Attribute("id"));
+        Assert.Equal("sun-copy", (string?)graph.Nodes[1].Elements().Single().Attribute("id"));
+        Assert.Empty(graph.Validate());
+    }
+
+    [Fact]
+    public void AnimatedFilterValuesAreNotTreatedAsStaticNumericLists()
+    {
+        var graph = SvgFilterGraph.Parse("<filter xmlns='http://www.w3.org/2000/svg'><feGaussianBlur stdDeviation='2'><animate id='pulse' attributeName='stdDeviation' values='0;10;0' dur='2s'/></feGaussianBlur><feFlood flood-color='red'><animate attributeName='flood-color' values='red;blue' dur='2s'/></feFlood></filter>");
+        Assert.Empty(graph.Validate());
+        Assert.Contains("values=\"0;10;0\"", graph.GetXml());
+        Assert.Contains("values=\"red;blue\"", graph.GetXml());
+    }
+
+    [Fact]
+    public void DuplicateRewritesOnlyInternalAnimationAndHrefReferences()
+    {
+        var graph = SvgFilterGraph.Parse("<filter xmlns='http://www.w3.org/2000/svg'><feGaussianBlur id='blur' stdDeviation='2'><animate id='pulse' href='#blur' attributeName='stdDeviation' begin='pulse.end;external.click' values='0;10;0' dur='2s'/></feGaussianBlur></filter>");
+        graph.Duplicate(0);
+        var animation = graph.Nodes[1].Elements().Single();
+        Assert.Equal("#blur-copy", (string?)animation.Attribute("href"));
+        Assert.Equal("pulse-copy.end;external.click", (string?)animation.Attribute("begin"));
+        graph.Duplicate(0);
+        Assert.Equal("blur-copy2", (string?)graph.Nodes[1].Attribute("id"));
+        Assert.Empty(graph.Validate());
     }
 
     [Fact]
