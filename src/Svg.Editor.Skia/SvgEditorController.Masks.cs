@@ -61,9 +61,9 @@ public sealed partial class SvgEditorController
         EnsureSelectionEditable();
         if (_selection.Count == 0) return;
         var tree = ReadEffectDocument(GetSvg());
-        foreach (var key in CaptureSelection())
+        var targets = CaptureSelection().Select(key => ResolveEffectElement(tree, key)!).ToArray();
+        foreach (var target in targets)
         {
-            var target = ResolveEffectElement(tree, key)!;
             var resourceId = (string?)target.Attribute("data-unodraw-mask-resource");
             if (restoreMaskArtwork && resourceId is not null && target.Name == SvgFilterCatalog.Namespace + "g")
             {
@@ -73,11 +73,12 @@ public sealed partial class SvgEditorController
                 {
                     if ((string?)mask.Attribute("maskContentUnits") != "userSpaceOnUse")
                         throw new InvalidOperationException("This mask's coordinate system changed. Disable its mask without restoring artwork, or restore it to user-space units first.");
-                    var fragment = new XDocument(new XElement(SvgFilterCatalog.Namespace + "svg", mask.Nodes()));
-                    // XElement construction clones attached nodes. RemapCloneIds reads the
-                    // current document and rewrites resource-local href/CSS/SMIL references.
-                    var remapped = XDocument.Parse(RemapCloneIds(fragment.ToString(SaveOptions.DisableFormatting)), LoadOptions.PreserveWhitespace);
-                    var restored = remapped.Root!.Nodes().ToArray();
+                    var fragment = new XElement(SvgFilterCatalog.Namespace + "svg", mask.Nodes());
+                    // Reserve against this evolving snapshot, not the original live DOM:
+                    // batch releases of one shared mask must not generate duplicate IDs.
+                    var remapped = SvgXmlIdRemapper.Clone(fragment,
+                        tree.Root!.DescendantsAndSelf().Attributes("id").Select(id => id.Value));
+                    var restored = remapped.Nodes().ToArray();
                     if ((string?)target.Attribute("data-unodraw-mask-behind") == "true") target.AddFirst(restored);
                     else target.Add(restored);
                 }
