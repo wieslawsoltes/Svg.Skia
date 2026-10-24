@@ -76,7 +76,7 @@ public class PathService
                     var p1 = new Shim.SKPoint(c.FirstControlPoint.X, c.FirstControlPoint.Y);
                     var p2 = new Shim.SKPoint(c.SecondControlPoint.X, c.SecondControlPoint.Y);
                     var end = new Shim.SKPoint(c.End.X, c.End.Y);
-                    _points.Add(new PathPoint { Segment = ccPlaceholder, Type = 1, Point = p1 });
+                    _points.Add(new PathPoint { Segment = c, Type = 1, Point = p1 });
                     _points.Add(new PathPoint { Segment = c, Type = 2, Point = p2 });
                     _points.Add(new PathPoint { Segment = c, Type = 0, Point = end });
                     cur = end;
@@ -124,7 +124,7 @@ public class PathService
             SegmentTool.Arc => new SvgArcSegment(10, 10, 0, SvgArcSize.Small, SvgArcSweep.Positive, false,
                 new System.Drawing.PointF(point.X, point.Y)),
             SegmentTool.Move => new SvgMoveToSegment(false, new System.Drawing.PointF(point.X, point.Y)),
-            _ => null
+            _ => new SvgLineSegment(false, new System.Drawing.PointF(point.X, point.Y))
         };
         _path.PathData.Add(seg);
         if (seg is SvgCubicCurveSegment cc)
