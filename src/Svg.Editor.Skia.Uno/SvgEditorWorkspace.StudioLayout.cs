@@ -68,6 +68,7 @@ public sealed partial class SvgEditorWorkspace
             field.CaptureTargetValidation = CaptureStudioTargetValidation;
             field.EditRejected += (_, message) => StatusText.Text = message;
         }
+        WorkspacePresetPicker.Items.Clear();
         _studioInitialized = true;
         WorkspacePresetPicker.PlaceholderText = "Custom workspace";
         SynchronizeStudioPreset(); RebuildStudioDocks();
@@ -96,7 +97,6 @@ public sealed partial class SvgEditorWorkspace
         var context = Controller is { } controller ? new SvgEditorSelectionContext(controller) : null;
         return () => !_disposed && context is not null && context.IsCurrent(Controller);
     }
-
     private void RegisterStudioPanel(string id, string title, FrameworkElement content)
     {
         PanelStaging.Children.Remove(content);
@@ -157,7 +157,6 @@ public sealed partial class SvgEditorWorkspace
         => SvgWorkspaceFloatingBounds.Project(_studioLayout.Find(id),
             ActualWidth > 0 ? Math.Max(1, ActualWidth - 12) : 16384,
             EditorBody.ActualHeight > 0 ? Math.Max(1, EditorBody.ActualHeight - 8) : 16384);
-
     private void AdjustStudioFloat(string id, double dx, double dy, double dw, double dh)
     {
         var panel = _studioLayout.Find(id);
@@ -168,8 +167,6 @@ public sealed partial class SvgEditorWorkspace
         var availableHeight = Math.Max(1, EditorBody.ActualHeight - 8);
         var x = Math.Clamp(displayed.X + dx, 0, Math.Max(0, availableWidth - Math.Min(width, availableWidth)));
         var y = Math.Clamp(displayed.Y + dy, 0, Math.Max(0, availableHeight - Math.Min(height, availableHeight)));
-        // Only explicit user movement/resize writes preferences. Viewport projection
-        // alone must not replace a desktop panel's saved size with a phone-sized one.
         _studioLayout.SetFloatingBounds(id, x, y, width, height, 16384, 16384);
         PositionStudioFloat(id);
     }
@@ -182,7 +179,6 @@ public sealed partial class SvgEditorWorkspace
         Microsoft.UI.Xaml.Controls.Canvas.SetTop(floating.Host, bounds.Y);
     }
     private void ResizeStudioDock(SvgPanelDock dock, double extent) { _studioLayout.Resize(dock, extent); ApplyStudioMetrics(); }
-
     private void ApplyStudioMetrics()
     {
         if (!_studioInitialized || _updatingStudioLayout) return;
@@ -235,35 +231,20 @@ public sealed partial class SvgEditorWorkspace
         var collapsedDock = panel.Dock == SvgPanelDock.Left && metrics.LeftWidth == 0
             || (panel.Dock is SvgPanelDock.RightTop or SvgPanelDock.RightBottom) && metrics.RightWidth == 0
             || panel.Dock == SvgPanelDock.Bottom && metrics.BottomHeight == 0;
-        _temporaryStudioPanel = collapsedDock ? id : null;
-        RebuildStudioDocks(); ApplyStudioMetrics(); RefreshStudioPanels(); SaveStudioLayout();
+        var temporary = collapsedDock ? id : null;
+        if (_temporaryStudioPanel != temporary)
+        { _temporaryStudioPanel = temporary; RebuildStudioDocks(); }
+        else if (_studioFloating.TryGetValue(id, out var floating))
+        { floating.Group.Activate(id); Microsoft.UI.Xaml.Controls.Canvas.SetZIndex(floating.Host, ++_floatingZ); }
+        else if (_studioGroups.TryGetValue(panel.Dock, out var group) && group.Items.Any(item => item.Id == id)) group.Activate(id);
+        else RebuildStudioDocks();
+        ApplyStudioMetrics(); RefreshStudioPanels(); SaveStudioLayout();
     }
-    private void WorkspacePreset_SelectionChanged(object sender, SelectionChangedEventArgs args)
-    {
-        if (!_studioInitialized || _syncingStudioPreset || WorkspacePresetPicker.SelectedIndex < 0) return;
-        ApplySafely(() => ResetStudioLayout((SvgWorkspacePreset)WorkspacePresetPicker.SelectedIndex));
-    }
-    private void SynchronizeStudioPreset()
-    {
-        _syncingStudioPreset = true;
-        try
-        {
-            var match = -1;
-            foreach (var preset in Enum.GetValues<SvgWorkspacePreset>())
-            {
-                var candidate = new SvgWorkspaceLayout(); candidate.Reset(preset);
-                if (Enum.GetValues<SvgPanelDock>().All(dock =>
-                    _studioLayout.Panels.Where(panel => panel.Dock == dock).Select(panel => panel.Id)
-                        .SequenceEqual(candidate.Panels.Where(panel => panel.Dock == dock).Select(panel => panel.Id))))
-                { match = (int)preset; break; }
-            }
-            WorkspacePresetPicker.SelectedIndex = match;
-        }
-        finally { _syncingStudioPreset = false; }
-    }
+    private void WorkspacePreset_SelectionChanged(object sender, SelectionChangedEventArgs args) => SelectNamedWorkspaceChoice();
+    private void SynchronizeStudioPreset() => SynchronizeNamedWorkspacePicker();
     private void ResetStudioLayout(SvgWorkspacePreset preset)
     {
-        CommitInspectorEdits(); _studioLayout.Reset(preset); _temporaryStudioPanel = null; _zenMode = false;
+        CommitInspectorEdits(); _activeNamedWorkspaceId = null; _studioLayout.Reset(preset); _temporaryStudioPanel = null; _zenMode = false;
         RebuildStudioDocks(); ApplyStudioMetrics(); SaveStudioLayout();
     }
     private void SaveStudioLayout()
