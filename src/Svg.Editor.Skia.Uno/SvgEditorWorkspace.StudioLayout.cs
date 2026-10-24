@@ -15,6 +15,7 @@ public sealed partial class SvgEditorWorkspace
     private readonly Dictionary<string, (Grid Host, StudioDockGroup Group)> _studioFloating = new(StringComparer.Ordinal);
     private bool _studioInitialized;
     private bool _updatingStudioLayout;
+    private bool _syncingStudioPreset;
     private string? _temporaryStudioPanel;
     private int _floatingZ;
 
@@ -22,6 +23,7 @@ public sealed partial class SvgEditorWorkspace
     public string CaptureWorkspaceLayout() => _studioLayout.Serialize();
     public void RestoreWorkspaceLayout(string xml)
     {
+        if (_disposed) throw new ObjectDisposedException(nameof(SvgEditorWorkspace));
         var restored = SvgWorkspaceLayout.Parse(xml);
         CommitInspectorEdits(); _studioLayout = restored; _temporaryStudioPanel = null;
         RebuildStudioDocks(); ApplyStudioMetrics(); SaveStudioLayout();
@@ -57,16 +59,18 @@ public sealed partial class SvgEditorWorkspace
         BuildStudioPanels(); BuildStudioContextBar(); BuildStudioPanelRail();
         foreach (var field in _studioTextFields)
         {
-            field.CaptureTargetValidation = () =>
-            {
-                var owner = Controller; var document = owner?.Document;
-                var selection = owner?.SelectedElements.ToArray() ?? Array.Empty<SvgVisualElement>();
-                return () => ReferenceEquals(owner, Controller) && ReferenceEquals(document, owner?.Document)
-                    && owner is not null && selection.SequenceEqual(owner.SelectedElements);
-            };
+            field.CaptureTargetValidation = CaptureStudioTargetValidation;
             field.EditCanceled += (_, _) => RefreshStudioPanels();
         }
-        _studioInitialized = true; RebuildStudioDocks();
+        foreach (var field in _strokeWidths.Concat(_opacities)
+            .Concat(new[] { _studioX, _studioY, _studioW, _studioH, _studioAngle, _studioMiter }.OfType<StudioNumericField>()).Distinct())
+        {
+            field.CaptureTargetValidation = CaptureStudioTargetValidation;
+            field.EditRejected += (_, message) => StatusText.Text = message;
+        }
+        _studioInitialized = true;
+        WorkspacePresetPicker.PlaceholderText = "Custom workspace";
+        SynchronizeStudioPreset(); RebuildStudioDocks();
         LeftDockSplitter.DragDelta += (_, args) => ResizeStudioDock(SvgPanelDock.Left, _studioLayout.LeftWidth + args.HorizontalChange);
         RightDockSplitter.DragDelta += (_, args) => ResizeStudioDock(SvgPanelDock.RightTop, _studioLayout.RightWidth - args.HorizontalChange);
         BottomDockSplitter.DragDelta += (_, args) => ResizeStudioDock(SvgPanelDock.Bottom, _studioLayout.BottomHeight - args.VerticalChange);
@@ -87,6 +91,12 @@ public sealed partial class SvgEditorWorkspace
         ApplyStudioMetrics();
     }
 
+    private Func<bool> CaptureStudioTargetValidation()
+    {
+        var context = Controller is { } controller ? new SvgEditorSelectionContext(controller) : null;
+        return () => !_disposed && context is not null && context.IsCurrent(Controller);
+    }
+
     private void RegisterStudioPanel(string id, string title, FrameworkElement content)
     {
         PanelStaging.Children.Remove(content);
@@ -97,6 +107,7 @@ public sealed partial class SvgEditorWorkspace
     {
         group.CanChangePanel = () =>
         {
+            if (_disposed || _closing || _dialogVisible) return false;
             try { CommitInspectorEdits(); return true; }
             catch (Exception exception) { StatusText.Text = exception.Message; return false; }
         };
@@ -107,7 +118,7 @@ public sealed partial class SvgEditorWorkspace
     {
         ApplySafely(() =>
         {
-            if (!_studioPanels.ContainsKey(args.PanelId)) return;
+            if (_disposed || !_studioPanels.ContainsKey(args.PanelId)) return;
             CommitInspectorEdits();
             if (_temporaryStudioPanel == args.PanelId && args.Destination == SvgPanelDock.Hidden) _temporaryStudioPanel = null;
             else { _temporaryStudioPanel = null; _studioLayout.Move(args.PanelId, args.Destination, args.Index); }
@@ -142,22 +153,33 @@ public sealed partial class SvgEditorWorkspace
             _studioFloating.Add(id, (host, group)); FloatingPanelLayer.Children.Add(host); PositionStudioFloat(id);
         }
     }
+    private SvgWorkspaceFloatingBounds StudioFloatBounds(string id)
+        => SvgWorkspaceFloatingBounds.Project(_studioLayout.Find(id),
+            ActualWidth > 0 ? Math.Max(1, ActualWidth - 12) : 16384,
+            EditorBody.ActualHeight > 0 ? Math.Max(1, EditorBody.ActualHeight - 8) : 16384);
+
     private void AdjustStudioFloat(string id, double dx, double dy, double dw, double dh)
     {
         var panel = _studioLayout.Find(id);
-        _studioLayout.SetFloatingBounds(id, panel.X + dx, panel.Y + dy, panel.Width + dw, panel.Height + dh,
-            Math.Max(1, ActualWidth - 12), Math.Max(1, EditorBody.ActualHeight - 8)); PositionStudioFloat(id);
+        var displayed = StudioFloatBounds(id);
+        var width = dw == 0 ? panel.Width : displayed.Width + dw;
+        var height = dh == 0 ? panel.Height : displayed.Height + dh;
+        var availableWidth = Math.Max(1, ActualWidth - 12);
+        var availableHeight = Math.Max(1, EditorBody.ActualHeight - 8);
+        var x = Math.Clamp(displayed.X + dx, 0, Math.Max(0, availableWidth - Math.Min(width, availableWidth)));
+        var y = Math.Clamp(displayed.Y + dy, 0, Math.Max(0, availableHeight - Math.Min(height, availableHeight)));
+        // Only explicit user movement/resize writes preferences. Viewport projection
+        // alone must not replace a desktop panel's saved size with a phone-sized one.
+        _studioLayout.SetFloatingBounds(id, x, y, width, height, 16384, 16384);
+        PositionStudioFloat(id);
     }
     private void PositionStudioFloat(string id)
     {
         if (!_studioFloating.TryGetValue(id, out var floating)) return;
-        var panel = _studioLayout.Find(id);
-        // Do not overwrite restored bounds during the constructor's zero-size layout.
-        if (ActualWidth > 0 && EditorBody.ActualHeight > 0)
-            _studioLayout.SetFloatingBounds(id, panel.X, panel.Y, panel.Width, panel.Height,
-                Math.Max(1, ActualWidth - 12), Math.Max(1, EditorBody.ActualHeight - 8));
-        floating.Host.Width = panel.Width; floating.Host.Height = panel.Height;
-        Microsoft.UI.Xaml.Controls.Canvas.SetLeft(floating.Host, panel.X); Microsoft.UI.Xaml.Controls.Canvas.SetTop(floating.Host, panel.Y);
+        var bounds = StudioFloatBounds(id);
+        floating.Host.Width = bounds.Width; floating.Host.Height = bounds.Height;
+        Microsoft.UI.Xaml.Controls.Canvas.SetLeft(floating.Host, bounds.X);
+        Microsoft.UI.Xaml.Controls.Canvas.SetTop(floating.Host, bounds.Y);
     }
     private void ResizeStudioDock(SvgPanelDock dock, double extent) { _studioLayout.Resize(dock, extent); ApplyStudioMetrics(); }
 
@@ -196,7 +218,7 @@ public sealed partial class SvgEditorWorkspace
             PositionText.Visibility = ActualWidth < 700 ? Visibility.Collapsed : Visibility.Visible;
             ContextSelectionLabel.Visibility = ActualWidth < 560 ? Visibility.Collapsed : Visibility.Visible;
             ToolColumn.Width = new GridLength(_studioLayout.TouchDensity ? 96 : 68);
-            foreach (var button in ToolRail.Children.OfType<StudioToolButton>())
+            foreach (var button in ToolRail.Children.OfType<Control>())
             { button.Width = _studioLayout.TouchDensity ? 42 : 30; button.Height = _studioLayout.TouchDensity ? 44 : 32; }
             foreach (var id in _studioFloating.Keys) PositionStudioFloat(id);
             FloatingPanelLayer.Visibility = _zenMode || _studioLayout.PanelsHidden ? Visibility.Collapsed : Visibility.Visible;
@@ -218,8 +240,26 @@ public sealed partial class SvgEditorWorkspace
     }
     private void WorkspacePreset_SelectionChanged(object sender, SelectionChangedEventArgs args)
     {
-        if (!_studioInitialized || WorkspacePresetPicker.SelectedIndex < 0) return;
+        if (!_studioInitialized || _syncingStudioPreset || WorkspacePresetPicker.SelectedIndex < 0) return;
         ApplySafely(() => ResetStudioLayout((SvgWorkspacePreset)WorkspacePresetPicker.SelectedIndex));
+    }
+    private void SynchronizeStudioPreset()
+    {
+        _syncingStudioPreset = true;
+        try
+        {
+            var match = -1;
+            foreach (var preset in Enum.GetValues<SvgWorkspacePreset>())
+            {
+                var candidate = new SvgWorkspaceLayout(); candidate.Reset(preset);
+                if (Enum.GetValues<SvgPanelDock>().All(dock =>
+                    _studioLayout.Panels.Where(panel => panel.Dock == dock).Select(panel => panel.Id)
+                        .SequenceEqual(candidate.Panels.Where(panel => panel.Dock == dock).Select(panel => panel.Id))))
+                { match = (int)preset; break; }
+            }
+            WorkspacePresetPicker.SelectedIndex = match;
+        }
+        finally { _syncingStudioPreset = false; }
     }
     private void ResetStudioLayout(SvgWorkspacePreset preset)
     {
@@ -229,6 +269,7 @@ public sealed partial class SvgEditorWorkspace
     private void SaveStudioLayout()
     {
         if (!_studioInitialized || _disposed) return;
+        SynchronizeStudioPreset();
         try { ApplicationData.Current.LocalSettings.Values[StudioLayoutKey] = _studioLayout.Serialize(); }
         catch (Exception exception) { StatusText.Text = "Workspace changes could not be saved: " + exception.Message; }
     }
