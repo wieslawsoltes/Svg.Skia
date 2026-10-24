@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Run inside Xvfb and dbus-run-session. Use a disposable real file so native input
-# can be checked through the production save/undo path without application test hooks.
+# is checked through the production save/undo path without application test hooks.
 app="$(realpath "${1:?Pass the built UnoDraw.dll}")"
 output="${2:?Pass a diagnostic directory}"
 mkdir -p "$output"
@@ -14,31 +14,70 @@ mkdir -p "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
 source_dir="$(cd "$(dirname "$0")" && pwd)"
 document="$work/StudioFixture.svg"
 cp "$source_dir/StudioFixture.svg" "$document"
+window=""
 dotnet "$app" "$document" >"$output/application.log" 2>&1 &
 app_pid=$!
+
+window_diagnostics() {
+  {
+    date -u
+    xwininfo -root -tree || true
+    while read -r candidate; do
+      [[ -n "$candidate" ]] || continue
+      printf '\nWindow %s\n' "$candidate"
+      xdotool getwindowname "$candidate" || true
+      xprop -id "$candidate" WM_NAME _NET_WM_NAME WM_CLASS _NET_WM_PID || true
+    done < <(xdotool search --onlyvisible --name '.*' 2>/dev/null || true)
+  } >>"$output/windows.log" 2>&1
+}
 cleanup() {
+  local status=$?
+  trap - EXIT
+  if [[ "$status" -ne 0 ]]; then
+    window_diagnostics
+    timeout 8s import -window root "$output/failure-root.png" 2>/dev/null || true
+    if [[ -n "$window" ]]; then
+      timeout 8s import -window "$window" "$output/failure-client.png" 2>/dev/null || true
+    fi
+  fi
   cp "$document" "$output/final-document.svg" 2>/dev/null || true
   kill "$app_pid" 2>/dev/null || true
   wait "$app_pid" 2>/dev/null || true
   rm -rf "$work"
+  exit "$status"
 }
 trap cleanup EXIT
 
-window=""
 ready=false
+focused=""
 for attempt in $(seq 1 180); do
   kill -0 "$app_pid" 2>/dev/null || { cat "$output/application.log"; exit 1; }
-  window="$(xdotool search --onlyvisible --name 'UnoDraw' 2>/dev/null | head -n1 || true)"
-  if [[ -n "$window" ]] && [[ "$(xdotool getwindowname "$window")" == *StudioFixture.svg* ]]; then
-    ready=true
-    break
-  fi
+  # A native host may expose more than one titled X11 window. Check every mapped
+  # candidate, not just the first result. Activate it before awaiting Loaded work.
+  while read -r candidate; do
+    [[ -n "$candidate" ]] || continue
+    if [[ -z "$window" ]]; then window="$candidate"; fi
+    if [[ "$focused" != "$candidate" ]]; then
+      xdotool windowsize "$candidate" 1440 960 2>/dev/null || true
+      xdotool windowfocus "$candidate" 2>/dev/null || true
+      focused="$candidate"
+    fi
+    title="$(xdotool getwindowname "$candidate" 2>/dev/null || true)"
+    if [[ "$title" == *StudioFixture.svg* ]]; then
+      window="$candidate"
+      ready=true
+      break
+    fi
+  done < <(xdotool search --onlyvisible --name 'UnoDraw|StudioFixture' 2>/dev/null || true)
+  [[ "$ready" == true ]] && break
+  if [[ "$attempt" == 10 || "$attempt" == 80 ]]; then window_diagnostics; fi
   sleep 0.25
 done
-[[ "$ready" == true ]] || { echo 'The editable fixture did not finish loading.' >&2; cat "$output/application.log"; exit 1; }
+[[ "$ready" == true ]] || { echo 'The editable fixture did not finish loading; inspect failure captures and windows.log.' >&2; cat "$output/application.log"; exit 1; }
 xdotool windowsize "$window" 1440 960
 xdotool windowfocus --sync "$window"
 sleep 1
+window_diagnostics
 
 capture() {
   kill -0 "$app_pid" 2>/dev/null || { cat "$output/application.log"; exit 1; }
@@ -114,8 +153,8 @@ command 'Select all'
 command 'Appearance panel'
 capture 02-mixed-appearance
 
-# The opacity field has a stable location in the 1440-DIP context bar. Ctrl+A must
-# select its text, not the document; Tab must commit the field, not hide panels.
+# Ctrl+A must select the field's text, not the document; Tab commits the field
+# rather than hiding panels. Captures and SVG assertions expose a missed target.
 xdotool mousemove --window "$window" 480 55 click 1
 xdotool key --clearmodifiers ctrl+a
 xdotool type --clearmodifiers '62.5'
@@ -127,7 +166,6 @@ capture 03-numeric-commit
 command 'Undo'
 save
 verify restored-numeric
-
 command 'Default fill and stroke'
 save
 verify default-paints
@@ -139,7 +177,6 @@ command 'Undo'
 command 'Undo'
 save
 verify restored-paints
-
 command 'Drawing workspace'
 command 'Fit artboard'
 command 'Transform panel'
@@ -151,8 +188,7 @@ command 'Switch theme'
 command 'Appearance panel'
 capture 07-appearance-dark
 
-# Float the active panel through its actual header menu, then move its retained
-# header. Screenshots document the gesture result for visual review.
+# Exercise the actual docking menu and floating header, retaining captures for review.
 xdotool mousemove --window "$window" 1426 91 click 1
 sleep 0.4
 xdotool key --clearmodifiers Home Down Down Down Down Return
@@ -163,7 +199,6 @@ xdotool mousemove --window "$window" 390 240
 xdotool mouseup 1
 sleep 0.5
 capture 09-moved-panel
-
 command 'Reset workspace'
 xdotool windowsize "$window" 480 850
 sleep 0.7
