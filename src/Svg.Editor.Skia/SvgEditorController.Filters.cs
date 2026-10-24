@@ -50,49 +50,40 @@ public sealed partial class SvgEditorController
     {
         if (edit is null) throw new ArgumentNullException(nameof(edit));
         if (!ReferenceEquals(edit.Owner, this)) throw new ArgumentException("This filter edit belongs to another editor.", nameof(edit));
+        if (edit.Graph is null) throw new ArgumentException("The filter draft has no graph.", nameof(edit));
         edit.Graph.ThrowIfInvalid();
         var tree = ReadEffectDocument(edit.Source);
         var selected = edit.Selection.Select(key => ResolveEffectElement(tree, key)
             ?? throw new InvalidOperationException("The original filter target could not be resolved.")).ToArray();
         var existing = edit.OriginalFilterId is null ? null : tree.Root!.DescendantsAndSelf()
             .FirstOrDefault(element => element.Name == SvgFilterCatalog.Namespace + "filter" && (string?)element.Attribute("id") == edit.OriginalFilterId);
-        var resource = edit.Graph.ToElement();
         var shared = editSharedResource && existing is not null;
         var resourceId = shared ? edit.OriginalFilterId! : edit.ResourceId;
-        resource.SetAttributeValue("id", resourceId);
+        var resource = edit.Graph.ToElement();
         if (!shared)
+            resource = SvgXmlIdRemapper.Clone(resource, tree.Root!.DescendantsAndSelf().Attributes("id").Select(id => id.Value).Concat(new[] { resourceId }));
+        var previousRootId = (string?)resource.Attribute("id");
+        resource.SetAttributeValue("id", resourceId);
+        if (previousRootId is not null && previousRootId != resourceId)
         {
-            // A copied graph may contain light/animation/metadata IDs. Reserve IDs
-            // before attachment and remap only references inside this resource.
-            var used = new HashSet<string>(tree.Root!.DescendantsAndSelf().Attributes("id").Select(id => id.Value), StringComparer.Ordinal)
-            { resourceId };
-            var mapping = new Dictionary<string, string>(StringComparer.Ordinal);
-            if (edit.OriginalFilterId is { } oldId) mapping[oldId] = resourceId;
-            foreach (var element in resource.Descendants())
-            {
-                if (element.Attribute("id") is not { } id) continue;
-                var old = id.Value;
-                if (mapping.ContainsKey(old)) throw new InvalidOperationException("The filter contains duplicate IDs.");
-                var prefix = old + "-copy";
-                var candidate = prefix;
-                for (var suffix = 2; !used.Add(candidate); suffix++) candidate = prefix + suffix;
-                mapping[old] = candidate;
-                id.Value = candidate;
-            }
             var fragment = new XDocument(resource);
-            RewriteTreeReferences(fragment, mapping);
-            resource = fragment.Root!;
+            RewriteTreeReferences(fragment, new Dictionary<string, string>(StringComparer.Ordinal) { [previousRootId] = resourceId });
             resource.Remove();
         }
         if (shared) existing!.ReplaceWith(resource);
-        else if (existing is not null) existing.AddAfterSelf(resource); // retain resource ancestry and xml:base
+        else if (existing is not null)
+        {
+            // Retain inherited resource presentation/xml:base without shifting sibling
+            // indices used to restore anonymous selected artwork after ReplaceSvg.
+            existing.Parent!.Add(resource);
+        }
         else
         {
             var definitions = tree.Root!.Elements(SvgFilterCatalog.Namespace + "defs").FirstOrDefault();
             if (definitions is null)
             {
                 definitions = new XElement(SvgFilterCatalog.Namespace + "defs");
-                tree.Root.Add(definitions); // append: unnamed selection paths must remain stable
+                tree.Root.Add(definitions);
             }
             definitions.Add(resource);
         }
@@ -174,8 +165,6 @@ public sealed partial class SvgEditorController
     private static void SetEffectReference(XElement element, string property, string value)
     {
         element.SetAttributeValue(property, value);
-        // Explicit editor choices override an imported stylesheet, while all unrelated
-        // declarations (including data URLs with semicolons) remain intact.
         element.SetAttributeValue("style", SvgInlineStyleService.SetProperty((string?)element.Attribute("style"), property, value, true));
     }
 }
