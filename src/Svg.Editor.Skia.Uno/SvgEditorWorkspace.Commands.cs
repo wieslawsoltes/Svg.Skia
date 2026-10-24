@@ -84,7 +84,7 @@ public sealed partial class SvgEditorWorkspace
         Add("subtract", "Subtract", "Path", () => Controller?.ApplyBoolean(SKPathOp.Difference));
         Add("intersect", "Intersect", "Path", () => Controller?.ApplyBoolean(SKPathOp.Intersect));
         Add("exclude", "Exclude", "Path", () => Controller?.ApplyBoolean(SKPathOp.Xor));
-        Add("divide", "Divide", "Path", () => Controller?.DivideSelection());
+        AddAsync("divide", "Divide…", "Path", DivideSelectionAsync);
         Add("convertpath", "Convert to paths", "Path", () => Controller?.ConvertSelectionToPaths());
         Add("simplify", "Simplify path", "Path", () => Controller?.SimplifySelection());
         AddAsync("offset", "Offset path…", "Path", OffsetPathAsync);
@@ -134,13 +134,16 @@ public sealed partial class SvgEditorWorkspace
         Add("bakeframe", "Bake current animation frame", "Object", BakeAnimationFrame);
         Add("theme", "Switch theme", "View", () =>
         {
-            RequestedTheme = ActualTheme == ElementTheme.Dark ? ElementTheme.Light : ElementTheme.Dark;
+            RequestedTheme = ActualTheme == ElementTheme.Dark ? ElementTheme.Light : ElementTheme.Light;
             Canvas.IsDarkTheme = RequestedTheme == ElementTheme.Dark;
         });
         Add("zen", "Focus canvas", "View", () => { _zenMode = !_zenMode; UpdateResponsiveLayout(); }, "Tab");
         AddAsync("commands", "Search commands…", "View", ShowCommandsAsync, "Ctrl+K");
         AddAsync("help", "Keyboard shortcuts…", "View", ShowHelpAsync, "F1");
+        BuildProductCommands();
     }
+
+    partial void BuildProductCommands();
 
     private string? _pendingCompactMenuCommand;
 
@@ -283,7 +286,7 @@ public sealed partial class SvgEditorWorkspace
                 VirtualKey.P => "print",
                 VirtualKey.K => "commands",
                 VirtualKey.Z when !editingText => shift ? "redo" : "undo",
-                VirtualKey.Y when !editingText => "redo",
+                VirtualKey.Y when !editingText => "redo" : "redo",
                 VirtualKey.A when !editingText => "selectall",
                 VirtualKey.C when !editingText => "copy",
                 VirtualKey.X when !editingText => "cut",
