@@ -37,6 +37,7 @@ public sealed class SvgWorkspaceLayout
 {
     public static IReadOnlyList<string> PanelIds { get; } = Array.AsReadOnly(new[]
     { "properties", "transform", "appearance", "stroke", "align", "geometry", "layers", "resources", "typography", "effects", "attributes" });
+    private static readonly SvgPanelDock[] DockGroups = { SvgPanelDock.Left, SvgPanelDock.RightTop, SvgPanelDock.RightBottom, SvgPanelDock.Bottom };
     private readonly List<SvgWorkspacePanelPlacement> _panels = new();
     private readonly Dictionary<SvgPanelDock, string> _active = new();
     public IReadOnlyList<SvgWorkspacePanelPlacement> Panels => _panels.AsReadOnly();
@@ -49,7 +50,6 @@ public sealed class SvgWorkspaceLayout
     public bool PanelsHidden { get; set; }
 
     public SvgWorkspaceLayout() => Reset(SvgWorkspacePreset.Essentials);
-
     public void Reset(SvgWorkspacePreset preset)
     {
         if (!Enum.IsDefined(typeof(SvgWorkspacePreset), preset)) throw new ArgumentOutOfRangeException(nameof(preset));
@@ -77,10 +77,8 @@ public sealed class SvgWorkspaceLayout
             _active[SvgPanelDock.RightBottom] = "resources";
         }
     }
-
     public SvgWorkspacePanelPlacement Find(string id)
         => _panels.FirstOrDefault(panel => panel.Id == id) ?? throw new ArgumentException("Unknown workspace panel.", nameof(id));
-
     public void Move(string id, SvgPanelDock destination, int index = int.MaxValue)
     {
         if (!Enum.IsDefined(typeof(SvgPanelDock), destination)) throw new ArgumentOutOfRangeException(nameof(destination));
@@ -92,23 +90,20 @@ public sealed class SvgWorkspaceLayout
         panel.Dock = destination;
         if (insertion < siblings.Length) _panels.Insert(_panels.IndexOf(siblings[insertion]), panel);
         else _panels.Add(panel);
-        _active[destination] = id;
+        if (DockGroups.Contains(destination)) _active[destination] = id;
         if (previous != destination && _active.TryGetValue(previous, out var active) && active == id) _active.Remove(previous);
     }
-
     public string? Active(SvgPanelDock dock)
     {
         if (_active.TryGetValue(dock, out var id) && _panels.Any(panel => panel.Dock == dock && panel.Id == id)) return id;
         return _panels.FirstOrDefault(panel => panel.Dock == dock)?.Id;
     }
-
     public void Activate(string id)
     {
         var panel = Find(id);
         if (panel.Dock == SvgPanelDock.Hidden) Move(id, SvgPanelDock.RightTop);
-        _active[panel.Dock] = id;
+        if (DockGroups.Contains(panel.Dock)) _active[panel.Dock] = id;
     }
-
     public void Resize(SvgPanelDock dock, double extent)
     {
         if (!Finite(extent)) throw new ArgumentOutOfRangeException(nameof(extent));
@@ -120,26 +115,21 @@ public sealed class SvgWorkspaceLayout
             default: throw new ArgumentException("Resize a docked group.", nameof(dock));
         }
     }
-
     public void SetRightSplit(double ratio)
     {
         if (!Finite(ratio)) throw new ArgumentOutOfRangeException(nameof(ratio));
         RightTopRatio = Clamp(ratio, 0.25, 0.8);
     }
-
     public void SetFloatingBounds(string id, double x, double y, double width, double height, double viewportWidth, double viewportHeight)
     {
-        if (new[] { x, y, width, height, viewportWidth, viewportHeight }.Any(value => !Finite(value)))
-            throw new ArgumentOutOfRangeException(nameof(width));
+        if (new[] { x, y, width, height, viewportWidth, viewportHeight }.Any(value => !Finite(value))) throw new ArgumentOutOfRangeException(nameof(width));
         var panel = Find(id);
-        var availableWidth = Math.Max(1, viewportWidth);
-        var availableHeight = Math.Max(1, viewportHeight);
+        var availableWidth = Math.Max(1, viewportWidth); var availableHeight = Math.Max(1, viewportHeight);
         panel.Width = Math.Min(availableWidth, Clamp(width, 240, 800));
         panel.Height = Math.Min(availableHeight, Clamp(height, 160, 1000));
         panel.X = Clamp(x, 0, Math.Max(0, availableWidth - panel.Width));
         panel.Y = Clamp(y, 0, Math.Max(0, availableHeight - panel.Height));
     }
-
     public SvgWorkspaceMetrics Measure(double width, double height, bool focusCanvas = false)
     {
         if (!Finite(width) || !Finite(height) || width < 0 || height < 0) throw new ArgumentOutOfRangeException(nameof(width));
@@ -152,7 +142,6 @@ public sealed class SvgWorkspaceLayout
             ? Math.Min(BottomHeight, height * 0.42) : 0;
         return new SvgWorkspaceMetrics(left, right, bottom, width < 1060);
     }
-
     public string Serialize()
     {
         var root = new XElement("workspace", new XAttribute("version", 1),
@@ -161,10 +150,12 @@ public sealed class SvgWorkspaceLayout
         foreach (var panel in _panels)
             root.Add(new XElement("panel", new XAttribute("id", panel.Id), new XAttribute("dock", panel.Dock),
                 new XAttribute("x", panel.X), new XAttribute("y", panel.Y), new XAttribute("width", panel.Width), new XAttribute("height", panel.Height)));
-        foreach (var pair in _active) root.Add(new XElement("active", new XAttribute("dock", pair.Key), new XAttribute("id", pair.Value)));
+        // Persist effective selection in deterministic group order, including fallback
+        // selection. Hidden/floating panels do not share a single active tab.
+        foreach (var dock in DockGroups)
+            if (Active(dock) is { } id) root.Add(new XElement("active", new XAttribute("dock", dock), new XAttribute("id", id)));
         return root.ToString(SaveOptions.DisableFormatting);
     }
-
     public static SvgWorkspaceLayout Parse(string? xml)
     {
         var result = new SvgWorkspaceLayout();
@@ -176,12 +167,9 @@ public sealed class SvgWorkspaceLayout
         if (root.Name != "workspace" || (string?)root.Attribute("version") != "1") return result;
         double Read(XElement element, string name, double fallback)
             => double.TryParse((string?)element.Attribute(name), NumberStyles.Float, CultureInfo.InvariantCulture, out var value) && Finite(value) ? value : fallback;
-        result.Resize(SvgPanelDock.Left, Read(root, "left", 248));
-        result.Resize(SvgPanelDock.RightTop, Read(root, "right", 312));
-        result.Resize(SvgPanelDock.Bottom, Read(root, "bottom", 220));
-        result.SetRightSplit(Read(root, "split", 0.60));
-        result.TouchDensity = (string?)root.Attribute("touch") == "true";
-        result.ShowRulers = (string?)root.Attribute("rulers") != "false";
+        result.Resize(SvgPanelDock.Left, Read(root, "left", 248)); result.Resize(SvgPanelDock.RightTop, Read(root, "right", 312));
+        result.Resize(SvgPanelDock.Bottom, Read(root, "bottom", 220)); result.SetRightSplit(Read(root, "split", 0.60));
+        result.TouchDensity = (string?)root.Attribute("touch") == "true"; result.ShowRulers = (string?)root.Attribute("rulers") != "false";
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var item in root.Elements("panel"))
         {
@@ -191,15 +179,15 @@ public sealed class SvgWorkspaceLayout
             result.Move(id, dock);
             result.SetFloatingBounds(id, Read(item, "x", 120), Read(item, "y", 100), Read(item, "width", 320), Read(item, "height", 440), 16384, 16384);
         }
+        result._active.Clear();
         foreach (var active in root.Elements("active"))
         {
             var id = (string?)active.Attribute("id") ?? string.Empty;
-            if (PanelIds.Contains(id) && Enum.TryParse((string?)active.Attribute("dock"), out SvgPanelDock dock) && result.Find(id).Dock == dock)
-                result._active[dock] = id;
+            if (PanelIds.Contains(id) && Enum.TryParse((string?)active.Attribute("dock"), out SvgPanelDock dock)
+                && DockGroups.Contains(dock) && result.Find(id).Dock == dock) result._active[dock] = id;
         }
         return result;
     }
-
     private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
     private static double Clamp(double value, double min, double max) => Math.Max(min, Math.Min(max, value));
 }
