@@ -85,6 +85,7 @@ public sealed class SvgFilterGraph
 
     public void RenameResult(int index, string name)
     {
+        if (name is null) throw new ArgumentNullException(nameof(name));
         name = name.Trim();
         if (name.Length == 0 || name.Any(char.IsWhiteSpace) || SvgFilterCatalog.Sources.Contains(name))
             throw new ArgumentException("Choose a nonempty result name that is not a standard input.", nameof(name));
@@ -104,10 +105,9 @@ public sealed class SvgFilterGraph
         var draft = new XElement(_root);
         FreezeConnections(draft);
         var source = At(draft, index);
-        var copy = new XElement(source);
-        // XML IDs are document-wide, unlike result names. Do not duplicate IDs on
-        // nested lights, transfer functions, metadata or animation elements.
-        foreach (var element in copy.DescendantsAndSelf()) element.Attribute("id")?.Remove();
+        // XML IDs and result labels have different scopes. Keep XML identity usable
+        // for animation/href references while reserving new IDs against the whole draft.
+        var copy = SvgXmlIdRemapper.Clone(source, draft.DescendantsAndSelf().Attributes("id").Select(id => id.Value));
         copy.SetAttributeValue("result", NextResult(draft));
         source.AddAfterSelf(copy);
         CheckLimits(draft);
@@ -141,8 +141,6 @@ public sealed class SvgFilterGraph
         var consumers = connections.Where(edge => edge.Source == index).ToArray();
         if (consumers.Length > 0 && !bypass)
             throw new InvalidOperationException("Other primitives use this result. Choose Bypass and remove or reconnect them first.");
-        // Bypass follows the first input, not merely the previous sibling. Generators
-        // without an input bypass to SourceGraphic by explicit authoring convention.
         var replacement = connections.FirstOrDefault(edge => edge.Target == index)?.Value ?? "SourceGraphic";
         foreach (var edge in consumers)
             PortElement(nodes[edge.Target], edge.Child).SetAttributeValue(edge.Port, replacement);
@@ -171,6 +169,8 @@ public sealed class SvgFilterGraph
     {
         var errors = new List<string>();
         try { CheckLimits(_root); } catch (ArgumentException exception) { errors.Add(exception.Message); }
+        foreach (var duplicate in _root.DescendantsAndSelf().Attributes("id").GroupBy(id => id.Value).Where(group => group.Count() > 1))
+            errors.Add($"The filter contains a duplicate XML ID: '{duplicate.Key}'.");
         foreach (var edge in Connections.Where(edge => edge.Source == -2))
             errors.Add($"Primitive {edge.Target + 1}: '{edge.Value}' is not a preceding result or standard input.");
         foreach (var node in PrimitiveElements(_root))
@@ -179,19 +179,21 @@ public sealed class SvgFilterGraph
                 errors.Add($"{node.Name.LocalName}: a result cannot shadow a standard input.");
             foreach (var element in node.DescendantsAndSelf().Where(e => e.Name.Namespace == SvgFilterCatalog.Namespace))
             {
-                foreach (var name in NumericFields)
+                var supported = SvgFilterCatalog.Attributes(element.Name.LocalName);
+                // Animation 'values' and metadata attributes are not filter-number lists.
+                // Preserve their original semantics rather than validating by name alone.
+                if (supported.Count == 0) continue;
+                foreach (var name in NumericFields.Where(supported.Contains))
                 {
                     if (element.Attribute(name) is not { } attribute) continue;
-                    var parts = attribute.Value.Split(new[] { ' ', ',', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length == 0 || parts.Any(part => !double.TryParse(part, NumberStyles.Float, CultureInfo.InvariantCulture, out var number)
-                        || double.IsNaN(number) || double.IsInfinity(number)))
+                    if (Numbers(attribute.Value) is not { Length: > 0 })
                         errors.Add($"{element.Name.LocalName}: {name} requires finite numbers.");
                 }
-                foreach (var name in new[] { "stdDeviation", "radius", "baseFrequency", "kernelUnitLength" })
+                foreach (var name in new[] { "stdDeviation", "radius", "baseFrequency", "kernelUnitLength" }.Where(supported.Contains))
                     if (element.Attribute(name) is { } attribute && Numbers(attribute.Value) is { } numbers
                         && (numbers.Length is < 1 or > 2 || numbers.Any(n => n < 0)))
                         errors.Add($"{element.Name.LocalName}: {name} requires one or two nonnegative numbers.");
-                if (element.Attribute("numOctaves") is { } octaves &&
+                if (element.Name.LocalName == "feTurbulence" && element.Attribute("numOctaves") is { } octaves &&
                     (!int.TryParse(octaves.Value, out var count) || count < 1 || count > 16))
                     errors.Add("Turbulence authoring supports 1–16 octaves.");
                 if (element.Name.LocalName == "feConvolveMatrix")
