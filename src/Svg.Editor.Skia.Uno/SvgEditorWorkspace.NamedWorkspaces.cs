@@ -10,6 +10,7 @@ namespace Svg.Editor.Skia.Uno;
 
 public sealed partial class SvgEditorWorkspace
 {
+    private const string NamedWorkspaceIdentityKey = "UnoDraw.Studio.ActiveWorkspace.v1";
     private static readonly SemaphoreSlim NamedWorkspaceStorageGate = new(1, 1);
     private SvgWorkspaceLibrary _namedWorkspaces = new();
     private Task? _namedWorkspacesLoad;
@@ -48,7 +49,6 @@ public sealed partial class SvgEditorWorkspace
         WorkspacePresetPicker.ContextFlyout = menu;
         ToolTipService.SetToolTip(WorkspacePresetPicker, "Switch workspaces. Right-click for save, manage and portable library commands.");
     }
-
     private async Task EnsureNamedWorkspacesAsync()
     {
         if (_namedWorkspacesLoaded) return;
@@ -65,6 +65,11 @@ public sealed partial class SvgEditorWorkspace
             var xml = await ReadWorkspaceLibraryFileAsync(NamedWorkspacePath);
             var library = xml is null ? new SvgWorkspaceLibrary() : SvgWorkspaceLibrary.Parse(xml);
             if (_disposed) return;
+            if (!_namedWorkspacesLoaded)
+            {
+                try { _activeNamedWorkspaceId = ApplicationData.Current.LocalSettings.Values[NamedWorkspaceIdentityKey] as string; }
+                catch (Exception) { _activeNamedWorkspaceId = null; }
+            }
             _namedWorkspaces = library; _namedWorkspacesDiskSource = xml; _namedWorkspacesLoaded = true;
             SynchronizeNamedWorkspacePicker();
         }
@@ -79,9 +84,7 @@ public sealed partial class SvgEditorWorkspace
     private static async Task<string> ReadBoundedWorkspaceXmlAsync(Stream stream)
     {
         using var reader = new StreamReader(stream, Encoding.UTF8, true, 4096, leaveOpen: true);
-        var output = new StringBuilder();
-        var buffer = new char[4096];
-        int count;
+        var output = new StringBuilder(); var buffer = new char[4096]; int count;
         while ((count = await reader.ReadAsync(buffer, 0, buffer.Length)) != 0)
         {
             if (output.Length + count > SvgWorkspaceLibrary.MaximumCharacters)
@@ -90,7 +93,7 @@ public sealed partial class SvgEditorWorkspace
         }
         return output.ToString();
     }
-    private async Task PersistNamedWorkspacesAsync(SvgWorkspaceLibrary library)
+    private async Task PersistNamedWorkspacesAsync(SvgWorkspaceLibrary library, SvgWorkspaceLibrary expected)
     {
         var xml = library.Serialize();
         await NamedWorkspaceStorageGate.WaitAsync();
@@ -98,6 +101,8 @@ public sealed partial class SvgEditorWorkspace
         try
         {
             if (_disposed) throw new ObjectDisposedException(nameof(SvgEditorWorkspace));
+            if (!ReferenceEquals(expected, _namedWorkspaces))
+                throw new InvalidOperationException("The library changed while this edit was open. Cancel and reopen its manager before retrying.");
             var current = await ReadWorkspaceLibraryFileAsync(NamedWorkspacePath);
             if (!string.Equals(current, _namedWorkspacesDiskSource, StringComparison.Ordinal))
                 throw new InvalidOperationException("The workspace library changed in another window or process. Cancel, reopen Manage saved workspaces, and retry; the newer file has not been overwritten.");
@@ -105,8 +110,8 @@ public sealed partial class SvgEditorWorkspace
             temporary = NamedWorkspacePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
             await File.WriteAllTextAsync(temporary, xml, new UTF8Encoding(false));
             if (_disposed) throw new ObjectDisposedException(nameof(SvgEditorWorkspace));
-            // Recheck immediately before replacement. The in-process gate serializes
-            // workspace windows; this is optimistic conflict detection, not a process lock.
+            // This gate serializes windows in this process. The file check is optimistic
+            // conflict detection, not a cross-process transactional filesystem lock.
             if (!string.Equals(await ReadWorkspaceLibraryFileAsync(NamedWorkspacePath), current, StringComparison.Ordinal))
                 throw new InvalidOperationException("The workspace library changed during saving. Reopen its manager before retrying.");
             File.Move(temporary, NamedWorkspacePath, overwrite: true); temporary = null;
@@ -116,15 +121,17 @@ public sealed partial class SvgEditorWorkspace
         }
         finally
         {
-            if (temporary is not null) { try { File.Delete(temporary); } catch (IOException) { } }
-            NamedWorkspaceStorageGate.Release();
+            try
+            {
+                if (temporary is not null) File.Delete(temporary);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { }
+            finally { NamedWorkspaceStorageGate.Release(); }
         }
     }
     private async Task ReloadNamedWorkspacesAsync()
     {
         await EnsureNamedWorkspacesAsync();
-        // Explicit management/import/export reads the disk again, so edits from another
-        // window are adopted before a new transaction is captured.
         await LoadNamedWorkspacesAsync();
     }
 
@@ -136,7 +143,6 @@ public sealed partial class SvgEditorWorkspace
         {
             var xml = _studioLayout.Serialize();
             var active = _activeNamedWorkspaceId is { } id ? _namedWorkspaces.Find(id) : null;
-            active ??= _namedWorkspaces.Entries.FirstOrDefault(entry => entry.LayoutXml == xml);
             var choices = Enum.GetValues<SvgWorkspacePreset>().Select(preset => new WorkspaceChoice(preset.ToString(), preset)).ToList();
             choices.AddRange(_namedWorkspaces.Entries.Select(entry => new WorkspaceChoice(
                 entry.Name + (entry.Id == active?.Id && entry.LayoutXml != xml ? " *" : string.Empty), Id: entry.Id)));
@@ -149,12 +155,20 @@ public sealed partial class SvgEditorWorkspace
                         .SequenceEqual(candidate.Panels.Where(panel => panel.Dock == dock).Select(panel => panel.Id))))
                     { selected = choice; break; }
                 }
-            _activeNamedWorkspaceId = active?.Id;
-            // Do not disturb an open dropdown on routine controller notifications.
+            if (_namedWorkspacesLoaded) _activeNamedWorkspaceId = active?.Id;
             var current = WorkspacePresetPicker.ItemsSource as IReadOnlyList<WorkspaceChoice>;
-            if (current is null || !current.SequenceEqual(choices)) WorkspacePresetPicker.ItemsSource = choices;
-            WorkspacePresetPicker.SelectedItem = selected;
+            if (current is null || !current.SequenceEqual(choices))
+            {
+                WorkspacePresetPicker.ItemsSource = choices;
+                current = choices;
+            }
+            WorkspacePresetPicker.SelectedItem = current.FirstOrDefault(choice => choice == selected);
             WorkspacePresetPicker.PlaceholderText = "Custom workspace";
+            if (_namedWorkspacesLoaded)
+            {
+                try { ApplicationData.Current.LocalSettings.Values[NamedWorkspaceIdentityKey] = _activeNamedWorkspaceId ?? string.Empty; }
+                catch (Exception exception) { StatusText.Text = "Workspace identity could not be saved: " + exception.Message; }
+            }
         }
         finally { _syncingStudioPreset = false; }
     }
@@ -171,8 +185,7 @@ public sealed partial class SvgEditorWorkspace
     }
     private void ApplyNamedWorkspace(SvgNamedWorkspace entry)
     {
-        CommitInspectorEdits();
-        _activeNamedWorkspaceId = entry.Id; _zenMode = false;
+        CommitInspectorEdits(); _activeNamedWorkspaceId = entry.Id; _zenMode = false;
         RestoreWorkspaceLayout(entry.LayoutXml);
         StatusText.Text = "Workspace restored: " + entry.Name;
     }
@@ -180,6 +193,7 @@ public sealed partial class SvgEditorWorkspace
     private async Task SaveNamedWorkspaceAsync()
     {
         await ReloadNamedWorkspacesAsync();
+        var expected = _namedWorkspaces;
         var name = new TextBox { Header = "Workspace name", MaxLength = SvgWorkspaceLibrary.MaximumNameLength, PlaceholderText = "My drawing desk" };
         AutomationProperties.SetAutomationId(name, "StudioWorkspaceName");
         var error = StudioHint(string.Empty);
@@ -192,24 +206,22 @@ public sealed partial class SvgEditorWorkspace
         dialog.Closing += (_, args) => { if (saving) args.Cancel = true; };
         dialog.PrimaryButtonClick += async (_, args) =>
         {
-            var deferral = args.GetDeferral(); saving = true; dialog.IsPrimaryButtonEnabled = false;
+            var deferral = args.GetDeferral(); saving = true; dialog.IsPrimaryButtonEnabled = false; panel.IsEnabled = false;
             try
             {
-                var candidate = _namedWorkspaces.Add(name.Text, _studioLayout);
-                await PersistNamedWorkspacesAsync(candidate);
-                _activeNamedWorkspaceId = candidate.Entries.Last().Id;
-                SynchronizeNamedWorkspacePicker();
+                var candidate = expected.Add(name.Text, _studioLayout);
+                await PersistNamedWorkspacesAsync(candidate, expected);
+                _activeNamedWorkspaceId = candidate.Entries.Last().Id; SynchronizeNamedWorkspacePicker();
             }
             catch (Exception exception) { args.Cancel = true; error.Text = exception.Message; }
-            finally { saving = false; dialog.IsPrimaryButtonEnabled = true; deferral.Complete(); }
+            finally { saving = false; panel.IsEnabled = true; dialog.IsPrimaryButtonEnabled = true; deferral.Complete(); }
         };
         await ShowDialogAsync(dialog);
     }
-
     private async Task ManageNamedWorkspacesAsync()
     {
         await ReloadNamedWorkspacesAsync();
-        var draft = _namedWorkspaces;
+        var expected = _namedWorkspaces; var draft = expected;
         var list = new ListView { ItemsSource = draft.Entries, SelectionMode = ListViewSelectionMode.Single, MaxHeight = 260 };
         var name = new TextBox { Header = "Name", MaxLength = SvgWorkspaceLibrary.MaximumNameLength };
         var restore = new CheckBox { Content = "Restore the selected snapshot after saving" };
@@ -234,8 +246,10 @@ public sealed partial class SvgEditorWorkspace
             {
                 try
                 {
-                    var selected = list.SelectedItem as SvgNamedWorkspace;
-                    draft = change(draft, selected); Refresh(selected?.Id); error.Text = string.Empty;
+                    var selected = list.SelectedItem as SvgNamedWorkspace; var count = draft.Entries.Count;
+                    draft = change(draft, selected);
+                    Refresh(draft.Entries.Count > count ? draft.Entries.Last().Id : selected?.Id);
+                    error.Text = string.Empty;
                 }
                 catch (Exception exception) { error.Text = exception.Message; }
             };
@@ -257,7 +271,7 @@ public sealed partial class SvgEditorWorkspace
             {
                 var selected = list.SelectedItem as SvgNamedWorkspace;
                 if (restore.IsChecked == true && selected is null) throw new InvalidOperationException("Choose a saved workspace to restore.");
-                await PersistNamedWorkspacesAsync(draft);
+                await PersistNamedWorkspacesAsync(draft, expected);
                 if (restore.IsChecked == true) ApplyNamedWorkspace(selected!);
             }
             catch (Exception exception) { args.Cancel = true; error.Text = exception.Message; }
@@ -265,24 +279,22 @@ public sealed partial class SvgEditorWorkspace
         };
         await ShowDialogAsync(dialog);
     }
-
     private async Task ImportNamedWorkspacesAsync()
     {
-        await ReloadNamedWorkspacesAsync();
+        await ReloadNamedWorkspacesAsync(); var expected = _namedWorkspaces;
         var picker = new FileOpenPicker(); picker.FileTypeFilter.Add(".unoworkspaces"); picker.FileTypeFilter.Add(".xml"); InitializePicker(picker);
         var file = await picker.PickSingleFileAsync(); if (file is null || _disposed) return;
         using var input = await file.OpenStreamForReadAsync();
-        var candidate = _namedWorkspaces.Import(await ReadBoundedWorkspaceXmlAsync(input));
-        var count = candidate.Entries.Count - _namedWorkspaces.Entries.Count;
+        var candidate = expected.Import(await ReadBoundedWorkspaceXmlAsync(input));
+        var count = candidate.Entries.Count - expected.Entries.Count;
         var dialog = MakeDialog("Import workspaces", StudioHint($"Add {count} workspace snapshot(s)? Existing snapshots are preserved. Conflicting names receive a numeric suffix."), "Import");
         if (await ShowDialogAsync(dialog) != ContentDialogResult.Primary) return;
-        await PersistNamedWorkspacesAsync(candidate);
+        await PersistNamedWorkspacesAsync(candidate, expected);
         StatusText.Text = $"Imported {count} named workspaces.";
     }
     private async Task ExportNamedWorkspacesAsync()
     {
-        await ReloadNamedWorkspacesAsync();
-        var xml = _namedWorkspaces.Serialize();
+        await ReloadNamedWorkspacesAsync(); var xml = _namedWorkspaces.Serialize();
         var picker = new FileSavePicker { SuggestedFileName = "UnoDraw-workspaces", DefaultFileExtension = ".unoworkspaces" };
         picker.FileTypeChoices.Add("UnoDraw workspace library", new List<string> { ".unoworkspaces" }); InitializePicker(picker);
         if (await picker.PickSaveFileAsync() is { } file) await WriteFileAsync(file, Encoding.UTF8.GetBytes(xml));
