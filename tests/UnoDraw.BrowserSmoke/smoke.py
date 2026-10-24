@@ -114,6 +114,7 @@ def main() -> int:
     try:
         with serve(site) as url, sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True, args=["--enable-unsafe-swiftshader"])
+            report["browser_version"] = browser.version
             context = browser.new_context(viewport={"width": 1440, "height": 960}, device_scale_factor=1)
             context.tracing.start(screenshots=True, snapshots=True, sources=False)
             page = context.new_page()
@@ -175,6 +176,7 @@ def main() -> int:
                 context.close()
                 browser.close()
     except Exception as error:
+        report["passed"] = False
         report["failure"] = f"{type(error).__name__}: {error}"
     finally:
         report["duration_seconds"] = time.time() - report["started_unix"]
