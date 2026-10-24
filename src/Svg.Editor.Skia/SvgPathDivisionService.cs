@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using SK = SkiaSharp;
 
 namespace Svg.Editor.Skia;
@@ -9,157 +11,173 @@ namespace Svg.Editor.Skia;
 public sealed class SvgPathDivisionPiece
 {
     internal SvgPathDivisionPiece(int sourceIndex, SK.SKPath geometry)
-    {
-        SourceIndex = sourceIndex;
-        Geometry = geometry;
-    }
-
+    { SourceIndex = sourceIndex; Geometry = geometry; }
     /// <summary>The highest (frontmost) input index covering this cell.</summary>
     public int SourceIndex { get; }
-
-    /// <summary>
-    /// Vector geometry in the input coordinate space. The result owns this path;
-    /// copy it before retaining it beyond the result's lifetime.
-    /// Disconnected contours and their holes remain a compound path.
-    /// </summary>
+    /// <summary>Owned by the result. Copy before retaining beyond the result's lifetime.</summary>
     public SK.SKPath Geometry { get; }
+}
+
+public readonly struct SvgPathDivisionProgress
+{
+    internal SvgPathDivisionProgress(int completed, int total, int pieces)
+    { OperandsCompleted = completed; OperandCount = total; PieceCount = pieces; }
+    public int OperandsCompleted { get; }
+    public int OperandCount { get; }
+    public int PieceCount { get; }
 }
 
 /// <summary>Owns all native paths produced by a successful division.</summary>
 public sealed class SvgPathDivisionResult : IDisposable
 {
     private bool _disposed;
-
-    internal SvgPathDivisionResult(List<SvgPathDivisionPiece> pieces)
-        => Pieces = pieces.AsReadOnly();
-
+    internal SvgPathDivisionResult(List<SvgPathDivisionPiece> pieces) => Pieces = pieces.AsReadOnly();
     public IReadOnlyList<SvgPathDivisionPiece> Pieces { get; }
-
     public void Dispose()
     {
-        if (_disposed)
-            return;
+        if (_disposed) return;
         _disposed = true;
-        foreach (var piece in Pieces)
-            piece.Geometry.Dispose();
+        foreach (var piece in Pieces) piece.Geometry.Dispose();
     }
 }
 
 /// <summary>
-/// Partitions filled paths into non-overlapping vector cells without flattening curves.
-/// Inputs must share a coordinate space and be ordered back to front. Their SVG fill
-/// rules must already be represented by SKPath.FillType. Inputs are never mutated.
+/// Partitions filled paths in a common coordinate space, ordered back to front.
+/// Inputs are borrowed, never mutated, and must remain alive and unchanged until completion.
+/// Native operations retain curves. Disconnected contours remain compound paths.
 /// </summary>
 public static class SvgPathDivisionService
 {
     public const int DefaultMaximumPieces = 4096;
     public const int MaximumOperands = 128;
 
-    /// <summary>
-    /// Creates an arrangement of all input outlines. A cell uses the frontmost input's
-    /// source index. Cancellation is checked between native path operations; a running
-    /// native operation cannot be interrupted. Piece limits bound arrangement growth,
-    /// not the complexity of an individual input path.
-    /// </summary>
-    public static SvgPathDivisionResult Divide(
-        IReadOnlyList<SK.SKPath> paths,
-        int maximumPieces = DefaultMaximumPieces,
-        CancellationToken cancellationToken = default)
+    public static SvgPathDivisionResult Divide(IReadOnlyList<SK.SKPath> paths,
+        int maximumPieces = DefaultMaximumPieces, CancellationToken cancellationToken = default)
     {
-        if (paths is null)
-            throw new ArgumentNullException(nameof(paths));
-        if (maximumPieces < 1)
-            throw new ArgumentOutOfRangeException(nameof(maximumPieces));
+        SvgPathDivisionResult? result = null;
+        foreach (var _ in Steps(paths, maximumPieces, cancellationToken, pieces => result = new SvgPathDivisionResult(pieces))) { }
+        return result!;
+    }
+
+    /// <summary>
+    /// Executes the same engine in bounded cooperative slices. A real timer yield allows
+    /// a single-threaded browser host to process input; desktop callers may run this on a
+    /// worker. Cancellation cannot interrupt one native Skia operation, but is checked
+    /// between cells and operands. Progress reporting is throttled to slice boundaries.
+    /// </summary>
+    public static async Task<SvgPathDivisionResult> DivideAsync(IReadOnlyList<SK.SKPath> paths,
+        int maximumPieces = DefaultMaximumPieces, CancellationToken cancellationToken = default,
+        IProgress<SvgPathDivisionProgress>? progress = null)
+    {
+        SvgPathDivisionResult? result = null;
+        var slice = Stopwatch.StartNew();
+        var completed = -1;
+        foreach (var step in Steps(paths, maximumPieces, cancellationToken, pieces => result = new SvgPathDivisionResult(pieces)))
+        {
+            var yield = slice.ElapsedMilliseconds >= 8;
+            if (yield || completed != step.OperandsCompleted)
+            {
+                progress?.Report(step);
+                completed = step.OperandsCompleted;
+            }
+            if (yield)
+            {
+                await Task.Delay(1, cancellationToken).ConfigureAwait(false);
+                slice.Restart();
+            }
+        }
+        return result!;
+    }
+
+    // Iterator disposal unwinds every native temporary, including cancellation or a
+    // throwing progress consumer. Only the final callback transfers result ownership.
+    private static IEnumerable<SvgPathDivisionProgress> Steps(IReadOnlyList<SK.SKPath> paths,
+        int maximumPieces, CancellationToken token, Action<List<SvgPathDivisionPiece>> complete)
+    {
+        if (paths is null) throw new ArgumentNullException(nameof(paths));
+        if (maximumPieces < 1) throw new ArgumentOutOfRangeException(nameof(maximumPieces));
         if (paths.Count > MaximumOperands)
             throw new ArgumentException($"Divide supports at most {MaximumOperands} operands per operation.", nameof(paths));
-        cancellationToken.ThrowIfCancellationRequested();
+        token.ThrowIfCancellationRequested();
         foreach (var path in paths)
         {
-            if (path is null)
-                throw new ArgumentException("A division operand cannot be null.", nameof(paths));
+            token.ThrowIfCancellationRequested();
+            if (path is null) throw new ArgumentException("A division operand cannot be null.", nameof(paths));
             if (path.FillType is SK.SKPathFillType.InverseEvenOdd or SK.SKPathFillType.InverseWinding)
                 throw new ArgumentException("Unbounded inverse-filled paths cannot be divided.", nameof(paths));
             foreach (var point in path.Points)
                 if (!Finite(point.X) || !Finite(point.Y))
                     throw new ArgumentException("Division requires finite path coordinates.", nameof(paths));
         }
-
         var pieces = new List<SvgPathDivisionPiece>();
+        var transferred = false;
         try
         {
+            yield return new SvgPathDivisionProgress(0, paths.Count, 0);
             for (var sourceIndex = 0; sourceIndex < paths.Count; sourceIndex++)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                // Simplify normalizes self-intersections and zero-area contours while
-                // respecting winding/even-odd input. It does not polygonize curves.
+                token.ThrowIfCancellationRequested();
                 using var source = paths[sourceIndex].Simplify()
                     ?? throw new InvalidOperationException("A selected path could not be normalized.");
-                if (source.IsEmpty)
-                    continue;
-                SK.SKPath? uncovered = new SK.SKPath(source);
-                var next = new List<SvgPathDivisionPiece>();
-                try
+                if (!source.IsEmpty)
                 {
-                    foreach (var piece in pieces)
+                    SK.SKPath? uncovered = new SK.SKPath(source);
+                    var next = new List<SvgPathDivisionPiece>();
+                    var adopted = false;
+                    try
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        if (!Overlaps(piece.Geometry.Bounds, source.Bounds))
+                        foreach (var piece in pieces)
                         {
-                            AddOwned(next, piece.SourceIndex, new SK.SKPath(piece.Geometry), maximumPieces);
-                            continue;
+                            token.ThrowIfCancellationRequested();
+                            if (!Overlaps(piece.Geometry.Bounds, source.Bounds))
+                                AddOwned(next, piece.SourceIndex, new SK.SKPath(piece.Geometry), maximumPieces);
+                            else
+                            {
+                                using var intersection = Operate(piece.Geometry, source, SK.SKPathOp.Intersect);
+                                if (intersection.IsEmpty)
+                                    AddOwned(next, piece.SourceIndex, new SK.SKPath(piece.Geometry), maximumPieces);
+                                else
+                                {
+                                    token.ThrowIfCancellationRequested();
+                                    AddOwned(next, piece.SourceIndex, Operate(piece.Geometry, source, SK.SKPathOp.Difference), maximumPieces);
+                                    AddOwned(next, sourceIndex, new SK.SKPath(intersection), maximumPieces);
+                                    token.ThrowIfCancellationRequested();
+                                    var remaining = Operate(uncovered, piece.Geometry, SK.SKPathOp.Difference);
+                                    uncovered.Dispose(); uncovered = remaining;
+                                }
+                            }
+                            yield return new SvgPathDivisionProgress(sourceIndex, paths.Count, next.Count);
                         }
-                        using var intersection = Operate(piece.Geometry, source, SK.SKPathOp.Intersect);
-                        if (intersection.IsEmpty)
-                        {
-                            AddOwned(next, piece.SourceIndex, new SK.SKPath(piece.Geometry), maximumPieces);
-                            continue;
-                        }
-                        AddOwned(next, piece.SourceIndex,
-                            Operate(piece.Geometry, source, SK.SKPathOp.Difference), maximumPieces);
-                        AddOwned(next, sourceIndex, new SK.SKPath(intersection), maximumPieces);
-                        cancellationToken.ThrowIfCancellationRequested();
-                        var remaining = Operate(uncovered, piece.Geometry, SK.SKPathOp.Difference);
-                        uncovered.Dispose();
-                        uncovered = remaining;
+                        var tail = uncovered; uncovered = null;
+                        AddOwned(next, sourceIndex, tail, maximumPieces);
+                        DisposePieces(pieces);
+                        pieces = next;
+                        adopted = true;
                     }
-                    var tail = uncovered;
-                    uncovered = null;
-                    AddOwned(next, sourceIndex, tail, maximumPieces);
+                    finally
+                    {
+                        uncovered?.Dispose();
+                        if (!adopted) DisposePieces(next);
+                    }
                 }
-                catch
-                {
-                    DisposePieces(next);
-                    throw;
-                }
-                finally
-                {
-                    uncovered?.Dispose();
-                }
-                DisposePieces(pieces);
-                pieces = next;
+                yield return new SvgPathDivisionProgress(sourceIndex + 1, paths.Count, pieces.Count);
             }
-            cancellationToken.ThrowIfCancellationRequested();
-            return new SvgPathDivisionResult(pieces);
+            token.ThrowIfCancellationRequested();
+            complete(pieces);
+            transferred = true;
         }
-        catch
+        finally
         {
-            DisposePieces(pieces);
-            throw;
+            if (!transferred) DisposePieces(pieces);
         }
     }
 
     private static SK.SKPath Operate(SK.SKPath left, SK.SKPath right, SK.SKPathOp operation)
-        => left.Op(right, operation)
-            ?? throw new InvalidOperationException("The selected geometry could not be divided.");
+        => left.Op(right, operation) ?? throw new InvalidOperationException("The selected geometry could not be divided.");
 
-    // Ownership is consumed on every path, including a rejected or empty result.
     private static void AddOwned(List<SvgPathDivisionPiece> pieces, int sourceIndex, SK.SKPath path, int limit)
     {
-        if (path.IsEmpty)
-        {
-            path.Dispose();
-            return;
-        }
+        if (path.IsEmpty) { path.Dispose(); return; }
         if (pieces.Count >= limit)
         {
             path.Dispose();
@@ -171,18 +189,12 @@ public static class SvgPathDivisionService
             path.Dispose();
             throw new InvalidOperationException("Division produced coordinates outside the supported finite range.");
         }
-        pieces.Add(new SvgPathDivisionPiece(sourceIndex, path));
+        try { pieces.Add(new SvgPathDivisionPiece(sourceIndex, path)); }
+        catch { path.Dispose(); throw; }
     }
-
     private static bool Overlaps(SK.SKRect left, SK.SKRect right)
-        => left.Left < right.Right && right.Left < left.Right
-            && left.Top < right.Bottom && right.Top < left.Bottom;
-
+        => left.Left < right.Right && right.Left < left.Right && left.Top < right.Bottom && right.Top < left.Bottom;
     private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
-
     private static void DisposePieces(List<SvgPathDivisionPiece> pieces)
-    {
-        foreach (var piece in pieces)
-            piece.Geometry.Dispose();
-    }
+    { foreach (var piece in pieces) piece.Geometry.Dispose(); }
 }
