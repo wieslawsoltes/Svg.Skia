@@ -17,41 +17,87 @@ public sealed class StudioWrapPanel : Panel
     protected override Size MeasureOverride(Size availableSize)
     {
         var width = double.IsFinite(availableSize.Width) ? Math.Max(0, availableSize.Width) : double.MaxValue;
+        var spacing = double.IsFinite(Spacing) ? Math.Max(0, Spacing) : 0;
         var x = 0d; var y = 0d; var row = 0d; var measuredWidth = 0d;
         foreach (var child in Children.Where(child => child.Visibility == Visibility.Visible))
         {
             child.Measure(new Size(width, double.PositiveInfinity));
             var size = child.DesiredSize;
             var childWidth = Math.Min(size.Width, width);
-            if (x > 0 && x + childWidth > width) { measuredWidth = Math.Max(measuredWidth, x - Spacing); x = 0; y += row + Spacing; row = 0; }
-            x += childWidth + Spacing; row = Math.Max(row, size.Height);
+            if (x > 0 && x + childWidth > width) { measuredWidth = Math.Max(measuredWidth, x - spacing); x = 0; y += row + spacing; row = 0; }
+            x += childWidth + spacing; row = Math.Max(row, size.Height);
         }
-        return new Size(Math.Max(measuredWidth, Math.Max(0, x - Spacing)), y + row);
+        return new Size(Math.Max(measuredWidth, Math.Max(0, x - spacing)), y + row);
     }
     protected override Size ArrangeOverride(Size finalSize)
     {
+        var spacing = double.IsFinite(Spacing) ? Math.Max(0, Spacing) : 0;
         var x = 0d; var y = 0d; var row = 0d;
         foreach (var child in Children.Where(child => child.Visibility == Visibility.Visible))
         {
             var size = child.DesiredSize;
             var width = Math.Min(size.Width, Math.Max(0, finalSize.Width));
-            if (x > 0 && x + width > finalSize.Width) { x = 0; y += row + Spacing; row = 0; }
+            if (x > 0 && x + width > finalSize.Width) { x = 0; y += row + spacing; row = 0; }
             child.Arrange(new Rect(x, y, width, size.Height));
-            x += width + Spacing; row = Math.Max(row, size.Height);
+            x += width + spacing; row = Math.Max(row, size.Height);
         }
         return finalSize;
     }
 }
 
-/// <summary>Pointer and keyboard accessible grip. The host clamps and persists the requested size.</summary>
-public sealed class StudioSplitter : Thumb
+public sealed class StudioResizeEventArgs : EventArgs
 {
+    public StudioResizeEventArgs(double horizontal, double vertical) { HorizontalChange = horizontal; VerticalChange = vertical; }
+    public double HorizontalChange { get; }
+    public double VerticalChange { get; }
+}
+
+/// <summary>Retemplatable, pointer-capturing and keyboard-accessible resize grip.</summary>
+public sealed class StudioSplitter : Control
+{
+    private uint? _pointer;
+    private Point _last;
     public event EventHandler<double>? KeyboardResize;
+    public event EventHandler<StudioResizeEventArgs>? DragDelta;
+    public event EventHandler? DragCompleted;
     public StudioSplitter()
     {
-        DefaultStyleKey = typeof(StudioSplitter);
-        IsTabStop = true;
+        DefaultStyleKey = typeof(StudioSplitter); IsTabStop = true;
         AutomationProperties.SetName(this, "Resize panel. Use arrow keys to adjust.");
+    }
+    protected override void OnPointerPressed(PointerRoutedEventArgs args)
+    {
+        base.OnPointerPressed(args);
+        var point = args.GetCurrentPoint(XamlRoot?.Content ?? this);
+        if (_pointer is not null || !point.Properties.IsLeftButtonPressed || !CapturePointer(args.Pointer)) return;
+        _pointer = args.Pointer.PointerId; _last = point.Position;
+        Focus(FocusState.Pointer); VisualStateManager.GoToState(this, "Pressed", false); args.Handled = true;
+    }
+    protected override void OnPointerMoved(PointerRoutedEventArgs args)
+    {
+        base.OnPointerMoved(args);
+        if (_pointer != args.Pointer.PointerId) return;
+        // Window coordinates remain stable when the splitter moves with its resized dock.
+        var point = args.GetCurrentPoint(XamlRoot?.Content ?? this).Position;
+        var delta = new StudioResizeEventArgs(point.X - _last.X, point.Y - _last.Y);
+        _last = point; DragDelta?.Invoke(this, delta); args.Handled = true;
+    }
+    protected override void OnPointerReleased(PointerRoutedEventArgs args)
+    {
+        base.OnPointerReleased(args);
+        if (_pointer != args.Pointer.PointerId) return;
+        CompleteDrag(); ReleasePointerCapture(args.Pointer); args.Handled = true;
+    }
+    protected override void OnPointerCaptureLost(PointerRoutedEventArgs args) { base.OnPointerCaptureLost(args); CompleteDrag(); }
+    protected override void OnPointerCanceled(PointerRoutedEventArgs args) { base.OnPointerCanceled(args); CompleteDrag(); }
+    protected override void OnPointerEntered(PointerRoutedEventArgs args)
+    { base.OnPointerEntered(args); if (_pointer is null) VisualStateManager.GoToState(this, "PointerOver", false); }
+    protected override void OnPointerExited(PointerRoutedEventArgs args)
+    { base.OnPointerExited(args); if (_pointer is null) VisualStateManager.GoToState(this, "Normal", false); }
+    private void CompleteDrag()
+    {
+        if (_pointer is null) return;
+        _pointer = null; VisualStateManager.GoToState(this, "Normal", false); DragCompleted?.Invoke(this, EventArgs.Empty);
     }
     protected override void OnKeyDown(KeyRoutedEventArgs args)
     {
@@ -81,10 +127,7 @@ public sealed class StudioPanelItem
     public FrameworkElement Content { get; }
 }
 
-/// <summary>
-/// Retains live panel instances across tab switches. Drag/drop moves tabs between groups;
-/// the host owns placement and persistence. Templates can replace all chrome.
-/// </summary>
+/// <summary>Retains live panel instances across tab switches; the host owns placement and persistence.</summary>
 public sealed class StudioDockGroup : Control
 {
     public const string DragFormat = "application/x-unodraw-panel";
@@ -103,16 +146,16 @@ public sealed class StudioDockGroup : Control
     public string WorkspaceToken { get; set; } = string.Empty;
     public string? ActiveId => _activeId;
     public IReadOnlyList<StudioPanelItem> Items => _items.AsReadOnly();
+    /// <summary>Called before user-driven tab/collapse transitions. Return false to retain invalid input.</summary>
+    public Func<bool>? CanChangePanel { get; set; }
     public event EventHandler<string>? ActiveChanged;
     public event EventHandler<StudioDockRequestEventArgs>? DockRequested;
     public event EventHandler<Point>? HeaderDragged;
     public event EventHandler? HeaderDragCompleted;
     public StudioDockGroup()
     {
-        DefaultStyleKey = typeof(StudioDockGroup);
-        IsTabStop = false; AllowDrop = true;
-        DragOver += OnDragOver;
-        Drop += OnDrop;
+        DefaultStyleKey = typeof(StudioDockGroup); IsTabStop = false; AllowDrop = true;
+        DragOver += OnDragOver; Drop += OnDrop;
     }
     protected override void OnApplyTemplate()
     {
@@ -133,14 +176,15 @@ public sealed class StudioDockGroup : Control
     }
     public void SetItems(IEnumerable<StudioPanelItem> items, string? activeId)
     {
-        _contentHost?.Children.Clear();
-        _items.Clear(); _items.AddRange(items);
+        _contentHost?.Children.Clear(); _items.Clear(); _items.AddRange(items);
         _activeId = _items.Any(item => item.Id == activeId) ? activeId : _items.FirstOrDefault()?.Id;
+        _collapsed = false;
         Rebuild();
     }
     public void Activate(string id)
     {
         if (!_items.Any(item => item.Id == id)) return;
+        if (CanChangePanel?.Invoke() == false) { Sync(); return; }
         _activeId = id; _collapsed = false; Sync(); ActiveChanged?.Invoke(this, id);
     }
     private void Rebuild()
@@ -152,7 +196,11 @@ public sealed class StudioDockGroup : Control
             var tab = new ToggleButton { Content = item.Title, Tag = item.Id, MinHeight = 28, Padding = new Thickness(8, 3, 8, 3), FontSize = 11, CornerRadius = new CornerRadius(0), CanDrag = true };
             AutomationProperties.SetName(tab, item.Title + " panel");
             tab.Click += (_, _) => Activate(item.Id);
-            tab.DragStarting += (_, args) => { args.Data.SetData(DragFormat, WorkspaceToken + "|" + item.Id); args.Data.RequestedOperation = DataPackageOperation.Move; };
+            tab.DragStarting += (_, args) =>
+            {
+                if (CanChangePanel?.Invoke() == false) { args.Cancel = true; return; }
+                args.Data.SetData(DragFormat, WorkspaceToken + "|" + item.Id); args.Data.RequestedOperation = DataPackageOperation.Move;
+            };
             tab.ContextFlyout = CreateMenu(item.Id);
             _tabs[item.Id] = tab; _tabHost.Children.Add(tab); _contentHost.Children.Add(item.Content);
         }
@@ -175,31 +223,27 @@ public sealed class StudioDockGroup : Control
         void Add(string text, SvgPanelDock dock, int index = int.MaxValue)
         {
             var item = new MenuFlyoutItem { Text = text };
-            item.Click += (_, _) => DockRequested?.Invoke(this, new StudioDockRequestEventArgs(id, dock, index));
-            menu.Items.Add(item);
+            item.Click += (_, _) => DockRequested?.Invoke(this, new StudioDockRequestEventArgs(id, dock, index)); menu.Items.Add(item);
         }
         Add("Dock left", SvgPanelDock.Left); Add("Dock right · upper", SvgPanelDock.RightTop);
-        Add("Dock right · lower", SvgPanelDock.RightBottom); Add("Dock below canvas", SvgPanelDock.Bottom);
-        Add("Float in workspace", SvgPanelDock.Floating);
+        Add("Dock right · lower", SvgPanelDock.RightBottom); Add("Dock below canvas", SvgPanelDock.Bottom); Add("Float in workspace", SvgPanelDock.Floating);
         menu.Items.Add(new MenuFlyoutSeparator());
         var current = _items.FindIndex(item => item.Id == id);
         Add("Move tab left", Dock, Math.Max(0, current - 1)); Add("Move tab right", Dock, current + 1);
-        menu.Items.Add(new MenuFlyoutSeparator()); Add("Close panel", SvgPanelDock.Hidden);
-        return menu;
+        menu.Items.Add(new MenuFlyoutSeparator()); Add("Close panel", SvgPanelDock.Hidden); return menu;
     }
-    private void MenuClick(object sender, RoutedEventArgs args)
+    private void MenuClick(object sender, RoutedEventArgs args) { if (_activeId is { } id) CreateMenu(id).ShowAt((FrameworkElement)sender); }
+    private void CollapseClick(object sender, RoutedEventArgs args)
     {
-        if (_activeId is { } id) CreateMenu(id).ShowAt((FrameworkElement)sender);
+        if (CanChangePanel?.Invoke() == false) return;
+        _collapsed = !_collapsed; Sync();
     }
-    private void CollapseClick(object sender, RoutedEventArgs args) { _collapsed = !_collapsed; Sync(); }
     private void GripDelta(object sender, DragDeltaEventArgs args) => HeaderDragged?.Invoke(this, new Point(args.HorizontalChange, args.VerticalChange));
     private void GripCompleted(object sender, DragCompletedEventArgs args) => HeaderDragCompleted?.Invoke(this, EventArgs.Empty);
     private void OnDragOver(object sender, DragEventArgs args)
     {
         if (!args.DataView.Contains(DragFormat)) return;
-        args.AcceptedOperation = DataPackageOperation.Move;
-        args.DragUIOverride.Caption = "Move panel here";
-        args.Handled = true;
+        args.AcceptedOperation = DataPackageOperation.Move; args.DragUIOverride.Caption = "Move panel here"; args.Handled = true;
     }
     private async void OnDrop(object sender, DragEventArgs args)
     {
@@ -221,10 +265,11 @@ public sealed class StudioDockGroup : Control
                     index++;
                 }
             }
-            DockRequested?.Invoke(this, new StudioDockRequestEventArgs(id, Dock, index));
-            args.Handled = true;
+            var original = _items.FindIndex(item => item.Id == id);
+            if (original >= 0 && original < index) index--;
+            DockRequested?.Invoke(this, new StudioDockRequestEventArgs(id, Dock, index)); args.Handled = true;
         }
-        catch (Exception) { /* Unsupported drag payloads must not escape an async UI event. */ }
+        catch (Exception) { /* Malformed external drag data is ignored. */ }
         finally { deferral.Complete(); }
     }
 }
