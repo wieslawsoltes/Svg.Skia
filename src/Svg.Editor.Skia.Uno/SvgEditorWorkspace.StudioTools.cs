@@ -14,6 +14,9 @@ public sealed partial class SvgEditorWorkspace
 
     private void BuildStudioTools()
     {
+        // 68 DIPs minus the border and horizontal margins leaves 61 DIPs:
+        // two 30-DIP tools and one DIP of spacing must fit without wrapping.
+        ToolRail.Spacing = 1;
         var tools = new (SvgEditorToolKind Tool, string Shortcut)[]
         {
             (SvgEditorToolKind.Select, "V"), (SvgEditorToolKind.PathSelect, "A"),
@@ -62,8 +65,6 @@ public sealed partial class SvgEditorWorkspace
         ToolRail.Children.Add(_studioHand);
         var fit = new StudioIconButton { Label = "Fit artboard", Shortcut = "Shift+1", Content = new FontIcon { Glyph = "\uE9A6", FontSize = 16 }, Width = 30, Height = 32, MinWidth = 0 };
         fit.Click += (_, _) => Canvas.FitDocument(); ToolRail.Children.Add(fit);
-        // An auto-visible scrollbar reserved enough width to collapse the two-column
-        // rail into one column. Wheel, touch and keyboard scrolling stay enabled.
         ToolRail.Loaded += (_, _) =>
         {
             for (var parent = VisualTreeHelper.GetParent(ToolRail); parent is not null; parent = VisualTreeHelper.GetParent(parent))
@@ -141,7 +142,6 @@ public sealed partial class SvgEditorWorkspace
         menu.Items.Add(new MenuFlyoutSeparator());
         var reset = new MenuFlyoutItem { Text = "Reset Essentials workspace" };
         reset.Click += (_, _) => ApplySafely(() => ResetStudioLayout(SvgWorkspacePreset.Essentials)); menu.Items.Add(reset);
-        // The context label is collapsed on phones; anchor to a visible control instead.
         menu.ShowAt(PanelRail);
     }
 }
