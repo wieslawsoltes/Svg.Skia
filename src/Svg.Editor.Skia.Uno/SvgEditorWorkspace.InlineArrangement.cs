@@ -1,4 +1,3 @@
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Svg.Editor.Skia;
 
@@ -32,16 +31,7 @@ public sealed partial class SvgEditorWorkspace
         { Controller?.SpaceSelection(SvgArrangementAxis.Horizontal); return Task.CompletedTask; }));
         _commands.Add(new EditorCommand("equal-vertical-gaps", "Equalize vertical gaps", "Arrange", string.Empty, () =>
         { Controller?.SpaceSelection(SvgArrangementAxis.Vertical); return Task.CompletedTask; }));
-        _commands.Add(new EditorCommand("center-on-artboard", "Center on artboard", "Arrange", string.Empty, () =>
-        {
-            if (Controller is { } controller)
-            {
-                // Each command axis has its own validation/transaction. Use the
-                // explicit axis commands below for one-axis positioning.
-                controller.AlignSelection(SvgAlignment.HorizontalCenter, SvgAlignmentTarget.Artboard);
-                controller.AlignSelection(SvgAlignment.VerticalCenter, SvgAlignmentTarget.Artboard);
-            }
-            return Task.CompletedTask;
-        }));
+        _commands.Add(new EditorCommand("center-on-artboard", "Center selection on artboard", "Arrange", string.Empty, () =>
+        { Controller?.CenterSelectionOnArtboard(); return Task.CompletedTask; }));
     }
 }
