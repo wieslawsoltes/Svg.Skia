@@ -8,6 +8,7 @@ public sealed partial class SvgEditorWorkspace
 {
     private void InitializeStudioAppAccelerators()
     {
+        InitializeStudioCommandCenter();
         // App commands must not rely solely on the focused leaf's bubbling KeyDown.
         // Native popup dismissal and disabling scroll chrome can temporarily leave
         // no routable focused leaf. Do not register text-editing or canvas-only keys.
