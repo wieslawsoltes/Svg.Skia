@@ -17,6 +17,7 @@ public sealed class StudioControlGallery : UserControl
     {
         IsTabStop = false;
         Resources.MergedDictionaries.Add(new StudioThemeResources());
+        _feedback = Hint("Ready. Use Tab to inspect focus without touching the document.");
         var body = new StackPanel { Spacing = 16 };
         body.Children.Add(new TextBlock
         {
@@ -72,7 +73,6 @@ public sealed class StudioControlGallery : UserControl
             tools.Children.Add(new StudioToolButton { Label = kind.ToString(), IsChecked = kind == SvgEditorToolKind.Select, Content = new StudioToolIcon { Kind = kind } });
         tools.Children.Add(new StudioToolButton { Label = "Disabled tool", IsEnabled = false, Content = new StudioToolIcon { Kind = SvgEditorToolKind.Freehand } });
         body.Children.Add(Section("Vector tool controls", tools));
-        _feedback = Hint("Ready. Use Tab to inspect focus without touching the document.");
         AutomationProperties.SetAutomationId(_feedback, "StudioGalleryFeedback");
         body.Children.Add(_feedback);
         Content = body;
