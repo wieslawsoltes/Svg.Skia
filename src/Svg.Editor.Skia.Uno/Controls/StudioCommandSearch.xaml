@@ -28,14 +28,10 @@
   </UserControl.Resources>
   <Grid RowSpacing="12">
     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-    <Grid ColumnSpacing="8">
-      <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-      <TextBox x:Name="Query" PlaceholderText="Search commands, panels or shortcuts" MaxLength="256"
-               AutomationProperties.Name="Search commands" AutomationProperties.AutomationId="StudioCommandSearchBox"
-               TextChanged="Query_TextChanged" KeyDown="Query_KeyDown" />
-      <local:StudioIconButton x:Name="ClearQuery" Grid.Column="1" Content="×" Label="Clear command search"
-                              Click="ClearQuery_Click" />
-    </Grid>
+    <!-- Native TextBox already supplies its focus-preserving clear action. -->
+    <TextBox x:Name="Query" PlaceholderText="Search commands, panels or shortcuts" MaxLength="256"
+             AutomationProperties.Name="Search commands" AutomationProperties.AutomationId="StudioCommandSearchBox"
+             TextChanged="Query_TextChanged" KeyDown="Query_KeyDown" />
     <Grid Grid.Row="1">
       <ListView x:Name="Results" SelectionMode="Single" IsItemClickEnabled="True"
                 ItemTemplate="{StaticResource CommandResultTemplate}" ItemContainerStyle="{StaticResource CommandResultContainer}"
