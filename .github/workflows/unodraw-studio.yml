@@ -43,8 +43,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y xvfb xdotool imagemagick dbus-x11 x11-utils
       - name: Build the actual desktop application
         run: dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-desktop -c Release
-      - name: Test workspace, gradient and arrangement invariants
-        run: dotnet test tests/Svg.Editor.Skia.UnitTests/Svg.Editor.Skia.UnitTests.csproj -c Release --filter "FullyQualifiedName~SvgWorkspaceLayoutTests|FullyQualifiedName~SvgGradientRampTests|FullyQualifiedName~SvgGradientEditingTests|FullyQualifiedName~SvgArrangementTests" --logger 'trx;LogFileName=studio-layout.trx' --results-directory artifacts/unodraw-studio
+      - name: Test workspace, gradient, arrangement and save invariants
+        run: dotnet test tests/Svg.Editor.Skia.UnitTests/Svg.Editor.Skia.UnitTests.csproj -c Release --filter "FullyQualifiedName~SvgWorkspaceLayoutTests|FullyQualifiedName~SvgGradientRampTests|FullyQualifiedName~SvgGradientEditingTests|FullyQualifiedName~SvgArrangementTests|FullyQualifiedName~SvgEditorSaveContinuityTests" --logger 'trx;LogFileName=studio-layout.trx' --results-directory artifacts/unodraw-studio
       - name: Exercise persistent panels and advanced editing workflows
         timeout-minutes: 6
         run: |
