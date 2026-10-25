@@ -192,16 +192,21 @@ public sealed partial class StudioDockGroup : Control
         }
         var pickerWidth = showPicker ? 28d : 0d;
         var overflow = _tabHost.DesiredSize.Width > Math.Max(0, ActualWidth - pickerWidth - 2) + 0.5;
-        if (_previous is not null)
-        {
-            _previous.Visibility = overflow ? Visibility.Visible : Visibility.Collapsed;
-            _previous.IsEnabled = _tabScroll.HorizontalOffset > 0.5;
-        }
-        if (_next is not null)
-        {
-            _next.Visibility = overflow ? Visibility.Visible : Visibility.Collapsed;
-            _next.IsEnabled = _tabScroll.HorizontalOffset < _tabScroll.ScrollableWidth - 0.5;
-        }
+        UpdateScrollArrow(_previous, overflow, _tabScroll.HorizontalOffset > 0.5);
+        UpdateScrollArrow(_next, overflow, _tabScroll.HorizontalOffset < _tabScroll.ScrollableWidth - 0.5);
+    }
+
+    private void UpdateScrollArrow(Button? button, bool visible, bool enabled)
+    {
+        if (button is null) return;
+        // Do not strand keyboard focus on an arrow that disables itself after a click.
+        // Move to stationary chrome before changing availability, without activating
+        // a tab or revealing the active tab and undoing the user's deliberate scroll.
+        if ((!visible || !enabled) && button.FocusState != FocusState.Unfocused &&
+            _picker is { IsLoaded: true, IsEnabled: true, Visibility: Visibility.Visible })
+            _picker.Focus(FocusState.Programmatic);
+        button.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        button.IsEnabled = enabled;
     }
     private void TabViewChanged(object? sender, ScrollViewerViewChangedEventArgs args) => UpdateTabNavigation();
     private void TabSizeChanged(object sender, SizeChangedEventArgs args) => UpdateTabNavigation();
