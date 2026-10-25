@@ -9,6 +9,9 @@ public sealed partial class SvgEditorWorkspace
     private void InitializeStudioAppAccelerators()
     {
         InitializeStudioCommandCenter();
+        // Shortcuts are documented on their actual actions. Registering them on the
+        // workspace must not produce a Ctrl+K tooltip over unrelated artwork/panels.
+        KeyboardAcceleratorPlacementMode = Microsoft.UI.Xaml.Input.KeyboardAcceleratorPlacementMode.Hidden;
         // App commands must not rely solely on the focused leaf's bubbling KeyDown.
         // Native popup dismissal and disabling scroll chrome can temporarily leave
         // no routable focused leaf. Do not register text-editing or canvas-only keys.
