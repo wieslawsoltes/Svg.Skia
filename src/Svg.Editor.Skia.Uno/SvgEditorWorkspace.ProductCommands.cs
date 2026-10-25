@@ -12,7 +12,7 @@ public sealed partial class SvgEditorWorkspace
             => _commands.Add(new EditorCommand(id, label, "Object", string.Empty, () => { execute(); return Task.CompletedTask; }));
         _commands.Add(new EditorCommand("filterstudio", "Filter Studio…", "Object", string.Empty, FilterStudioAsync));
         Add("removefilters", "Remove filters", () => Controller?.RemoveSelectionFilters());
-        Add("alphamask", "Create alpha mask", () => Controller?.CreateOpacityMask(false));
+        Add("alphamask", "Create alpha mask", () => Controller?.CreateOpacityMask(true));
         Add("luminancemask", "Create luminance mask", () => Controller?.CreateOpacityMask(true));
         Add("releasemask", "Release mask and restore artwork", () => Controller?.ReleaseOpacityMasks(true));
         Add("disablemask", "Disable mask", () => Controller?.ReleaseOpacityMasks(false));
@@ -21,6 +21,7 @@ public sealed partial class SvgEditorWorkspace
         InitializeInlineColorMixer();
         InitializeInlineGradientEditor();
         InitializeInlineArrangement();
+        InitializeThemeGallery();
     }
 
     private void InitializeInlineColorMixer()
@@ -37,8 +38,6 @@ public sealed partial class SvgEditorWorkspace
         };
         var section = new StudioSection { Header = "Color mixer", IsExpanded = false, Content = _studioColorEditor };
         panel.Children.Insert(Math.Min(3, panel.Children.Count), section);
-        // The existing workspace notification occurs after document activation and
-        // also covers close/recovery paths; the reusable control manages subscriptions.
         WorkspaceTitleChanged += (_, _) => _studioColorEditor.BindController(Controller);
         Loaded += (_, _) => _studioColorEditor.BindController(Controller);
         Unloaded += (_, _) => _studioColorEditor.BindController(null);
