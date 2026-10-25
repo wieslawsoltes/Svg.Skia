@@ -92,7 +92,7 @@ public sealed class SvgCommandSearchIndex
         if (item.Shortcut.Length != 0 && item.Shortcut == query) return 1;
         if (item.Label.StartsWith(query, StringComparison.Ordinal)) return 10;
         if (item.Label.IndexOf(query, StringComparison.Ordinal) >= 0) return 20;
-        var score = 30;
+        var score = 0;
         foreach (var token in tokens)
         {
             if (HasWordPrefix(item.Label, token)) continue;
@@ -102,7 +102,9 @@ public sealed class SvgCommandSearchIndex
             if (item.Id.IndexOf(token, StringComparison.Ordinal) >= 0) { score += 6; continue; }
             return -1;
         }
-        return score;
+        // A category-qualified query such as "File Save" prefers "Save" over
+        // "Save as", without allowing label length to overrule match quality.
+        return 30 + score * 32 + Math.Min(31, item.Label.Length);
     }
     private static bool HasWordPrefix(string text, string token)
         => text.StartsWith(token, StringComparison.Ordinal) || text.IndexOf(" " + token, StringComparison.Ordinal) >= 0;
