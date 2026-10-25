@@ -33,19 +33,21 @@ public sealed class StudioDockGroup : Control
     public const string DragFormat = "application/x-unodraw-panel";
     public static readonly DependencyProperty CaptionProperty = DependencyProperty.Register(nameof(Caption), typeof(string), typeof(StudioDockGroup), new PropertyMetadata("Panels"));
     private readonly List<StudioPanelItem> _items = new();
+    private readonly IReadOnlyList<StudioPanelItem> _readOnlyItems;
     private readonly Dictionary<string, StudioTabButton> _tabs = new(StringComparer.Ordinal);
     private StackPanel? _tabHost;
+    private ScrollViewer? _tabScroll;
     private Grid? _contentHost;
-    private Button? _menu;
-    private Button? _collapse;
+    private Button? _menu, _collapse, _previous, _next, _picker;
     private Thumb? _grip;
     private bool _collapsed;
     private string? _activeId;
+    private int _revealVersion;
     public string Caption { get => (string)GetValue(CaptionProperty); private set => SetValue(CaptionProperty, value); }
     public SvgPanelDock Dock { get; set; }
     public string WorkspaceToken { get; set; } = string.Empty;
     public string? ActiveId => _activeId;
-    public IReadOnlyList<StudioPanelItem> Items => _items.AsReadOnly();
+    public IReadOnlyList<StudioPanelItem> Items => _readOnlyItems;
     public Func<bool>? CanChangePanel { get; set; }
     public event EventHandler<string>? ActiveChanged;
     public event EventHandler<StudioDockRequestEventArgs>? DockRequested;
@@ -54,31 +56,55 @@ public sealed class StudioDockGroup : Control
 
     public StudioDockGroup()
     {
+        _readOnlyItems = _items.AsReadOnly();
         DefaultStyleKey = typeof(StudioDockGroup); IsTabStop = false; AllowDrop = true;
         DragOver += OnDragOver; Drop += OnDrop;
+        SizeChanged += (_, _) => { UpdateTabNavigation(); RevealActiveTab(); };
+        Loaded += (_, _) => { UpdateTabNavigation(); RevealActiveTab(); };
+        Unloaded += (_, _) => _revealVersion++;
     }
 
     protected override void OnApplyTemplate()
     {
         if (_menu is not null) _menu.Click -= MenuClick;
         if (_collapse is not null) _collapse.Click -= CollapseClick;
+        if (_previous is not null) _previous.Click -= PreviousClick;
+        if (_next is not null) _next.Click -= NextClick;
+        if (_picker is not null) _picker.Click -= PickerClick;
+        if (_tabScroll is not null) _tabScroll.ViewChanged -= TabViewChanged;
+        if (_tabHost is not null) _tabHost.SizeChanged -= TabSizeChanged;
         if (_grip is not null) { _grip.DragDelta -= GripDelta; _grip.DragCompleted -= GripCompleted; }
         _contentHost?.Children.Clear();
         base.OnApplyTemplate();
         _tabHost = GetTemplateChild("PART_Tabs") as StackPanel;
+        _tabScroll = GetTemplateChild("PART_TabScroll") as ScrollViewer;
         _contentHost = GetTemplateChild("PART_Content") as Grid;
         _menu = GetTemplateChild("PART_Menu") as Button;
         _collapse = GetTemplateChild("PART_Collapse") as Button;
+        _previous = GetTemplateChild("PART_PreviousTabs") as Button;
+        _next = GetTemplateChild("PART_NextTabs") as Button;
+        _picker = GetTemplateChild("PART_PanelPicker") as Button;
         _grip = GetTemplateChild("PART_Grip") as Thumb;
         if (_menu is not null) _menu.Click += MenuClick;
         if (_collapse is not null) _collapse.Click += CollapseClick;
+        if (_previous is not null) _previous.Click += PreviousClick;
+        if (_next is not null) _next.Click += NextClick;
+        if (_picker is not null) _picker.Click += PickerClick;
+        if (_tabScroll is not null) _tabScroll.ViewChanged += TabViewChanged;
+        if (_tabHost is not null) _tabHost.SizeChanged += TabSizeChanged;
         if (_grip is not null) { _grip.DragDelta += GripDelta; _grip.DragCompleted += GripCompleted; }
         Rebuild();
     }
 
     public void SetItems(IEnumerable<StudioPanelItem> items, string? activeId)
     {
-        _contentHost?.Children.Clear(); _items.Clear(); _items.AddRange(items);
+        ArgumentNullException.ThrowIfNull(items);
+        // Snapshot before clearing, so passing this group's own read-only items is safe.
+        var snapshot = items.ToArray();
+        if (snapshot.Any(item => item is null || string.IsNullOrEmpty(item.Id) || item.Content is null) ||
+            snapshot.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != snapshot.Length)
+            throw new ArgumentException("Panel items must have unique nonempty IDs and live content.", nameof(items));
+        _contentHost?.Children.Clear(); _items.Clear(); _items.AddRange(snapshot);
         _activeId = _items.Any(item => item.Id == activeId) ? activeId : _items.FirstOrDefault()?.Id;
         _collapsed = false; Rebuild();
     }
@@ -100,15 +126,17 @@ public sealed class StudioDockGroup : Control
             var tab = new StudioTabButton { Content = item.Title, Tag = item.Id, CanDrag = true };
             AutomationProperties.SetName(tab, item.Title + " panel");
             AutomationProperties.SetAutomationId(tab, "studio-tab-" + item.Id);
+            ToolTipService.SetToolTip(tab, item.Title + " · arrow keys switch panels; right-click for docking");
             tab.Click += (_, _) => Activate(item.Id);
             tab.KeyDown += (_, args) =>
             {
                 if (_items.Count == 0) return;
                 var current = _items.FindIndex(candidate => candidate.Id == item.Id);
+                var direction = FlowDirection == FlowDirection.RightToLeft ? -1 : 1;
                 var next = args.Key switch
                 {
-                    VirtualKey.Left => (current + _items.Count - 1) % _items.Count,
-                    VirtualKey.Right => (current + 1) % _items.Count,
+                    VirtualKey.Left => (current - direction + _items.Count) % _items.Count,
+                    VirtualKey.Right => (current + direction + _items.Count) % _items.Count,
                     VirtualKey.Home => 0,
                     VirtualKey.End => _items.Count - 1,
                     _ => -1
@@ -127,17 +155,80 @@ public sealed class StudioDockGroup : Control
             tab.ContextFlyout = CreateMenu(item.Id);
             _tabs[item.Id] = tab; _tabHost.Children.Add(tab); _contentHost.Children.Add(item.Content);
         }
-        Sync(); RevealActiveTab();
+        Sync(); UpdateTabNavigation(); RevealActiveTab();
     }
 
     private void RevealActiveTab()
     {
+        var version = ++_revealVersion;
         var expected = _activeId;
         DispatcherQueue.TryEnqueue(() =>
         {
-            if (expected == _activeId && expected is not null && _tabs.TryGetValue(expected, out var tab))
-                tab.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false });
+            if (version != _revealVersion || !IsLoaded || expected != _activeId || expected is null || !_tabs.TryGetValue(expected, out var tab)) return;
+            // Limit reveal to the horizontal strip; do not scroll the workspace's panel content.
+            if (_tabScroll is { ViewportWidth: > 0 } scroll && _tabHost is not null)
+            {
+                var left = tab.TransformToVisual(_tabHost).TransformPoint(default).X;
+                var right = left + tab.ActualWidth;
+                var offset = scroll.HorizontalOffset;
+                if (left < offset) offset = left;
+                else if (right > offset + scroll.ViewportWidth) offset = right - scroll.ViewportWidth;
+                scroll.ChangeView(Math.Clamp(offset, 0, scroll.ScrollableWidth), null, null, true);
+            }
+            else tab.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false });
+            UpdateTabNavigation();
         });
+    }
+
+    private void UpdateTabNavigation()
+    {
+        if (_tabHost is null || _tabScroll is null) return;
+        var showPicker = _items.Count > 1;
+        if (_picker is not null)
+        {
+            _picker.Visibility = showPicker ? Visibility.Visible : Visibility.Collapsed;
+            AutomationProperties.SetName(_picker, "Choose panel · " + _items.Count + " available");
+            AutomationProperties.SetAutomationId(_picker, "studio-panel-picker-" + Dock);
+        }
+        // Compare against the width without scroll arrows, preventing sticky overflow
+        // when a widened group can fit its tabs after those arrows are removed.
+        var pickerWidth = showPicker ? 28d : 0d;
+        var overflow = _tabHost.DesiredSize.Width > Math.Max(0, ActualWidth - pickerWidth - 2) + 0.5;
+        if (_previous is not null)
+        {
+            _previous.Visibility = overflow ? Visibility.Visible : Visibility.Collapsed;
+            _previous.IsEnabled = _tabScroll.HorizontalOffset > 0.5;
+        }
+        if (_next is not null)
+        {
+            _next.Visibility = overflow ? Visibility.Visible : Visibility.Collapsed;
+            _next.IsEnabled = _tabScroll.HorizontalOffset < _tabScroll.ScrollableWidth - 0.5;
+        }
+    }
+    private void TabViewChanged(object? sender, ScrollViewerViewChangedEventArgs args) => UpdateTabNavigation();
+    private void TabSizeChanged(object sender, SizeChangedEventArgs args) => UpdateTabNavigation();
+    private void PreviousClick(object sender, RoutedEventArgs args) => ScrollTabs(-1);
+    private void NextClick(object sender, RoutedEventArgs args) => ScrollTabs(1);
+    private void ScrollTabs(int direction)
+    {
+        if (_tabScroll is not { } scroll) return;
+        var offset = scroll.HorizontalOffset + direction * Math.Max(64, scroll.ViewportWidth * 0.75);
+        scroll.ChangeView(Math.Clamp(offset, 0, scroll.ScrollableWidth), null, null, true);
+    }
+    private void PickerClick(object sender, RoutedEventArgs args)
+    {
+        var menu = new MenuFlyout();
+        foreach (var panel in _items)
+        {
+            var entry = new ToggleMenuFlyoutItem { Text = panel.Title, IsChecked = panel.Id == _activeId };
+            entry.Click += (_, _) =>
+            {
+                Activate(panel.Id);
+                if (_activeId is { } id && _tabs.TryGetValue(id, out var tab)) tab.Focus(FocusState.Keyboard);
+            };
+            menu.Items.Add(entry);
+        }
+        menu.ShowAt((FrameworkElement)sender);
     }
 
     private void Sync()
