@@ -2,12 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:Svg.Editor.Skia.Uno">
   <ResourceDictionary.MergedDictionaries><local:StudioThemeResources /></ResourceDictionary.MergedDictionaries>
-
   <Style TargetType="local:StudioIconButton">
     <Setter Property="MinWidth" Value="28" /><Setter Property="MinHeight" Value="28" />
     <Setter Property="Padding" Value="6,3" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" />
-    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="Transparent" />
-    <Setter Property="UseSystemFocusVisuals" Value="True" />
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="Transparent" /><Setter Property="UseSystemFocusVisuals" Value="True" />
     <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioIconButton">
       <Border x:Name="Root" Background="{TemplateBinding Background}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource StudioControlRadius}">
         <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
@@ -20,7 +18,6 @@
       </Border>
     </ControlTemplate></Setter.Value></Setter>
   </Style>
-
   <Style TargetType="local:StudioToolButton">
     <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" />
     <Setter Property="Width" Value="30" /><Setter Property="Height" Value="32" /><Setter Property="Padding" Value="4" />
@@ -30,7 +27,7 @@
         <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
           <VisualState x:Name="Normal" />
           <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
-          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
           <VisualState x:Name="Checked"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="SelectionMark.Opacity" Value="1" /></VisualState.Setters></VisualState>
           <VisualState x:Name="CheckedPointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="SelectionMark.Opacity" Value="1" /></VisualState.Setters></VisualState>
           <VisualState x:Name="CheckedPressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="SelectionMark.Opacity" Value="1" /></VisualState.Setters></VisualState>
@@ -43,17 +40,15 @@
       </Grid>
     </ControlTemplate></Setter.Value></Setter>
   </Style>
-
   <Style TargetType="local:StudioTabButton">
     <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="30" /><Setter Property="Padding" Value="12,5" />
-    <Setter Property="FontSize" Value="{StaticResource StudioLabelSize}" /><Setter Property="Foreground" Value="{ThemeResource StudioMuted}" />
-    <Setter Property="UseSystemFocusVisuals" Value="True" />
+    <Setter Property="FontSize" Value="{StaticResource StudioLabelSize}" /><Setter Property="Foreground" Value="{ThemeResource StudioMuted}" /><Setter Property="UseSystemFocusVisuals" Value="True" />
     <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioTabButton">
       <Grid x:Name="Root" Background="Transparent">
         <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
           <VisualState x:Name="Normal" />
           <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
-          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
           <VisualState x:Name="Checked"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSurface}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioForeground}" /><Setter Target="ActiveLine.Opacity" Value="1" /></VisualState.Setters></VisualState>
           <VisualState x:Name="CheckedPointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="ActiveLine.Opacity" Value="1" /></VisualState.Setters></VisualState>
           <VisualState x:Name="CheckedPressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="ActiveLine.Opacity" Value="1" /></VisualState.Setters></VisualState>
@@ -65,7 +60,6 @@
       </Grid>
     </ControlTemplate></Setter.Value></Setter>
   </Style>
-
   <Style x:Key="StudioSectionHeader" TargetType="ToggleButton">
     <Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="MinHeight" Value="32" />
     <Setter Property="FontSize" Value="{StaticResource StudioLabelSize}" /><Setter Property="FontWeight" Value="SemiBold" />
@@ -75,15 +69,17 @@
         <Grid.ColumnDefinitions><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
         <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
           <VisualState x:Name="Normal" />
-          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
-          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
-          <VisualState x:Name="Checked"><VisualState.Setters><Setter Target="Chevron.Text" Value="⌄" /></VisualState.Setters></VisualState>
-          <VisualState x:Name="CheckedPointerOver"><VisualState.Setters><Setter Target="Chevron.Text" Value="⌄" /><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
-          <VisualState x:Name="CheckedPressed"><VisualState.Setters><Setter Target="Chevron.Text" Value="⌄" /><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
-          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioDisabled}" /></VisualState.Setters></VisualState>
-          <VisualState x:Name="CheckedDisabled"><VisualState.Setters><Setter Target="Chevron.Text" Value="⌄" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioDisabled}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="Chevron.Stroke" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="Chevron.Stroke" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Checked"><VisualState.Setters><Setter Target="ChevronRotation.Angle" Value="90" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPointerOver"><VisualState.Setters><Setter Target="ChevronRotation.Angle" Value="90" /><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="Chevron.Stroke" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPressed"><VisualState.Setters><Setter Target="ChevronRotation.Angle" Value="90" /><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="Chevron.Stroke" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioDisabled}" /><Setter Target="Chevron.Stroke" Value="{ThemeResource StudioDisabled}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedDisabled"><VisualState.Setters><Setter Target="ChevronRotation.Angle" Value="90" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioDisabled}" /><Setter Target="Chevron.Stroke" Value="{ThemeResource StudioDisabled}" /></VisualState.Setters></VisualState>
         </VisualStateGroup></VisualStateManager.VisualStateGroups>
-        <TextBlock x:Name="Chevron" Text="›" VerticalAlignment="Center" FontSize="14" Foreground="{ThemeResource StudioMuted}" />
+        <Path x:Name="Chevron" Data="M0,0 L4,4 L0,8" Width="4" Height="8" Stroke="{ThemeResource StudioMuted}" StrokeThickness="1.4" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+          <Path.RenderTransform><RotateTransform x:Name="ChevronRotation" CenterX="2" CenterY="4" /></Path.RenderTransform>
+        </Path>
         <ContentPresenter x:Name="Presenter" Grid.Column="1" Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" />
       </Grid>
     </ControlTemplate></Setter.Value></Setter>
@@ -98,7 +94,6 @@
       </StackPanel>
     </ControlTemplate></Setter.Value></Setter>
   </Style>
-
   <Style TargetType="local:StudioNumericField">
     <Setter Property="MinHeight" Value="32" /><Setter Property="MinWidth" Value="0" />
     <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioNumericField">
@@ -110,7 +105,6 @@
       </Grid>
     </ControlTemplate></Setter.Value></Setter>
   </Style>
-
   <Style TargetType="local:StudioPaintChip">
     <Setter Property="MinHeight" Value="32" /><Setter Property="MinWidth" Value="68" />
     <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="UseSystemFocusVisuals" Value="True" />
@@ -137,7 +131,6 @@
       </Border>
     </ControlTemplate></Setter.Value></Setter>
   </Style>
-
   <Style TargetType="local:StudioSplitter">
     <Setter Property="Background" Value="{ThemeResource StudioHeader}" /><Setter Property="UseSystemFocusVisuals" Value="True" />
     <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioSplitter">
@@ -150,7 +143,6 @@
       </Grid>
     </ControlTemplate></Setter.Value></Setter>
   </Style>
-
   <Style TargetType="local:StudioDockGroup">
     <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
     <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioDockGroup">
@@ -164,9 +156,15 @@
             <Button x:Name="PART_Collapse" Grid.Column="1" Content="−" Style="{StaticResource StudioQuietButtonStyle}" MinWidth="0" MinHeight="26" Padding="0" FontSize="12" />
             <Button x:Name="PART_Menu" Grid.Column="2" Content="⋯" Style="{StaticResource StudioQuietButtonStyle}" MinWidth="0" MinHeight="26" Padding="0" FontSize="14" AutomationProperties.Name="Panel docking and tab menu" />
           </Grid>
-          <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
-            <StackPanel x:Name="PART_Tabs" Orientation="Horizontal" Background="{ThemeResource StudioHeader}" />
-          </ScrollViewer>
+          <Grid Grid.Row="1" Background="{ThemeResource StudioHeader}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Button x:Name="PART_PreviousTabs" Content="‹" Width="24" MinWidth="0" MinHeight="30" Padding="0" FontSize="18" Style="{StaticResource StudioQuietButtonStyle}" Visibility="Collapsed" AutomationProperties.Name="Scroll panel tabs backward" ToolTipService.ToolTip="Show earlier panel tabs" />
+            <ScrollViewer x:Name="PART_TabScroll" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled">
+              <StackPanel x:Name="PART_Tabs" Orientation="Horizontal" />
+            </ScrollViewer>
+            <Button x:Name="PART_NextTabs" Grid.Column="2" Content="›" Width="24" MinWidth="0" MinHeight="30" Padding="0" FontSize="18" Style="{StaticResource StudioQuietButtonStyle}" Visibility="Collapsed" AutomationProperties.Name="Scroll panel tabs forward" ToolTipService.ToolTip="Show later panel tabs" />
+            <Button x:Name="PART_PanelPicker" Grid.Column="3" Content="⌄" Width="28" MinWidth="0" MinHeight="30" Padding="0" Style="{StaticResource StudioQuietButtonStyle}" AutomationProperties.Name="Choose panel" ToolTipService.ToolTip="Choose any panel in this group" />
+          </Grid>
           <Grid x:Name="PART_Content" Grid.Row="2" />
         </Grid>
       </Border>
