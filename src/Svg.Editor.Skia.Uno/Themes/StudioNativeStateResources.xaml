@@ -16,7 +16,6 @@
   <StaticResource x:Key="ComboBoxHeaderForegroundDisabled" ResourceKey="StudioDisabled" />
   <StaticResource x:Key="ComboBoxForegroundFocused" ResourceKey="StudioForeground" />
   <StaticResource x:Key="ComboBoxBackgroundFocused" ResourceKey="StudioInputBackground" />
-
   <StaticResource x:Key="CheckBoxForegroundUnchecked" ResourceKey="StudioForeground" />
   <StaticResource x:Key="CheckBoxForegroundChecked" ResourceKey="StudioForeground" />
   <StaticResource x:Key="CheckBoxForegroundIndeterminate" ResourceKey="StudioForeground" />
@@ -55,7 +54,6 @@
   <StaticResource x:Key="CheckBoxCheckGlyphForegroundIndeterminatePointerOver" ResourceKey="StudioOnAccent" />
   <StaticResource x:Key="CheckBoxCheckGlyphForegroundIndeterminatePressed" ResourceKey="StudioOnAccent" />
   <StaticResource x:Key="CheckBoxCheckGlyphForegroundIndeterminateDisabled" ResourceKey="StudioDisabled" />
-
   <StaticResource x:Key="ToggleButtonBackground" ResourceKey="StudioRaised" />
   <StaticResource x:Key="ToggleButtonBackgroundPointerOver" ResourceKey="StudioSelection" />
   <StaticResource x:Key="ToggleButtonBackgroundPressed" ResourceKey="StudioSelection" />
@@ -92,7 +90,6 @@
   <StaticResource x:Key="ToggleButtonBorderBrushIndeterminatePointerOver" ResourceKey="StudioAccent" />
   <StaticResource x:Key="ToggleButtonBorderBrushIndeterminatePressed" ResourceKey="StudioAccent" />
   <StaticResource x:Key="ToggleButtonBorderBrushIndeterminateDisabled" ResourceKey="StudioDisabled" />
-
   <StaticResource x:Key="TreeViewItemBackgroundSelected" ResourceKey="StudioSelection" />
   <StaticResource x:Key="TreeViewItemBackgroundSelectedPointerOver" ResourceKey="StudioSelection" />
   <StaticResource x:Key="TreeViewItemBackgroundSelectedPressed" ResourceKey="StudioSelection" />
@@ -105,4 +102,9 @@
   <StaticResource x:Key="ListViewItemForegroundSelectedPointerOver" ResourceKey="StudioSelectionForeground" />
   <StaticResource x:Key="ListViewItemForegroundSelectedPressed" ResourceKey="StudioSelectionForeground" />
   <StaticResource x:Key="ListViewItemForegroundDisabled" ResourceKey="StudioDisabled" />
+  <Style TargetType="ToggleMenuFlyoutItem" BasedOn="{StaticResource DefaultToggleMenuFlyoutItemStyle}">
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" />
+    <Setter Property="MinHeight" Value="{StaticResource StudioControlHeight}" />
+    <Setter Property="Padding" Value="12,7" />
+  </Style>
 </ResourceDictionary>
