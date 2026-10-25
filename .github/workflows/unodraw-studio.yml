@@ -39,6 +39,7 @@ jobs:
           bash -n tests/UnoDraw.StudioSmoke/smoke.sh
           bash -n tests/UnoDraw.StudioSmoke/advanced.sh
           bash -n tests/UnoDraw.StudioSmoke/themes.sh
+          bash -n tests/UnoDraw.StudioSmoke/controls.sh
           python3 -m unittest discover -s tests/UnoDraw.StudioSmoke -p 'test_*.py' -v
       - name: Install native inspection tools
         run: sudo apt-get update && sudo apt-get install -y xvfb xdotool imagemagick dbus-x11 x11-utils
@@ -46,11 +47,11 @@ jobs:
         run: dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-desktop -c Release
       - name: Test workspace, responsive forms, gradients, arrangement and save invariants
         run: dotnet test tests/Svg.Editor.Skia.UnitTests/Svg.Editor.Skia.UnitTests.csproj -c Release --filter "FullyQualifiedName~SvgWorkspaceLayoutTests|FullyQualifiedName~SvgStudioGridMetricsTests|FullyQualifiedName~SvgGradientRampTests|FullyQualifiedName~SvgGradientEditingTests|FullyQualifiedName~SvgArrangementTests|FullyQualifiedName~SvgEditorSaveContinuityTests" --logger 'trx;LogFileName=studio-layout.trx' --results-directory artifacts/unodraw-studio
-      - name: Exercise editing and inspect every panel in both themes
+      - name: Exercise editing, shared controls and every panel in both themes
         timeout-minutes: 10
         run: |
           xvfb-run --auto-servernum --server-args='-screen 0 1600x1100x24 -nolisten tcp' \
-            dbus-run-session -- bash tests/UnoDraw.StudioSmoke/themes.sh \
+            dbus-run-session -- bash tests/UnoDraw.StudioSmoke/controls.sh \
             samples/UnoDraw/bin/Release/net10.0-desktop/UnoDraw.dll artifacts/unodraw-studio
       - name: Upload screenshots and validation records
         if: always()
