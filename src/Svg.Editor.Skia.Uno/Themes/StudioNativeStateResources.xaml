@@ -3,8 +3,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:Svg.Editor.Skia.Uno">
   <ResourceDictionary.MergedDictionaries><local:StudioPaletteResources /></ResourceDictionary.MergedDictionaries>
-  <!-- WinUI lightweight resource names. Keep both legacy and Fluent input aliases:
-       embedded native TextBoxes can still resolve the legacy disabled-state keys. -->
+  <!-- Native lightweight resource aliases: legacy embedded inputs and Fluent states
+       share the semantic palette, including system high-contrast foreground pairs. -->
   <StaticResource x:Key="TextBoxDisabledBackgroundThemeBrush" ResourceKey="StudioHeader" />
   <StaticResource x:Key="TextBoxDisabledBorderThemeBrush" ResourceKey="StudioDivider" />
   <StaticResource x:Key="TextBoxDisabledForegroundThemeBrush" ResourceKey="StudioDisabled" />
@@ -99,8 +99,8 @@
   <StaticResource x:Key="TreeViewItemForegroundSelected" ResourceKey="StudioSelectionForeground" />
   <StaticResource x:Key="TreeViewItemForegroundSelectedPointerOver" ResourceKey="StudioSelectionForeground" />
   <StaticResource x:Key="TreeViewItemForegroundSelectedPressed" ResourceKey="StudioSelectionForeground" />
-  <StaticResource x:Key="ListViewItemBackgroundPointerOver" ResourceKey="StudioHover" />
-  <StaticResource x:Key="ListViewItemForegroundPointerOver" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="ListViewItemBackgroundPointerOver" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ListViewItemForegroundPointerOver" ResourceKey="StudioSelectionForeground" />
   <StaticResource x:Key="ListViewItemBackgroundSelectedPressed" ResourceKey="StudioSelection" />
   <StaticResource x:Key="ListViewItemForegroundSelectedPointerOver" ResourceKey="StudioSelectionForeground" />
   <StaticResource x:Key="ListViewItemForegroundSelectedPressed" ResourceKey="StudioSelectionForeground" />
