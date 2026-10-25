@@ -60,7 +60,6 @@ public sealed partial class StudioCommandSearch : UserControl
         Results.ItemsSource = matches;
         Results.SelectedIndex = matches.Length == 0 ? -1 : 0;
         EmptyState.Visibility = matches.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
-        ClearQuery.IsEnabled = Query.Text.Length != 0;
         ResultCount.Text = matches.Length == 0 ? "Try fewer or different words."
             : matches.Length == 100 ? "100 commands shown · refine your search"
             : matches.Length == 1 ? "1 command" : matches.Length + " commands";
@@ -69,16 +68,18 @@ public sealed partial class StudioCommandSearch : UserControl
         SelectedCommandChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    private static bool Modified() => new[] { VirtualKey.Control, VirtualKey.Menu, VirtualKey.LeftWindows, VirtualKey.RightWindows }
-        .Any(key => (InputKeyboardSource.GetKeyStateForCurrentThread(key) & CoreVirtualKeyStates.Down) != 0);
+    private static bool IsDown(VirtualKey key)
+        => (InputKeyboardSource.GetKeyStateForCurrentThread(key) & CoreVirtualKeyStates.Down) != 0;
+    private static bool Modified()
+        => IsDown(VirtualKey.Control) || IsDown(VirtualKey.Menu) || IsDown(VirtualKey.LeftWindows) || IsDown(VirtualKey.RightWindows);
 
     private void Query_KeyDown(object sender, KeyRoutedEventArgs args)
     {
         if (args.Handled || Modified()) return;
         if (args.Key == VirtualKey.Enter)
         {
+            args.Handled = true; // Set before notifying the host, including no-match Enter.
             if (SelectedCommand is { } entry) CommandInvoked?.Invoke(this, entry);
-            args.Handled = true; // No match must not invoke a dialog's previous/default result.
             return;
         }
         if (args.Key is not (VirtualKey.Down or VirtualKey.Up or VirtualKey.PageDown or VirtualKey.PageUp)) return;
@@ -102,9 +103,4 @@ public sealed partial class StudioCommandSearch : UserControl
     }
     private void Results_SelectionChanged(object sender, SelectionChangedEventArgs args)
         => SelectedCommandChanged?.Invoke(this, EventArgs.Empty);
-    private void ClearQuery_Click(object sender, RoutedEventArgs args)
-    {
-        Query.Text = string.Empty;
-        FocusSearch(); // Clear button disables itself: restore focus to the input explicitly.
-    }
 }
