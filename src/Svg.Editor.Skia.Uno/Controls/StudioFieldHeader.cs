@@ -5,10 +5,11 @@ namespace Svg.Editor.Skia.Uno;
 
 /// <summary>
 /// Native inputs treat a non-null HeaderTemplate as a visible header even without
-/// Header content. Apply our wrapping header only when there is content, so toolbar
-/// inputs retain their single-row geometry. Observers are detached while unloaded.
+/// Header content. Apply our wrapping header only to nonempty text, so toolbar
+/// inputs retain their single-row geometry and custom header content stays native.
+/// Observers are detached while unloaded.
 /// </summary>
-public sealed class StudioFieldHeader : DependencyObject
+public sealed partial class StudioFieldHeader : DependencyObject
 {
     public static readonly DependencyProperty TemplateProperty = DependencyProperty.RegisterAttached(
         "Template", typeof(DataTemplate), typeof(StudioFieldHeader), new PropertyMetadata(null, TemplateChanged));
@@ -67,8 +68,7 @@ public sealed class StudioFieldHeader : DependencyObject
             // An explicitly supplied consumer template takes priority over our theme.
             if (current is not null && !ReferenceEquals(current, _template)) { _owned = false; return; }
             var header = _control.GetValue(_header);
-            var hasContent = header is not null && (header is not string text || text.Length != 0);
-            if (hasContent)
+            if (header is string { Length: > 0 })
             {
                 _control.SetValue(_headerTemplate, _template); _owned = true;
             }
