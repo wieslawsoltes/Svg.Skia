@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
@@ -27,15 +28,14 @@ public sealed partial class SvgEditorWorkspace
 
     private StackPanel StudioPanel(string id, string title)
     {
-        var stack = new StackPanel { Spacing = 9, Margin = new Thickness(10) };
+        var stack = new StackPanel { Spacing = (double)Resources["StudioSectionGap"], Margin = (Thickness)Resources["StudioPanelPadding"] };
         RegisterStudioPanel(id, title, new ScrollViewer { Content = stack, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled });
         return stack;
     }
-    private static Grid StudioPair(UIElement first, UIElement second)
+    private static StudioFieldGrid StudioPair(UIElement first, UIElement second)
     {
-        var grid = new Grid { ColumnSpacing = 8 };
-        grid.ColumnDefinitions.Add(new ColumnDefinition()); grid.ColumnDefinitions.Add(new ColumnDefinition());
-        grid.Children.Add(first); grid.Children.Add(second); Grid.SetColumn(second, 1); return grid;
+        var grid = new StudioFieldGrid { MinimumColumnWidth = 128 };
+        grid.Children.Add(first); grid.Children.Add(second); return grid;
     }
     private StudioNumericField StudioNumber(string title, double minimum, double maximum, Action<SvgEditorController, double> apply)
     {
@@ -75,19 +75,22 @@ public sealed partial class SvgEditorWorkspace
     private Button StudioCommand(string id, string title, int minimumSelection = 0)
     {
         var button = ActionButton(id, title);
+        button.Content = new TextBlock { Text = title, TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center };
+        AutomationProperties.SetName(button, title);
         _studioActions.Add((button, () => Controller is { } controller && controller.SelectedElements.Count >= minimumSelection
             && (minimumSelection == 0 || !controller.SelectedElements.Any(SvgEditorController.IsEditLocked))));
         return button;
     }
     private static StudioSection StudioSection(string title, object content) => new() { Header = title, Content = content };
-    private static TextBlock StudioHint(string text) => new() { Text = text, FontSize = 11, TextWrapping = TextWrapping.Wrap, Opacity = 0.7 };
+    private TextBlock StudioHint(string text) => new() { Text = text, Style = (Style)Resources["StudioHintStyle"] };
 
     private void BuildStudioPanels()
     {
         var transform = StudioPanel("transform", "Transform");
-        _studioAnchor = new StudioReferencePoint();
+        _studioAnchor = new StudioReferencePoint { HorizontalAlignment = HorizontalAlignment.Left };
         _studioAnchor.SelectionChanged += (_, _) => RefreshStudioPanels();
-        _studioAspect = new CheckBox { Content = "Constrain proportions", IsChecked = true, FontSize = 11 };
+        _studioAspect = new CheckBox { Content = new TextBlock { Text = "Constrain proportions", TextWrapping = TextWrapping.Wrap }, IsChecked = true, VerticalAlignment = VerticalAlignment.Center };
+        AutomationProperties.SetName(_studioAspect, "Constrain proportions");
         transform.Children.Add(StudioPair(_studioAnchor, _studioAspect));
         _studioX = StudioNumber("X", -1000000, 1000000, (controller, value) =>
         { var pivot = StudioPivot(controller); controller.MoveSelection((float)value - pivot.X, 0); });
@@ -160,9 +163,9 @@ public sealed partial class SvgEditorWorkspace
         ResourcesShelf.Children.Add(StudioSection("Document resources", CommandWrap(new[] { ("symbol", "Create symbol…"), ("insert", "Insert SVG…"), ("image", "Place image…"), ("style", "Document CSS…") })));
     }
 
-    private StudioWrapPanel CommandWrap(IEnumerable<(string Id, string Label)> commands, int selection = 0)
+    private StudioFieldGrid CommandWrap(IEnumerable<(string Id, string Label)> commands, int selection = 0)
     {
-        var panel = new StudioWrapPanel { Spacing = 5 };
+        var panel = new StudioFieldGrid { MinimumColumnWidth = 128 };
         foreach (var command in commands) panel.Children.Add(StudioCommand(command.Id, command.Label, selection));
         return panel;
     }
@@ -258,7 +261,7 @@ public sealed partial class SvgEditorWorkspace
         var document = controller.Document;
         var input = new TextBox { Header = stroke ? "Stroke paint" : "Fill paint", Text = anchor.IsMixed ? string.Empty : anchor.Paint, PlaceholderText = "#RRGGBB, none, or url(#resource)", MinWidth = 220, MaxLength = 4096 };
         var error = StudioHint(string.Empty);
-        var content = new StackPanel { Spacing = 10, Width = Math.Max(220, Math.Min(280, ActualWidth - 80)) };
+        var content = new StackPanel { Spacing = 12, Width = Math.Max(220, Math.Min(280, ActualWidth - 80)) };
         var palette = new StudioWrapPanel { Spacing = 5 };
         var flyout = new Flyout { Content = content };
         void Apply(string paint)
@@ -275,10 +278,11 @@ public sealed partial class SvgEditorWorkspace
         }
         foreach (var color in new[] { "none", "#000000", "#FFFFFF", "#435E8E", "#7061DC", "#D24454", "#EE9A42", "#E7CE53", "#4F9B77", "#4A9CC3", "#C774AF", "#9B8071" })
         {
-            var chip = new StudioPaintChip { Paint = color, Label = string.Empty, MinWidth = 32, Width = 36 };
+            var chip = new StudioPaintChip { Paint = color, Label = string.Empty, IsCompact = true, MinWidth = 32, Width = 36 };
             chip.Click += (_, _) => Apply(color); palette.Children.Add(chip);
         }
         var apply = new Button { Content = "Apply paint", HorizontalAlignment = HorizontalAlignment.Stretch };
+        StudioTheme.ApplyRole(apply, StudioActionRole.Primary);
         apply.Click += (_, _) => Apply(input.Text.Trim());
         input.KeyDown += (_, args) => { if (args.Key == Windows.System.VirtualKey.Enter) { Apply(input.Text.Trim()); args.Handled = true; } };
         content.Children.Add(palette); content.Children.Add(input); content.Children.Add(apply); content.Children.Add(error);
