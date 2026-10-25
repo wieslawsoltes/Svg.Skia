@@ -25,9 +25,10 @@ public sealed partial class SvgEditorWorkspace
         Unloaded += (_, _) => _studioGradientEditor.BindController(null);
         Task Open()
         {
-            OpenStudioPanel("appearance"); section.IsExpanded = true;
+            OpenStudioPanel("appearance");
             _studioGradientEditor.BindController(Controller);
-            section.StartBringIntoView(); return Task.CompletedTask;
+            RevealAppearanceSection(section);
+            return Task.CompletedTask;
         }
         var index = _commands.FindIndex(command => command.Id == "gradient");
         var command = new EditorCommand("gradient", "Gradient editor", "Object", string.Empty, Open);
