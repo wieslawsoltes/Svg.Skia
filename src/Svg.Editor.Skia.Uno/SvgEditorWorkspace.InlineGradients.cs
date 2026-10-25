@@ -1,0 +1,39 @@
+using Microsoft.UI.Xaml.Controls;
+
+namespace Svg.Editor.Skia.Uno;
+
+public sealed partial class SvgEditorWorkspace
+{
+    private StudioGradientEditor? _studioGradientEditor;
+
+    private void InitializeInlineGradientEditor()
+    {
+        if (_studioPanels["appearance"].Content is not ScrollViewer { Content: StackPanel panel })
+            throw new InvalidOperationException("The Appearance panel must provide its retained content host.");
+        _studioGradientEditor = new StudioGradientEditor
+        {
+            BeforeApply = () =>
+            {
+                if (_disposed) throw new ObjectDisposedException(nameof(SvgEditorWorkspace));
+                CommitInspectorEdits(); Canvas.CancelGesture();
+            }
+        };
+        var section = new StudioSection { Header = "Gradient editor", IsExpanded = false, Content = _studioGradientEditor };
+        panel.Children.Insert(Math.Min(4, panel.Children.Count), section);
+        WorkspaceTitleChanged += (_, _) => _studioGradientEditor.BindController(Controller);
+        Loaded += (_, _) => _studioGradientEditor.BindController(Controller);
+        Unloaded += (_, _) => _studioGradientEditor.BindController(null);
+        Task Open()
+        {
+            OpenStudioPanel("appearance"); section.IsExpanded = true;
+            _studioGradientEditor.BindController(Controller);
+            section.StartBringIntoView(); return Task.CompletedTask;
+        }
+        var index = _commands.FindIndex(command => command.Id == "gradient");
+        var command = new EditorCommand("gradient", "Gradient editor", "Object", string.Empty, Open);
+        if (index >= 0) _commands[index] = command; else _commands.Add(command);
+        _commands.Add(new EditorCommand("gradientpanel", "Gradient editor", "Window", string.Empty, Open));
+        // Preserve the precise text-based creation workflow as an explicit advanced command.
+        _commands.Add(new EditorCommand("gradient-source-create", "Create gradient from stop values…", "Object", string.Empty, GradientDialogAsync));
+    }
+}
