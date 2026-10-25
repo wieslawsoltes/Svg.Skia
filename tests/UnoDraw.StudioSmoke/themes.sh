@@ -22,10 +22,13 @@ for appearance in light dark; do
   capture "theme-$appearance-color"
   command 'Control gallery'
   capture "theme-$appearance-gallery"
-  # Native focus visuals must remain available with the custom chrome.
   xdotool key --clearmodifiers Tab Tab
   sleep 0.3
   capture "theme-$appearance-gallery-focus"
+  # Inspect the actual precision fields, paint chips and tools below the gallery fold.
+  xdotool mousemove --window "$window" 760 620 click --repeat 16 --delay 30 5
+  sleep 0.4
+  capture "theme-$appearance-gallery-lower"
   xdotool key --clearmodifiers Escape
   sleep 0.4
   save
@@ -45,6 +48,9 @@ for width in 390 480; do
   sleep 0.3
   command 'Control gallery'
   capture "theme-narrow-$width-gallery"
+  xdotool mousemove --window "$window" "$((width / 2))" 560 click --repeat 24 --delay 30 5
+  sleep 0.4
+  capture "theme-narrow-$width-gallery-lower"
   xdotool key --clearmodifiers Escape
   sleep 0.4
 done
@@ -60,16 +66,31 @@ if grep -Eiq 'Unhandled exception|DllNotFoundException|EntryPointNotFoundExcepti
   cat "$output/application.log"; exit 1
 fi
 python3 - "$output" <<'PY'
-import json, pathlib, sys
+import json, pathlib, subprocess, sys
 output = pathlib.Path(sys.argv[1])
 captures = sorted(path.name for path in output.glob('theme-*.png'))
-assert len(captures) == 37, ('Incomplete theme inspection captures', len(captures))
+assert len(captures) == 41, ('Incomplete theme inspection captures', len(captures))
+# The deterministic 1440px workspace has blank panel/context-bar patches at these
+# coordinates. Verify the live theme command changed both surfaces, not merely a
+# RequestedTheme enum while shared brushes stayed cached in their previous palette.
+brightness = {}
+for theme in ('light', 'dark'):
+    image = output / ('theme-' + theme + '-01-properties.png')
+    samples = []
+    for crop in ('6x6+1132+145', '6x6+1350+50'):
+        value = subprocess.check_output(['convert', str(image), '-crop', crop, '+repage',
+            '-colorspace', 'gray', '-format', '%[fx:mean]', 'info:'], text=True)
+        samples.append(float(value))
+    brightness[theme] = samples
+assert all(value > 0.7 for value in brightness['light']), ('Light surfaces did not update', brightness)
+assert all(value < 0.3 for value in brightness['dark']), ('Dark surfaces did not update', brightness)
 (output / 'theme-review.json').write_text(json.dumps({
     'captures': captures,
     'panels_per_theme': 11,
     'themes': ['light', 'dark'],
     'compact_widths': [390, 480],
     'document_unchanged': True,
+    'live_theme_surface_brightness': brightness,
     'rendering': 'Xvfb software graphics; not physical GPU validation',
     'visual_review': 'Required separately; capture completion alone is not pixel correctness'
 }, indent=2))
