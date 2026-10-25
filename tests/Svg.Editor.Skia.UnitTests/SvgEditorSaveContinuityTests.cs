@@ -68,12 +68,23 @@ public class SvgEditorSaveContinuityTests
     [Fact]
     public void SameUriSavePreservesRedoAndAnimationTime()
     {
-        using var editor = Create();
+        // Static renderers intentionally have no animation clock. Use a real native
+        // SVG animation so this assertion proves playhead continuity rather than
+        // requesting a nonzero time from a non-animated fixture.
+        using var editor = Create("""
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="80">
+              <rect id="art" width="40" height="30" fill="red">
+                <animate attributeName="opacity" values="1;0.5;1" dur="4s" repeatCount="indefinite"/>
+              </rect>
+            </svg>
+            """);
         editor.MoveSelection(3, 0); editor.Undo();
         var time = TimeSpan.FromSeconds(1.25); editor.Renderer.SetAnimationTime(time);
+        Assert.Equal(time, editor.Renderer.AnimationTime);
+        var renderer = editor.Renderer;
         editor.AcceptSave(editor.GetSvg(), Location());
         Assert.True(editor.CanRedo); Assert.False(editor.CanUndo);
-        Assert.Equal(time, editor.Renderer.AnimationTime);
+        Assert.Same(renderer, editor.Renderer); Assert.Equal(time, editor.Renderer.AnimationTime);
         editor.Redo(); Assert.True(editor.IsDirty);
     }
 
@@ -111,9 +122,9 @@ public class SvgEditorSaveContinuityTests
         Assert.Same(path, Assert.Single(editor.SelectedElements));
     }
 
-    private static SvgEditorController Create()
+    private static SvgEditorController Create(string source = Source)
     {
-        var editor = new SvgEditorController(); editor.LoadSvg(Source, Location());
+        var editor = new SvgEditorController(); editor.LoadSvg(source, Location());
         editor.Select(editor.Document!.GetElementById<SvgRectangle>("art")); return editor;
     }
 }
