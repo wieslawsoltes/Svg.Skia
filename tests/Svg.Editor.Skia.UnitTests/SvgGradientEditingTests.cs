@@ -58,6 +58,11 @@ public class SvgGradientEditingTests
               <rect id="other" x="10" y="60" width="80" height="10" fill="url(#g)"/>
             </svg>
             """);
+        // Parsing already canonicalizes transform separators. The editor must retain
+        // that canonical value, not reproduce the fixture's original whitespace.
+        var original = XDocument.Parse(editor.GetSvg()).Descendants(SvgNs + "linearGradient").Single();
+        var originalTransform = (string?)original.Attribute("gradientTransform");
+        Assert.False(string.IsNullOrWhiteSpace(originalTransform));
         var draft = editor.BeginGradientEdit();
         Assert.Equal("g", draft.OriginalGradientId); Assert.False(draft.UsesObjectBounds);
         draft.Ramp = draft.Ramp.SetColor(draft.Ramp.Stops[0].Id, SKColors.Lime);
@@ -65,9 +70,10 @@ public class SvgGradientEditingTests
         var tree = XDocument.Parse(editor.GetSvg()); var gradients = tree.Descendants(SvgNs + "linearGradient").ToArray();
         Assert.Equal(2, gradients.Length);
         var copy = gradients.Single(element => (string?)element.Attribute("id") != "g");
-        Assert.Equal("userSpaceOnUse", (string?)copy.Attribute("gradientUnits"));
-        Assert.Equal("translate(0 5)", (string?)copy.Attribute("gradientTransform"));
-        Assert.Equal("90", (string?)copy.Attribute("x2")); Assert.Contains("Retain gradient metadata", copy.Value);
+        foreach (var name in new[] { "gradientUnits", "gradientTransform", "x1", "y1", "x2", "y2" })
+            Assert.Equal((string?)original.Attribute(name), (string?)copy.Attribute(name));
+        Assert.Equal(originalTransform, (string?)copy.Attribute("gradientTransform"));
+        Assert.Contains("Retain gradient metadata", copy.Value);
         var ids = tree.Descendants().Attributes("id").Select(attribute => attribute.Value).ToArray(); Assert.Equal(ids.Length, ids.Distinct().Count());
         using var pixels = Render(editor);
         Assert.True(pixels.GetPixel(15, 20).Green > pixels.GetPixel(15, 20).Red);
