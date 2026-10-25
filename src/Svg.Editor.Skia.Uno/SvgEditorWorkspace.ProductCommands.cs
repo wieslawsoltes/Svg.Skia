@@ -44,9 +44,8 @@ public sealed partial class SvgEditorWorkspace
         _commands.Add(new EditorCommand("colormixer", "Color mixer", "Window", string.Empty, () =>
         {
             OpenStudioPanel("appearance");
-            section.IsExpanded = true;
             _studioColorEditor.BindController(Controller);
-            section.StartBringIntoView();
+            RevealAppearanceSection(section);
             return Task.CompletedTask;
         }));
     }
