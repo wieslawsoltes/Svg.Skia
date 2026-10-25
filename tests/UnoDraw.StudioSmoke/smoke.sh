@@ -114,35 +114,7 @@ PY
   sleep 0.2
 }
 verify() {
-  python3 - "$document" "$output" "$1" <<'PY'
-import json, pathlib, sys, xml.etree.ElementTree as ET
-path, output, mode = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), sys.argv[3]
-root = ET.parse(path).getroot()
-objects = {element.get('id'): element for element in root.iter() if element.get('id')}
-def color(value): return (value or '').strip().lower().replace(' ', '')
-def semantic(element): return (element.tag, sorted(element.attrib.items()), (element.text or '').strip(), [semantic(child) for child in element])
-if mode == 'baseline': (output / 'baseline.svg').write_bytes(path.read_bytes())
-elif mode == 'opacity':
-    for name in ('paper', 'card', 'arch', 'sun'):
-        assert abs(float(objects[name].get('opacity', '1')) - 0.625) < 1e-6, (name, objects[name].attrib)
-elif mode in ('default-paints', 'swap-paints'):
-    white = {'white', '#fff', '#ffffff', 'rgb(255,255,255)'}
-    black = {'black', '#000', '#000000', 'rgb(0,0,0)'}
-    expected_fill, expected_stroke = (white, black) if mode == 'default-paints' else (black, white)
-    for name in ('card', 'arch', 'sun'):
-        assert color(objects[name].get('fill')) in expected_fill, (name, objects[name].attrib)
-        assert color(objects[name].get('stroke')) in expected_stroke, (name, objects[name].attrib)
-        assert float(objects[name].get('stroke-width', '0')) == 1
-elif mode.startswith('restored'):
-    baseline = ET.parse(output / 'baseline.svg').getroot()
-    assert semantic(root) == semantic(baseline), 'Undo or workspace-only actions changed the SVG document.'
-else: raise AssertionError('Unknown verification mode: ' + mode)
-report_path = output / 'checks.json'
-checks = json.loads(report_path.read_text()) if report_path.exists() else []
-checks.append({'check': mode, 'passed': True})
-report_path.write_text(json.dumps(checks, indent=2))
-print('Verified:', mode)
-PY
+  python3 "$source_dir/assert_svg.py" "$document" "$output" "$1"
 }
 
 command 'Fit artboard'
