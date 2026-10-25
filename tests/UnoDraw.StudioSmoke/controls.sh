@@ -66,7 +66,17 @@ capture controls-07-hidden-panel-activated
 xdotool mousemove --window "$window" 1140 125 click --repeat 3 --delay 150 1
 sleep 0.4
 capture controls-08-tab-overflow-navigation
-command 'Save workspace as'
+# Explicitly retain the intermediate views for diagnosing lost keyboard focus.
+# This is the same production command-search sequence as command(), not a bypass.
+xdotool key --clearmodifiers ctrl+k
+sleep 0.25
+capture controls-08a-command-search-after-scrolling
+xdotool key --clearmodifiers ctrl+a
+xdotool type --clearmodifiers --delay 1 'Save workspace as'
+sleep 0.2
+xdotool key --clearmodifiers Return
+sleep 0.65
+capture controls-08b-workspace-name-dialog
 xdotool type --clearmodifiers --delay 30 'Control navigation review'
 xdotool key --clearmodifiers Return
 python3 - "$XDG_DATA_HOME/UnoDraw/Workspaces.xml" "$output" <<'PY'
