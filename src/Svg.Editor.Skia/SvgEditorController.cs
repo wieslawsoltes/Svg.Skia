@@ -147,6 +147,7 @@ public sealed partial class SvgEditorController : IDisposable
     /// <summary>
     /// Accepts a successfully written SVG snapshot, relocating current and historical
     /// resource references without creating an edit. Edits made during the write remain dirty.
+    /// Same-URI saves preserve the live DOM, retained picture, selection and edit contexts.
     /// </summary>
     /// <param name="savedXml">The exact snapshot written with references based at the destination.</param>
     /// <param name="fileName">The destination SVG file.</param>
@@ -175,6 +176,18 @@ public sealed partial class SvgEditorController : IDisposable
         // snapshot can precede the current document when an asynchronous write is in flight.
         var savedDocument = ParseDocument(savedXml, targetUri);
         var savedCheckpoint = savedDocument.GetXML();
+        if (originalUri is not null && originalUri.Equals(targetUri))
+        {
+            // Saving is a checkpoint, not a document edit. Rebuilding an unchanged
+            // location invalidates nonmodal drafts and node-edit handles needlessly.
+            // Keep the live source (which may include newer edits) and accept only the
+            // written snapshot as the savepoint. History, renderer and revision stay put.
+            _currentXml = GetSvg();
+            _savedXml = savedCheckpoint;
+            Session.CurrentFile = targetPath;
+            NotifyChanged();
+            return;
+        }
         var document = ParseDocument(Relocate(GetSvg()), targetUri);
         var currentXml = document.GetXML();
         var editXml = _editXml is null ? null : Relocate(_editXml);
