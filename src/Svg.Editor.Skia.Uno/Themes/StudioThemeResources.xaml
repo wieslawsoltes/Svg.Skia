@@ -133,7 +133,13 @@
   <Style TargetType="MenuFlyoutItem"><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Padding" Value="12,7" /></Style>
   <Style TargetType="MenuFlyoutSubItem"><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Padding" Value="12,7" /></Style>
   <Style TargetType="ListViewItem"><Setter Property="MinHeight" Value="30" /><Setter Property="Padding" Value="8,5" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /></Style>
-  <Style TargetType="ContentDialog"><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="{ThemeResource StudioSurface}" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="CornerRadius" Value="{StaticResource StudioSurfaceRadius}" /></Style>
+  <Style TargetType="ContentDialog">
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="{ThemeResource StudioSurface}" />
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="CornerRadius" Value="{StaticResource StudioSurfaceRadius}" />
+    <Setter Property="PrimaryButtonStyle" Value="{StaticResource StudioPrimaryButtonStyle}" />
+    <Setter Property="SecondaryButtonStyle" Value="{StaticResource StudioButtonStyle}" />
+    <Setter Property="CloseButtonStyle" Value="{StaticResource StudioButtonStyle}" />
+  </Style>
   <Style x:Key="SectionLabel" TargetType="TextBlock"><Setter Property="FontSize" Value="{StaticResource StudioLabelSize}" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{ThemeResource StudioMuted}" /><Setter Property="Margin" Value="0,8,0,4" /></Style>
   <Style x:Key="StudioHintStyle" TargetType="TextBlock"><Setter Property="FontSize" Value="{StaticResource StudioLabelSize}" /><Setter Property="Foreground" Value="{ThemeResource StudioMuted}" /><Setter Property="TextWrapping" Value="Wrap" /></Style>
 </ResourceDictionary>
