@@ -6,11 +6,7 @@ using Svg.Editor.Skia;
 
 namespace Svg.Editor.Skia.Uno;
 
-/// <summary>
-/// A retained color mixer using Uno's native spectrum/channel controls. Browsing colors
-/// changes only a local preview. Applying creates one controller edit and rejects stale
-/// document/selection targets. Linked paints are not replaced until explicitly applied.
-/// </summary>
+/// <summary>Retained solid-paint mixer with explicit application and safe nonmodal draft ownership.</summary>
 public sealed class StudioColorEditor : UserControl, IDisposable
 {
     private readonly ComboBox _target = new() { ItemsSource = new[] { "Fill", "Stroke" }, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -22,36 +18,49 @@ public sealed class StudioColorEditor : UserControl, IDisposable
         HorizontalAlignment = HorizontalAlignment.Stretch, MinWidth = 0
     };
     private readonly StudioPaintChip _preview = new() { Label = "Draft", IsEnabled = false };
-    private readonly TextBlock _status = new() { FontSize = 11, TextWrapping = TextWrapping.Wrap, Opacity = 0.75 };
-    private readonly Button _apply = new() { Content = "Apply color", MinHeight = 28 };
-    private readonly Button _reset = new() { Content = "Reset draft", MinHeight = 28 };
-    private readonly Button _none = new() { Content = "No paint", MinHeight = 28 };
+    private readonly TextBlock _status = new() { TextWrapping = TextWrapping.Wrap };
+    private readonly Button _apply = new() { Content = "Apply color", HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly Button _reset = new() { Content = "Reset draft", HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly Button _none = new() { Content = "No paint", HorizontalAlignment = HorizontalAlignment.Stretch };
     private SvgEditorController? _controller;
     private SvgSolidPaintDraft? _draft;
     private bool _dirty, _syncing, _loaded, _disposed, _refreshPending, _applying;
-    /// <summary>Optional host hook to commit other property fields before applying color.</summary>
     public Action? BeforeApply { get; set; }
     public bool HasPendingDraft => _dirty;
 
     public StudioColorEditor()
     {
         IsTabStop = false;
-        var content = new StackPanel { Spacing = 8 };
+        Resources.MergedDictionaries.Add(new StudioThemeResources());
+        var content = new StackPanel { Spacing = 12 };
         var header = new Grid { ColumnSpacing = 8 };
         header.ColumnDefinitions.Add(new ColumnDefinition());
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         header.Children.Add(_target); header.Children.Add(_preview); Grid.SetColumn(_preview, 1);
         content.Children.Add(header);
-        content.Children.Add(_picker);
-        var actions = new StudioWrapPanel { Spacing = 5 };
-        actions.Children.Add(_apply); actions.Children.Add(_reset); actions.Children.Add(_none);
+        var actions = new StudioFieldGrid { MinimumColumnWidth = 112 };
+        actions.Children.Add(_apply); actions.Children.Add(_reset);
+        StudioTheme.ApplyRole(_apply, StudioActionRole.Primary);
+        StudioTheme.ApplyRole(_none, StudioActionRole.Quiet);
+        _status.Style = (Style)Resources["StudioHintStyle"];
         content.Children.Add(actions); content.Children.Add(_status);
+        content.Children.Add(_picker); content.Children.Add(_none);
         Content = content;
         AutomationProperties.SetName(_target, "Color target");
         AutomationProperties.SetName(_picker, "Draft solid paint color");
         AutomationProperties.SetAutomationId(_picker, "StudioColorPicker");
         AutomationProperties.SetAutomationId(_apply, "StudioColorApply");
-        _target.SelectionChanged += (_, _) => { if (!_syncing) ResetDraft(); };
+        _target.SelectionChanged += (_, _) =>
+        {
+            if (_syncing) return;
+            if (_dirty && _draft is not null)
+            {
+                _syncing = true; _target.SelectedIndex = _draft.IsStroke ? 1 : 0; _syncing = false;
+                _status.Text = "Apply or Reset this draft before changing its paint target.";
+                return;
+            }
+            ResetDraft();
+        };
         _picker.ColorChanged += (_, args) =>
         {
             if (_syncing || _disposed || _draft is null) return;
@@ -77,7 +86,6 @@ public sealed class StudioColorEditor : UserControl, IDisposable
         };
         ResetDraft();
     }
-
     public void BindController(SvgEditorController? controller)
     {
         if (_disposed || ReferenceEquals(controller, _controller)) return;
@@ -98,8 +106,7 @@ public sealed class StudioColorEditor : UserControl, IDisposable
     }
     private void Synchronize()
     {
-        if (_dirty) UpdateStatus();
-        else ResetDraft();
+        if (_dirty) UpdateStatus(); else ResetDraft();
     }
     public void ResetDraft()
     {
@@ -115,9 +122,9 @@ public sealed class StudioColorEditor : UserControl, IDisposable
             _picker.PreviousColor = _picker.Color;
             _preview.Paint = SvgSolidPaintDraft.FormatColor(color);
             _preview.IsMixed = _draft.IsMixed;
-            _status.Text = _draft.IsMixed ? "Mixed paints. Apply replaces them with the chosen color."
-                : _draft.HasNonSolidPaint ? "This selection has a linked or non-solid paint. Apply deliberately replaces it with a solid color."
-                : "Color alpha combines with existing paint and object opacity. Changes are applied as one undo step.";
+            _status.Text = _draft.IsMixed ? "Mixed paints. Apply replaces them with one color."
+                : _draft.HasNonSolidPaint ? "Linked or non-solid paint. Apply explicitly replaces it."
+                : "Color alpha combines with paint and object opacity.";
         }
         catch (Exception exception) { _status.Text = exception.Message; }
         finally
@@ -135,8 +142,8 @@ public sealed class StudioColorEditor : UserControl, IDisposable
         _apply.IsEnabled = current && _dirty;
         _none.IsEnabled = current;
         _preview.IsMixed = false;
-        _status.Text = !current ? "The document or selection changed. Reset this draft before applying; no color was written."
-            : "Draft color only. Apply changes the selected paint in one undo step; Reset discards it.";
+        _status.Text = !current ? "The document or selection changed. Reset before applying."
+            : "Unapplied color. Apply saves one undo step; Reset discards it.";
     }
     private void Apply(bool none)
     {
