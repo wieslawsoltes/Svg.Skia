@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Media;
 using Windows.System;
 
 namespace Svg.Editor.Skia.Uno;
@@ -89,17 +90,46 @@ public sealed class StudioReferencePoint : UserControl
     public StudioReferencePoint()
     {
         IsTabStop = false;
-        var grid = new Grid { Width = 78, Height = 66, ColumnSpacing = 2, RowSpacing = 2 };
+        Resources.MergedDictionaries.Add(new StudioThemeResources());
+        var grid = new Grid { Width = 86, Height = 86, ColumnSpacing = 4, RowSpacing = 4 };
         for (var i = 0; i < 3; i++) { grid.ColumnDefinitions.Add(new ColumnDefinition()); grid.RowDefinitions.Add(new RowDefinition()); }
         var labels = new[] { "Top left", "Top center", "Top right", "Middle left", "Center", "Middle right", "Bottom left", "Bottom center", "Bottom right" };
         for (var i = 0; i < 9; i++)
         {
             var index = i;
-            var button = _buttons[i] = new ToggleButton { Content = "·", MinWidth = 0, MinHeight = 0, Padding = new Thickness(0), CornerRadius = new CornerRadius(2), IsChecked = i == 0 };
-            AutomationProperties.SetName(button, labels[i] + " transform reference");
-            ToolTipService.SetToolTip(button, labels[i]);
+            // Explicit targets prevent native ToggleButton's content-sized alignment
+            // from reducing a dot-only anchor to a narrow sliver inside its grid cell.
+            var button = new StudioToolButton
+            {
+                Label = labels[i] + " transform reference", Content = "•", Width = 24, Height = 24,
+                MinWidth = 0, MinHeight = 0, Padding = new Thickness(0), IsChecked = i == 0,
+                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center
+            };
+            _buttons[i] = button;
+            AutomationProperties.SetAutomationId(button, "StudioReferencePoint" + i);
+            ToolTipService.SetToolTip(button, labels[i] + " · arrow keys choose adjacent reference points");
             button.Click += (_, _) => SelectedIndex = index;
-            Grid.SetRow(button, i / 3); Grid.SetColumn(button, i % 3); grid.Children.Add(button);
+            button.KeyDown += (_, args) =>
+            {
+                var next = args.Key switch
+                {
+                    VirtualKey.Left => index % 3 > 0 ? index - 1 : index,
+                    VirtualKey.Right => index % 3 < 2 ? index + 1 : index,
+                    VirtualKey.Up => index >= 3 ? index - 3 : index,
+                    VirtualKey.Down => index < 6 ? index + 3 : index,
+                    VirtualKey.Home => 0,
+                    VirtualKey.End => 8,
+                    _ => -1
+                };
+                if (next < 0) return;
+                SelectedIndex = next; _buttons[next].Focus(FocusState.Keyboard); args.Handled = true;
+            };
+            var cell = new Border
+            {
+                BorderBrush = (Brush)Resources["StudioBorder"], Background = (Brush)Resources["StudioInputBackground"],
+                BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(3), Child = button
+            };
+            Grid.SetRow(cell, i / 3); Grid.SetColumn(cell, i % 3); grid.Children.Add(cell);
         }
         Content = grid;
     }
