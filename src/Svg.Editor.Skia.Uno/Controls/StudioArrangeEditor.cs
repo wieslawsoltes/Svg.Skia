@@ -5,19 +5,19 @@ using Svg.Editor.Skia;
 
 namespace Svg.Editor.Skia.Uno;
 
-/// <summary>Selection-aware alignment controls with explicit reference and spacing semantics.</summary>
+/// <summary>Reference-aware arrangement with responsive, equal-width action groups.</summary>
 public sealed class StudioArrangeEditor : UserControl, IDisposable
 {
     private sealed record KeyChoice(SvgVisualElement Element, string Label) { public override string ToString() => Label; }
     private readonly ComboBox _reference = new()
     { Header = "Align to", ItemsSource = new[] { "Selection bounds", "Artboard", "Key object · stays fixed" }, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch };
     private readonly ComboBox _key = new() { Header = "Key object", HorizontalAlignment = HorizontalAlignment.Stretch, Visibility = Visibility.Collapsed };
-    private readonly CheckBox _exact = new() { Content = "Use an exact gap", FontSize = 12 };
+    private readonly CheckBox _exact = new() { Content = "Use an exact gap" };
     private readonly NumberBox _gap = new()
     { Header = "Gap · canvas units", Value = 12, Minimum = -1000000, Maximum = 1000000, SmallChange = 1, LargeChange = 10,
         NumberFormatter = new EditorNumberFormatter(), SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Compact, Visibility = Visibility.Collapsed };
-    private readonly TextBlock _hint = new() { FontSize = 11, TextWrapping = TextWrapping.Wrap, Opacity = 0.75 };
-    private readonly TextBlock _feedback = new() { FontSize = 11, TextWrapping = TextWrapping.Wrap };
+    private readonly TextBlock _hint = new() { TextWrapping = TextWrapping.Wrap };
+    private readonly TextBlock _feedback = new() { TextWrapping = TextWrapping.Wrap };
     private readonly List<Button> _alignmentButtons = new();
     private readonly List<Button> _centerButtons = new();
     private readonly List<Button> _spacingButtons = new();
@@ -28,10 +28,11 @@ public sealed class StudioArrangeEditor : UserControl, IDisposable
     public StudioArrangeEditor()
     {
         IsTabStop = false;
-        var panel = new StackPanel { Spacing = 9 };
+        Resources.MergedDictionaries.Add(new StudioThemeResources());
+        _hint.Style = _feedback.Style = (Style)Resources["StudioHintStyle"];
+        var panel = new StackPanel { Spacing = 12 };
         panel.Children.Add(_reference); panel.Children.Add(_key); panel.Children.Add(_hint);
-        var horizontal = new StudioWrapPanel { Spacing = 5 };
-        var vertical = new StudioWrapPanel { Spacing = 5 };
+        var align = new StudioFieldGrid { MaximumColumns = 3, MinimumColumnWidth = 72, Spacing = 6 };
         foreach (var entry in new[]
         {
             (SvgAlignment.Left, "Left"), (SvgAlignment.HorizontalCenter, "Center X"), (SvgAlignment.Right, "Right"),
@@ -42,12 +43,10 @@ public sealed class StudioArrangeEditor : UserControl, IDisposable
                 (SvgAlignmentTarget)_reference.SelectedIndex, (_key.SelectedItem as KeyChoice)?.Element));
             AutomationProperties.SetAutomationId(button, "StudioAlign" + entry.Item1);
             ToolTipService.SetToolTip(button, "Align " + entry.Item2 + " to the chosen reference. A key object is not moved.");
-            _alignmentButtons.Add(button);
-            (entry.Item1 <= SvgAlignment.Right ? horizontal : vertical).Children.Add(button);
+            _alignmentButtons.Add(button); align.Children.Add(button);
         }
-        var align = new StackPanel { Spacing = 5 }; align.Children.Add(horizontal); align.Children.Add(vertical);
         panel.Children.Add(new StudioSection { Header = "Align edges and centers", Content = align });
-        var centers = new StudioWrapPanel { Spacing = 5 };
+        var centers = new StudioFieldGrid { MinimumColumnWidth = 112 };
         foreach (var axis in Enum.GetValues<SvgArrangementAxis>())
         {
             var button = ActionButton(axis == SvgArrangementAxis.Horizontal ? "Centers X" : "Centers Y", () => _controller!.DistributeSelectionCenters(axis));
@@ -55,11 +54,12 @@ public sealed class StudioArrangeEditor : UserControl, IDisposable
             _centerButtons.Add(button); centers.Children.Add(button);
         }
         panel.Children.Add(new StudioSection { Header = "Distribute centers", Content = centers });
-        var spacing = new StackPanel { Spacing = 7 }; spacing.Children.Add(_exact); spacing.Children.Add(_gap);
-        var gaps = new StudioWrapPanel { Spacing = 5 };
+        var spacing = new StackPanel { Spacing = 8 }; spacing.Children.Add(_exact); spacing.Children.Add(_gap);
+        var gaps = new StudioFieldGrid { MinimumColumnWidth = 112 };
         foreach (var axis in Enum.GetValues<SvgArrangementAxis>())
         {
-            var button = ActionButton(axis == SvgArrangementAxis.Horizontal ? "Space horizontally" : "Space vertically", () =>
+            var label = axis == SvgArrangementAxis.Horizontal ? "Horizontal gaps" : "Vertical gaps";
+            var button = ActionButton(label, () =>
             {
                 var exact = _exact.IsChecked == true;
                 if (exact && !double.IsFinite(_gap.Value)) throw new InvalidOperationException("Enter a finite spacing value.");
@@ -67,19 +67,26 @@ public sealed class StudioArrangeEditor : UserControl, IDisposable
                     exact && _reference.SelectedIndex == (int)SvgAlignmentTarget.KeyObject ? (_key.SelectedItem as KeyChoice)?.Element : null);
             });
             AutomationProperties.SetAutomationId(button, "StudioSpace" + axis);
+            ToolTipService.SetToolTip(button, "Equalize edge-to-edge " + label.ToLowerInvariant() + ". Exact gap values may be negative for overlap.");
             _spacingButtons.Add(button); gaps.Children.Add(button);
         }
         spacing.Children.Add(gaps);
-        spacing.Children.Add(new TextBlock
-        {
-            Text = "Automatic gaps use the selected objects' span. Exact gaps start at the first spatial object, or around the fixed key. Negative gaps intentionally overlap objects.",
-            FontSize = 11, TextWrapping = TextWrapping.Wrap, Opacity = 0.75
-        });
         panel.Children.Add(new StudioSection { Header = "Space between objects", Content = spacing });
-        panel.Children.Add(_feedback); Content = panel;
+        panel.Children.Add(_feedback);
+        panel.Children.Add(new StudioSection
+        {
+            Header = "How spacing works", IsExpanded = false,
+            Content = new TextBlock
+            {
+                Text = "Automatic gaps use the selected objects' span. Exact gaps start at the first spatial object, or around the fixed key. Negative gaps intentionally overlap objects.",
+                Style = (Style)Resources["StudioHintStyle"]
+            }
+        });
+        Content = panel;
         AutomationProperties.SetAutomationId(_reference, "StudioAlignReference");
         AutomationProperties.SetAutomationId(_gap, "StudioAlignGap");
         AutomationProperties.SetName(_key, "Fixed key object");
+        AutomationProperties.SetLiveSetting(_feedback, Microsoft.UI.Xaml.Automation.Peers.AutomationLiveSetting.Polite);
         _reference.SelectionChanged += (_, _) => Refresh();
         _exact.Checked += (_, _) => Refresh(); _exact.Unchecked += (_, _) => Refresh();
         Loaded += (_, _) =>
@@ -100,7 +107,7 @@ public sealed class StudioArrangeEditor : UserControl, IDisposable
     }
     private Button ActionButton(string label, Action action)
     {
-        var button = new Button { Content = label, MinHeight = 28, Padding = new Thickness(8, 4, 8, 4), FontSize = 12 };
+        var button = new Button { Content = label, HorizontalAlignment = HorizontalAlignment.Stretch };
         button.Click += (_, _) =>
         {
             try
@@ -143,10 +150,11 @@ public sealed class StudioArrangeEditor : UserControl, IDisposable
             foreach (var button in _alignmentButtons) button.IsEnabled = editable && (_reference.SelectedIndex == (int)SvgAlignmentTarget.Artboard || selected.Length >= 2);
             foreach (var button in _centerButtons) button.IsEnabled = editable && selected.Length >= 3;
             foreach (var button in _spacingButtons) button.IsEnabled = editable && selected.Length >= 2;
-            _hint.Text = !editable ? "Select unlocked artwork to arrange it. One object can be aligned to the artboard."
-                : keyMode ? "Choose the object that must stay fixed. Other selected objects align or space around it."
-                : _reference.SelectedIndex == (int)SvgAlignmentTarget.Artboard ? "Alignment uses the rendered SVG artboard. Spacing still acts within the selected objects."
-                : $"{selected.Length} objects · alignment uses selection bounds. Center distribution requires three objects.";
+            _hint.Text = !editable ? "Select unlocked artwork. One object can align to the artboard."
+                : keyMode ? "The key stays fixed; other objects move around it."
+                : _reference.SelectedIndex == (int)SvgAlignmentTarget.Artboard ? "Align to the artboard. Spacing acts within the selection."
+                : $"{selected.Length} objects · selection bounds";
+            _feedback.Visibility = string.IsNullOrEmpty(_feedback.Text) ? Visibility.Collapsed : Visibility.Visible;
         }
         finally { _syncing = false; }
     }
