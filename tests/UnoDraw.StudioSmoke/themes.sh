@@ -33,10 +33,9 @@ for appearance in light dark; do
   xdotool key --clearmodifiers Tab Tab
   sleep 0.3
   capture "theme-$appearance-gallery-focus"
-  # Move focus through actual controls to the lower choice/toggle section. Legacy
-  # XTest wheel injection did not reliably move this nested dialog's viewport.
-  # Native focus navigation must bring the later controls into view instead.
-  for ((step = 0; step < 19; step++)); do xdotool key --clearmodifiers Tab; done
+  # Navigate to the mixed ToggleButton below the enabled/disabled choice strips.
+  # Native focus navigation brings the actual control states into the viewport.
+  for ((step = 0; step < 21; step++)); do xdotool key --clearmodifiers Tab; done
   sleep 0.4
   capture "theme-$appearance-gallery-lower"
   xdotool key --clearmodifiers Escape
@@ -58,7 +57,7 @@ for width in 390 480; do
   sleep 0.3
   command 'Control gallery'
   capture "theme-narrow-$width-gallery"
-  for ((step = 0; step < 21; step++)); do xdotool key --clearmodifiers Tab; done
+  for ((step = 0; step < 23; step++)); do xdotool key --clearmodifiers Tab; done
   sleep 0.4
   capture "theme-narrow-$width-gallery-lower"
   xdotool key --clearmodifiers Escape
