@@ -1,9 +1,11 @@
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Windows.System;
+using Windows.UI.Core;
 
 namespace Svg.Editor.Skia.Uno;
 
@@ -21,6 +23,7 @@ public sealed class StudioChoiceChangingEventArgs : EventArgs
 /// Items are snapshotted on ItemsSource assignment (up to 16 plain-text labels).
 /// Selection changes never recreate the children. A single Tab stop enters the
 /// selected choice; arrows/Home/End navigate, respecting right-to-left flow.
+/// Modified shortcuts remain available to the containing editor.
 /// </summary>
 public sealed partial class StudioChoiceStrip : UserControl
 {
@@ -145,7 +148,8 @@ public sealed partial class StudioChoiceStrip : UserControl
 
     private void ChoiceKeyDown(int index, KeyRoutedEventArgs args)
     {
-        if (_buttons.Count == 0 || !IsEnabled) return;
+        if (_buttons.Count == 0 || !IsEnabled || IsDown(VirtualKey.Control) || IsDown(VirtualKey.Menu) ||
+            IsDown(VirtualKey.LeftWindows) || IsDown(VirtualKey.RightWindows)) return;
         var forward = FlowDirection == FlowDirection.RightToLeft ? -1 : 1;
         var next = args.Key switch
         {
@@ -163,4 +167,7 @@ public sealed partial class StudioChoiceStrip : UserControl
         if (SelectedIndex >= 0) _buttons[SelectedIndex].Focus(FocusState.Keyboard);
         args.Handled = true;
     }
+
+    private static bool IsDown(VirtualKey key)
+        => (InputKeyboardSource.GetKeyStateForCurrentThread(key) & CoreVirtualKeyStates.Down) != 0;
 }
