@@ -9,11 +9,7 @@ using Windows.UI.Core;
 
 namespace Svg.Editor.Skia.Uno;
 
-/// <summary>
-/// Retained nonmodal gradient editor. Stop gestures update an immutable local ramp;
-/// Apply writes one SVG transaction. Detached artwork preview is optional and debounced.
-/// Imported geometry is kept until an explicit object-bounds choice is made.
-/// </summary>
+/// <summary>Retained gradient editing with immutable draft history and one-step document application.</summary>
 public sealed class StudioGradientEditor : UserControl, IDisposable
 {
     private sealed record StopChoice(Guid Id, string Label) { public override string ToString() => Label; }
@@ -26,27 +22,28 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
     private readonly NumberBox _opacity = Number("Stop opacity %", 0, 100);
     private readonly NumberBox _angle = Number("Angle °", -36000, 36000);
     private readonly StudioGradientStopBar _bar = new();
+    private readonly StudioPaintChip _stopPaint = new() { Label = "Color", VerticalAlignment = VerticalAlignment.Bottom };
     private readonly ColorPicker _color = new()
     {
         IsAlphaEnabled = true, IsAlphaSliderVisible = true, IsAlphaTextInputVisible = true,
-        IsColorSpectrumVisible = false, IsColorSliderVisible = true, IsHexInputVisible = true,
+        IsColorSpectrumVisible = true, IsColorSliderVisible = true, IsHexInputVisible = true,
         IsColorChannelTextInputVisible = true, IsMoreButtonVisible = false, MinWidth = 0,
         HorizontalAlignment = HorizontalAlignment.Stretch
     };
-    private readonly CheckBox _shared = new() { Content = "Edit the shared definition", FontSize = 11 };
-    private readonly CheckBox _showPreview = new() { Content = "Preview on artwork", FontSize = 11 };
+    private readonly CheckBox _shared = new() { Content = "Edit the shared definition" };
+    private readonly CheckBox _showPreview = new() { Content = "Preview on artwork" };
     private readonly StudioSvgPreview _preview = new() { Height = 160, Visibility = Visibility.Collapsed };
     private readonly TextBlock _status = Hint(string.Empty);
-    private readonly Button _apply = Button("Apply gradient");
-    private readonly Button _reset = Button("Reset draft");
-    private readonly Button _fresh = Button("New gradient");
-    private readonly Button _undo = Button("Undo draft");
-    private readonly Button _redo = Button("Redo draft");
-    private readonly Button _add = Button("Add stop");
-    private readonly Button _duplicate = Button("Duplicate");
-    private readonly Button _remove = Button("Remove");
-    private readonly Button _reverse = Button("Reverse");
-    private readonly Button _distribute = Button("Even spacing");
+    private readonly Button _apply = Action("Apply gradient");
+    private readonly Button _reset = Action("Reset draft");
+    private readonly Button _fresh = Action("New gradient");
+    private readonly Button _undo = Action("Undo draft");
+    private readonly Button _redo = Action("Redo draft");
+    private readonly Button _add = Action("Add stop");
+    private readonly Button _duplicate = Action("Duplicate");
+    private readonly Button _remove = Action("Remove");
+    private readonly Button _reverse = Action("Reverse");
+    private readonly Button _distribute = Action("Even spacing");
     private readonly DispatcherTimer _previewTimer = new() { Interval = TimeSpan.FromMilliseconds(180) };
     private readonly List<Snapshot> _past = new();
     private readonly List<Snapshot> _future = new();
@@ -61,19 +58,8 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
     public StudioGradientEditor()
     {
         IsTabStop = false;
-        var panel = new StackPanel { Spacing = 8 };
-        panel.Children.Add(Pair(_target, _geometry)); panel.Children.Add(_bar);
-        panel.Children.Add(Hint("Click the ramp to add a stop. Drag stops, or use arrows for 1%, Shift+arrows for 10%. Escape cancels a drag. Ctrl+Enter applies the draft."));
-        panel.Children.Add(_stops); panel.Children.Add(Pair(_position, _opacity));
-        panel.Children.Add(_color);
-        var stopActions = new StudioWrapPanel { Spacing = 5 };
-        foreach (var button in new[] { _add, _duplicate, _remove, _reverse, _distribute }) stopActions.Children.Add(button);
-        panel.Children.Add(stopActions); panel.Children.Add(Pair(_angle, _spread));
-        panel.Children.Add(_shared); panel.Children.Add(_showPreview); panel.Children.Add(_preview);
-        var history = new StudioWrapPanel { Spacing = 5 }; history.Children.Add(_undo); history.Children.Add(_redo); panel.Children.Add(history);
-        var actions = new StudioWrapPanel { Spacing = 5 };
-        foreach (var button in new[] { _apply, _reset, _fresh }) actions.Children.Add(button);
-        panel.Children.Add(actions); panel.Children.Add(_status); Content = panel;
+        Resources.MergedDictionaries.Add(new StudioThemeResources());
+        BuildPresentation();
         AutomationProperties.SetAutomationId(_apply, "StudioGradientApply");
         AutomationProperties.SetAutomationId(_reverse, "StudioGradientReverse");
         AutomationProperties.SetAutomationId(_position, "StudioGradientPosition");
@@ -147,6 +133,48 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         };
         ResetDraft();
     }
+
+    private void BuildPresentation()
+    {
+        var panel = new StackPanel { Spacing = 12 };
+        // Applying never requires scrolling through the full ColorPicker or advanced settings.
+        var actions = Fields(112, 2, _apply, _reset);
+        StudioTheme.ApplyRole(_apply, StudioActionRole.Primary);
+        StudioTheme.ApplyRole(_remove, StudioActionRole.Destructive);
+        panel.Children.Add(_target);
+        panel.Children.Add(_bar);
+        panel.Children.Add(actions);
+        _status.Style = (Style)Resources["StudioHintStyle"];
+        panel.Children.Add(_status);
+        var stopRow = new Grid { ColumnSpacing = 8 };
+        stopRow.ColumnDefinitions.Add(new ColumnDefinition());
+        stopRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        stopRow.Children.Add(_stops); stopRow.Children.Add(_stopPaint); Grid.SetColumn(_stopPaint, 1);
+        panel.Children.Add(stopRow);
+        panel.Children.Add(Fields(120, 2, _position, _opacity));
+        var colorSection = new StudioSection { Header = "Stop color and alpha", IsExpanded = false, Content = _color };
+        _stopPaint.Click += (_, _) => { colorSection.IsExpanded = !colorSection.IsExpanded; if (colorSection.IsExpanded) colorSection.StartBringIntoView(); };
+        panel.Children.Add(colorSection);
+        panel.Children.Add(Fields(76, 3, _add, _duplicate, _remove));
+        panel.Children.Add(Fields(112, 2, _reverse, _distribute));
+        // Longer geometry labels receive the full dock width instead of ellipsizing beside Paint.
+        var geometry = new StackPanel { Spacing = 12 };
+        geometry.Children.Add(_geometry); geometry.Children.Add(Fields(120, 2, _angle, _spread));
+        geometry.Children.Add(_shared); geometry.Children.Add(_showPreview); geometry.Children.Add(_preview);
+        panel.Children.Add(new StudioSection { Header = "Geometry and preview", Content = geometry });
+        panel.Children.Add(Fields(112, 2, _undo, _redo));
+        panel.Children.Add(_fresh);
+        var help = Hint("Click the ramp to add a stop. Drag handles or use arrows for 1%, Shift+arrows for 10%. Home/End moves to an endpoint. Escape cancels a drag. Ctrl+Enter applies the draft.");
+        help.Style = (Style)Resources["StudioHintStyle"];
+        panel.Children.Add(new StudioSection { Header = "Keyboard and editing help", IsExpanded = false, Content = help });
+        Content = panel;
+    }
+    private static StudioFieldGrid Fields(double minimum, int columns, params UIElement[] controls)
+    {
+        var grid = new StudioFieldGrid { MinimumColumnWidth = minimum, MaximumColumns = columns };
+        foreach (var control in controls) grid.Children.Add(control);
+        return grid;
+    }
     public void BindController(SvgEditorController? controller)
     {
         if (_disposed || ReferenceEquals(controller, _controller)) return;
@@ -173,20 +201,17 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         {
             _edit = null; _baseline = null; _gestureStart = null; _past.Clear(); _future.Clear(); _shared.IsChecked = false;
             if (_controller is null || _controller.SelectedElements.Count == 0)
-            { _bar.SetRamp(null, Guid.Empty); _status.Text = "Select artwork to create or edit a fill or stroke gradient."; return; }
+            { _bar.SetRamp(null, Guid.Empty); _status.Text = "Select artwork to create or edit a gradient."; return; }
             _edit = _controller.BeginGradientEdit(_target.SelectedIndex == 1, createNew);
             _selected = _edit.Ramp.Stops[0].Id; _baseline = Capture();
-            _status.Text = _edit.IsMixed ? "Mixed paints. Apply replaces them with one gradient; the original definitions remain intact."
-                : _edit.OriginalGradientId is not null ? "Existing gradient loaded. Imported coordinates are preserved; edits create an isolated copy by default."
-                : "New gradient draft. Apply attaches it to the selection in one undo step.";
+            _status.Text = _edit.IsMixed ? "Mixed paints. Apply replaces them with one gradient."
+                : _edit.OriginalGradientId is not null ? "Imported geometry is preserved. Apply creates an isolated copy."
+                : "New gradient draft. Apply creates one undo step.";
         }
         catch (Exception exception) { _status.Text = exception.Message; _bar.SetRamp(null, Guid.Empty); }
         finally { _syncing = false; SynchronizeFields(); SchedulePreview(); }
     }
-    public void ReverseDraft()
-    {
-        RequireCurrentDraft(); Change(() => _edit!.Ramp = _edit.Ramp.Reverse());
-    }
+    public void ReverseDraft() { RequireCurrentDraft(); Change(() => _edit!.Ramp = _edit.Ramp.Reverse()); }
     public void UndoDraft() { RequireCurrentDraft(); Navigate(false); }
     public void RedoDraft() { RequireCurrentDraft(); Navigate(true); }
     public void ApplyDraft()
@@ -250,6 +275,7 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
             _stops.ItemsSource = choices; _stops.SelectedItem = choices.First(choice => choice.Id == _selected);
             _position.Value = stop.Offset * 100; _opacity.Value = stop.Opacity * 100;
             _color.Color = Windows.UI.Color.FromArgb(stop.Color.Alpha, stop.Color.Red, stop.Color.Green, stop.Color.Blue);
+            _stopPaint.Paint = SvgSolidPaintDraft.FormatColor(stop.Color);
             _angle.Value = _edit.Angle; _spread.SelectedIndex = (int)_edit.Spread;
             _geometry.SelectedIndex = !_edit.UsesObjectBounds ? 0 : _edit.Kind == SvgGradientKind.Radial ? 2 : 1;
         }
@@ -258,7 +284,7 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
     private void UpdateAvailability()
     {
         var current = _edit?.IsCurrent(_controller) == true;
-        foreach (var control in new Control[] { _bar, _position, _opacity, _color, _stops, _geometry, _spread, _reverse, _distribute }) control.IsEnabled = current;
+        foreach (var control in new Control[] { _bar, _position, _opacity, _color, _stopPaint, _stops, _geometry, _spread, _reverse, _distribute }) control.IsEnabled = current;
         _angle.IsEnabled = current && _edit!.UsesObjectBounds && _edit.Kind == SvgGradientKind.Linear;
         _add.IsEnabled = _duplicate.IsEnabled = current && _edit!.Ramp.Stops.Count < SvgGradientRamp.MaximumStops;
         _remove.IsEnabled = current && _edit!.Ramp.Stops.Count > 2;
@@ -267,8 +293,8 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         _undo.IsEnabled = current && _past.Count > 0; _redo.IsEnabled = current && _future.Count > 0;
         _apply.IsEnabled = current && (HasPendingDraft || _edit!.OriginalGradientId is null);
         _reset.IsEnabled = _fresh.IsEnabled = _controller is not null;
-        if (_edit is not null && !current) _status.Text = "The document or selection changed. Reset this draft before applying; no gradient has been written.";
-        else if (HasPendingDraft) _status.Text = "Draft changes only. Apply creates one undo step; Reset discards changes. Stop opacity and color alpha remain independent.";
+        if (_edit is not null && !current) _status.Text = "The document or selection changed. Reset before applying.";
+        else if (HasPendingDraft) _status.Text = "Unapplied draft. Apply saves one undo step; Reset discards it.";
     }
     private void SchedulePreview()
     {
@@ -296,8 +322,8 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         _controller = null; _edit = null; _past.Clear(); _future.Clear(); BeforeApply = null; _preview.Dispose(); base.Dispose();
     }
     private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
-    private static Button Button(string label) => new() { Content = label, MinHeight = 28, Padding = new Thickness(7, 4, 7, 4), FontSize = 11 };
-    private static TextBlock Hint(string text) => new() { Text = text, TextWrapping = TextWrapping.Wrap, FontSize = 11, Opacity = 0.75 };
+    private static Button Action(string label) => new() { Content = label, HorizontalAlignment = HorizontalAlignment.Stretch };
+    private static TextBlock Hint(string text) => new() { Text = text, TextWrapping = TextWrapping.Wrap, FontSize = 11 };
     private static ComboBox Choice(string header, params string[] items) => new() { Header = header, ItemsSource = items, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch, MinWidth = 0 };
     private static NumberBox Number(string header, double minimum, double maximum) => new()
     {
@@ -305,9 +331,4 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         NumberFormatter = new EditorNumberFormatter(), SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Compact,
         HorizontalAlignment = HorizontalAlignment.Stretch, MinWidth = 0
     };
-    private static Grid Pair(UIElement left, UIElement right)
-    {
-        var grid = new Grid { ColumnSpacing = 8 }; grid.ColumnDefinitions.Add(new ColumnDefinition()); grid.ColumnDefinitions.Add(new ColumnDefinition());
-        grid.Children.Add(left); grid.Children.Add(right); Grid.SetColumn(right, 1); return grid;
-    }
 }
