@@ -200,13 +200,17 @@ public sealed partial class SvgEditorWorkspace
         var panel = new StackPanel { Spacing = 10, Width = DialogContentWidth(360) };
         panel.Children.Add(StudioHint("Save panel positions, active tabs, sizes, rulers and tool density. SVG artwork and undo history are not changed."));
         panel.Children.Add(name); panel.Children.Add(error);
-        var dialog = MakeDialog("Save workspace", panel, "Save workspace");
+        // IsEnabled belongs to Control, not Panel. A content host disables both
+        // pointer and keyboard interaction for its descendants during the async save.
+        var editorHost = new ContentControl { Content = panel, HorizontalContentAlignment = HorizontalAlignment.Stretch, IsTabStop = false };
+        var dialog = MakeDialog("Save workspace", editorHost, "Save workspace");
         dialog.Opened += (_, _) => name.Focus(FocusState.Programmatic);
         var saving = false;
         dialog.Closing += (_, args) => { if (saving) args.Cancel = true; };
         dialog.PrimaryButtonClick += async (_, args) =>
         {
-            var deferral = args.GetDeferral(); saving = true; dialog.IsPrimaryButtonEnabled = false; panel.IsEnabled = false;
+            if (saving) { args.Cancel = true; return; }
+            var deferral = args.GetDeferral(); saving = true; dialog.IsPrimaryButtonEnabled = false; editorHost.IsEnabled = false;
             try
             {
                 var candidate = expected.Add(name.Text, _studioLayout);
@@ -214,7 +218,7 @@ public sealed partial class SvgEditorWorkspace
                 _activeNamedWorkspaceId = candidate.Entries.Last().Id; SynchronizeNamedWorkspacePicker();
             }
             catch (Exception exception) { args.Cancel = true; error.Text = exception.Message; }
-            finally { saving = false; panel.IsEnabled = true; dialog.IsPrimaryButtonEnabled = true; deferral.Complete(); }
+            finally { saving = false; editorHost.IsEnabled = true; dialog.IsPrimaryButtonEnabled = true; deferral.Complete(); }
         };
         await ShowDialogAsync(dialog);
     }
@@ -261,12 +265,14 @@ public sealed partial class SvgEditorWorkspace
         Action("Remove", (library, entry) => removeConfirmation.IsChecked == true ? library.Remove(entry?.Id ?? string.Empty)
             : throw new InvalidOperationException("Confirm removal first. This does not delete any SVG document."));
         Refresh(_activeNamedWorkspaceId);
-        var dialog = MakeDialog("Saved workspaces", panel, "Save library");
+        var editorHost = new ContentControl { Content = panel, HorizontalContentAlignment = HorizontalAlignment.Stretch, IsTabStop = false };
+        var dialog = MakeDialog("Saved workspaces", editorHost, "Save library");
         var saving = false;
         dialog.Closing += (_, args) => { if (saving) args.Cancel = true; };
         dialog.PrimaryButtonClick += async (_, args) =>
         {
-            var deferral = args.GetDeferral(); saving = true; dialog.IsPrimaryButtonEnabled = false; panel.IsEnabled = false;
+            if (saving) { args.Cancel = true; return; }
+            var deferral = args.GetDeferral(); saving = true; dialog.IsPrimaryButtonEnabled = false; editorHost.IsEnabled = false;
             try
             {
                 var selected = list.SelectedItem as SvgNamedWorkspace;
@@ -275,7 +281,7 @@ public sealed partial class SvgEditorWorkspace
                 if (restore.IsChecked == true) ApplyNamedWorkspace(selected!);
             }
             catch (Exception exception) { args.Cancel = true; error.Text = exception.Message; }
-            finally { saving = false; panel.IsEnabled = true; dialog.IsPrimaryButtonEnabled = true; deferral.Complete(); }
+            finally { saving = false; editorHost.IsEnabled = true; dialog.IsPrimaryButtonEnabled = true; deferral.Complete(); }
         };
         await ShowDialogAsync(dialog);
     }
@@ -287,7 +293,7 @@ public sealed partial class SvgEditorWorkspace
         using var input = await file.OpenStreamForReadAsync();
         var candidate = expected.Import(await ReadBoundedWorkspaceXmlAsync(input));
         var count = candidate.Entries.Count - expected.Entries.Count;
-        var dialog = MakeDialog("Import workspaces", StudioHint($"Add {count} workspace snapshot(s)? Existing snapshots are preserved. Conflicting names receive a numeric suffix."), "Import");
+        var dialog = MakeDialog("Import workspaces", StudioHint($"Add {count} workspace snapshot(s)? Existing snapshots are preserved. Conflicting names receive a numeric suffixes."), "Import");
         if (await ShowDialogAsync(dialog) != ContentDialogResult.Primary) return;
         await PersistNamedWorkspacesAsync(candidate, expected);
         StatusText.Text = $"Imported {count} named workspaces.";
