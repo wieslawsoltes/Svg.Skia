@@ -4,9 +4,9 @@ This continuation extends the [shared design system](unodraw-design-system.md). 
 
 ## Native controls use the intended templates and states
 
-The shared TextBox, ComboBox, ToggleButton, CheckBox and RadioButton styles explicitly inherit their native `Default…Style` resources. Their input, selection, expression, focus and automation implementations stay native. NumberBox retains its existing native template; its embedded input receives the shared resources.
+The shared TextBox, ComboBox, ToggleButton, CheckBox and RadioButton styles explicitly inherit their native `Default…Style` resources. Their input, selection, expression, focus and automation implementations stay native. NumberBox retains its existing native template; its embedded input receives the shared resources. Checkable menu items also inherit the native `DefaultToggleMenuFlyoutItemStyle`, with the studio font size, padding and minimum height.
 
-`StudioNativeStateResources` supplies missing lightweight state aliases. Both the legacy disabled TextBox keys and Fluent header/placeholder keys map to the semantic palette. CheckBox checked and indeterminate glyphs use the matching on-accent foreground. ToggleButton has background, foreground and border aliases for normal, checked and indeterminate selection states combined with normal, pointer-over, pressed and disabled interaction states. Selected list/tree rows use the same selection colors as the rest of the workspace.
+`StudioNativeStateResources` supplies missing lightweight state aliases. Both the legacy disabled TextBox keys and Fluent header/placeholder keys map to the semantic palette. CheckBox checked and indeterminate glyphs use the matching on-accent foreground. ToggleButton has background, foreground and border aliases for normal, checked and indeterminate selection states combined with normal, pointer-over, pressed and disabled interaction states. Selected list/tree rows and list hover states use matched selection foreground/background pairs.
 
 Native resource names were checked against Uno's Fluent TextBox resources and Microsoft's WinUI control resources. The implementation references these public resource contracts; it does not copy a replacement native TextBox/ComboBox editing template. Applications embedding the controls should load `XamlControlsResources` before the studio dictionaries, as described in the design-system guide.
 
@@ -50,11 +50,13 @@ This permits an embedded editor's scoped role style to take priority. Without an
 
 Dock groups retain their live content while switching panels. The tab row adds three controls outside its scroll viewport:
 
-- Backward/forward arrows appear only when the group cannot fit its tab titles. They scroll the strip without changing the active panel or committing an edit.
+- Backward/forward arrows appear only when the group cannot fit its tab titles. They scroll the strip without changing the active panel or issuing a document command. Existing input fields' lost-focus commit behavior still applies when focus moves away from an edited field.
 - The panel picker lists every panel in that group with its complete title and marks the active one. Choosing an item uses the same guarded activation path as clicking a tab.
 - The existing docking menu remains separate, with the same move/float/close commands.
 
 The active tab is revealed inside the horizontal tab viewport without asking ancestor workspace scrollers to move. Arrow availability follows the actual scroll offset. The overflow decision compares against the width without arrow chrome, so widening a group does not leave an unnecessary arrow-induced overflow state. Retemplating detaches old handlers; queued reveal requests are versioned and invalidated on unload.
+
+The picker explicitly focuses its checked menu entry on opening and implements Home/End navigation within its entries. A selected panel is activated after the flyout closes, not while the popup still owns input. Focus then returns to the active tab, allowing workspace shortcuts to work again. Closing or replacing the group invalidates queued picker operations; an unrelated dialog or an outside click's new focus target is not deliberately overridden.
 
 `SetItems` snapshots its input before clearing the old collection, rejects duplicate/empty panel IDs, and accepts the group's own read-only Items view as input without losing its contents. This is not a new arbitrary-recursive docking system or a set of native detached windows.
 
