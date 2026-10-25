@@ -16,8 +16,6 @@ for appearance in light dark; do
     name="$(printf '%02d' "$index")-$(printf '%s' "$panel" | tr ' A-Z' '-a-z')"
     capture "theme-$appearance-$name"
     if [[ "$panel" == 'Transform' ]]; then
-      # Select the top-left reference, then navigate to the center. The key events
-      # must be consumed by the reference grid, not nudge the selected artwork.
       xdotool mousemove --window "$window" 1154 164 click 1
       xdotool key --clearmodifiers Right Down
       sleep 0.3
@@ -35,8 +33,10 @@ for appearance in light dark; do
   xdotool key --clearmodifiers Tab Tab
   sleep 0.3
   capture "theme-$appearance-gallery-focus"
-  # Inspect the actual precision fields, paint chips and tools below the gallery fold.
-  xdotool mousemove --window "$window" 760 620 click --repeat 16 --delay 30 5
+  # Move focus through actual controls to the lower choice/toggle section. Legacy
+  # XTest wheel injection did not reliably move this nested dialog's viewport.
+  # Native focus navigation must bring the later controls into view instead.
+  for ((step = 0; step < 19; step++)); do xdotool key --clearmodifiers Tab; done
   sleep 0.4
   capture "theme-$appearance-gallery-lower"
   xdotool key --clearmodifiers Escape
@@ -58,7 +58,7 @@ for width in 390 480; do
   sleep 0.3
   command 'Control gallery'
   capture "theme-narrow-$width-gallery"
-  xdotool mousemove --window "$window" "$((width / 2))" 560 click --repeat 24 --delay 30 5
+  for ((step = 0; step < 21; step++)); do xdotool key --clearmodifiers Tab; done
   sleep 0.4
   capture "theme-narrow-$width-gallery-lower"
   xdotool key --clearmodifiers Escape
@@ -81,9 +81,6 @@ import json, pathlib, subprocess, sys
 output = pathlib.Path(sys.argv[1])
 captures = sorted(path.name for path in output.glob('theme-*.png'))
 assert len(captures) == 43, ('Incomplete theme inspection captures', len(captures))
-# The deterministic 1440px workspace has blank panel/context-bar patches at these
-# coordinates. Verify the live theme command changed both surfaces, not merely a
-# RequestedTheme enum while shared brushes stayed cached in their previous palette.
 brightness = {}
 for theme in ('light', 'dark'):
     image = output / ('theme-' + theme + '-01-properties.png')
