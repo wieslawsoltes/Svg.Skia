@@ -3,6 +3,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:Svg.Editor.Skia.Uno">
   <ResourceDictionary.MergedDictionaries><local:StudioPaletteResources /></ResourceDictionary.MergedDictionaries>
+  <DataTemplate x:Key="StudioChoiceLabelTemplate">
+    <TextBlock Text="{Binding}" TextWrapping="Wrap" TextAlignment="Center" />
+  </DataTemplate>
   <!-- A native RadioButton keeps its selection peer and keyboard activation.
        Independent overlay layers avoid conflicting CommonStates/CheckStates setters. -->
   <Style x:Key="StudioChoiceItemStyle" TargetType="RadioButton">
@@ -11,6 +14,7 @@
     <Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="VerticalContentAlignment" Value="Center" />
     <Setter Property="Padding" Value="8,5" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" />
     <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="UseSystemFocusVisuals" Value="True" />
+    <Setter Property="ContentTemplate" Value="{StaticResource StudioChoiceLabelTemplate}" />
     <Setter Property="FocusVisualMargin" Value="2" />
     <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RadioButton">
       <Grid x:Name="Root" Background="Transparent" CornerRadius="{StaticResource StudioControlRadius}">
@@ -30,8 +34,8 @@
         <Border Background="{ThemeResource StudioInputBackground}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="1" CornerRadius="{StaticResource StudioControlRadius}" />
         <Border x:Name="SelectedSurface" Background="{ThemeResource StudioSelection}" BorderBrush="{ThemeResource StudioAccent}" BorderThickness="1" CornerRadius="{StaticResource StudioControlRadius}" Opacity="0" />
         <ContentPresenter x:Name="Presenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
-        <Border x:Name="DisabledSurface" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="1" CornerRadius="{StaticResource StudioControlRadius}" Visibility="Collapsed" IsHitTestVisible="False">
-          <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{ThemeResource StudioDisabled}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+        <Border x:Name="DisabledSurface" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="1" CornerRadius="{StaticResource StudioControlRadius}" Visibility="Collapsed" IsHitTestVisible="False" AutomationProperties.AccessibilityView="Raw">
+          <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{ThemeResource StudioDisabled}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" AutomationProperties.AccessibilityView="Raw" />
         </Border>
         <Border x:Name="SelectedIndicator" Height="2" Margin="8,0,8,2" VerticalAlignment="Bottom" Background="{ThemeResource StudioAccent}" Opacity="0" IsHitTestVisible="False" />
         <Border x:Name="HoverOutline" BorderBrush="{ThemeResource StudioAccent}" BorderThickness="1" CornerRadius="{StaticResource StudioControlRadius}" Opacity="0" IsHitTestVisible="False" />
