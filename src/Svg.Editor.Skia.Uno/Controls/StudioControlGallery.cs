@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Svg.Editor.Core;
 
 namespace Svg.Editor.Skia.Uno;
@@ -47,9 +48,9 @@ public sealed class StudioControlGallery : UserControl
             flyout.Items.Add(item);
         }
         menu.Flyout = flyout;
-        StudioTheme.ApplyRole(primary, StudioActionRole.Primary);
-        StudioTheme.ApplyRole(quiet, StudioActionRole.Quiet);
-        StudioTheme.ApplyRole(destructive, StudioActionRole.Destructive);
+        StudioTheme.ApplyRole(primary, StudioActionRole.Primary, this);
+        StudioTheme.ApplyRole(quiet, StudioActionRole.Quiet, this);
+        StudioTheme.ApplyRole(destructive, StudioActionRole.Destructive, this);
         foreach (var button in new[] { primary, normal, quiet, destructive, disabled, menu }) actions.Children.Add(button);
         body.Children.Add(Section("Action hierarchy", actions));
 
@@ -67,6 +68,27 @@ public sealed class StudioControlGallery : UserControl
         custom.Children.Add(new StudioPaintChip { Label = "Mixed", IsMixed = true });
         custom.Children.Add(new StudioPaintChip { Label = "Linked", Paint = "url(#gradient)" });
         body.Children.Add(Section("Precision and paint", custom));
+
+        var selections = new StackPanel { Spacing = 12 };
+        var strip = new StudioChoiceStrip
+        {
+            Header = "Direct choices · arrows and Home/End",
+            ItemsSource = new[] { "Selection bounds", "Artboard", "Fixed key object" }, SelectedIndex = 1
+        };
+        strip.SelectionChanged += (_, _) => _feedback.Text = "Selected choice " + (strip.SelectedIndex + 1) + "; the artwork is unchanged.";
+        AutomationProperties.SetAutomationId(strip, "StudioGalleryChoice");
+        selections.Children.Add(strip);
+        selections.Children.Add(new StudioChoiceStrip
+        {
+            Header = "Disabled choice retains its selection", ItemsSource = new[] { "Fill", "Stroke" },
+            SelectedIndex = 0, IsEnabled = false
+        });
+        var toggles = new StudioFieldGrid { MaximumColumns = 3, MinimumColumnWidth = 120 };
+        toggles.Children.Add(new ToggleButton { Content = "Selected", IsChecked = true, HorizontalAlignment = HorizontalAlignment.Stretch });
+        toggles.Children.Add(new ToggleButton { Content = "Mixed", IsChecked = null, IsThreeState = true, HorizontalAlignment = HorizontalAlignment.Stretch });
+        toggles.Children.Add(new ToggleButton { Content = "Disabled", IsChecked = true, IsEnabled = false, HorizontalAlignment = HorizontalAlignment.Stretch });
+        selections.Children.Add(toggles);
+        body.Children.Add(Section("Segmented choices and toggles", selections));
 
         var tools = new StudioWrapPanel { Spacing = 6 };
         foreach (var kind in new[] { SvgEditorToolKind.Select, SvgEditorToolKind.PathSelect, SvgEditorToolKind.PathCubic, SvgEditorToolKind.Rect, SvgEditorToolKind.Ellipse, SvgEditorToolKind.Text })
