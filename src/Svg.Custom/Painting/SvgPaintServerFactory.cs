@@ -124,10 +124,15 @@ namespace Svg
                 if (value == SvgPaintServer.None || value == SvgPaintServer.Inherit || value == SvgPaintServer.NotSet)
                     return value.ToString();
 
+                if (value is SvgSerializedSolidPaint serializedPaint)
+                {
+                    return FormatHexColor(serializedPaint.Colour);
+                }
+
                 var colourServer = value as SvgColourServer;
                 if (colourServer != null)
                 {
-                    if (colourServer.Colour.A != 255)
+                    if (colourServer.Colour.A != 255 || IsSystemColor(colourServer.Colour))
                     {
                         return FormatHexColor(colourServer.Colour);
                     }
@@ -182,7 +187,7 @@ namespace Svg
                 return true;
             }
 
-            if (TryParseHexColorWithAlpha(value, out color) ||
+            if (TryParseHexColor(value, out color) ||
                 TryParseCssFunctionalColor(value, out color))
             {
                 return true;
@@ -284,11 +289,11 @@ namespace Svg
             return value[openParenthesisIndex] == '(';
         }
 
-        private static bool TryParseHexColorWithAlpha(string value, out Color color)
+        private static bool TryParseHexColor(string value, out Color color)
         {
             color = Color.Empty;
 
-            if (value.Length != 5 && value.Length != 9)
+            if (value.Length != 4 && value.Length != 5 && value.Length != 7 && value.Length != 9)
             {
                 return false;
             }
@@ -298,12 +303,16 @@ namespace Svg
                 return false;
             }
 
-            if (value.Length == 5)
+            // System.Drawing.ColorConverter can replace numeric RGB with an OS system
+            // color on Windows. Parse all CSS hex forms here so a saved numeric paint
+            // keeps its channels and cannot become an environment-dependent keyword.
+            var hasAlpha = value.Length == 5 || value.Length == 9;
+            if (value.Length <= 5)
             {
                 var red = FromHex(value[1]);
                 var green = FromHex(value[2]);
                 var blue = FromHex(value[3]);
-                var alpha = FromHex(value[4]);
+                var alpha = hasAlpha ? FromHex(value[4]) : 15;
 
                 if (red < 0 || green < 0 || blue < 0 || alpha < 0)
                 {
@@ -318,10 +327,11 @@ namespace Svg
                 return true;
             }
 
+            var a = byte.MaxValue;
             if (!TryParseHexByte(value, 1, out var r) ||
                 !TryParseHexByte(value, 3, out var g) ||
                 !TryParseHexByte(value, 5, out var b) ||
-                !TryParseHexByte(value, 7, out var a))
+                (hasAlpha && !TryParseHexByte(value, 7, out a)))
             {
                 return false;
             }
@@ -929,11 +939,42 @@ namespace Svg
             return -1;
         }
 
+        private static bool IsSystemColor(Color color)
+        {
+            // Color.IsSystemColor is unavailable in netstandard2.0. Include the SVG
+            // system keywords and the additional System.Drawing aliases explicitly.
+            if (!color.IsNamedColor)
+                return false;
+            if (SvgFixedSystemColorProvider.Instance.TryGetColor(color.Name, out _))
+                return true;
+
+            switch (color.Name.ToLowerInvariant())
+            {
+                case "activecaptiontext":
+                case "control":
+                case "controldark":
+                case "controldarkdark":
+                case "controllight":
+                case "controllightlight":
+                case "controltext":
+                case "desktop":
+                case "hottrack":
+                case "info":
+                case "gradientactivecaption":
+                case "gradientinactivecaption":
+                case "menubar":
+                case "menuhighlight":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         private static string FormatHexColor(Color color)
         {
             return string.Format(
                 CultureInfo.InvariantCulture,
-                "#{0:X2}{1:X2}{2:X2}{3:X2}",
+                color.A == byte.MaxValue ? "#{0:X2}{1:X2}{2:X2}" : "#{0:X2}{1:X2}{2:X2}{3:X2}",
                 color.R,
                 color.G,
                 color.B,

@@ -29,7 +29,16 @@ namespace Svg
         public TAttributeType GetAttribute<TAttributeType>(string attributeName, TAttributeType defaultValue = default(TAttributeType))
         {
             if (ContainsKey(attributeName) && base[attributeName] != null)
-                return (TAttributeType)base[attributeName];
+            {
+                var value = base[attributeName];
+                if (typeof(TAttributeType) == typeof(SvgPaintServer)
+                    && (attributeName == "fill" || attributeName == "stroke"))
+                {
+                    value = _owner.GetPaintForSerialization((SvgPaintServer)value);
+                }
+
+                return (TAttributeType)value;
+            }
 
             return defaultValue;
         }

@@ -261,6 +261,24 @@ public partial class SKSvg
         return model is null ? null : SkiaModel.ToSKPicture(model);
     }
 
+    /// <summary>Creates a reusable picture of selected retained subtrees in document coordinates.</summary>
+    public SkiaSharp.SKPicture? CreateRetainedSceneSelectionPicture(IReadOnlyCollection<SvgElement> elements)
+    {
+        if (elements is null)
+            throw new ArgumentNullException(nameof(elements));
+        if (!TryEnsureRetainedSceneGraph(out var sceneDocument) || sceneDocument is null)
+            return null;
+
+        var nodes = new List<SvgSceneNode>(elements.Count);
+        foreach (var element in elements)
+            if (sceneDocument.TryGetNode(element, out var node) && node is not null)
+                nodes.Add(node);
+
+        using var documentFontScope = PushDocumentFonts(SourceDocument, AssetLoader);
+        var model = SvgSceneRenderer.RenderSelection(sceneDocument, nodes);
+        return model is null ? null : SkiaModel.ToSKPicture(model);
+    }
+
     public SKPicture? CreateRetainedSceneModel(SvgElement element, SKRect? clip = null)
     {
         if (element is null)

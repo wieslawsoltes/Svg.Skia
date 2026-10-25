@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1200" height="800" viewBox="0 0 1200 800">
+  <title>Form and Field — an editable UnoDraw study</title>
+  <desc>An original geometric composition. Every shape, line and word is editable. Select a group in the outline, explore its children, change a fill, or draw something new.</desc>
+  <defs>
+    <linearGradient id="sky-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D9E9EF" />
+      <stop offset="1" stop-color="#F3F0E8" />
+    </linearGradient>
+    <linearGradient id="arch-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7675DF" />
+      <stop offset="0.55" stop-color="#575AC8" />
+      <stop offset="1" stop-color="#343C9C" />
+    </linearGradient>
+    <linearGradient id="sun-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFE2A8" />
+      <stop offset="1" stop-color="#F9AC84" />
+    </linearGradient>
+    <clipPath id="scene-clip">
+      <rect x="516" y="76" width="608" height="568" rx="12" />
+    </clipPath>
+    <symbol id="spark-symbol" viewBox="0 0 48 48">
+      <path d="M24 0 C26 18 30 22 48 24 C30 26 26 30 24 48 C22 30 18 26 0 24 C18 22 22 18 24 0Z" fill="currentColor" />
+    </symbol>
+  </defs>
+
+  <g id="paper">
+    <rect id="background" x="0" y="0" width="1200" height="800" fill="#F7F6F2" />
+    <path id="top-rule" d="M76 53H1124" fill="none" stroke="#D5D5D0" stroke-width="1" />
+    <path id="bottom-rule" d="M76 700H1124" fill="none" stroke="#D5D5D0" stroke-width="1" />
+  </g>
+
+  <g id="editorial-type" fill="#232A3C" font-family="sans-serif">
+    <text id="edition" x="76" y="38" font-size="12" font-weight="700" letter-spacing="2">UNODRAW  /  VECTOR STUDIES</text>
+    <text id="edition-number" x="1124" y="38" font-size="12" text-anchor="end" letter-spacing="2">NO. 001</text>
+    <text id="eyebrow" x="76" y="113" font-size="13" font-weight="700" letter-spacing="3" fill="#606A78">A LITTLE SPACE TO CREATE</text>
+    <text id="headline-form" x="70" y="224" font-size="98" font-weight="700" letter-spacing="-6">Form</text>
+    <text id="headline-and" x="76" y="313" font-size="88" font-weight="400" fill="#6864C4">&amp;</text>
+    <text id="headline-field" x="70" y="407" font-size="98" font-weight="700" letter-spacing="-6">field.</text>
+    <text id="description-line-1" x="78" y="467" font-size="19" fill="#606A78">Simple shapes. Unexpected places.</text>
+    <text id="description-line-2" x="78" y="497" font-size="19" fill="#606A78">An open canvas for your next idea.</text>
+    <text id="hint-title" x="78" y="584" font-size="12" font-weight="700" letter-spacing="2">MAKE IT YOURS</text>
+    <text id="hint-line-1" x="78" y="610" font-size="14" fill="#707986">Select a shape, change a color,</text>
+    <text id="hint-line-2" x="78" y="633" font-size="14" fill="#707986">or draw beyond the familiar.</text>
+    <text id="footer-left" x="76" y="738" font-size="13" font-weight="700" letter-spacing="1">BUILT FROM VECTORS. READY FOR IDEAS.</text>
+    <text id="footer-right" x="1124" y="738" font-size="13" text-anchor="end" fill="#707986">1200 × 800  /  EDITABLE SVG</text>
+  </g>
+
+  <g id="landscape" clip-path="url(#scene-clip)">
+    <rect id="sky" x="516" y="76" width="608" height="568" fill="url(#sky-gradient)" />
+    <circle id="sun" cx="1012" cy="180" r="66" fill="url(#sun-gradient)" />
+    <path id="distant-hill" d="M516 387 C671 267 750 348 828 327 C955 293 1025 301 1124 338 V644 H516Z" fill="#A7C3BB" />
+    <path id="near-hill" d="M516 456 C662 394 773 436 887 392 C978 355 1041 376 1124 414 V644 H516Z" fill="#6F9D91" />
+    <path id="ground" d="M516 540 C714 490 948 522 1124 493 V644 H516Z" fill="#427D73" />
+    <ellipse id="arch-shadow" cx="801" cy="555" rx="161" ry="27" fill="#285A59" fill-opacity="0.28" />
+
+    <g id="architectural-arch">
+      <path id="arch-depth" d="M667 554 V284 A127 127 0 0 1 921 284 V554 H863 V286 A69 69 0 0 0 725 286 V554Z" fill="#3E419B" />
+      <path id="arch-face" d="M640 532 V262 A127 127 0 0 1 894 262 V532 H836 V264 A69 69 0 0 0 698 264 V532Z" fill="url(#arch-gradient)" />
+      <path id="arch-right-depth" d="M894 532 L921 554 V284 L894 262Z" fill="#353B8F" />
+      <path id="arch-inner-depth" d="M698 532 L725 554 V286 A69 69 0 0 1 836 232 A69 69 0 0 0 698 264Z" fill="#9391E6" />
+      <path id="arch-left-foot" d="M640 532H698L725 554H667Z" fill="#424799" />
+      <path id="arch-right-foot" d="M836 532H894L921 554H863Z" fill="#424799" />
+      <path id="arch-highlight" d="M650 512V263A117 117 0 0 1 774 146" fill="none" stroke="#9E9BEF" stroke-width="2" stroke-opacity="0.65" />
+    </g>
+
+    <g id="foreground-sphere">
+      <ellipse id="sphere-shadow" cx="1010" cy="575" rx="62" ry="13" fill="#285A59" fill-opacity="0.3" />
+      <circle id="sphere" cx="996" cy="524" r="48" fill="url(#sun-gradient)" />
+      <path id="sphere-highlight" d="M969 496 A37 37 0 0 1 1006 488" fill="none" stroke="#FFF0D0" stroke-width="3" stroke-linecap="round" />
+    </g>
+
+    <g id="field-lines" fill="none" stroke="#BCD2B9" stroke-width="1" stroke-opacity="0.6">
+      <path id="field-line-1" d="M522 623 C625 579 689 585 777 607 C854 626 938 607 1115 574" />
+      <path id="field-line-2" d="M537 639 C642 599 695 604 781 626 C859 645 952 624 1119 591" />
+    </g>
+
+    <g id="decorative-sparks" color="#F7F6F2">
+      <use id="large-spark" xlink:href="#spark-symbol" x="1062" y="286" width="31" height="31" />
+      <use id="small-spark" xlink:href="#spark-symbol" x="558" y="153" width="18" height="18" opacity="0.8" />
+    </g>
+  </g>
+
+  <g id="palette" stroke="#F7F6F2" stroke-width="3">
+    <circle id="palette-indigo" cx="536" cy="672" r="10" fill="#575AC8" />
+    <circle id="palette-mint" cx="566" cy="672" r="10" fill="#A7C3BB" />
+    <circle id="palette-forest" cx="596" cy="672" r="10" fill="#427D73" />
+    <circle id="palette-peach" cx="626" cy="672" r="10" fill="#F9AC84" />
+  </g>
+  <text id="palette-caption" x="1124" y="676" text-anchor="end" font-family="sans-serif" font-size="11" fill="#707986" letter-spacing="2">SOFT GEOMETRY / OPEN POSSIBILITIES</text>
+</svg>

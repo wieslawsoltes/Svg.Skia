@@ -1,9 +1,0 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:editor="clr-namespace:Svg.Editor.Skia.Avalonia;assembly=Svg.Editor.Skia.Avalonia"
-        x:Class="AvalonDraw.MainWindow"
-        Width="1200"
-        Height="800"
-        Title="AvalonDraw">
-    <editor:SvgEditorWorkspace x:Name="EditorWorkspace" />
-</Window>

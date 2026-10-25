@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Xml;
 using ShimSkiaSharp;
@@ -610,10 +611,35 @@ public partial class SKSvg : IDisposable
             return null;
         }
 
+        // Structural DOM edits can introduce the first clip, filter, mask or stylesheet
+        // declaration without passing through an attribute setter on this document.
+        sourceDocument.InvalidateComputedStyleCache();
         InvalidateRetainedSceneGraph();
+        ClearAnimationRenderState();
+        if (AnimationController is { } existingController)
+        {
+            existingController.RefreshBindings();
+            if (!existingController.HasAnimations)
+            {
+                ReplaceAnimationController(null);
+            }
+        }
+        else if (sourceDocument.Descendants().Any(element => element is SvgAnimationElement))
+        {
+            // Authoring can add the first animation to a previously static document.
+            var controller = new SvgAnimationController(sourceDocument);
+            if (controller.HasAnimations)
+            {
+                ReplaceAnimationController(controller);
+            }
+            else
+            {
+                controller.Dispose();
+            }
+        }
+
         if (AnimationController is { })
         {
-            ClearAnimationRenderState();
             RefreshCurrentAnimationFrame(bypassThrottle: true);
             return Picture;
         }

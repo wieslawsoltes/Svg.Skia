@@ -273,20 +273,20 @@ public sealed class SvgAnimationController : IDisposable
 
     private static readonly TypeConverter s_paintServerConverter = new SvgPaintServerFactory();
 
-    private readonly List<AnimationBinding> _bindings;
-    private readonly List<AnimationBinding> _frameEvaluationBindings;
-    private readonly Dictionary<string, AnimationBinding> _bindingsByTargetAttributeKey;
-    private readonly Dictionary<string, AnimationBinding> _bindingsByAnimationAddressKey;
+    private List<AnimationBinding> _bindings;
+    private List<AnimationBinding> _frameEvaluationBindings;
+    private Dictionary<string, AnimationBinding> _bindingsByTargetAttributeKey;
+    private Dictionary<string, AnimationBinding> _bindingsByAnimationAddressKey;
     private readonly Dictionary<string, List<TimeSpan>> _pointerEventInstances = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<TimeSpan>> _accessKeyEventInstances = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<TimeSpan>> _scheduledBeginInstances = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<TimeSpan>> _scheduledEndInstances = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _pointerEventDependencies;
-    private readonly HashSet<string> _accessKeyEventDependencies;
-    private readonly Dictionary<string, List<PointerEventDependency>> _pointerEventDependents;
-    private readonly Dictionary<string, List<PointerEventDependency>> _accessKeyEventDependents;
-    private readonly List<AnimationBinding> _timelineTrackedBindings;
-    private readonly int[]? _animatedTopLevelChildIndexes;
+    private HashSet<string> _pointerEventDependencies;
+    private HashSet<string> _accessKeyEventDependencies;
+    private Dictionary<string, List<PointerEventDependency>> _pointerEventDependents;
+    private Dictionary<string, List<PointerEventDependency>> _accessKeyEventDependents;
+    private List<AnimationBinding> _timelineTrackedBindings;
+    private int[]? _animatedTopLevelChildIndexes;
     private SvgAnimationFrameState? _cachedFrameState;
     private int _frameStateVersion;
     private bool _disposed;
@@ -307,6 +307,23 @@ public sealed class SvgAnimationController : IDisposable
         _accessKeyEventDependents = BuildAccessKeyEventDependents(_bindings);
         _timelineTrackedBindings = DiscoverTimelineTrackedBindings(_bindings);
         _animatedTopLevelChildIndexes = DiscoverAnimatedTopLevelChildIndexes(sourceDocument, _bindings);
+    }
+
+    /// <summary>Re-discovers edited animation elements while retaining the clock and recorded timing events.</summary>
+    internal void RefreshBindings()
+    {
+        ThrowIfDisposed();
+        _bindings = DiscoverBindings(SourceDocument, WallclockTimeOrigin);
+        _frameEvaluationBindings = CreateFrameEvaluationBindings(_bindings);
+        _bindingsByTargetAttributeKey = BuildBindingLookup(_bindings);
+        _bindingsByAnimationAddressKey = BuildAnimationBindingLookup(_bindings);
+        _pointerEventDependencies = BuildPointerEventDependencies(_bindings);
+        _accessKeyEventDependencies = BuildAccessKeyEventDependencies(_bindings);
+        _pointerEventDependents = BuildPointerEventDependents(_bindings);
+        _accessKeyEventDependents = BuildAccessKeyEventDependents(_bindings);
+        _timelineTrackedBindings = DiscoverTimelineTrackedBindings(_bindings);
+        _animatedTopLevelChildIndexes = DiscoverAnimatedTopLevelChildIndexes(SourceDocument, _bindings);
+        InvalidateFrameStateCache();
     }
 
     public SvgDocument SourceDocument { get; }

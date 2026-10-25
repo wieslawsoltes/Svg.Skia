@@ -18,6 +18,7 @@ packages:
   - {path: svg-editor-core.md, title: "Svg.Editor.Core"}
   - {path: svg-editor-svg.md, title: "Svg.Editor.Svg"}
   - {path: svg-editor-skia.md, title: "Svg.Editor.Skia"}
+  - {path: svg-editor-skia-uno.md, title: "Svg.Editor.Skia.Uno"}
   - {path: svg-editor-avalonia.md, title: "Svg.Editor.Avalonia"}
   - {path: svg-editor-skia-avalonia.md, title: "Svg.Editor.Skia.Avalonia"}
   - {path: svg-codegen-skia.md, title: "Svg.CodeGen.Skia"}

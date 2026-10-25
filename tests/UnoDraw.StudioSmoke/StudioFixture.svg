@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="640" viewBox="0 0 1000 640">
+  <rect id="paper" width="1000" height="640" fill="#F7F5EF"/>
+  <text id="edition" x="58" y="60" fill="#475468" font-family="sans-serif" font-size="12" letter-spacing="3">UNODRAW / VECTOR STUDIES</text>
+  <text id="title" x="58" y="166" fill="#252D3D" font-family="sans-serif" font-size="59" font-weight="700">Form in motion.</text>
+  <text id="caption" x="60" y="208" fill="#687487" font-family="sans-serif" font-size="18">Precise paths. A workspace that stays out of the way.</text>
+  <rect id="card" x="58" y="260" width="410" height="280" rx="20" fill="#D7E7EC" stroke="#89ACBB" stroke-width="2"/>
+  <path id="arch" d="M560 528V350C560 223 750 223 750 350V528H699V350C699 289 611 289 611 350V528Z" fill="#7061DC" stroke="#443D93" stroke-width="3"/>
+  <circle id="sun" cx="831" cy="318" r="69" fill="#EBA77F" stroke="#B47158" stroke-width="4"/>
+  <path id="wave" d="M90 455C160 290 295 575 430 350" fill="none" stroke="#417C73" stroke-width="13" stroke-linecap="round"/>
+  <text id="label" x="88" y="506" fill="#3B5F68" font-family="sans-serif" font-size="12" letter-spacing="2">EDITABLE SVG / BEZIER GEOMETRY</text>
+  <line id="rule" x1="58" y1="580" x2="942" y2="580" stroke="#CCD0D6"/>
+  <text id="footer" x="58" y="609" fill="#687487" font-family="sans-serif" font-size="11">LIGHT / DARK / DOCKED / FLOATING</text>
+</svg>

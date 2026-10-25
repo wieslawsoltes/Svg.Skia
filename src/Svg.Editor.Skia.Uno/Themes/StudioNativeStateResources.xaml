@@ -1,0 +1,110 @@
+<ResourceDictionary x:Class="Svg.Editor.Skia.Uno.StudioNativeStateResources"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="using:Svg.Editor.Skia.Uno">
+  <ResourceDictionary.MergedDictionaries><local:StudioPaletteResources /></ResourceDictionary.MergedDictionaries>
+  <!-- Native lightweight resource aliases: legacy embedded inputs and Fluent states
+       share the semantic palette, including system high-contrast foreground pairs. -->
+  <StaticResource x:Key="TextBoxDisabledBackgroundThemeBrush" ResourceKey="StudioHeader" />
+  <StaticResource x:Key="TextBoxDisabledBorderThemeBrush" ResourceKey="StudioDivider" />
+  <StaticResource x:Key="TextBoxDisabledForegroundThemeBrush" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="TextControlHeaderForegroundDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="TextControlPlaceholderForegroundPointerOver" ResourceKey="StudioMuted" />
+  <StaticResource x:Key="TextControlPlaceholderForegroundDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="TextControlSelectionHighlightColor" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="ComboBoxBorderBrushDisabled" ResourceKey="StudioDivider" />
+  <StaticResource x:Key="ComboBoxHeaderForegroundDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="ComboBoxForegroundFocused" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="ComboBoxBackgroundFocused" ResourceKey="StudioInputBackground" />
+  <StaticResource x:Key="CheckBoxForegroundUnchecked" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="CheckBoxForegroundChecked" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="CheckBoxForegroundIndeterminate" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="CheckBoxForegroundUncheckedDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="CheckBoxForegroundCheckedDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="CheckBoxForegroundIndeterminateDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundFillUnchecked" ResourceKey="StudioInputBackground" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundFillUncheckedPointerOver" ResourceKey="StudioRaised" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundFillUncheckedPressed" ResourceKey="StudioHeader" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundFillUncheckedDisabled" ResourceKey="StudioHeader" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundStrokeUnchecked" ResourceKey="StudioMuted" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundStrokeUncheckedPointerOver" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundStrokeUncheckedPressed" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundStrokeUncheckedDisabled" ResourceKey="StudioDivider" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundFillChecked" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundFillCheckedPressed" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundFillCheckedDisabled" ResourceKey="StudioHeader" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundStrokeChecked" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundStrokeCheckedDisabled" ResourceKey="StudioDivider" />
+  <StaticResource x:Key="CheckBoxCheckGlyphForegroundChecked" ResourceKey="StudioOnAccent" />
+  <StaticResource x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" ResourceKey="StudioOnAccent" />
+  <StaticResource x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" ResourceKey="StudioOnAccent" />
+  <StaticResource x:Key="CheckBoxCheckGlyphForegroundCheckedDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundFillIndeterminate" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundFillIndeterminatePointerOver" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundFillIndeterminatePressed" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundFillIndeterminateDisabled" ResourceKey="StudioHeader" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundStrokeIndeterminate" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundStrokeIndeterminatePointerOver" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundStrokeIndeterminatePressed" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="CheckBoxCheckBackgroundStrokeIndeterminateDisabled" ResourceKey="StudioDivider" />
+  <StaticResource x:Key="CheckBoxCheckGlyphForegroundIndeterminate" ResourceKey="StudioOnAccent" />
+  <StaticResource x:Key="CheckBoxCheckGlyphForegroundIndeterminatePointerOver" ResourceKey="StudioOnAccent" />
+  <StaticResource x:Key="CheckBoxCheckGlyphForegroundIndeterminatePressed" ResourceKey="StudioOnAccent" />
+  <StaticResource x:Key="CheckBoxCheckGlyphForegroundIndeterminateDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="ToggleButtonBackground" ResourceKey="StudioRaised" />
+  <StaticResource x:Key="ToggleButtonBackgroundPointerOver" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ToggleButtonBackgroundPressed" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ToggleButtonBackgroundDisabled" ResourceKey="StudioHeader" />
+  <StaticResource x:Key="ToggleButtonBackgroundChecked" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ToggleButtonBackgroundCheckedPointerOver" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ToggleButtonBackgroundCheckedPressed" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ToggleButtonBackgroundCheckedDisabled" ResourceKey="StudioHeader" />
+  <StaticResource x:Key="ToggleButtonBackgroundIndeterminate" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ToggleButtonBackgroundIndeterminatePointerOver" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ToggleButtonBackgroundIndeterminatePressed" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ToggleButtonBackgroundIndeterminateDisabled" ResourceKey="StudioHeader" />
+  <StaticResource x:Key="ToggleButtonForeground" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="ToggleButtonForegroundPointerOver" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ToggleButtonForegroundPressed" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ToggleButtonForegroundDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="ToggleButtonForegroundChecked" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ToggleButtonForegroundCheckedPointerOver" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ToggleButtonForegroundCheckedPressed" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ToggleButtonForegroundCheckedDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="ToggleButtonForegroundIndeterminate" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ToggleButtonForegroundIndeterminatePointerOver" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ToggleButtonForegroundIndeterminatePressed" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ToggleButtonForegroundIndeterminateDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="ToggleButtonBorderBrush" ResourceKey="StudioBorder" />
+  <StaticResource x:Key="ToggleButtonBorderBrushPointerOver" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="ToggleButtonBorderBrushPressed" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="ToggleButtonBorderBrushDisabled" ResourceKey="StudioDivider" />
+  <StaticResource x:Key="ToggleButtonBorderBrushChecked" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="ToggleButtonBorderBrushCheckedPointerOver" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="ToggleButtonBorderBrushCheckedPressed" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="ToggleButtonBorderBrushCheckedDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="ToggleButtonBorderBrushIndeterminate" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="ToggleButtonBorderBrushIndeterminatePointerOver" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="ToggleButtonBorderBrushIndeterminatePressed" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="ToggleButtonBorderBrushIndeterminateDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="TreeViewItemBackgroundSelected" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="TreeViewItemBackgroundSelectedPointerOver" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="TreeViewItemBackgroundSelectedPressed" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="TreeViewItemForegroundSelected" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="TreeViewItemForegroundSelectedPointerOver" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="TreeViewItemForegroundSelectedPressed" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ListViewItemBackgroundPointerOver" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ListViewItemForegroundPointerOver" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ListViewItemBackgroundSelectedPressed" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ListViewItemForegroundSelectedPointerOver" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ListViewItemForegroundSelectedPressed" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ListViewItemForegroundDisabled" ResourceKey="StudioDisabled" />
+  <Style TargetType="ToggleMenuFlyoutItem" BasedOn="{StaticResource DefaultToggleMenuFlyoutItemStyle}">
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" />
+    <Setter Property="MinHeight" Value="{StaticResource StudioControlHeight}" />
+    <Setter Property="Padding" Value="12,7" />
+  </Style>
+</ResourceDictionary>

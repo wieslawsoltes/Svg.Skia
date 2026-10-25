@@ -18,7 +18,7 @@ The `samples/` directory covers both end-user scenarios and repository-internal 
 - `SvgML.Uno.Demo`: Uno desktop sample showing inline XAML-authored SVG trees with direct binding, runtime CSS updates, and `foreignObject` hosted controls.
 - `AvaloniaControlsSample`: `SKCanvasControl`, `SKBitmapControl`, `SKPathControl`, and `SKPictureControl`.
 - `AvaloniaSKPictureImageSample`: `SKPictureImage` and animation examples.
-- `AvalonDraw`: larger sample application for SVG editing-oriented scenarios.
+- `UnoDraw`: Uno Platform desktop SVG editor with a direct Skia canvas, document tabs, drawing tools, native SVG transactions, resource editing and export. It replaces the AvalonDraw application while retaining the reusable Avalonia editor packages. See the [Uno workspace guide](../packages/svg-editor-skia-uno).
 - `TestApp`: extra Avalonia test host with animation-backend selection, playback-rate control, play, pause, restart, resolved-backend diagnostics, and native-composition verification.
 
 ## CLI and generation samples

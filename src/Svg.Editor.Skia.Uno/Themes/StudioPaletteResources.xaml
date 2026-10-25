@@ -1,0 +1,97 @@
+<ResourceDictionary x:Class="Svg.Editor.Skia.Uno.StudioPaletteResources"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- One semantic palette for the workspace, native controls, popups and custom templates. -->
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Light">
+      <Color x:Key="StudioCanvasColor">#DDE2EA</Color>
+      <Color x:Key="StudioSurfaceColor">#F6F7FA</Color>
+      <Color x:Key="StudioHeaderColor">#EDF0F5</Color>
+      <Color x:Key="StudioRaisedColor">#FFFFFF</Color>
+      <Color x:Key="StudioInputColor">#FFFFFF</Color>
+      <Color x:Key="StudioBorderColor">#CBD2DD</Color>
+      <Color x:Key="StudioDividerColor">#DEE3EB</Color>
+      <Color x:Key="StudioForegroundColor">#202B3D</Color>
+      <Color x:Key="StudioMutedColor">#566579</Color>
+      <Color x:Key="StudioDisabledColor">#7B8798</Color>
+      <Color x:Key="StudioHoverColor">#E4EAF3</Color>
+      <Color x:Key="StudioSelectionColor">#DBE8FF</Color>
+      <Color x:Key="StudioSelectionForegroundColor">#184582</Color>
+      <Color x:Key="StudioAccentColor">#2862C4</Color>
+      <Color x:Key="StudioOnAccentColor">#FFFFFF</Color>
+      <Color x:Key="StudioDangerColor">#BA243A</Color>
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="Dark">
+      <Color x:Key="StudioCanvasColor">#191D25</Color>
+      <Color x:Key="StudioSurfaceColor">#282D36</Color>
+      <Color x:Key="StudioHeaderColor">#222730</Color>
+      <Color x:Key="StudioRaisedColor">#303743</Color>
+      <Color x:Key="StudioInputColor">#1E232C</Color>
+      <Color x:Key="StudioBorderColor">#485465</Color>
+      <Color x:Key="StudioDividerColor">#39424F</Color>
+      <Color x:Key="StudioForegroundColor">#EFF3FA</Color>
+      <Color x:Key="StudioMutedColor">#B2BECE</Color>
+      <Color x:Key="StudioDisabledColor">#8995A6</Color>
+      <Color x:Key="StudioHoverColor">#3A4556</Color>
+      <Color x:Key="StudioSelectionColor">#293F60</Color>
+      <Color x:Key="StudioSelectionForegroundColor">#D9E8FF</Color>
+      <Color x:Key="StudioAccentColor">#9CC4FF</Color>
+      <Color x:Key="StudioOnAccentColor">#14223A</Color>
+      <Color x:Key="StudioDangerColor">#FF9CAC</Color>
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="HighContrast">
+      <StaticResource x:Key="StudioCanvasColor" ResourceKey="SystemColorWindowColor" />
+      <StaticResource x:Key="StudioSurfaceColor" ResourceKey="SystemColorWindowColor" />
+      <StaticResource x:Key="StudioHeaderColor" ResourceKey="SystemColorWindowColor" />
+      <StaticResource x:Key="StudioRaisedColor" ResourceKey="SystemColorWindowColor" />
+      <StaticResource x:Key="StudioInputColor" ResourceKey="SystemColorWindowColor" />
+      <StaticResource x:Key="StudioBorderColor" ResourceKey="SystemColorWindowTextColor" />
+      <StaticResource x:Key="StudioDividerColor" ResourceKey="SystemColorWindowTextColor" />
+      <StaticResource x:Key="StudioForegroundColor" ResourceKey="SystemColorWindowTextColor" />
+      <StaticResource x:Key="StudioMutedColor" ResourceKey="SystemColorWindowTextColor" />
+      <StaticResource x:Key="StudioDisabledColor" ResourceKey="SystemColorGrayTextColor" />
+      <StaticResource x:Key="StudioHoverColor" ResourceKey="SystemColorHighlightColor" />
+      <StaticResource x:Key="StudioSelectionColor" ResourceKey="SystemColorHighlightColor" />
+      <StaticResource x:Key="StudioSelectionForegroundColor" ResourceKey="SystemColorHighlightTextColor" />
+      <StaticResource x:Key="StudioAccentColor" ResourceKey="SystemColorHighlightColor" />
+      <StaticResource x:Key="StudioOnAccentColor" ResourceKey="SystemColorHighlightTextColor" />
+      <StaticResource x:Key="StudioDangerColor" ResourceKey="SystemColorWindowTextColor" />
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+  <SolidColorBrush x:Key="StudioCanvas" Color="{ThemeResource StudioCanvasColor}" />
+  <SolidColorBrush x:Key="StudioSurface" Color="{ThemeResource StudioSurfaceColor}" />
+  <SolidColorBrush x:Key="StudioHeader" Color="{ThemeResource StudioHeaderColor}" />
+  <SolidColorBrush x:Key="StudioRaised" Color="{ThemeResource StudioRaisedColor}" />
+  <SolidColorBrush x:Key="StudioInputBackground" Color="{ThemeResource StudioInputColor}" />
+  <SolidColorBrush x:Key="StudioBorder" Color="{ThemeResource StudioBorderColor}" />
+  <SolidColorBrush x:Key="StudioDivider" Color="{ThemeResource StudioDividerColor}" />
+  <SolidColorBrush x:Key="StudioForeground" Color="{ThemeResource StudioForegroundColor}" />
+  <SolidColorBrush x:Key="StudioMuted" Color="{ThemeResource StudioMutedColor}" />
+  <SolidColorBrush x:Key="StudioDisabled" Color="{ThemeResource StudioDisabledColor}" />
+  <SolidColorBrush x:Key="StudioHover" Color="{ThemeResource StudioHoverColor}" />
+  <SolidColorBrush x:Key="StudioSelection" Color="{ThemeResource StudioSelectionColor}" />
+  <SolidColorBrush x:Key="StudioSelectionForeground" Color="{ThemeResource StudioSelectionForegroundColor}" />
+  <SolidColorBrush x:Key="StudioAccent" Color="{ThemeResource StudioAccentColor}" />
+  <SolidColorBrush x:Key="StudioOnAccent" Color="{ThemeResource StudioOnAccentColor}" />
+  <SolidColorBrush x:Key="StudioDanger" Color="{ThemeResource StudioDangerColor}" />
+  <!-- Compatibility names are aliases to the same colors, not independent palettes. -->
+  <SolidColorBrush x:Key="WorkspaceBackground" Color="{ThemeResource StudioCanvasColor}" />
+  <SolidColorBrush x:Key="PanelBackground" Color="{ThemeResource StudioSurfaceColor}" />
+  <SolidColorBrush x:Key="PanelBorder" Color="{ThemeResource StudioDividerColor}" />
+  <SolidColorBrush x:Key="MutedForeground" Color="{ThemeResource StudioMutedColor}" />
+  <SolidColorBrush x:Key="SoftAccent" Color="{ThemeResource StudioSelectionColor}" />
+  <SolidColorBrush x:Key="AccentForeground" Color="{ThemeResource StudioAccentColor}" />
+  <x:Double x:Key="StudioBodySize">12</x:Double>
+  <x:Double x:Key="StudioLabelSize">11</x:Double>
+  <x:Double x:Key="StudioTitleSize">14</x:Double>
+  <x:Double x:Key="StudioControlHeight">32</x:Double>
+  <x:Double x:Key="StudioCompactHeight">28</x:Double>
+  <x:Double x:Key="StudioGap">8</x:Double>
+  <x:Double x:Key="StudioSectionGap">12</x:Double>
+  <Thickness x:Key="StudioPanelPadding">12</Thickness>
+  <Thickness x:Key="StudioControlPadding">10,5</Thickness>
+  <Thickness x:Key="StudioCompactPadding">8,3</Thickness>
+  <CornerRadius x:Key="StudioControlRadius">4</CornerRadius>
+  <CornerRadius x:Key="StudioSurfaceRadius">6</CornerRadius>
+  <Thickness x:Key="StudioControlBorder">1</Thickness>
+</ResourceDictionary>
