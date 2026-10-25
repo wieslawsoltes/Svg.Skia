@@ -9,7 +9,7 @@ namespace Svg.Editor.Skia.Uno;
 /// <summary>Retained solid-paint mixer with explicit application and safe nonmodal draft ownership.</summary>
 public sealed class StudioColorEditor : UserControl, IDisposable
 {
-    private readonly ComboBox _target = new() { ItemsSource = new[] { "Fill", "Stroke" }, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch };
+    private readonly StudioChoiceStrip _target = new() { ItemsSource = new[] { "Fill", "Stroke" }, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch };
     private readonly ColorPicker _picker = new()
     {
         IsAlphaEnabled = true, IsAlphaSliderVisible = true, IsAlphaTextInputVisible = true,
@@ -40,24 +40,33 @@ public sealed class StudioColorEditor : UserControl, IDisposable
         content.Children.Add(header);
         var actions = new StudioFieldGrid { MinimumColumnWidth = 112 };
         actions.Children.Add(_apply); actions.Children.Add(_reset);
-        StudioTheme.ApplyRole(_apply, StudioActionRole.Primary);
-        StudioTheme.ApplyRole(_none, StudioActionRole.Quiet);
+        StudioTheme.ApplyRole(_apply, StudioActionRole.Primary, this);
+        StudioTheme.ApplyRole(_none, StudioActionRole.Quiet, this);
         _status.Style = (Style)Resources["StudioHintStyle"];
         content.Children.Add(actions); content.Children.Add(_status);
         content.Children.Add(_picker); content.Children.Add(_none);
         Content = content;
         AutomationProperties.SetName(_target, "Color target");
+        AutomationProperties.SetAutomationId(_target, "StudioColorTarget");
         AutomationProperties.SetName(_picker, "Draft solid paint color");
         AutomationProperties.SetAutomationId(_picker, "StudioColorPicker");
         AutomationProperties.SetAutomationId(_apply, "StudioColorApply");
+        _target.SelectionChanging += (_, args) =>
+        {
+            if (!_syncing && _dirty)
+            {
+                args.Cancel = true;
+                _status.Text = "Apply or Reset this draft before changing its paint target.";
+            }
+        };
         _target.SelectionChanged += (_, _) =>
         {
             if (_syncing) return;
+            // Programmatic target changes have the same guard as pointer/keyboard ones.
             if (_dirty && _draft is not null)
             {
                 _syncing = true; _target.SelectedIndex = _draft.IsStroke ? 1 : 0; _syncing = false;
-                _status.Text = "Apply or Reset this draft before changing its paint target.";
-                return;
+                _status.Text = "Apply or Reset this draft before changing its paint target."; return;
             }
             ResetDraft();
         };
