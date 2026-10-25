@@ -81,7 +81,7 @@
     <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Padding" Value="{StaticResource StudioControlPadding}" />
     <Setter Property="Background" Value="{ThemeResource StudioInputBackground}" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
     <Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="{StaticResource StudioControlRadius}" />
-    <Setter Property="HeaderTemplate" Value="{StaticResource StudioFieldHeaderTemplate}" /><Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="local:StudioFieldHeader.Template" Value="{StaticResource StudioFieldHeaderTemplate}" /><Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
   <Style TargetType="TextBox" BasedOn="{StaticResource StudioTextBoxStyle}" />
   <Style x:Key="StudioNumberBoxStyle" TargetType="NumberBox">
@@ -89,7 +89,7 @@
     <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Padding" Value="8,4" />
     <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="{ThemeResource StudioInputBackground}" />
     <Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="{StaticResource StudioControlRadius}" />
-    <Setter Property="HeaderTemplate" Value="{StaticResource StudioFieldHeaderTemplate}" /><Setter Property="AcceptsExpression" Value="True" /><Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="local:StudioFieldHeader.Template" Value="{StaticResource StudioFieldHeaderTemplate}" /><Setter Property="AcceptsExpression" Value="True" /><Setter Property="HorizontalAlignment" Value="Stretch" />
   </Style>
   <Style TargetType="NumberBox" BasedOn="{StaticResource StudioNumberBoxStyle}" />
   <Style x:Key="StudioComboBoxStyle" TargetType="ComboBox">
@@ -97,7 +97,7 @@
     <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Padding" Value="10,5" />
     <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="{ThemeResource StudioInputBackground}" />
     <Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="{StaticResource StudioControlRadius}" />
-    <Setter Property="HeaderTemplate" Value="{StaticResource StudioFieldHeaderTemplate}" /><Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="local:StudioFieldHeader.Template" Value="{StaticResource StudioFieldHeaderTemplate}" /><Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
   <Style TargetType="ComboBox" BasedOn="{StaticResource StudioComboBoxStyle}" />
