@@ -1,8 +1,11 @@
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using SkiaSharp;
 using Svg.Editor.Skia;
+using Windows.System;
+using Windows.UI.Core;
 
 namespace Svg.Editor.Skia.Uno;
 
@@ -60,7 +63,7 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         IsTabStop = false;
         var panel = new StackPanel { Spacing = 8 };
         panel.Children.Add(Pair(_target, _geometry)); panel.Children.Add(_bar);
-        panel.Children.Add(Hint("Click the ramp to add a stop. Drag stops, or use arrows for 1%, Shift+arrows for 10%. Escape cancels a drag."));
+        panel.Children.Add(Hint("Click the ramp to add a stop. Drag stops, or use arrows for 1%, Shift+arrows for 10%. Escape cancels a drag. Ctrl+Enter applies the draft."));
         panel.Children.Add(_stops); panel.Children.Add(Pair(_position, _opacity));
         panel.Children.Add(_color);
         var stopActions = new StudioWrapPanel { Spacing = 5 };
@@ -76,6 +79,7 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         AutomationProperties.SetAutomationId(_position, "StudioGradientPosition");
         AutomationProperties.SetAutomationId(_color, "StudioGradientStopColor");
         AutomationProperties.SetName(_color, "Gradient stop color, independent of stop opacity");
+        ToolTipService.SetToolTip(_apply, "Apply the gradient as one document edit (Ctrl+Enter in this panel)");
         _target.SelectionChanged += (_, _) =>
         {
             if (_syncing) return;
@@ -92,14 +96,11 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
             else _edit!.UseObjectBounds(_geometry.SelectedIndex == 2 ? SvgGradientKind.Radial : SvgGradientKind.Linear, Finite(_angle.Value) ? _angle.Value : 0);
         });
         _spread.SelectionChanged += (_, _) => Change(() => _edit!.Spread = (SvgGradientSpread)Math.Max(0, _spread.SelectedIndex));
-        _angle.ValueChanged += (_, args) =>
-        { if (Finite(args.NewValue)) Change(() => _edit!.UseObjectBounds(_edit.Kind, args.NewValue)); };
+        _angle.ValueChanged += (_, args) => { if (Finite(args.NewValue)) Change(() => _edit!.UseObjectBounds(_edit.Kind, args.NewValue)); };
         _stops.SelectionChanged += (_, _) =>
         { if (!_syncing && _stops.SelectedItem is StopChoice choice) { _selected = choice.Id; SynchronizeFields(); } };
-        _position.ValueChanged += (_, args) =>
-        { if (Finite(args.NewValue)) Change(() => _edit!.Ramp = _edit.Ramp.SetOffset(_selected, args.NewValue / 100)); };
-        _opacity.ValueChanged += (_, args) =>
-        { if (Finite(args.NewValue)) Change(() => _edit!.Ramp = _edit.Ramp.SetOpacity(_selected, args.NewValue / 100)); };
+        _position.ValueChanged += (_, args) => { if (Finite(args.NewValue)) Change(() => _edit!.Ramp = _edit.Ramp.SetOffset(_selected, args.NewValue / 100)); };
+        _opacity.ValueChanged += (_, args) => { if (Finite(args.NewValue)) Change(() => _edit!.Ramp = _edit.Ramp.SetOpacity(_selected, args.NewValue / 100)); };
         _color.ColorChanged += (_, args) => Change(() =>
         {
             var color = args.NewColor;
@@ -114,8 +115,7 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         {
             if (_gestureStart is not { } before || _edit is null) return;
             _gestureStart = null;
-            if (cancelled) Restore(before);
-            else if (before != Capture()) Remember(before);
+            if (cancelled) Restore(before); else if (before != Capture()) Remember(before);
             SynchronizeFields(); SchedulePreview();
         };
         _add.Click += (_, _) => AddStop(0.5);
@@ -130,6 +130,11 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         _showPreview.Checked += (_, _) => { _preview.Visibility = Visibility.Visible; SchedulePreview(); };
         _showPreview.Unchecked += (_, _) => { _previewTimer.Stop(); _preview.SetRenderer(null); _preview.Visibility = Visibility.Collapsed; };
         _previewTimer.Tick += (_, _) => RenderPreview();
+        KeyDown += (_, args) =>
+        {
+            if (!args.Handled && args.Key == VirtualKey.Enter && (InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control) & CoreVirtualKeyStates.Down) != 0)
+            { Apply(); args.Handled = true; }
+        };
         Loaded += (_, _) =>
         {
             if (_disposed || _loaded) return;
@@ -158,8 +163,7 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
     }
     private void Synchronize()
     {
-        if (HasPendingDraft) { UpdateAvailability(); SchedulePreview(); }
-        else ResetDraft();
+        if (HasPendingDraft) { UpdateAvailability(); SchedulePreview(); } else ResetDraft();
     }
     public void ResetDraft(bool createNew = false)
     {
@@ -179,6 +183,23 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         catch (Exception exception) { _status.Text = exception.Message; _bar.SetRamp(null, Guid.Empty); }
         finally { _syncing = false; SynchronizeFields(); SchedulePreview(); }
     }
+    public void ReverseDraft()
+    {
+        RequireCurrentDraft(); Change(() => _edit!.Ramp = _edit.Ramp.Reverse());
+    }
+    public void UndoDraft() { RequireCurrentDraft(); Navigate(false); }
+    public void RedoDraft() { RequireCurrentDraft(); Navigate(true); }
+    public void ApplyDraft()
+    {
+        RequireCurrentDraft(); BeforeApply?.Invoke(); RequireCurrentDraft();
+        try { _applying = true; _controller!.ApplyGradientEdit(_edit!, _shared.IsChecked == true); ResetDraft(); }
+        finally { _applying = false; }
+    }
+    private void RequireCurrentDraft()
+    {
+        if (_disposed) throw new ObjectDisposedException(nameof(StudioGradientEditor));
+        if (_edit?.IsCurrent(_controller) != true) throw new InvalidOperationException("Select artwork and open or reset the gradient editor before applying a draft action.");
+    }
     private Snapshot? Capture() => _edit is null ? null : new Snapshot(_edit.Ramp, _edit.Kind, _edit.UsesObjectBounds, _edit.Angle, _edit.Spread);
     private void Restore(Snapshot state)
     {
@@ -196,24 +217,17 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         if (_syncing || _disposed || _edit is null) return;
         if (!_edit.IsCurrent(_controller)) { UpdateAvailability(); return; }
         var before = Capture()!;
-        try
-        {
-            action();
-            if (record && before != Capture()) Remember(before);
-            SynchronizeFields(); SchedulePreview();
-        }
+        try { action(); if (record && before != Capture()) Remember(before); SynchronizeFields(); SchedulePreview(); }
         catch (Exception exception) { Restore(before); SynchronizeFields(); _status.Text = exception.Message; }
     }
     private void AddStop(double offset) => Change(() =>
     {
-        var sample = _edit!.Ramp.Sample(offset);
-        _edit.Ramp = _edit.Ramp.Add(offset, sample.Color, sample.Opacity, out _selected);
+        var sample = _edit!.Ramp.Sample(offset); _edit.Ramp = _edit.Ramp.Add(offset, sample.Color, sample.Opacity, out _selected);
     });
     private void RemoveStop() => Change(() =>
     {
         var index = _edit!.Ramp.Stops.Select(stop => stop.Id).ToList().IndexOf(_selected);
-        _edit.Ramp = _edit.Ramp.Remove(_selected);
-        _selected = _edit.Ramp.Stops[Math.Min(index, _edit.Ramp.Stops.Count - 1)].Id;
+        _edit.Ramp = _edit.Ramp.Remove(_selected); _selected = _edit.Ramp.Stops[Math.Min(index, _edit.Ramp.Stops.Count - 1)].Id;
     });
     private void Navigate(bool forward)
     {
@@ -231,8 +245,7 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         {
             if (_edit is null) return;
             if (!_edit.Ramp.Stops.Any(stop => stop.Id == _selected)) _selected = _edit.Ramp.Stops[0].Id;
-            var stop = _edit.Ramp.Find(_selected);
-            _bar.SetRamp(_edit.Ramp, _selected);
+            var stop = _edit.Ramp.Find(_selected); _bar.SetRamp(_edit.Ramp, _selected);
             var choices = _edit.Ramp.Stops.Select((item, index) => new StopChoice(item.Id, $"{index + 1}.  {item.Offset * 100:0.##}%")).ToArray();
             _stops.ItemsSource = choices; _stops.SelectedItem = choices.First(choice => choice.Id == _selected);
             _position.Value = stop.Offset * 100; _opacity.Value = stop.Opacity * 100;
@@ -261,8 +274,7 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
     {
         _previewTimer.Stop();
         if (_syncing || !_loaded || _disposed || _showPreview.IsChecked != true) return;
-        if (_edit?.IsCurrent(_controller) == true) _previewTimer.Start();
-        else _preview.SetRenderer(null);
+        if (_edit?.IsCurrent(_controller) == true) _previewTimer.Start(); else _preview.SetRenderer(null);
     }
     private void RenderPreview()
     {
@@ -273,14 +285,8 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
     }
     private void Apply()
     {
-        try
-        {
-            BeforeApply?.Invoke();
-            if (_controller is null || _edit is null) throw new InvalidOperationException("Select artwork and reset the gradient draft first.");
-            _applying = true; _controller.ApplyGradientEdit(_edit, _shared.IsChecked == true); ResetDraft();
-        }
+        try { ApplyDraft(); }
         catch (Exception exception) { _status.Text = exception.Message; _apply.IsEnabled = false; }
-        finally { _applying = false; }
     }
     public new void Dispose()
     {
