@@ -28,7 +28,7 @@ public sealed class StudioPanelItem
 }
 
 /// <summary>Retains live panel instances across tab switches; the host owns placement and persistence.</summary>
-public sealed class StudioDockGroup : Control
+public sealed partial class StudioDockGroup : Control
 {
     public const string DragFormat = "application/x-unodraw-panel";
     public static readonly DependencyProperty CaptionProperty = DependencyProperty.Register(nameof(Caption), typeof(string), typeof(StudioDockGroup), new PropertyMetadata("Panels"));
@@ -61,11 +61,12 @@ public sealed class StudioDockGroup : Control
         DragOver += OnDragOver; Drop += OnDrop;
         SizeChanged += (_, _) => { UpdateTabNavigation(); RevealActiveTab(); };
         Loaded += (_, _) => { UpdateTabNavigation(); RevealActiveTab(); };
-        Unloaded += (_, _) => _revealVersion++;
+        Unloaded += (_, _) => { _revealVersion++; ClosePanelSwitcher(); };
     }
 
     protected override void OnApplyTemplate()
     {
+        ClosePanelSwitcher();
         if (_menu is not null) _menu.Click -= MenuClick;
         if (_collapse is not null) _collapse.Click -= CollapseClick;
         if (_previous is not null) _previous.Click -= PreviousClick;
@@ -99,11 +100,11 @@ public sealed class StudioDockGroup : Control
     public void SetItems(IEnumerable<StudioPanelItem> items, string? activeId)
     {
         ArgumentNullException.ThrowIfNull(items);
-        // Snapshot before clearing, so passing this group's own read-only items is safe.
         var snapshot = items.ToArray();
         if (snapshot.Any(item => item is null || string.IsNullOrEmpty(item.Id) || item.Content is null) ||
             snapshot.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != snapshot.Length)
             throw new ArgumentException("Panel items must have unique nonempty IDs and live content.", nameof(items));
+        ClosePanelSwitcher();
         _contentHost?.Children.Clear(); _items.Clear(); _items.AddRange(snapshot);
         _activeId = _items.Any(item => item.Id == activeId) ? activeId : _items.FirstOrDefault()?.Id;
         _collapsed = false; Rebuild();
@@ -165,7 +166,6 @@ public sealed class StudioDockGroup : Control
         DispatcherQueue.TryEnqueue(() =>
         {
             if (version != _revealVersion || !IsLoaded || expected != _activeId || expected is null || !_tabs.TryGetValue(expected, out var tab)) return;
-            // Limit reveal to the horizontal strip; do not scroll the workspace's panel content.
             if (_tabScroll is { ViewportWidth: > 0 } scroll && _tabHost is not null)
             {
                 var left = tab.TransformToVisual(_tabHost).TransformPoint(default).X;
@@ -190,8 +190,6 @@ public sealed class StudioDockGroup : Control
             AutomationProperties.SetName(_picker, "Choose panel · " + _items.Count + " available");
             AutomationProperties.SetAutomationId(_picker, "studio-panel-picker-" + Dock);
         }
-        // Compare against the width without scroll arrows, preventing sticky overflow
-        // when a widened group can fit its tabs after those arrows are removed.
         var pickerWidth = showPicker ? 28d : 0d;
         var overflow = _tabHost.DesiredSize.Width > Math.Max(0, ActualWidth - pickerWidth - 2) + 0.5;
         if (_previous is not null)
@@ -215,21 +213,7 @@ public sealed class StudioDockGroup : Control
         var offset = scroll.HorizontalOffset + direction * Math.Max(64, scroll.ViewportWidth * 0.75);
         scroll.ChangeView(Math.Clamp(offset, 0, scroll.ScrollableWidth), null, null, true);
     }
-    private void PickerClick(object sender, RoutedEventArgs args)
-    {
-        var menu = new MenuFlyout();
-        foreach (var panel in _items)
-        {
-            var entry = new ToggleMenuFlyoutItem { Text = panel.Title, IsChecked = panel.Id == _activeId };
-            entry.Click += (_, _) =>
-            {
-                Activate(panel.Id);
-                if (_activeId is { } id && _tabs.TryGetValue(id, out var tab)) tab.Focus(FocusState.Keyboard);
-            };
-            menu.Items.Add(entry);
-        }
-        menu.ShowAt((FrameworkElement)sender);
-    }
+    private void PickerClick(object sender, RoutedEventArgs args) => OpenPanelSwitcher((FrameworkElement)sender);
 
     private void Sync()
     {
