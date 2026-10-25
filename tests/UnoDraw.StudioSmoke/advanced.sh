@@ -43,6 +43,14 @@ def local_property(node, name):
             value, important = candidate, marked
     return value
 
+def stop_offset(stop):
+    # SVG permits unit fractions or percentages. SvgGradientStop canonicalizes its
+    # serialized Offset to a percentage; compare values, not their lexical spelling.
+    text = (stop.get('offset') or '').strip()
+    value = float(text[:-1]) / 100 if text.endswith('%') else float(text)
+    assert math.isfinite(value) and 0 <= value <= 1, ('Invalid stop offset', text)
+    return value
+
 references = []
 for name in ('paper', 'card', 'arch', 'sun'):
     assert name in ids and ids[name] in list(root), 'Lost/reparented fixture object'
@@ -55,7 +63,7 @@ gradient = ids[references[0]]
 assert gradient.tag == ns + 'linearGradient'
 stops = list(gradient.findall(ns + 'stop'))
 assert len(stops) == 2
-assert [float(stop.get('offset')) for stop in stops] == [0.0, 1.0]
+assert [stop_offset(stop) for stop in stops] == [0.0, 1.0]
 expected = ({'#f2b99e', 'rgb(242,185,158)'}, {'#7061dc', 'rgb(112,97,220)'})
 for stop, colors in zip(stops, expected):
     color = re.sub(r'\s+', '', local_property(stop, 'stop-color') or '').lower()
