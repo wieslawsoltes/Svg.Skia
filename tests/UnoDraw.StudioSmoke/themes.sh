@@ -15,6 +15,16 @@ for appearance in light dark; do
     index=$((index + 1))
     name="$(printf '%02d' "$index")-$(printf '%s' "$panel" | tr ' A-Z' '-a-z')"
     capture "theme-$appearance-$name"
+    if [[ "$panel" == 'Transform' ]]; then
+      # Select the top-left reference, then navigate to the center. The key events
+      # must be consumed by the reference grid, not nudge the selected artwork.
+      xdotool mousemove --window "$window" 1154 164 click 1
+      xdotool key --clearmodifiers Right Down
+      sleep 0.3
+      capture "theme-$appearance-transform-keyboard"
+      save
+      verify "restored-transform-reference-$appearance"
+    fi
   done
   command 'Gradient editor'
   capture "theme-$appearance-gradient"
@@ -58,6 +68,7 @@ xdotool windowsize "$window" 1440 960
 command 'Use dark interface'
 command 'Reset workspace'
 command 'Gradient editor'
+command 'Fit artboard'
 capture theme-final-workspace
 save
 verify restored-after-theme-review
@@ -69,7 +80,7 @@ python3 - "$output" <<'PY'
 import json, pathlib, subprocess, sys
 output = pathlib.Path(sys.argv[1])
 captures = sorted(path.name for path in output.glob('theme-*.png'))
-assert len(captures) == 41, ('Incomplete theme inspection captures', len(captures))
+assert len(captures) == 43, ('Incomplete theme inspection captures', len(captures))
 # The deterministic 1440px workspace has blank panel/context-bar patches at these
 # coordinates. Verify the live theme command changed both surfaces, not merely a
 # RequestedTheme enum while shared brushes stayed cached in their previous palette.
