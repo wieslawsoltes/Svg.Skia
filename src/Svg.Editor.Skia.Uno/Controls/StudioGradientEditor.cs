@@ -14,7 +14,7 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
 {
     private sealed record StopChoice(Guid Id, string Label) { public override string ToString() => Label; }
     private sealed record Snapshot(SvgGradientRamp Ramp, SvgGradientKind Kind, bool Bounds, double Angle, SvgGradientSpread Spread);
-    private readonly ComboBox _target = Choice("Paint", "Fill", "Stroke");
+    private readonly StudioChoiceStrip _target = new() { Header = "Paint", ItemsSource = new[] { "Fill", "Stroke" }, SelectedIndex = 0 };
     private readonly ComboBox _geometry = Choice("Geometry", "Keep imported geometry", "Linear · object bounds", "Radial · object bounds");
     private readonly ComboBox _spread = Choice("Outside gradient", "Pad", "Reflect", "Repeat");
     private readonly ComboBox _stops = new() { Header = "Selected stop", HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -63,9 +63,18 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         AutomationProperties.SetAutomationId(_apply, "StudioGradientApply");
         AutomationProperties.SetAutomationId(_reverse, "StudioGradientReverse");
         AutomationProperties.SetAutomationId(_position, "StudioGradientPosition");
+        AutomationProperties.SetAutomationId(_target, "StudioGradientTarget");
         AutomationProperties.SetAutomationId(_color, "StudioGradientStopColor");
         AutomationProperties.SetName(_color, "Gradient stop color, independent of stop opacity");
         ToolTipService.SetToolTip(_apply, "Apply the gradient as one document edit (Ctrl+Enter in this panel)");
+        _target.SelectionChanging += (_, args) =>
+        {
+            if (!_syncing && HasPendingDraft)
+            {
+                args.Cancel = true;
+                _status.Text = "Apply or Reset this draft before changing between fill and stroke.";
+            }
+        };
         _target.SelectionChanged += (_, _) =>
         {
             if (_syncing) return;
@@ -137,10 +146,9 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
     private void BuildPresentation()
     {
         var panel = new StackPanel { Spacing = 12 };
-        // Applying never requires scrolling through the full ColorPicker or advanced settings.
         var actions = Fields(112, 2, _apply, _reset);
-        StudioTheme.ApplyRole(_apply, StudioActionRole.Primary);
-        StudioTheme.ApplyRole(_remove, StudioActionRole.Destructive);
+        StudioTheme.ApplyRole(_apply, StudioActionRole.Primary, this);
+        StudioTheme.ApplyRole(_remove, StudioActionRole.Destructive, this);
         panel.Children.Add(_target);
         panel.Children.Add(_bar);
         panel.Children.Add(actions);
@@ -157,7 +165,6 @@ public sealed class StudioGradientEditor : UserControl, IDisposable
         panel.Children.Add(colorSection);
         panel.Children.Add(Fields(76, 3, _add, _duplicate, _remove));
         panel.Children.Add(Fields(112, 2, _reverse, _distribute));
-        // Longer geometry labels receive the full dock width instead of ellipsizing beside Paint.
         var geometry = new StackPanel { Spacing = 12 };
         geometry.Children.Add(_geometry); geometry.Children.Add(Fields(120, 2, _angle, _spread));
         geometry.Children.Add(_shared); geometry.Children.Add(_showPreview); geometry.Children.Add(_preview);
