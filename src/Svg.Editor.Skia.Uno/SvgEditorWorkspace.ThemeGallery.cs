@@ -7,6 +7,7 @@ public sealed partial class SvgEditorWorkspace
 {
     private void InitializeThemeGallery()
     {
+        InitializeStudioAppAccelerators();
         // Registered panel roots are known before they are loaded. Normalize their
         // insets once, without searching the live visual tree on selection or redraw.
         var inset = (Thickness)Resources["StudioPanelPadding"];
