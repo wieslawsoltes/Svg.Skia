@@ -33,7 +33,14 @@ public sealed partial class SvgEditorWorkspace
         var command = new EditorCommand("gradient", "Gradient editor", "Object", string.Empty, Open);
         if (index >= 0) _commands[index] = command; else _commands.Add(command);
         _commands.Add(new EditorCommand("gradientpanel", "Gradient editor", "Window", string.Empty, Open));
-        // Preserve the precise text-based creation workflow as an explicit advanced command.
+        void DraftAction(string id, string label, Action execute)
+            => _commands.Add(new EditorCommand(id, label, "Gradient", string.Empty, () => { execute(); return Task.CompletedTask; }));
+        DraftAction("gradient-apply-draft", "Apply gradient draft", _studioGradientEditor.ApplyDraft);
+        DraftAction("gradient-reverse-draft", "Reverse gradient draft", _studioGradientEditor.ReverseDraft);
+        DraftAction("gradient-undo-draft", "Undo gradient draft", _studioGradientEditor.UndoDraft);
+        DraftAction("gradient-redo-draft", "Redo gradient draft", _studioGradientEditor.RedoDraft);
+        DraftAction("gradient-reset-draft", "Reset gradient draft", () => _studioGradientEditor.ResetDraft());
+        // Preserve precise text-based creation as an explicit advanced command.
         _commands.Add(new EditorCommand("gradient-source-create", "Create gradient from stop values…", "Object", string.Empty, GradientDialogAsync));
     }
 }
