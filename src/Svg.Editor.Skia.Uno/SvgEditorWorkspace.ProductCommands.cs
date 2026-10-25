@@ -20,6 +20,7 @@ public sealed partial class SvgEditorWorkspace
         BuildNamedWorkspaceCommands();
         InitializeInlineColorMixer();
         InitializeInlineGradientEditor();
+        InitializeInlineArrangement();
     }
 
     private void InitializeInlineColorMixer()
