@@ -260,12 +260,21 @@ public static class SvgService
     internal static ReferenceKey GetReferenceKey(Uri uri, SvgElement ownerElement)
     {
         var resourceUri = GetReferenceUri(uri, ownerElement);
+        var document = ownerElement as SvgDocument ?? ownerElement.OwnerDocument;
         if (resourceUri.IsAbsoluteUri)
         {
+            if (document?.BaseUri is { IsAbsoluteUri: true } absoluteBaseUri
+                && HaveSameDocumentUri(resourceUri, absoluteBaseUri))
+            {
+                // Match the resolver's same-document aliases, including file-path
+                // casing, without changing the case-sensitive fragment identity.
+                var documentUri = GetImageDocumentUri(absoluteBaseUri);
+                resourceUri = new Uri(documentUri.AbsoluteUri + resourceUri.Fragment, UriKind.Absolute);
+            }
+
             return new ReferenceKey(null, resourceUri);
         }
 
-        var document = ownerElement as SvgDocument ?? ownerElement.OwnerDocument;
         // Local fragments resolve in their owning document, independently of xml:base.
         // Include that document's URL so identical IDs in external documents stay
         // distinct. Unbased documents need reference identity instead of a URL.

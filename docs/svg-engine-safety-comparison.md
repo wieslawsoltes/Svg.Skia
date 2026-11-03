@@ -85,6 +85,9 @@ Target identity also has to preserve URI fragments and document scope. Ordinary
 [`Uri` equality][dotnet-uri-equality] is unsuitable for SVG targets because absolute-URI equality ignores
 the fragment. Separate targets such as `document.svg#a` and `document.svg#b` must
 remain distinct, and an unbased document's local IDs belong to that document alone.
+Absolute aliases that the existing resolver accepts as the current document use
+that document's canonical URL, while fragment IDs remain case-sensitive. This
+keeps differently cased Windows file paths from hiding an active reference cycle.
 
 ### Add a separate, scoped reference-work quota
 

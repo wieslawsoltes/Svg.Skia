@@ -32,7 +32,7 @@ public sealed class SvgProcessingLimitException : InvalidOperationException
     }
 
     /// <summary>
-    /// Gets the operation whose depth limit was exceeded.
+    /// Gets the operation whose processing limit was exceeded.
     /// </summary>
     public string Operation { get; }
 

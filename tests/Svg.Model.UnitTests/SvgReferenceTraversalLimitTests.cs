@@ -167,6 +167,46 @@ public class SvgReferenceTraversalLimitTests
     }
 
     [Fact]
+    public void SameDocumentFilePathAliasCycleIsDetectedAtReferenceDepthBoundary()
+    {
+        const int referenceDepth = 128;
+        var source = new StringBuilder("<svg xmlns='http://www.w3.org/2000/svg'><defs>");
+        for (var i = 0; i < referenceDepth; i++)
+        {
+            var target = i + 1 == referenceDepth ? "file:///C:/work/scene.svg#n0" : $"#n{i + 1}";
+            source.Append($"<use id='n{i}' href='{target}'/>");
+        }
+
+        source.Append("</defs><use id='start' href='#n0'/></svg>");
+        var document = Assert.IsType<SvgDocument>(SvgService.FromSvg(source.ToString()));
+        document.BaseUri = new Uri("file:///C:/Work/Scene.svg");
+        var start = Assert.IsType<SvgUse>(document.GetElementById("start"));
+
+        // The resolver treats this path alias as the current document on every
+        // platform. Detect the back edge before attempting a 129th reference.
+        Assert.True(HasCycle(start));
+    }
+
+    [Fact]
+    public void SameDocumentFilePathAliasesPreserveCaseSensitiveFragmentIdentity()
+    {
+        const string source = """
+            <svg xmlns='http://www.w3.org/2000/svg'>
+              <defs>
+                <use id='node' href='file:///C:/work/scene.svg#NODE'/>
+                <rect id='NODE' width='1' height='1'/>
+              </defs>
+              <use id='start' href='#node'/>
+            </svg>
+            """;
+        var document = Assert.IsType<SvgDocument>(SvgService.FromSvg(source));
+        document.BaseUri = new Uri("file:///C:/Work/Scene.svg");
+        var start = Assert.IsType<SvgUse>(document.GetElementById("start"));
+
+        Assert.False(HasCycle(start));
+    }
+
+    [Fact]
     public void IdenticalLocalFragmentsInDifferentDocumentsRemainDistinctOnActivePath()
     {
         const string firstDocument = """
