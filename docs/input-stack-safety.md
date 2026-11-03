@@ -2,13 +2,13 @@
 
 SVG element nesting, resource references, and CSS can grow the managed call stack
 independently of the file's size. Svg.Custom and Svg.Skia apply finite processing
-limits and reject excessive nesting with `SvgProcessingLimitException`, a catchable
+limits and reject excessive depth or reference work with `SvgProcessingLimitException`, a catchable
 `InvalidOperationException` subtype. These checks address
 [issue #568](https://github.com/wieslawsoltes/Svg.Skia/issues/568).
 
 ## Supported limits
 
-| Structure | Maximum |
+| Structure or operation | Maximum |
 | --- | ---: |
 | Element depth, including the SVG root and leaf | 256 |
 | Reference-chain depth | 128 |
@@ -17,10 +17,18 @@ limits and reject excessive nesting with `SvgProcessingLimitException`, a catcha
 | Active CSS import chain | 32 |
 | Combined CSS import/media source expansion | 96 |
 | Simultaneously active guarded processing calls | 256 |
+| SVG resource-reference operations in one synchronous operation | 500,000 |
 
-These are depth limits: many sibling elements, independent selector-list branches,
-and repeated sibling imports do not consume the depth budget cumulatively. Quoted,
+The structural limits measure depth: many sibling elements, independent selector-list
+branches, and repeated sibling imports do not consume the depth budget cumulatively. Quoted,
 commented, and escaped CSS delimiters do not count as nesting.
+
+The separate reference-work limit bounds expansion of shallow, acyclic shared graphs.
+It counts element, image, and deferred-paint reference attempts, including cached
+lookups, and concrete pattern expansion. The counter spans nested documents and
+scenes and is released when the outer synchronous operation exits. It is not a
+lifetime quota on a document or thread. Several processing phases may resolve the
+same reference, so this limit does not represent a number of distinct URLs.
 
 The shared processing budget covers nested scene compilation, paint fallback
 processing, patterns, masks, text references, and conversion of generated filter,
@@ -34,7 +42,11 @@ there is no option to disable them or restore unbounded recursion.
 
 ## Handling rejection
 
-The exception exposes `Operation` and `MaximumDepth` for diagnostics. For example:
+The exception exposes `Operation`, `Kind`, and nullable `Limit` for diagnostics.
+`Kind` distinguishes `Depth`, `ReferenceCount`, and `ExecutionStack`. The last kind
+has no numeric limit and retains the runtime's `InsufficientExecutionStackException`
+as its inner exception. It must not be reported as having reached depth 256.
+For example:
 
 ```csharp
 using Svg;
@@ -49,8 +61,11 @@ try
 catch (SvgProcessingLimitException exception)
 {
     Console.Error.WriteLine(
-        $"SVG processing stopped during {exception.Operation}; " +
-        $"supported depth: {exception.MaximumDepth}.");
+        $"SVG processing stopped during {exception.Operation} ({exception.Kind}).");
+    if (exception.Limit is { } limit)
+    {
+        Console.Error.WriteLine($"Supported limit: {limit}.");
+    }
 }
 ```
 
@@ -73,23 +88,35 @@ so the same thread can subsequently load a valid document.
   viewport, font, style, animation, or rendering traversals. The validator uses
   memory proportional to depth, including for wide trees.
 - Reference-cycle detection uses an explicit stack and active-path tracking.
-  Reusing one resource in separate sibling branches remains valid.
+  Reusing one resource in separate sibling branches remains valid. Completed
+  subgraphs are memoized with their validated reference depth, so shared graphs do
+  not cause exponential validation work and deeper reuses still enforce the limit.
 - Synchronous nested rendering shares a thread-local budget, including paths that
   create a new scene compiler or load a different SVG document. Scope disposal
   restores the preceding budget after both success and failure.
 - Filter metadata uses reference identity so a flat list of filter primitives
   cannot trigger recursive record hashing of the generated input graph.
 
+These boundaries do not impose a general file-size, image-allocation, memory, or
+elapsed-time limit. See the [engine comparison](svg-engine-safety-comparison.md)
+for the separate limits and failure behavior used by Blink, Gecko, WebKit, librsvg,
+and resvg, and the rationale for retaining CLR-specific depth limits.
+
 ## Regression validation
 
 The focused suite covers public loader variants, exact XML/CSS/import boundaries,
 valid wide documents, shared references, cycles, caller-created DOMs, recursive
 patterns, generated filter/picture graphs, paint fallbacks, and recovery after
-rejection. It can be run with:
+rejection. Reference-work tests additionally cover exact quota boundaries, shared
+scope lifetime, independent threads, cached paints, direct patterns, images, and
+shallow acyclic expansion. It can be run with:
 
 ```sh
 dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj \
   -c Release -f net10.0 --filter FullyQualifiedName~SvgProcessing
+
+dotnet test tests/Svg.Model.UnitTests/Svg.Model.UnitTests.csproj \
+  -c Release -f net10.0 --filter FullyQualifiedName~SvgReferenceTraversalLimitTests
 ```
 
 Isolated baseline processes on .NET 10 with a 256 KiB worker stack reproduced
