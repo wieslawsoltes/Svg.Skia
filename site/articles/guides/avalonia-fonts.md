@@ -205,8 +205,9 @@ typeface does not dispose Avalonia's font or invalidate another request.
 - Check custom provider order and whether each provider returns `null` for
   families it does not support.
 - A platform typeface must expose a usable stream through Avalonia's
-  `TryGetStream`. Unsupported or unavailable streams leave other providers
-  available. Resolution failures are logged at Avalonia's `Debug` font level.
+  `TryGetStream`. Exceptions encountered during resolution are logged at
+  Avalonia's `Debug` font level. Unresolved families and unavailable streams
+  return no match so other providers can continue.
 - Reload existing sources after changing defaults or registering more fonts.
 
 ## Browser regression sample
@@ -224,5 +225,12 @@ dotnet run --project samples/AvaloniaSvgFontBrowser/AvaloniaSvgFontBrowser.cspro
 
 Open the HTTP address printed by the development server. Check the diagnostics
 and visually inspect regular, bold, italic, family-list, and generic labels.
+The default URL registers Inter while preserving Avalonia's application default.
+Add `?default=inter` to also configure Inter as the application default.
 Serve published WebAssembly files over HTTP; opening `index.html` through
 a `file:` URL does not reproduce browser resource loading correctly.
+
+The **Avalonia browser fonts** CI workflow runs both configurations in Chromium,
+repeats the checks after disposing and reloading the SVG sources, and uploads
+screenshots and JSON diagnostics. The sample README includes the equivalent
+local publish and validation commands.
