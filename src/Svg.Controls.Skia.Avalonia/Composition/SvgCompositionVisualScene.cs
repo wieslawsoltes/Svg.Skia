@@ -92,12 +92,14 @@ internal sealed class SvgCompositionVisualScene : IDisposable
 
     private sealed class LayerVisual
     {
+        private readonly SkiaModel _skiaModel;
         private SvgNativeCompositionLayer? _layer;
         private SKPicture? _sourcePicture;
 
-        public LayerVisual(CompositionCustomVisual visual)
+        public LayerVisual(CompositionCustomVisual visual, SkiaModel skiaModel)
         {
             Visual = visual;
+            _skiaModel = skiaModel;
         }
 
         public CompositionCustomVisual Visual { get; }
@@ -152,7 +154,7 @@ internal sealed class SvgCompositionVisualScene : IDisposable
             Visual.Size = new Vector(layer.Size.Width, layer.Size.Height);
         }
 
-        private static NativeSkPicture? CreateRenderPicture(SKPicture? picture, bool wireframe)
+        private NativeSkPicture? CreateRenderPicture(SKPicture? picture, bool wireframe)
         {
             if (picture?.Commands is not { Count: > 0 })
             {
@@ -160,8 +162,8 @@ internal sealed class SvgCompositionVisualScene : IDisposable
             }
 
             return wireframe
-                ? SvgSource.s_skiaModel.ToWireframePicture(picture)
-                : SvgSource.s_skiaModel.ToSKPicture(picture);
+                ? _skiaModel.ToWireframePicture(picture)
+                : _skiaModel.ToSKPicture(picture);
         }
 
         private static float ClampOpacity(float opacity)
@@ -195,6 +197,7 @@ internal sealed class SvgCompositionVisualScene : IDisposable
 
     public static bool TryCreate(
         Svg owner,
+        SkiaModel skiaModel,
         SvgNativeCompositionScene scene,
         bool wireframe,
         out SvgCompositionVisualScene? compositionScene)
@@ -220,7 +223,7 @@ internal sealed class SvgCompositionVisualScene : IDisposable
         foreach (var layer in scene.Layers)
         {
             var visual = compositor.CreateCustomVisual(new LayerHandler(picture: null, owner.OnNativeCompositionRenderUnavailable));
-            var layerVisual = new LayerVisual(visual);
+            var layerVisual = new LayerVisual(visual, skiaModel);
             layerVisual.Initialize(layer);
             rootVisual.Children.Add(visual);
             layers[layer.DocumentChildIndex] = layerVisual;

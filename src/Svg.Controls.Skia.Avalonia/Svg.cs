@@ -1678,7 +1678,7 @@ public class Svg : Control
             return false;
         }
 
-        if (!SvgCompositionVisualScene.TryCreate(this, scene, Wireframe, out var compositionScene) || compositionScene is null)
+        if (!SvgCompositionVisualScene.TryCreate(this, skSvg.SkiaModel, scene, Wireframe, out var compositionScene) || compositionScene is null)
         {
             return false;
         }

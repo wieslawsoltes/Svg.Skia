@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Headless.XUnit" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
   </ItemGroup>
 
 </Project>

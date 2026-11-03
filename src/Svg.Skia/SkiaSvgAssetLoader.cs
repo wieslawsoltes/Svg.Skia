@@ -133,7 +133,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
                     paintPreferredTypeface.FontVariantLigatures),
                 runningFont.Typeface is null
                     ? null
-                    : currentShimTypeface ?? ToShimTypeface(runningFont.Typeface, requestedWeight)
+                    : currentShimTypeface ?? ToShimTypeface(runningFont.Typeface, requestedWeight, slant)
             ));
         }
 
@@ -167,7 +167,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
                     familyOverride = null;
                 }
 
-                matchedShimTypeface = ToShimTypeface(typeface, requestedWeight, familyOverride);
+                matchedShimTypeface = ToShimTypeface(typeface, requestedWeight, slant, familyOverride);
             }
 
             if (i == 0)
@@ -278,7 +278,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
             var candidate = candidates[i].Typeface;
             if (CanRenderAllCodepoints(candidate, codepoints))
             {
-                return candidates[i].ReturnTypeface ?? ToShimTypeface(candidate, requestedWeight);
+                return candidates[i].ReturnTypeface ?? ToShimTypeface(candidate, requestedWeight, preferredSlant);
             }
         }
 
@@ -853,6 +853,7 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
     private static ShimSkiaSharp.SKTypeface? ToShimTypeface(
         SkiaSharp.SKTypeface? typeface,
         SkiaSharp.SKFontStyleWeight? requestedWeight,
+        SkiaSharp.SKFontStyleSlant requestedSlant,
         string? familyNameOverride = null)
     {
         if (typeface is null || typeface.Handle == IntPtr.Zero)
@@ -864,12 +865,19 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
         var shimWeight = requestedWeight is { } weight && resolvedWeight < weight
             ? (ShimSkiaSharp.SKFontStyleWeight)weight
             : (ShimSkiaSharp.SKFontStyleWeight)resolvedWeight;
+        // Keep the requested slant when the physical font requires simulation, just
+        // as we keep the requested weight for synthetic bold. The renderer applies
+        // the shear when it creates the native font from this retained typeface.
+        var shimSlant = typeface.FontSlant == SkiaSharp.SKFontStyleSlant.Upright &&
+                        requestedSlant is SkiaSharp.SKFontStyleSlant.Italic or SkiaSharp.SKFontStyleSlant.Oblique
+            ? (ShimSkiaSharp.SKFontStyleSlant)requestedSlant
+            : (ShimSkiaSharp.SKFontStyleSlant)typeface.FontSlant;
 
         return ShimSkiaSharp.SKTypeface.FromFamilyName(
             familyNameOverride ?? typeface.FamilyName,
             shimWeight,
             (ShimSkiaSharp.SKFontStyleWidth)typeface.FontWidth,
-            (ShimSkiaSharp.SKFontStyleSlant)typeface.FontSlant);
+            shimSlant);
     }
 
     private SkiaSharp.SKTypeface? GetProviderTypeface(
@@ -919,24 +927,45 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
     private SkiaSharp.SKTypeface? TryMatchCharacterFromCustomProviders(string? familyName, SkiaSharp.SKFontStyleWeight weight, SkiaSharp.SKFontStyleWidth width, SkiaSharp.SKFontStyleSlant slant, int codepoint, out string? matchedFamily)
     {
         matchedFamily = null;
-        var familyKey = familyName ?? "Default";
-        foreach (var provider in _skiaModel.EnumerateEffectiveTypefaceProviders())
+        if (familyName is null)
         {
-            if (familyName is null &&
-                provider is FontManagerTypefaceProvider or DefaultTypefaceProvider)
-            {
-                continue;
-            }
+            return MatchFamily("Default");
+        }
 
-            var typeface = GetProviderTypeface(provider, familyKey, weight, width, slant);
-            if (ContainsGlyph(typeface, codepoint))
+        // Resolve CSS families before providers, just as SkiaModel does. Giving each
+        // provider the whole list lets an earlier provider select a later family,
+        // changing the glyph metrics after the preferred typeface was resolved.
+        foreach (var candidate in SkiaModel.EnumerateFontFamilyCandidates(familyName, browserCompatible: true))
+        {
+            var typeface = MatchFamily(candidate);
+            if (typeface is { })
             {
-                matchedFamily = familyName;
+                matchedFamily = candidate;
                 return typeface;
             }
         }
 
         return null;
+
+        SkiaSharp.SKTypeface? MatchFamily(string familyKey)
+        {
+            foreach (var provider in _skiaModel.EnumerateEffectiveTypefaceProviders())
+            {
+                if (familyName is null &&
+                    provider is FontManagerTypefaceProvider or DefaultTypefaceProvider)
+                {
+                    continue;
+                }
+
+                var typeface = GetProviderTypeface(provider, familyKey, weight, width, slant);
+                if (ContainsGlyph(typeface, codepoint))
+                {
+                    return typeface;
+                }
+            }
+
+            return null;
+        }
     }
 
     private bool ContainsGlyph(SkiaSharp.SKTypeface? typeface, int codepoint)

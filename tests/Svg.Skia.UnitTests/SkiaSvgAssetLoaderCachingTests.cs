@@ -131,6 +131,84 @@ public class SkiaSvgAssetLoaderCachingTests
     }
 
     [Fact]
+    public void FindTypefaces_PrefersEarlierCssFamilyOverEarlierProvider()
+    {
+        const string preferredFamily = "SvgSkiaPreferredCssFamily";
+        const string fallbackFamily = "SvgSkiaFallbackCssFamily";
+        using var preferredTypeface = OpenNativeTypeface(GetResvgFontPath("NotoSerif-Regular.ttf"));
+        using var fallbackTypeface = OpenNativeTypeface(GetResvgFontPath("NotoSans-Regular.ttf"));
+        var preferredProvider = new CountingTypefaceProvider(preferredTypeface, preferredFamily);
+        var fallbackProvider = new CountingTypefaceProvider(fallbackTypeface, fallbackFamily);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings
+        {
+            TypefaceProviders = new List<ITypefaceProvider> { fallbackProvider, preferredProvider }
+        }));
+        var preferredSpan = Assert.Single(FindTypefaces(assetLoader, preferredFamily, "MW"));
+        var fallbackSpan = Assert.Single(FindTypefaces(assetLoader, fallbackFamily, "MW"));
+        Assert.NotEqual(preferredSpan.Advance, fallbackSpan.Advance);
+
+        var span = Assert.Single(FindTypefaces(assetLoader, $"'{preferredFamily}', '{fallbackFamily}'", "MW"));
+
+        Assert.Equal(preferredFamily, span.Typeface!.FamilyName);
+        Assert.Equal(preferredSpan.Advance, span.Advance, 3);
+        Assert.Equal(preferredFamily, FindRunTypeface(assetLoader, $"{preferredFamily}, {fallbackFamily}", "MW")!.FamilyName);
+    }
+
+    [Fact]
+    public void FindTypefaces_UsesLaterCssFamilyOnlyForMissingGlyphs()
+    {
+        const string partialFamily = "SvgSkiaPartialCssFamily";
+        const string fallbackFamily = "SvgSkiaCompleteCssFamily";
+        using var partialTypeface = OpenNativeTypeface(GetResvgFontPath("CFF-and-SBIX.otf"));
+        using var fallbackTypeface = OpenNativeTypeface(GetResvgFontPath("NotoSans-Regular.ttf"));
+        AssertGlyphCoverage(partialTypeface, 'A', expected: true);
+        AssertGlyphCoverage(partialTypeface, 'G', expected: false);
+        AssertGlyphCoverage(fallbackTypeface, 'A', expected: true);
+        AssertGlyphCoverage(fallbackTypeface, 'G', expected: true);
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings
+        {
+            TypefaceProviders = new List<ITypefaceProvider>
+            {
+                new CountingTypefaceProvider(fallbackTypeface, fallbackFamily),
+                new CountingTypefaceProvider(partialTypeface, partialFamily)
+            }
+        }));
+
+        var spans = FindTypefaces(assetLoader, $"{partialFamily}, {fallbackFamily}", "AG");
+
+        Assert.Collection(spans,
+            span =>
+            {
+                Assert.Equal("A", span.Text);
+                Assert.Equal(partialFamily, span.Typeface!.FamilyName);
+                Assert.True(span.Advance > 0);
+            },
+            span =>
+            {
+                Assert.Equal("G", span.Text);
+                Assert.Equal(fallbackFamily, span.Typeface!.FamilyName);
+                Assert.True(span.Advance > 0);
+            });
+    }
+
+    [Fact]
+    public void FindTypefaces_ImplicitFamily_PreservesCustomDefaultAlias()
+    {
+        using var typeface = OpenNativeTypeface(GetResvgFontPath("NotoSerif-Regular.ttf"));
+        var provider = new CountingTypefaceProvider(typeface, "Default");
+        var assetLoader = new SkiaSvgAssetLoader(new SkiaModel(new SKSvgSettings
+        {
+            TypefaceProviders = new List<ITypefaceProvider> { provider }
+        }));
+
+        var span = Assert.Single(assetLoader.FindTypefaces("M", new SKPaint { TextSize = 48f }));
+
+        Assert.Equal(typeface.FamilyName, span.Typeface!.FamilyName);
+        Assert.True(provider.CallCount > 0);
+        Assert.True(span.Advance > 0);
+    }
+
+    [Fact]
     public void FindTypefaces_KeepsNoBreakSpaceWithCurrentFontWhenGlyphExists()
     {
         const string family = "SvgSkiaGlyphGlue";

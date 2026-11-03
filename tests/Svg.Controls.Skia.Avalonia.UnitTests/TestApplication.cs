@@ -15,6 +15,7 @@ internal static class SvgControlsSkiaAvaloniaTestsAppBuilder
             {
                 UseHeadlessDrawing = false
             })
+            .WithInterFont()
             .LogToTrace();
 }
 

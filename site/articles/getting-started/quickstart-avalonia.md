@@ -42,6 +42,19 @@ Use an SVG-backed brush:
 <Border Background="{SvgResource /Assets/__tiger.svg}" />
 ```
 
+## Browser and embedded fonts
+
+WebAssembly cannot rely on desktop system fonts. SVG text is resolved by
+SkiaSharp, separately from browser CSS fonts. `Svg.Controls.Skia.Avalonia`
+automatically bridges Avalonia font collections through `AvaloniaTypefaceProvider`.
+Register embedded fonts (for example with `.WithInterFont()`) before loading SVG
+images, and use their family names in SVG `font-family`. In the browser, generic
+families such as `sans-serif` use Avalonia's configured default font.
+
+Use `SvgSource.ConfigureDefaultSettings(...)` to configure subsequent loads and
+reloads. See [Avalonia Fonts and Default Settings](../guides/avalonia-fonts) for
+setup, fallback rules, and missing-glyph troubleshooting.
+
 ## Avalonia drawing-stack controls
 
 Install:
