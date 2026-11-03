@@ -116,6 +116,7 @@ namespace Svg
 
         public override SvgElement DeepCopy<T>()
         {
+            using var processingScope = SvgProcessingLimits.Enter("paint fallback cloning");
             var newObj = base.DeepCopy<T>() as SvgDeferredPaintServer;
 
             // The original source copied the deferred identifier and fallback server only.
@@ -129,6 +130,7 @@ namespace Svg
 
         internal void RebindDocument(SvgDocument document)
         {
+            using var processingScope = SvgProcessingLimits.Enter("paint fallback rebinding");
             Document = document;
             _concreteServer = null;
             _fallbackServer = null;
@@ -156,6 +158,7 @@ namespace Svg
 
         public override string ToString()
         {
+            using var processingScope = SvgProcessingLimits.Enter("paint fallback serialization");
             if (string.IsNullOrEmpty(DeferredId))
                 return string.Empty;
             if (FallbackServer == null)
