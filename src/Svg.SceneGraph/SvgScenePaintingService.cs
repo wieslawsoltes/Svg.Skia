@@ -1358,6 +1358,10 @@ internal static class SvgScenePaintingService
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes)
     {
+        using var processingScope = SvgProcessingLimits.Enter("pattern reference expansion");
+        // Caller-created DOMs may assign a concrete pattern server directly, without
+        // a deferred URL lookup. Its expansion still consumes the shared work budget.
+        SvgProcessingLimits.CountReferenceResolution();
         if (!SvgPatternPaintStateResolver.TryCreate(svgPatternServer, svgVisualElement, skBounds, out var patternState) ||
             patternState is null)
         {

@@ -15,12 +15,19 @@ internal static class SvgProcessingLimits
     internal const int MaximumCssDepth = 64;
     internal const int MaximumCssImportDepth = 32;
     internal const int MaximumCssSelectorComplexity = 256;
+    internal const int MaximumReferenceResolutions = 500_000;
 
     // Rendering can reenter through another document, a pattern, mask, filter, or custom
     // asset loader. A counter on an individual scene context would reset at those boundaries.
     // All guarded work is synchronous; distinct threads must have independent budgets.
     [ThreadStatic]
     private static int s_processingDepth;
+
+    // A shallow, acyclic reference DAG can expand exponentially without ever reaching
+    // a depth limit. Count work across the complete synchronous operation, including
+    // nested documents. This is not a lifetime quota on a document or worker thread.
+    [ThreadStatic]
+    private static int s_referenceResolutions;
 
     internal static void CheckDepth(int depth, int maximum, string operation)
     {
@@ -35,6 +42,16 @@ internal static class SvgProcessingLimits
         CheckDepth(depth, MaximumElementDepth, "element nesting");
     }
 
+    internal static void CountReferenceResolution()
+    {
+        if (s_referenceResolutions >= MaximumReferenceResolutions)
+        {
+            throw new SvgProcessingLimitException("reference resolution", SvgProcessingLimitKind.ReferenceCount, MaximumReferenceResolutions);
+        }
+
+        s_referenceResolutions++;
+    }
+
     internal static RecursionScope Enter(string operation)
     {
         var previousDepth = s_processingDepth;
@@ -47,9 +64,14 @@ internal static class SvgProcessingLimits
         {
             RuntimeHelpers.EnsureSufficientExecutionStack();
         }
-        catch (InsufficientExecutionStackException)
+        catch (InsufficientExecutionStackException exception)
         {
-            throw new SvgProcessingLimitException(operation, MaximumProcessingDepth);
+            throw new SvgProcessingLimitException(operation, SvgProcessingLimitKind.ExecutionStack, null, exception);
+        }
+
+        if (previousDepth == 0)
+        {
+            s_referenceResolutions = 0;
         }
 
         s_processingDepth = previousDepth + 1;
@@ -102,6 +124,10 @@ internal static class SvgProcessingLimits
         public void Dispose()
         {
             s_processingDepth = _previousDepth;
+            if (_previousDepth == 0)
+            {
+                s_referenceResolutions = 0;
+            }
         }
     }
 }

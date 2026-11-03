@@ -1,13 +1,15 @@
+#nullable enable
+
 using System;
 
 namespace Svg;
 
 /// <summary>
-/// The SVG requires more nesting than can be processed safely.
+/// The SVG exceeds a supported processing limit.
 /// </summary>
 /// <remarks>
-/// This exception is raised before input-controlled recursion can exhaust the managed stack.
-/// Hosts may catch it and report that the document exceeds the supported processing limits.
+/// Hosts may catch this exception and report that the document exceeds the supported
+/// depth, reference-work, or execution-stack limit.
 /// </remarks>
 public sealed class SvgProcessingLimitException : InvalidOperationException
 {
@@ -17,10 +19,16 @@ public sealed class SvgProcessingLimitException : InvalidOperationException
     /// <param name="operation">The operation whose depth limit was exceeded.</param>
     /// <param name="maximumDepth">The maximum supported depth.</param>
     public SvgProcessingLimitException(string operation, int maximumDepth)
-        : base($"SVG {operation} exceeds the supported depth limit of {maximumDepth}.")
+        : this(operation, SvgProcessingLimitKind.Depth, maximumDepth)
+    {
+    }
+
+    internal SvgProcessingLimitException(string operation, SvgProcessingLimitKind kind, int? limit, Exception? innerException = null)
+        : base(CreateMessage(operation, kind, limit), innerException)
     {
         Operation = operation;
-        MaximumDepth = maximumDepth;
+        Kind = kind;
+        Limit = limit;
     }
 
     /// <summary>
@@ -29,7 +37,24 @@ public sealed class SvgProcessingLimitException : InvalidOperationException
     public string Operation { get; }
 
     /// <summary>
-    /// Gets the maximum supported depth.
+    /// Gets the kind of processing limit that was exceeded.
     /// </summary>
-    public int MaximumDepth { get; }
+    public SvgProcessingLimitKind Kind { get; }
+
+    /// <summary>
+    /// Gets the configured depth or reference-count limit, or <see langword="null"/>
+    /// when the runtime rejected the operation because of available execution stack.
+    /// </summary>
+    public int? Limit { get; }
+
+    private static string CreateMessage(string operation, SvgProcessingLimitKind kind, int? limit)
+    {
+        return kind switch
+        {
+            SvgProcessingLimitKind.Depth => $"SVG {operation} exceeds the supported depth limit of {limit}.",
+            SvgProcessingLimitKind.ReferenceCount => $"SVG {operation} exceeds the supported reference count limit of {limit}.",
+            SvgProcessingLimitKind.ExecutionStack => $"SVG {operation} requires more execution stack than is available.",
+            _ => throw new ArgumentOutOfRangeException(nameof(kind))
+        };
+    }
 }

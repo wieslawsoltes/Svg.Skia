@@ -29,7 +29,7 @@ internal static class SvgSceneClipCompiler
             Clip = new ClipPath()
         };
 
-        PopulateClipPath(svgClipPath, targetBounds, assetLoader, new HashSet<Uri>(), clipPath, svgClipPathClipRule: null);
+        PopulateClipPath(svgClipPath, targetBounds, assetLoader, new HashSet<SvgService.ReferenceKey>(), clipPath, svgClipPathClipRule: null);
         return HasClipGeometry(clipPath)
             ? clipPath
             : null;
@@ -66,7 +66,7 @@ internal static class SvgSceneClipCompiler
         SvgClipPath svgClipPath,
         SKRect targetBounds,
         ISvgAssetLoader assetLoader,
-        HashSet<Uri> uris,
+        HashSet<SvgService.ReferenceKey> uris,
         ClipPath clipPath,
         SvgClipRule? svgClipPathClipRule)
     {
@@ -100,7 +100,7 @@ internal static class SvgSceneClipCompiler
         SvgClipPath svgClipPath,
         SKRect targetBounds,
         ISvgAssetLoader assetLoader,
-        HashSet<Uri> uris,
+        HashSet<SvgService.ReferenceKey> uris,
         ClipPath clipPath)
     {
         if (clipPath.Clip is null)
@@ -109,7 +109,7 @@ internal static class SvgSceneClipCompiler
         }
 
         var referenceUri = GetReferenceUri(svgClipPath, "clip-path");
-        if (referenceUri is not null && !uris.Add(referenceUri))
+        if (referenceUri is not null && !uris.Add(SvgService.GetReferenceKey(referenceUri, svgClipPath)))
         {
             return;
         }
@@ -853,7 +853,7 @@ internal static class SvgSceneClipCompiler
         SvgElementCollection children,
         SKRect targetBounds,
         ISvgAssetLoader assetLoader,
-        HashSet<Uri> uris,
+        HashSet<SvgService.ReferenceKey> uris,
         ClipPath clipPath,
         SvgClipRule? svgClipPathClipRule)
     {
@@ -866,7 +866,7 @@ internal static class SvgSceneClipCompiler
                 continue;
             }
 
-            PopulateVisualClip(visualChild, targetBounds, assetLoader, new HashSet<Uri>(uris), clipPath, svgClipPathClipRule);
+            PopulateVisualClip(visualChild, targetBounds, assetLoader, new HashSet<SvgService.ReferenceKey>(uris), clipPath, svgClipPathClipRule);
         }
     }
 
@@ -874,7 +874,7 @@ internal static class SvgSceneClipCompiler
         SvgVisualElement visualElement,
         SKRect targetBounds,
         ISvgAssetLoader assetLoader,
-        HashSet<Uri> uris,
+        HashSet<SvgService.ReferenceKey> uris,
         ClipPath clipPath,
         SvgClipRule? svgClipPathClipRule)
     {
@@ -915,7 +915,7 @@ internal static class SvgSceneClipCompiler
         SvgVisualElement visualElement,
         SKPath? path,
         ISvgAssetLoader assetLoader,
-        HashSet<Uri> uris,
+        HashSet<SvgService.ReferenceKey> uris,
         ClipPath clipPath)
     {
         if (path is null)
@@ -941,7 +941,7 @@ internal static class SvgSceneClipCompiler
         SvgUse svgUse,
         SKRect targetBounds,
         ISvgAssetLoader assetLoader,
-        HashSet<Uri> uris,
+        HashSet<SvgService.ReferenceKey> uris,
         ClipPath clipPath,
         SvgClipRule? svgClipPathClipRule)
     {
@@ -1020,7 +1020,7 @@ internal static class SvgSceneClipCompiler
         SvgText svgText,
         SKRect targetBounds,
         ISvgAssetLoader assetLoader,
-        HashSet<Uri> uris,
+        HashSet<SvgService.ReferenceKey> uris,
         ClipPath clipPath)
     {
         var path = SvgSceneTextCompiler.CreateClipPath(svgText, targetBounds, assetLoader);
@@ -1047,12 +1047,12 @@ internal static class SvgSceneClipCompiler
         SvgVisualElement visualElement,
         SKRect targetBounds,
         ISvgAssetLoader assetLoader,
-        HashSet<Uri> uris,
+        HashSet<SvgService.ReferenceKey> uris,
         ClipPath clipPath)
     {
         var referenceUri = GetReferenceUri(visualElement, "clip-path");
         if (referenceUri is null ||
-            !uris.Add(referenceUri))
+            !uris.Add(SvgService.GetReferenceKey(referenceUri, visualElement)))
         {
             return;
         }

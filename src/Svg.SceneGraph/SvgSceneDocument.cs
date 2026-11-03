@@ -233,11 +233,13 @@ public sealed class SvgSceneDocument
 
     public SvgSceneNode? HitTestTopmostNode(SKPoint point)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene hit testing");
         return SvgSceneHitTestService.HitTestTopmostNode(this, point);
     }
 
     public SKPicture? CreateModel()
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene model creation");
         return SvgSceneRenderer.Render(this);
     }
 
@@ -248,6 +250,7 @@ public sealed class SvgSceneDocument
             throw new ArgumentNullException(nameof(node));
         }
 
+        using var processingScope = SvgProcessingLimits.Enter("scene model creation");
         return SvgSceneRenderer.RenderNodePicture(this, node, clip);
     }
 
@@ -402,6 +405,7 @@ public sealed class SvgSceneDocument
 
     private void RebuildIndexesAndDependencies(bool? knownMarkerReferenceDeclarations)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene dependency indexing");
         var addressKeyCache = new SvgElementAddressKeyCache();
         var (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, hasMaskDeclarations, hasFilterDeclarations, addressableElementCount, elementIdCount) =
             AnalyzeDependencyRequirements(knownMarkerReferenceDeclarations);
@@ -528,6 +532,7 @@ public sealed class SvgSceneDocument
         bool includeMarkerReferences,
         bool includeClipPathReferences)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene resource indexing");
         if (SourceDocument is null)
         {
             return;
@@ -675,6 +680,7 @@ public sealed class SvgSceneDocument
         bool includeClipPathReferences,
         bool useNodeSubtreeRegistration = false)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene dependency indexing");
         if (_compilationRootsByKey.Count == 0)
         {
             return;
@@ -1091,6 +1097,7 @@ public sealed class SvgSceneDocument
         Dictionary<float, SKPaint>? opacityPaintCache = null,
         Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint>? solidFillPaintCache = null)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene resource resolution");
         if (root is null)
         {
             return;

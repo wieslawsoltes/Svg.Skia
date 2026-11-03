@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml;
 using ShimSkiaSharp;
@@ -94,6 +95,7 @@ public static class SvgService
         }
 
         using var processingScope = SvgProcessingLimits.Enter("reference resolution");
+        SvgProcessingLimits.CountReferenceResolution();
 
         var uriString = uri.OriginalString;
         if (uri.IsAbsoluteUri)
@@ -223,6 +225,72 @@ public static class SvgService
         return SvgExternalResourceResolver.ResolveResourceUri(svgOwnerElement, uri);
     }
 
+    internal readonly struct ReferenceKey : IEquatable<ReferenceKey>
+    {
+        private readonly SvgElement? _documentScope;
+
+        public ReferenceKey(SvgElement? documentScope, Uri uri)
+        {
+            _documentScope = documentScope;
+            Uri = uri;
+        }
+
+        public Uri Uri { get; }
+
+        private string Value => Uri.IsAbsoluteUri ? Uri.AbsoluteUri : Uri.OriginalString;
+
+        public bool Equals(ReferenceKey other)
+        {
+            return ReferenceEquals(_documentScope, other._documentScope)
+                   && StringComparer.Ordinal.Equals(Value, other.Value);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is ReferenceKey other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            var scopeHashCode = _documentScope is null ? 0 : RuntimeHelpers.GetHashCode(_documentScope);
+            return unchecked((scopeHashCode * 397) ^ StringComparer.Ordinal.GetHashCode(Value));
+        }
+    }
+
+    internal static ReferenceKey GetReferenceKey(Uri uri, SvgElement ownerElement)
+    {
+        var resourceUri = GetReferenceUri(uri, ownerElement);
+        if (resourceUri.IsAbsoluteUri)
+        {
+            return new ReferenceKey(null, resourceUri);
+        }
+
+        var document = ownerElement as SvgDocument ?? ownerElement.OwnerDocument;
+        // Local fragments resolve in their owning document, independently of xml:base.
+        // Include that document's URL so identical IDs in external documents stay
+        // distinct. Unbased documents need reference identity instead of a URL.
+        if (resourceUri.OriginalString.StartsWith("#", StringComparison.Ordinal)
+            && document?.BaseUri is { IsAbsoluteUri: true } baseUri)
+        {
+            var documentUri = GetImageDocumentUri(baseUri);
+            resourceUri = new Uri(documentUri.AbsoluteUri + resourceUri.OriginalString, UriKind.Absolute);
+            return new ReferenceKey(null, resourceUri);
+        }
+
+        return new ReferenceKey(document ?? ownerElement, resourceUri);
+    }
+
+    private static HashSet<ReferenceKey> GetReferenceKeys(HashSet<Uri> uris, SvgElement ownerElement)
+    {
+        var keys = new HashSet<ReferenceKey>();
+        foreach (var uri in uris)
+        {
+            keys.Add(GetReferenceKey(uri, ownerElement));
+        }
+
+        return keys;
+    }
+
     internal static Uri? GetEffectiveReferenceUri(SvgElement svgElement, Uri? fallback)
     {
         if (svgElement.TryGetEffectiveHrefString(out var hrefText))
@@ -264,22 +332,32 @@ public static class SvgService
 
     internal static bool ElementReferencesUri<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris, SvgElement? svgReferencedElement) where T : SvgElement
     {
+        return ElementReferencesUri(getUri, GetReferenceKeys(uris, svgElement), svgReferencedElement);
+    }
+
+    private static bool ElementReferencesUri<T>(Func<T, Uri?> getUri, HashSet<ReferenceKey> activeReferences, SvgElement? svgReferencedElement) where T : SvgElement
+    {
         if (svgReferencedElement is null)
         {
             return false;
         }
 
+        using var processingScope = SvgProcessingLimits.Enter("reference graph traversal");
+
         // Cycle detection must itself be stack-safe. A long, acyclic chain used to
         // overflow here before the scene compiler could inspect or render it.
-        var activeUris = new HashSet<Uri>(uris);
-        var pending = new Stack<(SvgElement Element, int ReferenceDepth, int ElementDepth, int ChildIndex, Uri? ExitUri)>();
+        // Uri equality ignores the fragment of absolute URIs, so reference identity
+        // must retain the complete URI and the scope of otherwise unbased fragments.
+        var validatedReferenceDepths = new Dictionary<ReferenceKey, int>();
+        var pending = new Stack<(SvgElement Element, int ReferenceDepth, int ElementDepth, int ChildIndex, ReferenceKey? ExitReference)>();
         pending.Push((svgReferencedElement, 1, 1, -1, null));
         while (pending.Count > 0)
         {
             var frame = pending.Pop();
-            if (frame.ExitUri is { } exitUri)
+            if (frame.ExitReference is { } exitReference)
             {
-                activeUris.Remove(exitUri);
+                activeReferences.Remove(exitReference);
+                validatedReferenceDepths[exitReference] = frame.ReferenceDepth;
                 continue;
             }
 
@@ -294,25 +372,36 @@ public static class SvgService
                     continue;
                 }
 
-                var referenceKey = GetReferenceUri(referencedElementUri, svgElementT);
-                if (activeUris.Contains(referenceKey))
+                var referenceKey = GetReferenceKey(referencedElementUri, svgElementT);
+                if (activeReferences.Contains(referenceKey))
                 {
                     return true;
                 }
 
+                var referencedDepth = frame.ReferenceDepth + 1;
+                // Remember only completed traversals. Shared acyclic subgraphs must
+                // not be expanded once for every path through the reference graph.
+                // A subtree validated near the root still needs checking when reused
+                // farther down a chain, where its descendants may exceed the limit.
+                if (validatedReferenceDepths.TryGetValue(referenceKey, out var validatedDepth)
+                    && referencedDepth <= validatedDepth)
+                {
+                    continue;
+                }
+
                 if (GetReference<SvgElement>(svgElementT, referencedElementUri) is { } referencedElement)
                 {
-                    activeUris.Add(referenceKey);
-                    pending.Push((frame.Element, frame.ReferenceDepth, frame.ElementDepth, -1, referenceKey));
-                    pending.Push((referencedElement, frame.ReferenceDepth + 1, 1, -1, null));
+                    activeReferences.Add(referenceKey);
+                    pending.Push((frame.Element, referencedDepth, frame.ElementDepth, -1, referenceKey));
+                    pending.Push((referencedElement, referencedDepth, 1, -1, null));
                 }
 
                 continue;
             }
 
             // Keep a continuation for each parent instead of pushing all siblings.
-            // This uses O(depth) memory even for wide documents. Reference exit
-            // frames keep shared sibling resources out of the active cycle path.
+            // The traversal stack uses O(depth) memory even for wide documents.
+            // Reference exit frames keep shared siblings out of the active cycle path.
             var childIndex = Math.Max(frame.ChildIndex, 0);
             if (childIndex < frame.Element.Children.Count)
             {
@@ -327,21 +416,24 @@ public static class SvgService
     internal static bool HasRecursiveReference<T>(this T svgElement, Func<T, Uri?> getUri, HashSet<Uri> uris)
         where T : SvgElement
     {
+        using var processingScope = SvgProcessingLimits.Enter("reference graph traversal");
+
         var referencedElementUri = getUri(svgElement);
         if (referencedElementUri is null)
         {
             return false;
         }
 
-        var referenceKey = GetReferenceUri(referencedElementUri, svgElement);
-        if (uris.Contains(referenceKey))
+        var activeReferences = GetReferenceKeys(uris, svgElement);
+        var referenceKey = GetReferenceKey(referencedElementUri, svgElement);
+        if (!activeReferences.Add(referenceKey))
         {
             return true;
         }
 
         var svgReferencedElement = GetReference<SvgElement>(svgElement, referencedElementUri);
-        uris.Add(referenceKey);
-        return ElementReferencesUri(svgElement, getUri, uris, svgReferencedElement);
+        uris.Add(referenceKey.Uri);
+        return ElementReferencesUri(getUri, activeReferences, svgReferencedElement);
     }
 
     internal static Uri? GetUri(this SvgElement svgElement, string name)
@@ -637,6 +729,9 @@ public static class SvgService
 
     internal static object? GetImage(string uriString, SvgElement svgOwnerElement, ISvgAssetLoader assetLoader)
     {
+        using var processingScope = SvgProcessingLimits.Enter("image reference resolution");
+        SvgProcessingLimits.CountReferenceResolution();
+
         try
         {
             var uri = GetImageUri(uriString, svgOwnerElement);
