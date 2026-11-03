@@ -473,6 +473,11 @@ public sealed class SvgSource : IDisposable
     /// <summary>t
     /// Loads svg source from file or resource asynchronously.
     /// </summary>
+    /// <remarks>
+    /// Avalonia assets are resolved and opened on the calling thread before SVG parsing is
+    /// dispatched to a worker. Invoke this method on the UI thread when sharing Avalonia's
+    /// asset loader with controls; it does not require an additional <see cref="Task.Run(Action)"/>.
+    /// </remarks>
     /// <param name="path">The path to file or resource.</param>
     /// <param name="baseUri">The base uri.</param>
     /// <param name="parameters">The svg parameters.</param>
@@ -763,6 +768,16 @@ public sealed class SvgSource : IDisposable
         }
     }
 
+    /// <summary>
+    /// Reloads the source with new parameters, parsing SVG content on a worker thread.
+    /// </summary>
+    /// <remarks>
+    /// A source whose path has not been loaded yet opens its Avalonia asset on the calling
+    /// thread. Invoke this method on the UI thread when sharing the asset loader with controls.
+    /// Loaded sources reuse their cached content or file path.
+    /// </remarks>
+    /// <param name="parameters">The SVG parameters.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
     public async Task ReLoadAsync(SvgParameters? parameters, CancellationToken cancellationToken = default)
     {
         MemoryStream? streamCopy = null;
