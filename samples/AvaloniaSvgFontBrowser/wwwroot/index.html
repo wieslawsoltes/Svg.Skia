@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <title>Svg.Skia — Avalonia browser fonts</title>
+    <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+    <header>
+        <div>
+            <h1>SVG fonts in WebAssembly</h1>
+            <p id="font-setup">Issue #565 · Embedded Inter registered with Avalonia's WithInterFont()</p>
+        </div>
+        <button id="rerun" disabled>Run font checks again</button>
+    </header>
+    <main>
+        <section id="out" aria-label="Avalonia and SVG font comparisons">Loading Avalonia…</section>
+        <aside aria-label="Font validation results">
+            <h2 id="status" data-status="loading">Loading WebAssembly…</h2>
+            <p>Checks include recorded text commands, glyph coverage, style, settings, and pixels. Named families use embedded Inter; generic families use Avalonia's actual default.</p>
+            <pre id="results" aria-live="polite"></pre>
+        </aside>
+    </main>
+    <script type="module" src="./main.js"></script>
+</body>
+</html>
