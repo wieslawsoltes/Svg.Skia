@@ -1,23 +1,103 @@
-# Input depth and stack safety (issue #568)
+# Input depth and stack safety
 
-## Problem
+SVG element nesting, resource references, and CSS can grow the managed call stack
+independently of the file's size. Svg.Custom and Svg.Skia apply finite processing
+limits and reject excessive nesting with `SvgProcessingLimitException`, a catchable
+`InvalidOperationException` subtype. These checks address
+[issue #568](https://github.com/wieslawsoltes/Svg.Skia/issues/568).
 
-SVG element nesting, reference chains, and nested stylesheets can grow the managed
-call stack in proportion to untrusted input. A stack overflow terminates the host
-process, so catching an exception after recursive processing begins is insufficient.
+## Supported limits
 
-## Implementation and acceptance criteria
+| Structure | Maximum |
+| --- | ---: |
+| Element depth, including the SVG root and leaf | 256 |
+| Reference-chain depth | 128 |
+| CSS delimiter nesting and selector-tree depth | 64 |
+| Components in an individual CSS selector | 256 |
+| Active CSS import chain | 32 |
+| Combined CSS import/media source expansion | 96 |
+| Simultaneously active guarded processing calls | 256 |
 
-- Enforce finite depth limits before input reaches recursive parsing, stylesheet
-  processing, or rendering code. Report rejected input with a catchable exception.
-- Cover public loading paths and rendering of caller-created SVG documents.
-- Bound reference expansion, including acyclic chains and cycles, without treating
-  ordinary repeated use of a shared resource as a cycle.
-- Preserve ordinary SVG rendering, caller-owned stream behavior, and existing APIs.
-- Add regressions for deep XML, stylesheets, and references, alongside legitimate
-  documents near the supported limits and recovery after a rejected document.
-- Run formatting, focused regressions, solution build, and solution tests; record
-  any environmental limitations and the exact validation results in the PR.
+These are depth limits: many sibling elements, independent selector-list branches,
+and repeated sibling imports do not consume the depth budget cumulatively. Quoted,
+commented, and escaped CSS delimiters do not count as nesting.
 
-This document tracks the work for
-https://github.com/wieslawsoltes/Svg.Skia/issues/568.
+The shared processing budget covers nested scene compilation, paint fallback
+processing, patterns, masks, text references, and conversion of generated filter,
+shader, and picture graphs. A document can therefore exceed the processing budget
+even when each of its individual XML or reference chains is below its limit.
+
+The runtime also checks available execution stack before guarded recursive work.
+A host using a smaller stack, or calling SVG processing with a substantially occupied
+stack, can receive the exception earlier. The limits are fixed safety boundaries;
+there is no option to disable them or restore unbounded recursion.
+
+## Handling rejection
+
+The exception exposes `Operation` and `MaximumDepth` for diagnostics. For example:
+
+```csharp
+using Svg;
+using Svg.Skia;
+
+try
+{
+    using var svg = new SKSvg();
+    svg.Load(inputStream);
+    // Use svg.Picture while svg remains alive.
+}
+catch (SvgProcessingLimitException exception)
+{
+    Console.Error.WriteLine(
+        $"SVG processing stopped during {exception.Operation}; " +
+        $"supported depth: {exception.MaximumDepth}.");
+}
+```
+
+The same exception applies to the public `SvgDocument` and
+`SvgDocumentCompatibilityLoader` loading APIs. Caller-owned input streams remain
+open when loading is rejected. A rejected operation releases its processing budget,
+so the same thread can subsequently load a valid document.
+
+## Enforcement
+
+- Both XML loaders check reader and construction-stack depth before creating an
+  element, attaching it to its parent, or applying styles. File, string, stream,
+  XML-reader, and XML-document entry points share these boundaries.
+- Stylesheets, inline declarations, and selectors are checked before ExCSS parsing
+  and before recursive selector specificity/delegate processing. Import traversal
+  tracks active chains and retains existing cycle recovery and cascade order.
+- Generated attribute setters and tolerant parser/resource catches propagate the
+  safety exception while retaining their ordinary malformed-input recovery.
+- Caller-created documents and fragments receive iterative validation before
+  viewport, font, style, animation, or rendering traversals. The validator uses
+  memory proportional to depth, including for wide trees.
+- Reference-cycle detection uses an explicit stack and active-path tracking.
+  Reusing one resource in separate sibling branches remains valid.
+- Synchronous nested rendering shares a thread-local budget, including paths that
+  create a new scene compiler or load a different SVG document. Scope disposal
+  restores the preceding budget after both success and failure.
+- Filter metadata uses reference identity so a flat list of filter primitives
+  cannot trigger recursive record hashing of the generated input graph.
+
+## Regression validation
+
+The focused suite covers public loader variants, exact XML/CSS/import boundaries,
+valid wide documents, shared references, cycles, caller-created DOMs, recursive
+patterns, generated filter/picture graphs, paint fallbacks, and recovery after
+rejection. It can be run with:
+
+```sh
+dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj \
+  -c Release -f net10.0 --filter FullyQualifiedName~SvgProcessing
+```
+
+Isolated baseline processes on .NET 10 with a 256 KiB worker stack reproduced
+process termination for deep element nesting, nested stylesheets, reference chains,
+and paint fallbacks. The corresponding guarded builds return catchable exceptions
+and keep the process alive. Ordinary CSS at the supported nesting boundary also
+loads on that small stack.
+
+See Microsoft's documentation for
+[`EnsureSufficientExecutionStack`](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.runtimehelpers.ensuresufficientexecutionstack)
+for the runtime's recoverable early stack check.
