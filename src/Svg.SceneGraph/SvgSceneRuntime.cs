@@ -31,6 +31,7 @@ public static class SvgSceneRuntime
             return false;
         }
 
+        SvgProcessingLimits.ValidateElementTree(sourceFragment);
         if (sourceFragment is SvgDocument sourceDocument)
         {
             var documentViewport = GetInitialViewport(sourceDocument, standaloneDocumentViewport);

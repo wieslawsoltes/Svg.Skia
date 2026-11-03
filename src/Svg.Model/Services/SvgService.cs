@@ -93,6 +93,8 @@ public static class SvgService
             return default;
         }
 
+        using var processingScope = SvgProcessingLimits.Enter("reference resolution");
+
         var uriString = uri.OriginalString;
         if (uri.IsAbsoluteUri)
         {
@@ -207,7 +209,7 @@ public static class SvgService
                 return LoadSvgz(stream, documentUri, loadOptions, loadLinkedStylesheets: false);
             }
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not SvgProcessingLimitException)
         {
             Debug.WriteLine(ex.Message);
             Debug.WriteLine(ex.StackTrace);
@@ -267,37 +269,55 @@ public static class SvgService
             return false;
         }
 
-        if (svgReferencedElement is T svgElementT)
+        // Cycle detection must itself be stack-safe. A long, acyclic chain used to
+        // overflow here before the scene compiler could inspect or render it.
+        var activeUris = new HashSet<Uri>(uris);
+        var pending = new Stack<(SvgElement Element, int ReferenceDepth, int ElementDepth, int ChildIndex, Uri? ExitUri)>();
+        pending.Push((svgReferencedElement, 1, 1, -1, null));
+        while (pending.Count > 0)
         {
-            var referencedElementUri = getUri(svgElementT);
-
-            if (referencedElementUri is null)
+            var frame = pending.Pop();
+            if (frame.ExitUri is { } exitUri)
             {
-                return false;
+                activeUris.Remove(exitUri);
+                continue;
             }
 
-            if (uris.Contains(referencedElementUri))
+            SvgProcessingLimits.CheckDepth(frame.ReferenceDepth, SvgProcessingLimits.MaximumReferenceDepth, "reference nesting");
+            SvgProcessingLimits.CheckElementDepth(frame.ElementDepth);
+
+            if (frame.Element is T svgElementT)
             {
-                return true;
+                var referencedElementUri = getUri(svgElementT);
+                if (referencedElementUri is null)
+                {
+                    continue;
+                }
+
+                var referenceKey = GetReferenceUri(referencedElementUri, svgElementT);
+                if (activeUris.Contains(referenceKey))
+                {
+                    return true;
+                }
+
+                if (GetReference<SvgElement>(svgElementT, referencedElementUri) is { } referencedElement)
+                {
+                    activeUris.Add(referenceKey);
+                    pending.Push((frame.Element, frame.ReferenceDepth, frame.ElementDepth, -1, referenceKey));
+                    pending.Push((referencedElement, frame.ReferenceDepth + 1, 1, -1, null));
+                }
+
+                continue;
             }
 
-            if (GetReference<T>(svgElement, referencedElementUri) is { })
+            // Keep a continuation for each parent instead of pushing all siblings.
+            // This uses O(depth) memory even for wide documents. Reference exit
+            // frames keep shared sibling resources out of the active cycle path.
+            var childIndex = Math.Max(frame.ChildIndex, 0);
+            if (childIndex < frame.Element.Children.Count)
             {
-                uris.Add(referencedElementUri);
-            }
-
-            return ElementReferencesUri(
-                svgElementT,
-                getUri,
-                uris,
-                GetReference<SvgElement>(svgElementT, referencedElementUri));
-        }
-
-        foreach (var svgChildElement in svgReferencedElement.Children)
-        {
-            if (ElementReferencesUri(svgElement, getUri, uris, svgChildElement))
-            {
-                return true;
+                pending.Push((frame.Element, frame.ReferenceDepth, frame.ElementDepth, childIndex + 1, null));
+                pending.Push((frame.Element.Children[childIndex], frame.ReferenceDepth, frame.ElementDepth + 1, -1, null));
             }
         }
 
@@ -313,13 +333,14 @@ public static class SvgService
             return false;
         }
 
-        var svgReferencedElement = GetReference<SvgElement>(svgElement, referencedElementUri);
-        if (uris.Contains(referencedElementUri))
+        var referenceKey = GetReferenceUri(referencedElementUri, svgElement);
+        if (uris.Contains(referenceKey))
         {
             return true;
         }
 
-        uris.Add(referencedElementUri);
+        var svgReferencedElement = GetReference<SvgElement>(svgElement, referencedElementUri);
+        uris.Add(referenceKey);
         return ElementReferencesUri(svgElement, getUri, uris, svgReferencedElement);
     }
 
@@ -643,7 +664,7 @@ public static class SvgService
 
             return GetImageFromWeb(uri, svgOwnerElement, assetLoader);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not SvgProcessingLimitException)
         {
             Debug.WriteLine(ex.Message);
             Debug.WriteLine(ex.StackTrace);

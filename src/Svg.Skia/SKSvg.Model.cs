@@ -84,6 +84,7 @@ public partial class SKSvg : IDisposable
 
     public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
+        SvgProcessingLimits.ValidateElementTree(svgFragment);
         using var documentFontScope = PushDocumentFonts(svgFragment as SvgDocument ?? svgFragment.OwnerDocument, assetLoader);
         var picture = SvgSceneRuntime.CreateModel(
             svgFragment,
@@ -95,6 +96,7 @@ public partial class SKSvg : IDisposable
 
     public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
+        SvgProcessingLimits.ValidateElementTree(svgFragment);
         using var documentFontScope = PushDocumentFonts(svgFragment as SvgDocument ?? svgFragment.OwnerDocument, assetLoader);
         var picture = SvgSceneRuntime.CreateModel(
             svgFragment,
@@ -882,6 +884,10 @@ public partial class SKSvg : IDisposable
         {
             return null;
         }
+
+        // Documents supplied by callers need the same boundary as parsed XML,
+        // before animation, script, font, or retained-scene traversals begin.
+        SvgProcessingLimits.ValidateElementTree(svgDocument);
 
         if (AssetLoader is ISvgDocumentFontLoader fontLoader)
         {

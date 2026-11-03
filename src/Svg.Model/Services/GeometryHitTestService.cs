@@ -119,6 +119,7 @@ internal static class GeometryHitTestService
 
     private static bool ContainsClipPath(ClipPath? clipPath, SKPoint point)
     {
+        using var processingScope = SvgProcessingLimits.Enter("clip path hit testing");
         if (clipPath is null)
         {
             return true;
@@ -409,6 +410,7 @@ internal static class GeometryHitTestService
 
     private static bool HasClipGeometry(ClipPath? clipPath)
     {
+        using var processingScope = SvgProcessingLimits.Enter("clip path hit testing");
         if (clipPath is null)
         {
             return false;

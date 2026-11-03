@@ -111,6 +111,7 @@ public static class SvgSceneRenderer
         bool ignoreCurrentMask = false,
         bool ignoreCurrentFilter = false)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene rendering");
         if (until is not null && ReferenceEquals(node, until))
         {
             return false;

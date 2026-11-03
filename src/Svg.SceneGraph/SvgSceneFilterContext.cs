@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using ShimSkiaSharp;
 using Svg.DataTypes;
 using Svg.FilterEffects;
@@ -13,6 +14,18 @@ namespace Svg.Skia;
 
 internal sealed class SvgSceneFilterContext
 {
+    // Region/gamma metadata belongs to a particular filter node. Record equality
+    // recursively hashes input filters, making even a flat list of primitives an
+    // unbounded call stack (and repeatedly traversing the entire preceding DAG).
+    private sealed class ImageFilterReferenceComparer : IEqualityComparer<SKImageFilter>
+    {
+        public static readonly ImageFilterReferenceComparer Instance = new();
+
+        public bool Equals(SKImageFilter? x, SKImageFilter? y) => ReferenceEquals(x, y);
+
+        public int GetHashCode(SKImageFilter obj) => RuntimeHelpers.GetHashCode(obj);
+    }
+
     private static readonly char[] s_colorMatrixSplitChars = { ' ', '\t', '\n', '\r', ',' };
 
     private static readonly IReadOnlyList<CssFilterStep> s_emptyCssFilterSteps = Array.Empty<CssFilterStep>();
@@ -118,6 +131,7 @@ internal sealed class SvgSceneFilterContext
         SKMatrix? targetTransform = null,
         Uri? initialReferenceUri = null)
     {
+        using var processingScope = SvgProcessingLimits.Enter("filter processing");
         _sceneDocument = sceneDocument;
         _svgVisualElement = svgVisualElement;
         _skBounds = skBounds;
@@ -131,7 +145,7 @@ internal sealed class SvgSceneFilterContext
 
         _primitives = new();
         _results = new();
-        _regions = new();
+        _regions = new(ImageFilterReferenceComparer.Instance);
 
         if (initialSourceGraphic is { })
         {
@@ -648,7 +662,7 @@ internal sealed class SvgSceneFilterContext
                         _regions[skImageFilter] = skFilterPrimitiveRegion;
                         if (hasLinearPngGamma)
                         {
-                            _linearPngGammaImageFilters ??= new HashSet<SKImageFilter>();
+                            _linearPngGammaImageFilters ??= new HashSet<SKImageFilter>(ImageFilterReferenceComparer.Instance);
                             _linearPngGammaImageFilters.Add(skImageFilter);
                         }
                     }
@@ -2650,6 +2664,7 @@ internal sealed class SvgSceneFilterContext
         private readonly string _value;
         private readonly CssCalcTokenParser _tokenParser;
         private int _index;
+        private int _depth;
 
         public CssCalcParser(string value, CssCalcTokenParser tokenParser)
         {
@@ -2727,29 +2742,47 @@ internal sealed class SvgSceneFilterContext
 
         private bool TryParsePrimary(out CssCalcValue result)
         {
+            using var processingScope = SvgProcessingLimits.Enter("CSS math evaluation");
+            SvgProcessingLimits.CheckDepth(_depth + 1, SvgProcessingLimits.MaximumCssDepth, "CSS math nesting");
+            _depth++;
+            try
+            {
+                // Unary operators do not require recursive descent. In particular,
+                // a long sequence of signs has no delimiter nesting for a CSS
+                // preflight scanner to detect.
+                SkipWhitespace();
+                var negate = false;
+                while (_index < _value.Length && _value[_index] is '+' or '-')
+                {
+                    negate ^= _value[_index++] == '-';
+                    SkipWhitespace();
+                }
+
+                if (!TryParsePrimaryCore(out result))
+                {
+                    return false;
+                }
+
+                if (negate)
+                {
+                    result = new CssCalcValue(-result.Value, result.Kind);
+                }
+
+                return true;
+            }
+            finally
+            {
+                _depth--;
+            }
+        }
+
+        private bool TryParsePrimaryCore(out CssCalcValue result)
+        {
             result = default;
             SkipWhitespace();
             if (_index >= _value.Length)
             {
                 return false;
-            }
-
-            if (_value[_index] == '+')
-            {
-                _index++;
-                return TryParsePrimary(out result);
-            }
-
-            if (_value[_index] == '-')
-            {
-                _index++;
-                if (!TryParsePrimary(out result))
-                {
-                    return false;
-                }
-
-                result = new CssCalcValue(-result.Value, result.Kind);
-                return true;
             }
 
             if (_value[_index] == '(')
@@ -4942,6 +4975,7 @@ internal sealed class SvgSceneFilterContext
 
     private static bool ReferencesFilterId(SvgVisualElement visualElement, string filterId)
     {
+        using var processingScope = SvgProcessingLimits.Enter("filter processing");
         if (TryGetCssFilterSteps(visualElement, SKRect.Empty, out var cssFilterSteps))
         {
             foreach (var step in cssFilterSteps)
@@ -4962,6 +4996,7 @@ internal sealed class SvgSceneFilterContext
 
     private static bool ReferencesFilterId(Uri filterUri, string filterId)
     {
+        using var processingScope = SvgProcessingLimits.Enter("filter processing");
         if (TryGetReferenceFragment(filterUri, out var fragment) &&
             string.Equals(fragment, filterId, StringComparison.Ordinal))
         {
@@ -5004,6 +5039,7 @@ internal sealed class SvgSceneFilterContext
 
     private static void PruneElementChildren(SvgElement parent, HashSet<SvgElement> ancestorPath, SvgElement referencedElement)
     {
+        using var processingScope = SvgProcessingLimits.Enter("filter processing");
         if (ReferenceEquals(parent, referencedElement) || parent is SvgDefinitionList)
         {
             return;
@@ -5042,6 +5078,7 @@ internal sealed class SvgSceneFilterContext
 
     private static SKRect? FindNodeBoundsById(SvgSceneNode node, string? elementId)
     {
+        using var processingScope = SvgProcessingLimits.Enter("filter processing");
         if (string.IsNullOrWhiteSpace(elementId))
         {
             return null;
@@ -5164,7 +5201,7 @@ internal sealed class SvgSceneFilterContext
                 return true;
             }
         }
-        catch
+        catch (Exception exception) when (exception is not SvgProcessingLimitException)
         {
             // Invalid primitive subregion declarations fall back to the default subregion.
         }

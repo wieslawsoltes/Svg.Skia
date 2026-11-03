@@ -70,6 +70,7 @@ internal static class SvgSceneClipCompiler
         ClipPath clipPath,
         SvgClipRule? svgClipPathClipRule)
     {
+        using var processingScope = SvgProcessingLimits.Enter("clip path processing");
         PopulateClipPathReference(svgClipPath, targetBounds, assetLoader, uris, clipPath);
 
         var clipRule = GetSvgClipRule(svgClipPath) ?? svgClipPathClipRule;
@@ -834,6 +835,7 @@ internal static class SvgSceneClipCompiler
 
     private static bool HasClipGeometry(ClipPath? clipPath)
     {
+        using var processingScope = SvgProcessingLimits.Enter("clip path processing");
         if (clipPath is null)
         {
             return false;
@@ -876,6 +878,7 @@ internal static class SvgSceneClipCompiler
         ClipPath clipPath,
         SvgClipRule? svgClipPathClipRule)
     {
+        using var processingScope = SvgProcessingLimits.Enter("clip path processing");
         switch (visualElement)
         {
             case SvgPath svgPath:

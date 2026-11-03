@@ -511,6 +511,7 @@ public static class SvgSceneCompiler
             throw new ArgumentNullException(nameof(assetLoader));
         }
 
+        SvgProcessingLimits.ValidateElementTree(svgTextBase);
         return SvgSceneTextCompiler.TryMeasureGeometryBounds(svgTextBase, viewport, assetLoader, out geometryBounds);
     }
 
@@ -523,6 +524,11 @@ public static class SvgSceneCompiler
         out SvgSceneDocument? sceneDocument)
     {
         sceneDocument = null;
+        if (sourceDocument is not null)
+        {
+            SvgProcessingLimits.ValidateElementTree(sourceDocument);
+        }
+
         using var documentFontScope = PushDocumentFonts(sourceDocument, assetLoader);
 
         if (!TryCompileNodeTree(
@@ -560,6 +566,11 @@ public static class SvgSceneCompiler
         out SKRect effectiveCullRect,
         out SKRect viewport)
     {
+        if (sourceDocument is not null)
+        {
+            SvgProcessingLimits.ValidateElementTree(sourceDocument);
+        }
+
         using var documentFontScope = PushDocumentFonts(sourceDocument, assetLoader);
         return TryCompileNodeTree(
             sourceDocument,
@@ -641,6 +652,11 @@ public static class SvgSceneCompiler
         DrawAttributes ignoreAttributes,
         out SvgSceneDocument? sceneDocument)
     {
+        if (sourceFragment is not null)
+        {
+            SvgProcessingLimits.ValidateElementTree(sourceFragment);
+        }
+
         using var documentFontScope = PushDocumentFonts(sourceFragment as SvgDocument ?? sourceFragment?.OwnerDocument, assetLoader);
         return TryCompileFragment(
             sourceFragment,
@@ -759,6 +775,7 @@ public static class SvgSceneCompiler
         SvgElement element,
         IReadOnlyCollection<string>? changedAttributes = null)
     {
+        SvgProcessingLimits.ValidateElementTree(element);
         var addressKey = new SvgElementAddressKeyCache().GetOrCreate(element);
         if (string.IsNullOrWhiteSpace(addressKey))
         {
@@ -1157,6 +1174,7 @@ public static class SvgSceneCompiler
         bool createOwnCompilationRootBoundary,
         SvgSceneCompileContext compileContext)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene compilation");
         SvgSceneNode? node = null;
         var requestedFeatureFlags = SvgCascadedStyleFeatureFlags.None;
         var ownFeatureFlags = SvgCascadedStyleFeatureFlags.None;
@@ -1816,6 +1834,7 @@ public static class SvgSceneCompiler
         SvgSceneNode node,
         SKMatrix parentTotalTransform)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene traversal");
         node.TotalTransform = parentTotalTransform.PreConcat(node.Transform);
         node.TransformedBounds = node.TotalTransform.MapRect(node.GeometryBounds);
 
@@ -2254,6 +2273,7 @@ public static class SvgSceneCompiler
 
     private static bool TryGetElementGeometryBounds(SvgElement element, SKRect viewport, out SKRect bounds)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene traversal");
         bounds = SKRect.Empty;
 
         if (TryGetDirectVisualPath(element, viewport, out var path) && path is not null)
@@ -3946,6 +3966,7 @@ public static class SvgSceneCompiler
 
     private static void ResetGeneratedDisplayState(SvgSceneNode node)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene traversal");
         node.IsDisplayNone = false;
 
         for (var i = 0; i < node.Children.Count; i++)
@@ -4056,6 +4077,7 @@ public static class SvgSceneCompiler
 
     internal static bool SubtreeMayContainMarkerReferenceDeclarations(SvgElement? element)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene traversal");
         if (element is null)
         {
             return false;
@@ -4086,6 +4108,7 @@ public static class SvgSceneCompiler
 
     internal static bool SubtreeMayContainClipPathDeclarations(SvgElement? element)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene traversal");
         if (element is null)
         {
             return false;
@@ -4241,6 +4264,7 @@ public static class SvgSceneCompiler
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes)
     {
+        SvgProcessingLimits.ValidateElementTree(owner);
         var compileContext = new SvgSceneCompileContext();
         _ = compileContext.TryEnter(owner.OwnerDocument, out var documentKey);
 
@@ -4453,6 +4477,7 @@ public static class SvgSceneCompiler
 
     private static void AssignGeneratedHitTestTarget(SvgSceneNode node, SvgElement? hitTestTargetElement)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene traversal");
         node.HitTestTargetElement = hitTestTargetElement;
 
         for (var i = 0; i < node.Children.Count; i++)
@@ -5069,6 +5094,7 @@ public static class SvgSceneCompiler
         ISvgAssetLoader assetLoader,
         DrawAttributes ignoreAttributes)
     {
+        SvgProcessingLimits.ValidateElementTree(svgMask);
         var maskRect = TransformsService.CalculateRect(
             svgMask.X,
             svgMask.Y,

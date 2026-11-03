@@ -884,6 +884,7 @@ public partial class SkiaModel
 
     private static bool TryGetClipPathRevision(ShimSkiaSharp.ClipPath? clipPath, HashSet<object> visited, out int revision)
     {
+        using var processingScope = SvgProcessingLimits.Enter("render resource traversal");
         if (clipPath is null)
         {
             revision = 0;
@@ -939,6 +940,7 @@ public partial class SkiaModel
 
     private static bool TryGetPathClipRevision(ShimSkiaSharp.PathClip? pathClip, HashSet<object> visited, out int revision)
     {
+        using var processingScope = SvgProcessingLimits.Enter("render resource traversal");
         if (pathClip is null)
         {
             revision = 0;
@@ -974,6 +976,7 @@ public partial class SkiaModel
 
     private static bool TryGetShaderRevision(ShimSkiaSharp.SKShader? shader, HashSet<object> visited, out int revision)
     {
+        using var processingScope = SvgProcessingLimits.Enter("render resource traversal");
         if (shader is null)
         {
             revision = 0;
@@ -1157,6 +1160,7 @@ public partial class SkiaModel
 
     private static bool TryGetPaintRevision(ShimSkiaSharp.SKPaint paint, HashSet<object> visited, out int revision)
     {
+        using var processingScope = SvgProcessingLimits.Enter("render resource traversal");
         if (!visited.Add(paint))
         {
             revision = 0;
@@ -1212,6 +1216,7 @@ public partial class SkiaModel
 
     private static bool TryGetImageFilterRevision(ShimSkiaSharp.SKImageFilter? imageFilter, HashSet<object> visited, out int revision)
     {
+        using var processingScope = SvgProcessingLimits.Enter("render resource traversal");
         if (imageFilter is null)
         {
             revision = 0;
@@ -1510,6 +1515,7 @@ public partial class SkiaModel
 
     private static bool TryGetPictureRevision(ShimSkiaSharp.SKPicture? picture, HashSet<object> visited, out int revision)
     {
+        using var processingScope = SvgProcessingLimits.Enter("render resource traversal");
         if (picture is null)
         {
             revision = 0;
