@@ -95,6 +95,7 @@ internal static class SvgCssCompatibilityProcessor
             return;
         }
 
+        SvgCssInputGuard.ValidateStylesheet(cssTotal);
         var stylesheetParser = new StylesheetParser(true, true, tolerateInvalidValues: true);
         var rootNode = new NonSvgElement();
         var originalScopeParent = scopeRoot.Parent;
@@ -144,6 +145,7 @@ internal static class SvgCssCompatibilityProcessor
         CssMediaContext mediaContext,
         SvgDocument? documentRootSelectorTarget)
     {
+        using var processingScope = SvgProcessingLimits.Enter("CSS rule processing");
         var index = 0;
         while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
         {
@@ -185,6 +187,7 @@ internal static class SvgCssCompatibilityProcessor
 
             try
             {
+                SvgCssInputGuard.ValidateSelector(selectorText);
                 var selectorSheet = stylesheetParser.Parse(selectorText + "{fill:inherit}");
                 foreach (var rule in selectorSheet.StyleRules)
                 {
@@ -213,7 +216,7 @@ internal static class SvgCssCompatibilityProcessor
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not SvgProcessingLimitException)
             {
                 Trace.TraceWarning(ex.Message);
             }
@@ -231,6 +234,7 @@ internal static class SvgCssCompatibilityProcessor
         SvgUse? scopedUseElement,
         SvgElement scopedUseChild)
     {
+        using var processingScope = SvgProcessingLimits.Enter("CSS rule processing");
         var index = 0;
         while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
         {
@@ -274,6 +278,7 @@ internal static class SvgCssCompatibilityProcessor
 
             try
             {
+                SvgCssInputGuard.ValidateSelector(selectorText);
                 var selectorSheet = stylesheetParser.Parse(selectorText + "{fill:inherit}");
                 foreach (var rule in selectorSheet.StyleRules)
                 {
@@ -305,7 +310,7 @@ internal static class SvgCssCompatibilityProcessor
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not SvgProcessingLimitException)
             {
                 Trace.TraceWarning(ex.Message);
             }
@@ -323,6 +328,7 @@ internal static class SvgCssCompatibilityProcessor
         SvgUse? scopedUseElement,
         SvgElement scopedUseChild)
     {
+        using var processingScope = SvgProcessingLimits.Enter("CSS rule processing");
         var index = 0;
         while (TryReadNextTopLevelStatement(cssText, ref index, out var statement))
         {
@@ -360,6 +366,7 @@ internal static class SvgCssCompatibilityProcessor
 
             try
             {
+                SvgCssInputGuard.ValidateSelector(selectorText);
                 var selectorSheet = stylesheetParser.Parse(selectorText + "{" + declarationsText + "}");
                 foreach (var rule in selectorSheet.StyleRules)
                 {
@@ -411,7 +418,7 @@ internal static class SvgCssCompatibilityProcessor
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not SvgProcessingLimitException)
             {
                 Trace.TraceWarning(ex.Message);
             }
@@ -1532,8 +1539,13 @@ internal static class SvgCssCompatibilityProcessor
         CssMediaContext mediaContext,
         SvgDocumentLoadOptions? loadOptions,
         HashSet<string> importChain,
-        bool allowLeadingImports)
+        bool allowLeadingImports,
+        int depth = 0)
     {
+        // This method is an iterator. Keep its budget in iterator state rather
+        // than holding a thread-local processing scope across a yield boundary.
+        SvgProcessingLimits.CheckDepth(depth, SvgProcessingLimits.MaximumCssDepth + SvgProcessingLimits.MaximumCssImportDepth, "CSS source expansion");
+        SvgCssInputGuard.ValidateStylesheet(cssText);
         var index = 0;
         var isInLeadingImportSection = allowLeadingImports;
 
@@ -1557,7 +1569,8 @@ internal static class SvgCssCompatibilityProcessor
                                          mediaContext,
                                          loadOptions,
                                          importChain,
-                                         allowLeadingImports: true))
+                                         allowLeadingImports: true,
+                                         depth: depth + 1))
                             {
                                 yield return expanded;
                             }
@@ -1585,7 +1598,8 @@ internal static class SvgCssCompatibilityProcessor
                                  mediaContext,
                                  loadOptions,
                                  importChain,
-                                 allowLeadingImports: false))
+                                 allowLeadingImports: false,
+                                 depth: depth + 1))
                     {
                         yield return expanded;
                     }
@@ -1625,6 +1639,8 @@ internal static class SvgCssCompatibilityProcessor
         SvgDocumentLoadOptions? loadOptions,
         HashSet<string> importChain)
     {
+        using var processingScope = SvgProcessingLimits.Enter("CSS import expansion");
+        SvgCssInputGuard.ValidateStylesheet(cssText);
         var index = 0;
         var isInLeadingImportSection = true;
 
@@ -2578,7 +2594,7 @@ internal static class SvgCssCompatibilityProcessor
         // Cycle protection is scoped to the currently expanding import chain so repeated imports in
         // separate top-level <style> blocks still participate in cascade order like they do in a
         // browser.
-        if (importChain is { } && !importChain.Add(stylesheetUri.AbsoluteUri))
+        if (!TryEnterImportChain(importChain, stylesheetUri))
         {
             return null;
         }
@@ -2603,7 +2619,7 @@ internal static class SvgCssCompatibilityProcessor
 
     private static SvgCssStyleSource? TryLoadDataStylesheet(Uri stylesheetUri, HashSet<string>? importChain)
     {
-        if (importChain is { } && !importChain.Add(stylesheetUri.AbsoluteUri))
+        if (!TryEnterImportChain(importChain, stylesheetUri))
         {
             return null;
         }
@@ -2621,6 +2637,23 @@ internal static class SvgCssCompatibilityProcessor
                 importChain?.Remove(stylesheetUri.AbsoluteUri);
             }
         }
+    }
+
+    private static bool TryEnterImportChain(HashSet<string>? importChain, Uri stylesheetUri)
+    {
+        if (importChain is null)
+        {
+            return true;
+        }
+
+        var key = stylesheetUri.AbsoluteUri;
+        if (importChain.Contains(key))
+        {
+            return false;
+        }
+
+        SvgProcessingLimits.CheckDepth(importChain.Count + 1, SvgProcessingLimits.MaximumCssImportDepth, "CSS import depth");
+        return importChain.Add(key);
     }
 
     private static bool TryReadDataStylesheet(string dataUri, out string css)

@@ -169,6 +169,7 @@ public static class SvgDocumentCompatibilityLoader
         bool loadLinkedStylesheets = true)
         where T : SvgDocument, new()
     {
+        using var processingScope = SvgProcessingLimits.Enter("document loading");
         // Keep each stylesheet fragment together with the URI it should resolve against. That lets
         // inline CSS from the SVG document, externally supplied CSS, and recursively imported CSS
         // all share one merge/apply path without losing origin information.
@@ -413,6 +414,14 @@ public static class SvgDocumentCompatibilityLoader
 
         while (reader.Read())
         {
+            if (reader.NodeType == XmlNodeType.Element)
+            {
+                // Parent callbacks and later style passes recurse through this tree.
+                // Reject before mutating it, outside the tolerant parsing catch.
+                SvgProcessingLimits.CheckElementDepth(reader.Depth + 1);
+                SvgProcessingLimits.CheckElementDepth(elementStack.Count + 1);
+            }
+
             try
             {
                 switch (reader.NodeType)
@@ -531,7 +540,7 @@ public static class SvgDocumentCompatibilityLoader
                         break;
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not SvgProcessingLimitException)
             {
                 Trace.TraceError(ex.Message);
             }
