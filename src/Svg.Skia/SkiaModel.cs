@@ -280,7 +280,10 @@ public partial class SkiaModel
         };
     }
 
-    internal static IEnumerable<string> EnumerateFontFamilyCandidates(string? fontFamily, bool browserCompatible = false)
+    internal static IEnumerable<string> EnumerateFontFamilyCandidates(
+        string? fontFamily,
+        bool browserCompatible = false,
+        bool expandGenericFamilies = true)
     {
         var genericFontFamilyMap = browserCompatible
             ? s_browserCompatibleGenericFontFamilyMap
@@ -305,7 +308,7 @@ public partial class SkiaModel
 
                 yield return candidate;
 
-                if (genericFontFamilyMap.TryGetValue(candidate, out var mappedFamilies))
+                if (expandGenericFamilies && genericFontFamilyMap.TryGetValue(candidate, out var mappedFamilies))
                 {
                     foreach (var mapped in mappedFamilies)
                     {
@@ -318,7 +321,7 @@ public partial class SkiaModel
             }
         }
 
-        if (yielded.Count == 0 && genericFontFamilyMap.TryGetValue("sans-serif", out var fallbackFamilies))
+        if (expandGenericFamilies && yielded.Count == 0 && genericFontFamilyMap.TryGetValue("sans-serif", out var fallbackFamilies))
         {
             foreach (var mapped in fallbackFamilies)
             {

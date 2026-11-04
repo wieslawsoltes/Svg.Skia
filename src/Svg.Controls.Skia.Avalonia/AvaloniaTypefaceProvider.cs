@@ -206,7 +206,6 @@ public sealed class AvaloniaTypefaceProvider : ITypefaceProvider
     {
         private readonly object _sync = new();
         private SKData? _data;
-        private int _faceIndex;
 
         public SKTypeface? CreateTypeface(GlyphTypeface glyphTypeface)
         {
@@ -214,7 +213,7 @@ public sealed class AvaloniaTypefaceProvider : ITypefaceProvider
             {
                 if (_data is not null)
                 {
-                    return SKTypeface.FromData(_data, _faceIndex);
+                    return SKTypeface.FromData(_data);
                 }
 
                 if (!glyphTypeface.PlatformTypeface.TryGetStream(out var stream))
@@ -235,7 +234,7 @@ public sealed class AvaloniaTypefaceProvider : ITypefaceProvider
 
                 try
                 {
-                    var typeface = CreateTypeface(data, glyphTypeface, out var faceIndex);
+                    var typeface = CreateTypeface(data, glyphTypeface, out var selectedData);
                     if (typeface is null)
                     {
                         return null;
@@ -243,8 +242,7 @@ public sealed class AvaloniaTypefaceProvider : ITypefaceProvider
 
                     // Cache the bytes, never a caller-owned typeface. SKTypeface retains the
                     // data it needs; SKData's finalizer releases the cache when the weak key dies.
-                    _data = data;
-                    _faceIndex = faceIndex;
+                    _data = selectedData;
                     return typeface;
                 }
                 finally
@@ -257,73 +255,237 @@ public sealed class AvaloniaTypefaceProvider : ITypefaceProvider
             }
         }
 
-        private static SKTypeface? CreateTypeface(SKData data, GlyphTypeface glyphTypeface, out int faceIndex)
+        private static SKTypeface? CreateTypeface(SKData data, GlyphTypeface glyphTypeface, out SKData selectedData)
         {
-            faceIndex = 0;
+            selectedData = data;
             var count = GetCollectionFaceCount(data);
-            if (count <= 1)
+            if (count < 0)
             {
                 return SKTypeface.FromData(data);
             }
 
-            // TryGetStream does not expose the TTC face index. Match the selected face rather
-            // than silently returning face zero when Avalonia selected another family/style.
+            // TryGetStream does not expose the TTC face index. CoreText also rejects nonzero
+            // indexes in SKTypeface.FromData. Rebuild each candidate as a standalone SFNT so
+            // selection and subsequent cached requests behave consistently on every platform.
             SKTypeface? best = null;
+            SKData? bestData = null;
             var bestDistance = int.MaxValue;
-            for (var index = 0; index < count; index++)
+            try
             {
-                var candidate = SKTypeface.FromData(data, index);
-                if (candidate is null)
+                for (var index = 0; index < count; index++)
                 {
-                    continue;
-                }
-
-                if (!MatchesFamily(glyphTypeface, candidate.FamilyName))
-                {
-                    candidate.Dispose();
-                    continue;
-                }
-
-                var platformTypeface = glyphTypeface.PlatformTypeface;
-                var slant = platformTypeface.Style switch
-                {
-                    FontStyle.Italic => SKFontStyleSlant.Italic,
-                    FontStyle.Oblique => SKFontStyleSlant.Oblique,
-                    _ => SKFontStyleSlant.Upright
-                };
-                var distance = Math.Abs(candidate.FontWeight - (int)platformTypeface.Weight) +
-                               1000 * Math.Abs(candidate.FontWidth - (int)platformTypeface.Stretch) +
-                               (candidate.FontSlant == slant ? 0 : 10000);
-                if (distance < bestDistance)
-                {
-                    best?.Dispose();
-                    best = candidate;
-                    bestDistance = distance;
-                    faceIndex = index;
-                    if (distance == 0)
+                    var candidateData = ExtractCollectionFace(data, index);
+                    if (candidateData is null)
                     {
-                        break;
+                        continue;
+                    }
+
+                    SKTypeface? candidate = null;
+                    try
+                    {
+                        candidate = SKTypeface.FromData(candidateData);
+                        if (candidate is null || !MatchesFamily(glyphTypeface, candidate.FamilyName))
+                        {
+                            continue;
+                        }
+
+                        var platformTypeface = glyphTypeface.PlatformTypeface;
+                        var slant = platformTypeface.Style switch
+                        {
+                            FontStyle.Italic => SKFontStyleSlant.Italic,
+                            FontStyle.Oblique => SKFontStyleSlant.Oblique,
+                            _ => SKFontStyleSlant.Upright
+                        };
+                        var distance = Math.Abs(candidate.FontWeight - (int)platformTypeface.Weight) +
+                                       1000 * Math.Abs(candidate.FontWidth - (int)platformTypeface.Stretch) +
+                                       (candidate.FontSlant == slant ? 0 : 10000);
+                        if (distance < bestDistance)
+                        {
+                            best?.Dispose();
+                            bestData?.Dispose();
+                            best = candidate;
+                            bestData = candidateData;
+                            candidate = null;
+                            candidateData = null;
+                            bestDistance = distance;
+                            if (distance == 0)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        candidate?.Dispose();
+                        candidateData?.Dispose();
                     }
                 }
-                else
-                {
-                    candidate.Dispose();
-                }
-            }
 
-            return best;
+                if (bestData is not null)
+                {
+                    selectedData = bestData;
+                    bestData = null;
+                }
+
+                var result = best;
+                best = null;
+                return result;
+            }
+            finally
+            {
+                best?.Dispose();
+                bestData?.Dispose();
+            }
         }
 
+        // -1 means a standalone font; 0 means a malformed collection.
         private static int GetCollectionFaceCount(SKData data)
         {
             var bytes = data.AsSpan();
-            if (bytes.Length < 12 || bytes[0] != 't' || bytes[1] != 't' || bytes[2] != 'c' || bytes[3] != 'f')
+            if (bytes.Length < 4 || BinaryPrimitives.ReadUInt32BigEndian(bytes) != 0x74746366) // ttcf
             {
-                return 1;
+                return -1;
+            }
+
+            if (bytes.Length < 12)
+            {
+                return 0;
+            }
+
+            var version = BinaryPrimitives.ReadUInt32BigEndian(bytes.Slice(4, 4));
+            if (version is not (0x00010000 or 0x00020000))
+            {
+                return 0;
             }
 
             var count = BinaryPrimitives.ReadUInt32BigEndian(bytes.Slice(8, 4));
-            return count > 0 && count <= (bytes.Length - 12) / 4 ? (int)count : 0;
+            var headerLength = 12UL + count * 4UL + (version == 0x00020000 ? 12UL : 0UL);
+            return count > 0 && headerLength <= (ulong)bytes.Length ? (int)count : 0;
+        }
+
+        private static SKData? ExtractCollectionFace(SKData data, int index)
+        {
+            var bytes = data.AsSpan();
+            var faceOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes.Slice(12 + index * 4, 4));
+            if (faceOffset > (uint)(bytes.Length - 12))
+            {
+                return null;
+            }
+
+            var header = bytes.Slice((int)faceOffset);
+            var flavor = BinaryPrimitives.ReadUInt32BigEndian(header);
+            if (flavor is not (0x00010000 or 0x4F54544F or 0x74727565 or 0x74797031)) // TrueType, OTTO, true, typ1
+            {
+                return null;
+            }
+
+            var tableCount = BinaryPrimitives.ReadUInt16BigEndian(header.Slice(4, 2));
+            // SFNT searchRange is a UInt16 multiple of 16, limiting the directory to 4095 tables.
+            if (tableCount is 0 or > 4095 || tableCount > (header.Length - 12) / 16)
+            {
+                return null;
+            }
+
+            var records = header.Slice(12, tableCount * 16);
+            var outputTableCount = 0;
+            var headCount = 0;
+            long length = 12;
+            for (var table = 0; table < tableCount; table++)
+            {
+                var record = records.Slice(table * 16, 16);
+                var tag = BinaryPrimitives.ReadUInt32BigEndian(record);
+                if (tag == 0x44534947) // DSIG is invalidated by rebuilding the font.
+                {
+                    continue;
+                }
+
+                var offset = BinaryPrimitives.ReadUInt32BigEndian(record.Slice(8, 4));
+                var tableLength = BinaryPrimitives.ReadUInt32BigEndian(record.Slice(12, 4));
+                if ((ulong)offset + tableLength > (ulong)bytes.Length)
+                {
+                    return null;
+                }
+
+                if (tag == 0x68656164) // head
+                {
+                    if (tableLength < 12 || ++headCount > 1)
+                    {
+                        return null;
+                    }
+                }
+
+                outputTableCount++;
+                length += 16 + (((long)tableLength + 3) & ~3L);
+                if (length > int.MaxValue)
+                {
+                    return null;
+                }
+            }
+
+            if (headCount != 1)
+            {
+                return null;
+            }
+
+            var output = new byte[(int)length];
+            BinaryPrimitives.WriteUInt32BigEndian(output, flavor);
+            BinaryPrimitives.WriteUInt16BigEndian(output.AsSpan(4, 2), (ushort)outputTableCount);
+            var entrySelector = 0;
+            var searchRange = 16;
+            while (searchRange <= outputTableCount * 8)
+            {
+                searchRange *= 2;
+                entrySelector++;
+            }
+            BinaryPrimitives.WriteUInt16BigEndian(output.AsSpan(6, 2), (ushort)searchRange);
+            BinaryPrimitives.WriteUInt16BigEndian(output.AsSpan(8, 2), (ushort)entrySelector);
+            BinaryPrimitives.WriteUInt16BigEndian(output.AsSpan(10, 2), (ushort)(outputTableCount * 16 - searchRange));
+
+            var outputRecord = 12;
+            var outputOffset = 12 + outputTableCount * 16;
+            var headOffset = 0;
+            for (var table = 0; table < tableCount; table++)
+            {
+                var record = records.Slice(table * 16, 16);
+                var tag = BinaryPrimitives.ReadUInt32BigEndian(record);
+                if (tag == 0x44534947)
+                {
+                    continue;
+                }
+
+                var offset = (int)BinaryPrimitives.ReadUInt32BigEndian(record.Slice(8, 4));
+                var tableLength = (int)BinaryPrimitives.ReadUInt32BigEndian(record.Slice(12, 4));
+                var paddedLength = (tableLength + 3) & ~3;
+                bytes.Slice(offset, tableLength).CopyTo(output.AsSpan(outputOffset));
+                if (tag == 0x68656164)
+                {
+                    headOffset = outputOffset;
+                    output.AsSpan(headOffset + 8, 4).Clear();
+                }
+
+                record.CopyTo(output.AsSpan(outputRecord));
+                BinaryPrimitives.WriteUInt32BigEndian(output.AsSpan(outputRecord + 4, 4),
+                    CalculateChecksum(output.AsSpan(outputOffset, paddedLength)));
+                BinaryPrimitives.WriteUInt32BigEndian(output.AsSpan(outputRecord + 8, 4), (uint)outputOffset);
+                outputRecord += 16;
+                outputOffset += paddedLength;
+            }
+
+            // The head directory checksum is calculated with checkSumAdjustment zero. Only
+            // the head table itself gets the adjustment that makes the whole SFNT sum correct.
+            BinaryPrimitives.WriteUInt32BigEndian(output.AsSpan(headOffset + 8, 4),
+                unchecked(0xB1B0AFBA - CalculateChecksum(output)));
+            return SKData.CreateCopy(output);
+        }
+
+        private static uint CalculateChecksum(ReadOnlySpan<byte> bytes)
+        {
+            uint checksum = 0;
+            for (var offset = 0; offset < bytes.Length; offset += 4)
+            {
+                checksum = unchecked(checksum + BinaryPrimitives.ReadUInt32BigEndian(bytes.Slice(offset, 4)));
+            }
+            return checksum;
         }
     }
 }

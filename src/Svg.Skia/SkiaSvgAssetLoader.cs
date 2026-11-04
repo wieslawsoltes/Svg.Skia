@@ -927,15 +927,24 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
     private SkiaSharp.SKTypeface? TryMatchCharacterFromCustomProviders(string? familyName, SkiaSharp.SKFontStyleWeight weight, SkiaSharp.SKFontStyleWidth width, SkiaSharp.SKFontStyleSlant slant, int codepoint, out string? matchedFamily)
     {
         matchedFamily = null;
+        var nativeFamilyList = familyName;
         if (familyName is null)
         {
             return MatchFamily("Default");
         }
 
-        // Resolve CSS families before providers, just as SkiaModel does. Giving each
-        // provider the whole list lets an earlier provider select a later family,
-        // changing the glyph metrics after the preferred typeface was resolved.
-        foreach (var candidate in SkiaModel.EnumerateFontFamilyCandidates(familyName, browserCompatible: true))
+        // Built-in providers only trim single quotes when they parse a list. Use the
+        // same normalized names as candidate resolution for double-quoted families.
+        if (familyName.IndexOf('"') >= 0)
+        {
+            nativeFamilyList = string.Join(", ", SkiaModel.EnumerateFontFamilyCandidates(familyName, expandGenericFamilies: false));
+        }
+
+        // Resolve explicit CSS families before providers, just as SkiaModel does.
+        // Generic family mappings choose a preferred platform face; they are not an
+        // additional CSS fallback list to scan for glyphs. Let MatchPlatformCharacter
+        // preserve the platform's language/script fallback when that face has no glyph.
+        foreach (var candidate in SkiaModel.EnumerateFontFamilyCandidates(familyName, expandGenericFamilies: false))
         {
             var typeface = MatchFamily(candidate);
             if (typeface is { })
@@ -951,10 +960,18 @@ public partial class SkiaSvgAssetLoader : Model.ISvgAssetLoader, Model.ISvgImage
         {
             foreach (var provider in _skiaModel.EnumerateEffectiveTypefaceProviders())
             {
-                if (familyName is null &&
-                    provider is FontManagerTypefaceProvider or DefaultTypefaceProvider)
+                if (provider is FontManagerTypefaceProvider or DefaultTypefaceProvider)
                 {
-                    continue;
+                    // Native providers select the first available family in the list.
+                    // If it lacks the glyph, use platform character fallback rather
+                    // than replacing it with a later native family. Keep these providers
+                    // in their configured order relative to application/document fonts.
+                    if (nativeFamilyList is null ||
+                        nativeFamilyList != familyKey &&
+                        !ContainsGlyph(GetProviderTypeface(provider, nativeFamilyList, weight, width, slant), codepoint))
+                    {
+                        continue;
+                    }
                 }
 
                 var typeface = GetProviderTypeface(provider, familyKey, weight, width, slant);
