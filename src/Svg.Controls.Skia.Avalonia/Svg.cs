@@ -909,7 +909,18 @@ public class Svg : Control
             {
                 if (workingSource.HasPathSource || parameters is not null)
                 {
-                    await workingSource.ReLoadAsync(parameters, cancellationToken).ConfigureAwait(false);
+                    if (workingSource.HasPathSource && !workingSource.HasLoadedSource)
+                    {
+                        // A lazy source still needs Avalonia's asset loader. Open its asset on
+                        // the UI thread; ReLoadAsync offloads parsing after opening the stream.
+                        await Dispatcher.UIThread.InvokeAsync(
+                            () => workingSource.ReLoadAsync(parameters, cancellationToken),
+                            DispatcherPriority.Normal).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await workingSource.ReLoadAsync(parameters, cancellationToken).ConfigureAwait(false);
+                    }
                 }
 
                 ApplyRenderOptions(workingSource, wireframe, disableFilters);
@@ -934,61 +945,78 @@ public class Svg : Control
         Dictionary<string, SvgSource>? cache,
         CancellationToken cancellationToken)
     {
-        return await Task.Run(async () =>
+        cancellationToken.ThrowIfCancellationRequested();
+        var parameters = BuildParameters(null, css, currentCss, currentColor);
+        var normalizedPath = SvgSource.NormalizePath(path, _baseUri).ToString();
+        var cacheKey = CreateCacheKey(normalizedPath, parameters);
+
+        if (enableCache && cache is { })
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var parameters = BuildParameters(null, css, currentCss, currentColor);
-            var normalizedPath = SvgSource.NormalizePath(path, _baseUri).ToString();
-            var cacheKey = CreateCacheKey(normalizedPath, parameters);
-
-            if (enableCache && cache is { })
+            SvgSource? cachedSource = null;
+            lock (_cacheSync)
             {
-                SvgSource? cachedSource = null;
-                lock (_cacheSync)
+                if (ReferenceEquals(cache, _cache))
                 {
-                    if (ReferenceEquals(cache, _cache))
-                    {
-                        cache.TryGetValue(cacheKey, out cachedSource);
-                    }
+                    cache.TryGetValue(cacheKey, out cachedSource);
                 }
+            }
 
-                if (cachedSource is { })
+            if (cachedSource is { })
+            {
+                return await Task.Run(() =>
                 {
                     var workingSource = CreateWorkingSource(cachedSource);
                     ApplyRenderOptions(workingSource, wireframe, disableFilters);
                     return new LoadResult(workingSource, ReferenceEquals(workingSource, cachedSource));
-                }
+                }, cancellationToken).ConfigureAwait(false);
             }
+        }
 
-            var loaded = await SvgSource.LoadAsync(path, _baseUri, parameters, cancellationToken)
-                .ConfigureAwait(false);
-            ApplyRenderOptions(loaded, wireframe, disableFilters);
+        // LoadAsync opens Avalonia assets on the calling thread before dispatching parsing.
+        // Wrapping this invocation in Task.Run races other UI-thread users of AssetLoader.
+        var loaded = await SvgSource.LoadAsync(path, _baseUri, parameters, cancellationToken)
+            .ConfigureAwait(false);
 
-            var isCacheEntry = false;
-            if (enableCache && cache is { })
+        try
+        {
+            // Cache entries for animated sources require a deep clone, even when the load
+            // completed synchronously. Keep that work off the UI thread as well.
+            return await Task.Run(() =>
             {
-                var cacheEntry = CreateWorkingSource(loaded);
-                var stored = false;
+                ApplyRenderOptions(loaded, wireframe, disableFilters);
 
-                lock (_cacheSync)
+                var isCacheEntry = false;
+                if (enableCache && cache is { })
                 {
-                    if (ReferenceEquals(cache, _cache))
+                    var cacheEntry = CreateWorkingSource(loaded);
+                    var stored = false;
+
+                    lock (_cacheSync)
                     {
-                        cache[cacheKey] = cacheEntry;
-                        stored = true;
+                        if (ReferenceEquals(cache, _cache))
+                        {
+                            cache[cacheKey] = cacheEntry;
+                            stored = true;
+                        }
                     }
+
+                    if (!stored && !ReferenceEquals(cacheEntry, loaded))
+                    {
+                        cacheEntry.Dispose();
+                    }
+
+                    isCacheEntry = stored && ReferenceEquals(cacheEntry, loaded);
                 }
 
-                if (!stored && !ReferenceEquals(cacheEntry, loaded))
-                {
-                    cacheEntry.Dispose();
-                }
-
-                isCacheEntry = stored && ReferenceEquals(cacheEntry, loaded);
-            }
-
-            return new LoadResult(loaded, isCacheEntry);
-        }, cancellationToken).ConfigureAwait(false);
+                return new LoadResult(loaded, isCacheEntry);
+            }, cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            // Cancellation may prevent the worker from starting after the source was loaded.
+            loaded.Dispose();
+            throw;
+        }
     }
 
     private async Task<LoadResult> LoadInlineSourceAsync(
@@ -1678,7 +1706,7 @@ public class Svg : Control
             return false;
         }
 
-        if (!SvgCompositionVisualScene.TryCreate(this, scene, Wireframe, out var compositionScene) || compositionScene is null)
+        if (!SvgCompositionVisualScene.TryCreate(this, skSvg.SkiaModel, scene, Wireframe, out var compositionScene) || compositionScene is null)
         {
             return false;
         }

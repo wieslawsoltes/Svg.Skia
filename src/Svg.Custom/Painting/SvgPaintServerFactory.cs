@@ -30,6 +30,8 @@ namespace Svg
 
         public static SvgPaintServer Create(string value, SvgDocument document)
         {
+            using var processingScope = SvgProcessingLimits.Enter("paint fallback");
+
             if (value == null)
                 return SvgPaintServer.NotSet;
 

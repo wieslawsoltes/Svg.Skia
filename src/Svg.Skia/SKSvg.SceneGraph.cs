@@ -73,6 +73,7 @@ public partial class SKSvg
 
     public SKPicture? CreateRetainedSceneGraphModel()
     {
+        using var processingScope = SvgProcessingLimits.Enter("retained scene model creation");
         return RetainedSceneGraph is { } sceneDocument
             ? sceneDocument.CreateModel()
             : null;
@@ -80,6 +81,7 @@ public partial class SKSvg
 
     public SkiaSharp.SKPicture? CreateRetainedSceneGraphPicture()
     {
+        using var processingScope = SvgProcessingLimits.Enter("retained scene picture creation");
         using var documentFontScope = PushDocumentFonts(SourceDocument, AssetLoader);
         var model = CreateRetainedSceneGraphModel();
         return model is null ? null : SkiaModel.ToSKPicture(model);
@@ -162,6 +164,7 @@ public partial class SKSvg
 
     public SvgSceneMutationResult ApplyRetainedSceneMutation(SvgElement element, IReadOnlyCollection<string>? changedAttributes = null)
     {
+        using var processingScope = SvgProcessingLimits.Enter("retained scene mutation");
         return TryEnsureRetainedSceneGraph(out var sceneDocument) && sceneDocument is not null
             ? sceneDocument.ApplyMutation(element, changedAttributes)
             : new SvgSceneMutationResult(false, 0, 0);
@@ -169,6 +172,7 @@ public partial class SKSvg
 
     public SvgSceneMutationResult ApplyRetainedSceneMutation(string addressKey, IReadOnlyCollection<string>? changedAttributes = null)
     {
+        using var processingScope = SvgProcessingLimits.Enter("retained scene mutation");
         return TryEnsureRetainedSceneGraph(out var sceneDocument) && sceneDocument is not null
             ? sceneDocument.ApplyMutation(addressKey, changedAttributes)
             : new SvgSceneMutationResult(false, 0, 0);
@@ -176,6 +180,7 @@ public partial class SKSvg
 
     public SvgSceneMutationResult ApplyRetainedSceneMutationById(string id, IReadOnlyCollection<string>? changedAttributes = null)
     {
+        using var processingScope = SvgProcessingLimits.Enter("retained scene mutation");
         return TryEnsureRetainedSceneGraph(out var sceneDocument) && sceneDocument is not null
             ? sceneDocument.ApplyMutationById(id, changedAttributes)
             : new SvgSceneMutationResult(false, 0, 0);
@@ -186,6 +191,7 @@ public partial class SKSvg
         IReadOnlyCollection<string>? changedAttributes,
         out SvgSceneMutationResult? result)
     {
+        using var processingScope = SvgProcessingLimits.Enter("retained scene mutation and rendering");
         result = null;
         if (!TryEnsureRetainedSceneGraph(out var sceneDocument) || sceneDocument is null)
         {
@@ -207,6 +213,7 @@ public partial class SKSvg
         IReadOnlyCollection<string>? changedAttributes,
         out SvgSceneMutationResult? result)
     {
+        using var processingScope = SvgProcessingLimits.Enter("retained scene mutation and rendering");
         result = null;
         if (!TryEnsureRetainedSceneGraph(out var sceneDocument) || sceneDocument is null)
         {
@@ -228,6 +235,7 @@ public partial class SKSvg
         IReadOnlyCollection<string>? changedAttributes,
         out SvgSceneMutationResult? result)
     {
+        using var processingScope = SvgProcessingLimits.Enter("retained scene mutation and rendering");
         result = null;
         if (!TryEnsureRetainedSceneGraph(out var sceneDocument) || sceneDocument is null)
         {
@@ -246,6 +254,7 @@ public partial class SKSvg
 
     public SKPicture? CreateRetainedSceneNodeModel(SvgSceneNode node, SKRect? clip = null)
     {
+        using var processingScope = SvgProcessingLimits.Enter("retained scene model creation");
         if (!TryEnsureRetainedSceneGraph(out var sceneDocument) || sceneDocument is null)
         {
             return null;
@@ -256,6 +265,7 @@ public partial class SKSvg
 
     public SkiaSharp.SKPicture? CreateRetainedSceneNodePicture(SvgSceneNode node, SKRect? clip = null)
     {
+        using var processingScope = SvgProcessingLimits.Enter("retained scene picture creation");
         using var documentFontScope = PushDocumentFonts(SourceDocument, AssetLoader);
         var model = CreateRetainedSceneNodeModel(node, clip);
         return model is null ? null : SkiaModel.ToSKPicture(model);
@@ -286,6 +296,7 @@ public partial class SKSvg
             throw new ArgumentNullException(nameof(element));
         }
 
+        using var processingScope = SvgProcessingLimits.Enter("retained scene model creation");
         return TryGetRetainedSceneNode(element, out var node) && node is not null
             ? CreateRetainedSceneNodeModel(node, clip)
             : null;
@@ -293,6 +304,7 @@ public partial class SKSvg
 
     public SkiaSharp.SKPicture? CreateRetainedScenePicture(SvgElement element, SKRect? clip = null)
     {
+        using var processingScope = SvgProcessingLimits.Enter("retained scene picture creation");
         using var documentFontScope = PushDocumentFonts(SourceDocument, AssetLoader);
         var model = CreateRetainedSceneModel(element, clip);
         return model is null ? null : SkiaModel.ToSKPicture(model);

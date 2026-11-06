@@ -68,6 +68,9 @@ browser-compatible SVG 2 static features on top. Detailed reference articles
 are available for [SVG 1.1 static subset support](site/articles/reference/svg-11-static-subset-support.md)
 and [SVG 2 static subset support](site/articles/reference/svg-2-static-subset-support.md).
 
+See [input depth and stack safety](docs/input-stack-safety.md) for the supported
+processing limits and how to handle `SvgProcessingLimitException`.
+
 | Area | SVG 1.1 static support | SVG 2 static subset support |
 | --- | --- | --- |
 | Document model and loading | Parses and preserves core SVG documents, nested fragments, groups, definitions, symbols, use references, images, metadata, and compatibility attributes. | Adds processing mode and external-resource policy contracts through `SvgDocumentLoadOptions` and `SvgParameters`, including secure static resource behavior in covered paths. |
@@ -640,6 +643,40 @@ var fromPath = SvgResourceExtension.CreateBrush(
 ```
 
 The Skia-backed controls also accept optional `css` and `currentCss` arguments on the static helper so you can apply styles while creating the brush from code.
+
+#### Browser and embedded fonts
+
+SVG text uses SkiaSharp fonts, which are separate from browser CSS fonts and
+Avalonia's font collections. WebAssembly has very limited system font access;
+missing fonts can therefore appear as boxes even when Avalonia `TextBlock` text
+works correctly.
+
+`Svg.Controls.Skia.Avalonia` installs an `AvaloniaTypefaceProvider` by default.
+Register fonts with Avalonia as usual (for example, `.WithInterFont()`), then load
+SVG images after Avalonia initialization. Embedded families and `avares://` font
+references are resolved through Avalonia on all platforms. In the browser, CSS
+generic families such as `sans-serif` fall back to Avalonia's configured default
+font. Concrete family lists keep their order, so an unknown name does not hide a
+later available font.
+
+Use the supported settings API to customize subsequent SVG loads and reloads:
+
+```csharp
+using Avalonia.Svg.Skia;
+
+SvgSource.ConfigureDefaultSettings(settings =>
+{
+    settings.EnableTextSelectionRendering = false;
+    // Insert application-specific providers at index 0 to give them priority.
+});
+```
+
+`SvgSource.DefaultSettings` also exposes the defaults for startup configuration.
+Existing SVG sources retain their settings until reloaded. You no longer need to
+access `SvgSource.s_skiaModel.Settings`; that field remains for compatibility.
+
+See [Avalonia font configuration](site/articles/guides/avalonia-fonts.md) for embedded-font setup,
+provider precedence, standalone `SKSvg` usage, and the runnable browser sample.
 
 #### Avalonia Previewer
 

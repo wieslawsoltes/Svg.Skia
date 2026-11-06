@@ -24,6 +24,7 @@ public static class SvgSceneRuntime
         SKRect standaloneDocumentViewport,
         out SvgSceneDocument? sceneDocument)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene compilation");
         sceneDocument = null;
 
         if (sourceFragment is null)
@@ -31,6 +32,7 @@ public static class SvgSceneRuntime
             return false;
         }
 
+        SvgProcessingLimits.ValidateElementTree(sourceFragment);
         if (sourceFragment is SvgDocument sourceDocument)
         {
             var documentViewport = GetInitialViewport(sourceDocument, standaloneDocumentViewport);
@@ -91,6 +93,7 @@ public static class SvgSceneRuntime
         DrawAttributes ignoreAttributes,
         SKRect standaloneDocumentViewport)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene model creation");
         return TryCompile(sourceFragment, assetLoader, ignoreAttributes, standaloneDocumentViewport, out var sceneDocument) && sceneDocument is not null
             ? sceneDocument.CreateModel()
             : null;

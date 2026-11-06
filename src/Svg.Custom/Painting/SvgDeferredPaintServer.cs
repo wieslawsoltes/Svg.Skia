@@ -78,8 +78,10 @@ namespace Svg
 
         public void EnsureServer(SvgElement styleOwner)
         {
+            using var processingScope = SvgProcessingLimits.Enter("paint reference resolution");
             if (DeferredId == "currentColor" && styleOwner != null)
             {
+                ValidateAncestorDepth(styleOwner);
                 for (var current = styleOwner; current is not null; current = current.Parent)
                 {
                     var color = GetOwnColor(current);
@@ -94,6 +96,14 @@ namespace Svg
                 return;
             }
 
+            // Charge logical reference use even when its target has already been cached.
+            // Otherwise repeated expansion of a shallow pattern graph can evade the
+            // operation's work budget without increasing its active recursion depth.
+            if (!string.IsNullOrEmpty(DeferredId) && DeferredId != "currentColor")
+            {
+                SvgProcessingLimits.CountReferenceResolution();
+            }
+
             if (!_serverLoaded && styleOwner != null)
             {
                 // Prefer the document captured when the paint server was parsed. The
@@ -101,11 +111,27 @@ namespace Svg
                 // retained scene compiler intentionally changes the temporary parent to let
                 // inherited styles come from the <use> host. Paint server lookup must stay
                 // anchored to the document that defined the referenced gradient/pattern.
+                if (Document is null)
+                {
+                    ValidateAncestorDepth(styleOwner);
+                }
+
                 var document = Document ?? styleOwner.OwnerDocument;
                 _concreteServer = document?.IdManager.GetElementById(DeferredId) as SvgPaintServer;
 
                 _fallbackServer = FallbackServer ?? None;
                 _serverLoaded = true;
+            }
+        }
+
+        private static void ValidateAncestorDepth(SvgElement element)
+        {
+            // OwnerDocument follows Parent recursively. Check its path before calling
+            // that virtual property, including for caller-created detached/cyclic trees.
+            var depth = 0;
+            for (var current = element; current is not null; current = current.Parent)
+            {
+                SvgProcessingLimits.CheckElementDepth(++depth);
             }
         }
 
@@ -116,6 +142,7 @@ namespace Svg
 
         public override SvgElement DeepCopy<T>()
         {
+            using var processingScope = SvgProcessingLimits.Enter("paint fallback cloning");
             var newObj = base.DeepCopy<T>() as SvgDeferredPaintServer;
 
             // The original source copied the deferred identifier and fallback server only.
@@ -129,6 +156,7 @@ namespace Svg
 
         internal void RebindDocument(SvgDocument document)
         {
+            using var processingScope = SvgProcessingLimits.Enter("paint fallback rebinding");
             Document = document;
             _concreteServer = null;
             _fallbackServer = null;
@@ -156,6 +184,7 @@ namespace Svg
 
         public override string ToString()
         {
+            using var processingScope = SvgProcessingLimits.Enter("paint fallback serialization");
             if (string.IsNullOrEmpty(DeferredId))
                 return string.Empty;
             if (FallbackServer == null)

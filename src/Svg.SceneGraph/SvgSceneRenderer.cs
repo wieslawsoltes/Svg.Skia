@@ -160,6 +160,7 @@ public static class SvgSceneRenderer
         bool ignoreCurrentFilter = false,
         SelectionRenderContext? selection = null)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene rendering");
         if (until is not null && ReferenceEquals(node, until))
         {
             return false;

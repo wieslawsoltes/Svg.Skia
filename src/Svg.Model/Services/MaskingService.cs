@@ -48,6 +48,7 @@ internal static class MaskingService
 
     internal static void GetClipPath(SvgVisualElement svgVisualElement, SKRect skBounds, HashSet<Uri> uris, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
     {
+        using var processingScope = SvgProcessingLimits.Enter("clip path processing");
         if (clipPath is null)
         {
             return;
@@ -297,6 +298,7 @@ internal static class MaskingService
 
     private static void GetClipPath(SvgElementCollection svgElementCollection, SKRect skBounds, HashSet<Uri> uris, ClipPath? clipPath, SvgClipRule? svgClipPathClipRule)
     {
+        using var processingScope = SvgProcessingLimits.Enter("clip path processing");
         foreach (var svgElement in svgElementCollection)
         {
             if (svgElement is SvgVisualElement visualChild)
@@ -305,7 +307,7 @@ internal static class MaskingService
                 {
                     continue;
                 }
-                GetClipPath(visualChild, skBounds, uris, clipPath, svgClipPathClipRule);
+                GetClipPath(visualChild, skBounds, new HashSet<Uri>(uris), clipPath, svgClipPathClipRule);
             }
         }
     }
@@ -345,6 +347,7 @@ internal static class MaskingService
 
     internal static void GetClipPath(SvgClipPath svgClipPath, SKRect skBounds, HashSet<Uri> uris, ClipPath? clipPath)
     {
+        using var processingScope = SvgProcessingLimits.Enter("clip path processing");
         if (clipPath is null)
         {
             return;
@@ -387,6 +390,7 @@ internal static class MaskingService
 
     private static bool HasClipGeometry(ClipPath? clipPath)
     {
+        using var processingScope = SvgProcessingLimits.Enter("clip path processing");
         if (clipPath is null)
         {
             return false;

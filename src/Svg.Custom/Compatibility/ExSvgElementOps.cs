@@ -241,13 +241,22 @@ namespace Svg.Css
 
         private static IEnumerable<SvgElement> Descendants(SvgElement elem)
         {
-            foreach (var child in elem.Children)
+            var pending = new Stack<(SvgElement Element, int ChildIndex)>();
+            pending.Push((elem, 0));
+            while (pending.Count > 0)
             {
-                yield return child;
-                foreach (var descendant in child.Descendants())
+                var current = pending.Pop();
+                if (current.ChildIndex >= current.Element.Children.Count)
                 {
-                    yield return descendant;
+                    continue;
                 }
+
+                pending.Push((current.Element, current.ChildIndex + 1));
+                var child = current.Element.Children[current.ChildIndex];
+                // The selector root is a synthetic parent above the SVG document.
+                SvgProcessingLimits.CheckDepth(pending.Count + 1, SvgProcessingLimits.MaximumElementDepth + 1, "CSS element nesting");
+                yield return child;
+                pending.Push((child, 0));
             }
         }
 

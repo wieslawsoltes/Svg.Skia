@@ -30,6 +30,7 @@ namespace Svg.Css
 
         public static IEnumerable<SvgElement> QuerySelectorAll(this SvgElement elem, ISelector selector, SvgElementFactory elementFactory)
         {
+            SvgCssInputGuard.ValidateSelector(selector);
             var input = Enumerable.Repeat(elem, 1);
             var ops = new ExSvgElementOps(elementFactory);
 
@@ -117,14 +118,11 @@ namespace Svg.Css
 
             return f =>
             {
-                var svgElements = inFunc(f);
-                var nodes = results[0](svgElements);
-                for (var i = 1; i < results.Count; i++)
-                {
-                    nodes = nodes.Union(results[i](svgElements));
-                }
-
-                return nodes;
+                var svgElements = inFunc is null ? f : inFunc(f);
+                // Keep selector-list breadth out of the call stack. Nested Union
+                // iterators can otherwise grow with the number of comma-separated
+                // selectors even when each selector is individually shallow.
+                return results.SelectMany(result => result(svgElements)).Distinct();
             };
         }
 
@@ -186,9 +184,11 @@ namespace Svg.Css
                 if (selector.Class.StartsWith(PseudoClassNames.Not, StringComparison.Ordinal))
                 {
                     var sel = selector.Class.Substring(PseudoClassNames.Not.Length + 1, selector.Class.Length - 2 - PseudoClassNames.Not.Length);
+                    SvgCssInputGuard.ValidateSelector(sel);
                     var parser = new StylesheetParser(true, true, tolerateInvalidValues: true);
                     var styleSheet = parser.Parse(sel);
                     var newSelector = styleSheet.StyleRules.First().Selector;
+                    SvgCssInputGuard.ValidateSelector(newSelector);
                     var func = GetFunc(newSelector, ops, ops.Universal());
                     var descendants = ops.Descendant();
                     var func1 = func;
@@ -304,6 +304,7 @@ namespace Svg.Css
             ExSvgElementOps ops,
             Func<IEnumerable<SvgElement>, IEnumerable<SvgElement>> inFunc)
         {
+            using var processingScope = SvgProcessingLimits.Enter("CSS selector construction");
             var func = selector switch
             {
                 AllSelector allSelector => ops.Universal(),
@@ -452,6 +453,7 @@ namespace Svg.Css
 
         public static int GetSpecificity(this ISelector selector)
         {
+            SvgCssInputGuard.ValidateSelector(selector);
             var specificity = 0x0;
             specificity |= (1 << 12) * selector.Specificity.Ids;
             specificity |= (1 << 8) * selector.Specificity.Classes;

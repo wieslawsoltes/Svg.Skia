@@ -239,6 +239,7 @@ public partial class SvgDocument
 
     internal void ApplyCompatibilityStyles()
     {
+        SvgProcessingLimits.ValidateElementTree(this);
         if (_compatibilityStyleSources is { Count: > 0 })
         {
             SvgCssCompatibilityProcessor.Apply(this, _compatibilityStyleSources, new SvgElementFactory(), LoadOptions);
@@ -612,21 +613,23 @@ public partial class SvgDocument
 
     private IEnumerable<SvgElement> EnumerateElements(SvgElement? scopeRoot = null)
     {
-        if (scopeRoot is null)
+        var root = scopeRoot ?? this;
+        yield return root;
+        var pending = new Stack<(SvgElement Element, int ChildIndex)>();
+        pending.Push((root, 0));
+        while (pending.Count > 0)
         {
-            yield return this;
-            foreach (var descendant in Descendants())
+            var current = pending.Pop();
+            if (current.ChildIndex >= current.Element.Children.Count)
             {
-                yield return descendant;
+                continue;
             }
 
-            yield break;
-        }
-
-        yield return scopeRoot;
-        foreach (var descendant in scopeRoot.Descendants())
-        {
-            yield return descendant;
+            pending.Push((current.Element, current.ChildIndex + 1));
+            SvgProcessingLimits.CheckElementDepth(pending.Count + 1);
+            var child = current.Element.Children[current.ChildIndex];
+            yield return child;
+            pending.Push((child, 0));
         }
     }
 

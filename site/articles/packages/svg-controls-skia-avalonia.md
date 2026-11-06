@@ -30,6 +30,7 @@ dotnet add package Svg.Controls.Skia.Avalonia
 | `Avalonia.Svg.Skia.SvgSource` | Reusable, cloneable, reloadable source object |
 | `SvgImageExtension` | Markup extension for concise XAML image usage |
 | `SvgResourceExtension` | Brush-producing markup extension for backgrounds and fills |
+| `AvaloniaTypefaceProvider` | Resolves SVG fonts from Avalonia font collections |
 | `Svg.Skia.SvgInteractionDispatcher` | Routed pointer helper exposed through `Svg.Interaction` |
 
 ## Basic XAML usage
@@ -76,6 +77,31 @@ var image = new SvgImage
 ```
 
 That is the package to use when CSS overrides are part of application state.
+
+## Fonts and default settings
+
+`SvgSource` installs `AvaloniaTypefaceProvider` ahead of the standard SkiaSharp
+providers. Embedded Avalonia fonts can therefore be used by SVG text, including
+in WebAssembly. Register application fonts with Avalonia before loading images.
+The browser default also maps CSS generic families to Avalonia's default font.
+Desktop generic font resolution keeps the existing SkiaSharp behavior.
+
+Use `SvgSource.ConfigureDefaultSettings(Action<SKSvgSettings>)` to update defaults
+for subsequent source loads and reloads. The callback works on a copy, and the
+result is published under the same lock used to snapshot settings for new sources.
+Existing sources keep their settings and independently copied provider lists.
+`SvgSource.DefaultSettings` exposes the mutable defaults for startup configuration;
+direct mutations must not overlap loading or other configuration.
+
+```csharp
+SvgSource.ConfigureDefaultSettings(settings =>
+{
+    settings.EnableTextSelectionRendering = false;
+});
+```
+
+See [Avalonia Fonts and Default Settings](../guides/avalonia-fonts) for provider
+precedence, standalone `SKSvg` setup, embedded-font examples, and troubleshooting.
 
 ## Control-specific features
 

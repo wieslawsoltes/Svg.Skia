@@ -108,6 +108,7 @@ internal static class PaintingService
                 break;
             }
 
+            SvgProcessingLimits.CheckDepth(svgGradientServers.Count + 1, SvgProcessingLimits.MaximumReferenceDepth, "gradient reference nesting");
             svgGradientServers.Add(currentGradientServer);
             currentGradientServer = SvgDeferredPaintServer.TryGet<SvgGradientServer>(currentGradientServer.InheritGradient, svgVisualElement);
         } while (currentGradientServer is { });

@@ -233,11 +233,13 @@ public sealed class SvgSceneDocument
 
     public SvgSceneNode? HitTestTopmostNode(SKPoint point)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene hit testing");
         return SvgSceneHitTestService.HitTestTopmostNode(this, point);
     }
 
     public SKPicture? CreateModel()
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene model creation");
         return SvgSceneRenderer.Render(this);
     }
 
@@ -248,6 +250,7 @@ public sealed class SvgSceneDocument
             throw new ArgumentNullException(nameof(node));
         }
 
+        using var processingScope = SvgProcessingLimits.Enter("scene model creation");
         return SvgSceneRenderer.RenderNodePicture(this, node, clip);
     }
 
@@ -402,6 +405,7 @@ public sealed class SvgSceneDocument
 
     private void RebuildIndexesAndDependencies(bool? knownMarkerReferenceDeclarations)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene dependency indexing");
         var addressKeyCache = new SvgElementAddressKeyCache();
         var (hasResourceElements, hasReferenceDependencies, hasMarkerReferenceDeclarations, hasClipPathDeclarations, hasMaskDeclarations, hasFilterDeclarations, addressableElementCount, elementIdCount) =
             AnalyzeDependencyRequirements(knownMarkerReferenceDeclarations);
@@ -528,6 +532,7 @@ public sealed class SvgSceneDocument
         bool includeMarkerReferences,
         bool includeClipPathReferences)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene resource indexing");
         if (SourceDocument is null)
         {
             return;
@@ -675,6 +680,7 @@ public sealed class SvgSceneDocument
         bool includeClipPathReferences,
         bool useNodeSubtreeRegistration = false)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene dependency indexing");
         if (_compilationRootsByKey.Count == 0)
         {
             return;
@@ -838,6 +844,7 @@ public sealed class SvgSceneDocument
         SvgSceneNode node,
         List<string> activeCompilationRootKeys)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene dependency traversal");
         var addedCompilationRootKey = false;
         if (node.IsCompilationRootBoundary && !string.IsNullOrWhiteSpace(node.CompilationRootKey))
         {
@@ -1090,6 +1097,7 @@ public sealed class SvgSceneDocument
         Dictionary<float, SKPaint>? opacityPaintCache = null,
         Dictionary<SvgScenePaintingService.SolidFillPaintCacheKey, SKPaint>? solidFillPaintCache = null)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene resource resolution");
         if (root is null)
         {
             return;
@@ -1455,21 +1463,27 @@ public sealed class SvgSceneDocument
 
     private void CollectResourceDependents(SvgSceneResource resource, HashSet<string> results, HashSet<string> visitedResources)
     {
-        if (!visitedResources.Add(resource.Key))
+        var pending = new Stack<SvgSceneResource>();
+        pending.Push(resource);
+        while (pending.Count > 0)
         {
-            return;
-        }
-
-        foreach (var compilationRootKey in resource.DependentCompilationRoots)
-        {
-            results.Add(compilationRootKey);
-        }
-
-        foreach (var reverseDependencyKey in resource.ReverseDependencyKeys)
-        {
-            if (_resourcesByKey.TryGetValue(reverseDependencyKey, out var reverseDependency))
+            var current = pending.Pop();
+            if (!visitedResources.Add(current.Key))
             {
-                CollectResourceDependents(reverseDependency, results, visitedResources);
+                continue;
+            }
+
+            foreach (var compilationRootKey in current.DependentCompilationRoots)
+            {
+                results.Add(compilationRootKey);
+            }
+
+            foreach (var reverseDependencyKey in current.ReverseDependencyKeys)
+            {
+                if (_resourcesByKey.TryGetValue(reverseDependencyKey, out var reverseDependency))
+                {
+                    pending.Push(reverseDependency);
+                }
             }
         }
     }
