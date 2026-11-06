@@ -2,6 +2,14 @@
 
 A native SVG design workspace built with Uno Platform, using the Svg.Skia document and rendering pipeline throughout.
 
+[Open UnoDraw in your browser](https://wieslawsoltes.github.io/Svg.Skia/unodraw/).
+
+The `Docs` workflow builds the Release WebAssembly package, smoke-tests it under
+`/Svg.Skia/unodraw/` without cross-origin isolation headers, and publishes it alongside
+the documentation in one GitHub Pages deployment. Pushes to the default branch
+and manual `Docs` runs on that branch deploy only after both builds and the browser
+smoke test pass. Pull requests validate the site without publishing it.
+
 ```sh
 git submodule update --init --recursive
 dotnet run --project samples/UnoDraw/UnoDraw.csproj -f net10.0-desktop

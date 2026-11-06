@@ -29,8 +29,7 @@ class SiteHandler(http.server.SimpleHTTPRequestHandler):
     }
 
     def end_headers(self) -> None:
-        self.send_header("Cross-Origin-Opener-Policy", "same-origin")
-        self.send_header("Cross-Origin-Embedder-Policy", "require-corp")
+        # Match static GitHub Pages hosting, which has no COOP/COEP headers.
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
@@ -92,12 +91,19 @@ def changed_pixels(before: Path, after: Path) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--site", type=Path, required=True, help="Published wwwroot directory")
+    parser.add_argument("--site", type=Path, required=True, help="Static HTTP document root")
+    parser.add_argument("--base-path", default="/", help="Application path under the document root, with leading/trailing slashes")
     parser.add_argument("--output", type=Path, required=True, help="Diagnostic artifact directory")
     args = parser.parse_args()
     site, output = args.site.resolve(), args.output.resolve()
-    if not (site / "index.html").is_file():
-        parser.error("--site must contain the published index.html")
+    base_path = args.base_path
+    if not base_path.startswith("/") or not base_path.endswith("/") or any(
+        part in {".", ".."} for part in base_path.split("/")
+    ) or any(character in base_path for character in "?#%\\") or "//" in base_path:
+        parser.error("--base-path must be an absolute directory URL path without traversal, query or fragment")
+    app = site / base_path.strip("/")
+    if not (app / "index.html").is_file():
+        parser.error("--site and --base-path must locate the published index.html")
     output.mkdir(parents=True, exist_ok=True)
     if output == site or site in output.parents:
         parser.error("--output must be outside the served site")
@@ -106,7 +112,8 @@ def main() -> int:
         "passed": False,
         "started_unix": time.time(),
         "site": str(site),
-        "index_sha256": hashlib.sha256((site / "index.html").read_bytes()).hexdigest(),
+        "base_path": base_path,
+        "index_sha256": hashlib.sha256((app / "index.html").read_bytes()).hexdigest(),
         "graphics": "Headless Chromium with software WebGL; not a hardware-performance benchmark",
         "console": [], "page_errors": [], "http_errors": [], "request_failures": [], "checks": [],
     }
@@ -123,8 +130,12 @@ def main() -> int:
             page.on("response", lambda response: report["http_errors"].append({"status": response.status, "url": response.url}) if response.status >= 400 else None)
             page.on("requestfailed", lambda request: report["request_failures"].append({"url": request.url, "failure": request.failure}))
             try:
-                page.goto(url, wait_until="domcontentloaded", timeout=120_000)
+                app_url = url.rstrip("/") + base_path
+                page.goto(app_url, wait_until="domcontentloaded", timeout=120_000)
                 wait_ready(page)
+                if page.evaluate("globalThis.crossOriginIsolated"):
+                    raise AssertionError("Smoke server must match GitHub Pages without cross-origin isolation")
+                report["checks"].append(f"Application starts at {base_path} without cross-origin isolation")
                 wide = output / "01-workspace-desktop.png"
                 page.screenshot(path=str(wide))
                 assert_rendered(wide)
@@ -155,6 +166,18 @@ def main() -> int:
                 assert_rendered(reopened)
                 report["checks"].append("Published runtime restarts after page reload")
                 report["canvases"] = page.locator("canvas").evaluate_all("nodes => nodes.map(n => ({width:n.width,height:n.height}))")
+                scopes = page.evaluate("async () => (await navigator.serviceWorker.getRegistrations()).map(r => r.scope)")
+                report["service_worker_scopes"] = scopes
+                if any(not scope.startswith(app_url) for scope in scopes):
+                    raise AssertionError("The application service worker must not control the surrounding documentation")
+                manifest = page.evaluate("""async () => {
+                    const url = document.querySelector('link[rel="manifest"]').href;
+                    const manifest = await (await fetch(url)).json();
+                    return { start: new URL(manifest.start_url, url).href, scope: new URL(manifest.scope, url).href };
+                }""")
+                if manifest["start"] != app_url or manifest["scope"] != app_url:
+                    raise AssertionError(f"PWA manifest must stay inside the application folder: {manifest}")
+                report["checks"].append("PWA start URL, manifest scope and service worker scopes stay inside the application folder")
 
                 errors = [entry for entry in report["console"] if entry["type"] == "error"
                           and urlsplit(entry["location"].get("url", "")).path != "/favicon.ico"]
