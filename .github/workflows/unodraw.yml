@@ -1,0 +1,254 @@
+name: UnoDraw
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, main]
+    paths:
+      - '.github/workflows/unodraw.yml'
+      - 'global.json'
+      - 'Directory.*.props'
+      - 'build/**'
+      - 'externals/**'
+      - 'src/**'
+      - 'samples/UnoDraw/**'
+      - 'tests/Svg.Editor.*/**'
+      - 'tests/UnoDraw.BrowserSmoke/**'
+  pull_request:
+    branches: [master, main, develop]
+    paths:
+      - '.github/workflows/unodraw.yml'
+      - 'global.json'
+      - 'Directory.*.props'
+      - 'build/**'
+      - 'externals/**'
+      - 'src/**'
+      - 'samples/UnoDraw/**'
+      - 'tests/Svg.Editor.*/**'
+      - 'tests/UnoDraw.BrowserSmoke/**'
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+concurrency:
+  group: unodraw-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  desktop:
+    name: Desktop and editor tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore desktop application
+        run: dotnet restore samples/UnoDraw/UnoDraw.csproj
+
+      - name: Build desktop application
+        run: dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-desktop -c Release --no-restore
+
+      - name: Smoke test Linux native startup
+        if: runner.os == 'Linux'
+        timeout-minutes: 2
+        shell: bash
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          mkdir -p artifacts/unodraw-smoke
+          export XDG_DATA_HOME="$RUNNER_TEMP/unodraw-smoke-data"
+          export XDG_CACHE_HOME="$RUNNER_TEMP/unodraw-smoke-cache"
+          mkdir -p "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
+          set +e
+          timeout --signal=TERM --kill-after=5s 15s \
+            xvfb-run --auto-servernum --server-args="-screen 0 1440x960x24 -nolisten tcp" \
+            dbus-run-session -- \
+            dotnet samples/UnoDraw/bin/Release/net10.0-desktop/UnoDraw.dll \
+            samples/UnoDraw/Assets/Welcome.svg \
+            > artifacts/unodraw-smoke/startup.log 2>&1
+          startup_status=$?
+          set -e
+          cat artifacts/unodraw-smoke/startup.log
+          # A healthy desktop app stays running until the bounded smoke interval ends.
+          if [[ "$startup_status" -ne 124 ]]; then
+            echo "UnoDraw exited before the startup check completed (status $startup_status)." >&2
+            exit 1
+          fi
+          if grep -Eiq 'Unhandled exception|DllNotFoundException|EntryPointNotFoundException|incompatible with this version of SkiaSharp' artifacts/unodraw-smoke/startup.log; then
+            echo "UnoDraw reported a native runtime failure during startup." >&2
+            exit 1
+          fi
+
+      - name: Test editor commands, geometry and history
+        run: dotnet test tests/Svg.Editor.Skia.UnitTests/Svg.Editor.Skia.UnitTests.csproj -c Release --logger "trx;LogFileName=editor-skia.trx" --results-directory artifacts/unodraw-tests
+
+      - name: Test SVG document services
+        run: dotnet test tests/Svg.Editor.Svg.UnitTests/Svg.Editor.Svg.UnitTests.csproj -c Release --logger "trx;LogFileName=editor-svg.trx" --results-directory artifacts/unodraw-tests
+
+      - name: Upload test and startup results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unodraw-tests-${{ matrix.os }}
+          path: |
+            artifacts/unodraw-tests/*.trx
+            artifacts/unodraw-smoke/*.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  browser:
+    name: WebAssembly package
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Install WebAssembly tools
+        run: dotnet workload install wasm-tools --skip-manifest-update
+      - name: Publish browser application
+        env:
+          # Bound optimizer memory use for the preserved SVG/Uno assembly graph.
+          # This keeps the existing AOT and optimization settings.
+          BINARYEN_CORES: '1'
+        run: |
+          (
+            while true; do
+              date -u '+Optimizer resource sample: %Y-%m-%dT%H:%M:%SZ'
+              free -m
+              ps -C wasm-opt -o pid,rss,vsz,etime,nlwp || true
+              sleep 30
+            done
+          ) &
+          unodraw_resource_monitor_pid=$!
+          trap 'kill "$unodraw_resource_monitor_pid" 2>/dev/null || true' EXIT
+          /usr/bin/time --verbose dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm -c Release -p:WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false -o artifacts/unodraw-browser
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unodraw-browser
+          path: artifacts/unodraw-browser
+          if-no-files-found: error
+          retention-days: 14
+
+  browser-smoke:
+    name: Published WebAssembly runtime smoke
+    needs: browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Download the exact published package
+        uses: actions/download-artifact@v4
+        with:
+          name: unodraw-browser
+          path: artifacts/unodraw-browser
+      - name: Install pinned browser-test dependencies
+        run: |
+          python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
+          python -m py_compile tests/UnoDraw.BrowserSmoke/smoke.py
+          python -m playwright install --with-deps chromium
+      - name: Check runtime startup, command search, compact layout and reload
+        run: python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/unodraw-browser/wwwroot --output artifacts/unodraw-browser-smoke
+      - name: Upload browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unodraw-browser-smoke
+          path: artifacts/unodraw-browser-smoke
+          if-no-files-found: warn
+          retention-days: 14
+
+  android:
+    name: Android package
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Android workload
+        run: dotnet workload install android --skip-manifest-update
+      - name: Install required Android SDK components
+        run: dotnet build samples/UnoDraw/UnoDraw.csproj -t:InstallAndroidDependencies -f net10.0-android -p:UnoDrawTargetFrameworks=net10.0-android -p:AndroidSdkDirectory="$ANDROID_HOME" -p:AcceptAndroidSdkLicenses=true
+      - name: Publish Android application
+        run: dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-android -p:UnoDrawTargetFrameworks=net10.0-android -r android-arm64 -c Release -p:AndroidKeyStore=false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unodraw-android
+          path: samples/UnoDraw/bin/Release/net10.0-android/**/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  ios:
+    name: iOS simulator package
+    runs-on: macos-26
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      # Keep the SDK, workload set and Xcode paired. The platform workload has a
+      # stricter Xcode requirement than the repository's portable .NET libraries.
+      - name: Pin iOS SDK and workload set
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("global.json")
+          config = json.loads(path.read_text())
+          config["sdk"] = {"version": "10.0.401", "rollForward": "disable", "allowPrerelease": False, "workloadVersion": "10.0.401"}
+          path.write_text(json.dumps(config, indent=4) + "\n")
+          PY
+          xcodebuild -version
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Install iOS workload
+        run: dotnet workload install ios
+      # This artifact validates the simulator host and native integrations. Keeping
+      # the preserved SVG assembly graph interpreted avoids a full LLVM/AOT pass;
+      # device Release builds retain the project's normal AOT configuration.
+      - name: Build simulator application
+        run: dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-ios -p:UnoDrawTargetFrameworks=net10.0-ios -c Release -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false -p:UseInterpreter=true -p:MtouchUseLlvm=false -v:normal
+      - name: Archive simulator application
+        run: |
+          mkdir -p artifacts
+          tar -czf artifacts/unodraw-ios-simulator.tar.gz -C samples/UnoDraw/bin/Release/net10.0-ios/iossimulator-arm64 UnoDraw.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unodraw-ios-simulator
+          path: artifacts/unodraw-ios-simulator.tar.gz
+          if-no-files-found: error
+          retention-days: 14

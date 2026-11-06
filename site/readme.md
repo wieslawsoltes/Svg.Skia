@@ -62,9 +62,9 @@ og_type: website
     <span class="svgskia-package-title"><i class="bi bi-filetype-cs" aria-hidden="true"></i> Generated Code</span>
     <p>Compile SVG assets into C# or source-generated pictures for static assets and AOT-friendly workflows.</p>
   </a>
-  <a class="svgskia-package-card" href="articles/packages/svg-editor-skia-avalonia">
+  <a class="svgskia-package-card" href="articles/editor">
     <span class="svgskia-package-title"><i class="bi bi-pencil-square" aria-hidden="true"></i> Editor Packages</span>
-    <p>Reusable editor state, SVG mutation services, Avalonia panels, and a full interactive workspace extracted from AvalonDraw.</p>
+    <p>Reusable SVG editing services, the UnoDraw workspace with a direct Skia canvas, and existing Avalonia panels and workspace.</p>
   </a>
   <a class="svgskia-package-card" href="articles/guides/cli-conversion">
     <span class="svgskia-package-title"><i class="bi bi-terminal" aria-hidden="true"></i> Tooling</span>
@@ -85,7 +85,7 @@ og_type: website
   </a>
   <a class="svgskia-link-card" href="articles/editor">
     <span class="svgskia-link-card-title"><i class="bi bi-layout-three-columns" aria-hidden="true"></i> Editor</span>
-    <p>Embed the extracted AvalonDraw editor packages as a full workspace or as lower-level reusable components.</p>
+    <p>Embed the UnoDraw workspace, the Avalonia editor, or the shared document, geometry and history components.</p>
   </a>
   <a class="svgskia-link-card" href="articles/guides">
     <span class="svgskia-link-card-title"><i class="bi bi-journal-code" aria-hidden="true"></i> Guides</span>

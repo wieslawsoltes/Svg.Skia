@@ -149,11 +149,68 @@ public class PathService
     {
         if (_path == null || _activeIndex < 0 || _activeIndex >= _points.Count)
             return;
-        var seg = _points[_activeIndex].Segment;
-        _path.PathData.Remove(seg);
-        _points.RemoveAll(p => ReferenceEquals(p.Segment, seg));
-        _activeIndex = -1;
-        _path.OnPathUpdated();
+
+        var point = _points[_activeIndex];
+        var segments = _path.PathData;
+        var segmentIndex = segments.IndexOf(point.Segment);
+        if (segmentIndex < 0)
+            return;
+        var activeIndex = _activeIndex;
+
+        if (point.Type != 0 && point.Segment is SvgCubicCurveSegment cubic)
+        {
+            // A control handle has no independent endpoint. Removing it retracts that handle
+            // to its anchor and preserves the curve's other handle and endpoint.
+            if (point.Type == 1)
+                cubic.FirstControlPoint = GetSegmentStart(segments, segmentIndex);
+            else
+                cubic.SecondControlPoint = cubic.End;
+        }
+        else if (point.Type != 0 && point.Segment is SvgQuadraticCurveSegment quadratic)
+        {
+            // A quadratic has one handle; removing it leaves the two anchors connected.
+            segments[segmentIndex] = new SvgLineSegment(false, quadratic.End);
+        }
+        else if (point.Segment is SvgMoveToSegment)
+        {
+            // Promoting the next endpoint keeps each remaining subpath valid after deleting
+            // its initial anchor. A bare ClosePath must never become its first command.
+            if (segmentIndex + 1 < segments.Count
+                && segments[segmentIndex + 1] is not (SvgMoveToSegment or SvgClosePathSegment))
+            {
+                segments[segmentIndex] = new SvgMoveToSegment(false, segments[segmentIndex + 1].End);
+                segments.RemoveAt(segmentIndex + 1);
+            }
+            else
+            {
+                segments.RemoveAt(segmentIndex);
+                if (segmentIndex < segments.Count && segments[segmentIndex] is SvgClosePathSegment)
+                    segments.RemoveAt(segmentIndex);
+            }
+        }
+        else
+        {
+            segments.RemoveAt(segmentIndex);
+        }
+
+        Start(_path, _matrix, _sceneNode);
+        _activeIndex = Math.Min(activeIndex, _points.Count - 1);
+    }
+
+    private static System.Drawing.PointF GetSegmentStart(SvgPathSegmentList segments, int index)
+    {
+        var current = System.Drawing.PointF.Empty;
+        var subpathStart = current;
+        for (var i = 0; i < index; i++)
+        {
+            if (segments[i] is SvgMoveToSegment move)
+                current = subpathStart = move.End;
+            else if (segments[i] is SvgClosePathSegment)
+                current = subpathStart;
+            else
+                current = segments[i].End;
+        }
+        return current;
     }
 
     public void MoveActivePoint(Shim.SKPoint local)
@@ -286,6 +343,9 @@ public class PathService
     {
         var segs = path.PathData;
         var cur = System.Drawing.PointF.Empty;
+        var subpathStart = cur;
+        System.Drawing.PointF? previousCubicControl = null;
+        System.Drawing.PointF? previousQuadraticControl = null;
         for (int i = 0; i < segs.Count; i++)
         {
             switch (segs[i])
@@ -294,18 +354,21 @@ public class PathService
                     var endM = ToAbs(mv.End, mv.IsRelative, cur);
                     mv.End = endM;
                     mv.IsRelative = false;
-                    cur = endM;
+                    cur = subpathStart = endM;
+                    previousCubicControl = previousQuadraticControl = null;
                     break;
                 case SvgLineSegment ln:
                     var endL = ToAbs(ln.End, ln.IsRelative, cur);
                     ln.End = endL;
                     ln.IsRelative = false;
                     cur = endL;
+                    previousCubicControl = previousQuadraticControl = null;
                     break;
                 case SvgCubicCurveSegment c:
                     var p1 = c.FirstControlPoint;
-                    if (!float.IsNaN(p1.X) && !float.IsNaN(p1.Y))
-                        p1 = ToAbs(p1, c.IsRelative, cur);
+                    p1 = float.IsNaN(p1.X) && float.IsNaN(p1.Y)
+                        ? previousCubicControl is { } cubicControl ? ReflectControl(cubicControl, cur) : cur
+                        : ToAbs(p1, c.IsRelative, cur);
                     var p2 = ToAbs(c.SecondControlPoint, c.IsRelative, cur);
                     var e = ToAbs(c.End, c.IsRelative, cur);
                     c.FirstControlPoint = p1;
@@ -313,30 +376,41 @@ public class PathService
                     c.End = e;
                     c.IsRelative = false;
                     cur = e;
+                    previousCubicControl = p2;
+                    previousQuadraticControl = null;
                     break;
                 case SvgQuadraticCurveSegment q:
                     var cp = q.ControlPoint;
-                    if (!float.IsNaN(cp.X) && !float.IsNaN(cp.Y))
-                        cp = ToAbs(cp, q.IsRelative, cur);
+                    cp = float.IsNaN(cp.X) && float.IsNaN(cp.Y)
+                        ? previousQuadraticControl is { } quadraticControl ? ReflectControl(quadraticControl, cur) : cur
+                        : ToAbs(cp, q.IsRelative, cur);
                     var qe = ToAbs(q.End, q.IsRelative, cur);
                     q.ControlPoint = cp;
                     q.End = qe;
                     q.IsRelative = false;
                     cur = qe;
+                    previousQuadraticControl = cp;
+                    previousCubicControl = null;
                     break;
                 case SvgArcSegment a:
                     var ae = ToAbs(a.End, a.IsRelative, cur);
                     a.End = ae;
                     a.IsRelative = false;
                     cur = ae;
+                    previousCubicControl = previousQuadraticControl = null;
                     break;
                 case SvgClosePathSegment _:
+                    cur = subpathStart;
+                    previousCubicControl = previousQuadraticControl = null;
                     break;
             }
         }
         path.PathData.Owner = path;
         path.OnPathUpdated();
     }
+
+    private static System.Drawing.PointF ReflectControl(System.Drawing.PointF point, System.Drawing.PointF anchor)
+        => new(2 * anchor.X - point.X, 2 * anchor.Y - point.Y);
 
     private static System.Drawing.PointF ToAbs(System.Drawing.PointF point, bool isRelative, System.Drawing.PointF start)
     {
@@ -525,6 +599,19 @@ public class PathService
 
     public static string ToSvgPathData(SK.SKPath skPath)
     {
+        if (skPath is null)
+            throw new ArgumentNullException(nameof(skPath));
+        // SVG has no rational quadratic command. Skia's SVG writer subdivides conics
+        // using their actual weights (SkParsePath's 1/1024-unit tolerance). Treating a
+        // Conic verb as one ordinary Q command distorts circles, arcs and boolean results.
+        // Keep the existing lexical representation for paths without conics.
+        using (var probe = skPath.CreateRawIterator())
+        {
+            var points = new SK.SKPoint[4];
+            for (var verb = probe.Next(points); verb != SK.SKPathVerb.Done; verb = probe.Next(points))
+                if (verb == SK.SKPathVerb.Conic)
+                    return skPath.ToSvgPathData();
+        }
         var sb = new System.Text.StringBuilder();
         using var iter = skPath.CreateRawIterator();
         var pts = new SK.SKPoint[4];
@@ -540,7 +627,6 @@ public class PathService
                     sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "L{0},{1} ", pts[1].X, pts[1].Y);
                     break;
                 case SK.SKPathVerb.Quad:
-                case SK.SKPathVerb.Conic:
                     sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "Q{0},{1} {2},{3} ", pts[1].X, pts[1].Y, pts[2].X, pts[2].Y);
                     break;
                 case SK.SKPathVerb.Cubic:

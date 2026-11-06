@@ -1,0 +1,33 @@
+<Project Sdk="Uno.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <UnoSingleProject>true</UnoSingleProject>
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Svg.Editor.Skia.Uno</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>Svg.Editor.Skia.Uno</PackageId>
+    <Description>Reusable SVG editor workspace and accelerated canvas for Uno Platform.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>svg;editor;skia;uno;winui;xaml</PackageTags>
+    <UnoFeatures>SkiaRenderer;</UnoFeatures>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>$(UnoVersionPrefix)</VersionPrefix>
+    <VersionSuffix>$(UnoVersionSuffix)</VersionSuffix>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\SourceLink.props" />
+  <Import Project="..\..\build\SignAssembly.props" />
+  <Import Project="..\..\build\SkiaSharp.props" />
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" />
+    <ProjectReference Include="..\Svg.Editor.Skia\Svg.Editor.Skia.csproj" />
+  </ItemGroup>
+
+</Project>

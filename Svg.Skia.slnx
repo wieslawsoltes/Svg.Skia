@@ -56,7 +56,7 @@
     <Project Path="src/Svg.Custom/Svg.Custom.csproj" />
   </Folder>
   <Folder Name="/samples/">
-    <Project Path="samples/AvalonDraw/AvalonDraw.csproj" />
+    <Project Path="samples/UnoDraw/UnoDraw.csproj" />
     <Project Path="samples/AvaloniaControlsSample/AvaloniaControlsSample.csproj" />
     <Project Path="samples/AvaloniaSKPictureImageSample/AvaloniaSKPictureImageSample.csproj" />
     <Project Path="samples/AvaloniaSvgSample/AvaloniaSvgSample.csproj" />
@@ -81,6 +81,7 @@
     <Project Path="src/Svg.Editor.Core/Svg.Editor.Core.csproj" />
     <Project Path="src/Svg.Editor.Skia/Svg.Editor.Skia.csproj" />
     <Project Path="src/Svg.Editor.Skia.Avalonia/Svg.Editor.Skia.Avalonia.csproj" />
+    <Project Path="src/Svg.Editor.Skia.Uno/Svg.Editor.Skia.Uno.csproj" />
     <Project Path="src/Svg.Editor.Svg/Svg.Editor.Svg.csproj" />
     <Project Path="src/Svg.CodeGen.Skia/Svg.CodeGen.Skia.csproj" />
     <Project Path="src/Svg.Controls.Avalonia/Svg.Controls.Avalonia.csproj" />

@@ -1,0 +1,5 @@
+<linker>
+  <assembly fullname="UnoDraw" preserve="all" />
+  <assembly fullname="Svg.Custom" preserve="all" />
+  <assembly fullname="Svg.Editor.Skia.Uno" preserve="all" />
+</linker>
