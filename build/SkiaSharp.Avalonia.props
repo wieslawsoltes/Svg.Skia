@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <SkiaSharpVersion Condition="'$(SkiaSharpVersion)' == ''">4.148.0</SkiaSharpVersion>
+    <SkiaSharpVersion Condition="'$(SkiaSharpVersion)' == ''">4.154.0</SkiaSharpVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- Avalonia.Skia still targets SkiaSharp 3.x, so these direct references intentionally
