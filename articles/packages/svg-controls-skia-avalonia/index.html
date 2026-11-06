@@ -187,6 +187,10 @@
 <td>Brush-producing markup extension for backgrounds and fills</td>
 </tr>
 <tr>
+<td><code>AvaloniaTypefaceProvider</code></td>
+<td>Resolves SVG fonts from Avalonia font collections</td>
+</tr>
+<tr>
 <td><code>Svg.Skia.SvgInteractionDispatcher</code></td>
 <td>Routed pointer helper exposed through <code>Svg.Interaction</code></td>
 </tr>
@@ -226,6 +230,25 @@ var image = new SvgImage
 };
 </code></pre>
 <p>That is the package to use when CSS overrides are part of application state.</p>
+<h2 id="fonts-and-default-settings">Fonts and default settings</h2>
+<p><code>SvgSource</code> installs <code>AvaloniaTypefaceProvider</code> ahead of the standard SkiaSharp
+providers. Embedded Avalonia fonts can therefore be used by SVG text, including
+in WebAssembly. Register application fonts with Avalonia before loading images.
+The browser default also maps CSS generic families to Avalonia's default font.
+Desktop generic font resolution keeps the existing SkiaSharp behavior.</p>
+<p>Use <code>SvgSource.ConfigureDefaultSettings(Action&lt;SKSvgSettings&gt;)</code> to update defaults
+for subsequent source loads and reloads. The callback works on a copy, and the
+result is published under the same lock used to snapshot settings for new sources.
+Existing sources keep their settings and independently copied provider lists.
+<code>SvgSource.DefaultSettings</code> exposes the mutable defaults for startup configuration;
+direct mutations must not overlap loading or other configuration.</p>
+<pre><code class="language-csharp">SvgSource.ConfigureDefaultSettings(settings =&gt;
+{
+    settings.EnableTextSelectionRendering = false;
+});
+</code></pre>
+<p>See <a href="/Svg.Skia/articles/guides/avalonia-fonts">Avalonia Fonts and Default Settings</a> for provider
+precedence, standalone <code>SKSvg</code> setup, embedded-font examples, and troubleshooting.</p>
 <h2 id="control-specific-features">Control-specific features</h2>
 <p>The <code>Svg</code> control adds behavior that does not exist in the non-Skia Avalonia package:</p>
 <ul>

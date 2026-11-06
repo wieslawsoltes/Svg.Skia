@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>Avalonia Fonts and Default Settings | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Avalonia Fonts and Default Settings | Svg.Skia">
+<meta name="twitter:description" content="Avalonia fonts and default SVG settings Why browser SVG labels can become boxes Svg.Skia shapes and renders text through SkiaSharp. SkiaSharp's font manager, Avalonia's font collections, and the browser's CSS font system are separate. WebAssembly normally has very few fonts visible to SkiaSharp, so a diagram can render missing-glyph boxes even when an Avalonia TextBlock renders correctly. Installing a CSS web font does not register it with either .NET font...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="Avalonia Fonts and Default Settings | Svg.Skia">
+<meta property="og:title" content="Avalonia Fonts and Default Settings | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="Avalonia fonts and default SVG settings Why browser SVG labels can become boxes Svg.Skia shapes and renders text through SkiaSharp. SkiaSharp's font manager, Avalonia's font collections, and the browser's CSS font system are separate. WebAssembly normally has very few fonts visible to SkiaSharp, so a diagram can render missing-glyph boxes even when an Avalonia TextBlock renders correctly. Installing a CSS web font does not register it with either .NET font...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="Avalonia Fonts and Default Settings | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-guides.b3078537db49aeae62874b78900691d6.html' data-lunet-menu-open='menu-id-guides-0' data-lunet-menu-active='menu-item-guides-3,menu-item-guides-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/guides/' class='breadcrumb-link  '>Guides</a>  </li>
+          <li class='breadcrumb-item  active'>
+            Avalonia Fonts and Default Settings  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="avalonia-fonts-and-default-svg-settings">Avalonia fonts and default SVG settings</h1>
+<h2 id="why-browser-svg-labels-can-become-boxes">Why browser SVG labels can become boxes</h2>
+<p>Svg.Skia shapes and renders text through SkiaSharp. SkiaSharp's font manager,
+Avalonia's font collections, and the browser's CSS font system are separate.
+WebAssembly normally has very few fonts visible to SkiaSharp, so a diagram can
+render missing-glyph boxes even when an Avalonia <code>TextBlock</code> renders correctly.
+Installing a CSS web font does not register it with either .NET font manager.</p>
+<p><code>Svg.Controls.Skia.Avalonia</code> installs <code>AvaloniaTypefaceProvider</code> in the default
+<code>SvgSource</code> settings. It resolves fonts through Avalonia's <code>FontManager</code> and
+creates native SkiaSharp typefaces from the selected font's stream. No reflection
+or access to <code>SvgSource.s_skiaModel</code> is required.</p>
+<h2 id="register-fonts-before-loading-svgs">Register fonts before loading SVGs</h2>
+<p>For Inter, reference <code>Avalonia.Fonts.Inter</code> at the same version as Avalonia and
+use the normal Avalonia setup:</p>
+<pre><code class="language-csharp">using Avalonia;
+
+public static AppBuilder BuildAvaloniaApp() =&gt;
+    AppBuilder.Configure&lt;App&gt;()
+        .WithInterFont();
+</code></pre>
+<p>Keep the application's existing platform startup, theme, and other builder calls.
+Load SVGs after Avalonia has initialized its platform services and font collections.
+<code>WithInterFont()</code> registers the <code>fonts:Inter</code> collection; it does not change
+<code>FontManager.DefaultFontFamily</code>. The provider recognizes same-name registered
+collections, so bare <code>Inter</code> can resolve independently of the application's default
+font. A collection registered under a different key must be requested explicitly
+as <code>fonts:YourCollectionKey#Family Name</code> or with an <code>avares:</code> resource reference.
+Collection URI keys are case-sensitive; use the registered spelling.</p>
+<p>An SVG can then request the registered family:</p>
+<pre><code class="language-xml">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;520&quot; height=&quot;100&quot;&gt;
+  &lt;text x=&quot;16&quot; y=&quot;38&quot; font-family=&quot;Inter, sans-serif&quot; font-size=&quot;24&quot;&gt;
+    Embedded font: Zażółć gęślą jaźń
+  &lt;/text&gt;
+  &lt;text x=&quot;16&quot; y=&quot;76&quot; font-family=&quot;Inter&quot; font-size=&quot;24&quot;
+        font-weight=&quot;700&quot; font-style=&quot;italic&quot;&gt;
+    Bold italic diagram label
+  &lt;/text&gt;
+&lt;/svg&gt;
+</code></pre>
+<p>For application-owned font files, mark them as Avalonia resources and use
+Avalonia's embedded-font family syntax. The family after <code>#</code> must be the font's
+internal family name, not its filename:</p>
+<pre><code class="language-xml">&lt;ItemGroup&gt;
+  &lt;AvaloniaResource Include=&quot;Assets/Fonts/**&quot; /&gt;
+&lt;/ItemGroup&gt;
+</code></pre>
+<pre><code class="language-xml">&lt;text font-family=&quot;avares://MyApp/Assets/Fonts#My App Font&quot;
+      font-size=&quot;20&quot;&gt;Application font&lt;/text&gt;
+</code></pre>
+<p>Fonts must include the characters used in the diagram. The bridge cannot supply
+glyphs missing from an embedded font, and it does not download fonts.</p>
+<h2 id="resolution-and-fallback-policy">Resolution and fallback policy</h2>
+<p>The default provider runs before SkiaSharp's normal typeface providers.
+Document-local fonts retain their existing precedence. Insert a custom application
+provider at index zero to give it priority over the Avalonia bridge.</p>
+<p>The provider preserves the requested weight, style, and stretch. It accepts
+registered and embedded families on all platforms. Unknown concrete family names
+return no match, allowing subsequent SVG family names and providers to be tried.
+For example, <code>Missing Font, Inter, sans-serif</code> can select Inter. Use a concrete
+family name or an explicit <code>avares:</code>/<code>fonts:</code> family reference; aliases that
+resolve to a different family name through private Avalonia font-manager mappings
+are not guaranteed to be recognized by the bridge.</p>
+<p>In WebAssembly, unspecified and CSS generic families such as <code>serif</code>,
+<code>sans-serif</code>, <code>monospace</code>, and <code>system-ui</code> can use Avalonia's configured
+default font. This is a usable browser fallback, not a guarantee that one embedded
+font reproduces the typography of every generic category. Bundle and request
+specific serif or monospace fonts when that distinction matters. On desktop,
+the parameterless provider leaves generic fallback to the existing SkiaSharp providers.</p>
+<p>To deliberately make Inter the application's default font, configure Avalonia
+during startup as well as registering the font collection:</p>
+<pre><code class="language-csharp">AppBuilder.Configure&lt;App&gt;()
+    .WithInterFont()
+    .With(new Avalonia.Media.FontManagerOptions
+    {
+        DefaultFamilyName = &quot;fonts:Inter#Inter&quot;
+    });
+</code></pre>
+<p>The provider's generic fallback follows this font-manager default, not an inherited
+<code>TextBlock.FontFamily</code> or the first registered collection. If only upright font
+data exists, the SVG renderer synthesizes italic/oblique using Avalonia's Skia
+shear convention. Existing explicit skew and native italic faces are preserved.</p>
+<p>To choose the policy explicitly, replace the automatic provider during startup:</p>
+<pre><code class="language-csharp">using System.Collections.Generic;
+using Avalonia.Svg.Skia;
+using Svg.Skia.TypefaceProviders;
+
+SvgSource.ConfigureDefaultSettings(settings =&gt;
+{
+    var providers = settings.TypefaceProviders ??= new List&lt;ITypefaceProvider&gt;();
+    for (var i = providers.Count - 1; i &gt;= 0; i--)
+    {
+        if (providers[i] is AvaloniaTypefaceProvider)
+            providers.RemoveAt(i);
+    }
+
+    // Use false to retain SkiaSharp's generic-family fallback on every platform.
+    providers.Insert(0, new AvaloniaTypefaceProvider(useDefaultFontFallback: true));
+});
+</code></pre>
+<p>The provider resolves Avalonia services lazily, so constructing it before
+<code>AppBuilder</code> initialization is safe. Misses are not cached by the provider;
+fonts registered later can be resolved by new SVG loads. Reload previously
+rendered sources after registering additional fonts.</p>
+<h2 id="configure-the-defaults-through-the-supported-api">Configure the defaults through the supported API</h2>
+<p><code>SvgSource.DefaultSettings</code> exposes the settings copied to new sources.
+<code>SvgSource.ConfigureDefaultSettings(Action&lt;SKSvgSettings&gt;)</code> is the preferred API:</p>
+<pre><code class="language-csharp">using Avalonia.Svg.Skia;
+
+SvgSource.ConfigureDefaultSettings(settings =&gt;
+{
+    settings.EnableTextSelectionRendering = false;
+    settings.EnableBrokenImagePlaceholders = true;
+
+    // For an application-specific provider:
+    // settings.TypefaceProviders!.Insert(0, myTypefaceProvider);
+});
+</code></pre>
+<p>The callback edits a copy. Its scalar and provider-list changes are published
+together under the same lock used to copy settings for new sources. If the callback
+throws, those changes are not published. Provider objects, color spaces, and other
+service objects are shared references; mutating an object's internals is not rolled
+back. Do not dispose shared objects while sources still use them.</p>
+<p>The API applies to synchronous and asynchronous file/resource loads, SVG strings,
+streams, documents, lazy XAML sources, and reloads. Each loaded source receives
+its own settings object and provider list. Existing sources keep their settings
+until <code>ReLoad(...)</code> or <code>ReLoadAsync(...)</code>; cloning a source preserves that
+source's settings.</p>
+<p>Direct edits to <code>DefaultSettings</code> are supported for startup configuration when
+they cannot overlap loading or other configuration. Existing code using
+<code>s_skiaModel.Settings</code> still accesses the same object for compatibility, but
+new code should use the supported API.</p>
+<h2 id="standalone-sksvg-in-an-avalonia-application">Standalone SKSvg in an Avalonia application</h2>
+<p>The automatic bridge belongs to <code>Svg.Controls.Skia.Avalonia</code>; standalone
+<code>Svg.Skia.SKSvg</code> does not depend on Avalonia. Add the public provider explicitly
+when using <code>SKSvg</code> directly inside an initialized Avalonia application:</p>
+<pre><code class="language-csharp">using Avalonia.Svg.Skia;
+using Svg.Skia;
+
+using var svg = new SKSvg();
+svg.Settings.TypefaceProviders!.Insert(0, new AvaloniaTypefaceProvider());
+svg.FromSvg(&quot;&quot;&quot;
+    &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;200&quot; height=&quot;50&quot;&gt;
+      &lt;text x=&quot;8&quot; y=&quot;32&quot; font-family=&quot;Inter&quot; font-size=&quot;24&quot;&gt;Hello, SVG!&lt;/text&gt;
+    &lt;/svg&gt;
+    &quot;&quot;&quot;);
+</code></pre>
+<p>The provider caches font data against Avalonia's glyph-typeface lifetime and
+returns a caller-owned native typeface for each request. Disposing one returned
+typeface does not dispose Avalonia's font or invalidate another request.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li>Confirm that fonts are registered before SVG loading and that the SVG requests
+the correct internal family name.</li>
+<li>Check that the font contains every required character. Inter alone is not a
+replacement for CJK or emoji fonts.</li>
+<li>If using standalone <code>SKSvg</code>, add <code>AvaloniaTypefaceProvider</code> explicitly.</li>
+<li>If replacing <code>TypefaceProviders</code>, preserve the Avalonia provider when
+embedded-font support is required.</li>
+<li>Check custom provider order and whether each provider returns <code>null</code> for
+families it does not support.</li>
+<li>A platform typeface must expose a usable stream through Avalonia's
+<code>TryGetStream</code>. Exceptions encountered during resolution are logged at
+Avalonia's <code>Debug</code> font level. Unresolved families and unavailable streams
+return no match so other providers can continue.</li>
+<li>Reload existing sources after changing defaults or registering more fonts.</li>
+</ul>
+<h2 id="browser-regression-sample">Browser regression sample</h2>
+<p><code>samples/AvaloniaSvgFontBrowser</code> uses the real Avalonia browser runtime and the
+modified library project. It embeds Inter, renders SVG and Avalonia text, and
+exposes font and settings checks in the page.</p>
+<p>Use the .NET 10 SDK with the <code>wasm-tools</code> workload:</p>
+<pre><code class="language-bash">dotnet workload install wasm-tools
+dotnet run --project samples/AvaloniaSvgFontBrowser/AvaloniaSvgFontBrowser.csproj
+</code></pre>
+<p>Open the HTTP address printed by the development server. Check the diagnostics
+and visually inspect regular, bold, italic, family-list, and generic labels.
+The default URL registers Inter while preserving Avalonia's application default.
+Add <code>?default=inter</code> to also configure Inter as the application default.
+Serve published WebAssembly files over HTTP; opening <code>index.html</code> through
+a <code>file:</code> URL does not reproduce browser resource loading correctly.</p>
+<p>The <strong>Avalonia browser fonts</strong> CI workflow runs both configurations in Chromium,
+repeats the checks after disposing and reloading the SVG sources, and uploads
+screenshots and JSON diagnostics. The sample README includes the equivalent
+local publish and validation commands.</p>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -180,6 +180,16 @@
 <p>Use an SVG-backed brush:</p>
 <pre><code class="language-xml">&lt;Border Background=&quot;{SvgResource /Assets/__tiger.svg}&quot; /&gt;
 </code></pre>
+<h2 id="browser-and-embedded-fonts">Browser and embedded fonts</h2>
+<p>WebAssembly cannot rely on desktop system fonts. SVG text is resolved by
+SkiaSharp, separately from browser CSS fonts. <code>Svg.Controls.Skia.Avalonia</code>
+automatically bridges Avalonia font collections through <code>AvaloniaTypefaceProvider</code>.
+Register embedded fonts (for example with <code>.WithInterFont()</code>) before loading SVG
+images, and use their family names in SVG <code>font-family</code>. In the browser, generic
+families such as <code>sans-serif</code> use Avalonia's configured default font.</p>
+<p>Use <code>SvgSource.ConfigureDefaultSettings(...)</code> to configure subsequent loads and
+reloads. See <a href="/Svg.Skia/articles/guides/avalonia-fonts">Avalonia Fonts and Default Settings</a> for
+setup, fallback rules, and missing-glyph troubleshooting.</p>
 <h2 id="avalonia-drawing-stack-controls">Avalonia drawing-stack controls</h2>
 <p>Install:</p>
 <pre><code class="language-bash">dotnet add package Svg.Controls.Avalonia
