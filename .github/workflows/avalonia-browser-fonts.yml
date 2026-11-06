@@ -1,0 +1,178 @@
+name: Avalonia browser fonts
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/avalonia-browser-fonts.yml'
+      - 'scripts/validate_avalonia_browser_fonts.mjs'
+      - 'samples/AvaloniaSvgFontBrowser/**'
+      - 'src/Svg.Controls.Skia.Avalonia/**'
+      - 'src/Svg.Skia/**'
+      - 'src/Svg.Model/**'
+      - 'src/Svg.Custom/**'
+      - 'src/Svg.SceneGraph/**'
+      - 'src/Svg.Animation/**'
+      - 'src/ShimSkiaSharp/**'
+      - 'tests/Svg.Controls.Skia.Avalonia.UnitTests/**'
+      - 'tests/Svg.Skia.UnitTests/**'
+      - 'externals/SVG'
+      - 'externals/resvg'
+      - 'externals/W3C_SVG_11_TestSuite'
+      - 'build/**'
+      - 'Directory.*.props'
+      - 'Directory.*.targets'
+      - 'global.json'
+      - 'NuGet.Config'
+  push:
+    branches: [master, main]
+    paths:
+      - '.github/workflows/avalonia-browser-fonts.yml'
+      - 'scripts/validate_avalonia_browser_fonts.mjs'
+      - 'samples/AvaloniaSvgFontBrowser/**'
+      - 'src/Svg.Controls.Skia.Avalonia/**'
+      - 'src/Svg.Skia/**'
+      - 'src/Svg.Model/**'
+      - 'src/Svg.Custom/**'
+      - 'src/Svg.SceneGraph/**'
+      - 'src/Svg.Animation/**'
+      - 'src/ShimSkiaSharp/**'
+      - 'tests/Svg.Controls.Skia.Avalonia.UnitTests/**'
+      - 'tests/Svg.Skia.UnitTests/**'
+      - 'externals/SVG'
+      - 'externals/resvg'
+      - 'externals/W3C_SVG_11_TestSuite'
+      - 'build/**'
+      - 'Directory.*.props'
+      - 'Directory.*.targets'
+      - 'global.json'
+      - 'NuGet.Config'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: avalonia-browser-fonts-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  browser-fonts:
+    name: WebAssembly font regression (Chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install WebAssembly tools
+        run: dotnet workload install wasm-tools --skip-manifest-update
+
+      - name: Publish browser regression application
+        run: dotnet publish samples/AvaloniaSvgFontBrowser/AvaloniaSvgFontBrowser.csproj -c Release -o artifacts/avalonia-browser-fonts/publish
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pinned Chromium test runner
+        run: |
+          npm install --no-save --package-lock=false playwright@1.64.1
+          node_modules/.bin/playwright install --with-deps chromium
+
+      - name: Validate fonts in the published WebAssembly application
+        run: node scripts/validate_avalonia_browser_fonts.mjs --root artifacts/avalonia-browser-fonts/publish/wwwroot --output artifacts/avalonia-browser-fonts/results
+
+      - name: Upload browser screenshots and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: avalonia-browser-fonts-${{ github.run_attempt }}
+          path: artifacts/avalonia-browser-fonts/results/
+          if-no-files-found: warn
+          retention-days: 7
+
+  macos-fonts:
+    name: Font regression (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore focused test projects
+        run: |
+          dotnet restore tests/Svg.Controls.Skia.Avalonia.UnitTests/Svg.Controls.Skia.Avalonia.UnitTests.csproj
+          dotnet restore tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj
+
+      - name: Build focused test projects
+        id: build
+        run: |
+          dotnet build tests/Svg.Controls.Skia.Avalonia.UnitTests/Svg.Controls.Skia.Avalonia.UnitTests.csproj -c Release --no-restore
+          dotnet build tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj -c Release --no-restore
+
+      - name: Test Avalonia font resolution and settings
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          dotnet test tests/Svg.Controls.Skia.Avalonia.UnitTests/Svg.Controls.Skia.Avalonia.UnitTests.csproj
+          -c Release --no-build --no-restore
+          --filter "FullyQualifiedName~AvaloniaTypefaceProviderTests|FullyQualifiedName~SvgSourceSettingsTests|FullyQualifiedName~SvgCompositionFontTests"
+          --logger "trx;LogFileName=avalonia-fonts.trx"
+          --results-directory artifacts/macos-fonts
+          -- RunConfiguration.TreatNoTestsAsError=true
+
+      - name: Test synthetic styles and font caching
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj
+          -c Release --no-build --no-restore
+          --filter "FullyQualifiedName~SyntheticFontStyleTests|FullyQualifiedName~SkiaSvgAssetLoaderCachingTests"
+          --logger "trx;LogFileName=skia-fonts.trx"
+          --results-directory artifacts/macos-fonts
+          -- RunConfiguration.TreatNoTestsAsError=true
+
+      - name: Test affected W3C text fixtures
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: >-
+          dotnet test tests/Svg.Skia.UnitTests/Svg.Skia.UnitTests.csproj
+          -c Release --no-build --no-restore
+          --filter "FullyQualifiedName~W3CTestSuiteTests.Tests&(DisplayName~text-intro-01-t|DisplayName~text-intro-06-t|DisplayName~text-intro-07-t|DisplayName~text-intro-11-t|DisplayName~text-intro-12-t|DisplayName~text-bidi-01-t)"
+          --logger "trx;LogFileName=w3c-text.trx"
+          --results-directory artifacts/macos-fonts
+          -- RunConfiguration.TreatNoTestsAsError=true
+
+      - name: Upload macOS test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-font-test-results-${{ github.run_attempt }}
+          path: artifacts/macos-fonts/*.trx
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload rendered W3C text on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-font-renderings-${{ github.run_attempt }}
+          path: tests/Tests/* (Actual).png
+          if-no-files-found: warn
+          retention-days: 7

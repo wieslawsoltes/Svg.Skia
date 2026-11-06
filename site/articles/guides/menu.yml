@@ -1,6 +1,7 @@
 guides:
   - {path: readme.md, title: "Guides"}
   - {path: loading-svg-and-vectordrawable.md, title: "Loading SVG, SvgDocument, and VectorDrawable"}
+  - {path: avalonia-fonts.md, title: "Avalonia Fonts and Default Settings"}
   - {path: svgdocument-handling-and-mutation.md, title: "SvgDocument Handling and Mutation"}
   - {path: retained-scene-graph-usage.md, title: "Retained Scene Graph Usage"}
   - {path: exporting-images-pdf-and-xps.md, title: "Exporting Images, Pdf, and Xps"}

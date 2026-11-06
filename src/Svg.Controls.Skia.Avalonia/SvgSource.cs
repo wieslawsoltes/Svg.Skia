@@ -30,6 +30,8 @@ public sealed class SvgSource : IDisposable
 
     public static readonly SkiaModel s_skiaModel;
 
+    private static readonly object s_defaultSettingsSync = new();
+
     private static readonly HttpClient s_httpClient = new();
 
     private SKSvg? _skSvg;
@@ -142,6 +144,42 @@ public sealed class SvgSource : IDisposable
     /// </summary>
     public static bool EnableThrowOnMissingResource { get; set; }
 
+    /// <summary>
+    /// Gets the default settings copied to newly loaded and reloaded SVG sources.
+    /// </summary>
+    /// <remarks>
+    /// Configure these settings at application startup, before loading SVG images.
+    /// Use <see cref="ConfigureDefaultSettings"/> when configuration can overlap source
+    /// loading. Direct changes to this mutable object, including its provider collection,
+    /// must not overlap other configuration or loading operations. Existing sources keep
+    /// their settings until reloaded. Typeface providers are shared; each source receives
+    /// its own provider list.
+    /// </remarks>
+    public static SKSvgSettings DefaultSettings => s_skiaModel.Settings;
+
+    /// <summary>
+    /// Configures the defaults used by subsequent SVG source loads and reloads.
+    /// </summary>
+    /// <param name="configure">A callback that updates a copy of the current defaults.</param>
+    /// <remarks>
+    /// Configuration and source settings snapshots are synchronized. If the callback
+    /// throws, its settings and provider list changes are not published. Providers and
+    /// other service objects are shared, so the callback should replace those objects
+    /// rather than mutate their internal state. Do not dispose shared providers or
+    /// color spaces while SVG sources may still use them.
+    /// </remarks>
+    public static void ConfigureDefaultSettings(Action<SKSvgSettings> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        lock (s_defaultSettingsSync)
+        {
+            var settings = DefaultSettings.Clone();
+            configure(settings);
+            settings.CopyTo(DefaultSettings);
+        }
+    }
+
     internal bool HasPathSource
     {
         get
@@ -184,7 +222,9 @@ public sealed class SvgSource : IDisposable
 
     static SvgSource()
     {
-        s_skiaModel = new SkiaModel(new SKSvgSettings());
+        var settings = new SKSvgSettings();
+        settings.TypefaceProviders!.Insert(0, new AvaloniaTypefaceProvider());
+        s_skiaModel = new SkiaModel(settings);
         s_assetLoader = new SkiaSvgAssetLoader(s_skiaModel);
     }
 
@@ -711,7 +751,10 @@ public sealed class SvgSource : IDisposable
     private static SKSvg CreateSkSvg()
     {
         var skSvg = new SKSvg();
-        s_skiaModel.Settings.CopyTo(skSvg.Settings);
+        lock (s_defaultSettingsSync)
+        {
+            DefaultSettings.CopyTo(skSvg.Settings);
+        }
         return skSvg;
     }
 
