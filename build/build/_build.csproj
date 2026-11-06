@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <PackageReference Include="Nuke.Common" />
+    <!-- Pin the patched NuGet client used transitively by Nuke.Tooling. -->
+    <PackageReference Include="NuGet.Packaging" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" />
   </ItemGroup>
 
