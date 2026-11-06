@@ -19,6 +19,10 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <!-- Keep the published package relocatable under the docs' /unodraw/ folder. -->
+    <WasmShellWebAppBasePath>./</WasmShellWebAppBasePath>
+    <!-- GitHub Pages does not provide cross-origin isolation headers. -->
+    <WasmEnableThreads>false</WasmEnableThreads>
     <WasmShellEnableIDBFS>true</WasmShellEnableIDBFS>
     <WasmShellMonoRuntimeExecutionMode Condition="'$(WasmShellMonoRuntimeExecutionMode)' == ''">Interpreter</WasmShellMonoRuntimeExecutionMode>
     <!-- SVG.NET discovers element and attribute converters through reflection.
