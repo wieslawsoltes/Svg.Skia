@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.d05433ba2f1e5c3bb3040e12427c7b5a.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-511,menu-id-menu-493,menu-id-menu-353' data-lunet-menu-active='menu-item-menu-516,menu-item-menu-511,menu-item-menu-493,menu-item-menu-353,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.0a283427a565c8785d725c16350e8790.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-511,menu-id-menu-493,menu-id-menu-353' data-lunet-menu-active='menu-item-menu-516,menu-item-menu-511,menu-item-menu-493,menu-item-menu-353,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -157,7 +157,7 @@
 <div><span class="api-dotnet-label">Assembly</span> Svg.Controls.Skia.Avalonia.dll</div>
 </div>
 <div class="api-dotnet-definition-actions">
-<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/src/Svg.Controls.Skia.Avalonia/SvgSource.cs#L520" target="_blank" rel="noopener">View source</a>
+<a class="api-dotnet-action" href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/src/Svg.Controls.Skia.Avalonia/SvgSource.cs#L525" target="_blank" rel="noopener">View source</a>
 </div>
 </div>
 </div>
@@ -186,6 +186,10 @@ Loads svg source from file or resource asynchronously.</p>
 <div class="api-dotnet-parameter">
 <dl class="api-dotnet-parameter-list"><dt><a href="https://docs.microsoft.com/en-us/dotnet/api/System.Threading.Tasks.Task-1">Task&lt;SvgSource&gt;</a></dt><dd>The svg source.</dd></dl>
 </div>
+<h2 id="remarks">Remarks</h2>
+<p>Avalonia assets are resolved and opened on the calling thread before SVG parsing is
+dispatched to a worker. Invoke this method on the UI thread when sharing Avalonia's
+asset loader with controls; it does not require an additional <a href="https://docs.microsoft.com/en-us/dotnet/api/System.Threading.Tasks.Task.Run-System.Action">System.Threading.Tasks.Task.Run(System.Action)</a>.</p>
 </div>
 
       </div>

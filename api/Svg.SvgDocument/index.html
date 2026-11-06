@@ -98,7 +98,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.d05433ba2f1e5c3bb3040e12427c7b5a.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-1968,menu-id-menu-1655' data-lunet-menu-active='menu-item-menu-1968,menu-item-menu-1655,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-menu.0a283427a565c8785d725c16350e8790.html' data-lunet-menu-open='menu-id-menu-0,menu-id-menu-1968,menu-id-menu-1655' data-lunet-menu-active='menu-item-menu-1968,menu-item-menu-1655,menu-item-menu-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
         </div>
       </nav>
       <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
@@ -296,12 +296,10 @@
 </ul>
 </details>
 </div>
-<p>Svg.Custom exposes the URI-based lookup surface that the SVG sources already implement
-internally via <a href="/Svg.Skia/api/Svg.SvgElementIdManager/">SvgElementIdManager</a>.</p>
-<p>The original submodule-side fix added these overloads directly to <a href="/Svg.Skia/api/Svg.SvgDocument/">SvgDocument</a>
-so retained-scene code could resolve references like <code>file.svg#id</code> without falling
-back to string-only lookups. Keeping the overloads in a partial class preserves the same
-forwarding behavior while avoiding a public-API delta in the externals/SVG checkout.</p>
+<p>The class used to create and load SVG documents.</p>
+<p>Svg.Custom retains the upstream public loading APIs while rejecting excessive
+input depth before tree construction, style flushing, or ExCSS can recurse.
+Keep these checks aligned with SvgDocumentCompatibilityLoader.</p>
 <pre><code class="language-csharp">public class SvgDocument : SvgFragment, ISvgElement, ISvgTransformable, ICloneable, ISvgNode, ISvgViewPort, ITypeDescriptorContext, IServiceProvider
 </code></pre>
 <div class="api-dotnet-member-filter" data-api-dotnet-filter>
