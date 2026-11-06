@@ -84,6 +84,8 @@ public partial class SKSvg : IDisposable
 
     public static SkiaSharp.SKPicture? ToPicture(SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
+        using var processingScope = SvgProcessingLimits.Enter("SVG picture creation");
+        SvgProcessingLimits.ValidateElementTree(svgFragment);
         using var documentFontScope = PushDocumentFonts(svgFragment as SvgDocument ?? svgFragment.OwnerDocument, assetLoader);
         var picture = SvgSceneRuntime.CreateModel(
             svgFragment,
@@ -95,6 +97,8 @@ public partial class SKSvg : IDisposable
 
     public static void Draw(SkiaSharp.SKCanvas skCanvas, SvgFragment svgFragment, SkiaModel skiaModel, ISvgAssetLoader assetLoader)
     {
+        using var processingScope = SvgProcessingLimits.Enter("SVG drawing");
+        SvgProcessingLimits.ValidateElementTree(svgFragment);
         using var documentFontScope = PushDocumentFonts(svgFragment as SvgDocument ?? svgFragment.OwnerDocument, assetLoader);
         var picture = SvgSceneRuntime.CreateModel(
             svgFragment,
@@ -878,10 +882,15 @@ public partial class SKSvg : IDisposable
 
     private SkiaSharp.SKPicture? LoadSvgDocument(SvgDocument? svgDocument, Uri? baseUri = null)
     {
+        using var processingScope = SvgProcessingLimits.Enter("SVG document loading");
         if (svgDocument is null)
         {
             return null;
         }
+
+        // Documents supplied by callers need the same boundary as parsed XML,
+        // before animation, script, font, or retained-scene traversals begin.
+        SvgProcessingLimits.ValidateElementTree(svgDocument);
 
         if (AssetLoader is ISvgDocumentFontLoader fontLoader)
         {
@@ -1381,6 +1390,7 @@ public partial class SKSvg : IDisposable
 
     private SkiaSharp.SKPicture? RenderSvgDocument(SvgDocument svgDocument, bool invalidateRetainedSceneGraph = true)
     {
+        using var processingScope = SvgProcessingLimits.Enter("SVG document rendering");
         DisableAnimationLayerCaching();
 
         if (!SvgSceneRuntime.TryCompile(svgDocument, AssetLoader, _ignoreAttributes, GetStandaloneViewport(), out var sceneDocument) ||
@@ -2896,6 +2906,7 @@ public partial class SKSvg : IDisposable
 
     private bool RenderAnimationFrame(SvgAnimationFrameState frameState, bool raiseInvalidation, bool bypassThrottle)
     {
+        using var processingScope = SvgProcessingLimits.Enter("SVG animation frame");
         if (SourceDocument is null || AnimationController is null)
         {
             return false;

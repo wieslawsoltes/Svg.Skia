@@ -387,6 +387,7 @@ public sealed class SvgSceneResource
 
     private static bool HasClipGeometry(ClipPath? clipPath)
     {
+        using var processingScope = SvgProcessingLimits.Enter("clip path processing");
         if (clipPath is null)
         {
             return false;

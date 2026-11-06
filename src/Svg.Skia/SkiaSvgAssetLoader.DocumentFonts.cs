@@ -103,6 +103,7 @@ public partial class SkiaSvgAssetLoader : ISvgDocumentFontLoader
             throw new ArgumentNullException(nameof(document));
         }
 
+        SvgProcessingLimits.ValidateElementTree(document);
         var provider = CreateDocumentFontProvider(document);
         lock (_documentFontsLock)
         {

@@ -427,6 +427,7 @@ internal static partial class SvgSceneTextCompiler
 
     private static bool ContainsUnsupportedSharedInlineSizeTextLayoutContent(SvgElement element)
     {
+        using var processingScope = SvgProcessingLimits.Enter("text layout traversal");
         foreach (var node in GetContentNodes(element))
         {
             switch (node)
@@ -451,6 +452,7 @@ internal static partial class SvgSceneTextCompiler
 
     private static bool ContainsDescendantTextLengthAdjustment(SvgElement element)
     {
+        using var processingScope = SvgProcessingLimits.Enter("text layout traversal");
         foreach (var node in GetContentNodes(element))
         {
             if (node is not SvgTextBase textBase)

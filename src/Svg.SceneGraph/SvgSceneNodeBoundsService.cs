@@ -7,6 +7,7 @@ internal static class SvgSceneNodeBoundsService
 {
     public static SKRect GetRenderableBounds(SvgSceneNode? node)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene bounds traversal");
         if (node is null)
         {
             return SKRect.Empty;
@@ -23,6 +24,7 @@ internal static class SvgSceneNodeBoundsService
 
     public static SKRect GetRenderablePaintBounds(SvgSceneNode? node)
     {
+        using var processingScope = SvgProcessingLimits.Enter("scene bounds traversal");
         if (node is null)
         {
             return SKRect.Empty;

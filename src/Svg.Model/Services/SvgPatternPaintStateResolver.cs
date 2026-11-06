@@ -210,6 +210,7 @@ internal static class SvgPatternPaintStateResolver
                 break;
             }
 
+            SvgProcessingLimits.CheckDepth(svgPatternServers.Count + 1, SvgProcessingLimits.MaximumReferenceDepth, "pattern reference nesting");
             svgPatternServers.Add(currentPatternServer);
             currentPatternServer = SvgDeferredPaintServer.TryGet<SvgPatternServer>(currentPatternServer.InheritGradient, svgVisualElement);
         } while (currentPatternServer is { });

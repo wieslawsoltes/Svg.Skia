@@ -1215,6 +1215,7 @@ internal static partial class SvgSceneTextCompiler
 
     private static bool ContainsInlineSizeTextContentMetricBarrier(SvgTextBase svgTextBase, bool canIgnoreOwnTextLength)
     {
+        using var processingScope = SvgProcessingLimits.Enter("text metrics traversal");
         if (HasOwnTextLengthAdjustment(svgTextBase) && !canIgnoreOwnTextLength)
         {
             return true;
@@ -1428,6 +1429,7 @@ internal static partial class SvgSceneTextCompiler
         bool trimLeadingWhitespaceAtStart,
         out List<SequentialTextContentRun> runs)
     {
+        using var processingScope = SvgProcessingLimits.Enter("text metrics traversal");
         runs = new List<SequentialTextContentRun>();
         var trimLeadingWhitespace = trimLeadingWhitespaceAtStart;
         var previousEndedWithSpace = false;
@@ -1454,6 +1456,7 @@ internal static partial class SvgSceneTextCompiler
         ref bool previousEndedWithSpace,
         RotationState? rotationState)
     {
+        using var processingScope = SvgProcessingLimits.Enter("text metrics traversal");
         var contentNodeList = ToContentNodeList(contentNodes);
         for (var nodeIndex = 0; nodeIndex < contentNodeList.Count; nodeIndex++)
         {
@@ -1603,6 +1606,7 @@ internal static partial class SvgSceneTextCompiler
         AbsolutePositionState? absolutePositionState,
         SvgTextContentMetricsBuilder builder)
     {
+        using var processingScope = SvgProcessingLimits.Enter("text metrics traversal");
         var contentNodeList = ToContentNodeList(contentNodes);
         for (var nodeIndex = 0; nodeIndex < contentNodeList.Count; nodeIndex++)
         {

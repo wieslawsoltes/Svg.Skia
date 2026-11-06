@@ -15,12 +15,15 @@ internal sealed class SvgInlineStyleAttributeParser
 
     public void ApplyStyles(SvgElement element, string styleText)
     {
+        SvgCssInputGuard.ValidateDeclarationList(styleText);
         if (TryApplyInlineDeclarations(element, styleText))
         {
             return;
         }
 
-        var inlineSheet = stylesheetParser.Parse("#a{" + styleText + "}");
+        var stylesheetText = "#a{" + styleText + "}";
+        SvgCssInputGuard.ValidateStylesheet(stylesheetText);
+        var inlineSheet = stylesheetParser.Parse(stylesheetText);
         foreach (var rule in inlineSheet.StyleRules)
         {
             foreach (var declaration in rule.Style)

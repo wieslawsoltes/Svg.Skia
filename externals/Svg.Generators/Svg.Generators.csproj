@@ -24,6 +24,8 @@
 
     <ItemGroup>
       <Compile Include="$(GeneratorsBasePath)\**\*.cs" Exclude="$(GeneratorsBasePath)\Properties\**;$(GeneratorsBasePath)\obj\**;$(GeneratorsBasePath)\bin\**" />
+      <!-- Keep resource-limit exceptions visible through generated attribute setters. -->
+      <Compile Remove="$(GeneratorsBasePath)\AvailableElementsGenerator.cs" />
     </ItemGroup>
   
     <ItemGroup>

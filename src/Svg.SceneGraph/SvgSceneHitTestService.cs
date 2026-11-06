@@ -518,6 +518,7 @@ internal static class SvgSceneHitTestService
 
         public SKRect GetSubtreeHitTestBounds(SvgSceneNode node)
         {
+            using var processingScope = SvgProcessingLimits.Enter("scene hit testing");
             if (_subtreeHitTestBounds.TryGetValue(node, out var cachedBounds))
             {
                 return cachedBounds;

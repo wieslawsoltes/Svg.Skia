@@ -930,6 +930,7 @@ public partial class SkiaModel
 
     public SkiaSharp.SKShader? ToSKShader(SKShader? shader)
     {
+        using var processingScope = SvgProcessingLimits.Enter("native picture conversion");
         switch (shader)
         {
             case ColorShader colorShader:
@@ -1163,6 +1164,7 @@ public partial class SkiaModel
 
     public SkiaSharp.SKImageFilter? ToSKImageFilter(SKImageFilter? imageFilter)
     {
+        using var processingScope = SvgProcessingLimits.Enter("native picture conversion");
         switch (imageFilter)
         {
             case ArithmeticImageFilter arithmeticImageFilter:
@@ -1670,6 +1672,7 @@ public partial class SkiaModel
 
     public SkiaSharp.SKPaint? ToSKPaint(SKPaint? paint)
     {
+        using var processingScope = SvgProcessingLimits.Enter("native picture conversion");
         if (paint is null)
         {
             return null;
@@ -2189,6 +2192,7 @@ public partial class SkiaModel
 
     public SkiaSharp.SKPath? ToSKPath(ClipPath? clipPath)
     {
+        using var processingScope = SvgProcessingLimits.Enter("native clip path conversion");
         if (clipPath?.Clips is null)
         {
             return null;
@@ -2250,6 +2254,7 @@ public partial class SkiaModel
 
     public SkiaSharp.SKPicture? ToSKPicture(SKPicture? picture)
     {
+        using var processingScope = SvgProcessingLimits.Enter("native picture conversion");
         if (picture is null)
         {
             return null;
@@ -2813,6 +2818,7 @@ public partial class SkiaModel
         bool wireframe = false,
         DrawPictureState? state = null)
     {
+        using var processingScope = SvgProcessingLimits.Enter("native picture conversion");
         var commands = picture.Commands;
         if (commands is null)
         {

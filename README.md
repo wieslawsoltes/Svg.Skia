@@ -68,6 +68,9 @@ browser-compatible SVG 2 static features on top. Detailed reference articles
 are available for [SVG 1.1 static subset support](site/articles/reference/svg-11-static-subset-support.md)
 and [SVG 2 static subset support](site/articles/reference/svg-2-static-subset-support.md).
 
+See [input depth and stack safety](docs/input-stack-safety.md) for the supported
+processing limits and how to handle `SvgProcessingLimitException`.
+
 | Area | SVG 1.1 static support | SVG 2 static subset support |
 | --- | --- | --- |
 | Document model and loading | Parses and preserves core SVG documents, nested fragments, groups, definitions, symbols, use references, images, metadata, and compatibility attributes. | Adds processing mode and external-resource policy contracts through `SvgDocumentLoadOptions` and `SvgParameters`, including secure static resource behavior in covered paths. |
