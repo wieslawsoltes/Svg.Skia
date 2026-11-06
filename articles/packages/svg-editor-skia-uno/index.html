@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html data-lunet-theme-mode="system" data-lunet-theme-storage-key="lunet-theme" data-lunet-css-prefix="lunet" lang="en" itemscope itemtype="http://schema.org/WebPage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="lunet 1.0.10.0">
+    <script>(function(){const root=document.documentElement;const key=root.getAttribute("data-lunet-theme-storage-key")||"lunet-theme";const fallback=root.getAttribute("data-lunet-theme-mode")||"system";let stored=null;try{stored=localStorage.getItem(key);}catch(_){stored=null;}const mode=(stored==="light"||stored==="dark"||stored==="system")?stored:fallback;const prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;const resolved=mode==="system"?(prefersDark?"dark":"light"):mode;root.setAttribute("data-lunet-theme-mode",mode);root.setAttribute("data-bs-theme",resolved);}());</script>
+    <link rel='icon' href='/Svg.Skia/favicon.ico' sizes='32x32'>
+    <title>Svg.Editor.Skia.Uno | Svg.Skia</title>
+    <link rel="stylesheet" href="/Svg.Skia/css/lite.css">
+    <script src="/Svg.Skia/js/lite-defer.js" defer></script>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@wieslawsoltes">
+<meta name="twitter:title" content="Svg.Editor.Skia.Uno | Svg.Skia">
+<meta name="twitter:description" content="Svg.Editor.Skia.Uno Svg.Editor.Skia.Uno contains the Uno Platform workspace and direct Skia editing canvas used by UnoDraw. It uses the same SVG DOM, geometry services and Svg.Skia renderer as the rest of the repository. The document stays editable SVG throughout open, edit, undo and save. Reference the library The library targets net10.0 and uses the repository's Uno SDK configuration. The UnoDraw application targets...">
+<meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta name="twitter:image:alt" content="Svg.Editor.Skia.Uno | Svg.Skia">
+<meta property="og:title" content="Svg.Editor.Skia.Uno | Svg.Skia">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
+<meta property="og:description" content="Svg.Editor.Skia.Uno Svg.Editor.Skia.Uno contains the Uno Platform workspace and direct Skia editing canvas used by UnoDraw. It uses the same SVG DOM, geometry services and Svg.Skia renderer as the rest of the repository. The document stays editable SVG throughout open, edit, undo and save. Reference the library The library targets net10.0 and uses the repository's Uno SDK configuration. The UnoDraw application targets...">
+<meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
+<meta property="og:image:alt" content="Svg.Editor.Skia.Uno | Svg.Skia">
+  </head>
+  <body>
+
+    <div id="lunet" class="container">
+      <nav class="navbar navbar-expand-md sticky-top">
+        <a class="navbar-brand" href="/Svg.Skia/">
+          <img class="lunet-logo" src="/Svg.Skia/images/logo.svg" alt="Svg.Skia" width="96" height="96">
+          <span class="visually-hidden">Home</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse justify-content-between">
+<ol id='nav-id-home-0' class='navbar-nav nav-level0 show '>
+  <li id='nav-item-home-1' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/' class='nav-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a></span>  </li>
+  <li id='nav-item-home-2' class='nav-item  active'>
+    <span class='nav-item-row'><a href='/Svg.Skia/articles/' class='nav-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a></span>  </li>
+  <li id='nav-item-home-3' class='nav-item '>
+    <span class='nav-item-row'><a href='/Svg.Skia/api/' class='nav-link  '><i class='bi bi-braces' aria-hidden='true'></i> API</a></span>  </li>
+</ol>
+          <ol class="navbar-nav flex-grow-1" style="padding-right: 0.5rem;">
+            <li class="nav-item w-100">
+                <div class="lunet-search dropdown w-100">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search-input" type="search" class="form-control" placeholder="Search... (Alt+s)" aria-label="Search" aria-controls="search-results" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-search-empty-message="Enter words to search..." data-search-no-results-message="No results found.">
+                    <ul id="search-results" class="dropdown-menu w-100 p-0" style="max-height: 50vh;" role="listbox" aria-labelledby="search-input"></ul>
+                  </div>
+                </div>
+            </li>
+          </ol>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0 navbar-right">
+            <div class="dropdown">
+              <button
+                id="theme-mode-toggle"
+                class="btn btn-outline-secondary btn-sm lunet-theme-toggle dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="Theme">
+                <i class="bi bi-circle-half" data-lunet-theme-toggle-icon aria-hidden="true"></i>
+                <span
+                  data-lunet-theme-toggle-label
+                  data-theme-system-label="System"
+                  data-theme-light-label="Light"
+                  data-theme-dark-label="Dark">Theme</span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="theme-mode-toggle">
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="system"><i class="bi bi-circle-half me-2"></i>System</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="light"><i class="bi bi-sun-fill me-2"></i>Light</button></li>
+                <li><button class="dropdown-item" type="button" data-lunet-theme-choice="dark"><i class="bi bi-moon-stars-fill me-2"></i>Dark</button></li>
+              </ul>
+            </div>
+<ol id='nav-id-home2-0' class='navbar-nav nav-level0 show flex-shrink-0'>
+  <li id='nav-item-home2-1' class='nav-item '>
+    <span class='nav-item-row'><a href='https://github.com/wieslawsoltes/Svg.Skia' class='nav-link  btn btn-info'><i class="bi bi-github"></i> GitHub</a></span>  </li>
+</ol>
+          </div>
+        </div>
+      </nav>
+      <div class="lunet lunet-articles">
+        <section data-prismjs-copy="" data-prismjs-copy-success="" data-prismjs-copy-timeout="1200" data-copy-tooltip="Copy to Clipboard." data-copy-tooltip-success="Copied!" data-copy-tooltip-error="Failed to copy!">
+
+<div class="container-xxl">
+  <div class="row">
+      <!-- Left sidebar - responsive offcanvas (offcanvas on mobile, visible sidebar on md+) -->
+      <nav id="docs-sidebar-menu" class="col-md-3 col-lg-3 col-xl-3 col-xxl-2 offcanvas-md offcanvas-start sticky-md-top menu-sidebar align-self-start order-1 order-md-0" tabindex="-1" aria-labelledby="docs-sidebar-menu-label" aria-expanded="true">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="docs-sidebar-menu-label">Menu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#docs-sidebar-menu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <div class='lunet-menu-async' data-lunet-menu-partial='/Svg.Skia/partials/menus/menu-packages.c6d6dd8466af03dea3f176be02c885fc.html' data-lunet-menu-open='menu-id-packages-0' data-lunet-menu-active='menu-item-packages-20,menu-item-packages-0'><div class='menu-loading text-body-secondary small'>Loading menu…</div></div>
+        </div>
+      </nav>
+      <!-- Right sidebar (TOC) - collapsible on mobile, visible sidebar on xxl+ -->
+      <aside id="docs-sidebar-toc" class="col-12 col-xxl-2 sticky-xxl-top menu-sidebar align-self-start order-0 order-xxl-2 collapse d-xxl-block" aria-expanded="true">
+        <h3 class="toc-title">On this page</h3>
+        <nav class="js-toc"></nav>
+      </aside>
+      <!-- Main content column -->
+      <div class="col-12 col-md-9 col-lg-9 col-xl-9 col-xxl-8 order-2 order-md-1 js-toc-content">
+        <ol class='breadcrumb'>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/' class='breadcrumb-link  '><i class='bi bi-house-door' aria-hidden='true'></i> Home</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/' class='breadcrumb-link  '><i class='bi bi-book' aria-hidden='true'></i> Docs</a>  </li>
+          <li class='breadcrumb-item '>
+            <a href='/Svg.Skia/articles/packages/' class='breadcrumb-link  '>Packages</a>  </li>
+          <li class='breadcrumb-item  active'>
+            Svg.Editor.Skia.Uno  </li>
+        </ol>
+
+        <p id="lunet-results"></p>
+        <!-- Toggle buttons visible only on small screens -->
+        <div class="d-md-none mb-3">
+          <button
+            class="btn btn-outline-secondary btn-sm me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#docs-sidebar-menu"
+            aria-controls="docs-sidebar-menu"
+            aria-label="Toggle docs menu">
+            Menu
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm d-xxl-none"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#docs-sidebar-toc"
+            aria-controls="docs-sidebar-toc"
+            aria-expanded="false"
+            aria-label="Toggle Table Of Contents">
+            On this page
+          </button>
+        </div>
+<!-- lunet:summarize -->
+<h1 id="svgeditorskiauno">Svg.Editor.Skia.Uno</h1>
+<p><code>Svg.Editor.Skia.Uno</code> contains the Uno Platform workspace and direct Skia editing canvas used by UnoDraw. It uses the same SVG DOM, geometry services and Svg.Skia renderer as the rest of the repository. The document stays editable SVG throughout open, edit, undo and save.</p>
+<h2 id="reference-the-library">Reference the library</h2>
+<p>The library targets <code>net10.0</code> and uses the repository's Uno SDK configuration. The UnoDraw application targets <code>net10.0-desktop</code> for Windows, macOS and Linux/X11; it does not require Android or iOS workloads.</p>
+<p>While developing against this repository, reference the project from an Uno application:</p>
+<pre><code class="language-xml">&lt;ItemGroup&gt;
+  &lt;ProjectReference Include=&quot;..\..\src\Svg.Editor.Skia.Uno\Svg.Editor.Skia.Uno.csproj&quot; /&gt;
+&lt;/ItemGroup&gt;
+</code></pre>
+<p>Use <code>samples/UnoDraw/UnoDraw.csproj</code> as the reference for the desktop host and matching SkiaSharp native assets. The packable library's package ID is <code>Svg.Editor.Skia.Uno</code>.</p>
+<h2 id="choose-this-library-when">Choose this library when</h2>
+<ul>
+<li>You want a tabbed SVG editor workspace in an Uno desktop application.</li>
+<li>You need a canvas with selection, shapes, pen, freehand, text, node editing, pan and zoom.</li>
+<li>You want reusable document transactions and geometry operations that can be tested without opening a window.</li>
+<li>You want native SVG resource preservation and the repository's existing rendering and export support.</li>
+</ul>
+<h2 id="main-types">Main types</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Type</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SvgEditorWorkspace</code></td>
+<td>Document tabs, command search, tool rail, outline, contextual inspector, file workflows and recovery.</td>
+</tr>
+<tr>
+<td><code>SvgEditorCanvas</code></td>
+<td><code>SKCanvasElement</code> surface that draws retained SVG pictures and interactive overlays.</td>
+</tr>
+<tr>
+<td><code>EditorDocument</code></td>
+<td>A tab's controller, file identity, display name and recovery identity.</td>
+</tr>
+<tr>
+<td><code>SvgEditorController</code> from <code>Svg.Editor.Skia</code></td>
+<td>SVG transactions, history, selection, geometry, commands and retained rendering.</td>
+</tr>
+<tr>
+<td><code>SvgEditorViewport</code> from <code>Svg.Editor.Skia</code></td>
+<td>Camera transforms, fitting, pan and cursor-anchored zoom.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="embed-the-workspace">Embed the workspace</h2>
+<p>Use the <code>Svg.Editor.Skia.Uno</code> namespace in Uno XAML:</p>
+<pre><code class="language-xml">&lt;Page
+    xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;
+    xmlns:x=&quot;http://schemas.microsoft.com/winfx/2006/xaml&quot;
+    xmlns:editor=&quot;using:Svg.Editor.Skia.Uno&quot;&gt;
+    &lt;editor:SvgEditorWorkspace x:Name=&quot;EditorWorkspace&quot; /&gt;
+&lt;/Page&gt;
+</code></pre>
+<p>Assign the owning Uno <code>Window</code> to <code>HostWindow</code> before using file commands. The workspace uses it to initialize native picker ownership; UnoDraw sets <code>workspace.HostWindow = _window</code> immediately after creating its window.</p>
+<pre><code class="language-csharp">EditorWorkspace.HostWindow = window;
+</code></pre>
+<p>Once the workspace is loaded, create a document or open an existing file:</p>
+<pre><code class="language-csharp">EditorWorkspace.NewDocument(width: 1200, height: 800);
+// Alternatively:
+await EditorWorkspace.OpenPathAsync(svgPath);
+</code></pre>
+<p>Observe <code>WorkspaceTitleChanged</code> to update the host window title. Await <code>ConfirmCloseAsync()</code> before closing the host window and dispose the workspace after closing has been accepted. The UnoDraw <code>App</code> demonstrates the close guard needed to prevent a second close event from opening another confirmation.</p>
+<h2 id="host-api">Host API</h2>
+<table class="table">
+<thead>
+<tr>
+<th>Member</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Documents</code>, <code>CurrentDocument</code></td>
+<td>Inspect open document tabs and the active tab.</td>
+</tr>
+<tr>
+<td><code>Controller</code></td>
+<td>Access the active document's framework-independent controller.</td>
+</tr>
+<tr>
+<td><code>Surface</code></td>
+<td>Access the interactive canvas and its viewport.</td>
+</tr>
+<tr>
+<td><code>HostWindow</code></td>
+<td>Supply the owning Uno <code>Window</code> for native open/save picker initialization.</td>
+</tr>
+<tr>
+<td><code>NewDocument(width, height)</code></td>
+<td>Create a new SVG artboard.</td>
+</tr>
+<tr>
+<td><code>OpenPathAsync(path, isExample)</code></td>
+<td>Load an SVG/SVGZ file, optionally treating it as an untitled example.</td>
+</tr>
+<tr>
+<td><code>OfferRecoveryAsync()</code></td>
+<td>Offer saved recovery snapshots during startup.</td>
+</tr>
+<tr>
+<td><code>ConfirmCloseAsync()</code></td>
+<td>Resolve unsaved document decisions before closing.</td>
+</tr>
+<tr>
+<td><code>WorkspaceTitleChanged</code></td>
+<td>Receive the active document's title and modified indicator.</td>
+</tr>
+</tbody>
+</table>
+<p>To host only the canvas, assign a <code>SvgEditorController</code> to <code>SvgEditorCanvas.Controller</code>. The host then owns document commands, controller lifetime and its surrounding UI. <code>InteractionFailed</code> reports failed pointer operations after provisional state is cancelled.</p>
+<h2 id="rendering-and-performance">Rendering and performance</h2>
+<p>The canvas replays a cached Svg.Skia <code>SKPicture</code> directly into Uno's Skia surface. Pan, zoom and selection do not reserialize the document or recompile its picture. Document edits invalidate the retained picture; a gesture is committed as one undo transaction.</p>
+<p>Move, resize and rotate gestures replay a cached full-color selection picture with a translucent preview over the original artwork. The snapshot includes ancestor compositing effects and is recorded once at gesture start. Pointer movement changes its transform without rebuilding the SVG. Native polygon/polyline vertices and path nodes remain editable without replacing the original element just to select it.</p>
+<p>The desktop host selects the graphics backend and can fall back to software. Direct canvas integration enables hardware acceleration when the host provides it; confirm the active backend and measure frame timing on the target machine. XML snapshot history and complex SVG filters or external resources still contribute to editing cost.</p>
+<h2 id="coverage-and-existing-integrations">Coverage and existing integrations</h2>
+<p>UnoDraw provides native SVG drawing, selection, arrangement, path commands, resource creation, source/attribute editing, playback and export. Dedicated advanced authoring interfaces do not cover every SVG feature that the renderer can load. Consult the <a href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/docs/unodraw.md">UnoDraw feature coverage guide</a> for the current boundaries and keyboard controls.</p>
+<p><code>Svg.Editor.Avalonia</code> and <code>Svg.Editor.Skia.Avalonia</code> remain separate, supported integration choices. Uno types are not replacements for Avalonia controls inside an Avalonia window.</p>
+<h2 id="related-docs">Related docs</h2>
+<ul>
+<li><a href="/Svg.Skia/articles/editor/architecture">Editor architecture</a></li>
+<li><a href="/Svg.Skia/articles/packages/svg-editor-skia">Svg.Editor.Skia</a></li>
+<li><a href="/Svg.Skia/articles/packages/svg-editor-svg">Svg.Editor.Svg</a></li>
+<li><a href="/Svg.Skia/articles/packages/svg-editor-skia-avalonia">Svg.Editor.Skia.Avalonia</a></li>
+<li><a href="/Svg.Skia/articles/reference/samples-and-tools">Samples and tools</a></li>
+</ul>
+
+      </div>
+  </div>
+</div>
+
+        </section>
+        <footer>
+          <hr>
+          <p>Copyright &copy; 2026, Wieslaw Soltes aka <a href="https://github.com/wieslawsoltes">wieslawsoltes</a> - Content licensed under the Creative Commons <a href="http://creativecommons.org/licenses/by/2.5/">CC BY 2.5</a> | Site generated by <a href="https://github.com/lunet-io/lunet">lunet</a> hosted on <a href="https://pages.github.com/">GitHub Pages</a></p>
+        </footer>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -12,13 +12,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@wieslawsoltes">
 <meta name="twitter:title" content="Editor | Svg.Skia">
-<meta name="twitter:description" content="Editor The Svg.Editor.* packages turn the AvalonDraw sample into a reusable editor stack that host applications can embed whole or in parts. Start here when you want a ready-made editor surface and side-panel workspace inside an Avalonia app, you need reusable SVG mutation, layer, symbol, swatch, and property services, you want editor dialogs and inspectors without taking the full canvas implementation, you are integrating the editor into your own shell...">
+<meta name="twitter:description" content="Editor The Svg.Editor.* packages provide a reusable SVG editor stack that applications can embed whole or in parts. UnoDraw is the desktop sample, built with Uno Platform and a direct Skia canvas. The existing Avalonia workspace and panels remain available for Avalonia integrations. Start here when you want the tabbed UnoDraw workspace inside an Uno desktop app, you want a ready-made editor surface and side-panel workspace inside an Avalonia app,...">
 <meta name="twitter:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta name="twitter:image:alt" content="Editor | Svg.Skia">
 <meta property="og:title" content="Editor | Svg.Skia">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://wieslawsoltes.github.io/Svg.Skia">
-<meta property="og:description" content="Editor The Svg.Editor.* packages turn the AvalonDraw sample into a reusable editor stack that host applications can embed whole or in parts. Start here when you want a ready-made editor surface and side-panel workspace inside an Avalonia app, you need reusable SVG mutation, layer, symbol, swatch, and property services, you want editor dialogs and inspectors without taking the full canvas implementation, you are integrating the editor into your own shell...">
+<meta property="og:description" content="Editor The Svg.Editor.* packages provide a reusable SVG editor stack that applications can embed whole or in parts. UnoDraw is the desktop sample, built with Uno Platform and a direct Skia canvas. The existing Avalonia workspace and panels remain available for Avalonia integrations. Start here when you want the tabbed UnoDraw workspace inside an Uno desktop app, you want a ready-made editor surface and side-panel workspace inside an Avalonia app,...">
 <meta property="og:image" content="https://wieslawsoltes.github.io/Svg.Skia/images/demo.png">
 <meta property="og:image:alt" content="Editor | Svg.Skia">
   </head>
@@ -154,9 +154,10 @@
         </div>
 <!-- lunet:summarize -->
 <h1 id="editor">Editor</h1>
-<p>The <code>Svg.Editor.*</code> packages turn the AvalonDraw sample into a reusable editor stack that host applications can embed whole or in parts.</p>
+<p>The <code>Svg.Editor.*</code> packages provide a reusable SVG editor stack that applications can embed whole or in parts. UnoDraw is the desktop sample, built with Uno Platform and a direct Skia canvas. The existing Avalonia workspace and panels remain available for Avalonia integrations.</p>
 <h2 id="start-here-when">Start here when</h2>
 <ul>
+<li>you want the tabbed UnoDraw workspace inside an Uno desktop app,</li>
 <li>you want a ready-made editor surface and side-panel workspace inside an Avalonia app,</li>
 <li>you need reusable SVG mutation, layer, symbol, swatch, and property services,</li>
 <li>you want editor dialogs and inspectors without taking the full canvas implementation,</li>
@@ -188,13 +189,18 @@
 <td><a href="/Svg.Skia/articles/packages/svg-editor-skia">Svg.Editor.Skia</a></td>
 </tr>
 <tr>
+<td><code>Svg.Editor.Skia.Uno</code></td>
+<td>Direct Skia canvas, tabbed documents, tool controls, inspector and command search used by UnoDraw.</td>
+<td><a href="/Svg.Skia/articles/packages/svg-editor-skia-uno">Svg.Editor.Skia.Uno</a></td>
+</tr>
+<tr>
 <td><code>Svg.Editor.Avalonia</code></td>
 <td>Reusable Avalonia controls, standalone editor views, and dialog/file-dialog abstractions.</td>
 <td><a href="/Svg.Skia/articles/packages/svg-editor-avalonia">Svg.Editor.Avalonia</a></td>
 </tr>
 <tr>
 <td><code>Svg.Editor.Skia.Avalonia</code></td>
-<td>Interactive canvas plus the default composed workspace used by AvalonDraw.</td>
+<td>Interactive Avalonia canvas and composed workspace.</td>
 <td><a href="/Svg.Skia/articles/packages/svg-editor-skia-avalonia">Svg.Editor.Skia.Avalonia</a></td>
 </tr>
 </tbody>
@@ -202,13 +208,14 @@
 <h2 id="recommended-reading-order">Recommended reading order</h2>
 <ol>
 <li><a href="/Svg.Skia/articles/editor/architecture">Architecture</a> for dependency order and package boundaries.</li>
-<li><a href="/Svg.Skia/articles/editor/embedding-workspace">Embedding SvgEditorWorkspace</a> if you want the full editor quickly.</li>
+<li><a href="/Svg.Skia/articles/packages/svg-editor-skia-uno">Uno workspace</a> for UnoDraw, or <a href="/Svg.Skia/articles/editor/embedding-workspace">Embedding SvgEditorWorkspace</a> for the Avalonia workspace.</li>
 <li><a href="/Svg.Skia/articles/editor/composing-panels-and-dialogs">Composing Panels and Dialogs</a> if you are building your own shell.</li>
 <li><a href="/Svg.Skia/articles/editor/rendering-and-svg-services">Rendering and Svg Services</a> if you need lower-level editing services.</li>
 <li><a href="/Svg.Skia/api">API Reference</a> when you want the generated type-level surface for the editor assemblies.</li>
 </ol>
 <h2 id="what-the-sample-still-owns">What the sample still owns</h2>
-<p><code>samples/AvalonDraw</code> remains the desktop host. It now provides branding, the preview window, and the default file-picker/window experience on top of the reusable editor libraries.</p>
+<p><code>samples/UnoDraw</code> provides the desktop window, branding, startup document and close lifecycle. It targets Windows, macOS and Linux/X11 through Uno's <code>net10.0-desktop</code> host. SVG parsing, document transactions, geometry and rendering stay in the reusable libraries.</p>
+<p>The <a href="https://github.com/wieslawsoltes/Svg.Skia/blob/master/docs/unodraw.md">UnoDraw guide</a> records keyboard controls, renderer versus authoring coverage, migration gaps and validation commands.</p>
 <p>If you only need the editor package documentation per NuGet, continue with <a href="/Svg.Skia/articles/packages">Packages</a>. If you want the exact generated API inputs, see <a href="/Svg.Skia/articles/reference/api-coverage-index">API Coverage Index</a>.</p>
 
       </div>
