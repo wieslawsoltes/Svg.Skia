@@ -6,6 +6,8 @@
     <IsPackable>False</IsPackable>
     <Nullable>enable</Nullable>
     <RootNamespace>Avalonia.Svg.Skia.UnitTests</RootNamespace>
+    <!-- Replace IAssetLoader in isolated tests to verify asset-loading thread affinity. -->
+    <AvaloniaAccessUnstablePrivateApis>true</AvaloniaAccessUnstablePrivateApis>
   </PropertyGroup>
 
   <Import Project="..\..\build\ReferenceAssemblies.props" />
