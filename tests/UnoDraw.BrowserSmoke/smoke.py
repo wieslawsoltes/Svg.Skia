@@ -130,7 +130,8 @@ def main() -> int:
             page.on("response", lambda response: report["http_errors"].append({"status": response.status, "url": response.url}) if response.status >= 400 else None)
             page.on("requestfailed", lambda request: report["request_failures"].append({"url": request.url, "failure": request.failure}))
             try:
-                page.goto(url.rstrip("/") + base_path, wait_until="domcontentloaded", timeout=120_000)
+                app_url = url.rstrip("/") + base_path
+                page.goto(app_url, wait_until="domcontentloaded", timeout=120_000)
                 wait_ready(page)
                 if page.evaluate("globalThis.crossOriginIsolated"):
                     raise AssertionError("Smoke server must match GitHub Pages without cross-origin isolation")
@@ -165,6 +166,18 @@ def main() -> int:
                 assert_rendered(reopened)
                 report["checks"].append("Published runtime restarts after page reload")
                 report["canvases"] = page.locator("canvas").evaluate_all("nodes => nodes.map(n => ({width:n.width,height:n.height}))")
+                scopes = page.evaluate("async () => (await navigator.serviceWorker.getRegistrations()).map(r => r.scope)")
+                report["service_worker_scopes"] = scopes
+                if any(not scope.startswith(app_url) for scope in scopes):
+                    raise AssertionError("The application service worker must not control the surrounding documentation")
+                manifest = page.evaluate("""async () => {
+                    const url = document.querySelector('link[rel="manifest"]').href;
+                    const manifest = await (await fetch(url)).json();
+                    return { start: new URL(manifest.start_url, url).href, scope: new URL(manifest.scope, url).href };
+                }""")
+                if manifest["start"] != app_url or manifest["scope"] != app_url:
+                    raise AssertionError(f"PWA manifest must stay inside the application folder: {manifest}")
+                report["checks"].append("PWA start URL, manifest scope and service worker scopes stay inside the application folder")
 
                 errors = [entry for entry in report["console"] if entry["type"] == "error"
                           and urlsplit(entry["location"].get("url", "")).path != "/favicon.ico"]

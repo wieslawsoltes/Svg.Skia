@@ -13,7 +13,9 @@ application under `/Svg.Skia/unodraw/` and the docs at `/Svg.Skia/`.
 The `Docs` workflow builds the documentation and the Release AOT WebAssembly
 package from the same commit. It tests the package at the nested deployment path
 using a static server without cross-origin isolation headers, then publishes both
-outputs together to `gh-pages`. A failed build or browser smoke test leaves the
+outputs together as a GitHub Pages artifact. The repository's Pages publishing
+source must be **GitHub Actions**, rather than a branch, so large AOT files do not
+need to be committed to Git. A failed build or browser smoke test leaves the
 previous deployment in place. Pushes to the default branch deploy automatically;
 `workflow_dispatch` also supports rebuilding that branch. Pull requests only
 build and validate. Desktop and mobile UnoDraw checks remain in the `UnoDraw`

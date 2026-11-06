@@ -127,7 +127,11 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch
     needs: [build, browser-smoke]
     permissions:
-      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -153,8 +157,16 @@ jobs:
           cp -a artifacts/unodraw-browser/wwwroot/. site/.lunet/build/www/unodraw/
           touch site/.lunet/build/www/.nojekyll
 
-      - name: Deploy docs and UnoDraw to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      # AOT WebAssembly binaries can exceed Git's per-file size limit. Publish
+      # the combined static site as a Pages artifact instead of committing it.
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the combined Pages site
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site/.lunet/build/www
+          path: ./site/.lunet/build/www
+
+      - name: Deploy docs and UnoDraw to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
