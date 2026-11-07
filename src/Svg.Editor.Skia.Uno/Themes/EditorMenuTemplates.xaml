@@ -164,12 +164,14 @@
           <VisualState x:Name="PointerOver"><VisualState.Setters>
             <Setter Target="LayoutRoot.Background" Value="{ThemeResource StudioSelection}" />
             <Setter Target="TextBlock.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" />
             <Setter Target="IconContent.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
             <Setter Target="KeyboardAcceleratorTextBlock.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Pressed"><VisualState.Setters>
             <Setter Target="LayoutRoot.Background" Value="{ThemeResource StudioSelection}" />
             <Setter Target="TextBlock.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" />
             <Setter Target="IconContent.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
             <Setter Target="KeyboardAcceleratorTextBlock.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
           </VisualState.Setters></VisualState>

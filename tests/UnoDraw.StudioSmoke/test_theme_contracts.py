@@ -43,6 +43,7 @@ class StudioThemeContracts(unittest.TestCase):
         root = load('Themes/StudioPaletteResources.xaml')
         pairs = [('StudioForegroundColor', 'StudioSurfaceColor'), ('StudioForegroundColor', 'StudioInputColor'),
                  ('StudioMutedColor', 'StudioSurfaceColor'), ('StudioMutedColor', 'StudioInputColor'),
+                 ('StudioHoverForegroundColor', 'StudioHoverColor'),
                  ('StudioSelectionForegroundColor', 'StudioSelectionColor'), ('StudioOnAccentColor', 'StudioAccentColor'),
                  ('StudioDangerColor', 'StudioSurfaceColor')]
         for variant in root.find(XAML + 'ResourceDictionary.ThemeDictionaries'):

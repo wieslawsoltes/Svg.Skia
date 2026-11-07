@@ -11,7 +11,7 @@
           <VisualState x:Name="Normal" />
           <VisualState x:Name="PointerOver"><VisualState.Setters>
             <Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" />
-            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Pressed"><VisualState.Setters>
             <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
@@ -30,7 +30,7 @@
           <VisualState x:Name="Normal" />
           <VisualState x:Name="PointerOver"><VisualState.Setters>
             <Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" />
-            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Pressed"><VisualState.Setters>
             <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
@@ -144,6 +144,9 @@
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Pressed"><VisualState.Setters>
             <Setter Target="Background.Background" Value="{ThemeResource StudioHover}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
+            <Setter Target="PlaceholderTextBlock.Foreground" Value="{ThemeResource StudioHoverForeground}" />
+            <Setter Target="DropDownGlyph.Stroke" Value="{ThemeResource StudioHoverForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Disabled"><VisualState.Setters>
             <Setter Target="Background.Background" Value="{ThemeResource StudioHeader}" />
@@ -378,7 +381,7 @@
           <VisualState x:Name="PointerOver"><VisualState.Setters>
             <Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" />
             <Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioMuted}" />
-            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Pressed"><VisualState.Setters>
             <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />

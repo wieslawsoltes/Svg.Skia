@@ -19,7 +19,7 @@
           </Border>
         </Grid>
       </DataTemplate>
-      <Style x:Key="CommandResultContainer" TargetType="ListViewItem">
+      <Style x:Key="CommandResultContainer" TargetType="ListViewItem" BasedOn="{StaticResource EditorListViewItemStyle}">
         <Setter Property="MinHeight" Value="50" /><Setter Property="Padding" Value="10,2" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="UseSystemFocusVisuals" Value="True" />

@@ -15,6 +15,7 @@
       <Color x:Key="StudioMutedColor">#595959</Color>
       <Color x:Key="StudioDisabledColor">#808080</Color>
       <Color x:Key="StudioHoverColor">#D8D8D8</Color>
+      <Color x:Key="StudioHoverForegroundColor">#242424</Color>
       <Color x:Key="StudioSelectionColor">#C7DDF4</Color>
       <Color x:Key="StudioSelectionForegroundColor">#153D6B</Color>
       <Color x:Key="StudioAccentColor">#2862B0</Color>
@@ -33,6 +34,7 @@
       <Color x:Key="StudioMutedColor">#B8B8B8</Color>
       <Color x:Key="StudioDisabledColor">#858585</Color>
       <Color x:Key="StudioHoverColor">#454545</Color>
+      <Color x:Key="StudioHoverForegroundColor">#ECECEC</Color>
       <Color x:Key="StudioSelectionColor">#464646</Color>
       <Color x:Key="StudioSelectionForegroundColor">#FFFFFF</Color>
       <Color x:Key="StudioAccentColor">#94BFF2</Color>
@@ -51,6 +53,7 @@
       <StaticResource x:Key="StudioMutedColor" ResourceKey="SystemColorWindowTextColor" />
       <StaticResource x:Key="StudioDisabledColor" ResourceKey="SystemColorGrayTextColor" />
       <StaticResource x:Key="StudioHoverColor" ResourceKey="SystemColorHighlightColor" />
+      <StaticResource x:Key="StudioHoverForegroundColor" ResourceKey="SystemColorHighlightTextColor" />
       <StaticResource x:Key="StudioSelectionColor" ResourceKey="SystemColorHighlightColor" />
       <StaticResource x:Key="StudioSelectionForegroundColor" ResourceKey="SystemColorHighlightTextColor" />
       <StaticResource x:Key="StudioAccentColor" ResourceKey="SystemColorHighlightColor" />
@@ -69,6 +72,7 @@
   <SolidColorBrush x:Key="StudioMuted" Color="{ThemeResource StudioMutedColor}" />
   <SolidColorBrush x:Key="StudioDisabled" Color="{ThemeResource StudioDisabledColor}" />
   <SolidColorBrush x:Key="StudioHover" Color="{ThemeResource StudioHoverColor}" />
+  <SolidColorBrush x:Key="StudioHoverForeground" Color="{ThemeResource StudioHoverForegroundColor}" />
   <SolidColorBrush x:Key="StudioSelection" Color="{ThemeResource StudioSelectionColor}" />
   <SolidColorBrush x:Key="StudioSelectionForeground" Color="{ThemeResource StudioSelectionForegroundColor}" />
   <SolidColorBrush x:Key="StudioAccent" Color="{ThemeResource StudioAccentColor}" />

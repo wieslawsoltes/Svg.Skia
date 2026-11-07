@@ -12,11 +12,11 @@
           <VisualState x:Name="Normal" />
           <VisualState x:Name="PointerOver"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioHover}" />
-            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Pressed"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioHover}" />
-            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Selected"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" />
@@ -73,11 +73,11 @@
           <VisualState x:Name="Normal" />
           <VisualState x:Name="PointerOver"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioHover}" />
-            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Pressed"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioHover}" />
-            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Selected"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" />
@@ -142,39 +142,48 @@
           <VisualState x:Name="Normal" />
           <VisualState x:Name="PointerOver"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioHover}" />
-            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
+            <Setter Target="CollapsedGlyph.Stroke" Value="{ThemeResource StudioHoverForeground}" /><Setter Target="ExpandedGlyph.Stroke" Value="{ThemeResource StudioHoverForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Pressed"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioHover}" />
-            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
+            <Setter Target="CollapsedGlyph.Stroke" Value="{ThemeResource StudioHoverForeground}" /><Setter Target="ExpandedGlyph.Stroke" Value="{ThemeResource StudioHoverForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Selected"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" />
             <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+            <Setter Target="CollapsedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="ExpandedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="SelectedUnfocused"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" />
             <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+            <Setter Target="CollapsedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="ExpandedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="SelectedPointerOver"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" />
             <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+            <Setter Target="CollapsedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="ExpandedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="SelectedPressed"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" />
             <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+            <Setter Target="CollapsedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="ExpandedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="PointerOverSelected"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" />
             <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+            <Setter Target="CollapsedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="ExpandedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="PressedSelected"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" />
             <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+            <Setter Target="CollapsedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="ExpandedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="SelectedDisabled"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" />
             <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="CollapsedGlyph.Stroke" Value="{ThemeResource StudioDisabled}" /><Setter Target="ExpandedGlyph.Stroke" Value="{ThemeResource StudioDisabled}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="ReorderedPlaceholder"><VisualState.Setters>
             <Setter Target="ItemContent.Opacity" Value="0" />
@@ -187,7 +196,7 @@
         <VisualStateGroup x:Name="TreeViewMultiSelectStates">
           <VisualState x:Name="TreeViewMultiSelectDisabled" />
           <VisualState x:Name="TreeViewMultiSelectEnabledUnselected"><VisualState.Setters><Setter Target="MultiSelectCheckBox.Visibility" Value="Visible" /></VisualState.Setters></VisualState>
-          <VisualState x:Name="TreeViewMultiSelectEnabledSelected"><VisualState.Setters><Setter Target="MultiSelectCheckBox.Visibility" Value="Visible" /><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="TreeViewMultiSelectEnabledSelected"><VisualState.Setters><Setter Target="MultiSelectCheckBox.Visibility" Value="Visible" /><Setter Target="Root.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="CollapsedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="ExpandedGlyph.Stroke" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
         </VisualStateGroup>
         <VisualStateGroup x:Name="DragStates">
           <VisualState x:Name="NotDragging" />
@@ -202,12 +211,17 @@
         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="20" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
         <CheckBox x:Name="MultiSelectCheckBox" MinWidth="0" MinHeight="0" Width="20" Padding="0" Margin="4,0,2,0" VerticalAlignment="Center" Visibility="Collapsed" IsTabStop="False" AutomationProperties.AccessibilityView="Raw" />
         <Grid x:Name="ExpandCollapseChevron" Grid.Column="1" Background="Transparent" Opacity="{TemplateBinding GlyphOpacity}">
-          <Path Data="M0,0 L4,4 L0,8" Width="4" Height="8" Stroke="{TemplateBinding GlyphBrush}" StrokeThickness="1.1" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="{Binding TreeViewItemTemplateSettings.CollapsedGlyphVisibility, RelativeSource={RelativeSource TemplatedParent}}" />
-          <Path Data="M0,0 L4,4 L8,0" Width="8" Height="4" Stroke="{TemplateBinding GlyphBrush}" StrokeThickness="1.1" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="{Binding TreeViewItemTemplateSettings.ExpandedGlyphVisibility, RelativeSource={RelativeSource TemplatedParent}}" />
+          <Path x:Name="CollapsedGlyph" Data="M0,0 L4,4 L0,8" Width="4" Height="8" Stroke="{TemplateBinding GlyphBrush}" StrokeThickness="1.1" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="{Binding TreeViewItemTemplateSettings.CollapsedGlyphVisibility, RelativeSource={RelativeSource TemplatedParent}}" />
+          <Path x:Name="ExpandedGlyph" Data="M0,0 L4,4 L8,0" Width="8" Height="4" Stroke="{TemplateBinding GlyphBrush}" StrokeThickness="1.1" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="{Binding TreeViewItemTemplateSettings.ExpandedGlyphVisibility, RelativeSource={RelativeSource TemplatedParent}}" />
         </Grid>
         <ContentPresenter x:Name="ContentPresenter" Grid.Column="2" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" ContentTransitions="{TemplateBinding ContentTransitions}" Foreground="{TemplateBinding Foreground}" Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
       </Grid>
     </Grid>
+  </ControlTemplate>
+  <ControlTemplate x:Key="EditorContentControlTemplate" TargetType="ContentControl">
+    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}">
+      <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}" ContentTransitions="{TemplateBinding ContentTransitions}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+    </Border>
   </ControlTemplate>
   <ControlTemplate x:Key="EditorListViewTemplate" TargetType="ListView">
     <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
@@ -223,8 +237,8 @@
     <Border x:Name="Chrome" Background="{TemplateBinding Background}" CornerRadius="1">
       <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
         <VisualState x:Name="Normal" />
-        <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
-        <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
+        <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" /><Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" /></VisualState.Setters></VisualState>
+        <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
         <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" /></VisualState.Setters></VisualState>
       </VisualStateGroup></VisualStateManager.VisualStateGroups>
       <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
@@ -234,8 +248,8 @@
     <Border x:Name="Chrome" Background="{TemplateBinding Background}">
       <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
         <VisualState x:Name="Normal" />
-        <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
-        <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
+        <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" /><Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" /></VisualState.Setters></VisualState>
+        <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
         <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" /></VisualState.Setters></VisualState>
       </VisualStateGroup></VisualStateManager.VisualStateGroups>
       <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
@@ -277,11 +291,11 @@
           <VisualState x:Name="Normal" />
           <VisualState x:Name="PointerOver"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioHover}" />
-            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Pressed"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioHover}" />
-            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
           </VisualState.Setters></VisualState>
           <VisualState x:Name="Selected"><VisualState.Setters>
             <Setter Target="Root.Background" Value="{ThemeResource StudioSurface}" />
@@ -343,16 +357,16 @@
       <Grid.ColumnDefinitions><ColumnDefinition Width="8" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
       <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
         <VisualState x:Name="Normal" />
-        <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
-        <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
+        <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /><Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" /><Setter Target="Chevron.Stroke" Value="{ThemeResource StudioHoverForeground}" /></VisualState.Setters></VisualState>
+        <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /><Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" /><Setter Target="Chevron.Stroke" Value="{ThemeResource StudioHoverForeground}" /></VisualState.Setters></VisualState>
         <VisualState x:Name="Checked"><VisualState.Setters><Setter Target="ChevronRotation.Angle" Value="90" /></VisualState.Setters></VisualState>
-        <VisualState x:Name="CheckedPointerOver"><VisualState.Setters><Setter Target="ChevronRotation.Angle" Value="90" /><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
-        <VisualState x:Name="CheckedPressed"><VisualState.Setters><Setter Target="ChevronRotation.Angle" Value="90" /><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
+        <VisualState x:Name="CheckedPointerOver"><VisualState.Setters><Setter Target="ChevronRotation.Angle" Value="90" /><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /><Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" /><Setter Target="Chevron.Stroke" Value="{ThemeResource StudioHoverForeground}" /></VisualState.Setters></VisualState>
+        <VisualState x:Name="CheckedPressed"><VisualState.Setters><Setter Target="ChevronRotation.Angle" Value="90" /><Setter Target="Root.Background" Value="{ThemeResource StudioHover}" /><Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" /><Setter Target="Chevron.Stroke" Value="{ThemeResource StudioHoverForeground}" /></VisualState.Setters></VisualState>
         <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.5" /></VisualState.Setters></VisualState>
         <VisualState x:Name="CheckedDisabled"><VisualState.Setters><Setter Target="ChevronRotation.Angle" Value="90" /><Setter Target="Root.Opacity" Value="0.5" /></VisualState.Setters></VisualState>
       </VisualStateGroup></VisualStateManager.VisualStateGroups>
-      <Path Data="M0,0 L4,4 L0,8" Width="4" Height="8" Stroke="{ThemeResource StudioMuted}" StrokeThickness="1.2" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"><Path.RenderTransform><RotateTransform x:Name="ChevronRotation" /></Path.RenderTransform></Path>
-      <ContentPresenter Grid.Column="1" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" />
+      <Path x:Name="Chevron" Data="M0,0 L4,4 L0,8" Width="4" Height="8" Stroke="{ThemeResource StudioMuted}" StrokeThickness="1.2" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"><Path.RenderTransform><RotateTransform x:Name="ChevronRotation" /></Path.RenderTransform></Path>
+      <ContentPresenter x:Name="ContentPresenter" Grid.Column="1" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" />
     </Grid>
   </ControlTemplate>
   <ControlTemplate x:Key="EditorExpanderTemplate" TargetType="Expander">

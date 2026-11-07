@@ -18,8 +18,8 @@
     <Grid x:Name="Chrome" Background="Transparent">
       <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
         <VisualState x:Name="Normal" />
-        <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" /></VisualState.Setters></VisualState>
-        <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" /></VisualState.Setters></VisualState>
+        <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioHoverForeground}" /></VisualState.Setters></VisualState>
+        <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /></VisualState.Setters></VisualState>
         <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioDisabled}" /></VisualState.Setters></VisualState>
       </VisualStateGroup></VisualStateManager.VisualStateGroups>
       <ContentPresenter x:Name="Presenter" Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
