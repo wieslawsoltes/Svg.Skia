@@ -107,9 +107,10 @@
   </Style>
   <Style TargetType="local:StudioPaintChip">
     <Setter Property="MinHeight" Value="32" /><Setter Property="MinWidth" Value="68" />
+    <Setter Property="Padding" Value="6,4" /><Setter Property="BorderThickness" Value="1" />
     <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="UseSystemFocusVisuals" Value="True" />
     <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioPaintChip">
-      <Border x:Name="Root" Background="{ThemeResource StudioInputBackground}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="1" CornerRadius="{StaticResource StudioControlRadius}" Padding="6,4">
+      <Border x:Name="Root" Background="{ThemeResource StudioInputBackground}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource StudioControlRadius}" Padding="{TemplateBinding Padding}">
         <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
           <VisualState x:Name="Normal" />
           <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.BorderBrush" Value="{ThemeResource StudioAccent}" /></VisualState.Setters></VisualState>
