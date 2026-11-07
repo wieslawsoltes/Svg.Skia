@@ -30,5 +30,21 @@ public enum SvgEditorInteractionMode
     MagicWand,
     AddAnchor,
     DeleteAnchor,
-    AnchorPoint
+    AnchorPoint,
+    ShapeBuilder,
+    Warp,
+    Twirl,
+    Pucker,
+    Bloat,
+    Scallop,
+    Crystallize,
+    Wrinkle,
+    SymbolSprayer,
+    SymbolShifter,
+    SymbolScruncher,
+    SymbolSizer,
+    SymbolSpinner,
+    SymbolStainer,
+    SymbolScreener,
+    SymbolStyler
 }

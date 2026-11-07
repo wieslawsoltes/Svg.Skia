@@ -130,6 +130,23 @@ public class SvgEditorShortcutProfileTests
     }
 
     [Fact]
+    public void DocumentTabReassignmentUsesItsNewPlatformModifierWithoutFreeingReservedNavigation()
+    {
+        var profile = new SvgEditorShortcutProfile();
+        profile.Clear("next-document");
+        Assert.False(profile.TryAssign("save", SvgEditorShortcutKey.Tab, Primary, out _));
+        Assert.True(profile.TryAssign("next-document", SvgEditorShortcutKey.F6, Primary, out var error), error);
+        Assert.Equal("Cmd+F6", profile.GetShortcutText("next-document", true));
+        Assert.Equal("next-document", profile.Resolve(SvgEditorShortcutKey.F6, Primary, SvgEditorShortcutContext.TextInput)?.CommandId);
+        Assert.Null(profile.Resolve(SvgEditorShortcutKey.Tab, Primary, SvgEditorShortcutContext.TextInput));
+        var restored = SvgEditorShortcutProfile.Parse(profile.Serialize());
+        Assert.True(restored.TryAssign("next-document", SvgEditorShortcutKey.Tab, Primary, out error), error);
+        Assert.Equal("Ctrl+Tab", restored.GetShortcutText("next-document", true));
+        Assert.Equal("next-document", restored.Resolve(SvgEditorShortcutKey.Tab, Primary, SvgEditorShortcutContext.TextInput)?.CommandId);
+        Assert.Null(restored.Resolve(SvgEditorShortcutKey.Tab, Primary, SvgEditorShortcutContext.Blocked));
+    }
+
+    [Fact]
     public void InvalidKeysModifiersAndCommandIdsAreRejectedWithoutMutation()
     {
         var profile = new SvgEditorShortcutProfile();
@@ -147,6 +164,8 @@ public class SvgEditorShortcutProfileTests
     public void AllNumberKeysCanBeAssignedAndRoundTrip(SvgEditorShortcutKey key, string label)
     {
         var profile = new SvgEditorShortcutProfile();
+        if (profile.FindShortcut(key, Primary) is { } original)
+            profile.Clear(original.CommandId);
         Assert.True(profile.TryAssign("duplicate", key, Primary, out var error), error);
         var restored = SvgEditorShortcutProfile.Parse(profile.Serialize());
         Assert.Equal("duplicate", restored.Resolve(key, Primary, SvgEditorShortcutContext.Canvas)?.CommandId);

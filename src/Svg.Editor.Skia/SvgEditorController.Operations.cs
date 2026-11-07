@@ -559,7 +559,7 @@ public sealed partial class SvgEditorController
         target.Color = source.Color;
     }
 
-    private static void PrependTransform(SvgVisualElement element, SK.SKMatrix matrix)
+    private static void PrependTransform(SvgElement element, SK.SKMatrix matrix)
     {
         if (matrix.IsIdentity)
             return;

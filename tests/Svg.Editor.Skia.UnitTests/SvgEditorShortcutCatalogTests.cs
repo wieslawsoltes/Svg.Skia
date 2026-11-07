@@ -45,6 +45,7 @@ public class SvgEditorShortcutCatalogTests
         Assert.Equal("zoom100", Resolve(SvgEditorShortcutKey.Number1, Primary)?.CommandId);
         Assert.Equal("swappaints", Resolve(SvgEditorShortcutKey.X, Shift)?.CommandId);
         Assert.Equal("tool-eraser", Resolve(SvgEditorShortcutKey.E, Shift)?.CommandId);
+        Assert.Equal("tool-warp", Resolve(SvgEditorShortcutKey.R, Shift)?.CommandId);
         Assert.Equal("defaultpaints", Resolve(SvgEditorShortcutKey.D)?.CommandId);
         Assert.Equal("transformagain", Resolve(SvgEditorShortcutKey.D, Primary)?.CommandId);
         Assert.Equal("transparency", Resolve(SvgEditorShortcutKey.D, Primary | Shift)?.CommandId);
@@ -137,6 +138,47 @@ public class SvgEditorShortcutCatalogTests
             Assert.Null(Resolve(shortcut.Key, shortcut.Modifiers, SvgEditorShortcutContext.Blocked));
     }
 
+    [Theory]
+    [InlineData(SvgEditorShortcutContext.Canvas)]
+    [InlineData(SvgEditorShortcutContext.DocumentTree)]
+    [InlineData(SvgEditorShortcutContext.OtherControl)]
+    [InlineData(SvgEditorShortcutContext.TextInput)]
+    public void DocumentTabNavigationWorksAcrossWorkspaceFocusWithoutTakingPlainTab(SvgEditorShortcutContext context)
+    {
+        Assert.Equal("next-document", Resolve(SvgEditorShortcutKey.Tab, Primary, context)?.CommandId);
+        Assert.Equal("previous-document", Resolve(SvgEditorShortcutKey.Tab, Primary | Shift, context)?.CommandId);
+        if (context != SvgEditorShortcutContext.Canvas)
+        {
+            Assert.Null(Resolve(SvgEditorShortcutKey.Tab, context: context));
+            Assert.Null(Resolve(SvgEditorShortcutKey.Tab, Shift, context));
+        }
+        Assert.Null(Resolve(SvgEditorShortcutKey.Tab, Primary | Alt, context));
+        Assert.Null(Resolve(SvgEditorShortcutKey.Tab, Primary, SvgEditorShortcutContext.Blocked));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MacDocumentTabsUsePhysicalControlAndLeaveCommandTabToTheSystem(bool shift)
+    {
+        var expected = Primary | (shift ? Shift : SvgEditorShortcutModifiers.None);
+        Assert.True(SvgEditorShortcutCatalog.TryNormalizeModifiersForKey(SvgEditorShortcutKey.Tab, true,
+            true, shift, false, false, false, out var actual));
+        Assert.Equal(expected, actual);
+        Assert.False(SvgEditorShortcutCatalog.TryNormalizeModifiersForKey(SvgEditorShortcutKey.Tab, true,
+            false, shift, false, true, false, out _));
+        Assert.False(SvgEditorShortcutCatalog.TryNormalizeModifiersForKey(SvgEditorShortcutKey.Tab, true,
+            true, shift, false, true, false, out _));
+        Assert.False(SvgEditorShortcutCatalog.TryNormalizeModifiersForKey(SvgEditorShortcutKey.Tab, true,
+            true, shift, true, false, false, out _));
+        Assert.False(SvgEditorShortcutCatalog.TryNormalizeModifiersForKey(SvgEditorShortcutKey.Tab, true,
+            true, shift, false, false, true, out _));
+        Assert.False(SvgEditorShortcutCatalog.TryNormalizeModifiersForKey(SvgEditorShortcutKey.A, true,
+            true, shift, false, false, false, out _));
+        var id = shift ? "previous-document" : "next-document";
+        Assert.Equal(shift ? "Ctrl+Shift+Tab" : "Ctrl+Tab", SvgEditorShortcutCatalog.GetShortcutText(id, true));
+    }
+
     [Fact]
     public void AmbiguousAltGraphInputCannotInvokeAGlobalAltShortcutFromATextEditor()
     {
@@ -207,8 +249,8 @@ public class SvgEditorShortcutCatalogTests
         Assert.Equal("zoomin", Resolve(SvgEditorShortcutKey.Add, Primary)?.CommandId);
         Assert.Equal("zoomout", Resolve(SvgEditorShortcutKey.Minus, Primary)?.CommandId);
         Assert.Equal("zoomout", Resolve(SvgEditorShortcutKey.Subtract, Primary)?.CommandId);
-        Assert.Null(Resolve(SvgEditorShortcutKey.Equals));
-        Assert.Null(Resolve(SvgEditorShortcutKey.Minus));
+        Assert.Equal("tool-add-anchor", Resolve(SvgEditorShortcutKey.Equals)?.CommandId);
+        Assert.Equal("tool-delete-anchor", Resolve(SvgEditorShortcutKey.Minus)?.CommandId);
     }
 
     [Fact]

@@ -107,7 +107,7 @@ public sealed class SvgEditorShortcut
         var text = string.Empty;
         var plus = Key == SvgEditorShortcutKey.Equals && (Modifiers & SvgEditorShortcutModifiers.Shift) != 0;
         if ((Modifiers & SvgEditorShortcutModifiers.Primary) != 0)
-            text += usesCommandKey ? "Cmd+" : "Ctrl+";
+            text += usesCommandKey && !SvgEditorShortcutCatalog.UsesPhysicalControl(Key, Modifiers) ? "Cmd+" : "Ctrl+";
         if ((Modifiers & SvgEditorShortcutModifiers.Alt) != 0)
             text += usesCommandKey ? "Option+" : "Alt+";
         if ((Modifiers & SvgEditorShortcutModifiers.Shift) != 0 && !plus)
@@ -202,6 +202,30 @@ public static class SvgEditorShortcutCatalog
         return true;
     }
 
+    /// <summary>Document tab navigation uses Control on every desktop platform.</summary>
+    public static bool UsesPhysicalControl(SvgEditorShortcutKey key, SvgEditorShortcutModifiers modifiers)
+        => key == SvgEditorShortcutKey.Tab && modifiers is SvgEditorShortcutModifiers.Primary
+            or (SvgEditorShortcutModifiers.Primary | SvgEditorShortcutModifiers.Shift);
+
+    /// <summary>
+    /// Applies the narrow Control+Tab exception before ordinary modifier normalization.
+    /// Command+Tab remains owned by the operating system; reassigned gestures keep
+    /// their normal platform modifier and native Control text editing remains intact.
+    /// </summary>
+    public static bool TryNormalizeModifiersForKey(SvgEditorShortcutKey key, bool usesCommandKey, bool control,
+        bool shift, bool alt, bool meta, bool altGraph, out SvgEditorShortcutModifiers modifiers)
+    {
+        if (usesCommandKey && key == SvgEditorShortcutKey.Tab && (control || meta))
+        {
+            modifiers = SvgEditorShortcutModifiers.None;
+            if (!control || meta || alt || altGraph)
+                return false;
+            modifiers = SvgEditorShortcutModifiers.Primary | (shift ? SvgEditorShortcutModifiers.Shift : SvgEditorShortcutModifiers.None);
+            return true;
+        }
+        return TryNormalizeModifiers(usesCommandKey, control, shift, alt, meta, altGraph, out modifiers);
+    }
+
     public static SvgEditorNavigationShortcut Navigation(SvgEditorShortcutModifiers modifiers, SvgEditorShortcutContext context)
     {
         if (context != SvgEditorShortcutContext.Canvas)
@@ -257,6 +281,8 @@ public static class SvgEditorShortcutCatalog
         Add("save", SvgEditorShortcutKey.S, primary, app);
         Add("saveas", SvgEditorShortcutKey.S, primary | shift, app);
         Add("close", SvgEditorShortcutKey.W, primary, app);
+        Add("next-document", SvgEditorShortcutKey.Tab, primary, app);
+        Add("previous-document", SvgEditorShortcutKey.Tab, primary | shift, app);
         Add("image", SvgEditorShortcutKey.P, primary | shift, app);
         Add("export", SvgEditorShortcutKey.E, primary | alt, app);
         Add("print", SvgEditorShortcutKey.P, primary, app);
@@ -357,6 +383,7 @@ public static class SvgEditorShortcutCatalog
         Tool("free-transform", SvgEditorShortcutKey.E);
         Tool("scissors", SvgEditorShortcutKey.C);
         Tool("eraser", SvgEditorShortcutKey.E, shift);
+        Tool("warp", SvgEditorShortcutKey.R, shift);
         Tool("gradient", SvgEditorShortcutKey.G);
         Tool("eyedropper", SvgEditorShortcutKey.I);
         Tool("hand", SvgEditorShortcutKey.H);

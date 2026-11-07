@@ -177,6 +177,9 @@ public sealed partial class SvgEditorController
 
     /// <summary>Crops or expands the one SVG artboard without transforming its artwork.</summary>
     public void SetArtboardBounds(SKRect pictureBounds)
+        => SetDocumentViewport(pictureBounds, true);
+
+    private void SetDocumentViewport(SKRect pictureBounds, bool respectLocks)
     {
         ThrowIfDisposed();
         if (Document is not { } document || Renderer.Picture is not { } picture)
@@ -186,7 +189,7 @@ public sealed partial class SvgEditorController
         if (!IsFinite(pictureBounds.Left) || !IsFinite(pictureBounds.Top)
             || !IsFinite(pictureBounds.Right) || !IsFinite(pictureBounds.Bottom))
             throw new ArgumentOutOfRangeException(nameof(pictureBounds));
-        if (IsLocked(document))
+        if (respectLocks && IsLocked(document))
             throw new InvalidOperationException("Unlock the document before changing its artboard.");
         var root = GetSceneNode(document) ?? Renderer.RetainedSceneGraph?.Root;
         var transform = root is not null ? ToMatrix(root.TotalTransform) : SKMatrix.Identity;
@@ -198,8 +201,8 @@ public sealed partial class SvgEditorController
         var old = picture.CullRect;
         ValidatePositive(old.Width, nameof(pictureBounds));
         ValidatePositive(old.Height, nameof(pictureBounds));
-        var width = document.Width.Value * pictureBounds.Width / old.Width;
-        var height = document.Height.Value * pictureBounds.Height / old.Height;
+        var width = document.Width.Type == SvgUnitType.Percentage ? pictureBounds.Width / area.Width * 100 : document.Width.Value * pictureBounds.Width / old.Width;
+        var height = document.Height.Type == SvgUnitType.Percentage ? pictureBounds.Height / area.Height * 100 : document.Height.Value * pictureBounds.Height / old.Height;
         ValidatePositive(width, nameof(pictureBounds));
         ValidatePositive(height, nameof(pictureBounds));
         Execute("Change artboard bounds", () =>
@@ -207,6 +210,21 @@ public sealed partial class SvgEditorController
             document.Width = new SvgUnit(document.Width.Type, width);
             document.Height = new SvgUnit(document.Height.Type, height);
             document.ViewBox = new SvgViewBox(area.Left, area.Top, area.Width, area.Height);
+            // The root may have its own native SVG transform in addition to the
+            // viewport mapping. Reconcile the retained result against the original
+            // total transform so the new viewBox cannot scale that artwork twice.
+            RefreshPicture();
+            var updatedRoot = GetSceneNode(document) ?? Renderer.RetainedSceneGraph?.Root;
+            var updated = updatedRoot is null ? SKMatrix.Identity : ToMatrix(updatedRoot.TotalTransform);
+            if (!updated.TryInvert(out var updatedInverse))
+                throw new InvalidOperationException("The resized document viewport has a singular transform.");
+            var newCull = Renderer.Picture!.CullRect;
+            var desired = Multiply(SKMatrix.CreateTranslation(newCull.Left - pictureBounds.Left, newCull.Top - pictureBounds.Top), transform);
+            var correction = Multiply(desired, updatedInverse);
+            if (Math.Abs(correction.ScaleX - 1) > 0.00001 || Math.Abs(correction.ScaleY - 1) > 0.00001
+                || Math.Abs(correction.TransX) > 0.00001 || Math.Abs(correction.TransY) > 0.00001
+                || Math.Abs(correction.SkewX) > 0.00001 || Math.Abs(correction.SkewY) > 0.00001)
+                PrependTransform(document, correction);
         });
     }
 
