@@ -78,6 +78,36 @@ class EditorSavedDocumentAssertions(unittest.TestCase):
         with self.assertRaises(AssertionError):
             assert_editor_change(self.root, self.baseline, 'artboard')
 
+    def test_artboard_accepts_serialized_svg_number_lists_and_rejects_invalid_geometry(self):
+        views = []
+        for name, x in (('Artboard 1', 0), ('Native board', 1050)):
+            view = ET.SubElement(self.root, SVG + 'view', id='board-' + str(x))
+            view.set('data-unodraw-artboard', 'true')
+            view.set('data-unodraw-name', name)
+            views.append((view, x))
+        self.root.set('width', '2050')
+        for separator in (' ', ',', ', ', ' \t,\n'):
+            with self.subTest(separator=separator):
+                self.root.set('viewBox', separator.join(('0', '0', '2050', '640')))
+                for view, x in views:
+                    view.set('viewBox', separator.join((str(x), '0', '1000', '640')))
+                assert_editor_change(self.root, self.baseline, 'artboard')
+        self.root.set('viewBox', '0, 0, 2050, 640')
+        for view, x in views:
+            view.set('viewBox', f'{x} 0 1000 640')
+        for invalid in ('', '0, 0, 2050', '0, 0, 2050, 640, 1', '0,,0,2050,640',
+                        '0, 0, NaN, 640', '0, 0, 1e999, 640', '0, 0, 1000, 640', '1, 0, 2050, 640'):
+            with self.subTest(invalid=invalid):
+                self.root.set('viewBox', invalid)
+                with self.assertRaises(AssertionError):
+                    assert_editor_change(self.root, self.baseline, 'artboard')
+        self.root.set('viewBox', '0, 0, 2050, 640')
+        for invalid in ('1050, 0, NaN, 640', '1050,,0,1000,640', '1050, 0, 900, 640'):
+            with self.subTest(invalid_view=invalid):
+                views[1][0].set('viewBox', invalid)
+                with self.assertRaises(AssertionError):
+                    assert_editor_change(self.root, self.baseline, 'artboard')
+
 
 if __name__ == '__main__':
     unittest.main()

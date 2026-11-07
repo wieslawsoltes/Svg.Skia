@@ -188,6 +188,7 @@ verify restored-after-editor-workflows
 # Keep two clean production captures for the workspace documentation, after the
 # editing assertions have already proved that the fixture is fully restored.
 command 'Reset workspace'
+command 'tool-select'
 command 'Deselect'
 command 'Properties panel'
 command 'Fit artboard'

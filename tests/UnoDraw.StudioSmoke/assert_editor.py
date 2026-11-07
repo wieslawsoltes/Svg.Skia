@@ -14,6 +14,18 @@ import xml.etree.ElementTree as ET
 from assert_svg import SVG, fixture_objects, presentation_value, semantic
 
 
+def view_box_values(value: str) -> list[float]:
+    # Both native SvgView metadata and SvgDocument serialization are valid SVG:
+    # the former uses spaces, while the latter emits comma/whitespace separators.
+    number = r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?"
+    separator = r"(?:[ \t\r\n]+,?[ \t\r\n]*|,[ \t\r\n]*)"
+    match = re.fullmatch(r"[ \t\r\n]*(" + number + ")" + (separator + "(" + number + ")") * 3 + r"[ \t\r\n]*", value)
+    assert match is not None, ("Expected four SVG viewBox numbers", value)
+    values = [float(part) for part in match.groups()]
+    assert all(math.isfinite(part) for part in values), ("Nonfinite viewBox", value)
+    return values
+
+
 def assert_editor_change(root: ET.Element, baseline: ET.Element, mode: str) -> None:
     fixture_objects(root)
     expected = {element.get("id") for element in baseline if element.get("id")}
@@ -44,8 +56,7 @@ def assert_editor_change(root: ET.Element, baseline: ET.Element, mode: str) -> N
         for view in added:
             assert view.tag == SVG + "view" and view.get("data-unodraw-artboard") == "true"
             names.add(view.get("data-unodraw-name"))
-            dimensions = [float(value) for value in view.get("viewBox", "").split()]
-            assert len(dimensions) == 4 and all(math.isfinite(value) for value in dimensions)
+            dimensions = view_box_values(view.get("viewBox", ""))
             assert dimensions[2] == 1000 and dimensions[3] == 640
             normalized.remove(next(item for item in normalized if item.get("id") == view.get("id")))
         assert "Native board" in names
@@ -54,7 +65,7 @@ def assert_editor_change(root: ET.Element, baseline: ET.Element, mode: str) -> N
         expected_width = 2050 if mode == "artboard" else 3074
         assert float(root.get("width", "nan")) == expected_width
         assert float(root.get("height", "nan")) == 640
-        assert [float(value) for value in root.get("viewBox", "").split()] == [0, 0, expected_width, 640]
+        assert view_box_values(root.get("viewBox", "")) == [0, 0, expected_width, 640]
         for key in ("width", "height", "viewBox"):
             normalized.set(key, baseline.get(key))
     else:
