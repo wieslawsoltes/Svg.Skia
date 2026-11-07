@@ -248,11 +248,73 @@ public class SvgEditorArtboardTests
             using var editor = new SvgEditorController();
             editor.LoadSvg("<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><view id='valid' viewBox='10.5,20.5,30,40' data-unodraw-artboard='true'/><view id='invalid' viewBox='0 0 NaN 10' data-unodraw-artboard='true'/><view id='external' viewBox='0 0 30 40'/></svg>");
             Assert.Equal(new SKRect(10.5f, 20.5f, 40.5f, 60.5f), Assert.Single(editor.GetArtboards()).Bounds);
+            var invalid = editor.Document!.GetElementById("invalid");
             editor.SetArtboardBoundsInRootCoordinates("valid", new SKRect(5.5f, 6.5f, 25.5f, 46.5f));
             Assert.Contains("viewBox=\"5.5 6.5 20 40\"", editor.GetSvg());
-            Assert.NotNull(editor.Document!.GetElementById("external"));
+            Assert.Same(invalid, editor.Document.GetElementById("invalid"));
+            Assert.Equal("0 0 NaN 10", invalid.CustomAttributes["viewBox"]);
+            Assert.NotNull(editor.Document.GetElementById("external"));
         }
         finally { CultureInfo.CurrentCulture = culture; }
+    }
+
+    [Fact]
+    public void ForeignMarkedElementsAndMalformedViewsSurviveFirstNamedCollection()
+    {
+        using var editor = new SvgEditorController();
+        editor.LoadSvg($"<svg xmlns='http://www.w3.org/2000/svg' xmlns:foreign='urn:foreign' width='100' height='100'>"
+            + "<custom id='custom' viewBox='0 0 10 10' data-unodraw-artboard='true'><title>Keep custom content</title></custom>"
+            + "<foreign:view id='foreign' viewBox='0 0 10 10' data-unodraw-artboard='true'><foreign:data>Keep foreign content</foreign:data></foreign:view>"
+            + "<view id='invalid-bounds' viewBox='0 0 NaN 10' data-unodraw-artboard='true' data-payload='keep'/>"
+            + $"<view id='invalid-name' viewBox='0 0 10 10' data-unodraw-artboard='true' data-unodraw-name='{new string('n', 257)}'/>"
+            + "<view viewBox='0 0 10 10' data-unodraw-artboard='true'><desc>Keep unnamed view</desc></view>"
+            + "<rect id='art' x='10' y='10' width='20' height='20'/></svg>");
+        var original = editor.GetSvg();
+        var children = editor.Document!.Children.ToArray();
+        var before = XDocument.Parse(original).Root!.Elements().ToArray();
+        Assert.Equal("custom", Assert.IsType<SvgUnknownElement>(editor.Document.GetElementById("custom")).Name);
+        Assert.IsType<NonSvgElement>(editor.Document.GetElementById("foreign"));
+        Assert.True(Assert.Single(editor.GetArtboards()).IsImplicit);
+
+        var id = editor.AddArtboardInRootCoordinates(new SKRect(20, 20, 70, 80), "Inset");
+        Assert.Equal(2, editor.GetArtboards().Count);
+        Assert.Equal(1, editor.Session.UndoCount);
+        var after = XDocument.Parse(editor.GetSvg()).Root!.Elements().Take(children.Length).ToArray();
+        for (var index = 0; index < children.Length; index++)
+        {
+            Assert.Same(children[index], editor.Document.Children[index]);
+            Assert.True(XNode.DeepEquals(before[index], after[index]));
+        }
+        editor.RenameArtboard(id, "Renamed inset");
+        Assert.Equal(children.Length + 2, editor.Document.Children.Count);
+        editor.Undo();
+        editor.Undo();
+        Assert.Equal(original, editor.GetSvg());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void OverLimitImportedCollectionRejectsEditsWithoutDroppingHiddenRegions(bool throughController)
+    {
+        var views = string.Concat(Enumerable.Range(0, SvgEditorArtboardService.MaximumArtboards + 1)
+            .Select(index => $"<view id='board-{index}' viewBox='0 0 100 100' data-unodraw-artboard='true' data-unodraw-name='Board {index}'/>"));
+        using var editor = new SvgEditorController();
+        editor.LoadSvg("<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'>" + views + "<rect id='art' width='20' height='20'/></svg>");
+        var original = editor.GetSvg();
+        var boards = SvgEditorArtboardService.Read(editor.Document);
+        Assert.Equal(SvgEditorArtboardService.MaximumArtboards, boards.Count);
+        var changed = boards.Select((board, index) => index == 0
+            ? new SvgEditorArtboard(board.Id, "Renamed", board.Bounds) : board).ToArray();
+        if (throughController)
+            Assert.Throws<InvalidOperationException>(() => editor.RenameArtboard(boards[0].Id, "Renamed"));
+        else
+            Assert.Throws<InvalidOperationException>(() => SvgEditorArtboardService.Write(editor.Document!, changed));
+        Assert.Equal(original, editor.GetSvg());
+        Assert.Equal(SvgEditorArtboardService.MaximumArtboards + 1, editor.Document!.Children.OfType<SvgUnknownElement>().Count(element => element.Name == "view"));
+        Assert.NotNull(editor.Document.GetElementById("board-1000"));
+        Assert.False(editor.CanUndo);
+        Assert.False(editor.IsDirty);
     }
 
     private static SKColor[] Pixels(SvgEditorController editor, int width, int height)

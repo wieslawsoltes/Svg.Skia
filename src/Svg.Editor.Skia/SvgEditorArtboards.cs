@@ -31,22 +31,9 @@ public static class SvgEditorArtboardService
 
     public static IReadOnlyList<SvgEditorArtboard> Read(SvgDocument? document)
     {
-        var result = new List<SvgEditorArtboard>();
         if (document is null)
-            return result;
-        var identifiers = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var element in document.Children.Where(IsArtboardView))
-        {
-            if (string.IsNullOrEmpty(element.ID) || !identifiers.Add(element.ID)
-                || !element.TryGetAttribute("viewBox", out var value) || !TryParseBounds(value, out var bounds))
-                continue;
-            var name = element.CustomAttributes.TryGetValue(NameAttribute, out var label) && !string.IsNullOrWhiteSpace(label)
-                ? label : element.Children.OfType<SvgTitle>().FirstOrDefault()?.Content ?? element.ID;
-            result.Add(new SvgEditorArtboard(element.ID, name, bounds));
-            if (result.Count == MaximumArtboards)
-                break;
-        }
-        return result;
+            return Array.Empty<SvgEditorArtboard>();
+        return ReadEntries(document).Take(MaximumArtboards).Select(entry => entry.Artboard).ToArray();
     }
 
     public static void Write(SvgDocument document, IReadOnlyList<SvgEditorArtboard> artboards)
@@ -58,7 +45,12 @@ public static class SvgEditorArtboardService
         if (artboards.Count is < 1 or > MaximumArtboards)
             throw new ArgumentException($"Keep between one and {MaximumArtboards} artboards in a document.", nameof(artboards));
         var identifiers = new HashSet<string>(StringComparer.Ordinal);
-        var old = document.Children.Where(IsArtboardView).ToArray();
+        var existing = ReadEntries(document).Take(MaximumArtboards + 1).ToArray();
+        if (existing.Length > MaximumArtboards)
+            throw new InvalidOperationException($"This document contains more than {MaximumArtboards} artboards. Reduce the collection in SVG source before editing its regions.");
+        // Only the valid entries exposed to the editor belong to this replacement.
+        // Keep malformed, duplicate and foreign metadata that Read did not return.
+        var old = existing.Select(entry => entry.Element).ToArray();
         var outside = new HashSet<string>(document.Descendants().Where(element => !old.Contains(element))
             .Select(element => element.ID).Where(id => !string.IsNullOrEmpty(id)), StringComparer.Ordinal);
         if (!string.IsNullOrEmpty(document.ID))
@@ -97,8 +89,32 @@ public static class SvgEditorArtboardService
         }
     }
 
-    private static bool IsArtboardView(SvgElement element) => element is SvgUnknownElement
+    private static bool IsArtboardView(SvgElement element) => element is SvgUnknownElement { Name: "view" }
         && element.CustomAttributes.TryGetValue(Attribute, out var value) && string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
+
+    private static IEnumerable<(SvgElement Element, SvgEditorArtboard Artboard)> ReadEntries(SvgDocument document)
+    {
+        var identifiers = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var element in document.Children.Where(IsArtboardView))
+        {
+            if (string.IsNullOrEmpty(element.ID)
+                || !element.TryGetAttribute("viewBox", out var value) || !TryParseBounds(value, out var bounds))
+                continue;
+            var name = element.CustomAttributes.TryGetValue(NameAttribute, out var label) && !string.IsNullOrWhiteSpace(label)
+                ? label : element.Children.OfType<SvgTitle>().FirstOrDefault()?.Content;
+            if (string.IsNullOrWhiteSpace(name))
+                name = element.ID;
+            try
+            {
+                XmlConvert.VerifyNCName(element.ID);
+                ValidateName(name);
+            }
+            catch (ArgumentException) { continue; }
+            catch (XmlException) { continue; }
+            if (identifiers.Add(element.ID))
+                yield return (element, new SvgEditorArtboard(element.ID, name, bounds));
+        }
+    }
 
     private static bool TryParseBounds(string value, out SKRect bounds)
     {
