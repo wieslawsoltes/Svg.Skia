@@ -60,7 +60,7 @@ public sealed partial class SvgEditorCanvas
             return;
         var mirrored = new SKPoint(preview.Anchor.X * 2 - handle.X, preview.Anchor.Y * 2 - handle.Y);
         canvas.DrawLine(mirrored, handle, resources.ToolStroke);
-        resources.Fill.Color = SKColors.White;
+        resources.Fill.Color = resources.Handle;
         foreach (var point in new[] { mirrored, handle })
         {
             canvas.DrawCircle(point, (float)(3 / Zoom), resources.Fill);

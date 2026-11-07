@@ -16,7 +16,11 @@ for appearance in light dark; do
     name="$(printf '%02d' "$index")-$(printf '%s' "$panel" | tr ' A-Z' '-a-z')"
     capture "theme-$appearance-$name"
     if [[ "$panel" == 'Transform' ]]; then
+      checkpoint="$(input_checkpoint)"
       xdotool mousemove --window "$window" 1154 164 click 1
+      # Native pointer and keyboard delivery can use separate queues. Prove that
+      # the intended reference control owns focus before sending navigation keys.
+      wait_input "$checkpoint" 'workspace-pointer-up-focus focus=StudioToolButton target=StudioReferencePoint0 '
       xdotool key --clearmodifiers Right Down
       sleep 0.3
       capture "theme-$appearance-transform-keyboard"

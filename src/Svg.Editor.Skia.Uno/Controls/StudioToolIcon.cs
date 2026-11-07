@@ -219,6 +219,91 @@ public sealed class StudioToolIcon : UserControl
                     Box(8, 4, 9, 12);
                     Line(7, 10, 17, 2);
                     break;
+                case "Warp":
+                    Curve(new(2, 4), new(15, 1), new(4, 19), new(18, 16));
+                    Curve(new(2, 10), new(9, 18), new(12, 1), new(18, 10));
+                    break;
+                case "Pucker":
+                case "Bloat":
+                    Circle(10, 10, 3);
+                    for (var index = 0; index < 4; index++)
+                    {
+                        var angle = index * Math.PI / 2;
+                        var inner = new Point(10 + Math.Cos(angle) * 4, 10 + Math.Sin(angle) * 4);
+                        var outer = new Point(10 + Math.Cos(angle) * 9, 10 + Math.Sin(angle) * 9);
+                        Line(inner.X, inner.Y, outer.X, outer.Y);
+                        var tip = Symbol == "Pucker" ? inner : outer;
+                        var offset = Symbol == "Pucker" ? 2 : -2;
+                        Line(tip.X, tip.Y, tip.X + Math.Cos(angle) * offset - Math.Sin(angle) * 2, tip.Y + Math.Sin(angle) * offset + Math.Cos(angle) * 2);
+                        Line(tip.X, tip.Y, tip.X + Math.Cos(angle) * offset + Math.Sin(angle) * 2, tip.Y + Math.Sin(angle) * offset - Math.Cos(angle) * 2);
+                    }
+                    break;
+                case "Scallop":
+                case "Crystallize":
+                case "Wrinkle":
+                    Polygon(Enumerable.Range(0, 32).Select(index =>
+                    {
+                        var angle = index * Math.PI / 16;
+                        var radius = Symbol == "Scallop" ? 6 + 1.5 * Math.Cos(angle * 8)
+                            : Symbol == "Crystallize" ? index % 2 == 0 ? 8 : 3.5 : 6 + Math.Sin(index * 2.4) * 2;
+                        return new Point(10 + radius * Math.Cos(angle), 10 + radius * Math.Sin(angle));
+                    }).ToArray());
+                    break;
+                case "SymbolSprayer":
+                    Box(2, 8, 7, 10);
+                    Box(3, 5, 5, 3);
+                    Line(6, 3, 10, 3);
+                    Line(6, 3, 6, 5);
+                    Circle(13, 4, 1);
+                    Circle(17, 2, 1);
+                    Circle(17, 7, 1);
+                    Circle(14, 10, 1);
+                    Circle(18, 13, 1);
+                    break;
+                case "SymbolShifter":
+                    Circle(5, 14, 3);
+                    Circle(14, 14, 3);
+                    Line(3, 5, 17, 5);
+                    Line(17, 5, 13, 1);
+                    Line(17, 5, 13, 9);
+                    break;
+                case "SymbolScruncher":
+                    Circle(3, 14, 2);
+                    Circle(10, 10, 2);
+                    Circle(17, 14, 2);
+                    Line(2, 3, 7, 7);
+                    Line(18, 3, 13, 7);
+                    Line(7, 7, 3, 7);
+                    Line(13, 7, 17, 7);
+                    break;
+                case "SymbolSizer":
+                    Circle(4, 14, 2);
+                    Circle(13, 10, 6);
+                    Line(10, 10, 16, 10);
+                    Line(13, 7, 13, 13);
+                    break;
+                case "SymbolSpinner":
+                    Circle(10, 11, 4);
+                    Curve(new(3, 9), new(4, 0), new(17, 0), new(18, 9));
+                    Line(18, 9, 18, 4);
+                    Line(18, 9, 13, 9);
+                    break;
+                case "SymbolStainer":
+                    Circle(5, 15, 3);
+                    Polygon(new(6, 11), new(15, 2), new(18, 5), new(9, 14));
+                    Line(12, 3, 17, 8);
+                    break;
+                case "SymbolScreener":
+                    Circle(5, 11, 4);
+                    Circle(13, 11, 4);
+                    Line(13, 7, 13, 15);
+                    Line(15, 8, 15, 14);
+                    break;
+                case "SymbolStyler":
+                    Circle(5, 15, 3);
+                    Polygon(new(5, 9), new(14, 2), new(18, 6), new(11, 13));
+                    Line(5, 9, 11, 13);
+                    break;
                 case "Symbol":
                     Circle(10, 6, 4);
                     Circle(6, 12, 4);

@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Iterator
 from urllib.parse import urlsplit
 
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageStat
 from playwright.sync_api import Page, sync_playwright
 
 
@@ -89,6 +89,29 @@ def changed_pixels(before: Path, after: Path) -> int:
         return sum(count for level, count in enumerate(diff.histogram()) if level > 12)
 
 
+def chrome_brightness(path: Path) -> dict[str, float]:
+    # Empty chrome regions in the 1440x960 desktop layout. Artwork colors,
+    # command-palette rows and caret/focus changes cannot satisfy this assertion.
+    regions = {"menu_strip": (700, 8, 1000, 26), "control_bar": (1040, 42, 1120, 62)}
+    with Image.open(path) as image:
+        if image.size != (1440, 960):
+            raise AssertionError("Theme dispatch must be inspected in the desktop viewport.")
+        return {name: ImageStat.Stat(image.crop(bounds).convert("L")).mean[0] / 255
+                for name, bounds in regions.items()}
+
+
+def wait_for_theme(page: Page, path: Path, light: bool) -> dict[str, float]:
+    deadline = time.monotonic() + 15
+    samples: dict[str, float] = {}
+    while time.monotonic() < deadline:
+        page.screenshot(path=str(path))
+        samples = chrome_brightness(path)
+        if all(value > 0.7 if light else value < 0.3 for value in samples.values()):
+            return samples
+        page.wait_for_timeout(100)
+    raise AssertionError(f"The theme command did not change desktop chrome to {'light' if light else 'dark'}: {samples}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--site", type=Path, required=True, help="Static HTTP document root")
@@ -141,16 +164,31 @@ def main() -> int:
                 assert_rendered(wide)
                 report["checks"].append("Published runtime starts and renders a nonblank desktop workspace")
 
-                page.keyboard.press("Control+k")
+                dark_brightness = chrome_brightness(wide)
+                if not all(value < 0.3 for value in dark_brightness.values()):
+                    raise AssertionError(f"The initial workspace chrome must use the default dark theme: {dark_brightness}")
+                page.keyboard.press("Control+Shift+F12")
                 page.wait_for_timeout(700)
                 palette = output / "02-command-palette.png"
                 page.screenshot(path=str(palette))
                 difference = changed_pixels(wide, palette)
                 if difference < 2000:
                     raise AssertionError(f"Command search did not visibly respond ({difference} changed pixels)")
-                report["checks"].append(f"Ctrl+K produces a visible command-search response ({difference} changed pixels)")
-                page.keyboard.press("Escape")
-                page.wait_for_timeout(500)
+                page.keyboard.type("Use light interface", delay=30)
+                page.keyboard.press("Enter")
+                light_brightness = wait_for_theme(page, output / "02a-command-light-theme.png", light=True)
+                if not all(light_brightness[name] - value > 0.4 for name, value in dark_brightness.items()):
+                    raise AssertionError("The selected theme command did not change both chrome surfaces.")
+                report["checks"].append("Ctrl+Shift+F12 command search executes Use light interface and changes both desktop chrome surfaces from dark to light")
+
+                page.keyboard.press("Control+Shift+F12")
+                page.wait_for_timeout(700)
+                page.keyboard.type("Use dark interface", delay=30)
+                page.keyboard.press("Enter")
+                restored_brightness = wait_for_theme(page, output / "02b-command-dark-theme.png", light=False)
+                report["theme_command_brightness"] = {"initial_dark": dark_brightness,
+                    "command_light": light_brightness, "restored_dark": restored_brightness}
+                report["checks"].append("A second command-search invocation executes Use dark interface and restores dark chrome")
 
                 page.set_viewport_size({"width": 390, "height": 844})
                 wait_ready(page)

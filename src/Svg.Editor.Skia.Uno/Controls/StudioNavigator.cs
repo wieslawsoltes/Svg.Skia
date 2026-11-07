@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
 using Svg.Editor.Skia;
+using Svg.Skia;
 using Uno.WinUI.Graphics2DSK;
 using Windows.Foundation;
 using Windows.System;
@@ -37,6 +38,7 @@ public sealed class StudioNavigator : UserControl, IDisposable
     private readonly Border _frame;
     private readonly SKPaint _paint = new() { IsAntialias = true };
     private SvgEditorController? _controller;
+    private SKSvg? _subscribedRenderer;
     private SvgEditorViewport? _viewport;
     private uint? _pointer;
     private SKPoint _dragOffset;
@@ -58,8 +60,8 @@ public sealed class StudioNavigator : UserControl, IDisposable
         _frame = new Border { BorderThickness = new Thickness(1), Child = _surface };
         Content = _frame;
         AutomationProperties.SetName(this, "Document navigator");
-        AutomationProperties.SetHelpText(this, "Click or drag to move the view. Arrows pan, plus and minus zoom, Home fits the artboard, and Escape cancels a drag.");
-        ToolTipService.SetToolTip(this, "Click or drag to move the view · scroll to zoom · Home fits the artboard");
+        AutomationProperties.SetHelpText(this, "Click or drag to move the view. Arrows pan, plus and minus zoom, Home fits all artboards, and Escape cancels a drag.");
+        ToolTipService.SetToolTip(this, "Click or drag to move the view · scroll to zoom · Home fits all artboards");
         ApplyPalette();
         ActualThemeChanged += OnThemeChanged;
         Loaded += OnLoaded;
@@ -82,7 +84,11 @@ public sealed class StudioNavigator : UserControl, IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (ReferenceEquals(controller, _controller) && ReferenceEquals(viewport, _viewport))
+        {
+            SubscribeRenderer();
+            IsEnabled = controller?.Document is not null && viewport is not null;
             return;
+        }
         EndDrag(false);
         Unsubscribe();
         _controller = controller;
@@ -90,7 +96,7 @@ public sealed class StudioNavigator : UserControl, IDisposable
         if (_controller is not null)
         {
             _controller.Changed += OnSourceChanged;
-            _controller.Renderer.AnimationInvalidated += OnSourceChanged;
+            SubscribeRenderer();
         }
         if (_viewport is not null)
             _viewport.Changed += OnViewportChanged;
@@ -101,12 +107,24 @@ public sealed class StudioNavigator : UserControl, IDisposable
     private void Unsubscribe()
     {
         if (_controller is not null)
-        {
             _controller.Changed -= OnSourceChanged;
-            _controller.Renderer.AnimationInvalidated -= OnSourceChanged;
-        }
+        if (_subscribedRenderer is not null)
+            _subscribedRenderer.AnimationInvalidated -= OnSourceChanged;
+        _subscribedRenderer = null;
         if (_viewport is not null)
             _viewport.Changed -= OnViewportChanged;
+    }
+
+    private void SubscribeRenderer()
+    {
+        var renderer = _controller?.Renderer;
+        if (ReferenceEquals(renderer, _subscribedRenderer))
+            return;
+        if (_subscribedRenderer is not null)
+            _subscribedRenderer.AnimationInvalidated -= OnSourceChanged;
+        _subscribedRenderer = renderer;
+        if (_subscribedRenderer is not null)
+            _subscribedRenderer.AnimationInvalidated += OnSourceChanged;
     }
 
     private void ApplyPalette()
@@ -128,7 +146,9 @@ public sealed class StudioNavigator : UserControl, IDisposable
         overview = default;
         if (_controller?.Renderer.Picture is not { } picture || width <= 16 || height <= 16)
             return false;
-        var bounds = picture.CullRect;
+        var bounds = _controller.GetArtboardsBounds();
+        if (bounds.IsEmpty)
+            bounds = picture.CullRect;
         if (!float.IsFinite(bounds.Left) || !float.IsFinite(bounds.Top)
             || !float.IsFinite(bounds.Width) || !float.IsFinite(bounds.Height) || bounds.Width <= 0 || bounds.Height <= 0)
             return false;
@@ -149,9 +169,11 @@ public sealed class StudioNavigator : UserControl, IDisposable
         if (!TryOverview(area.Width, area.Height, out var overview) || _controller is null)
             return;
         var page = overview.ToView(overview.Bounds);
+        var artboards = _controller.GetArtboards();
         _paint.Style = SKPaintStyle.Fill;
         _paint.Color = SKColors.White;
-        canvas.DrawRect(page, _paint);
+        foreach (var artboard in artboards)
+            canvas.DrawRect(overview.ToView(artboard.Bounds), _paint);
         using (var documentRestore = new SKAutoCanvasRestore(canvas))
         {
             canvas.ClipRect(page);
@@ -162,8 +184,12 @@ public sealed class StudioNavigator : UserControl, IDisposable
         }
         _paint.Style = SKPaintStyle.Stroke;
         _paint.StrokeWidth = 1;
-        _paint.Color = _border;
-        canvas.DrawRect(page, _paint);
+        var active = _controller.ActiveArtboardId;
+        foreach (var artboard in artboards)
+        {
+            _paint.Color = artboard.Id == active ? _accent : _border;
+            canvas.DrawRect(overview.ToView(artboard.Bounds), _paint);
+        }
         if (_viewport is null)
             return;
         var visible = SKRect.Intersect(_viewport.VisibleWorldBounds, overview.Bounds);
@@ -285,8 +311,8 @@ public sealed class StudioNavigator : UserControl, IDisposable
                 _viewport.Pan(0, -step);
                 break;
             case VirtualKey.Home:
-                if (_controller?.Renderer.Picture is { } picture)
-                    _viewport.Fit(picture.CullRect);
+                if (_controller is { } controller)
+                    _viewport.Fit(controller.GetArtboardsBounds());
                 break;
             case VirtualKey.Number0:
                 _viewport.ResetZoom();
@@ -304,7 +330,14 @@ public sealed class StudioNavigator : UserControl, IDisposable
         args.Handled = true;
     }
 
-    private void OnSourceChanged(object? sender, EventArgs args) { if (!_disposed) _surface.Invalidate(); }
+    private void OnSourceChanged(object? sender, EventArgs args)
+    {
+        if (_disposed)
+            return;
+        SubscribeRenderer();
+        IsEnabled = _controller?.Document is not null && _viewport is not null;
+        _surface.Invalidate();
+    }
     private void OnViewportChanged(object? sender, EventArgs args)
     {
         if (_disposed)

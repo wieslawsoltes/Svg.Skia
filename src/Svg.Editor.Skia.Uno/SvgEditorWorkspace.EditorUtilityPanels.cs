@@ -96,7 +96,7 @@ public sealed partial class SvgEditorWorkspace
         AutomationProperties.SetAutomationId(_editorSelectionInfo, "EditorSelectionInfo");
         info.Children.Add(StudioSection("Document", _editorDocumentInfo));
         info.Children.Add(StudioSection("Selection", _editorSelectionInfo));
-        info.Children.Add(StudioPair(ActionButton("artboard", "Artboard size…"), ActionButton("preflight", "Preflight…")));
+        info.Children.Add(StudioPair(ActionButton("artboard", "Document setup…"), ActionButton("preflight", "Preflight…")));
 
         var history = StudioPanel("history", "History");
         _editorHistorySummary = StudioHint(string.Empty);
@@ -350,7 +350,8 @@ public sealed partial class SvgEditorWorkspace
         var description = document.Children.OfType<SvgDescription>().FirstOrDefault()?.Content;
         var information = new StringBuilder()
             .AppendLine(_current?.Name ?? "Untitled.svg")
-            .AppendLine($"Artboard  {document.Width} × {document.Height}")
+            .AppendLine($"SVG page  {document.Width} × {document.Height}")
+            .AppendLine($"Artboards  {controller.GetArtboards().Count}")
             .AppendLine($"ViewBox  {document.ViewBox}")
             .AppendLine($"Root ID  {(string.IsNullOrEmpty(document.ID) ? "none" : document.ID)}")
             .AppendLine()

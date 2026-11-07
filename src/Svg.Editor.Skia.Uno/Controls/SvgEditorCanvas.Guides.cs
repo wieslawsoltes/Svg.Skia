@@ -183,19 +183,19 @@ public sealed partial class SvgEditorCanvas
     {
         RefreshGuideCache();
         resources.Stroke.StrokeWidth = 1;
-        resources.Stroke.Color = new SKColor(62, 207, 218);
+        resources.Stroke.Color = resources.Guide;
         if (GuidesVisible)
             foreach (var guide in _guides)
                 if (guide.Id != _movingGuideId)
                     DrawLine(guide);
         if (_guidePreview is { } preview)
         {
-            resources.Stroke.Color = new SKColor(242, 129, 220);
+            resources.Stroke.Color = resources.GuidePreview;
             DrawLine(preview);
         }
         if (_activePointer is not null && _moved)
         {
-            resources.Stroke.Color = new SKColor(215, 85, 205);
+            resources.Stroke.Color = resources.SmartGuide;
             foreach (var guide in _snapCandidates)
                 if (guide.Id == _snapGuideId || guide.Id == _snapSecondGuideId)
                     DrawLine(guide);

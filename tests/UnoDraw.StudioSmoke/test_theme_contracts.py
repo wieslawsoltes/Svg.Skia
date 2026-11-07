@@ -35,15 +35,21 @@ class StudioThemeContracts(unittest.TestCase):
         for name, variant in variants.items():
             self.assertEqual(expected, {node.get(X + 'Key') for node in variant}, name)
             if name == 'HighContrast':
-                self.assertTrue(all(node.tag == XAML + 'StaticResource' and node.get('ResourceKey', '').startswith('SystemColor') for node in variant))
+                for node in variant:
+                    if node.get(X + 'Key') == 'StudioCanvasShadowColor':
+                        self.assertEqual('#00000000', node.text.strip())
+                    else:
+                        self.assertEqual(XAML + 'StaticResource', node.tag)
+                        self.assertTrue(node.get('ResourceKey', '').startswith('SystemColor'))
             else:
-                self.assertTrue(all(re.fullmatch(r'#[0-9A-Fa-f]{6}', (node.text or '').strip()) for node in variant))
+                self.assertTrue(all(re.fullmatch(r'#(?:[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})', (node.text or '').strip()) for node in variant))
 
     def test_normal_muted_selected_and_primary_text_meet_contrast_budget(self):
         root = load('Themes/StudioPaletteResources.xaml')
         pairs = [('StudioForegroundColor', 'StudioSurfaceColor'), ('StudioForegroundColor', 'StudioInputColor'),
                  ('StudioMutedColor', 'StudioSurfaceColor'), ('StudioMutedColor', 'StudioInputColor'),
                  ('StudioHoverForegroundColor', 'StudioHoverColor'),
+                 ('StudioCanvasLabelColor', 'StudioCanvasColor'), ('StudioRulerForegroundColor', 'StudioHeaderColor'),
                  ('StudioSelectionForegroundColor', 'StudioSelectionColor'), ('StudioOnAccentColor', 'StudioAccentColor'),
                  ('StudioDangerColor', 'StudioSurfaceColor')]
         for variant in root.find(XAML + 'ResourceDictionary.ThemeDictionaries'):

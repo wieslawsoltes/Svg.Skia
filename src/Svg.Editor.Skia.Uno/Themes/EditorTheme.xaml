@@ -236,6 +236,25 @@
     <Setter Property="CheckerBackgroundColor" Value="{ThemeResource StudioSurfaceColor}" />
     <Setter Property="CheckerForegroundColor" Value="{ThemeResource StudioBorderColor}" />
   </Style>
+  <Style TargetType="local:SvgEditorCanvas">
+    <Setter Property="PasteboardBrush" Value="{ThemeResource StudioCanvas}" />
+    <Setter Property="ArtboardLabelBrush" Value="{ThemeResource StudioCanvasLabel}" />
+    <Setter Property="ArtboardOutlineBrush" Value="{ThemeResource StudioCanvasOutline}" />
+    <Setter Property="ArtboardShadowBrush" Value="{ThemeResource StudioCanvasShadow}" />
+    <Setter Property="CanvasAccentBrush" Value="{ThemeResource StudioCanvasAccent}" />
+    <Setter Property="HandleFillBrush" Value="{ThemeResource StudioCanvasHandle}" />
+    <Setter Property="GridLineBrush" Value="{ThemeResource StudioCanvasGrid}" />
+    <Setter Property="GuideLineBrush" Value="{ThemeResource StudioGuide}" />
+    <Setter Property="GuidePreviewBrush" Value="{ThemeResource StudioGuidePreview}" />
+    <Setter Property="SmartGuideBrush" Value="{ThemeResource StudioSmartGuide}" />
+    <Setter Property="CheckerBackgroundBrush" Value="{ThemeResource StudioCanvasCheckerBackground}" />
+    <Setter Property="CheckerForegroundBrush" Value="{ThemeResource StudioCanvasCheckerForeground}" />
+  </Style>
+  <Style TargetType="local:StudioRuler">
+    <Setter Property="BackgroundBrush" Value="{ThemeResource StudioHeader}" />
+    <Setter Property="ForegroundBrush" Value="{ThemeResource StudioRulerForeground}" />
+    <Setter Property="PointerBrush" Value="{ThemeResource StudioRulerPointer}" />
+  </Style>
   <Style TargetType="TreeView">
     <Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="IsTabStop" Value="False" />
     <Setter Property="ItemContainerStyle" Value="{StaticResource EditorTreeViewItemStyle}" /><Setter Property="Template" Value="{StaticResource EditorTreeViewTemplate}" />

@@ -42,7 +42,18 @@ public sealed partial class SvgEditorWorkspace
         // Key releases must be observed even when a child handled them. Otherwise
         // a native text editor or popup can leave temporary navigation latched.
         AddHandler(KeyUpEvent, new KeyEventHandler(Workspace_KeyUp), true);
-        GotFocus += (_, _) => _editorWasActive = true;
+        GotFocus += (_, args) =>
+        {
+            _editorWasActive = true;
+            EditorInputTrace.Focus("workspace-focus", XamlRoot, args.OriginalSource as DependencyObject);
+        };
+        if (EditorInputTrace.Enabled)
+        {
+            AddHandler(PointerPressedEvent, new PointerEventHandler((_, args) =>
+                EditorInputTrace.Pointer("workspace-pointer-down", args, XamlRoot)), true);
+            AddHandler(PointerReleasedEvent, new PointerEventHandler((_, args) =>
+                EditorInputTrace.Pointer("workspace-pointer-up", args, XamlRoot)), true);
+        }
         LostFocus += (_, _) => DispatcherQueue.TryEnqueue(() =>
         {
             var focused = XamlRoot is { } root ? FocusManager.GetFocusedElement(root) as DependencyObject : null;
@@ -94,7 +105,7 @@ public sealed partial class SvgEditorWorkspace
             var accelerator = new KeyboardAccelerator
             {
                 Key = (VirtualKey)shortcut.Key,
-                Modifiers = EditorAcceleratorModifiers(shortcut.Modifiers)
+                Modifiers = EditorAcceleratorModifiers(shortcut.Modifiers, shortcut.Key)
             };
             accelerator.Invoked += async (_, args) =>
             {
@@ -106,7 +117,7 @@ public sealed partial class SvgEditorWorkspace
                 var focused = FocusManager.GetFocusedElement(root) as DependencyObject;
                 if (focused is null && !_editorWasActive)
                     return;
-                if (!TryGetEditorModifiers(out var modifiers))
+                if (!TryGetEditorModifiers(out var modifiers, (VirtualKey)shortcut.Key))
                     return;
                 var match = _editorShortcuts.Resolve(shortcut.Key, modifiers, EditorShortcutContext(focused));
                 if (!ReferenceEquals(match, shortcut) || !HasEditorCommand(shortcut.CommandId))
@@ -171,11 +182,12 @@ public sealed partial class SvgEditorWorkspace
         _heldEditorShortcutKeys.Clear();
     }
 
-    private VirtualKeyModifiers EditorAcceleratorModifiers(SvgEditorShortcutModifiers modifiers)
+    private VirtualKeyModifiers EditorAcceleratorModifiers(SvgEditorShortcutModifiers modifiers, SvgEditorShortcutKey key)
     {
         var result = VirtualKeyModifiers.None;
         if ((modifiers & SvgEditorShortcutModifiers.Primary) != 0)
-            result |= _editorUsesCommandKey ? VirtualKeyModifiers.Windows : VirtualKeyModifiers.Control;
+            result |= _editorUsesCommandKey && !SvgEditorShortcutCatalog.UsesPhysicalControl(key, modifiers)
+                ? VirtualKeyModifiers.Windows : VirtualKeyModifiers.Control;
         if ((modifiers & SvgEditorShortcutModifiers.Shift) != 0)
             result |= VirtualKeyModifiers.Shift;
         if ((modifiers & SvgEditorShortcutModifiers.Alt) != 0)
@@ -183,14 +195,14 @@ public sealed partial class SvgEditorWorkspace
         return result;
     }
 
-    private bool TryGetEditorModifiers(out SvgEditorShortcutModifiers modifiers)
+    private bool TryGetEditorModifiers(out SvgEditorShortcutModifiers modifiers, VirtualKey? key = null)
     {
         var control = IsDown(VirtualKey.Control);
         var alt = IsDown(VirtualKey.Menu);
         // AltGr commonly arrives as synthetic Control plus right Alt. Preserve it
         // for international text input; never reduce it to a Control shortcut.
         var altGraph = !_editorUsesCommandKey && control && IsDown(VirtualKey.RightMenu) && !IsDown(VirtualKey.LeftMenu);
-        return SvgEditorShortcutCatalog.TryNormalizeModifiers(_editorUsesCommandKey, control, IsDown(VirtualKey.Shift), alt,
+        return SvgEditorShortcutCatalog.TryNormalizeModifiersForKey((SvgEditorShortcutKey)(key ?? VirtualKey.None), _editorUsesCommandKey, control, IsDown(VirtualKey.Shift), alt,
             IsDown(VirtualKey.LeftWindows) || IsDown(VirtualKey.RightWindows), altGraph, out modifiers);
     }
 

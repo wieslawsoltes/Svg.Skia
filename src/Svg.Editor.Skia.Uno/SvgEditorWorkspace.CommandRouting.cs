@@ -62,18 +62,26 @@ public sealed partial class SvgEditorWorkspace
     {
         if (Controller is not { } controller)
             return;
+        var target = new global::Svg.Editor.Skia.SvgEditorSelectionContext(controller);
         var content = Clipboard.GetContent();
         if (content.Contains("image/svg+xml") && await content.GetDataAsync("image/svg+xml") is string svg)
-            controller.Paste(svg);
+        {
+            if (!_disposed && !_closing && target.IsCurrent(Controller))
+                controller.Paste(svg);
+        }
         else if (content.Contains(StandardDataFormats.Text))
         {
             var text = await content.GetTextAsync();
+            // A clipboard provider can complete after a document switch, close or
+            // selection change. Never apply delayed content to a different target.
+            if (_disposed || _closing || !target.IsCurrent(Controller))
+                return;
             if (text.TrimStart().StartsWith('<'))
                 controller.Paste(text);
             else if (controller.SelectedElements.OfType<SvgTextBase>().Any())
                 controller.SetText(text);
         }
-        else
+        else if (!_disposed && !_closing && target.IsCurrent(Controller))
             controller.Paste();
     }
 
@@ -125,7 +133,7 @@ public sealed partial class SvgEditorWorkspace
             return;
         var focused = XamlRoot is { } root ? FocusManager.GetFocusedElement(root) as DependencyObject : null;
         var context = EditorShortcutContext(focused, args.OriginalSource as DependencyObject);
-        if (context == SvgEditorShortcutContext.Blocked || !TryGetEditorModifiers(out var modifiers))
+        if (context == SvgEditorShortcutContext.Blocked || !TryGetEditorModifiers(out var modifiers, args.Key))
             return;
         if (context == SvgEditorShortcutContext.Canvas && Canvas.ContextFlyout is { } contextMenu &&
             (args.Key == VirtualKey.Application && modifiers == SvgEditorShortcutModifiers.None ||
@@ -173,7 +181,13 @@ public sealed partial class SvgEditorWorkspace
 
         var key = (SvgEditorShortcutKey)args.Key;
         var shortcut = _editorShortcuts.Resolve(key, modifiers, context);
-        if (shortcut is null || !HasEditorCommand(shortcut.CommandId))
+        if (shortcut is null)
+        {
+            if (TryActivateEditorMenu(args.Key, modifiers))
+                args.Handled = true;
+            return;
+        }
+        if (!HasEditorCommand(shortcut.CommandId))
             return;
         args.Handled = true;
         var firstPress = _heldEditorShortcutKeys.Add(key);

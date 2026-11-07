@@ -90,12 +90,29 @@ capture() {
   import -window "$window" "$output/$1.png"
   identify "$output/$1.png" >>"$output/captures.txt"
 }
-command() {
+input_checkpoint() {
+  python3 -c 'import os,sys; print(os.stat(sys.argv[1]).st_size)' "$output/application.log"
+}
+wait_input() {
+  python3 "$source_dir/wait_input.py" "$output/application.log" "$1" "$2"
+}
+open_commands() {
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
   xdotool windowfocus --sync "$window"
   xdotool key --clearmodifiers ctrl+shift+F12
-  sleep 0.5
+  wait_input "$checkpoint" 'query-focus loaded=True enabled=True success=True'
+}
+type_command_query() {
+  local checkpoint length
+  checkpoint="$(input_checkpoint)"
+  length="$(python3 -c 'import sys; print(len(sys.argv[1].encode("utf-16-le")) // 2)' "$1")"
   xdotool type --clearmodifiers --delay 25 "$1"
-  sleep 0.35
+  wait_input "$checkpoint" "query-results length=$length "
+}
+command() {
+  open_commands
+  type_command_query "$1"
   xdotool key --clearmodifiers Return
   sleep 0.7
 }

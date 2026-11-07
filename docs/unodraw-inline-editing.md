@@ -4,7 +4,7 @@ The October 25, 2026 continuation adds a retained gradient editor to **Appearanc
 
 ## Gradient editor
 
-Select artwork and choose **Object > Gradient editor**, **Window > Gradient editor**, or search for **Gradient editor** with Ctrl+K. The existing Gradient buttons in the properties/paint panels now open this retained editor instead of a modal list of stop values. The advanced text-based creator remains available as **Create gradient from stop values…**.
+Select artwork and choose **Window > Gradient editor**, or search for **Gradient editor** with Ctrl+Shift+F12. The Gradient buttons in the properties/paint panels open this retained editor. The advanced text-based creator remains available as **Create gradient from stop values…**.
 
 The editor presents fill/stroke targeting, a stop ramp, a selected-stop list, precise position and opacity fields, native color/channel/hex controls, geometry and spread controls, optional artwork preview, and separate draft history.
 

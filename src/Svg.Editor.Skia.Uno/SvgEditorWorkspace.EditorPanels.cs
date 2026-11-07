@@ -15,7 +15,7 @@ public sealed partial class SvgEditorWorkspace
     private StudioGradientEditor? _editorGradientPanel;
     private StudioWrapPanel? _editorSwatches;
     private ListView? _editorBrushes, _editorSymbols, _editorLinks;
-    private TextBlock? _editorArtboardSummary, _editorLinkSummary;
+    private TextBlock? _editorLinkSummary;
     private ComboBox? _editorTextAlignment;
     private StudioTextField? _editorLetterSpacing, _editorWordSpacing;
     private SvgEditorController? _editorPanelController;
@@ -121,13 +121,7 @@ public sealed partial class SvgEditorWorkspace
         paragraph.Children.Add(StudioCommand("textframes", "Paragraphs and linked frames…"));
         paragraph.Children.Add(StudioHint("Linked frames and styled text ranges are edited in the text story editor."));
 
-        var artboards = StudioPanel("artboards", "Artboards");
-        _editorArtboardSummary = StudioHint(string.Empty);
-        artboards.Children.Add(_editorArtboardSummary);
-        artboards.Children.Add(StudioCommand("artboard", "Edit artboard size…"));
-        artboards.Children.Add(StudioCommand("tool-artboard", "Artboard tool"));
-        artboards.Children.Add(StudioCommand("fit", "Fit artboard in window"));
-        artboards.Children.Add(StudioHint("The SVG root defines this document's artboard and viewBox. Use separate document tabs for independent SVG artboards."));
+        BuildEditorArtboardPanel();
 
         var links = StudioPanel("links", "Links");
         _editorLinks = EditorPanelList("Linked and embedded images");
@@ -170,6 +164,7 @@ public sealed partial class SvgEditorWorkspace
         try
         {
             RefreshEditorUtilityPanels();
+            RefreshEditorArtboardPanel();
             _editorColorPanel?.BindController(controller);
             _editorGradientPanel?.BindController(controller);
             var selected = controller.SelectedElements;
@@ -181,8 +176,6 @@ public sealed partial class SvgEditorWorkspace
             { _editorLetterSpacing.IsEnabled = textOnly; _editorLetterSpacing.Synchronize(text?.LetterSpacing.ToString()); }
             if (_editorWordSpacing is not null)
             { _editorWordSpacing.IsEnabled = textOnly; _editorWordSpacing.Synchronize(text?.WordSpacing.ToString()); }
-            if (_editorArtboardSummary is not null && controller.Document is { } document)
-                _editorArtboardSummary.Text = $"01  {_current?.Name}\n{document.Width} × {document.Height}\nViewBox  {document.ViewBox}";
             if (ReferenceEquals(controller, _editorPanelController) && _editorPanelRevision == controller.DocumentRevision)
                 return;
             _editorPanelController = controller;

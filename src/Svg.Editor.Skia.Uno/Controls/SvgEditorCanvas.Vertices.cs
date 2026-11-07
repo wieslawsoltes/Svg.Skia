@@ -157,7 +157,7 @@ public sealed partial class SvgEditorCanvas
         for (var i = 0; i < _vertexPoints.Count; i++)
         {
             var point = Viewport.WorldToView(_vertexMatrix.MapPoint(_vertexPoints[i]));
-            resources.Fill.Color = i == _vertexIndex ? resources.Accent : SKColors.White;
+            resources.Fill.Color = i == _vertexIndex ? resources.Accent : resources.Handle;
             var handle = SKRect.Create(point.X - 3.5f, point.Y - 3.5f, 7, 7);
             canvas.DrawRect(handle, resources.Fill);
             canvas.DrawRect(handle, resources.Stroke);

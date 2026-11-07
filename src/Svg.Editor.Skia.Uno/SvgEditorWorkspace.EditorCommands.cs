@@ -29,12 +29,16 @@ public sealed partial class SvgEditorWorkspace
         InitializeEditorZoom();
         BuildEditorUtilityCommands();
         BuildEditorGuideCommands();
+        BuildEditorArtboardCommands();
         void Add(string id, string title, string group, Action action)
             => _commands.Add(new EditorCommand(id, title, group, string.Empty, () => { action(); return Task.CompletedTask; }));
         void Async(string id, string title, string group, Func<Task> action)
             => _commands.Add(new EditorCommand(id, title, group, string.Empty, action));
 
         Async("close", "Close document", "File", () => DocumentTabs.SelectedItem is TabViewItem tab ? CloseEditorDocumentAsync(tab) : Task.CompletedTask);
+        Async("export-artboard", "Export active artboard…", "File", () => ExportAsync(false, true));
+        Add("next-document", "Next document", "Window", () => SelectEditorDocument(1));
+        Add("previous-document", "Previous document", "Window", () => SelectEditorDocument(-1));
         Async("pasteinplace", "Paste in place", "Edit", () => PasteEditorAsync(SvgPastePlacement.InPlace));
         Async("pasteinfront", "Paste in front", "Edit", () => PasteEditorAsync(SvgPastePlacement.InFront));
         Async("pastebehind", "Paste in back", "Edit", () => PasteEditorAsync(SvgPastePlacement.Behind));
@@ -84,6 +88,16 @@ public sealed partial class SvgEditorWorkspace
         ConfigureEditorCommandStates();
     }
 
+    private void SelectEditorDocument(int direction)
+    {
+        var count = DocumentTabs.TabItems.Count;
+        if (count < 2)
+            return;
+        var index = DocumentTabs.TabItems.IndexOf(DocumentTabs.SelectedItem);
+        DocumentTabs.SelectedItem = DocumentTabs.TabItems[(index + direction + count) % count];
+        Focus(FocusState.Keyboard);
+    }
+
     private void ConfigureEditorCommandStates()
     {
         bool Document() => Controller?.Document is not null;
@@ -99,6 +113,7 @@ public sealed partial class SvgEditorWorkspace
                 "new" or "open" or "help" or "about" or "preferences" or "shortcutsettings" or "commands" or "control-gallery" => () => true,
                 "undo" => () => Controller?.CanUndo == true,
                 "redo" => () => Controller?.CanRedo == true,
+                "next-document" or "previous-document" => () => DocumentTabs.TabItems.Count > 1,
                 "copy" or "exportselection" or "fitselection" => Selected,
                 "transformagain" => () => Controller?.CanRepeatTransform == true && Editable(),
                 "union" or "subtract" or "intersect" or "exclude" or "divide" or "clip" or "alphamask" or "luminancemask" or "blend" => () => Editable(2),

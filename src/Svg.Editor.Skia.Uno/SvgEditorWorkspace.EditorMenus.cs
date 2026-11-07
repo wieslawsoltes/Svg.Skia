@@ -1,6 +1,8 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Svg.Editor.Core;
+using Windows.System;
 
 namespace Svg.Editor.Skia.Uno;
 
@@ -8,6 +10,7 @@ public sealed partial class SvgEditorWorkspace
 {
     private sealed record EditorMenuNode(string Title, string? Command = null, params EditorMenuNode[] Children);
     private readonly List<(MenuFlyoutItem Item, EditorCommand Command)> _editorMenuItems = new();
+    private readonly Dictionary<VirtualKey, (MenuBarItem Header, MenuFlyout Compact)> _editorAccessMenus = new();
 
     private static EditorMenuNode Item(string id, string title = "") => new(title, id);
     private static EditorMenuNode Menu(string title, params EditorMenuNode[] items) => new(title, null, items);
@@ -20,7 +23,8 @@ public sealed partial class SvgEditorWorkspace
             Menu("File", Item("new", "New…"), Item("open", "Open…"), Separator(),
                 Item("close", "Close"), Item("save", "Save"), Item("saveas", "Save As…"),
                 Item("savecompressed", "Save Compressed SVG…"), Separator(), Item("image", "Place…"),
-                Menu("Export", Item("export", "Export As…"), Item("exportselection", "Export Selection…")),
+                Menu("Export", Item("export", "Export As…"), Item("export-artboard", "Export Active Artboard…"),
+                    Item("exportselection", "Export Selection…")),
                 Separator(), Item("artboard", "Document Setup…"), Item("preflight", "Document Preflight…"),
                 Item("source", "Edit SVG Source…"), Separator(), Item("print", "Print…")),
             Menu("Edit", Item("undo"), Item("redo"), Separator(), Item("cut"), Item("copy"), Item("paste"),
@@ -34,21 +38,33 @@ public sealed partial class SvgEditorWorkspace
                 Menu("Arrange", Item("front", "Bring to Front"), Item("forward", "Bring Forward"),
                     Item("backward", "Send Backward"), Item("back", "Send to Back"), Separator(),
                     Item("movetolayer", "Move to Layer…"), Item("moveout", "Move Out of Group")),
-                Separator(), Item("group"), Item("ungroup"),
-                Menu("Lock", Item("lock", "Selection")), Item("unlockall", "Unlock All"),
-                Menu("Hide", Item("hide", "Selection")), Item("showall", "Show All"), Separator(),
+                Menu("Align", Item("alignLeft", "Horizontal Align Left"), Item("alignHCenter", "Horizontal Align Center"),
+                    Item("alignRight", "Horizontal Align Right"), Item("alignTop", "Vertical Align Top"),
+                    Item("alignVCenter", "Vertical Align Center"), Item("alignBottom", "Vertical Align Bottom"),
+                    Separator(), Item("distributeHorizontal", "Distribute Horizontally"), Item("distributeVertical", "Distribute Vertically")),
+                Separator(), Item("group"), Item("ungroup"), Item("layer", "New Layer"),
+                Menu("Lock", Item("lock", "Selection"), Item("unlock", "Unlock Selection")), Item("unlockall", "Unlock All"),
+                Menu("Hide", Item("hide", "Selection"), Item("show", "Show Selection")), Item("showall", "Show All"), Separator(),
                 Menu("Path", Item("convertpath", "Convert to Paths"), Item("simplify", "Simplify"), Item("offset", "Offset Path…"),
                     Item("strokeprofile", "Width Profile…"), Separator(), Item("smooth", "Smooth Anchor"),
                     Item("corner", "Corner Anchor"), Item("finishpath", "Finish Path")),
                 Menu("Pathfinder", Item("union", "Unite"), Item("subtract", "Minus Front"), Item("intersect"),
                     Item("exclude"), Item("divide", "Divide…")),
                 Menu("Blend", Item("blend", "Make Blend…")),
+                Menu("Artboards", Item("artboard-new", "New…"), Item("artboard-options", "Artboard Options…"),
+                    Item("artboard-rename", "Rename…"), Item("artboard-duplicate", "Duplicate"), Item("artboard-delete", "Delete"),
+                    Separator(), Item("artboard-up", "Move Earlier"), Item("artboard-down", "Move Later"), Item("artboard-fit", "Fit Active Artboard")),
                 Menu("Clipping Mask", Item("clip", "Make"), Item("unclip", "Release")),
                 Menu("Opacity Mask", Item("alphamask", "Make Alpha Mask"), Item("luminancemask", "Make Luminance Mask"),
                     Item("releasemask", "Release"), Item("disablemask", "Disable")),
-                Separator(), Item("mesh", "Create Gradient Mesh…"), Item("pattern", "Create Pattern…"),
-                Item("symbol", "Create Symbol…"), Item("bakeframe", "Bake Animation Frame")),
-            Menu("Type", Item("text", "Edit Text…"), Item("textframes", "Area Type and Linked Frames…"), Separator(),
+                Separator(), Menu("Paint Resources", Item("gradient", "Gradient…"), Item("swatches", "Document Swatches…"),
+                    Item("brushes", "Brush Library…"), Item("mesh", "Gradient Mesh…"), Item("pattern", "Pattern…")),
+                Menu("Symbols", Item("symbol", "Create Symbol…"), Item("placesymbol", "Place Symbol…")),
+                Menu("Graphic Styles", Item("style-capture", "New Graphic Style…"), Item("style-apply", "Apply Graphic Style"),
+                    Item("style-remove", "Remove Graphic Style")),
+                Menu("SVG", Item("insert", "Insert Element…"), Item("style", "Document CSS…"), Item("bakeframe", "Bake Animation Frame"))),
+            Menu("Type", Item("text", "Edit Text…"), Item("textframes", "Area Type and Linked Frames…"),
+                Item("typeonpath", "Type on a Path…"), Separator(),
                 Item("panel-typography", "Character"), Item("panel-paragraph", "Paragraph"),
                 Menu("Paragraph Alignment", Item("text-align-start", "Align Left"), Item("text-align-middle", "Align Center"),
                     Item("text-align-end", "Align Right")), Separator(), Item("selecttext", "Select Text Objects")),
@@ -75,7 +91,7 @@ public sealed partial class SvgEditorWorkspace
                     Item("workspace-save", "New Workspace…"), Item("workspace-restore-saved", "Restore Saved Workspace"),
                     Item("workspace-manage", "Manage Workspaces…"), Separator(), Item("workspace-import", "Import Workspaces…"),
                     Item("workspace-export", "Export Workspaces…")),
-                Item("controlbar", "Control"), Item("toolbar", "Tools"), Separator(),
+                Item("controlbar", "Control"), Item("toolbar", "Tools"), Item("toolbar-columns", "Switch Tool Columns"), Separator(),
                 Item("panel-properties", "Properties"), Item("panel-layers", "Layers"), Item("panel-appearance", "Appearance"),
                 Item("panel-transform", "Transform"), Item("panel-align", "Align"), Item("panel-geometry", "Pathfinder"),
                 Item("panel-color", "Color"), Item("panel-swatches", "Swatches"), Item("panel-gradient", "Gradient"),
@@ -85,7 +101,8 @@ public sealed partial class SvgEditorWorkspace
                 Item("panel-graphic-styles", "Graphic Styles"), Item("panel-navigator", "Navigator"),
                 Item("panel-document-info", "Document Info"), Item("panel-history", "History"),
                 Item("panel-resources", "Document Resources"), Item("panel-effects", "Effects"), Item("panel-attributes", "SVG Attributes"),
-                Separator(), Item("timeline", "Animation Timeline…")),
+                Separator(), Item("timeline", "Animation Timeline…"), Item("animate", "Play / Pause Animation"),
+                Separator(), Item("next-document", "Next Document"), Item("previous-document", "Previous Document")),
             Menu("Help", Item("help", "Tools and Shortcuts…"), Item("commands", "Search Commands…"),
                 Item("control-gallery", "EditorTheme Control Gallery…"), Item("about", "About UnoDraw…"))
         };
@@ -93,6 +110,7 @@ public sealed partial class SvgEditorWorkspace
         WorkspaceMenu.Items.Clear();
         CompactMenu.Items.Clear();
         _editorMenuItems.Clear();
+        _editorAccessMenus.Clear();
         var used = new HashSet<string>(StringComparer.Ordinal);
         foreach (var definition in menus)
         {
@@ -103,8 +121,12 @@ public sealed partial class SvgEditorWorkspace
             };
             AutomationProperties.SetAutomationId(menu, "editor-menu-" + definition.Title.ToLowerInvariant());
             var compact = new MenuFlyoutSubItem { Text = definition.Title };
+            var keyboardCompact = new MenuFlyout();
             AppendEditorMenu(menu.Items, definition.Children, used, false);
             AppendEditorMenu(compact.Items, definition.Children, used, true);
+            AppendEditorMenu(keyboardCompact.Items, definition.Children, used, false);
+            keyboardCompact.Opening += (_, _) => RefreshEditorMenus();
+            _editorAccessMenus[(VirtualKey)(definition.Title == "Effect" ? 'C' : definition.Title[0])] = (menu, keyboardCompact);
             WorkspaceMenu.Items.Add(menu);
             CompactMenu.Items.Add(compact);
         }
@@ -118,10 +140,13 @@ public sealed partial class SvgEditorWorkspace
                 Menu(group.Key, group.Select(command => Item(command.Id)).ToArray())).ToArray();
             var desktop = new MenuFlyoutSubItem { Text = "More Commands" };
             var compact = new MenuFlyoutSubItem { Text = "More Commands" };
+            var keyboardCompact = new MenuFlyoutSubItem { Text = "More Commands" };
             AppendEditorMenu(desktop.Items, extensions, used, false);
             AppendEditorMenu(compact.Items, extensions, used, true);
+            AppendEditorMenu(keyboardCompact.Items, extensions, used, false);
             WorkspaceMenu.Items[^1].Items.Add(desktop);
             ((MenuFlyoutSubItem)CompactMenu.Items[^1]).Items.Add(compact);
+            _editorAccessMenus[VirtualKey.H].Compact.Items.Add(keyboardCompact);
         }
 
         CompactMenu.Opening += (_, _) => RefreshEditorMenus();
@@ -143,6 +168,35 @@ public sealed partial class SvgEditorWorkspace
         context.Opening += (_, _) => RefreshEditorMenus();
         Canvas.ContextFlyout = context;
         RefreshEditorMenus();
+    }
+
+    private bool TryActivateEditorMenu(VirtualKey key, SvgEditorShortcutModifiers modifiers)
+    {
+        // Uno's Skia hosts do not implement AccessKey dispatch. Use the public
+        // native MenuBarItem invocation so arrows, dismissal and focus remain native.
+        var focusMenu = key == VirtualKey.F10 && modifiers == SvgEditorShortcutModifiers.None;
+        if (!focusMenu && (_editorUsesCommandKey || modifiers != SvgEditorShortcutModifiers.Alt))
+            return false;
+        if (!_editorAccessMenus.TryGetValue(focusMenu ? VirtualKey.F : key, out var menu))
+            return false;
+        CancelRulerGuide();
+        RestoreEditorNavigation();
+        CommitInspectorEdits();
+        Canvas.CancelGesture();
+        if (_editorScreenMode == 2)
+        { _editorScreenMode = 1; ApplyStudioMetrics(); }
+        RefreshEditorMenus();
+        if (WorkspaceMenu.Visibility == Visibility.Visible)
+        {
+            menu.Header.Focus(FocusState.Keyboard);
+            menu.Header.Invoke();
+        }
+        else
+        {
+            CompactMenuButton.Focus(FocusState.Keyboard);
+            menu.Compact.ShowAt(CompactMenuButton);
+        }
+        return true;
     }
 
     private void AppendEditorMenu(IList<MenuFlyoutItemBase> target, IEnumerable<EditorMenuNode> nodes, HashSet<string> used, bool compact)

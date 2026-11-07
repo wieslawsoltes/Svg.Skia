@@ -11,6 +11,8 @@ public sealed partial class SvgEditorCanvas
     private bool _zoomMode, _zoomOutMode, _zoomOutGesture;
     private bool _standalonePanning, _standalonePreviousPan;
     private bool _moveArtboard;
+    private bool _newArtboard, _duplicateArtboard;
+    private string? _gestureArtboardId;
     /// <summary>Lets the host reuse its rich-text editor after text creation or a text double-click.</summary>
     public event EventHandler<SvgEditorTextEditRequestedEventArgs>? TextEditRequested;
 
@@ -55,7 +57,7 @@ public sealed partial class SvgEditorCanvas
             _startWorld = _currentWorld = Viewport.ViewToWorld(view);
             return true;
         }
-        if (TryBeginAnchorGesture(view) || TryBeginCuttingGesture(args, view))
+        if (TryBeginAdvancedBrush(args, view) || TryBeginAnchorGesture(view) || TryBeginCuttingGesture(args, view))
             return true;
         if (InteractionMode == SvgEditorInteractionMode.Eyedropper)
         {
@@ -84,13 +86,23 @@ public sealed partial class SvgEditorCanvas
         }
         if (InteractionMode == SvgEditorInteractionMode.Artboard)
         {
-            _gesture = Gesture.Artboard;
-            _startBounds = Controller?.Renderer.Picture?.CullRect ?? default;
+            _startBounds = Controller?.ActiveArtboard?.Bounds ?? default;
             _handle = -1;
             for (var index = 0; index < 8; index++)
                 if (SKPoint.Distance(Viewport.WorldToView(GetHandle(_startBounds, index)), view) <= 8)
                 { _handle = index; break; }
+            _newArtboard = _handle < 0 && Controller?.ActivateArtboardAt(_startWorld) != true;
+            if (!_newArtboard && _handle < 0)
+            {
+                _startBounds = Controller?.ActiveArtboard?.Bounds ?? _startBounds;
+                for (var index = 0; index < 8; index++)
+                    if (SKPoint.Distance(Viewport.WorldToView(GetHandle(_startBounds, index)), view) <= 8)
+                    { _handle = index; break; }
+            }
+            _gestureArtboardId = Controller?.ActiveArtboardId;
             _moveArtboard = _handle < 0 && _startBounds.Contains(_startWorld);
+            _duplicateArtboard = !_newArtboard && _moveArtboard && args.KeyModifiers.HasFlag(VirtualKeyModifiers.Menu);
+            _gesture = Gesture.Artboard;
             return true;
         }
         if (InteractionMode == SvgEditorInteractionMode.AreaType)
@@ -108,7 +120,7 @@ public sealed partial class SvgEditorCanvas
 
     private bool UpdateEditorGesture()
     {
-        if (UpdateAnchorGesture() || UpdateCuttingGesture())
+        if (UpdateAdvancedBrush() || UpdateAnchorGesture() || UpdateCuttingGesture())
             return true;
         if (_gesture != Gesture.Transform)
             return false;
@@ -119,7 +131,7 @@ public sealed partial class SvgEditorCanvas
 
     private bool CompleteEditorGesture(Gesture gesture)
     {
-        if (CompleteAnchorGesture(gesture) || CompleteCuttingGesture(gesture))
+        if (CompleteAdvancedBrush(gesture) || CompleteAnchorGesture(gesture) || CompleteCuttingGesture(gesture))
             return true;
         switch (gesture)
         {
@@ -143,8 +155,23 @@ public sealed partial class SvgEditorCanvas
                     var bounds = GetArtboardPreview();
                     if (bounds.Width * Zoom >= 4 && bounds.Height * Zoom >= 4)
                     {
-                        Controller?.SetArtboardBounds(bounds);
-                        FitDocument();
+                        var previousCenter = Viewport.WorldToView(new SKPoint(bounds.MidX, bounds.MidY));
+                        if (_newArtboard)
+                            Controller?.AddArtboard(bounds);
+                        else if (_gestureArtboardId is { } id)
+                        {
+                            if (_duplicateArtboard)
+                                Controller?.DuplicateArtboard(id, new SKPoint(bounds.Left - _startBounds.Left, bounds.Top - _startBounds.Top));
+                            else
+                                Controller?.SetArtboardBounds(id, bounds);
+                        }
+                        // The root envelope can shift picture coordinates. Keep the edited
+                        // board under the pointer without changing the user's zoom level.
+                        if (Controller?.ActiveArtboard is { } active)
+                        {
+                            var currentCenter = Viewport.WorldToView(new SKPoint(active.Bounds.MidX, active.Bounds.MidY));
+                            Viewport.Pan(previousCenter.X - currentCenter.X, previousCenter.Y - currentCenter.Y);
+                        }
                     }
                 }
                 return true;
@@ -201,6 +228,7 @@ public sealed partial class SvgEditorCanvas
     {
         DrawCuttingGesture(canvas, resources);
         DrawAnchorGesture(canvas, resources);
+        DrawAdvancedBrushPreview(canvas, resources);
         resources.Stroke.Color = resources.Accent;
         resources.Stroke.StrokeWidth = 1;
         resources.Fill.Color = resources.Accent.WithAlpha(18);
@@ -224,7 +252,7 @@ public sealed partial class SvgEditorCanvas
             var end = Viewport.WorldToView(_currentWorld);
             resources.Stroke.StrokeWidth = 2;
             canvas.DrawLine(start, end, resources.Stroke);
-            resources.Fill.Color = SKColors.White;
+            resources.Fill.Color = resources.Handle;
             canvas.DrawCircle(start, 4, resources.Fill);
             canvas.DrawCircle(start, 4, resources.Stroke);
             canvas.DrawCircle(end, 4, resources.Fill);
@@ -248,16 +276,16 @@ public sealed partial class SvgEditorCanvas
                 canvas.DrawPath(shape, resources.Fill);
             canvas.DrawPath(shape, resources.Stroke);
         }
-        if (InteractionMode == SvgEditorInteractionMode.Artboard && Controller?.Renderer.Picture is { } picture)
+        if (InteractionMode == SvgEditorInteractionMode.Artboard && Controller?.ActiveArtboard is { } artboard)
         {
-            var rect = _gesture == Gesture.Artboard && _moved ? GetArtboardPreview() : picture.CullRect;
+            var rect = _gesture == Gesture.Artboard && _moved ? GetArtboardPreview() : artboard.Bounds;
             var area = new SKRect(Viewport.WorldToView(new SKPoint(rect.Left, rect.Top)).X,
                 Viewport.WorldToView(new SKPoint(rect.Left, rect.Top)).Y,
                 Viewport.WorldToView(new SKPoint(rect.Right, rect.Bottom)).X,
                 Viewport.WorldToView(new SKPoint(rect.Right, rect.Bottom)).Y);
             resources.Stroke.StrokeWidth = 1.5f;
             canvas.DrawRect(area, resources.Stroke);
-            resources.Fill.Color = SKColors.White;
+            resources.Fill.Color = resources.Handle;
             for (var index = 0; index < 8; index++)
             {
                 var handle = Viewport.WorldToView(GetHandle(rect, index));

@@ -65,11 +65,27 @@ public sealed partial class SvgEditorWorkspace
         new("tool-scale", "Scale", Mode: SvgEditorInteractionMode.Scale, Symbol: "Scale"),
         new("tool-free-transform", "Free Transform", SvgEditorToolKind.Select, SvgEditorInteractionMode.FreeTransform, "FreeTransform"),
         new("tool-width", "Width Profile…", Symbol: "Width", Action: "strokeprofile"),
+        new("tool-warp", "Warp", Mode: SvgEditorInteractionMode.Warp, Symbol: "Warp"),
+        new("tool-twirl", "Twirl", Mode: SvgEditorInteractionMode.Twirl, Symbol: "Spiral"),
+        new("tool-pucker", "Pucker", Mode: SvgEditorInteractionMode.Pucker, Symbol: "Pucker"),
+        new("tool-bloat", "Bloat", Mode: SvgEditorInteractionMode.Bloat, Symbol: "Bloat"),
+        new("tool-scallop", "Scallop", Mode: SvgEditorInteractionMode.Scallop, Symbol: "Scallop"),
+        new("tool-crystallize", "Crystallize", Mode: SvgEditorInteractionMode.Crystallize, Symbol: "Crystallize"),
+        new("tool-wrinkle", "Wrinkle", Mode: SvgEditorInteractionMode.Wrinkle, Symbol: "Wrinkle"),
+        new("tool-shape-builder", "Shape Builder", Mode: SvgEditorInteractionMode.ShapeBuilder, Symbol: "ShapeBuilder"),
         new("tool-blend", "Blend…", Symbol: "Blend", Action: "blend"),
         new("tool-gradient", "Gradient", Mode: SvgEditorInteractionMode.Gradient, Symbol: "Gradient"),
         new("tool-eyedropper", "Eyedropper", Mode: SvgEditorInteractionMode.Eyedropper, Symbol: "Eyedropper"),
         new("tool-mesh", "Gradient Mesh…", Symbol: "Mesh", Action: "mesh"),
         new("tool-symbol", "Symbol Placement…", SvgEditorToolKind.Symbol, Symbol: "Symbol", Action: "placesymbol"),
+        new("tool-symbol-sprayer", "Symbol Sprayer", Mode: SvgEditorInteractionMode.SymbolSprayer, Symbol: "SymbolSprayer"),
+        new("tool-symbol-shifter", "Symbol Shifter", Mode: SvgEditorInteractionMode.SymbolShifter, Symbol: "SymbolShifter"),
+        new("tool-symbol-scruncher", "Symbol Scruncher", Mode: SvgEditorInteractionMode.SymbolScruncher, Symbol: "SymbolScruncher"),
+        new("tool-symbol-sizer", "Symbol Sizer", Mode: SvgEditorInteractionMode.SymbolSizer, Symbol: "SymbolSizer"),
+        new("tool-symbol-spinner", "Symbol Spinner", Mode: SvgEditorInteractionMode.SymbolSpinner, Symbol: "SymbolSpinner"),
+        new("tool-symbol-stainer", "Symbol Stainer", Mode: SvgEditorInteractionMode.SymbolStainer, Symbol: "SymbolStainer"),
+        new("tool-symbol-screener", "Symbol Screener", Mode: SvgEditorInteractionMode.SymbolScreener, Symbol: "SymbolScreener"),
+        new("tool-symbol-styler", "Symbol Styler", Mode: SvgEditorInteractionMode.SymbolStyler, Symbol: "SymbolStyler"),
         new("tool-artboard", "Artboard", Mode: SvgEditorInteractionMode.Artboard, Symbol: "Artboard"),
         new("tool-hand", "Hand", Symbol: "Hand"),
         new("tool-zoom", "Zoom", Mode: SvgEditorInteractionMode.Zoom, Symbol: "Zoom"),
@@ -84,6 +100,12 @@ public sealed partial class SvgEditorWorkspace
         {
             _commands.Add(new EditorCommand(entry.Id, entry.Label, "Tools", EditorShortcutText(entry.Id), async () =>
             {
+                if (entry.Mode == SvgEditorInteractionMode.SymbolSprayer && Controller?.Document?.GetElementById(Controller.Tools.SymbolId ?? string.Empty) is not SvgSymbol)
+                {
+                    await ChooseEditorSymbolAsync();
+                    if (Controller?.Document?.GetElementById(Controller.Tools.SymbolId ?? string.Empty) is not SvgSymbol)
+                        return;
+                }
                 if (entry.Action is { } action)
                     await RunCommandAsync(action);
                 else
@@ -163,7 +185,7 @@ public sealed partial class SvgEditorWorkspace
             button.DoubleTapped += async (_, args) =>
             {
                 if (button.Tag is "tool-hand")
-                    Canvas.FitDocument();
+                    Canvas.FitActiveArtboard();
                 else if (button.Tag is "tool-zoom")
                     Canvas.ResetZoom();
                 else
@@ -195,12 +217,13 @@ public sealed partial class SvgEditorWorkspace
         Group("tool-eraser", "tool-scissors", "tool-knife");
         Group("tool-rotate", "tool-reflect");
         Group("tool-scale", "tool-free-transform");
-        Group("tool-width");
+        Group("tool-width", "tool-warp", "tool-twirl", "tool-pucker", "tool-bloat", "tool-scallop", "tool-crystallize", "tool-wrinkle");
+        Group("tool-shape-builder");
         Group("tool-blend");
         Group("tool-gradient");
         Group("tool-eyedropper");
         Group("tool-mesh");
-        Group("tool-symbol", "tool-place");
+        Group("tool-symbol-sprayer", "tool-symbol-shifter", "tool-symbol-scruncher", "tool-symbol-sizer", "tool-symbol-spinner", "tool-symbol-stainer", "tool-symbol-screener", "tool-symbol-styler", "tool-symbol", "tool-place");
         Group("tool-artboard");
         Group("tool-hand");
         Group("tool-zoom");
@@ -222,6 +245,12 @@ public sealed partial class SvgEditorWorkspace
         AutomationProperties.SetAutomationId(allTools, "EditorAllTools");
         ToolRail.Children.Add(allTools);
         BuildEditorPaintShelf();
+        Canvas.InteractionStarting += (_, _) =>
+        {
+            if (Canvas.InteractionMode == SvgEditorInteractionMode.SymbolStyler
+                && _editorGraphicStyles?.SelectedItem is global::Svg.Editor.Svg.Models.StyleEntry style)
+                Canvas.SymbolBrushOptions.GraphicStyleName = style.Name;
+        };
         Canvas.TextEditRequested += (_, args) => DispatcherQueue.TryEnqueue(async () =>
         {
             if (_disposed || _dialogVisible || _closing || !ReferenceEquals(Controller, args.Controller)
@@ -331,7 +360,7 @@ public sealed partial class SvgEditorWorkspace
             SvgEditorInteractionMode.FreeTransform => "Drag artwork or its bounding-box handles · Shift constrains the transform",
             SvgEditorInteractionMode.Gradient => "Drag a gradient line on selected artwork · Shift constrains its angle",
             SvgEditorInteractionMode.Eyedropper => "Click to sample appearance · Shift-click samples only the active paint",
-            SvgEditorInteractionMode.Artboard => "Drag handles to resize · Drag inside to move · Drag outside to redefine the artboard",
+            SvgEditorInteractionMode.Artboard => "Drag handles to resize · Drag empty space to add · Alt-drag an artboard to duplicate",
             SvgEditorInteractionMode.Zoom => "Click to zoom in · Alt-click to zoom out · Drag to fit a region",
             SvgEditorInteractionMode.Paintbrush => "Drag to paint · Double-click for brush options",
             SvgEditorInteractionMode.AreaType => "Drag a paragraph frame · Edit its text and linked flow in the text editor",
@@ -343,6 +372,10 @@ public sealed partial class SvgEditorWorkspace
             SvgEditorInteractionMode.AddAnchor => "Click a path segment to insert an anchor while preserving its curve",
             SvgEditorInteractionMode.DeleteAnchor => "Click an anchor to remove it · Escape cancels",
             SvgEditorInteractionMode.AnchorPoint => "Click an anchor to make a corner · Drag to pull symmetric direction handles",
+            SvgEditorInteractionMode.ShapeBuilder => "Select shapes, then drag through regions to join them · Alt-drag removes regions",
+            SvgEditorInteractionMode.SymbolSprayer => "Drag or hold to spray the selected symbol · Double-click for density and size",
+            _ when SvgEditorCanvas.TryGetSymbolBrushKind(Canvas.InteractionMode, out _) => "Brush symbol instances · Alt reverses the effect · Double-click for influence and style",
+            _ when SvgEditorCanvas.TryGetDeformationKind(Canvas.InteractionMode, out _) => "Brush selected paths to reshape them · Alt reverses the effect · Double-click for diameter and strength",
             _ when SvgEditorToolGeometry.IsShape(Canvas.InteractionMode) => "Drag to draw · Shift constrains proportions · Double-click for options",
             _ => "Space to pan · Wheel to zoom · " + EditorShortcutText("commands") + " for commands"
         };
@@ -423,8 +456,10 @@ public sealed partial class SvgEditorWorkspace
 
     private async Task ShowEditorToolOptionsAsync()
     {
+        if (await ShowAdvancedEditorToolOptionsAsync())
+            return;
         if (Canvas.PanMode)
-        { Canvas.FitDocument(); return; }
+        { Canvas.FitActiveArtboard(); return; }
         if (Canvas.InteractionMode == SvgEditorInteractionMode.Zoom)
         { Canvas.ResetZoom(); return; }
         if (Canvas.InteractionMode == SvgEditorInteractionMode.Artboard)

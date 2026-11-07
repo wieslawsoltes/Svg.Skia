@@ -11,8 +11,9 @@ public sealed partial class SvgEditorWorkspace
     private void InitializeStudioCommandCenter()
     {
         var index = _commands.FindIndex(command => command.Id == "commands");
-        if (index < 0) throw new InvalidOperationException("Register the workspace command catalog before its command center.");
-        _commands[index] = new EditorCommand("commands", "Search commands…", "View", "Ctrl+K", ShowStudioCommandCenterAsync);
+        if (index < 0)
+            throw new InvalidOperationException("Register the workspace command catalog before its command center.");
+        _commands[index] = new EditorCommand("commands", "Search commands…", "View", EditorShortcutText("commands"), ShowStudioCommandCenterAsync);
     }
 
     private async Task ShowStudioCommandCenterAsync()
@@ -33,19 +34,22 @@ public sealed partial class SvgEditorWorkspace
         search.SelectedCommandChanged += (_, _) => dialog.IsPrimaryButtonEnabled = search.SelectedCommand is not null;
         search.CommandInvoked += (_, entry) =>
         {
-            if (selectedId is not null) return;
+            if (selectedId is not null)
+                return;
             selectedId = entry.Id;
             dialog.Hide();
         };
         dialog.Opened += (_, _) => search.FocusSearch();
         var result = await ShowDialogAsync(dialog);
         selectedId ??= result == ContentDialogResult.Primary ? search.SelectedCommand?.Id : null;
-        if (selectedId is null) return;
+        if (selectedId is null)
+            return;
         // The dialog is fully closed before a chosen command can open another
         // dialog or reparent panel content. Recent choices are in-memory UI state.
         _recentStudioCommands.Remove(selectedId);
         _recentStudioCommands.Insert(0, selectedId);
-        if (_recentStudioCommands.Count > 16) _recentStudioCommands.RemoveAt(16);
+        if (_recentStudioCommands.Count > 16)
+            _recentStudioCommands.RemoveAt(16);
         await RunCommandAsync(selectedId);
     }
 }

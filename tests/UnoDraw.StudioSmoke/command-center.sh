@@ -5,18 +5,15 @@ set -euo pipefail
 source "$(cd "$(dirname "$0")" && pwd)/controls.sh" "$@"
 
 command 'Use dark interface'
-xdotool key --clearmodifiers ctrl+shift+F12
-sleep 0.4
+open_commands
 capture commands-01-recent-dark
-xdotool type --clearmodifiers --delay 20 'zzzz no matching command'
-sleep 0.3
+type_command_query 'zzzz no matching command'
 xdotool key --clearmodifiers Return
 sleep 0.3
 capture commands-02-no-results
 # Enter on no matches must keep search usable, not execute a stale/default result.
 xdotool key --clearmodifiers ctrl+a
-xdotool type --clearmodifiers --delay 20 'window transform'
-sleep 0.3
+type_command_query 'window transform'
 capture commands-03-category-query
 xdotool key --clearmodifiers Return
 sleep 0.7
@@ -54,10 +51,8 @@ PY
 
 # Search by the displayed shortcut, then invoke the selected command with Enter.
 before="$(python3 -c 'import os,sys; print(os.stat(sys.argv[1]).st_mtime_ns)' "$document")"
-xdotool key --clearmodifiers ctrl+shift+F12
-sleep 0.4
-xdotool type --clearmodifiers --delay 30 'Ctrl+S'
-sleep 0.3
+open_commands
+type_command_query 'Ctrl+S'
 capture commands-05-shortcut-query
 xdotool key --clearmodifiers Return
 python3 - "$document" "$before" <<'PY'
@@ -72,10 +67,8 @@ PY
 verify restored-command-shortcut-query
 
 command 'Use light interface'
-xdotool key --clearmodifiers ctrl+shift+F12
-sleep 0.4
-xdotool type --clearmodifiers --delay 25 'gradient'
-sleep 0.3
+open_commands
+type_command_query 'gradient'
 capture commands-06-light-results
 xdotool key --clearmodifiers Down Up Page_Down Page_Up
 sleep 0.2
@@ -87,16 +80,13 @@ verify restored-command-search-cancel
 
 xdotool windowsize "$window" 390 850
 sleep 0.5
-xdotool key --clearmodifiers ctrl+shift+F12
-sleep 0.4
+open_commands
 capture commands-08-compact-light
 xdotool key --clearmodifiers Escape
 sleep 0.3
 command 'Use dark interface'
-xdotool key --clearmodifiers ctrl+shift+F12
-sleep 0.4
-xdotool type --clearmodifiers --delay 25 'align'
-sleep 0.3
+open_commands
+type_command_query 'align'
 capture commands-09-compact-dark
 xdotool key --clearmodifiers Escape
 sleep 0.4

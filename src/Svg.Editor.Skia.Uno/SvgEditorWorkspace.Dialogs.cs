@@ -170,7 +170,7 @@ public sealed partial class SvgEditorWorkspace
         content.Children.Add(presets);
         content.Children.Add(width);
         content.Children.Add(height);
-        if (await ShowDialogAsync(MakeDialog("A new idea starts here", content, "Create document")) == ContentDialogResult.Primary)
+        if (await ShowDialogAsync(MakeDialog("New Document", content, "Create document")) == ContentDialogResult.Primary)
             NewDocument((float)width.Value, (float)height.Value);
     }
 
@@ -187,7 +187,7 @@ public sealed partial class SvgEditorWorkspace
         panel.Children.Add(width);
         panel.Children.Add(height);
         panel.Children.Add(grid);
-        if (await ShowDialogAsync(MakeDialog("Artboard and grid", panel)) != ContentDialogResult.Primary)
+        if (await ShowDialogAsync(MakeDialog("Document Setup", panel)) != ContentDialogResult.Primary)
             return;
         if (width.Value != originalWidth || height.Value != originalHeight)
             ChangeArtboard(width.Value, height.Value);

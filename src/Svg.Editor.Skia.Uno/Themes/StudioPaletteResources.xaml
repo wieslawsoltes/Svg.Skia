@@ -21,6 +21,19 @@
       <Color x:Key="StudioAccentColor">#2862B0</Color>
       <Color x:Key="StudioOnAccentColor">#FFFFFF</Color>
       <Color x:Key="StudioDangerColor">#AF2637</Color>
+      <Color x:Key="StudioCanvasLabelColor">#464646</Color>
+      <Color x:Key="StudioCanvasOutlineColor">#5A808080</Color>
+      <Color x:Key="StudioCanvasShadowColor">#06000000</Color>
+      <Color x:Key="StudioCanvasAccentColor">#3F6FF2</Color>
+      <Color x:Key="StudioCanvasHandleColor">#FFFFFF</Color>
+      <Color x:Key="StudioCanvasGridColor">#36969696</Color>
+      <Color x:Key="StudioGuideColor">#3ECFDA</Color>
+      <Color x:Key="StudioGuidePreviewColor">#F281DC</Color>
+      <Color x:Key="StudioSmartGuideColor">#D755CD</Color>
+      <Color x:Key="StudioCanvasCheckerBackgroundColor">#FFFFFF</Color>
+      <Color x:Key="StudioCanvasCheckerForegroundColor">#EFF1F5</Color>
+      <Color x:Key="StudioRulerForegroundColor">#505050</Color>
+      <Color x:Key="StudioRulerPointerColor">#366ACC</Color>
     </ResourceDictionary>
     <ResourceDictionary x:Key="Dark">
       <Color x:Key="StudioCanvasColor">#1E1E1E</Color>
@@ -40,6 +53,19 @@
       <Color x:Key="StudioAccentColor">#94BFF2</Color>
       <Color x:Key="StudioOnAccentColor">#182738</Color>
       <Color x:Key="StudioDangerColor">#FFA7B4</Color>
+      <Color x:Key="StudioCanvasLabelColor">#B8B8B8</Color>
+      <Color x:Key="StudioCanvasOutlineColor">#5A808080</Color>
+      <Color x:Key="StudioCanvasShadowColor">#0A000000</Color>
+      <Color x:Key="StudioCanvasAccentColor">#3F6FF2</Color>
+      <Color x:Key="StudioCanvasHandleColor">#FFFFFF</Color>
+      <Color x:Key="StudioCanvasGridColor">#36969696</Color>
+      <Color x:Key="StudioGuideColor">#3ECFDA</Color>
+      <Color x:Key="StudioGuidePreviewColor">#F281DC</Color>
+      <Color x:Key="StudioSmartGuideColor">#D755CD</Color>
+      <Color x:Key="StudioCanvasCheckerBackgroundColor">#FFFFFF</Color>
+      <Color x:Key="StudioCanvasCheckerForegroundColor">#EFF1F5</Color>
+      <Color x:Key="StudioRulerForegroundColor">#B8B8B8</Color>
+      <Color x:Key="StudioRulerPointerColor">#83B0FF</Color>
     </ResourceDictionary>
     <ResourceDictionary x:Key="HighContrast">
       <StaticResource x:Key="StudioCanvasColor" ResourceKey="SystemColorWindowColor" />
@@ -59,6 +85,20 @@
       <StaticResource x:Key="StudioAccentColor" ResourceKey="SystemColorHighlightColor" />
       <StaticResource x:Key="StudioOnAccentColor" ResourceKey="SystemColorHighlightTextColor" />
       <StaticResource x:Key="StudioDangerColor" ResourceKey="SystemColorWindowTextColor" />
+      <StaticResource x:Key="StudioCanvasLabelColor" ResourceKey="SystemColorWindowTextColor" />
+      <StaticResource x:Key="StudioCanvasOutlineColor" ResourceKey="SystemColorWindowTextColor" />
+      <!-- Decorative shadows disappear in system high contrast. -->
+      <Color x:Key="StudioCanvasShadowColor">#00000000</Color>
+      <StaticResource x:Key="StudioCanvasAccentColor" ResourceKey="SystemColorHighlightColor" />
+      <StaticResource x:Key="StudioCanvasHandleColor" ResourceKey="SystemColorWindowColor" />
+      <StaticResource x:Key="StudioCanvasGridColor" ResourceKey="SystemColorGrayTextColor" />
+      <StaticResource x:Key="StudioGuideColor" ResourceKey="SystemColorWindowTextColor" />
+      <StaticResource x:Key="StudioGuidePreviewColor" ResourceKey="SystemColorHighlightColor" />
+      <StaticResource x:Key="StudioSmartGuideColor" ResourceKey="SystemColorHighlightColor" />
+      <StaticResource x:Key="StudioCanvasCheckerBackgroundColor" ResourceKey="SystemColorWindowColor" />
+      <StaticResource x:Key="StudioCanvasCheckerForegroundColor" ResourceKey="SystemColorGrayTextColor" />
+      <StaticResource x:Key="StudioRulerForegroundColor" ResourceKey="SystemColorWindowTextColor" />
+      <StaticResource x:Key="StudioRulerPointerColor" ResourceKey="SystemColorHighlightColor" />
     </ResourceDictionary>
   </ResourceDictionary.ThemeDictionaries>
   <SolidColorBrush x:Key="StudioCanvas" Color="{ThemeResource StudioCanvasColor}" />
@@ -78,6 +118,19 @@
   <SolidColorBrush x:Key="StudioAccent" Color="{ThemeResource StudioAccentColor}" />
   <SolidColorBrush x:Key="StudioOnAccent" Color="{ThemeResource StudioOnAccentColor}" />
   <SolidColorBrush x:Key="StudioDanger" Color="{ThemeResource StudioDangerColor}" />
+  <SolidColorBrush x:Key="StudioCanvasLabel" Color="{ThemeResource StudioCanvasLabelColor}" />
+  <SolidColorBrush x:Key="StudioCanvasOutline" Color="{ThemeResource StudioCanvasOutlineColor}" />
+  <SolidColorBrush x:Key="StudioCanvasShadow" Color="{ThemeResource StudioCanvasShadowColor}" />
+  <SolidColorBrush x:Key="StudioCanvasAccent" Color="{ThemeResource StudioCanvasAccentColor}" />
+  <SolidColorBrush x:Key="StudioCanvasHandle" Color="{ThemeResource StudioCanvasHandleColor}" />
+  <SolidColorBrush x:Key="StudioCanvasGrid" Color="{ThemeResource StudioCanvasGridColor}" />
+  <SolidColorBrush x:Key="StudioGuide" Color="{ThemeResource StudioGuideColor}" />
+  <SolidColorBrush x:Key="StudioGuidePreview" Color="{ThemeResource StudioGuidePreviewColor}" />
+  <SolidColorBrush x:Key="StudioSmartGuide" Color="{ThemeResource StudioSmartGuideColor}" />
+  <SolidColorBrush x:Key="StudioCanvasCheckerBackground" Color="{ThemeResource StudioCanvasCheckerBackgroundColor}" />
+  <SolidColorBrush x:Key="StudioCanvasCheckerForeground" Color="{ThemeResource StudioCanvasCheckerForegroundColor}" />
+  <SolidColorBrush x:Key="StudioRulerForeground" Color="{ThemeResource StudioRulerForegroundColor}" />
+  <SolidColorBrush x:Key="StudioRulerPointer" Color="{ThemeResource StudioRulerPointerColor}" />
   <!-- Compatibility names are aliases to the same colors, not independent palettes. -->
   <SolidColorBrush x:Key="WorkspaceBackground" Color="{ThemeResource StudioCanvasColor}" />
   <SolidColorBrush x:Key="PanelBackground" Color="{ThemeResource StudioSurfaceColor}" />

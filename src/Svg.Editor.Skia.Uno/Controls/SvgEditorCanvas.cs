@@ -19,7 +19,7 @@ namespace Svg.Editor.Skia.Uno;
 /// </summary>
 public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 {
-    private enum Gesture { None, Pan, Pinch, Marquee, Move, Resize, Rotate, Create, Node, Vertex, Transform, Zoom, Gradient, Artboard, EditorShape, AreaType, Scissors, CutSweep, Lasso, Anchor }
+    private enum Gesture { None, Pan, Pinch, Marquee, Move, Resize, Rotate, Create, Node, Vertex, Transform, Zoom, Gradient, Artboard, EditorShape, AreaType, Scissors, CutSweep, Lasso, Anchor, ShapeBuilder, Deformation, SymbolSpray, SymbolBrush }
 
     private readonly record struct PenNode(SKPoint Position, SKPoint Tangent);
 
@@ -78,6 +78,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         SizeChanged += OnSizeChanged;
+        ActualThemeChanged += OnCanvasThemeChanged;
     }
 
     public event EventHandler? ViewportChanged;
@@ -173,8 +174,19 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
             return;
         }
 
-        Viewport.Fit(picture.CullRect);
+        Viewport.Fit(Controller.GetArtboardsBounds());
         _needsFit = false;
+    }
+
+    public void FitActiveArtboard()
+    {
+        if (Controller?.ActiveArtboard is { } artboard && Viewport.Width > 0 && Viewport.Height > 0)
+        {
+            Viewport.Fit(artboard.Bounds);
+            _needsFit = false;
+        }
+        else
+            FitDocument();
     }
 
     public void FitSelection()
@@ -205,6 +217,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void CancelDrawingPreview()
     {
+        ClearAdvancedBrushPreview();
         ClearAnchorPreview();
         CancelGuidePreview();
         // Tools mutate only their preview until release. Clearing it cancels the
@@ -226,7 +239,8 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
     private void OnControllerChanged(object? sender, EventArgs e)
     {
         if (_movingGuideId is not null || _gesture is Gesture.Move or Gesture.Resize or Gesture.Rotate or Gesture.Node or Gesture.Vertex
-            or Gesture.Transform or Gesture.Gradient or Gesture.Artboard or Gesture.Scissors or Gesture.CutSweep or Gesture.Lasso or Gesture.Anchor)
+            or Gesture.Transform or Gesture.Gradient or Gesture.Artboard or Gesture.Scissors or Gesture.CutSweep or Gesture.Lasso or Gesture.Anchor
+            or Gesture.ShapeBuilder or Gesture.Deformation or Gesture.SymbolSpray or Gesture.SymbolBrush)
         {
             // A command or selection change invalidates the gesture's retained snapshot.
             CancelGesture();
@@ -302,6 +316,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void HandleInteractionFailure(Exception exception)
     {
+        ClearAdvancedBrushPreview();
         ClearAnchorPreview();
         CancelGuidePreview();
         // Controller commands roll back their own transactions. Clear only transient canvas
@@ -377,6 +392,9 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
         }
 
         Viewport.Changed -= OnViewportChanged;
+        ActualThemeChanged -= OnCanvasThemeChanged;
+        _canvasBrushSubscriptions?.Dispose();
+        _canvasBrushSubscriptions = null;
         _controller = null;
         ReleaseResources();
         base.Dispose();

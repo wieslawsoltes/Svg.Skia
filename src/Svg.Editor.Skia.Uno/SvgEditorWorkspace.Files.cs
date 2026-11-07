@@ -257,7 +257,12 @@ public sealed partial class SvgEditorWorkspace
 
     private async Task ExportAsync() => await ExportAsync(false);
 
-    private async Task ExportAsync(bool selectionOnly)
+    private sealed record EditorExportRegion(string Label, string? ArtboardId = null)
+    {
+        public override string ToString() => Label;
+    }
+
+    private async Task ExportAsync(bool selectionOnly, bool activeArtboard = false)
     {
         if (_current is not { } document)
             return;
@@ -278,13 +283,34 @@ public sealed partial class SvgEditorWorkspace
             ItemsSource = formats.Select(item => item.Name).ToArray(),
             SelectedIndex = 0
         };
+        var regions = new List<EditorExportRegion> { new("Entire document") };
+        regions.AddRange(document.Controller.GetArtboards().Select((board, index) =>
+            new EditorExportRegion($"{index + 1:00}  {board.Name}", board.Id)));
+        var region = new ComboBox
+        {
+            Header = "Area",
+            ItemsSource = regions,
+            SelectedIndex = activeArtboard ? Math.Max(1, regions.FindIndex(item => item.ArtboardId == document.Controller.ActiveArtboardId)) : 0,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
         var content = new StackPanel { Spacing = 16, Width = DialogContentWidth(300) };
         content.Children.Add(new TextBlock { Text = "SVG keeps editable vectors. PDF and XPS preserve vector output. Image formats use the scale below.", TextWrapping = TextWrapping.Wrap });
         content.Children.Add(format);
+        if (!selectionOnly)
+            content.Children.Add(region);
         content.Children.Add(scale);
         content.Children.Add(transparent);
         if (await ShowDialogAsync(MakeDialog("Export artwork", content, "Choose destination")) != ContentDialogResult.Primary)
             return;
+        if (_disposed || !Documents.Contains(document))
+            return;
+        // Freeze the selected output before opening an asynchronous destination
+        // picker. Later document switches or edits cannot change this export.
+        var xml = selectionOnly ? document.Controller.CopySelection()
+            : region.SelectedItem is EditorExportRegion { ArtboardId: { } artboardId }
+                ? document.Controller.GetArtboardSvg(artboardId) : document.Controller.GetSvg();
+        var originalUri = document.Controller.Document?.BaseUri;
+        var frameTime = document.Controller.Renderer.AnimationTime;
         var selectedFormat = formats[Math.Max(0, format.SelectedIndex)];
         var picker = new FileSavePicker
         {
@@ -299,8 +325,6 @@ public sealed partial class SvgEditorWorkspace
         var file = await picker.PickSaveFileAsync();
         if (file is null)
             return;
-        var xml = selectionOnly ? document.Controller.CopySelection() : document.Controller.GetSvg();
-        var originalUri = document.Controller.Document?.BaseUri;
         if (file.FileType.Equals(".svg", StringComparison.OrdinalIgnoreCase))
         {
             if (originalUri is not null && NativeFilePath(file) is { } exportPath)
@@ -310,7 +334,6 @@ public sealed partial class SvgEditorWorkspace
         }
         var factor = (float)scale.Value;
         var background = transparent.IsChecked == true ? SKColors.Transparent : SKColors.White;
-        var frameTime = document.Controller.Renderer.AnimationTime;
         var bytes = await Task.Run(() =>
         {
             using var renderer = new SKSvg();

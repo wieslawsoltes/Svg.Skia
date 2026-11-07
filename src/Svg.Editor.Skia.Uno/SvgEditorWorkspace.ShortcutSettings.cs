@@ -28,7 +28,8 @@ public sealed partial class SvgEditorWorkspace
         try
         {
             _editorShortcutStorageSource = ApplicationData.Current.LocalSettings.Values[EditorShortcutStorageKey] as string;
-            if (_editorShortcutStorageSource is { Length: > 0 } xml) _editorShortcuts = SvgEditorShortcutProfile.Parse(xml);
+            if (_editorShortcutStorageSource is { Length: > 0 } xml)
+                _editorShortcuts = SvgEditorShortcutProfile.Parse(xml);
         }
         catch (Exception exception)
         {
@@ -130,7 +131,8 @@ public sealed partial class SvgEditorWorkspace
         }
         void AssignRecorded()
         {
-            if (list.SelectedItem is not EditorShortcutRow row || recorded is not { } gesture) return;
+            if (list.SelectedItem is not EditorShortcutRow row || recorded is not { } gesture)
+                return;
             var conflict = draft.FindShortcut(gesture.Key, gesture.Modifiers);
             if (conflict is not null && conflict.CommandId != row.Command.Id)
             {
@@ -138,7 +140,8 @@ public sealed partial class SvgEditorWorkspace
                 error.Text = "Already assigned to “" + owner + "”. Clear that command first, then assign this shortcut.";
                 return;
             }
-            if (!draft.TryAssign(row.Command.Id, gesture.Key, gesture.Modifiers, out var problem)) { error.Text = problem; return; }
+            if (!draft.TryAssign(row.Command.Id, gesture.Key, gesture.Modifiers, out var problem))
+            { error.Text = problem; return; }
             Refresh(row.Command.Id);
             feedback.Text = "Shortcut assigned in this draft. Choose Apply to save.";
         }
@@ -146,13 +149,19 @@ public sealed partial class SvgEditorWorkspace
         search.TextChanged += (_, _) => Refresh();
         capture.AddHandler(KeyDownEvent, new KeyEventHandler((_, args) =>
         {
-            if (args.Key is VirtualKey.Tab or VirtualKey.Escape || IsEditorModifierKey(args.Key)) return;
-            args.Handled = true;
-            if (!TryGetEditorModifiers(out var modifiers))
+            if (args.Key == VirtualKey.Escape || IsEditorModifierKey(args.Key))
+                return;
+            if (!TryGetEditorModifiers(out var modifiers, args.Key))
             {
+                if (args.Key == VirtualKey.Tab)
+                    return;
+                args.Handled = true;
                 error.Text = "Use the platform's Ctrl/Cmd modifier. AltGr and system chords are reserved.";
                 return;
             }
+            if (args.Key == VirtualKey.Tab && !SvgEditorShortcutCatalog.UsesPhysicalControl((SvgEditorShortcutKey)args.Key, modifiers))
+                return;
+            args.Handled = true;
             recorded = ((SvgEditorShortcutKey)args.Key, modifiers);
             capture.Text = SvgEditorShortcutCatalog.FormatGesture(recorded.Value.Key, modifiers, _editorUsesCommandKey);
             assign.IsEnabled = list.SelectedItem is EditorShortcutRow;
@@ -161,15 +170,20 @@ public sealed partial class SvgEditorWorkspace
         assign.Click += (_, _) => AssignRecorded();
         clear.Click += (_, _) =>
         {
-            if (list.SelectedItem is not EditorShortcutRow row) return;
-            try { draft.Clear(row.Command.Id); Refresh(row.Command.Id); feedback.Text = "Shortcut cleared in this draft."; }
+            if (list.SelectedItem is not EditorShortcutRow row)
+                return;
+            try
+            { draft.Clear(row.Command.Id); Refresh(row.Command.Id); feedback.Text = "Shortcut cleared in this draft."; }
             catch (Exception exception) { error.Text = exception.Message; }
         };
         reset.Click += (_, _) =>
         {
-            if (list.SelectedItem is not EditorShortcutRow row) return;
-            if (draft.TryResetCommand(row.Command.Id, out var problem)) { Refresh(row.Command.Id); feedback.Text = "Default shortcut restored for this command."; }
-            else error.Text = problem;
+            if (list.SelectedItem is not EditorShortcutRow row)
+                return;
+            if (draft.TryResetCommand(row.Command.Id, out var problem))
+            { Refresh(row.Command.Id); feedback.Text = "Default shortcut restored for this command."; }
+            else
+                error.Text = problem;
         };
         defaults.Click += (_, _) =>
         {
@@ -180,7 +194,8 @@ public sealed partial class SvgEditorWorkspace
 
         async Task ProfileFileAsync(bool importing)
         {
-            if (busy) return;
+            if (busy)
+                return;
             busy = true;
             editorHost.IsEnabled = false;
             dialog.IsPrimaryButtonEnabled = false;
@@ -193,7 +208,8 @@ public sealed partial class SvgEditorWorkspace
                     picker.FileTypeFilter.Add(".xml");
                     InitializePicker(picker);
                     var file = await picker.PickSingleFileAsync();
-                    if (file is null) return;
+                    if (file is null)
+                        return;
                     using var input = await file.OpenStreamForReadAsync();
                     using var reader = new StreamReader(input, Encoding.UTF8, true, 4096);
                     var xml = new StringBuilder();
