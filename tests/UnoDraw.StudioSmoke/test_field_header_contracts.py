@@ -9,7 +9,7 @@ XAML = '{http://schemas.microsoft.com/winfx/2006/xaml/presentation}'
 
 class StudioFieldHeaderContracts(unittest.TestCase):
     def test_shared_native_styles_use_content_aware_header_templates(self):
-        root = ET.parse(ROOT / 'Themes/StudioThemeResources.xaml').getroot()
+        root = ET.parse(ROOT / 'Themes/EditorTheme.xaml').getroot()
         for target in ('TextBox', 'NumberBox', 'ComboBox'):
             styles = [style for style in root.findall(XAML + 'Style') if style.get('TargetType') == target]
             setters = [setter for style in styles for setter in style.findall(XAML + 'Setter')]

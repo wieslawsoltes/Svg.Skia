@@ -9,7 +9,7 @@ XAML = '{http://schemas.microsoft.com/winfx/2006/xaml/presentation}'
 
 class StudioDialogThemeContracts(unittest.TestCase):
     def test_dialog_buttons_do_not_fall_back_to_unstyled_platform_actions(self):
-        root = ET.parse(ROOT / 'Themes/StudioThemeResources.xaml').getroot()
+        root = ET.parse(ROOT / 'Themes/EditorTheme.xaml').getroot()
         styles = [style for style in root.findall(XAML + 'Style') if style.get('TargetType') == 'ContentDialog']
         self.assertEqual(1, len(styles))
         setters = {setter.get('Property'): setter.get('Value') for setter in styles[0].findall(XAML + 'Setter')}

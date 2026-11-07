@@ -6,8 +6,8 @@ using Microsoft.UI.Xaml.Media;
 namespace Svg.Editor.Skia.Uno;
 
 /// <summary>
-/// Merge after XamlControlsResources at application or workspace scope. Native input
-/// templates remain intact. Consumers can override named resources in their scope.
+/// Compatibility entry point for existing hosts. New applications can merge
+/// EditorTheme directly; both dictionaries expose the same resource contracts.
 /// </summary>
 public sealed partial class StudioThemeResources : ResourceDictionary
 {
@@ -28,7 +28,8 @@ public static class StudioTheme
     public static void ApplyRole(Button button, StudioActionRole role, FrameworkElement? scope = null)
     {
         ArgumentNullException.ThrowIfNull(button);
-        if (!Enum.IsDefined(typeof(StudioActionRole), role)) throw new ArgumentOutOfRangeException(nameof(role));
+        if (!Enum.IsDefined(typeof(StudioActionRole), role))
+            throw new ArgumentOutOfRangeException(nameof(role));
         var key = role switch
         {
             StudioActionRole.Primary => "StudioPrimaryButtonStyle",

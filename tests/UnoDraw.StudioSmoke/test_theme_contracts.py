@@ -54,14 +54,14 @@ class StudioThemeContracts(unittest.TestCase):
                     self.assertGreaterEqual(ratio(colors[foreground], colors[background]), 4.5)
 
     def test_workspace_and_custom_templates_do_not_fork_the_palette(self):
-        for name in ('SvgEditorWorkspace.xaml', 'Themes/Generic.xaml', 'Themes/StudioThemeResources.xaml'):
+        for name in ('SvgEditorWorkspace.xaml', 'Themes/Generic.xaml', 'Themes/EditorTheme.xaml'):
             root = load(name)
             self.assertFalse(list(root.iter(XAML + 'ResourceDictionary.ThemeDictionaries')), name)
             self.assertFalse(any(re.match(r'#[0-9a-fA-F]{6,8}$', value) for node in root.iter() for value in node.attrib.values()), name)
-            self.assertIn('StudioThemeResources', (LIBRARY / name).read_text())
+            self.assertIn('EditorTheme', (LIBRARY / name).read_text())
 
     def test_native_metric_resource_types_match_template_contracts(self):
-        root = load('Themes/StudioThemeResources.xaml')
+        root = load('Themes/EditorTheme.xaml')
         resources = {node.get(X + 'Key'): node for node in root if node.get(X + 'Key')}
         expected = {'ContentDialogButtonSpacing': XAML + 'GridLength',
                     'TextControlBorderThemeThickness': XAML + 'Thickness',
@@ -72,12 +72,29 @@ class StudioThemeContracts(unittest.TestCase):
             self.assertEqual(tag, resources[key].tag, key)
         self.assertLessEqual(float(resources['ColorPickerVerticalOrientationMinWidth'].text), 236)
 
-    def test_native_text_and_selection_controls_keep_their_platform_templates(self):
-        root = load('Themes/StudioThemeResources.xaml')
-        for target in ('TextBox', 'NumberBox', 'ComboBox', 'CheckBox', 'RadioButton', 'ToggleSwitch', 'ContentDialog'):
-            styles = [node for node in root.findall(XAML + 'Style') if node.get('TargetType') == target]
-            self.assertTrue(styles, target)
-            self.assertFalse(any(setter.get('Property') == 'Template' for style in styles for setter in style.findall(XAML + 'Setter')), target)
+    def test_editor_inputs_keep_native_template_parts(self):
+        root = load('Themes/EditorInputTemplates.xaml')
+        templates = {node.get(X + 'Key'): node for node in root.findall(XAML + 'ControlTemplate')}
+        required = {
+            'TextBox': {'ContentElement', 'HeaderContentPresenter', 'PlaceholderTextContentPresenter', 'DeleteButton'},
+            'NumberBox': {'InputBox', 'UpSpinButton', 'DownSpinButton', 'UpDownPopup', 'PopupContentRoot', 'PopupUpSpinButton', 'PopupDownSpinButton'},
+            'ComboBox': {'ContentPresenter', 'PlaceholderTextBlock', 'EditableText', 'DropDownOverlay', 'Popup', 'PopupBorder'},
+            'ToggleSwitch': {'SwitchKnob', 'SwitchKnobBounds', 'SwitchThumb', 'HeaderContentPresenter'},
+        }
+        for target, parts in required.items():
+            template = templates['Editor' + target + 'Template']
+            self.assertEqual(target, template.get('TargetType'))
+            self.assertFalse(parts - {node.get(X + 'Name') for node in template.iter()}, target)
+        text = templates['EditorTextBoxTemplate']
+        content = next(node for node in text.iter() if node.get(X + 'Name') == 'ContentElement')
+        self.assertEqual(XAML + 'ScrollViewer', content.tag, 'Native text composition owns ContentElement.')
+        self.assertEqual('False', content.get('IsTabStop'))
+        self.assertEqual('{TemplateBinding Padding}', content.get('Padding'))
+        number = templates['EditorNumberBoxTemplate']
+        input_box = next(node for node in number.iter() if node.get(X + 'Name') == 'InputBox')
+        self.assertEqual(XAML + 'TextBox', input_box.tag)
+        for property_name in ('InputScope', 'SelectionFlyout', 'SelectionHighlightColor', 'TextReadingOrder'):
+            self.assertEqual('{TemplateBinding ' + property_name + '}', input_box.get(property_name))
 
     def test_all_custom_default_style_keys_have_templates(self):
         custom = set()
@@ -92,7 +109,7 @@ class StudioThemeContracts(unittest.TestCase):
             self.assertIn(part, names)
 
     def test_button_roles_share_one_template_and_keep_focus_visuals(self):
-        root = load('Themes/StudioThemeResources.xaml')
+        root = load('Themes/EditorTheme.xaml')
         styles = {node.get(X + 'Key'): node for node in root.findall(XAML + 'Style') if node.get(X + 'Key')}
         base = styles['StudioButtonStyle']
         self.assertTrue(any(node.get('Property') == 'UseSystemFocusVisuals' and node.get('Value') == 'True' for node in base))
@@ -104,8 +121,8 @@ class StudioThemeContracts(unittest.TestCase):
     def test_application_and_embedded_workspace_both_use_shared_resources(self):
         app = (ROOT / 'samples/UnoDraw/App.xaml').read_text()
         workspace = (LIBRARY / 'SvgEditorWorkspace.xaml').read_text()
-        self.assertIn('StudioThemeResources', app)
-        self.assertIn('StudioThemeResources', workspace)
+        self.assertIn('EditorTheme', app)
+        self.assertIn('EditorTheme', workspace)
         self.assertNotIn('SystemAccentColor', app)
 
 
