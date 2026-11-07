@@ -233,8 +233,9 @@ subgroups organize transforms, stacking, alignment, paths, masks, paint
 resources, artboards, guides and workspace operations.
 
 The grouped toolbox provides selection and node tools; pen variants; type and
-area type; line, shape, spiral and grid creation; pencil and paintbrush; eraser,
-scissors and knife; transforms; deformation brushes; shape building; gradient
+area type; line, shape, spiral and grid creation; pencil, paintbrush and Blob
+Brush; smoothing, path erasing and joining; eraser, scissors and knife;
+transforms, shear and measurement; deformation brushes; shape building; gradient
 and eyedropper; symbol placement and symbol brushes; artboard, hand and zoom.
 Right-click, press-and-hold, or **Alt+Down** on a group reveals its alternatives.
 Double-click opens applicable tool options. The toolbar supports one or two
@@ -333,6 +334,14 @@ adding Alt zooms out. Releasing the navigation chord or losing workspace focus
 restores the previous tool. Tab and Shift+Tab control panel visibility while the
 canvas owns the input. The full default table is in [UnoDraw](unodraw.md).
 
+**Shift+B** selects Blob Brush and **Shift+J** selects Join. Smooth, Path Eraser,
+Shear and Measure can be selected from their toolbox groups or command search.
+Measure reports root SVG user units without changing artwork or history.
+Deformation brushes integrate elapsed hold time, so a stationary pointer keeps
+affecting the preview at the same rate as a moving pointer. Warp follows pointer
+displacement. A completed brush gesture is one undo entry; cancellation and
+window deactivation stop its timer and discard provisional geometry.
+
 **Edit > Keyboard Shortcuts** edits a draft profile, reports conflicts and applies
 the accepted changes to routing and displayed hints together. It supports clear,
 reset and XML import/export. `SvgEditorShortcutProfile` also exposes `Clone`,
@@ -385,7 +394,10 @@ mapping relative to the regions, including imported `viewBox`, letterboxing,
 percentage root sizes and supported root translation/scaling. Geometry edits
 reject a rotated, skewed or singular root transform before modifying the
 document. Removing a region keeps artwork and the existing root envelope.
-Collections retain at least one region and allow at most 1,000.
+Collections retain at least one region and allow at most 1,000. Malformed,
+foreign-namespace and unrelated imported elements remain in their original DOM
+positions during edits. An imported collection exceeding the editing limit is
+retained, and editing is rejected before mutation.
 
 The artboard tool selects existing regions, moves or resizes the active region,
 creates a region by dragging in empty space, and duplicates with Alt-drag.

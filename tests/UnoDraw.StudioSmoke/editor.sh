@@ -8,6 +8,22 @@ command 'Reset workspace'
 command 'Fit artboard'
 command 'Deselect'
 
+# Keyboard acceptance must reject a visibly empty required numeric field before
+# a new document is created. The first Enter is the regression boundary.
+command 'New document'
+checkpoint="$(input_checkpoint)"
+xdotool key --clearmodifiers ctrl+a BackSpace
+wait_input "$checkpoint" 'modal-up key=Back '
+checkpoint="$(input_checkpoint)"
+xdotool key --clearmodifiers Return
+wait_input "$checkpoint" 'modal-numeric-invalid'
+capture editor-invalid-document-width
+checkpoint="$(input_checkpoint)"
+xdotool key --clearmodifiers Escape
+wait_input "$checkpoint" 'command-completed id=new$'
+save
+verify restored-editor-invalid-new-document
+
 # Native menu activation must work even though AccessKey is not implemented by
 # the Skia host. Escape returns to the unchanged document.
 xdotool key --clearmodifiers alt+f
@@ -20,9 +36,9 @@ capture editor-menu-keyboard
 xdotool key --clearmodifiers Escape
 
 draw() {
-  xdotool mousemove --window "$window" 450 340 mousedown 1
+  begin_editor_drag 450 340
   xdotool mousemove --window "$window" 630 470
-  xdotool mouseup 1
+  end_editor_drag
   sleep 0.35
 }
 check_editor() { python3 "$source_dir/assert_editor.py" "$document" "$output" "$1"; }
@@ -31,7 +47,7 @@ check_editor() { python3 "$source_dir/assert_editor.py" "$document" "$output" "$
 for entry in 'm rectangle' 'l ellipse'; do
   read -r key kind <<< "$entry"
   command 'Deselect'
-  xdotool key --clearmodifiers "$key"
+  key_command "$key" "tool-$kind"
   draw
   save
   check_editor "$kind"
@@ -49,26 +65,46 @@ command 'Undo'
 save
 verify restored-editor-star
 
+# A white creation fill cannot merge with this fixture's existing colored fills.
+# Test the actual shortcut and saved filled outline, then restore its one edit.
+command 'Deselect'
+key_command d defaultpaints
+key_command shift+b tool-blob-brush
+draw
+save
+check_editor blob-brush
+capture editor-tool-blob-brush
+command 'Undo'
+save
+verify restored-editor-blob-brush
+
+# Measurement draws an overlay and updates its result without editing the SVG.
+command 'tool-measure'
+draw
+capture editor-tool-measure
+save
+verify restored-editor-measure
+
 # Escape during capture must discard the complete provisional gesture.
 command 'tool-rectangle'
-xdotool mousemove --window "$window" 450 340 mousedown 1
+begin_editor_drag 450 340
 xdotool mousemove --window "$window" 650 490
-xdotool key --clearmodifiers Escape
-xdotool mouseup 1
+key_command Escape cancel-action
+end_editor_drag
 save
 verify restored-editor-cancelled-drawing
 
 command 'Select all'
-xdotool key --clearmodifiers ctrl+5
+key_command ctrl+5 guide-bounds
 save
 check_editor bounds-guides
 capture editor-guides-bounds
 command 'Undo'
 command 'Deselect'
 command 'Fit artboard'
-xdotool mousemove --window "$window" 460 111 mousedown 1
+begin_editor_drag 460 111
 xdotool mousemove --window "$window" 460 350
-xdotool mouseup 1
+end_editor_drag
 sleep 0.3
 save
 check_editor ruler-guide
@@ -88,7 +124,7 @@ capture editor-artboard-created
 command 'Duplicate artboard'
 save
 check_editor artboard-duplicate
-xdotool key --clearmodifiers ctrl+alt+0
+key_command ctrl+alt+0 fitall
 sleep 0.3
 capture editor-artboards-fit-all
 command 'Undo'
@@ -124,7 +160,7 @@ for appearance in light dark; do
   done
 done
 command 'Navigator panel'
-xdotool mousemove --window "$window" 1280 225 click 1
+click_editor_control 1280 225 '' StudioNavigator
 xdotool key --clearmodifiers Right Down Home
 sleep 0.3
 capture editor-navigator-keyboard
@@ -132,15 +168,25 @@ save
 verify restored-editor-navigator
 
 command 'Fit artboard'
-xdotool key --clearmodifiers Tab
+key_command Tab zen
 sleep 0.3
 capture editor-hidden-panels
-xdotool key --clearmodifiers Tab
-xdotool key --clearmodifiers shift+Tab
+key_command Tab zen
+key_command shift+Tab workspace-hidepanels
 sleep 0.3
 capture editor-hidden-side-panels
-xdotool key --clearmodifiers shift+Tab
+key_command shift+Tab workspace-hidepanels
 command 'Reset workspace'
 save
 verify restored-after-editor-workflows
-printf '%s\n' 'Native menu keys, drawing tools, gesture cancellation, ruler and bounds guides, named artboards, graphic styles, history, navigation and additional panels passed.' > "$output/editor-result.txt"
+# Keep two clean production captures for the workspace documentation, after the
+# editing assertions have already proved that the fixture is fully restored.
+command 'Reset workspace'
+command 'Deselect'
+command 'Properties panel'
+command 'Fit artboard'
+command 'Use light interface'
+capture editor-workspace-light
+command 'Use dark interface'
+capture editor-workspace-dark
+printf '%s\n' 'Native menu keys, drawing tools, filled brush, measurement, gesture cancellation, ruler and bounds guides, named artboards, graphic styles, history, navigation and additional panels passed.' > "$output/editor-result.txt"

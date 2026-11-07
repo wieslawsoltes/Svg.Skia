@@ -155,6 +155,7 @@ The default profile uses Control on Windows/Linux and Command on Apple platforms
 | Selection / Direct Selection / Lasso / Magic Wand | `V` / `A` / `Q` / `Y`. |
 | Rectangle / Ellipse / Line Segment | `M` / `L` / `\`. |
 | Pen / Pencil / Paintbrush / Type | `P` / `N` / `B` / `T`. |
+| Blob Brush / Join | `Shift+B` / `Shift+J`. |
 | Add / delete / convert anchor | `+` / `−` / `Shift+C`. |
 | Rotate / Reflect / Scale / Free Transform | `R` / `O` / `S` / `E`. |
 | Scissors / Eraser | `C` / `Shift+E`. |
@@ -185,6 +186,12 @@ The default profile uses Control on Windows/Linux and Command on Apple platforms
 Duplicate remains available through **Edit → Duplicate** and command search. Fit Selection is available through **View** and Navigator. All commands can be assigned through the shortcut editor where their focus scope permits the gesture.
 
 Pen clicks add anchors; dragging an anchor while drawing a cubic path establishes its tangent. Shift constrains movement, shape aspect ratio, line direction and rotation as appropriate. Node editing operates on a provisional clone so selecting a path does not normalize or modify the saved SVG. The node tool also edits native polygon and polyline vertices without converting them to paths: double-click an edge to insert a vertex, or delete a selected vertex while retaining at least three polygon vertices or two polyline vertices. Move, resize and rotate gestures show a translucent full-color preview with selection handles and commit the actual document transform on release.
+
+Smooth brushes reshape nearby anchors and handles while preserving open endpoints. Path Eraser removes intervals from an editable path centerline, retaining its curves and stroke appearance. Join connects swept open endpoints and preserves their contours. Blob Brush draws filled vector outlines with round ends and can merge touching compatible fills of the same color. Each completed gesture forms one undo operation; Escape discards its preview. Double-click these tools to set their diameter and applicable smoothing or merging options. Pencil options expose fidelity and smooth-curve fitting; rounded rectangles and stars expose their corner and inner-radius settings.
+
+Shear applies an affine transform through the existing provisional transform pipeline. Measure displays distance, horizontal and vertical deltas, and angle in SVG user units without changing the document or undo history. Shift constrains its direction to 45-degree increments. Both tools are available from their toolbox groups and command search.
+
+Deformation and symbol brushes show their diameter before a stroke. Time-based deformation continues while the pointer is held still, using elapsed-time integration instead of pointer-event counts; Warp follows pointer movement. Releasing commits one operation, and cancellation or window deactivation discards the pending brush preview.
 
 ### Variable width strokes, meshes and brushes
 

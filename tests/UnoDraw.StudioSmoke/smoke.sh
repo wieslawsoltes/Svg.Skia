@@ -96,6 +96,33 @@ input_checkpoint() {
 wait_input() {
   python3 "$source_dir/wait_input.py" "$output/application.log" "$1" "$2"
 }
+click_editor_control() {
+  local checkpoint expression
+  checkpoint="$(input_checkpoint)"
+  expression='workspace-pointer-up-focus '
+  if [[ -n "${4:-}" ]]; then expression+="focus=$4 "; fi
+  if [[ -n "${3:-}" ]]; then expression+=".*sourceTarget=$3$"; fi
+  xdotool mousemove --window "$window" "$1" "$2" click 1
+  wait_input "$checkpoint" "$expression"
+}
+begin_editor_drag() {
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
+  xdotool mousemove --window "$window" "$1" "$2" mousedown 1
+  wait_input "$checkpoint" 'workspace-pointer-down-focus '
+}
+end_editor_drag() {
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
+  xdotool mouseup 1
+  wait_input "$checkpoint" 'workspace-pointer-up-focus '
+}
+key_command() {
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
+  xdotool key --clearmodifiers "$1"
+  wait_input "$checkpoint" "command-completed id=$2$"
+}
 open_commands() {
   local checkpoint
   checkpoint="$(input_checkpoint)"
@@ -110,11 +137,19 @@ type_command_query() {
   xdotool type --clearmodifiers --delay 25 "$1"
   wait_input "$checkpoint" "query-results length=$length "
 }
+invoke_command_query() {
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
+  xdotool key --clearmodifiers Return
+  # Dialog commands return when their new modal opens; other commands must finish.
+  # The palette's own Opened event occurred before this checkpoint.
+  wait_input "$checkpoint" 'command-completed id=(?!commands\b)|modal-opened'
+  sleep 0.2
+}
 command() {
   open_commands
   type_command_query "$1"
-  xdotool key --clearmodifiers Return
-  sleep 0.7
+  invoke_command_query
 }
 save() {
   local before
@@ -141,7 +176,7 @@ capture 01-essentials-light
 command 'Select all'
 command 'Appearance panel'
 capture 02-mixed-appearance
-xdotool mousemove --window "$window" 480 55 click 1
+click_editor_control 480 55 '' TextBox
 xdotool key --clearmodifiers ctrl+a
 xdotool type --clearmodifiers '62.5'
 xdotool key --clearmodifiers Tab
@@ -206,14 +241,14 @@ command 'Switch theme'
 command 'Appearance panel'
 capture 09-appearance-dark
 
-xdotool mousemove --window "$window" 1426 91 click 1
+click_editor_control 1426 91
 sleep 0.4
 xdotool key --clearmodifiers Home Down Down Down Down Return
 sleep 0.7
 capture 10-floating-panel
-xdotool mousemove --window "$window" 230 190 mousedown 1
+begin_editor_drag 230 190
 xdotool mousemove --window "$window" 390 240
-xdotool mouseup 1
+end_editor_drag
 sleep 0.5
 capture 11-moved-panel
 command 'Reset workspace'

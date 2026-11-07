@@ -41,7 +41,12 @@ public sealed partial class SvgEditorWorkspace
             await command.Execute();
         }
         catch (Exception exception) { await ShowErrorAsync(exception.Message); }
-        finally { if (!_disposed) RefreshEditorMenus(); }
+        finally
+        {
+            if (!_disposed)
+                RefreshEditorMenus();
+            EditorInputTrace.Write("command-completed id=" + id);
+        }
     }
 
     private Task CopyAsync(bool cut)

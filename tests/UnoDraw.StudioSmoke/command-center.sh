@@ -15,8 +15,7 @@ capture commands-02-no-results
 xdotool key --clearmodifiers ctrl+a
 type_command_query 'window transform'
 capture commands-03-category-query
-xdotool key --clearmodifiers Return
-sleep 0.7
+invoke_command_query
 capture commands-04-transform-opened
 save
 verify restored-command-empty-and-category-query

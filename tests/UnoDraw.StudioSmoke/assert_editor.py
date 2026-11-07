@@ -6,11 +6,12 @@ import copy
 import json
 import math
 import pathlib
+import re
 import sys
 import uuid
 import xml.etree.ElementTree as ET
 
-from assert_svg import SVG, fixture_objects, semantic
+from assert_svg import SVG, fixture_objects, presentation_value, semantic
 
 
 def assert_editor_change(root: ET.Element, baseline: ET.Element, mode: str) -> None:
@@ -18,10 +19,10 @@ def assert_editor_change(root: ET.Element, baseline: ET.Element, mode: str) -> N
     expected = {element.get("id") for element in baseline if element.get("id")}
     added = [element for element in root if element.get("id") not in expected]
     normalized = copy.deepcopy(root)
-    if mode in ("rectangle", "ellipse", "star", "style"):
+    if mode in ("rectangle", "ellipse", "star", "blob-brush", "style"):
         assert len(added) == 1, ("Expected exactly one newly drawn object", len(added))
         element = added[0]
-        expected_tag = {"rectangle": "rect", "ellipse": "ellipse", "star": "path", "style": "rect"}[mode]
+        expected_tag = {"rectangle": "rect", "ellipse": "ellipse", "star": "path", "blob-brush": "path", "style": "rect"}[mode]
         assert element.tag == SVG + expected_tag, ("Wrong drawing tool", element.tag, expected_tag)
         if expected_tag == "rect":
             assert all(math.isfinite(float(element.get(key, "nan"))) and float(element.get(key, "0")) > 0 for key in ("width", "height"))
@@ -29,7 +30,12 @@ def assert_editor_change(root: ET.Element, baseline: ET.Element, mode: str) -> N
             assert all(math.isfinite(float(element.get(key, "nan"))) and float(element.get(key, "0")) > 0 for key in ("rx", "ry"))
         else:
             path = element.get("d", "")
-            assert path and "z" in path.lower(), "Star must be a closed vector path"
+            assert path and "z" in path.lower(), "The drawing tool must create a closed vector path"
+        if mode == "blob-brush":
+            assert element.get("id"), "A blob stroke must have a stable object identity"
+            fill = re.sub(r"\s+", "", presentation_value(element, "fill") or "").lower()
+            assert fill in {"white", "#fff", "#ffffff", "rgb(255,255,255)"}, ("Blob Brush must use the chosen creation fill", fill)
+            assert presentation_value(element, "stroke", "none") == "none", "Blob Brush paints a fill without a separate stroke"
         normalized.remove(next(item for item in normalized if item.get("id") == element.get("id")))
     elif mode in ("artboard", "artboard-duplicate"):
         count = 2 if mode == "artboard" else 3
@@ -77,7 +83,7 @@ def assert_editor_change(root: ET.Element, baseline: ET.Element, mode: str) -> N
 if __name__ == "__main__":
     document, output = map(pathlib.Path, sys.argv[1:3])
     mode = sys.argv[3]
-    assert mode in {"rectangle", "ellipse", "star", "style", "bounds-guides", "ruler-guide", "artboard", "artboard-duplicate"}
+    assert mode in {"rectangle", "ellipse", "star", "blob-brush", "style", "bounds-guides", "ruler-guide", "artboard", "artboard-duplicate"}
     assert_editor_change(ET.parse(document).getroot(), ET.parse(output / "baseline.svg").getroot(), mode)
     (output / ("editor-" + mode + "-applied.svg")).write_bytes(document.read_bytes())
     path = output / "checks.json"

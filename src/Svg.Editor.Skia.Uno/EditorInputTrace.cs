@@ -3,6 +3,7 @@ using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Svg.Editor.Core;
 using Windows.System;
 using Windows.UI.Core;
@@ -66,12 +67,21 @@ internal static class EditorInputTrace
             return "none";
         // Only fixed editor control IDs are permitted. Never log arbitrary names,
         // layer IDs, field contents, accessible labels or user-provided metadata.
-        var id = AutomationProperties.GetAutomationId(element);
-        if (id is "StudioCommandSearchBox" or "StudioCommandSearchResults")
-            return id;
-        const string prefix = "StudioReferencePoint";
-        return id is not null && id.Length == prefix.Length + 1 && id.StartsWith(prefix, StringComparison.Ordinal)
-            && id[^1] is >= '0' and <= '8' ? id : "other";
+        var depth = 0;
+        for (var current = element; current is not null && depth++ < 16; current = VisualTreeHelper.GetParent(current))
+        {
+            var id = AutomationProperties.GetAutomationId(current);
+            if (id is "StudioCommandSearchBox" or "StudioCommandSearchResults" or "StudioGradientApply"
+                or "StudioGradientTarget" or "StudioColorTarget" or "StudioColorApply"
+                or "studio-panel-picker-RightTop" or "studio-panel-picker-RightBottom"
+                or "studio-panel-picker-Left" or "studio-panel-picker-Bottom")
+                return id;
+            const string prefix = "StudioReferencePoint";
+            if (id is not null && id.Length == prefix.Length + 1 && id.StartsWith(prefix, StringComparison.Ordinal)
+                && id[^1] is >= '0' and <= '8')
+                return id;
+        }
+        return "other";
     }
 
     private static bool Down(VirtualKey key)

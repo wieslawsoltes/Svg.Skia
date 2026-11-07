@@ -31,6 +31,21 @@ class EditorSavedDocumentAssertions(unittest.TestCase):
         with self.assertRaises(AssertionError):
             assert_editor_change(self.root, self.baseline, 'ellipse')
 
+    def test_blob_brush_requires_a_new_closed_fill_and_preserves_original_artwork(self):
+        element = ET.SubElement(self.root, SVG + 'path', id='path1', d='M0 0L20 0L20 10L0 10Z', style='fill:#fff;stroke:none;')
+        assert_editor_change(self.root, self.baseline, 'blob-brush')
+        element.set('style', 'fill:none;stroke:#fff;')
+        with self.assertRaises(AssertionError):
+            assert_editor_change(self.root, self.baseline, 'blob-brush')
+        element.set('style', 'fill:#fff;stroke:none;')
+        element.set('d', 'M0 0L20 10')
+        with self.assertRaises(AssertionError):
+            assert_editor_change(self.root, self.baseline, 'blob-brush')
+        element.set('d', 'M0 0L20 0L20 10Z')
+        self.root[0].set('fill', 'white')
+        with self.assertRaises(AssertionError):
+            assert_editor_change(self.root, self.baseline, 'blob-brush')
+
     def test_guide_requires_nonprinting_finite_normalized_metadata(self):
         with self.assertRaises(AssertionError):
             assert_editor_change(self.root, self.baseline, 'ruler-guide')
