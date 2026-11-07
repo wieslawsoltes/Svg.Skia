@@ -341,6 +341,8 @@ Deformation brushes integrate elapsed hold time, so a stationary pointer keeps
 affecting the preview at the same rate as a moving pointer. Warp follows pointer
 displacement. A completed brush gesture is one undo entry; cancellation and
 window deactivation stop its timer and discard provisional geometry.
+The [deformation brush guide](unodraw-deformation.md) describes the shared
+geometry APIs, sampling model and processing limits.
 
 **Edit > Keyboard Shortcuts** edits a draft profile, reports conflicts and applies
 the accepted changes to routing and displayed hints together. It supports clear,

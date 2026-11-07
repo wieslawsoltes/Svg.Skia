@@ -6,7 +6,7 @@ The application migration does not remove the reusable Avalonia editor packages.
 
 ## Workspace preview
 
-These native Linux captures show the welcome document at the earlier desktop migration milestone. The current workspace also exposes the authoring and print commands documented below.
+These native Linux captures show the EditorTheme workspace with the editable SVG used by the interaction harness. They were captured from the running application after its saved-document checks passed. The theme's integration, resource overrides and full control surface are documented in the [EditorTheme guide](unodraw-editor-theme.md).
 
 | Light theme | Dark theme |
 | --- | --- |
@@ -300,7 +300,7 @@ Rendering a construct, retaining it in the document, editing attributes and prov
 | Area | Implemented authoring surface | Current boundary |
 | --- | --- | --- |
 | Documents and history | Tabs, SVG/SVGZ open/save, recovery, source/attribute editing, named artboard regions, atomic undo/redo, labeled history and save checkpoints. | Serialization normalizes XML; history uses document snapshots. Artboard regions use SVG view metadata and share one SVG artwork tree. |
-| Drawing and geometry | Grouped shape/path tools, grids/spirals/stars, freehand and brush drawing, pen tangents, native polygon/polyline vertex editing, anchor editing, scissors/knife/eraser, lasso/magic wand, boolean paths, prepared region division, offsets, blends, guides and transforms. | Native SVG primitives are retained where possible; geometry operations validate transforms, locks and input limits before mutation. |
+| Drawing and geometry | Grouped shape/path tools, grids/spirals/stars, pencil/paintbrush/Blob Brush, smoothing/path erasing/joining, pen tangents, native vertex/anchor editing, scissors/knife/eraser, lasso/magic wand, boolean paths, Shape Builder, deformation, symbol brushes, guides, transforms and measurement. | Native SVG primitives are retained where possible; geometry operations validate transforms, locks and input limits before mutation. Measurement and viewport tools do not change document history. |
 | Hierarchy | Multiple outline selection, drag/reorder/reparent, move to layer/out of group, locking and visibility. | SVG content categories, locks and transforms are validated; destination compositing applies. |
 | Paint resources | Gradient and pattern creation, shared swatches, symbols, document CSS and attribute editing. | These commands do not constitute a complete visual editor for every SVG paint/resource attribute. |
 | Advanced paint | Editable Coons meshes, width-profile/repeating/scatter brush libraries, open/closed variable-width outlines and square caps. | Mesh output is tessellated vector geometry; brush stamps are single-color SVG paths. |
@@ -314,7 +314,7 @@ The reusable Avalonia packages remain available. The earlier workspace is useful
 
 ## Validation
 
-The [UnoDraw workflow](../.github/workflows/unodraw.yml) defines desktop build and framework-independent editor test jobs on Linux, Windows and macOS, plus separate WebAssembly publish, Android APK and iOS simulator package jobs. Each optional platform job installs its own workload; the desktop jobs do not require them. The Linux desktop startup check launches the built app with the welcome SVG under Xvfb, catches early exits and native loading failures, and uploads its log. It uses software graphics and does not exercise physical GPU hardware. A configured CI job is not a passing validation result; record the run and commit below after completion.
+The [UnoDraw workflow](../.github/workflows/unodraw.yml) defines desktop build and framework-independent editor test jobs on Linux, Windows and macOS, plus Android APK and iOS simulator package jobs. The [Docs workflow](../.github/workflows/docs.yml) publishes the optimized WebAssembly application and tests that published artifact in a browser. Each optional platform job installs its own workload; the desktop jobs do not require them. The Linux desktop startup check launches the built app with the welcome SVG under Xvfb, catches early exits and native loading failures, and uploads its log. The [native editor workflow](../.github/workflows/unodraw-studio.yml) exercises real controls, saved SVG and screenshots. These virtual-display checks use software graphics; physical-device and GPU testing are separate validation records.
 
 ```sh
 dotnet test tests/Svg.Editor.Skia.UnitTests/Svg.Editor.Skia.UnitTests.csproj -c Release
@@ -331,7 +331,17 @@ dotnet build Svg.Skia.slnx -c Release
 dotnet test Svg.Skia.slnx -c Release
 ```
 
-### Completion validation record
+### EditorTheme validation record
+
+The EditorTheme application changes at `f752ab7f09518dbff9a9da1b23b9120364b79f7a` passed the complete Release solution build with zero errors and all 11 test assemblies on .NET SDK 10.0.403: **2,627 passed, zero failures and 44 existing skips**. This includes **701 editor tests** and **20 SVG document-service tests**. Subsequent harness corrections at `276281810120b69c5050c088b5d0a45a08c49097` leave the application code unchanged.
+
+The [native EditorTheme run](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/42419926026) passed **57 saved-document and persistence assertions**, produced **129 native screenshots**, and finished with a saved SVG byte-for-byte identical to its baseline. It exercised the light/dark control galleries, 390/480-pixel layouts, gradient drafting, reference-point keyboard input, literal shortcut search and real Save, first-Enter rejection of an empty numeric field, drawing and filled-brush tools, measurement, gesture cancellation, guides, artboard creation/duplication/undo, graphic styles/history, Navigator and all 24 retained panels. The Python harness and theme contracts passed **62 tests**.
+
+The [platform run for the application revision](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/42418615050) passed desktop builds and editor tests on Linux, Windows and macOS, Android APK publication and iOS simulator packaging. Packaging does not establish physical-device runtime behavior.
+
+The local test host required a task-specific fontconfig file to select a supported system font and an in-process Uno task host because sandbox named pipes are unavailable. Neither workaround changes repository files. Solution-wide `dotnet format` could not connect to its MSBuild host in that environment; whitespace formatting and `git diff --check` passed. No test was weakened, and no renderer baseline or skip was changed for that run.
+
+### Earlier authoring completion validation record
 
 The completion test gate ran on Linux with .NET SDK 10.0.402 on 2026-10-22, using commit `056b4d48e3ee11261936e564df59479baef9c7dd` plus repository formatter changes. The Release solution build covered all 100 configured project/framework combinations across 53 projects and completed with zero errors. All 11 test assemblies passed with **1,907 passing tests, zero failures and 44 existing skips**. The exact skipped test identities match the earlier migration baseline.
 

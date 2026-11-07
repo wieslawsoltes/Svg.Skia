@@ -86,8 +86,20 @@ sleep 1
 window_diagnostics
 
 capture() {
+  local attempt signature previous="" stable=0
   kill -0 "$app_pid" 2>/dev/null || { cat "$output/application.log"; exit 1; }
-  import -window "$window" "$output/$1.png"
+  # Input/model readiness can precede the native host's next paint. Keep the
+  # final unmodified X11 frame after three matching pixel samples, or the bounded
+  # last sample for controls with continuous animation (such as a blinking caret).
+  sleep 0.2
+  for attempt in {1..8}; do
+    import -window "$window" "$output/$1.png"
+    signature="$(identify -format '%#' "$output/$1.png")"
+    if [[ "$signature" == "$previous" ]]; then stable=$((stable + 1)); else stable=0; fi
+    [[ "$stable" -ge 2 ]] && break
+    previous="$signature"
+    if [[ "$attempt" -lt 8 ]]; then sleep 0.1; fi
+  done
   identify "$output/$1.png" >>"$output/captures.txt"
 }
 input_checkpoint() {
