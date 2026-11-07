@@ -115,7 +115,10 @@ public sealed partial class SvgEditorCanvas
                     path.PathData.Add(new SvgLineSegment(false, PointF(points[i])));
                 }
 
-                Controller.AddElement(path, "Draw freehand path");
+                if (InteractionMode == SvgEditorInteractionMode.Paintbrush)
+                    Controller.AddBrushStroke(path, ActiveBrush);
+                else
+                    Controller.AddElementInPictureCoordinates(path, "Draw freehand path");
             }
 
             _freehandPoints.Clear();
@@ -128,7 +131,8 @@ public sealed partial class SvgEditorCanvas
             return;
         }
 
-        Controller.CreateElement((ToolService.Tool)(int)Tool, _startWorld, _currentWorld);
+        var created = Controller.CreateElement((ToolService.Tool)(int)Tool, _startWorld, _currentWorld, true);
+        if (created is SvgTextBase) RequestTextEdit(created, false);
     }
 
     private void CommitPenPath(bool closed)
@@ -173,7 +177,7 @@ public sealed partial class SvgEditorCanvas
         }
 
         _penNodes.Clear();
-        Controller.AddElement(element, closed ? "Draw closed path" : "Draw path");
+        Controller.AddElementInPictureCoordinates(element, closed ? "Draw closed path" : "Draw path");
         Invalidate();
     }
 

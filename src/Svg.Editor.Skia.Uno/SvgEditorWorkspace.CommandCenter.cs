@@ -27,7 +27,7 @@ public sealed partial class SvgEditorWorkspace
         search.SetCatalog(_commands.Where(command => command.Id != "commands").Select(command =>
             new SvgCommandCatalogEntry(command.Id, command.Label, command.Group, command.Shortcut)), _recentStudioCommands);
         var dialog = MakeDialog("Commands", search, "Run", "Close");
-        dialog.Resources.MergedDictionaries.Add(new StudioThemeResources());
+        dialog.Resources.MergedDictionaries.Add(new EditorTheme());
         dialog.IsPrimaryButtonEnabled = search.SelectedCommand is not null;
         string? selectedId = null;
         search.SelectedCommandChanged += (_, _) => dialog.IsPrimaryButtonEnabled = search.SelectedCommand is not null;

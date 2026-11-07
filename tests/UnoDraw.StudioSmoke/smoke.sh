@@ -92,7 +92,7 @@ capture() {
 }
 command() {
   xdotool windowfocus --sync "$window"
-  xdotool key --clearmodifiers ctrl+k
+  xdotool key --clearmodifiers ctrl+shift+F12
   sleep 0.5
   xdotool type --clearmodifiers --delay 25 "$1"
   sleep 0.35

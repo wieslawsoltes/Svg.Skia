@@ -3,11 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:Svg.Editor.Skia.Uno"
              IsTabStop="True" AllowDrop="True" DragOver="Workspace_DragOver" Drop="Workspace_Drop"
-             KeyDown="Workspace_KeyDown" KeyUp="Workspace_KeyUp">
+             RequestedTheme="Dark" KeyDown="Workspace_KeyDown">
   <UserControl.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries><local:EditorTheme /></ResourceDictionary.MergedDictionaries>
-      <Style x:Key="StudioOutlineContainer" TargetType="TreeViewItem">
+      <Style x:Key="StudioOutlineContainer" TargetType="TreeViewItem" BasedOn="{StaticResource EditorTreeViewItemStyle}">
         <Setter Property="MinHeight" Value="30" /><Setter Property="Padding" Value="0,0,4,0" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="FontSize" Value="11" />
       </Style>
@@ -17,13 +17,13 @@
     </ResourceDictionary>
   </UserControl.Resources>
   <Grid x:Name="WorkspaceRoot" Background="{ThemeResource StudioCanvas}">
-    <Grid.RowDefinitions><RowDefinition Height="38" /><RowDefinition Height="40" /><RowDefinition Height="*" /><RowDefinition Height="30" /></Grid.RowDefinitions>
-    <Border Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="0,0,0,1">
+    <Grid.RowDefinitions><RowDefinition x:Name="EditorMenuRow" Height="34" /><RowDefinition x:Name="EditorControlRow" Height="38" /><RowDefinition Height="*" /><RowDefinition x:Name="EditorStatusRow" Height="28" /></Grid.RowDefinitions>
+    <Border x:Name="EditorMenuStrip" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="0,0,0,1">
       <Grid Padding="8,0" ColumnSpacing="8">
         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-          <Border Background="{ThemeResource StudioSelection}" Width="25" Height="25" CornerRadius="5"><TextBlock Text="u" FontSize="22" FontWeight="Bold" Foreground="{ThemeResource StudioAccent}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-4,0,0" /></Border>
-          <TextBlock x:Name="BrandTitle" Text="UnoDraw" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{ThemeResource StudioForeground}" />
+          <Border Background="{ThemeResource StudioRaised}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="1" Width="23" Height="23" CornerRadius="2"><TextBlock Text="u" FontSize="19" FontWeight="Bold" Foreground="{ThemeResource StudioForeground}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-3,0,0" /></Border>
+          <TextBlock x:Name="BrandTitle" Text="UnoDraw" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{ThemeResource StudioForeground}" />
           <Border x:Name="MenuDivider" Width="1" Height="18" Background="{ThemeResource StudioDivider}" Margin="3,0" />
           <MenuBar x:Name="WorkspaceMenu" Background="Transparent" FontSize="12" VerticalAlignment="Center" />
           <Button x:Name="CompactMenuButton" Content="Menu" Visibility="Collapsed" Style="{StaticResource CompactButton}"><Button.Flyout><MenuFlyout x:Name="CompactMenu" /></Button.Flyout></Button>
@@ -32,16 +32,16 @@
           <ComboBox x:Name="WorkspacePresetPicker" Width="130" MinHeight="28" Padding="8,3" AutomationProperties.Name="Workspace layout" SelectionChanged="WorkspacePreset_SelectionChanged">
             <x:String>Essentials</x:String><x:String>Drawing</x:String><x:String>Typography</x:String>
           </ComboBox>
-          <Button Style="{StaticResource CompactButton}" Click="Command_Click" Tag="commands" ToolTipService.ToolTip="Search commands (Ctrl+K)">
-            <StackPanel Orientation="Horizontal" Spacing="6"><FontIcon Glyph="&#xE721;" FontSize="12" /><TextBlock x:Name="CommandsLabel" Text="Search" /><TextBlock x:Name="CommandsShortcut" Text="Ctrl K" Foreground="{ThemeResource StudioMuted}" FontSize="10" /></StackPanel>
+          <Button x:Name="EditorCommandSearchButton" Style="{StaticResource CompactButton}" Click="Command_Click" Tag="commands" AutomationProperties.Name="Search commands">
+            <StackPanel Orientation="Horizontal" Spacing="6"><FontIcon Glyph="&#xE721;" FontSize="12" /><TextBlock x:Name="CommandsLabel" Text="Search" /><TextBlock x:Name="CommandsShortcut" Foreground="{ThemeResource StudioMuted}" FontSize="10" /></StackPanel>
           </Button>
           <Button x:Name="ThemeButton" Style="{StaticResource CompactButton}" Tag="theme" Click="Command_Click" ToolTipService.ToolTip="Switch theme"><FontIcon Glyph="&#xE708;" FontSize="13" /></Button>
           <Button Style="{StaticResource CompactButton}" Tag="save" Click="Command_Click" Content="Save" />
-          <Button x:Name="ExportButton" Style="{StaticResource StudioPrimaryButtonStyle}" MinHeight="28" Padding="10,3" Tag="export" Click="Command_Click" Content="Export" />
+          <Button x:Name="ExportButton" Style="{StaticResource CompactButton}" Tag="export" Click="Command_Click" Content="Export" />
         </StackPanel>
       </Grid>
     </Border>
-    <Border Grid.Row="1" Background="{ThemeResource StudioSurface}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="0,0,0,1">
+    <Border x:Name="EditorControlBar" Grid.Row="1" Background="{ThemeResource StudioSurface}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="0,0,0,1">
       <Grid ColumnSpacing="8" Padding="8,3">
         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
         <TextBlock x:Name="ContextSelectionLabel" Text="No selection" FontSize="11" MinWidth="80" MaxWidth="130" TextTrimming="CharacterEllipsis" Foreground="{ThemeResource StudioMuted}" VerticalAlignment="Center" />
@@ -55,10 +55,11 @@
       <Grid.ColumnDefinitions>
         <ColumnDefinition x:Name="ToolColumn" Width="68" /><ColumnDefinition x:Name="LeftDockColumn" Width="0" />
         <ColumnDefinition x:Name="LeftSplitterColumn" Width="0" /><ColumnDefinition Width="*" />
-        <ColumnDefinition Width="34" /><ColumnDefinition x:Name="RightSplitterColumn" Width="6" /><ColumnDefinition x:Name="RightDockColumn" Width="312" />
+        <ColumnDefinition x:Name="EditorPanelRailColumn" Width="34" /><ColumnDefinition x:Name="RightSplitterColumn" Width="6" /><ColumnDefinition x:Name="RightDockColumn" Width="312" />
       </Grid.ColumnDefinitions>
-      <Border Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="0,0,1,0">
-        <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="8" Margin="3,8">
+      <Border x:Name="EditorToolShelf" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="0,0,1,0">
+        <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="6" Margin="3,3">
+          <Button Tag="toolbar-columns" Click="Command_Click" Content="⇆" Style="{StaticResource StudioQuietButtonStyle}" MinHeight="18" Padding="0" FontSize="11" AutomationProperties.Name="Switch tool column layout" ToolTipService.ToolTip="Switch between one and two tool columns" />
           <local:StudioWrapPanel x:Name="ToolRail" Spacing="2" />
           <Border Height="1" Background="{ThemeResource StudioDivider}" />
           <StackPanel x:Name="ToolPaintShelf" Spacing="4" />
@@ -68,7 +69,7 @@
       <local:StudioDockGroup x:Name="LeftDock" Grid.Column="1" />
       <local:StudioSplitter x:Name="LeftDockSplitter" Grid.Column="2" />
       <Grid Grid.Column="3" x:Name="CanvasContainer">
-        <Grid.RowDefinitions><RowDefinition Height="34" /><RowDefinition Height="*" /><RowDefinition x:Name="BottomSplitterRow" Height="0" /><RowDefinition x:Name="BottomDockRow" Height="0" /></Grid.RowDefinitions>
+        <Grid.RowDefinitions><RowDefinition x:Name="EditorDocumentTabRow" Height="30" /><RowDefinition Height="*" /><RowDefinition x:Name="BottomSplitterRow" Height="0" /><RowDefinition x:Name="BottomDockRow" Height="0" /></Grid.RowDefinitions>
         <TabView x:Name="DocumentTabs" IsAddTabButtonVisible="True" TabWidthMode="SizeToContent" AddTabButtonClick="DocumentTabs_AddTabButtonClick" SelectionChanged="DocumentTabs_SelectionChanged" TabCloseRequested="DocumentTabs_TabCloseRequested" CanDragTabs="False" CanReorderTabs="True" />
         <Grid Grid.Row="1" x:Name="ViewportFrame">
           <Grid.RowDefinitions><RowDefinition x:Name="RulerRow" Height="22" /><RowDefinition Height="*" /></Grid.RowDefinitions>
@@ -81,7 +82,7 @@
         <local:StudioSplitter x:Name="BottomDockSplitter" Grid.Row="2" />
         <local:StudioDockGroup x:Name="BottomDock" Grid.Row="3" />
       </Grid>
-      <Border Grid.Column="4" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="1,0,0,0">
+      <Border x:Name="EditorPanelShelf" Grid.Column="4" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="1,0,0,0">
         <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel x:Name="PanelRail" Spacing="3" Margin="2,5" /></ScrollViewer>
       </Border>
       <local:StudioSplitter x:Name="RightDockSplitter" Grid.Column="5" />
@@ -92,12 +93,12 @@
         <local:StudioDockGroup x:Name="RightBottomDock" Grid.Row="2" />
       </Grid>
     </Grid>
-    <Border Grid.Row="3" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="0,1,0,0">
+    <Border x:Name="EditorStatusBar" Grid.Row="3" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="0,1,0,0">
       <Grid Padding="6,0" ColumnSpacing="8">
         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
           <local:StudioIconButton Tag="zoomout" Click="Command_Click" Label="Zoom out" Content="−" />
-          <Button x:Name="ZoomLabel" Tag="zoom100" Click="Command_Click" Content="100%" Style="{StaticResource CompactButton}" MinWidth="62" />
+          <Button x:Name="ZoomLabel" Content="100%" Style="{StaticResource CompactButton}" MinWidth="62" AutomationProperties.Name="Zoom level and presets" ToolTipService.ToolTip="Choose or enter a zoom percentage" />
           <local:StudioIconButton Tag="zoomin" Click="Command_Click" Label="Zoom in" Content="+" />
           <local:StudioIconButton Tag="fit" Click="Command_Click" Label="Fit artboard" Content="Fit" />
         </StackPanel>

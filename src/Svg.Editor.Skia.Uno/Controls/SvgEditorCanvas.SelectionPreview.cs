@@ -26,7 +26,7 @@ public sealed partial class SvgEditorCanvas
 
     private void DrawSelectionGhost(SKCanvas canvas, CanvasResources resources)
     {
-        if (!_moved || _selectionGhost is null || _gesture is not (Gesture.Move or Gesture.Resize or Gesture.Rotate))
+        if (!_moved || _selectionGhost is null || _gesture is not (Gesture.Move or Gesture.Resize or Gesture.Rotate or Gesture.Transform))
         {
             return;
         }

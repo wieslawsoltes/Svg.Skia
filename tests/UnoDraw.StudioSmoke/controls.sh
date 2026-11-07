@@ -68,7 +68,7 @@ sleep 0.4
 capture controls-08-tab-overflow-navigation
 # Explicitly retain the intermediate views for diagnosing lost keyboard focus.
 # This is the same production command-search sequence as command(), not a bypass.
-xdotool key --clearmodifiers ctrl+k
+xdotool key --clearmodifiers ctrl+shift+F12
 sleep 0.25
 capture controls-08a-command-search-after-scrolling
 xdotool key --clearmodifiers ctrl+a

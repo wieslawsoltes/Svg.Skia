@@ -74,7 +74,7 @@ public sealed partial class SvgEditorCanvas
         if (point.Properties.IsRightButtonPressed)
         {
             FinishPath();
-            e.Handled = true;
+            // Let the host's context menu open after committing an unfinished path.
             return;
         }
 
@@ -99,6 +99,12 @@ public sealed partial class SvgEditorCanvas
         {
             _gesture = Gesture.Pan;
             UpdateCursor();
+            return;
+        }
+
+        if (TryBeginEditorGesture(e, view))
+        {
+            Invalidate();
             return;
         }
 
@@ -211,6 +217,11 @@ public sealed partial class SvgEditorCanvas
         _moved |= SKPoint.Distance(_startView, view) >= 2;
         _currentWorld = Constrain(Snap(Viewport.ViewToWorld(view)));
         var delta = Subtract(_currentWorld, _startWorld);
+        if (UpdateEditorGesture())
+        {
+            Invalidate();
+            return;
+        }
         switch (_gesture)
         {
             case Gesture.Pan:
@@ -301,7 +312,7 @@ public sealed partial class SvgEditorCanvas
 
         if (Controller is not null)
         {
-            switch (completedGesture)
+            if (!CompleteEditorGesture(completedGesture)) switch (completedGesture)
             {
                 case Gesture.Move when _moved:
                 case Gesture.Resize when _moved:
@@ -377,7 +388,7 @@ public sealed partial class SvgEditorCanvas
 
     private SKPoint Constrain(SKPoint point)
     {
-        if (!_shift || _gesture is Gesture.Rotate or Gesture.Node or Gesture.Vertex)
+        if (!_shift || _gesture is Gesture.Rotate or Gesture.Node or Gesture.Vertex or Gesture.Transform or Gesture.Zoom)
         {
             return point;
         }
@@ -389,14 +400,14 @@ public sealed partial class SvgEditorCanvas
                 ? new SKPoint(point.X, _startWorld.Y) : new SKPoint(_startWorld.X, point.Y);
         }
 
-        if (_gesture == Gesture.Create && Tool is SvgEditorToolKind.Rect or SvgEditorToolKind.Ellipse
+        if (_gesture == Gesture.EditorShape || _gesture == Gesture.Create && Tool is SvgEditorToolKind.Rect or SvgEditorToolKind.Ellipse
             or SvgEditorToolKind.Circle or SvgEditorToolKind.Image)
         {
             var size = Math.Max(Math.Abs(delta.X), Math.Abs(delta.Y));
             return new SKPoint(_startWorld.X + MathF.CopySign(size, delta.X), _startWorld.Y + MathF.CopySign(size, delta.Y));
         }
 
-        if (_gesture == Gesture.Create && Tool == SvgEditorToolKind.Line)
+        if (_gesture == Gesture.Gradient || _gesture == Gesture.Create && Tool == SvgEditorToolKind.Line)
         {
             var angle = Math.Atan2(delta.Y, delta.X);
             angle = Math.Round(angle / (Math.PI / 4)) * Math.PI / 4;
@@ -491,14 +502,31 @@ public sealed partial class SvgEditorCanvas
 
             e.Handled = true;
         }
+        else if (!PanMode && InteractionMode == SvgEditorInteractionMode.None && IsSelectionTool(Tool)
+            && Controller is { SelectedElements.Count: 1 } controller)
+        {
+            var selected = controller.SelectedElements[0];
+            if (SvgTextStoryService.FindStory(selected) is { } story)
+            {
+                controller.Select(story); RequestTextEdit(story, true); e.Handled = true;
+            }
+            else if (selected is SvgTextBase)
+            { RequestTextEdit(selected, false); e.Handled = true; }
+        }
     }
 
     private void OnKeyDown(object sender, KeyRoutedEventArgs e)
     {
+        if (KeyboardShortcutsManagedExternally) return;
         switch (e.Key)
         {
             case VirtualKey.Space:
-                PanMode = true;
+                if (!_standalonePanning)
+                {
+                    _standalonePanning = true;
+                    _standalonePreviousPan = PanMode;
+                    PanMode = true;
+                }
                 e.Handled = true;
                 break;
             case VirtualKey.Escape:
@@ -522,9 +550,10 @@ public sealed partial class SvgEditorCanvas
 
     private void OnKeyUp(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == VirtualKey.Space)
+        if (KeyboardShortcutsManagedExternally) return;
+        if (e.Key == VirtualKey.Space && _standalonePanning)
         {
-            PanMode = false;
+            RestoreStandaloneNavigation();
             e.Handled = true;
         }
     }

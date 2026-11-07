@@ -26,7 +26,7 @@ public sealed partial class SvgEditorCanvas
         var resources = _resources ??= new CanvasResources();
         using var restore = new SKAutoCanvasRestore(canvas);
         canvas.ClipRect(SKRect.Create((float)area.Width, (float)area.Height));
-        resources.Fill.Color = IsDarkTheme ? new SKColor(31, 34, 42) : new SKColor(233, 236, 242);
+        resources.Fill.Color = IsDarkTheme ? new SKColor(30, 30, 30) : new SKColor(186, 186, 186);
         canvas.DrawRect(SKRect.Create((float)area.Width, (float)area.Height), resources.Fill);
 
         if (Controller?.Renderer.Picture is { } picture)
@@ -48,6 +48,7 @@ public sealed partial class SvgEditorCanvas
 
             DrawSelection(canvas, resources);
             DrawGesture(canvas, resources);
+            DrawEditorGesture(canvas, resources);
             DrawPathNodes(canvas, resources);
         }
 
@@ -63,7 +64,7 @@ public sealed partial class SvgEditorCanvas
         var rect = new SKRect(topLeft.X, topLeft.Y, bottomRight.X, bottomRight.Y);
         for (var spread = 12; spread >= 2; spread -= 2)
         {
-            resources.Fill.Color = new SKColor(10, 17, 35, (byte)(IsDarkTheme ? 8 : 4));
+            resources.Fill.Color = new SKColor(0, 0, 0, (byte)(IsDarkTheme ? 10 : 6));
             canvas.DrawRoundRect(new SKRect(rect.Left - spread, rect.Top - spread + 3,
                 rect.Right + spread, rect.Bottom + spread + 3), spread, spread, resources.Fill);
         }
@@ -76,10 +77,10 @@ public sealed partial class SvgEditorCanvas
             canvas.DrawRect(rect, resources.CheckerPaint);
         }
 
-        resources.Stroke.Color = new SKColor(150, 159, 177, 90);
+        resources.Stroke.Color = new SKColor(128, 128, 128, 90);
         resources.Stroke.StrokeWidth = 1;
         canvas.DrawRect(rect, resources.Stroke);
-        resources.Fill.Color = IsDarkTheme ? new SKColor(168, 179, 200) : new SKColor(98, 111, 135);
+        resources.Fill.Color = IsDarkTheme ? new SKColor(184, 184, 184) : new SKColor(70, 70, 70);
         canvas.DrawText("Artboard", rect.Left, rect.Top - 10, SKTextAlign.Left, resources.LabelFont, resources.Fill);
     }
 
@@ -141,12 +142,13 @@ public sealed partial class SvgEditorCanvas
             }
         }
 
-        var transform = _gesture is Gesture.Move or Gesture.Resize or Gesture.Rotate
+        var transform = _gesture is Gesture.Move or Gesture.Resize or Gesture.Rotate or Gesture.Transform
             ? _previewTransform : SKMatrix.Identity;
         DrawQuad(canvas, new(bounds.Left, bounds.Top), new(bounds.Right, bounds.Top),
             new(bounds.Right, bounds.Bottom), new(bounds.Left, bounds.Bottom), transform, resources.Stroke);
 
-        if (IsNodeTool(Tool) || !CanEditSelection)
+        if (IsNodeTool(Tool) || !CanEditSelection || InteractionMode is SvgEditorInteractionMode.Artboard
+            or SvgEditorInteractionMode.Gradient or SvgEditorInteractionMode.Eyedropper)
         {
             return;
         }

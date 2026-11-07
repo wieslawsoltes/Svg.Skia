@@ -21,5 +21,6 @@ public enum SvgEditorInteractionMode
     Star,
     RectangularGrid,
     PolarGrid,
-    Spiral
+    Spiral,
+    AreaType
 }

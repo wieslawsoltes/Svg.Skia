@@ -12,6 +12,10 @@ namespace Svg.Editor.Skia;
 public sealed partial class SvgEditorController
 {
     public SvgVisualElement? CreateElement(ToolService.Tool tool, SK.SKPoint start, SK.SKPoint end)
+        => CreateElement(tool, start, end, false);
+
+    /// <summary>Creates an element from root user coordinates or a canvas drag in picture coordinates.</summary>
+    public SvgVisualElement? CreateElement(ToolService.Tool tool, SK.SKPoint start, SK.SKPoint end, bool pictureCoordinates)
     {
         if (Document is null)
             return null;
@@ -21,7 +25,10 @@ public sealed partial class SvgEditorController
             return null;
         Tools.UpdateElement(element, tool, new ShimSkiaSharp.SKPoint(start.X, start.Y),
             new ShimSkiaSharp.SKPoint(end.X, end.Y), Session.Settings.SnapToGrid, Selection.Snap);
-        AddElement(element, "Draw " + tool);
+        if (pictureCoordinates)
+            AddElementInPictureCoordinates(element, "Draw " + tool);
+        else
+            AddElement(element, "Draw " + tool);
         return element;
     }
 

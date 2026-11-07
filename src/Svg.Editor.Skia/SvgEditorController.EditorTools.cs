@@ -210,13 +210,31 @@ public sealed partial class SvgEditorController
         });
     }
 
+    /// <summary>
+    /// Inserts canvas geometry without applying the imported document's viewport twice.
+    /// The inverse viewport is retained as a native SVG transform, preserving editable
+    /// primitives, pen curves, symbol references, and their picture-space stroke width.
+    /// </summary>
+    public void AddElementInPictureCoordinates(SvgVisualElement element, string label = "Draw object")
+    {
+        ThrowIfDisposed();
+        if (element is null) throw new ArgumentNullException(nameof(element));
+        if (element.Parent is not null) throw new ArgumentException("The object already belongs to a document.", nameof(element));
+        if (Document is not { } document) throw new InvalidOperationException("Open a document before drawing.");
+        var root = GetSceneNode(document) ?? Renderer.RetainedSceneGraph?.Root;
+        var transform = root is null ? SKMatrix.Identity : ToMatrix(root.TotalTransform);
+        if (!transform.TryInvert(out var inverse)) throw new InvalidOperationException("The document viewport has a singular transform.");
+        PrependTransform(element, inverse);
+        AddElement(element, label);
+    }
+
     public SvgPath AddEditorShape(SvgEditorInteractionMode mode, SKPoint start, SKPoint end, int divisions = 6)
     {
         using var path = SvgEditorToolGeometry.CreateShape(mode, start, end, divisions);
         var element = new SvgPath { PathData = SvgPathBuilder.Parse(path.ToSvgPathData()) };
         if (mode is SvgEditorInteractionMode.RectangularGrid or SvgEditorInteractionMode.PolarGrid or SvgEditorInteractionMode.Spiral)
             element.Fill = SvgPaintServer.None;
-        AddElement(element, "Draw " + mode);
+        AddElementInPictureCoordinates(element, "Draw " + mode);
         return element;
     }
 
@@ -227,7 +245,7 @@ public sealed partial class SvgEditorController
             throw new ArgumentNullException(nameof(path));
         Execute("Draw paintbrush stroke", () =>
         {
-            AddElement(path, "Draw paintbrush stroke");
+            AddElementInPictureCoordinates(path, "Draw paintbrush stroke");
             path.StrokeLineCap = SvgStrokeLineCap.Round;
             path.StrokeLineJoin = SvgStrokeLineJoin.Round;
             if (brush is not null)
@@ -258,6 +276,32 @@ public sealed partial class SvgEditorController
             }
         });
         return text;
+    }
+
+    /// <summary>Creates a reusable paragraph story from a canvas drag, in root SVG user units.</summary>
+    public SvgGroup AddTextArea(SKRect pictureBounds, string value)
+    {
+        ThrowIfDisposed();
+        if (Document is not { } document) throw new InvalidOperationException("Open a document before drawing a text frame.");
+        if (value is null) throw new ArgumentNullException(nameof(value));
+        ValidatePositive(pictureBounds.Width, nameof(pictureBounds)); ValidatePositive(pictureBounds.Height, nameof(pictureBounds));
+        if (!IsFinite(pictureBounds.Left) || !IsFinite(pictureBounds.Top) || !IsFinite(pictureBounds.Right) || !IsFinite(pictureBounds.Bottom))
+            throw new ArgumentOutOfRangeException(nameof(pictureBounds));
+        var root = GetSceneNode(document) ?? Renderer.RetainedSceneGraph?.Root;
+        var matrix = root is null ? SKMatrix.Identity : ToMatrix(root.TotalTransform);
+        if (!matrix.TryInvert(out var inverse)) throw new InvalidOperationException("The document viewport has a singular transform.");
+        var bounds = inverse.MapRect(pictureBounds);
+        var story = new SvgTextStory
+        {
+            Text = value,
+            DefaultStyle = new SvgStoryTextStyle { FontFamily = Tools.CurrentFontFamily, FontSize = 24, Fill = CurrentFill }
+        };
+        story.Frames.Add(new SvgTextFrameDefinition
+        {
+            X = bounds.Left, Y = bounds.Top, Width = bounds.Width, Height = bounds.Height,
+            Padding = Math.Min(8, Math.Min(bounds.Width, bounds.Height) / 8)
+        });
+        return SvgTextStoryService.Apply(this, story);
     }
 
     private static string PaintKey(SvgPaintServer? paint)

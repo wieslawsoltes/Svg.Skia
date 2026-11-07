@@ -19,7 +19,7 @@ namespace Svg.Editor.Skia.Uno;
 /// </summary>
 public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 {
-    private enum Gesture { None, Pan, Pinch, Marquee, Move, Resize, Rotate, Create, Node, Vertex }
+    private enum Gesture { None, Pan, Pinch, Marquee, Move, Resize, Rotate, Create, Node, Vertex, Transform, Zoom, Gradient, Artboard, EditorShape, AreaType }
 
     private readonly record struct PenNode(SKPoint Position, SKPoint Tangent);
 
@@ -74,6 +74,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
         DoubleTapped += OnDoubleTapped;
         KeyDown += OnKeyDown;
         KeyUp += OnKeyUp;
+        LostFocus += (_, _) => RestoreStandaloneNavigation();
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         SizeChanged += OnSizeChanged;
@@ -222,7 +223,8 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void OnControllerChanged(object? sender, EventArgs e)
     {
-        if (_gesture is Gesture.Move or Gesture.Resize or Gesture.Rotate or Gesture.Node or Gesture.Vertex)
+        if (_gesture is Gesture.Move or Gesture.Resize or Gesture.Rotate or Gesture.Node or Gesture.Vertex
+            or Gesture.Transform or Gesture.Gradient or Gesture.Artboard)
         {
             // A command or selection change invalidates the gesture's retained snapshot.
             CancelGesture();
@@ -281,6 +283,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        RestoreStandaloneNavigation();
         _isLoaded = false;
         if (Controller is not null)
         {
@@ -292,7 +295,8 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
     }
 
     private void UpdateCursor() => ProtectedCursor = PanMode || _gesture is Gesture.Pan or Gesture.Pinch
-        ? s_hand : IsSelectionTool(Tool) ? s_arrow : s_cross;
+        ? s_hand : InteractionMode != SvgEditorInteractionMode.None || ZoomMode ? s_cross
+        : IsSelectionTool(Tool) ? s_arrow : s_cross;
 
     private void HandleInteractionFailure(Exception exception)
     {

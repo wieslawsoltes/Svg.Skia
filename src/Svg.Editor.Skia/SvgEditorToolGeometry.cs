@@ -119,8 +119,8 @@ public static class SvgEditorToolGeometry
         }
         if (mode == SvgEditorInteractionMode.Scale)
         {
-            var sx = Math.Abs(x) > 0.0001 ? dx / x : 1;
-            var sy = Math.Abs(y) > 0.0001 ? dy / y : 1;
+            var sx = Math.Abs(x) > 0.0001 ? dx / x : 1 + (current.X - start.X) / Math.Max(1, bounds.Width / 2);
+            var sy = Math.Abs(y) > 0.0001 ? dy / y : 1 + (current.Y - start.Y) / Math.Max(1, bounds.Height / 2);
             if (constrain)
                 sx = sy = Math.Abs(sx - 1) > Math.Abs(sy - 1) ? sx : sy;
             // A sign-changing scale is a reflection; a singular transform would make

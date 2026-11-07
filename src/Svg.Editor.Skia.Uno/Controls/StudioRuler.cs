@@ -27,10 +27,10 @@ public sealed class StudioRuler : SKCanvasElement, IDisposable
         if (_disposed) return;
         using var restore = new SKAutoCanvasRestore(canvas);
         canvas.ClipRect(SKRect.Create((float)area.Width, (float)area.Height));
-        _paint.Color = _dark ? new SKColor(35, 38, 44) : new SKColor(230, 232, 236);
+        _paint.Color = _dark ? new SKColor(41, 41, 41) : new SKColor(222, 222, 222);
         canvas.DrawRect(SKRect.Create((float)area.Width, (float)area.Height), _paint);
         var length = Orientation == Orientation.Horizontal ? area.Width : area.Height;
-        _paint.Color = _dark ? new SKColor(170, 180, 194) : new SKColor(80, 90, 106);
+        _paint.Color = _dark ? new SKColor(184, 184, 184) : new SKColor(80, 80, 80);
         _paint.StrokeWidth = 1;
         foreach (var tick in SvgRulerMetrics.Create(_origin, _scale, length))
         {

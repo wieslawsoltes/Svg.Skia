@@ -5,7 +5,7 @@ set -euo pipefail
 source "$(cd "$(dirname "$0")" && pwd)/controls.sh" "$@"
 
 command 'Use dark interface'
-xdotool key --clearmodifiers ctrl+k
+xdotool key --clearmodifiers ctrl+shift+F12
 sleep 0.4
 capture commands-01-recent-dark
 xdotool type --clearmodifiers --delay 20 'zzzz no matching command'
@@ -54,7 +54,7 @@ PY
 
 # Search by the displayed shortcut, then invoke the selected command with Enter.
 before="$(python3 -c 'import os,sys; print(os.stat(sys.argv[1]).st_mtime_ns)' "$document")"
-xdotool key --clearmodifiers ctrl+k
+xdotool key --clearmodifiers ctrl+shift+F12
 sleep 0.4
 xdotool type --clearmodifiers --delay 30 'Ctrl+S'
 sleep 0.3
@@ -72,7 +72,7 @@ PY
 verify restored-command-shortcut-query
 
 command 'Use light interface'
-xdotool key --clearmodifiers ctrl+k
+xdotool key --clearmodifiers ctrl+shift+F12
 sleep 0.4
 xdotool type --clearmodifiers --delay 25 'gradient'
 sleep 0.3
@@ -87,13 +87,13 @@ verify restored-command-search-cancel
 
 xdotool windowsize "$window" 390 850
 sleep 0.5
-xdotool key --clearmodifiers ctrl+k
+xdotool key --clearmodifiers ctrl+shift+F12
 sleep 0.4
 capture commands-08-compact-light
 xdotool key --clearmodifiers Escape
 sleep 0.3
 command 'Use dark interface'
-xdotool key --clearmodifiers ctrl+k
+xdotool key --clearmodifiers ctrl+shift+F12
 sleep 0.4
 xdotool type --clearmodifiers --delay 25 'align'
 sleep 0.3

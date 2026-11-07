@@ -31,7 +31,7 @@ public sealed partial class SvgEditorWorkspace
         AddAsync("cut", "Cut", "Edit", () => CopyAsync(true), "Ctrl+X");
         AddAsync("copy", "Copy", "Edit", () => CopyAsync(false), "Ctrl+C");
         AddAsync("paste", "Paste", "Edit", PasteAsync, "Ctrl+V");
-        Add("duplicate", "Duplicate", "Edit", () => Controller?.DuplicateSelection(), "Ctrl+D");
+        Add("duplicate", "Duplicate", "Edit", () => Controller?.DuplicateSelection());
         Add("delete", "Delete", "Edit", () =>
         {
             if (Canvas.Tool == SvgEditorToolKind.PathSelect && Canvas.ActiveNodeIndex >= 0) Canvas.DeleteActiveNode();
@@ -107,7 +107,7 @@ public sealed partial class SvgEditorWorkspace
         Add("wireframe", "Toggle outlines", "View", () =>
         {
             if (Controller is not { } c) return;
-            c.Renderer.Wireframe = !c.Renderer.Wireframe;
+            c.Session.Settings.WireframeEnabled = !c.Renderer.Wireframe;
             Canvas.Invalidate();
         });
         Add("filters", "Toggle filter rendering", "View", () =>

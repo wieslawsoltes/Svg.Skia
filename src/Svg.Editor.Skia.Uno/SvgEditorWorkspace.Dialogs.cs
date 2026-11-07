@@ -40,7 +40,8 @@ public sealed partial class SvgEditorWorkspace
             DefaultButton = ContentDialogButton.Primary,
             RequestedTheme = ActualTheme
         };
-        // The default Fluent dialog cap is narrower than the mesh/brush editors.
+        dialog.Resources.MergedDictionaries.Add(new EditorTheme());
+        // The default dialog cap is narrower than the mesh/brush editors.
         // Allow their requested width while retaining a margin on small screens.
         var maximumWidth = Math.Max(260, Math.Min(1120, (XamlRoot?.Size.Width ?? ActualWidth) - 32));
         dialog.Resources["ContentDialogMaxWidth"] = maximumWidth;
@@ -122,12 +123,20 @@ public sealed partial class SvgEditorWorkspace
 
     private async Task ShowHelpAsync()
     {
-        var text = "TOOLS\nV  Select    A  Nodes    R  Rectangle    E  Ellipse\nP  Bézier pen    B  Pencil    T  Text    L  Line\nG  Polygon    O  Polyline    C  Circle    Q  Quadratic\n\nCANVAS\nHold Space or use the middle button to pan.\nThe mouse wheel zooms around the pointer.\nShift+1 fits the artboard; Shift+2 fits the selection.\nEsc cancels a gesture; Enter finishes a path.\nShift extends selection and constrains shape proportions.\nArrow keys nudge 1 unit; Shift+arrows nudge 10.\n\nDOCUMENT\nCtrl+N new    Ctrl+O open    Ctrl+S save\nCtrl+Shift+S save as    Ctrl+E export\nCtrl+Z undo    Ctrl+Shift+Z redo\nCtrl+C / X / V copy / cut / paste    Ctrl+D duplicate\nCtrl+G group    Ctrl+Shift+G ungroup\nCtrl+K command search    Tab focus canvas";
-        await ShowDialogAsync(MakeDialog("Your workspace shortcuts", new ScrollViewer
-        {
-            MaxHeight = 500,
-            Content = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, FontSize = 13, LineHeight = 21 }
-        }, string.Empty, "Done"));
+        var search = new TextBox { PlaceholderText = "Find a tool, command or shortcut", HorizontalAlignment = HorizontalAlignment.Stretch };
+        var list = new ListView { MaxHeight = 380, SelectionMode = ListViewSelectionMode.None };
+        var content = new StackPanel { Spacing = 12, Width = DialogContentWidth(620) };
+        content.Children.Add(StudioHint("Hold Space to pan. Hold the primary modifier with Space to zoom; add Alt to zoom out. Escape cancels a gesture; Enter finishes a path. Shift constrains geometry and extends selections. Arrow keys nudge; Shift uses ten increments. Text editors keep their normal editing shortcuts."));
+        content.Children.Add(search);
+        content.Children.Add(list);
+        void Update() => list.ItemsSource = _commands.Where(command => !string.IsNullOrEmpty(command.Shortcut)
+                && (string.IsNullOrWhiteSpace(search.Text) || command.ToString().Contains(search.Text, StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(command => command.Group).ThenBy(command => command.Label).Select(command => command.ToString()).ToArray();
+        search.TextChanged += (_, _) => Update();
+        Update();
+        var dialog = MakeDialog("Tools and keyboard shortcuts", content, string.Empty, "Close");
+        dialog.Opened += (_, _) => search.Focus(FocusState.Programmatic);
+        await ShowDialogAsync(dialog);
     }
 
     private async Task NewDocumentDialogAsync()

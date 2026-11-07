@@ -56,7 +56,7 @@ public sealed partial class SvgEditorWorkspace
         RegisterStudioPanel("layers", "Layers", OutlinePanel);
         RegisterStudioPanel("attributes", "SVG attributes", AttributesPanel);
         RegisterStudioPanel("resources", "Resources", ResourcesPanel);
-        BuildStudioPanels(); BuildStudioContextBar(); BuildStudioPanelRail();
+        BuildStudioPanels(); BuildEditorPanels(); BuildStudioContextBar(); BuildStudioPanelRail();
         foreach (var field in _studioTextFields)
         {
             field.CaptureTargetValidation = CaptureStudioTargetValidation;
@@ -185,7 +185,8 @@ public sealed partial class SvgEditorWorkspace
         _updatingStudioLayout = true;
         try
         {
-            var metrics = _studioLayout.Measure(Math.Max(0, ActualWidth), Math.Max(0, ActualHeight), _zenMode);
+            var hideAll = _zenMode || _editorScreenMode == 2;
+            var metrics = _studioLayout.Measure(Math.Max(0, ActualWidth), Math.Max(0, ActualHeight), hideAll);
             LeftDockColumn.Width = new GridLength(metrics.LeftWidth); LeftSplitterColumn.Width = new GridLength(metrics.LeftWidth > 0 ? 6 : 0);
             RightDockColumn.Width = new GridLength(metrics.RightWidth); RightSplitterColumn.Width = new GridLength(metrics.RightWidth > 0 ? 6 : 0);
             BottomDockRow.Height = new GridLength(metrics.BottomHeight); BottomSplitterRow.Height = new GridLength(metrics.BottomHeight > 0 ? 6 : 0);
@@ -200,24 +201,37 @@ public sealed partial class SvgEditorWorkspace
             RightBottomRow.Height = bottom ? new GridLength(top ? 1 - _studioLayout.RightTopRatio : 1, GridUnitType.Star) : new GridLength(0);
             RightDockContainer.RowDefinitions[1].Height = new GridLength(top && bottom ? 6 : 0);
             RightGroupSplitter.Visibility = top && bottom ? Visibility.Visible : Visibility.Collapsed;
-            var rulers = _studioLayout.ShowRulers && !_zenMode;
+            var rulers = _studioLayout.ShowRulers && _editorScreenMode != 2;
             RulerRow.Height = new GridLength(rulers ? 22 : 0); RulerColumn.Width = new GridLength(rulers ? 22 : 0);
             HorizontalRuler.Visibility = VerticalRuler.Visibility = rulers ? Visibility.Visible : Visibility.Collapsed;
             WorkspaceMenu.Visibility = MenuDivider.Visibility = metrics.Compact ? Visibility.Collapsed : Visibility.Visible;
             CompactMenuButton.Visibility = metrics.Compact ? Visibility.Visible : Visibility.Collapsed;
-            BrandTitle.Visibility = ActualWidth < 560 ? Visibility.Collapsed : Visibility.Visible;
-            WorkspacePresetPicker.Visibility = ActualWidth < 760 ? Visibility.Collapsed : Visibility.Visible;
-            CommandsLabel.Visibility = CommandsShortcut.Visibility = ActualWidth < 1200 ? Visibility.Collapsed : Visibility.Visible;
+            BrandTitle.Visibility = ActualWidth < 1280 ? Visibility.Collapsed : Visibility.Visible;
+            WorkspacePresetPicker.Visibility = ActualWidth < 1180 ? Visibility.Collapsed : Visibility.Visible;
+            CommandsLabel.Visibility = CommandsShortcut.Visibility = ActualWidth < 1540 ? Visibility.Collapsed : Visibility.Visible;
             ThemeButton.Visibility = ActualWidth < 480 ? Visibility.Collapsed : Visibility.Visible;
             ExportButton.Visibility = ActualWidth < 640 ? Visibility.Collapsed : Visibility.Visible;
             WorkspaceLabel.Visibility = ActualWidth < 1000 ? Visibility.Collapsed : Visibility.Visible;
             PositionText.Visibility = ActualWidth < 700 ? Visibility.Collapsed : Visibility.Visible;
             ContextSelectionLabel.Visibility = ActualWidth < 560 ? Visibility.Collapsed : Visibility.Visible;
-            ToolColumn.Width = new GridLength(_studioLayout.TouchDensity ? 96 : 68);
+            var tools = _editorToolbarVisible && !hideAll;
+            ToolColumn.Width = new GridLength(tools ? _editorSingleToolColumn ? _studioLayout.TouchDensity ? 50 : 38 : _studioLayout.TouchDensity ? 96 : 68 : 0);
+            EditorToolShelf.Visibility = tools ? Visibility.Visible : Visibility.Collapsed;
+            var controls = _editorControlBarVisible && !hideAll;
+            EditorControlRow.Height = new GridLength(controls ? 38 : 0);
+            EditorControlBar.Visibility = controls ? Visibility.Visible : Visibility.Collapsed;
+            EditorMenuRow.Height = new GridLength(_editorScreenMode == 2 ? 0 : 34);
+            EditorMenuStrip.Visibility = _editorScreenMode == 2 ? Visibility.Collapsed : Visibility.Visible;
+            EditorStatusRow.Height = new GridLength(_editorScreenMode == 2 ? 0 : 28);
+            EditorStatusBar.Visibility = _editorScreenMode == 2 ? Visibility.Collapsed : Visibility.Visible;
+            EditorDocumentTabRow.Height = new GridLength(_editorScreenMode == 0 ? 30 : 0);
+            DocumentTabs.Visibility = _editorScreenMode == 0 ? Visibility.Visible : Visibility.Collapsed;
+            EditorPanelRailColumn.Width = new GridLength(hideAll || _studioLayout.PanelsHidden ? 0 : 34);
+            EditorPanelShelf.Visibility = hideAll || _studioLayout.PanelsHidden ? Visibility.Collapsed : Visibility.Visible;
             foreach (var button in ToolRail.Children.OfType<Control>())
             { button.Width = _studioLayout.TouchDensity ? 42 : 30; button.Height = _studioLayout.TouchDensity ? 44 : 32; }
             foreach (var id in _studioFloating.Keys) PositionStudioFloat(id);
-            FloatingPanelLayer.Visibility = _zenMode || _studioLayout.PanelsHidden ? Visibility.Collapsed : Visibility.Visible;
+            FloatingPanelLayer.Visibility = hideAll || _studioLayout.PanelsHidden ? Visibility.Collapsed : Visibility.Visible;
             UpdateStudioRulers();
         }
         finally { _updatingStudioLayout = false; }
@@ -226,6 +240,7 @@ public sealed partial class SvgEditorWorkspace
     {
         if (!_studioPanels.ContainsKey(id)) return;
         CommitInspectorEdits(); _zenMode = false; _studioLayout.PanelsHidden = false; _studioLayout.Activate(id);
+        if (_editorScreenMode == 2) _editorScreenMode = 1;
         var panel = _studioLayout.Find(id);
         var metrics = _studioLayout.Measure(Math.Max(0, ActualWidth), Math.Max(0, ActualHeight));
         var collapsedDock = panel.Dock == SvgPanelDock.Left && metrics.LeftWidth == 0
@@ -263,6 +278,7 @@ public sealed partial class SvgEditorWorkspace
     }
     private void DisposeStudioWorkspace()
     {
+        DisposeEditorPanels();
         foreach (var group in _studioGroups.Values) group.SetItems(Array.Empty<StudioPanelItem>(), null);
         foreach (var floating in _studioFloating.Values) floating.Group.SetItems(Array.Empty<StudioPanelItem>(), null);
         FloatingPanelLayer.Children.Clear(); _studioFloating.Clear(); _studioPanels.Clear(); HorizontalRuler.Dispose(); VerticalRuler.Dispose();

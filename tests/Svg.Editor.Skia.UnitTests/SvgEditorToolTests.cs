@@ -5,6 +5,8 @@ using System.Xml.Linq;
 using SkiaSharp;
 using Svg;
 using Svg.Editor.Skia;
+using Svg.Editor.Svg;
+using Svg.Pathing;
 using Xunit;
 
 namespace Svg.Editor.Skia.UnitTests;
@@ -195,6 +197,9 @@ public class SvgEditorToolTests
         Assert.True(scale.TryInvert(out _));
         Assert.Equal(center.X, scale.MapPoint(center).X, 4);
         Assert.Equal(center.Y, scale.MapPoint(center).Y, 4);
+        var centerScale = SvgEditorToolGeometry.CreateTransform(SvgEditorInteractionMode.Scale, bounds, center, new SKPoint(75, 100), false);
+        Assert.Equal(1.5f, centerScale.ScaleX, 4);
+        Assert.Equal(2, centerScale.ScaleY, 4);
         var reflect = SvgEditorToolGeometry.CreateTransform(SvgEditorInteractionMode.Reflect, bounds, new SKPoint(50, 0), new SKPoint(50, 100), true);
         Assert.Equal(center.X, reflect.MapPoint(center).X, 4);
         Assert.Equal(center.Y, reflect.MapPoint(center).Y, 4);
@@ -217,5 +222,71 @@ public class SvgEditorToolTests
         Assert.Equal(1, editor.Session.UndoCount);
         editor.Undo();
         Assert.Equal(original, editor.GetSvg());
+    }
+
+    [Fact]
+    public void AreaTypeCreatesEditableStoryInImportedRootCoordinates()
+    {
+        using var editor = new SvgEditorController();
+        editor.LoadSvg("<svg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='10 20 200 100'/>");
+        var original = editor.GetSvg();
+        var frame = editor.AddTextArea(new SKRect(40, 20, 240, 120), "Paragraph text survives in its editable story.");
+        var story = SvgTextStoryService.Read(frame);
+        var area = Assert.Single(story.Frames);
+        Assert.Equal(30, area.X, 4);
+        Assert.Equal(30, area.Y, 4);
+        Assert.Equal(100, area.Width, 4);
+        Assert.Equal(50, area.Height, 4);
+        Assert.Equal("Paragraph text survives in its editable story.", story.Text);
+        Assert.Same(frame, Assert.Single(editor.SelectedElements));
+        Assert.Equal(1, editor.Session.UndoCount);
+        editor.Undo();
+        Assert.Equal(original, editor.GetSvg());
+    }
+
+    [Theory]
+    [InlineData("viewBox='10 20 100 50'")]
+    [InlineData("viewBox='10 20 100 100'")]
+    [InlineData("viewBox='10 20 100 100' preserveAspectRatio='none'")]
+    public void PictureCoordinateCreationCompensatesImportedViewBoxAndPreservesPrimitive(string viewport)
+    {
+        using var editor = new SvgEditorController();
+        editor.LoadSvg("<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100' " + viewport + "/>");
+        var original = editor.GetSvg();
+        var rectangle = Assert.IsType<SvgRectangle>(editor.CreateElement(ToolService.Tool.Rect,
+            new SKPoint(40, 25), new SKPoint(120, 75), true));
+        Assert.Equal(40, rectangle.X.Value, 4);
+        Assert.Equal(80, rectangle.Width.Value, 4);
+        var scene = editor.GetSceneNode(rectangle);
+        Assert.NotNull(scene);
+        var start = scene.TotalTransform.MapPoint(new ShimSkiaSharp.SKPoint(40, 25));
+        var end = scene.TotalTransform.MapPoint(new ShimSkiaSharp.SKPoint(120, 75));
+        Assert.Equal(40, start.X, 4);
+        Assert.Equal(25, start.Y, 4);
+        Assert.Equal(120, end.X, 4);
+        Assert.Equal(75, end.Y, 4);
+        Assert.Equal(1, editor.Session.UndoCount);
+        editor.Undo();
+        Assert.Equal(original, editor.GetSvg());
+    }
+
+    [Fact]
+    public void PictureCoordinatePathInsertionKeepsCurvesAndRootCoordinateApiKeepsItsContract()
+    {
+        using var editor = new SvgEditorController();
+        editor.LoadSvg("<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100' viewBox='10 20 100 50'/>");
+        var rootRectangle = Assert.IsType<SvgRectangle>(editor.CreateElement(ToolService.Tool.Rect,
+            new SKPoint(20, 25), new SKPoint(50, 50)));
+        Assert.Null(rootRectangle.Transforms);
+        var path = new SvgPath { PathData = SvgPathBuilder.Parse("M40 20 C50 0 80 60 100 40") };
+        editor.AddElementInPictureCoordinates(path);
+        Assert.IsType<SvgCubicCurveSegment>(path.PathData[1]);
+        var scene = editor.GetSceneNode(path);
+        Assert.NotNull(scene);
+        var end = scene.TotalTransform.MapPoint(new ShimSkiaSharp.SKPoint(100, 40));
+        Assert.Equal(100, end.X, 4);
+        Assert.Equal(40, end.Y, 4);
+        Assert.Equal(2, editor.Session.UndoCount);
+        Assert.Throws<ArgumentException>(() => editor.AddElementInPictureCoordinates(path));
     }
 }

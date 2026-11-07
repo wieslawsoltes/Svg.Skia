@@ -36,7 +36,8 @@ public readonly struct SvgWorkspaceMetrics
 public sealed class SvgWorkspaceLayout
 {
     public static IReadOnlyList<string> PanelIds { get; } = Array.AsReadOnly(new[]
-    { "properties", "transform", "appearance", "stroke", "align", "geometry", "layers", "resources", "typography", "effects", "attributes" });
+    { "properties", "transform", "appearance", "stroke", "align", "geometry", "layers", "resources", "typography", "effects", "attributes",
+      "color", "swatches", "gradient", "brushes", "symbols", "transparency", "paragraph", "artboards", "links" });
     private static readonly SvgPanelDock[] DockGroups = { SvgPanelDock.Left, SvgPanelDock.RightTop, SvgPanelDock.RightBottom, SvgPanelDock.Bottom };
     private readonly List<SvgWorkspacePanelPlacement> _panels = new();
     private readonly Dictionary<SvgPanelDock, string> _active = new();
@@ -58,7 +59,8 @@ public sealed class SvgWorkspaceLayout
         foreach (var id in PanelIds)
         {
             var dock = id is "layers" or "resources" ? SvgPanelDock.RightBottom : SvgPanelDock.RightTop;
-            if (id == "attributes") dock = SvgPanelDock.Hidden;
+            if (id is "attributes" or "color" or "swatches" or "gradient" or "brushes" or "symbols" or "transparency" or "paragraph" or "artboards" or "links")
+                dock = SvgPanelDock.Hidden;
             _panels.Add(new SvgWorkspacePanelPlacement(id, dock));
         }
         _active[SvgPanelDock.RightTop] = preset == SvgWorkspacePreset.Typography ? "typography" : "properties";

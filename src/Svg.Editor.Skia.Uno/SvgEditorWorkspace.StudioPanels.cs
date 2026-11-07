@@ -37,13 +37,20 @@ public sealed partial class SvgEditorWorkspace
         var grid = new StudioFieldGrid { MinimumColumnWidth = 128 };
         grid.Children.Add(first); grid.Children.Add(second); return grid;
     }
-    private StudioNumericField StudioNumber(string title, double minimum, double maximum, Action<SvgEditorController, double> apply)
+    private StudioNumericField StudioNumber(string title, double minimum, double maximum, Action<SvgEditorController, double> apply, bool allowDefaults = false)
     {
         var field = new StudioNumericField { Header = title, Minimum = minimum, Maximum = maximum };
         field.ValueEdited += (_, args) =>
         {
             if (_syncingStudioPanels) return;
-            ApplySafely(() => StudioEdit(controller => apply(controller, args.Value)));
+            ApplySafely(() =>
+            {
+                if (allowDefaults && Controller is { } controller)
+                {
+                    controller.EnsureSelectionEditable(); Canvas.CancelGesture(); apply(controller, args.Value);
+                }
+                else StudioEdit(controller => apply(controller, args.Value));
+            });
             RefreshStudioPanels();
         };
         return field;
@@ -69,7 +76,7 @@ public sealed partial class SvgEditorWorkspace
     private StudioPaintChip StudioPaint(bool stroke)
     {
         var chip = new StudioPaintChip { Label = stroke ? "Stroke" : "Fill" };
-        chip.Click += (_, _) => OpenStudioPaint(chip, stroke);
+        chip.Click += (_, _) => { SetActiveEditorPaint(stroke); OpenStudioPaint(chip, stroke); };
         (stroke ? _strokeChips : _fillChips).Add(chip); return chip;
     }
     private Button StudioCommand(string id, string title, int minimumSelection = 0)
@@ -118,7 +125,7 @@ public sealed partial class SvgEditorWorkspace
         { ("clip", "Clip"), ("unclip", "Release clip"), ("alphamask", "Alpha mask"), ("luminancemask", "Luminance mask"), ("releasemask", "Release mask"), ("disablemask", "Disable mask") }, 1)));
 
         var stroke = StudioPanel("stroke", "Stroke");
-        var strokeWidth = StudioNumber("Weight", 0, 10000, (controller, value) => controller.SetStrokeWidth((float)value));
+        var strokeWidth = StudioNumber("Weight", 0, 10000, (controller, value) => controller.SetStrokeWidth((float)value), true);
         _strokeWidths.Add(strokeWidth); stroke.Children.Add(strokeWidth);
         _studioCap = StudioChoice("Cap", new[] { "butt", "round", "square" }, "stroke-linecap");
         _studioJoin = StudioChoice("Join", new[] { "miter", "round", "bevel" }, "stroke-linejoin");
@@ -199,7 +206,7 @@ public sealed partial class SvgEditorWorkspace
     private void BuildStudioContextBar()
     {
         ContextFields.Children.Add(StudioPaint(false)); ContextFields.Children.Add(StudioPaint(true));
-        var stroke = StudioNumber("Weight", 0, 10000, (controller, value) => controller.SetStrokeWidth((float)value));
+        var stroke = StudioNumber("Weight", 0, 10000, (controller, value) => controller.SetStrokeWidth((float)value), true);
         stroke.Width = 124; _strokeWidths.Add(stroke); ContextFields.Children.Add(stroke);
         var opacity = StudioNumber("Opacity", 0, 100, (controller, value) => controller.SetOpacity((float)value / 100));
         opacity.Width = 138; opacity.Suffix = "%"; _opacities.Add(opacity); ContextFields.Children.Add(opacity);
@@ -220,12 +227,13 @@ public sealed partial class SvgEditorWorkspace
             var selected = controller.SelectedElements;
             var editable = selected.Count > 0 && !selected.Any(SvgEditorController.IsEditLocked);
             ContextSelectionLabel.Text = selected.Count == 0 ? "No selection" : selected.Count == 1 ? SvgElementInfo.GetElementName(selected[0].GetType()) : selected.Count + " objects";
-            foreach (var action in _studioActions) action.Button.IsEnabled = action.Enabled();
+            foreach (var action in _studioActions) action.Button.IsEnabled = action.Enabled()
+                && (action.Button.Tag is not string id || _commands.FirstOrDefault(command => command.Id == id)?.CanExecute?.Invoke() != false);
             bool Mixed(Func<SvgVisualElement, string> value) => selected.Count > 1 && selected.Skip(1).Any(element => value(element) != value(selected[0]));
             var first = selected.FirstOrDefault();
-            foreach (var chip in _fillChips) { chip.IsEnabled = editable; chip.IsMixed = Mixed(element => PaintText(element.Fill)); chip.Paint = first is null ? "none" : PaintText(first.Fill); }
-            foreach (var chip in _strokeChips) { chip.IsEnabled = editable; chip.IsMixed = Mixed(element => PaintText(element.Stroke)); chip.Paint = first is null ? "none" : PaintText(first.Stroke); }
-            foreach (var field in _strokeWidths) { field.IsEnabled = editable; field.Value = first?.StrokeWidth.Value ?? 0; field.IsMixed = Mixed(element => element.StrokeWidth.ToString()); }
+            foreach (var chip in _fillChips) { chip.IsEnabled = editable || selected.Count == 0; chip.IsMixed = Mixed(element => PaintText(element.Fill)); chip.Paint = first is null ? controller.CurrentFill : PaintText(first.Fill); }
+            foreach (var chip in _strokeChips) { chip.IsEnabled = editable || selected.Count == 0; chip.IsMixed = Mixed(element => PaintText(element.Stroke)); chip.Paint = first is null ? controller.CurrentStroke : PaintText(first.Stroke); }
+            foreach (var field in _strokeWidths) { field.IsEnabled = editable || selected.Count == 0; field.Value = first?.StrokeWidth.Value ?? controller.CurrentStrokeWidth; field.IsMixed = Mixed(element => element.StrokeWidth.ToString()); }
             foreach (var field in _opacities) { field.IsEnabled = editable; field.Value = (first?.Opacity ?? 1) * 100; field.IsMixed = Mixed(element => element.Opacity.ToString(CultureInfo.InvariantCulture)); }
             var bounds = controller.SelectionBounds;
             foreach (var field in new[] { _studioX, _studioY, _studioW, _studioH, _studioAngle }) if (field is not null) field.IsEnabled = editable && bounds is not null;
@@ -255,7 +263,7 @@ public sealed partial class SvgEditorWorkspace
 
     private void OpenStudioPaint(StudioPaintChip anchor, bool stroke)
     {
-        if (Controller is not { } controller || controller.SelectedElements.Count == 0) return;
+        if (Controller is not { } controller) return;
         CommitInspectorEdits();
         var targets = controller.SelectedElements.ToArray();
         var document = controller.Document;
