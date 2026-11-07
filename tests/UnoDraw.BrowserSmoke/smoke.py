@@ -100,6 +100,25 @@ def chrome_brightness(path: Path) -> dict[str, float]:
                 for name, bounds in regions.items()}
 
 
+def chrome_font_changes(before: Path, after: Path) -> dict[str, float]:
+    # Compare first-frame dark chrome with the same restored-dark chrome. These
+    # static labels and font icons exclude artwork, scrolling, input carets and
+    # focus/hover targets. A delayed native font load changes their glyphs and
+    # measurements even when the initial canvas already appears nonblank.
+    regions = {"menu_labels": (120, 3, 592, 29), "toolbar_icons": (1259, 4, 1315, 28),
+               "panel_icons": (1094, 79, 1115, 284)}
+    with Image.open(before) as initial, Image.open(after) as restored:
+        if initial.size != (1440, 960) or restored.size != initial.size:
+            raise AssertionError("Initial font readiness must be inspected in the desktop viewport.")
+        initial_rgb, restored_rgb = initial.convert("RGB"), restored.convert("RGB")
+        changes: dict[str, float] = {}
+        for name, bounds in regions.items():
+            difference = ImageChops.difference(initial_rgb.crop(bounds), restored_rgb.crop(bounds)).convert("L")
+            changed = sum(count for level, count in enumerate(difference.histogram()) if level > 12)
+            changes[name] = changed / (difference.width * difference.height)
+        return changes
+
+
 def wait_for_theme(page: Page, path: Path, light: bool) -> dict[str, float]:
     deadline = time.monotonic() + 15
     samples: dict[str, float] = {}
@@ -189,6 +208,14 @@ def main() -> int:
                 report["theme_command_brightness"] = {"initial_dark": dark_brightness,
                     "command_light": light_brightness, "restored_dark": restored_brightness}
                 report["checks"].append("A second command-search invocation executes Use dark interface and restores dark chrome")
+
+                font_changes = chrome_font_changes(wide, output / "02b-command-dark-theme.png")
+                font_change_limit = 0.02
+                report["initial_chrome_font_stability"] = {
+                    "changed_pixel_fraction": font_changes, "maximum_changed_pixel_fraction": font_change_limit}
+                if any(value > font_change_limit for value in font_changes.values()):
+                    raise AssertionError(f"Initial chrome font/glyphs changed after startup: {font_changes}")
+                report["checks"].append("Initial desktop menu labels and font icons match the settled dark workspace")
 
                 page.set_viewport_size({"width": 390, "height": 844})
                 wait_ready(page)

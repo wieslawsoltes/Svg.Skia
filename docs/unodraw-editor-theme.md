@@ -252,6 +252,12 @@ Document tabs retain each controller and its undo history. The contextual contro
 bar reflects the selection. Rulers, status coordinates, zoom controls, outline
 display, transparency display and the Navigator share the active canvas viewport.
 
+The browser host awaits the configured native text fonts (regular, semibold and
+bold) and symbol font before releasing its first rendered frame. It uses Uno's
+public Skia font-preload API, so startup follows actual typeface readiness. Font
+load failures are logged and release the startup gate so fallback rendering can
+remain available.
+
 ## Retained panels and workspace persistence
 
 Panel IDs are stable layout identities. Menu captions can differ from the
