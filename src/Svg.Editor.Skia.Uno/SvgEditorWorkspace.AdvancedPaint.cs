@@ -221,6 +221,8 @@ public sealed partial class SvgEditorWorkspace
         };
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             {
                 var selectedPaint = CurrentPaint();
@@ -347,6 +349,8 @@ public sealed partial class SvgEditorWorkspace
         opacity.ValueChanged += (_, _) => RefreshColor();
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             {
                 var color = CurrentColor();

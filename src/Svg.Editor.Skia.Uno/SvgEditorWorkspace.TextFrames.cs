@@ -314,7 +314,7 @@ public sealed partial class SvgEditorWorkspace
         };
         formatDefault.Click += (_, _) => { story.DefaultStyle = CurrentStyle(); UpdatePreview(); };
         resetParagraphs.Click += (_, _) => { story.Paragraph = CurrentParagraph(); story.ParagraphOverrides.Clear(); UpdatePreview(); };
-        dialog.PrimaryButtonClick += (_, args) => { if (!UpdatePreview()) args.Cancel = true; };
+        dialog.PrimaryButtonClick += (_, args) => { if (!args.Cancel && !UpdatePreview()) args.Cancel = true; };
         ShowFrame(0);
         UpdatePreview();
         try

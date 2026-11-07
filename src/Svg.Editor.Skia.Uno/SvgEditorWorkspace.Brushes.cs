@@ -238,6 +238,8 @@ public sealed partial class SvgEditorWorkspace
         follow.Unchecked += (_, _) => Refresh();
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             {
                 var definition = Current();

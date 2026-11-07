@@ -158,6 +158,7 @@ public sealed partial class SvgEditorWorkspace
     {
         if (Controller is not { } controller)
             return;
+        var target = new SvgEditorSelectionContext(controller);
         var content = Clipboard.GetContent();
         string? svg = null;
         if (content.Contains("image/svg+xml"))
@@ -170,8 +171,9 @@ public sealed partial class SvgEditorWorkspace
             else
                 throw new InvalidOperationException("The clipboard does not contain SVG artwork.");
         }
-        // Clipboard reads are asynchronous. Never paste into a document selected later.
-        if (!_disposed && ReferenceEquals(Controller, controller))
+        // Placement depends on the selected sibling/layer and document revision,
+        // not only on which document is active when a clipboard provider completes.
+        if (!_disposed && !_closing && target.IsCurrent(Controller))
             controller.PasteAt(svg, placement);
     }
 

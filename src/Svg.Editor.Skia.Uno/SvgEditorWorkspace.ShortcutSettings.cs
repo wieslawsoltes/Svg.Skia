@@ -248,6 +248,8 @@ public sealed partial class SvgEditorWorkspace
         dialog.Closing += (_, args) => { if (busy) args.Cancel = true; };
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             {
                 draft.Name = name.Text;

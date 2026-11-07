@@ -486,6 +486,8 @@ public sealed partial class SvgEditorWorkspace
         };
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             if (!CommitTrack())
             { args.Cancel = true; return; }
             try

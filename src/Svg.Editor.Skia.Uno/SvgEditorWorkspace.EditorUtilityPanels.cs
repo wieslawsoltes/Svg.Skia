@@ -158,6 +158,8 @@ public sealed partial class SvgEditorWorkspace
         var dialog = MakeDialog("New graphic style", content, "Create style");
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             {
                 if (!ReferenceEquals(Controller, controller) || controller.DocumentRevision != revision)

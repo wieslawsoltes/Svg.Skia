@@ -8,7 +8,8 @@ public sealed partial class SvgEditorWorkspace
 {
     private async void LayerRow_ActionRequested(object? sender, StudioLayerActionEventArgs args)
     {
-        if (_disposed || _closing || _dialogVisible || Controller is not { } controller) return;
+        if (_disposed || _closing || _dialogVisible || Controller is not { } controller)
+            return;
         try
         {
             CommitInspectorEdits();
@@ -39,11 +40,14 @@ public sealed partial class SvgEditorWorkspace
         var error = StudioHint(string.Empty);
         var content = new StackPanel { Spacing = 10, Width = DialogContentWidth(340) };
         content.Children.Add(StudioHint("Document-local references are updated with the ID. This is one undoable edit."));
-        content.Children.Add(input); content.Children.Add(error);
+        content.Children.Add(input);
+        content.Children.Add(error);
         var dialog = MakeDialog("Rename object", content, "Rename");
         dialog.Opened += (_, _) => { input.Focus(FocusState.Programmatic); input.SelectAll(); };
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             {
                 if (!ReferenceEquals(controller, Controller) || !ReferenceEquals(document, controller.Document)

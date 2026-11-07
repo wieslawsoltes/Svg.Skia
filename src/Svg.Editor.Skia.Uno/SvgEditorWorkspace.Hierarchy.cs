@@ -146,6 +146,8 @@ public sealed partial class SvgEditorWorkspace
         panel.Children.Add(error);
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             {
                 if (list.SelectedItem is not ElementItem selected)

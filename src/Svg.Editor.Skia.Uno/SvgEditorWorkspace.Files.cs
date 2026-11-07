@@ -36,10 +36,14 @@ public sealed partial class SvgEditorWorkspace
     {
         if (_disposed)
             throw new ObjectDisposedException(nameof(SvgEditorWorkspace));
+        if (_closing)
+            return;
         var document = new EditorDocument { Name = name };
         try
         {
             await Task.Run(() => document.Controller.LoadSvg(xml));
+            if (_disposed || _closing)
+            { document.Dispose(); return; }
             AddDocument(document);
         }
         catch { document.Dispose(); throw; }
@@ -54,7 +58,8 @@ public sealed partial class SvgEditorWorkspace
         }
         catch (Exception exception)
         {
-            await ShowErrorAsync($"Could not open {Path.GetFileName(path)}.\n{exception.Message}");
+            if (!_disposed && !_closing)
+                await ShowErrorAsync($"Could not open {Path.GetFileName(path)}.\n{exception.Message}");
         }
     }
 
@@ -70,6 +75,8 @@ public sealed partial class SvgEditorWorkspace
 
     private async Task OpenFileAsync(StorageFile file, bool isExample = false)
     {
+        if (_disposed || _closing)
+            return;
         var existing = Documents.FirstOrDefault(document => document.File?.Path == file.Path && !string.IsNullOrEmpty(file.Path));
         if (existing is not null)
         {
@@ -82,6 +89,8 @@ public sealed partial class SvgEditorWorkspace
             ? new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true) : null;
         using var reader = new StreamReader(expanded ?? stream);
         var xml = await reader.ReadToEndAsync();
+        if (_disposed || _closing)
+            return;
         var document = new EditorDocument
         {
             Name = isExample ? "Welcome.svg" : file.Name,
@@ -91,6 +100,8 @@ public sealed partial class SvgEditorWorkspace
         try
         {
             await Task.Run(() => document.Controller.LoadSvg(xml, NativeFilePath(file)));
+            if (_disposed || _closing)
+            { document.Dispose(); return; }
             if (isExample)
                 document.Controller.Session.CurrentFile = null;
             AddDocument(document);
@@ -386,9 +397,12 @@ public sealed partial class SvgEditorWorkspace
     {
         if (Controller is not { } controller)
             return;
+        var revision = controller.DocumentRevision;
         using var input = await file.OpenStreamForReadAsync();
         using var memory = new MemoryStream();
         await input.CopyToAsync(memory);
+        if (_disposed || _closing || !ReferenceEquals(Controller, controller) || controller.DocumentRevision != revision)
+            return;
         var bytes = memory.ToArray();
         var mime = file.FileType.ToLowerInvariant() switch
         {

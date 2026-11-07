@@ -219,6 +219,8 @@ public sealed partial class SvgEditorWorkspace
         var dialog = MakeDialog(create ? "New artboard" : nameOnly ? "Rename artboard" : "Artboard options", content, create ? "Create artboard" : "Apply");
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             {
                 if (!ReferenceEquals(Controller, controller) || controller.DocumentRevision != revision || controller.ActiveArtboardId != id)

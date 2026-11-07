@@ -47,22 +47,30 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         _animationTimer.Tick += (_, _) =>
         {
             _animationTimer.Stop();
-            if (_disposed || !_animationClock.IsRunning || Controller is not { } controller) return;
+            if (_disposed || !_animationClock.IsRunning || Controller is not { } controller)
+                return;
             controller.Renderer.SetAnimationTime(_animationPlaybackOrigin + _animationClock.Elapsed);
             Canvas.Invalidate();
             DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
             {
-                if (!_disposed && _animationClock.IsRunning && ReferenceEquals(Controller, controller)) _animationTimer.Start();
+                if (!_disposed && _animationClock.IsRunning && ReferenceEquals(Controller, controller))
+                    _animationTimer.Start();
             });
         };
         Loaded += (_, _) =>
         {
             Canvas.IsDarkTheme = ActualTheme == ElementTheme.Dark;
-            _recoveryTimer.Start(); UpdateResponsiveLayout(); Focus(FocusState.Programmatic);
+            _recoveryTimer.Start();
+            UpdateResponsiveLayout();
+            Focus(FocusState.Programmatic);
         };
         Unloaded += (_, _) =>
         {
-            SaveStudioLayout(); _recoveryTimer.Stop(); _animationTimer.Stop(); _animationClock.Stop(); Canvas.CancelGesture();
+            SaveStudioLayout();
+            _recoveryTimer.Stop();
+            _animationTimer.Stop();
+            _animationClock.Stop();
+            Canvas.CancelGesture();
         };
     }
 
@@ -75,29 +83,50 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
 
     public void NewDocument(float width = 1200, float height = 800)
     {
+        if (_disposed)
+            throw new ObjectDisposedException(nameof(SvgEditorWorkspace));
+        if (_closing)
+            return;
         CommitInspectorEdits();
         var document = new EditorDocument { Name = $"Untitled {Documents.Count + 1}.svg" };
-        document.Controller.NewDocument(width, height); AddDocument(document);
+        try
+        { document.Controller.NewDocument(width, height); AddDocument(document); }
+        catch { document.Dispose(); throw; }
         StatusText.Text = "New artboard. Choose a tool to start drawing.";
     }
     private void AddDocument(EditorDocument document)
     {
-        CommitInspectorEdits(); Documents.Add(document); document.Controller.Changed += Controller_Changed;
+        // An asynchronous load may finish after its host has closed. Ownership
+        // transfers only while the workspace can retain the document and its canvas.
+        if (_disposed || _closing)
+        { document.Dispose(); return; }
+        CommitInspectorEdits();
+        Documents.Add(document);
+        document.Controller.Changed += Controller_Changed;
         var tab = new TabViewItem { Header = document.Title, Tag = document, IsClosable = true };
-        DocumentTabs.TabItems.Add(tab); DocumentTabs.SelectedItem = tab; ActivateDocument(document);
+        DocumentTabs.TabItems.Add(tab);
+        DocumentTabs.SelectedItem = tab;
+        ActivateDocument(document);
     }
     private void ActivateDocument(EditorDocument document)
     {
-        if (ReferenceEquals(document, _current)) return;
-        CommitInspectorEdits(); Canvas.CancelGesture();
+        if (ReferenceEquals(document, _current))
+            return;
+        CommitInspectorEdits();
+        Canvas.CancelGesture();
         if (_current is { } previous)
         {
             var center = Canvas.Viewport.ViewToWorld(new SkiaSharp.SKPoint((float)Canvas.Viewport.Width / 2, (float)Canvas.Viewport.Height / 2));
             previous.Camera = (Canvas.Zoom, center.X, center.Y);
         }
-        _animationTimer.Stop(); _animationClock.Reset(); _animationPlaybackOrigin = TimeSpan.Zero;
-        _current = document; _inspectedElement = null; _outlineRevision = -1;
-        Canvas.Controller = document.Controller; Canvas.Tool = document.Controller.Session.CurrentTool;
+        _animationTimer.Stop();
+        _animationClock.Reset();
+        _animationPlaybackOrigin = TimeSpan.Zero;
+        _current = document;
+        _inspectedElement = null;
+        _outlineRevision = -1;
+        Canvas.Controller = document.Controller;
+        Canvas.Tool = document.Controller.Session.CurrentTool;
         Canvas.InteractionMode = SvgEditorInteractionMode.None;
         Canvas.ActiveBrush = null;
         Canvas.ShowGrid = document.Controller.Session.Settings.ShowGrid;
@@ -105,40 +134,51 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         RefreshWorkspace();
         DispatcherQueue.TryEnqueue(() =>
         {
-            if (!ReferenceEquals(document, _current)) return;
+            if (_disposed || _closing || !ReferenceEquals(document, _current))
+                return;
             if (document.Camera is { } camera)
             {
                 Canvas.Viewport.SetZoomAt(camera.Zoom, default);
                 var center = Canvas.Viewport.WorldToView(new SkiaSharp.SKPoint(camera.CenterX, camera.CenterY));
                 Canvas.Viewport.Pan(Canvas.Viewport.Width / 2 - center.X, Canvas.Viewport.Height / 2 - center.Y);
             }
-            else Canvas.FitDocument();
+            else
+                Canvas.FitDocument();
             UpdateStudioRulers();
         });
     }
     private void Controller_Changed(object? sender, EventArgs args)
     {
-        if (_refreshPending || _disposed) return;
+        if (_refreshPending || _disposed)
+            return;
         _refreshPending = true;
         DispatcherQueue.TryEnqueue(() => { _refreshPending = false; if (!_disposed) RefreshWorkspace(); });
     }
     private void RefreshWorkspace()
     {
-        if (_refreshing || Controller is not { } controller) return;
+        if (_refreshing || Controller is not { } controller)
+            return;
         _refreshing = true;
         try
         {
             foreach (var tab in DocumentTabs.TabItems.OfType<TabViewItem>())
-                if (tab.Tag is EditorDocument document) tab.Header = document.Title;
+                if (tab.Tag is EditorDocument document)
+                    tab.Header = document.Title;
             WorkspaceTitleChanged?.Invoke(this, $"{_current!.Title} — UnoDraw");
             if (_outlineRevision != controller.DocumentRevision)
             {
-                _outlineRevision = controller.DocumentRevision; RefreshOutline(); RefreshResources();
+                _outlineRevision = controller.DocumentRevision;
+                RefreshOutline();
+                RefreshResources();
             }
-            if (controller.SelectedElements.Count > 0) _inspectedElement = controller.SelectedElements[0];
-            else if (_inspectedElement is SvgVisualElement || _inspectedElement?.OwnerDocument != controller.Document) _inspectedElement = controller.Document;
+            if (controller.SelectedElements.Count > 0)
+                _inspectedElement = controller.SelectedElements[0];
+            else if (_inspectedElement is SvgVisualElement || _inspectedElement?.OwnerDocument != controller.Document)
+                _inspectedElement = controller.Document;
             SynchronizeStudioLayerSelection(controller);
-            RefreshInspector(); RefreshStudioPanels(); RefreshEditorPanels();
+            RefreshInspector();
+            RefreshStudioPanels();
+            RefreshEditorPanels();
             foreach (var pair in _toolButtons)
             {
                 var active = pair.Key == Canvas.Tool
@@ -147,7 +187,8 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
                     || pair.Key == SvgEditorToolKind.Polygon && Canvas.Tool == SvgEditorToolKind.Polyline;
                 pair.Value.IsChecked = active && !Canvas.PanMode;
             }
-            if (_studioHand is not null) _studioHand.IsChecked = Canvas.PanMode;
+            if (_studioHand is not null)
+                _studioHand.IsChecked = Canvas.PanMode;
             RefreshEditorToolState();
             RefreshEditorMenus();
             var count = controller.SelectedElements.Count;
@@ -159,22 +200,26 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
 
     private void SynchronizeStudioLayerSelection(SvgEditorController controller)
     {
-        if (_outlineDragging || _rebuildingOutline) return;
+        if (_outlineDragging || _rebuildingOutline)
+            return;
         var selected = new HashSet<SvgVisualElement>(controller.SelectedElements);
         var wanted = EnumerateOutlineNodes(DocumentOutline.RootNodes).Where(node =>
             node.Content is ElementItem item && (item.Element is SvgVisualElement visual
                 ? selected.Contains(visual) : ReferenceEquals(item.Element, _inspectedElement))).ToArray();
         var current = DocumentOutline.SelectedNodes.ToArray();
-        if (current.Length == wanted.Length && current.All(wanted.Contains)) return;
+        if (current.Length == wanted.Length && current.All(wanted.Contains))
+            return;
         _rebuildingOutline = true;
         try
         {
             // Selection-only changes do not increment DocumentRevision. Update only
             // selected nodes, preserving expansion, scroll and retained row controls.
             foreach (var node in current)
-                if (!wanted.Contains(node)) DocumentOutline.SelectedNodes.Remove(node);
+                if (!wanted.Contains(node))
+                    DocumentOutline.SelectedNodes.Remove(node);
             foreach (var node in wanted)
-                if (!DocumentOutline.SelectedNodes.Contains(node)) DocumentOutline.SelectedNodes.Add(node);
+                if (!DocumentOutline.SelectedNodes.Contains(node))
+                    DocumentOutline.SelectedNodes.Add(node);
         }
         finally { _rebuildingOutline = false; }
     }
@@ -182,30 +227,41 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
     private void BuildTools() => BuildStudioTools();
     private static string ToolLabel(SvgEditorToolKind tool) => tool switch
     {
-        SvgEditorToolKind.Select => "Selection", SvgEditorToolKind.Rect => "Rectangle",
-        SvgEditorToolKind.PathSelect => "Direct selection", SvgEditorToolKind.PathCubic => "Bézier pen",
-        SvgEditorToolKind.PathQuadratic => "Quadratic curve", SvgEditorToolKind.PathLine => "Straight pen",
-        SvgEditorToolKind.PathArc => "Arc", SvgEditorToolKind.Freehand => "Pencil", _ => tool.ToString()
+        SvgEditorToolKind.Select => "Selection",
+        SvgEditorToolKind.Rect => "Rectangle",
+        SvgEditorToolKind.PathSelect => "Direct selection",
+        SvgEditorToolKind.PathCubic => "Bézier pen",
+        SvgEditorToolKind.PathQuadratic => "Quadratic curve",
+        SvgEditorToolKind.PathLine => "Straight pen",
+        SvgEditorToolKind.PathArc => "Arc",
+        SvgEditorToolKind.Freehand => "Pencil",
+        _ => tool.ToString()
     };
     private void SetTool(SvgEditorToolKind tool)
     {
-        Canvas.CancelGesture(); Canvas.PanMode = false; Canvas.Tool = tool;
+        Canvas.CancelGesture();
+        Canvas.PanMode = false;
+        Canvas.Tool = tool;
         Canvas.InteractionMode = SvgEditorInteractionMode.None;
-        if (Controller is { } controller) controller.Session.CurrentTool = tool;
+        if (Controller is { } controller)
+            controller.Session.CurrentTool = tool;
         RefreshWorkspace();
     }
     private void UpdateResponsiveLayout() => ApplyStudioMetrics();
     private void SnapToggle_Click(object sender, RoutedEventArgs args)
     {
-        if (Controller is not { } controller) return;
+        if (Controller is not { } controller)
+            return;
         controller.Session.Settings.SnapToGrid = SnapToggle.IsChecked == true;
         controller.Selection.SnapToGrid = SnapToggle.IsChecked == true;
     }
     private void DocumentTabs_AddTabButtonClick(TabView sender, object args) => ApplySafely(() => NewDocument());
     private void DocumentTabs_SelectionChanged(object sender, SelectionChangedEventArgs args)
     {
-        if (DocumentTabs.SelectedItem is not TabViewItem { Tag: EditorDocument document }) return;
-        try { ActivateDocument(document); }
+        if (DocumentTabs.SelectedItem is not TabViewItem { Tag: EditorDocument document })
+            return;
+        try
+        { ActivateDocument(document); }
         catch (Exception exception)
         {
             DocumentTabs.SelectedItem = DocumentTabs.TabItems.OfType<TabViewItem>().FirstOrDefault(tab => ReferenceEquals(tab.Tag, _current));
@@ -217,30 +273,47 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
 
     private async Task CloseEditorDocumentAsync(TabViewItem tab)
     {
-        if (_closing || _dialogVisible || tab.Tag is not EditorDocument document) return;
+        if (_closing || _dialogVisible || tab.Tag is not EditorDocument document)
+            return;
         _closing = true;
         try
         {
-            CommitInspectorEdits(); WorkspaceRoot.IsHitTestVisible = false; Canvas.CancelGesture();
-            if (!await ConfirmSaveAsync(document)) return;
-            document.Controller.Changed -= Controller_Changed; Documents.Remove(document); DocumentTabs.TabItems.Remove(tab);
+            CommitInspectorEdits();
+            WorkspaceRoot.IsHitTestVisible = false;
+            Canvas.CancelGesture();
+            if (!await ConfirmSaveAsync(document))
+                return;
+            document.Controller.Changed -= Controller_Changed;
+            Documents.Remove(document);
+            DocumentTabs.TabItems.Remove(tab);
             DeleteRecovery(document);
-            if (ReferenceEquals(_current, document)) _current = null;
+            if (ReferenceEquals(_current, document))
+                _current = null;
             document.Dispose();
-            if (Documents.Count == 0) NewDocument();
-            else if (DocumentTabs.SelectedItem is TabViewItem { Tag: EditorDocument selected }) ActivateDocument(selected);
+            if (Documents.Count == 0)
+                NewDocument();
+            else if (DocumentTabs.SelectedItem is TabViewItem { Tag: EditorDocument selected })
+                ActivateDocument(selected);
         }
         catch (Exception exception) { await ShowErrorAsync(exception.Message); }
         finally { WorkspaceRoot.IsHitTestVisible = true; _closing = false; }
     }
     public new void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+            return;
         DisposeEditorKeyboard();
-        SaveStudioLayout(); _disposed = true;
-        _recoveryTimer.Stop(); _animationTimer.Stop(); Canvas.CancelGesture(); Canvas.Controller = null;
+        SaveStudioLayout();
+        _disposed = true;
+        _recoveryTimer.Stop();
+        _animationTimer.Stop();
+        Canvas.CancelGesture();
+        Canvas.Controller = null;
         DisposeStudioWorkspace();
-        foreach (var document in Documents) { document.Controller.Changed -= Controller_Changed; document.Dispose(); }
-        Documents.Clear(); Canvas.Dispose(); base.Dispose();
+        foreach (var document in Documents)
+        { document.Controller.Changed -= Controller_Changed; document.Dispose(); }
+        Documents.Clear();
+        Canvas.Dispose();
+        base.Dispose();
     }
 }

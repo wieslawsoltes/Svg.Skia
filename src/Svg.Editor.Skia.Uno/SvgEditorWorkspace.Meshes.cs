@@ -147,6 +147,8 @@ public sealed partial class SvgEditorWorkspace
         preview.Failed += message => { error.Text = message; dialog.IsPrimaryButtonEnabled = false; };
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             {
                 var target = existing ?? new SvgGroup { ID = UniqueId("mesh") };

@@ -31,11 +31,26 @@ public sealed partial class SvgEditorWorkspace
         scroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
         scroll.HorizontalScrollMode = ScrollMode.Disabled;
         scroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+        var validation = new TextBlock
+        {
+            TextWrapping = TextWrapping.Wrap,
+            Visibility = Visibility.Collapsed,
+            Margin = new Thickness(0, 8, 0, 0),
+            Foreground = (Brush)Resources["StudioDanger"]
+        };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetLiveSetting(validation,
+            Microsoft.UI.Xaml.Automation.Peers.AutomationLiveSetting.Assertive);
+        var host = new Grid();
+        host.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        host.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        host.Children.Add(scroll);
+        Grid.SetRow(validation, 1);
+        host.Children.Add(validation);
         var dialog = new ContentDialog
         {
             XamlRoot = XamlRoot,
             Title = title,
-            Content = scroll,
+            Content = host,
             PrimaryButtonText = primary,
             CloseButtonText = close,
             DefaultButton = ContentDialogButton.Primary,
@@ -50,7 +65,72 @@ public sealed partial class SvgEditorWorkspace
         // Keep the content viewport inside the dialog instead of letting the
         // default height cap clip controls that the ScrollViewer thinks fit.
         dialog.Resources["ContentDialogMaxHeight"] = Math.Max(240, (XamlRoot?.Size.Height ?? ActualHeight) - 32);
+        // Register before caller-specific handlers. They honor Cancel before
+        // committing a draft, so an empty NumberBox cannot become NaN geometry
+        // or persist as an invalid tool setting through keyboard acceptance.
+        void ValidateNumbers(ContentDialogButtonClickEventArgs args)
+        {
+            if (args.Cancel)
+                return;
+            var invalid = FindInvalidDialogNumber(scroll);
+            if (invalid is null)
+            {
+                validation.Visibility = Visibility.Collapsed;
+                return;
+            }
+            args.Cancel = true;
+            var label = invalid.Header as string ?? "This value";
+            validation.Text = $"{label}: enter a number from {invalid.Minimum:G} to {invalid.Maximum:G}.";
+            validation.Visibility = Visibility.Visible;
+            invalid.Focus(FocusState.Programmatic);
+            invalid.StartBringIntoView();
+            EditorInputTrace.Write("modal-numeric-invalid");
+        }
+        dialog.PrimaryButtonClick += (_, args) => ValidateNumbers(args);
+        dialog.SecondaryButtonClick += (_, args) => ValidateNumbers(args);
         return dialog;
+    }
+
+    private static NumberBox? FindInvalidDialogNumber(DependencyObject element)
+    {
+        if (element is FrameworkElement { Visibility: Visibility.Collapsed } ||
+            element is Control { IsEnabled: false })
+            return null;
+        if (element is NumberBox number)
+        {
+            // The dialog's default action runs on Enter KeyDown, while the
+            // native NumberBox commits on KeyUp. Read its preserved template
+            // part and use the public Text setter to commit through the native
+            // formatter/expression parser before checking the resulting value.
+            if (FindDialogNumberInput(number) is { } input)
+            {
+                var text = input.Text;
+                if (string.IsNullOrWhiteSpace(text))
+                    return number;
+                if (!number.AcceptsExpression && number.NumberFormatter is Windows.Globalization.NumberFormatting.INumberParser parser)
+                {
+                    var parsed = parser.ParseDouble(text);
+                    if (parsed is null || !double.IsFinite(parsed.Value) || parsed.Value < number.Minimum || parsed.Value > number.Maximum)
+                        return number;
+                }
+                number.Text = text;
+            }
+            return !double.IsFinite(number.Value) || number.Value < number.Minimum || number.Value > number.Maximum ? number : null;
+        }
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(element); index++)
+            if (FindInvalidDialogNumber(VisualTreeHelper.GetChild(element, index)) is { } invalid)
+                return invalid;
+        return null;
+    }
+
+    private static TextBox? FindDialogNumberInput(DependencyObject element)
+    {
+        if (element is TextBox { Name: "InputBox" } input)
+            return input;
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(element); index++)
+            if (FindDialogNumberInput(VisualTreeHelper.GetChild(element, index)) is { } found)
+                return found;
+        return null;
     }
 
     private async Task<ContentDialogResult> ShowDialogAsync(ContentDialog dialog)
@@ -85,6 +165,8 @@ public sealed partial class SvgEditorWorkspace
 
     private async Task ShowErrorAsync(string message)
     {
+        if (_disposed)
+            return;
         StatusText.Text = message;
         if (_dialogVisible || XamlRoot is null)
             return;
@@ -170,7 +252,9 @@ public sealed partial class SvgEditorWorkspace
         content.Children.Add(presets);
         content.Children.Add(width);
         content.Children.Add(height);
-        if (await ShowDialogAsync(MakeDialog("New Document", content, "Create document")) == ContentDialogResult.Primary)
+        var dialog = MakeDialog("New Document", content, "Create document");
+        dialog.Opened += (_, _) => width.Focus(FocusState.Programmatic);
+        if (await ShowDialogAsync(dialog) == ContentDialogResult.Primary)
             NewDocument((float)width.Value, (float)height.Value);
     }
 
@@ -208,6 +292,8 @@ public sealed partial class SvgEditorWorkspace
         var dialog = MakeDialog("SVG source", content, "Apply SVG");
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             { controller.ReplaceSvg(editor.Text); }
             catch (Exception exception) { args.Cancel = true; error.Text = exception.Message; }

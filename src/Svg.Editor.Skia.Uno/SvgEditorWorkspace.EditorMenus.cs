@@ -179,23 +179,26 @@ public sealed partial class SvgEditorWorkspace
             return false;
         if (!_editorAccessMenus.TryGetValue(focusMenu ? VirtualKey.F : key, out var menu))
             return false;
-        CancelRulerGuide();
-        RestoreEditorNavigation();
-        CommitInspectorEdits();
-        Canvas.CancelGesture();
-        if (_editorScreenMode == 2)
-        { _editorScreenMode = 1; ApplyStudioMetrics(); }
-        RefreshEditorMenus();
-        if (WorkspaceMenu.Visibility == Visibility.Visible)
+        ApplySafely(() =>
         {
-            menu.Header.Focus(FocusState.Keyboard);
-            menu.Header.Invoke();
-        }
-        else
-        {
-            CompactMenuButton.Focus(FocusState.Keyboard);
-            menu.Compact.ShowAt(CompactMenuButton);
-        }
+            CancelRulerGuide();
+            RestoreEditorNavigation();
+            CommitInspectorEdits();
+            Canvas.CancelGesture();
+            if (_editorScreenMode == 2)
+            { _editorScreenMode = 1; ApplyStudioMetrics(); }
+            RefreshEditorMenus();
+            if (WorkspaceMenu.Visibility == Visibility.Visible)
+            {
+                menu.Header.Focus(FocusState.Keyboard);
+                menu.Header.Invoke();
+            }
+            else
+            {
+                CompactMenuButton.Focus(FocusState.Keyboard);
+                menu.Compact.ShowAt(CompactMenuButton);
+            }
+        });
         return true;
     }
 
