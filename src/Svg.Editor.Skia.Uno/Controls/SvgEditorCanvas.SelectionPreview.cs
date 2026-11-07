@@ -16,6 +16,8 @@ public sealed partial class SvgEditorCanvas
         }
 
         _gesture = gesture;
+        if (Controller?.SelectionBounds is { } bounds)
+            _startBounds = bounds;
         if (Controller is not null)
         {
             // Record the selected retained scene once. Ancestor compositing state and original

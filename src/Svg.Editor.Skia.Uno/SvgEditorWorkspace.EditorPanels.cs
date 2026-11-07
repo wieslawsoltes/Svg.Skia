@@ -27,7 +27,8 @@ public sealed partial class SvgEditorWorkspace
         void BeforePaint()
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            CommitInspectorEdits(); Canvas.CancelGesture();
+            CommitInspectorEdits();
+            Canvas.CancelGesture();
         }
         var color = StudioPanel("color", "Color");
         _editorColorPanel = new StudioColorEditor { BeforeApply = BeforePaint };
@@ -50,7 +51,8 @@ public sealed partial class SvgEditorWorkspace
                 return;
             ApplySafely(() =>
             {
-                CommitInspectorEdits(); controller.EnsureSelectionEditable();
+                CommitInspectorEdits();
+                controller.EnsureSelectionEditable();
                 Canvas.ActiveBrush = choice.Definition;
                 var paths = controller.SelectedElements.OfType<SvgPath>().ToArray();
                 if (controller.SelectedElements.Count == 0)
@@ -62,7 +64,8 @@ public sealed partial class SvgEditorWorkspace
                     throw new InvalidOperationException("Select paths before applying a document brush.");
                 controller.Execute("Apply document brush", () =>
                 {
-                    foreach (var path in paths) SvgBrushLibraryService.Apply(path, choice.Definition);
+                    foreach (var path in paths)
+                        SvgBrushLibraryService.Apply(path, choice.Definition);
                 });
             });
         };
@@ -86,7 +89,10 @@ public sealed partial class SvgEditorWorkspace
                 controller.AddElementInPictureCoordinates(new SvgUse
                 {
                     ReferencedElement = new Uri("#" + symbol.ID, UriKind.Relative),
-                    X = center.X - width / 2, Y = center.Y - height / 2, Width = width, Height = height
+                    X = center.X - width / 2,
+                    Y = center.Y - height / 2,
+                    Width = width,
+                    Height = height
                 }, "Insert symbol instance");
             });
         };
@@ -95,7 +101,9 @@ public sealed partial class SvgEditorWorkspace
 
         var transparency = StudioPanel("transparency", "Transparency");
         var opacity = StudioNumber("Opacity", 0, 100, (controller, value) => controller.SetOpacity((float)value / 100));
-        opacity.Suffix = "%"; _opacities.Add(opacity); transparency.Children.Add(opacity);
+        opacity.Suffix = "%";
+        _opacities.Add(opacity);
+        transparency.Children.Add(opacity);
         transparency.Children.Add(StudioSection("Opacity mask", CommandWrap(new[]
         {
             ("alphamask", "Make alpha mask"), ("luminancemask", "Make luminance mask"),
@@ -130,15 +138,19 @@ public sealed partial class SvgEditorWorkspace
                 return;
             ApplySafely(() =>
             {
-                CommitInspectorEdits(); controller.Select(image); Canvas.FitSelection();
+                CommitInspectorEdits();
+                controller.Select(image);
+                Canvas.FitSelection();
                 _editorLinkSummary.Text = image.Href?.StartsWith("data:", StringComparison.OrdinalIgnoreCase) == true
                     ? "Embedded image · " + image.Width + " × " + image.Height
                     : image.Href ?? "No image source";
             });
         };
-        links.Children.Add(_editorLinks); links.Children.Add(_editorLinkSummary);
+        links.Children.Add(_editorLinks);
+        links.Children.Add(_editorLinkSummary);
         links.Children.Add(StudioCommand("image", "Place image…"));
         links.Children.Add(StudioCommand("panel-attributes", "Edit image attributes"));
+        BuildEditorUtilityPanels();
     }
 
     private static ListView EditorPanelList(string label)
@@ -157,6 +169,7 @@ public sealed partial class SvgEditorWorkspace
         _syncingStudioPanels = true;
         try
         {
+            RefreshEditorUtilityPanels();
             _editorColorPanel?.BindController(controller);
             _editorGradientPanel?.BindController(controller);
             var selected = controller.SelectedElements;
@@ -172,7 +185,8 @@ public sealed partial class SvgEditorWorkspace
                 _editorArtboardSummary.Text = $"01  {_current?.Name}\n{document.Width} × {document.Height}\nViewBox  {document.ViewBox}";
             if (ReferenceEquals(controller, _editorPanelController) && _editorPanelRevision == controller.DocumentRevision)
                 return;
-            _editorPanelController = controller; _editorPanelRevision = controller.DocumentRevision;
+            _editorPanelController = controller;
+            _editorPanelRevision = controller.DocumentRevision;
             if (controller.Document is not { } source)
                 return;
             if (_editorBrushes is not null)
@@ -204,8 +218,12 @@ public sealed partial class SvgEditorWorkspace
             chip.Click += (_, _) => ApplySafely(() =>
             {
                 CommitInspectorEdits();
-                if (Controller is not { } target) return;
-                if (Canvas.StrokePaintTarget) target.SetStroke(paint); else target.SetFill(paint);
+                if (Controller is not { } target)
+                    return;
+                if (Canvas.StrokePaintTarget)
+                    target.SetStroke(paint);
+                else
+                    target.SetFill(paint);
             });
             _editorSwatches!.Children.Add(chip);
         }
@@ -215,5 +233,6 @@ public sealed partial class SvgEditorWorkspace
     {
         _editorColorPanel?.Dispose();
         _editorGradientPanel?.Dispose();
+        DisposeEditorUtilityPanels();
     }
 }

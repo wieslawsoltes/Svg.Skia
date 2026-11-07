@@ -27,6 +27,8 @@ public sealed partial class SvgEditorWorkspace
     {
         ReadEditorPreferences();
         InitializeEditorZoom();
+        BuildEditorUtilityCommands();
+        BuildEditorGuideCommands();
         void Add(string id, string title, string group, Action action)
             => _commands.Add(new EditorCommand(id, title, group, string.Empty, () => { action(); return Task.CompletedTask; }));
         void Async(string id, string title, string group, Func<Task> action)
@@ -49,7 +51,8 @@ public sealed partial class SvgEditorWorkspace
                     window.AppWindow.SetPresenter(AppWindowPresenterKind.Default);
                 ApplyStudioMetrics();
             }
-            else Controller?.ClearSelection();
+            else
+                Controller?.ClearSelection();
         });
         Add("selectinverse", "Inverse selection", "Select", () => Controller?.InvertSelection());
         foreach (var (id, label, match) in new[]
@@ -75,7 +78,8 @@ public sealed partial class SvgEditorWorkspace
         Async("about", "About UnoDraw…", "Help", () => ShowDialogAsync(MakeDialog("UnoDraw", new TextBlock
         {
             Text = "Vector editing with Uno Platform and Svg.Skia.\n\nEditorTheme provides the shared controls, workspace chrome and keyboard workflows.\n\nSVG document editing, paint resources, paths, filters and animation use the existing editor libraries.",
-            TextWrapping = TextWrapping.Wrap, MaxWidth = 460
+            TextWrapping = TextWrapping.Wrap,
+            MaxWidth = 460
         }, string.Empty, "Close")));
         ConfigureEditorCommandStates();
     }
@@ -187,6 +191,14 @@ public sealed partial class SvgEditorWorkspace
                 _editorToolbarVisible = toolsVisible;
             if (values.TryGetValue("UnoDraw.Editor.SingleToolColumn", out var columns) && columns is bool singleColumn)
                 _editorSingleToolColumn = singleColumn;
+            if (values.TryGetValue("UnoDraw.Editor.GuidesVisible", out var guideVisibility) && guideVisibility is bool guidesVisible)
+                Canvas.GuidesVisible = guidesVisible;
+            if (values.TryGetValue("UnoDraw.Editor.GuidesLocked", out var guideLock) && guideLock is bool guidesLocked)
+                Canvas.GuidesLocked = guidesLocked;
+            if (values.TryGetValue("UnoDraw.Editor.SnapToGuides", out var guideSnapping) && guideSnapping is bool snapToGuides)
+                Canvas.SnapToGuides = snapToGuides;
+            if (values.TryGetValue("UnoDraw.Editor.SmartGuides", out var smartSnapping) && smartSnapping is bool smartGuides)
+                Canvas.SmartGuides = smartGuides;
             if (values.TryGetValue("UnoDraw.Editor.Theme", out var appearance) && appearance is string name
                 && Enum.TryParse<ElementTheme>(name, out var theme) && Enum.IsDefined(theme))
                 RequestedTheme = theme;
@@ -203,6 +215,10 @@ public sealed partial class SvgEditorWorkspace
             values["UnoDraw.Editor.ControlBar"] = _editorControlBarVisible;
             values["UnoDraw.Editor.Toolbar"] = _editorToolbarVisible;
             values["UnoDraw.Editor.SingleToolColumn"] = _editorSingleToolColumn;
+            values["UnoDraw.Editor.GuidesVisible"] = Canvas.GuidesVisible;
+            values["UnoDraw.Editor.GuidesLocked"] = Canvas.GuidesLocked;
+            values["UnoDraw.Editor.SnapToGuides"] = Canvas.SnapToGuides;
+            values["UnoDraw.Editor.SmartGuides"] = Canvas.SmartGuides;
             values["UnoDraw.Editor.Theme"] = RequestedTheme.ToString();
         }
         catch (Exception exception) { StatusText.Text = "Preferences could not be saved: " + exception.Message; }

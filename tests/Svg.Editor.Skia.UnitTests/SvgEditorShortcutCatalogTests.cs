@@ -60,6 +60,24 @@ public class SvgEditorShortcutCatalogTests
     }
 
     [Fact]
+    public void GuideAndAnchorChordsKeepTheirDistinctCanvasAndDocumentActions()
+    {
+        Assert.Equal("guides", Resolve(SvgEditorShortcutKey.Semicolon, Primary)?.CommandId);
+        Assert.Equal("lockguides", Resolve(SvgEditorShortcutKey.Semicolon, Primary | Alt)?.CommandId);
+        Assert.Equal("smartguides", Resolve(SvgEditorShortcutKey.U, Primary)?.CommandId);
+        Assert.Equal("guide-bounds", Resolve(SvgEditorShortcutKey.Number5, Primary)?.CommandId);
+        Assert.Equal("tool-add-anchor", Resolve(SvgEditorShortcutKey.Equals, Shift)?.CommandId);
+        Assert.Equal("tool-add-anchor", Resolve(SvgEditorShortcutKey.Equals)?.CommandId);
+        Assert.Equal("tool-add-anchor", Resolve(SvgEditorShortcutKey.Add)?.CommandId);
+        Assert.Equal("+", SvgEditorShortcutCatalog.GetShortcutText("tool-add-anchor"));
+        Assert.Equal("tool-delete-anchor", Resolve(SvgEditorShortcutKey.Minus)?.CommandId);
+        Assert.Equal("tool-anchor", Resolve(SvgEditorShortcutKey.C, Shift)?.CommandId);
+        Assert.Equal("tool-shape-builder", Resolve(SvgEditorShortcutKey.M, Shift)?.CommandId);
+        Assert.Equal("tool-symbol-sprayer", Resolve(SvgEditorShortcutKey.S, Shift)?.CommandId);
+        Assert.Null(Resolve(SvgEditorShortcutKey.Equals, Shift, SvgEditorShortcutContext.TextInput));
+    }
+
+    [Fact]
     public void EscapeCanCancelAnUnfinishedGestureWithoutRequiringASelection()
     {
         Assert.Equal("cancel-action", Resolve(SvgEditorShortcutKey.Escape)?.CommandId);

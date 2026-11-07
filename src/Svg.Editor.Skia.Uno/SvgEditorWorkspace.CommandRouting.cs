@@ -1,6 +1,7 @@
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Svg.Editor.Core;
@@ -24,14 +25,19 @@ public sealed partial class SvgEditorWorkspace
 
     private async Task RunCommandAsync(string id)
     {
-        if (_dialogVisible || _closing) return;
+        EditorInputTrace.Write($"command-request id={id} modal={_dialogVisible} closing={_closing}");
+        if (_dialogVisible || _closing)
+            return;
         try
         {
             var command = _commands.FirstOrDefault(candidate => candidate.Id == id);
-            if (command is null || command.CanExecute?.Invoke() == false) return;
+            if (command is null || command.CanExecute?.Invoke() == false)
+                return;
+            CancelRulerGuide();
             RestoreEditorNavigation();
             CommitInspectorEdits();
-            if (id != "finishpath") Canvas.CancelGesture();
+            if (id != "finishpath")
+                Canvas.CancelGesture();
             await command.Execute();
         }
         catch (Exception exception) { await ShowErrorAsync(exception.Message); }
@@ -40,45 +46,58 @@ public sealed partial class SvgEditorWorkspace
 
     private Task CopyAsync(bool cut)
     {
-        if (Controller is not { } controller || controller.SelectedElements.Count == 0) return Task.CompletedTask;
+        if (Controller is not { } controller || controller.SelectedElements.Count == 0)
+            return Task.CompletedTask;
         var svg = controller.CopySelection();
         var package = new DataPackage { RequestedOperation = cut ? DataPackageOperation.Move : DataPackageOperation.Copy };
-        package.SetText(svg); package.SetData("image/svg+xml", svg); Clipboard.SetContent(package);
-        if (cut) controller.DeleteSelection();
+        package.SetText(svg);
+        package.SetData("image/svg+xml", svg);
+        Clipboard.SetContent(package);
+        if (cut)
+            controller.DeleteSelection();
         return Task.CompletedTask;
     }
 
     private async Task PasteAsync()
     {
-        if (Controller is not { } controller) return;
+        if (Controller is not { } controller)
+            return;
         var content = Clipboard.GetContent();
-        if (content.Contains("image/svg+xml") && await content.GetDataAsync("image/svg+xml") is string svg) controller.Paste(svg);
+        if (content.Contains("image/svg+xml") && await content.GetDataAsync("image/svg+xml") is string svg)
+            controller.Paste(svg);
         else if (content.Contains(StandardDataFormats.Text))
         {
             var text = await content.GetTextAsync();
-            if (text.TrimStart().StartsWith('<')) controller.Paste(text);
-            else if (controller.SelectedElements.OfType<SvgTextBase>().Any()) controller.SetText(text);
+            if (text.TrimStart().StartsWith('<'))
+                controller.Paste(text);
+            else if (controller.SelectedElements.OfType<SvgTextBase>().Any())
+                controller.SetText(text);
         }
-        else controller.Paste();
+        else
+            controller.Paste();
     }
 
     private void ToggleAnimation()
     {
-        if (_animationClock.IsRunning) { _animationTimer.Stop(); _animationClock.Stop(); return; }
-        _animationClock.Start(); _animationTimer.Start();
+        if (_animationClock.IsRunning)
+        { _animationTimer.Stop(); _animationClock.Stop(); return; }
+        _animationClock.Start();
+        _animationTimer.Start();
     }
 
     private static bool StudioContainsFocus(DependencyObject? focused, DependencyObject ancestor)
     {
         for (var item = focused; item is not null; item = VisualTreeHelper.GetParent(item))
-            if (ReferenceEquals(item, ancestor)) return true;
+            if (ReferenceEquals(item, ancestor))
+                return true;
         return false;
     }
 
     private static bool StudioIsTextInput(DependencyObject? focused)
     {
         for (var item = focused; item is not null; item = VisualTreeHelper.GetParent(item))
-            if (item is TextBox or PasswordBox or NumberBox or RichEditBox or ComboBox or AutoSuggestBox) return true;
+            if (item is TextBox or PasswordBox or NumberBox or RichEditBox or ComboBox or AutoSuggestBox)
+                return true;
         return false;
     }
 
@@ -86,10 +105,12 @@ public sealed partial class SvgEditorWorkspace
     {
         if (_closing || _dialogVisible || _disposed || focused is not null && !StudioContainsFocus(focused, this))
             return SvgEditorShortcutContext.Blocked;
-        if (StudioIsTextInput(focused) || StudioIsTextInput(originalSource)) return SvgEditorShortcutContext.TextInput;
+        if (StudioIsTextInput(focused) || StudioIsTextInput(originalSource))
+            return SvgEditorShortcutContext.TextInput;
         if (focused is null || ReferenceEquals(focused, this) || StudioContainsFocus(focused, Canvas))
             return SvgEditorShortcutContext.Canvas;
-        if (StudioContainsFocus(focused, DocumentOutline)) return SvgEditorShortcutContext.DocumentTree;
+        if (StudioContainsFocus(focused, DocumentOutline))
+            return SvgEditorShortcutContext.DocumentTree;
         return SvgEditorShortcutContext.OtherControl;
     }
 
@@ -97,11 +118,36 @@ public sealed partial class SvgEditorWorkspace
 
     private async void Workspace_KeyDown(object sender, KeyRoutedEventArgs args)
     {
-        if (_closing) { args.Handled = true; return; }
-        if (_disposed || _dialogVisible || args.Handled) return;
+        EditorInputTrace.Key("workspace-down", args.Key, args.Handled, _dialogVisible, XamlRoot, _editorUsesCommandKey);
+        if (_closing)
+        { args.Handled = true; return; }
+        if (_disposed || _dialogVisible || args.Handled)
+            return;
         var focused = XamlRoot is { } root ? FocusManager.GetFocusedElement(root) as DependencyObject : null;
         var context = EditorShortcutContext(focused, args.OriginalSource as DependencyObject);
-        if (context == SvgEditorShortcutContext.Blocked || !TryGetEditorModifiers(out var modifiers)) return;
+        if (context == SvgEditorShortcutContext.Blocked || !TryGetEditorModifiers(out var modifiers))
+            return;
+        if (context == SvgEditorShortcutContext.Canvas && Canvas.ContextFlyout is { } contextMenu &&
+            (args.Key == VirtualKey.Application && modifiers == SvgEditorShortcutModifiers.None ||
+             args.Key == VirtualKey.F10 && modifiers == SvgEditorShortcutModifiers.Shift))
+        {
+            // The workspace owns drawing focus, so native context-menu keys need
+            // an explicit canvas target. Controls and text fields keep their menus.
+            args.Handled = true;
+            if (args.KeyStatus.WasKeyDown)
+                return;
+            RestoreEditorNavigation();
+            Canvas.CancelGesture();
+            var point = Controller?.SelectionBounds is { } bounds
+                ? Canvas.Viewport.WorldToView(new SkiaSharp.SKPoint(bounds.MidX, bounds.MidY))
+                : new SkiaSharp.SKPoint((float)Canvas.ActualWidth / 2, (float)Canvas.ActualHeight / 2);
+            contextMenu.ShowAt(Canvas, new FlyoutShowOptions
+            {
+                Position = new Windows.Foundation.Point(Math.Max(0, Math.Min(Canvas.ActualWidth, point.X)),
+                    Math.Max(0, Math.Min(Canvas.ActualHeight, point.Y)))
+            });
+            return;
+        }
         if (_spacePanning && IsEditorModifierKey(args.Key))
         {
             ApplyEditorNavigation(SvgEditorShortcutCatalog.Navigation(modifiers, context));
@@ -110,7 +156,8 @@ public sealed partial class SvgEditorWorkspace
         if (args.Key == VirtualKey.Space)
         {
             var navigation = SvgEditorShortcutCatalog.Navigation(modifiers, context);
-            if (navigation == SvgEditorNavigationShortcut.None) return;
+            if (navigation == SvgEditorNavigationShortcut.None)
+                return;
             ApplyEditorNavigation(navigation);
             args.Handled = true;
             return;
@@ -126,10 +173,12 @@ public sealed partial class SvgEditorWorkspace
 
         var key = (SvgEditorShortcutKey)args.Key;
         var shortcut = _editorShortcuts.Resolve(key, modifiers, context);
-        if (shortcut is null || !HasEditorCommand(shortcut.CommandId)) return;
+        if (shortcut is null || !HasEditorCommand(shortcut.CommandId))
+            return;
         args.Handled = true;
         var firstPress = _heldEditorShortcutKeys.Add(key);
-        if ((!firstPress || args.KeyStatus.WasKeyDown) && !shortcut.Repeats) return;
+        if ((!firstPress || args.KeyStatus.WasKeyDown) && !shortcut.Repeats)
+            return;
         await RunCommandAsync(shortcut.CommandId);
     }
 
@@ -143,7 +192,8 @@ public sealed partial class SvgEditorWorkspace
 
     private void ApplyEditorNavigation(SvgEditorNavigationShortcut navigation)
     {
-        if (navigation == SvgEditorNavigationShortcut.None) { RestoreEditorNavigation(); return; }
+        if (navigation == SvgEditorNavigationShortcut.None)
+        { RestoreEditorNavigation(); return; }
         if (!_spacePanning)
         {
             _spacePanning = true;
@@ -159,7 +209,8 @@ public sealed partial class SvgEditorWorkspace
 
     private void RestoreEditorNavigation()
     {
-        if (!_spacePanning) return;
+        if (!_spacePanning)
+            return;
         _spacePanning = false;
         Canvas.PanMode = _spacePreviousPanMode;
         Canvas.ZoomMode = _spacePreviousZoomMode;
@@ -169,8 +220,10 @@ public sealed partial class SvgEditorWorkspace
 
     private void Workspace_KeyUp(object sender, KeyRoutedEventArgs args)
     {
+        EditorInputTrace.Key("workspace-up", args.Key, args.Handled, _dialogVisible, XamlRoot, _editorUsesCommandKey);
         _heldEditorShortcutKeys.Remove((SvgEditorShortcutKey)args.Key);
-        if (!_spacePanning) return;
+        if (!_spacePanning)
+            return;
         if (args.Key == VirtualKey.Space)
         {
             RestoreEditorNavigation();
@@ -178,7 +231,8 @@ public sealed partial class SvgEditorWorkspace
         }
         else if (IsEditorModifierKey(args.Key))
         {
-            if (!TryGetEditorModifiers(out var modifiers)) { RestoreEditorNavigation(); return; }
+            if (!TryGetEditorModifiers(out var modifiers))
+            { RestoreEditorNavigation(); return; }
             var focused = XamlRoot is { } root ? FocusManager.GetFocusedElement(root) as DependencyObject : null;
             ApplyEditorNavigation(SvgEditorShortcutCatalog.Navigation(modifiers, EditorShortcutContext(focused)));
         }

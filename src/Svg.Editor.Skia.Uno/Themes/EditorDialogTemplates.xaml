@@ -117,9 +117,7 @@
           <Border.RenderTransform><ScaleTransform x:Name="ScaleTransform" /></Border.RenderTransform>
           <Grid x:Name="DialogSpace">
             <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-            <Border Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="0,0,0,1" Padding="16,10">
-              <ContentControl x:Name="Title" Content="{TemplateBinding Title}" ContentTemplate="{TemplateBinding TitleTemplate}" FontSize="{StaticResource StudioTitleSize}" FontWeight="SemiBold" Foreground="{TemplateBinding Foreground}" IsTabStop="False" HorizontalContentAlignment="Stretch" />
-            </Border>
+            <ContentControl x:Name="Title" Content="{TemplateBinding Title}" ContentTemplate="{TemplateBinding TitleTemplate}" FontSize="{StaticResource StudioTitleSize}" FontWeight="SemiBold" Foreground="{TemplateBinding Foreground}" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="0,0,0,1" Padding="16,10" IsTabStop="False" HorizontalContentAlignment="Stretch" />
             <Grid x:Name="ContentPanel" Grid.Row="1" Padding="16">
               <ScrollViewer x:Name="ContentScrollViewer" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" VerticalScrollMode="Enabled" VerticalScrollBarVisibility="Auto" ZoomMode="Disabled" IsTabStop="False">
                 <ContentPresenter x:Name="Content" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}" FontSize="{StaticResource StudioBodySize}" HorizontalContentAlignment="Stretch" TextWrapping="Wrap" />

@@ -4,6 +4,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
 using Svg.Editor.Core;
@@ -57,13 +58,25 @@ public sealed partial class SvgEditorWorkspace
         if (_dialogVisible)
             return ContentDialogResult.None;
         _dialogVisible = true;
+        EditorInputTrace.Write("modal-show-request");
+        if (EditorInputTrace.Enabled)
+        {
+            dialog.Opened += (_, _) => EditorInputTrace.Write("modal-opened");
+            dialog.Closed += (_, args) => EditorInputTrace.Write("modal-closed result=" + args.Result);
+            dialog.AddHandler(KeyDownEvent, new KeyEventHandler((_, args) =>
+                EditorInputTrace.Key("modal-down", args.Key, args.Handled, _dialogVisible, dialog.XamlRoot, _editorUsesCommandKey)), true);
+            dialog.AddHandler(KeyUpEvent, new KeyEventHandler((_, args) =>
+                EditorInputTrace.Key("modal-up", args.Key, args.Handled, _dialogVisible, dialog.XamlRoot, _editorUsesCommandKey)), true);
+        }
         try
         { return await dialog.ShowAsync(); }
         finally
         {
             _dialogVisible = false;
+            EditorInputTrace.Write("modal-completed");
             DispatcherQueue.TryEnqueue(() =>
             {
+                EditorInputTrace.Write($"modal-focus-restore disposed={_disposed} modal={_dialogVisible}");
                 if (!_disposed && !_dialogVisible)
                     Focus(FocusState.Programmatic);
             });

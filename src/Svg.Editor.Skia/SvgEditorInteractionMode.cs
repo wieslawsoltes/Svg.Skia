@@ -22,5 +22,13 @@ public enum SvgEditorInteractionMode
     RectangularGrid,
     PolarGrid,
     Spiral,
-    AreaType
+    AreaType,
+    Scissors,
+    Eraser,
+    Knife,
+    Lasso,
+    MagicWand,
+    AddAnchor,
+    DeleteAnchor,
+    AnchorPoint
 }

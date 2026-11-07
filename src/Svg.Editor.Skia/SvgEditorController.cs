@@ -293,7 +293,7 @@ public sealed partial class SvgEditorController : IDisposable
                 CancelEdit();
                 throw;
             }
-            Session.PushUndoState(before);
+            Session.PushUndoState(before, _editLabel);
             LastEditLabel = _editLabel;
             if (_editTransform is { } transform)
                 _repeatTransform = transform;

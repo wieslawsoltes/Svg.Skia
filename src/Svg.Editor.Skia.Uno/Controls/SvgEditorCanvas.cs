@@ -19,7 +19,7 @@ namespace Svg.Editor.Skia.Uno;
 /// </summary>
 public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 {
-    private enum Gesture { None, Pan, Pinch, Marquee, Move, Resize, Rotate, Create, Node, Vertex, Transform, Zoom, Gradient, Artboard, EditorShape, AreaType }
+    private enum Gesture { None, Pan, Pinch, Marquee, Move, Resize, Rotate, Create, Node, Vertex, Transform, Zoom, Gradient, Artboard, EditorShape, AreaType, Scissors, CutSweep, Lasso, Anchor }
 
     private readonly record struct PenNode(SKPoint Position, SKPoint Tangent);
 
@@ -205,6 +205,8 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void CancelDrawingPreview()
     {
+        ClearAnchorPreview();
+        CancelGuidePreview();
         // Tools mutate only their preview until release. Clearing it cancels the
         // entire provisional stroke/path without adding a document undo entry.
         ReleaseSelectionGhost();
@@ -223,8 +225,8 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void OnControllerChanged(object? sender, EventArgs e)
     {
-        if (_gesture is Gesture.Move or Gesture.Resize or Gesture.Rotate or Gesture.Node or Gesture.Vertex
-            or Gesture.Transform or Gesture.Gradient or Gesture.Artboard)
+        if (_movingGuideId is not null || _gesture is Gesture.Move or Gesture.Resize or Gesture.Rotate or Gesture.Node or Gesture.Vertex
+            or Gesture.Transform or Gesture.Gradient or Gesture.Artboard or Gesture.Scissors or Gesture.CutSweep or Gesture.Lasso or Gesture.Anchor)
         {
             // A command or selection change invalidates the gesture's retained snapshot.
             CancelGesture();
@@ -300,6 +302,8 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void HandleInteractionFailure(Exception exception)
     {
+        ClearAnchorPreview();
+        CancelGuidePreview();
         // Controller commands roll back their own transactions. Clear only transient canvas
         // state here; rebuilding a broken node preview while handling failure could throw again.
         ReleaseSelectionGhost();

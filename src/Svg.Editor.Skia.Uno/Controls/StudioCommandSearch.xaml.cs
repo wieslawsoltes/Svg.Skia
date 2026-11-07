@@ -44,18 +44,22 @@ public sealed partial class StudioCommandSearch : UserControl
         // Validate before replacing a usable catalog.
         var index = new SvgCommandSearchIndex(commands);
         var recent = recentIds?.Take(32).ToArray() ?? Array.Empty<string>();
-        _index = index; _recentIds = recent; RefreshResults();
+        _index = index;
+        _recentIds = recent;
+        RefreshResults();
     }
 
     public void FocusSearch()
     {
-        if (IsLoaded && IsEnabled) Query.Focus(FocusState.Programmatic);
+        var focused = IsLoaded && IsEnabled && Query.Focus(FocusState.Programmatic);
+        EditorInputTrace.Write($"query-focus loaded={IsLoaded} enabled={IsEnabled} success={focused}");
     }
 
     private void Query_TextChanged(object sender, TextChangedEventArgs args) => RefreshResults();
     private void RefreshResults()
     {
-        if (Results is null) return;
+        if (Results is null)
+            return;
         var matches = _index.Search(Query.Text, 100, _recentIds).Select(entry => new StudioCommandSearchItem(entry)).ToArray();
         Results.ItemsSource = matches;
         Results.SelectedIndex = matches.Length == 0 ? -1 : 0;
@@ -63,8 +67,11 @@ public sealed partial class StudioCommandSearch : UserControl
         ResultCount.Text = matches.Length == 0 ? "Try fewer or different words."
             : matches.Length == 100 ? "100 commands shown · refine your search"
             : matches.Length == 1 ? "1 command" : matches.Length + " commands";
-        if (string.IsNullOrWhiteSpace(Query.Text) && _recentIds.Length > 0) ResultCount.Text += " · recent choices first";
-        if (Results.SelectedItem is { } selected) Results.ScrollIntoView(selected);
+        if (string.IsNullOrWhiteSpace(Query.Text) && _recentIds.Length > 0)
+            ResultCount.Text += " · recent choices first";
+        if (Results.SelectedItem is { } selected)
+            Results.ScrollIntoView(selected);
+        EditorInputTrace.Write($"query-results length={Query.Text.Length} count={matches.Length} selected={SelectedCommand?.Id ?? "none"}");
         SelectedCommandChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -75,18 +82,23 @@ public sealed partial class StudioCommandSearch : UserControl
 
     private void Query_KeyDown(object sender, KeyRoutedEventArgs args)
     {
-        if (args.Handled || Modified()) return;
+        EditorInputTrace.Write($"query-down key={args.Key} handled={args.Handled} modified={Modified()} length={Query.Text.Length} selected={SelectedCommand?.Id ?? "none"}");
+        if (args.Handled || Modified())
+            return;
         if (args.Key == VirtualKey.Enter)
         {
             args.Handled = true; // Set before notifying the host, including no-match Enter.
-            if (SelectedCommand is { } entry) CommandInvoked?.Invoke(this, entry);
+            if (SelectedCommand is { } entry)
+                CommandInvoked?.Invoke(this, entry);
             return;
         }
-        if (args.Key is not (VirtualKey.Down or VirtualKey.Up or VirtualKey.PageDown or VirtualKey.PageUp)) return;
+        if (args.Key is not (VirtualKey.Down or VirtualKey.Up or VirtualKey.PageDown or VirtualKey.PageUp))
+            return;
         if (Results.Items.Count > 0)
         {
             var step = args.Key is VirtualKey.PageDown or VirtualKey.PageUp ? 8 : 1;
-            if (args.Key is VirtualKey.Up or VirtualKey.PageUp) step = -step;
+            if (args.Key is VirtualKey.Up or VirtualKey.PageUp)
+                step = -step;
             Results.SelectedIndex = Math.Clamp(Results.SelectedIndex + step, 0, Results.Items.Count - 1);
             Results.ScrollIntoView(Results.SelectedItem);
         }
@@ -99,7 +111,8 @@ public sealed partial class StudioCommandSearch : UserControl
     }
     private void Results_ItemClick(object sender, ItemClickEventArgs args)
     {
-        if (args.ClickedItem is StudioCommandSearchItem item) CommandInvoked?.Invoke(this, item.Entry);
+        if (args.ClickedItem is StudioCommandSearchItem item)
+            CommandInvoked?.Invoke(this, item.Entry);
     }
     private void Results_SelectionChanged(object sender, SelectionChangedEventArgs args)
         => SelectedCommandChanged?.Invoke(this, EventArgs.Empty);

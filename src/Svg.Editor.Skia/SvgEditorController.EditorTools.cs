@@ -218,12 +218,18 @@ public sealed partial class SvgEditorController
     public void AddElementInPictureCoordinates(SvgVisualElement element, string label = "Draw object")
     {
         ThrowIfDisposed();
-        if (element is null) throw new ArgumentNullException(nameof(element));
-        if (element.Parent is not null) throw new ArgumentException("The object already belongs to a document.", nameof(element));
-        if (Document is not { } document) throw new InvalidOperationException("Open a document before drawing.");
+        if (element is null)
+            throw new ArgumentNullException(nameof(element));
+        if (element.Parent is not null)
+            throw new ArgumentException("The object already belongs to a document.", nameof(element));
+        if (Document is not { } document)
+            throw new InvalidOperationException("Open a document before drawing.");
+        if (IsLocked(document))
+            throw new InvalidOperationException("Unlock the document before drawing.");
         var root = GetSceneNode(document) ?? Renderer.RetainedSceneGraph?.Root;
         var transform = root is null ? SKMatrix.Identity : ToMatrix(root.TotalTransform);
-        if (!transform.TryInvert(out var inverse)) throw new InvalidOperationException("The document viewport has a singular transform.");
+        if (!transform.TryInvert(out var inverse))
+            throw new InvalidOperationException("The document viewport has a singular transform.");
         PrependTransform(element, inverse);
         AddElement(element, label);
     }
@@ -282,14 +288,18 @@ public sealed partial class SvgEditorController
     public SvgGroup AddTextArea(SKRect pictureBounds, string value)
     {
         ThrowIfDisposed();
-        if (Document is not { } document) throw new InvalidOperationException("Open a document before drawing a text frame.");
-        if (value is null) throw new ArgumentNullException(nameof(value));
-        ValidatePositive(pictureBounds.Width, nameof(pictureBounds)); ValidatePositive(pictureBounds.Height, nameof(pictureBounds));
+        if (Document is not { } document)
+            throw new InvalidOperationException("Open a document before drawing a text frame.");
+        if (value is null)
+            throw new ArgumentNullException(nameof(value));
+        ValidatePositive(pictureBounds.Width, nameof(pictureBounds));
+        ValidatePositive(pictureBounds.Height, nameof(pictureBounds));
         if (!IsFinite(pictureBounds.Left) || !IsFinite(pictureBounds.Top) || !IsFinite(pictureBounds.Right) || !IsFinite(pictureBounds.Bottom))
             throw new ArgumentOutOfRangeException(nameof(pictureBounds));
         var root = GetSceneNode(document) ?? Renderer.RetainedSceneGraph?.Root;
         var matrix = root is null ? SKMatrix.Identity : ToMatrix(root.TotalTransform);
-        if (!matrix.TryInvert(out var inverse)) throw new InvalidOperationException("The document viewport has a singular transform.");
+        if (!matrix.TryInvert(out var inverse))
+            throw new InvalidOperationException("The document viewport has a singular transform.");
         var bounds = inverse.MapRect(pictureBounds);
         var story = new SvgTextStory
         {
@@ -298,7 +308,10 @@ public sealed partial class SvgEditorController
         };
         story.Frames.Add(new SvgTextFrameDefinition
         {
-            X = bounds.Left, Y = bounds.Top, Width = bounds.Width, Height = bounds.Height,
+            X = bounds.Left,
+            Y = bounds.Top,
+            Width = bounds.Width,
+            Height = bounds.Height,
             Padding = Math.Min(8, Math.Min(bounds.Width, bounds.Height) / 8)
         });
         return SvgTextStoryService.Apply(this, story);

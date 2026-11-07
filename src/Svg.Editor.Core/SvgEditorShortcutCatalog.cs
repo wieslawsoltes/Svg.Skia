@@ -83,7 +83,8 @@ public sealed class SvgEditorShortcut
 
     public bool Allows(SvgEditorShortcutContext context)
     {
-        if (context == SvgEditorShortcutContext.Blocked) return false;
+        if (context == SvgEditorShortcutContext.Blocked)
+            return false;
         switch (Scope)
         {
             case SvgEditorShortcutScope.Application:
@@ -104,10 +105,14 @@ public sealed class SvgEditorShortcut
     public string GetDisplayText(bool usesCommandKey = false)
     {
         var text = string.Empty;
-        if ((Modifiers & SvgEditorShortcutModifiers.Primary) != 0) text += usesCommandKey ? "Cmd+" : "Ctrl+";
-        if ((Modifiers & SvgEditorShortcutModifiers.Alt) != 0) text += usesCommandKey ? "Option+" : "Alt+";
-        if ((Modifiers & SvgEditorShortcutModifiers.Shift) != 0) text += "Shift+";
-        return text + KeyText(Key);
+        var plus = Key == SvgEditorShortcutKey.Equals && (Modifiers & SvgEditorShortcutModifiers.Shift) != 0;
+        if ((Modifiers & SvgEditorShortcutModifiers.Primary) != 0)
+            text += usesCommandKey ? "Cmd+" : "Ctrl+";
+        if ((Modifiers & SvgEditorShortcutModifiers.Alt) != 0)
+            text += usesCommandKey ? "Option+" : "Alt+";
+        if ((Modifiers & SvgEditorShortcutModifiers.Shift) != 0 && !plus)
+            text += "Shift+";
+        return text + (plus ? "+" : KeyText(Key));
     }
 
     private static string KeyText(SvgEditorShortcutKey key)
@@ -121,21 +126,36 @@ public sealed class SvgEditorShortcut
             return "F" + (value - (int)SvgEditorShortcutKey.F1 + 1);
         switch (key)
         {
-            case SvgEditorShortcutKey.Escape: return "Esc";
-            case SvgEditorShortcutKey.Equals: return "=";
-            case SvgEditorShortcutKey.Minus: return "−";
-            case SvgEditorShortcutKey.Add: return "Num +";
-            case SvgEditorShortcutKey.Subtract: return "Num −";
-            case SvgEditorShortcutKey.OpenBracket: return "[";
-            case SvgEditorShortcutKey.CloseBracket: return "]";
-            case SvgEditorShortcutKey.Backslash: return "\\";
-            case SvgEditorShortcutKey.Slash: return "/";
-            case SvgEditorShortcutKey.Quote: return "'";
-            case SvgEditorShortcutKey.Semicolon: return ";";
-            case SvgEditorShortcutKey.Backquote: return "`";
-            case SvgEditorShortcutKey.Comma: return ",";
-            case SvgEditorShortcutKey.Period: return ".";
-            default: return key.ToString();
+            case SvgEditorShortcutKey.Escape:
+                return "Esc";
+            case SvgEditorShortcutKey.Equals:
+                return "=";
+            case SvgEditorShortcutKey.Minus:
+                return "−";
+            case SvgEditorShortcutKey.Add:
+                return "Num +";
+            case SvgEditorShortcutKey.Subtract:
+                return "Num −";
+            case SvgEditorShortcutKey.OpenBracket:
+                return "[";
+            case SvgEditorShortcutKey.CloseBracket:
+                return "]";
+            case SvgEditorShortcutKey.Backslash:
+                return "\\";
+            case SvgEditorShortcutKey.Slash:
+                return "/";
+            case SvgEditorShortcutKey.Quote:
+                return "'";
+            case SvgEditorShortcutKey.Semicolon:
+                return ";";
+            case SvgEditorShortcutKey.Backquote:
+                return "`";
+            case SvgEditorShortcutKey.Comma:
+                return ",";
+            case SvgEditorShortcutKey.Period:
+                return ".";
+            default:
+                return key.ToString();
         }
     }
 }
@@ -171,16 +191,21 @@ public static class SvgEditorShortcutCatalog
         bool meta, bool altGraph, out SvgEditorShortcutModifiers modifiers)
     {
         modifiers = SvgEditorShortcutModifiers.None;
-        if (altGraph || (usesCommandKey ? control : meta)) return false;
-        if (usesCommandKey ? meta : control) modifiers |= SvgEditorShortcutModifiers.Primary;
-        if (shift) modifiers |= SvgEditorShortcutModifiers.Shift;
-        if (alt) modifiers |= SvgEditorShortcutModifiers.Alt;
+        if (altGraph || (usesCommandKey ? control : meta))
+            return false;
+        if (usesCommandKey ? meta : control)
+            modifiers |= SvgEditorShortcutModifiers.Primary;
+        if (shift)
+            modifiers |= SvgEditorShortcutModifiers.Shift;
+        if (alt)
+            modifiers |= SvgEditorShortcutModifiers.Alt;
         return true;
     }
 
     public static SvgEditorNavigationShortcut Navigation(SvgEditorShortcutModifiers modifiers, SvgEditorShortcutContext context)
     {
-        if (context != SvgEditorShortcutContext.Canvas) return SvgEditorNavigationShortcut.None;
+        if (context != SvgEditorShortcutContext.Canvas)
+            return SvgEditorNavigationShortcut.None;
         switch (modifiers)
         {
             case SvgEditorShortcutModifiers.None:
@@ -201,7 +226,8 @@ public static class SvgEditorShortcutCatalog
     private static Dictionary<int, SvgEditorShortcut> IndexGestures()
     {
         var result = new Dictionary<int, SvgEditorShortcut>();
-        foreach (var shortcut in s_bindings) result.Add(GestureKey(shortcut.Key, shortcut.Modifiers), shortcut);
+        foreach (var shortcut in s_bindings)
+            result.Add(GestureKey(shortcut.Key, shortcut.Modifiers), shortcut);
         return result;
     }
 
@@ -209,7 +235,8 @@ public static class SvgEditorShortcutCatalog
     {
         var result = new Dictionary<string, SvgEditorShortcut>(StringComparer.Ordinal);
         foreach (var shortcut in s_bindings)
-            if (shortcut.IsPreferred) result.Add(shortcut.CommandId, shortcut);
+            if (shortcut.IsPreferred)
+                result.Add(shortcut.CommandId, shortcut);
         return result;
     }
 
@@ -280,6 +307,10 @@ public static class SvgEditorShortcutCatalog
         Add("wireframe", SvgEditorShortcutKey.Y, primary);
         Add("grid", SvgEditorShortcutKey.Quote, primary);
         Add("snapgrid", SvgEditorShortcutKey.Quote, primary | shift);
+        Add("guides", SvgEditorShortcutKey.Semicolon, primary);
+        Add("lockguides", SvgEditorShortcutKey.Semicolon, primary | alt);
+        Add("smartguides", SvgEditorShortcutKey.U, primary);
+        Add("guide-bounds", SvgEditorShortcutKey.Number5, primary);
         Add("transparency", SvgEditorShortcutKey.D, primary | shift);
         Add("workspace-rulers", SvgEditorShortcutKey.R, primary);
         Add("zen", SvgEditorShortcutKey.Tab, scope: canvas);
@@ -307,6 +338,13 @@ public static class SvgEditorShortcutCatalog
         Tool("magicwand", SvgEditorShortcutKey.Y);
         Tool("lasso", SvgEditorShortcutKey.Q);
         Tool("pen", SvgEditorShortcutKey.P);
+        Tool("add-anchor", SvgEditorShortcutKey.Equals, shift);
+        Add("tool-add-anchor", SvgEditorShortcutKey.Equals, scope: canvas, preferred: false);
+        Add("tool-add-anchor", SvgEditorShortcutKey.Add, scope: canvas, preferred: false);
+        Tool("delete-anchor", SvgEditorShortcutKey.Minus);
+        Tool("anchor", SvgEditorShortcutKey.C, shift);
+        Tool("shape-builder", SvgEditorShortcutKey.M, shift);
+        Tool("symbol-sprayer", SvgEditorShortcutKey.S, shift);
         Tool("pencil", SvgEditorShortcutKey.N);
         Tool("brush", SvgEditorShortcutKey.B);
         Tool("rectangle", SvgEditorShortcutKey.M);

@@ -23,9 +23,11 @@ public sealed partial class SvgEditorWorkspace
     {
         // Clear legacy labels as well as applying defaults. An action without a
         // registered gesture must never advertise a shortcut owned by another action.
-        foreach (var command in _commands) command.Shortcut = EditorShortcutText(command.Id);
+        foreach (var command in _commands)
+            command.Shortcut = EditorShortcutText(command.Id);
         RefreshEditorShellShortcuts();
-        if (_editorKeyboardInitialized) RebuildEditorAccelerators();
+        if (_editorKeyboardInitialized)
+            RebuildEditorAccelerators();
         EditorShortcutsChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -44,7 +46,8 @@ public sealed partial class SvgEditorWorkspace
         LostFocus += (_, _) => DispatcherQueue.TryEnqueue(() =>
         {
             var focused = XamlRoot is { } root ? FocusManager.GetFocusedElement(root) as DependencyObject : null;
-            if (EditorShortcutContext(focused) != SvgEditorShortcutContext.Canvas) RestoreEditorNavigation();
+            if (EditorShortcutContext(focused) != SvgEditorShortcutContext.Canvas)
+                RestoreEditorNavigation();
             if (focused is not null && !StudioContainsFocus(focused, this))
             {
                 _editorWasActive = false;
@@ -53,17 +56,22 @@ public sealed partial class SvgEditorWorkspace
         });
         Loaded += (_, _) =>
         {
-            if (ReferenceEquals(_shortcutHostWindow, HostWindow)) return;
-            if (_shortcutHostWindow is not null) _shortcutHostWindow.Activated -= EditorWindow_Activated;
+            if (ReferenceEquals(_shortcutHostWindow, HostWindow))
+                return;
+            if (_shortcutHostWindow is not null)
+                _shortcutHostWindow.Activated -= EditorWindow_Activated;
             _shortcutHostWindow = HostWindow;
-            if (_shortcutHostWindow is not null) _shortcutHostWindow.Activated += EditorWindow_Activated;
+            if (_shortcutHostWindow is not null)
+                _shortcutHostWindow.Activated += EditorWindow_Activated;
         };
         Unloaded += (_, _) =>
         {
+            CancelRulerGuide();
             RestoreEditorNavigation();
             _heldEditorShortcutKeys.Clear();
             _editorWasActive = false;
-            if (_shortcutHostWindow is not null) _shortcutHostWindow.Activated -= EditorWindow_Activated;
+            if (_shortcutHostWindow is not null)
+                _shortcutHostWindow.Activated -= EditorWindow_Activated;
             _shortcutHostWindow = null;
         };
         _editorKeyboardInitialized = true;
@@ -72,7 +80,8 @@ public sealed partial class SvgEditorWorkspace
 
     private void RebuildEditorAccelerators()
     {
-        foreach (var accelerator in _editorKeyboardAccelerators) KeyboardAccelerators.Remove(accelerator);
+        foreach (var accelerator in _editorKeyboardAccelerators)
+            KeyboardAccelerators.Remove(accelerator);
         _editorKeyboardAccelerators.Clear();
         _heldEditorShortcutKeys.Clear();
         // Application and modified document shortcuts must work after dismissing
@@ -80,7 +89,8 @@ public sealed partial class SvgEditorWorkspace
         // never register bare tools, arrows, Tab, or editing keys on native controls.
         foreach (var shortcut in _editorShortcuts.Bindings)
         {
-            if (shortcut.Scope is SvgEditorShortcutScope.Canvas or SvgEditorShortcutScope.CanvasOrDocumentTree) continue;
+            if (shortcut.Scope is SvgEditorShortcutScope.Canvas or SvgEditorShortcutScope.CanvasOrDocumentTree)
+                continue;
             var accelerator = new KeyboardAccelerator
             {
                 Key = (VirtualKey)shortcut.Key,
@@ -88,15 +98,22 @@ public sealed partial class SvgEditorWorkspace
             };
             accelerator.Invoked += async (_, args) =>
             {
+                EditorInputTrace.Key("accelerator-" + shortcut.CommandId, (VirtualKey)shortcut.Key, args.Handled,
+                    _dialogVisible, XamlRoot, _editorUsesCommandKey);
                 if (_disposed || !IsLoaded || !IsEnabled || Visibility != Visibility.Visible ||
-                    _closing || _dialogVisible || XamlRoot is not { } root) return;
+                    _closing || _dialogVisible || XamlRoot is not { } root)
+                    return;
                 var focused = FocusManager.GetFocusedElement(root) as DependencyObject;
-                if (focused is null && !_editorWasActive) return;
-                if (!TryGetEditorModifiers(out var modifiers)) return;
+                if (focused is null && !_editorWasActive)
+                    return;
+                if (!TryGetEditorModifiers(out var modifiers))
+                    return;
                 var match = _editorShortcuts.Resolve(shortcut.Key, modifiers, EditorShortcutContext(focused));
-                if (!ReferenceEquals(match, shortcut) || !HasEditorCommand(shortcut.CommandId)) return;
+                if (!ReferenceEquals(match, shortcut) || !HasEditorCommand(shortcut.CommandId))
+                    return;
                 args.Handled = true;
-                if (!_heldEditorShortcutKeys.Add(shortcut.Key) && !shortcut.Repeats) return;
+                if (!_heldEditorShortcutKeys.Add(shortcut.Key) && !shortcut.Repeats)
+                    return;
                 await RunCommandAsync(shortcut.CommandId);
             };
             KeyboardAccelerators.Add(accelerator);
@@ -106,10 +123,13 @@ public sealed partial class SvgEditorWorkspace
 
     private void DisposeEditorKeyboard()
     {
+        CancelRulerGuide();
         RestoreEditorNavigation();
-        if (_shortcutHostWindow is not null) _shortcutHostWindow.Activated -= EditorWindow_Activated;
+        if (_shortcutHostWindow is not null)
+            _shortcutHostWindow.Activated -= EditorWindow_Activated;
         _shortcutHostWindow = null;
-        foreach (var accelerator in _editorKeyboardAccelerators) KeyboardAccelerators.Remove(accelerator);
+        foreach (var accelerator in _editorKeyboardAccelerators)
+            KeyboardAccelerators.Remove(accelerator);
         _editorKeyboardAccelerators.Clear();
         _heldEditorShortcutKeys.Clear();
         _editorKeyboardInitialized = false;
@@ -128,8 +148,11 @@ public sealed partial class SvgEditorWorkspace
                     var step = EditorKeyboardIncrement * (large ? 10 : 1);
                     Controller?.MoveSelection((float)(dx * step), (float)(dy * step));
                     return Task.CompletedTask;
-                }) { CanExecute = () => Controller is { } controller && controller.SelectedElements.Count > 0
-                    && !controller.SelectedElements.Any(global::Svg.Editor.Skia.SvgEditorController.IsEditLocked) });
+                })
+                {
+                    CanExecute = () => Controller is { } controller && controller.SelectedElements.Count > 0
+                    && !controller.SelectedElements.Any(global::Svg.Editor.Skia.SvgEditorController.IsEditLocked)
+                });
             }
         }
         Add("left", -1, 0);
@@ -140,8 +163,11 @@ public sealed partial class SvgEditorWorkspace
 
     private void EditorWindow_Activated(object sender, WindowActivatedEventArgs args)
     {
-        if (args.WindowActivationState != Windows.UI.Core.CoreWindowActivationState.Deactivated) return;
+        if (args.WindowActivationState != Windows.UI.Core.CoreWindowActivationState.Deactivated)
+            return;
+        CancelRulerGuide();
         RestoreEditorNavigation();
+        _editorWasActive = false;
         _heldEditorShortcutKeys.Clear();
     }
 
@@ -150,8 +176,10 @@ public sealed partial class SvgEditorWorkspace
         var result = VirtualKeyModifiers.None;
         if ((modifiers & SvgEditorShortcutModifiers.Primary) != 0)
             result |= _editorUsesCommandKey ? VirtualKeyModifiers.Windows : VirtualKeyModifiers.Control;
-        if ((modifiers & SvgEditorShortcutModifiers.Shift) != 0) result |= VirtualKeyModifiers.Shift;
-        if ((modifiers & SvgEditorShortcutModifiers.Alt) != 0) result |= VirtualKeyModifiers.Menu;
+        if ((modifiers & SvgEditorShortcutModifiers.Shift) != 0)
+            result |= VirtualKeyModifiers.Shift;
+        if ((modifiers & SvgEditorShortcutModifiers.Alt) != 0)
+            result |= VirtualKeyModifiers.Menu;
         return result;
     }
 
@@ -168,8 +196,10 @@ public sealed partial class SvgEditorWorkspace
 
     private static bool DetectCommandKeyPlatform()
     {
-        if (OperatingSystem.IsMacOS() || OperatingSystem.IsIOS() || OperatingSystem.IsMacCatalyst()) return true;
-        if (!OperatingSystem.IsBrowser()) return false;
+        if (OperatingSystem.IsMacOS() || OperatingSystem.IsIOS() || OperatingSystem.IsMacCatalyst())
+            return true;
+        if (!OperatingSystem.IsBrowser())
+            return false;
         // Browser .NET reports "browser", not its host OS. Read the platform with
         // standard JS interop so a Mac browser gets Command labels and dispatch.
         using var navigator = JSHost.GlobalThis.GetPropertyAsJSObject("navigator");

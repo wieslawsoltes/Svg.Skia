@@ -86,6 +86,14 @@ class CommandCenterContracts(unittest.TestCase):
         self.assertIn('ApplyEditorShortcutMetadata()', settings)
         self.assertIn('dialog.PrimaryButtonClick +=', settings)
 
+    def test_canvas_focus_has_native_keyboard_context_menu_access(self):
+        routing = (ROOT / 'SvgEditorWorkspace.CommandRouting.cs').read_text()
+        self.assertIn('context == SvgEditorShortcutContext.Canvas && Canvas.ContextFlyout', routing)
+        self.assertIn('args.Key == VirtualKey.Application && modifiers == SvgEditorShortcutModifiers.None', routing)
+        self.assertIn('args.Key == VirtualKey.F10 && modifiers == SvgEditorShortcutModifiers.Shift', routing)
+        self.assertIn('contextMenu.ShowAt(Canvas, new FlyoutShowOptions', routing)
+        self.assertIn('Canvas.Viewport.WorldToView', routing)
+
     def test_palette_execution_happens_after_modal_completion(self):
         source = (ROOT / 'SvgEditorWorkspace.CommandCenter.cs').read_text()
         self.assertIn('search.CommandInvoked', source)

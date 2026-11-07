@@ -27,17 +27,21 @@ public sealed partial class SvgEditorCanvas
         get => _interactionMode;
         set
         {
-            if (!Enum.IsDefined(value)) throw new ArgumentOutOfRangeException(nameof(value));
-            if (_interactionMode == value) return;
+            if (!Enum.IsDefined(value))
+                throw new ArgumentOutOfRangeException(nameof(value));
+            if (_interactionMode == value)
+                return;
             CancelGesture();
             _interactionMode = value;
-            UpdateCursor(); Invalidate();
+            UpdateCursor();
+            Invalidate();
         }
     }
 
     private void RestoreStandaloneNavigation()
     {
-        if (!_standalonePanning) return;
+        if (!_standalonePanning)
+            return;
         _standalonePanning = false;
         PanMode = _standalonePreviousPan;
     }
@@ -51,6 +55,8 @@ public sealed partial class SvgEditorCanvas
             _startWorld = _currentWorld = Viewport.ViewToWorld(view);
             return true;
         }
+        if (TryBeginAnchorGesture(view) || TryBeginCuttingGesture(args, view))
+            return true;
         if (InteractionMode == SvgEditorInteractionMode.Eyedropper)
         {
             _gesture = Gesture.None;
@@ -59,7 +65,8 @@ public sealed partial class SvgEditorCanvas
         }
         if (InteractionMode is SvgEditorInteractionMode.Rotate or SvgEditorInteractionMode.Scale or SvgEditorInteractionMode.Reflect)
         {
-            if (Controller?.SelectedElements.Count == 0) Controller.SelectAt(Viewport.ViewToWorld(view));
+            if (Controller?.SelectedElements.Count == 0)
+                Controller.SelectAt(Viewport.ViewToWorld(view));
             if (CanEditSelection && Controller?.SelectionBounds is { } bounds)
             {
                 _startBounds = bounds;
@@ -69,8 +76,10 @@ public sealed partial class SvgEditorCanvas
         }
         if (InteractionMode == SvgEditorInteractionMode.Gradient)
         {
-            if (Controller?.SelectedElements.Count == 0) Controller.SelectAt(Viewport.ViewToWorld(view));
-            if (CanEditSelection) _gesture = Gesture.Gradient;
+            if (Controller?.SelectedElements.Count == 0)
+                Controller.SelectAt(Viewport.ViewToWorld(view));
+            if (CanEditSelection)
+                _gesture = Gesture.Gradient;
             return true;
         }
         if (InteractionMode == SvgEditorInteractionMode.Artboard)
@@ -79,7 +88,8 @@ public sealed partial class SvgEditorCanvas
             _startBounds = Controller?.Renderer.Picture?.CullRect ?? default;
             _handle = -1;
             for (var index = 0; index < 8; index++)
-                if (SKPoint.Distance(Viewport.WorldToView(GetHandle(_startBounds, index)), view) <= 8) { _handle = index; break; }
+                if (SKPoint.Distance(Viewport.WorldToView(GetHandle(_startBounds, index)), view) <= 8)
+                { _handle = index; break; }
             _moveArtboard = _handle < 0 && _startBounds.Contains(_startWorld);
             return true;
         }
@@ -98,25 +108,34 @@ public sealed partial class SvgEditorCanvas
 
     private bool UpdateEditorGesture()
     {
-        if (_gesture != Gesture.Transform) return false;
-        if (_moved) _previewTransform = SvgEditorToolGeometry.CreateTransform(InteractionMode, _startBounds, _startWorld, _currentWorld, _shift);
+        if (UpdateAnchorGesture() || UpdateCuttingGesture())
+            return true;
+        if (_gesture != Gesture.Transform)
+            return false;
+        if (_moved)
+            _previewTransform = SvgEditorToolGeometry.CreateTransform(InteractionMode, _startBounds, _startWorld, _currentWorld, _shift);
         return true;
     }
 
     private bool CompleteEditorGesture(Gesture gesture)
     {
+        if (CompleteAnchorGesture(gesture) || CompleteCuttingGesture(gesture))
+            return true;
         switch (gesture)
         {
             case Gesture.Transform:
-                if (_moved) Controller?.TransformSelection(_previewTransform);
+                if (_moved)
+                    Controller?.TransformSelection(_previewTransform);
                 return true;
             case Gesture.Zoom:
                 if (_moved && !_zoomOutGesture)
                     Viewport.Fit(RectBetween(_startWorld, Viewport.ViewToWorld(_lastView)), 8, SvgEditorViewport.MaximumZoom);
-                else Viewport.ZoomAt(_zoomOutGesture ? 0.5 : 2, _startView);
+                else
+                    Viewport.ZoomAt(_zoomOutGesture ? 0.5 : 2, _startView);
                 return true;
             case Gesture.Gradient:
-                if (_moved) Controller?.ApplyGradientLine(_startWorld, _currentWorld, StrokePaintTarget);
+                if (_moved)
+                    Controller?.ApplyGradientLine(_startWorld, _currentWorld, StrokePaintTarget);
                 return true;
             case Gesture.Artboard:
                 if (_moved)
@@ -130,7 +149,8 @@ public sealed partial class SvgEditorCanvas
                 }
                 return true;
             case Gesture.EditorShape:
-                if (_moved) Controller?.AddEditorShape(InteractionMode, _startWorld, _currentWorld, Math.Clamp(ShapeDivisions, 3, 64));
+                if (_moved)
+                    Controller?.AddEditorShape(InteractionMode, _startWorld, _currentWorld, Math.Clamp(ShapeDivisions, 3, 64));
                 return true;
             case Gesture.AreaType:
                 if (_moved && Controller is { } controller)
@@ -154,19 +174,24 @@ public sealed partial class SvgEditorCanvas
         {
             var anchor = GetHandle(_startBounds, (_handle + 4) % 8);
             var current = _currentWorld;
-            if (_handle is 1 or 5) return new SKRect(_startBounds.Left, Math.Min(anchor.Y, current.Y), _startBounds.Right, Math.Max(anchor.Y, current.Y));
-            if (_handle is 3 or 7) return new SKRect(Math.Min(anchor.X, current.X), _startBounds.Top, Math.Max(anchor.X, current.X), _startBounds.Bottom);
+            if (_handle is 1 or 5)
+                return new SKRect(_startBounds.Left, Math.Min(anchor.Y, current.Y), _startBounds.Right, Math.Max(anchor.Y, current.Y));
+            if (_handle is 3 or 7)
+                return new SKRect(Math.Min(anchor.X, current.X), _startBounds.Top, Math.Max(anchor.X, current.X), _startBounds.Bottom);
             if (_shift && _startBounds.Height > 0)
             {
                 var delta = Subtract(current, anchor);
                 var ratio = _startBounds.Width / _startBounds.Height;
-                if (Math.Abs(delta.X) > Math.Abs(delta.Y * ratio)) delta.Y = MathF.CopySign(Math.Abs(delta.X / ratio), delta.Y);
-                else delta.X = MathF.CopySign(Math.Abs(delta.Y * ratio), delta.X);
+                if (Math.Abs(delta.X) > Math.Abs(delta.Y * ratio))
+                    delta.Y = MathF.CopySign(Math.Abs(delta.X / ratio), delta.Y);
+                else
+                    delta.X = MathF.CopySign(Math.Abs(delta.Y * ratio), delta.X);
                 current = Add(anchor, delta);
             }
             return RectBetween(anchor, current);
         }
-        if (!_moveArtboard) return RectBetween(_startWorld, _currentWorld);
+        if (!_moveArtboard)
+            return RectBetween(_startWorld, _currentWorld);
         var movement = Subtract(_currentWorld, _startWorld);
         return new SKRect(_startBounds.Left + movement.X, _startBounds.Top + movement.Y,
             _startBounds.Right + movement.X, _startBounds.Bottom + movement.Y);
@@ -174,13 +199,16 @@ public sealed partial class SvgEditorCanvas
 
     private void DrawEditorGesture(SKCanvas canvas, CanvasResources resources)
     {
+        DrawCuttingGesture(canvas, resources);
+        DrawAnchorGesture(canvas, resources);
         resources.Stroke.Color = resources.Accent;
         resources.Stroke.StrokeWidth = 1;
         resources.Fill.Color = resources.Accent.WithAlpha(18);
         if (_gesture == Gesture.Zoom && _moved && !_zoomOutGesture)
         {
             var rect = RectBetween(_startView, _lastView);
-            canvas.DrawRect(rect, resources.Fill); canvas.DrawRect(rect, resources.Stroke);
+            canvas.DrawRect(rect, resources.Fill);
+            canvas.DrawRect(rect, resources.Stroke);
         }
         if (_gesture == Gesture.Transform && Controller?.SelectionBounds is { } selection)
         {
@@ -192,17 +220,21 @@ public sealed partial class SvgEditorCanvas
         }
         if (_gesture == Gesture.Gradient)
         {
-            var start = Viewport.WorldToView(_startWorld); var end = Viewport.WorldToView(_currentWorld);
+            var start = Viewport.WorldToView(_startWorld);
+            var end = Viewport.WorldToView(_currentWorld);
             resources.Stroke.StrokeWidth = 2;
             canvas.DrawLine(start, end, resources.Stroke);
             resources.Fill.Color = SKColors.White;
-            canvas.DrawCircle(start, 4, resources.Fill); canvas.DrawCircle(start, 4, resources.Stroke);
-            canvas.DrawCircle(end, 4, resources.Fill); canvas.DrawCircle(end, 4, resources.Stroke);
+            canvas.DrawCircle(start, 4, resources.Fill);
+            canvas.DrawCircle(start, 4, resources.Stroke);
+            canvas.DrawCircle(end, 4, resources.Fill);
+            canvas.DrawCircle(end, 4, resources.Stroke);
         }
         if (_gesture == Gesture.AreaType)
         {
             var bounds = RectBetween(Viewport.WorldToView(_startWorld), Viewport.WorldToView(_currentWorld));
-            canvas.DrawRect(bounds, resources.Fill); canvas.DrawRect(bounds, resources.Stroke);
+            canvas.DrawRect(bounds, resources.Fill);
+            canvas.DrawRect(bounds, resources.Stroke);
             for (var line = bounds.Top + 14; line < bounds.Bottom - 6; line += 8)
                 canvas.DrawLine(bounds.Left + 6, line, bounds.Right - 6, line, resources.Stroke);
         }
@@ -230,7 +262,8 @@ public sealed partial class SvgEditorCanvas
             {
                 var handle = Viewport.WorldToView(GetHandle(rect, index));
                 var bounds = SKRect.Create(handle.X - 3, handle.Y - 3, 6, 6);
-                canvas.DrawRect(bounds, resources.Fill); canvas.DrawRect(bounds, resources.Stroke);
+                canvas.DrawRect(bounds, resources.Fill);
+                canvas.DrawRect(bounds, resources.Stroke);
             }
             canvas.DrawText($"{rect.Width:0.#} × {rect.Height:0.#}", area.Left + 8, area.Top + 18,
                 SKTextAlign.Left, resources.LabelFont, resources.Stroke);

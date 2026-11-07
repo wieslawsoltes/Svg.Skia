@@ -14,7 +14,7 @@ document="$work/StudioFixture.svg"
 cp "$source_dir/StudioFixture.svg" "$document"
 startup_stamp="$(python3 -c 'import os,sys; print(os.stat(sys.argv[1]).st_mtime_ns)' "$document")"
 window=""
-dotnet "$app" "$document" >"$output/application.log" 2>&1 &
+UNODRAW_EDITOR_INPUT_TRACE=1 dotnet "$app" "$document" >"$output/application.log" 2>&1 &
 app_pid=$!
 
 window_diagnostics() {

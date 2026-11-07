@@ -50,6 +50,7 @@ public sealed partial class SvgEditorCanvas
             DrawGesture(canvas, resources);
             DrawEditorGesture(canvas, resources);
             DrawPathNodes(canvas, resources);
+            DrawEditorGuides(canvas, resources);
         }
 
         LastRenderMilliseconds = (Stopwatch.GetTimestamp() - started) * 1000d / Stopwatch.Frequency;
@@ -148,7 +149,9 @@ public sealed partial class SvgEditorCanvas
             new(bounds.Right, bounds.Bottom), new(bounds.Left, bounds.Bottom), transform, resources.Stroke);
 
         if (IsNodeTool(Tool) || !CanEditSelection || InteractionMode is SvgEditorInteractionMode.Artboard
-            or SvgEditorInteractionMode.Gradient or SvgEditorInteractionMode.Eyedropper)
+            or SvgEditorInteractionMode.Gradient or SvgEditorInteractionMode.Eyedropper
+            or SvgEditorInteractionMode.Scissors or SvgEditorInteractionMode.Eraser or SvgEditorInteractionMode.Knife
+            or SvgEditorInteractionMode.Lasso or SvgEditorInteractionMode.MagicWand)
         {
             return;
         }
@@ -339,6 +342,7 @@ public sealed partial class SvgEditorCanvas
         public SKFont LabelFont { get; } = new(SKTypeface.Default, 11);
         public SKPaint CheckerPaint { get; }
         public SKPaint GhostPaint { get; } = new() { Color = SKColors.White.WithAlpha(165) };
+        public SKPaint ToolStroke { get; } = new() { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeCap = SKStrokeCap.Round, StrokeJoin = SKStrokeJoin.Round };
 
         public void Dispose()
         {
@@ -347,6 +351,7 @@ public sealed partial class SvgEditorCanvas
             LabelFont.Dispose();
             CheckerPaint.Dispose();
             GhostPaint.Dispose();
+            ToolStroke.Dispose();
             _checkerShader.Dispose();
         }
     }
