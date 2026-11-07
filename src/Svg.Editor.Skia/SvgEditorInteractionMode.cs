@@ -46,5 +46,11 @@ public enum SvgEditorInteractionMode
     SymbolSpinner,
     SymbolStainer,
     SymbolScreener,
-    SymbolStyler
+    SymbolStyler,
+    Smooth,
+    PathEraser,
+    Join,
+    BlobBrush,
+    Shear,
+    Measure
 }

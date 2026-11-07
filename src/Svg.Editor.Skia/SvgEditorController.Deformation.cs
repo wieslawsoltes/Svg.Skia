@@ -62,12 +62,38 @@ public sealed partial class SvgEditorController
         SvgDeformationOptions? options = null, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
+        SvgPathDeformationService.ValidateStroke(pictureStroke);
+        var settings = options ?? new SvgDeformationOptions();
+        return PrepareDeformationCore(kind, settings, path =>
+        {
+            var deformed = SvgPathDeformationService.Deform(path, kind, pictureStroke, settings, out var changed, cancellationToken);
+            return (deformed, changed);
+        }, cancellationToken);
+    }
+
+    /// <summary>Prepares a held brush using elapsed samples, without creating intermediate document edits.</summary>
+    public SvgDeformationPreview PrepareDeformation(SvgDeformationKind kind, IReadOnlyList<SvgDeformationSample> pictureStroke,
+        SvgDeformationOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        ThrowIfDisposed();
+        SvgPathDeformationService.ValidateStroke(pictureStroke);
+        var settings = options ?? new SvgDeformationOptions();
+        return PrepareDeformationCore(kind, settings, path =>
+        {
+            var deformed = SvgPathDeformationService.Deform(path, kind, pictureStroke, settings, out var changed, cancellationToken);
+            return (deformed, changed);
+        }, cancellationToken);
+    }
+
+    private SvgDeformationPreview PrepareDeformationCore(SvgDeformationKind kind, SvgDeformationOptions options,
+        Func<SKPath, (SKPath Path, bool Changed)> deform, CancellationToken cancellationToken)
+    {
+        ThrowIfDisposed();
         if (IsEditing)
             throw new InvalidOperationException("Complete the active gesture before preparing a deformation.");
         if (!Enum.IsDefined(typeof(SvgDeformationKind), kind))
             throw new ArgumentOutOfRangeException(nameof(kind));
-        (options ??= new SvgDeformationOptions()).Validate();
-        SvgPathDeformationService.ValidateStroke(pictureStroke);
+        options.Validate();
         cancellationToken.ThrowIfCancellationRequested();
         var document = Document ?? throw new InvalidOperationException("Open a document before deforming artwork.");
         EnsureSelectionEditable();
@@ -97,7 +123,7 @@ public sealed partial class SvgEditorController
                     ? Renderer.SkiaModel.ToSKPath(retained)
                     : CreateGeometryPath(element) ?? throw new InvalidOperationException("Convert the selected artwork to paths before deforming it.");
                 local.Transform(world);
-                var deformed = SvgPathDeformationService.Deform(local, kind, pictureStroke, options, out var changed, cancellationToken);
+                var (deformed, changed) = deform(local);
                 if (!changed)
                 { deformed.Dispose(); continue; }
                 paths.Add(deformed);
@@ -177,6 +203,13 @@ public sealed partial class SvgEditorController
     }
 
     public bool DeformAlong(SvgDeformationKind kind, IReadOnlyList<SKPoint> pictureStroke,
+        SvgDeformationOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        using var preview = PrepareDeformation(kind, pictureStroke, options, cancellationToken);
+        return ApplyDeformation(preview);
+    }
+
+    public bool DeformAlong(SvgDeformationKind kind, IReadOnlyList<SvgDeformationSample> pictureStroke,
         SvgDeformationOptions? options = null, CancellationToken cancellationToken = default)
     {
         using var preview = PrepareDeformation(kind, pictureStroke, options, cancellationToken);

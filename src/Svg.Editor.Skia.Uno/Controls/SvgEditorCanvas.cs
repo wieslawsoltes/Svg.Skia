@@ -19,7 +19,7 @@ namespace Svg.Editor.Skia.Uno;
 /// </summary>
 public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 {
-    private enum Gesture { None, Pan, Pinch, Marquee, Move, Resize, Rotate, Create, Node, Vertex, Transform, Zoom, Gradient, Artboard, EditorShape, AreaType, Scissors, CutSweep, Lasso, Anchor, ShapeBuilder, Deformation, SymbolSpray, SymbolBrush }
+    private enum Gesture { None, Pan, Pinch, Marquee, Move, Resize, Rotate, Create, Node, Vertex, Transform, Zoom, Gradient, Artboard, EditorShape, AreaType, Scissors, CutSweep, Lasso, Anchor, ShapeBuilder, Deformation, SymbolSpray, SymbolBrush, PathRefinement, BlobStroke, Measure }
 
     private readonly record struct PenNode(SKPoint Position, SKPoint Tangent);
 
@@ -67,6 +67,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
         Viewport.Changed += OnViewportChanged;
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
+        PointerExited += (_, _) => { _brushPointerInside = false; Invalidate(); };
         PointerReleased += OnPointerReleased;
         PointerCanceled += OnPointerCanceled;
         PointerCaptureLost += OnPointerCaptureLost;
@@ -217,6 +218,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void CancelDrawingPreview()
     {
+        ClearPathUtilityPreview();
         ClearAdvancedBrushPreview();
         ClearAnchorPreview();
         CancelGuidePreview();
@@ -240,7 +242,8 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
     {
         if (_movingGuideId is not null || _gesture is Gesture.Move or Gesture.Resize or Gesture.Rotate or Gesture.Node or Gesture.Vertex
             or Gesture.Transform or Gesture.Gradient or Gesture.Artboard or Gesture.Scissors or Gesture.CutSweep or Gesture.Lasso or Gesture.Anchor
-            or Gesture.ShapeBuilder or Gesture.Deformation or Gesture.SymbolSpray or Gesture.SymbolBrush)
+            or Gesture.ShapeBuilder or Gesture.Deformation or Gesture.SymbolSpray or Gesture.SymbolBrush
+            or Gesture.PathRefinement or Gesture.BlobStroke or Gesture.Measure)
         {
             // A command or selection change invalidates the gesture's retained snapshot.
             CancelGesture();
@@ -316,6 +319,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void HandleInteractionFailure(Exception exception)
     {
+        ClearPathUtilityPreview();
         ClearAdvancedBrushPreview();
         ClearAnchorPreview();
         CancelGuidePreview();

@@ -160,7 +160,8 @@ public sealed partial class SvgEditorCanvas
             or SvgEditorInteractionMode.Gradient or SvgEditorInteractionMode.Eyedropper
             or SvgEditorInteractionMode.Scissors or SvgEditorInteractionMode.Eraser or SvgEditorInteractionMode.Knife
             or SvgEditorInteractionMode.Lasso or SvgEditorInteractionMode.MagicWand or SvgEditorInteractionMode.ShapeBuilder
-            or SvgEditorInteractionMode.SymbolSprayer || TryGetDeformationKind(InteractionMode, out _) || TryGetSymbolBrushKind(InteractionMode, out _))
+            or SvgEditorInteractionMode.SymbolSprayer or SvgEditorInteractionMode.BlobBrush or SvgEditorInteractionMode.Measure
+            || TryGetRefinementKind(InteractionMode, out _) || TryGetDeformationKind(InteractionMode, out _) || TryGetSymbolBrushKind(InteractionMode, out _))
         {
             return;
         }

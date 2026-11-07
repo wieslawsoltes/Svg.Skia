@@ -56,13 +56,18 @@ public sealed partial class SvgEditorWorkspace
         new("tool-polygon-path", "Polygon Path", SvgEditorToolKind.Polygon),
         new("tool-polyline", "Polyline", SvgEditorToolKind.Polyline),
         new("tool-brush", "Paintbrush", SvgEditorToolKind.Freehand, SvgEditorInteractionMode.Paintbrush, "Paintbrush"),
+        new("tool-blob-brush", "Blob Brush", SvgEditorToolKind.Freehand, SvgEditorInteractionMode.BlobBrush, "BlobBrush"),
         new("tool-pencil", "Pencil", SvgEditorToolKind.Freehand),
+        new("tool-smooth", "Smooth", Mode: SvgEditorInteractionMode.Smooth, Symbol: "Smooth"),
+        new("tool-path-eraser", "Path Eraser", Mode: SvgEditorInteractionMode.PathEraser, Symbol: "PathEraser"),
+        new("tool-join", "Join", Mode: SvgEditorInteractionMode.Join, Symbol: "Join"),
         new("tool-eraser", "Eraser", Mode: SvgEditorInteractionMode.Eraser, Symbol: "Eraser"),
         new("tool-scissors", "Scissors", Mode: SvgEditorInteractionMode.Scissors, Symbol: "Scissors"),
         new("tool-knife", "Knife", Mode: SvgEditorInteractionMode.Knife, Symbol: "Knife"),
         new("tool-rotate", "Rotate", Mode: SvgEditorInteractionMode.Rotate, Symbol: "Rotate"),
         new("tool-reflect", "Reflect", Mode: SvgEditorInteractionMode.Reflect, Symbol: "Reflect"),
         new("tool-scale", "Scale", Mode: SvgEditorInteractionMode.Scale, Symbol: "Scale"),
+        new("tool-shear", "Shear", Mode: SvgEditorInteractionMode.Shear, Symbol: "Shear"),
         new("tool-free-transform", "Free Transform", SvgEditorToolKind.Select, SvgEditorInteractionMode.FreeTransform, "FreeTransform"),
         new("tool-width", "Width Profile…", Symbol: "Width", Action: "strokeprofile"),
         new("tool-warp", "Warp", Mode: SvgEditorInteractionMode.Warp, Symbol: "Warp"),
@@ -76,6 +81,7 @@ public sealed partial class SvgEditorWorkspace
         new("tool-blend", "Blend…", Symbol: "Blend", Action: "blend"),
         new("tool-gradient", "Gradient", Mode: SvgEditorInteractionMode.Gradient, Symbol: "Gradient"),
         new("tool-eyedropper", "Eyedropper", Mode: SvgEditorInteractionMode.Eyedropper, Symbol: "Eyedropper"),
+        new("tool-measure", "Measure", Mode: SvgEditorInteractionMode.Measure, Symbol: "Measure"),
         new("tool-mesh", "Gradient Mesh…", Symbol: "Mesh", Action: "mesh"),
         new("tool-symbol", "Symbol Placement…", SvgEditorToolKind.Symbol, Symbol: "Symbol", Action: "placesymbol"),
         new("tool-symbol-sprayer", "Symbol Sprayer", Mode: SvgEditorInteractionMode.SymbolSprayer, Symbol: "SymbolSprayer"),
@@ -117,6 +123,7 @@ public sealed partial class SvgEditorWorkspace
 
     private void BuildEditorToolbox()
     {
+        InitializePathUtilityStatus();
         ToolRail.Spacing = 1;
         void Group(params string[] ids)
         {
@@ -212,16 +219,16 @@ public sealed partial class SvgEditorWorkspace
         Group("tool-type", "tool-area-type", "tool-type-on-path");
         Group("tool-line", "tool-spiral", "tool-rectangular-grid", "tool-polar-grid");
         Group("tool-rectangle", "tool-rounded-rectangle", "tool-ellipse", "tool-circle", "tool-polygon", "tool-star", "tool-polygon-path", "tool-polyline");
-        Group("tool-brush");
-        Group("tool-pencil");
+        Group("tool-brush", "tool-blob-brush");
+        Group("tool-pencil", "tool-smooth", "tool-path-eraser", "tool-join");
         Group("tool-eraser", "tool-scissors", "tool-knife");
         Group("tool-rotate", "tool-reflect");
-        Group("tool-scale", "tool-free-transform");
+        Group("tool-scale", "tool-shear", "tool-free-transform");
         Group("tool-width", "tool-warp", "tool-twirl", "tool-pucker", "tool-bloat", "tool-scallop", "tool-crystallize", "tool-wrinkle");
         Group("tool-shape-builder");
         Group("tool-blend");
         Group("tool-gradient");
-        Group("tool-eyedropper");
+        Group("tool-eyedropper", "tool-measure");
         Group("tool-mesh");
         Group("tool-symbol-sprayer", "tool-symbol-shifter", "tool-symbol-scruncher", "tool-symbol-sizer", "tool-symbol-spinner", "tool-symbol-stainer", "tool-symbol-screener", "tool-symbol-styler", "tool-symbol", "tool-place");
         Group("tool-artboard");
@@ -356,6 +363,7 @@ public sealed partial class SvgEditorWorkspace
         {
             SvgEditorInteractionMode.Rotate => "Drag around the selection center · Shift constrains to 45°",
             SvgEditorInteractionMode.Scale => "Drag to scale around the selection center · Shift constrains proportions",
+            SvgEditorInteractionMode.Shear => "Drag horizontally or vertically to shear around the center · Shift constrains to 15°",
             SvgEditorInteractionMode.Reflect => "Drag the mirror axis around the selection center · Shift constrains to 45°",
             SvgEditorInteractionMode.FreeTransform => "Drag artwork or its bounding-box handles · Shift constrains the transform",
             SvgEditorInteractionMode.Gradient => "Drag a gradient line on selected artwork · Shift constrains its angle",
@@ -363,6 +371,11 @@ public sealed partial class SvgEditorWorkspace
             SvgEditorInteractionMode.Artboard => "Drag handles to resize · Drag empty space to add · Alt-drag an artboard to duplicate",
             SvgEditorInteractionMode.Zoom => "Click to zoom in · Alt-click to zoom out · Drag to fit a region",
             SvgEditorInteractionMode.Paintbrush => "Drag to paint · Double-click for brush options",
+            SvgEditorInteractionMode.BlobBrush => "Drag to paint filled shapes · Touching fills of the same color merge · Double-click for options",
+            SvgEditorInteractionMode.Smooth => "Brush near anchors to smooth selected paths · Double-click for diameter and strength",
+            SvgEditorInteractionMode.PathEraser => "Brush across paths to remove segments while retaining editable strokes",
+            SvgEditorInteractionMode.Join => "Brush across two open endpoints to join them · Double-click for brush diameter",
+            SvgEditorInteractionMode.Measure => "Drag to measure distance and angle in SVG user units · Shift constrains direction",
             SvgEditorInteractionMode.AreaType => "Drag a paragraph frame · Edit its text and linked flow in the text editor",
             SvgEditorInteractionMode.Scissors => "Click a path edge to cut · Select artwork first to restrict the target · Escape cancels",
             SvgEditorInteractionMode.Eraser => "Drag to erase vector artwork · Select artwork to restrict targets · Double-click to set diameter",
@@ -456,6 +469,8 @@ public sealed partial class SvgEditorWorkspace
 
     private async Task ShowEditorToolOptionsAsync()
     {
+        if (await ShowPathUtilityOptionsAsync())
+            return;
         if (await ShowAdvancedEditorToolOptionsAsync())
             return;
         if (Canvas.PanMode)
@@ -522,7 +537,7 @@ public sealed partial class SvgEditorWorkspace
                 };
             return;
         }
-        if (Canvas.InteractionMode is SvgEditorInteractionMode.Rotate or SvgEditorInteractionMode.Scale or SvgEditorInteractionMode.Reflect or SvgEditorInteractionMode.FreeTransform)
+        if (Canvas.InteractionMode is SvgEditorInteractionMode.Rotate or SvgEditorInteractionMode.Scale or SvgEditorInteractionMode.Reflect or SvgEditorInteractionMode.FreeTransform or SvgEditorInteractionMode.Shear)
         { await TransformDialogAsync(); return; }
         if (SvgEditorToolGeometry.IsShape(Canvas.InteractionMode))
         {

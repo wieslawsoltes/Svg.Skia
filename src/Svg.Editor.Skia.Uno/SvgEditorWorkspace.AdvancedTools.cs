@@ -17,10 +17,17 @@ public sealed partial class SvgEditorWorkspace
             var strength = NumberInput("Strength (%)", Math.Abs(current.Strength) * 100, 1, 100);
             var detail = NumberInput("Detail", current.Detail, 2, 64);
             var precision = NumberInput("Curve precision", current.Flatness, 0.05, 8);
+            var rate = NumberInput("Application rate (per second)", current.DwellRate, 0, 20);
             var panel = new StackPanel { Spacing = 10, Width = DialogContentWidth(380) };
             foreach (var field in new UIElement[] { diameter, strength, detail, precision })
                 panel.Children.Add(field);
-            panel.Children.Add(StudioHint("Brush selected artwork. Alt reverses the effect. Lower precision values retain finer curve detail."));
+            if (Canvas.InteractionMode != SvgEditorInteractionMode.Warp)
+                panel.Children.Add(rate);
+            panel.Children.Add(StudioHint("Brush selected artwork. Alt reverses the effect. "
+                + (Canvas.InteractionMode == SvgEditorInteractionMode.Warp
+                    ? "Drag to move the artwork under the brush. "
+                    : "Hold to continue applying the effect; a zero application rate applies only at initial contact. ")
+                + "Lower precision values retain finer curve detail."));
             if (await ShowDialogAsync(MakeDialog(ToolContextLabel() + " Options", panel)) == ContentDialogResult.Primary)
                 Canvas.DeformationOptions = new SvgDeformationOptions
                 {
@@ -28,7 +35,8 @@ public sealed partial class SvgEditorWorkspace
                     Strength = (float)strength.Value / 100,
                     Detail = (int)detail.Value,
                     Flatness = (float)precision.Value,
-                    MaximumPoints = current.MaximumPoints
+                    MaximumPoints = current.MaximumPoints,
+                    DwellRate = (float)rate.Value
                 };
             return true;
         }

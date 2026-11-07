@@ -373,6 +373,7 @@ public static class SvgEditorShortcutCatalog
         Tool("symbol-sprayer", SvgEditorShortcutKey.S, shift);
         Tool("pencil", SvgEditorShortcutKey.N);
         Tool("brush", SvgEditorShortcutKey.B);
+        Tool("blob-brush", SvgEditorShortcutKey.B, shift);
         Tool("rectangle", SvgEditorShortcutKey.M);
         Tool("ellipse", SvgEditorShortcutKey.L);
         Tool("line", SvgEditorShortcutKey.Backslash);
@@ -392,6 +393,7 @@ public static class SvgEditorShortcutCatalog
         Tool("width", SvgEditorShortcutKey.W, shift);
         Tool("blend", SvgEditorShortcutKey.W);
         Tool("mesh", SvgEditorShortcutKey.U);
+        Tool("join", SvgEditorShortcutKey.J, shift);
         Add("activepaint", SvgEditorShortcutKey.X, scope: canvas);
         Add("swappaints", SvgEditorShortcutKey.X, shift, canvas);
         Add("defaultpaints", SvgEditorShortcutKey.D, scope: canvas);

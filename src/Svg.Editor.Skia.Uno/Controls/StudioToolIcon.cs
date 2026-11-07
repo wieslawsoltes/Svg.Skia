@@ -90,6 +90,12 @@ public sealed class StudioToolIcon : UserControl
                     Line(11, 4, 15, 4);
                     Line(15, 4, 15, 8);
                     break;
+                case "Shear":
+                    Polygon(new(7, 4), new(18, 4), new(13, 16), new(2, 16));
+                    Line(3, 1, 13, 1);
+                    Line(10, 0, 13, 1);
+                    Line(10, 3, 13, 1);
+                    break;
                 case "FreeTransform":
                     Polygon(new(5, 3), new(17, 5), new(15, 17), new(3, 14));
                     Box(3, 1, 3, 3);
@@ -109,6 +115,11 @@ public sealed class StudioToolIcon : UserControl
                     Line(10, 3, 17, 10);
                     Polygon(new(14, 2), new(18, 6), new(16, 8), new(12, 4));
                     break;
+                case "Measure":
+                    Polygon(new(2, 14), new(14, 2), new(18, 6), new(6, 18));
+                    for (var index = 0; index < 4; index++)
+                        Line(5 + index * 3, 11 - index * 3, 7 + index * 3, 13 - index * 3);
+                    break;
                 case "Artboard":
                     Line(5, 1, 5, 18);
                     Line(1, 5, 18, 5);
@@ -119,6 +130,30 @@ public sealed class StudioToolIcon : UserControl
                     Polygon(new(6, 11), new(15, 2), new(18, 5), new(10, 13));
                     Curve(new(6, 11), new(1, 10), new(5, 16), new(2, 18));
                     Curve(new(2, 18), new(9, 20), new(12, 15), new(10, 13));
+                    break;
+                case "BlobBrush":
+                    Circle(6, 14, 4);
+                    Polygon(new(7, 10), new(15, 2), new(18, 5), new(10, 13));
+                    Curve(new(2, 14), new(0, 18), new(9, 20), new(10, 14));
+                    break;
+                case "Smooth":
+                    Curve(new(2, 14), new(6, -2), new(13, 23), new(18, 5));
+                    Circle(2, 14, 1.5);
+                    Circle(18, 5, 1.5);
+                    Line(8, 4, 12, 4);
+                    break;
+                case "PathEraser":
+                    Curve(new(1, 16), new(2, 7), new(6, 8), new(7, 13));
+                    Curve(new(13, 13), new(15, 18), new(17, 16), new(19, 13));
+                    Polygon(new(7, 7), new(12, 2), new(17, 7), new(12, 12));
+                    Line(10, 4, 15, 9);
+                    break;
+                case "Join":
+                    Curve(new(1, 5), new(4, 2), new(6, 5), new(7, 10));
+                    Curve(new(13, 10), new(14, 15), new(17, 18), new(19, 14));
+                    Circle(7, 10, 1.5);
+                    Circle(13, 10, 1.5);
+                    Line(8.5, 10, 11.5, 10);
                     break;
                 case "Scissors":
                     Circle(4, 15, 3);

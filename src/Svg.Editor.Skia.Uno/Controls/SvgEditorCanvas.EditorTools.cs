@@ -24,6 +24,8 @@ public sealed partial class SvgEditorCanvas
     public bool StrokePaintTarget { get; set; }
     public SvgBrushDefinition? ActiveBrush { get; set; }
     public int ShapeDivisions { get; set; } = 6;
+    public float RoundedRectangleRadiusRatio { get; set; } = 0.15f;
+    public float StarInnerRadiusRatio { get; set; } = 0.42f;
     public SvgEditorInteractionMode InteractionMode
     {
         get => _interactionMode;
@@ -57,7 +59,7 @@ public sealed partial class SvgEditorCanvas
             _startWorld = _currentWorld = Viewport.ViewToWorld(view);
             return true;
         }
-        if (TryBeginAdvancedBrush(args, view) || TryBeginAnchorGesture(view) || TryBeginCuttingGesture(args, view))
+        if (TryBeginPathUtilityGesture(args, view) || TryBeginAdvancedBrush(args, view) || TryBeginAnchorGesture(view) || TryBeginCuttingGesture(args, view))
             return true;
         if (InteractionMode == SvgEditorInteractionMode.Eyedropper)
         {
@@ -65,7 +67,7 @@ public sealed partial class SvgEditorCanvas
             Controller?.SampleAppearanceAt(Viewport.ViewToWorld(view), _shift, StrokePaintTarget);
             return true;
         }
-        if (InteractionMode is SvgEditorInteractionMode.Rotate or SvgEditorInteractionMode.Scale or SvgEditorInteractionMode.Reflect)
+        if (InteractionMode is SvgEditorInteractionMode.Rotate or SvgEditorInteractionMode.Scale or SvgEditorInteractionMode.Reflect or SvgEditorInteractionMode.Shear)
         {
             if (Controller?.SelectedElements.Count == 0)
                 Controller.SelectAt(Viewport.ViewToWorld(view));
@@ -120,7 +122,7 @@ public sealed partial class SvgEditorCanvas
 
     private bool UpdateEditorGesture()
     {
-        if (UpdateAdvancedBrush() || UpdateAnchorGesture() || UpdateCuttingGesture())
+        if (UpdatePathUtilityGesture() || UpdateAdvancedBrush() || UpdateAnchorGesture() || UpdateCuttingGesture())
             return true;
         if (_gesture != Gesture.Transform)
             return false;
@@ -131,7 +133,7 @@ public sealed partial class SvgEditorCanvas
 
     private bool CompleteEditorGesture(Gesture gesture)
     {
-        if (CompleteAdvancedBrush(gesture) || CompleteAnchorGesture(gesture) || CompleteCuttingGesture(gesture))
+        if (CompletePathUtilityGesture(gesture) || CompleteAdvancedBrush(gesture) || CompleteAnchorGesture(gesture) || CompleteCuttingGesture(gesture))
             return true;
         switch (gesture)
         {
@@ -177,7 +179,7 @@ public sealed partial class SvgEditorCanvas
                 return true;
             case Gesture.EditorShape:
                 if (_moved)
-                    Controller?.AddEditorShape(InteractionMode, _startWorld, _currentWorld, Math.Clamp(ShapeDivisions, 3, 64));
+                    Controller?.AddEditorShape(InteractionMode, _startWorld, _currentWorld, Math.Clamp(ShapeDivisions, 3, 64), RoundedRectangleRadiusRatio, StarInnerRadiusRatio);
                 return true;
             case Gesture.AreaType:
                 if (_moved && Controller is { } controller)
@@ -226,6 +228,7 @@ public sealed partial class SvgEditorCanvas
 
     private void DrawEditorGesture(SKCanvas canvas, CanvasResources resources)
     {
+        DrawPathUtilityPreview(canvas, resources);
         DrawCuttingGesture(canvas, resources);
         DrawAnchorGesture(canvas, resources);
         DrawAdvancedBrushPreview(canvas, resources);
@@ -268,7 +271,7 @@ public sealed partial class SvgEditorCanvas
         }
         if (_gesture == Gesture.EditorShape)
         {
-            using var shape = SvgEditorToolGeometry.CreateShape(InteractionMode, _startWorld, _currentWorld, Math.Clamp(ShapeDivisions, 3, 64));
+            using var shape = SvgEditorToolGeometry.CreateShape(InteractionMode, _startWorld, _currentWorld, Math.Clamp(ShapeDivisions, 3, 64), RoundedRectangleRadiusRatio, StarInnerRadiusRatio);
             using var restore = new SKAutoCanvasRestore(canvas);
             canvas.Concat(Viewport.Matrix);
             resources.Stroke.StrokeWidth = (float)(1.5 / Zoom);

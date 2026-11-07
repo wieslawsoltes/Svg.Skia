@@ -108,11 +108,14 @@ public sealed partial class SvgEditorCanvas
             if (_freehandPoints.Count > 1)
             {
                 var path = new SvgPath { PathData = new SvgPathSegmentList() };
-                var points = Simplify(_freehandPoints, (float)(0.65 / Zoom));
-                path.PathData.Add(new SvgMoveToSegment(false, PointF(points[0])));
-                for (var i = 1; i < points.Count; i++)
+                var points = Simplify(_freehandPoints, (float)(Math.Clamp(PencilFidelity, 0, 20) / Zoom));
+                if (InteractionMode != SvgEditorInteractionMode.Paintbrush && PencilSmooth)
+                    path.PathData = PathService.MakeSmooth(points.Select(point => new Shim.SKPoint(point.X, point.Y)).ToArray());
+                else
                 {
-                    path.PathData.Add(new SvgLineSegment(false, PointF(points[i])));
+                    path.PathData.Add(new SvgMoveToSegment(false, PointF(points[0])));
+                    for (var i = 1; i < points.Count; i++)
+                        path.PathData.Add(new SvgLineSegment(false, PointF(points[i])));
                 }
 
                 if (InteractionMode == SvgEditorInteractionMode.Paintbrush)
@@ -132,7 +135,8 @@ public sealed partial class SvgEditorCanvas
         }
 
         var created = Controller.CreateElement((ToolService.Tool)(int)Tool, _startWorld, _currentWorld, true);
-        if (created is SvgTextBase) RequestTextEdit(created, false);
+        if (created is SvgTextBase)
+            RequestTextEdit(created, false);
     }
 
     private void CommitPenPath(bool closed)

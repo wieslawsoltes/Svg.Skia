@@ -122,6 +122,108 @@ public class SvgPathDeformationTests
         Assert.Equal(PathService.ToSvgPathData(sparse), PathService.ToSvgPathData(dense));
     }
 
+    [Theory]
+    [InlineData(SvgDeformationKind.Twirl)]
+    [InlineData(SvgDeformationKind.Pucker)]
+    [InlineData(SvgDeformationKind.Bloat)]
+    [InlineData(SvgDeformationKind.Scallop)]
+    [InlineData(SvgDeformationKind.Crystallize)]
+    [InlineData(SvgDeformationKind.Wrinkle)]
+    public void HeldBrushAccumulatesAtAStationaryPointer(SvgDeformationKind kind)
+    {
+        using var source = SourcePath();
+        var settings = new SvgDeformationOptions { Radius = 80, Strength = 0.2f };
+        using var contact = SvgPathDeformationService.Deform(source, kind,
+            new[] { new SvgDeformationSample(default, 0) }, settings, out var contactChanged);
+        using var held = SvgPathDeformationService.Deform(source, kind,
+            new[] { new SvgDeformationSample(default, 0), new SvgDeformationSample(default, 1) }, settings, out var heldChanged);
+        Assert.True(contactChanged && heldChanged);
+        Assert.NotEqual(PathService.ToSvgPathData(contact), PathService.ToSvgPathData(held));
+        Assert.Equal(source.FillType, held.FillType);
+        Assert.All(held.Points, point => Assert.True(float.IsFinite(point.X) && float.IsFinite(point.Y)));
+    }
+
+    [Theory]
+    [InlineData(SvgDeformationKind.Twirl)]
+    [InlineData(SvgDeformationKind.Pucker)]
+    [InlineData(SvgDeformationKind.Bloat)]
+    [InlineData(SvgDeformationKind.Scallop)]
+    [InlineData(SvgDeformationKind.Crystallize)]
+    [InlineData(SvgDeformationKind.Wrinkle)]
+    public void TimedInterpolationDoesNotDependOnPointerOrPreviewFrequency(SvgDeformationKind kind)
+    {
+        using var source = SourcePath();
+        var settings = new SvgDeformationOptions { Radius = 80, Strength = 0.2f };
+        var sparseStroke = new[] { new SvgDeformationSample(default, 0), new SvgDeformationSample(new SKPoint(20, 10), 1) };
+        var denseStroke = Enumerable.Range(0, 101).Select(index =>
+            new SvgDeformationSample(new SKPoint(index * 0.2f, index * 0.1f), index / 100d)).ToArray();
+        using var sparse = SvgPathDeformationService.Deform(source, kind, sparseStroke, settings, out _);
+        using var dense = SvgPathDeformationService.Deform(source, kind, denseStroke, settings, out _);
+        Assert.Equal(sparse.PointCount, dense.PointCount);
+        for (var index = 0; index < sparse.PointCount; index++)
+            Assert.InRange(SKPoint.Distance(sparse.Points[index], dense.Points[index]), 0, 0.0001f);
+    }
+
+    [Fact]
+    public void WarpIgnoresElapsedHoldAndZeroDwellRatePreservesOnlyInitialContact()
+    {
+        using var source = SourcePath();
+        var settings = new SvgDeformationOptions { Radius = 40, DwellRate = 0 };
+        using var spatial = SvgPathDeformationService.Deform(source, SvgDeformationKind.Warp,
+            new[] { new SKPoint(0, 0), new SKPoint(20, 0) }, settings, out _);
+        using var timed = SvgPathDeformationService.Deform(source, SvgDeformationKind.Warp,
+            new[] { new SvgDeformationSample(default, 0), new SvgDeformationSample(new SKPoint(20, 0), 0.2),
+                new SvgDeformationSample(new SKPoint(20, 0), 3) }, settings, out _);
+        Assert.Equal(PathService.ToSvgPathData(spatial), PathService.ToSvgPathData(timed));
+        using var stationary = SvgPathDeformationService.Deform(source, SvgDeformationKind.Warp,
+            new[] { new SvgDeformationSample(default, 0), new SvgDeformationSample(default, 3) }, settings, out var moved);
+        Assert.False(moved);
+        Assert.Equal(PathService.ToSvgPathData(source), PathService.ToSvgPathData(stationary));
+        using var contact = SvgPathDeformationService.Deform(source, SvgDeformationKind.Pucker,
+            new[] { new SKPoint(0, 0) }, settings, out _);
+        using var held = SvgPathDeformationService.Deform(source, SvgDeformationKind.Pucker,
+            new[] { new SvgDeformationSample(default, 0), new SvgDeformationSample(default, 3) }, settings, out _);
+        Assert.Equal(PathService.ToSvgPathData(contact), PathService.ToSvgPathData(held));
+    }
+
+    [Fact]
+    public void InvalidTimeSequencesAndDwellRatesCannotChangeTheDocument()
+    {
+        using var editor = EditorWithPath();
+        var before = editor.GetSvg();
+        var center = new SKPoint(30, 30);
+        foreach (var times in new[] { new[] { 1d }, new[] { 0d, double.NaN }, new[] { 0d, double.PositiveInfinity },
+            new[] { 0d, -1d }, new[] { 0d, 0.3, 0.2 }, new[] { 0d, SvgPathDeformationService.MaximumDurationSeconds + 1 } })
+        {
+            var samples = times.Select(time => new SvgDeformationSample(center, time)).ToArray();
+            Assert.ThrowsAny<ArgumentException>(() => editor.PrepareDeformation(SvgDeformationKind.Twirl, samples));
+        }
+        var valid = new[] { new SvgDeformationSample(center, 0), new SvgDeformationSample(center, 1) };
+        Assert.Throws<ArgumentOutOfRangeException>(() => editor.PrepareDeformation(SvgDeformationKind.Twirl, valid,
+            new SvgDeformationOptions { DwellRate = float.NaN }));
+        using var cancel = new CancellationTokenSource();
+        cancel.Cancel();
+        Assert.Throws<OperationCanceledException>(() => editor.PrepareDeformation(SvgDeformationKind.Twirl, valid, cancellationToken: cancel.Token));
+        Assert.Equal(before, editor.GetSvg());
+        Assert.False(editor.CanUndo);
+    }
+
+    [Fact]
+    public void ATimeIntegratedPreviewCommitsOnceAndUndoesExactly()
+    {
+        using var editor = EditorWithPath();
+        var before = editor.GetSvg();
+        var samples = new[] { new SvgDeformationSample(new SKPoint(30, 30), 0), new SvgDeformationSample(new SKPoint(30, 30), 0.37) };
+        using var preview = editor.PrepareDeformation(SvgDeformationKind.Twirl, samples);
+        Assert.True(preview.HasChanges);
+        Assert.Equal(before, editor.GetSvg());
+        Assert.False(editor.CanUndo);
+        Assert.True(editor.ApplyDeformation(preview));
+        Assert.Equal(1, editor.Session.UndoCount);
+        editor.Undo();
+        Assert.Equal(before, editor.GetSvg());
+    }
+
     [Fact]
     public void PreparationAndDiscardDoNotWriteHistoryAndCommitPreservesViewBoxTransformAndIdentity()
     {

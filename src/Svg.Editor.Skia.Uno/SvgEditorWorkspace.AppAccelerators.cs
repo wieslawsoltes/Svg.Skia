@@ -177,6 +177,7 @@ public sealed partial class SvgEditorWorkspace
         if (args.WindowActivationState != Windows.UI.Core.CoreWindowActivationState.Deactivated)
             return;
         CancelRulerGuide();
+        Canvas.CancelGesture();
         RestoreEditorNavigation();
         _editorWasActive = false;
         _heldEditorShortcutKeys.Clear();

@@ -187,6 +187,7 @@ public sealed partial class SvgEditorCanvas
         var point = e.GetCurrentPoint(this);
         var view = new SKPoint((float)point.Position.X, (float)point.Position.Y);
         PointerPosition = Viewport.ViewToWorld(view);
+        _brushPointerInside = view.X >= 0 && view.Y >= 0 && view.X <= ActualWidth && view.Y <= ActualHeight;
         PointerPositionChanged?.Invoke(this, EventArgs.Empty);
         if (_touchNavigation.MoveContact(e.Pointer.PointerId, view, Viewport))
         {
@@ -201,6 +202,8 @@ public sealed partial class SvgEditorCanvas
                 _currentWorld = Snap(PointerPosition);
                 Invalidate();
             }
+            else if (TryGetHoverBrushRadius(out _))
+                Invalidate();
 
             return;
         }

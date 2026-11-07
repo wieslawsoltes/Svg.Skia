@@ -253,8 +253,11 @@ public sealed partial class SvgEditorController
     }
 
     public SvgPath AddEditorShape(SvgEditorInteractionMode mode, SKPoint start, SKPoint end, int divisions = 6)
+        => AddEditorShape(mode, start, end, divisions, 0.15f, 0.42f);
+
+    public SvgPath AddEditorShape(SvgEditorInteractionMode mode, SKPoint start, SKPoint end, int divisions, float cornerRadiusRatio, float starInnerRadiusRatio)
     {
-        using var path = SvgEditorToolGeometry.CreateShape(mode, start, end, divisions);
+        using var path = SvgEditorToolGeometry.CreateShape(mode, start, end, divisions, cornerRadiusRatio, starInnerRadiusRatio);
         var element = new SvgPath { PathData = SvgPathBuilder.Parse(path.ToSvgPathData()) };
         if (mode is SvgEditorInteractionMode.RectangularGrid or SvgEditorInteractionMode.PolarGrid or SvgEditorInteractionMode.Spiral)
             element.Fill = SvgPaintServer.None;

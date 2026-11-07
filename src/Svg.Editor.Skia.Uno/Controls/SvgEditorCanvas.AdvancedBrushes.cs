@@ -13,6 +13,9 @@ public sealed partial class SvgEditorCanvas
     private SvgShapeBuilderDraft? _shapeBuilderDraft;
     private readonly List<int> _shapeBuilderRegions = new();
     private SvgDeformationPreview? _deformationPreview;
+    private readonly List<SvgDeformationSample> _deformationSamples = new();
+    private readonly Stopwatch _deformationClock = new();
+    private double _deformationObservedElapsed;
     private SvgSymbolBrushPreview? _symbolBrushPreview;
     private SKSvg? _sprayRenderer;
     private IReadOnlyList<SvgSymbolPlacement> _sprayPlacements = Array.Empty<SvgSymbolPlacement>();
@@ -23,6 +26,7 @@ public sealed partial class SvgEditorCanvas
     private long _advancedPreviewAt;
     private SKPoint _advancedPreviousPoint;
     private DispatcherTimer? _symbolDwellTimer;
+    private DispatcherTimer? _deformationDwellTimer;
     public SvgDeformationOptions DeformationOptions { get; set; } = new();
     public SvgSymbolBrushOptions SymbolBrushOptions { get; set; } = new();
 
@@ -98,8 +102,16 @@ public sealed partial class SvgEditorCanvas
                 Strength = options.Strength * (_advancedReverse ? -1 : 1),
                 Detail = options.Detail,
                 Flatness = options.Flatness,
-                MaximumPoints = options.MaximumPoints
+                MaximumPoints = options.MaximumPoints,
+                DwellRate = options.DwellRate
             };
+            if (InteractionMode != SvgEditorInteractionMode.Warp)
+            {
+                _deformationSamples.Add(new SvgDeformationSample(_startWorld, 0));
+                _deformationObservedElapsed = 0;
+                _deformationClock.Restart();
+                StartDeformationDwell();
+            }
         }
         else
         {
@@ -142,16 +154,65 @@ public sealed partial class SvgEditorCanvas
                         _shapeBuilderRegions.Add(region);
             return true;
         }
+        if (_gesture == Gesture.Deformation && InteractionMode != SvgEditorInteractionMode.Warp)
+        {
+            _deformationObservedElapsed = _deformationClock.Elapsed.TotalSeconds;
+            AppendDeformationSample(_deformationObservedElapsed, false);
+            RefreshAdvancedBrushPreview(false);
+            return true;
+        }
         var minimum = _gesture == Gesture.SymbolSpray ? Math.Max(2 / Zoom, (_gestureSymbolOptions?.Radius ?? 40) * 0.3)
             : Math.Max(1.5 / Zoom, (_gestureDeformationOptions?.Radius ?? _gestureSymbolOptions?.Radius ?? 40) * 0.05);
         if (_freehandPoints.Count == 0 || SKPoint.Distance(_freehandPoints[^1], _currentWorld) >= minimum)
         {
             var capacity = _gesture == Gesture.SymbolSpray ? SvgSymbolSprayService.MaximumInstances / Math.Max(1, _gestureSymbolOptions?.Density ?? 3) : 4096;
+            if (_gesture == Gesture.Deformation && _freehandPoints.Count >= capacity)
+                throw new InvalidOperationException("Finish this deformation stroke before adding more points.");
             if (_freehandPoints.Count < capacity)
                 _freehandPoints.Add(_currentWorld);
         }
         RefreshAdvancedBrushPreview(false);
         return true;
+    }
+
+    private void AppendDeformationSample(double elapsed, bool force)
+    {
+        if (elapsed > SvgPathDeformationService.MaximumDurationSeconds)
+            throw new InvalidOperationException("Finish the deformation gesture within 60 seconds, then continue with another stroke.");
+        var last = _deformationSamples[^1];
+        var distance = SKPoint.Distance(last.Position, _currentWorld);
+        if (elapsed <= last.ElapsedSeconds && distance < 0.000001f)
+            return;
+        var minimum = Math.Max(1.5 / Zoom, (_gestureDeformationOptions?.Radius ?? 40) * 0.05);
+        if (!force && elapsed - last.ElapsedSeconds < 0.05 && distance < minimum)
+            return;
+        if (_deformationSamples.Count >= SvgPathDeformationService.MaximumStrokePoints)
+            throw new InvalidOperationException("Finish this deformation stroke before adding more points.");
+        _deformationSamples.Add(new SvgDeformationSample(_currentWorld, elapsed));
+    }
+
+    private void StartDeformationDwell()
+    {
+        if (_gestureDeformationOptions?.DwellRate == 0)
+            return;
+        if (_deformationDwellTimer is null)
+        {
+            _deformationDwellTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+            _deformationDwellTimer.Tick += (_, _) =>
+            {
+                if (_gesture != Gesture.Deformation || !_deformationClock.IsRunning)
+                { _deformationDwellTimer.Stop(); return; }
+                try
+                {
+                    _deformationObservedElapsed = _deformationClock.Elapsed.TotalSeconds;
+                    AppendDeformationSample(_deformationObservedElapsed, true);
+                    RefreshAdvancedBrushPreview(true);
+                    Invalidate();
+                }
+                catch (Exception exception) { HandleInteractionFailure(exception); }
+            };
+        }
+        _deformationDwellTimer.Start();
     }
 
     private void StartSymbolDwell()
@@ -188,7 +249,9 @@ public sealed partial class SvgEditorCanvas
         _advancedPreviewAt = now;
         if (_gesture == Gesture.Deformation && TryGetDeformationKind(InteractionMode, out var kind))
         {
-            var prepared = controller.PrepareDeformation(kind, _freehandPoints, _gestureDeformationOptions);
+            var prepared = kind == SvgDeformationKind.Warp
+                ? controller.PrepareDeformation(kind, _freehandPoints, _gestureDeformationOptions)
+                : controller.PrepareDeformation(kind, _deformationSamples, _gestureDeformationOptions);
             _deformationPreview?.Dispose();
             _deformationPreview = prepared;
         }
@@ -207,6 +270,8 @@ public sealed partial class SvgEditorCanvas
         if (gesture is not (Gesture.ShapeBuilder or Gesture.Deformation or Gesture.SymbolSpray or Gesture.SymbolBrush))
             return false;
         _symbolDwellTimer?.Stop();
+        _deformationDwellTimer?.Stop();
+        _deformationClock.Stop();
         try
         {
             if (Controller is not { } controller)
@@ -215,7 +280,22 @@ public sealed partial class SvgEditorCanvas
                 controller.ApplyShapeBuilder(draft, _shapeBuilderRegions, _advancedReverse);
             else if (gesture == Gesture.Deformation && TryGetDeformationKind(InteractionMode, out var kind))
             {
-                using var prepared = controller.PrepareDeformation(kind, _freehandPoints, _gestureDeformationOptions);
+                // UpdateGesture captured the actual release position/time before
+                // preview computation. Commit that sample, excluding rendering delay.
+                if (kind == SvgDeformationKind.Warp)
+                {
+                    if (_freehandPoints.Count > 0 && SKPoint.Distance(_freehandPoints[^1], _currentWorld) > 0.000001f)
+                    {
+                        if (_freehandPoints.Count >= SvgPathDeformationService.MaximumStrokePoints)
+                            throw new InvalidOperationException("Finish this deformation stroke before adding more points.");
+                        _freehandPoints.Add(_currentWorld);
+                    }
+                }
+                else
+                    AppendDeformationSample(_deformationObservedElapsed, true);
+                using var prepared = kind == SvgDeformationKind.Warp
+                    ? controller.PrepareDeformation(kind, _freehandPoints, _gestureDeformationOptions)
+                    : controller.PrepareDeformation(kind, _deformationSamples, _gestureDeformationOptions);
                 controller.ApplyDeformation(prepared);
             }
             else if (gesture == Gesture.SymbolSpray && _gestureSymbolId is { } symbol)
@@ -275,6 +355,10 @@ public sealed partial class SvgEditorCanvas
     private void ClearAdvancedBrushPreview()
     {
         _symbolDwellTimer?.Stop();
+        _deformationDwellTimer?.Stop();
+        _deformationClock.Reset();
+        _deformationSamples.Clear();
+        _deformationObservedElapsed = 0;
         _shapeBuilderDraft?.Dispose();
         _shapeBuilderDraft = null;
         _shapeBuilderRegions.Clear();

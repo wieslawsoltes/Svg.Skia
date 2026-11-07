@@ -46,6 +46,8 @@ public class SvgEditorShortcutCatalogTests
         Assert.Equal("swappaints", Resolve(SvgEditorShortcutKey.X, Shift)?.CommandId);
         Assert.Equal("tool-eraser", Resolve(SvgEditorShortcutKey.E, Shift)?.CommandId);
         Assert.Equal("tool-warp", Resolve(SvgEditorShortcutKey.R, Shift)?.CommandId);
+        Assert.Equal("tool-blob-brush", Resolve(SvgEditorShortcutKey.B, Shift)?.CommandId);
+        Assert.Equal("tool-join", Resolve(SvgEditorShortcutKey.J, Shift)?.CommandId);
         Assert.Equal("defaultpaints", Resolve(SvgEditorShortcutKey.D)?.CommandId);
         Assert.Equal("transformagain", Resolve(SvgEditorShortcutKey.D, Primary)?.CommandId);
         Assert.Equal("transparency", Resolve(SvgEditorShortcutKey.D, Primary | Shift)?.CommandId);

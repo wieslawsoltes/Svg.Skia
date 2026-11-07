@@ -12,6 +12,9 @@ public static class SvgEditorToolGeometry
 
     /// <summary>Creates one bounded vector path; no document state or rendering resources are retained.</summary>
     public static SKPath CreateShape(SvgEditorInteractionMode mode, SKPoint start, SKPoint end, int divisions = 6)
+        => CreateShape(mode, start, end, divisions, 0.15f, 0.42f);
+
+    public static SKPath CreateShape(SvgEditorInteractionMode mode, SKPoint start, SKPoint end, int divisions, float cornerRadiusRatio, float starInnerRadiusRatio)
     {
         Validate(start);
         Validate(end);
@@ -19,6 +22,10 @@ public static class SvgEditorToolGeometry
             throw new ArgumentOutOfRangeException(nameof(mode));
         if (divisions < 3 || divisions > 64)
             throw new ArgumentOutOfRangeException(nameof(divisions));
+        if (!Finite(cornerRadiusRatio) || cornerRadiusRatio < 0 || cornerRadiusRatio > 0.5f)
+            throw new ArgumentOutOfRangeException(nameof(cornerRadiusRatio));
+        if (!Finite(starInnerRadiusRatio) || starInnerRadiusRatio <= 0 || starInnerRadiusRatio >= 1)
+            throw new ArgumentOutOfRangeException(nameof(starInnerRadiusRatio));
         var rect = new SKRect(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y), Math.Max(start.X, end.X), Math.Max(start.Y, end.Y));
         if (!Finite(rect.Width) || !Finite(rect.Height))
             throw new ArgumentOutOfRangeException(nameof(end));
@@ -26,7 +33,7 @@ public static class SvgEditorToolGeometry
         switch (mode)
         {
             case SvgEditorInteractionMode.RoundedRectangle:
-                var radius = Math.Min(rect.Width, rect.Height) * 0.15f;
+                var radius = Math.Min(rect.Width, rect.Height) * cornerRadiusRatio;
                 path.AddRoundRect(rect, radius, radius);
                 break;
             case SvgEditorInteractionMode.RegularPolygon:
@@ -36,7 +43,7 @@ public static class SvgEditorToolGeometry
                 for (var index = 0; index < count; index++)
                 {
                     var angle = -Math.PI / 2 + index * Math.PI * 2 / count;
-                    var factor = star && index % 2 == 1 ? 0.42 : 1;
+                    var factor = star && index % 2 == 1 ? starInnerRadiusRatio : 1;
                     var point = new SKPoint(rect.MidX + (float)(Math.Cos(angle) * rect.Width * factor / 2),
                         rect.MidY + (float)(Math.Sin(angle) * rect.Height * factor / 2));
                     if (index == 0)
@@ -128,6 +135,20 @@ public static class SvgEditorToolGeometry
             sx = ClampScale(sx);
             sy = ClampScale(sy);
             return SKMatrix.CreateScale(sx, sy, center.X, center.Y);
+        }
+        if (mode == SvgEditorInteractionMode.Shear)
+        {
+            var horizontal = Math.Abs(current.X - start.X) >= Math.Abs(current.Y - start.Y);
+            var amount = horizontal ? (current.X - start.X) / Math.Max(1, bounds.Height / 2)
+                : (current.Y - start.Y) / Math.Max(1, bounds.Width / 2);
+            amount = Math.Max(-1000, Math.Min(1000, amount));
+            if (constrain)
+            {
+                var degrees = Math.Round(Math.Atan(amount) * 180 / Math.PI / 15) * 15;
+                amount = (float)Math.Tan(Math.Max(-85, Math.Min(85, degrees)) * Math.PI / 180);
+            }
+            return horizontal ? new SKMatrix(1, amount, -amount * center.Y, 0, 1, 0, 0, 0, 1)
+                : new SKMatrix(1, 0, 0, amount, 1, -amount * center.X, 0, 0, 1);
         }
         if (mode == SvgEditorInteractionMode.Reflect)
         {

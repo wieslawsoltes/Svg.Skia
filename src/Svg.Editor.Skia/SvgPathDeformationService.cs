@@ -7,6 +7,15 @@ namespace Svg.Editor.Skia;
 
 public enum SvgDeformationKind { Warp, Twirl, Pucker, Bloat, Scallop, Crystallize, Wrinkle }
 
+/// <summary>A picture-space brush position and elapsed seconds measured from pointer-down.</summary>
+public readonly struct SvgDeformationSample
+{
+    public SvgDeformationSample(SKPoint position, double elapsedSeconds)
+    { Position = position; ElapsedSeconds = elapsedSeconds; }
+    public SKPoint Position { get; }
+    public double ElapsedSeconds { get; }
+}
+
 /// <summary>Brush dimensions are in picture coordinates, independent of object transforms and zoom.</summary>
 public sealed class SvgDeformationOptions
 {
@@ -15,6 +24,8 @@ public sealed class SvgDeformationOptions
     public int Detail { get; set; } = 8;
     public float Flatness { get; set; } = 0.5f;
     public int MaximumPoints { get; set; } = 32768;
+    /// <summary>Full-strength brush stamp equivalents per second after initial contact.</summary>
+    public float DwellRate { get; set; } = 4;
 
     internal void Validate()
     {
@@ -28,6 +39,8 @@ public sealed class SvgDeformationOptions
             throw new ArgumentOutOfRangeException(nameof(Flatness));
         if (MaximumPoints < 16 || MaximumPoints > 131072)
             throw new ArgumentOutOfRangeException(nameof(MaximumPoints));
+        if (!Finite(DwellRate) || DwellRate < 0 || DwellRate > 20)
+            throw new ArgumentOutOfRangeException(nameof(DwellRate));
     }
 
     private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
@@ -41,6 +54,8 @@ public sealed class SvgDeformationOptions
 public static class SvgPathDeformationService
 {
     public const int MaximumStrokePoints = 4096;
+    public const double MaximumDurationSeconds = 60;
+    private const double TemporalStepSeconds = 0.05;
     private const int MaximumStamps = 2048;
     private const int MaximumContours = 4096;
     private const int MaximumDepth = 24;
@@ -76,6 +91,40 @@ public static class SvgPathDeformationService
         if (source.IsEmpty || options.Strength == 0 || kind == SvgDeformationKind.Warp && stroke.Count == 1)
             return new SKPath(source);
         var stamps = CreateStamps(stroke, kind, options.Radius);
+        return DeformPrepared(source, kind, stroke, stamps, options, out changed, cancellationToken);
+    }
+
+    /// <summary>
+    /// Integrates a held brush by elapsed time on a fixed temporal grid. The result is
+    /// independent of pointer packet and preview timer frequency. Warp remains spatial
+    /// advection, so holding it stationary cannot move artwork. The caller owns the path.
+    /// </summary>
+    public static SKPath Deform(SKPath source, SvgDeformationKind kind, IReadOnlyList<SvgDeformationSample> stroke,
+        SvgDeformationOptions? options, out bool changed, CancellationToken cancellationToken = default)
+    {
+        if (source is null)
+            throw new ArgumentNullException(nameof(source));
+        if (!Enum.IsDefined(typeof(SvgDeformationKind), kind))
+            throw new ArgumentOutOfRangeException(nameof(kind));
+        (options ??= new SvgDeformationOptions()).Validate();
+        ValidateStroke(stroke);
+        cancellationToken.ThrowIfCancellationRequested();
+        changed = false;
+        if (source.IsEmpty || options.Strength == 0)
+            return new SKPath(source);
+        var positions = new SKPoint[stroke.Count];
+        for (var index = 0; index < stroke.Count; index++)
+            positions[index] = stroke[index].Position;
+        var stamps = kind == SvgDeformationKind.Warp
+            ? CreateStamps(positions, kind, options.Radius)
+            : CreateTimedStamps(stroke, options.DwellRate);
+        return DeformPrepared(source, kind, positions, stamps, options, out changed, cancellationToken);
+    }
+
+    private static SKPath DeformPrepared(SKPath source, SvgDeformationKind kind, IReadOnlyList<SKPoint> stroke,
+        IReadOnlyList<Stamp> stamps, SvgDeformationOptions options, out bool changed, CancellationToken cancellationToken)
+    {
+        changed = false;
         if (stamps.Count == 0)
             return new SKPath(source);
         var support = SupportBounds(stroke, options.Radius);
@@ -166,6 +215,45 @@ public static class SvgPathDeformationService
         cancellationToken.ThrowIfCancellationRequested();
         changed = anyChanged;
         return changed ? builder.Detach() : new SKPath(source);
+    }
+
+    private static List<Stamp> CreateTimedStamps(IReadOnlyList<SvgDeformationSample> stroke, float rate)
+    {
+        var duration = stroke[stroke.Count - 1].ElapsedSeconds;
+        var stamps = new List<Stamp> { new(stroke[0].Position, default, 1) };
+        if (duration == 0 || rate == 0)
+            return stamps;
+        var segment = 1;
+        var previousTime = 0d;
+        var wholeSteps = (int)Math.Floor(duration / TemporalStepSeconds);
+        for (var step = 1; step <= wholeSteps; step++)
+            AddInterval(step * TemporalStepSeconds);
+        if (duration - previousTime > 1e-12)
+            AddInterval(duration);
+        return stamps;
+
+        void AddInterval(double endTime)
+        {
+            // Sampling at fixed interval midpoints makes a constant-speed segment
+            // identical whether a host reports two packets or hundreds of them.
+            var time = (previousTime + endTime) * 0.5;
+            while (segment < stroke.Count && stroke[segment].ElapsedSeconds <= time)
+                segment++;
+            SKPoint center;
+            if (segment >= stroke.Count)
+                center = stroke[stroke.Count - 1].Position;
+            else
+            {
+                var a = stroke[segment - 1];
+                var b = stroke[segment];
+                var fraction = (time - a.ElapsedSeconds) / (b.ElapsedSeconds - a.ElapsedSeconds);
+                center = Lerp(a.Position, b.Position, (float)fraction);
+            }
+            stamps.Add(new Stamp(center, default, (float)((endTime - previousTime) * rate)));
+            if (stamps.Count > MaximumStamps)
+                throw new InvalidOperationException("Shorten the held deformation gesture.");
+            previousTime = endTime;
+        }
     }
 
     private static List<Stamp> CreateStamps(IReadOnlyList<SKPoint> stroke, SvgDeformationKind kind, float radius)
@@ -261,6 +349,25 @@ public static class SvgPathDeformationService
             throw new ArgumentOutOfRangeException(nameof(stroke));
         foreach (var point in stroke)
             ValidatePoint(point);
+    }
+
+    internal static void ValidateStroke(IReadOnlyList<SvgDeformationSample> stroke)
+    {
+        if (stroke is null)
+            throw new ArgumentNullException(nameof(stroke));
+        if (stroke.Count == 0 || stroke.Count > MaximumStrokePoints)
+            throw new ArgumentOutOfRangeException(nameof(stroke));
+        if (stroke[0].ElapsedSeconds != 0)
+            throw new ArgumentException("The first deformation sample must start at zero elapsed seconds.", nameof(stroke));
+        var previous = 0d;
+        foreach (var sample in stroke)
+        {
+            ValidatePoint(sample.Position);
+            if (double.IsNaN(sample.ElapsedSeconds) || double.IsInfinity(sample.ElapsedSeconds)
+                || sample.ElapsedSeconds < previous || sample.ElapsedSeconds > MaximumDurationSeconds)
+                throw new ArgumentOutOfRangeException(nameof(stroke), "Elapsed times must be finite, ordered and no more than 60 seconds.");
+            previous = sample.ElapsedSeconds;
+        }
     }
 
     private static SKPoint CheckedPoint(double x, double y)
