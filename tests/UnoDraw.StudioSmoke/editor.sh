@@ -89,8 +89,14 @@ verify restored-editor-measure
 command 'tool-rectangle'
 begin_editor_drag 450 340
 xdotool mousemove --window "$window" 650 490
-key_command Escape cancel-action
-end_editor_drag
+# --clearmodifiers also releases held mouse buttons, which would commit this
+# gesture before Escape. Keep the button down until cancellation has completed.
+checkpoint="$(input_checkpoint)"
+xdotool key Escape
+wait_input "$checkpoint" 'command-completed id=cancel-action$'
+# Cancellation releases pointer capture, so a later physical release need not
+# produce a routed PointerUp. The saved SVG below must still match exactly.
+xdotool mouseup 1
 save
 verify restored-editor-cancelled-drawing
 
