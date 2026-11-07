@@ -113,6 +113,7 @@ public sealed partial class SvgEditorController : IDisposable
         _currentXml = _savedXml = xml;
         _editMutated = false;
         LastEditLabel = string.Empty;
+        _repeatTransform = _editTransform = null;
         DocumentRevision++;
         RebuildOutline();
         NotifyChanged();
@@ -272,6 +273,7 @@ public sealed partial class SvgEditorController : IDisposable
         _editSelection = CaptureSelection();
         _editLabel = label ?? string.Empty;
         _editMutated = false;
+        _editTransform = null;
     }
 
     public void CommitEdit()
@@ -293,12 +295,15 @@ public sealed partial class SvgEditorController : IDisposable
             }
             Session.PushUndoState(before);
             LastEditLabel = _editLabel;
+            if (_editTransform is { } transform)
+                _repeatTransform = transform;
             DocumentRevision++;
         }
         _currentXml = after;
         _editXml = null;
         _editSelection = null;
         _editMutated = false;
+        _editTransform = null;
         RemoveDetachedSelection();
         RebuildOutline();
         NotifyChanged();
@@ -312,6 +317,7 @@ public sealed partial class SvgEditorController : IDisposable
         _editXml = null;
         _editSelection = null;
         _editMutated = false;
+        _editTransform = null;
         RestoreDocument(before, selected);
     }
 

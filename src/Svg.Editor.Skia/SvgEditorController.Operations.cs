@@ -93,6 +93,7 @@ public sealed partial class SvgEditorController
         {
             foreach (var target in targets)
                 PrependTransform(target.Element, target.Transform);
+            _editTransform = _editTransform is { } previous ? Multiply(transform, previous) : transform;
         });
     }
 
