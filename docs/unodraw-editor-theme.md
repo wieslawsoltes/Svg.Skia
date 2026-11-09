@@ -91,6 +91,13 @@ properties accept `SolidColorBrush` values; other brush types use the control's
 fallback palette. SVG artwork colors and the document's white artboard paper
 represent document content.
 
+`StudioNavigator` exposes `BackgroundBrush`, `OutlineBrush` and `AccentBrush`.
+Its implicit theme style supplies the same scoped semantic brushes as the canvas.
+Replacing a brush or changing its `Color`/`Opacity` updates the overview; unloading
+detaches brush subscriptions and reloading observes the current values. A host
+can use the Navigator independently without a local palette overriding its own
+resources.
+
 For a host palette, merge an override dictionary after `EditorTheme` in the
 resource scope that owns the controls. Override paired foreground/background
 roles together. For example, `HostPalette.xaml` can define a different primary
@@ -153,6 +160,7 @@ affected controls:
 | --- | ---: | --- |
 | `StudioBodySize` / `StudioLabelSize` / `StudioTitleSize` | 12 / 11 / 14 | Body text, field labels and dialog titles |
 | `StudioControlHeight` / `StudioCompactHeight` | 28 / 24 | Standard and compact control targets |
+| `StudioPanelRailMinWidth` | 34 | Minimum panel-rail width; intrinsic layout adds room for a visible scrollbar |
 | `StudioGap` / `StudioSectionGap` | 8 / 12 | Related fields and section separation |
 | `StudioPanelPadding` | 10 | Panel content inset |
 | `StudioControlRadius` | 2 | Compact control corners |
@@ -242,11 +250,24 @@ Double-click opens applicable tool options. The toolbar supports one or two
 columns, and its fill/stroke chips share the active paint target with the Color,
 Swatches and Gradient panels.
 
+Paint-target changes validate every retained Color and Gradient draft before
+updating any editor. Pending native field text is part of that draft, including
+text not yet committed by a `NumberBox`. A rejected switch retains the target
+and identifies the editor requiring Apply or Reset. Gradient draft commands act
+on the last activated Gradient editor, including the dedicated panel and the
+Appearance section. Apply validates visible numeric input through the native
+formatter/expression parser before moving focus; invalid or empty values remain
+available for correction. Accepted unchanged input does not create a redundant
+document edit.
+
 Entries with an ellipsis open the existing focused workflows: width profiles,
 blend construction, gradient mesh, type on a path, symbol placement and image
 placement. The corresponding canvas tools and dialogs retain their actual
 geometry and SVG service behavior. Tool definitions and group membership are in
 [SvgEditorWorkspace.EditorTools.cs](../src/Svg.Editor.Skia.Uno/SvgEditorWorkspace.EditorTools.cs).
+Action-only entries follow their underlying command's availability. A group
+with another usable tool stays accessible, and tool-option dialogs use the same
+error-handling path as menus and command search.
 
 Document tabs retain each controller and its undo history. The contextual control
 bar reflects the selection. Rulers, status coordinates, zoom controls, outline
@@ -295,6 +316,9 @@ Panel content instances survive moves, hiding, collapsing and floating. Layout
 rebuilds reparent the retained controls; they do not recreate the SVG document or
 discard inspector state. Narrow layouts expose panel access through the same
 panel registry. Animation Timeline is a separate editor dialog.
+The compact panel rail retains full icon targets when its vertical scrollbar is
+visible. Links panel selection and source details follow canvas selection and
+clear when the active document has no images.
 
 `SvgWorkspaceLayout` stores dock placement, active tabs, dimensions, visibility
 and workspace settings separately from SVG history. The workspace offers
@@ -339,6 +363,13 @@ the nudge step. Space temporarily pans, Primary+Space temporarily zooms in and
 adding Alt zooms out. Releasing the navigation chord or losing workspace focus
 restores the previous tool. Tab and Shift+Tab control panel visibility while the
 canvas owns the input. The full default table is in [UnoDraw](unodraw.md).
+
+When a path point, direction handle, polygon vertex or polyline vertex is active,
+arrows move only that point and Delete removes the active node. Keyboard movement
+is expressed in picture coordinates and converted through the complete scene
+transform, including ancestor groups and the document's `viewBox`. Other points,
+object identity and transforms remain unchanged. Each effective nudge is one undo
+step; stale targets, locked objects and singular transforms cannot mutate geometry.
 
 **Shift+B** selects Blob Brush and **Shift+J** selects Join. Smooth, Path Eraser,
 Shear and Measure can be selected from their toolbox groups or command search.

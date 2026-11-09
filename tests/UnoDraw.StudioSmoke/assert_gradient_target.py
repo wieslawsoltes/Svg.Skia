@@ -70,9 +70,12 @@ if __name__ == '__main__':
     parser.add_argument('document', type=pathlib.Path)
     parser.add_argument('output', type=pathlib.Path)
     parser.add_argument('target', choices=('fill', 'stroke'))
+    parser.add_argument('--name', help='Unique check and artifact name for another native workflow.')
     args = parser.parse_args()
+    if args.name and not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', args.name):
+        parser.error('--name must contain lowercase words or numbers separated by hyphens')
     assert_target(ET.parse(args.document).getroot(), ET.parse(args.output / 'baseline.svg').getroot(), args.target)
-    name = 'segmented-' + args.target + '-target-and-draft'
+    name = args.name or 'segmented-' + args.target + '-target-and-draft'
     (args.output / (name + '.svg')).write_bytes(args.document.read_bytes())
     report = args.output / 'checks.json'
     checks = json.loads(report.read_text())

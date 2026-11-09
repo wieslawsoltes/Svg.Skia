@@ -24,6 +24,49 @@ wait_input "$checkpoint" 'command-completed id=new$'
 save
 verify restored-editor-invalid-new-document
 
+# The dedicated Gradient panel, Appearance editor, paint chips and canvas share
+# one target. Draft commands must act on the most recently activated editor,
+# including after command search temporarily owns keyboard focus.
+command 'Select all'
+command 'Gradient editor'
+click_editor_control 1210 218 StudioGradientTarget RadioButton
+xdotool key --clearmodifiers Home
+command 'Gradient panel'
+command 'activepaint'
+command 'gradient-reverse-draft'
+command 'activepaint'
+command 'gradient-apply-draft'
+save
+python3 "$source_dir/assert_gradient_target.py" "$document" "$output" stroke --name editor-shared-paint-target-and-draft-owner
+capture editor-shared-paint-target
+command 'Undo'
+save
+verify restored-editor-shared-paint-target
+
+# A native NumberBox can contain raw text that has not reached its Value yet.
+# Ctrl+Enter must preserve/reject an empty required field before focus transfer;
+# a subsequent global target change must also preserve the pending draft.
+command 'Gradient panel'
+click_editor_control 1210 443 StudioGradientPosition TextBox
+xdotool key --clearmodifiers ctrl+a BackSpace
+checkpoint="$(input_checkpoint)"
+xdotool key --clearmodifiers ctrl+Return
+wait_input "$checkpoint" 'gradient-numeric-invalid'
+capture editor-gradient-invalid-position
+save
+verify restored-editor-invalid-gradient-position
+command 'activepaint'
+command 'gradient-reset-draft'
+command 'gradient-reverse-draft'
+command 'gradient-apply-draft'
+save
+python3 "$source_dir/assert_gradient_target.py" "$document" "$output" stroke --name editor-raw-gradient-input-target-guard
+command 'Undo'
+command 'Deselect'
+command 'Reset workspace'
+save
+verify restored-editor-raw-gradient-input
+
 # Native menu activation must work even though AccessKey is not implemented by
 # the Skia host. Escape returns to the unchanged document.
 xdotool key --clearmodifiers alt+f
@@ -64,6 +107,40 @@ capture editor-tool-star
 command 'Undo'
 save
 verify restored-editor-star
+
+# Node keys must preserve the object and every unrelated vertex. Create native
+# polygon/polyline and straight-path geometry through normal canvas input, then
+# assert the actual saved points after small/large nudges and Delete.
+for entry in 'polygon polygon-path polygon-select' 'polyline polyline polyline-select' 'path straight-pen direct'; do
+  read -r kind creation selection <<< "$entry"
+  command 'Deselect'
+  command "tool-$creation"
+  for position in '450 340' '630 340' '630 470' '450 470'; do
+    read -r x y <<< "$position"
+    click_editor_control "$x" "$y"
+  done
+  key_command Return finishpath
+  save
+  python3 "$source_dir/assert_node_editing.py" "$document" "$output" "$kind" created
+  command "tool-$selection"
+  click_editor_control 450 340
+  key_command Right nudge-right
+  key_command shift+Down nudge-down-large
+  save
+  python3 "$source_dir/assert_node_editing.py" "$document" "$output" "$kind" nudge
+  capture "editor-node-$kind-nudged"
+  command 'Undo'
+  command 'Undo'
+  click_editor_control 450 340
+  key_command Delete delete
+  save
+  python3 "$source_dir/assert_node_editing.py" "$document" "$output" "$kind" delete
+  capture "editor-node-$kind-deleted"
+  command 'Undo'
+  command 'Undo'
+  save
+  verify "restored-editor-node-$kind"
+done
 
 # A white creation fill cannot merge with this fixture's existing colored fills.
 # Test the actual shortcut and saved filled outline, then restore its one edit.

@@ -119,6 +119,50 @@ def chrome_font_changes(before: Path, after: Path) -> dict[str, float]:
         return changes
 
 
+def compact_panel_rail_changes(desktop: Path, compact: Path) -> dict[str, Any]:
+    # Compare the actual rendered glyphs when the rail gains a vertical scrollbar.
+    # Locate its first icon in broad chrome-only bands so the assertion tolerates
+    # an intrinsic rail width and does not reproduce the layout's width formula.
+    def glyphs(image: Image.Image, search_bounds: tuple[int, int, int, int]) -> list[Image.Image]:
+        luminance = image.convert("L")
+        first = luminance.crop(search_bounds).point(lambda value: 255 if value > 112 else 0).getbbox()
+        if first is None:
+            raise AssertionError("Cannot locate the rendered Properties icon in the panel rail.")
+        center = search_bounds[0] + (first[0] + first[2]) // 2
+        result = []
+        for row in range(6):
+            region = luminance.crop((center - 12, 81 + row * 35, center + 12, 105 + row * 35))
+            # Normalize contrast so an active panel's foreground/background colors
+            # do not masquerade as a clipped glyph after responsive docking.
+            background = ImageStat.Stat(region).median[0]
+            threshold = background + (region.getextrema()[1] - background) * 0.45
+            icon = region.point(lambda value: 255 if value > threshold else 0)
+            bounds = icon.getbbox()
+            if bounds is None:
+                raise AssertionError(f"Panel rail icon {row + 1} did not render.")
+            result.append(icon.crop(bounds))
+        return result
+
+    with Image.open(desktop) as wide, Image.open(compact) as narrow:
+        if wide.size != (1440, 960) or narrow.size != (390, 844):
+            raise AssertionError("Panel-rail regression requires the desktop and compact smoke viewports.")
+        wide_glyphs = glyphs(wide, (wide.width - 420, 82, wide.width - 300, 105))
+        narrow_glyphs = glyphs(narrow, (narrow.width - 70, 82, narrow.width, 105))
+        changes: dict[str, float] = {}
+        dimensions: dict[str, dict[str, tuple[int, int]]] = {}
+        names = ("properties", "transform", "appearance", "stroke", "align", "pathfinder")
+        for name, expected, actual in zip(names, wide_glyphs, narrow_glyphs):
+            size = (max(expected.width, actual.width), max(expected.height, actual.height))
+            expected_mask, actual_mask = Image.new("L", size), Image.new("L", size)
+            expected_mask.paste(expected, (0, 0))
+            actual_mask.paste(actual, (0, 0))
+            changed = ImageChops.difference(expected_mask, actual_mask).histogram()[255]
+            changes[name] = changed / expected.histogram()[255]
+            dimensions[name] = {"desktop": expected.size, "compact": actual.size}
+        return {"different_foreground_fraction": changes, "glyph_dimensions": dimensions,
+                "maximum_different_foreground_fraction": 0.08}
+
+
 def wait_for_theme(page: Page, path: Path, light: bool) -> dict[str, float]:
     deadline = time.monotonic() + 15
     samples: dict[str, float] = {}
@@ -223,6 +267,12 @@ def main() -> int:
                 page.screenshot(path=str(compact))
                 assert_rendered(compact)
                 report["checks"].append("Workspace renders after resizing to 390x844")
+                rail_changes = compact_panel_rail_changes(output / "02b-command-dark-theme.png", compact)
+                report["compact_panel_rail"] = rail_changes
+                if any(value > rail_changes["maximum_different_foreground_fraction"]
+                       for value in rail_changes["different_foreground_fraction"].values()):
+                    raise AssertionError(f"The compact panel rail clips or changes its glyphs: {rail_changes}")
+                report["checks"].append("Compact scrolling panel rail preserves all six inspected desktop glyphs")
 
                 page.reload(wait_until="domcontentloaded", timeout=120_000)
                 wait_ready(page)
