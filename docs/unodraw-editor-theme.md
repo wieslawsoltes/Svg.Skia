@@ -511,8 +511,10 @@ dotnet test tests/Svg.Editor.Skia.UnitTests/Svg.Editor.Skia.UnitTests.csproj -c 
 python3 -m unittest discover -s tests/UnoDraw.StudioSmoke -p 'test_*.py' -v
 ```
 
-The native interaction harness requires Xvfb, xdotool, ImageMagick, D-Bus and
-X11 utilities on Linux:
+The native interaction harness requires Xvfb, xdotool, ImageMagick, D-Bus,
+X11 utilities and `x11-xkb-utils` on Linux. It initializes an isolated US/pc105
+keyboard with plain function keys and records its XKB maps, so older xdotool
+versions cannot inject additional modifiers from server-switching key types:
 
 ```sh
 xvfb-run --auto-servernum \

@@ -82,6 +82,23 @@ done
 [[ "$ready" == true ]] || { echo 'The application did not save the intended fixture; inspect failure captures and windows.log.' >&2; cat "$output/application.log"; exit 1; }
 xdotool windowsize "$window" 1440 960
 xdotool windowfocus --sync "$window"
+# xdotool 3 misreads the function-key CTRL+ALT type in xkeyboard-config 2.46
+# and injects an extra Alt (https://github.com/jordansissel/xdotool/issues/491).
+# Give this isolated fixture ordinary function keys; application modifier checks
+# remain exact. Keep the app connected while changing XKB so Xvfb cannot reset
+# the mapping when its last client disconnects.
+keyboard_diagnostics() {
+  {
+    dpkg-query -W -f='${Package} ${Version}\n' xdotool xvfb xkb-data x11-xkb-utils 2>/dev/null || true
+    setxkbmap -query
+    xmodmap -pm
+    xmodmap -pke
+  } >"$output/keyboard-$1.log" 2>&1
+  xkbcomp -xkb "$DISPLAY" "$output/keyboard-$1.xkb" 2>>"$output/keyboard-$1.log"
+}
+keyboard_diagnostics before
+setxkbmap -model pc105 -layout us -option '' -option srvrkeys:none
+keyboard_diagnostics fixture
 sleep 1
 window_diagnostics
 
