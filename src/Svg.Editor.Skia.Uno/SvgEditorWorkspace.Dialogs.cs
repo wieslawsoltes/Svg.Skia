@@ -72,7 +72,7 @@ public sealed partial class SvgEditorWorkspace
         {
             if (args.Cancel)
                 return;
-            var invalid = FindInvalidDialogNumber(scroll);
+            var invalid = StudioNumberInput.FindInvalid(scroll);
             if (invalid is null)
             {
                 validation.Visibility = Visibility.Collapsed;
@@ -89,48 +89,6 @@ public sealed partial class SvgEditorWorkspace
         dialog.PrimaryButtonClick += (_, args) => ValidateNumbers(args);
         dialog.SecondaryButtonClick += (_, args) => ValidateNumbers(args);
         return dialog;
-    }
-
-    private static NumberBox? FindInvalidDialogNumber(DependencyObject element)
-    {
-        if (element is FrameworkElement { Visibility: Visibility.Collapsed } ||
-            element is Control { IsEnabled: false })
-            return null;
-        if (element is NumberBox number)
-        {
-            // The dialog's default action runs on Enter KeyDown, while the
-            // native NumberBox commits on KeyUp. Read its preserved template
-            // part and use the public Text setter to commit through the native
-            // formatter/expression parser before checking the resulting value.
-            if (FindDialogNumberInput(number) is { } input)
-            {
-                var text = input.Text;
-                if (string.IsNullOrWhiteSpace(text))
-                    return number;
-                if (!number.AcceptsExpression && number.NumberFormatter is Windows.Globalization.NumberFormatting.INumberParser parser)
-                {
-                    var parsed = parser.ParseDouble(text);
-                    if (parsed is null || !double.IsFinite(parsed.Value) || parsed.Value < number.Minimum || parsed.Value > number.Maximum)
-                        return number;
-                }
-                number.Text = text;
-            }
-            return !double.IsFinite(number.Value) || number.Value < number.Minimum || number.Value > number.Maximum ? number : null;
-        }
-        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(element); index++)
-            if (FindInvalidDialogNumber(VisualTreeHelper.GetChild(element, index)) is { } invalid)
-                return invalid;
-        return null;
-    }
-
-    private static TextBox? FindDialogNumberInput(DependencyObject element)
-    {
-        if (element is TextBox { Name: "InputBox" } input)
-            return input;
-        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(element); index++)
-            if (FindDialogNumberInput(VisualTreeHelper.GetChild(element, index)) is { } found)
-                return found;
-        return null;
     }
 
     private async Task<ContentDialogResult> ShowDialogAsync(ContentDialog dialog)

@@ -20,6 +20,9 @@ namespace Svg.Editor.Skia.Uno;
 /// </summary>
 public sealed class StudioNavigator : UserControl, IDisposable
 {
+    public static readonly DependencyProperty BackgroundBrushProperty = RegisterNavigatorBrush(nameof(BackgroundBrush));
+    public static readonly DependencyProperty OutlineBrushProperty = RegisterNavigatorBrush(nameof(OutlineBrush));
+    public static readonly DependencyProperty AccentBrushProperty = RegisterNavigatorBrush(nameof(AccentBrush));
     private static readonly InputSystemCursor s_hand = InputSystemCursor.Create(InputSystemCursorShape.Hand);
     private sealed class NavigatorSurface(StudioNavigator owner) : SKCanvasElement
     {
@@ -37,6 +40,8 @@ public sealed class StudioNavigator : UserControl, IDisposable
     private readonly NavigatorSurface _surface;
     private readonly Border _frame;
     private readonly SKPaint _paint = new() { IsAntialias = true };
+    private readonly SolidColorBrush _fallbackOutlineBrush = new();
+    private StudioBrushSubscriptions? _brushSubscriptions;
     private SvgEditorController? _controller;
     private SKSvg? _subscribedRenderer;
     private SvgEditorViewport? _viewport;
@@ -44,6 +49,7 @@ public sealed class StudioNavigator : UserControl, IDisposable
     private SKPoint _dragOffset;
     private SKPoint _dragOrigin;
     private SKColor _background, _border, _accent;
+    private bool _observingBrushes;
     private bool _disposed;
 
     public StudioNavigator()
@@ -55,7 +61,6 @@ public sealed class StudioNavigator : UserControl, IDisposable
         VerticalContentAlignment = VerticalAlignment.Stretch;
         ManipulationMode = ManipulationModes.None;
         ProtectedCursor = s_hand;
-        Resources.MergedDictionaries.Add(new EditorTheme());
         _surface = new NavigatorSurface(this) { IsHitTestVisible = false };
         _frame = new Border { BorderThickness = new Thickness(1), Child = _surface };
         Content = _frame;
@@ -79,6 +84,42 @@ public sealed class StudioNavigator : UserControl, IDisposable
     public event EventHandler? NavigationStarting;
     public event EventHandler? ViewChanged;
     public event EventHandler<SvgEditorInteractionFailedEventArgs>? NavigationFailed;
+
+    /// <summary>The overview background; null uses the standalone light/dark palette.</summary>
+    public Brush? BackgroundBrush { get => (Brush?)GetValue(BackgroundBrushProperty); set => SetValue(BackgroundBrushProperty, value); }
+    /// <summary>The frame and inactive-artboard outline brush.</summary>
+    public Brush? OutlineBrush { get => (Brush?)GetValue(OutlineBrushProperty); set => SetValue(OutlineBrushProperty, value); }
+    /// <summary>The active-artboard and viewport brush, including its opacity.</summary>
+    public Brush? AccentBrush { get => (Brush?)GetValue(AccentBrushProperty); set => SetValue(AccentBrushProperty, value); }
+
+    private static DependencyProperty RegisterNavigatorBrush(string name)
+        => DependencyProperty.Register(name, typeof(Brush), typeof(StudioNavigator), new PropertyMetadata(null, OnNavigatorBrushChanged));
+
+    private static void OnNavigatorBrushChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    {
+        var navigator = (StudioNavigator)sender;
+        if (navigator._disposed)
+            return;
+        if (navigator._observingBrushes)
+            (navigator._brushSubscriptions ??= new StudioBrushSubscriptions(navigator.RefreshPalette)).Observe(args.Property, args.NewValue as Brush);
+        navigator.RefreshPalette();
+    }
+
+    private void ObserveBrushes()
+    {
+        var subscriptions = _brushSubscriptions ??= new StudioBrushSubscriptions(RefreshPalette);
+        subscriptions.Observe(BackgroundBrushProperty, BackgroundBrush);
+        subscriptions.Observe(OutlineBrushProperty, OutlineBrush);
+        subscriptions.Observe(AccentBrushProperty, AccentBrush);
+    }
+
+    private void RefreshPalette()
+    {
+        if (_disposed)
+            return;
+        ApplyPalette();
+        _surface?.Invalidate();
+    }
 
     public void Bind(SvgEditorController? controller, SvgEditorViewport? viewport)
     {
@@ -129,16 +170,24 @@ public sealed class StudioNavigator : UserControl, IDisposable
 
     private void ApplyPalette()
     {
-        _frame.Background = (Brush)Resources["StudioCanvas"];
-        _frame.BorderBrush = (Brush)Resources["StudioBorder"];
-        SKColor Color(string key)
+        // EditorTheme supplies scoped ThemeResource brushes. A standalone control
+        // remains usable without merging a local dictionary over its host's palette.
+        var dark = ActualTheme == ElementTheme.Dark;
+        _background = StudioBrushSubscriptions.Color(BackgroundBrush, dark ? new SKColor(30, 30, 30) : new SKColor(186, 186, 186));
+        _border = StudioBrushSubscriptions.Color(OutlineBrush, dark ? new SKColor(93, 93, 93) : new SKColor(166, 166, 166));
+        _accent = StudioBrushSubscriptions.Color(AccentBrush, dark ? new SKColor(148, 191, 242) : new SKColor(40, 98, 176));
+        if (_frame is not null)
         {
-            var color = ((SolidColorBrush)Resources[key]).Color;
-            return new SKColor(color.R, color.G, color.B, color.A);
+            if (OutlineBrush is SolidColorBrush solid)
+                _frame.BorderBrush = solid;
+            else
+            {
+                _fallbackOutlineBrush.Color = Windows.UI.Color.FromArgb(_border.Alpha, _border.Red, _border.Green, _border.Blue);
+                _frame.BorderBrush = _fallbackOutlineBrush;
+            }
+            // The Skia surface owns the background. Painting it again on the frame
+            // would composite a translucent background brush twice.
         }
-        _background = Color("StudioCanvas");
-        _border = Color("StudioBorder");
-        _accent = Color("StudioAccent");
     }
 
     private bool TryOverview(double width, double height, out Overview overview)
@@ -197,7 +246,7 @@ public sealed class StudioNavigator : UserControl, IDisposable
             return;
         var view = overview.ToView(visible);
         _paint.Style = SKPaintStyle.Fill;
-        _paint.Color = _accent.WithAlpha(28);
+        _paint.Color = _accent.WithAlpha((byte)Math.Round(_accent.Alpha * (28d / 255d)));
         canvas.DrawRect(view, _paint);
         _paint.Style = SKPaintStyle.Stroke;
         _paint.StrokeWidth = 1.5f;
@@ -345,9 +394,22 @@ public sealed class StudioNavigator : UserControl, IDisposable
         _surface.Invalidate();
         ViewChanged?.Invoke(this, EventArgs.Empty);
     }
-    private void OnThemeChanged(FrameworkElement sender, object args) { ApplyPalette(); _surface.Invalidate(); }
-    private void OnLoaded(object sender, RoutedEventArgs args) { ApplyPalette(); _surface.Invalidate(); }
-    private void OnUnloaded(object sender, RoutedEventArgs args) => EndDrag(false);
+    private void OnThemeChanged(FrameworkElement sender, object args) => RefreshPalette();
+    private void OnLoaded(object sender, RoutedEventArgs args)
+    {
+        if (_disposed)
+            return;
+        _observingBrushes = true;
+        ObserveBrushes();
+        RefreshPalette();
+    }
+    private void OnUnloaded(object sender, RoutedEventArgs args)
+    {
+        EndDrag(false);
+        _observingBrushes = false;
+        _brushSubscriptions?.Dispose();
+        _brushSubscriptions = null;
+    }
     private void OnSizeChanged(object sender, SizeChangedEventArgs args) => _surface.Invalidate();
 
     public new void Dispose()
@@ -356,6 +418,9 @@ public sealed class StudioNavigator : UserControl, IDisposable
             return;
         EndDrag(false);
         _disposed = true;
+        _observingBrushes = false;
+        _brushSubscriptions?.Dispose();
+        _brushSubscriptions = null;
         Unsubscribe();
         _controller = null;
         _viewport = null;

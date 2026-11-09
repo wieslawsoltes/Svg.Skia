@@ -97,7 +97,9 @@ class SharedControlRefinements(unittest.TestCase):
             source = (ROOT / 'Controls' / name).read_text()
             self.assertIn('StudioChoiceStrip _target', source)
             self.assertIn('_target.SelectionChanging +=', source)
-            self.assertIn('args.Cancel = true;', source)
+            self.assertIn('args.Cancel = !TrySetPaintTarget(args.SelectedIndex == 1);', source)
+            self.assertIn('PaintTargetChangeRequested', source)
+            self.assertIn('!HasPendingDraft', source)
             self.assertIn('StudioActionRole.Primary, this', source)
 
     def test_segment_navigation_leaves_modified_shortcuts_to_the_editor(self):

@@ -32,9 +32,11 @@ public sealed partial class SvgEditorWorkspace
         }
         var color = StudioPanel("color", "Color");
         _editorColorPanel = new StudioColorEditor { BeforeApply = BeforePaint };
+        RegisterEditorPaintTarget(_editorColorPanel, "the Color panel");
         color.Children.Add(_editorColorPanel);
         var gradient = StudioPanel("gradient", "Gradient");
         _editorGradientPanel = new StudioGradientEditor { BeforeApply = BeforePaint };
+        RegisterEditorPaintTarget(_editorGradientPanel, "the Gradient panel");
         gradient.Children.Add(_editorGradientPanel);
         var swatches = StudioPanel("swatches", "Swatches");
         swatches.Children.Add(StudioHint("Apply a swatch to the active fill or stroke. X switches the paint target."));
@@ -126,6 +128,9 @@ public sealed partial class SvgEditorWorkspace
         var links = StudioPanel("links", "Links");
         _editorLinks = EditorPanelList("Linked and embedded images");
         _editorLinkSummary = StudioHint("Select an image to inspect its source.");
+        _editorLinkSummary.IsTextSelectionEnabled = true;
+        AutomationProperties.SetAutomationId(_editorLinks, "EditorLinks");
+        AutomationProperties.SetAutomationId(_editorLinkSummary, "EditorLinkSummary");
         _editorLinks.ItemClick += (_, args) =>
         {
             if (args.ClickedItem is not EditorResourceChoice { Element: SvgImage image } || Controller is not { } controller)
@@ -135,9 +140,7 @@ public sealed partial class SvgEditorWorkspace
                 CommitInspectorEdits();
                 controller.Select(image);
                 Canvas.FitSelection();
-                _editorLinkSummary.Text = image.Href?.StartsWith("data:", StringComparison.OrdinalIgnoreCase) == true
-                    ? "Embedded image · " + image.Width + " × " + image.Height
-                    : image.Href ?? "No image source";
+                RefreshEditorLinkSelection(controller);
             });
         };
         links.Children.Add(_editorLinks);
@@ -156,8 +159,15 @@ public sealed partial class SvgEditorWorkspace
 
     private void RefreshEditorPanels()
     {
-        if (_refreshingEditorPanels || Controller is not { } controller)
+        if (_refreshingEditorPanels)
             return;
+        if (Controller is not { } controller)
+        {
+            if (_editorLinks is not null)
+                _editorLinks.ItemsSource = null;
+            RefreshEditorLinkSelection(null);
+            return;
+        }
         _refreshingEditorPanels = true;
         var syncing = _syncingStudioPanels;
         _syncingStudioPanels = true;
@@ -177,11 +187,19 @@ public sealed partial class SvgEditorWorkspace
             if (_editorWordSpacing is not null)
             { _editorWordSpacing.IsEnabled = textOnly; _editorWordSpacing.Synchronize(text?.WordSpacing.ToString()); }
             if (ReferenceEquals(controller, _editorPanelController) && _editorPanelRevision == controller.DocumentRevision)
+            {
+                RefreshEditorLinkSelection(controller);
                 return;
+            }
             _editorPanelController = controller;
             _editorPanelRevision = controller.DocumentRevision;
             if (controller.Document is not { } source)
+            {
+                if (_editorLinks is not null)
+                    _editorLinks.ItemsSource = null;
+                RefreshEditorLinkSelection(controller);
                 return;
+            }
             if (_editorBrushes is not null)
                 _editorBrushes.ItemsSource = SvgBrushLibraryService.Load(source).Select(definition => new EditorBrushChoice(definition)).ToArray();
             if (_editorSymbols is not null)
@@ -190,6 +208,7 @@ public sealed partial class SvgEditorWorkspace
             if (_editorLinks is not null)
                 _editorLinks.ItemsSource = source.Descendants().OfType<SvgImage>().Select(image => new EditorResourceChoice(image,
                     (string.IsNullOrEmpty(image.ID) ? "Image" : image.ID) + (image.Href?.StartsWith("data:", StringComparison.OrdinalIgnoreCase) == true ? " · embedded" : " · linked"))).ToArray();
+            RefreshEditorLinkSelection(controller);
             if (_editorSwatches is not null)
             {
                 _editorSwatches.Children.Clear();
@@ -222,10 +241,30 @@ public sealed partial class SvgEditorWorkspace
         }
     }
 
+    private void RefreshEditorLinkSelection(SvgEditorController? controller)
+    {
+        if (_editorLinks is null || _editorLinkSummary is null)
+            return;
+        var image = controller?.Document is not null && controller.SelectedElements.Count == 1 ? controller.SelectedElements[0] as SvgImage : null;
+        _editorLinks.SelectedItem = (_editorLinks.ItemsSource as EditorResourceChoice[])?
+            .FirstOrDefault(choice => ReferenceEquals(choice.Element, image));
+        _editorLinkSummary.Text = image is null
+            ? controller?.Document is null ? "Open a document to inspect image sources."
+                : (_editorLinks.ItemsSource as EditorResourceChoice[])?.Length == 0 ? "This document has no images."
+                : "Select one image to inspect its source."
+            : image.Href?.StartsWith("data:", StringComparison.OrdinalIgnoreCase) == true
+                ? "Embedded image · " + image.Width + " × " + image.Height
+                : image.Href ?? "No image source";
+    }
+
     private void DisposeEditorPanels()
     {
         _editorColorPanel?.Dispose();
         _editorGradientPanel?.Dispose();
+        _studioColorEditor?.Dispose();
+        _studioGradientEditor?.Dispose();
+        _editorPaintTargets.Clear();
+        _activeEditorGradient = null;
         DisposeEditorUtilityPanels();
     }
 }

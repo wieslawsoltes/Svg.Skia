@@ -72,7 +72,7 @@ internal static class EditorInputTrace
         {
             var id = AutomationProperties.GetAutomationId(current);
             if (id is "StudioCommandSearchBox" or "StudioCommandSearchResults" or "StudioGradientApply"
-                or "StudioGradientTarget" or "StudioColorTarget" or "StudioColorApply"
+                or "StudioGradientTarget" or "StudioGradientPosition" or "StudioColorTarget" or "StudioColorApply"
                 or "studio-panel-picker-RightTop" or "studio-panel-picker-RightBottom"
                 or "studio-panel-picker-Left" or "studio-panel-picker-Bottom")
                 return id;

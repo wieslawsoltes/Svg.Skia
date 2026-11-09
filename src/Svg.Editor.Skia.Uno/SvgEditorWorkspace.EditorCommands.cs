@@ -98,6 +98,10 @@ public sealed partial class SvgEditorWorkspace
         Focus(FocusState.Keyboard);
     }
 
+    private bool CanExecuteEditorCommand(string id)
+        => !_disposed && !_closing && _commands.FirstOrDefault(candidate => candidate.Id == id) is { } command
+            && (command.CanExecute?.Invoke() ?? true);
+
     private void ConfigureEditorCommandStates()
     {
         bool Document() => Controller?.Document is not null;
@@ -119,6 +123,7 @@ public sealed partial class SvgEditorWorkspace
                 "union" or "subtract" or "intersect" or "exclude" or "divide" or "clip" or "alphamask" or "luminancemask" or "blend" => () => Editable(2),
                 "ungroup" => () => Editable() && Controller!.SelectedElements.Any(element => element is SvgGroup),
                 "text" or "text-align-start" or "text-align-middle" or "text-align-end" => () => Editable() && Controller!.SelectedElements.All(element => element is SvgTextBase),
+                "typeonpath" => () => Editable() && Controller!.SelectedElements.Count == 1 && Controller.SelectedElements[0] is SvgPath,
                 "smooth" or "corner" => () => Editable() && Canvas.ActiveNodeIndex >= 0,
                 "cut" or "delete" or "duplicate" or "group" or "front" or "back" or "forward" or "backward"
                     or "fliph" or "flipv" or "rotate" or "transform" or "lock" or "hide" or "show" or "movetolayer" or "moveout"

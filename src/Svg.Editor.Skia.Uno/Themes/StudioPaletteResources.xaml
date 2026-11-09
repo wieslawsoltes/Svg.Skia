@@ -143,6 +143,9 @@
   <x:Double x:Key="StudioTitleSize">14</x:Double>
   <x:Double x:Key="StudioControlHeight">28</x:Double>
   <x:Double x:Key="StudioCompactHeight">24</x:Double>
+  <!-- 28px target + 4px margins + 1px border needs 33px. The Auto column adds
+       the visible 12px scrollbar, providing at least 45px without shrinking targets. -->
+  <x:Double x:Key="StudioPanelRailMinWidth">34</x:Double>
   <x:Double x:Key="StudioGap">8</x:Double>
   <x:Double x:Key="StudioSectionGap">12</x:Double>
   <Thickness x:Key="StudioPanelPadding">10</Thickness>

@@ -236,6 +236,11 @@
     <Setter Property="CheckerBackgroundColor" Value="{ThemeResource StudioSurfaceColor}" />
     <Setter Property="CheckerForegroundColor" Value="{ThemeResource StudioBorderColor}" />
   </Style>
+  <Style TargetType="local:StudioNavigator">
+    <Setter Property="BackgroundBrush" Value="{ThemeResource StudioCanvas}" />
+    <Setter Property="OutlineBrush" Value="{ThemeResource StudioBorder}" />
+    <Setter Property="AccentBrush" Value="{ThemeResource StudioAccent}" />
+  </Style>
   <Style TargetType="local:SvgEditorCanvas">
     <Setter Property="PasteboardBrush" Value="{ThemeResource StudioCanvas}" />
     <Setter Property="ArtboardLabelBrush" Value="{ThemeResource StudioCanvasLabel}" />

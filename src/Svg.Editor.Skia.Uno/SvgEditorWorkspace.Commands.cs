@@ -34,7 +34,7 @@ public sealed partial class SvgEditorWorkspace
         Add("duplicate", "Duplicate", "Edit", () => Controller?.DuplicateSelection());
         Add("delete", "Delete", "Edit", () =>
         {
-            if (Canvas.Tool == SvgEditorToolKind.PathSelect && Canvas.ActiveNodeIndex >= 0)
+            if (Canvas.HasActiveNode)
                 Canvas.DeleteActiveNode();
             else
                 Controller?.DeleteSelection();

@@ -55,7 +55,7 @@
       <Grid.ColumnDefinitions>
         <ColumnDefinition x:Name="ToolColumn" Width="68" /><ColumnDefinition x:Name="LeftDockColumn" Width="0" />
         <ColumnDefinition x:Name="LeftSplitterColumn" Width="0" /><ColumnDefinition Width="*" />
-        <ColumnDefinition x:Name="EditorPanelRailColumn" Width="34" /><ColumnDefinition x:Name="RightSplitterColumn" Width="6" /><ColumnDefinition x:Name="RightDockColumn" Width="312" />
+        <ColumnDefinition x:Name="EditorPanelRailColumn" Width="Auto" /><ColumnDefinition x:Name="RightSplitterColumn" Width="6" /><ColumnDefinition x:Name="RightDockColumn" Width="312" />
       </Grid.ColumnDefinitions>
       <Border x:Name="EditorToolShelf" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="0,0,1,0">
         <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="6" Margin="3,3">
@@ -82,8 +82,8 @@
         <local:StudioSplitter x:Name="BottomDockSplitter" Grid.Row="2" />
         <local:StudioDockGroup x:Name="BottomDock" Grid.Row="3" />
       </Grid>
-      <Border x:Name="EditorPanelShelf" Grid.Column="4" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="1,0,0,0">
-        <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel x:Name="PanelRail" Spacing="3" Margin="2,5" /></ScrollViewer>
+      <Border x:Name="EditorPanelShelf" Grid.Column="4" MinWidth="{StaticResource StudioPanelRailMinWidth}" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="1,0,0,0">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled"><StackPanel x:Name="PanelRail" Spacing="3" Margin="2,5" HorizontalAlignment="Left" /></ScrollViewer>
       </Border>
       <local:StudioSplitter x:Name="RightDockSplitter" Grid.Column="5" />
       <Grid x:Name="RightDockContainer" Grid.Column="6">

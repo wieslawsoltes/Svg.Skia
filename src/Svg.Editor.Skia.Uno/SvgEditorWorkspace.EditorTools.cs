@@ -104,7 +104,7 @@ public sealed partial class SvgEditorWorkspace
         _commands.Add(new EditorCommand("placesymbol", "Place Symbol…", "Object", string.Empty, ChooseEditorSymbolAsync));
         foreach (var entry in s_editorTools)
         {
-            _commands.Add(new EditorCommand(entry.Id, entry.Label, "Tools", EditorShortcutText(entry.Id), async () =>
+            var command = new EditorCommand(entry.Id, entry.Label, "Tools", EditorShortcutText(entry.Id), async () =>
             {
                 if (entry.Mode == SvgEditorInteractionMode.SymbolSprayer && Controller?.Document?.GetElementById(Controller.Tools.SymbolId ?? string.Empty) is not SvgSymbol)
                 {
@@ -116,7 +116,10 @@ public sealed partial class SvgEditorWorkspace
                     await RunCommandAsync(action);
                 else
                     SelectEditorTool(entry);
-            }));
+            });
+            if (entry.Action is { } referencedAction)
+                command.CanExecute = () => CanExecuteEditorCommand(referencedAction);
+            _commands.Add(command);
         }
         _commands.Add(new EditorCommand("tool-options", "Tool Options…", "Edit", string.Empty, ShowEditorToolOptionsAsync));
     }
@@ -145,16 +148,26 @@ public sealed partial class SvgEditorWorkspace
                 if (suppressClick)
                 { suppressClick = false; RefreshEditorToolState(); return; }
                 if (button.Tag is string command)
-                    await RunCommandAsync(command);
+                {
+                    if (!CanExecuteEditorCommand(command) && button.ContextFlyout is MenuFlyout alternatives)
+                    {
+                        RefreshEditorMenus();
+                        alternatives.ShowAt(button);
+                    }
+                    else
+                        await RunCommandAsync(command);
+                }
                 RefreshEditorToolState();
             };
             if (entries.Length > 1)
             {
                 var flyout = new MenuFlyout();
+                flyout.Opening += (_, _) => RefreshEditorMenus();
                 foreach (var entry in entries)
                 {
                     var item = new MenuFlyoutItem { Text = entry.Label, KeyboardAcceleratorTextOverride = EditorShortcutText(entry.Id) };
                     EditorShortcutsChanged += (_, _) => item.KeyboardAcceleratorTextOverride = EditorShortcutText(entry.Id);
+                    _editorMenuItems.Add((item, _commands.Single(command => command.Id == entry.Id)));
                     item.Click += async (_, _) =>
                     {
                         SetEditorToolButton(group, entry);
@@ -191,13 +204,13 @@ public sealed partial class SvgEditorWorkspace
             }
             button.DoubleTapped += async (_, args) =>
             {
-                if (button.Tag is "tool-hand")
-                    Canvas.FitActiveArtboard();
-                else if (button.Tag is "tool-zoom")
-                    Canvas.ResetZoom();
-                else
-                    await ShowEditorToolOptionsAsync();
                 args.Handled = true;
+                await RunCommandAsync(button.Tag switch
+                {
+                    "tool-hand" => "fit",
+                    "tool-zoom" => "zoom100",
+                    _ => "tool-options"
+                });
             };
             if (selected.Id == "tool-hand")
                 _studioHand = button;
@@ -236,6 +249,7 @@ public sealed partial class SvgEditorWorkspace
         Group("tool-zoom");
         var allTools = new StudioIconButton { Label = "All tools", Content = new StudioToolIcon { Symbol = "More" }, Width = 30, Height = 32 };
         var allFlyout = new MenuFlyout();
+        allFlyout.Opening += (_, _) => RefreshEditorMenus();
         foreach (var group in _editorToolGroups)
         {
             var submenu = new MenuFlyoutSubItem { Text = group.Entries[0].Label };
@@ -243,6 +257,7 @@ public sealed partial class SvgEditorWorkspace
             {
                 var item = new MenuFlyoutItem { Text = entry.Label, KeyboardAcceleratorTextOverride = EditorShortcutText(entry.Id) };
                 EditorShortcutsChanged += (_, _) => item.KeyboardAcceleratorTextOverride = EditorShortcutText(entry.Id);
+                _editorMenuItems.Add((item, _commands.Single(command => command.Id == entry.Id)));
                 item.Click += async (_, _) => await RunCommandAsync(entry.Id);
                 submenu.Items.Add(item);
             }
@@ -337,6 +352,9 @@ public sealed partial class SvgEditorWorkspace
                 if (active is not null)
                     SetEditorToolButton(group, active);
                 group.Button.IsChecked = active is not null;
+                // A group with an unavailable dialog action can still expose its
+                // live tools. Its click opens those alternatives instead of doing nothing.
+                group.Button.IsEnabled = group.Entries.Any(entry => CanExecuteEditorCommand(entry.Id));
             }
             var selected = Controller?.SelectedElements.FirstOrDefault();
             if (_editorFillChip is not null && _editorStrokeChip is not null)
@@ -393,12 +411,14 @@ public sealed partial class SvgEditorWorkspace
             _ => "Space to pan · Wheel to zoom · " + EditorShortcutText("commands") + " for commands"
         };
 
-    private void SetActiveEditorPaint(bool stroke)
+    private bool SetActiveEditorPaint(bool stroke)
     {
-        Canvas.StrokePaintTarget = stroke;
+        if (!TrySynchronizeEditorPaintTarget(stroke))
+            return false;
         RefreshEditorToolState();
         StatusText.Text = (stroke ? "Stroke" : "Fill") + " is active · " + EditorShortcutText("swappaints") + " swaps paints · "
             + EditorShortcutText("nonepaint") + " removes the active paint";
+        return true;
     }
 
     private void BuildEditorPaintShelf()
@@ -428,8 +448,8 @@ public sealed partial class SvgEditorWorkspace
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top
         };
-        _editorFillChip.Click += (_, _) => { SetActiveEditorPaint(false); OpenEditorPaint(_editorFillChip, false); };
-        _editorStrokeChip.Click += (_, _) => { SetActiveEditorPaint(true); OpenEditorPaint(_editorStrokeChip, true); };
+        _editorFillChip.Click += (_, _) => { if (SetActiveEditorPaint(false)) OpenEditorPaint(_editorFillChip, false); };
+        _editorStrokeChip.Click += (_, _) => { if (SetActiveEditorPaint(true)) OpenEditorPaint(_editorStrokeChip, true); };
         paints.Children.Add(_editorStrokeChip);
         paints.Children.Add(_editorFillChip);
         ToolPaintShelf.SizeChanged += (_, _) =>

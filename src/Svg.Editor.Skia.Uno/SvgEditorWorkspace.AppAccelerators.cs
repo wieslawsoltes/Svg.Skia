@@ -157,7 +157,10 @@ public sealed partial class SvgEditorWorkspace
                 _commands.Add(new EditorCommand(id, "Nudge " + direction + (large ? " by 10 increments" : string.Empty), "Object", string.Empty, () =>
                 {
                     var step = EditorKeyboardIncrement * (large ? 10 : 1);
-                    Controller?.MoveSelection((float)(dx * step), (float)(dy * step));
+                    if (Canvas.HasActiveNode)
+                        Canvas.NudgeActiveNode((float)(dx * step), (float)(dy * step));
+                    else
+                        Controller?.MoveSelection((float)(dx * step), (float)(dy * step));
                     return Task.CompletedTask;
                 })
                 {
