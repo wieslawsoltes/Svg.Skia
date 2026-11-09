@@ -198,8 +198,7 @@ verify restored-editor-guides
 
 command 'New artboard'
 xdotool type --clearmodifiers --delay 25 'Native board'
-xdotool key --clearmodifiers Return
-sleep 0.4
+accept_dialog artboard-new
 save
 check_editor artboard
 command 'Artboards panel'
@@ -219,8 +218,7 @@ verify restored-editor-artboards
 command 'tool-rectangle'
 draw
 command 'New graphic style'
-xdotool key --clearmodifiers Return
-sleep 0.4
+accept_dialog style-capture
 save
 check_editor style
 command 'Graphic Styles panel'

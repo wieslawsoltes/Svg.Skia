@@ -33,6 +33,10 @@ cleanup() {
   local status=$?
   trap - EXIT
   if [[ "$status" -ne 0 ]]; then
+    if [[ -f "$output/application.log" ]]; then
+      printf '%s\n' 'Recent native application diagnostics:' >&2
+      tail -n 160 "$output/application.log" >&2 || true
+    fi
     window_diagnostics
     timeout 8s import -window root "$output/failure-root.png" 2>/dev/null || true
     if [[ -n "$window" ]]; then timeout 8s import -window "$window" "$output/failure-client.png" 2>/dev/null || true; fi
@@ -150,6 +154,15 @@ key_command() {
   checkpoint="$(input_checkpoint)"
   xdotool key --clearmodifiers "$1"
   wait_input "$checkpoint" "command-completed id=$2$"
+}
+accept_dialog() {
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
+  xdotool key --clearmodifiers Return
+  # Modal rejection must fail at its own boundary. Only an accepted dialog and
+  # completed command may precede the next saved-SVG assertion.
+  wait_input "$checkpoint" 'modal-closed result=Primary$'
+  wait_input "$checkpoint" "command-completed id=$1$"
 }
 open_commands() {
   local checkpoint
