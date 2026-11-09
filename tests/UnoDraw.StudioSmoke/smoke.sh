@@ -91,9 +91,8 @@ keyboard_diagnostics() {
   {
     dpkg-query -W -f='${Package} ${Version}\n' xdotool xvfb xkb-data x11-xkb-utils 2>/dev/null || true
     setxkbmap -query
-    xmodmap -pm
-    xmodmap -pke
   } >"$output/keyboard-$1.log" 2>&1
+  # This complete map includes key types and modifier_map declarations.
   xkbcomp -xkb "$DISPLAY" "$output/keyboard-$1.xkb" 2>>"$output/keyboard-$1.log"
 }
 keyboard_diagnostics before
