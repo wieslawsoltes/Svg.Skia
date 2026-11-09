@@ -51,7 +51,9 @@ public sealed partial class StudioChoiceStrip : UserControl
         _header.Foreground = (Brush)Resources["StudioMuted"];
         _header.FontWeight = Microsoft.UI.Text.FontWeights.SemiBold;
         var root = new StackPanel { Spacing = 6 };
-        root.Children.Add(_header); root.Children.Add(_fields); Content = root;
+        root.Children.Add(_header);
+        root.Children.Add(_fields);
+        Content = root;
     }
 
     private static void HeaderChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
@@ -61,16 +63,19 @@ public sealed partial class StudioChoiceStrip : UserControl
     private static void IndexChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
         var owner = (StudioChoiceStrip)sender;
-        if (owner._syncing) return;
+        if (owner._syncing)
+            return;
         var index = owner.SelectedIndex;
         if (index < -1 || index >= owner._buttons.Count)
         {
             owner._syncing = true;
-            try { owner.SelectedIndex = -1; }
+            try
+            { owner.SelectedIndex = -1; }
             finally { owner._syncing = false; }
         }
         owner.SynchronizeSelection();
-        if ((int)args.OldValue != owner.SelectedIndex) owner.SelectionChanged?.Invoke(owner, EventArgs.Empty);
+        if ((int)args.OldValue != owner.SelectedIndex)
+            owner.SelectionChanged?.Invoke(owner, EventArgs.Empty);
         // A consumer can reject a draft-target change by restoring its previous index.
         owner.SynchronizeSelection();
     }
@@ -85,26 +90,41 @@ public sealed partial class StudioChoiceStrip : UserControl
         _syncing = true;
         try
         {
-            _buttons.Clear(); _fields.Children.Clear();
+            _buttons.Clear();
+            _fields.Children.Clear();
             for (var index = 0; index < labels.Length; index++)
             {
                 var choice = index;
                 var button = new RadioButton
                 {
-                    Content = labels[index], GroupName = _groupName,
+                    Content = labels[index],
+                    GroupName = _groupName,
                     Style = (Style)Resources["StudioChoiceItemStyle"]
                 };
-                button.Checked += (_, _) => { if (!_syncing) RequestSelection(choice); };
+                button.Checked += (_, _) =>
+                {
+                    if (_syncing)
+                        return;
+                    var focusState = button.FocusState;
+                    // A successful host transaction may commit another field and
+                    // move focus. Keep pointer/Space navigation on its origin.
+                    if (RequestSelection(choice) && focusState != FocusState.Unfocused && button.IsLoaded && button.IsEnabled)
+                        button.Focus(focusState);
+                };
                 button.AddHandler(KeyDownEvent, new KeyEventHandler((_, args) => ChoiceKeyDown(choice, args)), true);
                 ToolTipService.SetToolTip(button, labels[index]);
-                _buttons.Add(button); _fields.Children.Add(button);
+                _buttons.Add(button);
+                _fields.Children.Add(button);
             }
             SelectedIndex = labels.Length == 0 ? -1 : Math.Clamp(previous, 0, labels.Length - 1);
         }
         finally { _syncing = false; }
-        SynchronizeHeader(); SynchronizeSelection();
-        if (previous != SelectedIndex) SelectionChanged?.Invoke(this, EventArgs.Empty);
-        if (focused >= 0 && SelectedIndex >= 0) _buttons[SelectedIndex].Focus(FocusState.Keyboard);
+        SynchronizeHeader();
+        SynchronizeSelection();
+        if (previous != SelectedIndex)
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+        if (focused >= 0 && SelectedIndex >= 0)
+            _buttons[SelectedIndex].Focus(FocusState.Keyboard);
     }
 
     private void SynchronizeHeader()
@@ -130,9 +150,10 @@ public sealed partial class StudioChoiceStrip : UserControl
         finally { _syncing = previous; }
     }
 
-    private void RequestSelection(int index)
+    private bool RequestSelection(int index)
     {
-        if (_syncing || _requesting || !IsEnabled) return;
+        if (_syncing || _requesting || !IsEnabled)
+            return false;
         _requesting = true;
         try
         {
@@ -140,8 +161,11 @@ public sealed partial class StudioChoiceStrip : UserControl
             {
                 var change = new StudioChoiceChangingEventArgs(SelectedIndex, index);
                 SelectionChanging?.Invoke(this, change);
-                if (!change.Cancel) SelectedIndex = index;
+                if (change.Cancel)
+                    return false;
+                SelectedIndex = index;
             }
+            return SelectedIndex == index;
         }
         finally { _requesting = false; SynchronizeSelection(); }
     }
@@ -149,7 +173,8 @@ public sealed partial class StudioChoiceStrip : UserControl
     private void ChoiceKeyDown(int index, KeyRoutedEventArgs args)
     {
         if (_buttons.Count == 0 || !IsEnabled || IsDown(VirtualKey.Control) || IsDown(VirtualKey.Menu) ||
-            IsDown(VirtualKey.LeftWindows) || IsDown(VirtualKey.RightWindows)) return;
+            IsDown(VirtualKey.LeftWindows) || IsDown(VirtualKey.RightWindows))
+            return;
         var forward = FlowDirection == FlowDirection.RightToLeft ? -1 : 1;
         var next = args.Key switch
         {
@@ -162,9 +187,11 @@ public sealed partial class StudioChoiceStrip : UserControl
             VirtualKey.Enter => index,
             _ => int.MinValue
         };
-        if (next == int.MinValue) return;
+        if (next == int.MinValue)
+            return;
         RequestSelection((next + _buttons.Count) % _buttons.Count);
-        if (SelectedIndex >= 0) _buttons[SelectedIndex].Focus(FocusState.Keyboard);
+        if (SelectedIndex >= 0)
+            _buttons[SelectedIndex].Focus(FocusState.Keyboard);
         args.Handled = true;
     }
 
