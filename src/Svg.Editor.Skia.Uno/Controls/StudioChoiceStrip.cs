@@ -101,15 +101,15 @@ public sealed partial class StudioChoiceStrip : UserControl
                     GroupName = _groupName,
                     Style = (Style)Resources["StudioChoiceItemStyle"]
                 };
-                button.Checked += (_, _) =>
+                button.Click += (_, _) =>
                 {
                     if (_syncing)
                         return;
                     var focusState = button.FocusState;
-                    // A successful host transaction may commit another field and
-                    // move focus. Keep pointer/Space navigation on its origin.
-                    if (RequestSelection(choice) && focusState != FocusState.Unfocused && button.IsLoaded && button.IsEnabled)
-                        button.Focus(focusState);
+                    // Native pointer focus precedes Click and cannot focus an
+                    // unselected IsTabStop=false segment until acceptance promotes it.
+                    if (RequestSelection(choice) && button.IsLoaded && button.IsEnabled)
+                        button.Focus(focusState == FocusState.Unfocused ? FocusState.Pointer : focusState);
                 };
                 button.AddHandler(KeyDownEvent, new KeyEventHandler((_, args) => ChoiceKeyDown(choice, args)), true);
                 ToolTipService.SetToolTip(button, labels[index]);
