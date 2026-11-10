@@ -119,6 +119,50 @@ def chrome_font_changes(before: Path, after: Path) -> dict[str, float]:
         return changes
 
 
+def workspace_affordance_pixels(path: Path, light: bool = False) -> dict[str, int]:
+    # A stable first frame can still omit unsupported Unicode symbols forever.
+    # Inspect the actual indicator pixels separately from font-load stability.
+    # These regions exclude labels, control borders, artwork and hover targets.
+    regions = {
+        "tool_columns": (3, 77, 23, 94),
+        "swap_paints": (10, 584, 25, 601),
+        "no_paint": (24, 611, 43, 628),
+        "alternate_selection": (23, 122, 31, 130),
+    }
+    with Image.open(path) as image:
+        if image.size == (1440, 960):
+            regions.update({
+                "fill_dropdown": (150, 47, 163, 61),
+                "stroke_dropdown": (250, 47, 263, 61),
+                "weight_spin": (376, 46, 389, 61),
+                "dock_menu": (1411, 81, 1428, 96),
+                "panel_picker": (1416, 111, 1431, 129),
+                "workspace_panels": (1410, 43, 1428, 61),
+            })
+        elif image.size != (390, 844):
+            raise AssertionError("Workspace indicators require a desktop or compact viewport.")
+        luminance = image.convert("L")
+        result: dict[str, int] = {}
+        for name, bounds in regions.items():
+            region = luminance.crop(bounds)
+            foreground = [[(region.getpixel((x, y)) < 190 if light else region.getpixel((x, y)) > 112)
+                           for x in range(region.width)] for y in range(region.height)]
+            # A missing glyph can also shorten a text-based control. Exclude any
+            # full-width/height border that consequently enters the sample; a
+            # control outline cannot stand in for the indicator it should contain.
+            border_columns = {x for x in range(region.width) if all(row[x] for row in foreground)}
+            border_rows = {y for y, row in enumerate(foreground) if all(row)}
+            result[name] = sum(value for y, row in enumerate(foreground) if y not in border_rows
+                               for x, value in enumerate(row) if x not in border_columns)
+        return result
+
+
+def assert_workspace_affordances(pixels: dict[str, int]) -> None:
+    missing = {name: count for name, count in pixels.items() if count < 4}
+    if missing:
+        raise AssertionError(f"Workspace indicators did not render: {missing}")
+
+
 def compact_panel_rail_changes(desktop: Path, compact: Path) -> dict[str, Any]:
     # Compare the actual rendered glyphs when the rail gains a vertical scrollbar.
     # Locate its first icon in broad chrome-only bands so the assertion tolerates
@@ -226,6 +270,11 @@ def main() -> int:
                 page.screenshot(path=str(wide))
                 assert_rendered(wide)
                 report["checks"].append("Published runtime starts and renders a nonblank desktop workspace")
+                desktop_affordances = workspace_affordance_pixels(wide)
+                report["workspace_affordances"] = {"desktop_foreground_pixels": desktop_affordances,
+                    "minimum_foreground_pixels": 4}
+                assert_workspace_affordances(desktop_affordances)
+                report["checks"].append("Desktop paint, tool, spin and dock indicators render without system-font fallback")
 
                 dark_brightness = chrome_brightness(wide)
                 if not all(value < 0.3 for value in dark_brightness.values()):
@@ -243,6 +292,10 @@ def main() -> int:
                 if not all(light_brightness[name] - value > 0.4 for name, value in dark_brightness.items()):
                     raise AssertionError("The selected theme command did not change both chrome surfaces.")
                 report["checks"].append("Ctrl+Shift+F12 command search executes Use light interface and changes both desktop chrome surfaces from dark to light")
+                light_affordances = workspace_affordance_pixels(output / "02a-command-light-theme.png", light=True)
+                report["workspace_affordances"]["light_foreground_pixels"] = light_affordances
+                assert_workspace_affordances(light_affordances)
+                report["checks"].append("Desktop indicators retain contrasting foregrounds after switching to the light theme")
 
                 page.keyboard.press("Control+Shift+F12")
                 page.wait_for_timeout(700)
@@ -267,6 +320,10 @@ def main() -> int:
                 page.screenshot(path=str(compact))
                 assert_rendered(compact)
                 report["checks"].append("Workspace renders after resizing to 390x844")
+                compact_affordances = workspace_affordance_pixels(compact)
+                report["workspace_affordances"]["compact_foreground_pixels"] = compact_affordances
+                assert_workspace_affordances(compact_affordances)
+                report["checks"].append("Compact tool-column, alternate-tool and paint indicators remain visible")
                 rail_changes = compact_panel_rail_changes(output / "02b-command-dark-theme.png", compact)
                 report["compact_panel_rail"] = rail_changes
                 if any(value > rail_changes["maximum_different_foreground_fraction"]

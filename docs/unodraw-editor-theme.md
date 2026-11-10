@@ -218,6 +218,7 @@ share the same palette and metrics:
 | Controls | Responsibility |
 | --- | --- |
 | `StudioIconButton`, `StudioToolButton`, `StudioTabButton` | Compact actions, active tool state, alternate-tool indicators and panel tabs |
+| `StudioToolIcon`, `StudioGlyph` | Vector tool artwork and compact indicators with inherited foregrounds; legacy paint/tool mark strings remain supported |
 | `StudioSection`, `StudioDockGroup`, `StudioSplitter` | Panel sections, retained dock groups and pointer/keyboard resizing |
 | `StudioNumericField`, `StudioTextField` | Validated inspector drafts, commit/cancel behavior and target validation |
 | `StudioPaintChip`, `StudioReferencePoint`, `StudioChoiceStrip` | Fill/stroke targeting, the transform reference grid and compact choices |
@@ -278,6 +279,13 @@ bold) and symbol font before releasing its first rendered frame. It uses Uno's
 public Skia font-preload API, so startup follows actual typeface readiness. Font
 load failures are logged and release the startup gate so fallback rendering can
 remain available.
+
+Control indicators use vector geometry instead of text-font fallback. This
+includes paint states and dropdowns, alternate-tool corners, tool-column and
+paint actions, number spinners and dock menus. Their visibility does not depend
+on the operating system supplying arrow, triangle or mathematical-symbol
+glyphs. Text labels use characters available in the bundled text font; keyboard
+hints name the arrow keys directly.
 
 ## Retained panels and workspace persistence
 
@@ -538,3 +546,13 @@ opt into its framework explicitly:
 dotnet build samples/UnoDraw/UnoDraw.csproj -c Release \
   -p:UnoDrawTargetFrameworks=net10.0-browserwasm
 ```
+
+The published-browser workflow runs
+[smoke.py](../tests/UnoDraw.BrowserSmoke/smoke.py) against the exact optimized
+package under the documentation site's application subfolder. It verifies
+startup, command execution, light/dark transitions, reload and PWA scope, then
+checks rendered chrome at desktop and compact sizes. Indicator-presence checks
+are separate from initial-font stability: two identically blank frames must not
+satisfy the presence of paint actions, alternate-tool marks, dropdowns, spinners
+or dock controls. Compact rail checks compare the actual desktop and narrow
+glyph masks to detect clipping when the scrollbar appears.
