@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
@@ -71,8 +72,22 @@ public sealed partial class SvgEditorWorkspace
         var applyTrack = new Button { Content = "Update preview" };
         var undo = new Button { Content = "Undo" };
         var redo = new Button { Content = "Redo" };
-        var play = new Button { Content = "▶ Play" };
-        var rewind = new Button { Content = "|◀" };
+        var playGlyph = new StudioGlyph { Symbol = "Play", VerticalAlignment = VerticalAlignment.Center };
+        var playLabel = new TextBlock { Text = "Play" };
+        var playContent = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
+        playContent.Children.Add(playGlyph);
+        playContent.Children.Add(playLabel);
+        var play = new Button { Content = playContent };
+        var rewind = new Button { Content = new StudioGlyph { Symbol = "Rewind" } };
+        AutomationProperties.SetName(play, "Play preview");
+        AutomationProperties.SetName(rewind, "Rewind preview");
+        ToolTipService.SetToolTip(rewind, "Rewind preview to the beginning");
+        void SetPlayButton(bool isPlaying)
+        {
+            playGlyph.Symbol = isPlaying ? "Pause" : "Play";
+            playLabel.Text = isPlaying ? "Pause" : "Play";
+            AutomationProperties.SetName(play, isPlaying ? "Pause preview" : "Play preview");
+        }
         var loop = new CheckBox { Content = "Loop preview", IsChecked = true, VerticalAlignment = VerticalAlignment.Center };
         var time = NumberInput("Playhead · seconds", 0, 0, 604800);
         var span = NumberInput("View duration · seconds", 5, .01, 604800);
@@ -150,7 +165,7 @@ public sealed partial class SvgEditorWorkspace
             timer.Stop();
             clock.Stop();
             playing = false;
-            play.Content = "▶ Play";
+            SetPlayButton(false);
             error.Text = exception.Message;
         }
 
@@ -406,7 +421,7 @@ public sealed partial class SvgEditorWorkspace
             timer.Stop();
             clock.Stop();
             playing = false;
-            play.Content = "▶ Play";
+            SetPlayButton(false);
             Seek(value);
         };
         ruler.TrackSelected += index => { if (index >= 0 && index < tracks.Count) trackList.SelectedIndex = index; };
@@ -429,7 +444,7 @@ public sealed partial class SvgEditorWorkspace
         play.Click += (_, _) =>
         {
             if (playing)
-            { timer.Stop(); clock.Stop(); playing = false; play.Content = "▶ Play"; Seek(playhead); return; }
+            { timer.Stop(); clock.Stop(); playing = false; SetPlayButton(false); Seek(playhead); return; }
             if (!CommitTrack())
                 return;
             if (!double.IsFinite(span.Value) || span.Value <= 0)
@@ -440,7 +455,7 @@ public sealed partial class SvgEditorWorkspace
             clock.Restart();
             playing = true;
             timer.Start();
-            play.Content = "Ⅱ Pause";
+            SetPlayButton(true);
         };
         timer.Tick += (_, _) =>
         {
@@ -455,7 +470,7 @@ public sealed partial class SvgEditorWorkspace
                     if (loop.IsChecked == true)
                     { next %= span.Value; playStart = next; clock.Restart(); }
                     else
-                    { next = span.Value; timer.Stop(); clock.Stop(); playing = false; play.Content = "▶ Play"; }
+                    { next = span.Value; timer.Stop(); clock.Stop(); playing = false; SetPlayButton(false); }
                 }
                 Seek(next, updateTimeDisplay: !playing);
                 // Yield to input and finish this frame before scheduling another one.

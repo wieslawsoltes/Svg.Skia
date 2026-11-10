@@ -44,7 +44,7 @@ public sealed partial class SvgEditorWorkspace
         {
             var type = SvgElementInfo.GetElementName(Element.GetType());
             var name = string.IsNullOrEmpty(Element.ID) ? type : Element.ID;
-            return $"{(Element.Display == "none" || Element.Visibility == "hidden" ? "◌ " : "")}{(SvgEditorController.IsLocked(Element) ? "▣ " : "")}{name}";
+            return $"{(Element.Display == "none" || Element.Visibility == "hidden" ? "[hidden] " : "")}{(SvgEditorController.IsLocked(Element) ? "[locked] " : "")}{name}";
         }
     }
     private void RefreshOutline()

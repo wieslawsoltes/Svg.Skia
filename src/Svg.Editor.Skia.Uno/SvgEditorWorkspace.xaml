@@ -48,7 +48,7 @@
         <ScrollViewer Grid.Column="1" HorizontalScrollMode="Enabled" VerticalScrollMode="Disabled" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
           <StackPanel x:Name="ContextFields" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" />
         </ScrollViewer>
-        <local:StudioIconButton Grid.Column="2" Label="Panels and workspace" Tag="workspacepanels" Click="Command_Click" Content="☷" />
+        <local:StudioIconButton Grid.Column="2" Label="Panels and workspace" Tag="workspacepanels" Click="Command_Click"><local:StudioGlyph Symbol="Panels" /></local:StudioIconButton>
       </Grid>
     </Border>
     <Grid Grid.Row="2" x:Name="EditorBody">
@@ -59,7 +59,7 @@
       </Grid.ColumnDefinitions>
       <Border x:Name="EditorToolShelf" Background="{ThemeResource StudioHeader}" BorderBrush="{ThemeResource StudioDivider}" BorderThickness="0,0,1,0">
         <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled"><StackPanel Spacing="6" Margin="3,3">
-          <Button Tag="toolbar-columns" Click="Command_Click" Content="⇆" Style="{StaticResource StudioQuietButtonStyle}" MinHeight="18" Padding="0" FontSize="11" AutomationProperties.Name="Switch tool column layout" ToolTipService.ToolTip="Switch between one and two tool columns" />
+          <Button Tag="toolbar-columns" Click="Command_Click" Style="{StaticResource StudioQuietButtonStyle}" MinHeight="18" Padding="0" FontSize="11" AutomationProperties.Name="Switch tool column layout" ToolTipService.ToolTip="Switch between one and two tool columns"><local:StudioGlyph Symbol="Swap" Width="10" Height="10" /></Button>
           <local:StudioWrapPanel x:Name="ToolRail" Spacing="2" />
           <Border Height="1" Background="{ThemeResource StudioDivider}" />
           <StackPanel x:Name="ToolPaintShelf" Spacing="4" />
@@ -121,7 +121,7 @@
                     ItemTemplate="{StaticResource StudioOutlineRowTemplate}" ItemContainerStyle="{StaticResource StudioOutlineContainer}"
                     CanDragItems="False" CanReorderItems="False" />
           <local:StudioWrapPanel Grid.Row="2" Spacing="4">
-            <Button Style="{StaticResource CompactButton}" Tag="layer" Click="Command_Click" Content="＋ Layer" />
+            <Button Style="{StaticResource CompactButton}" Tag="layer" Click="Command_Click" Content="+ Layer" />
             <Button Style="{StaticResource CompactButton}" Tag="group" Click="Command_Click" Content="Group" />
             <Button Style="{StaticResource CompactButton}" Tag="lock" Click="Command_Click" Content="Lock" />
             <Button Style="{StaticResource CompactButton}" Tag="hide" Click="Command_Click" Content="Hide" />

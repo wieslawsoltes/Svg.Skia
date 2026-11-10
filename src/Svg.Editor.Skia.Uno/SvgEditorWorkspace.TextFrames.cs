@@ -71,8 +71,10 @@ public sealed partial class SvgEditorWorkspace
         var gap = NumberInput("Column gap", 20, 0, 100000);
         var add = new Button { Content = "+ Link frame" };
         var remove = new Button { Content = "Remove frame" };
-        var up = new Button { Content = "↑" };
-        var down = new Button { Content = "↓" };
+        var up = new Button { Content = new StudioGlyph { Symbol = "Up" } };
+        var down = new Button { Content = new StudioGlyph { Symbol = "Down" } };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(up, "Move frame earlier in the text flow");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(down, "Move frame later in the text flow");
         ToolTipService.SetToolTip(up, "Move frame earlier in the text flow");
         ToolTipService.SetToolTip(down, "Move frame later in the text flow");
         var unlink = new Button { Content = "Split chain before selected frame" };

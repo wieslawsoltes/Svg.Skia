@@ -46,11 +46,11 @@
       </Grid>
       <Grid x:Name="VerticalRoot" Visibility="Collapsed" Width="12" Background="{TemplateBinding Background}">
         <Grid.RowDefinitions><RowDefinition Height="12" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="12" /></Grid.RowDefinitions>
-        <RepeatButton x:Name="VerticalSmallDecrease" Template="{StaticResource EditorScrollButtonTemplate}" Content="⌃" Foreground="{ThemeResource StudioMuted}" MinWidth="0" MinHeight="0" Padding="0" FontSize="9" IsTabStop="False" AllowFocusOnInteraction="False" Interval="50" />
+        <RepeatButton x:Name="VerticalSmallDecrease" Template="{StaticResource EditorScrollButtonTemplate}" Foreground="{ThemeResource StudioMuted}" MinWidth="0" MinHeight="0" Padding="0" FontSize="9" IsTabStop="False" AllowFocusOnInteraction="False" Interval="50"><local:StudioGlyph Symbol="ChevronUp" Width="7" Height="7" /></RepeatButton>
         <RepeatButton x:Name="VerticalLargeDecrease" Grid.Row="1" Template="{StaticResource EditorScrollButtonTemplate}" Height="0" MinWidth="0" MinHeight="0" Padding="0" IsTabStop="False" AllowFocusOnInteraction="False" Interval="50" />
         <Thumb x:Name="VerticalThumb" Grid.Row="2" Template="{StaticResource EditorScrollThumbTemplate}" Background="{ThemeResource StudioBorder}" Width="12" MinHeight="20" IsTabStop="False" AutomationProperties.AccessibilityView="Raw" />
         <RepeatButton x:Name="VerticalLargeIncrease" Grid.Row="3" Template="{StaticResource EditorScrollButtonTemplate}" MinWidth="0" MinHeight="0" Padding="0" IsTabStop="False" AllowFocusOnInteraction="False" Interval="50" />
-        <RepeatButton x:Name="VerticalSmallIncrease" Grid.Row="4" Template="{StaticResource EditorScrollButtonTemplate}" Content="⌄" Foreground="{ThemeResource StudioMuted}" MinWidth="0" MinHeight="0" Padding="0" FontSize="9" IsTabStop="False" AllowFocusOnInteraction="False" Interval="50" />
+        <RepeatButton x:Name="VerticalSmallIncrease" Grid.Row="4" Template="{StaticResource EditorScrollButtonTemplate}" Foreground="{ThemeResource StudioMuted}" MinWidth="0" MinHeight="0" Padding="0" FontSize="9" IsTabStop="False" AllowFocusOnInteraction="False" Interval="50"><local:StudioGlyph Symbol="ChevronDown" Width="7" Height="7" /></RepeatButton>
       </Grid>
     </Grid>
   </ControlTemplate>

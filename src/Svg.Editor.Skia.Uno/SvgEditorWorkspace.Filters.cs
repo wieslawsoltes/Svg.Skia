@@ -161,7 +161,7 @@ public sealed partial class SvgEditorWorkspace
                 var captured = index;
                 var node = nodes[index];
                 var content = new StackPanel { Spacing = 3 };
-                content.Children.Add(new TextBlock { Text = $"{index + 1}. {node.Name.LocalName}  →  {(string?)node.Attribute("result") ?? "(next)"}", FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis });
+                content.Children.Add(new TextBlock { Text = $"{index + 1}. {node.Name.LocalName}  ->  {(string?)node.Attribute("result") ?? "(next)"}", FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis });
                 content.Children.Add(new TextBlock { Text = string.Join(" · ", edges.Where(edge => edge.Target == captured).Select(edge => $"{edge.Port}: {edge.Value}")), FontSize = 11, Opacity = 0.7, TextTrimming = TextTrimming.CharacterEllipsis });
                 var button = new Button { Content = content, Width = Math.Max(150, graphView.Width - 96), Height = 64, HorizontalContentAlignment = HorizontalAlignment.Stretch };
                 if (index == selected)

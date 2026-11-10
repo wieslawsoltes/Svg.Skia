@@ -466,7 +466,7 @@ public sealed partial class SvgEditorWorkspace
         var actions = new Grid { ColumnSpacing = 1 };
         actions.ColumnDefinitions.Add(new ColumnDefinition());
         actions.ColumnDefinitions.Add(new ColumnDefinition());
-        var swap = new StudioIconButton { Label = "Swap Fill and Stroke", Shortcut = EditorShortcutText("swappaints"), Content = "⇄", MinWidth = 0, Padding = new Thickness(0), MinHeight = 24 };
+        var swap = new StudioIconButton { Label = "Swap Fill and Stroke", Shortcut = EditorShortcutText("swappaints"), Content = new StudioGlyph { Symbol = "Swap" }, MinWidth = 0, Padding = new Thickness(0), MinHeight = 24 };
         var defaults = new StudioIconButton { Label = "Default Fill and Stroke", Shortcut = EditorShortcutText("defaultpaints"), Content = "D", MinWidth = 0, Padding = new Thickness(0), MinHeight = 24 };
         swap.Click += async (_, _) => await RunCommandAsync("swappaints");
         defaults.Click += async (_, _) => await RunCommandAsync("defaultpaints");
@@ -474,7 +474,7 @@ public sealed partial class SvgEditorWorkspace
         actions.Children.Add(defaults);
         Grid.SetColumn(defaults, 1);
         ToolPaintShelf.Children.Add(actions);
-        var none = new StudioIconButton { Label = "No Paint", Shortcut = EditorShortcutText("nonepaint"), Content = "∅", MinWidth = 0, MinHeight = 24, Padding = new Thickness(0), HorizontalAlignment = HorizontalAlignment.Stretch };
+        var none = new StudioIconButton { Label = "No Paint", Shortcut = EditorShortcutText("nonepaint"), Content = new StudioGlyph { Symbol = "None" }, MinWidth = 0, MinHeight = 24, Padding = new Thickness(0), HorizontalAlignment = HorizontalAlignment.Stretch };
         none.Click += async (_, _) => await RunCommandAsync("nonepaint");
         ToolPaintShelf.Children.Add(none);
         EditorShortcutsChanged += (_, _) =>

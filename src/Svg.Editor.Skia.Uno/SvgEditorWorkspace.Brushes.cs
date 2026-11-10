@@ -139,7 +139,7 @@ public sealed partial class SvgEditorWorkspace
             loading = true;
             brushes = SvgBrushLibraryService.Load(document);
             library.Items.Clear();
-            library.Items.Add("＋ New brush");
+            library.Items.Add("+ New brush");
             foreach (var brush in brushes)
                 library.Items.Add(brush);
             var selected = brushes.Select((brush, index) => (brush, index)).FirstOrDefault(pair => pair.brush.Id == select);
@@ -247,7 +247,7 @@ public sealed partial class SvgEditorWorkspace
                 if (apply.IsChecked == true)
                 {
                     if (paths.Length == 0 || paths.Length != controller.SelectedElements.Count)
-                        throw new InvalidOperationException("Select paths to apply this brush. Convert shapes with Path → Convert to paths first.");
+                        throw new InvalidOperationException("Select paths to apply this brush. Convert shapes with Object > Path > Convert to Paths first.");
                     controller.EnsureSelectionEditable();
                 }
                 controller.Execute("Save vector brush", () =>

@@ -184,7 +184,7 @@
           <VisualState x:Name="TextEntryGridCollapsed" />
           <VisualState x:Name="TextEntryGridVisible"><VisualState.Setters>
             <Setter Target="TextEntryGrid.Visibility" Value="Visible" />
-            <Setter Target="MoreGlyph.Text" Value="⌃" />
+            <Setter Target="MoreGlyph.Symbol" Value="ChevronUp" />
           </VisualState.Setters></VisualState>
         </VisualStateGroup>
         <VisualStateGroup x:Name="ColorChannelTextInputVisibility">
@@ -274,7 +274,7 @@
       </Grid>
       <StackPanel x:Name="MoreEntriesPanel" Grid.Row="3" Spacing="6">
         <ToggleButton x:Name="MoreButton" Template="{StaticResource EditorToggleButtonTemplate}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="6,3" MinHeight="24" Background="Transparent" BorderThickness="0" Foreground="{ThemeResource StudioForeground}" TabIndex="3">
-          <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock x:Name="MoreButtonLabel" FontSize="12" /><TextBlock x:Name="MoreGlyph" Text="⌄" FontSize="12" /></StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock x:Name="MoreButtonLabel" FontSize="12" /><local:StudioGlyph x:Name="MoreGlyph" Symbol="ChevronDown" Width="8" Height="12" /></StackPanel>
         </ToggleButton>
         <StackPanel x:Name="TextEntryGrid" Spacing="6" Visibility="Collapsed">
           <ComboBox x:Name="ColorRepresentationComboBox" Template="{StaticResource EditorComboBoxTemplate}" SelectedIndex="0" HorizontalAlignment="Stretch" MinWidth="0" FontSize="12" Padding="6,3" MinHeight="24" TabIndex="4">

@@ -48,7 +48,7 @@
     <StackPanel Grid.Row="2" Spacing="6">
       <Border Height="1" Background="{ThemeResource StudioDivider}" />
       <TextBlock x:Name="ResultCount" Style="{StaticResource StudioHintStyle}" />
-      <TextBlock Text="↑ ↓  Navigate    Enter  Run    Esc  Close" Style="{StaticResource StudioHintStyle}" />
+      <TextBlock Text="Up/Down  Navigate    Enter  Run    Esc  Close" Style="{StaticResource StudioHintStyle}" />
     </StackPanel>
   </Grid>
 </UserControl>
