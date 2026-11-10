@@ -35,7 +35,16 @@ public sealed class StudioGlyph : UserControl
         var artwork = new Grid { Width = 12, Height = 12 };
         artwork.Children.Add(_path);
         artwork.Children.Add(_fallback);
-        Content = new Viewbox { Child = artwork, Stretch = Stretch.Uniform };
+        var viewport = new Viewbox { Child = artwork, Stretch = Stretch.Uniform };
+        viewport.SizeChanged += (_, args) =>
+        {
+            // Target a one-DIP compact stroke after Viewbox scaling; native
+            // shape rasterization still applies its display-scale rounding.
+            // Without compensation, a seven-DIP chevron has a 0.58-DIP stroke.
+            var extent = Math.Min(args.NewSize.Width, args.NewSize.Height);
+            _path.StrokeThickness = extent > 0 ? Math.Max(1, 12 / extent) : 1;
+        };
+        Content = viewport;
         UpdateGeometry();
     }
 

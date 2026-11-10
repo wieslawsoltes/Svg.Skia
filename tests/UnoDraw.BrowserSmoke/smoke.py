@@ -133,7 +133,7 @@ def workspace_affordance_pixels(path: Path, light: bool = False) -> dict[str, in
         if image.size == (1440, 960):
             regions.update({
                 "fill_dropdown": (150, 47, 163, 61),
-                "stroke_dropdown": (250, 47, 263, 61),
+                "stroke_dropdown": (245, 47, 258, 61),
                 "weight_spin": (376, 46, 389, 61),
                 "dock_menu": (1411, 81, 1428, 96),
                 "panel_picker": (1416, 111, 1431, 129),

@@ -284,8 +284,10 @@ Control indicators use vector geometry instead of text-font fallback. This
 includes paint states and dropdowns, alternate-tool corners, tool-column and
 paint actions, number spinners and dock menus. Their visibility does not depend
 on the operating system supplying arrow, triangle or mathematical-symbol
-glyphs. Text labels use characters available in the bundled text font; keyboard
-hints name the arrow keys directly.
+glyphs. Compact geometry targets a one-DIP stroke after internal scaling, with
+the native renderer's display-scale rounding, so seven-DIP dropdowns and small
+spinners retain their contrast. Text labels use characters available in the
+bundled text font; keyboard hints name the arrow keys directly.
 
 ## Retained panels and workspace persistence
 
