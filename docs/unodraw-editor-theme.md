@@ -7,6 +7,11 @@ with the existing SVG controller, retained renderer, document history, tool
 engine and dock layout. Hosts can use the controls independently or embed the
 complete workspace.
 
+The workspace now targets Uno Platform 7. Rebuild Uno host and library projects
+together when upgrading; existing `EditorTheme`, `Studio*` control names and
+resource keys remain available. The [Uno 7 migration guide](unodraw-uno7.md)
+describes the dependency set and browser WebGPU composition with Skia fallback.
+
 ## Add the theme to a host
 
 Reference `Svg.Editor.Skia.Uno` and merge `EditorTheme` after

@@ -14,7 +14,7 @@ These native Linux captures show the EditorTheme workspace with the editable SVG
 
 ## Build and run
 
-Use the .NET 10 SDK selected by the repository's `global.json`. The default target is `net10.0-desktop`, with Windows, macOS and Linux hosts. Browser, Android and iOS targets are opt-in through `UnoDrawTargetFrameworks`; a default desktop solution build does not require their workloads. The target configuration is in [`UnoDraw.csproj`](../samples/UnoDraw/UnoDraw.csproj).
+Use the .NET 10 SDK selected by the repository's `global.json`. All Uno projects use Uno SDK 7.0.5 and its Uno runtime 7.0.32 dependency set. Rebuild consuming Uno libraries when upgrading from Uno 6; the [Uno 7 migration guide](unodraw-uno7.md) describes the host, package and rendering changes. The default target is `net10.0-desktop`, with Windows, macOS and Linux hosts. Browser, Android and iOS targets are opt-in through `UnoDrawTargetFrameworks`; a default desktop solution build does not require their workloads. The target configuration is in [`UnoDraw.csproj`](../samples/UnoDraw/UnoDraw.csproj).
 
 ### Desktop
 
@@ -42,8 +42,8 @@ Each command below selects one target explicitly. Install the corresponding work
 | Target | Framework | Host requirements and output |
 | --- | --- | --- |
 | Desktop | `net10.0-desktop` | Windows, macOS or Linux host; direct Uno Skia canvas. |
-| Browser | `net10.0-browserwasm` | `wasm-tools`; published WebAssembly application. The project defaults to interpreter execution and disables trimming because SVG element/attribute discovery uses reflection. |
-| Android | `net10.0-android` | Android workload, Android SDK and JDK; APK output, minimum Android API 23. |
+| Browser | `net10.0-browserwasm` | `wasm-tools`; published WebAssembly application. WebGPU composition is preferred, with Skia fallback. The project defaults to interpreter execution and disables trimming because SVG element/attribute discovery uses reflection. |
+| Android | `net10.0-android` | Android workload, Android SDK and JDK; APK output, minimum Android API 24. |
 | iOS | `net10.0-ios` | macOS, compatible Xcode and iOS workload; minimum iOS 15. Simulator builds do not require distribution signing. |
 
 Publish browser assets:
@@ -54,6 +54,8 @@ dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-browserwasm -p:UnoDrawT
 ```
 
 Serve the published WebAssembly web assets over HTTP or HTTPS. The browser CI job additionally requests `-p:WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT`; the default project setting remains `Interpreter` so local development does not require an AOT publish. AOT enables the required linker pipeline while assigning the `copy` action to every managed assembly, preserving SVG reflection metadata and JSON recovery serialization. Browser builds enable IndexedDB-backed filesystem persistence for recovery storage. File pickers and saves use Uno storage providers, including completion of provider-managed downloads, rather than assuming every selected file exposes a writable native path.
+
+WebGPU requires a secure browser context, such as HTTPS or localhost, and an available adapter. The browser host explicitly tries Uno's experimental WebGPU provider before the Skia provider. The same published package therefore opens with Skia when WebGPU cannot initialize. `SKCanvasElement` retains the existing SVG renderer through Uno's compatibility bridge; see [Canvas and performance](#canvas-and-performance) for its copy boundary. CI exercises both provider outcomes against the optimized package under the GitHub Pages subpath, without requiring cross-origin isolation.
 
 Release browser packages omit native DWARF debug information before AOT/native optimization to reduce build memory pressure. This does not trim managed assemblies or SVG reflection metadata. Use `-p:WasmNativeDebugSymbols=true` when native WebAssembly debugging is needed and the build host has sufficient memory. CI also limits Binaryen to one worker and publishes with serial MSBuild execution and no shared C# compiler process; AOT and the optimization level remain enabled.
 
@@ -74,7 +76,7 @@ dotnet workload install ios --skip-manifest-update
 dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-ios -p:UnoDrawTargetFrameworks=net10.0-ios -c Release -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false -p:UseInterpreter=true -p:MtouchUseLlvm=false
 ```
 
-The iOS CI job pins .NET SDK/workload 10.0.401 with Xcode 26.6 on macOS 26; keep the workload and Xcode versions compatible when building locally. This simulator command uses the interpreter to avoid AOT-compiling the entire preserved SVG dependency graph; device Release builds retain the normal AOT configuration. The iOS head supplies native folder, format, file-name and overwrite prompts because Uno 6.5 does not provide a default save picker. Its application delegate obtains background time to finish a recovery checkpoint when the app leaves the foreground.
+The iOS CI job pins .NET SDK/workload 10.0.401 with Xcode 26.6 on macOS 26; keep the workload and Xcode versions compatible when building locally. This simulator command uses the interpreter to avoid AOT-compiling the entire preserved SVG dependency graph; device Release builds retain the normal AOT configuration. The iOS head supplies native folder, format, file-name and overwrite prompts. It migrates settings from the pre-Uno-7 storage before constructing the application, retaining shortcut and workspace preferences. Its application delegate obtains background time to finish a recovery checkpoint when the app leaves the foreground.
 
 Use `iossimulator-x64` for an Intel simulator host. Physical-device and distribution builds need the corresponding runtime identifier and signing configuration. These targets share the same workspace and SVG engine; file access, fonts, GPU backends and pointer behavior still depend on the host. Desktop startup paths are a desktop feature; the embedded welcome SVG supplies the initial document on all targets.
 
@@ -118,9 +120,9 @@ After successfully writing a captured SVG snapshot, hosts call `SvgEditorControl
 
 ### Canvas and performance
 
-`SvgEditorCanvas` derives from Uno's `SKCanvasElement`. It draws into the Skia surface already used by Uno through `SKSvg.Draw`, replaying the retained picture and current animation layers. It does not rasterize an intermediate image on every frame.
+`SvgEditorCanvas` derives from Uno's `SKCanvasElement` and calls `SKSvg.Draw` to replay the retained picture and current animation layers. On a Skia host it draws into the host's Skia canvas. On the browser's WebGPU host, Uno bridges that same element through a Skia-on-GL compatibility island when available, reading back and copying its content for WebGPU composition. If the GL island cannot initialize, the bridge renders to a raster surface and uploads the result. The document engine and its retained picture are shared across these paths.
 
-The host selects the graphics backend and may fall back to software. Using `SKCanvasElement` enables direct accelerated drawing when the host provides it; it does not prove that a particular machine is using a GPU. The workspace deliberately identifies the rendering path as a direct canvas rather than displaying an unconditional hardware status claim.
+WebGPU therefore changes UI composition while preserving the SVG rendering implementation. Its compatibility bridge has a per-frame copy cost; this migration does not establish a performance improvement for every drawing. The host selects its graphics provider and may use a software adapter or software rendering. The workspace labels the surface as an SVG canvas, without making an unconditional hardware-acceleration claim. The [backend guide](unodraw-uno7.md) describes provider negotiation and runtime verification.
 
 `SvgEditorViewport` keeps camera state separate from document state. Pan, zoom, fitting, selection and overlays do not serialize the SVG or recreate its retained picture. Zoom is anchored to the cursor and bounded between 1% and 12,800%; calculations use double precision before conversion to the Skia transform. The picture cache is invalidated by document edits.
 

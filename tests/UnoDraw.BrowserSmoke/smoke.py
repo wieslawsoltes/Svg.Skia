@@ -17,6 +17,8 @@ from urllib.parse import urlsplit
 from PIL import Image, ImageChops, ImageStat
 from playwright.sync_api import Page, sync_playwright
 
+from backend import BACKENDS, launch_arguments, verify_backend
+
 
 class SiteHandler(http.server.SimpleHTTPRequestHandler):
     extensions_map = {
@@ -74,11 +76,66 @@ def wait_ready(page: Page) -> None:
     page.wait_for_timeout(1500)
 
 
+def record_backend(page: Page, report: dict[str, Any], phase: str, console_start: int) -> None:
+    capabilities = page.evaluate("""async () => {
+        const result = {secure_context: isSecureContext,
+            api_available: typeof navigator.gpu?.requestAdapter === 'function',
+            adapter_available: false, adapter_info: null};
+        if (!result.api_available) return result;
+        let timeout;
+        try {
+            const adapter = await Promise.race([
+                navigator.gpu.requestAdapter(),
+                new Promise((_, reject) => { timeout = setTimeout(() =>
+                    reject(new Error('WebGPU adapter diagnostic timed out')), 15000); })
+            ]);
+            result.adapter_available = !!adapter;
+            if (adapter?.info) {
+                const info = adapter.info;
+                result.adapter_info = {vendor: info.vendor, architecture: info.architecture,
+                    device: info.device, description: info.description,
+                    is_fallback_adapter: info.isFallbackAdapter};
+            }
+            return result;
+        } finally { clearTimeout(timeout); }
+    }""")
+    console_end = len(report["console"])
+    evidence = {"console_start_index": console_start, "console_end_index": console_end,
+                "capabilities": capabilities}
+    report["backend_selection"][phase] = evidence
+    evidence.update(verify_backend(report["console"][console_start:console_end], capabilities, report["backend_mode"]))
+    evidence["expected_console_error_indices"] = [console_start + index
+                                                for index in evidence["expected_console_error_indices"]]
+
+
 def assert_rendered(path: Path) -> None:
     with Image.open(path) as image:
         colors = image.convert("RGB").resize((180, 120)).quantize(colors=32).getcolors()
         if not colors or len(colors) < 8:
             raise AssertionError(f"The captured workspace appears blank: {path.name}")
+
+
+def artwork_pixels(path: Path) -> dict[str, int]:
+    # The Welcome.svg landscape contains substantial indigo, green and peach
+    # shapes. Sample only the document viewport, excluding tools, panels, rulers
+    # and status chrome. A working interface cannot hide a blank SKCanvasElement
+    # bridge, and neutral paper/text cannot satisfy these three color families.
+    with Image.open(path) as image:
+        if image.size != (1440, 960):
+            raise AssertionError("Document artwork must be inspected in the desktop viewport.")
+        region = image.convert("RGB").crop((100, 160, 1050, 880))
+        pixels = {"indigo": 0, "green": 0, "peach": 0}
+        for red, green, blue in region.get_flattened_data():
+            pixels["indigo"] += 40 <= red <= 170 and blue > red + 45 and blue > green + 45
+            pixels["green"] += green > red + 20 and green > blue + 5
+            pixels["peach"] += red > 235 and 150 <= green <= 235 and 100 <= blue <= 190 and red > green + 15 and green > blue + 12
+        return pixels
+
+
+def assert_artwork(pixels: dict[str, int]) -> None:
+    missing = {name: count for name, count in pixels.items() if count < 1000}
+    if missing:
+        raise AssertionError(f"The welcome SVG artwork did not render through the selected backend: {missing}")
 
 
 def changed_pixels(before: Path, after: Path) -> int:
@@ -224,6 +281,7 @@ def main() -> int:
     parser.add_argument("--site", type=Path, required=True, help="Static HTTP document root")
     parser.add_argument("--base-path", default="/", help="Application path under the document root, with leading/trailing slashes")
     parser.add_argument("--output", type=Path, required=True, help="Diagnostic artifact directory")
+    parser.add_argument("--backend", choices=BACKENDS, required=True, help="Renderer that must win negotiation on startup and reload")
     args = parser.parse_args()
     site, output = args.site.resolve(), args.output.resolve()
     base_path = args.base_path
@@ -244,13 +302,16 @@ def main() -> int:
         "site": str(site),
         "base_path": base_path,
         "index_sha256": hashlib.sha256((app / "index.html").read_bytes()).hexdigest(),
-        "graphics": "Headless Chromium with software WebGL; not a hardware-performance benchmark",
+        "graphics": "Headless Chromium with SwiftShader software graphics; not a hardware-performance benchmark",
+        "backend_mode": args.backend,
+        "browser_launch_arguments": launch_arguments(args.backend),
+        "backend_selection": {},
         "console": [], "page_errors": [], "http_errors": [], "request_failures": [], "checks": [],
     }
     page: Page | None = None
     try:
         with serve(site) as url, sync_playwright() as playwright:
-            browser = playwright.chromium.launch(headless=True, args=["--enable-unsafe-swiftshader"])
+            browser = playwright.chromium.launch(headless=True, args=report["browser_launch_arguments"])
             report["browser_version"] = browser.version
             context = browser.new_context(viewport={"width": 1440, "height": 960}, device_scale_factor=1)
             context.tracing.start(screenshots=True, snapshots=True, sources=False)
@@ -266,10 +327,17 @@ def main() -> int:
                 if page.evaluate("globalThis.crossOriginIsolated"):
                     raise AssertionError("Smoke server must match GitHub Pages without cross-origin isolation")
                 report["checks"].append(f"Application starts at {base_path} without cross-origin isolation")
+                record_backend(page, report, "startup", 0)
+                report["checks"].append(f"{args.backend} selects the required renderer on startup, confirmed by runtime negotiation and browser adapter availability")
                 wide = output / "01-workspace-desktop.png"
                 page.screenshot(path=str(wide))
                 assert_rendered(wide)
                 report["checks"].append("Published runtime starts and renders a nonblank desktop workspace")
+                document_pixels = artwork_pixels(wide)
+                report["document_artwork"] = {"color_family_pixels": document_pixels,
+                    "minimum_pixels_per_family": 1000, "region": [100, 160, 1050, 880]}
+                assert_artwork(document_pixels)
+                report["checks"].append("The welcome SVG landscape renders its indigo, green and peach artwork through the selected backend")
                 desktop_affordances = workspace_affordance_pixels(wide)
                 report["workspace_affordances"] = {"desktop_foreground_pixels": desktop_affordances,
                     "minimum_foreground_pixels": 4}
@@ -331,8 +399,11 @@ def main() -> int:
                     raise AssertionError(f"The compact panel rail clips or changes its glyphs: {rail_changes}")
                 report["checks"].append("Compact scrolling panel rail preserves all six inspected desktop glyphs")
 
+                reload_console_start = len(report["console"])
                 page.reload(wait_until="domcontentloaded", timeout=120_000)
                 wait_ready(page)
+                record_backend(page, report, "reload", reload_console_start)
+                report["checks"].append(f"{args.backend} selects the required renderer again after reload using fresh negotiation evidence")
                 reopened = output / "04-workspace-reloaded.png"
                 page.screenshot(path=str(reopened))
                 assert_rendered(reopened)
@@ -351,8 +422,16 @@ def main() -> int:
                     raise AssertionError(f"PWA manifest must stay inside the application folder: {manifest}")
                 report["checks"].append("PWA start URL, manifest scope and service worker scopes stay inside the application folder")
 
-                errors = [entry for entry in report["console"] if entry["type"] == "error"
+                # Recheck the complete log so a later unexpected renderer cannot
+                # hide between the startup and reload evidence snapshots.
+                complete_backend = verify_backend(report["console"],
+                    report["backend_selection"]["reload"]["capabilities"], args.backend)
+                expected_errors = set(complete_backend["expected_console_error_indices"])
+                report["expected_backend_errors"] = [report["console"][index] for index in sorted(expected_errors)]
+                errors = [entry for index, entry in enumerate(report["console"]) if entry["type"] == "error"
+                          and index not in expected_errors
                           and urlsplit(entry["location"].get("url", "")).path != "/favicon.ico"]
+                report["unexpected_console_errors"] = errors
                 # A browser-generated optional favicon request and navigation-aborted
                 # requests are not app failures. Missing scripts/Wasm/fonts remain fatal.
                 http_errors = [entry for entry in report["http_errors"] if urlsplit(entry["url"]).path != "/favicon.ico"]
