@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Iterator
 from urllib.parse import urlsplit
 
-from PIL import Image, ImageChops, ImageStat
+from PIL import Image, ImageChops, ImageFilter, ImageStat
 from playwright.sync_api import Page, sync_playwright
 
 from backend import BACKENDS, launch_arguments, verify_backend
@@ -136,6 +136,62 @@ def assert_artwork(pixels: dict[str, int]) -> None:
     missing = {name: count for name, count in pixels.items() if count < 1000}
     if missing:
         raise AssertionError(f"The welcome SVG artwork did not render through the selected backend: {missing}")
+
+
+def artwork_transition(before: Path, after: Path, restore: bool) -> dict[str, Any]:
+    presence = artwork_pixels(after)
+    assert_artwork(presence)
+    with Image.open(before) as first, Image.open(after) as second:
+        if first.size != (1440, 960) or second.size != first.size:
+            raise AssertionError("Document repaint requires matching desktop viewports.")
+        initial = first.convert("RGB").crop((100, 160, 1050, 880))
+        current = second.convert("RGB").crop((100, 160, 1050, 880))
+        difference = ImageChops.difference(initial, current).convert("L")
+        changed = difference.point(lambda value: 255 if value > 12 else 0)
+        if restore:
+            fraction = changed.histogram()[255] / (changed.width * changed.height)
+            # Both fit commands use the same 48px padding and the welcome file
+            # has one artboard. The camera is recomputed, not incrementally undone.
+            # Permit at most 0.1% differing pixels above the existing 12/255
+            # luminance tolerance for raster edges; a shifted view cannot pass.
+            if fraction > 0.001:
+                raise AssertionError(f"Fit artboard did not restore the document pixels: {fraction:.6f}")
+            return {"color_family_pixels": presence, "changed_pixel_fraction": fraction}
+
+        families = {
+            "indigo": lambda rgb: 40 <= rgb[0] <= 170 and rgb[2] > rgb[0] + 45 and rgb[2] > rgb[1] + 45,
+            "green": lambda rgb: rgb[1] > rgb[0] + 20 and rgb[1] > rgb[2] + 5,
+            "peach": lambda rgb: rgb[0] > 235 and 150 <= rgb[1] <= 235 and 100 <= rgb[2] <= 190
+                     and rgb[0] > rgb[1] + 15 and rgb[1] > rgb[2] + 12,
+        }
+        initial_pixels, current_pixels = initial.get_flattened_data(), current.get_flattened_data()
+        changes: dict[str, int] = {}
+        for name, contains in families.items():
+            mask = Image.new("L", initial.size)
+            mask.putdata([255 if contains(old) or contains(new) else 0
+                          for old, new in zip(initial_pixels, current_pixels)])
+            # Require changed interiors in every artwork color family. Eroding
+            # the change mask removes thin selection/hover outlines, even where
+            # they cross colored artwork. Chrome is outside the sampled region.
+            interior = ImageChops.darker(changed, mask).filter(ImageFilter.MinFilter(7))
+            changes[name] = interior.histogram()[255]
+        missing = {name: count for name, count in changes.items() if count < 500}
+        if missing:
+            raise AssertionError(f"Actual size did not repaint all artwork color families: {missing}")
+        return {"color_family_pixels": presence, "changed_interior_pixels": changes}
+
+
+def wait_for_artwork_transition(page: Page, before: Path, after: Path, restore: bool) -> dict[str, Any]:
+    deadline = time.monotonic() + 15
+    failure = "No document frame was captured"
+    while time.monotonic() < deadline:
+        page.screenshot(path=str(after))
+        try:
+            return artwork_transition(before, after, restore)
+        except AssertionError as error:
+            failure = str(error)
+        page.wait_for_timeout(100)
+    raise AssertionError(f"The document camera command did not finish rendering: {failure}")
 
 
 def changed_pixels(before: Path, after: Path) -> int:
@@ -381,6 +437,21 @@ def main() -> int:
                 if any(value > font_change_limit for value in font_changes.values()):
                     raise AssertionError(f"Initial chrome font/glyphs changed after startup: {font_changes}")
                 report["checks"].append("Initial desktop menu labels and font icons match the settled dark workspace")
+
+                # Exercise retained SVG repaint through the selected compositor
+                # using real camera shortcuts, without changing the document.
+                fitted = output / "02b-command-dark-theme.png"
+                repaint: dict[str, Any] = {"region": [100, 160, 1050, 880],
+                    "minimum_changed_interior_pixels_per_family": 500, "interior_filter_size": 7,
+                    "maximum_restored_changed_pixel_fraction": 0.001, "luminance_difference_threshold": 12}
+                report["artwork_repaint"] = repaint
+                page.keyboard.press("Control+1")
+                repaint["actual_size"] = wait_for_artwork_transition(page, fitted,
+                    output / "02c-artwork-actual-size.png", restore=False)
+                page.keyboard.press("Control+0")
+                repaint["refitted"] = wait_for_artwork_transition(page, fitted,
+                    output / "02d-artwork-refitted.png", restore=True)
+                report["checks"].append("Ctrl+1 repaints all three SVG artwork color families and Ctrl+0 restores the fitted document pixels")
 
                 page.set_viewport_size({"width": 390, "height": 844})
                 wait_ready(page)

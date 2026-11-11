@@ -42,6 +42,16 @@ the renderer on startup/reload. Another inspects substantial indigo, green and
 peach regions of the welcome SVG inside the document viewport. This catches a
 blank Skia canvas bridge even when the surrounding interface renders correctly.
 
+A sixteenth check sends the real Ctrl+1 (actual size) and Ctrl+0 (fit artboard)
+shortcuts. Actual size must preserve all three artwork color families and change
+at least 500 interior pixels in each, after a 7×7 erosion removes thin selection
+outlines. Fit artboard must preserve those colors and restore the document crop
+with at most 0.1% differing pixels above a luminance difference of 12/255. Both
+initial and active-artboard fitting use the same 48px padding for the single
+welcome artboard, so the camera returns to the same view. Screenshots
+`02c-artwork-actual-size.png` and `02d-artwork-refitted.png` capture both states.
+This verifies repaint through the canvas bridge without changing the SVG.
+
 The two matrix jobs upload distinct `unodraw-browser-smoke-webgpu` and
 `unodraw-browser-smoke-skia-fallback` artifacts. Each contains `report.json`,
 screenshots and a Playwright trace, plus the final HTML/screenshot on failure.
@@ -64,5 +74,6 @@ python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/pages --base-path /S
 The local HTTP server deliberately omits COOP/COEP headers to match GitHub Pages.
 Diagnostics must be outside its document root. The unit checks exercise missing
 or stale renderer evidence, silent fallback, invalid browser contexts, narrowly
-scoped expected errors, and blank artwork false positives. They supplement the
+scoped expected errors, blank/frozen artwork, outline-only changes, incomplete
+color-family repaint, and failed camera restoration. They supplement the
 two published-runtime runs.

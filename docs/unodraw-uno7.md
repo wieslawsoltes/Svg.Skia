@@ -108,6 +108,15 @@ composition while retaining the SVG engine; performance depends on the document,
 device and compatibility path. Measure it on the target hardware before drawing
 performance conclusions.
 
+Uno 7's [`SKCanvasVisual`][skcanvas-visual] uses a
+[`BorderVisual`][border-visual] whose pointer hit testing depends on background
+or border geometry. Interactive drawing surfaces set a transparent
+background so their complete bounds receive input while preserving their Skia
+painting. This applies to the editor canvas, document rulers, mesh editor,
+timeline ruler and reusable SVG control; passive previews retain their existing
+input behavior. Native interaction tests exercise actual drawing and ruler
+gestures, including their saved SVG results.
+
 ## Native host migration
 
 Android targets API 24 or later. Its application derives from
@@ -162,7 +171,9 @@ fails through the browser's normal implementation. Uno reports the expected
 Skia. The harness distinguishes that exact expected message from other runtime
 errors. It retains the existing startup, theme-command, font/indicator, compact
 layout, reload and PWA-scope checks, and checks canvas artwork separately from
-the surrounding UI.
+the surrounding UI. Actual-size and fit-artboard keyboard commands must repaint
+the SVG's three color families and restore the fitted document pixels, checking
+the compatibility bridge beyond its first frame.
 
 Headless CI uses a software GPU implementation to exercise the WebGPU API path.
 Its results establish rendering and interaction behavior, not hardware
@@ -175,6 +186,8 @@ for a particular commit; this guide does not constitute a completed test result.
 [webgpu-spec]: https://www.w3.org/TR/webgpu/#navigator-gpu
 [secure-contexts]: https://www.w3.org/TR/secure-contexts/#is-origin-trustworthy
 [skcanvas]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/AddIns/Uno.WinUI.Graphics2DSK/SKCanvasElement.cs
+[skcanvas-visual]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/AddIns/Uno.WinUI.Graphics2DSK/SKCanvasVisual.cs
+[border-visual]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/Uno.UI.Composition/Composition/BorderVisual.skia.cs
 [skia-island]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/AddIns/Uno.WinUI.Graphics2DSK/SkiaGLIslandRenderer.cs
 [glcanvas]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/AddIns/Uno.WinUI.Graphics3DGL/GLCanvasElement.cs
 [startup]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/doc/articles/migrating-to-uno-7/app-startup.md
