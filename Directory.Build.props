@@ -4,7 +4,7 @@
     <VersionSuffix></VersionSuffix>
     <AvaloniaVersionPrefix>12.0.0.17</AvaloniaVersionPrefix>
     <AvaloniaVersionSuffix>$(VersionSuffix)</AvaloniaVersionSuffix>
-    <UnoVersionPrefix>6.5.31.18</UnoVersionPrefix>
+    <UnoVersionPrefix>7.0.5.0</UnoVersionPrefix>
     <UnoVersionSuffix>$(VersionSuffix)</UnoVersionSuffix>
     <MauiVersionPrefix>10.0.0.13</MauiVersionPrefix>
     <MauiVersionSuffix>$(VersionSuffix)</MauiVersionSuffix>

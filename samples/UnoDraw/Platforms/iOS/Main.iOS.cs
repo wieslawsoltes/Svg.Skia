@@ -10,7 +10,13 @@ public static class EntryPoint
     {
         ApiExtensibility.Register(typeof(IFileSavePickerExtension), owner => new IosFileSavePickerExtension(owner));
         var host = UnoPlatformHostBuilder.Create()
-            .App(() => new App())
+            .App(() =>
+            {
+                // Preserve shortcuts and workspaces from the pre-7 settings store
+                // before constructing the editor. Existing migrated values win.
+                Uno.Storage.ApplicationDataMigrator.MigrateSettings();
+                return new App();
+            })
             .UseAppleUIKit(builder => builder.UseUIApplicationDelegate<UnoDrawApplicationDelegate>())
             .Build();
         host.Run();

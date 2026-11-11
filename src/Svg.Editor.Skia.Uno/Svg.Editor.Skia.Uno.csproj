@@ -13,7 +13,7 @@
     <Description>Reusable SVG editor workspace and accelerated canvas for Uno Platform.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;editor;skia;uno;winui;xaml</PackageTags>
-    <UnoFeatures>SkiaRenderer;</UnoFeatures>
+    <UnoFeatures>Skia;</UnoFeatures>
   </PropertyGroup>
 
   <PropertyGroup>
