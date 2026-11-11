@@ -177,7 +177,7 @@ public sealed partial class SvgEditorWorkspace
 
     private void EditorWindow_Activated(object sender, WindowActivatedEventArgs args)
     {
-        if (args.WindowActivationState != Windows.UI.Core.CoreWindowActivationState.Deactivated)
+        if (args.WindowActivationState != WindowActivationState.Deactivated)
             return;
         CancelRulerGuide();
         Canvas.CancelGesture();

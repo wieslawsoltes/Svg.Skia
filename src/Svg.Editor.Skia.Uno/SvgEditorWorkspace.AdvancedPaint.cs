@@ -414,7 +414,7 @@ public sealed partial class SvgEditorWorkspace
     };
 
 
-    private Panel PaintColumns(params UIElement[] controls)
+    private Panel PaintColumns(params FrameworkElement[] controls)
     {
         if ((XamlRoot?.Size.Width ?? ActualWidth) < 650)
         {
