@@ -39,9 +39,22 @@ public sealed partial class SvgEditorWorkspace
             selectedId = entry.Id;
             dialog.Hide();
         };
+        dialog.PrimaryButtonClick += (_, args) =>
+        {
+            if (args.Cancel)
+                return;
+            // Native text notifications may still be queued when Run is pressed.
+            // Validate the current query before closing or committing a command.
+            if (search.GetCurrentCommand() is not { } entry)
+            {
+                args.Cancel = true;
+                return;
+            }
+            selectedId = entry.Id;
+        };
         dialog.Opened += (_, _) => search.FocusSearch();
         var result = await ShowDialogAsync(dialog);
-        selectedId ??= result == ContentDialogResult.Primary ? search.SelectedCommand?.Id : null;
+        selectedId ??= result == ContentDialogResult.Primary ? search.GetCurrentCommand()?.Id : null;
         if (selectedId is null)
             return;
         // The dialog is fully closed before a chosen command can open another

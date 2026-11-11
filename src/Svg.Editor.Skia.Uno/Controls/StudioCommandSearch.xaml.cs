@@ -29,6 +29,7 @@ public sealed partial class StudioCommandSearch : UserControl
 {
     private SvgCommandSearchIndex _index = new(Array.Empty<SvgCommandCatalogEntry>());
     private string[] _recentIds = Array.Empty<string>();
+    private string? _resultsQuery;
     public event EventHandler<SvgCommandCatalogEntry>? CommandInvoked;
     public event EventHandler? SelectedCommandChanged;
     public SvgCommandCatalogEntry? SelectedCommand => (Results.SelectedItem as StudioCommandSearchItem)?.Entry;
@@ -46,7 +47,14 @@ public sealed partial class StudioCommandSearch : UserControl
         var recent = recentIds?.Take(32).ToArray() ?? Array.Empty<string>();
         _index = index;
         _recentIds = recent;
+        RefreshResults(force: true);
+    }
+
+    /// <summary>Resolves selection against the current text, including a pending native TextChanged notification.</summary>
+    public SvgCommandCatalogEntry? GetCurrentCommand()
+    {
         RefreshResults();
+        return SelectedCommand;
     }
 
     public void FocusSearch()
@@ -56,18 +64,24 @@ public sealed partial class StudioCommandSearch : UserControl
     }
 
     private void Query_TextChanged(object sender, TextChangedEventArgs args) => RefreshResults();
-    private void RefreshResults()
+    private void RefreshResults(bool force = false)
     {
         if (Results is null)
             return;
-        var matches = _index.Search(Query.Text, 100, _recentIds).Select(entry => new StudioCommandSearchItem(entry)).ToArray();
+        var query = Query.Text;
+        if (!force && string.Equals(_resultsQuery, query, StringComparison.Ordinal))
+            return;
+        // TextChanged is queued by the native editor. An input action may arrive
+        // first; a later notification must not reset an intentional list selection.
+        _resultsQuery = query;
+        var matches = _index.Search(query, 100, _recentIds).Select(entry => new StudioCommandSearchItem(entry)).ToArray();
         Results.ItemsSource = matches;
         Results.SelectedIndex = matches.Length == 0 ? -1 : 0;
         EmptyState.Visibility = matches.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         ResultCount.Text = matches.Length == 0 ? "Try fewer or different words."
             : matches.Length == 100 ? "100 commands shown · refine your search"
             : matches.Length == 1 ? "1 command" : matches.Length + " commands";
-        if (string.IsNullOrWhiteSpace(Query.Text) && _recentIds.Length > 0)
+        if (string.IsNullOrWhiteSpace(query) && _recentIds.Length > 0)
             ResultCount.Text += " · recent choices first";
         if (Results.SelectedItem is { } selected)
             Results.ScrollIntoView(selected);
@@ -88,12 +102,13 @@ public sealed partial class StudioCommandSearch : UserControl
         if (args.Key == VirtualKey.Enter)
         {
             args.Handled = true; // Set before notifying the host, including no-match Enter.
-            if (SelectedCommand is { } entry)
+            if (GetCurrentCommand() is { } entry)
                 CommandInvoked?.Invoke(this, entry);
             return;
         }
         if (args.Key is not (VirtualKey.Down or VirtualKey.Up or VirtualKey.PageDown or VirtualKey.PageUp))
             return;
+        RefreshResults();
         if (Results.Items.Count > 0)
         {
             var step = args.Key is VirtualKey.PageDown or VirtualKey.PageUp ? 8 : 1;
@@ -106,12 +121,13 @@ public sealed partial class StudioCommandSearch : UserControl
     }
     private void Results_KeyDown(object sender, KeyRoutedEventArgs args)
     {
-        if (!args.Handled && !Modified() && args.Key == VirtualKey.Enter && SelectedCommand is { } selected)
+        if (!args.Handled && !Modified() && args.Key == VirtualKey.Enter && GetCurrentCommand() is { } selected)
         { args.Handled = true; CommandInvoked?.Invoke(this, selected); }
     }
     private void Results_ItemClick(object sender, ItemClickEventArgs args)
     {
-        if (args.ClickedItem is StudioCommandSearchItem item)
+        RefreshResults();
+        if (args.ClickedItem is StudioCommandSearchItem item && Results.Items.Contains(item))
             CommandInvoked?.Invoke(this, item.Entry);
     }
     private void Results_SelectionChanged(object sender, SelectionChangedEventArgs args)
