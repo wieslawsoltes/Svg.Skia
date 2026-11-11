@@ -49,8 +49,18 @@ combines these features:
 
 `WebGpu` adds the WebGPU backend. Explicit `Skia` retains the existing drawing
 API and the fallback backend, because selecting `WebGpu` suppresses implied
-Skia. `GLCanvas` supplies Uno's OpenGL compatibility island. The additional
-browser features are conditional on `net10.0-browserwasm`.
+Skia. `GLCanvas` declares the OpenGL compatibility island. Uno.Sdk 7.0.5 maps that
+feature to a package on desktop but omits the browser reference, so UnoDraw
+also references the bridge explicitly for `net10.0-browserwasm`:
+
+```xml
+<PackageReference Include="Uno.WinUI.Graphics3DGL" VersionOverride="$(UnoVersion)" />
+```
+
+`UnoVersion` is the SDK-selected runtime version (`7.0.32`). The XAML generator
+registers the bridge from this referenced assembly; no manual assembly loading
+or reflection root is needed. The additional features and reference are
+conditional on the browser target.
 
 [Program.cs](../samples/UnoDraw/Platforms/WebAssembly/Program.cs) registers
 providers in preference order:
@@ -174,6 +184,13 @@ layout, reload and PWA-scope checks, and checks canvas artwork separately from
 the surrounding UI. Actual-size and fit-artboard keyboard commands must repaint
 the SVG's three color families and restore the fitted document pixels, checking
 the compatibility bridge beyond its first frame.
+
+Command search synchronizes its results with the current native text before
+Enter, list navigation or Run can consume a selection. Uno queues `TextChanged`,
+so relying only on that event can execute a previous result when input arrives
+before the notification. Duplicate notifications for an already filtered query
+preserve the user's arrow-key selection. The repeated light/dark command-search
+checks exercise this ordering without inserting an extra typing delay.
 
 Headless CI uses a software GPU implementation to exercise the WebGPU API path.
 Its results establish rendering and interaction behavior, not hardware
