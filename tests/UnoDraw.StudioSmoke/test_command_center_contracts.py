@@ -69,7 +69,7 @@ class CommandCenterContracts(unittest.TestCase):
         self.assertIn('LostFocus +=', accelerators)
         self.assertIn('Unloaded +=', accelerators)
         self.assertIn('Activated -= EditorWindow_Activated', accelerators)
-        self.assertIn('CoreWindowActivationState.Deactivated', accelerators)
+        self.assertIn('args.WindowActivationState != WindowActivationState.Deactivated', accelerators)
         self.assertIn('_heldEditorShortcutKeys.Clear()', accelerators)
         self.assertIn('Canvas.PanMode = _spacePreviousPanMode', routing)
         self.assertIn('Canvas.ZoomMode = _spacePreviousZoomMode', routing)
