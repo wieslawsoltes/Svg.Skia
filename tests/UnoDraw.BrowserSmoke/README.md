@@ -50,6 +50,13 @@ with at most 0.1% differing pixels above a luminance difference of 12/255. Both
 initial and active-artboard fitting use the same 48px padding for the single
 welcome artboard, so the camera returns to the same view. Screenshots
 `02c-artwork-actual-size.png` and `02d-artwork-refitted.png` capture both states.
+Before sending either shortcut, the same restoration comparison waits for the
+document crop and both ruler strips to match the original dark fitted image and saves
+`02b-artwork-settled.png` as its baseline. A GL island can publish its updated
+bitmap after the surrounding chrome changes theme; this readiness check requires
+the canvas and ruler islands to settle without adding a fixed delay or changing
+pixel tolerances. Rulers use separate narrow comparisons at the same 0.1%
+threshold; the document comparison region remains unchanged.
 This verifies repaint through the canvas bridge without changing the SVG.
 
 The two matrix jobs upload distinct `unodraw-browser-smoke-webgpu` and
@@ -75,5 +82,6 @@ The local HTTP server deliberately omits COOP/COEP headers to match GitHub Pages
 Diagnostics must be outside its document root. The unit checks exercise missing
 or stale renderer evidence, silent fallback, invalid browser contexts, narrowly
 scoped expected errors, blank/frozen artwork, outline-only changes, incomplete
-color-family repaint, and failed camera restoration. They supplement the
+color-family repaint, failed camera restoration, and canvas/ruler frames that still
+use the previous theme after their surrounding chrome updates. They supplement the
 two published-runtime runs.

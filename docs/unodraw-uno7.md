@@ -185,6 +185,13 @@ the surrounding UI. Actual-size and fit-artboard keyboard commands must repaint
 the SVG's three color families and restore the fitted document pixels, checking
 the compatibility bridge beyond its first frame.
 
+Before the camera sequence, the harness waits for the returned dark canvas and
+both rulers to match their initial fitted pixels. A [GL island][glcanvas] queues
+its Skia render and publishes the copied bitmap in a subsequent composition
+frame, so dark window controls alone do not establish that those surfaces have
+settled. The readiness comparison retains the same pixel tolerances as camera
+restoration and requires no additional input or fixed delay.
+
 Command search synchronizes its results with the current native text before
 Enter, list navigation or Run can consume a selection. Uno queues `TextChanged`,
 so relying only on that event can execute a previous result when input arrives

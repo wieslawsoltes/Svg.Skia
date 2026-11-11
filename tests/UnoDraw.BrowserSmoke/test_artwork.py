@@ -2,10 +2,11 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import Mock
 
 from PIL import Image, ImageDraw
 
-from smoke import artwork_pixels, artwork_transition, assert_artwork
+from smoke import artwork_pixels, artwork_transition, assert_artwork, wait_for_artwork_transition
 
 
 class DocumentArtworkTests(unittest.TestCase):
@@ -101,6 +102,28 @@ class DocumentRepaintTests(unittest.TestCase):
         self.assertEqual(self.transition(fitted, restored, restore=True)["changed_pixel_fraction"], 0)
         with self.assertRaisesRegex(AssertionError, "did not restore"):
             self.transition(fitted, zoomed, restore=True)
+
+    def test_camera_baseline_waits_for_canvas_and_rulers_after_chrome_changes_theme(self) -> None:
+        fitted = self.scene()
+        intermediate = fitted.copy()
+        # Keep dark chrome and identical artwork while the canvas background
+        # still contains the previous light frame from an asynchronous GL island.
+        ImageDraw.Draw(intermediate).rectangle((90, 125, 1088, 932), fill="#BABABA")
+        intermediate.paste(fitted.crop((140, 230, 1041, 831)), (140, 230))
+        late_rulers = fitted.copy()
+        ImageDraw.Draw(late_rulers).rectangle((92, 102, 1087, 124), fill="#DADADA")
+        ImageDraw.Draw(late_rulers).rectangle((68, 125, 90, 931), fill="#DADADA")
+        frames = iter((intermediate, late_rulers, fitted))
+        page = Mock()
+        page.screenshot.side_effect = lambda *, path: next(frames).save(path)
+        with tempfile.TemporaryDirectory() as directory:
+            initial, settled = Path(directory) / "initial.png", Path(directory) / "settled.png"
+            fitted.save(initial)
+            result = wait_for_artwork_transition(page, initial, settled, restore=True,
+                                                require_settled_rulers=True)
+        self.assertEqual(page.screenshot.call_count, 3)
+        self.assertEqual(result["changed_pixel_fraction"], 0)
+        self.assertEqual(result["ruler_changed_pixel_fraction"], {"horizontal": 0, "vertical": 0})
 
 
 if __name__ == "__main__":

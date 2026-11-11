@@ -181,17 +181,41 @@ def artwork_transition(before: Path, after: Path, restore: bool) -> dict[str, An
         return {"color_family_pixels": presence, "changed_interior_pixels": changes}
 
 
-def wait_for_artwork_transition(page: Page, before: Path, after: Path, restore: bool) -> dict[str, Any]:
+def ruler_frame_changes(before: Path, after: Path) -> dict[str, float]:
+    # Separate GL islands can publish ruler pixels after the document bitmap.
+    # These strips contain only the fitted horizontal and vertical rulers.
+    regions = {"horizontal": (92, 102, 1088, 125), "vertical": (68, 125, 91, 932)}
+    with Image.open(before) as first, Image.open(after) as second:
+        if first.size != (1440, 960) or second.size != first.size:
+            raise AssertionError("Ruler readiness requires matching desktop viewports.")
+        initial, current = first.convert("RGB"), second.convert("RGB")
+        changes: dict[str, float] = {}
+        for name, bounds in regions.items():
+            difference = ImageChops.difference(initial.crop(bounds), current.crop(bounds)).convert("L")
+            changes[name] = sum(count for level, count in enumerate(difference.histogram()) if level > 12) / (
+                difference.width * difference.height)
+        return changes
+
+
+def wait_for_artwork_transition(page: Page, before: Path, after: Path, restore: bool,
+                               *, require_settled_rulers: bool = False) -> dict[str, Any]:
     deadline = time.monotonic() + 15
     failure = "No document frame was captured"
     while time.monotonic() < deadline:
         page.screenshot(path=str(after))
         try:
-            return artwork_transition(before, after, restore)
+            result = artwork_transition(before, after, restore)
+            if require_settled_rulers:
+                rulers = ruler_frame_changes(before, after)
+                if any(value > 0.001 for value in rulers.values()):
+                    raise AssertionError(f"The fitted rulers have not restored their pixels: {rulers}")
+                result["ruler_changed_pixel_fraction"] = rulers
+            return result
         except AssertionError as error:
             failure = str(error)
         page.wait_for_timeout(100)
-    raise AssertionError(f"The document camera command did not finish rendering: {failure}")
+    operation = "document theme" if require_settled_rulers else "document camera command"
+    raise AssertionError(f"The {operation} did not finish rendering: {failure}")
 
 
 def changed_pixels(before: Path, after: Path) -> int:
@@ -440,11 +464,17 @@ def main() -> int:
 
                 # Exercise retained SVG repaint through the selected compositor
                 # using real camera shortcuts, without changing the document.
-                fitted = output / "02b-command-dark-theme.png"
+                fitted = output / "02b-artwork-settled.png"
                 repaint: dict[str, Any] = {"region": [100, 160, 1050, 880],
                     "minimum_changed_interior_pixels_per_family": 500, "interior_filter_size": 7,
                     "maximum_restored_changed_pixel_fraction": 0.001, "luminance_difference_threshold": 12}
                 report["artwork_repaint"] = repaint
+                # A GL island publishes its bitmap after the surrounding chrome
+                # can already reflect the restored theme. Wait for the full
+                # document crop and ruler islands to match the initial dark fit
+                # before using it as the baseline, with the same tolerances.
+                repaint["settled_fitted"] = wait_for_artwork_transition(page, wide,
+                    fitted, restore=True, require_settled_rulers=True)
                 page.keyboard.press("Control+1")
                 repaint["actual_size"] = wait_for_artwork_transition(page, fitted,
                     output / "02c-artwork-actual-size.png", restore=False)
