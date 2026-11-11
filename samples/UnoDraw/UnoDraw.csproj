@@ -62,7 +62,7 @@
     <Content Include="Assets/*.svg" CopyToOutputDirectory="PreserveNewest" Condition="'$(TargetFramework)' == 'net10.0-desktop'" />
     <EmbeddedResource Include="Assets/Welcome.svg" LogicalName="UnoDraw.Welcome.svg" />
     <UnoIcon Include="Branding/icon.svg" Color="#7061DC" />
-    <UnoSplashScreen Include="Branding/splash.svg" Color="#19191F" BaseSize="64,64" />
+    <UnoSplashScreen Include="Branding/splash.svg" BackgroundColor="#19191F" BaseSize="64,64" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
     <PackageReference Include="SkiaSharp.NativeAssets.WebAssembly" />
