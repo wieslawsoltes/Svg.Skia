@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
 using Svg.Editor.Skia;
 using Uno.WinUI.Graphics2DSK;
@@ -180,6 +181,9 @@ public sealed partial class SvgEditorWorkspace
 
         public MeshPreview()
         {
+            // Uno 7 uses a border visual; a brush supplies its hit-test geometry.
+            Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+
             PointerPressed += (_, args) =>
             {
                 if (_mesh is null || !args.GetCurrentPoint(this).Properties.IsLeftButtonPressed)

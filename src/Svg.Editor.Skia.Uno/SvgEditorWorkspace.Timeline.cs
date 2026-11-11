@@ -617,6 +617,9 @@ public sealed partial class SvgEditorWorkspace
 
         public TimelineRuler()
         {
+            // Uno 7 uses a border visual; a brush supplies its hit-test geometry.
+            Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+
             PointerPressed += (_, args) =>
             {
                 var point = args.GetCurrentPoint(this);

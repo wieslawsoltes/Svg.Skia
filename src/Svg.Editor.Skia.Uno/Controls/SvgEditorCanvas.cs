@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
 using Svg.Editor.Core;
 using Svg.Editor.Svg;
@@ -63,6 +64,9 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     public SvgEditorCanvas()
     {
+        // Uno 7 uses a border visual; a brush supplies its hit-test geometry.
+        Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+
         // The canvas handles touch directly; parent scrollers must not take over.
         ManipulationMode = ManipulationModes.None;
         Viewport.Changed += OnViewportChanged;

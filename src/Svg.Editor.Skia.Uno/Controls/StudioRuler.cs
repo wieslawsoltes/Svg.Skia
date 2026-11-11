@@ -22,7 +22,12 @@ public sealed class StudioRuler : SKCanvasElement, IDisposable
     private double? _pointer;
     private bool _dark;
     private bool _disposed;
-    public StudioRuler() => ActualThemeChanged += OnThemeChanged;
+    public StudioRuler()
+    {
+        // Uno 7 uses a border visual; a brush supplies its hit-test geometry.
+        Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        ActualThemeChanged += OnThemeChanged;
+    }
     public Orientation Orientation { get; set; }
     public Brush? BackgroundBrush { get => (Brush?)GetValue(BackgroundBrushProperty); set => SetValue(BackgroundBrushProperty, value); }
     public Brush? ForegroundBrush { get => (Brush?)GetValue(ForegroundBrushProperty); set => SetValue(ForegroundBrushProperty, value); }

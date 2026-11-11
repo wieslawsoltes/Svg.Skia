@@ -167,6 +167,9 @@ public sealed class Svg : SKCanvasElement
 
     public Svg()
     {
+        // Uno 7 uses a border visual; a brush supplies its hit-test geometry.
+        Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+
         PointerMoved += OnControlPointerMoved;
         PointerPressed += OnControlPointerPressed;
         PointerReleased += OnControlPointerReleased;
