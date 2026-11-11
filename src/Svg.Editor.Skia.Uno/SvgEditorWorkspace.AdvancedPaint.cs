@@ -414,7 +414,7 @@ public sealed partial class SvgEditorWorkspace
     };
 
 
-    private Panel PaintColumns(params FrameworkElement[] controls)
+    private Panel PaintColumns(params UIElement[] controls)
     {
         if ((XamlRoot?.Size.Width ?? ActualWidth) < 650)
         {
@@ -430,7 +430,7 @@ public sealed partial class SvgEditorWorkspace
             {
                 Width = controls[index] is Button ? GridLength.Auto : new GridLength(1, GridUnitType.Star)
             });
-            Grid.SetColumn(controls[index], index);
+            controls[index].SetValue(Grid.ColumnProperty, index);
             grid.Children.Add(controls[index]);
         }
         return grid;
