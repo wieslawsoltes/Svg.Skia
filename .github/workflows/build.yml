@@ -52,7 +52,7 @@ jobs:
           fi
 
       - name: Restore
-        run: dotnet restore Svg.Skia.slnx
+        run: dotnet restore Svg.Skia.slnx -p:Configuration=Release
 
       - name: Build
         run: dotnet build Svg.Skia.slnx -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
@@ -89,7 +89,7 @@ jobs:
           fi
 
       - name: Restore
-        run: dotnet restore Svg.Skia.slnx
+        run: dotnet restore Svg.Skia.slnx -p:Configuration=Release
 
       - name: Build
         run: dotnet build Svg.Skia.slnx -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}"
@@ -185,7 +185,7 @@ jobs:
           fi
 
       - name: Restore
-        run: dotnet restore Svg.Skia.slnx
+        run: dotnet restore Svg.Skia.slnx -p:Configuration=Release
 
       - name: Pack
         run: dotnet pack Svg.Skia.slnx -c Release --no-restore -p:VersionSuffix="${{ env.VERSION_SUFFIX }}" -o artifacts/packages

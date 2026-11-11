@@ -60,7 +60,7 @@ jobs:
           global-json-file: global.json
 
       - name: Restore desktop application
-        run: dotnet restore samples/UnoDraw/UnoDraw.csproj
+        run: dotnet restore samples/UnoDraw/UnoDraw.csproj -p:Configuration=Release
 
       - name: Build desktop application
         run: dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-desktop -c Release --no-restore

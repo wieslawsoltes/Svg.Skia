@@ -26,6 +26,18 @@ new SDK; updating only the application is insufficient. Libraries using
 `SKCanvasElement` explicitly declare the `Skia` feature. See the upstream
 [migration guide][migration] for the framework and package changes.
 
+Uno 7 excludes development-server dependencies from optimized builds. When a
+build or pack uses `--no-restore`, restore with the same configuration first:
+
+```sh
+dotnet restore Svg.Skia.slnx -p:Configuration=Release
+dotnet build Svg.Skia.slnx -c Release --no-restore
+```
+
+A Debug restore followed by a Release build can retain development-only assets
+and fails with `UNOB0019`. CI restores the Release graph explicitly; see the
+[package migration notes][packages].
+
 ## Browser backend selection
 
 The browser target in [UnoDraw.csproj](../samples/UnoDraw/UnoDraw.csproj)
@@ -157,6 +169,7 @@ Its results establish rendering and interaction behavior, not hardware
 performance. Inspect the workflow's per-backend reports, screenshots and traces
 for a particular commit; this guide does not constitute a completed test result.
 
+[packages]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/doc/articles/migrating-to-uno-7/packages.md
 [migration]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/doc/articles/migrating-to-uno-7.md
 [webgpu]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/doc/articles/features/using-webgpu-rendering.md
 [webgpu-spec]: https://www.w3.org/TR/webgpu/#navigator-gpu

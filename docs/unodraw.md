@@ -20,7 +20,7 @@ Use the .NET 10 SDK selected by the repository's `global.json`. All Uno projects
 
 ```sh
 git submodule update --init --recursive
-dotnet restore samples/UnoDraw/UnoDraw.csproj
+dotnet restore samples/UnoDraw/UnoDraw.csproj -p:Configuration=Release
 dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-desktop -c Release
 dotnet run --project samples/UnoDraw/UnoDraw.csproj -f net10.0-desktop
 ```
