@@ -12,8 +12,8 @@ public sealed partial class App
     {
         try
         {
-            // Native Skia fonts load independently of document.fonts. Await the
-            // workspace's actual families before exposing its first frame.
+            // Uno's text fonts load independently of document.fonts. Await the
+            // workspace's actual families before either backend exposes its first frame.
             var textFamily = FeatureConfiguration.Font.DefaultTextFontFamily;
             var fonts = new[]
             {
@@ -43,13 +43,13 @@ public sealed partial class App
 
 internal static class BrowserStartup
 {
-    // Uno 6.5 schedules a resize frame while its browser host is still starting,
-    // before Window.CurrentSafe exists. Defer the startup interval until the
-    // window is activated and its native fonts have loaded. Restore the original
-    // scheduler; rendering errors remain visible and later frames use Uno's WebGL path.
+    // Uno's browser host requests a resize frame while it is starting. Defer
+    // presentation until the window is activated and its text fonts have loaded.
+    // Uno 7 shares this scheduler between WebGPU and Skia. Restore it unchanged
+    // after startup so rendering errors and subsequent frame scheduling remain visible.
     internal static void DeferInitialFrame() => WebAssemblyRuntime.InvokeJS("""
         (() => {
-            const renderer = globalThis.Uno?.UI?.Runtime?.Skia?.BrowserRenderer;
+            const renderer = globalThis.Uno?.UI?.Runtime?.BrowserRenderer;
             if (!renderer || typeof renderer.invalidate !== 'function') return '';
             const original = renderer.invalidate;
             const pending = new Set();

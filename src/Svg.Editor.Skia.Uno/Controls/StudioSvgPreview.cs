@@ -6,7 +6,7 @@ using Windows.Foundation;
 
 namespace Svg.Editor.Skia.Uno;
 
-/// <summary>Owns an optional Svg.Skia renderer and replays its picture directly on Uno's canvas.</summary>
+/// <summary>Owns an optional Svg.Skia renderer and replays its picture through Uno's Skia canvas element.</summary>
 public sealed class StudioSvgPreview : SKCanvasElement, IDisposable
 {
     public static readonly DependencyProperty CheckerBackgroundColorProperty = DependencyProperty.Register(

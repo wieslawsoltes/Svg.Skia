@@ -14,8 +14,9 @@ using Shim = ShimSkiaSharp;
 namespace Svg.Editor.Skia.Uno;
 
 /// <summary>
-/// SVG editing directly on Uno's compositor canvas. The host chooses the rendering backend;
-/// document pictures are reused through camera changes and pointer previews.
+/// SVG editing through Uno's Skia canvas element. The host supplies a Skia canvas or
+/// a compatibility bridge for another compositor; document pictures are reused
+/// through camera changes and pointer previews.
 /// </summary>
 public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 {

@@ -107,7 +107,7 @@
         <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
           <ToggleButton x:Name="SnapToggle" Content="Snap" Click="SnapToggle_Click" MinHeight="24" Padding="6,1" FontSize="11" ToolTipService.ToolTip="Snap geometry to the document grid" />
           <local:StudioIconButton Tag="grid" Click="Command_Click" Label="Toggle grid" Content="Grid" MinHeight="24" />
-          <TextBlock x:Name="WorkspaceLabel" Text="SVG · Direct canvas" FontSize="10" Foreground="{ThemeResource StudioMuted}" VerticalAlignment="Center" />
+          <TextBlock x:Name="WorkspaceLabel" Text="SVG canvas" FontSize="10" Foreground="{ThemeResource StudioMuted}" VerticalAlignment="Center" />
         </StackPanel>
       </Grid>
     </Border>
