@@ -17,7 +17,7 @@ from urllib.parse import urlsplit
 from PIL import Image, ImageChops, ImageFilter, ImageStat
 from playwright.sync_api import Page, sync_playwright
 
-from backend import BACKENDS, launch_arguments, verify_backend
+from backend import BACKENDS, launch_arguments, renderer_query, verify_backend
 
 
 class SiteHandler(http.server.SimpleHTTPRequestHandler):
@@ -78,9 +78,18 @@ def wait_ready(page: Page) -> None:
 
 def record_backend(page: Page, report: dict[str, Any], phase: str, console_start: int) -> None:
     capabilities = page.evaluate("""async () => {
+        const probe = kind => {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext(kind);
+            const available = !!context;
+            if (kind.startsWith('webgl')) context?.getExtension('WEBGL_lose_context')?.loseContext();
+            return available;
+        };
         const result = {secure_context: isSecureContext,
             api_available: typeof navigator.gpu?.requestAdapter === 'function',
-            adapter_available: false, adapter_info: null};
+            adapter_available: false, adapter_info: null,
+            webgl1_available: probe('webgl'), webgl2_available: probe('webgl2'),
+            canvas2d_available: probe('2d')};
         if (!result.api_available) return result;
         let timeout;
         try {
@@ -384,6 +393,7 @@ def main() -> int:
         "index_sha256": hashlib.sha256((app / "index.html").read_bytes()).hexdigest(),
         "graphics": "Headless Chromium with SwiftShader software graphics; not a hardware-performance benchmark",
         "backend_mode": args.backend,
+        "renderer_query": renderer_query(args.backend),
         "browser_launch_arguments": launch_arguments(args.backend),
         "backend_selection": {},
         "console": [], "page_errors": [], "http_errors": [], "request_failures": [], "checks": [],
@@ -402,7 +412,7 @@ def main() -> int:
             page.on("requestfailed", lambda request: report["request_failures"].append({"url": request.url, "failure": request.failure}))
             try:
                 app_url = url.rstrip("/") + base_path
-                page.goto(app_url, wait_until="domcontentloaded", timeout=120_000)
+                page.goto(app_url + report["renderer_query"], wait_until="domcontentloaded", timeout=120_000)
                 wait_ready(page)
                 if page.evaluate("globalThis.crossOriginIsolated"):
                     raise AssertionError("Smoke server must match GitHub Pages without cross-origin isolation")
@@ -525,9 +535,12 @@ def main() -> int:
 
                 # Recheck the complete log so a later unexpected renderer cannot
                 # hide between the startup and reload evidence snapshots.
-                complete_backend = verify_backend(report["console"],
+                verify_backend(report["console"],
                     report["backend_selection"]["reload"]["capabilities"], args.backend)
-                expected_errors = set(complete_backend["expected_console_error_indices"])
+                # Only each navigation's pre-winner initialization failures are
+                # expected. Matching errors during interaction remain failures.
+                expected_errors = {index for evidence in report["backend_selection"].values()
+                                   for index in evidence["expected_console_error_indices"]}
                 report["expected_backend_errors"] = [report["console"][index] for index in sorted(expected_errors)]
                 errors = [entry for index, entry in enumerate(report["console"]) if entry["type"] == "error"
                           and index not in expected_errors

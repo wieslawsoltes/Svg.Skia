@@ -1,14 +1,17 @@
 # Published browser runtime checks
 
 The Docs workflow publishes UnoDraw once with Release `InterpreterAndAOT` settings
-and runs this harness twice against that exact artifact, under the GitHub Pages
-project/application path `/Svg.Skia/unodraw/`. Deployment requires both cases to
-pass. Neither case changes the application package or mocks its rendering APIs.
+and runs this harness in four configurations against that exact artifact, under
+the GitHub Pages project/application path `/Svg.Skia/unodraw/`. Deployment requires
+every case to pass. No case changes the application package or mocks its
+rendering APIs.
 
 | Mode | Browser configuration | Required application renderer |
 | --- | --- | --- |
 | `webgpu` | SwiftShader Vulkan and ANGLE, with WebGPU enabled | `WebGpuGraphicsProvider` on `WebGpu` |
-| `skia-fallback` | Chromium's `WebGPUService` feature disabled, with software WebGL available | `SkiaGraphicsProvider` on `WebGL` or `Software` |
+| `skia-fallback` | Chromium's `WebGPUService` feature disabled, with software WebGL available | `SkiaGraphicsProvider` on `WebGL` |
+| `software-fallback` | `WebGPUService` and WebGL disabled, with Canvas2D available | `SkiaGraphicsProvider` on `Software` |
+| `skia-preferred` | WebGPU and WebGL available, with the application URL's `?renderer=skia` option | `SkiaGraphicsProvider` on `WebGL` |
 
 These are software graphics correctness checks. They do not measure hardware GPU
 performance. The report records the Chromium version, launch arguments, adapter
@@ -25,11 +28,27 @@ raised an unhandled context error during
 Renderer assertions cover the main compositor; artwork and repaint assertions
 cover the retained Skia bitmaps.
 
-The fallback case requires the secure browser origin to expose `navigator.gpu`
-while `requestAdapter()` returns `null`. It also requires Uno's precise no-adapter
-negotiation error and a successful Skia selection. Only that error is expected in
-this mode; other console errors, page exceptions and failed application resources
-remain failures. A WebGPU run that silently chooses Skia fails.
+Both fallback cases require the secure browser origin to expose `navigator.gpu`
+while `requestAdapter()` returns `null`. They also require Uno's precise no-adapter
+negotiation error and a successful Skia selection. The WebGL fallback requires a
+working WebGL context. The software fallback independently proves that neither
+WebGL version can create a context, Canvas2D is available, and Uno reports its
+precise unavailable-WebGL error before choosing software rendering. Probes use
+separate detached canvases and release their WebGL contexts.
+
+Expected negotiation errors are accepted only before the first successful
+renderer selection in each navigation's startup log slice. The same error during
+editing, after a winner, or outside those slices still fails. Other console
+errors, page exceptions and failed application resources remain failures. A
+WebGPU run that silently chooses Skia fails; a WebGL case that chooses software
+also fails.
+
+The direct-Skia case requires an available WebGPU adapter but selects Skia through
+the startup URL option. It verifies that the option survives reload without
+altering the PWA's folder scope or start URL. The option is case insensitive,
+ignores surrounding whitespace, and is read once before host creation. An absent
+or unrecognized value preserves the default WebGPU-first order. This is a manual
+startup choice; Uno 7.0.32 does not renegotiate providers after WebGPU device loss.
 
 Chromium documents the software graphics switches in its
 [SwiftShader guide](https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md).
@@ -42,7 +61,7 @@ rendered application checks verify that this path actually works.
 
 ## Coverage
 
-All twelve existing runtime checks and pixel thresholds run in both modes:
+All twelve existing runtime checks and pixel thresholds run in every mode:
 startup without cross-origin isolation, nonblank desktop rendering, desktop
 indicators, keyboard command search and dark/light theme dispatch, indicator
 contrast, initial font stability, compact rendering and indicators, panel-rail
@@ -70,8 +89,8 @@ The compact panel-rail comparison reuses this settled desktop baseline so
 intermediate ruler colors cannot distort its glyph-location search.
 This verifies repaint through the canvas bridge without changing the SVG.
 
-The two matrix jobs upload distinct `unodraw-browser-smoke-webgpu` and
-`unodraw-browser-smoke-skia-fallback` artifacts. Each contains `report.json`,
+The four matrix jobs upload distinct `unodraw-browser-smoke-<mode>` artifacts.
+Each contains `report.json`,
 screenshots and a Playwright trace, plus the final HTML/screenshot on failure.
 The report preserves expected negotiation errors alongside other console output.
 
@@ -87,6 +106,8 @@ mkdir -p artifacts/pages/Svg.Skia/unodraw
 cp -a artifacts/unodraw-browser/wwwroot/. artifacts/pages/Svg.Skia/unodraw/
 python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/pages --base-path /Svg.Skia/unodraw/ --backend webgpu --output artifacts/unodraw-browser-smoke-webgpu
 python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/pages --base-path /Svg.Skia/unodraw/ --backend skia-fallback --output artifacts/unodraw-browser-smoke-skia-fallback
+python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/pages --base-path /Svg.Skia/unodraw/ --backend software-fallback --output artifacts/unodraw-browser-smoke-software-fallback
+python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/pages --base-path /Svg.Skia/unodraw/ --backend skia-preferred --output artifacts/unodraw-browser-smoke-skia-preferred
 ```
 
 The local HTTP server deliberately omits COOP/COEP headers to match GitHub Pages.
@@ -95,4 +116,4 @@ or stale renderer evidence, silent fallback, invalid browser contexts, narrowly
 scoped expected errors, blank/frozen artwork, outline-only changes, incomplete
 color-family repaint, failed camera restoration, and canvas/ruler frames that still
 use the previous theme after their surrounding chrome updates. They supplement the
-two published-runtime runs.
+four published-runtime runs.

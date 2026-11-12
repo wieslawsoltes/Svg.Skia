@@ -57,6 +57,7 @@ the existing `SKCanvasElement` raster bridge supplies SVG content to WebGPU.
 providers in preference order:
 
 ```csharp
+using Uno.UI.Composition.Drawing;
 using Uno.UI.Composition.Skia;
 using Uno.UI.Composition.WebGpu;
 using Uno.UI.Hosting;
@@ -64,7 +65,8 @@ using Uno.UI.Hosting;
 var host = UnoPlatformHostBuilder.Create()
     .App(() => new App())
     .GraphicsBackend(WebGpuBackend.CreateGraphicsProvider())
-    .GraphicsBackend(SkiaBackend.CreateGraphicsProvider())
+    .GraphicsBackend(SkiaBackend.CreateGraphicsProvider(
+        GraphicsContextKind.WebGL, GraphicsContextKind.Software))
     .UseWebAssembly()
     .Build();
 
@@ -72,11 +74,43 @@ BrowserStartup.DeferInitialFrame();
 await host.RunAsync();
 ```
 
-Registering providers replaces Uno's implicit renderer preference. The second
-registration is necessary: if WebGPU cannot initialize, the browser host tries
-Skia with WebGL and then software rendering. This is startup negotiation;
-later rendering or device-loss errors remain visible in the console. Uno marks
-its WebGPU backend experimental; see the [backend documentation][webgpu].
+Registering providers replaces Uno's implicit renderer preference. WebGPU itself
+does not contain a WebGL renderer: the second provider supplies the fallback.
+The explicit browser context order avoids probing native Vulkan, OpenGL, OpenGLES
+and Metal contexts that the browser host cannot create.
+
+The supported startup order is:
+
+1. WebGPU compositor.
+2. Skia compositor with WebGL2, then WebGL1 if context creation fails.
+3. Skia software rendering, presented through Canvas2D.
+
+The [graphics registry][graphics-registry] advances when a context or provider
+cannot initialize. The [browser host][browser-renderer] creates only browser
+context kinds, and its [WebGL helper][webgl-helper] performs the WebGL2-to-WebGL1
+retry. A SwiftShader WebGPU/WebGL adapter still uses the corresponding GPU API;
+it is distinct from Uno's `Software` context with Canvas2D presentation.
+
+### Selecting direct Skia rendering
+
+Open `/Svg.Skia/unodraw/?renderer=skia` to register only Skia, with the same
+WebGL-to-software fallback. This provides a supported comparison for SVG-heavy
+documents because it draws directly into the Skia frame instead of uploading
+SVG raster textures to the WebGPU compositor. It does not promise that either
+backend is faster for every document or device.
+
+The preference is read once before host creation. The value is trimmed and
+compared without case sensitivity; missing or unrecognized values retain the
+default WebGPU-first order. It does not modify the SVG, workspace preferences,
+or the PWA manifest's application scope. Reloading the same URL retains the
+choice; removing the query restores the default for the next startup.
+
+This negotiation happens during startup. The pinned runtime's
+[device-loss handler][webgpu-init] reports a lost device but does not replace
+device-bound resources with another provider. Later rendering errors remain
+visible, and UnoDraw does not automatically reload a document to switch backends.
+Save changes before manually reloading with another renderer preference.
+Uno marks its WebGPU backend experimental; see the [backend documentation][webgpu].
 
 Browser WebGPU requires a supported browser, an available adapter and a
 [secure context][webgpu-spec]. Serve production builds over HTTPS; localhost
@@ -102,10 +136,18 @@ The selected UI backend determines how Uno composites that content:
 | Skia | The element draws into the host's `SKCanvas` directly. |
 
 The implementation is in the pinned [`SKCanvasElement`][skcanvas] source.
-WebGPU changes UI composition while retaining the SVG engine. SVG rasterization
-and the texture upload remain part of this path; performance depends on the
-document and device. Measure it on target hardware before drawing performance
-conclusions.
+WebGPU changes UI composition while retaining the SVG engine. The raster surface
+is reused at an unchanged device size. When an invalidated visual is recorded
+again, it reruns Skia drawing and creates a texture. The pinned
+[`WebGpuTexture.UploadBgra`][webgpu-texture] path allocates a converted RGBA buffer,
+builds mip levels on the CPU, and uploads them. Avoiding unnecessary invalidation
+therefore avoids both SVG replay and texture preparation. Unchanged retained
+visuals already keep their recorded resources; another application bitmap cache
+would duplicate that storage without removing the bridge.
+
+SVG rasterization and upload remain part of this path; performance depends on the
+document and device. Use the explicit Skia preference to compare the direct
+WebGL path on target hardware before drawing performance conclusions.
 
 The optional GL island is excluded because Uno 7.0.32's
 [`GLCanvasElement.UpdateFramebuffer`][glcanvas] disposes a zero-sized framebuffer
@@ -173,19 +215,29 @@ application.
 
 The [Docs workflow](../.github/workflows/docs.yml) and
 [published-browser harness](../tests/UnoDraw.BrowserSmoke/smoke.py) must validate
-two separate runs of the same published package:
+four separate runs of the same published package:
 
 | Mode | Required evidence on startup and reload |
 | --- | --- |
 | `webgpu` | WebGPU registry winner, rendered workspace and SVG artwork, and successful editor interactions. |
-| `skia-fallback` | WebGPU adapter unavailability, Skia registry winner, rendered workspace and SVG artwork, and successful editor interactions. |
+| `skia-fallback` | WebGPU adapter unavailability, usable WebGL, and a Skia/WebGL winner. |
+| `software-fallback` | WebGPU adapter and WebGL1/2 unavailability, usable Canvas2D, and a Skia/Software winner. |
+| `skia-preferred` | `?renderer=skia`, an available WebGPU adapter, usable WebGL, and a Skia/WebGL winner. |
 
 The fallback run disables Chromium's `WebGPUService` feature so adapter creation
 fails through the browser's normal implementation. Uno reports the expected
 `WebGpuInit: navigator.gpu.requestAdapter returned null` message before selecting
-Skia. The harness distinguishes that exact expected message from other runtime
-errors. It retains the existing startup, theme-command, font/indicator, compact
-layout, reload and PWA-scope checks, and checks canvas artwork separately from
+Skia. The software case also disables both WebGL versions with Chromium's
+`--disable-webgl` switch and requires the exact known WebGL initialization error.
+Fresh detached canvases corroborate availability without replacing the app's
+canvas. The preferred-Skia case leaves WebGPU available and proves that the URL
+choice bypasses it.
+
+Expected initialization errors are admitted only before the successful
+negotiation within that navigation's log slice. The same messages during editing
+remain failures, and reload must supply fresh evidence. All four cases retain
+the existing startup, theme-command, font/indicator, compact
+layout, reload and PWA-scope checks, and check canvas artwork separately from
 the surrounding UI. Actual-size and fit-artboard keyboard commands must repaint
 the SVG's three color families and restore the fitted document pixels, checking
 the compatibility bridge beyond its first frame.
@@ -223,3 +275,7 @@ for a particular commit; this guide does not constitute a completed test result.
 [project-setup]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/doc/articles/migrating-to-uno-7/project-setup.md#minimum-os-versions-raised
 [settings-migration]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/Uno.WinRT/Storage/ApplicationDataMigrator.UIKit.cs
 [graphics-registry]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/Uno.UI.Composition.Drawing/GraphicsRegistry.cs
+[browser-renderer]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/Uno.UI.Runtime.WebAssembly.Browser/Rendering/BrowserRenderer.cs
+[webgl-helper]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/Uno.UI.Runtime.WebAssembly.Browser/ts/Runtime/EmscriptenWebGL.ts
+[webgpu-init]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/Uno.UI.Composition.WebGpu/ts/Runtime/WebGpuInit.ts
+[webgpu-texture]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/Uno.UI.Composition.WebGpu/WebGpuDrawingFactory.cs

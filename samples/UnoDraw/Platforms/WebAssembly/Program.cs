@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using Uno.Foundation;
+using Uno.UI.Composition.Drawing;
 using Uno.UI.Composition.Skia;
 using Uno.UI.Composition.WebGpu;
 using Uno.UI.Hosting;
@@ -10,10 +12,20 @@ public static class Program
     public static async Task Main(string[] args)
     {
         InitializeLogging();
-        var host = UnoPlatformHostBuilder.Create()
-            .App(() => new App())
-            .GraphicsBackend(WebGpuBackend.CreateGraphicsProvider())
-            .GraphicsBackend(SkiaBackend.CreateGraphicsProvider())
+        // A startup-only override lets SVG-heavy workloads compare direct Skia/WebGL
+        // with WebGPU's raster texture bridge without changing document settings.
+        var preference = WebAssemblyRuntime.InvokeJS(
+            "new URLSearchParams(globalThis.location.search).get('renderer') || ''").Trim();
+        var preferSkia = string.Equals(preference, "skia", StringComparison.OrdinalIgnoreCase);
+        var builder = UnoPlatformHostBuilder.Create().App(() => new App());
+        if (!preferSkia)
+            builder = builder.GraphicsBackend(WebGpuBackend.CreateGraphicsProvider());
+        Console.WriteLine(preferSkia
+            ? "UnoDraw browser renderer preference: Skia (WebGL, then software)."
+            : "UnoDraw browser renderer preference: WebGPU, then Skia (WebGL, then software).");
+        var host = builder
+            .GraphicsBackend(SkiaBackend.CreateGraphicsProvider(
+                GraphicsContextKind.WebGL, GraphicsContextKind.Software))
             .UseWebAssembly()
             .Build();
         BrowserStartup.DeferInitialFrame();

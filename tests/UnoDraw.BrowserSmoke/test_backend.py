@@ -1,7 +1,7 @@
 """Negative evidence cases that must never satisfy the renderer release gate."""
 import unittest
 
-from backend import NO_ADAPTER_ERROR, launch_arguments, verify_backend
+from backend import NO_ADAPTER_ERROR, NO_WEBGL_ERROR, launch_arguments, renderer_query, verify_backend
 
 
 def winner(provider: str, context: str) -> dict[str, str]:
@@ -10,7 +10,18 @@ def winner(provider: str, context: str) -> dict[str, str]:
 
 
 def capabilities(adapter: bool = True) -> dict[str, bool]:
-    return {"secure_context": True, "api_available": True, "adapter_available": adapter}
+    return {"secure_context": True, "api_available": True, "adapter_available": adapter,
+            "webgl1_available": True, "webgl2_available": True, "canvas2d_available": True}
+
+
+def software_capabilities() -> dict[str, bool]:
+    return {**capabilities(False), "webgl1_available": False, "webgl2_available": False}
+
+
+def software_logs() -> list[dict[str, str]]:
+    return [{"type": "error", "text": NO_ADAPTER_ERROR},
+            {"type": "error", "text": "fail: Uno.UI.Runtime.WebGlBrowserRenderer[0]\n      " + NO_WEBGL_ERROR},
+            winner("SkiaGraphicsProvider", "Software")]
 
 
 class BackendEvidenceTests(unittest.TestCase):
@@ -45,13 +56,11 @@ class BackendEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "No successful"):
             verify_backend(logs[reload_start:], capabilities(), "webgpu")
 
-    def test_fallback_accepts_only_browser_skia_contexts(self) -> None:
+    def test_fallback_requires_webgl_and_software_has_its_own_scenario(self) -> None:
         no_adapter = {"type": "error", "text": NO_ADAPTER_ERROR}
-        for context in ("WebGL", "Software"):
-            with self.subTest(context=context):
-                proof = verify_backend([no_adapter, winner("SkiaGraphicsProvider", context)], capabilities(False), "skia-fallback")
-                self.assertEqual(proof["expected_console_error_indices"], [0])
-        for context in ("OpenGL", "OpenGLES", "WebGpu"):
+        proof = verify_backend([no_adapter, winner("SkiaGraphicsProvider", "WebGL")], capabilities(False), "skia-fallback")
+        self.assertEqual(proof["expected_console_error_indices"], [0])
+        for context in ("OpenGL", "OpenGLES", "WebGpu", "Software"):
             with self.subTest(context=context), self.assertRaisesRegex(AssertionError, "unexpected graphics backend"):
                 verify_backend([no_adapter, winner("SkiaGraphicsProvider", context)], capabilities(False), "skia-fallback")
 
@@ -90,6 +99,81 @@ class BackendEvidenceTests(unittest.TestCase):
             launch_arguments("auto")
         with self.assertRaises(ValueError):
             verify_backend([], capabilities(), "auto")
+        with self.assertRaises(ValueError):
+            renderer_query("auto")
+
+    def test_explicit_skia_preference_bypasses_an_available_webgpu_adapter(self) -> None:
+        proof = verify_backend([winner("SkiaGraphicsProvider", "WebGL")], capabilities(), "skia-preferred")
+        self.assertEqual(proof["expected_console_error_indices"], [])
+        self.assertEqual(renderer_query("skia-preferred"), "?renderer=skia")
+        for mode in ("webgpu", "skia-fallback", "software-fallback"):
+            self.assertEqual(renderer_query(mode), "")
+
+    def test_explicit_skia_preference_rejects_ignored_override_or_software(self) -> None:
+        for provider, context in (("WebGpuGraphicsProvider", "WebGpu"), ("SkiaGraphicsProvider", "Software")):
+            with self.subTest(context=context), self.assertRaisesRegex(AssertionError, "unexpected graphics backend"):
+                verify_backend([winner(provider, context)], capabilities(), "skia-preferred")
+
+    def test_software_fallback_requires_both_gpu_apis_to_be_unavailable(self) -> None:
+        for field in ("adapter_available", "webgl1_available", "webgl2_available"):
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                verify_backend(software_logs(), {**software_capabilities(), field: True}, "software-fallback")
+        for value in (False, None):
+            with self.subTest(canvas2d=value), self.assertRaisesRegex(AssertionError, "usable Canvas2D"):
+                verify_backend(software_logs(), {**software_capabilities(), "canvas2d_available": value}, "software-fallback")
+
+    def test_software_fallback_requires_fresh_failed_webgl_negotiation(self) -> None:
+        logs = [software_logs()[0], winner("SkiaGraphicsProvider", "Software")]
+        with self.assertRaisesRegex(AssertionError, "expected unavailable-WebGL"):
+            verify_backend(logs, software_capabilities(), "software-fallback")
+
+    def test_software_fallback_accepts_only_exact_known_initialization_errors(self) -> None:
+        logs = software_logs() + [
+            {"type": "error", "text": NO_WEBGL_ERROR + "; device failure"},
+            {"type": "error", "text": "fail: AnotherRenderer[0]\n      " + NO_WEBGL_ERROR},
+            {"type": "error", "text": NO_WEBGL_ERROR.replace("err 0", "err 1")},
+        ]
+        proof = verify_backend(logs, software_capabilities(), "software-fallback")
+        self.assertEqual(proof["expected_console_error_indices"], [0, 1])
+
+    def test_unavailable_webgl_error_is_never_exempt_in_other_modes(self) -> None:
+        for mode, adapter, renderer in (
+            ("webgpu", True, winner("WebGpuGraphicsProvider", "WebGpu")),
+            ("skia-preferred", True, winner("SkiaGraphicsProvider", "WebGL")),
+            ("skia-fallback", False, winner("SkiaGraphicsProvider", "WebGL")),
+        ):
+            logs = [software_logs()[0], software_logs()[1], renderer]
+            with self.subTest(mode=mode):
+                proof = verify_backend(logs, capabilities(adapter), mode)
+                self.assertNotIn(1, proof["expected_console_error_indices"])
+
+    def test_software_fallback_rejects_a_webgl_winner(self) -> None:
+        logs = software_logs()[:2] + [winner("SkiaGraphicsProvider", "WebGL")]
+        with self.assertRaisesRegex(AssertionError, "unexpected graphics backend"):
+            verify_backend(logs, software_capabilities(), "software-fallback")
+
+    def test_browser_profiles_disable_only_the_requested_capabilities(self) -> None:
+        arguments = launch_arguments("software-fallback")
+        self.assertIn("--disable-webgl", arguments)
+        self.assertIn("--disable-features=WebGPUService", arguments)
+        self.assertNotIn("--enable-unsafe-webgpu", arguments)
+        for mode in ("webgpu", "skia-fallback", "skia-preferred"):
+            self.assertNotIn("--disable-webgl", launch_arguments(mode))
+
+    def test_initialization_errors_are_not_exempt_after_the_renderer_wins(self) -> None:
+        no_adapter = {"type": "error", "text": NO_ADAPTER_ERROR}
+        logs = [no_adapter, winner("SkiaGraphicsProvider", "WebGL"), no_adapter]
+        proof = verify_backend(logs, capabilities(False), "skia-fallback")
+        self.assertEqual(proof["expected_console_error_indices"], [0])
+        logs = software_logs() + software_logs()[:2]
+        proof = verify_backend(logs, software_capabilities(), "software-fallback")
+        self.assertEqual(proof["expected_console_error_indices"], [0, 1])
+
+    def test_webgl_scenarios_require_an_independently_available_context(self) -> None:
+        for mode, adapter in (("skia-fallback", False), ("skia-preferred", True)):
+            with self.subTest(mode=mode), self.assertRaisesRegex(AssertionError, "usable WebGL"):
+                verify_backend([winner("SkiaGraphicsProvider", "WebGL")],
+                               {**software_capabilities(), "adapter_available": adapter}, mode)
 
 
 if __name__ == "__main__":
