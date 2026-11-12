@@ -1,0 +1,1429 @@
+{
+  "schema": 2,
+  "measured_date_utc": "2026-11-12",
+  "status": "accepted_scoped_same_artifact_composition_experiments",
+  "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+  "package": {
+    "schema": 2,
+    "role": "candidate",
+    "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+    "dotnet_sdk": "10.0.403",
+    "dotnet_workload_version": "10.0.403",
+    "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+    "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+    "source_configuration_overridden": true,
+    "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+    "uno_sdk": "7.0.5",
+    "runtime_generation": "uno7",
+    "configuration": "Release",
+    "execution_mode": "InterpreterAndAOT",
+    "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+    "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+    "index_sha256": "a0622ea730064ee73459f0e044fde058100bc9f8478124521a2a7a6c0091d510",
+    "supports_render_diagnostics": true,
+    "font_assets_canonical_sha256": "e08b4731409680c2d8ccf6bc0e995f3ceca0d246fd090f31f1b96b73baa4b936"
+  },
+  "experiments": {
+    "brush_hover": {
+      "status": "accepted_scoped_same_artifact_hover_experiment",
+      "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "run_id": 43265614141,
+      "run_attempt": 1,
+      "job_id": 131366769837,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43265614141/job/131366769837",
+      "artifact_id": 13970013799,
+      "artifact_sha256": "0fa31248a465b16e7ad1b8d5995376b428125a83e952bb5c0b5927fb09f54405",
+      "report_sha256": "ab076d728f7aedb80d1bf44c315691a19949401c35a127a2dd413c9b37cd5af6",
+      "browser_version": "143.0.7499.4",
+      "browser_launch_arguments": [
+        "--enable-unsafe-swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-unsafe-webgpu",
+        "--use-vulkan=swiftshader",
+        "--enable-features=Vulkan"
+      ],
+      "runner": {
+        "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+        "machine": "x86_64"
+      },
+      "workload": "brush-hover",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "device_pixel_ratio": 1,
+      "primary_trials": 6,
+      "separate_diagnostic_trials": 2,
+      "native_pairs_recomputed": 9,
+      "native_pairs_passed": 9,
+      "all_source_mode_input_no_tail_and_isolation_contracts_passed": true,
+      "actual_trial_order": [
+        [
+          1,
+          "persistent"
+        ],
+        [
+          1,
+          "composite"
+        ],
+        [
+          2,
+          "composite"
+        ],
+        [
+          2,
+          "persistent"
+        ],
+        [
+          3,
+          "persistent"
+        ],
+        [
+          3,
+          "composite"
+        ]
+      ],
+      "metrics": {
+        "persistent": {
+          "trials": {
+            "elapsed_ms": [
+              145846.8,
+              145014.5,
+              144378.30000000005
+            ],
+            "thread_cpu_ms": [
+              1479.163,
+              1447.3,
+              1470.6809999999998
+            ],
+            "task_elapsed_ms": [
+              2396.8410000000003,
+              2412.839,
+              2482.0350000000003
+            ],
+            "cpu_task_ms_per_operation": [
+              19.973675000000004,
+              20.106991666666666,
+              20.683625000000003
+            ],
+            "operations_per_second": [
+              0.8227811648935733,
+              0.8275034565508966,
+              0.8311498334583518
+            ],
+            "completed_render_callbacks": [
+              226,
+              216,
+              222
+            ],
+            "graphics_active_animation_intervals": [
+              226,
+              216,
+              222
+            ],
+            "webgpu_canvas_submissions": [
+              226,
+              216,
+              222
+            ],
+            "graphite_document_submissions": [
+              null,
+              null,
+              null
+            ],
+            "input_events": [
+              120,
+              120,
+              120
+            ],
+            "input_to_completed_render_callback_ms_p95": [
+              29.720000000009893,
+              30.55499999999301,
+              28.015000000002328
+            ],
+            "completed_render_callback_interval_ms_p95": [
+              1217.479999999993,
+              1205.1100000000326,
+              1201.6000000000931
+            ]
+          },
+          "medians": {
+            "elapsed_ms": 145014.5,
+            "thread_cpu_ms": 1470.6809999999998,
+            "task_elapsed_ms": 2412.839,
+            "cpu_task_ms_per_operation": 20.106991666666666,
+            "operations_per_second": 0.8275034565508966,
+            "completed_render_callbacks": 222,
+            "graphics_active_animation_intervals": 222,
+            "webgpu_canvas_submissions": 222,
+            "graphite_document_submissions": null,
+            "input_events": 120,
+            "input_to_completed_render_callback_ms_p95": 29.720000000009893,
+            "completed_render_callback_interval_ms_p95": 1205.1100000000326
+          },
+          "post_window": [
+            {
+              "trial": 1,
+              "final_capture_validation_elapsed_ms": 1290.97791800001,
+              "restore_validation_elapsed_ms": 4676.883782000004,
+              "graphite_queue_drain": {
+                "available": false,
+                "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+              }
+            },
+            {
+              "trial": 2,
+              "final_capture_validation_elapsed_ms": 1284.477281999898,
+              "restore_validation_elapsed_ms": 4120.575049999843,
+              "graphite_queue_drain": {
+                "available": false,
+                "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+              }
+            },
+            {
+              "trial": 3,
+              "final_capture_validation_elapsed_ms": 1290.9791499998846,
+              "restore_validation_elapsed_ms": 4670.147988000053,
+              "graphite_queue_drain": {
+                "available": false,
+                "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+              }
+            }
+          ]
+        },
+        "composite": {
+          "trials": {
+            "elapsed_ms": [
+              115503.5,
+              114568.19999999995,
+              113808.8999999999
+            ],
+            "thread_cpu_ms": [
+              1459.272,
+              1407.4840000000002,
+              1411.989
+            ],
+            "task_elapsed_ms": [
+              2448.186,
+              2310.226,
+              2308.062
+            ],
+            "cpu_task_ms_per_operation": [
+              20.40155,
+              19.251883333333335,
+              19.23385
+            ],
+            "operations_per_second": [
+              1.0389295562472134,
+              1.047411061708223,
+              1.0543990847815952
+            ],
+            "completed_render_callbacks": [
+              228,
+              218,
+              222
+            ],
+            "graphics_active_animation_intervals": [
+              228,
+              218,
+              222
+            ],
+            "webgpu_canvas_submissions": [
+              228,
+              218,
+              222
+            ],
+            "graphite_document_submissions": [
+              null,
+              null,
+              null
+            ],
+            "input_events": [
+              120,
+              120,
+              120
+            ],
+            "input_to_completed_render_callback_ms_p95": [
+              27.719999999954595,
+              76.39999999997428,
+              29.130000000051204
+            ],
+            "completed_render_callback_interval_ms_p95": [
+              958.35,
+              940.5600000000326,
+              942.6999999999534
+            ]
+          },
+          "medians": {
+            "elapsed_ms": 114568.19999999995,
+            "thread_cpu_ms": 1411.989,
+            "task_elapsed_ms": 2310.226,
+            "cpu_task_ms_per_operation": 19.251883333333335,
+            "operations_per_second": 1.047411061708223,
+            "completed_render_callbacks": 222,
+            "graphics_active_animation_intervals": 222,
+            "webgpu_canvas_submissions": 222,
+            "graphite_document_submissions": null,
+            "input_events": 120,
+            "input_to_completed_render_callback_ms_p95": 29.130000000051204,
+            "completed_render_callback_interval_ms_p95": 942.6999999999534
+          },
+          "post_window": [
+            {
+              "trial": 1,
+              "final_capture_validation_elapsed_ms": 1040.9949439999764,
+              "restore_validation_elapsed_ms": 3802.502570999991,
+              "graphite_queue_drain": {
+                "available": false,
+                "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+              }
+            },
+            {
+              "trial": 2,
+              "final_capture_validation_elapsed_ms": 129.6127370000022,
+              "restore_validation_elapsed_ms": 4201.834466000037,
+              "graphite_queue_drain": {
+                "available": false,
+                "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+              }
+            },
+            {
+              "trial": 3,
+              "final_capture_validation_elapsed_ms": 1004.9511800000346,
+              "restore_validation_elapsed_ms": 4203.878037999857,
+              "graphite_queue_drain": {
+                "available": false,
+                "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+              }
+            }
+          ]
+        }
+      },
+      "composite_over_persistent": {
+        "elapsed_ms": 0.7900465125901199,
+        "thread_cpu_ms": 0.9600919573993274,
+        "task_elapsed_ms": 0.9574720899322334,
+        "cpu_task_ms_per_operation": 0.9574720899322335,
+        "operations_per_second": 1.2657482617340592,
+        "completed_render_callbacks": 1.0,
+        "graphics_active_animation_intervals": 1.0,
+        "webgpu_canvas_submissions": 1.0,
+        "graphite_document_submissions": null,
+        "input_events": 1.0,
+        "input_to_completed_render_callback_ms_p95": 0.9801480484536174,
+        "completed_render_callback_interval_ms_p95": 0.7822522425338168
+      },
+      "primary_upload_and_error_evidence": [
+        {
+          "trial": 1,
+          "mode": "persistent",
+          "graphics_api_calls": {
+            "webgpu.canvasSubmit": 226,
+            "webgpu.writeTexture": 120
+          },
+          "supplied_upload_buffer_bytes": 387064320,
+          "inputs_without_later_graphics": 0,
+          "inputs_without_completed_callback": 0,
+          "page_errors": [],
+          "resource_errors": []
+        },
+        {
+          "trial": 1,
+          "mode": "composite",
+          "graphics_api_calls": {
+            "webgpu.canvasSubmit": 228,
+            "webgpu.writeTexture": 120
+          },
+          "supplied_upload_buffer_bytes": 387064320,
+          "inputs_without_later_graphics": 0,
+          "inputs_without_completed_callback": 0,
+          "page_errors": [],
+          "resource_errors": []
+        },
+        {
+          "trial": 2,
+          "mode": "composite",
+          "graphics_api_calls": {
+            "webgpu.canvasSubmit": 218,
+            "webgpu.writeTexture": 120
+          },
+          "supplied_upload_buffer_bytes": 387064320,
+          "inputs_without_later_graphics": 0,
+          "inputs_without_completed_callback": 0,
+          "page_errors": [],
+          "resource_errors": []
+        },
+        {
+          "trial": 2,
+          "mode": "persistent",
+          "graphics_api_calls": {
+            "webgpu.canvasSubmit": 216,
+            "webgpu.writeTexture": 120
+          },
+          "supplied_upload_buffer_bytes": 387064320,
+          "inputs_without_later_graphics": 0,
+          "inputs_without_completed_callback": 0,
+          "page_errors": [],
+          "resource_errors": []
+        },
+        {
+          "trial": 3,
+          "mode": "persistent",
+          "graphics_api_calls": {
+            "webgpu.canvasSubmit": 222,
+            "webgpu.writeTexture": 120
+          },
+          "supplied_upload_buffer_bytes": 387064320,
+          "inputs_without_later_graphics": 0,
+          "inputs_without_completed_callback": 0,
+          "page_errors": [],
+          "resource_errors": []
+        },
+        {
+          "trial": 3,
+          "mode": "composite",
+          "graphics_api_calls": {
+            "webgpu.canvasSubmit": 222,
+            "webgpu.writeTexture": 120
+          },
+          "supplied_upload_buffer_bytes": 387064320,
+          "inputs_without_later_graphics": 0,
+          "inputs_without_completed_callback": 0,
+          "page_errors": [],
+          "resource_errors": []
+        }
+      ],
+      "separate_diagnostics": [
+        {
+          "mode": "persistent",
+          "phases": [
+            {
+              "phase": "Document",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            },
+            {
+              "phase": "Interaction",
+              "count": 120,
+              "totalMilliseconds": 57.800008,
+              "maxMilliseconds": 6.3,
+              "allocatedBytes": 17280
+            },
+            {
+              "phase": "Ruler",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            },
+            {
+              "phase": "Navigator",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            }
+          ],
+          "cache_evidence": [
+            "UnoDraw canvas bridge preference: persistent RGBA upload.",
+            "UnoDraw canvas bridge initialized: persistent RGBA upload."
+          ],
+          "metrics": {
+            "operations": 120,
+            "input_events": 120,
+            "completed_render_callbacks": 210,
+            "webgpu_canvas_submissions": 210
+          }
+        },
+        {
+          "mode": "composite",
+          "phases": [
+            {
+              "phase": "Document",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            },
+            {
+              "phase": "Interaction",
+              "count": 120,
+              "totalMilliseconds": 58.300009,
+              "maxMilliseconds": 3.9,
+              "allocatedBytes": 17280
+            },
+            {
+              "phase": "Ruler",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            },
+            {
+              "phase": "Navigator",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            }
+          ],
+          "cache_evidence": [
+            "UnoDraw canvas bridge preference: cached document composition.",
+            "UnoDraw canvas bridge initialized: persistent RGBA upload.",
+            "UnoDraw canvas bridge initialized: cached document composition.",
+            "UnoDraw canvas bridge reused cached document pixels."
+          ],
+          "metrics": {
+            "operations": 120,
+            "input_events": 120,
+            "completed_render_callbacks": 223,
+            "webgpu_canvas_submissions": 223
+          }
+        }
+      ],
+      "native_pairs": [
+        {
+          "trial": 1,
+          "state": "before",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 1,
+          "state": "after",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 1,
+          "state": "restored",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 2,
+          "state": "before",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 2,
+          "state": "after",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 2,
+          "state": "restored",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 3,
+          "state": "before",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 3,
+          "state": "after",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 3,
+          "state": "restored",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      ],
+      "scope": [
+        "Same d0 Release AOT artifact and same runner; independent repetition of the earlier 523 hover comparison. Ratios are not pooled across jobs.",
+        "Median workload elapsed 145,014.5 ms to 114,568.2 ms is a 21.0% reduction, or 26.6% higher offered-input throughput.",
+        "Every composite elapsed sample is below every persistent sample in this job.",
+        "Both modes retain median 222 completed callbacks/submissions, 120 trusted inputs and 120 texture uploads per primary trial. This is not a claim of fewer rendered frames.",
+        "Renderer-thread CPU decreased 4.0%; task time decreased 4.3%. Wall-time improvement is larger, consistent with composition cost outside the measured renderer thread; individual GPU costs are not isolated.",
+        "Post-window screenshot/validation and restore durations are recorded separately; neither mode exposes a matched queue drain, and physical presentation is not measured.",
+        "All nine timing-state native pixel pairs pass the unchanged luma 12 / 0.001 gate. Separate d0 AOT Welcome lifecycle quality also passes 30/30.",
+        "This report does not qualify selection, pan, zoom, or edits, nor prove a same-runner recovery relative to the 96e regression baseline.",
+        "SwiftShader software graphics only; no hardware throughput claim."
+      ]
+    },
+    "selection": {
+      "status": "accepted_scoped_same_artifact_selection_experiment",
+      "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "run_id": 43265614141,
+      "run_attempt": 1,
+      "job_id": 131366770067,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43265614141/job/131366770067",
+      "artifact_id": 13970693806,
+      "artifact_sha256": "edc74f0c8eeb26ca61420f7f9c361a9568b198d335102bbea644b501b1c24d05",
+      "report_sha256": "94b99c0115a4598d696ffa7dc74a78bd7e6fb3fd94d4665a2bc7cb19864d972c",
+      "browser_version": "143.0.7499.4",
+      "browser_launch_arguments": [
+        "--enable-unsafe-swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-unsafe-webgpu",
+        "--use-vulkan=swiftshader",
+        "--enable-features=Vulkan"
+      ],
+      "runner": {
+        "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+        "machine": "x86_64"
+      },
+      "package_index_sha256": "a0622ea730064ee73459f0e044fde058100bc9f8478124521a2a7a6c0091d510",
+      "workload": "selection",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "device_pixel_ratio": 1,
+      "primary_trials": 6,
+      "separate_diagnostic_trials": 2,
+      "native_pairs_recomputed": 9,
+      "native_pairs_passed": 9,
+      "all_source_mode_input_no_tail_and_isolation_contracts_passed": true,
+      "actual_trial_order": [
+        [
+          1,
+          "persistent"
+        ],
+        [
+          1,
+          "composite"
+        ],
+        [
+          2,
+          "composite"
+        ],
+        [
+          2,
+          "persistent"
+        ],
+        [
+          3,
+          "persistent"
+        ],
+        [
+          3,
+          "composite"
+        ]
+      ],
+      "metrics": {
+        "persistent": {
+          "trials": {
+            "elapsed_ms": [
+              199481.49999999997,
+              190397.8999999999,
+              205292.30000000005
+            ],
+            "thread_cpu_ms": [
+              7516.3099999999995,
+              7289.736000000001,
+              7716.508
+            ],
+            "task_elapsed_ms": [
+              13797.309000000001,
+              13264.6,
+              14026.505000000001
+            ],
+            "cpu_task_ms_per_operation": [
+              114.02734710743803,
+              109.62479338842975,
+              115.92152892561984
+            ],
+            "operations_per_second": [
+              0.6065725393081565,
+              0.6355112109954998,
+              0.5894034993031886
+            ],
+            "completed_render_callbacks": [
+              124,
+              124,
+              124
+            ],
+            "graphics_active_animation_intervals": [
+              124,
+              124,
+              124
+            ],
+            "webgpu_canvas_submissions": [
+              124,
+              124,
+              124
+            ],
+            "graphite_document_submissions": [
+              null,
+              null,
+              null
+            ],
+            "input_events": [
+              121,
+              121,
+              121
+            ],
+            "input_to_completed_render_callback_ms_p95": [
+              1740.7999999999884,
+              1770.0999999998603,
+              1750.1999999999534
+            ],
+            "completed_render_callback_interval_ms_p95": [
+              1746.2299999999989,
+              1773.3600000001256,
+              1753.760000000056
+            ]
+          },
+          "medians": {
+            "elapsed_ms": 199481.49999999997,
+            "thread_cpu_ms": 7516.3099999999995,
+            "task_elapsed_ms": 13797.309000000001,
+            "cpu_task_ms_per_operation": 114.02734710743803,
+            "operations_per_second": 0.6065725393081565,
+            "completed_render_callbacks": 124,
+            "graphics_active_animation_intervals": 124,
+            "webgpu_canvas_submissions": 124,
+            "graphite_document_submissions": null,
+            "input_events": 121,
+            "input_to_completed_render_callback_ms_p95": 1750.1999999999534,
+            "completed_render_callback_interval_ms_p95": 1753.760000000056
+          },
+          "post_window": [
+            {
+              "trial": 1,
+              "final_capture_validation_elapsed_ms": 144.2648340000119,
+              "restore_validation_elapsed_ms": 3050.62097900003,
+              "graphite_queue_drain": {
+                "available": false,
+                "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+              }
+            },
+            {
+              "trial": 2,
+              "final_capture_validation_elapsed_ms": 142.49621499993737,
+              "restore_validation_elapsed_ms": 3109.283896000079,
+              "graphite_queue_drain": {
+                "available": false,
+                "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+              }
+            },
+            {
+              "trial": 3,
+              "final_capture_validation_elapsed_ms": 148.51766600008887,
+              "restore_validation_elapsed_ms": 5435.03882899995,
+              "graphite_queue_drain": {
+                "available": false,
+                "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+              }
+            }
+          ]
+        },
+        "composite": {
+          "trials": {
+            "elapsed_ms": [
+              166229.3999999999,
+              168003.0,
+              167618.99999999977
+            ],
+            "thread_cpu_ms": [
+              7438.7480000000005,
+              7506.163,
+              7578.117
+            ],
+            "task_elapsed_ms": [
+              13564.286,
+              13690.268,
+              14029.14
+            ],
+            "cpu_task_ms_per_operation": [
+              112.10153719008264,
+              113.14271074380166,
+              115.94330578512397
+            ],
+            "operations_per_second": [
+              0.7279097440043703,
+              0.720225234073201,
+              0.7218752050781843
+            ],
+            "completed_render_callbacks": [
+              124,
+              125,
+              123
+            ],
+            "graphics_active_animation_intervals": [
+              124,
+              125,
+              123
+            ],
+            "webgpu_canvas_submissions": [
+              124,
+              125,
+              123
+            ],
+            "graphite_document_submissions": [
+              null,
+              null,
+              null
+            ],
+            "input_events": [
+              121,
+              121,
+              121
+            ],
+            "input_to_completed_render_callback_ms_p95": [
+              1463.8000000000466,
+              1483.9000000000233,
+              1454.8999999999069
+            ],
+            "completed_render_callback_interval_ms_p95": [
+              1468.0100000000675,
+              1486.5399999999966,
+              1458.9849999999976
+            ]
+          },
+          "medians": {
+            "elapsed_ms": 167618.99999999977,
+            "thread_cpu_ms": 7506.163,
+            "task_elapsed_ms": 13690.268,
+            "cpu_task_ms_per_operation": 113.14271074380166,
+            "operations_per_second": 0.7218752050781843,
+            "completed_render_callbacks": 124,
+            "graphics_active_animation_intervals": 124,
+            "webgpu_canvas_submissions": 124,
+            "graphite_document_submissions": null,
+            "input_events": 121,
+            "input_to_completed_render_callback_ms_p95": 1463.8000000000466,
+            "completed_render_callback_interval_ms_p95": 1468.0100000000675
+          },
+          "post_window": [
+            {
+              "trial": 1,
+              "final_capture_validation_elapsed_ms": 145.8271250000962,
+              "restore_validation_elapsed_ms": 2751.931268000021,
+              "graphite_queue_drain": {
+                "available": false,
+                "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+              }
+            },
+            {
+              "trial": 2,
+              "final_capture_validation_elapsed_ms": 154.38760999995793,
+              "restore_validation_elapsed_ms": 4585.355680000021,
+              "graphite_queue_drain": {
+                "available": false,
+                "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+              }
+            },
+            {
+              "trial": 3,
+              "final_capture_validation_elapsed_ms": 151.574189999792,
+              "restore_validation_elapsed_ms": 4510.588903000098,
+              "graphite_queue_drain": {
+                "available": false,
+                "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+              }
+            }
+          ]
+        }
+      },
+      "composite_over_persistent": {
+        "elapsed_ms": 0.8402734088123449,
+        "thread_cpu_ms": 0.9986500024613142,
+        "task_elapsed_ms": 0.9922418929662298,
+        "cpu_task_ms_per_operation": 0.9922418929662298,
+        "operations_per_second": 1.1900888324116017,
+        "completed_render_callbacks": 1.0,
+        "graphics_active_animation_intervals": 1.0,
+        "webgpu_canvas_submissions": 1.0,
+        "graphite_document_submissions": null,
+        "input_events": 1.0,
+        "input_to_completed_render_callback_ms_p95": 0.8363615586790569,
+        "completed_render_callback_interval_ms_p95": 0.8370643645652887
+      },
+      "primary_upload_and_error_evidence": [
+        {
+          "trial": 1,
+          "mode": "persistent",
+          "graphics_api_calls": {
+            "webgpu.canvasSubmit": 124,
+            "webgpu.writeTexture": 120
+          },
+          "supplied_upload_buffer_bytes": 387064320,
+          "inputs_without_later_graphics": 0,
+          "inputs_without_completed_callback": 0,
+          "page_errors": [],
+          "resource_errors": [],
+          "changed_selection_document_pixels": 14380,
+          "minimum_changed_pixels": 50,
+          "restored": {
+            "color_family_pixels": {
+              "indigo": 41704,
+              "green": 83276,
+              "peach": 11757
+            },
+            "changed_pixel_fraction": 0.0,
+            "ruler_changed_pixel_fraction": {
+              "horizontal": 0.0,
+              "vertical": 0.0
+            }
+          }
+        },
+        {
+          "trial": 1,
+          "mode": "composite",
+          "graphics_api_calls": {
+            "webgpu.canvasSubmit": 124,
+            "webgpu.writeTexture": 119
+          },
+          "supplied_upload_buffer_bytes": 383838784,
+          "inputs_without_later_graphics": 0,
+          "inputs_without_completed_callback": 0,
+          "page_errors": [],
+          "resource_errors": [],
+          "changed_selection_document_pixels": 14380,
+          "minimum_changed_pixels": 50,
+          "restored": {
+            "color_family_pixels": {
+              "indigo": 41704,
+              "green": 83276,
+              "peach": 11757
+            },
+            "changed_pixel_fraction": 0.0,
+            "ruler_changed_pixel_fraction": {
+              "horizontal": 0.0,
+              "vertical": 0.0
+            }
+          }
+        },
+        {
+          "trial": 2,
+          "mode": "composite",
+          "graphics_api_calls": {
+            "webgpu.canvasSubmit": 125,
+            "webgpu.writeTexture": 120
+          },
+          "supplied_upload_buffer_bytes": 387064320,
+          "inputs_without_later_graphics": 0,
+          "inputs_without_completed_callback": 0,
+          "page_errors": [],
+          "resource_errors": [],
+          "changed_selection_document_pixels": 14380,
+          "minimum_changed_pixels": 50,
+          "restored": {
+            "color_family_pixels": {
+              "indigo": 41704,
+              "green": 83276,
+              "peach": 11757
+            },
+            "changed_pixel_fraction": 0.0,
+            "ruler_changed_pixel_fraction": {
+              "horizontal": 0.0,
+              "vertical": 0.0
+            }
+          }
+        },
+        {
+          "trial": 2,
+          "mode": "persistent",
+          "graphics_api_calls": {
+            "webgpu.canvasSubmit": 124,
+            "webgpu.writeTexture": 118
+          },
+          "supplied_upload_buffer_bytes": 380613248,
+          "inputs_without_later_graphics": 0,
+          "inputs_without_completed_callback": 0,
+          "page_errors": [],
+          "resource_errors": [],
+          "changed_selection_document_pixels": 14380,
+          "minimum_changed_pixels": 50,
+          "restored": {
+            "color_family_pixels": {
+              "indigo": 41704,
+              "green": 83276,
+              "peach": 11757
+            },
+            "changed_pixel_fraction": 0.0,
+            "ruler_changed_pixel_fraction": {
+              "horizontal": 0.0,
+              "vertical": 0.0
+            }
+          }
+        },
+        {
+          "trial": 3,
+          "mode": "persistent",
+          "graphics_api_calls": {
+            "webgpu.canvasSubmit": 124,
+            "webgpu.writeTexture": 121
+          },
+          "supplied_upload_buffer_bytes": 390289856,
+          "inputs_without_later_graphics": 0,
+          "inputs_without_completed_callback": 0,
+          "page_errors": [],
+          "resource_errors": [],
+          "changed_selection_document_pixels": 14380,
+          "minimum_changed_pixels": 50,
+          "restored": {
+            "color_family_pixels": {
+              "indigo": 41704,
+              "green": 83276,
+              "peach": 11757
+            },
+            "changed_pixel_fraction": 0.0,
+            "ruler_changed_pixel_fraction": {
+              "horizontal": 0.0,
+              "vertical": 0.0
+            }
+          }
+        },
+        {
+          "trial": 3,
+          "mode": "composite",
+          "graphics_api_calls": {
+            "webgpu.canvasSubmit": 123,
+            "webgpu.writeTexture": 120
+          },
+          "supplied_upload_buffer_bytes": 387064320,
+          "inputs_without_later_graphics": 0,
+          "inputs_without_completed_callback": 0,
+          "page_errors": [],
+          "resource_errors": [],
+          "changed_selection_document_pixels": 14380,
+          "minimum_changed_pixels": 50,
+          "restored": {
+            "color_family_pixels": {
+              "indigo": 41704,
+              "green": 83276,
+              "peach": 11757
+            },
+            "changed_pixel_fraction": 0.0,
+            "ruler_changed_pixel_fraction": {
+              "horizontal": 0.0,
+              "vertical": 0.0
+            }
+          }
+        }
+      ],
+      "separate_diagnostics": [
+        {
+          "mode": "persistent",
+          "phases": [
+            {
+              "phase": "Document",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            },
+            {
+              "phase": "Interaction",
+              "count": 119,
+              "totalMilliseconds": 261.400001,
+              "maxMilliseconds": 6.2,
+              "allocatedBytes": 333736
+            },
+            {
+              "phase": "Ruler",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            },
+            {
+              "phase": "Navigator",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            }
+          ],
+          "cache_evidence": [
+            "UnoDraw canvas bridge preference: persistent RGBA upload.",
+            "UnoDraw canvas bridge initialized: persistent RGBA upload."
+          ],
+          "metrics": {
+            "operations": 121,
+            "input_events": 121,
+            "completed_render_callbacks": 124,
+            "webgpu_canvas_submissions": 124
+          }
+        },
+        {
+          "mode": "composite",
+          "phases": [
+            {
+              "phase": "Document",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            },
+            {
+              "phase": "Interaction",
+              "count": 120,
+              "totalMilliseconds": 274.999984,
+              "maxMilliseconds": 6.199999,
+              "allocatedBytes": 334080
+            },
+            {
+              "phase": "Ruler",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            },
+            {
+              "phase": "Navigator",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            }
+          ],
+          "cache_evidence": [
+            "UnoDraw canvas bridge preference: cached document composition.",
+            "UnoDraw canvas bridge initialized: persistent RGBA upload.",
+            "UnoDraw canvas bridge initialized: cached document composition.",
+            "UnoDraw canvas bridge reused cached document pixels."
+          ],
+          "metrics": {
+            "operations": 121,
+            "input_events": 121,
+            "completed_render_callbacks": 125,
+            "webgpu_canvas_submissions": 125
+          }
+        }
+      ],
+      "native_pairs": [
+        {
+          "trial": 1,
+          "state": "before",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 1,
+          "state": "after",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 1,
+          "state": "restored",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 2,
+          "state": "before",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 2,
+          "state": "after",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 2,
+          "state": "restored",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 3,
+          "state": "before",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 3,
+          "state": "after",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "trial": 3,
+          "state": "restored",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      ],
+      "scope": [
+        "Same d0 Release AOT artifact and same runner. Alternating persistent/composite trial order; three independent primary trials per mode.",
+        "Median workload elapsed 199,481.5 ms to 167,619.0 ms is a 15.97% reduction, or 19.01% higher offered-input throughput.",
+        "Every composite elapsed sample (166,229.4 to 168,003.0 ms) is below every persistent sample (190,397.9 to 205,292.3 ms).",
+        "Both modes retain median 124 completed callbacks/submissions, 121 trusted inputs and median 120 texture uploads. Individual uploads range 118 to 121 for persistent and 119 to 120 for composite.",
+        "Renderer-thread CPU decreased 0.135%; task time decreased 0.776%. This is a wall-time improvement with essentially unchanged measured renderer-thread work.",
+        "Input-to-completed-callback p95 median decreased from 1,750.2 to 1,463.8 ms. This association is not a physical presentation or input-to-new-pixels measurement.",
+        "All six primary trials retain 14,380 changed selection pixels against the existing minimum 50-pixel gate, then restore document and rulers exactly.",
+        "Separate diagnostic passes paint no Document, Ruler or Navigator work. Interaction paints are 119 persistent and 120 composite; no primary timing includes managed diagnostic instrumentation.",
+        "All nine timing-state native pixel pairs pass the unchanged luma 12 / 0.001 gate. Broader d0 AOT Welcome lifecycle quality is recorded separately.",
+        "Post-window capture/validation takes 142.5 to 154.4 ms; restore validation takes 2.752 to 5.435 seconds. These are separate automation/image-analysis durations, not matched queue-drain or presentation measurements.",
+        "The comparison does not prove same-runner recovery relative to the 96e regression baseline; independent jobs cannot be multiplied into a baseline claim.",
+        "SwiftShader software graphics only; no hardware throughput claim."
+      ]
+    }
+  },
+  "separate_welcome_lifecycle_quality": {
+    "run_id": 43265614141,
+    "job_id": 131366769776,
+    "artifact_id": 13969600777,
+    "artifact_sha256": "c1f0862f2197e9a9e1a34c372e9c37a15f569dd5ceddbc8ebfb46185c076ce5a",
+    "cases": 6,
+    "native_captures": 60,
+    "native_pairs_passed": 30,
+    "device_pixel_ratios": [
+      1,
+      1.25,
+      2
+    ],
+    "maximum_rgb_difference": 5,
+    "pixels_above_luma12": 0,
+    "package_source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12"
+  },
+  "scope": [
+    "Hover and selection are independent same-artifact experiments on separate runners; report each ratio separately.",
+    "Both experiments use the same published d0 candidate AOT package and Chromium configuration. Each internally compares persistent with composite.",
+    "These improvements preserve the measured timing-state pixels and all 30 broader Welcome lifecycle pairs. Pan, zoom, edits and full SVG scenes are not qualified by these two experiments.",
+    "The original default WebGPU regression against source 96e is not proven resolved by these same-artifact comparisons. No cross-job pooled or multiplied baseline speedup is claimed."
+  ]
+}

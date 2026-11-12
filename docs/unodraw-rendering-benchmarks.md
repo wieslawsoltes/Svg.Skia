@@ -199,6 +199,21 @@ interaction surface still incurs composition costs. The single-surface and
 direct Graphite experiments address those remaining costs and require their own
 quality and throughput evidence.
 
+The same recorded Skia workloads also include the themed Uno 6 reference,
+`dbe9dd165f7eb63c1c6c9e6dac11091728062824`, on each comparison's runner:
+
+| Skia workload, 120 inputs | Uno 6 reference | Uno 7 regression baseline | Retained-UI candidate |
+| --- | ---: | ---: | ---: |
+| Pan median elapsed | 88.574 s | 32.174 s | 31.839 s |
+| Zoom median elapsed | 100.178 s | 37.949 s | 38.312 s |
+
+These measurements do not reproduce a Skia pan/zoom slowdown against that
+pre-migration reference. Most of the difference is already present in the Uno 7
+baseline; it must not be attributed to this PR's retained-panel changes. They
+also do not measure the older, differently structured deployed editor at
+`067901c`. The native image gate above compares the regression baseline with
+the candidate, while the historical reference supplies timing context.
+
 The next full application matrix, `523c1ed5` attempt 1, independently repeats all
 90 primary trials, 12 diagnostics and 108 accepted native-state comparisons.
 Its same-runner WebGPU selection median still takes 62.38% longer than the
@@ -228,6 +243,29 @@ fewer frames or a faster SVG painter. The source has no post-window queue-drain,
 screenshot or restore-duration metric, so it does not measure unfinished GPU
 work or physical presentation. It also does not compare directly with the
 regression baseline on this runner or establish the selection result.
+
+The independent `d0dafea` same-AOT hover run repeats that improvement:
+145.015 → 114.568 s median elapsed, or 21.0% less time and 26.6% greater
+offered-input throughput. All three composite samples, 113.809–115.504 s,
+finish before all three persistent samples, 144.378–145.847 s. Both modes
+retain 120 inputs and uploads, with zero input tails; median observed callbacks
+and canvas submissions are both 222. All nine native image pairs pass. Its
+[separate follow-up evidence](benchmarks/unodraw-composite-followup-2026-11-12.json)
+also records post-window capture and restoration durations. This repetition
+supports the hover result without pooling runners or claiming selection or
+regression-baseline recovery from it.
+
+The same source's independent selection experiment also passes all nine image
+pairs and measures 199.482 → 167.619 s median elapsed: 15.97% less time and
+19.01% greater offered-input throughput. Every composite sample,
+166.229–168.003 s, finishes before every persistent sample, 190.398–205.292 s.
+Both modes process exactly 121 trusted inputs without a tail and have a median
+124 completed callbacks and observed submissions. Thread CPU remains essentially
+unchanged, 7.516 → 7.506 s. The selected-state images contain the same 14,380
+changed pixels, and document/ruler restoration is exact. These samples compare
+two bridge modes of the candidate, not the older regression baseline. They
+therefore establish a selection improvement but cannot close the previously
+measured baseline regression by combining ratios from separate runners.
 
 See the [browser benchmark instructions](../tests/UnoDraw.BrowserPerformance/README.md)
 for exact workloads, metric definitions, controls and reproduction commands.
@@ -307,7 +345,7 @@ provider preference. Normal startup still negotiates WebGPU, then Skia/WebGL,
 then software; an individual bridge failure uses Uno's original canvas fallback.
 The shared compositor's device recovery remains the host's responsibility.
 
-### Opt-in GPU document raster experiment
+### Evaluated WebGL document bridge (retired)
 
 The separate instrumented pan pass for application commit `7211000` recorded
 121 Document callbacks totaling 41,066.5 ms, versus 44,008.8 ms of main-thread
@@ -319,14 +357,13 @@ retains the raw observations and Uno phase logs. Native stage attribution of the
 same welcome scene also identifies SVG replay, especially its gradients, as the
 largest cost; no gradient simplification is used.
 
-The `canvasBridge=webgl` experiment creates one app-owned WebGL2 context for the
-document viewport and reuses the existing Skia/Ganesh painter at full device
-resolution. Public Emscripten context APIs and Uno's public WebGPU object bridge
-connect the browser canvas to the retained composition target. Auxiliary
-surfaces keep the current CPU bridge. Loss, invalid dimensions or transfer
-failure fall back to that path; the experimental tests reject fallback when
-attributing GPU results. The default remains unchanged until the complete
-quality and repeated timing evidence supports selecting the new path.
+The [historical `canvasBridge=webgl` implementation](https://github.com/wieslawsoltes/Svg.Skia/blob/cbfeb0c603a8f729b4b1d489aecf99324c73c169/samples/UnoDraw/Platforms/WebAssembly/Rendering/WebGlSkiaCanvas.cs)
+created one app-owned WebGL2 context for the document viewport and reused the
+existing Skia/Ganesh painter at full device resolution. Public Emscripten context
+APIs and Uno's public WebGPU object bridge connected that canvas to the retained
+composition target. Auxiliary surfaces kept the CPU bridge. Loss, invalid
+dimensions or transfer failure fell back to that path; its experiments rejected
+fallback when attributing GPU results.
 
 This removes document CPU rasterization, not necessarily browser readback:
 [Chromium 143 on Linux forces readback](https://github.com/chromium/chromium/blob/143.0.7499.4/third_party/blink/renderer/modules/webgpu/gpu_queue.cc#L875-L916)
@@ -334,8 +371,33 @@ inside `copyExternalImageToTexture`. Separate same-package CPU/GPU pan and zoom
 trials measure the resulting tradeoff. Their report kind is distinct from the
 three-revision application benchmark and cannot be merged into its coverage.
 
-The large-text quality failure is caused by the GPU painter selecting a different
-glyph representation at large device sizes. The glyph-preserving experiment
+The experiment is rejected for promotion and removed from the active application.
+The [audited rejection record](benchmarks/unodraw-rejected-webgl-2026-11-12.json)
+retains all 36 primary samples, 12 separate diagnostics, 54 independently
+recomputed timing image pairs and the independent lifecycle/scene evidence.
+Across the six audited `a44ec76`/`523c1ed5` paired pan repeats, every WebGL trial
+takes longer than its matched CPU control, by 2.14%–6.87%. Zoom has no repeatable
+elapsed-time improvement. Seven extended SVG comparisons also fail in both
+versions with identical crop pairs. Lower executed CPU time does not meet the
+combined quality and throughput requirement. Historical source, complete
+measurements and failures remain available; removing the transport does not turn
+its failed or incomplete matrices into passes. The normal `renderer=skia`
+compositor and its WebGL/software fallback remain supported. An old
+`canvasBridge=webgl` request receives an explicit retirement diagnostic and uses
+the persistent CPU bridge.
+
+The later `d0dafea` package adds modest, mixed timing results rather than a
+uniform slowdown: pan median 79.9704 → 80.7652 s, and zoom median
+68.3957 → 65.6327 s. One of three pan pairs and two of three zoom pairs favor the
+GPU bridge. These favorable samples remain part of the evidence; they do not
+establish a substantial repeatable gain or resolve the broader quality failure.
+The conclusion applies to the measured transport/browser configurations, not
+every GPU, browser or future Skia release.
+
+### Shared native text coverage
+
+The first GPU experiment exposed a large-text quality failure caused by a
+different GPU glyph representation at large device sizes. The shared helper
 records the existing model commands into a live `SKDrawable`; each text leaf is
 painted through its unchanged BGRA text picture at the live device matrix, then
 composed at one image pixel per device pixel. Text shaping, font selection,
@@ -403,6 +465,12 @@ is the DPR 1.25 actual-size document. At DPR 1, all 1,307 pixels above luminance
 and rulers do not contribute. Uniform interior colors match. The restore from
 the 80-pixel viewport is pixel-identical within each mode, so these failures
 concern native coverage rather than missing redraws or stale texture uploads.
+The independent [AOT gate](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43265614141/job/131366769975)
+reproduces the same ten failing fractions, with all six lifecycle cases and 60
+captures complete. All 54 desktop document crops, including both bridge modes,
+are byte-identical between Interpreter and AOT. Whole-frame differences outside
+those crops remain below luminance 12, so the AOT check isolates the same native
+coverage issue rather than introducing a new execution-mode failure.
 
 `?canvasBridge=graphite&graphiteCoverage=raster` isolates one public native
 coverage choice in the same application binary. It requests
@@ -421,6 +489,31 @@ and layer order remain native. Specialized analytic shapes and eligible clips
 can still bypass that atlas. The requested count therefore does not establish
 pixel equality: the same native-size Welcome and complete SVG scene gates must
 accept the actual browser output before the option can be promoted.
+
+The `cbfeb0c` Interpreter jobs provide a controlled browser check of this option.
+Both publish the same source/configuration and have identical complete build
+manifests, entry-page hashes, font manifests and browser arguments. Complete
+application archives have not been compared byte-for-byte. The
+[audited coverage evidence](benchmarks/unodraw-graphite-coverage-2026-11-12.json)
+preserves every comparison, artifact digest and successful-context log:
+
+| Welcome Interpreter gate | Native default coverage | Raster path coverage |
+| --- | ---: | ---: |
+| Complete lifecycle cases | 6/6 | 6/6 |
+| Accepted native captures | 60 | 60 |
+| Passing native image pairs | 20/30 | 30/30 |
+| Maximum changed-pixel fraction in any checked region | 0.001910819 | 0.000366959 |
+
+The original luminance-12/fraction-0.001 gate is unchanged. All 60 pair outcomes
+were independently recomputed from the PNGs. Both modes initialize Graphite
+with the requested coverage count, without fallback or runtime errors. Their
+27 matched desktop CPU-control document crops are byte-identical; all 30
+CPU-control whole frames have zero pixels above the luminance threshold. At
+DPR 1, the document's above-threshold count falls from 1,307 to 251 and the long
+arch-edge discrepancies disappear. Smaller analytic-shape/clip differences
+remain, so this is accepted native-pixel quality, not byte equality. This result
+qualifies only Welcome in Interpreter mode; AOT, all eight SVG scenes and
+repeated total-throughput measurements remain independent requirements.
 
 One Graphite context is shared per Uno device. Each document canvas owns its
 recorder, image provider and target wrapper. Image caching is bounded, and failed
@@ -525,6 +618,14 @@ rows; structure, rename, lock, visibility and document replacement invalidate
 them. Their unchanged checks allocate zero bytes in focused warmed native tests.
 Canceled native tree drags explicitly discard the outline snapshot because the
 control may have reordered rows before the model accepted the operation.
+
+The strict macOS allocation gate exposed a further resource-classification
+problem: `GetType().Name` can allocate again after collection, because the
+[runtime reflection cache is weakly held](https://github.com/dotnet/runtime/blob/v10.0.0/src/coreclr/System.Private.CoreLib/src/System/RuntimeType.CoreCLR.cs).
+The picker and snapshot now share a concrete `SvgFilter` type check. Genuine
+filters and their subclasses qualify; unrelated elements with the same simple
+type name do not. The regression test keeps its original warmup and zero-byte
+assertion, then forces full collection and requires zero allocated bytes again.
 
 Hidden color/gradient editors also defer automatic reconstruction. In particular,
 building a clean gradient draft serializes and parses the document, so two hidden

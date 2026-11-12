@@ -1,0 +1,2292 @@
+{
+  "schema": 1,
+  "measured_date_utc": "2026-11-12",
+  "status": "rejected_experimental_document_bridge",
+  "decision": "Retire the optional WebGL document bridge; retain the normal Skia/WebGL compositor and CPU upload fallback.",
+  "scope": [
+    "These are same-AOT-artifact persistent-versus-WebGL document-bridge comparisons on the same runner within each workload. Independent jobs and source snapshots are not pooled.",
+    "Chromium with SwiftShader measures software graphics, not physical GPU throughput or physical presentation.",
+    "Pan medians did not improve. Zoom gains were small and varied between source snapshots; favorable d0 trials are retained.",
+    "Reduced renderer-thread CPU did not establish a consistent end-to-end interaction improvement.",
+    "The DPR1 timing fixture gates passed. Later Welcome lifecycle coverage passed, while extended SVG coverage was incomplete with independently reproduced failures on a44 and 523.",
+    "The d0 extended SVG job was still running at this evidence checkpoint. Earlier failures must not be claimed as completed d0 validation.",
+    "This decision concerns canvasBridge=webgl, not renderer=skia or Uno's normal WebGL fallback."
+  ],
+  "metric_definitions": {
+    "elapsed_ms": "Wall-clock workload window, including 120 offered trusted inputs and observed application callback completion.",
+    "renderer_thread_cpu_ms": "CDP ThreadTime active renderer main-thread CPU; excludes GPU and worker CPU.",
+    "task_elapsed_ms": "CDP TaskDuration elapsed task time; may include blocking and is not active CPU.",
+    "offered_operations_per_second": "120 divided by measured workload wall time; not displayed frames per second.",
+    "callbacks_and_submissions": "Observed completed application callbacks and visible WebGPU canvas submissions; not presentation events or proven input-to-new-pixels causality.",
+    "post_window": "Capture/restore durations are outside primary timing and include automation/image analysis. Older a44/523 reports did not collect them; null means unavailable. This bridge exposes no matched GPU queue-drain measurement."
+  },
+  "browser": {
+    "launch_arguments": [
+      "--enable-unsafe-swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-unsafe-webgpu",
+      "--use-vulkan=swiftshader",
+      "--enable-features=Vulkan"
+    ],
+    "version": "143.0.7499.4"
+  },
+  "viewport_css": {
+    "width": 1440,
+    "height": 960
+  },
+  "timing_device_pixel_ratio": 1,
+  "native_pixel_gate": {
+    "luminance_threshold": 12,
+    "maximum_changed_fraction_per_region": 0.001,
+    "resizing": false
+  },
+  "packages": {
+    "a44ec76199b7dd2ab3fb13032a730353907b7d82": {
+      "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403",
+      "uno_sdk": "7.0.5",
+      "runtime_generation": "uno7",
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "index_sha256": "75d5d73c68e66dc9c103248c8c8ed8e28c01d174df8c600c65d9ef216bfe66fc",
+      "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+      "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+      "source_configuration_overridden": true,
+      "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+      "font_assets_count": 38,
+      "font_manifest_canonical_sha256": "e08b4731409680c2d8ccf6bc0e995f3ceca0d246fd090f31f1b96b73baa4b936",
+      "manifest_canonical_sha256_excluding_local_path": "3ef838fa58bc585a48d330a1f4b4e553ed86c4cf009dcff26b036ec37a41edb5"
+    },
+    "523c1ed5e7507d26288e08255b86a2e14994367c": {
+      "source_sha": "523c1ed5e7507d26288e08255b86a2e14994367c",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403",
+      "uno_sdk": "7.0.5",
+      "runtime_generation": "uno7",
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "index_sha256": "fe1d3fa0afc3bd31cfaf1c3d3065d81913edadaa0710f709caa2188d6e80b610",
+      "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+      "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+      "source_configuration_overridden": true,
+      "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+      "font_assets_count": 38,
+      "font_manifest_canonical_sha256": "e08b4731409680c2d8ccf6bc0e995f3ceca0d246fd090f31f1b96b73baa4b936",
+      "manifest_canonical_sha256_excluding_local_path": "0eff371b66132777e65c8081d7937e853a8a84dc9b2f18d506963f85e634fed4"
+    },
+    "d0dafea8b705bf5e706ee8f5c008663d2d71fa12": {
+      "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403",
+      "uno_sdk": "7.0.5",
+      "runtime_generation": "uno7",
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "index_sha256": "a0622ea730064ee73459f0e044fde058100bc9f8478124521a2a7a6c0091d510",
+      "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+      "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+      "source_configuration_overridden": true,
+      "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+      "font_assets_count": 38,
+      "font_manifest_canonical_sha256": "e08b4731409680c2d8ccf6bc0e995f3ceca0d246fd090f31f1b96b73baa4b936",
+      "manifest_canonical_sha256_excluding_local_path": "1e594957d4c93c47918e8aa1e8974de9655075cbb688291490b7ce8cc4ef46a1"
+    }
+  },
+  "experiments": [
+    {
+      "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+      "workload": "pan",
+      "run_id": 43244676229,
+      "run_attempt": 1,
+      "job_id": 131299554822,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299554822",
+      "artifact_id": 13962674180,
+      "artifact_name": "unodraw-document-raster-experiment-pan",
+      "artifact_sha256": "6ded2cba6c718243e0323f961e9369ab7c9934ece60d5e74ff1839323e4c1e32",
+      "artifact_bytes": 5855168,
+      "report_sha256": "598d26db999dca59d42b83d4f329e75562d09aeeb3985e1ba16cd04e608a3611",
+      "runner": {
+        "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+        "machine": "x86_64"
+      },
+      "same_artifact_mode_pair": [
+        "persistent",
+        "webgl"
+      ],
+      "primary_trials": 6,
+      "separate_diagnostic_trials": 2,
+      "actual_trial_order": [
+        [
+          1,
+          "persistent"
+        ],
+        [
+          1,
+          "webgl"
+        ],
+        [
+          2,
+          "webgl"
+        ],
+        [
+          2,
+          "persistent"
+        ],
+        [
+          3,
+          "persistent"
+        ],
+        [
+          3,
+          "webgl"
+        ]
+      ],
+      "all_source_mode_input_and_no_tail_contracts_revalidated": true,
+      "all_page_and_resource_errors_empty": true,
+      "native_pairs_recomputed": 9,
+      "native_pairs_passed": 9,
+      "samples": {
+        "persistent": [
+          {
+            "trial": 1,
+            "elapsed_ms": 177270.0,
+            "renderer_thread_cpu_ms": 34781.201,
+            "task_elapsed_ms": 42042.26,
+            "task_ms_per_operation": 350.3521666666667,
+            "offered_operations_per_second": 0.6769334912844813,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 233,
+            "graphics_active_animation_intervals": 233,
+            "visible_canvas_submissions": 233,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 362,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 2,
+            "elapsed_ms": 175335.30000000005,
+            "renderer_thread_cpu_ms": 34812.309,
+            "task_elapsed_ms": 43291.866,
+            "task_ms_per_operation": 360.76555,
+            "offered_operations_per_second": 0.684402969624485,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 229,
+            "graphics_active_animation_intervals": 229,
+            "visible_canvas_submissions": 229,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 362,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 3,
+            "elapsed_ms": 175053.30000000005,
+            "renderer_thread_cpu_ms": 34887.219000000005,
+            "task_elapsed_ms": 42634.460999999996,
+            "task_ms_per_operation": 355.287175,
+            "offered_operations_per_second": 0.6855055003247581,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 230,
+            "graphics_active_animation_intervals": 230,
+            "visible_canvas_submissions": 230,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 362,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          }
+        ],
+        "webgl": [
+          {
+            "trial": 1,
+            "elapsed_ms": 182831.80000000005,
+            "renderer_thread_cpu_ms": 2052.4399999999996,
+            "task_elapsed_ms": 170057.353,
+            "task_ms_per_operation": 1417.1446083333333,
+            "offered_operations_per_second": 0.6563409647555839,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 246,
+            "graphics_active_animation_intervals": 246,
+            "visible_canvas_submissions": 246,
+            "external_image_copies": 121,
+            "write_texture_calls_all_canvases": 241,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 2,
+            "elapsed_ms": 180997.3999999999,
+            "renderer_thread_cpu_ms": 2133.531,
+            "task_elapsed_ms": 160587.958,
+            "task_ms_per_operation": 1338.2329833333336,
+            "offered_operations_per_second": 0.662992949069987,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 247,
+            "graphics_active_animation_intervals": 247,
+            "visible_canvas_submissions": 247,
+            "external_image_copies": 121,
+            "write_texture_calls_all_canvases": 241,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 3,
+            "elapsed_ms": 178790.69999999972,
+            "renderer_thread_cpu_ms": 2083.8579999999997,
+            "task_elapsed_ms": 150674.795,
+            "task_ms_per_operation": 1255.6232916666668,
+            "offered_operations_per_second": 0.6711758497505753,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 249,
+            "graphics_active_animation_intervals": 249,
+            "visible_canvas_submissions": 249,
+            "external_image_copies": 121,
+            "write_texture_calls_all_canvases": 241,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          }
+        ]
+      },
+      "medians": {
+        "persistent": {
+          "elapsed_ms": 175335.30000000005,
+          "renderer_thread_cpu_ms": 34812.309,
+          "task_elapsed_ms": 42634.460999999996,
+          "task_ms_per_operation": 355.287175,
+          "offered_operations_per_second": 0.684402969624485,
+          "completed_callbacks": 230,
+          "graphics_active_animation_intervals": 230,
+          "visible_canvas_submissions": 230,
+          "external_image_copies": 0,
+          "write_texture_calls_all_canvases": 362
+        },
+        "webgl": {
+          "elapsed_ms": 180997.3999999999,
+          "renderer_thread_cpu_ms": 2083.8579999999997,
+          "task_elapsed_ms": 160587.958,
+          "task_ms_per_operation": 1338.2329833333336,
+          "offered_operations_per_second": 0.662992949069987,
+          "completed_callbacks": 247,
+          "graphics_active_animation_intervals": 247,
+          "visible_canvas_submissions": 247,
+          "external_image_copies": 121,
+          "write_texture_calls_all_canvases": 241
+        }
+      },
+      "webgl_over_persistent": {
+        "elapsed_ms": 1.0322929837859225,
+        "renderer_thread_cpu_ms": 0.05985980418592744,
+        "task_elapsed_ms": 3.7666233894689096,
+        "task_ms_per_operation": 3.7666233894689096,
+        "offered_operations_per_second": 0.9687172301922576,
+        "completed_callbacks": 1.0739130434782609,
+        "graphics_active_animation_intervals": 1.0739130434782609,
+        "visible_canvas_submissions": 1.0739130434782609,
+        "external_image_copies": null,
+        "write_texture_calls_all_canvases": 0.6657458563535912
+      },
+      "paired_elapsed_results": [
+        {
+          "trial": 1,
+          "persistent_ms": 177270.0,
+          "webgl_ms": 182831.80000000005,
+          "webgl_over_persistent": 1.0313747390985506
+        },
+        {
+          "trial": 2,
+          "persistent_ms": 175335.30000000005,
+          "webgl_ms": 180997.3999999999,
+          "webgl_over_persistent": 1.0322929837859225
+        },
+        {
+          "trial": 3,
+          "persistent_ms": 175053.30000000005,
+          "webgl_ms": 178790.69999999972,
+          "webgl_over_persistent": 1.0213500688076127
+        }
+      ],
+      "native_pixel_pairs": [
+        {
+          "trial": 1,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 1,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006125730994152046,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 1,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006125730994152046,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006125730994152046,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+      "workload": "zoom",
+      "run_id": 43244676229,
+      "run_attempt": 1,
+      "job_id": 131299554721,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299554721",
+      "artifact_id": 13962853389,
+      "artifact_name": "unodraw-document-raster-experiment-zoom",
+      "artifact_sha256": "14147979c3345f8d3552afe0bc869897691a2682a3684e5109fb8709f3a2a59c",
+      "artifact_bytes": 5991623,
+      "report_sha256": "daa8ebc437f13edce53bcfa93d92f155e09a9192e613a97a816e1aaf19f7473f",
+      "runner": {
+        "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+        "machine": "x86_64"
+      },
+      "same_artifact_mode_pair": [
+        "persistent",
+        "webgl"
+      ],
+      "primary_trials": 6,
+      "separate_diagnostic_trials": 2,
+      "actual_trial_order": [
+        [
+          1,
+          "persistent"
+        ],
+        [
+          1,
+          "webgl"
+        ],
+        [
+          2,
+          "webgl"
+        ],
+        [
+          2,
+          "persistent"
+        ],
+        [
+          3,
+          "persistent"
+        ],
+        [
+          3,
+          "webgl"
+        ]
+      ],
+      "all_source_mode_input_and_no_tail_contracts_revalidated": true,
+      "all_page_and_resource_errors_empty": true,
+      "native_pairs_recomputed": 9,
+      "native_pairs_passed": 9,
+      "samples": {
+        "persistent": [
+          {
+            "trial": 1,
+            "elapsed_ms": 144719.0,
+            "renderer_thread_cpu_ms": 35617.70300000001,
+            "task_elapsed_ms": 45601.793,
+            "task_ms_per_operation": 380.01494166666663,
+            "offered_operations_per_second": 0.8291931259889855,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 238,
+            "graphics_active_animation_intervals": 238,
+            "visible_canvas_submissions": 238,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 336,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 2,
+            "elapsed_ms": 146232.5,
+            "renderer_thread_cpu_ms": 33029.392,
+            "task_elapsed_ms": 39778.692,
+            "task_ms_per_operation": 331.4891,
+            "offered_operations_per_second": 0.8206110132836407,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 250,
+            "graphics_active_animation_intervals": 250,
+            "visible_canvas_submissions": 250,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 336,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 3,
+            "elapsed_ms": 146753.80000000005,
+            "renderer_thread_cpu_ms": 33438.534,
+            "task_elapsed_ms": 40560.434,
+            "task_ms_per_operation": 338.0036166666667,
+            "offered_operations_per_second": 0.8176960324025678,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 251,
+            "graphics_active_animation_intervals": 251,
+            "visible_canvas_submissions": 251,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 336,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          }
+        ],
+        "webgl": [
+          {
+            "trial": 1,
+            "elapsed_ms": 149261.79999999993,
+            "renderer_thread_cpu_ms": 2848.2439999999997,
+            "task_elapsed_ms": 27238.281,
+            "task_ms_per_operation": 226.985675,
+            "offered_operations_per_second": 0.8039565381095501,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 278,
+            "graphics_active_animation_intervals": 278,
+            "visible_canvas_submissions": 278,
+            "external_image_copies": 112,
+            "write_texture_calls_all_canvases": 224,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 2,
+            "elapsed_ms": 148469.09999999998,
+            "renderer_thread_cpu_ms": 2706.2839999999997,
+            "task_elapsed_ms": 23574.661,
+            "task_ms_per_operation": 196.45550833333334,
+            "offered_operations_per_second": 0.808248989183608,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 280,
+            "graphics_active_animation_intervals": 280,
+            "visible_canvas_submissions": 280,
+            "external_image_copies": 112,
+            "write_texture_calls_all_canvases": 224,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 3,
+            "elapsed_ms": 148027.3999999999,
+            "renderer_thread_cpu_ms": 2623.843,
+            "task_elapsed_ms": 25716.278,
+            "task_ms_per_operation": 214.30231666666666,
+            "offered_operations_per_second": 0.8106607290271941,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 280,
+            "graphics_active_animation_intervals": 280,
+            "visible_canvas_submissions": 280,
+            "external_image_copies": 112,
+            "write_texture_calls_all_canvases": 224,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          }
+        ]
+      },
+      "medians": {
+        "persistent": {
+          "elapsed_ms": 146232.5,
+          "renderer_thread_cpu_ms": 33438.534,
+          "task_elapsed_ms": 40560.434,
+          "task_ms_per_operation": 338.0036166666667,
+          "offered_operations_per_second": 0.8206110132836407,
+          "completed_callbacks": 250,
+          "graphics_active_animation_intervals": 250,
+          "visible_canvas_submissions": 250,
+          "external_image_copies": 0,
+          "write_texture_calls_all_canvases": 336
+        },
+        "webgl": {
+          "elapsed_ms": 148469.09999999998,
+          "renderer_thread_cpu_ms": 2706.2839999999997,
+          "task_elapsed_ms": 25716.278,
+          "task_ms_per_operation": 214.30231666666666,
+          "offered_operations_per_second": 0.808248989183608,
+          "completed_callbacks": 280,
+          "graphics_active_animation_intervals": 280,
+          "visible_canvas_submissions": 280,
+          "external_image_copies": 112,
+          "write_texture_calls_all_canvases": 224
+        }
+      },
+      "webgl_over_persistent": {
+        "elapsed_ms": 1.0152948216025848,
+        "renderer_thread_cpu_ms": 0.08093309353813177,
+        "task_elapsed_ms": 0.6340237385033898,
+        "task_ms_per_operation": 0.6340237385033897,
+        "offered_operations_per_second": 0.9849355859232664,
+        "completed_callbacks": 1.12,
+        "graphics_active_animation_intervals": 1.12,
+        "visible_canvas_submissions": 1.12,
+        "external_image_copies": null,
+        "write_texture_calls_all_canvases": 0.6666666666666666
+      },
+      "paired_elapsed_results": [
+        {
+          "trial": 1,
+          "persistent_ms": 144719.0,
+          "webgl_ms": 149261.79999999993,
+          "webgl_over_persistent": 1.031390487772856
+        },
+        {
+          "trial": 2,
+          "persistent_ms": 146232.5,
+          "webgl_ms": 148469.09999999998,
+          "webgl_over_persistent": 1.0152948216025848
+        },
+        {
+          "trial": 3,
+          "persistent_ms": 146753.80000000005,
+          "webgl_ms": 148027.3999999999,
+          "webgl_over_persistent": 1.0086784805572315
+        }
+      ],
+      "native_pixel_pairs": [
+        {
+          "trial": 1,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 1,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.00014322916666666667,
+            "document": 0.0002807017543859649,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 1,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.00014322916666666667,
+            "document": 0.0002807017543859649,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.00014322916666666667,
+            "document": 0.0002807017543859649,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "source_sha": "523c1ed5e7507d26288e08255b86a2e14994367c",
+      "workload": "pan",
+      "run_id": 43253533111,
+      "run_attempt": 1,
+      "job_id": 131331895971,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/job/131331895971",
+      "artifact_id": 13966249282,
+      "artifact_name": "unodraw-document-raster-experiment-pan",
+      "artifact_sha256": "aedfcf95e07c3d4c40eef059bbd3a618793eebf2e197e98c1b4709167791d179",
+      "artifact_bytes": 5859486,
+      "report_sha256": "fc1d072985ae8321abc719e3a26545b3ed7d0d8a71206ba02f57e1b948804aa7",
+      "runner": {
+        "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+        "machine": "x86_64"
+      },
+      "same_artifact_mode_pair": [
+        "persistent",
+        "webgl"
+      ],
+      "primary_trials": 6,
+      "separate_diagnostic_trials": 2,
+      "actual_trial_order": [
+        [
+          1,
+          "persistent"
+        ],
+        [
+          1,
+          "webgl"
+        ],
+        [
+          2,
+          "webgl"
+        ],
+        [
+          2,
+          "persistent"
+        ],
+        [
+          3,
+          "persistent"
+        ],
+        [
+          3,
+          "webgl"
+        ]
+      ],
+      "all_source_mode_input_and_no_tail_contracts_revalidated": true,
+      "all_page_and_resource_errors_empty": true,
+      "native_pairs_recomputed": 9,
+      "native_pairs_passed": 9,
+      "samples": {
+        "persistent": [
+          {
+            "trial": 1,
+            "elapsed_ms": 137421.29999999996,
+            "renderer_thread_cpu_ms": 27407.944,
+            "task_elapsed_ms": 33040.054,
+            "task_ms_per_operation": 275.3337833333333,
+            "offered_operations_per_second": 0.8732270761519505,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 234,
+            "graphics_active_animation_intervals": 234,
+            "visible_canvas_submissions": 234,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 362,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 2,
+            "elapsed_ms": 134984.6000000001,
+            "renderer_thread_cpu_ms": 27386.282000000003,
+            "task_elapsed_ms": 34037.278,
+            "task_ms_per_operation": 283.6439833333333,
+            "offered_operations_per_second": 0.8889902996341799,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 230,
+            "graphics_active_animation_intervals": 230,
+            "visible_canvas_submissions": 230,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 362,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 3,
+            "elapsed_ms": 136140.19999999995,
+            "renderer_thread_cpu_ms": 27740.503999999997,
+            "task_elapsed_ms": 33685.534999999996,
+            "task_ms_per_operation": 280.71279166666665,
+            "offered_operations_per_second": 0.8814442758274194,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 234,
+            "graphics_active_animation_intervals": 234,
+            "visible_canvas_submissions": 234,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 362,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          }
+        ],
+        "webgl": [
+          {
+            "trial": 1,
+            "elapsed_ms": 143928.59999999998,
+            "renderer_thread_cpu_ms": 1961.202,
+            "task_elapsed_ms": 130238.797,
+            "task_ms_per_operation": 1085.3233083333334,
+            "offered_operations_per_second": 0.8337467327549911,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 244,
+            "graphics_active_animation_intervals": 244,
+            "visible_canvas_submissions": 244,
+            "external_image_copies": 121,
+            "write_texture_calls_all_canvases": 241,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 2,
+            "elapsed_ms": 144262.19999999995,
+            "renderer_thread_cpu_ms": 1938.898,
+            "task_elapsed_ms": 138834.724,
+            "task_ms_per_operation": 1156.9560333333332,
+            "offered_operations_per_second": 0.8318187300623451,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 243,
+            "graphics_active_animation_intervals": 243,
+            "visible_canvas_submissions": 243,
+            "external_image_copies": 121,
+            "write_texture_calls_all_canvases": 241,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 3,
+            "elapsed_ms": 144103.6000000001,
+            "renderer_thread_cpu_ms": 1938.691,
+            "task_elapsed_ms": 141997.88999999998,
+            "task_ms_per_operation": 1183.31575,
+            "offered_operations_per_second": 0.8327342273197889,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 242,
+            "graphics_active_animation_intervals": 242,
+            "visible_canvas_submissions": 242,
+            "external_image_copies": 121,
+            "write_texture_calls_all_canvases": 241,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          }
+        ]
+      },
+      "medians": {
+        "persistent": {
+          "elapsed_ms": 136140.19999999995,
+          "renderer_thread_cpu_ms": 27407.944,
+          "task_elapsed_ms": 33685.534999999996,
+          "task_ms_per_operation": 280.71279166666665,
+          "offered_operations_per_second": 0.8814442758274194,
+          "completed_callbacks": 234,
+          "graphics_active_animation_intervals": 234,
+          "visible_canvas_submissions": 234,
+          "external_image_copies": 0,
+          "write_texture_calls_all_canvases": 362
+        },
+        "webgl": {
+          "elapsed_ms": 144103.6000000001,
+          "renderer_thread_cpu_ms": 1938.898,
+          "task_elapsed_ms": 138834.724,
+          "task_ms_per_operation": 1156.9560333333332,
+          "offered_operations_per_second": 0.8327342273197889,
+          "completed_callbacks": 243,
+          "graphics_active_animation_intervals": 243,
+          "visible_canvas_submissions": 243,
+          "external_image_copies": 121,
+          "write_texture_calls_all_canvases": 241
+        }
+      },
+      "webgl_over_persistent": {
+        "elapsed_ms": 1.0584941112177015,
+        "renderer_thread_cpu_ms": 0.07074219065829965,
+        "task_elapsed_ms": 4.121493810325411,
+        "task_ms_per_operation": 4.12149381032541,
+        "offered_operations_per_second": 0.944738368784679,
+        "completed_callbacks": 1.0384615384615385,
+        "graphics_active_animation_intervals": 1.0384615384615385,
+        "visible_canvas_submissions": 1.0384615384615385,
+        "external_image_copies": null,
+        "write_texture_calls_all_canvases": 0.6657458563535912
+      },
+      "paired_elapsed_results": [
+        {
+          "trial": 1,
+          "persistent_ms": 137421.29999999996,
+          "webgl_ms": 143928.59999999998,
+          "webgl_over_persistent": 1.04735292127203
+        },
+        {
+          "trial": 2,
+          "persistent_ms": 134984.6000000001,
+          "webgl_ms": 144262.19999999995,
+          "webgl_over_persistent": 1.0687308033657161
+        },
+        {
+          "trial": 3,
+          "persistent_ms": 136140.19999999995,
+          "webgl_ms": 144103.6000000001,
+          "webgl_over_persistent": 1.0584941112177015
+        }
+      ],
+      "native_pixel_pairs": [
+        {
+          "trial": 1,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 1,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006125730994152046,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 1,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006125730994152046,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006125730994152046,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "source_sha": "523c1ed5e7507d26288e08255b86a2e14994367c",
+      "workload": "zoom",
+      "run_id": 43253533111,
+      "run_attempt": 1,
+      "job_id": 131331896005,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/job/131331896005",
+      "artifact_id": 13965092373,
+      "artifact_name": "unodraw-document-raster-experiment-zoom",
+      "artifact_sha256": "fb2597da0ee3287f228d6a5d3a5455343e5ae2d7fe6f146707d2a5cf2ee07126",
+      "artifact_bytes": 6002491,
+      "report_sha256": "782a467a5764136a08a899021620025be62a81978cd194d69b7982bf4478ac24",
+      "runner": {
+        "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+        "machine": "x86_64"
+      },
+      "same_artifact_mode_pair": [
+        "persistent",
+        "webgl"
+      ],
+      "primary_trials": 6,
+      "separate_diagnostic_trials": 2,
+      "actual_trial_order": [
+        [
+          1,
+          "persistent"
+        ],
+        [
+          1,
+          "webgl"
+        ],
+        [
+          2,
+          "webgl"
+        ],
+        [
+          2,
+          "persistent"
+        ],
+        [
+          3,
+          "persistent"
+        ],
+        [
+          3,
+          "webgl"
+        ]
+      ],
+      "all_source_mode_input_and_no_tail_contracts_revalidated": true,
+      "all_page_and_resource_errors_empty": true,
+      "native_pairs_recomputed": 9,
+      "native_pairs_passed": 9,
+      "samples": {
+        "persistent": [
+          {
+            "trial": 1,
+            "elapsed_ms": 66844.20000000001,
+            "renderer_thread_cpu_ms": 18782.376,
+            "task_elapsed_ms": 22635.582,
+            "task_ms_per_operation": 188.62984999999998,
+            "offered_operations_per_second": 1.795219330921755,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 267,
+            "graphics_active_animation_intervals": 267,
+            "visible_canvas_submissions": 267,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 336,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 2,
+            "elapsed_ms": 65792.90000000002,
+            "renderer_thread_cpu_ms": 16816.016,
+            "task_elapsed_ms": 19686.546,
+            "task_ms_per_operation": 164.05454999999998,
+            "offered_operations_per_second": 1.823905011027025,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 269,
+            "graphics_active_animation_intervals": 269,
+            "visible_canvas_submissions": 269,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 336,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 3,
+            "elapsed_ms": 66629.3999999999,
+            "renderer_thread_cpu_ms": 18037.514,
+            "task_elapsed_ms": 22037.79,
+            "task_ms_per_operation": 183.64825000000002,
+            "offered_operations_per_second": 1.8010067627803967,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 265,
+            "graphics_active_animation_intervals": 265,
+            "visible_canvas_submissions": 265,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 336,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          }
+        ],
+        "webgl": [
+          {
+            "trial": 1,
+            "elapsed_ms": 65431.59999999998,
+            "renderer_thread_cpu_ms": 2254.85,
+            "task_elapsed_ms": 14618.502,
+            "task_ms_per_operation": 121.82085000000001,
+            "offered_operations_per_second": 1.833976243894388,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 279,
+            "graphics_active_animation_intervals": 279,
+            "visible_canvas_submissions": 279,
+            "external_image_copies": 112,
+            "write_texture_calls_all_canvases": 224,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 2,
+            "elapsed_ms": 67051.70000000001,
+            "renderer_thread_cpu_ms": 2372.2599999999998,
+            "task_elapsed_ms": 12100.756,
+            "task_ms_per_operation": 100.83963333333332,
+            "offered_operations_per_second": 1.7896637967419167,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 281,
+            "graphics_active_animation_intervals": 281,
+            "visible_canvas_submissions": 281,
+            "external_image_copies": 112,
+            "write_texture_calls_all_canvases": 224,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          },
+          {
+            "trial": 3,
+            "elapsed_ms": 66480.19999999995,
+            "renderer_thread_cpu_ms": 2261.23,
+            "task_elapsed_ms": 13914.868999999999,
+            "task_ms_per_operation": 115.95724166666666,
+            "offered_operations_per_second": 1.805048721273403,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 280,
+            "graphics_active_animation_intervals": 280,
+            "visible_canvas_submissions": 280,
+            "external_image_copies": 112,
+            "write_texture_calls_all_canvases": 224,
+            "final_capture_validation_elapsed_ms": null,
+            "restore_validation_elapsed_ms": null
+          }
+        ]
+      },
+      "medians": {
+        "persistent": {
+          "elapsed_ms": 66629.3999999999,
+          "renderer_thread_cpu_ms": 18037.514,
+          "task_elapsed_ms": 22037.79,
+          "task_ms_per_operation": 183.64825000000002,
+          "offered_operations_per_second": 1.8010067627803967,
+          "completed_callbacks": 267,
+          "graphics_active_animation_intervals": 267,
+          "visible_canvas_submissions": 267,
+          "external_image_copies": 0,
+          "write_texture_calls_all_canvases": 336
+        },
+        "webgl": {
+          "elapsed_ms": 66480.19999999995,
+          "renderer_thread_cpu_ms": 2261.23,
+          "task_elapsed_ms": 13914.868999999999,
+          "task_ms_per_operation": 115.95724166666666,
+          "offered_operations_per_second": 1.805048721273403,
+          "completed_callbacks": 280,
+          "graphics_active_animation_intervals": 280,
+          "visible_canvas_submissions": 280,
+          "external_image_copies": 112,
+          "write_texture_calls_all_canvases": 224
+        }
+      },
+      "webgl_over_persistent": {
+        "elapsed_ms": 0.9977607482582771,
+        "renderer_thread_cpu_ms": 0.1253626192611687,
+        "task_elapsed_ms": 0.6314094562113532,
+        "task_ms_per_operation": 0.6314094562113532,
+        "offered_operations_per_second": 1.0022442772434492,
+        "completed_callbacks": 1.048689138576779,
+        "graphics_active_animation_intervals": 1.048689138576779,
+        "visible_canvas_submissions": 1.048689138576779,
+        "external_image_copies": null,
+        "write_texture_calls_all_canvases": 0.6666666666666666
+      },
+      "paired_elapsed_results": [
+        {
+          "trial": 1,
+          "persistent_ms": 66844.20000000001,
+          "webgl_ms": 65431.59999999998,
+          "webgl_over_persistent": 0.9788672764428322
+        },
+        {
+          "trial": 2,
+          "persistent_ms": 65792.90000000002,
+          "webgl_ms": 67051.70000000001,
+          "webgl_over_persistent": 1.0191327635656733
+        },
+        {
+          "trial": 3,
+          "persistent_ms": 66629.3999999999,
+          "webgl_ms": 66480.19999999995,
+          "webgl_over_persistent": 0.9977607482582771
+        }
+      ],
+      "native_pixel_pairs": [
+        {
+          "trial": 1,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 1,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.00014322916666666667,
+            "document": 0.0002807017543859649,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 1,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.00014322916666666667,
+            "document": 0.0002807017543859649,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.00014322916666666667,
+            "document": 0.0002807017543859649,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "workload": "pan",
+      "run_id": 43265614141,
+      "run_attempt": 1,
+      "job_id": 131366769766,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43265614141/job/131366769766",
+      "artifact_id": 13969992084,
+      "artifact_name": "unodraw-document-raster-experiment-pan",
+      "artifact_sha256": "cd60d9d792c0df9319c5162e7c5009e96ff956f5d57d055e1ae05de64a241268",
+      "artifact_bytes": 5867263,
+      "report_sha256": "b171a425b1b7a284c86aa2f622ec55979953f03c9fbc7f7d7b8572cd396e3282",
+      "runner": {
+        "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+        "machine": "x86_64"
+      },
+      "same_artifact_mode_pair": [
+        "persistent",
+        "webgl"
+      ],
+      "primary_trials": 6,
+      "separate_diagnostic_trials": 2,
+      "actual_trial_order": [
+        [
+          1,
+          "persistent"
+        ],
+        [
+          1,
+          "webgl"
+        ],
+        [
+          2,
+          "webgl"
+        ],
+        [
+          2,
+          "persistent"
+        ],
+        [
+          3,
+          "persistent"
+        ],
+        [
+          3,
+          "webgl"
+        ]
+      ],
+      "all_source_mode_input_and_no_tail_contracts_revalidated": true,
+      "all_page_and_resource_errors_empty": true,
+      "native_pairs_recomputed": 9,
+      "native_pairs_passed": 9,
+      "samples": {
+        "persistent": [
+          {
+            "trial": 1,
+            "elapsed_ms": 81230.30000000002,
+            "renderer_thread_cpu_ms": 22841.664999999997,
+            "task_elapsed_ms": 28087.087999999996,
+            "task_ms_per_operation": 234.05906666666664,
+            "offered_operations_per_second": 1.477281260810313,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 234,
+            "graphics_active_animation_intervals": 234,
+            "visible_canvas_submissions": 234,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 362,
+            "final_capture_validation_elapsed_ms": 1292.09919500002,
+            "restore_validation_elapsed_ms": 2743.131216999984
+          },
+          {
+            "trial": 2,
+            "elapsed_ms": 78951.1000000001,
+            "renderer_thread_cpu_ms": 23348.128,
+            "task_elapsed_ms": 28852.359,
+            "task_ms_per_operation": 240.436325,
+            "offered_operations_per_second": 1.5199281580623938,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 235,
+            "graphics_active_animation_intervals": 235,
+            "visible_canvas_submissions": 235,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 362,
+            "final_capture_validation_elapsed_ms": 1341.07587099993,
+            "restore_validation_elapsed_ms": 2728.4968860000163
+          },
+          {
+            "trial": 3,
+            "elapsed_ms": 79970.40000000002,
+            "renderer_thread_cpu_ms": 22370.812,
+            "task_elapsed_ms": 27580.075,
+            "task_ms_per_operation": 229.83395833333333,
+            "offered_operations_per_second": 1.5005552054260072,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 235,
+            "graphics_active_animation_intervals": 235,
+            "visible_canvas_submissions": 235,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 362,
+            "final_capture_validation_elapsed_ms": 1353.1627109999818,
+            "restore_validation_elapsed_ms": 2329.021656000009
+          }
+        ],
+        "webgl": [
+          {
+            "trial": 1,
+            "elapsed_ms": 80502.90000000002,
+            "renderer_thread_cpu_ms": 1867.632,
+            "task_elapsed_ms": 71894.198,
+            "task_ms_per_operation": 599.1183166666667,
+            "offered_operations_per_second": 1.490629530116306,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 243,
+            "graphics_active_animation_intervals": 243,
+            "visible_canvas_submissions": 243,
+            "external_image_copies": 121,
+            "write_texture_calls_all_canvases": 241,
+            "final_capture_validation_elapsed_ms": 1276.998175000017,
+            "restore_validation_elapsed_ms": 2256.926772999975
+          },
+          {
+            "trial": 2,
+            "elapsed_ms": 84931.90000000002,
+            "renderer_thread_cpu_ms": 1931.539,
+            "task_elapsed_ms": 72163.082,
+            "task_ms_per_operation": 601.3590166666667,
+            "offered_operations_per_second": 1.412896685462117,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 243,
+            "graphics_active_animation_intervals": 243,
+            "visible_canvas_submissions": 243,
+            "external_image_copies": 121,
+            "write_texture_calls_all_canvases": 241,
+            "final_capture_validation_elapsed_ms": 1363.3942270000716,
+            "restore_validation_elapsed_ms": 2000.4640060000156
+          },
+          {
+            "trial": 3,
+            "elapsed_ms": 80765.20000000019,
+            "renderer_thread_cpu_ms": 1840.4799999999998,
+            "task_elapsed_ms": 68240.876,
+            "task_ms_per_operation": 568.6739666666667,
+            "offered_operations_per_second": 1.4857884336323035,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 243,
+            "graphics_active_animation_intervals": 243,
+            "visible_canvas_submissions": 243,
+            "external_image_copies": 121,
+            "write_texture_calls_all_canvases": 241,
+            "final_capture_validation_elapsed_ms": 1297.3191499997938,
+            "restore_validation_elapsed_ms": 1854.9070890001076
+          }
+        ]
+      },
+      "medians": {
+        "persistent": {
+          "elapsed_ms": 79970.40000000002,
+          "renderer_thread_cpu_ms": 22841.664999999997,
+          "task_elapsed_ms": 28087.087999999996,
+          "task_ms_per_operation": 234.05906666666664,
+          "offered_operations_per_second": 1.5005552054260072,
+          "completed_callbacks": 235,
+          "graphics_active_animation_intervals": 235,
+          "visible_canvas_submissions": 235,
+          "external_image_copies": 0,
+          "write_texture_calls_all_canvases": 362
+        },
+        "webgl": {
+          "elapsed_ms": 80765.20000000019,
+          "renderer_thread_cpu_ms": 1867.632,
+          "task_elapsed_ms": 71894.198,
+          "task_ms_per_operation": 599.1183166666667,
+          "offered_operations_per_second": 1.4857884336323035,
+          "completed_callbacks": 243,
+          "graphics_active_animation_intervals": 243,
+          "visible_canvas_submissions": 243,
+          "external_image_copies": 121,
+          "write_texture_calls_all_canvases": 241
+        }
+      },
+      "webgl_over_persistent": {
+        "elapsed_ms": 1.009938677310607,
+        "renderer_thread_cpu_ms": 0.0817642671845507,
+        "task_elapsed_ms": 2.559688565792225,
+        "task_ms_per_operation": 2.559688565792225,
+        "offered_operations_per_second": 0.99015912794124,
+        "completed_callbacks": 1.0340425531914894,
+        "graphics_active_animation_intervals": 1.0340425531914894,
+        "visible_canvas_submissions": 1.0340425531914894,
+        "external_image_copies": null,
+        "write_texture_calls_all_canvases": 0.6657458563535912
+      },
+      "paired_elapsed_results": [
+        {
+          "trial": 1,
+          "persistent_ms": 81230.30000000002,
+          "webgl_ms": 80502.90000000002,
+          "webgl_over_persistent": 0.9910452134240549
+        },
+        {
+          "trial": 2,
+          "persistent_ms": 78951.1000000001,
+          "webgl_ms": 84931.90000000002,
+          "webgl_over_persistent": 1.0757532193978288
+        },
+        {
+          "trial": 3,
+          "persistent_ms": 79970.40000000002,
+          "webgl_ms": 80765.20000000019,
+          "webgl_over_persistent": 1.009938677310607
+        }
+      ],
+      "native_pixel_pairs": [
+        {
+          "trial": 1,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 1,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006125730994152046,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 1,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006125730994152046,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006125730994152046,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "workload": "zoom",
+      "run_id": 43265614141,
+      "run_attempt": 1,
+      "job_id": 131366769980,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43265614141/job/131366769980",
+      "artifact_id": 13969238955,
+      "artifact_name": "unodraw-document-raster-experiment-zoom",
+      "artifact_sha256": "1cb305e033d8535f2c075363015ad5810b27d581c663c1f39d843583bc1c5272",
+      "artifact_bytes": 6009573,
+      "report_sha256": "bc5836ba7e5038639c6ff6569b61cc7403798cb7085a68e7f8e26cbfe9316539",
+      "runner": {
+        "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+        "machine": "x86_64"
+      },
+      "same_artifact_mode_pair": [
+        "persistent",
+        "webgl"
+      ],
+      "primary_trials": 6,
+      "separate_diagnostic_trials": 2,
+      "actual_trial_order": [
+        [
+          1,
+          "persistent"
+        ],
+        [
+          1,
+          "webgl"
+        ],
+        [
+          2,
+          "webgl"
+        ],
+        [
+          2,
+          "persistent"
+        ],
+        [
+          3,
+          "persistent"
+        ],
+        [
+          3,
+          "webgl"
+        ]
+      ],
+      "all_source_mode_input_and_no_tail_contracts_revalidated": true,
+      "all_page_and_resource_errors_empty": true,
+      "native_pairs_recomputed": 9,
+      "native_pairs_passed": 9,
+      "samples": {
+        "persistent": [
+          {
+            "trial": 1,
+            "elapsed_ms": 68395.69999999998,
+            "renderer_thread_cpu_ms": 16916.45,
+            "task_elapsed_ms": 19188.22,
+            "task_ms_per_operation": 159.90183333333334,
+            "offered_operations_per_second": 1.7544962621919218,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 274,
+            "graphics_active_animation_intervals": 274,
+            "visible_canvas_submissions": 274,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 336,
+            "final_capture_validation_elapsed_ms": 702.9981649999968,
+            "restore_validation_elapsed_ms": 2831.441038000008
+          },
+          {
+            "trial": 2,
+            "elapsed_ms": 69507.5,
+            "renderer_thread_cpu_ms": 18913.322,
+            "task_elapsed_ms": 22902.774,
+            "task_ms_per_operation": 190.85645000000002,
+            "offered_operations_per_second": 1.7264323993813617,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 261,
+            "graphics_active_animation_intervals": 261,
+            "visible_canvas_submissions": 261,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 336,
+            "final_capture_validation_elapsed_ms": 701.8918719999192,
+            "restore_validation_elapsed_ms": 2926.0083570000006
+          },
+          {
+            "trial": 3,
+            "elapsed_ms": 65576.79999999993,
+            "renderer_thread_cpu_ms": 18889.584999999995,
+            "task_elapsed_ms": 23467.561,
+            "task_ms_per_operation": 195.56300833333336,
+            "offered_operations_per_second": 1.8299154579058468,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 259,
+            "graphics_active_animation_intervals": 259,
+            "visible_canvas_submissions": 259,
+            "external_image_copies": 0,
+            "write_texture_calls_all_canvases": 336,
+            "final_capture_validation_elapsed_ms": 1092.3750539999446,
+            "restore_validation_elapsed_ms": 2772.5271200000634
+          }
+        ],
+        "webgl": [
+          {
+            "trial": 1,
+            "elapsed_ms": 67852.20000000001,
+            "renderer_thread_cpu_ms": 2499.904,
+            "task_elapsed_ms": 15285.231,
+            "task_ms_per_operation": 127.376925,
+            "offered_operations_per_second": 1.7685498775279207,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 280,
+            "graphics_active_animation_intervals": 280,
+            "visible_canvas_submissions": 280,
+            "external_image_copies": 112,
+            "write_texture_calls_all_canvases": 224,
+            "final_capture_validation_elapsed_ms": 714.7941229999901,
+            "restore_validation_elapsed_ms": 2860.667723000006
+          },
+          {
+            "trial": 2,
+            "elapsed_ms": 65364.09999999998,
+            "renderer_thread_cpu_ms": 2271.5519999999997,
+            "task_elapsed_ms": 14156.71,
+            "task_ms_per_operation": 117.97258333333333,
+            "offered_operations_per_second": 1.8358701489043687,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 280,
+            "graphics_active_animation_intervals": 280,
+            "visible_canvas_submissions": 280,
+            "external_image_copies": 112,
+            "write_texture_calls_all_canvases": 224,
+            "final_capture_validation_elapsed_ms": 699.4862789999843,
+            "restore_validation_elapsed_ms": 2779.66018099994
+          },
+          {
+            "trial": 3,
+            "elapsed_ms": 65632.70000000007,
+            "renderer_thread_cpu_ms": 2338.651,
+            "task_elapsed_ms": 13202.679000000002,
+            "task_ms_per_operation": 110.02232500000001,
+            "offered_operations_per_second": 1.828356901361667,
+            "operations": 120,
+            "trusted_inputs": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_callback": 0,
+            "completed_callbacks": 282,
+            "graphics_active_animation_intervals": 282,
+            "visible_canvas_submissions": 282,
+            "external_image_copies": 112,
+            "write_texture_calls_all_canvases": 224,
+            "final_capture_validation_elapsed_ms": 666.1146289998214,
+            "restore_validation_elapsed_ms": 2620.1353599999493
+          }
+        ]
+      },
+      "medians": {
+        "persistent": {
+          "elapsed_ms": 68395.69999999998,
+          "renderer_thread_cpu_ms": 18889.584999999995,
+          "task_elapsed_ms": 22902.774,
+          "task_ms_per_operation": 190.85645000000002,
+          "offered_operations_per_second": 1.7544962621919218,
+          "completed_callbacks": 261,
+          "graphics_active_animation_intervals": 261,
+          "visible_canvas_submissions": 261,
+          "external_image_copies": 0,
+          "write_texture_calls_all_canvases": 336
+        },
+        "webgl": {
+          "elapsed_ms": 65632.70000000007,
+          "renderer_thread_cpu_ms": 2338.651,
+          "task_elapsed_ms": 14156.71,
+          "task_ms_per_operation": 117.97258333333333,
+          "offered_operations_per_second": 1.828356901361667,
+          "completed_callbacks": 280,
+          "graphics_active_animation_intervals": 280,
+          "visible_canvas_submissions": 280,
+          "external_image_copies": 112,
+          "write_texture_calls_all_canvases": 224
+        }
+      },
+      "webgl_over_persistent": {
+        "elapsed_ms": 0.9596027235630322,
+        "renderer_thread_cpu_ms": 0.12380637266514857,
+        "task_elapsed_ms": 0.618122066785447,
+        "task_ms_per_operation": 0.618122066785447,
+        "offered_operations_per_second": 1.0420979176538512,
+        "completed_callbacks": 1.0727969348659003,
+        "graphics_active_animation_intervals": 1.0727969348659003,
+        "visible_canvas_submissions": 1.0727969348659003,
+        "external_image_copies": null,
+        "write_texture_calls_all_canvases": 0.6666666666666666
+      },
+      "paired_elapsed_results": [
+        {
+          "trial": 1,
+          "persistent_ms": 68395.69999999998,
+          "webgl_ms": 67852.20000000001,
+          "webgl_over_persistent": 0.9920535940124895
+        },
+        {
+          "trial": 2,
+          "persistent_ms": 69507.5,
+          "webgl_ms": 65364.09999999998,
+          "webgl_over_persistent": 0.9403891666366936
+        },
+        {
+          "trial": 3,
+          "persistent_ms": 65576.79999999993,
+          "webgl_ms": 65632.70000000007,
+          "webgl_over_persistent": 1.0008524356174766
+        }
+      ],
+      "native_pixel_pairs": [
+        {
+          "trial": 1,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 1,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.00014322916666666667,
+            "document": 0.0002807017543859649,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 1,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.00014322916666666667,
+            "document": 0.0002807017543859649,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 2,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "before",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "after",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.00014322916666666667,
+            "document": 0.0002807017543859649,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        },
+        {
+          "trial": 3,
+          "state": "restored",
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0003081597222222222,
+            "document": 0.0006228070175438597,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          }
+        }
+      ]
+    }
+  ],
+  "broader_quality": {
+    "a44_welcome": {
+      "status": "failed",
+      "job_id": 131299554528,
+      "failed_state": "DPR2 actual-size",
+      "document_changed_fraction": 0.0021125730994152048,
+      "maximum_changed_fraction": 0.001
+    },
+    "523_welcome_first_attempt": {
+      "status": "incomplete",
+      "job_id": 131331896157,
+      "artifact_id": 13964084530,
+      "artifact_sha256": "527502bf924e20c970232bdd985815467378b0a58928d0469216b10ecc24f435",
+      "cases": 5,
+      "pairs": 20,
+      "reason": "DPR2 startup CSS capture timed out after 30 seconds. A later diagnostic screenshot does not count as the required accepted state."
+    },
+    "523_welcome_same_package_retry": {
+      "run_id": 43253533111,
+      "attempt": 2,
+      "job_id": 131362727208,
+      "artifact_id": 13968757101,
+      "artifact_sha256": "d09afaa08d360b01493c18e47b9ae66d9f99b60ca83655a02ac8643972d97654",
+      "source_sha": "523c1ed5e7507d26288e08255b86a2e14994367c",
+      "execution_mode": "InterpreterAndAOT",
+      "same_package_as_original_attempt": true,
+      "package_index_sha256": "fe1d3fa0afc3bd31cfaf1c3d3065d81913edadaa0710f709caa2188d6e80b610",
+      "independently_passed": true,
+      "accepted_cases": 6,
+      "accepted_native_state_captures": 60,
+      "accepted_native_pairs": 30,
+      "native_dpr": [
+        1,
+        1.25,
+        2
+      ],
+      "maximum_observed_region_fractions": {
+        "whole_frame": {
+          "fraction": 0.0003081597222222222,
+          "state": "01-desktop",
+          "dpr": 1
+        },
+        "document": {
+          "fraction": 0.0006228070175438597,
+          "state": "01-desktop",
+          "dpr": 1
+        },
+        "horizontal_ruler": {
+          "fraction": 0.0,
+          "state": "01-desktop",
+          "dpr": 1
+        },
+        "vertical_ruler": {
+          "fraction": 0.0,
+          "state": "01-desktop",
+          "dpr": 1
+        },
+        "navigator": {
+          "fraction": 0.0,
+          "state": "04-navigator-visible",
+          "dpr": 1
+        }
+      }
+    },
+    "d0_welcome": {
+      "run_id": 43265614141,
+      "job_id": 131366769734,
+      "artifact_id": 13968243608,
+      "artifact_sha256": "04d6a1eed59c292a02cee7705b2ac36b5b31c3961b1a565a9abe975b06ef94fb",
+      "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "passed": true,
+      "cases": 6,
+      "native_captures": 60,
+      "native_pairs_recomputed": 30,
+      "native_pairs_passed": 30,
+      "execution_mode": "InterpreterAndAOT",
+      "package_index_sha256": "a0622ea730064ee73459f0e044fde058100bc9f8478124521a2a7a6c0091d510",
+      "package_matches_both_pan_and_zoom": true,
+      "maximum_region_fraction": 0.0006228070175438597
+    },
+    "extended_svg": [
+      {
+        "source": "a44",
+        "run_id": 43244676229,
+        "job_id": 131299554568,
+        "artifact_id": 13963017424,
+        "artifact_sha256": "742e87ac1b6b28faf4109a1b3e89030153bccc508ed309d03bdd1e5fdd8bd66c",
+        "overall_passed": false,
+        "completed_cases": 38,
+        "required_cases": 48,
+        "available_pairs": 48,
+        "passing_available_pairs": 41,
+        "required_pairs": 72,
+        "termination": "45-minute job timeout; missing cases remain unqualified",
+        "failing_pairs": [
+          {
+            "scene": "filters",
+            "dpr": 1.25,
+            "state": "01-fit",
+            "body_changed_above_luma12": 495,
+            "body_pixels": 440000,
+            "body_fraction_above_luma12": 0.001125,
+            "maximum_luma_difference": 38
+          },
+          {
+            "scene": "filters",
+            "dpr": 1.25,
+            "state": "02-fractional-pan",
+            "body_changed_above_luma12": 727,
+            "body_pixels": 441351,
+            "body_fraction_above_luma12": 0.001647215028401431,
+            "maximum_luma_difference": 36
+          },
+          {
+            "scene": "mask",
+            "dpr": 1,
+            "state": "03-fractional-zoom",
+            "body_changed_above_luma12": 382,
+            "body_pixels": 351288,
+            "body_fraction_above_luma12": 0.001087426840654961,
+            "maximum_luma_difference": 34
+          },
+          {
+            "scene": "mask",
+            "dpr": 1.25,
+            "state": "02-fractional-pan",
+            "body_changed_above_luma12": 858,
+            "body_pixels": 441351,
+            "body_fraction_above_luma12": 0.0019440309413595981,
+            "maximum_luma_difference": 51
+          },
+          {
+            "scene": "pattern",
+            "dpr": 1,
+            "state": "03-fractional-zoom",
+            "body_changed_above_luma12": 371,
+            "body_pixels": 351288,
+            "body_fraction_above_luma12": 0.0010561135023114936,
+            "maximum_luma_difference": 80
+          },
+          {
+            "scene": "pattern",
+            "dpr": 1.25,
+            "state": "01-fit",
+            "body_changed_above_luma12": 1156,
+            "body_pixels": 440000,
+            "body_fraction_above_luma12": 0.0026272727272727272,
+            "maximum_luma_difference": 80
+          },
+          {
+            "scene": "pattern",
+            "dpr": 1.25,
+            "state": "02-fractional-pan",
+            "body_changed_above_luma12": 473,
+            "body_pixels": 441351,
+            "body_fraction_above_luma12": 0.0010717093651084965,
+            "maximum_luma_difference": 80
+          }
+        ]
+      },
+      {
+        "source": "523",
+        "run_id": 43253533111,
+        "job_id": 131331896257,
+        "artifact_id": 13965754988,
+        "artifact_sha256": "29c54e9837811109363dbd7c52399dd3e0dd33b558718ca808f0e944d055bd44",
+        "overall_passed": false,
+        "completed_cases": 35,
+        "required_cases": 48,
+        "available_pairs": 48,
+        "passing_available_pairs": 41,
+        "required_pairs": 72,
+        "termination": "45-minute job timeout; missing cases remain unqualified",
+        "failing_pairs": [
+          {
+            "scene": "filters",
+            "dpr": 1.25,
+            "state": "01-fit",
+            "body_changed_above_luma12": 495,
+            "body_pixels": 440000,
+            "body_fraction_above_luma12": 0.001125,
+            "maximum_luma_difference": 38
+          },
+          {
+            "scene": "filters",
+            "dpr": 1.25,
+            "state": "02-fractional-pan",
+            "body_changed_above_luma12": 727,
+            "body_pixels": 441351,
+            "body_fraction_above_luma12": 0.001647215028401431,
+            "maximum_luma_difference": 36
+          },
+          {
+            "scene": "mask",
+            "dpr": 1,
+            "state": "03-fractional-zoom",
+            "body_changed_above_luma12": 382,
+            "body_pixels": 351288,
+            "body_fraction_above_luma12": 0.001087426840654961,
+            "maximum_luma_difference": 34
+          },
+          {
+            "scene": "mask",
+            "dpr": 1.25,
+            "state": "02-fractional-pan",
+            "body_changed_above_luma12": 858,
+            "body_pixels": 441351,
+            "body_fraction_above_luma12": 0.0019440309413595981,
+            "maximum_luma_difference": 51
+          },
+          {
+            "scene": "pattern",
+            "dpr": 1,
+            "state": "03-fractional-zoom",
+            "body_changed_above_luma12": 371,
+            "body_pixels": 351288,
+            "body_fraction_above_luma12": 0.0010561135023114936,
+            "maximum_luma_difference": 80
+          },
+          {
+            "scene": "pattern",
+            "dpr": 1.25,
+            "state": "01-fit",
+            "body_changed_above_luma12": 1156,
+            "body_pixels": 440000,
+            "body_fraction_above_luma12": 0.0026272727272727272,
+            "maximum_luma_difference": 80
+          },
+          {
+            "scene": "pattern",
+            "dpr": 1.25,
+            "state": "02-fractional-pan",
+            "body_changed_above_luma12": 473,
+            "body_pixels": 441351,
+            "body_fraction_above_luma12": 0.0010717093651084965,
+            "maximum_luma_difference": 80
+          }
+        ]
+      }
+    ],
+    "a44_and_523_seven_failure_crops": "Every corresponding CPU and WebGL document-body crop was byte-identical across those two source snapshots.",
+    "d0_extended_svg": {
+      "status": "pending",
+      "run_id": 43265614141,
+      "job_id": 131366769723,
+      "expected_cases": 48,
+      "expected_pairs": 72
+    }
+  }
+}
