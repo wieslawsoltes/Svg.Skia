@@ -12,7 +12,7 @@ public enum EditorRenderPhase
     Navigator
 }
 
-/// <summary>Managed work inside a paint callback, excluding native rasterization and GPU presentation.</summary>
+/// <summary>Work inside a paint callback, excluding subsequent texture upload and compositor presentation.</summary>
 public sealed record EditorRenderMeasurement(string Phase, long Count, double TotalMilliseconds,
     double MaxMilliseconds, long AllocatedBytes);
 

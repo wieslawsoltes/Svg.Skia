@@ -14,6 +14,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Svg.Editor.Skia\Svg.Editor.Skia.csproj" />
+    <!-- Exercise the production browser buffer without loading a GUI runtime. -->
+    <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaCanvasUploadBuffer.cs"
+             Link="Rendering/SkiaCanvasUploadBuffer.cs" />
   </ItemGroup>
 
 </Project>
