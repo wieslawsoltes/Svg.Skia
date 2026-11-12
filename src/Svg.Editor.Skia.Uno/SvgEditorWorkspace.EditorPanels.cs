@@ -19,7 +19,11 @@ public sealed partial class SvgEditorWorkspace
     private ComboBox? _editorTextAlignment;
     private StudioTextField? _editorLetterSpacing, _editorWordSpacing;
     private SvgEditorController? _editorPanelController;
-    private long _editorPanelRevision = -1;
+    private SvgDocument? _editorPanelDocument;
+    private readonly StudioPanelRefreshState _editorBrushRefresh = new(), _editorSymbolRefresh = new(), _editorLinkRefresh = new(), _editorSwatchRefresh = new();
+    private readonly StudioPanelRefreshState _editorParagraphRefresh = new(observeSelection: true);
+    private (string Paint, string Label)[]? _editorSwatchChoices;
+    private static readonly string[] DefaultEditorSwatches = { "none", "#FFFFFF", "#000000", "#808080", "#C1272D", "#ED1C24", "#F7931E", "#FCEE21", "#39B54A", "#009245", "#00A99D", "#29ABE2", "#0071BC", "#2E3192", "#662D91", "#93278F" };
     private bool _refreshingEditorPanels;
 
     private void BuildEditorPanels()
@@ -161,63 +165,96 @@ public sealed partial class SvgEditorWorkspace
     {
         if (_refreshingEditorPanels)
             return;
-        if (Controller is not { } controller)
-        {
-            if (_editorLinks is not null)
-                _editorLinks.ItemsSource = null;
-            RefreshEditorLinkSelection(null);
-            return;
-        }
         _refreshingEditorPanels = true;
         var syncing = _syncingStudioPanels;
         _syncingStudioPanels = true;
         try
         {
-            RefreshEditorUtilityPanels();
-            RefreshEditorArtboardPanel();
-            _editorColorPanel?.BindController(controller);
-            _editorGradientPanel?.BindController(controller);
-            var selected = controller.SelectedElements;
-            var text = selected.FirstOrDefault() as SvgTextBase;
-            var textOnly = selected.Count > 0 && selected.All(element => element is SvgTextBase && !SvgEditorController.IsEditLocked(element));
-            if (_editorTextAlignment is not null)
-            { _editorTextAlignment.IsEnabled = textOnly; _editorTextAlignment.SelectedItem = text?.TextAnchor.ToString().ToLowerInvariant(); }
-            if (_editorLetterSpacing is not null)
-            { _editorLetterSpacing.IsEnabled = textOnly; _editorLetterSpacing.Synchronize(text?.LetterSpacing.ToString()); }
-            if (_editorWordSpacing is not null)
-            { _editorWordSpacing.IsEnabled = textOnly; _editorWordSpacing.Synchronize(text?.WordSpacing.ToString()); }
-            if (ReferenceEquals(controller, _editorPanelController) && _editorPanelRevision == controller.DocumentRevision)
+            var controller = Controller;
+            if (!ReferenceEquals(controller, _editorPanelController) || !ReferenceEquals(controller?.Document, _editorPanelDocument))
             {
-                RefreshEditorLinkSelection(controller);
-                return;
-            }
-            _editorPanelController = controller;
-            _editorPanelRevision = controller.DocumentRevision;
-            if (controller.Document is not { } source)
-            {
+                // Drop foreign command targets immediately; repopulate each panel
+                // only when it becomes visible in this document.
+                _editorPanelController = controller;
+                _editorPanelDocument = controller?.Document;
+                if (_editorBrushes is not null)
+                    _editorBrushes.ItemsSource = null;
+                if (_editorSymbols is not null)
+                    _editorSymbols.ItemsSource = null;
                 if (_editorLinks is not null)
                     _editorLinks.ItemsSource = null;
+                if (_editorArtboards is not null)
+                    _editorArtboards.ItemsSource = null;
+                _editorArtboardController = null;
+                _editorArtboardRevision = -1;
+                _editorSwatches?.Children.Clear();
+                _editorSwatchChoices = null;
+                _editorBrushRefresh.Invalidate();
+                _editorSymbolRefresh.Invalidate();
+                _editorLinkRefresh.Invalidate();
+                _editorSwatchRefresh.Invalidate();
+                _editorParagraphRefresh.Invalidate();
+            }
+            RefreshEditorUtilityPanels();
+            if (IsStudioPanelVisible("artboards"))
+                RefreshEditorArtboardPanel();
+            _editorColorPanel?.BindController(controller);
+            _editorGradientPanel?.BindController(controller);
+            _studioColorEditor?.BindController(controller);
+            _studioGradientEditor?.BindController(controller);
+            if (controller?.Document is not { } source)
+            {
                 RefreshEditorLinkSelection(controller);
                 return;
             }
-            if (_editorBrushes is not null)
+            if (_editorParagraphRefresh.NeedsRefresh(IsStudioPanelVisible("paragraph"), controller))
+            {
+                var selected = controller.SelectedElements;
+                var text = selected.FirstOrDefault() as SvgTextBase;
+                var textOnly = selected.Count > 0 && selected.All(element => element is SvgTextBase && !SvgEditorController.IsEditLocked(element));
+                if (_editorTextAlignment is not null)
+                { _editorTextAlignment.IsEnabled = textOnly; _editorTextAlignment.SelectedItem = text?.TextAnchor.ToString().ToLowerInvariant(); }
+                if (_editorLetterSpacing is not null)
+                { _editorLetterSpacing.IsEnabled = textOnly; _editorLetterSpacing.Synchronize(text?.LetterSpacing.ToString()); }
+                if (_editorWordSpacing is not null)
+                { _editorWordSpacing.IsEnabled = textOnly; _editorWordSpacing.Synchronize(text?.WordSpacing.ToString()); }
+                _editorParagraphRefresh.Complete(controller);
+            }
+            if (_editorBrushes is not null && _editorBrushRefresh.NeedsRefresh(IsStudioPanelVisible("brushes"), controller))
+            {
                 _editorBrushes.ItemsSource = SvgBrushLibraryService.Load(source).Select(definition => new EditorBrushChoice(definition)).ToArray();
-            if (_editorSymbols is not null)
+                _editorBrushRefresh.Complete(controller);
+            }
+            if (_editorSymbols is not null && _editorSymbolRefresh.NeedsRefresh(IsStudioPanelVisible("symbols"), controller))
+            {
                 _editorSymbols.ItemsSource = source.Descendants().OfType<SvgSymbol>().Where(symbol => !string.IsNullOrWhiteSpace(symbol.ID))
                     .Select(symbol => new EditorResourceChoice(symbol, symbol.ID)).ToArray();
-            if (_editorLinks is not null)
-                _editorLinks.ItemsSource = source.Descendants().OfType<SvgImage>().Select(image => new EditorResourceChoice(image,
-                    (string.IsNullOrEmpty(image.ID) ? "Image" : image.ID) + (image.Href?.StartsWith("data:", StringComparison.OrdinalIgnoreCase) == true ? " · embedded" : " · linked"))).ToArray();
-            RefreshEditorLinkSelection(controller);
-            if (_editorSwatches is not null)
+                _editorSymbolRefresh.Complete(controller);
+            }
+            if (IsStudioPanelVisible("links"))
             {
-                _editorSwatches.Children.Clear();
-                var defaults = new[] { "none", "#FFFFFF", "#000000", "#808080", "#C1272D", "#ED1C24", "#F7931E", "#FCEE21", "#39B54A", "#009245", "#00A99D", "#29ABE2", "#0071BC", "#2E3192", "#662D91", "#93278F" };
-                foreach (var paint in defaults)
-                    AddSwatch(paint, paint);
-                foreach (var resource in source.Descendants().Where(element => element is SvgGradientServer or SvgPatternServer)
-                    .Where(element => !string.IsNullOrWhiteSpace(element.ID)))
-                    AddSwatch("url(#" + resource.ID + ")", resource.ID);
+                if (_editorLinks is not null && _editorLinkRefresh.NeedsRefresh(true, controller))
+                {
+                    _editorLinks.ItemsSource = source.Descendants().OfType<SvgImage>().Select(image => new EditorResourceChoice(image,
+                        (string.IsNullOrEmpty(image.ID) ? "Image" : image.ID) + (image.Href?.StartsWith("data:", StringComparison.OrdinalIgnoreCase) == true ? " · embedded" : " · linked"))).ToArray();
+                    _editorLinkRefresh.Complete(controller);
+                }
+                RefreshEditorLinkSelection(controller);
+            }
+            if (_editorSwatches is not null && _editorSwatchRefresh.NeedsRefresh(IsStudioPanelVisible("swatches"), controller))
+            {
+                var choices = DefaultEditorSwatches.Select(paint => (Paint: paint, Label: paint)).Concat(
+                    source.Descendants().Where(element => element is SvgGradientServer or SvgPatternServer)
+                        .Where(element => !string.IsNullOrWhiteSpace(element.ID))
+                        .Select(resource => (Paint: "url(#" + resource.ID + ")", Label: resource.ID))).ToArray();
+                if (_editorSwatchChoices is null || !_editorSwatchChoices.SequenceEqual(choices))
+                {
+                    _editorSwatches.Children.Clear();
+                    foreach (var (paint, label) in choices)
+                        AddSwatch(paint, label);
+                    _editorSwatchChoices = choices;
+                }
+                _editorSwatchRefresh.Complete(controller);
             }
         }
         finally { _syncingStudioPanels = syncing; _refreshingEditorPanels = false; }
@@ -265,6 +302,13 @@ public sealed partial class SvgEditorWorkspace
         _studioGradientEditor?.Dispose();
         _editorPaintTargets.Clear();
         _activeEditorGradient = null;
+        _editorPanelController = null;
+        _editorPanelDocument = null;
+        _editorBrushRefresh.Invalidate();
+        _editorSymbolRefresh.Invalidate();
+        _editorLinkRefresh.Invalidate();
+        _editorSwatchRefresh.Invalidate();
+        _editorParagraphRefresh.Invalidate();
         DisposeEditorUtilityPanels();
     }
 }

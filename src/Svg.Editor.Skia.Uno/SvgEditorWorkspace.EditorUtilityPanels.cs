@@ -29,7 +29,8 @@ public sealed partial class SvgEditorWorkspace
     private StudioNavigator? _editorNavigator;
     private NumberBox? _editorNavigatorZoom;
     private SvgEditorController? _editorUtilityController;
-    private long _editorUtilityRevision = -1;
+    private SvgDocument? _editorUtilityDocument;
+    private readonly StudioPanelRefreshState _editorStylesRefresh = new(), _editorInfoRefresh = new(), _editorHistoryRefresh = new();
     private int _editorUndoHistoryCount = -1, _editorRedoHistoryCount = -1;
     private string? _editorStyleFingerprint, _editorInfoFile, _editorInfoName;
     private string? _editorPendingStyleName;
@@ -235,50 +236,53 @@ public sealed partial class SvgEditorWorkspace
         {
             var controller = Controller;
             _editorNavigator?.Bind(controller, controller is null ? null : Canvas.Viewport);
-            if (controller?.Document is not { } document)
+            if (!ReferenceEquals(controller, _editorUtilityController) || !ReferenceEquals(controller?.Document, _editorUtilityDocument))
             {
+                _editorPendingStyleName = ReferenceEquals(controller, _editorUtilityController)
+                    ? _editorPendingStyleName ?? (_editorGraphicStyles?.SelectedItem as StyleEntry)?.Name : null;
+                _editorUtilityController = controller;
+                _editorUtilityDocument = controller?.Document;
                 _editorAppearance.Load(null);
-                if (_editorDocumentInfo is not null)
-                    _editorDocumentInfo.Text = "Open a document to inspect its properties.";
-                if (_editorSelectionInfo is not null)
-                    _editorSelectionInfo.Text = "No selection.";
                 if (_editorUndoHistory is not null)
                     _editorUndoHistory.ItemsSource = null;
                 if (_editorRedoHistory is not null)
                     _editorRedoHistory.ItemsSource = null;
-                _editorUtilityController = null;
-                _editorUtilityRevision = -1;
+                _editorStylesRefresh.Invalidate();
+                _editorInfoRefresh.Invalidate();
+                _editorHistoryRefresh.Invalidate();
                 _editorUndoHistoryCount = _editorRedoHistoryCount = -1;
                 _editorStyleFingerprint = _editorInfoFile = _editorInfoName = null;
             }
-            else
+            if (controller?.Document is { } document)
             {
-                var documentChanged = !ReferenceEquals(controller, _editorUtilityController) || _editorUtilityRevision != controller.DocumentRevision;
-                if (documentChanged)
+                if (_editorStylesRefresh.NeedsRefresh(IsStudioPanelVisible("graphic-styles"), controller))
                 {
-                    var selectedName = _editorPendingStyleName ?? (ReferenceEquals(controller, _editorUtilityController)
-                        ? (_editorGraphicStyles?.SelectedItem as StyleEntry)?.Name : null);
-                    _editorPendingStyleName = null;
+                    var selectedName = _editorPendingStyleName ?? (_editorGraphicStyles?.SelectedItem as StyleEntry)?.Name;
                     var fingerprint = string.Join("\n", document.CustomAttributes.Where(pair => pair.Key.StartsWith("data-style-", StringComparison.OrdinalIgnoreCase))
                         .OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => pair.Key + "=" + pair.Value));
-                    if (!ReferenceEquals(controller, _editorUtilityController) || fingerprint != _editorStyleFingerprint)
+                    if (fingerprint != _editorStyleFingerprint)
                     {
                         _editorAppearance.Load(document);
                         _editorStyleFingerprint = fingerprint;
-                        if (_editorGraphicStyles is not null)
-                            _editorGraphicStyles.SelectedItem = _editorAppearance.Styles.FirstOrDefault(style => style.Name == selectedName);
                     }
-                    _editorUtilityController = controller;
-                    _editorUtilityRevision = controller.DocumentRevision;
+                    if (_editorGraphicStyles is not null)
+                        _editorGraphicStyles.SelectedItem = _editorAppearance.Styles.FirstOrDefault(style => style.Name == selectedName);
+                    _editorPendingStyleName = null;
+                    _editorStylesRefresh.Complete(controller);
                 }
-                if (documentChanged || _editorInfoFile != controller.Session.CurrentFile || _editorInfoName != _current?.Name)
+                if (IsStudioPanelVisible("document-info"))
                 {
-                    RefreshEditorDocumentInfo(controller, document);
-                    _editorInfoFile = controller.Session.CurrentFile;
-                    _editorInfoName = _current?.Name;
+                    if (_editorInfoRefresh.NeedsRefresh(true, controller) || _editorInfoFile != controller.Session.CurrentFile || _editorInfoName != _current?.Name)
+                    {
+                        RefreshEditorDocumentInfo(controller, document);
+                        _editorInfoFile = controller.Session.CurrentFile;
+                        _editorInfoName = _current?.Name;
+                        _editorInfoRefresh.Complete(controller);
+                    }
+                    RefreshEditorSelectionInfo(controller);
                 }
-                RefreshEditorSelectionInfo(controller);
-                if (documentChanged || _editorUndoHistoryCount != controller.Session.UndoCount || _editorRedoHistoryCount != controller.Session.RedoCount)
+                if (IsStudioPanelVisible("history") && (_editorHistoryRefresh.NeedsRefresh(true, controller)
+                    || _editorUndoHistoryCount != controller.Session.UndoCount || _editorRedoHistoryCount != controller.Session.RedoCount))
                 {
                     if (_editorUndoHistory is not null)
                         _editorUndoHistory.ItemsSource = controller.Session.UndoLabels.Select((label, index) =>
@@ -288,15 +292,27 @@ public sealed partial class SvgEditorWorkspace
                             new EditorHistoryEntry(label, index + 1, true, controller, controller.DocumentRevision)).ToArray();
                     _editorUndoHistoryCount = controller.Session.UndoCount;
                     _editorRedoHistoryCount = controller.Session.RedoCount;
+                    _editorHistoryRefresh.Complete(controller);
                 }
             }
-            if (_editorHistorySummary is not null)
-                _editorHistorySummary.Text = controller is null ? "No document history." : $"{controller.Session.UndoCount} earlier operations · {controller.Session.RedoCount} operations to redo";
-            if (_editorUndoAction is not null)
-                _editorUndoAction.IsEnabled = controller?.CanUndo == true;
-            if (_editorRedoAction is not null)
-                _editorRedoAction.IsEnabled = controller?.CanRedo == true;
-            RefreshEditorStyleActions();
+            else if (IsStudioPanelVisible("document-info"))
+            {
+                if (_editorDocumentInfo is not null)
+                    _editorDocumentInfo.Text = "Open a document to inspect its properties.";
+                if (_editorSelectionInfo is not null)
+                    _editorSelectionInfo.Text = "No selection.";
+            }
+            if (IsStudioPanelVisible("history"))
+            {
+                if (_editorHistorySummary is not null)
+                    _editorHistorySummary.Text = controller is null ? "No document history." : $"{controller.Session.UndoCount} earlier operations · {controller.Session.RedoCount} operations to redo";
+                if (_editorUndoAction is not null)
+                    _editorUndoAction.IsEnabled = controller?.CanUndo == true;
+                if (_editorRedoAction is not null)
+                    _editorRedoAction.IsEnabled = controller?.CanRedo == true;
+            }
+            if (IsStudioPanelVisible("graphic-styles"))
+                RefreshEditorStyleActions();
         }
         finally { _syncingEditorUtilityPanels = false; }
         RefreshEditorNavigatorStatus();
@@ -318,7 +334,7 @@ public sealed partial class SvgEditorWorkspace
 
     private void RefreshEditorNavigatorStatus()
     {
-        if (_syncingEditorUtilityPanels)
+        if (_syncingEditorUtilityPanels || !IsStudioPanelVisible("navigator"))
             return;
         _syncingEditorUtilityPanels = true;
         try
@@ -366,7 +382,7 @@ public sealed partial class SvgEditorWorkspace
             .AppendLine($"Linked images  {images.Count(image => !string.IsNullOrEmpty(image.Href) && !image.Href.StartsWith("data:", StringComparison.OrdinalIgnoreCase))}")
             .AppendLine($"Symbols  {elements.OfType<SvgSymbol>().Count()}")
             .AppendLine($"Gradients  {elements.OfType<SvgGradientServer>().Count()}")
-            .AppendLine($"Graphic styles  {_editorAppearance.Styles.Count}");
+            .AppendLine($"Graphic styles  {document.CustomAttributes.Count(pair => pair.Key.StartsWith("data-style-", StringComparison.OrdinalIgnoreCase))}");
         if (!string.IsNullOrWhiteSpace(title))
             information.AppendLine().AppendLine("Title  " + title);
         if (!string.IsNullOrWhiteSpace(description))
@@ -435,5 +451,9 @@ public sealed partial class SvgEditorWorkspace
         if (_editorRedoHistory is not null)
             _editorRedoHistory.ItemsSource = null;
         _editorUtilityController = null;
+        _editorUtilityDocument = null;
+        _editorStylesRefresh.Invalidate();
+        _editorInfoRefresh.Invalidate();
+        _editorHistoryRefresh.Invalidate();
     }
 }

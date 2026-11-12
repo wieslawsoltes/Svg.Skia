@@ -48,8 +48,8 @@ public sealed partial class SvgEditorWorkspace
                 return Task.CompletedTask;
             })
             { CanExecute = () => EditorGradientDraftOwner is { } owner && enabled(owner) });
-        DraftAction("gradient-apply-draft", "Apply gradient draft", editor => editor.ApplyDraft(), editor => editor.CanApplyDraft);
-        DraftAction("gradient-reverse-draft", "Reverse gradient draft", editor => editor.ReverseDraft(), editor => editor.HasCurrentDraft);
+        DraftAction("gradient-apply-draft", "Apply gradient draft", editor => editor.ApplyDraft(), editor => editor.CanApplyDraftCommand);
+        DraftAction("gradient-reverse-draft", "Reverse gradient draft", editor => editor.ReverseDraft(), editor => editor.CanPrepareDraftCommand);
         DraftAction("gradient-undo-draft", "Undo gradient draft", editor => editor.UndoDraft(), editor => editor.CanUndoDraft);
         DraftAction("gradient-redo-draft", "Redo gradient draft", editor => editor.RedoDraft(), editor => editor.CanRedoDraft);
         DraftAction("gradient-reset-draft", "Reset gradient draft", editor => editor.ResetDraft(), editor => editor.CanResetDraft);
