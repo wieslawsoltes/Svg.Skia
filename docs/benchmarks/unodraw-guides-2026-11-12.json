@@ -1,0 +1,52 @@
+{
+  "Scope": "Steady-state selection-drag snapping: nine anchors, cached candidate construction, unchanged 5-unit tolerance and guide limit. Excludes SVG rendering, texture upload and GPU composition.",
+  "Runtime": ".NET 10.0.14",
+  "Platform": "Debian GNU/Linux 13 (trixie)",
+  "Iterations": 256,
+  "Samples": 5,
+  "WarmupIterations": 128,
+  "Comparisons": [
+    {
+      "Name": "100 artwork objects / 0 diagonal guides / nine drag anchors",
+      "Guides": 606,
+      "Legacy": {
+        "MedianMicrosecondsPerIteration": 479.92748046875,
+        "AllocatedBytesPerIteration": 135.78125
+      },
+      "Indexed": {
+        "MedianMicrosecondsPerIteration": 30.24037109375,
+        "AllocatedBytesPerIteration": 0
+      },
+      "Speedup": 15.870422984588973,
+      "Checksum": 6584038.209533691
+    },
+    {
+      "Name": "1000 artwork objects / 0 diagonal guides / nine drag anchors",
+      "Guides": 6000,
+      "Legacy": {
+        "MedianMicrosecondsPerIteration": 4736.96609765625,
+        "AllocatedBytesPerIteration": 120
+      },
+      "Indexed": {
+        "MedianMicrosecondsPerIteration": 90.89453515625,
+        "AllocatedBytesPerIteration": 0
+      },
+      "Speedup": 52.114971373287574,
+      "Checksum": 6724387.7001953125
+    },
+    {
+      "Name": "1000 artwork objects / 128 diagonal guides / nine drag anchors",
+      "Guides": 6128,
+      "Legacy": {
+        "MedianMicrosecondsPerIteration": 4805.77772265625,
+        "AllocatedBytesPerIteration": 120
+      },
+      "Indexed": {
+        "MedianMicrosecondsPerIteration": 208.9881640625,
+        "AllocatedBytesPerIteration": 0
+      },
+      "Speedup": 22.99545404503881,
+      "Checksum": 6841876.562805176
+    }
+  ]
+}
