@@ -19,6 +19,7 @@ internal static class WebGpuSkiaCanvasBridge
     private static int s_reportedInitialization;
     private static int s_reportedCompositeInitialization;
     private static int s_reportedGraphiteInitialization;
+    private static int s_reportedLegacyCompositeInitialization;
 
     internal static void Register()
     {
@@ -41,13 +42,16 @@ internal static class WebGpuSkiaCanvasBridge
         // its GL-specific Init/Render/Destroy methods are never called.
         var preferGraphite = preference == "graphite";
         var preferComposite = preference == "composite";
+        var preferLegacyComposite = preference == "legacy-composite";
         ApiExtensibility.Register<IGLIslandRenderer>(typeof(IGLIsland),
-            renderer => new RasterCanvasIsland(renderer, preferComposite, preferGraphite));
-        Console.WriteLine(preferGraphite
-            ? "UnoDraw canvas bridge preference: Graphite document rasterization."
-            : preferComposite
-                ? "UnoDraw canvas bridge preference: cached document composition."
-                : "UnoDraw canvas bridge preference: persistent RGBA upload.");
+            renderer => new RasterCanvasIsland(renderer, preferComposite, preferGraphite, preferLegacyComposite));
+        Console.WriteLine(preference switch
+        {
+            "legacy-composite" => "UnoDraw canvas bridge preference: legacy-composite raster texture upload.",
+            "graphite" => "UnoDraw canvas bridge preference: Graphite document rasterization.",
+            "composite" => "UnoDraw canvas bridge preference: cached document composition.",
+            _ => "UnoDraw canvas bridge preference: persistent RGBA upload."
+        });
     }
 
     internal static void ReportInitialization()
@@ -68,23 +72,33 @@ internal static class WebGpuSkiaCanvasBridge
             Console.WriteLine("UnoDraw canvas bridge initialized: Graphite document rasterization.");
     }
 
+    internal static void ReportLegacyCompositeInitialization()
+    {
+        if (Interlocked.Exchange(ref s_reportedLegacyCompositeInitialization, 1) == 0)
+            Console.WriteLine("UnoDraw canvas bridge initialized: legacy-composite raster texture upload.");
+    }
+
     private sealed class RasterCanvasIsland : Grid, IGLIsland
     {
         private readonly IGLIslandRenderer _fallback;
         private readonly Canvas _viewport = new() { IsHitTestVisible = false };
-        private readonly WebGpuRasterCanvas _canvas;
+        private readonly ISkiaCanvasIslandTarget _canvas;
         private readonly bool _preferComposite;
+        private readonly bool _preferLegacyComposite;
         private readonly RectangleGeometry _clip = new();
         private readonly List<(UIElement Element, DependencyProperty Property, long Token)> _transformSubscriptions = [];
         private XamlRoot? _observedRoot;
         private ISkiaCanvasLayers? _layers;
         private bool _failed;
+        private bool _ownsEditorTransport;
 
-        public RasterCanvasIsland(IGLIslandRenderer fallback, bool preferComposite, bool preferGraphite)
+        public RasterCanvasIsland(IGLIslandRenderer fallback, bool preferComposite, bool preferGraphite, bool preferLegacyComposite)
         {
             _fallback = fallback;
-            _preferComposite = preferComposite;
-            _canvas = new WebGpuRasterCanvas(RequestFallback, preferGraphite);
+            _preferComposite = preferComposite || preferLegacyComposite;
+            _preferLegacyComposite = preferLegacyComposite;
+            _canvas = preferLegacyComposite ? new LegacyCompositeCanvas(RequestFallback)
+                : new WebGpuRasterCanvas(RequestFallback, preferGraphite);
             IsHitTestVisible = false;
             Clip = _clip;
 
@@ -113,6 +127,16 @@ internal static class WebGpuSkiaCanvasBridge
                 return;
             }
 
+            // Auxiliary painters and the deliberate non-renderer software child
+            // use Uno's original fallback. No further child is attached, so the
+            // software child's one-time island request cannot recurse.
+            if (_preferLegacyComposite && source is not ISkiaCanvasLayerSource)
+            {
+                RequestFallback(null);
+                return;
+            }
+            _ownsEditorTransport = true;
+
             _canvas.Renderer = renderer;
             ObserveRoot(XamlRoot);
             ObserveTransforms(source);
@@ -120,9 +144,16 @@ internal static class WebGpuSkiaCanvasBridge
                 return;
             if (_preferComposite && renderer is ISkiaCanvasLayerSource layerSource)
             {
-                _layers = layerSource.TryAcquireLayers(_canvas.Invalidate);
+                _layers = layerSource.TryAcquireLayers(_canvas.InvalidateInteraction);
                 if (_layers is null)
+                {
+                    if (_preferLegacyComposite)
+                    {
+                        RequestFallback("the canvas layers are already owned or unavailable");
+                        return;
+                    }
                     Console.WriteLine("UnoDraw canvas bridge composite fallback: the canvas layers are already owned or unavailable.");
+                }
                 else
                     _canvas.SetCompositeLayers(_layers);
             }
@@ -178,7 +209,7 @@ internal static class WebGpuSkiaCanvasBridge
                 // Removing the child lets WebGpuCanvasElement release its target
                 // with the compositor's retained-frame lifetime rules. No zero-
                 // sized texture or GL framebuffer is created or destroyed here.
-                _viewport.Children.Remove(_canvas);
+                _viewport.Children.Remove(_canvas.Element);
                 _canvas.ReleaseSurfaces();
                 return;
             }
@@ -192,8 +223,8 @@ internal static class WebGpuSkiaCanvasBridge
 
             if (!_canvas.Configure(pixels))
                 return;
-            if (!_viewport.Children.Contains(_canvas))
-                _viewport.Children.Add(_canvas);
+            if (!_viewport.Children.Contains(_canvas.Element))
+                _viewport.Children.Add(_canvas.Element);
         }
 
         private void ObserveTransforms(FrameworkElement source)
@@ -243,10 +274,12 @@ internal static class WebGpuSkiaCanvasBridge
             _failed = true;
             ObserveRoot(null);
             StopObservingTransforms();
-            if (_layers is not null)
+            if (_preferLegacyComposite && _ownsEditorTransport)
+                Console.WriteLine($"UnoDraw canvas bridge legacy-composite fallback: {reason ?? "the active canvas bridge became unavailable"}.");
+            else if (_layers is not null)
                 Console.WriteLine($"UnoDraw canvas bridge composite fallback: {reason ?? "the active canvas bridge became unavailable"}.");
             ReleaseLayers();
-            if (reason is not null)
+            if (reason is not null && !_preferLegacyComposite)
                 Console.WriteLine($"UnoDraw canvas bridge fallback: {reason}.");
             // Uno queues removal after the current paint/Loaded callback and
             // invalidates the original painter through its normal software path.

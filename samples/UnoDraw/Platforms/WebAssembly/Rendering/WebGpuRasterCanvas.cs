@@ -13,7 +13,7 @@ namespace UnoDraw.Rendering;
 /// into WebGpuCanvasElement's persistent texture. Device scale, premultiplied
 /// alpha and the painter's original antialiasing settings are retained.
 /// </summary>
-internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
+internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement, ISkiaCanvasIslandTarget
 {
     private readonly Action<string?> _fallback;
     private readonly bool _preferGraphite;
@@ -54,9 +54,11 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
         });
     }
 
-    internal ISkiaCanvasRenderer? Renderer { get; set; }
+    public FrameworkElement Element => this;
+    public ISkiaCanvasRenderer? Renderer { get; set; }
+    public void InvalidateInteraction() => Invalidate();
 
-    internal void SetCompositeLayers(ISkiaCanvasLayers? layers)
+    public void SetCompositeLayers(ISkiaCanvasLayers? layers)
     {
         if (ReferenceEquals(_compositeLayers, layers))
             return;
@@ -67,13 +69,13 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
 
     // Ordinary SKCanvasElement invalidation reaches the island here, including
     // calls made through its nonvirtual base API. Feedback uses Invalidate directly.
-    internal void InvalidateDocument()
+    public void InvalidateDocument()
     {
         _documentDirty = true;
         Invalidate();
     }
 
-    internal bool Configure(CanvasPixelSize pixels)
+    public bool Configure(CanvasPixelSize pixels)
     {
         if (_maximumTextureSize != 0 &&
             (pixels.Width > _maximumTextureSize || pixels.Height > _maximumTextureSize))
@@ -235,33 +237,17 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
     private bool RenderComposite(SkiaCanvasRasterState.Paint paint, ISkiaCanvasLayers layers,
         ISkiaCanvasRenderer renderer)
     {
-        var restored = !_documentDirty && layers.IsDocumentCurrent(_pixels.LogicalSize)
-            && paint.TryRestoreDocument();
-        if (!restored)
-        {
-            // Consume before painting so a full invalidation raised by a painter
-            // remains pending. Only the completed document is retained; feedback
-            // never becomes part of the backdrop copied on the next interaction.
-            _documentDirty = false;
-            paint.Buffer.Canvas.Clear(SKColors.Transparent);
-            if (!paint.TryRender((Owner: this, Layers: layers),
-                    static (state, canvas) => state.Owner.RenderLayer(canvas, state.Layers, document: true))
-                || !ReferenceEquals(_compositeLayers, layers) || !ReferenceEquals(Renderer, renderer)
-                || !layers.IsDocumentCurrent(_pixels.LogicalSize) || !paint.TryStoreDocument())
-            {
-                _documentDirty = true;
-                return false;
-            }
-        }
-        else if (!_reportedCompositeReuse)
+        var completed = SkiaCanvasCompositePainter.Render(paint, layers, _pixels,
+            (Owner: this, Layers: layers, Renderer: renderer),
+            static state => ReferenceEquals(state.Owner._compositeLayers, state.Layers)
+                && ReferenceEquals(state.Owner.Renderer, state.Renderer), ref _documentDirty, out var reused);
+        if (completed && reused && !_reportedCompositeReuse)
         {
             _reportedCompositeReuse = true;
             Console.WriteLine("UnoDraw canvas bridge reused cached document pixels.");
         }
 
-        return paint.TryRender((Owner: this, Layers: layers),
-                static (state, canvas) => state.Owner.RenderLayer(canvas, state.Layers, document: false))
-            && ReferenceEquals(_compositeLayers, layers) && ReferenceEquals(Renderer, renderer);
+        return completed;
     }
 
     private void RenderRenderer(SKCanvas canvas, ISkiaCanvasRenderer renderer)
@@ -272,23 +258,6 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
         {
             ConfigurePainter(canvas);
             renderer.Render(canvas, _pixels.LogicalSize);
-        }
-        finally
-        {
-            canvas.Restore();
-        }
-    }
-
-    private void RenderLayer(SKCanvas canvas, ISkiaCanvasLayers layers, bool document)
-    {
-        canvas.Save();
-        try
-        {
-            ConfigurePainter(canvas);
-            if (document)
-                layers.RenderDocument(canvas, _pixels.LogicalSize);
-            else
-                layers.RenderInteraction(canvas, _pixels.LogicalSize);
         }
         finally
         {
@@ -332,7 +301,7 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
         }
     }
 
-    internal void ReleaseSurfaces()
+    public void ReleaseSurfaces()
     {
         var graphite = _graphiteCanvas;
         _graphiteCanvas = null;
