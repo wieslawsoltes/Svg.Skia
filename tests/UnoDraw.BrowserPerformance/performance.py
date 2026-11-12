@@ -22,9 +22,10 @@ from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork,  #
                    chrome_font_changes, record_backend, ruler_frame_changes, serve,
                    wait_for_artwork_transition)
 from metrics import comparisons, summarize, validate_packages, verify_hover_isolation  # noqa: E402
+from workload_plan import (BACKENDS, WORKLOADS, diagnostic_plan, primary_plan,  # noqa: E402
+                           require_run_coverage)
 
 
-WORKLOADS = ("idle", "brush-hover", "pan", "zoom", "selection", "edit")
 VIEWPORT = {"width": 1440, "height": 960}
 DOCUMENT_REGION = (100, 160, 1050, 880)
 WARMUP_INPUTS = 120
@@ -471,6 +472,10 @@ def main() -> int:
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--steps", type=int, default=120)
     parser.add_argument("--idle-ms", type=int, default=2000)
+    parser.add_argument("--workload", choices=WORKLOADS,
+                        help="Run one workload with every selected revision and repetition on this runner")
+    parser.add_argument("--backend", choices=BACKENDS,
+                        help="Run one actual backend; the Uno 6 reference only supports skia-preferred")
     parser.add_argument("--graphics", choices=("swiftshader", "hardware"), default="swiftshader")
     parser.add_argument("--executable", help="Optional local Chromium executable for a hardware run")
     parser.add_argument("--diagnostics", action="store_true", help="After primary trials, run separate candidate-only managed/Uno diagnostics")
@@ -487,10 +492,18 @@ def main() -> int:
     validate_packages(packages)
     if any(Path(package["path"]) == output or Path(package["path"]) in output.parents for package in packages):
         parser.error("Diagnostics must be outside the served application packages")
+    selected_workloads = (args.workload,) if args.workload else WORKLOADS
+    selected_backends = (args.backend,) if args.backend else BACKENDS
+    primary_tasks = primary_plan(packages, args.repeats, selected_workloads, selected_backends)
+    diagnostic_tasks = (diagnostic_plan(packages, selected_workloads, selected_backends)
+                        if args.diagnostics else [])
     report: dict[str, Any] = {
         "schema": 1, "passed": False, "started_unix": time.time(), "packages": packages,
         "viewport": VIEWPORT, "device_scale_factor": 1, "repeats": args.repeats, "steps": args.steps,
         "idle_ms": args.idle_ms, "python": platform.python_version(), "platform": platform.platform(),
+        "shard": {"workload": args.workload, "backend": args.backend},
+        "selected_workloads": list(selected_workloads), "selected_backends": list(selected_backends),
+        "expected_primary_runs": len(primary_tasks), "expected_diagnostic_runs": len(diagnostic_tasks),
         "warmup_policy": {"minimum_real_pan_inputs": WARMUP_INPUTS,
                           "minimum_completed_graphics_callbacks": WARMUP_MIN_CALLBACKS,
                           "maximum_real_pan_inputs": WARMUP_MAX_INPUTS, "additional_batch_size": WARMUP_BATCH,
@@ -515,31 +528,28 @@ def main() -> int:
         with contextlib.ExitStack() as stack, sync_playwright() as playwright:
             urls = {package["role"]: stack.enter_context(serve(Path(package["path"]) / "wwwroot"))
                     for package in packages}
-            for trial in range(args.repeats):
-                ordered = packages[trial % len(packages):] + packages[:trial % len(packages)]
-                for workload in WORKLOADS:
-                    for package in ordered:
-                        backends = ["skia-preferred"] if package["runtime_generation"] == "uno6" else ["webgpu", "skia-preferred"]
-                        if trial % 2:
-                            backends.reverse()
-                        for backend in backends:
-                            arguments = launch_arguments(backend) if args.graphics == "swiftshader" else []
-                            browser = playwright.chromium.launch(headless=True, args=arguments,
-                                                                 executable_path=args.executable)
-                            try:
-                                directory = Path(package["role"]) / backend / workload / f"trial-{trial + 1}"
-                                run = run_trial(browser, urls[package["role"]], package, backend, workload,
-                                                trial + 1, args, output / directory)
-                                run["artifact_directory"] = str(directory)
-                                run["browser_version"] = browser.version
-                                run["browser_launch_arguments"] = arguments
-                                report["runs"].append(run)
-                                print(f"{package['role']} {backend} {workload} trial {trial + 1}: "
-                                      + ("passed" if run["passed"] else run["failure"]), flush=True)
-                                if not run["passed"]:
-                                    raise AssertionError(run["failure"])
-                            finally:
-                                browser.close()
+            by_role = {package["role"]: package for package in packages}
+            for task in primary_tasks:
+                package = by_role[task["role"]]
+                backend, workload, trial = task["backend"], task["workload"], task["trial"]
+                arguments = launch_arguments(backend) if args.graphics == "swiftshader" else []
+                browser = playwright.chromium.launch(headless=True, args=arguments,
+                                                     executable_path=args.executable)
+                try:
+                    directory = Path(package["role"]) / backend / workload / f"trial-{trial}"
+                    run = run_trial(browser, urls[package["role"]], package, backend, workload,
+                                    trial, args, output / directory)
+                    run["artifact_directory"] = str(directory)
+                    run["browser_version"] = browser.version
+                    run["browser_launch_arguments"] = arguments
+                    report["runs"].append(run)
+                    print(f"{package['role']} {backend} {workload} trial {trial}: "
+                          + ("passed" if run["passed"] else run["failure"]), flush=True)
+                    if not run["passed"]:
+                        raise AssertionError(run["failure"])
+                finally:
+                    browser.close()
+            require_run_coverage(report["runs"], primary_tasks, "primary")
             report["cross_build_quality"] = cross_build_quality(report["runs"], output)
             report["comparisons"] = comparisons(report["runs"])
             if args.diagnostics:
@@ -547,25 +557,26 @@ def main() -> int:
                 if not candidate.get("supports_render_diagnostics"):
                     report["diagnostics_unavailable"] = "The selected candidate does not contain the opt-in managed diagnostics export"
                 else:
-                    for backend in ("webgpu", "skia-preferred"):
+                    for task in diagnostic_tasks:
+                        backend, workload = task["backend"], task["workload"]
                         arguments = launch_arguments(backend) if args.graphics == "swiftshader" else []
-                        for workload in WORKLOADS:
-                            browser = playwright.chromium.launch(headless=True, args=arguments,
-                                                                 executable_path=args.executable)
-                            try:
-                                directory = Path("diagnostics") / backend / workload
-                                run = run_trial(browser, urls["candidate"], candidate, backend, workload,
-                                                1, args, output / directory, diagnostics=True)
-                                run["artifact_directory"] = str(directory)
-                                run["browser_version"] = browser.version
-                                run["browser_launch_arguments"] = arguments
-                                report["diagnostic_runs"].append(run)
-                                print(f"candidate diagnostic {backend} {workload}: "
-                                      + ("passed" if run["passed"] else run["failure"]), flush=True)
-                                if not run["passed"]:
-                                    raise AssertionError(run["failure"])
-                            finally:
-                                browser.close()
+                        browser = playwright.chromium.launch(headless=True, args=arguments,
+                                                             executable_path=args.executable)
+                        try:
+                            directory = Path("diagnostics") / backend / workload
+                            run = run_trial(browser, urls["candidate"], candidate, backend, workload,
+                                            1, args, output / directory, diagnostics=True)
+                            run["artifact_directory"] = str(directory)
+                            run["browser_version"] = browser.version
+                            run["browser_launch_arguments"] = arguments
+                            report["diagnostic_runs"].append(run)
+                            print(f"candidate diagnostic {backend} {workload}: "
+                                  + ("passed" if run["passed"] else run["failure"]), flush=True)
+                            if not run["passed"]:
+                                raise AssertionError(run["failure"])
+                        finally:
+                            browser.close()
+            require_run_coverage(report["diagnostic_runs"], diagnostic_tasks, "diagnostic")
             report["passed"] = True
     except Exception as error:
         report["failure"] = f"{type(error).__name__}: {error}"

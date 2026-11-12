@@ -201,12 +201,18 @@ jobs:
           retention-days: 14
 
   compare:
-    name: Compare real input workloads on one runner
+    name: Compare ${{ matrix.backend }} ${{ matrix.workload }}
     needs: [plan, publish]
     runs-on: ubuntu-24.04
-    # Ninety independently warmed primary trials plus twelve diagnostic trials
-    # need room to finish on the slow software-GPU regression baseline.
+    # Each revision and all three repeats of one comparison stay on one runner.
+    # Splitting by workload/backend preserves every trial without timing out the
+    # very slow software-GPU control or comparing revisions on different hosts.
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [webgpu, skia-preferred]
+        workload: [idle, brush-hover, pan, zoom, selection, edit]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v6
@@ -230,7 +236,44 @@ jobs:
           --packages artifacts/performance-packages
           --output artifacts/unodraw-performance
           --repeats ${{ needs.plan.outputs.repeats }} --steps 120 --graphics swiftshader --diagnostics
+          --backend ${{ matrix.backend }} --workload ${{ matrix.workload }}
       - name: Publish measurement summary
+        if: always()
+        run: |
+          if test -f artifacts/unodraw-performance/summary.md; then
+            cat artifacts/unodraw-performance/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-performance-results-${{ matrix.backend }}-${{ matrix.workload }}
+          path: artifacts/unodraw-performance
+          if-no-files-found: warn
+          retention-days: 14
+
+  aggregate:
+    name: Verify complete performance coverage
+    needs: [plan, compare]
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install report-validation dependencies
+        run: python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: unodraw-performance-results-*
+          path: artifacts/performance-shards
+      - name: Verify and combine all twelve matched comparisons
+        run: >-
+          python tests/UnoDraw.BrowserPerformance/merge_shards.py
+          --shards artifacts/performance-shards --output artifacts/unodraw-performance
+          --repeats ${{ needs.plan.outputs.repeats }}
+      - name: Publish the complete comparison summary
         if: always()
         run: |
           if test -f artifacts/unodraw-performance/summary.md; then
