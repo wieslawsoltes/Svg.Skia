@@ -104,6 +104,9 @@ public sealed partial class SvgEditorWorkspace
             _outlineDragging = false;
             _outlineDragged = Array.Empty<SvgElement>();
             _outlineDragController = null;
+            // Native drag/reorder may have changed the displayed nodes even when
+            // the model rejected the operation or the drag was canceled.
+            _outlinePresentation = null;
             _outlineRevision = -1;
             RefreshWorkspace();
         }

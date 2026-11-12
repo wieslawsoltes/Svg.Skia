@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Svg.Editor.Skia;
 using Windows.Storage;
 
@@ -118,6 +119,27 @@ public sealed partial class SvgEditorWorkspace
         content.VerticalAlignment = VerticalAlignment.Stretch;
         _studioPanels.Add(id, new StudioPanelItem(id, title, content));
     }
+    private bool IsStudioPanelVisible(string id)
+    {
+        if (!_studioInitialized || _disposed || _zenMode || _editorScreenMode == 2 || _studioLayout.PanelsHidden)
+            return false;
+        StudioDockGroup? group = null;
+        if (_studioFloating.TryGetValue(id, out var floating))
+            group = floating.Group;
+        else
+            foreach (var candidate in _studioGroups.Values)
+                if (candidate.ActiveId == id)
+                { group = candidate; break; }
+        if (group is null || group.IsCollapsed || group.ActiveId != id)
+            return false;
+        // Group identity works before templates are attached. Ancestor visibility
+        // also excludes responsive/hidden docks after they join the visual tree.
+        for (DependencyObject? current = group; current is not null; current = VisualTreeHelper.GetParent(current))
+            if (current is UIElement { Visibility: Visibility.Collapsed })
+                return false;
+        return true;
+    }
+
     private void WireStudioGroup(StudioDockGroup group)
     {
         group.CanChangePanel = () =>
@@ -129,7 +151,14 @@ public sealed partial class SvgEditorWorkspace
             catch (Exception exception) { StatusText.Text = exception.Message; return false; }
         };
         group.DockRequested += (_, args) => MoveStudioPanel(args);
-        group.ActiveChanged += (_, id) => { _studioLayout.Activate(id); EditorPaintPanelActivated(id); SaveStudioLayout(); };
+        group.ActiveChanged += (_, id) =>
+        {
+            _studioLayout.Activate(id);
+            RefreshWorkspace();
+            EditorPaintPanelActivated(id);
+            SaveStudioLayout();
+        };
+        group.ContentVisibilityChanged += (_, _) => RefreshWorkspace();
     }
     private void MoveStudioPanel(StudioDockRequestEventArgs args)
     {
@@ -271,6 +300,7 @@ public sealed partial class SvgEditorWorkspace
                 PositionStudioFloat(id);
             FloatingPanelLayer.Visibility = hideAll || _studioLayout.PanelsHidden ? Visibility.Collapsed : Visibility.Visible;
             UpdateStudioRulers();
+            QueueWorkspaceRefresh();
         }
         finally { _updatingStudioLayout = false; }
     }
@@ -299,7 +329,7 @@ public sealed partial class SvgEditorWorkspace
         else
             RebuildStudioDocks();
         ApplyStudioMetrics();
-        RefreshStudioPanels();
+        RefreshWorkspace();
         EditorPaintPanelActivated(id);
         SaveStudioLayout();
     }

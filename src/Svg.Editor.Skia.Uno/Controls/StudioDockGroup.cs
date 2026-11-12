@@ -47,9 +47,11 @@ public sealed partial class StudioDockGroup : Control
     public SvgPanelDock Dock { get; set; }
     public string WorkspaceToken { get; set; } = string.Empty;
     public string? ActiveId => _activeId;
+    public bool IsCollapsed => _collapsed;
     public IReadOnlyList<StudioPanelItem> Items => _readOnlyItems;
     public Func<bool>? CanChangePanel { get; set; }
     public event EventHandler<string>? ActiveChanged;
+    public event EventHandler? ContentVisibilityChanged;
     public event EventHandler<StudioDockRequestEventArgs>? DockRequested;
     public event EventHandler<Point>? HeaderDragged;
     public event EventHandler? HeaderDragCompleted;
@@ -57,8 +59,11 @@ public sealed partial class StudioDockGroup : Control
     public StudioDockGroup()
     {
         _readOnlyItems = _items.AsReadOnly();
-        DefaultStyleKey = typeof(StudioDockGroup); IsTabStop = false; AllowDrop = true;
-        DragOver += OnDragOver; Drop += OnDrop;
+        DefaultStyleKey = typeof(StudioDockGroup);
+        IsTabStop = false;
+        AllowDrop = true;
+        DragOver += OnDragOver;
+        Drop += OnDrop;
         SizeChanged += (_, _) => { UpdateTabNavigation(); RevealActiveTab(); };
         Loaded += (_, _) => { UpdateTabNavigation(); RevealActiveTab(); };
         Unloaded += (_, _) => { _revealVersion++; ClosePanelSwitcher(); };
@@ -67,14 +72,22 @@ public sealed partial class StudioDockGroup : Control
     protected override void OnApplyTemplate()
     {
         ClosePanelSwitcher();
-        if (_menu is not null) _menu.Click -= MenuClick;
-        if (_collapse is not null) _collapse.Click -= CollapseClick;
-        if (_previous is not null) _previous.Click -= PreviousClick;
-        if (_next is not null) _next.Click -= NextClick;
-        if (_picker is not null) _picker.Click -= PickerClick;
-        if (_tabScroll is not null) _tabScroll.ViewChanged -= TabViewChanged;
-        if (_tabHost is not null) _tabHost.SizeChanged -= TabSizeChanged;
-        if (_grip is not null) { _grip.DragDelta -= GripDelta; _grip.DragCompleted -= GripCompleted; }
+        if (_menu is not null)
+            _menu.Click -= MenuClick;
+        if (_collapse is not null)
+            _collapse.Click -= CollapseClick;
+        if (_previous is not null)
+            _previous.Click -= PreviousClick;
+        if (_next is not null)
+            _next.Click -= NextClick;
+        if (_picker is not null)
+            _picker.Click -= PickerClick;
+        if (_tabScroll is not null)
+            _tabScroll.ViewChanged -= TabViewChanged;
+        if (_tabHost is not null)
+            _tabHost.SizeChanged -= TabSizeChanged;
+        if (_grip is not null)
+        { _grip.DragDelta -= GripDelta; _grip.DragCompleted -= GripCompleted; }
         _contentHost?.Children.Clear();
         base.OnApplyTemplate();
         _tabHost = GetTemplateChild("PART_Tabs") as StackPanel;
@@ -86,14 +99,22 @@ public sealed partial class StudioDockGroup : Control
         _next = GetTemplateChild("PART_NextTabs") as Button;
         _picker = GetTemplateChild("PART_PanelPicker") as Button;
         _grip = GetTemplateChild("PART_Grip") as Thumb;
-        if (_menu is not null) _menu.Click += MenuClick;
-        if (_collapse is not null) _collapse.Click += CollapseClick;
-        if (_previous is not null) _previous.Click += PreviousClick;
-        if (_next is not null) _next.Click += NextClick;
-        if (_picker is not null) _picker.Click += PickerClick;
-        if (_tabScroll is not null) _tabScroll.ViewChanged += TabViewChanged;
-        if (_tabHost is not null) _tabHost.SizeChanged += TabSizeChanged;
-        if (_grip is not null) { _grip.DragDelta += GripDelta; _grip.DragCompleted += GripCompleted; }
+        if (_menu is not null)
+            _menu.Click += MenuClick;
+        if (_collapse is not null)
+            _collapse.Click += CollapseClick;
+        if (_previous is not null)
+            _previous.Click += PreviousClick;
+        if (_next is not null)
+            _next.Click += NextClick;
+        if (_picker is not null)
+            _picker.Click += PickerClick;
+        if (_tabScroll is not null)
+            _tabScroll.ViewChanged += TabViewChanged;
+        if (_tabHost is not null)
+            _tabHost.SizeChanged += TabSizeChanged;
+        if (_grip is not null)
+        { _grip.DragDelta += GripDelta; _grip.DragCompleted += GripCompleted; }
         Rebuild();
     }
 
@@ -105,23 +126,34 @@ public sealed partial class StudioDockGroup : Control
             snapshot.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != snapshot.Length)
             throw new ArgumentException("Panel items must have unique nonempty IDs and live content.", nameof(items));
         ClosePanelSwitcher();
-        _contentHost?.Children.Clear(); _items.Clear(); _items.AddRange(snapshot);
+        _contentHost?.Children.Clear();
+        _items.Clear();
+        _items.AddRange(snapshot);
         _activeId = _items.Any(item => item.Id == activeId) ? activeId : _items.FirstOrDefault()?.Id;
-        _collapsed = false; Rebuild();
+        _collapsed = false;
+        Rebuild();
     }
 
     public void Activate(string id)
     {
-        if (!_items.Any(item => item.Id == id)) return;
-        if (CanChangePanel?.Invoke() == false) { Sync(); return; }
-        _activeId = id; _collapsed = false;
-        Sync(); ActiveChanged?.Invoke(this, id); RevealActiveTab();
+        if (!_items.Any(item => item.Id == id))
+            return;
+        if (CanChangePanel?.Invoke() == false)
+        { Sync(); return; }
+        _activeId = id;
+        _collapsed = false;
+        Sync();
+        ActiveChanged?.Invoke(this, id);
+        RevealActiveTab();
     }
 
     private void Rebuild()
     {
-        _tabs.Clear(); _tabHost?.Children.Clear(); _contentHost?.Children.Clear();
-        if (_tabHost is null || _contentHost is null) return;
+        _tabs.Clear();
+        _tabHost?.Children.Clear();
+        _contentHost?.Children.Clear();
+        if (_tabHost is null || _contentHost is null)
+            return;
         foreach (var item in _items)
         {
             var tab = new StudioTabButton { Content = item.Title, Tag = item.Id, CanDrag = true };
@@ -131,7 +163,8 @@ public sealed partial class StudioDockGroup : Control
             tab.Click += (_, _) => Activate(item.Id);
             tab.KeyDown += (_, args) =>
             {
-                if (_items.Count == 0) return;
+                if (_items.Count == 0)
+                    return;
                 var current = _items.FindIndex(candidate => candidate.Id == item.Id);
                 var direction = FlowDirection == FlowDirection.RightToLeft ? -1 : 1;
                 var next = args.Key switch
@@ -142,21 +175,28 @@ public sealed partial class StudioDockGroup : Control
                     VirtualKey.End => _items.Count - 1,
                     _ => -1
                 };
-                if (next < 0) return;
+                if (next < 0)
+                    return;
                 Activate(_items[next].Id);
-                if (_activeId is { } active && _tabs.TryGetValue(active, out var activeTab)) activeTab.Focus(FocusState.Keyboard);
+                if (_activeId is { } active && _tabs.TryGetValue(active, out var activeTab))
+                    activeTab.Focus(FocusState.Keyboard);
                 args.Handled = true;
             };
             tab.DragStarting += (_, args) =>
             {
-                if (CanChangePanel?.Invoke() == false) { args.Cancel = true; return; }
+                if (CanChangePanel?.Invoke() == false)
+                { args.Cancel = true; return; }
                 args.Data.SetData(DragFormat, WorkspaceToken + "|" + item.Id);
                 args.Data.RequestedOperation = DataPackageOperation.Move;
             };
             tab.ContextFlyout = CreateMenu(item.Id);
-            _tabs[item.Id] = tab; _tabHost.Children.Add(tab); _contentHost.Children.Add(item.Content);
+            _tabs[item.Id] = tab;
+            _tabHost.Children.Add(tab);
+            _contentHost.Children.Add(item.Content);
         }
-        Sync(); UpdateTabNavigation(); RevealActiveTab();
+        Sync();
+        UpdateTabNavigation();
+        RevealActiveTab();
     }
 
     private void RevealActiveTab()
@@ -165,24 +205,29 @@ public sealed partial class StudioDockGroup : Control
         var expected = _activeId;
         DispatcherQueue.TryEnqueue(() =>
         {
-            if (version != _revealVersion || !IsLoaded || expected != _activeId || expected is null || !_tabs.TryGetValue(expected, out var tab)) return;
+            if (version != _revealVersion || !IsLoaded || expected != _activeId || expected is null || !_tabs.TryGetValue(expected, out var tab))
+                return;
             if (_tabScroll is { ViewportWidth: > 0 } scroll && _tabHost is not null)
             {
                 var left = tab.TransformToVisual(_tabHost).TransformPoint(default).X;
                 var right = left + tab.ActualWidth;
                 var offset = scroll.HorizontalOffset;
-                if (left < offset) offset = left;
-                else if (right > offset + scroll.ViewportWidth) offset = right - scroll.ViewportWidth;
+                if (left < offset)
+                    offset = left;
+                else if (right > offset + scroll.ViewportWidth)
+                    offset = right - scroll.ViewportWidth;
                 scroll.ChangeView(Math.Clamp(offset, 0, scroll.ScrollableWidth), null, null, true);
             }
-            else tab.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false });
+            else
+                tab.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false });
             UpdateTabNavigation();
         });
     }
 
     private void UpdateTabNavigation()
     {
-        if (_tabHost is null || _tabScroll is null) return;
+        if (_tabHost is null || _tabScroll is null)
+            return;
         var showPicker = _items.Count > 1;
         if (_picker is not null)
         {
@@ -198,7 +243,8 @@ public sealed partial class StudioDockGroup : Control
 
     private void UpdateScrollArrow(Button? button, bool visible, bool enabled)
     {
-        if (button is null) return;
+        if (button is null)
+            return;
         // Do not strand keyboard focus on an arrow that disables itself after a click.
         // Move to stationary chrome before changing availability, without activating
         // a tab or revealing the active tab and undoing the user's deliberate scroll.
@@ -214,7 +260,8 @@ public sealed partial class StudioDockGroup : Control
     private void NextClick(object sender, RoutedEventArgs args) => ScrollTabs(1);
     private void ScrollTabs(int direction)
     {
-        if (_tabScroll is not { } scroll) return;
+        if (_tabScroll is not { } scroll)
+            return;
         var offset = scroll.HorizontalOffset + direction * Math.Max(64, scroll.ViewportWidth * 0.75);
         scroll.ChangeView(Math.Clamp(offset, 0, scroll.ScrollableWidth), null, null, true);
     }
@@ -226,9 +273,11 @@ public sealed partial class StudioDockGroup : Control
         foreach (var item in _items)
         {
             item.Content.Visibility = item.Id == _activeId && !_collapsed ? Visibility.Visible : Visibility.Collapsed;
-            if (_tabs.TryGetValue(item.Id, out var button)) button.IsChecked = item.Id == _activeId;
+            if (_tabs.TryGetValue(item.Id, out var button))
+                button.IsChecked = item.Id == _activeId;
         }
-        if (_contentHost is not null) _contentHost.Visibility = _collapsed ? Visibility.Collapsed : Visibility.Visible;
+        if (_contentHost is not null)
+            _contentHost.Visibility = _collapsed ? Visibility.Collapsed : Visibility.Visible;
         if (_collapse is not null)
         {
             if (_collapse.Content is not StudioGlyph glyph)
@@ -247,38 +296,46 @@ public sealed partial class StudioDockGroup : Control
             item.Click += (_, _) => DockRequested?.Invoke(this, new StudioDockRequestEventArgs(id, dock, index));
             menu.Items.Add(item);
         }
-        Add("Dock left", SvgPanelDock.Left); Add("Dock right · upper", SvgPanelDock.RightTop);
-        Add("Dock right · lower", SvgPanelDock.RightBottom); Add("Dock below canvas", SvgPanelDock.Bottom);
+        Add("Dock left", SvgPanelDock.Left);
+        Add("Dock right · upper", SvgPanelDock.RightTop);
+        Add("Dock right · lower", SvgPanelDock.RightBottom);
+        Add("Dock below canvas", SvgPanelDock.Bottom);
         Add("Float in workspace", SvgPanelDock.Floating);
         menu.Items.Add(new MenuFlyoutSeparator());
         var current = _items.FindIndex(item => item.Id == id);
-        Add("Move tab left", Dock, Math.Max(0, current - 1)); Add("Move tab right", Dock, current + 1);
-        menu.Items.Add(new MenuFlyoutSeparator()); Add("Close panel", SvgPanelDock.Hidden);
+        Add("Move tab left", Dock, Math.Max(0, current - 1));
+        Add("Move tab right", Dock, current + 1);
+        menu.Items.Add(new MenuFlyoutSeparator());
+        Add("Close panel", SvgPanelDock.Hidden);
         return menu;
     }
 
     private void MenuClick(object sender, RoutedEventArgs args)
     { if (_activeId is { } id) CreateMenu(id).ShowAt((FrameworkElement)sender); }
     private void CollapseClick(object sender, RoutedEventArgs args)
-    { if (CanChangePanel?.Invoke() != false) { _collapsed = !_collapsed; Sync(); } }
+    { if (CanChangePanel?.Invoke() != false) { _collapsed = !_collapsed; Sync(); ContentVisibilityChanged?.Invoke(this, EventArgs.Empty); } }
     private void GripDelta(object sender, DragDeltaEventArgs args)
         => HeaderDragged?.Invoke(this, new Point(args.HorizontalChange, args.VerticalChange));
     private void GripCompleted(object sender, DragCompletedEventArgs args)
         => HeaderDragCompleted?.Invoke(this, EventArgs.Empty);
     private void OnDragOver(object sender, DragEventArgs args)
     {
-        if (!args.DataView.Contains(DragFormat)) return;
+        if (!args.DataView.Contains(DragFormat))
+            return;
         args.AcceptedOperation = DataPackageOperation.Move;
-        args.DragUIOverride.Caption = "Move panel here"; args.Handled = true;
+        args.DragUIOverride.Caption = "Move panel here";
+        args.Handled = true;
     }
 
     private async void OnDrop(object sender, DragEventArgs args)
     {
-        if (!args.DataView.Contains(DragFormat)) return;
+        if (!args.DataView.Contains(DragFormat))
+            return;
         var deferral = args.GetDeferral();
         try
         {
-            if (await args.DataView.GetDataAsync(DragFormat) is not string data || !data.StartsWith(WorkspaceToken + "|", StringComparison.Ordinal)) return;
+            if (await args.DataView.GetDataAsync(DragFormat) is not string data || !data.StartsWith(WorkspaceToken + "|", StringComparison.Ordinal))
+                return;
             var id = data.Substring(WorkspaceToken.Length + 1);
             var position = args.GetPosition(_tabHost ?? (UIElement)this);
             var index = _items.Count;
@@ -288,13 +345,16 @@ public sealed partial class StudioDockGroup : Control
                 foreach (var tab in _tabHost.Children.OfType<FrameworkElement>())
                 {
                     var origin = tab.TransformToVisual(_tabHost).TransformPoint(default);
-                    if (position.X < origin.X + tab.ActualWidth / 2) break;
+                    if (position.X < origin.X + tab.ActualWidth / 2)
+                        break;
                     index++;
                 }
             }
             var original = _items.FindIndex(item => item.Id == id);
-            if (original >= 0 && original < index) index--;
-            DockRequested?.Invoke(this, new StudioDockRequestEventArgs(id, Dock, index)); args.Handled = true;
+            if (original >= 0 && original < index)
+                index--;
+            DockRequested?.Invoke(this, new StudioDockRequestEventArgs(id, Dock, index));
+            args.Handled = true;
         }
         catch (Exception) { /* Malformed external drag data is ignored. */ }
         finally { deferral.Complete(); }
