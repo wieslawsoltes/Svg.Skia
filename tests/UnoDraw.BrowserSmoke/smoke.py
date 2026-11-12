@@ -182,7 +182,7 @@ def artwork_transition(before: Path, after: Path, restore: bool) -> dict[str, An
 
 
 def ruler_frame_changes(before: Path, after: Path) -> dict[str, float]:
-    # Separate GL islands can publish ruler pixels after the document bitmap.
+    # Separate retained bitmaps can publish rulers after the document bitmap.
     # These strips contain only the fitted horizontal and vertical rulers.
     regions = {"horizontal": (92, 102, 1088, 125), "vertical": (68, 125, 91, 932)}
     with Image.open(before) as first, Image.open(after) as second:
@@ -469,9 +469,9 @@ def main() -> int:
                     "minimum_changed_interior_pixels_per_family": 500, "interior_filter_size": 7,
                     "maximum_restored_changed_pixel_fraction": 0.001, "luminance_difference_threshold": 12}
                 report["artwork_repaint"] = repaint
-                # A GL island publishes its bitmap after the surrounding chrome
-                # can already reflect the restored theme. Wait for the full
-                # document crop and ruler islands to match the initial dark fit
+                # Retained bitmaps can publish after the surrounding chrome
+                # already reflects the restored theme. Wait for the full
+                # document crop and rulers to match the initial dark fit
                 # before using it as the baseline, with the same tolerances.
                 repaint["settled_fitted"] = wait_for_artwork_transition(page, wide,
                     fitted, restore=True, require_settled_rulers=True)
@@ -493,7 +493,7 @@ def main() -> int:
                 report["workspace_affordances"]["compact_foreground_pixels"] = compact_affordances
                 assert_workspace_affordances(compact_affordances)
                 report["checks"].append("Compact tool-column, alternate-tool and paint indicators remain visible")
-                rail_changes = compact_panel_rail_changes(output / "02b-command-dark-theme.png", compact)
+                rail_changes = compact_panel_rail_changes(fitted, compact)
                 report["compact_panel_rail"] = rail_changes
                 if any(value > rail_changes["maximum_different_foreground_fraction"]
                        for value in rail_changes["different_foreground_fraction"].values()):

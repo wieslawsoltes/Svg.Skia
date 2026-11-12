@@ -16,6 +16,15 @@ information, and actual Uno renderer-negotiation messages. Adapter availability
 alone cannot pass the gate: the application must select the expected renderer on
 startup and again after reload, using fresh logs for each navigation.
 
+The WebGPU case uses the WebGPU compositor for the interface. Existing Skia SVG
+and ruler drawings reach it through Uno's software `SKCanvasElement` bitmap
+bridge. The optional browser
+`Graphics3DGL` bridge is excluded: its pinned 7.0.32 zero-size framebuffer cleanup
+raised an unhandled context error during
+[responsive-resize validation](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43122185452/job/130875560161).
+Renderer assertions cover the main compositor; artwork and repaint assertions
+cover the retained Skia bitmaps.
+
 The fallback case requires the secure browser origin to expose `navigator.gpu`
 while `requestAdapter()` returns `null`. It also requires Uno's precise no-adapter
 negotiation error and a successful Skia selection. Only that error is expected in
@@ -52,11 +61,13 @@ welcome artboard, so the camera returns to the same view. Screenshots
 `02c-artwork-actual-size.png` and `02d-artwork-refitted.png` capture both states.
 Before sending either shortcut, the same restoration comparison waits for the
 document crop and both ruler strips to match the original dark fitted image and saves
-`02b-artwork-settled.png` as its baseline. A GL island can publish its updated
-bitmap after the surrounding chrome changes theme; this readiness check requires
-the canvas and ruler islands to settle without adding a fixed delay or changing
-pixel tolerances. Rulers use separate narrow comparisons at the same 0.1%
+`02b-artwork-settled.png` as its baseline. A retained bitmap can update after the
+surrounding chrome changes theme; this readiness check requires the canvas and
+rulers to settle without adding a fixed delay or changing pixel tolerances.
+Rulers use separate narrow comparisons at the same 0.1%
 threshold; the document comparison region remains unchanged.
+The compact panel-rail comparison reuses this settled desktop baseline so
+intermediate ruler colors cannot distort its glyph-location search.
 This verifies repaint through the canvas bridge without changing the SVG.
 
 The two matrix jobs upload distinct `unodraw-browser-smoke-webgpu` and

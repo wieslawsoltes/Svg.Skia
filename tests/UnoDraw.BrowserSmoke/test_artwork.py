@@ -107,7 +107,7 @@ class DocumentRepaintTests(unittest.TestCase):
         fitted = self.scene()
         intermediate = fitted.copy()
         # Keep dark chrome and identical artwork while the canvas background
-        # still contains the previous light frame from an asynchronous GL island.
+        # still contains the previous light frame from an asynchronous bitmap.
         ImageDraw.Draw(intermediate).rectangle((90, 125, 1088, 932), fill="#BABABA")
         intermediate.paste(fitted.crop((140, 230, 1041, 831)), (140, 230))
         late_rulers = fitted.copy()
