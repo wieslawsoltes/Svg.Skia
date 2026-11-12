@@ -13,6 +13,11 @@ from quality import verify_bridge
 
 REPORT_KIND = "direct_baseline_legacy_composite_experiment"
 BRIDGE = "legacy-composite"
+REPORT_KINDS = {
+    BRIDGE: REPORT_KIND,
+    "legacy": "direct_baseline_original_upload_experiment",
+    "composite": "direct_baseline_persistent_composite_experiment",
+}
 WORKLOADS = ("brush-hover", "selection", "pan", "zoom", "edit")
 VIEWPORT = {"width": 1440, "height": 960}
 
@@ -24,8 +29,9 @@ def trial_plan() -> list[tuple[int, str]]:
 
 
 def verify_report_identity(report: dict[str, Any]) -> None:
-    if (report.get("report_kind") != REPORT_KIND or report.get("primary_comparison") is not False
-            or report.get("candidate_default") is not False or report.get("candidate_bridge") != BRIDGE
+    bridge = report.get("candidate_bridge")
+    if (bridge not in REPORT_KINDS or report.get("report_kind") != REPORT_KINDS[bridge]
+            or report.get("primary_comparison") is not False or report.get("candidate_default") is not False
             or report.get("baseline_source_sha") != BASELINE_SHA or report.get("workload") not in WORKLOADS
             or report.get("repeats") != 3 or report.get("steps") != 120
             or report.get("viewport") != VIEWPORT or report.get("device_scale_factor") != 1
@@ -36,9 +42,11 @@ def verify_report_identity(report: dict[str, Any]) -> None:
         raise ValueError("The direct opt-in comparison requires its distinct source and workload identity")
 
 
-def verify_runs(runs: list[dict[str, Any]], source_sha: str, workload: str, *, diagnostics: bool = False) -> None:
+def verify_runs(runs: list[dict[str, Any]], source_sha: str, workload: str, *, diagnostics: bool = False,
+                candidate_bridge: str = BRIDGE) -> None:
     expected = [(1, "candidate")] if diagnostics else trial_plan()
-    if workload not in WORKLOADS or [(run.get("trial"), run.get("role")) for run in runs] != expected:
+    if (candidate_bridge not in REPORT_KINDS or workload not in WORKLOADS
+            or [(run.get("trial"), run.get("role")) for run in runs] != expected):
         raise ValueError("The direct comparison is incomplete, duplicated or outside its alternating plan")
     browsers, launches = set(), set()
     for run in runs:
@@ -46,7 +54,7 @@ def verify_runs(runs: list[dict[str, Any]], source_sha: str, workload: str, *, d
         if (run.get("passed") is not True or run.get("source_sha") != (source_sha if candidate else BASELINE_SHA)
                 or run.get("backend") != "webgpu" or run.get("workload") != workload
                 or run.get("diagnostic_pass") is not diagnostics or run.get("graphite_coverage") is not None
-                or run.get("canvas_bridge") != (BRIDGE if candidate else None)
+                or run.get("canvas_bridge") != (candidate_bridge if candidate else None)
                 or run.get("page_errors") != [] or run.get("resource_errors") != []):
             raise ValueError("A direct trial changed its package, mode, workload or error status")
         environment, renderer = run.get("environment", {}), run.get("renderer", {})
@@ -79,7 +87,11 @@ def verify_runs(runs: list[dict[str, Any]], source_sha: str, workload: str, *, d
                 or metrics.get("graphite_document_submissions") not in (None, 0)):
             raise ValueError("Another GPU document transport contaminated the direct comparison")
         if candidate:
-            verify_bridge(run.get("console", []), BRIDGE, require_reuse=workload in {"brush-hover", "selection"})
+            # Original upload retains the editor's separate feedback surface;
+            # it has no combined document-pixel cache or cache-reuse message.
+            # verify_bridge enforces exclusive observed selection for every mode.
+            verify_bridge(run.get("console", []), candidate_bridge,
+                          require_reuse=workload in {"brush-hover", "selection"})
         elif any(entry.get("text", "").startswith(("UnoDraw canvas bridge", "UnoDraw legacy-composite", "UnoDraw Graphite"))
                  for entry in run.get("console", [])):
             raise ValueError("The exact baseline unexpectedly selected a new opt-in canvas transport")

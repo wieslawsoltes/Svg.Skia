@@ -10,13 +10,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 from legacy_baseline_comparison import save_report
-from legacy_baseline_contracts import (BRIDGE, REPORT_KIND, WORKLOADS, compare_metrics,
+from legacy_baseline_contracts import (BRIDGE, REPORT_KIND, REPORT_KINDS, WORKLOADS, compare_metrics,
                                        trial_plan, verify_report_identity, verify_runs)
 from legacy_baseline_packages import (BASELINE_SHA, FIXTURE_SHA256, PINS, RECEIPT, REPOSITORY,
                                       canonical_digest, digest, extract_verified, inventory,
                                       validate_descriptors, verify_package)
 from merge_shards import validate_quality
-from quality import LEGACY_COMPOSITE_REUSED, PERSISTENT_INITIALIZED
+from quality import (COMPOSITE_INITIALIZED, COMPOSITE_PREFERENCE, COMPOSITE_REUSED,
+                     LEGACY_COMPOSITE_REUSED, LEGACY_PREFERENCE, PERSISTENT_INITIALIZED)
 from test_legacy_composition import runs as same_candidate_runs
 
 
@@ -24,7 +25,7 @@ SOURCE = "a" * 40
 RUN_ID = 123
 
 
-def direct_runs(workload="selection", diagnostics=False):
+def direct_runs(workload="selection", diagnostics=False, candidate_bridge=BRIDGE):
     values = same_candidate_runs(workload=workload, diagnostics=diagnostics)
     if diagnostics:
         values = [run for run in values if run["canvas_bridge"] == BRIDGE]
@@ -39,6 +40,14 @@ def direct_runs(workload="selection", diagnostics=False):
         if diagnostics and workload in {"pan", "zoom", "edit"}:
             run["managed_render_diagnostics"]["after"]["phases"][0]["count"] = 120
             run["console"] = [entry for entry in run["console"] if entry["text"] != LEGACY_COMPOSITE_REUSED]
+        if candidate:
+            run["canvas_bridge"] = candidate_bridge
+            if candidate_bridge == "legacy":
+                run["console"] = [{"text": LEGACY_PREFERENCE}]
+            elif candidate_bridge == "composite":
+                run["console"] = [{"text": message} for message in
+                                  (COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED,
+                                   COMPOSITE_REUSED, PERSISTENT_INITIALIZED)]
     return values
 
 
@@ -51,6 +60,65 @@ def identity(workload="selection"):
 
 
 class DirectComparisonTests(unittest.TestCase):
+    def test_each_explicit_mode_keeps_its_identity_phases_and_original_workload_contract(self):
+        self.assertEqual(len(set(REPORT_KINDS.values())), 3)
+        for bridge, kind in REPORT_KINDS.items():
+            for workload in WORKLOADS:
+                report = {**identity(workload), "candidate_bridge": bridge, "report_kind": kind}
+                verify_report_identity(report)
+                for other in set(REPORT_KINDS) - {bridge}:
+                    with self.subTest(bridge=bridge, other=other), self.assertRaises(ValueError):
+                        verify_report_identity({**report, "candidate_bridge": other})
+                for diagnostics in (False, True):
+                    values = direct_runs(workload, diagnostics, bridge)
+                    verify_runs(values, SOURCE, workload, diagnostics=diagnostics, candidate_bridge=bridge)
+                    target = next(run for run in values if run["role"] == "candidate")
+                    target["canvas_bridge"] = next(value for value in REPORT_KINDS if value != bridge)
+                    with self.subTest(bridge=bridge, diagnostics=diagnostics), self.assertRaises(ValueError):
+                        verify_runs(values, SOURCE, workload, diagnostics=diagnostics, candidate_bridge=bridge)
+
+    def test_original_upload_cannot_claim_a_combined_cache_or_other_upload_path(self):
+        for bridge in ("legacy", "composite"):
+            values = direct_runs(candidate_bridge=bridge)
+            target = next(run for run in values if run["role"] == "candidate")
+            target["console"].append({"text": LEGACY_COMPOSITE_REUSED})
+            with self.subTest(bridge=bridge), self.assertRaises(AssertionError):
+                verify_runs(values, SOURCE, "selection", candidate_bridge=bridge)
+        for missing in (COMPOSITE_INITIALIZED, COMPOSITE_REUSED, PERSISTENT_INITIALIZED):
+            values = direct_runs(candidate_bridge="composite")
+            target = next(run for run in values if run["role"] == "candidate")
+            target["console"] = [entry for entry in target["console"] if entry["text"] != missing]
+            with self.subTest(missing=missing), self.assertRaises(AssertionError):
+                verify_runs(values, SOURCE, "selection", candidate_bridge="composite")
+        values = direct_runs(candidate_bridge="legacy")
+        next(run for run in values if run["role"] == "candidate")["console"] = []
+        with self.assertRaises(AssertionError):
+            verify_runs(values, SOURCE, "selection", candidate_bridge="legacy")
+
+    def test_each_retained_feedback_mode_still_requires_zero_document_and_positive_interaction(self):
+        for bridge in REPORT_KINDS:
+            for workload in ("brush-hover", "selection"):
+                for phase, count in (("Document", 1), ("Interaction", 0)):
+                    values = direct_runs(workload, True, bridge)
+                    next(row for row in values[0]["managed_render_diagnostics"]["after"]["phases"]
+                         if row["phase"] == phase)["count"] = count
+                    with self.subTest(bridge=bridge, workload=workload, phase=phase), self.assertRaises(AssertionError):
+                        verify_runs(values, SOURCE, workload, diagnostics=True, candidate_bridge=bridge)
+
+    def test_summary_names_the_exact_mode_and_excludes_unobserved_legacy_cache_reuse(self):
+        for bridge, kind in REPORT_KINDS.items():
+            report = {**identity(), "candidate_bridge": bridge, "report_kind": kind,
+                      "started_unix": 0, "passed": False, "failure": "Incomplete", "metric_comparisons": []}
+            with tempfile.TemporaryDirectory() as temporary:
+                save_report(report, Path(temporary))
+                summary = (Path(temporary) / "summary.md").read_text()
+                self.assertIn(f"`canvasBridge={bridge}`", summary)
+                self.assertIn("current candidate default is unchanged and is not measured here", summary)
+                self.assertIn("Incomplete", summary)
+                if bridge == "legacy":
+                    self.assertIn("no combined pixel-cache reuse claim", summary)
+                    self.assertNotIn("must also report actual document-pixel cache reuse", summary)
+
     def test_all_five_workloads_keep_three_pairs_and_separate_candidate_diagnostics(self):
         self.assertEqual(trial_plan(), [(1, "baseline"), (1, "candidate"), (2, "candidate"),
                                        (2, "baseline"), (3, "baseline"), (3, "candidate")])
@@ -180,8 +248,11 @@ class DirectComparisonTests(unittest.TestCase):
         caller = (root / ".github/workflows/unodraw-performance.yml").read_text().split(
             "\n  direct-legacy-baseline-comparison:\n", 1)[1]
         self.assertIn("workflow_call:", workflow)
-        self.assertIn("workload: [brush-hover, selection, pan, zoom, edit]", workflow)
-        self.assertIn("name: unodraw-baseline-legacy-composite-${{ matrix.workload }}", workflow)
+        self.assertIn("fromJSON('[\"brush-hover\",\"selection\",\"pan\",\"zoom\",\"edit\"]')", workflow)
+        self.assertIn("fromJSON('[\"brush-hover\",\"selection\"]')", workflow)
+        self.assertIn("default: legacy-composite", workflow)
+        self.assertIn("name: unodraw-baseline-${{ inputs.candidate_bridge }}-${{ matrix.workload }}", workflow)
+        self.assertIn('--candidate-bridge "$CANDIDATE_BRIDGE"', workflow)
         self.assertIn("needs: [plan, publish]", caller)
         self.assertIn("uses: ./.github/workflows/unodraw-legacy-baseline-comparison.yml", caller)
         self.assertIn("package_run_id: ${{ format('{0}', github.run_id) }}", caller)

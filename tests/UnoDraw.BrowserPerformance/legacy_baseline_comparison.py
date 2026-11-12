@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Directly compare the fixed baseline with an explicit original-uploader composition candidate."""
+"""Directly compare the fixed baseline with an explicitly identified candidate canvas mode."""
 from __future__ import annotations
 
 import argparse
@@ -16,7 +16,7 @@ from typing import Any
 from PIL import Image
 from playwright.sync_api import sync_playwright
 
-from legacy_baseline_contracts import (BRIDGE, REPORT_KIND, VIEWPORT, WORKLOADS, compare_metrics,
+from legacy_baseline_contracts import (BRIDGE, REPORT_KINDS, VIEWPORT, WORKLOADS, compare_metrics,
                                        trial_plan, verify_report_identity, verify_runs)
 from legacy_baseline_packages import BASELINE_SHA, RECEIPT, ROLES, fetch_descriptors, verify_package
 from merge_shards import validate_proof, validate_quality
@@ -30,11 +30,18 @@ from verify_source import verify_source  # noqa: E402
 def save_report(report: dict[str, Any], output: Path) -> None:
     report["duration_seconds"] = time.time() - report["started_unix"]
     (output / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    lines = ["# Direct baseline versus opt-in legacy composition", "",
+    bridge = report["candidate_bridge"]
+    if bridge not in REPORT_KINDS:
+        raise ValueError("The summary requires a supported, explicitly identified canvas mode")
+    diagnostic_description = (
+        "Original upload keeps the editor's separate interaction surface; it has no combined pixel-cache reuse claim."
+        if bridge == "legacy" else
+        "The combined canvas must also report actual document-pixel cache reuse for hover/selection.")
+    lines = [f"# Direct baseline versus opt-in {bridge}", "",
              f"Baseline: `{report['baseline_source_sha']}`. Candidate: `{report['candidate_source_sha']}`. "
              f"Harness: `{report['harness_source_sha']}`. Workload: `{report['workload']}`.", "",
              "This distinct experiment compares the fixed baseline's original default path with the candidate's explicit "
-             "`canvasBridge=legacy-composite` path. The current candidate default is unchanged and is not measured here. "
+             f"`canvasBridge={bridge}` path. The current candidate default is unchanged and is not measured here. "
              "These results cannot enter the current-default aggregate or independently promote an opt-in renderer.", "",
              "Both immutable packages come from the identified performance workflow run. Their archive digests, full served "
              "file inventories, source/build/font manifests and candidate production-source equivalence are verified. "
@@ -42,10 +49,11 @@ def save_report(report: dict[str, Any], output: Path) -> None:
              "Three paired trials alternate order. Selection requires 121 real trusted inputs; other workloads require 120. "
              "All input tails must be observed, and all nine before/after/restored native pairs retain the original "
              "document/ruler 0.001 and chrome-font 0.02 thresholds above luminance 12 at 1440×960 DPR 1.", "",
-             "One separate candidate diagnostic pass validates zero Document paints, positive Interaction paints "
-             "and actual cache reuse for hover/selection. "
-             "Pan, zoom and edit instead require actual document painting and completed original-host copies; "
-             "their camera/source changes do not guarantee an overlay-only cache hit. The baseline predates managed diagnostics. "
+             "One separate candidate diagnostic pass validates zero Document paints and positive Interaction paints "
+             "for hover/selection. " + diagnostic_description + " "
+             "Pan, zoom and edit instead require actual document painting; "
+             "their camera/source changes do not guarantee an overlay-only cache hit. Every mode must prove exclusive "
+             "selection and its existing successful-upload requirements. The baseline predates managed diagnostics. "
              "Diagnostic timings are excluded from the primary ratios.", "",
              "SwiftShader implements the graphics APIs in software. Elapsed duration includes waits. Renderer ThreadTime "
              "excludes GPU/worker CPU. Callback completion and queue submission do not prove physical display presentation "
@@ -68,6 +76,7 @@ def main() -> int:
     parser.add_argument("--package-run-id", type=int, required=True)
     parser.add_argument("--harness-sha", required=True)
     parser.add_argument("--workload", choices=WORKLOADS, required=True)
+    parser.add_argument("--candidate-bridge", choices=tuple(REPORT_KINDS), default=BRIDGE)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     repository = Path(__file__).resolve().parents[2]
@@ -89,8 +98,8 @@ def main() -> int:
         raise ValueError("The source proof does not identify this exact harness revision")
     args.steps, args.idle_ms = 120, 2000
     report: dict[str, Any] = {
-        "schema": 1, "report_kind": REPORT_KIND, "primary_comparison": False, "candidate_default": False,
-        "candidate_bridge": BRIDGE, "baseline_source_sha": BASELINE_SHA,
+        "schema": 1, "report_kind": REPORT_KINDS[args.candidate_bridge], "primary_comparison": False,
+        "candidate_default": False, "candidate_bridge": args.candidate_bridge, "baseline_source_sha": BASELINE_SHA,
         "candidate_source_sha": packages["candidate"]["source_sha"], "harness_source_sha": args.harness_sha,
         "package_run_id": args.package_run_id, "artifact_descriptors": descriptors, "packages": packages,
         "package_receipts": {role: json.loads((packages_root / role / RECEIPT).read_text()) for role in ROLES},
@@ -119,7 +128,8 @@ def main() -> int:
                 try:
                     browser = playwright.chromium.launch(headless=True, args=arguments)
                     result = run_trial(browser, urls[role], packages[role], "webgpu", args.workload, trial, args,
-                                       directory, diagnostics=diagnostics, canvas_bridge=BRIDGE if role == "candidate" else None)
+                                       directory, diagnostics=diagnostics,
+                                       canvas_bridge=args.candidate_bridge if role == "candidate" else None)
                     result["browser_version"] = browser.version
                     result["browser_launch_arguments"] = arguments
                 except Exception as error:
@@ -140,8 +150,10 @@ def main() -> int:
             report["candidate_diagnostics"].append(execute(1, "candidate", True))
             save_report(report, output)
 
-        verify_runs(report["primary_runs"], report["candidate_source_sha"], args.workload)
-        verify_runs(report["candidate_diagnostics"], report["candidate_source_sha"], args.workload, diagnostics=True)
+        verify_runs(report["primary_runs"], report["candidate_source_sha"], args.workload,
+                    candidate_bridge=args.candidate_bridge)
+        verify_runs(report["candidate_diagnostics"], report["candidate_source_sha"], args.workload, diagnostics=True,
+                    candidate_bridge=args.candidate_bridge)
         all_runs = report["primary_runs"] + report["candidate_diagnostics"]
         if (len({run["browser_version"] for run in all_runs}) != 1
                 or len({tuple(run["browser_launch_arguments"]) for run in all_runs}) != 1):

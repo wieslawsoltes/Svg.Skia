@@ -386,6 +386,23 @@ commit. These distinct opt-in reports cannot enter the default-application
 aggregate. They establish any recovery directly against the older source,
 without multiplying ratios from different runners or rebuilding the packages.
 
+The direct driver also accepts `--candidate-bridge legacy` and
+`--candidate-bridge composite`. Each mode has a distinct report kind and must
+prove its exclusive observed selection; combined composition additionally
+requires its successful upload and actual pixel-cache reuse for feedback
+workloads. Original upload retains the editor's separate feedback surface, so
+its hover/selection diagnostics also require Document=0 and Interaction>0, but
+it cannot claim reuse of a combined pixel cache. The default argument and main
+performance caller remain `legacy-composite`.
+
+`unodraw-cached-baseline-comparison.yml` compares the existing `composite` mode
+directly with the original baseline across all five workloads, and runs its
+separate complete SVG matrix. It reuses identified AOT archives only after a
+fresh archive, asset and production-source equivalence check. An ineligible
+package skips both comparisons; an eligibility pass is neither a performance
+result nor image qualification. Each workload remains a separate matched
+experiment, and the SVG aggregate still requires all three successful DPR jobs.
+
 ### Direct Graphite document experiment
 
 `?canvasBridge=graphite` is a separate opt-in path that records Skia document

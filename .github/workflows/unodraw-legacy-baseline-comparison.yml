@@ -9,6 +9,12 @@ on:
       harness_sha:
         type: string
         required: true
+      candidate_bridge:
+        type: string
+        default: legacy-composite
+      feedback_only:
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       package_run_id:
@@ -19,6 +25,15 @@ on:
         description: Exact harness commit with production source equivalent to the candidate
         type: string
         required: true
+      candidate_bridge:
+        description: Explicit candidate canvas mode; never the current-default aggregate
+        type: choice
+        options: [legacy-composite, legacy, composite]
+        default: legacy-composite
+      feedback_only:
+        description: Limit this distinct experiment to hover and selection
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -26,13 +41,13 @@ permissions:
 
 jobs:
   compare:
-    name: Direct baseline versus opt-in legacy composition (${{ matrix.workload }})
+    name: Direct baseline versus opt-in ${{ inputs.candidate_bridge }} (${{ matrix.workload }})
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
-        workload: [brush-hover, selection, pan, zoom, edit]
+        workload: ${{ inputs.feedback_only && fromJSON('["brush-hover","selection"]') || fromJSON('["brush-hover","selection","pan","zoom","edit"]') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -58,10 +73,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PACKAGE_RUN_ID: ${{ inputs.package_run_id }}
           HARNESS_SHA: ${{ inputs.harness_sha }}
+          CANDIDATE_BRIDGE: ${{ inputs.candidate_bridge }}
         run: >-
           python tests/UnoDraw.BrowserPerformance/legacy_baseline_comparison.py
           --packages artifacts/direct-packages --package-run-id "$PACKAGE_RUN_ID"
           --harness-sha "$HARNESS_SHA" --workload ${{ matrix.workload }}
+          --candidate-bridge "$CANDIDATE_BRIDGE"
           --output artifacts/direct-comparison
       - name: Publish the available opt-in comparison
         if: always()
@@ -72,7 +89,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: unodraw-baseline-legacy-composite-${{ matrix.workload }}
+          name: unodraw-baseline-${{ inputs.candidate_bridge }}-${{ matrix.workload }}
           path: artifacts/direct-comparison
           if-no-files-found: warn
           retention-days: 14
