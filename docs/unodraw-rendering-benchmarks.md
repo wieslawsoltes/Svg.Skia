@@ -220,6 +220,25 @@ Its same-runner WebGPU selection median still takes 62.38% longer than the
 regression baseline despite 82.07% less active thread CPU. The default rendering
 regression therefore persists across both complete application measurements.
 
+The third complete default-path matrix, `d0dafea`, independently verifies all
+twelve shard archives, 90 primary trials, 12 separate diagnostics and 108 native
+image pairs. Its [audited follow-up](benchmarks/unodraw-primary-followup-2026-11-12.json)
+retains every sample and source/package/artifact identity. It repeats the Skia
+improvement and the unresolved WebGPU regression:
+
+| Provider / workload | Baseline median elapsed | Candidate median elapsed |
+| --- | ---: | ---: |
+| Skia/WebGL edit, 120 inputs | 27.179 s | 16.645 s |
+| Skia/WebGL selection, 121 inputs | 19.666 s | 14.956 s |
+| WebGPU hover, 120 inputs | 172.653 s | 206.158 s |
+| WebGPU selection, 121 inputs | 57.943 s | 111.642 s |
+
+WebGPU selection takes 92.68% longer despite 80.20% less renderer-thread CPU;
+hover takes 19.41% longer despite 96.31% less renderer-thread CPU. Each ratio
+belongs to its own matched runner. All input-tail and idle-zero-graphics checks
+pass. A complete passing correctness matrix does not establish an improvement
+in every workload.
+
 The later, same-AOT `523c1ed5` [cached-composition experiment](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/job/131331896015)
 measures a WebGPU hover improvement with all nine paired native images accepted.
 Its [audited evidence](benchmarks/unodraw-composite-2026-11-12.json) keeps all six
@@ -269,6 +288,27 @@ measured baseline regression by combining ratios from separate runners.
 
 See the [browser benchmark instructions](../tests/UnoDraw.BrowserPerformance/README.md)
 for exact workloads, metric definitions, controls and reproduction commands.
+
+### Isolating the remaining transport cost
+
+Two dedicated workflows consume the immutable `d0dafea` AOT package rather than
+rebuilding an application. The original `SKCanvasElement` transport and cached
+composition run through the same retained editor UI, SVG painter and WebGPU
+compositor. Six independently warmed primary selection trials and two separate
+diagnostic trials preserve the original 121-input workload and nine native image
+pairs. Their distinct report kind cannot replace the baseline/current-source
+matrix or combine ratios measured on different runners.
+
+The [runtime command probe](../tests/UnoDraw.BrowserPerformance/RUNTIME_DIAGNOSTICS.md)
+separately compares the original baseline with the candidate's legacy, persistent
+and composite modes. It explicitly appends logging flags to the served generated
+configuration module, retaining original/served hashes and exact byte identity of
+all application binaries, runtime files, fonts and other assets. Its modified
+served configuration disqualifies it from primary timing claims. Per-frame logs
+and post-window selected/cleared captures distinguish transport differences from
+different sampled UI states. Every package asset is checked against its verified
+original archive before and after execution. These probes establish no new result
+until their complete browser observations have been audited.
 
 ## Implementation under measurement
 
