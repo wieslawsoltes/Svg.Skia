@@ -43,6 +43,123 @@ compact-layout, reload and renderer-negotiation checks remain unchanged.
 
 ## Results
 
-End-to-end measurements and changes are in progress. This document does not
-claim a rendering improvement until the corresponding candidate measurements
-and quality results are recorded.
+### Guide-query profile
+
+The [raw native Release measurements](benchmarks/unodraw-guides-2026-11-12.json)
+compare the previous nine-anchor snap query with the indexed query in commit
+`b5d82812fedb14b7ac9edd9cf8373fe435c97704`. Both use the same candidate geometry,
+five-unit tolerance and existing smart-guide limit. Every sampled snapped point
+and chosen guide ID is checked before timing. Five samples follow 128 warmup
+iterations; each sample contains 256 nine-anchor queries, with alternating order.
+
+| Candidate guides | Previous query | Indexed query | Query speedup |
+| --- | ---: | ---: | ---: |
+| 606 | 479.927 µs | 30.240 µs | 15.87× |
+| 6,000 | 4,736.966 µs | 90.895 µs | 52.11× |
+| 6,000 plus 128 diagonal guides | 4,805.778 µs | 208.988 µs | 23.00× |
+
+The indexed steady-state query allocated zero managed bytes in this run on
+.NET 10.0.14 / Debian 13. These are native algorithm measurements, excluding SVG
+painting, browser interop, texture transfer and composition. They do not establish
+browser frame rate or an application-wide speedup.
+
+### Pixel preservation
+
+The native quality gate uses the production `SkiaCanvasUploadBuffer`, linked into
+the test assembly without a UI runtime. All 72 cases match the legacy pixels
+exactly: eight SVG scenes, DPR 1/1.25/2, and three fractional camera transforms.
+The scenes exercise gradients, filters, masks, clipping, patterns, text, an
+embedded image with alpha, opacity and strokes. Comparisons use raw premultiplied
+bytes, with zero tolerance and nonblank/partial-alpha assertions.
+
+This gate rejected direct RGBA rasterization in 63 of 72 cases: Skia's RGBA and
+BGRA painting paths can round filter and coverage intermediates differently.
+The implementation therefore retains BGRA painting and uses native
+`SKSwizzle.SwapRedBlue` to permute channels without changing alpha or colors.
+
+These tests establish CPU pixel equivalence. The separate browser gate compares
+the persistent and legacy paths at native screenshot resolution for DPR
+1/1.25/2, including selection/brush overlays, Navigator hide/show, actual-size
+zoom, refit and compact/near-zero/desktop resizing. Browser composition results
+remain a required gate.
+
+### Browser comparison
+
+End-to-end measurements are in progress. No frame-rate improvement is claimed
+until the corresponding candidate measurements and browser quality results are
+recorded. See the [browser benchmark instructions](../tests/UnoDraw.BrowserPerformance/README.md)
+for exact workloads, metric definitions, controls and reproduction commands.
+
+## Implementation under measurement
+
+### Retained interaction surfaces
+
+Full and camera redraws paint document and interaction feedback together, in the
+original order, into one surface. The retained interaction child is hidden while
+keeping its rendering resources. The first subsequent interaction-only change
+repaints the document once to remove its embedded feedback and makes the child
+visible; later feedback updates reuse that document drawing. The transition is
+committed at the document paint boundary, so reentrant or canceled transitions
+cannot expose duplicate or stale feedback. Startup and reload first initialize
+both surfaces before allowing combined paints.
+
+Selection-only controller notifications compare a render-content stamp instead
+of invalidating the SVG. The stamp includes document/renderer/picture/model
+identity, content revisions, root transform and bounds; the canvas also checks
+its camera, grid and appearance. Calls made through the original nonvirtual
+`SKCanvasElement.Invalidate()` still refresh all visible content. Seven focused
+scheduling tests include 2,000 randomized invalidation batches checked against
+an independent retained-content model.
+
+Ruler pointer markers move as native composition shapes while retaining tick
+labels. The Navigator retains its overview through selection/save-state changes,
+and still redraws for document changes, animation, palette changes and resize.
+Pointer-coordinate labels coalesce bursts of updates, and panning no longer
+reassigns an unchanged zoom label.
+
+### Persistent WebGPU uploads
+
+Uno already retains unchanged canvas recordings. On a dirty canvas, the pinned
+[Uno 7.0.32 software fallback](https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/AddIns/Uno.WinUI.Graphics2DSK/SKCanvasElement.cs)
+paints into a retained BGRA CPU surface, then creates a new backend texture.
+Its [WebGPU texture factory](https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/Uno.UI.Composition.WebGpu/WebGpuDrawingFactory.cs)
+creates a managed RGBA array, swaps channels and scans opacity, allocates a GPU
+texture and complete mip chain, builds lower mip arrays on the CPU, and uploads
+each level. The app adapter replaces that transfer path for editor surfaces:
+
+| Stage | Persistent path |
+| --- | --- |
+| SVG painting | Existing Skia painter, BGRA8888 premultiplied, full device resolution |
+| Channel ordering | Native byte permutation into a reusable native RGBA buffer |
+| GPU target | Uno-owned WebGPU texture, retained until size/context changes |
+| Transfer | One `QueueWriteTexture` upload for a dirty surface |
+| Canvas display | One texture pixel per device pixel; zoom is rerasterized by Skia |
+
+The public island extension and
+[retained WebGPU canvas target](https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/AddIns/Uno.WinUI.Graphics3DWebGpu/WebGpuCanvasElement.cs)
+supply the adapter without a runtime fork or a new Skia version. It creates no GL
+context and performs no GPU readback. Physical-size transport children compensate
+for the pinned WebGPU canvas control's missing DPR factor. Non-translation ancestor
+transforms and projections retain Uno's original mipmapped path rather than
+silently changing minification quality. Zero size, unload, resize and failed
+initialization release resources through the normal control/context lifetime.
+
+SVG painting still runs on the CPU with this WebGPU compositor. Direct Skia/WebGL
+continues using its existing GPU renderer. The upload optimization does not claim
+to provide native WebGPU SVG rendering.
+
+`?canvasBridge=legacy` selects the original texture path in the same candidate
+artifact for quality comparison. `?renderer=skia` selects the existing Skia
+provider preference. Normal startup still negotiates WebGPU, then Skia/WebGL,
+then software; an individual bridge failure uses Uno's original canvas fallback.
+The shared compositor's device recovery remains the host's responsibility.
+
+## Diagnostic scope
+
+Primary timing trials collect browser observations without enabling managed
+paint counters or periodic runtime logs. A separate candidate diagnostic pass
+uses `?renderDiagnostics=1&perfDiagnostics=1` to record document, interaction,
+ruler and Navigator callback counts/times/allocations and Uno frame-phase logs.
+Those callback scopes include synchronous native Skia work. Subsequent texture
+transfer, compositor submission and physical GPU/display completion are separate
+costs; a completed CPU render callback is not a presented-frame measurement.
