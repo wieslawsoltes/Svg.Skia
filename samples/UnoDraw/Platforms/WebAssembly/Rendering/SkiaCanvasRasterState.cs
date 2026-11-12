@@ -122,6 +122,15 @@ internal sealed class SkiaCanvasRasterState
             return true;
         }
 
+        internal bool TryCopyRasterTo(SKPixmap destination)
+        {
+            if (!IsCurrent)
+                return false;
+
+            buffer.CopyRasterTo(destination);
+            return true;
+        }
+
         public void Dispose() => owner.EndPaint(paintId);
     }
 }

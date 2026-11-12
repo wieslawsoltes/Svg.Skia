@@ -4,7 +4,7 @@ using SkiaSharp;
 namespace UnoDraw.Rendering;
 
 /// <summary>
-/// Retains the original BGRA raster surface and a native RGBA upload buffer.
+/// Retains the original BGRA raster surface and lazily creates a native RGBA upload buffer.
 /// This class has no UI dependency so its actual pixel path can be quality-tested.
 /// </summary>
 internal sealed class SkiaCanvasUploadBuffer : IDisposable
@@ -28,9 +28,6 @@ internal sealed class SkiaCanvasUploadBuffer : IDisposable
                 ?? throw new InvalidOperationException("Skia could not allocate the canvas pixel surface.");
             _rasterPixels = _surface.PeekPixels()
                 ?? throw new InvalidOperationException("Skia could not expose the canvas pixel buffer.");
-            _upload = new SKBitmap(new SKImageInfo(width, height, SKColorType.Rgba8888, SKAlphaType.Premul));
-            if (_upload.GetPixels() == IntPtr.Zero)
-                throw new InvalidOperationException("Skia could not allocate the canvas upload buffer.");
         }
         catch
         {
@@ -46,25 +43,67 @@ internal sealed class SkiaCanvasUploadBuffer : IDisposable
     internal int UploadRowBytes => UploadBitmap.RowBytes;
     internal SKImageInfo UploadInfo => UploadBitmap.Info;
     internal ReadOnlySpan<byte> UploadSpan => UploadBitmap.GetPixelSpan();
-    private SKBitmap UploadBitmap => _upload ?? throw new ObjectDisposedException(nameof(SkiaCanvasUploadBuffer));
+    private SKBitmap UploadBitmap
+    {
+        get
+        {
+            if (_surface is null)
+                throw new ObjectDisposedException(nameof(SkiaCanvasUploadBuffer));
+            if (_upload is not null)
+                return _upload;
+
+            // The original software uploader consumes BGRA directly. Retain the
+            // RGBA buffer only for transports that actually request an upload.
+            var upload = new SKBitmap(new SKImageInfo(Width, Height, SKColorType.Rgba8888, SKAlphaType.Premul));
+            if (upload.GetPixels() == IntPtr.Zero)
+            {
+                upload.Dispose();
+                throw new InvalidOperationException("Skia could not allocate the canvas upload buffer.");
+            }
+            return _upload = upload;
+        }
+    }
 
     internal void CopyRasterTo(SKBitmap destination)
     {
-        Canvas.Flush();
-        var raster = _rasterPixels!;
+        var raster = PeekRaster();
         ValidateRasterCopy(destination, raster.Info);
+        CopyRows(raster.GetPixelSpan(), raster.RowBytes, destination.GetPixelSpan(), destination.RowBytes);
+    }
+
+    // The destination is a borrowed view of a host-owned CPU surface. Its owner
+    // must notify Skia before writing (Uno's PaintSoftware clears it first).
+    // This method neither retains nor disposes the destination or its surface.
+    internal void CopyRasterTo(SKPixmap destination)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        var raster = PeekRaster();
+        if (destination.Info != raster.Info || destination.GetPixels() == IntPtr.Zero)
+            throw new ArgumentException("A raster copy requires matching allocated BGRA premultiplied pixels.", nameof(destination));
         CopyRows(raster.GetPixelSpan(), raster.RowBytes, destination.GetPixelSpan(), destination.RowBytes);
     }
 
     internal void RestoreRaster(SKBitmap source)
     {
-        Canvas.Flush();
-        var raster = _rasterPixels!;
-        ValidateRasterCopy(source, raster.Info);
-        // This private raster surface has no snapshots or GPU backing. Copy into
-        // the same owned pixels the painter and native swizzle already access;
-        // no image draw, alpha conversion, matrix or clip participates.
+        ValidateRasterCopy(source, new SKImageInfo(Width, Height, SKColorType.Bgra8888, SKAlphaType.Premul));
+        // Public SVG callbacks can retain canvas.Surface.Snapshot(). Notify Skia
+        // before a complete native overwrite so it detaches shared snapshot
+        // storage and invalidates its cached image without changing matrix/clip.
+        Canvas.Discard();
+        var raster = PeekRaster();
         CopyRows(source.GetPixelSpan(), source.RowBytes, raster.GetPixelSpan(), raster.RowBytes);
+    }
+
+    private SKPixmap PeekRaster()
+    {
+        var surface = _surface ?? throw new ObjectDisposedException(nameof(SkiaCanvasUploadBuffer));
+        surface.Canvas.Flush();
+        // Any draw can perform copy-on-write when a callback holds a snapshot.
+        // Refresh the existing wrapper rather than retaining an old address or
+        // allocating a new managed/native pixmap for every frame.
+        if (!surface.PeekPixels(_rasterPixels!))
+            throw new InvalidOperationException("Skia could not expose the canvas pixel buffer.");
+        return _rasterPixels!;
     }
 
     private static void ValidateRasterCopy(SKBitmap bitmap, SKImageInfo info)
@@ -89,8 +128,7 @@ internal sealed class SkiaCanvasUploadBuffer : IDisposable
 
     internal void UpdateUpload()
     {
-        Canvas.Flush();
-        var source = _rasterPixels!;
+        var source = PeekRaster();
         var upload = UploadBitmap;
         var sourcePixels = source.GetPixels();
         var uploadPixels = upload.GetPixels();
