@@ -16,6 +16,12 @@ WEBGL_FALLBACK_PREFIX = "UnoDraw WebGL canvas fallback:"
 GRAPHITE_PREFERENCE = "UnoDraw canvas bridge preference: Graphite document rasterization."
 GRAPHITE_INITIALIZED = "UnoDraw canvas bridge initialized: Graphite document rasterization."
 GRAPHITE_FALLBACK_PREFIX = "UnoDraw Graphite canvas fallback:"
+GRAPHITE_COVERAGES = ("default", "raster")
+GRAPHITE_COVERAGE_PREFIX = "UnoDraw Graphite coverage initialized:"
+GRAPHITE_COVERAGE_INITIALIZED = {
+    "default": "UnoDraw Graphite coverage initialized: default (InternalMultisampleCount=0).",
+    "raster": "UnoDraw Graphite coverage initialized: raster (InternalMultisampleCount=1).",
+}
 COMPOSITE_PREFERENCE = "UnoDraw canvas bridge preference: cached document composition."
 COMPOSITE_INITIALIZED = "UnoDraw canvas bridge initialized: cached document composition."
 COMPOSITE_REUSED = "UnoDraw canvas bridge reused cached document pixels."
@@ -97,8 +103,27 @@ def matrix_failures(cases: list[dict[str, Any]], comparisons: list[dict[str, Any
     return failures
 
 
-def verify_bridge(console: list[dict[str, Any]], bridge: str, *, require_reuse: bool = True) -> None:
+def validate_graphite_coverage(bridge: str | None, coverage: str | None) -> None:
+    if coverage is not None and (bridge != "graphite" or coverage not in GRAPHITE_COVERAGES):
+        raise ValueError("Explicit Graphite coverage requires the Graphite bridge and default or raster coverage")
+
+
+def verify_bridge(console: list[dict[str, Any]], bridge: str, *, require_reuse: bool = True,
+                  graphite_coverage: str | None = None) -> None:
+    validate_graphite_coverage(bridge, graphite_coverage)
     messages = [entry.get("text", "") for entry in console]
+    coverage_messages = {message for message in messages if message.startswith(GRAPHITE_COVERAGE_PREFIX)}
+    if bridge != "graphite" and coverage_messages:
+        raise AssertionError("A non-Graphite bridge unexpectedly initialized a Graphite coverage context")
+    if bridge == "graphite":
+        # Older artifacts have no context-coverage log. An explicit request must
+        # prove the actual native context option, including every recreated context.
+        if graphite_coverage is not None:
+            if coverage_messages != {GRAPHITE_COVERAGE_INITIALIZED[graphite_coverage]}:
+                raise AssertionError("The Graphite context did not prove the requested coverage option exclusively")
+        elif (len(coverage_messages) > 1
+              or not coverage_messages.issubset(GRAPHITE_COVERAGE_INITIALIZED.values())):
+            raise AssertionError("The Graphite context reported conflicting or unknown coverage options")
     composite_messages = {COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED, COMPOSITE_REUSED}
     graphite_messages = {GRAPHITE_PREFERENCE, GRAPHITE_INITIALIZED}
     fallback_prefixes = (FALLBACK_PREFIX, WEBGL_FALLBACK_PREFIX, COMPOSITE_FALLBACK_PREFIX,
@@ -149,10 +174,11 @@ def verify_bridge(console: list[dict[str, Any]], bridge: str, *, require_reuse: 
         raise ValueError(f"Unknown canvas bridge: {bridge}")
 
 
-def bridge_query(bridge: str) -> str:
+def bridge_query(bridge: str, *, graphite_coverage: str | None = None) -> str:
     if bridge not in {"legacy", "persistent", "webgl", "composite", "graphite"}:
         raise ValueError(f"Unknown canvas bridge: {bridge}")
-    return "canvasBridge=" + bridge
+    validate_graphite_coverage(bridge, graphite_coverage)
+    return "canvasBridge=" + bridge + ("&graphiteCoverage=" + graphite_coverage if graphite_coverage is not None else "")
 
 
 def assert_native_size(size: tuple[int, int], viewport: dict[str, int], dpr: float) -> None:

@@ -17,7 +17,7 @@ from bridge_experiment_contracts import (CANDIDATE_BRIDGES, STATES, WORKLOADS, b
                                          verify_experiment_workload, verify_runs)
 from performance import VIEWPORT, launch_arguments, run_trial, serve
 from metrics import metric_label
-from quality import raw_comparison, verify_bridge
+from quality import GRAPHITE_COVERAGES, raw_comparison, validate_graphite_coverage, verify_bridge
 
 
 def save_report(report: dict[str, Any], output: Path) -> None:
@@ -28,7 +28,8 @@ def save_report(report: dict[str, Any], output: Path) -> None:
              f"Source: `{report['candidate_source_sha']}`; workload: {report['workload']}; "
              f"candidate bridge: `{candidate_bridge}`; independent repeats per bridge: {report['repeats']}.", "",
              "Both modes use this exact AOT package, full device resolution and the same SVG painter. "
-             f"Only canvasBridge=persistent/{candidate_bridge} differs. All matched trials run on this runner, "
+             f"The selected canvasBridge=persistent/{candidate_bridge} and any explicitly requested Graphite coverage "
+             "are the only rendering options that differ. All matched trials run on this runner, "
              "with alternating order and a fresh browser for every trial. "
              "SwiftShader implements the graphics APIs in software; these are not physical-GPU FPS results.", "",
              "Task wall duration includes blocking inside browser calls. ThreadTime separately measures "
@@ -49,6 +50,9 @@ def save_report(report: dict[str, Any], output: Path) -> None:
                       "inputs, zero unobserved tails, the existing visible-overlay proof and exact original restore gates. "
                       "Both separate diagnostic passes require zero document paints and positive interaction paints.", ""]
     elif candidate_bridge == "graphite":
+        coverage = report.get("graphite_coverage")
+        lines += [f"Graphite coverage: `{coverage}` (requires verified actual native context evidence)." if coverage is not None else
+                  "Graphite coverage: unspecified; the artifact's default applies without an explicit coverage claim.", ""]
         lines += ["Graphite records and submits the document directly into the Uno texture on the shared WebGPU queue. "
                   "Each measured trial requires a positive delta of successful document submissions and no external-image copies. "
                   "The document counter is separate from visible-canvas submissions and does not prove physical presentation. "
@@ -109,10 +113,13 @@ def main() -> int:
     parser.add_argument("--workload", choices=WORKLOADS, required=True)
     parser.add_argument("--candidate-bridge", choices=CANDIDATE_BRIDGES, default="webgl",
                         help="WebGL/Graphite for pan/zoom, or cached composition for brush-hover/selection")
+    parser.add_argument("--graphite-coverage", choices=GRAPHITE_COVERAGES,
+                        help="Require the Graphite candidate's actual native default or raster coverage option")
     parser.add_argument("--repeats", type=int, default=3)
     args = parser.parse_args()
     try:
         verify_experiment_workload(args.workload, args.candidate_bridge)
+        validate_graphite_coverage(args.candidate_bridge, args.graphite_coverage)
         plan = trial_plan(args.repeats, args.candidate_bridge)
     except ValueError as error:
         parser.error(str(error))
@@ -128,6 +135,7 @@ def main() -> int:
         "passed": False, "started_unix": time.time(), "package": package,
         "candidate_source_sha": package["source_sha"], "workload": args.workload,
         "candidate_bridge": args.candidate_bridge, "bridges": list(bridges),
+        "graphite_coverage": args.graphite_coverage,
         "repeats": args.repeats, "steps": args.steps, "viewport": VIEWPORT, "device_scale_factor": 1,
         "runner": {"platform": platform.platform(), "machine": platform.machine()},
         "graphics_description": "SwiftShader software GPU implementations; not physical GPU throughput",
@@ -139,21 +147,23 @@ def main() -> int:
             arguments = launch_arguments("webgpu")
 
             def execute(trial: int, bridge: str, diagnostics: bool) -> dict[str, Any]:
+                coverage = args.graphite_coverage if bridge == "graphite" else None
                 relative = Path("diagnostic" if diagnostics else "primary") / f"trial-{trial}" / bridge
                 directory = output / relative
                 directory.mkdir(parents=True, exist_ok=True)
                 browser = None
                 result: dict[str, Any] = {"source_sha": package["source_sha"], "backend": "webgpu",
                                           "workload": args.workload, "trial": trial, "canvas_bridge": bridge,
-                                          "diagnostic_pass": diagnostics}
+                                          "diagnostic_pass": diagnostics, "graphite_coverage": coverage}
                 try:
                     browser = playwright.chromium.launch(headless=True, args=arguments)
                     result = run_trial(browser, url, package, "webgpu", args.workload, trial, args,
-                                       directory, diagnostics=diagnostics, canvas_bridge=bridge)
+                                       directory, diagnostics=diagnostics, canvas_bridge=bridge,
+                                       graphite_coverage=coverage)
                     result["browser_version"] = browser.version
                     result["browser_launch_arguments"] = arguments
                     if result["passed"]:
-                        verify_bridge(result["console"], bridge)
+                        verify_bridge(result["console"], bridge, graphite_coverage=coverage)
                 except Exception as error:
                     result.update({"passed": False, "failure": f"{type(error).__name__}: {error}"})
                 finally:
@@ -174,9 +184,9 @@ def main() -> int:
                 save_report(report, output)
 
         verify_runs(report["bridge_runs"], args.repeats, package["source_sha"], args.workload,
-                    candidate_bridge=args.candidate_bridge)
+                    candidate_bridge=args.candidate_bridge, graphite_coverage=args.graphite_coverage)
         verify_runs(report["bridge_diagnostics"], args.repeats, package["source_sha"], args.workload,
-                    diagnostics=True, candidate_bridge=args.candidate_bridge)
+                    diagnostics=True, candidate_bridge=args.candidate_bridge, graphite_coverage=args.graphite_coverage)
         if len({run["browser_version"] for run in report["bridge_runs"] + report["bridge_diagnostics"]}) != 1:
             raise ValueError("The two modes did not use the same browser version")
         for trial in range(1, args.repeats + 1):

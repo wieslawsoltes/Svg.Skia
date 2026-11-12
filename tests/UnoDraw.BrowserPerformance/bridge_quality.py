@@ -20,8 +20,8 @@ from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork, as
                    assert_workspace_affordances, changed_pixels, record_backend, serve,
                    workspace_affordance_pixels)
 from performance import next_frame, screenshot_changed
-from quality import (STATE_NAMES, assert_native_size, bridge_query, compare_bridge_states, is_welcome_green,
-                     matrix_failures, raw_comparison, verify_bridge)
+from quality import (GRAPHITE_COVERAGES, STATE_NAMES, assert_native_size, bridge_query, compare_bridge_states,
+                     is_welcome_green, matrix_failures, raw_comparison, validate_graphite_coverage, verify_bridge)
 
 
 DESKTOP = {"width": 1440, "height": 960}
@@ -119,9 +119,11 @@ def command(page: Page, text: str, directory: Path) -> None:
     next_frame(page)
 
 
-def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path) -> dict[str, Any]:
+def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path, *,
+             graphite_coverage: str | None = None) -> dict[str, Any]:
+    validate_graphite_coverage(bridge, graphite_coverage)
     output.mkdir(parents=True, exist_ok=True)
-    report: dict[str, Any] = {"bridge": bridge, "dpr": dpr, "passed": False,
+    report: dict[str, Any] = {"bridge": bridge, "graphite_coverage": graphite_coverage, "dpr": dpr, "passed": False,
                               "backend_mode": "webgpu", "backend_selection": {},
                               "console": [], "page_errors": [], "resource_errors": [], "states": []}
     context = browser.new_context(viewport=DESKTOP, device_scale_factor=dpr, locale="en-US",
@@ -137,7 +139,7 @@ def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path) -> d
     page.on("requestfailed", lambda request: report["resource_errors"].append(
         {"url": request.url, "failure": request.failure}) if request.failure != "net::ERR_ABORTED" else None)
     try:
-        page.goto(url + "?" + bridge_query(bridge),
+        page.goto(url + "?" + bridge_query(bridge, graphite_coverage=graphite_coverage),
                   wait_until="domcontentloaded", timeout=120_000)
         page.wait_for_function(READY, timeout=120_000)
         report["actual_device_pixel_ratio"] = page.evaluate("devicePixelRatio")
@@ -148,7 +150,7 @@ def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path) -> d
         # Cached composition first reuses its backdrop during the later overlay
         # states. Startup must already prove the requested upload path; completion
         # additionally requires actual cache reuse, never just a preference.
-        verify_bridge(report["console"], bridge, require_reuse=False)
+        verify_bridge(report["console"], bridge, require_reuse=False, graphite_coverage=graphite_coverage)
         fitted = output / "01-desktop-css.png"
         page.keyboard.press("Control+1")
         report["states"].append(capture(page, output, "02-actual-size", DESKTOP, dpr,
@@ -196,7 +198,7 @@ def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path) -> d
         report["resize_restore"] = raw_comparison(output / "06-navigator-shown-again.png",
                                                   output / "09-desktop-restored.png", DESKTOP, dpr,
                                                   navigator=True)
-        verify_bridge(report["console"], bridge)
+        verify_bridge(report["console"], bridge, graphite_coverage=graphite_coverage)
         errors = [entry for entry in report["console"] if entry["type"] == "error"
                   and not entry["location"].get("url", "").endswith("/favicon.ico")]
         if errors or report["page_errors"] or report["resource_errors"]:
@@ -218,7 +220,13 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--candidate-bridge", choices=("persistent", "webgl", "composite", "graphite"), default="persistent",
                         help="Compare the selected implementation with the same package's legacy raster bridge")
+    parser.add_argument("--graphite-coverage", choices=GRAPHITE_COVERAGES,
+                        help="Require the Graphite candidate's actual native default or raster coverage option")
     args = parser.parse_args()
+    try:
+        validate_graphite_coverage(args.candidate_bridge, args.graphite_coverage)
+    except ValueError as error:
+        parser.error(str(error))
     package, output = args.package.resolve(), args.output.resolve()
     if not (package / "wwwroot/index.html").is_file():
         parser.error("--package must contain a published wwwroot/index.html")
@@ -229,6 +237,7 @@ def main() -> int:
                               "started_unix": time.time(), "cases": [], "comparisons": [],
                               "expected_case_count": len(DPRS) * 2, "expected_states": list(STATE_NAMES),
                               "failures": [], "candidate_bridge": args.candidate_bridge,
+                              "graphite_coverage": args.graphite_coverage,
                               "package": json.loads((package / "benchmark-package.json").read_text(encoding="utf-8"))}
     try:
         with serve(package / "wwwroot") as url, sync_playwright() as playwright:
@@ -237,6 +246,7 @@ def main() -> int:
             for dpr in DPRS:
                 cases = {}
                 for bridge in ("legacy", args.candidate_bridge):
+                    coverage = args.graphite_coverage if bridge == "graphite" else None
                     directory = output / f"dpr-{dpr}" / bridge
                     directory.mkdir(parents=True, exist_ok=True)
                     browser = None
@@ -245,10 +255,10 @@ def main() -> int:
                         # other independent bridge/DPR cases.
                         browser = playwright.chromium.launch(headless=True, args=arguments)
                         report["browser_version"] = browser.version
-                        result = run_case(browser, url, bridge, dpr, directory)
+                        result = run_case(browser, url, bridge, dpr, directory, graphite_coverage=coverage)
                         result["browser_version"] = browser.version
                     except Exception as error:
-                        result = {"bridge": bridge, "dpr": dpr, "passed": False, "states": [],
+                        result = {"bridge": bridge, "graphite_coverage": coverage, "dpr": dpr, "passed": False, "states": [],
                                   "failure": f"{type(error).__name__}: {error}"}
                     finally:
                         if browser:

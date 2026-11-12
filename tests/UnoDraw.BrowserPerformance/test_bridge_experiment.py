@@ -10,6 +10,7 @@ from pathlib import Path
 from bridge_experiment_contracts import (bridge_pair, compare_metrics, load_candidate,
                                          trial_plan, verify_experiment_workload, verify_runs)
 from quality import (COMPOSITE_INITIALIZED, COMPOSITE_PREFERENCE, COMPOSITE_REUSED,
+                     GRAPHITE_COVERAGE_INITIALIZED,
                      GRAPHITE_INITIALIZED, GRAPHITE_PREFERENCE,
                      PERSISTENT_INITIALIZED, WEBGL_INITIALIZED, WEBGL_PREFERENCE)
 
@@ -18,18 +19,21 @@ SHA = "a" * 40
 
 
 def runs(*, diagnostics: bool = False, candidate_bridge: str = "webgl",
-         workload: str | None = None) -> list[dict]:
+         workload: str | None = None, graphite_coverage: str | None = None) -> list[dict]:
     workload = workload or ("brush-hover" if candidate_bridge == "composite" else "pan")
     operations = 121 if workload == "selection" else 120
     plan = [(1, bridge) for bridge in bridge_pair(candidate_bridge)] if diagnostics else trial_plan(3, candidate_bridge)
     return [{"passed": True, "source_sha": SHA, "backend": "webgpu",
              "workload": workload,
              "trial": trial, "canvas_bridge": bridge, "diagnostic_pass": diagnostics,
+             "graphite_coverage": graphite_coverage if bridge == "graphite" else None,
              "console": [{"text": PERSISTENT_INITIALIZED}] + (
                  [{"text": WEBGL_PREFERENCE}, {"text": WEBGL_INITIALIZED}] if bridge == "webgl" else
                  [{"text": GRAPHITE_PREFERENCE}, {"text": GRAPHITE_INITIALIZED}] if bridge == "graphite" else
                  [{"text": COMPOSITE_PREFERENCE}, {"text": COMPOSITE_INITIALIZED}, {"text": COMPOSITE_REUSED}]
-                 if bridge == "composite" else []),
+                 if bridge == "composite" else []) + (
+                 [{"text": GRAPHITE_COVERAGE_INITIALIZED[graphite_coverage]}]
+                 if bridge == "graphite" and graphite_coverage is not None else []),
              "managed_render_diagnostics": {"after": {"phases": [
                  {"phase": "Document", "count": 0}, {"phase": "Interaction", "count": operations}]}},
              "quality": {"changed_document_pixels": 50, "minimum_changed_pixels": 50,
@@ -50,6 +54,40 @@ def runs(*, diagnostics: bool = False, candidate_bridge: str = "webgl",
 
 
 class BridgeExperimentTests(unittest.TestCase):
+    def test_explicit_graphite_coverage_cannot_mix_variants_or_change_the_control(self) -> None:
+        for diagnostics in (False, True):
+            for coverage in GRAPHITE_COVERAGE_INITIALIZED:
+                original = runs(diagnostics=diagnostics, candidate_bridge="graphite", graphite_coverage=coverage)
+                verify_runs(original, 3, SHA, "pan", diagnostics=diagnostics,
+                            candidate_bridge="graphite", graphite_coverage=coverage)
+                for defect in ("missing_label", "different_label", "missing_log", "different_log", "control_label",
+                               "control_log", "mixed_contexts"):
+                    values = copy.deepcopy(original)
+                    target = next(value for value in values if value["canvas_bridge"] == "graphite")
+                    other = "raster" if coverage == "default" else "default"
+                    if defect == "missing_label":
+                        del target["graphite_coverage"]
+                    elif defect == "different_label":
+                        target["graphite_coverage"] = other
+                    elif defect in {"missing_log", "different_log"}:
+                        target["console"] = [entry for entry in target["console"]
+                                             if entry["text"] != GRAPHITE_COVERAGE_INITIALIZED[coverage]]
+                        if defect == "different_log":
+                            target["console"].append({"text": GRAPHITE_COVERAGE_INITIALIZED[other]})
+                    elif defect == "mixed_contexts":
+                        target["console"].append({"text": GRAPHITE_COVERAGE_INITIALIZED[other]})
+                    else:
+                        target = next(value for value in values if value["canvas_bridge"] == "persistent")
+                        if defect == "control_label":
+                            target["graphite_coverage"] = coverage
+                        else:
+                            target["console"].append({"text": GRAPHITE_COVERAGE_INITIALIZED[coverage]})
+                    with self.subTest(diagnostics=diagnostics, coverage=coverage, defect=defect), self.assertRaises((ValueError, AssertionError)):
+                        verify_runs(values, 3, SHA, "pan", diagnostics=diagnostics,
+                                    candidate_bridge="graphite", graphite_coverage=coverage)
+        with self.assertRaises(ValueError):
+            verify_runs(runs(), 3, SHA, "pan", graphite_coverage="raster")
+
     def test_graphite_requires_timed_document_submissions_and_cannot_use_external_image_copies(self) -> None:
         for diagnostics in (False, True):
             original = runs(diagnostics=diagnostics, candidate_bridge="graphite")

@@ -19,7 +19,7 @@ from playwright.sync_api import Page, sync_playwright
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "UnoDraw.BrowserPerformance"))
 from bridge_quality import capture, command  # noqa: E402
 from performance import next_frame, park_pointer, renderer_evidence  # noqa: E402
-from quality import bridge_query, verify_bridge  # noqa: E402
+from quality import GRAPHITE_COVERAGES, bridge_query, validate_graphite_coverage, verify_bridge  # noqa: E402
 from backend import launch_arguments  # noqa: E402
 from smoke import READY, serve  # noqa: E402
 from svg_fixture_contracts import (CANDIDATE_BRIDGES, DESKTOP, DPRS, SCENES, STATES, Fixture,  # noqa: E402
@@ -199,7 +199,9 @@ def create_page(browser: Any, dpr: float, logs: dict[str, Any]) -> tuple[Any, Pa
 
 
 def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dpr: float,
-                fixtures: list[Fixture], output: Path) -> list[dict[str, Any]]:
+                fixtures: list[Fixture], output: Path, *,
+                graphite_coverage: str | None = None) -> list[dict[str, Any]]:
+    validate_graphite_coverage(bridge, graphite_coverage)
     logs: dict[str, Any] = {"console": [], "page_errors": [], "resource_errors": []}
     context = page = None
     cases = []
@@ -212,6 +214,7 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
             directory = output / fixture.name
             directory.mkdir(parents=True, exist_ok=True)
             case: dict[str, Any] = {"scene": fixture.name, "bridge": bridge, "dpr": dpr, "passed": False,
+                                    "graphite_coverage": graphite_coverage,
                                     "source_sha": package["source_sha"], "execution_mode": package["execution_mode"],
                                     "canonical_sha256": fixture.sha256, "input_sha256": fixture.browser_sha256,
                                     "states": [], "browser_version": browser.version}
@@ -227,7 +230,8 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                     context, page = create_page(browser, dpr, logs)
                     navigation_console = len(logs["console"])
                     navigation_starts = {key: len(value) for key, value in logs.items()}
-                    page.goto(url + "?" + bridge_query(bridge), wait_until="domcontentloaded", timeout=120_000)
+                    page.goto(url + "?" + bridge_query(bridge, graphite_coverage=graphite_coverage),
+                              wait_until="domcontentloaded", timeout=120_000)
                     page.wait_for_function(READY, timeout=120_000)
                     environment = page.evaluate("""() => ({viewport: {width: innerWidth, height: innerHeight},
                         device_pixel_ratio: devicePixelRatio, cross_origin_isolated: crossOriginIsolated,
@@ -237,7 +241,7 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                         raise AssertionError("The fixed native-DPR/GitHub Pages hosting contract changed")
                     capture(page, directory, "startup", DESKTOP, dpr)
                     renderer_evidence(page, logs["console"][navigation_console:], package, "webgpu")
-                    verify_bridge(logs["console"][navigation_console:], bridge)
+                    verify_bridge(logs["console"][navigation_console:], bridge, graphite_coverage=graphite_coverage)
                     reload_required = False
                 case["environment"] = environment
                 case["source_edit"] = edit_source(page, fixture, directory)
@@ -264,7 +268,7 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                 case["states"].append(capture_scene(page, directory, STATES[2], fixture, dpr,
                     lambda readiness: require_camera_change(panned["readiness"], readiness, dpr, STATES[2])))
                 case["renderer"] = renderer_evidence(page, logs["console"][navigation_console:], package, "webgpu")
-                verify_bridge(logs["console"][navigation_console:], bridge)
+                verify_bridge(logs["console"][navigation_console:], bridge, graphite_coverage=graphite_coverage)
                 if errors_since(logs, navigation_starts):
                     raise AssertionError("The SVG scene produced runtime/resource errors")
                 case["passed"] = True
@@ -324,6 +328,8 @@ def write_summary(report: dict[str, Any], output: Path) -> None:
              "Each case checks fit, fractional pan and fractional zoom. The original scene body is compared separately "
              "at the unchanged 0.1% above luminance 12 threshold; calibration colors over white and dark mattes must be within 2 RGB levels.", "",
              f"Execution mode: `{report['execution_mode']}`. SwiftShader correctness evidence; no hardware performance claim.", "",
+             f"Explicit Graphite coverage: `{report.get('graphite_coverage') or 'unspecified'}`; unspecified means the artifact's default "
+             "without an explicit coverage claim. Requested coverage requires matching actual-context evidence in every case.", "",
              "| Scene | Bridge | DPR | Complete case |", "| --- | --- | ---: | --- |"]
     for case in report["cases"]:
         lines.append(f"| {case['scene']} | {case['bridge']} | {case['dpr']} | {'passed' if case['passed'] else 'failed'} |")
@@ -343,7 +349,13 @@ def main() -> int:
     parser.add_argument("--execution-mode", choices=EXECUTION_MODES, default="InterpreterAndAOT")
     parser.add_argument("--candidate-bridge", choices=CANDIDATE_BRIDGES, default="webgl",
                         help="Compare persistent CPU with this one GPU document renderer")
+    parser.add_argument("--graphite-coverage", choices=GRAPHITE_COVERAGES,
+                        help="Require the Graphite candidate's actual native default or raster coverage option")
     args = parser.parse_args()
+    try:
+        validate_graphite_coverage(args.candidate_bridge, args.graphite_coverage)
+    except ValueError as error:
+        parser.error(str(error))
     bridges = scene_bridges(args.candidate_bridge)
     package_directory, output = args.package.resolve(), args.output.resolve()
     if output == package_directory or package_directory in output.parents:
@@ -352,6 +364,7 @@ def main() -> int:
     report: dict[str, Any] = {"schema": 1, "passed": False, "started_unix": time.time(),
                               "execution_mode": args.execution_mode, "cases": [], "comparisons": [], "failures": [],
                               "candidate_bridge": args.candidate_bridge, "bridges": list(bridges),
+                              "graphite_coverage": args.graphite_coverage,
                               "graphics": "SwiftShader browser graphics API correctness; not hardware performance",
                               "expected_session_count": 6, "expected_case_count": 48, "expected_comparison_count": 72,
                               "expected_scenes": SCENES, "expected_states": STATES, "device_pixel_ratios": DPRS}
@@ -364,15 +377,18 @@ def main() -> int:
         with serve(package_directory / "wwwroot") as url, sync_playwright() as playwright:
             for dpr in DPRS:
                 for bridge in bridges:
+                    coverage = args.graphite_coverage if bridge == "graphite" else None
                     relative = Path(f"dpr-{dpr}") / bridge
                     directory = output / relative
                     directory.mkdir(parents=True, exist_ok=True)
                     browser = None
                     try:
                         browser = playwright.chromium.launch(headless=True, args=arguments)
-                        cases = run_session(browser, url, package, bridge, dpr, fixtures, directory)
+                        cases = run_session(browser, url, package, bridge, dpr, fixtures, directory,
+                                            graphite_coverage=coverage)
                     except Exception as error:
                         cases = [{"scene": fixture.name, "bridge": bridge, "dpr": dpr, "passed": False,
+                                  "graphite_coverage": coverage,
                                   "states": [], "failure": f"{type(error).__name__}: {error}"} for fixture in fixtures]
                     finally:
                         if browser:

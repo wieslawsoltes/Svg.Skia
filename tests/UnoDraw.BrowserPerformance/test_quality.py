@@ -9,6 +9,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 from quality import (COMPOSITE_INITIALIZED, COMPOSITE_PREFERENCE, COMPOSITE_REUSED,
+                     GRAPHITE_COVERAGE_INITIALIZED,
                      GRAPHITE_INITIALIZED, GRAPHITE_PREFERENCE,
                      LEGACY_PREFERENCE, PERSISTENT_INITIALIZED, WEBGL_INITIALIZED, WEBGL_PREFERENCE,
                      assert_native_size, bridge_query, compare_bridge_states,
@@ -119,6 +120,45 @@ class QualityMatrixTests(unittest.TestCase):
 
 
 class BridgeEvidenceTests(unittest.TestCase):
+    def test_explicit_graphite_coverage_requires_exclusive_actual_context_evidence(self) -> None:
+        base = [{"text": text} for text in (GRAPHITE_PREFERENCE, GRAPHITE_INITIALIZED, PERSISTENT_INITIALIZED)]
+        # Unspecified coverage remains compatible with artifacts from before the
+        # selector existed, but cannot turn an explicit request into an assumption.
+        verify_bridge(base, "graphite")
+        for coverage, message in GRAPHITE_COVERAGE_INITIALIZED.items():
+            evidence = base + [{"text": message}, {"text": message}]
+            verify_bridge(evidence, "graphite", graphite_coverage=coverage)
+            verify_bridge(evidence, "graphite")
+            other = "raster" if coverage == "default" else "default"
+            for changed in (base, base + [{"text": GRAPHITE_COVERAGE_INITIALIZED[other]}],
+                            evidence + [{"text": GRAPHITE_COVERAGE_INITIALIZED[other]}],
+                            evidence + [{"text": "UnoDraw Graphite coverage initialized: unknown (InternalMultisampleCount=4)."}]):
+                with self.subTest(coverage=coverage, messages=changed), self.assertRaises(AssertionError):
+                    verify_bridge(changed, "graphite", graphite_coverage=coverage)
+        both = base + [{"text": message} for message in GRAPHITE_COVERAGE_INITIALIZED.values()]
+        with self.assertRaises(AssertionError):
+            verify_bridge(both, "graphite")
+
+    def test_graphite_coverage_cannot_contaminate_another_bridge_or_insert_query_parameters(self) -> None:
+        other_modes = {"persistent": [PERSISTENT_INITIALIZED], "legacy": [LEGACY_PREFERENCE],
+                       "webgl": [WEBGL_PREFERENCE, WEBGL_INITIALIZED],
+                       "composite": [COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED,
+                                     COMPOSITE_REUSED, PERSISTENT_INITIALIZED]}
+        for bridge, messages in other_modes.items():
+            for coverage, initialized in GRAPHITE_COVERAGE_INITIALIZED.items():
+                with self.subTest(bridge=bridge, coverage=coverage), self.assertRaises(ValueError):
+                    bridge_query(bridge, graphite_coverage=coverage)
+                with self.assertRaises(ValueError):
+                    verify_bridge([{"text": text} for text in messages], bridge, graphite_coverage=coverage)
+                with self.assertRaises(AssertionError):
+                    verify_bridge([{"text": text} for text in messages + [initialized]], bridge)
+        for coverage in ("", "unknown", "raster&graphiteCoverage=default"):
+            with self.subTest(coverage=coverage), self.assertRaises(ValueError):
+                bridge_query("graphite", graphite_coverage=coverage)
+        for coverage in GRAPHITE_COVERAGE_INITIALIZED:
+            self.assertEqual(bridge_query("graphite", graphite_coverage=coverage),
+                             "canvasBridge=graphite&graphiteCoverage=" + coverage)
+
     def test_graphite_requires_validated_initialization_and_rejects_fallback_or_mode_contamination(self) -> None:
         messages = [GRAPHITE_PREFERENCE, GRAPHITE_INITIALIZED, PERSISTENT_INITIALIZED]
         evidence = [{"text": message} for message in messages]

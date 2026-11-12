@@ -376,6 +376,36 @@ python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
 
 Run `--workload zoom` as its own matched job. The selected GPU painter also runs
 the independent [eight-scene native SVG gate](../UnoDraw.BrowserRenderQuality/SVG_SCENES.md).
+
+The optional `--graphite-coverage default` or `--graphite-coverage raster` selects
+the Graphite candidate's native coverage strategy in each of these drivers.
+The corresponding query is `graphiteCoverage=default` or
+`graphiteCoverage=raster`, and the native context's `InternalMultisampleCount`
+is respectively 0 or 1. This option does not disable paint antialiasing or
+change any screenshot, fixture or comparison threshold. It applies only to the
+Graphite side; the same-package legacy or persistent control receives no
+coverage selector. For example:
+
+```sh
+python tests/UnoDraw.BrowserPerformance/bridge_quality.py \
+  --package /absolute/path/packages/candidate \
+  --output /absolute/path/graphite-raster-quality \
+  --candidate-bridge graphite --graphite-coverage raster
+python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
+  --package /absolute/path/packages/candidate \
+  --output /absolute/path/graphite-raster-pan-experiment \
+  --candidate-bridge graphite --graphite-coverage raster --workload pan --repeats 3
+```
+
+An explicit option requires the matching `UnoDraw Graphite coverage initialized`
+message emitted after native context creation; a missing, different or mixed
+context option fails. Each report and candidate case/trial records the requested
+`graphite_coverage`. Controls record `null`. Omitting the option preserves
+compatibility with artifacts predating this selector and makes no explicit
+coverage claim. Each coverage variant has its own complete 6-case/30-pair
+Welcome gate, 48-case/72-pair SVG gate and separate 6-primary/2-diagnostic timing
+experiment. Coverage variants are never combined into one trial set or used to
+satisfy each other's quality requirements.
 The `composite` experiment retains its separate brush-hover and selection scopes;
 both require real cached-document reuse and zero steady-state document paints.
 These experiments never replace the complete baseline/candidate matrix.

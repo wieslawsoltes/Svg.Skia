@@ -10,7 +10,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from quality import verify_bridge
+from quality import validate_graphite_coverage, verify_bridge
 from metrics import require_graphite_queue_drain, verify_interaction_isolation
 
 
@@ -58,8 +58,10 @@ def trial_plan(repeats: int, candidate_bridge: str = "webgl") -> list[tuple[int,
 
 
 def verify_runs(runs: list[dict[str, Any]], repeats: int, source_sha: str,
-                workload: str, *, diagnostics: bool = False, candidate_bridge: str = "webgl") -> None:
+                workload: str, *, diagnostics: bool = False, candidate_bridge: str = "webgl",
+                graphite_coverage: str | None = None) -> None:
     verify_experiment_workload(workload, candidate_bridge)
+    validate_graphite_coverage(candidate_bridge, graphite_coverage)
     bridges = bridge_pair(candidate_bridge)
     expected = Counter(trial_plan(repeats, candidate_bridge) if not diagnostics
                        else [(1, bridge) for bridge in bridges])
@@ -67,10 +69,12 @@ def verify_runs(runs: list[dict[str, Any]], repeats: int, source_sha: str,
     if actual != expected:
         raise ValueError("The same-artifact bridge comparison is incomplete or contains duplicate trials")
     for run in runs:
+        expected_coverage = graphite_coverage if run.get("canvas_bridge") == "graphite" else None
         if (run.get("passed") is not True or run.get("source_sha") != source_sha
                 or run.get("workload") != workload or run.get("backend") != "webgpu"
-                or run.get("diagnostic_pass") is not diagnostics):
-            raise ValueError("A bridge trial failed or changed source, workload, backend or diagnostic mode")
+                or run.get("diagnostic_pass") is not diagnostics
+                or run.get("graphite_coverage") != expected_coverage):
+            raise ValueError("A bridge trial failed or changed source, workload, backend, diagnostic mode or coverage")
         metrics = run.get("metrics", {})
         # The unchanged selection driver makes the configured even step count
         # odd, ending with visible selection feedback that a no-op cannot pass.
@@ -108,7 +112,7 @@ def verify_runs(runs: list[dict[str, Any]], repeats: int, source_sha: str,
         if diagnostics and workload in {"brush-hover", "selection"}:
             verify_interaction_isolation(
                 run.get("managed_render_diagnostics", {}).get("after", {"phases": []}), workload)
-        verify_bridge(run["console"], run["canvas_bridge"])
+        verify_bridge(run["console"], run["canvas_bridge"], graphite_coverage=expected_coverage)
 
 
 def compare_metrics(runs: list[dict[str, Any]], candidate_bridge: str = "webgl") -> list[dict[str, Any]]:

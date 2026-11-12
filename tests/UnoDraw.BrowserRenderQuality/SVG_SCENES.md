@@ -27,6 +27,30 @@ default remains `webgl` for existing callers. Each report compares persistent
 CPU with only its selected GPU path; one path cannot substitute for another or
 satisfy its coverage. CI runs the two selected-painter jobs independently.
 
+For a Graphite coverage experiment, additionally pass
+`--graphite-coverage default` or `--graphite-coverage raster` and use a distinct
+output directory. The candidate receives `graphiteCoverage=default` or
+`graphiteCoverage=raster`; its native context uses `InternalMultisampleCount` 0
+or 1 respectively. The persistent control receives neither option. Every
+candidate case must prove the exact selected option through the successful
+native-context log, in addition to the existing renderer initialization and
+no-fallback requirements. Missing or mixed coverage evidence fails. Paint
+antialiasing, fixtures, native image dimensions and all comparison thresholds
+remain unchanged.
+
+Each variant runs the full 6 sessions, 48 scene cases and 72 native comparisons.
+Report and case metadata retain `graphite_coverage`; `null` means the selector
+was omitted, preserving compatibility with older artifacts without making an
+explicit coverage claim. One coverage variant cannot satisfy another variant's
+matrix. For example:
+
+```sh
+python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
+  --package /path/to/candidate-package \
+  --candidate-bridge graphite --graphite-coverage raster \
+  --output /path/to/svg-graphite-raster-quality-artifact
+```
+
 `--package` is a single directory containing `benchmark-package.json` and
 `wwwroot/index.html`. The manifest must identify the candidate source commit,
 Uno 7, Release configuration, exact SDK/workload and matching index hash.

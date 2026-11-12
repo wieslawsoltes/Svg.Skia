@@ -159,11 +159,17 @@ independently passes all six cases and 30 comparisons, with actual cache reuse
 and no fallback or page/resource errors. Recomputing the native PNG comparisons
 finds zero pixels above luminance 12 in every region; the maximum individual RGB
 channel difference is 6/255, so browser output is not claimed byte-identical.
-The AOT WebGL job completes five of six cases and 20 of 30 comparisons before a
-DPR 2 startup screenshot times out. Its diagnostic screenshot contains the full
-artwork, but cannot replace the missing accepted lifecycle states. The remaining
-AOT cases, eight-scene matrix and total-throughput evidence remain separate
-gates. Software GPU measurements do not establish hardware throughput.
+The first AOT WebGL attempt completes five of six cases and 20 of 30 comparisons
+before a DPR 2 startup screenshot times out. Its diagnostic screenshot contains
+the full artwork, but does not replace the missing accepted lifecycle states.
+The [single-job retry](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/job/131362727208)
+uses the identical AOT package and accepts all six cases, 60 native captures and
+30 comparisons. Independent PNG recomputation finds a maximum document changed
+fraction of 0.000622807, below the unchanged 0.001/luminance-12 gate. Both renderer
+initializations are proven, with no fallback, page or resource errors. This
+resolves the missing Welcome lifecycle evidence; the eight-scene and throughput
+gates remain independent. Software GPU measurements do not establish hardware
+throughput.
 
 The retained-panel candidate `a44ec76199b7dd2ab3fb13032a730353907b7d82`
 provides a measured improvement for editing and selection on Skia/WebGL. Its
@@ -192,6 +198,36 @@ regressions show why CPU savings alone cannot qualify an optimization: the separ
 interaction surface still incurs composition costs. The single-surface and
 direct Graphite experiments address those remaining costs and require their own
 quality and throughput evidence.
+
+The next full application matrix, `523c1ed5` attempt 1, independently repeats all
+90 primary trials, 12 diagnostics and 108 accepted native-state comparisons.
+Its same-runner WebGPU selection median still takes 62.38% longer than the
+regression baseline despite 82.07% less active thread CPU. The default rendering
+regression therefore persists across both complete application measurements.
+
+The later, same-AOT `523c1ed5` [cached-composition experiment](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/job/131331896015)
+measures a WebGPU hover improvement with all nine paired native images accepted.
+Its [audited evidence](benchmarks/unodraw-composite-2026-11-12.json) keeps all six
+primary trials, two separate diagnostics and the independent 30-pair AOT
+lifecycle gate. Both modes process 120 trusted pointer moves with no input tail.
+
+| Hover metric | Persistent bridge | Cached composite bridge |
+| --- | ---: | ---: |
+| Median workload elapsed | 166.309 s | 129.963 s |
+| Median active renderer-thread CPU | 1.204 s | 1.198 s |
+| Median task elapsed per input | 16.855 ms | 17.289 ms |
+| Median observed canvas submissions | 222 | 221 |
+| Texture uploads in every trial | 120 | 120 |
+
+Elapsed time falls by 21.85%, equivalent to 27.97% greater offered-input
+throughput. All composite trials, 129.402–132.230 s, finish before all controls,
+164.417–166.385 s. CPU time and submission counts are essentially unchanged;
+both diagnostics record zero document paints and 120 interaction paints. This
+supports a reduction in composition cost per frame, without attributing it to
+fewer frames or a faster SVG painter. The source has no post-window queue-drain,
+screenshot or restore-duration metric, so it does not measure unfinished GPU
+work or physical presentation. It also does not compare directly with the
+regression baseline on this runner or establish the selection result.
 
 See the [browser benchmark instructions](../tests/UnoDraw.BrowserPerformance/README.md)
 for exact workloads, metric definitions, controls and reproduction commands.
@@ -358,6 +394,34 @@ layers and the outer device/viewport/viewer matrix; the recorded Ganesh path is
 unchanged. Native replay equivalence is checked separately from the mandatory
 new Graphite browser captures.
 
+The corrected `d0dafea` [Interpreter capture](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43265614141/job/131348332244)
+passes all six startup/lifecycle cases, proves real Graphite initialization and
+submissions, and has no fallback, validation, page or resource error. Its pixel
+gate still fails: 20 of 30 comparisons pass. Nine failures are at DPR 1 and one
+is the DPR 1.25 actual-size document. At DPR 1, all 1,307 pixels above luminance
+12 lie on the artwork, particularly the landscape and arch edges; text, chrome
+and rulers do not contribute. Uniform interior colors match. The restore from
+the 80-pixel viewport is pixel-identical within each mode, so these failures
+concern native coverage rather than missing redraws or stale texture uploads.
+
+`?canvasBridge=graphite&graphiteCoverage=raster` isolates one public native
+coverage choice in the same application binary. It requests
+[`SKGraphiteContextOptions.InternalMultisampleCount = 1`](https://github.com/mono/SkiaSharp/blob/v4.156.0/binding/SkiaSharp/Gpu/Graphite/SKGraphiteContext.cs#L166);
+an absent selector or `graphiteCoverage=default` retains the native default of
+zero. The query is frozen before the first shared context, and the accepted
+mode and requested count are logged only after native context creation succeeds.
+Invalid or duplicate selectors cannot silently run a different experiment.
+
+In the pinned non-Vello WASM build, Skia's
+[`RendererProvider`](https://github.com/mono/skia/blob/d1717dc22ef2203b7fc9bf0e01078b37b1a4af6b/src/gpu/graphite/RendererProvider.cpp#L88)
+uses its raster path atlas when MSAA is avoided. Its
+[`RasterPathUtils`](https://github.com/mono/skia/blob/d1717dc22ef2203b7fc9bf0e01078b37b1a4af6b/src/gpu/graphite/RasterPathUtils.cpp#L64)
+keeps antialiasing enabled and rasterizes coverage into A8; GPU shading, blend
+and layer order remain native. Specialized analytic shapes and eligible clips
+can still bypass that atlas. The requested count therefore does not establish
+pixel equality: the same native-size Welcome and complete SVG scene gates must
+accept the actual browser output before the option can be promoted.
+
 One Graphite context is shared per Uno device. Each document canvas owns its
 recorder, image provider and target wrapper. Image caching is bounded, and failed
 image conversion rejects the whole Graphite frame instead of silently dropping
@@ -409,6 +473,16 @@ bridge fallback discard the retained pixels. Unload and bridge fallback also
 release the painter lease. The experiment uses one extra BGRA document bitmap;
 it trades a native pixel copy for the second composition layer and must be
 evaluated by measured total throughput.
+
+Synchronous SVG draw callbacks can unload or reconfigure their host before the
+caller's canvas restore scopes unwind. The CPU bridge therefore owns each paint
+through a generation-stamped scope: cancellation immediately rejects cache
+updates, feedback and uploads, but native buffer destruction waits for scope
+exit. A changed renderer or layer lease also rejects the frame. This fixes a
+reproduced native crash in both persistent and composite modes without extending
+the lifetime of a discarded frame's GPU submissions. Regression tests invoke the
+actual `SKSvg.OnDraw` callback, including callback exceptions, repeated unload,
+lease replacement and reload, while retaining the unchanged pixel-cache tests.
 
 The actual cache/upload helper passes 72 scene/DPR/camera rows with six changing
 or removed-feedback frames compared byte-for-byte in every row, plus native
@@ -485,5 +559,10 @@ documents or fallback. Reconstructed native camera probes reproduce several
 differences with both Skia 4.151.1 and 4.156.0, while the shared document helper
 matches the original painter byte-for-byte on the same native backend. Those
 probes do not establish the exact browser clip phase or predict Graphite output.
+The newer `523c1ed5` job also reaches its old 45-minute limit, after 35 of 48
+cases. All seven failing legacy/WebGL crop pairs are byte-identical to their
+`a44ec76` counterparts: the glyph-preserving helper does not resolve these
+non-text edge differences. Its 41 passing comparisons out of 48 available pairs
+are partial evidence, not a complete quality pass.
 The full scene job now has a 90-minute budget to preserve all 48 cases and 72
 comparisons; missing cases and above-threshold pixels remain failures.
