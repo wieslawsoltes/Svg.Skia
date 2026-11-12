@@ -190,6 +190,33 @@ provider preference. Normal startup still negotiates WebGPU, then Skia/WebGL,
 then software; an individual bridge failure uses Uno's original canvas fallback.
 The shared compositor's device recovery remains the host's responsibility.
 
+### Opt-in GPU document raster experiment
+
+The separate instrumented pan pass for application commit `7211000` recorded
+121 Document callbacks totaling 41,066.5 ms, versus 44,008.8 ms of main-thread
+task time. This locates the WebGPU pan hotspot inside document painting;
+transfer and compositor costs remain separate. These instrumented values are
+diagnostic attribution, not the uninstrumented baseline/candidate timing ratio.
+The [recorded run](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43234253807)
+retains the raw observations and Uno phase logs. Native stage attribution of the
+same welcome scene also identifies SVG replay, especially its gradients, as the
+largest cost; no gradient simplification is used.
+
+The `canvasBridge=webgl` experiment creates one app-owned WebGL2 context for the
+document viewport and reuses the existing Skia/Ganesh painter at full device
+resolution. Public Emscripten context APIs and Uno's public WebGPU object bridge
+connect the browser canvas to the retained composition target. Auxiliary
+surfaces keep the current CPU bridge. Loss, invalid dimensions or transfer
+failure fall back to that path; the experimental tests reject fallback when
+attributing GPU results. The default remains unchanged until the complete
+quality and repeated timing evidence supports selecting the new path.
+
+This removes document CPU rasterization, not necessarily browser readback:
+[Chromium 143 on Linux forces readback](https://github.com/chromium/chromium/blob/143.0.7499.4/third_party/blink/renderer/modules/webgpu/gpu_queue.cc#L875-L916)
+inside `copyExternalImageToTexture`. Separate same-package CPU/GPU pan and zoom
+trials measure the resulting tradeoff. Their report kind is distinct from the
+three-revision application benchmark and cannot be merged into its coverage.
+
 ## Diagnostic scope
 
 Primary timing trials collect browser observations without enabling managed

@@ -147,7 +147,7 @@ jobs:
     name: Early WebGPU bridge quality (Interpreter)
     needs: plan
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -178,6 +178,7 @@ jobs:
           -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false
           -o ../artifacts/interpreter-package
       - name: Record the actual interpreter execution mode
+        id: interpreter_manifest
         run: >-
           python harness/tests/UnoDraw.BrowserPerformance/package_manifest.py
           --source source --package artifacts/interpreter-package --role candidate
@@ -199,6 +200,22 @@ jobs:
         with:
           name: unodraw-bridge-interpreter-quality
           path: artifacts/unodraw-bridge-interpreter-quality
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Check the document GPU bridge lifetime contract
+        if: ${{ !cancelled() && steps.interpreter_manifest.outcome == 'success' }}
+        run: node --test harness/tests/UnoDraw.BrowserRenderQuality/test_webgl_canvas.mjs
+      - name: Compare the opt-in GPU document path at unchanged native quality
+        if: ${{ !cancelled() && steps.interpreter_manifest.outcome == 'success' }}
+        run: >-
+          python harness/tests/UnoDraw.BrowserPerformance/bridge_quality.py
+          --package artifacts/interpreter-package --output artifacts/unodraw-webgl-interpreter-quality
+          --candidate-bridge webgl
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-webgl-interpreter-quality
+          path: artifacts/unodraw-webgl-interpreter-quality
           if-no-files-found: warn
           retention-days: 14
 
@@ -290,10 +307,14 @@ jobs:
           retention-days: 14
 
   bridge-quality:
-    name: WebGPU bridge native-pixel quality (DPR 1, 1.25, 2)
+    name: WebGPU ${{ matrix.bridge }} bridge quality (DPR 1, 1.25, 2)
     needs: publish
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        bridge: [persistent, webgl]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v6
@@ -308,15 +329,68 @@ jobs:
           python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
           python -m playwright install --with-deps chromium
           python -m unittest discover -s tests/UnoDraw.BrowserPerformance -p 'test_*.py'
+          node --test tests/UnoDraw.BrowserRenderQuality/test_webgl_canvas.mjs
       - name: Compare real persistent and legacy canvas paths at native resolution
         run: >-
           python tests/UnoDraw.BrowserPerformance/bridge_quality.py
           --package artifacts/candidate --output artifacts/unodraw-bridge-quality
+          --candidate-bridge ${{ matrix.bridge }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: unodraw-bridge-quality
+          name: ${{ matrix.bridge == 'persistent' && 'unodraw-bridge-quality' || 'unodraw-webgl-bridge-quality' }}
           path: artifacts/unodraw-bridge-quality
+          if-no-files-found: warn
+          retention-days: 14
+
+  document-raster-experiment:
+    name: Same AOT document rasterizers (${{ matrix.workload }})
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        workload: [pan, zoom]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: unodraw-performance-package-candidate
+          path: artifacts/candidate
+      - name: Verify the exact application source
+        run: >-
+          python tests/UnoDraw.BrowserRenderQuality/verify_source.py
+          --package artifacts/candidate --output artifacts/document-raster-experiment
+          --package-run-id "$GITHUB_RUN_ID"
+      - name: Install the pinned browser and verify experiment contracts
+        run: |
+          python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
+          python -m playwright install --with-deps chromium
+          python -m unittest discover -s tests/UnoDraw.BrowserPerformance -p 'test_*.py'
+          node --test tests/UnoDraw.BrowserPerformance/test_instrumentation.mjs
+          node --test tests/UnoDraw.BrowserRenderQuality/test_webgl_canvas.mjs
+      - name: Measure both rasterizers in this identical AOT package
+        run: >-
+          python tests/UnoDraw.BrowserPerformance/bridge_experiment.py
+          --package artifacts/candidate --output artifacts/document-raster-experiment
+          --workload ${{ matrix.workload }} --repeats 3
+      - name: Publish the available matched comparison
+        if: always()
+        run: |
+          if test -f artifacts/document-raster-experiment/summary.md; then
+            cat artifacts/document-raster-experiment/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-document-raster-experiment-${{ matrix.workload }}
+          path: artifacts/document-raster-experiment
           if-no-files-found: warn
           retention-days: 14
 

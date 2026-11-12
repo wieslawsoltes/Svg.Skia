@@ -257,6 +257,45 @@ implementations. They measure software graphics and application CPU behavior,
 **not physical GPU throughput**. A genuine WebGPU adapter and the expected Uno
 provider must be observed; merely exposing `navigator.gpu` cannot pass.
 
+### Same-artifact document rasterizer experiment
+
+`?canvasBridge=webgl` is an opt-in experiment that keeps WebGPU composition but
+rasterizes the document with an independent Skia/Ganesh WebGL2 surface. Auxiliary
+rulers, Navigator and interaction surfaces retain the persistent CPU upload.
+The default remains the persistent CPU path while this experiment is evaluated.
+Its quality jobs run the complete legacy-versus-selected bridge matrix at DPR
+1, 1.25 and 2 in both Interpreter and AOT packages, with the same thirty native
+state comparisons and unchanged tolerances. Selection alone cannot prove the
+path ran: a successful document copy must be logged, and any later bridge or
+WebGL fallback fails the experimental result.
+
+`bridge_experiment.py` compares explicit `canvasBridge=persistent` and
+`canvasBridge=webgl` in **one identical AOT package**. Each pan/zoom job keeps all
+three repetitions of both modes on one runner, alternates their order, starts a
+fresh browser each time, and reuses the full 120-input warmup and workload. Two
+separate instrumented passes identify paint costs. Every primary pair compares
+before/after/restored native images; all 120 trusted inputs and zero unobserved
+input tails are required. Reports identify the source, browser, selected bridge
+and individual trials. They use a separate `same_candidate_bridge_experiment`
+report kind and cannot satisfy the twelve-shard application comparison.
+
+The observer counts `copyExternalImageToTexture` separately from `writeTexture`.
+Neither copy calls nor offscreen GL draws count as visible-canvas presentation,
+and no exact transfer byte count is inferred. Chromium 143 on Linux explicitly
+[uses readback for canvas-to-WebGPU copies](https://github.com/chromium/chromium/blob/143.0.7499.4/third_party/blink/renderer/modules/webgpu/gpu_queue.cc#L875-L916),
+so this experiment is not described as a zero-copy or all-GPU transfer path.
+Its purpose is to measure whether GPU document rasterization outweighs that
+transfer cost while preserving the original pixels.
+
+```sh
+python tests/UnoDraw.BrowserPerformance/bridge_quality.py \
+  --package /absolute/path/packages/candidate \
+  --output /absolute/path/webgl-quality --candidate-bridge webgl
+python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
+  --package /absolute/path/packages/candidate \
+  --output /absolute/path/webgl-pan-experiment --workload pan --repeats 3
+```
+
 ## Local reproduction
 
 Install SDK 10.0.403, then publish each revision in its own checkout using the
