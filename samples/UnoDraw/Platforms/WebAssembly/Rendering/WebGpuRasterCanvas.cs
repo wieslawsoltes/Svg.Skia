@@ -21,8 +21,7 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
     private readonly Action<SKCanvas> _drawGraphiteFrame;
     private readonly ScaleTransform _displayScale = new();
     private CanvasPixelSize _pixels;
-    private SkiaCanvasUploadBuffer? _buffer;
-    private SkiaCanvasDocumentCache? _documentCache;
+    private readonly SkiaCanvasRasterState _raster = new();
     private ISkiaCanvasLayers? _compositeLayers;
     private bool _documentDirty = true;
     private bool _reportedCompositeReuse;
@@ -197,33 +196,24 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
                 return; // A synchronous document callback unloaded this canvas.
         }
 
-        if (_buffer is null || _buffer.Width != context.PixelWidth || _buffer.Height != context.PixelHeight)
-        {
-            _buffer?.Dispose();
-            _buffer = new SkiaCanvasUploadBuffer(context.PixelWidth, context.PixelHeight);
-        }
-
-        var buffer = _buffer;
+        // Public SVG callbacks can synchronously unload this element. The CPU
+        // owner cancels the frame then, but defers native pixel destruction until
+        // all of the painter's canvas restore scopes have completed.
+        using var paint = _raster.BeginPaint(context.PixelWidth, context.PixelHeight);
         if (_compositeLayers is { } layers)
         {
-            RenderComposite(buffer, layers);
+            if (!RenderComposite(paint, layers, renderer))
+                return;
         }
-        else
+        else if (!paint.TryRender((Owner: this, Renderer: renderer),
+            static (state, canvas) => state.Owner.RenderRenderer(canvas, state.Renderer)))
         {
-            var canvas = buffer.Canvas;
-            canvas.Clear(SKColors.Transparent);
-            canvas.Save();
-            try
-            {
-                ConfigurePainter(canvas);
-                renderer.Render(canvas, _pixels.LogicalSize);
-            }
-            finally
-            {
-                canvas.Restore();
-            }
+            return;
         }
-        buffer.UpdateUpload();
+        if (!ReferenceEquals(Renderer, renderer) || !paint.TryUpdateUpload())
+            return;
+
+        var buffer = paint.Buffer;
 
         var destination = new ImageCopyTexture { Texture = context.Target, Aspect = TextureAspect.All };
         var layout = new TextureDataLayout
@@ -263,19 +253,26 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
         Console.WriteLine($"UnoDraw Graphite canvas fallback: {reason}.");
     }
 
-    private void RenderComposite(SkiaCanvasUploadBuffer buffer, ISkiaCanvasLayers layers)
+    private bool RenderComposite(SkiaCanvasRasterState.Paint paint, ISkiaCanvasLayers layers,
+        ISkiaCanvasRenderer renderer)
     {
         var restored = !_documentDirty && layers.IsDocumentCurrent(_pixels.LogicalSize)
-            && _documentCache?.TryRestore(buffer) == true;
+            && paint.TryRestoreDocument();
         if (!restored)
         {
             // Consume before painting so a full invalidation raised by a painter
             // remains pending. Only the completed document is retained; feedback
             // never becomes part of the backdrop copied on the next interaction.
             _documentDirty = false;
-            buffer.Canvas.Clear(SKColors.Transparent);
-            RenderLayer(buffer.Canvas, layers, document: true);
-            (_documentCache ??= new SkiaCanvasDocumentCache()).Store(buffer);
+            paint.Buffer.Canvas.Clear(SKColors.Transparent);
+            if (!paint.TryRender((Owner: this, Layers: layers),
+                    static (state, canvas) => state.Owner.RenderLayer(canvas, state.Layers, document: true))
+                || !ReferenceEquals(_compositeLayers, layers) || !ReferenceEquals(Renderer, renderer)
+                || !layers.IsDocumentCurrent(_pixels.LogicalSize) || !paint.TryStoreDocument())
+            {
+                _documentDirty = true;
+                return false;
+            }
         }
         else if (!_reportedCompositeReuse)
         {
@@ -283,7 +280,24 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
             Console.WriteLine("UnoDraw canvas bridge reused cached document pixels.");
         }
 
-        RenderLayer(buffer.Canvas, layers, document: false);
+        return paint.TryRender((Owner: this, Layers: layers),
+                static (state, canvas) => state.Owner.RenderLayer(canvas, state.Layers, document: false))
+            && ReferenceEquals(_compositeLayers, layers) && ReferenceEquals(Renderer, renderer);
+    }
+
+    private void RenderRenderer(SKCanvas canvas, ISkiaCanvasRenderer renderer)
+    {
+        canvas.Clear(SKColors.Transparent);
+        canvas.Save();
+        try
+        {
+            ConfigurePainter(canvas);
+            renderer.Render(canvas, _pixels.LogicalSize);
+        }
+        finally
+        {
+            canvas.Restore();
+        }
     }
 
     private void RenderLayer(SKCanvas canvas, ISkiaCanvasLayers layers, bool document)
@@ -311,8 +325,7 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
 
     private void ReleaseDocumentCache()
     {
-        _documentCache?.Dispose();
-        _documentCache = null;
+        _raster.ReleaseDocumentCache();
         _documentDirty = true;
     }
 
@@ -385,9 +398,8 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
         }
         finally
         {
-            ReleaseDocumentCache();
-            _buffer?.Dispose();
-            _buffer = null;
+            _documentDirty = true;
+            _raster.ReleaseSurfaces();
         }
     }
 }

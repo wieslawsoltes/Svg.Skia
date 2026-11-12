@@ -19,6 +19,8 @@
              Link="Rendering/SkiaCanvasUploadBuffer.cs" />
     <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaCanvasDocumentCache.cs"
              Link="Rendering/SkiaCanvasDocumentCache.cs" />
+    <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaCanvasRasterState.cs"
+             Link="Rendering/SkiaCanvasRasterState.cs" />
     <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaTextRasterDrawable.cs"
              Link="Rendering/SkiaTextRasterDrawable.cs" />
     <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaDocumentDrawable.cs"
