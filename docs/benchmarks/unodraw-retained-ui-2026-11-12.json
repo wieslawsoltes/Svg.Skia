@@ -1,0 +1,2018 @@
+{
+  "schema": 1,
+  "report_kind": "audited_retained_ui_browser_benchmark_summary",
+  "generated_utc": "2026-11-12T16:35:04.300383+00:00",
+  "workflow_run_id": 43244676229,
+  "workflow_run_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229",
+  "harness_source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+  "primary_matrix_passed": true,
+  "primary_trial_count": 90,
+  "diagnostic_trial_count": 12,
+  "matched_baseline_candidate_image_pairs": 108,
+  "aggregate_job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131327260242",
+  "aggregate_artifact_id": 13964016247,
+  "aggregate_artifact_sha256": "sha256:944072b7dc44ea2804c51801b1829f172287244b199e730151decd20d41520e7",
+  "packages": {
+    "baseline": {
+      "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+      "uno_sdk": "7.0.5",
+      "runtime_generation": "uno7",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403",
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "index_sha256": "fd126347cfcb1544ab572570aa6e411b3fd9fe604c737b44fb294f1e08bb6290",
+      "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+      "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+      "source_configuration_overridden": true
+    },
+    "candidate": {
+      "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+      "uno_sdk": "7.0.5",
+      "runtime_generation": "uno7",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403",
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "index_sha256": "75d5d73c68e66dc9c103248c8c8ed8e28c01d174df8c600c65d9ef216bfe66fc",
+      "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+      "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+      "source_configuration_overridden": true
+    },
+    "reference": {
+      "source_sha": "dbe9dd165f7eb63c1c6c9e6dac11091728062824",
+      "uno_sdk": "6.5.31",
+      "runtime_generation": "uno6",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403",
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "index_sha256": "ef4ce71a18b84be416f2a917d0f9b198db2b7d4733af9c3d0f4e9a5bd7010757",
+      "source_global_json_sha256": "900abf7fe9e12f869a75453bd53daff942e6131bbc020a0a1265494c40249d1b",
+      "effective_global_json_sha256": "7bfa1650a7833f98788679723a4a52c3a9b74e72d1e49381a9412069b490c904",
+      "source_configuration_overridden": true
+    }
+  },
+  "reference_scope": "The reference is the themed Uno 6 parent before the Uno 7 migration. It is measured only on Skia. The older deployed UI at 067901c6396ca4a9cca2b335424c961a86f3cdf9 is not measured.",
+  "settings": {
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "device_scale_factor": 1,
+    "repeats": 3,
+    "steps": 120,
+    "idle_ms": 2000,
+    "warmup_policy": {
+      "minimum_real_pan_inputs": 120,
+      "minimum_completed_graphics_callbacks": 60,
+      "maximum_real_pan_inputs": 600,
+      "additional_batch_size": 60,
+      "canonical_pointer_reset_css": [
+        [450, 430],
+        [760, 16]
+      ],
+      "reason": "Both pinned Uno versions retain eligible stable visual subtrees after 50 paint frames",
+      "included_in_primary_metrics": false
+    },
+    "browser_version": "143.0.7499.4",
+    "graphics_description": "SwiftShader software GPU API implementations; not physical GPU throughput"
+  },
+  "metric_semantics": {
+    "aggregation": "Medians of three trials within each original workload/backend runner. No pooling of frames, percentiles, or timing values across runners.",
+    "task_wall_ms": "Original metrics.cpu_ms.TaskDuration. Chromium 143 default timeTicks is elapsed task duration and can include blocking; this historical cpu_ms key is not active CPU time.",
+    "active_renderer_thread_cpu_ms": "Derived without rewriting artifacts: (cdp_cpu_after.ThreadTime - cdp_cpu_before.ThreadTime) * 1000. Active renderer-thread CPU; excludes descheduled waits and GPU/worker-thread CPU.",
+    "elapsed_ms": "Original timed offered-input workload window. It ends after two natural rAF opportunities, not a GPU drain or a guarantee of new pixels for every input.",
+    "input_operations_per_second": "Offered trusted-input operations divided by the original measured workload elapsed time. It is not physical presented FPS.",
+    "completed_render_callbacks": "Successful application animation callbacks that emitted visible-canvas graphics. They can replay older recorded work and do not count physical display presentations.",
+    "diagnostics": "One separate candidate-only instrumented trial per shard. Paint stopwatch values are elapsed callback durations; allocation totals include diagnostic observation. No baseline allocation ratio is available.",
+    "post_window_queue_drain": "Unavailable in this archived a44 harness. Later Graphite-only diagnostics do not retroactively change these measurements.",
+    "physical_presented_frames": null,
+    "chromium_sources": ["https://github.com/chromium/chromium/blob/143.0.7499.4/third_party/blink/renderer/core/inspector/inspector_performance_agent.cc", "https://github.com/chromium/chromium/blob/143.0.7499.4/base/time/time.h"]
+  },
+  "quality_scope": {
+    "comparison_roles": ["baseline", "candidate"],
+    "states_per_trial": ["before", "after", "restored"],
+    "document_and_ruler_max_changed_fraction": 0.001,
+    "luminance_difference_threshold": 12,
+    "existing_chrome_font_max_changed_fraction": 0.02,
+    "resized_for_comparison": false,
+    "experimental_webgl_results_included": false
+  },
+  "shards": [
+    {
+      "backend": "skia-preferred",
+      "workload": "brush-hover",
+      "passed": true,
+      "job_id": 131299555107,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299555107",
+      "artifact_id": 13960038461,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/artifacts/13960038461",
+      "artifact_sha256": "sha256:9b18ff4f81bf6c8b107ddd6db5b4b1e0b90cf310f45f80ff3c1d705f98644f0f",
+      "report_sha256": "bbf7a9ea1be8e03881619143848ca2a949427032a1b2767d86af3653c11681b7",
+      "roles": {
+        "baseline": {
+          "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [1974.1950000000002, 2002.6470000000002, 2091.535],
+            "active_renderer_thread_cpu_ms": [1392.4540000000002, 1391.852, 1447.594],
+            "elapsed_ms": [30447.499999999985, 30367.600000000093, 30681.600000000093],
+            "input_operations_per_second": [3.9412102799901487, 3.9515799733926826, 3.911138923654556],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [240, 240, 240],
+            "graphics_active_animation_intervals": [240, 240, 240],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [150.10000000000582, 166.70000000001164, 166.695000000011],
+            "completed_render_callback_p95_ms": [8.115000000005962, 7.900000000023283, 8.504999999998834],
+            "input_to_completed_callback_p95_ms": [10.014999999999418, 8.930000000022117, 8.94000000002561]
+          },
+          "medians": {
+            "task_wall_ms": 2002.6470000000002,
+            "active_renderer_thread_cpu_ms": 1392.4540000000002,
+            "elapsed_ms": 30447.499999999985,
+            "input_operations_per_second": 3.9412102799901487,
+            "raf_p95_ms": 166.695000000011,
+            "completed_render_callback_p95_ms": 8.115000000005962,
+            "input_to_completed_callback_p95_ms": 8.94000000002561
+          },
+          "actual_providers": ["SkiaGraphicsProvider"],
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "candidate": {
+          "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [1931.671, 1953.48, 1826.9979999999998],
+            "active_renderer_thread_cpu_ms": [1393.48, 1346.1729999999998, 1406.166],
+            "elapsed_ms": [30342.5, 29909.5, 29960.0],
+            "input_operations_per_second": [3.954848809425723, 4.012103177920059, 4.005340453938585],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [240, 240, 240],
+            "graphics_active_animation_intervals": [240, 240, 240],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [166.6999999999971, 232.3749999999969, 149.90000000000836],
+            "completed_render_callback_p95_ms": [7.6050000000046545, 8.40499999996682, 7.409999999916177],
+            "input_to_completed_callback_p95_ms": [9.509999999999126, 9.310000000044237, 9.199999999965076]
+          },
+          "medians": {
+            "task_wall_ms": 1931.671,
+            "active_renderer_thread_cpu_ms": 1393.48,
+            "elapsed_ms": 29960.0,
+            "input_operations_per_second": 4.005340453938585,
+            "raf_p95_ms": 166.6999999999971,
+            "completed_render_callback_p95_ms": 7.6050000000046545,
+            "input_to_completed_callback_p95_ms": 9.310000000044237
+          },
+          "actual_providers": ["SkiaGraphicsProvider"],
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "reference": {
+          "source_sha": "dbe9dd165f7eb63c1c6c9e6dac11091728062824",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [3584.654, 3626.3360000000002, 3573.175],
+            "active_renderer_thread_cpu_ms": [2824.897, 2820.922, 2794.264],
+            "elapsed_ms": [85089.10000000003, 84679.90000000002, 84597.20000000007],
+            "input_operations_per_second": [1.4102863939094425, 1.4171013428216137, 1.4184866638612141],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [478, 478, 480],
+            "graphics_active_animation_intervals": [240, 240, 240],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [566.6000000000051, 550.1000000000058, 550.0],
+            "completed_render_callback_p95_ms": [10.700000000011642, 10.799999999947612, 10.800000000046566],
+            "input_to_completed_callback_p95_ms": [13.600000000034925, 12.805000000045402, 13.405000000022119]
+          },
+          "medians": {
+            "task_wall_ms": 3584.654,
+            "active_renderer_thread_cpu_ms": 2820.922,
+            "elapsed_ms": 84679.90000000002,
+            "input_operations_per_second": 1.4171013428216137,
+            "raf_p95_ms": 550.1000000000058,
+            "completed_render_callback_p95_ms": 10.799999999947612,
+            "input_to_completed_callback_p95_ms": 13.405000000022119
+          },
+          "actual_providers": null,
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        }
+      },
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.9645589062875284,
+        "active_renderer_thread_cpu_ms": 1.0007368286492766,
+        "elapsed_ms": 0.9839888332375405,
+        "input_operations_per_second": 1.0162716955941251,
+        "raf_p95_ms": 1.0000299949007834,
+        "completed_render_callback_p95_ms": 0.9371534195932307,
+        "input_to_completed_callback_p95_ms": 1.0413870246104662
+      },
+      "all_candidate_wall_times_below_all_baseline_times": true,
+      "all_candidate_wall_times_above_all_baseline_times": false,
+      "quality": {
+        "matched_trials": 3,
+        "native_image_pairs": 9,
+        "max_document_changed_fraction": 0.0,
+        "max_ruler_changed_fraction": 0.00010775281504229298,
+        "max_chrome_font_changed_fraction": 0.0
+      },
+      "candidate_diagnostic": {
+        "instrumented_trial_count": 1,
+        "operations": 120,
+        "trusted_inputs": 120,
+        "completed_render_callbacks": 240,
+        "thread_allocated_bytes_including_observer": 1192440,
+        "gc_collections_delta": {
+          "gen0Collections": 0,
+          "gen1Collections": 0,
+          "gen2Collections": 0
+        },
+        "paint_phases": [
+          {
+            "phase": "Document",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Interaction",
+            "count": 120,
+            "totalMilliseconds": 18.599994,
+            "maxMilliseconds": 1.100001,
+            "allocatedBytes": 17280
+          },
+          {
+            "phase": "Ruler",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Navigator",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          }
+        ]
+      }
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "edit",
+      "passed": true,
+      "job_id": 131299555304,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299555304",
+      "artifact_id": 13961222695,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/artifacts/13961222695",
+      "artifact_sha256": "sha256:7623d587d88d6566933b4b0dd008271b2b0962befc9b9b870830b5a0acdcb1ba",
+      "report_sha256": "04657667a5443eb2094ac722b26b99984fc02855edd9d50b606cc41c2e337a8b",
+      "roles": {
+        "baseline": {
+          "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [27933.36, 23612.237999999998, 27345.112],
+            "active_renderer_thread_cpu_ms": [25118.864999999998, 20981.905, 24542.98],
+            "elapsed_ms": [28306.40000000001, 25439.099999999977, 27656.099999999977],
+            "input_operations_per_second": [4.23932396913772, 4.71714801231176, 4.339006584442496],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [192, 183, 191],
+            "graphics_active_animation_intervals": [192, 183, 191],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [300.0999999999967, 283.3999999999978, 300.0],
+            "completed_render_callback_p95_ms": [7.235000000007127, 6.800000000046566, 7.75],
+            "input_to_completed_callback_p95_ms": [352.6599999999991, 318.03500000002094, 350.9349999999976]
+          },
+          "medians": {
+            "task_wall_ms": 27345.112,
+            "active_renderer_thread_cpu_ms": 24542.98,
+            "elapsed_ms": 27656.099999999977,
+            "input_operations_per_second": 4.339006584442496,
+            "raf_p95_ms": 300.0,
+            "completed_render_callback_p95_ms": 7.235000000007127,
+            "input_to_completed_callback_p95_ms": 350.9349999999976
+          },
+          "actual_providers": ["SkiaGraphicsProvider"],
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "candidate": {
+          "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [9094.666, 9672.100999999999, 9143.652],
+            "active_renderer_thread_cpu_ms": [7559.675, 7552.387, 7544.3189999999995],
+            "elapsed_ms": [16406.300000000017, 17093.5, 16363.999999999884],
+            "input_operations_per_second": [7.314263423197179, 7.020212361423933, 7.3331703739917415],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [136, 141, 136],
+            "graphics_active_animation_intervals": [136, 141, 136],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [150.0, 150.10000000000218, 150.0],
+            "completed_render_callback_p95_ms": [7.600000000005821, 8.400000000023283, 7.6749999999883585],
+            "input_to_completed_callback_p95_ms": [143.70500000001047, 153.5350000000006, 152.12499999998255]
+          },
+          "medians": {
+            "task_wall_ms": 9143.652,
+            "active_renderer_thread_cpu_ms": 7552.387,
+            "elapsed_ms": 16406.300000000017,
+            "input_operations_per_second": 7.314263423197179,
+            "raf_p95_ms": 150.0,
+            "completed_render_callback_p95_ms": 7.6749999999883585,
+            "input_to_completed_callback_p95_ms": 152.12499999998255
+          },
+          "actual_providers": ["SkiaGraphicsProvider"],
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "reference": {
+          "source_sha": "dbe9dd165f7eb63c1c6c9e6dac11091728062824",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [39371.931, 38484.298, 37649.89600000001],
+            "active_renderer_thread_cpu_ms": [36459.473000000005, 35536.687, 34741.599],
+            "elapsed_ms": [44736.09999999998, 42784.90000000002, 42011.20000000007],
+            "input_operations_per_second": [2.682397437416316, 2.804727836222591, 2.8563811555013854],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [242, 236, 224],
+            "graphics_active_animation_intervals": [139, 134, 138],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [449.90000000000873, 400.1000000000029, 466.6000000000058],
+            "completed_render_callback_p95_ms": [9.095000000033178, 8.950000000040745, 10.885000000009313],
+            "input_to_completed_callback_p95_ms": [709.4449999999662, 606.444999999908, 573.4900000000256]
+          },
+          "medians": {
+            "task_wall_ms": 38484.298,
+            "active_renderer_thread_cpu_ms": 35536.687,
+            "elapsed_ms": 42784.90000000002,
+            "input_operations_per_second": 2.804727836222591,
+            "raf_p95_ms": 449.90000000000873,
+            "completed_render_callback_p95_ms": 9.095000000033178,
+            "input_to_completed_callback_p95_ms": 606.444999999908
+          },
+          "actual_providers": null,
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        }
+      },
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.33437976044859496,
+        "active_renderer_thread_cpu_ms": 0.30772086356261547,
+        "elapsed_ms": 0.5932253643861582,
+        "input_operations_per_second": 1.6857000054856943,
+        "raf_p95_ms": 0.5,
+        "completed_render_callback_p95_ms": 1.0608154803014234,
+        "input_to_completed_callback_p95_ms": 0.4334848333736549
+      },
+      "all_candidate_wall_times_below_all_baseline_times": true,
+      "all_candidate_wall_times_above_all_baseline_times": false,
+      "quality": {
+        "matched_trials": 3,
+        "native_image_pairs": 9,
+        "max_document_changed_fraction": 0.0002631578947368421,
+        "max_ruler_changed_fraction": 0.00010775281504229298,
+        "max_chrome_font_changed_fraction": 0.0
+      },
+      "candidate_diagnostic": {
+        "instrumented_trial_count": 1,
+        "operations": 120,
+        "trusted_inputs": 120,
+        "completed_render_callbacks": 142,
+        "thread_allocated_bytes_including_observer": 301979744,
+        "gc_collections_delta": {
+          "gen0Collections": 72,
+          "gen1Collections": 1,
+          "gen2Collections": 1
+        },
+        "paint_phases": [
+          {
+            "phase": "Document",
+            "count": 113,
+            "totalMilliseconds": 18.400003,
+            "maxMilliseconds": 2.700001,
+            "allocatedBytes": 56952
+          },
+          {
+            "phase": "Interaction",
+            "count": 113,
+            "totalMilliseconds": 29.299987,
+            "maxMilliseconds": 6.299999,
+            "allocatedBytes": 581272
+          },
+          {
+            "phase": "Ruler",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Navigator",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          }
+        ]
+      }
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "idle",
+      "passed": true,
+      "job_id": 131299555027,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299555027",
+      "artifact_id": 13960972005,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/artifacts/13960972005",
+      "artifact_sha256": "sha256:a3b061d456a2ad500458712da4a079396c653313808e3ef73c20cec5a7277df0",
+      "report_sha256": "a8577355ff4b7bdc8962837e57a609c0c69c39c6381a1c429280794b2e3ea363",
+      "roles": {
+        "baseline": {
+          "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [15.292, 13.861, 13.943999999999999],
+            "active_renderer_thread_cpu_ms": [19.305, 17.090999999999998, 18.215],
+            "elapsed_ms": [2027.2999999999884, 2029.4000000000233, 2029.0999999999767],
+            "input_operations_per_second": [null, null, null],
+            "operations": [0, 0, 0],
+            "trusted_inputs": [0, 0, 0],
+            "completed_render_callbacks": [0, 0, 0],
+            "graphics_active_animation_intervals": [0, 0, 0],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [16.799999999995634, 16.700000000004366, 16.700000000004366],
+            "completed_render_callback_p95_ms": [null, null, null],
+            "input_to_completed_callback_p95_ms": [null, null, null]
+          },
+          "medians": {
+            "task_wall_ms": 13.943999999999999,
+            "active_renderer_thread_cpu_ms": 18.215,
+            "elapsed_ms": 2029.0999999999767,
+            "input_operations_per_second": null,
+            "raf_p95_ms": 16.700000000004366,
+            "completed_render_callback_p95_ms": null,
+            "input_to_completed_callback_p95_ms": null
+          },
+          "actual_providers": ["SkiaGraphicsProvider"],
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "candidate": {
+          "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [14.149999999999999, 11.683, 14.843],
+            "active_renderer_thread_cpu_ms": [17.348, 15.329, 18.905],
+            "elapsed_ms": [2029.1000000000058, 2028.9000000000233, 2029.1000000000931],
+            "input_operations_per_second": [null, null, null],
+            "operations": [0, 0, 0],
+            "trusted_inputs": [0, 0, 0],
+            "completed_render_callbacks": [0, 0, 0],
+            "graphics_active_animation_intervals": [0, 0, 0],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [16.700000000004366, 16.799999999995634, 16.700000000004366],
+            "completed_render_callback_p95_ms": [null, null, null],
+            "input_to_completed_callback_p95_ms": [null, null, null]
+          },
+          "medians": {
+            "task_wall_ms": 14.149999999999999,
+            "active_renderer_thread_cpu_ms": 17.348,
+            "elapsed_ms": 2029.1000000000058,
+            "input_operations_per_second": null,
+            "raf_p95_ms": 16.700000000004366,
+            "completed_render_callback_p95_ms": null,
+            "input_to_completed_callback_p95_ms": null
+          },
+          "actual_providers": ["SkiaGraphicsProvider"],
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "reference": {
+          "source_sha": "dbe9dd165f7eb63c1c6c9e6dac11091728062824",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [15.333, 13.812, 13.421000000000001],
+            "active_renderer_thread_cpu_ms": [19.208, 17.342, 17.915],
+            "elapsed_ms": [2027.7000000000116, 2029.5, 2028.9000000000233],
+            "input_operations_per_second": [null, null, null],
+            "operations": [0, 0, 0],
+            "trusted_inputs": [0, 0, 0],
+            "completed_render_callbacks": [0, 0, 0],
+            "graphics_active_animation_intervals": [0, 0, 0],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [16.70000000001164, 16.79999999998836, 16.70000000001164],
+            "completed_render_callback_p95_ms": [null, null, null],
+            "input_to_completed_callback_p95_ms": [null, null, null]
+          },
+          "medians": {
+            "task_wall_ms": 13.812,
+            "active_renderer_thread_cpu_ms": 17.915,
+            "elapsed_ms": 2028.9000000000233,
+            "input_operations_per_second": null,
+            "raf_p95_ms": 16.70000000001164,
+            "completed_render_callback_p95_ms": null,
+            "input_to_completed_callback_p95_ms": null
+          },
+          "actual_providers": null,
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        }
+      },
+      "candidate_over_baseline": {
+        "task_wall_ms": 1.0147733792312106,
+        "active_renderer_thread_cpu_ms": 0.9524018665934669,
+        "elapsed_ms": 1.0000000000000144,
+        "input_operations_per_second": null,
+        "raf_p95_ms": 1.0,
+        "completed_render_callback_p95_ms": null,
+        "input_to_completed_callback_p95_ms": null
+      },
+      "all_candidate_wall_times_below_all_baseline_times": false,
+      "all_candidate_wall_times_above_all_baseline_times": false,
+      "quality": {
+        "matched_trials": 3,
+        "native_image_pairs": 9,
+        "max_document_changed_fraction": 0.0,
+        "max_ruler_changed_fraction": 0.00010775281504229298,
+        "max_chrome_font_changed_fraction": 0.0
+      },
+      "candidate_diagnostic": {
+        "instrumented_trial_count": 1,
+        "operations": 0,
+        "trusted_inputs": 0,
+        "completed_render_callbacks": 0,
+        "thread_allocated_bytes_including_observer": 125696,
+        "gc_collections_delta": {
+          "gen0Collections": 0,
+          "gen1Collections": 0,
+          "gen2Collections": 0
+        },
+        "paint_phases": [
+          {
+            "phase": "Document",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Interaction",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Ruler",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Navigator",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          }
+        ]
+      }
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "pan",
+      "passed": true,
+      "job_id": 131299555022,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299555022",
+      "artifact_id": 13961910704,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/artifacts/13961910704",
+      "artifact_sha256": "sha256:d7e3db84d2377f6fb9ce53fe01bed1e311fcfc91681e6700175ee89b84b894ea",
+      "report_sha256": "b05869e048be342cc2132d058a8cba1a1b1c5586872e8b21977024fa17bcc376",
+      "roles": {
+        "baseline": {
+          "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [2732.4190000000003, 2861.513, 2844.871],
+            "active_renderer_thread_cpu_ms": [1986.566, 1961.045, 1915.5439999999999],
+            "elapsed_ms": [32038.0, 32174.20000000007, 32441.5],
+            "input_operations_per_second": [3.7455521568137837, 3.729696464869359, 3.698965830803138],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [242, 242, 242],
+            "graphics_active_animation_intervals": [242, 242, 242],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [150.10000000000582, 150.10000000000582, 243.2499999999934],
+            "completed_render_callback_p95_ms": [10.590000000005237, 11.495000000001163, 11.194999999948775],
+            "input_to_completed_callback_p95_ms": [13.209999999983118, 14.805000000045402, 14.300000000046566]
+          },
+          "medians": {
+            "task_wall_ms": 2844.871,
+            "active_renderer_thread_cpu_ms": 1961.045,
+            "elapsed_ms": 32174.20000000007,
+            "input_operations_per_second": 3.729696464869359,
+            "raf_p95_ms": 150.10000000000582,
+            "completed_render_callback_p95_ms": 11.194999999948775,
+            "input_to_completed_callback_p95_ms": 14.300000000046566
+          },
+          "actual_providers": ["SkiaGraphicsProvider"],
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "candidate": {
+          "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [2807.368, 2975.374, 2754.545],
+            "active_renderer_thread_cpu_ms": [1913.589, 2025.8059999999998, 1907.073],
+            "elapsed_ms": [31839.399999999994, 31999.800000000047, 31786.799999999814],
+            "input_operations_per_second": [3.7689152433777027, 3.75002343764648, 3.775151949866004],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [242, 242, 242],
+            "graphics_active_animation_intervals": [242, 242, 242],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [164.2099999999983, 166.60000000000437, 166.60000000000582],
+            "completed_render_callback_p95_ms": [11.294999999989521, 11.5, 11.199999999953434],
+            "input_to_completed_callback_p95_ms": [14.21499999998341, 14.5, 12.719999999948776]
+          },
+          "medians": {
+            "task_wall_ms": 2807.368,
+            "active_renderer_thread_cpu_ms": 1913.589,
+            "elapsed_ms": 31839.399999999994,
+            "input_operations_per_second": 3.7689152433777027,
+            "raf_p95_ms": 166.60000000000437,
+            "completed_render_callback_p95_ms": 11.294999999989521,
+            "input_to_completed_callback_p95_ms": 14.21499999998341
+          },
+          "actual_providers": ["SkiaGraphicsProvider"],
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "reference": {
+          "source_sha": "dbe9dd165f7eb63c1c6c9e6dac11091728062824",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [4960.594999999999, 4949.920999999999, 4504.795000000001],
+            "active_renderer_thread_cpu_ms": [3853.949, 3807.601, 3527.475],
+            "elapsed_ms": [88721.60000000003, 88573.80000000005, 88329.29999999993],
+            "input_operations_per_second": [1.3525454906133338, 1.354802435934779, 1.3585525980620259],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [468, 468, 472],
+            "graphics_active_animation_intervals": [242, 242, 242],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [600.0, 600.0, 599.9949999999997],
+            "completed_render_callback_p95_ms": [14.100000000014552, 14.200000000029103, 13.8449999999837],
+            "input_to_completed_callback_p95_ms": [17.10500000003085, 17.41500000001979, 17.0]
+          },
+          "medians": {
+            "task_wall_ms": 4949.920999999999,
+            "active_renderer_thread_cpu_ms": 3807.601,
+            "elapsed_ms": 88573.80000000005,
+            "input_operations_per_second": 1.354802435934779,
+            "raf_p95_ms": 600.0,
+            "completed_render_callback_p95_ms": 14.100000000014552,
+            "input_to_completed_callback_p95_ms": 17.10500000003085
+          },
+          "actual_providers": null,
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        }
+      },
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.9868173284482846,
+        "active_renderer_thread_cpu_ms": 0.9758006573026116,
+        "elapsed_ms": 0.9895941468630122,
+        "input_operations_per_second": 1.0105152735290261,
+        "raf_p95_ms": 1.1099267155229708,
+        "completed_render_callback_p95_ms": 1.008932559181885,
+        "input_to_completed_callback_p95_ms": 0.994055944051547
+      },
+      "all_candidate_wall_times_below_all_baseline_times": true,
+      "all_candidate_wall_times_above_all_baseline_times": false,
+      "quality": {
+        "matched_trials": 3,
+        "native_image_pairs": 9,
+        "max_document_changed_fraction": 0.0,
+        "max_ruler_changed_fraction": 0.00010775281504229298,
+        "max_chrome_font_changed_fraction": 0.0
+      },
+      "candidate_diagnostic": {
+        "instrumented_trial_count": 1,
+        "operations": 120,
+        "trusted_inputs": 120,
+        "completed_render_callbacks": 242,
+        "thread_allocated_bytes_including_observer": 3035328,
+        "gc_collections_delta": {
+          "gen0Collections": 0,
+          "gen1Collections": 0,
+          "gen2Collections": 0
+        },
+        "paint_phases": [
+          {
+            "phase": "Document",
+            "count": 121,
+            "totalMilliseconds": 15.099988,
+            "maxMilliseconds": 0.899999,
+            "allocatedBytes": 13552
+          },
+          {
+            "phase": "Interaction",
+            "count": 121,
+            "totalMilliseconds": 7.600012,
+            "maxMilliseconds": 0.200001,
+            "allocatedBytes": 17424
+          },
+          {
+            "phase": "Ruler",
+            "count": 240,
+            "totalMilliseconds": 49.100009,
+            "maxMilliseconds": 2.100001,
+            "allocatedBytes": 1845240
+          },
+          {
+            "phase": "Navigator",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          }
+        ]
+      }
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "selection",
+      "passed": true,
+      "job_id": 131299554998,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299554998",
+      "artifact_id": 13960871743,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/artifacts/13960871743",
+      "artifact_sha256": "sha256:87d6ac37dae1e6625081a8997564aa95fcb8b567e24496346ef0c1cb5b88ad69",
+      "report_sha256": "0ccd28d57133dedc15f7e0a315671e144541137453d984509e036198a22cc289",
+      "roles": {
+        "baseline": {
+          "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [8575.14, 9491.862, 9084.729],
+            "active_renderer_thread_cpu_ms": [7226.289000000001, 8281.094, 7761.342],
+            "elapsed_ms": [13976.800000000003, 14779.700000000012, 14392.300000000047],
+            "input_operations_per_second": [8.65720336557724, 8.186905011603747, 8.407273333657553],
+            "operations": [121, 121, 121],
+            "trusted_inputs": [121, 121, 121],
+            "completed_render_callbacks": [151, 160, 154],
+            "graphics_active_animation_intervals": [151, 160, 154],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [170.00000000000418, 166.70000000000437, 166.64499999999788],
+            "completed_render_callback_p95_ms": [7.350000000005821, 6.205000000010475, 7.134999999968567],
+            "input_to_completed_callback_p95_ms": [217.0, 211.19999999995343, 221.5]
+          },
+          "medians": {
+            "task_wall_ms": 9084.729,
+            "active_renderer_thread_cpu_ms": 7761.342,
+            "elapsed_ms": 14392.300000000047,
+            "input_operations_per_second": 8.407273333657553,
+            "raf_p95_ms": 166.70000000000437,
+            "completed_render_callback_p95_ms": 7.134999999968567,
+            "input_to_completed_callback_p95_ms": 217.0
+          },
+          "actual_providers": ["SkiaGraphicsProvider"],
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "candidate": {
+          "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [5026.554999999999, 5329.974, 4911.241999999999],
+            "active_renderer_thread_cpu_ms": [4178.221, 4397.6849999999995, 4002.5820000000003],
+            "elapsed_ms": [11282.499999999985, 11761.099999999977, 10714.5],
+            "input_operations_per_second": [10.724573454464894, 10.288153318992292, 11.293107471183909],
+            "operations": [121, 121, 121],
+            "trusted_inputs": [121, 121, 121],
+            "completed_render_callbacks": [134, 137, 130],
+            "graphics_active_animation_intervals": [134, 137, 130],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [127.55500000000002, 125.10000000000218, 116.65499999999774],
+            "completed_render_callback_p95_ms": [6.069999999993887, 6.519999999995342, 6.310000000044237],
+            "input_to_completed_callback_p95_ms": [142.0, 155.09999999997672, 115.30000000004657]
+          },
+          "medians": {
+            "task_wall_ms": 5026.554999999999,
+            "active_renderer_thread_cpu_ms": 4178.221,
+            "elapsed_ms": 11282.499999999985,
+            "input_operations_per_second": 10.724573454464894,
+            "raf_p95_ms": 125.10000000000218,
+            "completed_render_callback_p95_ms": 6.310000000044237,
+            "input_to_completed_callback_p95_ms": 142.0
+          },
+          "actual_providers": ["SkiaGraphicsProvider"],
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "reference": {
+          "source_sha": "dbe9dd165f7eb63c1c6c9e6dac11091728062824",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [18599.382, 18026.308999999997, 17735.478],
+            "active_renderer_thread_cpu_ms": [16521.401, 15930.143, 15857.272],
+            "elapsed_ms": [31448.199999999983, 30819.100000000035, 31059.199999999953],
+            "input_operations_per_second": [3.847597000782241, 3.9261367139209082, 3.8957861116835004],
+            "operations": [121, 121, 121],
+            "trusted_inputs": [121, 121, 121],
+            "completed_render_callbacks": [254, 246, 248],
+            "graphics_active_animation_intervals": [132, 132, 129],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [350.1, 359.1300000000029, 433.2649999999914],
+            "completed_render_callback_p95_ms": [7.969999999998253, 9.200000000011642, 7.665000000002326],
+            "input_to_completed_callback_p95_ms": [398.30000000001746, 365.79999999998836, 409.0]
+          },
+          "medians": {
+            "task_wall_ms": 18026.308999999997,
+            "active_renderer_thread_cpu_ms": 15930.143,
+            "elapsed_ms": 31059.199999999953,
+            "input_operations_per_second": 3.8957861116835004,
+            "raf_p95_ms": 359.1300000000029,
+            "completed_render_callback_p95_ms": 7.969999999998253,
+            "input_to_completed_callback_p95_ms": 398.30000000001746
+          },
+          "actual_providers": null,
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        }
+      },
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.5532971869606677,
+        "active_renderer_thread_cpu_ms": 0.5383374421588432,
+        "elapsed_ms": 0.7839261271652167,
+        "input_operations_per_second": 1.2756304010636,
+        "raf_p95_ms": 0.7504499100179899,
+        "completed_render_callback_p95_ms": 0.8843728101011963,
+        "input_to_completed_callback_p95_ms": 0.6543778801843319
+      },
+      "all_candidate_wall_times_below_all_baseline_times": true,
+      "all_candidate_wall_times_above_all_baseline_times": false,
+      "quality": {
+        "matched_trials": 3,
+        "native_image_pairs": 9,
+        "max_document_changed_fraction": 0.0,
+        "max_ruler_changed_fraction": 0.00010775281504229298,
+        "max_chrome_font_changed_fraction": 0.0
+      },
+      "candidate_diagnostic": {
+        "instrumented_trial_count": 1,
+        "operations": 121,
+        "trusted_inputs": 121,
+        "completed_render_callbacks": 137,
+        "thread_allocated_bytes_including_observer": 152562168,
+        "gc_collections_delta": {
+          "gen0Collections": 37,
+          "gen1Collections": 0,
+          "gen2Collections": 0
+        },
+        "paint_phases": [
+          {
+            "phase": "Document",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Interaction",
+            "count": 103,
+            "totalMilliseconds": 23.400004,
+            "maxMilliseconds": 2.299999,
+            "allocatedBytes": 285032
+          },
+          {
+            "phase": "Ruler",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Navigator",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          }
+        ]
+      }
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "zoom",
+      "passed": true,
+      "job_id": 131299554993,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299554993",
+      "artifact_id": 13961348565,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/artifacts/13961348565",
+      "artifact_sha256": "sha256:18adadf4e068b61a92223bec83d24a5f22286d48ddb027f3adfa800adb75d06f",
+      "report_sha256": "be71ce9ff5ab31d339f9b534e7c60f9005137d8b2923ba65c3927f0057a3f6ac",
+      "roles": {
+        "baseline": {
+          "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [4700.626, 4083.933, 4544.72],
+            "active_renderer_thread_cpu_ms": [2430.4049999999997, 2376.75, 2320.8860000000004],
+            "elapsed_ms": [39022.100000000006, 37949.09999999998, 37795.19999999995],
+            "input_operations_per_second": [3.075180474654106, 3.1621303272014374, 3.175006350012704],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [231, 226, 225],
+            "graphics_active_animation_intervals": [231, 226, 225],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [299.9000000000033, 250.0, 290.8250000000086],
+            "completed_render_callback_p95_ms": [20.05000000000291, 19.800000000017462, 20.279999999841674],
+            "input_to_completed_callback_p95_ms": [60.90999999997862, 59.10500000006273, 62.085000000044104]
+          },
+          "medians": {
+            "task_wall_ms": 4544.72,
+            "active_renderer_thread_cpu_ms": 2376.75,
+            "elapsed_ms": 37949.09999999998,
+            "input_operations_per_second": 3.1621303272014374,
+            "raf_p95_ms": 290.8250000000086,
+            "completed_render_callback_p95_ms": 20.05000000000291,
+            "input_to_completed_callback_p95_ms": 60.90999999997862
+          },
+          "actual_providers": ["SkiaGraphicsProvider"],
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "candidate": {
+          "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [4302.7480000000005, 4600.4800000000005, 4156.216],
+            "active_renderer_thread_cpu_ms": [2429.6010000000006, 2406.354, 2436.2120000000004],
+            "elapsed_ms": [38311.80000000002, 38228.70000000007, 38815.69999999995],
+            "input_operations_per_second": [3.1321942586879223, 3.1390028957301657, 3.0915325499733393],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [230, 229, 232],
+            "graphics_active_animation_intervals": [230, 229, 232],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [249.95000000000073, 283.20000000001164, 249.93499999999622],
+            "completed_render_callback_p95_ms": [18.984999999983106, 19.25999999998603, 18.549999999988348],
+            "input_to_completed_callback_p95_ms": [62.555000000045275, 59.80500000004526, 65.37999999991138]
+          },
+          "medians": {
+            "task_wall_ms": 4302.7480000000005,
+            "active_renderer_thread_cpu_ms": 2429.6010000000006,
+            "elapsed_ms": 38311.80000000002,
+            "input_operations_per_second": 3.1321942586879223,
+            "raf_p95_ms": 249.95000000000073,
+            "completed_render_callback_p95_ms": 18.984999999983106,
+            "input_to_completed_callback_p95_ms": 62.555000000045275
+          },
+          "actual_providers": ["SkiaGraphicsProvider"],
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "reference": {
+          "source_sha": "dbe9dd165f7eb63c1c6c9e6dac11091728062824",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [7400.924, 6618.5740000000005, 7051.194],
+            "active_renderer_thread_cpu_ms": [3953.644, 4006.0780000000004, 4023.092],
+            "elapsed_ms": [100658.39999999997, 100005.79999999993, 100177.8999999999],
+            "input_operations_per_second": [1.192150878615198, 1.1999304040365668, 1.1978689910648967],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [448, 448, 448],
+            "graphics_active_animation_intervals": [234, 237, 239],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [766.5100000000006, 749.074999999994, 816.699999999984],
+            "completed_render_callback_p95_ms": [16.86499999997322, 17.42999999997555, 18.059999999986022],
+            "input_to_completed_callback_p95_ms": [66.78500000000045, 65.69999999999987, 71.17000000004181]
+          },
+          "medians": {
+            "task_wall_ms": 7051.194,
+            "active_renderer_thread_cpu_ms": 4006.0780000000004,
+            "elapsed_ms": 100177.8999999999,
+            "input_operations_per_second": 1.1978689910648967,
+            "raf_p95_ms": 766.5100000000006,
+            "completed_render_callback_p95_ms": 17.42999999997555,
+            "input_to_completed_callback_p95_ms": 66.78500000000045
+          },
+          "actual_providers": null,
+          "observed_canvas_kinds": ["webgl2"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        }
+      },
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.946757556021053,
+        "active_renderer_thread_cpu_ms": 1.0222366677185235,
+        "elapsed_ms": 1.0095575389139675,
+        "input_operations_per_second": 0.9905329428531148,
+        "raf_p95_ms": 0.8594515602166023,
+        "completed_render_callback_p95_ms": 0.9468827930164764,
+        "input_to_completed_callback_p95_ms": 1.0270070595972292
+      },
+      "all_candidate_wall_times_below_all_baseline_times": false,
+      "all_candidate_wall_times_above_all_baseline_times": false,
+      "quality": {
+        "matched_trials": 3,
+        "native_image_pairs": 9,
+        "max_document_changed_fraction": 0.0,
+        "max_ruler_changed_fraction": 0.00010775281504229298,
+        "max_chrome_font_changed_fraction": 0.0
+      },
+      "candidate_diagnostic": {
+        "instrumented_trial_count": 1,
+        "operations": 120,
+        "trusted_inputs": 120,
+        "completed_render_callbacks": 228,
+        "thread_allocated_bytes_including_observer": 2245592,
+        "gc_collections_delta": {
+          "gen0Collections": 0,
+          "gen1Collections": 0,
+          "gen2Collections": 0
+        },
+        "paint_phases": [
+          {
+            "phase": "Document",
+            "count": 112,
+            "totalMilliseconds": 13.2,
+            "maxMilliseconds": 1.3,
+            "allocatedBytes": 12544
+          },
+          {
+            "phase": "Interaction",
+            "count": 112,
+            "totalMilliseconds": 7.4,
+            "maxMilliseconds": 0.5,
+            "allocatedBytes": 16128
+          },
+          {
+            "phase": "Ruler",
+            "count": 224,
+            "totalMilliseconds": 49.2,
+            "maxMilliseconds": 3.3,
+            "allocatedBytes": 1405128
+          },
+          {
+            "phase": "Navigator",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          }
+        ]
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "brush-hover",
+      "passed": true,
+      "job_id": 131299555139,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299555139",
+      "artifact_id": 13963061247,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/artifacts/13963061247",
+      "artifact_sha256": "sha256:ba6558f6bb97af96a3b47f26a5c62908bf75ba0f0b29189719d267f389084b2c",
+      "report_sha256": "9ab204d829300911f765896ab37b6ef9d2990c027df0a686edc223461cfe1c16",
+      "roles": {
+        "baseline": {
+          "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [34933.649000000005, 35810.765999999996, 36955.728],
+            "active_renderer_thread_cpu_ms": [29774.272999999997, 29619.124, 29920.144],
+            "elapsed_ms": [135491, 134264, 134528.09999999986],
+            "input_operations_per_second": [0.8856676827243138, 0.8937615444199487, 0.8920069487341316],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [229, 234, 228],
+            "graphics_active_animation_intervals": [229, 234, 228],
+            "webgpu_canvas_submissions": [229, 234, 228],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [1133.1999999999928, 1116.6000000000174, 1116.6000000000058],
+            "completed_render_callback_p95_ms": [7.0, 6.600000000093132, 6.699999999953434],
+            "input_to_completed_callback_p95_ms": [1133.925, 1116.3050000000396, 1129.1500000000815]
+          },
+          "medians": {
+            "task_wall_ms": 35810.765999999996,
+            "active_renderer_thread_cpu_ms": 29774.272999999997,
+            "elapsed_ms": 134528.09999999986,
+            "input_operations_per_second": 0.8920069487341316,
+            "raf_p95_ms": 1116.6000000000174,
+            "completed_render_callback_p95_ms": 6.699999999953434,
+            "input_to_completed_callback_p95_ms": 1129.1500000000815
+          },
+          "actual_providers": ["WebGpuGraphicsProvider"],
+          "observed_canvas_kinds": ["webgpu"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "candidate": {
+          "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [2171.2039999999997, 2114.406, 2219.577],
+            "active_renderer_thread_cpu_ms": [1281.823, 1242.923, 1323.591],
+            "elapsed_ms": [165491.69999999995, 166577.3999999999, 167267.0],
+            "input_operations_per_second": [0.7251118938291167, 0.7203858386551841, 0.717415868043308],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [210, 227, 220],
+            "graphics_active_animation_intervals": [210, 227, 220],
+            "webgpu_canvas_submissions": [210, 227, 220],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [1366.7000000000116, 1383.2999999999884, 1383.3999999999942],
+            "completed_render_callback_p95_ms": [7.3100000000442344, 6.900000000023283, 7.409999999916177],
+            "input_to_completed_callback_p95_ms": [27.129999999981372, 24.44000000001979, 26.360000000044234]
+          },
+          "medians": {
+            "task_wall_ms": 2171.2039999999997,
+            "active_renderer_thread_cpu_ms": 1281.823,
+            "elapsed_ms": 166577.3999999999,
+            "input_operations_per_second": 0.7203858386551841,
+            "raf_p95_ms": 1383.2999999999884,
+            "completed_render_callback_p95_ms": 7.3100000000442344,
+            "input_to_completed_callback_p95_ms": 26.360000000044234
+          },
+          "actual_providers": ["WebGpuGraphicsProvider"],
+          "observed_canvas_kinds": ["webgpu"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        }
+      },
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.060629923414651336,
+        "active_renderer_thread_cpu_ms": 0.04305136182502257,
+        "elapsed_ms": 1.2382349858505404,
+        "input_operations_per_second": 0.8076011511765698,
+        "raf_p95_ms": 1.2388500806017972,
+        "completed_render_callback_p95_ms": 1.0910447761335882,
+        "input_to_completed_callback_p95_ms": 0.023344994022089477
+      },
+      "all_candidate_wall_times_below_all_baseline_times": false,
+      "all_candidate_wall_times_above_all_baseline_times": true,
+      "quality": {
+        "matched_trials": 3,
+        "native_image_pairs": 9,
+        "max_document_changed_fraction": 0.0,
+        "max_ruler_changed_fraction": 0.0,
+        "max_chrome_font_changed_fraction": 0.0
+      },
+      "candidate_diagnostic": {
+        "instrumented_trial_count": 1,
+        "operations": 120,
+        "trusted_inputs": 120,
+        "completed_render_callbacks": 228,
+        "thread_allocated_bytes_including_observer": 21734200,
+        "gc_collections_delta": {
+          "gen0Collections": 4,
+          "gen1Collections": 0,
+          "gen2Collections": 0
+        },
+        "paint_phases": [
+          {
+            "phase": "Document",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Interaction",
+            "count": 120,
+            "totalMilliseconds": 76.700007,
+            "maxMilliseconds": 6.7,
+            "allocatedBytes": 17280
+          },
+          {
+            "phase": "Ruler",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Navigator",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          }
+        ]
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "edit",
+      "passed": true,
+      "job_id": 131299554986,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299554986",
+      "artifact_id": 13961139122,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/artifacts/13961139122",
+      "artifact_sha256": "sha256:5f437a0b17f52a188302a4614e18260b7789f0469ef3ccef0aae8c753a856c4e",
+      "report_sha256": "b771469dd7e082e3b5785563a8f28ca8693a1571ec6e01a2bb631aaddfa90600",
+      "roles": {
+        "baseline": {
+          "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [69590.61, 63637.562000000005, 63275.134],
+            "active_renderer_thread_cpu_ms": [54422.891, 50525.017, 48540.808999999994],
+            "elapsed_ms": [84053.99999999999, 82253.69999999995, 80967.5],
+            "input_operations_per_second": [1.4276536512242133, 1.4589009369791277, 1.4820761416617778],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [194, 189, 190],
+            "graphics_active_animation_intervals": [194, 189, 190],
+            "webgpu_canvas_submissions": [194, 189, 190],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [749.9000000000087, 733.4, 733.3000000000175],
+            "completed_render_callback_p95_ms": [21.33500000000058, 11.20000000006985, 13.944999999995277],
+            "input_to_completed_callback_p95_ms": [794.6549999999944, 847.8900000000256, 849.4250000000233]
+          },
+          "medians": {
+            "task_wall_ms": 63637.562000000005,
+            "active_renderer_thread_cpu_ms": 50525.017,
+            "elapsed_ms": 82253.69999999995,
+            "input_operations_per_second": 1.4589009369791277,
+            "raf_p95_ms": 733.4,
+            "completed_render_callback_p95_ms": 13.944999999995277,
+            "input_to_completed_callback_p95_ms": 847.8900000000256
+          },
+          "actual_providers": ["WebGpuGraphicsProvider"],
+          "observed_canvas_kinds": ["webgpu"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "candidate": {
+          "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [40489.643000000004, 39858.056, 40490.976],
+            "active_renderer_thread_cpu_ms": [26662.7, 26725.759000000002, 26517.620000000003],
+            "elapsed_ms": [80549.09999999998, 84173.79999999993, 80163.5],
+            "input_operations_per_second": [1.489774559864729, 1.4256217492854082, 1.496940627592358],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [122, 122, 122],
+            "graphics_active_animation_intervals": [122, 122, 122],
+            "webgpu_canvas_submissions": [122, 122, 122],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [666.6999999999855, 700.0, 666.7000000000029],
+            "completed_render_callback_p95_ms": [9.049999999979615, 9.979999999998832, 8.385000000125725],
+            "input_to_completed_callback_p95_ms": [671.725, 713.4549999999523, 684.729999999993]
+          },
+          "medians": {
+            "task_wall_ms": 40489.643000000004,
+            "active_renderer_thread_cpu_ms": 26662.7,
+            "elapsed_ms": 80549.09999999998,
+            "input_operations_per_second": 1.489774559864729,
+            "raf_p95_ms": 666.7000000000029,
+            "completed_render_callback_p95_ms": 9.049999999979615,
+            "input_to_completed_callback_p95_ms": 684.729999999993
+          },
+          "actual_providers": ["WebGpuGraphicsProvider"],
+          "observed_canvas_kinds": ["webgpu"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        }
+      },
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.6362538370027437,
+        "active_renderer_thread_cpu_ms": 0.5277128358017178,
+        "elapsed_ms": 0.9792763121902118,
+        "input_operations_per_second": 1.021162247622878,
+        "raf_p95_ms": 0.9090537223888777,
+        "completed_render_callback_p95_ms": 0.6489781283601779,
+        "input_to_completed_callback_p95_ms": 0.807569378103259
+      },
+      "all_candidate_wall_times_below_all_baseline_times": false,
+      "all_candidate_wall_times_above_all_baseline_times": false,
+      "quality": {
+        "matched_trials": 3,
+        "native_image_pairs": 9,
+        "max_document_changed_fraction": 0.0,
+        "max_ruler_changed_fraction": 0.0,
+        "max_chrome_font_changed_fraction": 0.0
+      },
+      "candidate_diagnostic": {
+        "instrumented_trial_count": 1,
+        "operations": 120,
+        "trusted_inputs": 120,
+        "completed_render_callbacks": 122,
+        "thread_allocated_bytes_including_observer": 367285096,
+        "gc_collections_delta": {
+          "gen0Collections": 80,
+          "gen1Collections": 3,
+          "gen2Collections": 3
+        },
+        "paint_phases": [
+          {
+            "phase": "Document",
+            "count": 120,
+            "totalMilliseconds": 29558.600002,
+            "maxMilliseconds": 347.8,
+            "allocatedBytes": 60480
+          },
+          {
+            "phase": "Interaction",
+            "count": 120,
+            "totalMilliseconds": 253.199987,
+            "maxMilliseconds": 6.800001,
+            "allocatedBytes": 617280
+          },
+          {
+            "phase": "Ruler",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Navigator",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          }
+        ]
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "idle",
+      "passed": true,
+      "job_id": 131299555060,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299555060",
+      "artifact_id": 13959324654,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/artifacts/13959324654",
+      "artifact_sha256": "sha256:b5cbc107b49d07a3ce2703b6f845d1022640230236352477527c25186ca09083",
+      "report_sha256": "0dee2df88a8725fbe23ee3521c577a300cb285e80cb1e3fe54e99e1ed7c6d9dd",
+      "roles": {
+        "baseline": {
+          "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [9.338000000000001, 8.638, 8.739],
+            "active_renderer_thread_cpu_ms": [12.1, 11.574000000000002, 11.766],
+            "elapsed_ms": [2029.2000000000116, 2030.0, 2028.9000000000233],
+            "input_operations_per_second": [null, null, null],
+            "operations": [0, 0, 0],
+            "trusted_inputs": [0, 0, 0],
+            "completed_render_callbacks": [0, 0, 0],
+            "graphics_active_animation_intervals": [0, 0, 0],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [16.70000000001164, 16.79999999998836, 16.70000000001164],
+            "completed_render_callback_p95_ms": [null, null, null],
+            "input_to_completed_callback_p95_ms": [null, null, null]
+          },
+          "medians": {
+            "task_wall_ms": 8.739,
+            "active_renderer_thread_cpu_ms": 11.766,
+            "elapsed_ms": 2029.2000000000116,
+            "input_operations_per_second": null,
+            "raf_p95_ms": 16.70000000001164,
+            "completed_render_callback_p95_ms": null,
+            "input_to_completed_callback_p95_ms": null
+          },
+          "actual_providers": ["WebGpuGraphicsProvider"],
+          "observed_canvas_kinds": ["webgpu"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "candidate": {
+          "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [9.953, 8.536, 9.965],
+            "active_renderer_thread_cpu_ms": [12.664, 11.343, 12.577000000000002],
+            "elapsed_ms": [2029.7000000000116, 2030.0, 2029.4000000000233],
+            "input_operations_per_second": [null, null, null],
+            "operations": [0, 0, 0],
+            "trusted_inputs": [0, 0, 0],
+            "completed_render_callbacks": [0, 0, 0],
+            "graphics_active_animation_intervals": [0, 0, 0],
+            "webgpu_canvas_submissions": [0, 0, 0],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [16.70000000001164, 16.80000000000291, 16.70000000001164],
+            "completed_render_callback_p95_ms": [null, null, null],
+            "input_to_completed_callback_p95_ms": [null, null, null]
+          },
+          "medians": {
+            "task_wall_ms": 9.953,
+            "active_renderer_thread_cpu_ms": 12.577000000000002,
+            "elapsed_ms": 2029.7000000000116,
+            "input_operations_per_second": null,
+            "raf_p95_ms": 16.70000000001164,
+            "completed_render_callback_p95_ms": null,
+            "input_to_completed_callback_p95_ms": null
+          },
+          "actual_providers": ["WebGpuGraphicsProvider"],
+          "observed_canvas_kinds": ["webgpu"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        }
+      },
+      "candidate_over_baseline": {
+        "task_wall_ms": 1.1389174962810389,
+        "active_renderer_thread_cpu_ms": 1.0689274179840218,
+        "elapsed_ms": 1.0002464025231619,
+        "input_operations_per_second": null,
+        "raf_p95_ms": 1.0,
+        "completed_render_callback_p95_ms": null,
+        "input_to_completed_callback_p95_ms": null
+      },
+      "all_candidate_wall_times_below_all_baseline_times": false,
+      "all_candidate_wall_times_above_all_baseline_times": false,
+      "quality": {
+        "matched_trials": 3,
+        "native_image_pairs": 9,
+        "max_document_changed_fraction": 0.0,
+        "max_ruler_changed_fraction": 0.0,
+        "max_chrome_font_changed_fraction": 0.0
+      },
+      "candidate_diagnostic": {
+        "instrumented_trial_count": 1,
+        "operations": 0,
+        "trusted_inputs": 0,
+        "completed_render_callbacks": 0,
+        "thread_allocated_bytes_including_observer": 143728,
+        "gc_collections_delta": {
+          "gen0Collections": 0,
+          "gen1Collections": 0,
+          "gen2Collections": 0
+        },
+        "paint_phases": [
+          {
+            "phase": "Document",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Interaction",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Ruler",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Navigator",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          }
+        ]
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "pan",
+      "passed": true,
+      "job_id": 131299555154,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299555154",
+      "artifact_id": 13962087062,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/artifacts/13962087062",
+      "artifact_sha256": "sha256:7386520588e2b3bf2e8cde35653ec508a6ae0d497fe79d8cbbe73cd0c86b64b8",
+      "report_sha256": "13a80a963ff9e00f5225772a5370b909bb681fea8a252a8225e0c7f614464518",
+      "roles": {
+        "baseline": {
+          "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [40205.611000000004, 40727.935000000005, 41072.654],
+            "active_renderer_thread_cpu_ms": [34078.547999999995, 34241.435000000005, 34347.83299999999],
+            "elapsed_ms": [128455.40000000002, 128561.1000000001, 128924.8999999999],
+            "input_operations_per_second": [0.934176375613637, 0.9334083171348092, 0.9307744275931188],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [230, 224, 230],
+            "graphics_active_animation_intervals": [230, 224, 230],
+            "webgpu_canvas_submissions": [230, 224, 230],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [1066.6000000000058, 1066.6000000000058, 1066.6999999999825],
+            "completed_render_callback_p95_ms": [8.065000000016875, 8.099999999860302, 7.474999999953425],
+            "input_to_completed_callback_p95_ms": [1080.9699999999661, 1076.1050000001328, 1075.2199999999489]
+          },
+          "medians": {
+            "task_wall_ms": 40727.935000000005,
+            "active_renderer_thread_cpu_ms": 34241.435000000005,
+            "elapsed_ms": 128561.1000000001,
+            "input_operations_per_second": 0.9334083171348092,
+            "raf_p95_ms": 1066.6000000000058,
+            "completed_render_callback_p95_ms": 8.065000000016875,
+            "input_to_completed_callback_p95_ms": 1076.1050000001328
+          },
+          "actual_providers": ["WebGpuGraphicsProvider"],
+          "observed_canvas_kinds": ["webgpu"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "candidate": {
+          "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [38326.74, 37704.479, 38031.43],
+            "active_renderer_thread_cpu_ms": [31694.098, 31642.136000000002, 31440.429],
+            "elapsed_ms": [127649.0, 127683.40000000002, 127511.3999999999],
+            "input_operations_per_second": [0.940077869783547, 0.9398245974026379, 0.9410923258626295],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [234, 230, 228],
+            "graphics_active_animation_intervals": [234, 230, 228],
+            "webgpu_canvas_submissions": [234, 230, 228],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [1050.0, 1050.0, 1050.0],
+            "completed_render_callback_p95_ms": [7.635000000044237, 6.599999999976717, 7.199999999953434],
+            "input_to_completed_callback_p95_ms": [1056.9150000000257, 1063.15, 1073.8050000000512]
+          },
+          "medians": {
+            "task_wall_ms": 38031.43,
+            "active_renderer_thread_cpu_ms": 31642.136000000002,
+            "elapsed_ms": 127649.0,
+            "input_operations_per_second": 0.940077869783547,
+            "raf_p95_ms": 1050.0,
+            "completed_render_callback_p95_ms": 7.199999999953434,
+            "input_to_completed_callback_p95_ms": 1063.15
+          },
+          "actual_providers": ["WebGpuGraphicsProvider"],
+          "observed_canvas_kinds": ["webgpu"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        }
+      },
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.9337922484898877,
+        "active_renderer_thread_cpu_ms": 0.9240890751219976,
+        "elapsed_ms": 0.9929053189495104,
+        "input_operations_per_second": 1.0071453752085804,
+        "raf_p95_ms": 0.9844365272829498,
+        "completed_render_callback_p95_ms": 0.8927464352062454,
+        "input_to_completed_callback_p95_ms": 0.9879612119633947
+      },
+      "all_candidate_wall_times_below_all_baseline_times": true,
+      "all_candidate_wall_times_above_all_baseline_times": false,
+      "quality": {
+        "matched_trials": 3,
+        "native_image_pairs": 9,
+        "max_document_changed_fraction": 0.0,
+        "max_ruler_changed_fraction": 0.0,
+        "max_chrome_font_changed_fraction": 0.0
+      },
+      "candidate_diagnostic": {
+        "instrumented_trial_count": 1,
+        "operations": 120,
+        "trusted_inputs": 120,
+        "completed_render_callbacks": 231,
+        "thread_allocated_bytes_including_observer": 29231376,
+        "gc_collections_delta": {
+          "gen0Collections": 4,
+          "gen1Collections": 1,
+          "gen2Collections": 1
+        },
+        "paint_phases": [
+          {
+            "phase": "Document",
+            "count": 121,
+            "totalMilliseconds": 35465.400011,
+            "maxMilliseconds": 507.600001,
+            "allocatedBytes": 13552
+          },
+          {
+            "phase": "Interaction",
+            "count": 121,
+            "totalMilliseconds": 33.899995,
+            "maxMilliseconds": 3.3,
+            "allocatedBytes": 17424
+          },
+          {
+            "phase": "Ruler",
+            "count": 240,
+            "totalMilliseconds": 292.300009,
+            "maxMilliseconds": 7.5,
+            "allocatedBytes": 1845240
+          },
+          {
+            "phase": "Navigator",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          }
+        ]
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "selection",
+      "passed": true,
+      "job_id": 131299554976,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299554976",
+      "artifact_id": 13959684372,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/artifacts/13959684372",
+      "artifact_sha256": "sha256:38a5c6c9abb0e4345b1a04150b40af95c598b00d8629d04f898afac4c6242741",
+      "report_sha256": "606dabf30b62bee72b6d02caf1290e9d75e83516f4a80710cce9bbcf650d7109",
+      "roles": {
+        "baseline": {
+          "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [32725.49, 41407.340000000004, 34781.28],
+            "active_renderer_thread_cpu_ms": [24005.575, 30204.91, 25820.229000000003],
+            "elapsed_ms": [49826.30000000002, 71748.29999999993, 52289.5],
+            "input_operations_per_second": [2.428436388011953, 1.6864511075523756, 2.314040103653697],
+            "operations": [121, 121, 121],
+            "trusted_inputs": [121, 121, 121],
+            "completed_render_callbacks": [128, 129, 134],
+            "graphics_active_animation_intervals": [128, 129, 134],
+            "webgpu_canvas_submissions": [128, 129, 134],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [849.9899999999994, 816.5999999999913, 848.2399999999966],
+            "completed_render_callback_p95_ms": [9.164999999990686, 8.420000000018625, 8.444999999977878],
+            "input_to_completed_callback_p95_ms": [794.7999999999884, 813.3999999999069, 774.5]
+          },
+          "medians": {
+            "task_wall_ms": 34781.28,
+            "active_renderer_thread_cpu_ms": 25820.229000000003,
+            "elapsed_ms": 52289.5,
+            "input_operations_per_second": 2.314040103653697,
+            "raf_p95_ms": 848.2399999999966,
+            "completed_render_callback_p95_ms": 8.444999999977878,
+            "input_to_completed_callback_p95_ms": 794.7999999999884
+          },
+          "actual_providers": ["WebGpuGraphicsProvider"],
+          "observed_canvas_kinds": ["webgpu"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "candidate": {
+          "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [7921.096, 9310.399, 10048.218],
+            "active_renderer_thread_cpu_ms": [4504.865, 5154.974, 5491.406000000001],
+            "elapsed_ms": [79962.10000000003, 98693.60000000003, 108479.59999999998],
+            "input_operations_per_second": [1.5132168864999787, 1.2260166819327694, 1.1154170922459157],
+            "operations": [121, 121, 121],
+            "trusted_inputs": [121, 121, 121],
+            "completed_render_callbacks": [127, 128, 124],
+            "graphics_active_animation_intervals": [127, 128, 124],
+            "webgpu_canvas_submissions": [127, 128, 124],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [916.6000000000058, 916.5650000000038, 933.2999999999993],
+            "completed_render_callback_p95_ms": [9.970000000006983, 10.864999999993596, 17.77499999999999],
+            "input_to_completed_callback_p95_ms": [920.5999999999767, 921.6000000000349, 944.8999999999069]
+          },
+          "medians": {
+            "task_wall_ms": 9310.399,
+            "active_renderer_thread_cpu_ms": 5154.974,
+            "elapsed_ms": 98693.60000000003,
+            "input_operations_per_second": 1.2260166819327694,
+            "raf_p95_ms": 916.6000000000058,
+            "completed_render_callback_p95_ms": 10.864999999993596,
+            "input_to_completed_callback_p95_ms": 921.6000000000349
+          },
+          "actual_providers": ["WebGpuGraphicsProvider"],
+          "observed_canvas_kinds": ["webgpu"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        }
+      },
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.2676841967863172,
+        "active_renderer_thread_cpu_ms": 0.19964865532369985,
+        "elapsed_ms": 1.88744585433022,
+        "input_operations_per_second": 0.5298165230572194,
+        "raf_p95_ms": 1.0805903989437065,
+        "completed_render_callback_p95_ms": 1.2865600947332219,
+        "input_to_completed_callback_p95_ms": 1.159536990437907
+      },
+      "all_candidate_wall_times_below_all_baseline_times": false,
+      "all_candidate_wall_times_above_all_baseline_times": true,
+      "quality": {
+        "matched_trials": 3,
+        "native_image_pairs": 9,
+        "max_document_changed_fraction": 0.0,
+        "max_ruler_changed_fraction": 0.0,
+        "max_chrome_font_changed_fraction": 0.0
+      },
+      "candidate_diagnostic": {
+        "instrumented_trial_count": 1,
+        "operations": 121,
+        "trusted_inputs": 121,
+        "completed_render_callbacks": 127,
+        "thread_allocated_bytes_including_observer": 319193984,
+        "gc_collections_delta": {
+          "gen0Collections": 50,
+          "gen1Collections": 8,
+          "gen2Collections": 8
+        },
+        "paint_phases": [
+          {
+            "phase": "Document",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Interaction",
+            "count": 121,
+            "totalMilliseconds": 202.3,
+            "maxMilliseconds": 6.5,
+            "allocatedBytes": 334424
+          },
+          {
+            "phase": "Ruler",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          },
+          {
+            "phase": "Navigator",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          }
+        ]
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "zoom",
+      "passed": true,
+      "job_id": 131299554841,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/job/131299554841",
+      "artifact_id": 13962782218,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229/artifacts/13962782218",
+      "artifact_sha256": "sha256:144a6fba42e2ea1d00c06e535f3a1548fad456397cdd7dcc055f82ebf4d5b9ff",
+      "report_sha256": "0add3007b7ac0b44a256a04628e416707a6e07d8bbaa3c5a8509809c4d606677",
+      "roles": {
+        "baseline": {
+          "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [43123.753000000004, 38787.742, 45199.765],
+            "active_renderer_thread_cpu_ms": [36849.512, 33317.017, 36622.986],
+            "elapsed_ms": [142905.7, 145559.40000000014, 144382.5],
+            "input_operations_per_second": [0.8397145810139133, 0.8244057065362999, 0.8311256558100878],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [242, 256, 245],
+            "graphics_active_animation_intervals": [242, 256, 245],
+            "webgpu_canvas_submissions": [242, 256, 245],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [1216.5999999999767, 1183.2999999999884, 1200.0],
+            "completed_render_callback_p95_ms": [6.0, 5.900000000139698, 6.179999999981372],
+            "input_to_completed_callback_p95_ms": [53.895000000024304, 53.900000000139556, 54.09499999986714]
+          },
+          "medians": {
+            "task_wall_ms": 43123.753000000004,
+            "active_renderer_thread_cpu_ms": 36622.986,
+            "elapsed_ms": 144382.5,
+            "input_operations_per_second": 0.8311256558100878,
+            "raf_p95_ms": 1200.0,
+            "completed_render_callback_p95_ms": 6.0,
+            "input_to_completed_callback_p95_ms": 53.900000000139556
+          },
+          "actual_providers": ["WebGpuGraphicsProvider"],
+          "observed_canvas_kinds": ["webgpu"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        },
+        "candidate": {
+          "source_sha": "a44ec76199b7dd2ab3fb13032a730353907b7d82",
+          "trial_order_for_arrays": [1, 2, 3],
+          "trial_values": {
+            "task_wall_ms": [38397.493, 40133.804000000004, 39524.308999999994],
+            "active_renderer_thread_cpu_ms": [32473.568, 32791.559, 32149.423999999995],
+            "elapsed_ms": [145564.79999999993, 144525.5, 142347.80000000005],
+            "input_operations_per_second": [0.824375123656269, 0.8303033028773469, 0.8430056523528987],
+            "operations": [120, 120, 120],
+            "trusted_inputs": [120, 120, 120],
+            "completed_render_callbacks": [255, 251, 253],
+            "graphics_active_animation_intervals": [255, 251, 253],
+            "webgpu_canvas_submissions": [255, 251, 253],
+            "inputs_without_later_graphics": [0, 0, 0],
+            "inputs_without_completed_render_callback": [0, 0, 0],
+            "raf_p95_ms": [1199.8999999999942, 1183.3000000000466, 1183.2999999999884],
+            "completed_render_callback_p95_ms": [6.260000000055876, 6.149999999906868, 6.0],
+            "input_to_completed_callback_p95_ms": [53.80500000003944, 53.9949999999952, 53.989999999990545]
+          },
+          "medians": {
+            "task_wall_ms": 39524.308999999994,
+            "active_renderer_thread_cpu_ms": 32473.568,
+            "elapsed_ms": 144525.5,
+            "input_operations_per_second": 0.8303033028773469,
+            "raf_p95_ms": 1183.3000000000466,
+            "completed_render_callback_p95_ms": 6.149999999906868,
+            "input_to_completed_callback_p95_ms": 53.989999999990545
+          },
+          "actual_providers": ["WebGpuGraphicsProvider"],
+          "observed_canvas_kinds": ["webgpu"],
+          "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        }
+      },
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.9165322183345218,
+        "active_renderer_thread_cpu_ms": 0.8866990801896929,
+        "elapsed_ms": 1.0009904247398405,
+        "input_operations_per_second": 0.9990105552307378,
+        "raf_p95_ms": 0.9860833333333722,
+        "completed_render_callback_p95_ms": 1.0249999999844779,
+        "input_to_completed_callback_p95_ms": 1.001669758809847
+      },
+      "all_candidate_wall_times_below_all_baseline_times": false,
+      "all_candidate_wall_times_above_all_baseline_times": false,
+      "quality": {
+        "matched_trials": 3,
+        "native_image_pairs": 9,
+        "max_document_changed_fraction": 0.0,
+        "max_ruler_changed_fraction": 0.0,
+        "max_chrome_font_changed_fraction": 0.0
+      },
+      "candidate_diagnostic": {
+        "instrumented_trial_count": 1,
+        "operations": 120,
+        "trusted_inputs": 120,
+        "completed_render_callbacks": 256,
+        "thread_allocated_bytes_including_observer": 27895432,
+        "gc_collections_delta": {
+          "gen0Collections": 2,
+          "gen1Collections": 1,
+          "gen2Collections": 1
+        },
+        "paint_phases": [
+          {
+            "phase": "Document",
+            "count": 112,
+            "totalMilliseconds": 35963.8,
+            "maxMilliseconds": 657,
+            "allocatedBytes": 12544
+          },
+          {
+            "phase": "Interaction",
+            "count": 112,
+            "totalMilliseconds": 24.8,
+            "maxMilliseconds": 3.2,
+            "allocatedBytes": 16128
+          },
+          {
+            "phase": "Ruler",
+            "count": 224,
+            "totalMilliseconds": 302.7,
+            "maxMilliseconds": 7.9,
+            "allocatedBytes": 1405128
+          },
+          {
+            "phase": "Navigator",
+            "count": 0,
+            "totalMilliseconds": 0,
+            "maxMilliseconds": 0,
+            "allocatedBytes": 0
+          }
+        ]
+      }
+    }
+  ],
+  "highlighted_results": [
+    {
+      "backend": "skia-preferred",
+      "workload": "edit",
+      "interpretation": "Both active renderer-thread CPU and offered-input workload elapsed time decreased; every candidate elapsed sample was below every baseline sample.",
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.33437976044859496,
+        "active_renderer_thread_cpu_ms": 0.30772086356261547,
+        "elapsed_ms": 0.5932253643861582,
+        "input_operations_per_second": 1.6857000054856943,
+        "raf_p95_ms": 0.5,
+        "completed_render_callback_p95_ms": 1.0608154803014234,
+        "input_to_completed_callback_p95_ms": 0.4334848333736549
+      }
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "selection",
+      "interpretation": "Both active renderer-thread CPU and offered-input workload elapsed time decreased; every candidate elapsed sample was below every baseline sample.",
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.5532971869606677,
+        "active_renderer_thread_cpu_ms": 0.5383374421588432,
+        "elapsed_ms": 0.7839261271652167,
+        "input_operations_per_second": 1.2756304010636,
+        "raf_p95_ms": 0.7504499100179899,
+        "completed_render_callback_p95_ms": 0.8843728101011963,
+        "input_to_completed_callback_p95_ms": 0.6543778801843319
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "selection",
+      "interpretation": "Active renderer-thread CPU decreased, but offered-input workload elapsed time regressed substantially. This is not an end-to-end speedup.",
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.2676841967863172,
+        "active_renderer_thread_cpu_ms": 0.19964865532369985,
+        "elapsed_ms": 1.88744585433022,
+        "input_operations_per_second": 0.5298165230572194,
+        "raf_p95_ms": 1.0805903989437065,
+        "completed_render_callback_p95_ms": 1.2865600947332219,
+        "input_to_completed_callback_p95_ms": 1.159536990437907
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "brush-hover",
+      "interpretation": "Retaining the SVG document greatly reduced active renderer-thread CPU, while the full offered-input workload remained slower. CPU savings alone do not establish responsiveness.",
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.060629923414651336,
+        "active_renderer_thread_cpu_ms": 0.04305136182502257,
+        "elapsed_ms": 1.2382349858505404,
+        "input_operations_per_second": 0.8076011511765698,
+        "raf_p95_ms": 1.2388500806017972,
+        "completed_render_callback_p95_ms": 1.0910447761335882,
+        "input_to_completed_callback_p95_ms": 0.023344994022089477
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "edit",
+      "interpretation": "Active renderer-thread CPU decreased, but the small workload elapsed change does not establish a substantial throughput improvement.",
+      "candidate_over_baseline": {
+        "task_wall_ms": 0.6362538370027437,
+        "active_renderer_thread_cpu_ms": 0.5277128358017178,
+        "elapsed_ms": 0.9792763121902118,
+        "input_operations_per_second": 1.021162247622878,
+        "raf_p95_ms": 0.9090537223888777,
+        "completed_render_callback_p95_ms": 0.6489781283601779,
+        "input_to_completed_callback_p95_ms": 0.807569378103259
+      }
+    }
+  ]
+}

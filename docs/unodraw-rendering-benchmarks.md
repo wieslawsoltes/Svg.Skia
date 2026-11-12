@@ -147,8 +147,43 @@ The experiment passed all nine paired DPR 1 images per workload, but its separat
 native-size AOT quality matrix passed only 29/30 pairs: DPR 2 actual-size text
 exceeded the unchanged luminance-12/fraction-0.001 limit. This version is neither
 a quality-qualified speedup nor a reason to select the GPU bridge by default.
-Later glyph-preserving changes and the single-surface experiment require new
-browser evidence. Software GPU measurements do not establish hardware throughput.
+The subsequent glyph-preserving candidate `523c1ed5e7507d26288e08255b86a2e14994367c`
+passes its [Interpreter browser matrix](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111):
+all 30 native-size comparisons pass at DPR 1/1.25/2. The previously failing DPR 2
+actual-size document region now has a changed-pixel fraction of 0.0000651 under
+the original luminance-12 gate, versus the unchanged 0.001 limit. Its independent
+composite matrix also passes 30/30 comparisons with zero pixels above that
+luminance threshold in every compared region. AOT, the eight-scene matrix and
+total-throughput evidence remain separate gates. Software GPU measurements do
+not establish hardware throughput.
+
+The retained-panel candidate `a44ec76199b7dd2ab3fb13032a730353907b7d82`
+provides a measured improvement for editing and selection on Skia/WebGL. Its
+[matched application trials](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43244676229)
+keep the regression baseline and candidate on the same runner, with three
+independently warmed trials per revision and unchanged native-pixel gates.
+All twelve timing shards and their aggregate pass: 90 primary trials, twelve
+separate diagnostics and 108 matched baseline/candidate image pairs. The
+[audited summary](benchmarks/unodraw-retained-ui-2026-11-12.json) retains source
+and artifact identities, individual samples, counts, quality maxima and
+diagnostic allocation/paint totals.
+
+| Provider / workload | Baseline median elapsed | Candidate median elapsed | Input throughput change | Active main-thread CPU change |
+| --- | ---: | ---: | ---: | ---: |
+| Skia/WebGL edit, 120 inputs | 27.656 s | 16.406 s | +68.6% | −69.2% |
+| Skia/WebGL selection, 121 inputs | 14.392 s | 11.283 s | +27.6% | −46.2% |
+| WebGPU edit, 120 inputs | 82.254 s | 80.549 s | +2.1% | −47.2% |
+| WebGPU selection, 121 inputs | 52.290 s | 98.694 s | −47.0% | −80.0% |
+
+Every Skia edit candidate trial finishes before every matched baseline trial;
+the same is true for Skia selection. Their image comparisons pass and no trusted
+input is left without a later graphics callback. Skia pan, zoom and brush hover,
+and WebGPU pan and zoom remain approximately unchanged in elapsed time. WebGPU
+brush hover takes 23.8% longer despite its large CPU reduction. These WebGPU
+regressions show why CPU savings alone cannot qualify an optimization: the separate
+interaction surface still incurs composition costs. The single-surface and
+direct Graphite experiments address those remaining costs and require their own
+quality and throughput evidence.
 
 See the [browser benchmark instructions](../tests/UnoDraw.BrowserPerformance/README.md)
 for exact workloads, metric definitions, controls and reproduction commands.
@@ -210,7 +245,8 @@ each level. The app adapter replaces that transfer path for editor surfaces:
 
 The public island extension and
 [retained WebGPU canvas target](https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/AddIns/Uno.WinUI.Graphics3DWebGpu/WebGpuCanvasElement.cs)
-supply the adapter without a runtime fork or a new Skia version. It creates no GL
+supply this persistent adapter without requiring a runtime fork or a Skia upgrade.
+The optional Graphite path below selects a newer browser Skia package. The persistent adapter creates no GL
 context and performs no GPU readback. Physical-size transport children compensate
 for the pinned WebGPU canvas control's missing DPR factor. Non-translation ancestor
 transforms and projections retain Uno's original mipmapped path rather than
@@ -273,6 +309,61 @@ Unsupported document semantics and exhausted tile budgets use the original CPU
 frame. These safeguards and native prototype comparisons do not replace the
 browser quality or total-throughput gates.
 
+### Direct Graphite WebGPU experiment
+
+`?canvasBridge=graphite` uses the released SkiaSharp 4.156.0 Graphite/Dawn APIs to
+paint directly into Uno's WebGPU target. It borrows the original Uno instance,
+device, queue and RGBA8 texture; it does not create another browser graphics
+device. A retained recorder wraps that target in `SKSurface`, replays the existing
+SVG model with the same glyph-preserving painter, and submits asynchronously on
+the shared queue before Uno samples the texture. This removes the WebGL external
+image copy and the full-document CPU raster/upload from eligible document frames.
+Auxiliary canvases retain the existing persistent CPU bridge.
+
+Only the UnoDraw browser head selects SkiaSharp 4.156.0 and the matching
+HarfBuzzSharp 14.4.0.100 packages. Other heads and shared project package pins
+retain their existing versions. Uno 7.0.32 and this Skia release contain the same
+Dawn `v20260624.223603` C ABI. Uno adds its device/texture import exports to the
+port's JavaScript, so the browser build selects Uno as the sole JavaScript port
+owner and supplies the matching Skia native archive through the normal
+`NativeFileReference` extension point. Loading both port copies fails with
+duplicate generated ABI tables; the build must not do that.
+
+The [dependency and native link probe](benchmarks/unodraw-graphite-dependencies-2026-11-12.json)
+verifies the matching headers/generated tables and a successful standalone
+Emscripten link with one native Dawn implementation. A separate old/new native
+CPU comparison preserves all 81 full-resolution BGRA images byte-for-byte:
+eight canonical scenes and the welcome document, three DPRs and three camera
+transforms, with identical renderer assemblies and fonts. These are dependency
+and native pixel checks; the real Uno browser build and GPU output remain
+separate required gates.
+
+One Graphite context is shared per Uno device. Each document canvas owns its
+recorder, image provider and target wrapper. Image caching is bounded, and failed
+image conversion rejects the whole Graphite frame instead of silently dropping
+content. Unsupported document semantics discard an unsubmitted recording and
+use the existing CPU painter. An insertion or submission failure disables reuse
+of the shared context because partially encoded commands must never be submitted
+after a CPU fallback has overwritten the target.
+
+Native cleanup waits asynchronously for the shared queue and then polls Skia's
+completion callbacks before releasing the recorder and context. Synchronous
+waiting would block the browser event loop. The pinned Dawn port does not settle
+its native completion future when the JavaScript queue promise rejects; native
+context destruction with outstanding work would abort. Such an unprovable
+retirement disables Graphite for the session and retains only native resources
+that cannot safely be destroyed, while releasing managed document/text caches.
+It cannot create additional Graphite contexts until the page is reloaded.
+
+The benchmark requires actual successful document submissions during the timed
+window and zero `copyExternalImageToTexture` calls. It reports auxiliary texture
+writes separately; those writes are not evidence of a full-document upload.
+After timing stops, an explicit shared-queue drain and final screenshot validation
+are measured separately to expose unfinished GPU work. Neither a queue submission
+nor a requestAnimationFrame callback proves physical display presentation.
+Default bridge selection remains unchanged until the native-pixel matrix,
+eight-scene SVG matrix and repeated same-artifact throughput comparisons pass.
+
 ### Single-surface cached document experiment
 
 `?canvasBridge=composite` keeps the CPU painter and persistent upload, but stores
@@ -332,9 +423,9 @@ Hidden color/gradient editors also defer automatic reconstruction. In particular
 building a clean gradient draft serializes and parses the document, so two hidden
 editors must not repeat that work on every selection notification. Pending drafts
 retain their existing ownership checks; explicit commands materialize a clean
-current draft when needed. This implementation requires fresh application
-benchmarks: the diagnostic figures above locate the old cost and are not a
-measured speedup claim for the retained-panel changes.
+current draft when needed. The diagnostic figures in this section locate the old
+cost; the separate matched application measurements above establish the measured
+Skia editing/selection improvements and the remaining WebGPU regression.
 
 ## Diagnostic scope
 
