@@ -307,7 +307,10 @@ verify restored-editor-multiline-focus
 command 'Select all'
 command 'gradient-source-create'
 capture editor-gradient-source-stops
-accept_dialog gradient-source-create
+checkpoint="$(input_checkpoint)"
+xdotool mousemove --window "$window" 613 661 click 1
+wait_input "$checkpoint" 'modal-closed result=Primary$'
+wait_input "$checkpoint" 'command-completed id=gradient-source-create$'
 save
 python3 "$source_dir/assert_gradient_target.py" "$document" "$output" fill --mode source-defaults --name editor-gradient-source-default-stops
 command 'Undo'
