@@ -1,0 +1,125 @@
+name: UnoDraw native render quality
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_run_id:
+        description: Performance run containing matching baseline and candidate AOT packages
+        required: true
+        default: '43223723275'
+  pull_request:
+    paths:
+      - '.github/workflows/unodraw-render-quality.yml'
+      - 'tests/UnoDraw.BrowserRenderQuality/**'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: unodraw-native-quality-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    name: Existing AOT native pixels (${{ matrix.suite }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [bridge, cross-build]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Download the existing candidate AOT package
+        uses: actions/download-artifact@v4
+        with:
+          name: unodraw-performance-package-candidate
+          path: artifacts/packages/candidate
+          run-id: ${{ inputs.package_run_id || '43223723275' }}
+          github-token: ${{ github.token }}
+      - name: Download the matching baseline AOT package
+        if: matrix.suite == 'cross-build'
+        uses: actions/download-artifact@v4
+        with:
+          name: unodraw-performance-package-baseline
+          path: artifacts/packages/baseline
+          run-id: ${{ inputs.package_run_id || '43223723275' }}
+          github-token: ${{ github.token }}
+      - name: Reject stale binaries after any production-source change
+        env:
+          PACKAGE_RUN_ID: ${{ inputs.package_run_id || '43223723275' }}
+          QUALITY_SUITE: ${{ matrix.suite }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          manifest = json.loads(Path('artifacts/packages/candidate/benchmark-package.json').read_text())
+          if (manifest.get('role') != 'candidate' or manifest.get('configuration') != 'Release'
+                  or manifest.get('execution_mode') != 'InterpreterAndAOT'):
+              raise SystemExit('Native quality requires the existing Release InterpreterAndAOT candidate artifact')
+          source = manifest.get('source_sha', '')
+          if not re.fullmatch(r'[0-9a-f]{40}', source):
+              raise SystemExit('The candidate package must record its exact source commit')
+          if subprocess.run(['git', 'cat-file', '-e', source + '^{commit}'],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
+              subprocess.run(['git', 'fetch', '--no-tags', '--depth=1', 'origin', source], check=True)
+          head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          changed = [name for name in subprocess.check_output(
+              ['git', 'diff', '--no-renames', '--name-only', '-z', source, head], text=True).split('\0') if name]
+          allowed = ('tests/', 'docs/', '.github/')
+          production = [name for name in changed if not name.startswith(allowed)]
+          evidence = {'package_run_id': os.environ['PACKAGE_RUN_ID'], 'package_source_sha': source,
+                      'harness_head_sha': head, 'allowed_difference_prefixes': list(allowed),
+                      'changed_paths': changed, 'production_changes': production,
+                      'production_source_equivalent': not production,
+                      'execution_mode': manifest['execution_mode']}
+          output = Path('artifacts/unodraw-render-quality') / os.environ['QUALITY_SUITE']
+          output.mkdir(parents=True, exist_ok=True)
+          (output / 'source-equivalence.json').write_text(json.dumps(evidence, indent=2) + '\n')
+          print(json.dumps(evidence, indent=2))
+          if production:
+              raise SystemExit('Published candidate differs in production source; select an AOT package run for this application revision')
+          PY
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install the same pinned correctness-test browser
+        run: |
+          python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
+          python -m playwright install --with-deps chromium
+          python -m unittest discover -s tests/UnoDraw.BrowserPerformance -p 'test_*.py'
+          python -m unittest discover -s tests/UnoDraw.BrowserRenderQuality -p 'test_*.py'
+      - name: Verify persistent and legacy bridges on the existing candidate AOT binary
+        if: matrix.suite == 'bridge'
+        run: >-
+          python tests/UnoDraw.BrowserPerformance/bridge_quality.py
+          --package artifacts/packages/candidate
+          --output artifacts/unodraw-render-quality/bridge
+      - name: Compare baseline and candidate at native high-DPI resolution
+        if: matrix.suite == 'cross-build'
+        run: >-
+          python tests/UnoDraw.BrowserRenderQuality/render_quality.py
+          --packages artifacts/packages
+          --output artifacts/unodraw-render-quality/cross-build
+      - name: Publish the available comparison summary
+        if: always()
+        env:
+          QUALITY_SUITE: ${{ matrix.suite }}
+        run: |
+          if test -f "artifacts/unodraw-render-quality/$QUALITY_SUITE/summary.md"; then
+            cat "artifacts/unodraw-render-quality/$QUALITY_SUITE/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-render-quality-${{ matrix.suite }}
+          path: artifacts/unodraw-render-quality/${{ matrix.suite }}
+          if-no-files-found: warn
+          retention-days: 14
