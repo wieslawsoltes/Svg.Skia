@@ -148,6 +148,8 @@ would duplicate that storage without removing the bridge.
 SVG rasterization and upload remain part of this path; performance depends on the
 document and device. Use the explicit Skia preference to compare the direct
 WebGL path on target hardware before drawing performance conclusions.
+The [performance guide](unodraw-performance.md) documents the editor's artboard
+and ruler caches, the retained Navigator overview, and measured preparation costs.
 
 The optional GL island is excluded because Uno 7.0.32's
 [`GLCanvasElement.UpdateFramebuffer`][glcanvas] disposes a zero-sized framebuffer

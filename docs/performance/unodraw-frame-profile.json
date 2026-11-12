@@ -1,0 +1,59 @@
+{
+  "Scope": "Steady-state editor repaint preparation. Excludes document loading, SVG rasterization and GPU composition.",
+  "Runtime": ".NET 10.0.14",
+  "Platform": "Debian GNU/Linux 13 (trixie)",
+  "WarmupIterations": 128,
+  "Comparisons": [
+    {
+      "Name": "Implicit artboard / 10000 artwork nodes",
+      "Uncached": {
+        "MedianMicrosecondsPerIteration": 68.54302001953126,
+        "AllocatedBytesPerIteration": 568,
+        "IterationsPerSample": 2048,
+        "Samples": 7,
+        "Checksum": 28942464
+      },
+      "Cached": {
+        "MedianMicrosecondsPerIteration": 0.3592275390625,
+        "AllocatedBytesPerIteration": 0,
+        "IterationsPerSample": 2048,
+        "Samples": 7,
+        "Checksum": 28942464
+      }
+    },
+    {
+      "Name": "128 named artboards / 1000 artwork nodes",
+      "Uncached": {
+        "MedianMicrosecondsPerIteration": 69.507470703125,
+        "AllocatedBytesPerIteration": 49992,
+        "IterationsPerSample": 2048,
+        "Samples": 7,
+        "Checksum": 3704635392
+      },
+      "Cached": {
+        "MedianMicrosecondsPerIteration": 1.5437998046875,
+        "AllocatedBytesPerIteration": 0,
+        "IterationsPerSample": 2048,
+        "Samples": 7,
+        "Checksum": 3704635392
+      }
+    },
+    {
+      "Name": "Stationary ruler / 1200 DIP / pointer-only frames",
+      "Uncached": {
+        "MedianMicrosecondsPerIteration": 21.7068857421875,
+        "AllocatedBytesPerIteration": 4472,
+        "IterationsPerSample": 2048,
+        "Samples": 7,
+        "Checksum": 936052224
+      },
+      "Cached": {
+        "MedianMicrosecondsPerIteration": 4.50426123046875,
+        "AllocatedBytesPerIteration": 0,
+        "IterationsPerSample": 2048,
+        "Samples": 7,
+        "Checksum": 936052224
+      }
+    }
+  ]
+}

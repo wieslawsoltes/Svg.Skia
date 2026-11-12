@@ -32,6 +32,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
     private readonly List<SKPoint> _freehandPoints = new();
     private readonly List<PenNode> _penNodes = new();
     private readonly SvgEditorTouchNavigation _touchNavigation = new();
+    private readonly SvgEditorArtboardCache _artboardCache = new();
     private readonly PathService _nodePreview = new();
     private SvgEditorController? _controller;
     private SvgEditorToolKind _tool;
@@ -117,6 +118,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
             }
 
             _controller = value;
+            _artboardCache.Clear();
             if (_controller is not null && _isLoaded)
             {
                 _controller.Changed += OnControllerChanged;
@@ -411,6 +413,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void ReleaseResources()
     {
+        _artboardCache.Clear();
         ReleaseSelectionGhost();
         _nodePreview.Stop();
         ClearVertexPreview();

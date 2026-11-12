@@ -32,16 +32,16 @@ public sealed partial class SvgEditorCanvas
 
         if (Controller?.Renderer.Picture is { } picture)
         {
-            var artboards = Controller.GetArtboards();
-            foreach (var artboard in artboards)
-                DrawArtboard(canvas, artboard.Bounds, resources);
+            var artboards = _artboardCache.GetArtboards(Controller);
+            for (var index = 0; index < artboards.Count; index++)
+                DrawArtboard(canvas, artboards[index].Bounds, resources);
             using (var documentRestore = new SKAutoCanvasRestore(canvas))
             {
                 canvas.Concat(Viewport.Matrix);
                 if (ShowGrid)
                 {
-                    foreach (var artboard in artboards)
-                        DrawGrid(canvas, artboard.Bounds, resources);
+                    for (var index = 0; index < artboards.Count; index++)
+                        DrawGrid(canvas, artboards[index].Bounds, resources);
                 }
 
                 // Replays the existing Svg.Skia display list into the host surface. No bitmap
@@ -50,8 +50,9 @@ public sealed partial class SvgEditorCanvas
                 DrawSelectionGhost(canvas, resources);
             }
 
-            foreach (var artboard in artboards)
+            for (var index = 0; index < artboards.Count; index++)
             {
+                var artboard = artboards[index];
                 var label = Viewport.WorldToView(new SKPoint(artboard.Bounds.Left, artboard.Bounds.Top));
                 resources.Fill.Color = resources.Label;
                 canvas.DrawText(artboard.Name, label.X, label.Y - 10, SKTextAlign.Left, resources.LabelFont, resources.Fill);

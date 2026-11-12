@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -11,6 +12,7 @@ using Uno.WinUI.Graphics2DSK;
 using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Core;
+using Rectangle = Microsoft.UI.Xaml.Shapes.Rectangle;
 
 namespace Svg.Editor.Skia.Uno;
 
@@ -24,6 +26,7 @@ public sealed class StudioNavigator : UserControl, IDisposable
     public static readonly DependencyProperty OutlineBrushProperty = RegisterNavigatorBrush(nameof(OutlineBrush));
     public static readonly DependencyProperty AccentBrushProperty = RegisterNavigatorBrush(nameof(AccentBrush));
     private static readonly InputSystemCursor s_hand = InputSystemCursor.Create(InputSystemCursorShape.Hand);
+    private static int s_nextTraceId;
     private sealed class NavigatorSurface(StudioNavigator owner) : SKCanvasElement
     {
         protected override void RenderOverride(SKCanvas canvas, Size area) => owner.Render(canvas, area);
@@ -39,6 +42,12 @@ public sealed class StudioNavigator : UserControl, IDisposable
 
     private readonly NavigatorSurface _surface;
     private readonly Border _frame;
+    private readonly Canvas _viewportOverlay;
+    private readonly Rectangle _viewportIndicator;
+    private readonly RectangleGeometry _viewportClip = new();
+    private readonly SolidColorBrush _viewportFill = new();
+    private readonly SolidColorBrush _viewportStroke = new();
+    private readonly SvgEditorArtboardCache _artboardCache = new();
     private readonly SKPaint _paint = new() { IsAntialias = true };
     private readonly SolidColorBrush _fallbackOutlineBrush = new();
     private StudioBrushSubscriptions? _brushSubscriptions;
@@ -51,6 +60,8 @@ public sealed class StudioNavigator : UserControl, IDisposable
     private SKColor _background, _border, _accent;
     private bool _observingBrushes;
     private bool _disposed;
+    private readonly int _traceId = Interlocked.Increment(ref s_nextTraceId);
+    private int _overviewRenderCount;
 
     public StudioNavigator()
     {
@@ -62,7 +73,17 @@ public sealed class StudioNavigator : UserControl, IDisposable
         ManipulationMode = ManipulationModes.None;
         ProtectedCursor = s_hand;
         _surface = new NavigatorSurface(this) { IsHitTestVisible = false };
-        _frame = new Border { BorderThickness = new Thickness(1), Child = _surface };
+        _viewportIndicator = new Rectangle
+        {
+            IsHitTestVisible = false, StrokeThickness = 1.5, Stroke = _viewportStroke,
+            Fill = _viewportFill, UseLayoutRounding = false, Visibility = Visibility.Collapsed
+        };
+        _viewportOverlay = new Canvas { IsHitTestVisible = false, UseLayoutRounding = false, Clip = _viewportClip };
+        _viewportOverlay.Children.Add(_viewportIndicator);
+        var layers = new Grid();
+        layers.Children.Add(_surface);
+        layers.Children.Add(_viewportOverlay);
+        _frame = new Border { BorderThickness = new Thickness(1), Child = layers };
         Content = _frame;
         AutomationProperties.SetName(this, "Document navigator");
         AutomationProperties.SetHelpText(this, "Click or drag to move the view. Arrows pan, plus and minus zoom, Home fits all artboards, and Escape cancels a drag.");
@@ -71,7 +92,7 @@ public sealed class StudioNavigator : UserControl, IDisposable
         ActualThemeChanged += OnThemeChanged;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
-        SizeChanged += OnSizeChanged;
+        _surface.SizeChanged += OnSurfaceSizeChanged;
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
         PointerReleased += OnPointerReleased;
@@ -118,6 +139,7 @@ public sealed class StudioNavigator : UserControl, IDisposable
         if (_disposed)
             return;
         ApplyPalette();
+        UpdateViewportIndicator();
         _surface?.Invalidate();
     }
 
@@ -134,6 +156,7 @@ public sealed class StudioNavigator : UserControl, IDisposable
         Unsubscribe();
         _controller = controller;
         _viewport = viewport;
+        _artboardCache.Clear();
         if (_controller is not null)
         {
             _controller.Changed += OnSourceChanged;
@@ -142,6 +165,7 @@ public sealed class StudioNavigator : UserControl, IDisposable
         if (_viewport is not null)
             _viewport.Changed += OnViewportChanged;
         IsEnabled = controller?.Document is not null && viewport is not null;
+        UpdateViewportIndicator();
         _surface.Invalidate();
     }
 
@@ -176,6 +200,8 @@ public sealed class StudioNavigator : UserControl, IDisposable
         _background = StudioBrushSubscriptions.Color(BackgroundBrush, dark ? new SKColor(30, 30, 30) : new SKColor(186, 186, 186));
         _border = StudioBrushSubscriptions.Color(OutlineBrush, dark ? new SKColor(93, 93, 93) : new SKColor(166, 166, 166));
         _accent = StudioBrushSubscriptions.Color(AccentBrush, dark ? new SKColor(148, 191, 242) : new SKColor(40, 98, 176));
+        _viewportStroke.Color = Windows.UI.Color.FromArgb(_accent.Alpha, _accent.Red, _accent.Green, _accent.Blue);
+        _viewportFill.Color = Windows.UI.Color.FromArgb((byte)Math.Round(_accent.Alpha * (28d / 255d)), _accent.Red, _accent.Green, _accent.Blue);
         if (_frame is not null)
         {
             if (OutlineBrush is SolidColorBrush solid)
@@ -195,7 +221,7 @@ public sealed class StudioNavigator : UserControl, IDisposable
         overview = default;
         if (_controller?.Renderer.Picture is not { } picture || width <= 16 || height <= 16)
             return false;
-        var bounds = _controller.GetArtboardsBounds();
+        var bounds = _artboardCache.GetBounds(_controller);
         if (bounds.IsEmpty)
             bounds = picture.CullRect;
         if (!float.IsFinite(bounds.Left) || !float.IsFinite(bounds.Top)
@@ -212,17 +238,20 @@ public sealed class StudioNavigator : UserControl, IDisposable
     {
         if (_disposed)
             return;
+        _overviewRenderCount++;
+        if (EditorInputTrace.Enabled)
+            EditorInputTrace.Write($"navigator-overview-render id={_traceId} count={_overviewRenderCount}");
         using var restore = new SKAutoCanvasRestore(canvas);
         canvas.ClipRect(SKRect.Create((float)area.Width, (float)area.Height));
         canvas.Clear(_background);
         if (!TryOverview(area.Width, area.Height, out var overview) || _controller is null)
             return;
         var page = overview.ToView(overview.Bounds);
-        var artboards = _controller.GetArtboards();
+        var artboards = _artboardCache.GetArtboards(_controller);
         _paint.Style = SKPaintStyle.Fill;
         _paint.Color = SKColors.White;
-        foreach (var artboard in artboards)
-            canvas.DrawRect(overview.ToView(artboard.Bounds), _paint);
+        for (var index = 0; index < artboards.Count; index++)
+            canvas.DrawRect(overview.ToView(artboards[index].Bounds), _paint);
         using (var documentRestore = new SKAutoCanvasRestore(canvas))
         {
             canvas.ClipRect(page);
@@ -234,24 +263,44 @@ public sealed class StudioNavigator : UserControl, IDisposable
         _paint.Style = SKPaintStyle.Stroke;
         _paint.StrokeWidth = 1;
         var active = _controller.ActiveArtboardId;
-        foreach (var artboard in artboards)
+        for (var index = 0; index < artboards.Count; index++)
         {
+            var artboard = artboards[index];
             _paint.Color = artboard.Id == active ? _accent : _border;
             canvas.DrawRect(overview.ToView(artboard.Bounds), _paint);
         }
-        if (_viewport is null)
+    }
+
+    private void UpdateViewportIndicator()
+    {
+        if (_disposed || _surface is null || _viewportIndicator is null)
             return;
+        var width = _surface.ActualWidth;
+        var height = _surface.ActualHeight;
+        var clip = new Rect(0, 0, Math.Max(0, width), Math.Max(0, height));
+        if (_viewportClip.Rect != clip)
+            _viewportClip.Rect = clip;
+        if (_viewport is null || !TryOverview(width, height, out var overview))
+        {
+            _viewportIndicator.Visibility = Visibility.Collapsed;
+            return;
+        }
         var visible = SKRect.Intersect(_viewport.VisibleWorldBounds, overview.Bounds);
         if (visible.IsEmpty)
+        {
+            _viewportIndicator.Visibility = Visibility.Collapsed;
             return;
+        }
+
         var view = overview.ToView(visible);
-        _paint.Style = SKPaintStyle.Fill;
-        _paint.Color = _accent.WithAlpha((byte)Math.Round(_accent.Alpha * (28d / 255d)));
-        canvas.DrawRect(view, _paint);
-        _paint.Style = SKPaintStyle.Stroke;
-        _paint.StrokeWidth = 1.5f;
-        _paint.Color = _accent;
-        canvas.DrawRect(view, _paint);
+        // XAML's rectangle stroke is inset into its layout bounds. Inflate by
+        // half the stroke so its center follows the existing Skia rectangle.
+        const double halfStroke = 0.75;
+        Canvas.SetLeft(_viewportIndicator, view.Left - halfStroke);
+        Canvas.SetTop(_viewportIndicator, view.Top - halfStroke);
+        _viewportIndicator.Width = view.Width + 2 * halfStroke;
+        _viewportIndicator.Height = view.Height + 2 * halfStroke;
+        _viewportIndicator.Visibility = Visibility.Visible;
     }
 
     private void PanTo(SKPoint world)
@@ -385,13 +434,23 @@ public sealed class StudioNavigator : UserControl, IDisposable
             return;
         SubscribeRenderer();
         IsEnabled = _controller?.Document is not null && _viewport is not null;
+        UpdateViewportIndicator();
         _surface.Invalidate();
     }
     private void OnViewportChanged(object? sender, EventArgs args)
     {
         if (_disposed)
             return;
-        _surface.Invalidate();
+        // Moving the camera changes only this native composition shape. Reusing
+        // the overview avoids replaying the SVG and uploading a new raster texture.
+        UpdateViewportIndicator();
+        if (EditorInputTrace.Enabled)
+        {
+            var bounds = _artboardCache.GetBounds(_controller);
+            if (bounds.IsEmpty)
+                bounds = _controller?.Renderer.Picture?.CullRect ?? SKRect.Empty;
+            EditorInputTrace.Write(FormattableString.Invariant($"navigator-viewport-update id={_traceId} overviewFrames={_overviewRenderCount} visible={_viewportIndicator.Visibility == Visibility.Visible} camera={_viewport?.OffsetX:R},{_viewport?.OffsetY:R},{_viewport?.Zoom:R} viewport={_viewport?.Width:R},{_viewport?.Height:R} overview={_surface.ActualWidth:R},{_surface.ActualHeight:R} artboards={bounds.Left:R},{bounds.Top:R},{bounds.Right:R},{bounds.Bottom:R} indicator={Canvas.GetLeft(_viewportIndicator):R},{Canvas.GetTop(_viewportIndicator):R},{_viewportIndicator.Width:R},{_viewportIndicator.Height:R}"));
+        }
         ViewChanged?.Invoke(this, EventArgs.Empty);
     }
     private void OnThemeChanged(FrameworkElement sender, object args) => RefreshPalette();
@@ -409,8 +468,13 @@ public sealed class StudioNavigator : UserControl, IDisposable
         _observingBrushes = false;
         _brushSubscriptions?.Dispose();
         _brushSubscriptions = null;
+        _artboardCache.Clear();
     }
-    private void OnSizeChanged(object sender, SizeChangedEventArgs args) => _surface.Invalidate();
+    private void OnSurfaceSizeChanged(object sender, SizeChangedEventArgs args)
+    {
+        UpdateViewportIndicator();
+        _surface.Invalidate();
+    }
 
     public new void Dispose()
     {
@@ -424,10 +488,11 @@ public sealed class StudioNavigator : UserControl, IDisposable
         Unsubscribe();
         _controller = null;
         _viewport = null;
+        _artboardCache.Clear();
         ActualThemeChanged -= OnThemeChanged;
         Loaded -= OnLoaded;
         Unloaded -= OnUnloaded;
-        SizeChanged -= OnSizeChanged;
+        _surface.SizeChanged -= OnSurfaceSizeChanged;
         PointerPressed -= OnPointerPressed;
         PointerMoved -= OnPointerMoved;
         PointerReleased -= OnPointerReleased;

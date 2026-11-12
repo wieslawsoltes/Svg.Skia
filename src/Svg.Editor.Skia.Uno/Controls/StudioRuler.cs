@@ -17,6 +17,7 @@ public sealed class StudioRuler : SKCanvasElement, IDisposable
     private StudioBrushSubscriptions? _brushSubscriptions;
     private readonly SKPaint _paint = new() { IsAntialias = true };
     private readonly SKFont _font = new(SKTypeface.Default, 10);
+    private readonly SvgRulerTickCache _ticks = new();
     private double _origin;
     private double _scale = 1;
     private double? _pointer;
@@ -65,8 +66,10 @@ public sealed class StudioRuler : SKCanvasElement, IDisposable
         var length = Orientation == Orientation.Horizontal ? area.Width : area.Height;
         _paint.Color = StudioBrushSubscriptions.Color(ForegroundBrush, _dark ? new SKColor(184, 184, 184) : new SKColor(80, 80, 80));
         _paint.StrokeWidth = 1;
-        foreach (var tick in SvgRulerMetrics.Create(_origin, _scale, length))
+        var ticks = _ticks.GetTicks(_origin, _scale, length);
+        for (var index = 0; index < ticks.Count; index++)
         {
+            var tick = ticks[index];
             var position = (float)tick.Pixel;
             var extent = tick.IsMajor ? 8 : 4;
             if (Orientation == Orientation.Horizontal)
