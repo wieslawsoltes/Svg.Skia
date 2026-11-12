@@ -209,11 +209,15 @@ cannot pass the performance harness's execution-mode validation.
 
 The [old/new high-DPI check](../UnoDraw.BrowserRenderQuality/README.md) verifies
 ruler UI changes that a same-candidate bridge A/B cannot establish.
-Its `UnoDraw native render quality` workflow consumes the baseline/candidate AOT
-artifacts from an explicitly selected performance run without rebuilding the application.
-Its two parallel suites rerun the complete persistent/legacy bridge matrix with
-the current harness and compare the old/new application at DPR 1.25 and 2 on
-both backends, including isolated ruler strips. The candidate's recorded source
+The `UnoDraw rendering verification` workflow consumes existing AOT artifacts
+from an explicitly selected performance run without rebuilding the application.
+Its three parallel suites rerun the complete persistent/legacy bridge matrix,
+compare the old/new application at DPR 1.25 and 2 on both backends, and replay
+the full performance matrix. The replay includes all three packages, 90 primary
+trials and 12 separate diagnostic trials. It and the normal performance job
+have a 60-minute execution budget; each native-quality suite has 25 minutes.
+Workload counts, warmup, metrics and image thresholds are unchanged.
+The candidate's recorded source
 commit is compared with the harness/PR head: only changes under `tests/`, `docs/`
 and `.github/` are allowed. Any production-source difference rejects the cached
 binary. Reports retain both SHAs and the changed paths. The workflow's PR path

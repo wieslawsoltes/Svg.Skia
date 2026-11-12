@@ -92,6 +92,11 @@ native PNGs and unresampled ruler strips cover fitted, actual-size, fractionally
 panned, refitted and selected states. Missing cases cannot produce a passing
 matrix; the same image thresholds apply.
 
+The artifact-consuming verification workflow also replays the complete timing
+matrix on one runner. Its 60-minute budget accommodates all 90 independently
+warmed primary trials and 12 separate diagnostic trials against the slow
+software-GPU baseline. It preserves the original workloads and image checks.
+
 ### Browser comparison
 
 End-to-end measurements are in progress. No frame-rate improvement is claimed

@@ -204,7 +204,9 @@ jobs:
     name: Compare real input workloads on one runner
     needs: [plan, publish]
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    # Ninety independently warmed primary trials plus twelve diagnostic trials
+    # need room to finish on the slow software-GPU regression baseline.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v6

@@ -1,10 +1,10 @@
-name: UnoDraw native render quality
+name: UnoDraw rendering verification
 
 on:
   workflow_dispatch:
     inputs:
       package_run_id:
-        description: Performance run containing matching baseline and candidate AOT packages
+        description: Performance run containing matching baseline, candidate and reference AOT packages
         required: true
         default: '43223723275'
   pull_request:
@@ -22,13 +22,13 @@ concurrency:
 
 jobs:
   quality:
-    name: Existing AOT native pixels (${{ matrix.suite }})
+    name: Existing AOT verification (${{ matrix.suite }})
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: ${{ matrix.suite == 'performance' && 60 || 25 }}
     strategy:
       fail-fast: false
       matrix:
-        suite: [bridge, cross-build]
+        suite: [bridge, cross-build, performance]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,11 +41,19 @@ jobs:
           run-id: ${{ inputs.package_run_id || '43223723275' }}
           github-token: ${{ github.token }}
       - name: Download the matching baseline AOT package
-        if: matrix.suite == 'cross-build'
+        if: matrix.suite == 'cross-build' || matrix.suite == 'performance'
         uses: actions/download-artifact@v4
         with:
           name: unodraw-performance-package-baseline
           path: artifacts/packages/baseline
+          run-id: ${{ inputs.package_run_id || '43223723275' }}
+          github-token: ${{ github.token }}
+      - name: Download the matching pre-Uno7 reference AOT package
+        if: matrix.suite == 'performance'
+        uses: actions/download-artifact@v4
+        with:
+          name: unodraw-performance-package-reference
+          path: artifacts/packages/reference
           run-id: ${{ inputs.package_run_id || '43223723275' }}
           github-token: ${{ github.token }}
       - name: Reject stale binaries after any production-source change
@@ -63,7 +71,7 @@ jobs:
           manifest = json.loads(Path('artifacts/packages/candidate/benchmark-package.json').read_text())
           if (manifest.get('role') != 'candidate' or manifest.get('configuration') != 'Release'
                   or manifest.get('execution_mode') != 'InterpreterAndAOT'):
-              raise SystemExit('Native quality requires the existing Release InterpreterAndAOT candidate artifact')
+              raise SystemExit('Rendering verification requires the existing Release InterpreterAndAOT candidate artifact')
           source = manifest.get('source_sha', '')
           if not re.fullmatch(r'[0-9a-f]{40}', source):
               raise SystemExit('The candidate package must record its exact source commit')
@@ -96,6 +104,7 @@ jobs:
           python -m playwright install --with-deps chromium
           python -m unittest discover -s tests/UnoDraw.BrowserPerformance -p 'test_*.py'
           python -m unittest discover -s tests/UnoDraw.BrowserRenderQuality -p 'test_*.py'
+          node --test tests/UnoDraw.BrowserPerformance/test_instrumentation.mjs
       - name: Verify persistent and legacy bridges on the existing candidate AOT binary
         if: matrix.suite == 'bridge'
         run: >-
@@ -108,6 +117,13 @@ jobs:
           python tests/UnoDraw.BrowserRenderQuality/render_quality.py
           --packages artifacts/packages
           --output artifacts/unodraw-render-quality/cross-build
+      - name: Replay the complete unchanged AOT performance comparison
+        if: matrix.suite == 'performance'
+        run: >-
+          python tests/UnoDraw.BrowserPerformance/performance.py
+          --packages artifacts/packages
+          --output artifacts/unodraw-render-quality/performance
+          --repeats 3 --steps 120 --graphics swiftshader --diagnostics
       - name: Publish the available comparison summary
         if: always()
         env:
