@@ -4,7 +4,7 @@ import copy
 import math
 import unittest
 
-from metrics import comparisons, distribution, intervals, summarize, validate_packages
+from metrics import comparisons, distribution, intervals, summarize, validate_packages, verify_hover_isolation
 
 
 def observation() -> dict:
@@ -12,8 +12,10 @@ def observation() -> dict:
         "started_ms": 0, "ended_ms": 100, "raf_ms": [0, 16, 32, 48, 64, 80, 96],
         "graphics_active_intervals_ms": [], "application_raf_callback_ms": [],
         "input_to_next_graphics_ms": [], "webgpu_canvas_submit_ms": [], "webgl_flush_ms": [],
+        "completed_render_callback_ms": [], "completed_render_callback_end_ms": [],
+        "input_to_completed_render_callback_ms": [], "inputs_without_completed_render_callback": 0,
         "input_events": 0, "inputs_without_later_graphics": 0, "calls": {},
-        "known_upload_bytes": 0, "uploads_with_unknown_size": 0,
+        "supplied_upload_buffer_bytes": 0, "upload_calls_without_buffer_size": 0,
     }
 
 
@@ -28,6 +30,7 @@ class MeasurementTests(unittest.TestCase):
         self.assertEqual(value["raf_interval_ms"]["count"], 6)
         self.assertEqual(value["graphics_active_animation_intervals"], 0)
         self.assertEqual(value["webgpu_canvas_submissions"], 0)
+        self.assertEqual(value["completed_render_callbacks"], 0)
         self.assertIsNone(value["physical_presented_frames"])
         self.assertIsNone(value["operations_per_second"])
         self.assertIsNone(value["managed_allocated_bytes"])
@@ -75,6 +78,15 @@ class MeasurementTests(unittest.TestCase):
     def test_required_baseline_cannot_be_replaced_by_reference(self) -> None:
         with self.assertRaisesRegex(ValueError, "Both baseline"):
             validate_packages([package("reference"), package("candidate")])
+
+    def test_hover_isolation_rejects_redrawn_artwork_and_missing_overlay(self) -> None:
+        def snapshot(document: int, interaction: int) -> dict:
+            return {"phases": [{"phase": "Document", "count": document},
+                               {"phase": "Interaction", "count": interaction}]}
+        verify_hover_isolation(snapshot(0, 120))
+        for document, interaction in ((1, 120), (0, 0), (1, 0)):
+            with self.subTest(document=document, interaction=interaction), self.assertRaises(AssertionError):
+                verify_hover_isolation(snapshot(document, interaction))
 
     def test_comparison_rejects_changed_fixture_sdk_and_interpreter_build(self) -> None:
         packages = [package("baseline"), package("candidate"), package("reference")]

@@ -44,14 +44,19 @@ def summarize(sample: dict[str, Any], cpu_before: dict[str, float], cpu_after: d
         "graphics_active_animation_intervals": len(sample["graphics_active_intervals_ms"]),
         "graphics_active_interval_ms": distribution(intervals(sample["graphics_active_intervals_ms"])),
         "application_raf_callback_ms": distribution(sample["application_raf_callback_ms"]),
+        "completed_render_callbacks": len(sample["completed_render_callback_ms"]),
+        "completed_render_callback_ms": distribution(sample["completed_render_callback_ms"]),
+        "completed_render_callback_interval_ms": distribution(intervals(sample["completed_render_callback_end_ms"])),
+        "input_to_completed_render_callback_ms": distribution(sample["input_to_completed_render_callback_ms"]),
         "input_to_next_graphics_ms": distribution(sample["input_to_next_graphics_ms"]),
         "webgpu_canvas_submissions": len(sample["webgpu_canvas_submit_ms"]),
         "webgl_flush_calls": len(sample["webgl_flush_ms"]),
         "input_events": sample["input_events"],
         "inputs_without_later_graphics": sample["inputs_without_later_graphics"],
+        "inputs_without_completed_render_callback": sample["inputs_without_completed_render_callback"],
         "graphics_api_calls": sample["calls"],
-        "known_upload_bytes": sample["known_upload_bytes"],
-        "uploads_with_unknown_size": sample["uploads_with_unknown_size"],
+        "supplied_upload_buffer_bytes": sample["supplied_upload_buffer_bytes"],
+        "upload_calls_without_buffer_size": sample["upload_calls_without_buffer_size"],
         "physical_presented_frames": None,
         "managed_allocated_bytes": None,
         "cpu_ms": {},
@@ -82,6 +87,12 @@ def validate_packages(packages: list[dict[str, Any]]) -> None:
             raise ValueError("Comparisons require the published Release InterpreterAndAOT artifact")
 
 
+def verify_hover_isolation(snapshot: dict[str, Any]) -> None:
+    phases = {phase["phase"]: phase for phase in snapshot["phases"]}
+    if phases.get("Document", {}).get("count") != 0 or phases.get("Interaction", {}).get("count", 0) <= 0:
+        raise AssertionError("Brush hover must repaint the interaction layer without repainting the SVG document")
+
+
 def comparisons(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Compare medians of per-trial metrics, not a pooled distribution of frames."""
     groups: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
@@ -94,6 +105,8 @@ def comparisons(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
         "graphics_active_interval_p95_ms": lambda value: value["graphics_active_interval_ms"]["p95"],
         "input_to_next_graphics_p95_ms": lambda value: value["input_to_next_graphics_ms"]["p95"],
         "application_raf_callback_p95_ms": lambda value: value["application_raf_callback_ms"]["p95"],
+        "completed_render_callback_p95_ms": lambda value: value["completed_render_callback_ms"]["p95"],
+        "input_to_completed_render_callback_p95_ms": lambda value: value["input_to_completed_render_callback_ms"]["p95"],
         "operations_per_second": lambda value: value["operations_per_second"],
     }
     for (role, backend, workload), candidates in sorted(groups.items()):

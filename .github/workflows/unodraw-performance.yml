@@ -76,6 +76,12 @@ jobs:
     needs: plan
     runs-on: ubuntu-24.04
     timeout-minutes: 75
+    concurrency:
+      # Wait for an identical expensive package already being built, then reuse
+      # its exact cache entry. Distinct candidate SHAs still build in parallel.
+      group: unodraw-aot-${{ github.repository }}-${{ matrix.ref }}-ubuntu24-release-copy-nothreads-v1
+      cancel-in-progress: false
+      queue: max
     strategy:
       fail-fast: false
       max-parallel: 3
@@ -165,7 +171,7 @@ jobs:
           python tests/UnoDraw.BrowserPerformance/performance.py
           --packages artifacts/performance-packages
           --output artifacts/unodraw-performance
-          --repeats ${{ needs.plan.outputs.repeats }} --steps 120 --graphics swiftshader
+          --repeats ${{ needs.plan.outputs.repeats }} --steps 120 --graphics swiftshader --diagnostics
       - name: Publish measurement summary
         if: always()
         run: |
@@ -177,5 +183,36 @@ jobs:
         with:
           name: unodraw-performance-results
           path: artifacts/unodraw-performance
+          if-no-files-found: warn
+          retention-days: 14
+
+  bridge-quality:
+    name: WebGPU bridge native-pixel quality (DPR 1, 1.25, 2)
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: unodraw-performance-package-candidate
+          path: artifacts/candidate
+      - name: Install the same pinned browser dependencies
+        run: |
+          python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
+          python -m playwright install --with-deps chromium
+          python -m unittest discover -s tests/UnoDraw.BrowserPerformance -p 'test_*.py'
+      - name: Compare real persistent and legacy canvas paths at native resolution
+        run: >-
+          python tests/UnoDraw.BrowserPerformance/bridge_quality.py
+          --package artifacts/candidate --output artifacts/unodraw-bridge-quality
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-bridge-quality
+          path: artifacts/unodraw-bridge-quality
           if-no-files-found: warn
           retention-days: 14

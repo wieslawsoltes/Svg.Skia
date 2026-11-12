@@ -11,8 +11,15 @@ function browser() {
     const callbacks = new Map();
     const listeners = new Map();
     class WebGLRenderingContext {
-        drawArrays() {}
-        drawElements(count) { if (count < 0) throw new Error("invalid draw"); }
+        drawArrays(mode, first, count) {
+            if (arguments.length < 3) throw new TypeError("drawArrays requires three arguments");
+            this.lastDraw = { mode, first, count };
+            return this;
+        }
+        drawElements(mode, count, type, offset) {
+            if (arguments.length < 4) throw new TypeError("drawElements requires four arguments");
+            if (count < 0) throw new Error("invalid draw");
+        }
         flush() {}
         texImage2D() {}
         texSubImage2D() {}
@@ -62,7 +69,7 @@ test("observer never schedules a frame until an interval is explicitly started",
     const app = browser();
     assert.equal(app.pendingCallbacks, 0);
     const canvas = new app.Canvas();
-    canvas.getContext("webgl").drawArrays();
+    canvas.getContext("webgl").drawArrays(4, 0, 3);
     app.api.selectCanvas();
     assert.equal(app.pendingCallbacks, 0);
 });
@@ -78,6 +85,7 @@ test("idle rAF activity is not claimed as graphics or physical presentation", ()
     assert.equal(sample.graphics_active_intervals_ms.length, 0);
     assert.equal(sample.webgl_flush_ms.length, 0);
     assert.equal(sample.application_raf_callback_ms.length, 0);
+    assert.equal(sample.completed_render_callback_ms.length, 0);
     assert.equal(app.pendingCallbacks, 0);
 });
 
@@ -88,11 +96,11 @@ test("detached capability probes cannot prove application rendering", () => {
     app.api.selectCanvas();
     app.api.start("pan", ["pointermove"]);
     app.frame();
-    probe.drawArrays();
+    probe.drawArrays(4, 0, 3);
     probe.flush();
     app.input("pointermove");
-    real.drawArrays();
-    real.drawArrays();
+    real.drawArrays(4, 0, 3);
+    real.drawArrays(4, 0, 3);
     real.flush();
     const sample = app.api.stop();
     assert.equal(sample.calls["webgl.drawArrays"], 2);
@@ -148,7 +156,50 @@ test("a throwing graphics call is not recorded as successful drawing", () => {
     const context = new app.Canvas().getContext("webgl");
     app.api.selectCanvas();
     app.api.start("edit", []);
-    assert.throws(() => context.drawElements(-1));
+    assert.throws(() => context.drawElements(4, -1, 5123, 0));
     const sample = app.api.stop();
     assert.equal(sample.graphics_active_intervals_ms.length, 0);
+});
+
+test("completed CPU render callbacks require drawing and a successful return", () => {
+    const app = browser();
+    app.context.gl = new app.Canvas().getContext("webgl");
+    app.api.selectCanvas();
+    app.api.start("pan", ["pointermove"]);
+    app.input("pointermove");
+    vm.runInContext("requestAnimationFrame(() => { gl.drawArrays(4, 0, 3); advance(4); })", app.context);
+    app.frame();
+    vm.runInContext("requestAnimationFrame(() => { gl.flush(); advance(1); })", app.context);
+    app.frame();
+    vm.runInContext("requestAnimationFrame(() => { gl.drawArrays(4, 0, 3); throw new Error('failed frame'); })", app.context);
+    assert.throws(() => app.frame(), /failed frame/);
+    const sample = app.api.stop();
+    assert.equal(sample.application_raf_callback_ms.length, 3);
+    assert.equal(sample.completed_render_callback_ms.length, 1);
+    assert.equal(sample.completed_render_callback_ms[0], 4);
+    assert.equal(sample.input_to_completed_render_callback_ms.length, 1);
+    assert.equal(sample.inputs_without_completed_render_callback, 0);
+});
+
+test("fixed-arity hot wrappers preserve receiver, return value and missing-argument errors", () => {
+    const app = browser();
+    const gl = new app.Canvas().getContext("webgl");
+    app.api.selectCanvas();
+    app.api.start("pan", []);
+    assert.equal(gl.drawArrays(4, 12, 24), gl);
+    assert.deepEqual(gl.lastDraw, { mode: 4, first: 12, count: 24 });
+    assert.throws(() => gl.drawArrays(4, 0), /requires three arguments/);
+    assert.equal(app.api.stop().calls["webgl.drawArrays"], 1);
+});
+
+test("upload byte counter reports supplied buffer size without inventing a transfer extent", () => {
+    const app = browser();
+    const gl = new app.Canvas().getContext("webgl");
+    app.api.selectCanvas();
+    app.api.start("pan", []);
+    gl.texSubImage2D(0, 0, 0, 0, 2, 2, 0, 0, new Uint8Array(100), 50);
+    const sample = app.api.stop();
+    assert.equal(sample.supplied_upload_buffer_bytes, 100);
+    assert.equal(sample.upload_calls_without_buffer_size, 0);
+    assert.equal(sample.known_upload_bytes, undefined);
 });

@@ -38,6 +38,7 @@ def main() -> None:
         "fixture_sha256": digest(source / "samples/UnoDraw/Assets/Welcome.svg"),
         "index_sha256": digest(package / "wwwroot/index.html"),
         "font_assets_sha256": fonts,
+        "supports_render_diagnostics": (source / "samples/UnoDraw/Platforms/WebAssembly/BrowserRenderDiagnostics.cs").is_file(),
     }
     (package / "benchmark-package.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(manifest, indent=2))
