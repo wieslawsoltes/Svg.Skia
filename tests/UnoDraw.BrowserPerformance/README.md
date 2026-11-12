@@ -170,10 +170,21 @@ reuse the completed package cache. This also preserves pending builds instead of
 replacing them; GitHub documents the queue behavior in its
 [concurrency guide](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
 
-All package/backend cases are then measured on **one runner**. Package order
-rotates between trials and renderer order alternates. Results include a Markdown
-summary, JSON observations, console/resource diagnostics and screenshots. The
-normal browser-smoke workflow remains an independent visual/runtime gate.
+CI divides work into twelve workload/backend jobs. **Every matched comparison
+keeps all its revisions and all three repeats on one runner.** Package order
+still rotates between trials. WebGPU jobs contain six primary trials; Skia jobs
+contain nine when the Uno 6 reference is present. Every job also runs its
+candidate diagnostic separately. Across the default matrix, all 90 primary
+trials and 12 diagnostic trials are retained.
+
+Different workload/backend pairs can run on different machines. Their absolute
+times are not paired cross-backend or cross-workload measurements. Report ratios
+within each matched job, retain its environment and trial variability, and do
+not pool frame distributions across jobs. The merger requires all twelve shards,
+consistent packages/settings/browser, complete trial plans and all matched pixel
+checks; partial results cannot pass. Results retain raw observations, console
+diagnostics, package provenance and screenshots. The normal browser-smoke workflow
+remains an independent visual/runtime gate.
 
 A separate `bridge-quality` job compares the candidate's default persistent
 WebGPU bitmap bridge with the same candidate's `?canvasBridge=legacy` path at
@@ -211,11 +222,13 @@ The [old/new high-DPI check](../UnoDraw.BrowserRenderQuality/README.md) verifies
 ruler UI changes that a same-candidate bridge A/B cannot establish.
 The `UnoDraw rendering verification` workflow consumes existing AOT artifacts
 from an explicitly selected performance run without rebuilding the application.
-Its three parallel suites rerun the complete persistent/legacy bridge matrix,
+Its parallel suites rerun the complete persistent/legacy bridge matrix,
 compare the old/new application at DPR 1.25 and 2 on both backends, and replay
-the full performance matrix. The replay includes all three packages, 90 primary
-trials and 12 separate diagnostic trials. It and the normal performance job
-have a 60-minute execution budget; each native-quality suite has 25 minutes.
+the full performance matrix in the same twelve matched jobs. The replay includes
+all three packages, 90 primary trials and 12 separate diagnostic trials. Each
+matched performance job has a 60-minute budget; each native-quality suite has
+25 minutes. A separate candidate-only pan diagnostic on each backend provides
+paint-phase feedback sooner and is explicitly excluded from performance claims.
 Workload counts, warmup, metrics and image thresholds are unchanged.
 The candidate's recorded source
 commit is compared with the harness/PR head: only changes under `tests/`, `docs/`
@@ -270,6 +283,21 @@ python tests/UnoDraw.BrowserPerformance/bridge_quality.py \
   --package /absolute/path/packages/candidate \
   --output /absolute/path/bridge-quality
 ```
+
+The local command without filters executes the complete matrix sequentially.
+For one complete matched shard, add `--backend webgpu --workload pan` (or the
+other backend/workload names). Preserve all repeats and diagnostics. Combine
+the twelve output directories with:
+
+```sh
+python tests/UnoDraw.BrowserPerformance/merge_shards.py \
+  --shards /absolute/path/shard-artifacts --output /absolute/path/merged \
+  --repeats 3 --require-reference
+```
+
+`diagnose.py --packages ... --output ... --backend webgpu --workload pan`
+executes only the candidate diagnostic, with the same warmup and input count.
+Its report is typed separately and cannot satisfy any primary comparison shard.
 
 For a physical-device comparison use `--graphics hardware` and, if needed,
 `--executable /path/to/chromium`. This removes the forced SwiftShader switches;

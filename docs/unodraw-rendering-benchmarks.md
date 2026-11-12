@@ -93,9 +93,13 @@ panned, refitted and selected states. Missing cases cannot produce a passing
 matrix; the same image thresholds apply.
 
 The artifact-consuming verification workflow also replays the complete timing
-matrix on one runner. Its 60-minute budget accommodates all 90 independently
-warmed primary trials and 12 separate diagnostic trials against the slow
-software-GPU baseline. It preserves the original workloads and image checks.
+matrix in twelve workload/backend jobs. Every matched comparison keeps all
+revisions and all three repeats on one runner; different comparisons may use
+different runners. This retains all 90 independently warmed primary trials and
+12 separate diagnostic trials without comparing revisions across hosts. Each
+job has a 60-minute budget. The merger rejects missing or inconsistent shards
+and never pools their frame distributions. Original workloads and image checks
+are preserved.
 
 ### Browser comparison
 
