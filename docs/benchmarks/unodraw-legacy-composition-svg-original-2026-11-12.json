@@ -1,0 +1,2272 @@
+{
+  "audit_utc": "2026-11-12T21:56:16.501003+00:00",
+  "source_sha": "0ffaabff993d1e040ba2ada1b5130daeccfc2f41",
+  "candidate_bridge": "legacy-composite",
+  "control_bridge": "legacy",
+  "source_proof_independently_verified": {
+    "package_run_id": "43289446677",
+    "package_source_sha": "0ffaabff993d1e040ba2ada1b5130daeccfc2f41",
+    "harness_head_sha": "0ffaabff993d1e040ba2ada1b5130daeccfc2f41",
+    "allowed_difference_prefixes": [
+      "tests/",
+      "docs/",
+      ".github/"
+    ],
+    "changed_paths": [],
+    "production_changes": [],
+    "production_source_equivalent": true,
+    "execution_mode": "InterpreterAndAOT"
+  },
+  "graphite_coverage": null,
+  "artifact_zip_sha256": "bd2df71cfc2f1b912b2d4cb68c80c19f72f402eeeb8c188faab55b18c9e25a18",
+  "job_conclusion": "failure",
+  "overall_passed": false,
+  "complete_source_and_native_png_recalculation": false,
+  "source_quality_sha256": "67b44f3f9f4417870bffd33d0e2b34f962b8b063363c84328a0ba7c91f3b20af",
+  "source_fixture_contracts_sha256": "6971d5465b13f7019e627cee75e074f3e2a67d8c8b3159f68d1fc1e7f9e6b605",
+  "case_count": 48,
+  "verified_case_count": 46,
+  "native_comparison_count": 66,
+  "native_comparisons_passed": 66,
+  "missing_cases": [
+    {
+      "scene": "filters",
+      "bridge": "legacy",
+      "dpr": 2
+    },
+    {
+      "scene": "gradients",
+      "bridge": "legacy-composite",
+      "dpr": 2
+    }
+  ],
+  "cases": [
+    {
+      "scene": "clip",
+      "bridge": "legacy",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy/clip",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "filters",
+      "bridge": "legacy",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy/filters",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "gradients",
+      "bridge": "legacy",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy/gradients",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "image",
+      "bridge": "legacy",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy/image",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "mask",
+      "bridge": "legacy",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy/mask",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "bridge": "legacy",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy/opacity-and-strokes",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "pattern",
+      "bridge": "legacy",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy/pattern",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "text",
+      "bridge": "legacy",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy/text",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "clip",
+      "bridge": "legacy-composite",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy-composite/clip",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "filters",
+      "bridge": "legacy-composite",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy-composite/filters",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "gradients",
+      "bridge": "legacy-composite",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy-composite/gradients",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "image",
+      "bridge": "legacy-composite",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy-composite/image",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "mask",
+      "bridge": "legacy-composite",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy-composite/mask",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "bridge": "legacy-composite",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy-composite/opacity-and-strokes",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "pattern",
+      "bridge": "legacy-composite",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy-composite/pattern",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "text",
+      "bridge": "legacy-composite",
+      "dpr": 1,
+      "passed": true,
+      "artifact_directory": "dpr-1/legacy-composite/text",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "clip",
+      "bridge": "legacy",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy/clip",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "filters",
+      "bridge": "legacy",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy/filters",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "gradients",
+      "bridge": "legacy",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy/gradients",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "image",
+      "bridge": "legacy",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy/image",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "mask",
+      "bridge": "legacy",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy/mask",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "bridge": "legacy",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy/opacity-and-strokes",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "pattern",
+      "bridge": "legacy",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy/pattern",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "text",
+      "bridge": "legacy",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy/text",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "clip",
+      "bridge": "legacy-composite",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy-composite/clip",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "filters",
+      "bridge": "legacy-composite",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy-composite/filters",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "gradients",
+      "bridge": "legacy-composite",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy-composite/gradients",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "image",
+      "bridge": "legacy-composite",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy-composite/image",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "mask",
+      "bridge": "legacy-composite",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy-composite/mask",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "bridge": "legacy-composite",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy-composite/opacity-and-strokes",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "pattern",
+      "bridge": "legacy-composite",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy-composite/pattern",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "text",
+      "bridge": "legacy-composite",
+      "dpr": 1.25,
+      "passed": true,
+      "artifact_directory": "dpr-1.25/legacy-composite/text",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "clip",
+      "bridge": "legacy",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy/clip",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "filters",
+      "bridge": "legacy",
+      "dpr": 2,
+      "passed": false,
+      "artifact_directory": "dpr-2/legacy/filters",
+      "failure": "AssertionError: "
+    },
+    {
+      "scene": "gradients",
+      "bridge": "legacy",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy/gradients",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "image",
+      "bridge": "legacy",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy/image",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "mask",
+      "bridge": "legacy",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy/mask",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "bridge": "legacy",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy/opacity-and-strokes",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "pattern",
+      "bridge": "legacy",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy/pattern",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "text",
+      "bridge": "legacy",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy/text",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "clip",
+      "bridge": "legacy-composite",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy-composite/clip",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "filters",
+      "bridge": "legacy-composite",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy-composite/filters",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "gradients",
+      "bridge": "legacy-composite",
+      "dpr": 2,
+      "passed": false,
+      "artifact_directory": "dpr-2/legacy-composite/gradients",
+      "failure": "AssertionError: "
+    },
+    {
+      "scene": "image",
+      "bridge": "legacy-composite",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy-composite/image",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "mask",
+      "bridge": "legacy-composite",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy-composite/mask",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "bridge": "legacy-composite",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy-composite/opacity-and-strokes",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "pattern",
+      "bridge": "legacy-composite",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy-composite/pattern",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    },
+    {
+      "scene": "text",
+      "bridge": "legacy-composite",
+      "dpr": 2,
+      "passed": true,
+      "artifact_directory": "dpr-2/legacy-composite/text",
+      "states": 3,
+      "maximum_calibration_difference": 1
+    }
+  ],
+  "comparisons": [
+    {
+      "scene": "gradients",
+      "dpr": 1,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        189,
+        248,
+        829,
+        688
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "gradients",
+      "dpr": 1,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        226,
+        229,
+        867,
+        670
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "gradients",
+      "dpr": 1,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        183,
+        201,
+        897,
+        693
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "gradients",
+      "dpr": 1.25,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        236,
+        311,
+        1036,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "gradients",
+      "dpr": 1.25,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        282,
+        287,
+        1083,
+        838
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "gradients",
+      "dpr": 1.25,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        240,
+        260,
+        1114,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "filters",
+      "dpr": 1,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        189,
+        248,
+        829,
+        688
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "filters",
+      "dpr": 1,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        226,
+        229,
+        867,
+        670
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "filters",
+      "dpr": 1,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        183,
+        201,
+        897,
+        693
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "filters",
+      "dpr": 1.25,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        236,
+        311,
+        1036,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "filters",
+      "dpr": 1.25,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        282,
+        287,
+        1083,
+        838
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "filters",
+      "dpr": 1.25,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        240,
+        260,
+        1114,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "mask",
+      "dpr": 1,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        189,
+        248,
+        829,
+        688
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "mask",
+      "dpr": 1,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        226,
+        229,
+        867,
+        670
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "mask",
+      "dpr": 1,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        183,
+        201,
+        897,
+        693
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "mask",
+      "dpr": 1.25,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        236,
+        311,
+        1036,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "mask",
+      "dpr": 1.25,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        282,
+        287,
+        1083,
+        838
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "mask",
+      "dpr": 1.25,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        240,
+        260,
+        1114,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "mask",
+      "dpr": 2,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        378,
+        496,
+        1658,
+        1376
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "mask",
+      "dpr": 2,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        452,
+        459,
+        1733,
+        1339
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "mask",
+      "dpr": 2,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        411,
+        432,
+        1763,
+        1362
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "clip",
+      "dpr": 1,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        189,
+        248,
+        829,
+        688
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "clip",
+      "dpr": 1,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        226,
+        229,
+        867,
+        670
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "clip",
+      "dpr": 1,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        183,
+        201,
+        897,
+        693
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "clip",
+      "dpr": 1.25,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        236,
+        311,
+        1036,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "clip",
+      "dpr": 1.25,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        282,
+        287,
+        1083,
+        838
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "clip",
+      "dpr": 1.25,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        240,
+        260,
+        1114,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "clip",
+      "dpr": 2,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        378,
+        496,
+        1658,
+        1376
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "clip",
+      "dpr": 2,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        452,
+        459,
+        1733,
+        1339
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "clip",
+      "dpr": 2,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        411,
+        432,
+        1763,
+        1362
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "pattern",
+      "dpr": 1,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        189,
+        248,
+        829,
+        688
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "pattern",
+      "dpr": 1,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        226,
+        229,
+        867,
+        670
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "pattern",
+      "dpr": 1,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        183,
+        201,
+        897,
+        693
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "pattern",
+      "dpr": 1.25,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        236,
+        311,
+        1036,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "pattern",
+      "dpr": 1.25,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        282,
+        287,
+        1083,
+        838
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "pattern",
+      "dpr": 1.25,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        240,
+        260,
+        1114,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "pattern",
+      "dpr": 2,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        378,
+        496,
+        1658,
+        1376
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "pattern",
+      "dpr": 2,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        452,
+        459,
+        1733,
+        1339
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "pattern",
+      "dpr": 2,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        411,
+        432,
+        1763,
+        1362
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "text",
+      "dpr": 1,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        189,
+        248,
+        829,
+        688
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "text",
+      "dpr": 1,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        226,
+        229,
+        867,
+        670
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "text",
+      "dpr": 1,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        183,
+        201,
+        897,
+        693
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "text",
+      "dpr": 1.25,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        236,
+        311,
+        1036,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "text",
+      "dpr": 1.25,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        282,
+        287,
+        1083,
+        838
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "text",
+      "dpr": 1.25,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        240,
+        260,
+        1114,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "text",
+      "dpr": 2,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        378,
+        496,
+        1658,
+        1376
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "text",
+      "dpr": 2,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        452,
+        459,
+        1733,
+        1339
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "text",
+      "dpr": 2,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        411,
+        432,
+        1763,
+        1362
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "image",
+      "dpr": 1,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        189,
+        248,
+        829,
+        688
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "image",
+      "dpr": 1,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        226,
+        229,
+        867,
+        670
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "image",
+      "dpr": 1,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        183,
+        201,
+        897,
+        693
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "image",
+      "dpr": 1.25,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        236,
+        311,
+        1036,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "image",
+      "dpr": 1.25,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        282,
+        287,
+        1083,
+        838
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "image",
+      "dpr": 1.25,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        240,
+        260,
+        1114,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "image",
+      "dpr": 2,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        378,
+        496,
+        1658,
+        1376
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "image",
+      "dpr": 2,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        452,
+        459,
+        1733,
+        1339
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "image",
+      "dpr": 2,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        411,
+        432,
+        1763,
+        1362
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "dpr": 1,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        189,
+        248,
+        829,
+        688
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "dpr": 1,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        226,
+        229,
+        867,
+        670
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "dpr": 1,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1440,
+        960
+      ],
+      "device_pixel_ratio": 1,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        183,
+        201,
+        897,
+        693
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "dpr": 1.25,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        236,
+        311,
+        1036,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "dpr": 1.25,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        282,
+        287,
+        1083,
+        838
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "dpr": 1.25,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        1800,
+        1200
+      ],
+      "device_pixel_ratio": 1.25,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        240,
+        260,
+        1114,
+        861
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "dpr": 2,
+      "state": "01-fit",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        378,
+        496,
+        1658,
+        1376
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "dpr": 2,
+      "state": "02-fractional-pan",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        452,
+        459,
+        1733,
+        1339
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    },
+    {
+      "scene": "opacity-and-strokes",
+      "dpr": 2,
+      "state": "03-fractional-zoom",
+      "passed": true,
+      "physical_size": [
+        2880,
+        1920
+      ],
+      "device_pixel_ratio": 2,
+      "changed_pixel_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      },
+      "maximum_changed_fraction": 0.001,
+      "luminance_threshold": 12,
+      "resized_for_comparison": false,
+      "scene_body_physical_bounds": [
+        411,
+        432,
+        1763,
+        1362
+      ],
+      "scene_body_changed_pixel_fraction": 0.0
+    }
+  ],
+  "failures": [
+    "filters legacy DPR 2: AssertionError: Command search did not open",
+    "filters legacy DPR 2: committed source body was not verified",
+    "filters legacy DPR 2: the real source-editor Apply round trip was not verified",
+    "filters legacy DPR 2: required states are missing or duplicated",
+    "gradients legacy-composite DPR 2: AssertionError: startup did not settle: No completed frame",
+    "gradients legacy-composite DPR 2: committed source body was not verified",
+    "gradients legacy-composite DPR 2: the real source-editor Apply round trip was not verified",
+    "gradients legacy-composite DPR 2: required states are missing or duplicated",
+    "The required 72 native scene comparisons are missing or duplicated",
+    "AssertionError: ",
+    "AssertionError: "
+  ]
+}

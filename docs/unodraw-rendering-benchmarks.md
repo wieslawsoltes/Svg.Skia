@@ -41,7 +41,86 @@ interaction mode or simplified artwork is introduced to improve a benchmark.
 The existing browser artwork, zoom/refit, first-frame font, theme, indicator,
 compact-layout, reload and renderer-negotiation checks remain unchanged.
 
+## Browser persistence ordering
+
+A separate [pinned-runtime reproduction](benchmarks/unodraw-storage-ordering-2026-11-12.json)
+identifies an IDBFS flush race: a recovery rename/delete can occur after the native
+local path list is captured and before its asynchronous IndexedDB enumeration
+completes. The browser startup hook now enumerates remote entries first, then
+captures and reads the local tree synchronously through the original helpers.
+Initial hydration, native reconciliation, transaction ownership and error
+propagation remain intact. This is independent of the renderer optimization and
+does not attribute the older anonymous `errno: 44` quality failure.
+
+The actual extracted native helpers and the actual source installer pass 13 paired
+scenarios (26 executions) and nine installation guards. A changed helper hash is
+rejected for explicit review. The new C# hook compiles against Uno 7.0.32, and its
+embedded script bytes and actual project resource item match. At the storage-only
+checkpoint, the complete local solution test command passed with 2,868 assertions
+and 44 existing skips. Formatting and the separate application build at that
+checkpoint remained blocked by the recorded named-pipe /
+Uno resource task-host restrictions. Fresh published-browser qualification is
+still required; these source/helper checks do not replace it.
+
 ## Results
+
+### Direct persistent-composition follow-up (`0ffaabff`, harness `6acf6dc`)
+
+The complete [direct comparison record](benchmarks/unodraw-composite-baseline-2026-11-12.json)
+compares the exact `96e5fa9` baseline with explicit `canvasBridge=composite` in
+its original `0ffaabff` AOT package. All five jobs retain three alternating pairs:
+30 primary samples, five excluded diagnostics, 35 independently recomputed raw
+observer/CDP metric sets and 45 native document/ruler/font pairs. Every scored
+region fraction is zero above luminance 12. This does not claim byte equality.
+
+| Workload | Baseline median | Opt-in median | Elapsed change | Renderer-thread CPU change |
+| --- | ---: | ---: | ---: | ---: |
+| Pan | 173.613 s | 172.730 s | -0.51% | -7.83% |
+| Zoom | 143.911 s | 146.983 s | +2.13% | -22.24% |
+| Selection | 55.564 s | 94.293 s | +69.70% | -77.88% |
+| Brush hover | 86.106 s | 80.667 s | -6.32% | -94.30% |
+| Editing | 173.362 s | 171.240 s | -1.22% | -46.99% |
+
+Selection is slower in every matched pair and by **69.70%** in the ratio of role
+medians, rejecting recovery and default promotion. Lower renderer-thread CPU
+does not resolve that elapsed regression. The remaining small wall-time changes
+do not establish substantial recovery. All samples and paired ordering remain
+in the record; no ratios are pooled across jobs. These SwiftShader observations
+do not establish hardware-GPU throughput or input-to-new-pixels latency.
+
+The [complete composite SVG record](benchmarks/unodraw-composite-svg-quality-2026-11-12.json)
+also remains unqualified: 47/48 cases, 141/144 captured native states and 69/72
+accepted pairs. DPR 1 and 2 pass completely. At DPR 1.25 the candidate image
+case timed out in the screenshot font-readiness step while reopening command
+search for the committed-source readback. The missing readback and three states
+reject those pairs; diagnostic progress imagery cannot replace them. Every
+accepted scored region fraction is zero. The retained evidence has no
+failure-time font/request inventory, so the timeout cause remains unconfirmed.
+
+### Original canvas topology control
+
+The next [reviewed source candidate](benchmarks/unodraw-single-canvas-integration-2026-11-12.json)
+adds explicit `canvasBridge=single-canvas`. It removes the interaction child
+before first load, bypasses the custom island and uses the original Uno uploader
+with the original document and interaction painters. The newer guide-query and
+workspace optimizations remain enabled. Both painter bodies, input handling and
+normal renderer negotiation remain unchanged; the new control adds no pixel cache.
+
+The mode is configured per workspace before attaching it to the window. Its
+first-paint callback is guarded against unload, disposal and reentrant completion.
+Actual provider selection and native images remain separate from that painter
+notification. Diagnostics require positive Document and Interaction paints, while
+the primary input sequence, measurement window, metrics and original native
+quality thresholds remain unchanged. Existing retained modes keep their
+zero-Document feedback requirement. The default remains `persistent`.
+
+Local validation includes 13 focused lifecycle/schedule tests, compilation of
+33 production C# files against the actual pinned APIs, 137 performance-contract
+and 61 quality-contract tests, and 2,874 passing assertions with 44 existing skips
+across eleven completed solution test projects. Required solution commands still
+returned failure because of named-pipe / Uno resource task-host connection
+errors. Fresh application builds and browser performance/quality results are
+pending; this implementation record does not qualify promotion.
 
 ### Direct original-uploader follow-up (`0ffaabff`)
 
@@ -89,14 +168,30 @@ without fallback or runtime/resource errors. The AOT evidence binds the original
 907-file package ZIP (artifact `13979671213`, SHA256
 `7c97a858e081f36c03682d26c98d8dacfc6d4f225f455b0069f784b1b2c52ff9`).
 Interpreter has source/tree/manifest provenance, but no separately retained
-complete application ZIP. The complete extended SVG gate is still separate.
+complete application ZIP.
+
+The separate extended SVG run failed its runtime-error gate: 47/48 cases and
+69/72 native pairs qualify across all three DPRs. The original legacy control's
+DPR 2 clipping scene logged `Error synchronizing filesystem from IndexDB`
+with `errno: 44`. Its three pixel comparisons also match diagnostically, but
+remain rejected because matching images do not waive a runtime error. All
+144 native states, every original shard file and the actual failed aggregate
+are retained in the quality record. The error does not identify a file path or
+synchronization direction, so its cause remains unconfirmed.
+
+The [earlier unsharded attempt](benchmarks/unodraw-legacy-composition-svg-original-2026-11-12.json)
+remains a separate failed result: 138 retained native states and 66 accepted
+pairs, all with zero scored differences, but two DPR 2 cases failed before
+committed-source/native-state proof. Legacy filters could not open command
+search; legacy-composite gradients did not observe a completed startup frame.
+Six required pairs remain unavailable/rejected. Its passing states are not
+combined with another attempt to manufacture a complete matrix.
 
 All browser timings here use SwiftShader software graphics. Callback completion
 and canvas submission do not prove input-to-new-pixels latency or physical GPU
-throughput. The next direct comparison selects the existing `composite` mode
-against the same baseline and immutable AOT packages, with its own five-workload
-results and complete SVG quality matrix. No performance or qualification result
-for that comparison is claimed before its artifacts are complete.
+throughput. The completed direct `composite` comparison and its separate full SVG matrix
+are recorded above. Both that mode and `legacy-composite` remain unqualified for
+default promotion.
 
 ### Guide-query profile
 
