@@ -21,8 +21,57 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  eligibility:
+    name: Qualify cached AOT artifacts for this source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      eligible: ${{ steps.source.outputs.eligible }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Check source eligibility contracts
+        run: python -m unittest discover -s tests/UnoDraw.BrowserRenderQuality -p 'test_source_equivalence.py'
+      - uses: actions/download-artifact@v4
+        with:
+          name: unodraw-performance-package-candidate
+          path: artifacts/packages/candidate
+          run-id: ${{ inputs.package_run_id || '43223723275' }}
+          github-token: ${{ github.token }}
+      - name: Identify stale artifacts before scheduling cached verification
+        id: source
+        env:
+          PACKAGE_RUN_ID: ${{ inputs.package_run_id || '43223723275' }}
+        run: |
+          options=()
+          if [ "$GITHUB_EVENT_NAME" = 'pull_request' ]; then
+            options+=(--report-only)
+          fi
+          python tests/UnoDraw.BrowserRenderQuality/verify_source.py \
+            --package artifacts/packages/candidate --output artifacts/unodraw-artifact-eligibility \
+            --package-run-id "$PACKAGE_RUN_ID" --github-output "$GITHUB_OUTPUT" "${options[@]}"
+      - name: Publish the source eligibility decision
+        if: always()
+        run: |
+          if test -f artifacts/unodraw-artifact-eligibility/summary.md; then
+            cat artifacts/unodraw-artifact-eligibility/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-cached-artifact-eligibility
+          path: artifacts/unodraw-artifact-eligibility
+          if-no-files-found: warn
+          retention-days: 14
+
   quality:
     name: Existing AOT native pixels (${{ matrix.suite }})
+    needs: eligibility
+    if: needs.eligibility.outputs.eligible == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:
@@ -88,6 +137,8 @@ jobs:
 
   performance:
     name: Matched AOT ${{ matrix.backend }} ${{ matrix.workload }}
+    needs: eligibility
+    if: needs.eligibility.outputs.eligible == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -156,6 +207,8 @@ jobs:
 
   diagnostics:
     name: Candidate pan phases (${{ matrix.backend }})
+    needs: eligibility
+    if: needs.eligibility.outputs.eligible == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -216,8 +269,8 @@ jobs:
 
   aggregate:
     name: Verify all twelve performance comparisons
-    needs: performance
-    if: always()
+    needs: [eligibility, performance]
+    if: always() && needs.eligibility.result == 'success' && needs.eligibility.outputs.eligible == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
