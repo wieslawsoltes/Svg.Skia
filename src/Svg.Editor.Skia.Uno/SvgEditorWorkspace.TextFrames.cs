@@ -28,11 +28,11 @@ public sealed partial class SvgEditorWorkspace
         var text = new TextBox
         {
             Header = "Story · select text to format a range",
-            Text = story.Text,
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap,
             MinHeight = 140,
             MaxHeight = 240,
+            Text = story.Text,
             MaxLength = SvgTextLayoutService.MaximumCharacters
         };
         var family = new TextBox { Header = "Font family", Text = story.DefaultStyle.FontFamily };

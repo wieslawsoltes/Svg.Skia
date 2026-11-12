@@ -292,18 +292,21 @@ copy_document() {
   command 'Copy'
   python3 "$source_dir/assert_document_lifecycle.py" "$output" "$@"
 }
-check_blank_document() {
+copy_source_document() {
   printf '%s' 'waiting-for-current-svg' | xclip -selection clipboard
   command 'Edit SVG source'
   # The source editor is the central native TextBox in the modal content.
   xdotool mousemove --window "$window" 720 420 click 1
   xdotool key --clearmodifiers ctrl+a ctrl+c
-  python3 "$source_dir/assert_document_lifecycle.py" "$output" "$1" blank
+  python3 "$source_dir/assert_document_lifecycle.py" "$output" "$@"
   local checkpoint
   checkpoint="$(input_checkpoint)"
   xdotool key --clearmodifiers Escape
   wait_input "$checkpoint" 'command-completed id=source$'
 }
+
+# Opening the multiline source editor must preserve the complete saved fixture.
+copy_source_document editor-source-retains-document retained --expected "$document"
 
 # A failed save during close must preserve the live dirty document. A directory
 # at the isolated fixture's output path deterministically rejects atomic replace
@@ -358,14 +361,14 @@ checkpoint="$(input_checkpoint)"
 xdotool key --clearmodifiers Tab Return
 wait_input "$checkpoint" 'modal-closed result=Secondary$'
 wait_input "$checkpoint" 'command-completed id=close$'
-check_blank_document editor-close-last-dirty-creates-document
+copy_source_document editor-close-last-dirty-creates-document blank
 command 'Fit artboard'
 command 'tool-rectangle'
 draw
 copy_document editor-close-replacement-live rectangle
 command 'Undo'
 command 'Close document'
-check_blank_document editor-close-last-clean-creates-document
+copy_source_document editor-close-last-clean-creates-document blank
 capture editor-close-final-workspace
 
 if grep -Eiq 'Unhandled exception|DllNotFoundException|EntryPointNotFoundException|XamlParseException|StackOverflowException' "$output/application.log"; then

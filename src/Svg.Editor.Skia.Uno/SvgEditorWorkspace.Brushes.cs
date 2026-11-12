@@ -36,8 +36,8 @@ public sealed partial class SvgEditorWorkspace
         cap.SelectedIndex = 1;
         var color = new TextBox { Header = "Color · #RRGGBB", Text = "#7061DC", MaxLength = 7 };
         var opacity = NumberInput("Opacity %", 100, 0, 100);
-        var profile = new TextBox { Header = "Width profile · position,multiplier", Text = "0,0.1;0.2,1;0.7,0.65;1,0.1", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, MaxLength = 16000 };
-        var stamp = new TextBox { Header = "Vector stamp · SVG path data", Text = new SvgBrushDefinition().StampPath, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, MaxLength = 65536, MaxHeight = 120 };
+        var profile = new TextBox { Header = "Width profile · position,multiplier", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, MaxLength = 16000, Text = "0,0.1;0.2,1;0.7,0.65;1,0.1" };
+        var stamp = new TextBox { Header = "Vector stamp · SVG path data", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, MaxLength = 65536, MaxHeight = 120, Text = new SvgBrushDefinition().StampPath };
         var stampFromSelection = new Button { Content = "Use selected path as stamp", IsEnabled = controller.SelectedElements.Count == 1 && controller.SelectedElements[0] is SvgPath };
         var copy = new Button { Content = "Duplicate" };
         var remove = new Button { Content = "Remove" };

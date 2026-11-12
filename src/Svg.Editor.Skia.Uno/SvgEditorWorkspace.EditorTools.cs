@@ -582,7 +582,7 @@ public sealed partial class SvgEditorWorkspace
             throw new InvalidOperationException("Select one path with Direct Selection before placing type on it.");
         controller.EnsureSelectionEditable();
         var context = new SvgEditorSelectionContext(controller);
-        var text = new TextBox { Header = "Text", Text = "Type on a path", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, MaxLength = 100000, Width = DialogContentWidth(420) };
+        var text = new TextBox { Header = "Text", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, MaxLength = 100000, Width = DialogContentWidth(420), Text = "Type on a path" };
         if (await ShowDialogAsync(MakeDialog("Type on a Path", text, "Create")) != ContentDialogResult.Primary)
             return;
         if (!context.IsCurrent(Controller))

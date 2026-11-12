@@ -193,9 +193,11 @@ public sealed partial class SvgEditorWorkspace
                 }
                 else
                 {
-                    var text = new TextBox { Header = name, Text = original, PlaceholderText = "SVG default", MaxLength = 65536 };
+                    var text = new TextBox { Header = name, PlaceholderText = "SVG default" };
                     if (name is "kernelMatrix" or "values" or "tableValues")
                     { text.AcceptsReturn = true; text.TextWrapping = TextWrapping.Wrap; text.MaxHeight = 140; }
+                    text.Text = original;
+                    text.MaxLength = 65536;
                     fields.Add((nodeIndex, childIndex, name, original, () => text.Text));
                     text.TextChanged += (_, _) => Schedule();
                     inspector.Children.Add(text);

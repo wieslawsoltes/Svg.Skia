@@ -261,14 +261,15 @@ public sealed partial class SvgEditorWorkspace
 
     private TextBox SourceEditor(string source) => new()
     {
-        Text = source,
+        // Configure multiline input before Text to avoid single-line coercion.
         AcceptsReturn = true,
         TextWrapping = TextWrapping.NoWrap,
         FontFamily = new FontFamily("monospace"),
         FontSize = 12,
         Width = DialogContentWidth(560),
         Height = Math.Min(420, Math.Max(160, (XamlRoot?.Size.Height ?? ActualHeight) - 260)),
-        IsSpellCheckEnabled = false
+        IsSpellCheckEnabled = false,
+        Text = source
     };
 
     private async Task EditTextAsync()
@@ -280,7 +281,7 @@ public sealed partial class SvgEditorWorkspace
         var originalFont = text.FontFamily ?? "sans-serif";
         var originalSize = text.FontSize.Value > 0 ? text.FontSize.Value : 24;
         var originalTracking = text.LetterSpacing.Value;
-        var value = new TextBox { Header = "Text", Text = originalText, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 140 };
+        var value = new TextBox { Header = "Text", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 140, Text = originalText };
         var font = new TextBox { Header = "Font family", Text = originalFont };
         var size = NumberInput("Font size", originalSize, 1, 10000);
         var tracking = NumberInput("Letter spacing", originalTracking, -1000, 1000);
@@ -389,7 +390,7 @@ public sealed partial class SvgEditorWorkspace
         type.Items.Add("Radial");
         type.SelectedIndex = 0;
         var angle = NumberInput("Angle °", 0, -360, 360);
-        var stops = new TextBox { Header = "Stops: position, color, opacity (one per line)", Text = "0, #7061dc, 1\n0.5, #b2a5ef, 1\n1, #f2b99e, 1", AcceptsReturn = true, Height = 160, FontFamily = new FontFamily("monospace") };
+        var stops = new TextBox { Header = "Stops: position, color, opacity (one per line)", AcceptsReturn = true, Height = 160, FontFamily = new FontFamily("monospace"), Text = "0, #7061dc, 1\n0.5, #b2a5ef, 1\n1, #f2b99e, 1" };
         var panel = new StackPanel { Spacing = 14, Width = DialogContentWidth(420) };
         panel.Children.Add(type);
         panel.Children.Add(angle);

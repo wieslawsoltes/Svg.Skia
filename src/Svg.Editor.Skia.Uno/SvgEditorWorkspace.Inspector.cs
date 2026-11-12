@@ -242,7 +242,7 @@ public sealed partial class SvgEditorWorkspace
     { if (!_refreshing && (_inspectedElement ?? Controller?.Document) is { } element) RefreshAttributeFields(element); }
     private TextBox TextField(string label, string value, Action<string> apply, bool multiline = false)
     {
-        var field = new TextBox { Header = label, Text = value, AcceptsReturn = multiline, TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap };
+        var field = new TextBox { Header = label, AcceptsReturn = multiline, TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap, Text = value };
         AutomationProperties.SetName(field, label);
         void Commit()
         {
