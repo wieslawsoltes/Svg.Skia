@@ -23,6 +23,7 @@ from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork,  #
                    wait_for_artwork_transition)
 from metrics import comparisons, summarize, validate_packages, verify_hover_isolation  # noqa: E402
 from quality import bridge_query  # noqa: E402
+from selection_readiness import require_cleared_selection  # noqa: E402
 from workload_plan import (BACKENDS, WORKLOADS, diagnostic_plan, primary_plan,  # noqa: E402
                            require_run_coverage)
 
@@ -81,6 +82,38 @@ def settled_screenshot(page: Page, output: Path) -> None:
         shutil.copyfile(output, previous)
         next_frame(page)
     raise AssertionError("The initial document, rulers and fonts did not settle")
+
+
+def wait_for_edited_artwork(page: Page, before: Path, after: Path) -> dict[str, Any]:
+    """Observe deselection and settled edited pixels after the timed sample ends."""
+    previous = after.with_name(after.stem + "-selection-previous.png")
+    deadline = time.monotonic() + 30
+    started = time.monotonic()
+    stable = 0
+    captures = 0
+    failure = "No completed edited frame"
+    while time.monotonic() < deadline:
+        page.screenshot(path=str(after))
+        captures += 1
+        try:
+            selection = require_cleared_selection(before, after)
+            result = artwork_transition(before, after, restore=False)
+            if previous.exists():
+                artwork_transition(previous, after, restore=True)
+                stable += 1
+                if stable >= 2:
+                    previous.unlink(missing_ok=True)
+                    result["selection_clear_readiness"] = {
+                        **selection, "captures": captures,
+                        "elapsed_ms_outside_timed_sample": (time.monotonic() - started) * 1000,
+                    }
+                    return result
+        except AssertionError as error:
+            stable = 0
+            failure = str(error)
+        shutil.copyfile(after, previous)
+        next_frame(page)
+    raise AssertionError(f"Edited artwork did not settle after clearing selection: {failure}")
 
 
 def cpu_metrics(session: Any) -> dict[str, float]:
@@ -266,7 +299,8 @@ def verify_workload(page: Page, workload: str, operations: int, before: Path,
     if workload == "edit":
         # Remove selection outlines before requiring changed SVG interiors.
         page.keyboard.press("Control+Shift+A")
-    if workload in {"pan", "zoom", "edit"}:
+        result = wait_for_edited_artwork(page, before, after)
+    elif workload in {"pan", "zoom"}:
         result = wait_for_artwork_transition(page, before, after, restore=False)
     elif workload in {"selection", "brush-hover"}:
         page.screenshot(path=str(after))
