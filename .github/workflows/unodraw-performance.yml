@@ -131,6 +131,30 @@ jobs:
           -c Release -p:WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT
           -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false
           -o ../artifacts/package
+      - name: Verify candidate storage ordering with its packaged runtime
+        if: matrix.role == 'candidate'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+          installer = Path('source/samples/UnoDraw/Platforms/WebAssembly/BrowserStorageSynchronization.js')
+          if not installer.is_file():
+              print('The explicitly selected older candidate predates the storage ordering change.')
+          else:
+              runtime = list(Path('artifacts/package/wwwroot').rglob('dotnet.native.*.js'))
+              if len(runtime) != 1:
+                  raise RuntimeError('Expected one actual native JavaScript runtime')
+              subprocess.run(['node', 'harness/tests/UnoDraw.BrowserSmoke/test_storage_synchronization.mjs',
+                              '--runtime', str(runtime[0]), '--installer', str(installer),
+                              '--report', 'artifacts/candidate-storage-tests/report.json'], check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.role == 'candidate'
+        with:
+          name: unodraw-candidate-storage-tests
+          path: artifacts/candidate-storage-tests
+          if-no-files-found: warn
+          retention-days: 14
       - name: Record source, fixture and packaged fonts
         run: >-
           python harness/tests/UnoDraw.BrowserPerformance/package_manifest.py

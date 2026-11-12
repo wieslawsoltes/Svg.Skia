@@ -67,6 +67,8 @@
     <UnoSplashScreen Include="Branding/splash.svg" BackgroundColor="#19191F" BaseSize="64,64" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <EmbeddedResource Include="Platforms/WebAssembly/BrowserStorageSynchronization.js"
+                      LogicalName="UnoDraw.BrowserStorageSynchronization.source" />
     <PackageReference Include="SkiaSharp.NativeAssets.WebAssembly" />
     <PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" />
     <PackageReference Include="System.Security.Cryptography.Xml" />

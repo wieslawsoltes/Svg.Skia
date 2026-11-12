@@ -117,3 +117,32 @@ scoped expected errors, blank/frozen artwork, outline-only changes, incomplete
 color-family repaint, failed camera restoration, and canvas/ruler frames that still
 use the previous theme after their surrounding chrome updates. They supplement the
 four published-runtime runs.
+
+## Browser storage ordering regression
+
+The pinned native IDBFS flush originally enumerates local paths, asynchronously
+enumerates IndexedDB, then reads those local paths. A recovery-file rename or
+delete during that asynchronous gap can invalidate the saved path list. The
+browser entry point now installs a flush-only ordering fix before creating the
+host: enumerate IndexedDB first, then enumerate and read the local tree in the
+same JavaScript turn. Hydration still calls the original implementation, and
+reconciliation, transactions, bytes, metadata and error propagation remain owned
+by the native helpers. Unsupported helper objects retain their original behavior.
+
+Docs and the candidate performance package run the regression against the actual
+published `dotnet.native.*.js`, before uploading the package:
+
+```sh
+node tests/UnoDraw.BrowserSmoke/test_storage_synchronization.mjs \
+  --runtime artifacts/unodraw-browser/wwwroot/_framework/dotnet.native.HASH.js \
+  --report artifacts/unodraw-browser-storage-tests/report.json
+```
+
+Replace the runtime filename with the one in that actual package. An optional
+`--installer` selects the source checkout being built. The test extracts and
+hash-pins the original IDBFS helpers, exercising 13 paired scenarios and nine
+installation guards. It rejects a changed native helper contract for explicit
+review when the runtime is upgraded. It uses controlled filesystem/IndexedDB
+doubles, so browser persistence and the existing runtime-error gate remain
+separate checks. In particular, this reproduction does not attribute an older
+anonymous `errno: 44` to the demonstrated race or turn that failed run into a pass.

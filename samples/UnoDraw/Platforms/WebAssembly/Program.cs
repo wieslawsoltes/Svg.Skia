@@ -11,6 +11,7 @@ public static class Program
 {
     public static async Task Main(string[] args)
     {
+        BrowserStorageSynchronization.Initialize();
         BrowserRenderDiagnostics.Initialize();
         InitializeLogging();
         // A startup-only override lets SVG-heavy workloads compare direct Skia/WebGL

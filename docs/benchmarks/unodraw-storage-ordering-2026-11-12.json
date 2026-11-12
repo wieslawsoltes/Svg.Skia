@@ -1,0 +1,3505 @@
+{
+  "schema": 1,
+  "created_utc": "2026-11-12T21:36:45.361956+00:00",
+  "status": "source_and_pinned_runtime_helper_checks_passed_browser_pending",
+  "base_sha": "6acf6dc45115e8300321cf2eae9fd27fe4c0d43d",
+  "source_sha256": {
+    "samples/UnoDraw/Platforms/WebAssembly/BrowserStorageSynchronization.cs": "2f5eebca521cc79df5fb99932e7e135fc51cf55b3a04dadd677a3f84efbea35c",
+    "samples/UnoDraw/Platforms/WebAssembly/BrowserStorageSynchronization.js": "ad465d3cdfacbca98e2fbca791601554b4a50da4debbaaa9d1e3c0069ec3ff24",
+    "samples/UnoDraw/Platforms/WebAssembly/Program.cs": "e8a9c536eeff649c2042db6db6f7595ba7d432b0e3e1939bb4e43dfdcb5a7cf4",
+    "samples/UnoDraw/UnoDraw.csproj": "272e8ecc5f3fe2b4b8eda3dcbee4070a59e219d30dbae1bc4ced32cf9e83d627",
+    "tests/UnoDraw.BrowserSmoke/test_storage_synchronization.mjs": "450bdd4b2eaaea66fff48cd7b1b5af8a063576a6be0022642a1b1807f16ce013"
+  },
+  "scope": [
+    "The new browser entry-point hook closes the demonstrated local-list/local-read gap in the pinned IDBFS flush.",
+    "Initial hydration delegates to the original native implementation. No retries, storage-error exemptions or renderer changes are introduced by this fix.",
+    "The archived DPR2 anonymous errno44 has no failing path/direction; this reproduction does not attribute that historical failure or change its failed quality outcome.",
+    "The controlled helper test is not an end-to-end browser persistence test. Fresh browser startup, persistence and full native quality remain pending on the actual published production build."
+  ],
+  "runtime_helper_test": {
+    "source": {
+      "runtime_path": "/workspace/scratch/e6bdc61e475d/unodraw-ci/0ffa-packages/candidate/wwwroot/_framework/dotnet.native.wx7z35yrz9.js",
+      "runtime_sha256": "f409c30b3021d9c85c150f36d5bdbf63aa388dc25fa4223f9518cf7b2c1be6c0",
+      "extracted_idbfs_start": 28795,
+      "extracted_idbfs_end": 34084,
+      "extracted_idbfs_sha256": "2956e143931ec282d48bbc897f1ac3599430275f19fda70df33c9fc427a11bb3",
+      "extracted_idbfs_bytes": 5289,
+      "actual_installer_path": "/workspace/scratch/e6bdc61e475d/Svg.Skia-storage/samples/UnoDraw/Platforms/WebAssembly/BrowserStorageSynchronization.js",
+      "actual_installer_sha256": "ad465d3cdfacbca98e2fbca791601554b4a50da4debbaaa9d1e3c0069ec3ff24",
+      "test_sha256": "450bdd4b2eaaea66fff48cd7b1b5af8a063576a6be0022642a1b1807f16ce013"
+    },
+    "passed": true,
+    "scenario_count": 13,
+    "executions": 26,
+    "installation_guard_count": 9,
+    "cases": [
+      {
+        "name": "unchanged-flush-byte-preservation",
+        "mode": "original",
+        "callback_count": 1,
+        "error": null,
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 3,
+            "event": "local-lookup",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "remote-put",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "remote-delete",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 4,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 5,
+            "event": "event-request-put"
+          },
+          {
+            "turn": 6,
+            "event": "event-request-delete"
+          },
+          {
+            "turn": 7,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 7,
+            "event": "transaction-committed"
+          },
+          {
+            "turn": 7,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "unchanged-flush-byte-preservation",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": null,
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 3,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 3,
+            "event": "local-lookup",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "remote-put",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "remote-delete",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 4,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 5,
+            "event": "event-request-put"
+          },
+          {
+            "turn": 6,
+            "event": "event-request-delete"
+          },
+          {
+            "turn": 7,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 7,
+            "event": "transaction-committed"
+          },
+          {
+            "turn": 7,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "rename-during-remote-enumeration",
+        "mode": "original",
+        "callback_count": 1,
+        "error": {
+          "message": "No such file or directory: /data/old.svg",
+          "errno": 44
+        },
+        "local": [
+          {
+            "path": "/data/new.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 1,
+            "contents": [
+              9
+            ],
+            "contents_sha256": "2b4c342f5433ebe591a1da77e013d1b72475562d48578dca8b84bac6651c3cb9"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "enumeration-mutation"
+          },
+          {
+            "turn": 2,
+            "event": "local-rename",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 3,
+            "event": "local-lookup",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "callback"
+          },
+          {
+            "turn": 4,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 4,
+            "event": "transaction-committed"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "rename-during-remote-enumeration",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": null,
+        "local": [
+          {
+            "path": "/data/new.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/new.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "enumeration-mutation"
+          },
+          {
+            "turn": 2,
+            "event": "local-rename",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 3,
+            "event": "local-stat",
+            "path": "/data/new.svg"
+          },
+          {
+            "turn": 3,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 3,
+            "event": "local-lookup",
+            "path": "/data/new.svg"
+          },
+          {
+            "turn": 3,
+            "event": "local-stat",
+            "path": "/data/new.svg"
+          },
+          {
+            "turn": 3,
+            "event": "remote-put",
+            "path": "/data/new.svg"
+          },
+          {
+            "turn": 3,
+            "event": "remote-delete",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 4,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 5,
+            "event": "event-request-put"
+          },
+          {
+            "turn": 6,
+            "event": "event-request-delete"
+          },
+          {
+            "turn": 7,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 7,
+            "event": "transaction-committed"
+          },
+          {
+            "turn": 7,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "delete-during-remote-enumeration",
+        "mode": "original",
+        "callback_count": 1,
+        "error": {
+          "message": "No such file or directory: /data/old.svg",
+          "errno": 44
+        },
+        "local": [],
+        "persisted": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 1,
+            "contents": [
+              9
+            ],
+            "contents_sha256": "2b4c342f5433ebe591a1da77e013d1b72475562d48578dca8b84bac6651c3cb9"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "enumeration-mutation"
+          },
+          {
+            "turn": 2,
+            "event": "local-unlink",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 3,
+            "event": "local-lookup",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "callback"
+          },
+          {
+            "turn": 4,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 4,
+            "event": "transaction-committed"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "delete-during-remote-enumeration",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": null,
+        "local": [],
+        "persisted": [],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "enumeration-mutation"
+          },
+          {
+            "turn": 2,
+            "event": "local-unlink",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 3,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 3,
+            "event": "remote-delete",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 4,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 5,
+            "event": "event-request-delete"
+          },
+          {
+            "turn": 6,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 6,
+            "event": "transaction-committed"
+          },
+          {
+            "turn": 6,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "rewrite-during-remote-enumeration",
+        "mode": "original",
+        "callback_count": 1,
+        "error": null,
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 40,
+            "contents": [
+              255,
+              0,
+              87,
+              4
+            ],
+            "contents_sha256": "cdd1333d422ef6b7f73ac91e92dc72fd4a7f138ca835b4692fb3e880f6245499"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "enumeration-mutation"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "rewrite-during-remote-enumeration",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": null,
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 40,
+            "contents": [
+              255,
+              0,
+              87,
+              4
+            ],
+            "contents_sha256": "cdd1333d422ef6b7f73ac91e92dc72fd4a7f138ca835b4692fb3e880f6245499"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 40,
+            "contents": [
+              255,
+              0,
+              87,
+              4
+            ],
+            "contents_sha256": "cdd1333d422ef6b7f73ac91e92dc72fd4a7f138ca835b4692fb3e880f6245499"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "enumeration-mutation"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 3,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 3,
+            "event": "local-lookup",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "remote-put",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 4,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 5,
+            "event": "event-request-put"
+          },
+          {
+            "turn": 6,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 6,
+            "event": "transaction-committed"
+          },
+          {
+            "turn": 6,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "create-during-remote-enumeration",
+        "mode": "original",
+        "callback_count": 1,
+        "error": null,
+        "local": [
+          {
+            "path": "/data/new.svg",
+            "mode": 33188,
+            "timestamp": 40,
+            "contents": [
+              2,
+              4,
+              6,
+              8
+            ],
+            "contents_sha256": "02d0e6c850c1f217b93796418d5e794da433d2c3bdbf32b88565f12e33bcfd62"
+          }
+        ],
+        "persisted": [],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "enumeration-mutation"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 2,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "create-during-remote-enumeration",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": null,
+        "local": [
+          {
+            "path": "/data/new.svg",
+            "mode": 33188,
+            "timestamp": 40,
+            "contents": [
+              2,
+              4,
+              6,
+              8
+            ],
+            "contents_sha256": "02d0e6c850c1f217b93796418d5e794da433d2c3bdbf32b88565f12e33bcfd62"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/new.svg",
+            "mode": 33188,
+            "timestamp": 40,
+            "contents": [
+              2,
+              4,
+              6,
+              8
+            ],
+            "contents_sha256": "02d0e6c850c1f217b93796418d5e794da433d2c3bdbf32b88565f12e33bcfd62"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "enumeration-mutation"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 2,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 2,
+            "event": "local-stat",
+            "path": "/data/new.svg"
+          },
+          {
+            "turn": 2,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 2,
+            "event": "local-lookup",
+            "path": "/data/new.svg"
+          },
+          {
+            "turn": 2,
+            "event": "local-stat",
+            "path": "/data/new.svg"
+          },
+          {
+            "turn": 2,
+            "event": "remote-put",
+            "path": "/data/new.svg"
+          },
+          {
+            "turn": 3,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 4,
+            "event": "event-request-put"
+          },
+          {
+            "turn": 5,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 5,
+            "event": "transaction-committed"
+          },
+          {
+            "turn": 5,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "nested-directory-rename",
+        "mode": "original",
+        "callback_count": 1,
+        "error": {
+          "message": "No such file or directory: /data/old",
+          "errno": 44
+        },
+        "local": [
+          {
+            "path": "/data/new",
+            "mode": 16877,
+            "timestamp": 10
+          },
+          {
+            "path": "/data/new/art.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/old",
+            "mode": 16877,
+            "timestamp": 1
+          },
+          {
+            "path": "/data/old/art.svg",
+            "mode": 33188,
+            "timestamp": 1,
+            "contents": [
+              4
+            ],
+            "contents_sha256": "e52d9c508c502347344d8c07ad91cbd6068afc75ff6292f062a09ca381c89e71"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/old"
+          },
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data/old"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/old/art.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "enumeration-mutation"
+          },
+          {
+            "turn": 2,
+            "event": "local-rename",
+            "path": "/data/old"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 4,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 4,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 4,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 4,
+            "event": "local-lookup",
+            "path": "/data/old"
+          },
+          {
+            "turn": 4,
+            "event": "callback"
+          },
+          {
+            "turn": 4,
+            "event": "local-lookup",
+            "path": "/data/old/art.svg"
+          },
+          {
+            "turn": 5,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 5,
+            "event": "transaction-committed"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "nested-directory-rename",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": null,
+        "local": [
+          {
+            "path": "/data/new",
+            "mode": 16877,
+            "timestamp": 10
+          },
+          {
+            "path": "/data/new/art.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/new",
+            "mode": 16877,
+            "timestamp": 10
+          },
+          {
+            "path": "/data/new/art.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "enumeration-mutation"
+          },
+          {
+            "turn": 2,
+            "event": "local-rename",
+            "path": "/data/old"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 4,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 4,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 4,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 4,
+            "event": "local-stat",
+            "path": "/data/new"
+          },
+          {
+            "turn": 4,
+            "event": "local-readdir",
+            "path": "/data/new"
+          },
+          {
+            "turn": 4,
+            "event": "local-stat",
+            "path": "/data/new/art.svg"
+          },
+          {
+            "turn": 4,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 4,
+            "event": "local-lookup",
+            "path": "/data/new"
+          },
+          {
+            "turn": 4,
+            "event": "local-stat",
+            "path": "/data/new"
+          },
+          {
+            "turn": 4,
+            "event": "remote-put",
+            "path": "/data/new"
+          },
+          {
+            "turn": 4,
+            "event": "local-lookup",
+            "path": "/data/new/art.svg"
+          },
+          {
+            "turn": 4,
+            "event": "local-stat",
+            "path": "/data/new/art.svg"
+          },
+          {
+            "turn": 4,
+            "event": "remote-put",
+            "path": "/data/new/art.svg"
+          },
+          {
+            "turn": 4,
+            "event": "remote-delete",
+            "path": "/data/old/art.svg"
+          },
+          {
+            "turn": 4,
+            "event": "remote-delete",
+            "path": "/data/old"
+          },
+          {
+            "turn": 5,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 6,
+            "event": "event-request-put"
+          },
+          {
+            "turn": 7,
+            "event": "event-request-put"
+          },
+          {
+            "turn": 8,
+            "event": "event-request-delete"
+          },
+          {
+            "turn": 9,
+            "event": "event-request-delete"
+          },
+          {
+            "turn": 10,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 10,
+            "event": "transaction-committed"
+          },
+          {
+            "turn": 10,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "propagates-openFailure",
+        "mode": "original",
+        "callback_count": 1,
+        "error": {
+          "message": "Controlled openFailure",
+          "errno": 28
+        },
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "callback"
+          },
+          {
+            "turn": 1,
+            "event": "prevent-default"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "propagates-openFailure",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": {
+          "message": "Controlled openFailure",
+          "errno": 28
+        },
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "callback"
+          },
+          {
+            "turn": 1,
+            "event": "prevent-default"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "propagates-enumerationFailure",
+        "mode": "original",
+        "callback_count": 1,
+        "error": {
+          "message": "Controlled enumerationFailure",
+          "errno": 28
+        },
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "callback"
+          },
+          {
+            "turn": 2,
+            "event": "prevent-default"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "propagates-enumerationFailure",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": {
+          "message": "Controlled enumerationFailure",
+          "errno": 28
+        },
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "callback"
+          },
+          {
+            "turn": 2,
+            "event": "prevent-default"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "propagates-writeFailure",
+        "mode": "original",
+        "callback_count": 1,
+        "error": {
+          "message": "Controlled writeFailure",
+          "errno": 28
+        },
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 2,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 2,
+            "event": "local-lookup",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "remote-put",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 4,
+            "event": "event-request-put"
+          },
+          {
+            "turn": 4,
+            "event": "callback"
+          },
+          {
+            "turn": 4,
+            "event": "prevent-default"
+          },
+          {
+            "turn": 4,
+            "event": "prevent-default"
+          },
+          {
+            "turn": 4,
+            "event": "prevent-default"
+          },
+          {
+            "turn": 5,
+            "event": "event-transaction-completion"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "propagates-writeFailure",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": {
+          "message": "Controlled writeFailure",
+          "errno": 28
+        },
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 2,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 2,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 2,
+            "event": "local-lookup",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "remote-put",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 4,
+            "event": "event-request-put"
+          },
+          {
+            "turn": 4,
+            "event": "callback"
+          },
+          {
+            "turn": 4,
+            "event": "prevent-default"
+          },
+          {
+            "turn": 4,
+            "event": "prevent-default"
+          },
+          {
+            "turn": 4,
+            "event": "prevent-default"
+          },
+          {
+            "turn": 5,
+            "event": "event-transaction-completion"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "propagates-local-stat-failure",
+        "mode": "original",
+        "callback_count": 1,
+        "error": {
+          "message": "Controlled local stat error",
+          "errno": 13
+        },
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 0,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "propagates-local-stat-failure",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": {
+          "message": "Controlled local stat error",
+          "errno": 13
+        },
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 2,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 2,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "put-clones-bytes-before-later-local-mutation",
+        "mode": "original",
+        "callback_count": 1,
+        "error": null,
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              99,
+              99,
+              99,
+              99,
+              99,
+              99,
+              99
+            ],
+            "contents_sha256": "cd4f3afa6982937e1fcc283c451f1cd9d368e998b554ff7b06eabe6e723a39c2"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 2,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 2,
+            "event": "local-lookup",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "remote-put",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 4,
+            "event": "event-request-put"
+          },
+          {
+            "turn": 5,
+            "event": "event-after-put-mutation"
+          },
+          {
+            "turn": 6,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 6,
+            "event": "transaction-committed"
+          },
+          {
+            "turn": 6,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "put-clones-bytes-before-later-local-mutation",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": null,
+        "local": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              99,
+              99,
+              99,
+              99,
+              99,
+              99,
+              99
+            ],
+            "contents_sha256": "cd4f3afa6982937e1fcc283c451f1cd9d368e998b554ff7b06eabe6e723a39c2"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/old.svg",
+            "mode": 33188,
+            "timestamp": 20,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 2,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 2,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 2,
+            "event": "local-lookup",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "local-stat",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 2,
+            "event": "remote-put",
+            "path": "/data/old.svg"
+          },
+          {
+            "turn": 3,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 4,
+            "event": "event-request-put"
+          },
+          {
+            "turn": 5,
+            "event": "event-after-put-mutation"
+          },
+          {
+            "turn": 6,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 6,
+            "event": "transaction-committed"
+          },
+          {
+            "turn": 6,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "initial-hydration-preserved",
+        "mode": "original",
+        "callback_count": 1,
+        "error": null,
+        "local": [
+          {
+            "path": "/data/docs",
+            "mode": 16877,
+            "timestamp": 30
+          },
+          {
+            "path": "/data/docs/document.svg",
+            "mode": 33188,
+            "timestamp": 50,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/docs",
+            "mode": 16877,
+            "timestamp": 30
+          },
+          {
+            "path": "/data/docs/document.svg",
+            "mode": 33188,
+            "timestamp": 50,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 4,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 4,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 4,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 4,
+            "event": "remote-get",
+            "path": "/data/docs"
+          },
+          {
+            "turn": 4,
+            "event": "remote-get",
+            "path": "/data/docs/document.svg"
+          },
+          {
+            "turn": 4,
+            "event": "local-stat",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 4,
+            "event": "local-unlink",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 5,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 6,
+            "event": "event-request-get"
+          },
+          {
+            "turn": 6,
+            "event": "local-mkdir",
+            "path": "/data/docs"
+          },
+          {
+            "turn": 7,
+            "event": "event-request-get"
+          },
+          {
+            "turn": 7,
+            "event": "local-write",
+            "path": "/data/docs/document.svg"
+          },
+          {
+            "turn": 8,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 8,
+            "event": "transaction-committed"
+          },
+          {
+            "turn": 8,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "initial-hydration-preserved",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": null,
+        "local": [
+          {
+            "path": "/data/docs",
+            "mode": 16877,
+            "timestamp": 30
+          },
+          {
+            "path": "/data/docs/document.svg",
+            "mode": 33188,
+            "timestamp": 50,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/docs",
+            "mode": 16877,
+            "timestamp": 30
+          },
+          {
+            "path": "/data/docs/document.svg",
+            "mode": 33188,
+            "timestamp": 50,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 4,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 4,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 4,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 4,
+            "event": "remote-get",
+            "path": "/data/docs"
+          },
+          {
+            "turn": 4,
+            "event": "remote-get",
+            "path": "/data/docs/document.svg"
+          },
+          {
+            "turn": 4,
+            "event": "local-stat",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 4,
+            "event": "local-unlink",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 5,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 6,
+            "event": "event-request-get"
+          },
+          {
+            "turn": 6,
+            "event": "local-mkdir",
+            "path": "/data/docs"
+          },
+          {
+            "turn": 7,
+            "event": "event-request-get"
+          },
+          {
+            "turn": 7,
+            "event": "local-write",
+            "path": "/data/docs/document.svg"
+          },
+          {
+            "turn": 8,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 8,
+            "event": "transaction-committed"
+          },
+          {
+            "turn": 8,
+            "event": "callback"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "hydration-error-preserved",
+        "mode": "original",
+        "callback_count": 1,
+        "error": {
+          "message": "Controlled hydration write failure",
+          "errno": 28
+        },
+        "local": [
+          {
+            "path": "/data/docs",
+            "mode": 16877,
+            "timestamp": 30
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/docs",
+            "mode": 16877,
+            "timestamp": 30
+          },
+          {
+            "path": "/data/docs/document.svg",
+            "mode": 33188,
+            "timestamp": 50,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 4,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 4,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 4,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 4,
+            "event": "remote-get",
+            "path": "/data/docs"
+          },
+          {
+            "turn": 4,
+            "event": "remote-get",
+            "path": "/data/docs/document.svg"
+          },
+          {
+            "turn": 4,
+            "event": "local-stat",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 4,
+            "event": "local-unlink",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 5,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 6,
+            "event": "event-request-get"
+          },
+          {
+            "turn": 6,
+            "event": "local-mkdir",
+            "path": "/data/docs"
+          },
+          {
+            "turn": 7,
+            "event": "event-request-get"
+          },
+          {
+            "turn": 7,
+            "event": "local-write",
+            "path": "/data/docs/document.svg"
+          },
+          {
+            "turn": 7,
+            "event": "callback"
+          },
+          {
+            "turn": 8,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 8,
+            "event": "transaction-committed"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      },
+      {
+        "name": "hydration-error-preserved",
+        "mode": "remote-first-flush",
+        "callback_count": 1,
+        "error": {
+          "message": "Controlled hydration write failure",
+          "errno": 28
+        },
+        "local": [
+          {
+            "path": "/data/docs",
+            "mode": 16877,
+            "timestamp": 30
+          }
+        ],
+        "persisted": [
+          {
+            "path": "/data/docs",
+            "mode": 16877,
+            "timestamp": 30
+          },
+          {
+            "path": "/data/docs/document.svg",
+            "mode": 33188,
+            "timestamp": 50,
+            "contents": [
+              0,
+              1,
+              17,
+              127,
+              128,
+              254,
+              255
+            ],
+            "contents_sha256": "3df4f0172d9fdc8e63a9e95d84681824678c745feedb66c03d9fee937feb5ae1"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 0,
+            "event": "local-readdir",
+            "path": "/data"
+          },
+          {
+            "turn": 0,
+            "event": "local-stat",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 0,
+            "event": "open-database",
+            "path": "/data"
+          },
+          {
+            "turn": 1,
+            "event": "event-open-event"
+          },
+          {
+            "turn": 1,
+            "event": "transaction-readonly"
+          },
+          {
+            "turn": 2,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 2,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 3,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 3,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 4,
+            "event": "event-cursor-event"
+          },
+          {
+            "turn": 4,
+            "event": "remote-cursor"
+          },
+          {
+            "turn": 4,
+            "event": "transaction-readwrite"
+          },
+          {
+            "turn": 4,
+            "event": "remote-get",
+            "path": "/data/docs"
+          },
+          {
+            "turn": 4,
+            "event": "remote-get",
+            "path": "/data/docs/document.svg"
+          },
+          {
+            "turn": 4,
+            "event": "local-stat",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 4,
+            "event": "local-unlink",
+            "path": "/data/stale.svg"
+          },
+          {
+            "turn": 5,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 6,
+            "event": "event-request-get"
+          },
+          {
+            "turn": 6,
+            "event": "local-mkdir",
+            "path": "/data/docs"
+          },
+          {
+            "turn": 7,
+            "event": "event-request-get"
+          },
+          {
+            "turn": 7,
+            "event": "local-write",
+            "path": "/data/docs/document.svg"
+          },
+          {
+            "turn": 7,
+            "event": "callback"
+          },
+          {
+            "turn": 8,
+            "event": "event-transaction-completion"
+          },
+          {
+            "turn": 8,
+            "event": "transaction-committed"
+          }
+        ],
+        "unchanged_helper_sha256": {
+          "indexedDB": "166ce5e4011a0edefb36f4631a6d533d210bbe86ea22f7ed6735fcc08a8ce59b",
+          "mount": "d4a2f4f75602ce688324c23c220f361f64b69dbc90adcaffa37f140db775c629",
+          "quit": "b719fb30a127234af8f9e050c5392827bb5b260911985bcb90092618436fae68",
+          "getDB": "1d238b36ac994bc0034a983c4940b35f6c8a27f03e6c5a3887df29cf1932170b",
+          "getLocalSet": "2a5b169b0751ab1c7baa6510740ac1837045ea394fc6101c098260ebb150c079",
+          "getRemoteSet": "4e9dbb2508e0adf22f7cf9e281ac5ab0b90614949268c1757bd1508f4ad6c581",
+          "loadLocalEntry": "6237489fc63bed8d00d49101ed6ea71ad14381f5bb8576d5928e589e2a6cc4ae",
+          "storeLocalEntry": "8012c322588dea02499f5b0885fd1feef0037fdd052f32448aa98f033ae4ec21",
+          "removeLocalEntry": "488cd30562c55886f13cc81fcd647004424750952369e3fe5ede8c12a43df5f0",
+          "loadRemoteEntry": "36ac1a9a75eed184c636fbdc5fb74f315724017b2f7c35cb901133716dbafba4",
+          "storeRemoteEntry": "c87c350e86d787953ffcff42289153aed818df1925c5df16604fccba378dfb49",
+          "removeRemoteEntry": "bb3b1ad3f1682bdfe89cf98cfe15c2ac46496cb6c00f836c1f91ba5a0db5c8d5",
+          "reconcile": "ba4b3f0958aea45fe4ee90c067a611b037ef18ae8d9af9f665357e09e0ae467d"
+        }
+      }
+    ],
+    "installation_guards": [
+      {
+        "name": "absent-host",
+        "passed": true
+      },
+      {
+        "name": "null-host",
+        "passed": true
+      },
+      {
+        "name": "missing-helper",
+        "passed": true
+      },
+      {
+        "name": "frozen-host",
+        "passed": true
+      },
+      {
+        "name": "nonextensible-host",
+        "passed": true
+      },
+      {
+        "name": "readonly-syncfs",
+        "passed": true
+      },
+      {
+        "name": "accessor-syncfs",
+        "passed": true
+      },
+      {
+        "name": "inherited-syncfs",
+        "passed": true
+      },
+      {
+        "name": "foreign-replacement-preserved",
+        "passed": true
+      }
+    ],
+    "scope": [
+      "The unchanged IDBFS object is extracted from the explicitly supplied built native runtime and bound to the pinned helper hash. Only syncfs is wrapped for the proposed flush experiment; all original helper functions are retained.",
+      "The controlled filesystem and asynchronous IndexedDB doubles demonstrate the local-snapshot-to-read race. This is not a browser run and does not identify the cause of the observed anonymous errno 44 in CI.",
+      "The remote-first flush takes its local snapshot and invokes reconcile in the same JavaScript turn. Every loadLocalEntry and put argument capture for that flush is synchronous in that turn.",
+      "No retry, scheduling delay, fallback or error exemption is added. Errors retain object identity. After all queued events drain, each tested invocation has exactly one callback; error callbacks may precede transaction completion.",
+      "Request-error, transaction-error and abort notifications in the write-failure scenario are controlled fault injection. They test the native once-only error guard, not real IndexedDB request-error cancellation or abort behavior.",
+      "The deliberate enumeration-order change can alter which error is reported first if remote and local enumeration independently fail; this test preserves each individual operation error without suppressing it.",
+      "populate=true delegates to the original syncfs and preserves initial hydration data, timestamps, modes, error behavior and event order.",
+      "Mutations after put argument capture are outside that flush snapshot and still require a later synchronization. The test double verifies structured-clone byte isolation but does not qualify a production IndexedDB implementation."
+    ]
+  },
+  "runtime_helper_test_report_sha256": "a2f67e5a5fbb39fd20057e3a89f06b67e59a3db9c7149ab26e618e4b9a403324",
+  "source_review": {
+    "schema": "unodraw-storage-ordering-peer-review-v1",
+    "created_utc": "2026-11-12T21:23:27.707487+00:00",
+    "reviewer": "/root/graphite_quality_continue",
+    "status": "READ_ONLY_ACCEPTED_FOR_PINNED_RUNTIME",
+    "worktree": "/workspace/scratch/e6bdc61e475d/Svg.Skia-storage",
+    "base_sha": "6acf6dc45115e8300321cf2eae9fd27fe4c0d43d",
+    "draft_files": [
+      {
+        "path": "samples/UnoDraw/Platforms/WebAssembly/Program.cs",
+        "before_sha256": "6a4b52f4347eeacec7bda2bdc094a06d59cee765a1c006c18ce3b46e06e5bd75",
+        "after_sha256": "e8a9c536eeff649c2042db6db6f7595ba7d432b0e3e1939bb4e43dfdcb5a7cf4",
+        "bytes": 2392
+      },
+      {
+        "path": "samples/UnoDraw/UnoDraw.csproj",
+        "before_sha256": "ea424e8f4b0bb488b3eb3ef975ccd5f78c3c4690e227f37d317975ad76e85ae0",
+        "after_sha256": "272e8ecc5f3fe2b4b8eda3dcbee4070a59e219d30dbae1bc4ced32cf9e83d627",
+        "bytes": 6240
+      },
+      {
+        "path": "samples/UnoDraw/Platforms/WebAssembly/BrowserStorageSynchronization.cs",
+        "before_sha256": null,
+        "after_sha256": "2f5eebca521cc79df5fb99932e7e135fc51cf55b3a04dadd677a3f84efbea35c",
+        "bytes": 883
+      },
+      {
+        "path": "samples/UnoDraw/Platforms/WebAssembly/BrowserStorageSynchronization.js",
+        "before_sha256": null,
+        "after_sha256": "ad465d3cdfacbca98e2fbca791601554b4a50da4debbaaa9d1e3c0069ec3ff24",
+        "bytes": 1816
+      }
+    ],
+    "exact_package_source": "0ffaabff993d1e040ba2ada1b5130daeccfc2f41",
+    "package_archive": {
+      "path": "/workspace/scratch/e6bdc61e475d/unodraw-ci/0ffa-packages/candidate/artifact.zip",
+      "sha256": "7c97a858e081f36c03682d26c98d8dacfc6d4f225f455b0069f784b1b2c52ff9",
+      "manifest_source_sha_verified": true
+    },
+    "zip_bound_source_assets": [
+      {
+        "path": "wwwroot/uno-config.js",
+        "sha256": "464d308d10dc277685ecf4020a63771738595560033d3094c456e380bc42aba9",
+        "bytes": 7909,
+        "exact_verified_archive_entry": true
+      },
+      {
+        "path": "wwwroot/_framework/dotnet.native.wx7z35yrz9.js",
+        "sha256": "f409c30b3021d9c85c150f36d5bdbf63aa388dc25fa4223f9518cf7b2c1be6c0",
+        "bytes": 381083,
+        "exact_verified_archive_entry": true
+      },
+      {
+        "path": "wwwroot/package_04b56f631fe1153effbea771718b25473fbd7d62/uno-bootstrap.js",
+        "sha256": "e8b44abc7e7a67b58434f7047d965fcbdf5ef1398586cb9061928377c45d9516",
+        "bytes": 75282,
+        "exact_verified_archive_entry": true
+      },
+      {
+        "path": "wwwroot/package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Wasm.js",
+        "sha256": "7f12d9edbdbe625eb96b7db6fd1bff292df18a27c3377b452daed0be76ac5b22",
+        "bytes": 157218,
+        "exact_verified_archive_entry": true
+      },
+      {
+        "path": "wwwroot/package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Runtime.Wasm.js",
+        "sha256": "489ec06eddaf76f69b2e19d1f1c9fd89a6c2d4213fd323cc8ea181824578dc5b",
+        "bytes": 429941,
+        "exact_verified_archive_entry": true
+      }
+    ],
+    "native_idbfs_object": {
+      "path": "/workspace/scratch/e6bdc61e475d/unodraw-ci/idbfs-ordering-reproduction/idbfs-original.js",
+      "sha256": "2956e143931ec282d48bbc897f1ac3599430275f19fda70df33c9fc427a11bb3",
+      "exact_substring_of_native_runtime": true
+    },
+    "findings": [
+      {
+        "subject": "Managed startup observes the exported native IDBFS object",
+        "source": "uno-bootstrap.js lines624,678\u2013694,1084\u20131122,881\u2013891; dotnet.native.wx7z35yrz9.js Module[\"IDBFS\"]=IDBFS",
+        "finding": "RuntimeReady synchronously configures globalThis.IDBFS from Module.IDBFS before dependency initialization can call mainInit and managed Main. Program installs the wrapper before renderer diagnostics, host creation or App construction. Uno Runtime InvokeJS evaluates the expression and returns its result string."
+      },
+      {
+        "subject": "Mounts dispatch through the same object after installation",
+        "source": "dotnet.native.wx7z35yrz9.js FS.mount and FS.syncfs; Uno.Wasm.js lines2045\u20132075",
+        "finding": "FS.mount stores the supplied IDBFS object as mount.type; FS.syncfs looks up mount.type.syncfs at dispatch time. Existing and later mounts therefore observe the replacement. StorageFolder.makePersistent awaits CoreApplication initialization and then mounts the exported IDBFS object."
+      },
+      {
+        "subject": "Flush source enumeration and local reads share one synchronous JavaScript turn",
+        "source": "Exact native getLocalSet, loadLocalEntry, reconcile, storeRemoteEntry; UnoDraw.csproj WasmEnableThreads=false",
+        "finding": "getRemoteSet waits for IndexedDB cursor callbacks. For populate=false, the wrapper enumerates that remote set first, then runs synchronous local traversal and synchronous local reads initiated by reconcile before yielding. Each store.put is initiated from the same turn. This removes the source-proven rename/delete opportunity between the local filename snapshot and its reads in this pinned single-threaded runtime."
+      },
+      {
+        "subject": "Original hydration, transactions, reconciliation and errors are retained",
+        "source": "BrowserStorageSynchronization.js and exact native IDBFS object",
+        "finding": "Truthy populate delegates directly to the original syncfs. Flush still calls the exact original getRemoteSet/getLocalSet/reconcile methods with original sets and callback, preserving create ordering, reverse removal ordering, mtime comparison, file bytes/modes/timestamps and IndexedDB transaction completion. Errors are forwarded without filtering or remapping. No retry, delay, extra flush or replacement transaction is introduced."
+      },
+      {
+        "subject": "Installer lifetime and compatibility guards",
+        "source": "BrowserStorageSynchronization.js",
+        "finding": "The native object is a normal mutable object literal. The installer verifies the four methods, extensibility and writable own syncfs property, records one wrapper under a Symbol marker, and detects repeated installation or a later competing replacement. Unsupported objects retain their original behavior with a visible informational status."
+      }
+    ],
+    "observed_failure_attribution": {
+      "native_race_mechanism_supported": true,
+      "exact_observed_errno44_cause_proven": false,
+      "reason": "The archived error lacks the missing path/stack. Reproducing a valid rename/delete interleaving cannot identify the historical failing path."
+    },
+    "validation_scope": {
+      "browser_runs_started": 0,
+      "production_edits_by_reviewer": 0,
+      "native_or_node_test_runs_by_reviewer": 0,
+      "runtime_reproduction_owner": "/root/performance_continue",
+      "publication_or_default_promotion_approval": false
+    },
+    "limits": [
+      "Applies to the exact pinned native IDBFS implementation and single-threaded application; function presence alone is not a proof for future changed runtime semantics.",
+      "The existing FS.syncfs first-error callback may precede other mounts; this draft deliberately does not retry or alter that behavior.",
+      "Cross-tab synchronization and page-close durability retain their existing runtime semantics.",
+      "The complete archived 0ffa quality run remains failed; this source review cannot relabel it or supply fresh browser qualification."
+    ]
+  },
+  "test_review": {
+    "schema": "unodraw-storage-ordering-test-peer-review-v1",
+    "reviewer": "/root/graphite_quality_continue",
+    "created_utc": "2026-11-12T21:25:29.405358+00:00",
+    "status": "ACCEPTED_READ_ONLY",
+    "test": {
+      "path": "/workspace/scratch/e6bdc61e475d/Svg.Skia-storage/tests/UnoDraw.BrowserSmoke/test_storage_synchronization.mjs",
+      "sha256": "450bdd4b2eaaea66fff48cd7b1b5af8a063576a6be0022642a1b1807f16ce013"
+    },
+    "results": {
+      "path": "/workspace/scratch/e6bdc61e475d/unodraw-ci/idbfs-ordering-reproduction/actual-installer-test-results.json",
+      "sha256": "a2f67e5a5fbb39fd20057e3a89f06b67e59a3db9c7149ab26e618e4b9a403324"
+    },
+    "source_installation_review": {
+      "path": "/workspace/scratch/e6bdc61e475d/unodraw-ci/storage-ordering-peer-review.json",
+      "sha256": "1cce97dac8234618464755a3ed3973fa1bda110c43699a258f03de3fd17e4bb0"
+    },
+    "result_checks": {
+      "scenarios": 13,
+      "executions": 26,
+      "installation_guards": 9,
+      "exactly_one_observed_callback_after_scheduler_drained": true,
+      "all_recorded_payload_hashes_recomputed": true,
+      "three_original_errno44_races_and_corrected_local_set_persistence_verified": true,
+      "both_hydration_pairs_identical_in_data_error_and_trace": true,
+      "original_helper_hashes_identical_across_all_executions": true
+    },
+    "semantic_review": [
+      "The original native IDBFS object is extracted unchanged with an exact helper hash; only the actual production installer replaces syncfs.",
+      "Cursor requests and database opening remain asynchronous controlled events; mutations occur in the gap after the original local snapshot. The corrected source enumeration and every local lookup happen in the same event turn.",
+      "put arguments are structured-cloned when enqueued; persistence publishes staged bytes only at the controlled transaction completion, and later local mutation cannot change captured bytes.",
+      "Hydration delegates to the original function and uses the same native helper path. Mode, timestamp, binary contents, source/removal ordering and error object assertions remain intact.",
+      "The injected request+transaction error/abort notifications stress the native once-only callback guard. They are explicitly scoped as fault injection rather than a model of browser cancellation after preventDefault.",
+      "The corrected report wording says counts are checked after the queue drains; error callbacks may precede transaction completion. Different independent simultaneous errors can change first-error priority when enumeration order changes."
+    ],
+    "limits": [
+      "No browser or runtime test was rerun by this reviewer. The performance agent owns the actual controlled executions.",
+      "This evidence validates the demonstrated ordering invariant in the pinned source. It does not identify the historical anonymous errno44 path or qualify browser IndexedDB persistence.",
+      "The old full SVG result remains failed; no pixel, runtime-error or default-promotion gate is relaxed."
+    ]
+  },
+  "api_compile": {
+    "target": "net10.0-browser",
+    "pinned_uno": "7.0.32",
+    "exit_code": 0,
+    "warnings": 0,
+    "errors": 0,
+    "scope": "Exact new C# initialization class against actual Uno assemblies, with actual JavaScript embedded bytes; not a complete browser-app build.",
+    "build_log_sha256": "ae86cef0d1748697cc7c29ea4fc2a8887bdf8ffcbaa3127718a4b6186ba4d098",
+    "assembly_sha256": "64764b8bc13cd7a942d7304624ce2dce4e7913778c9bf24a5f3f73c84f0500aa",
+    "resource_verification": {
+      "passed": true,
+      "assembly": "/workspace/scratch/e6bdc61e475d/storage-api-compile/bin/Release/net10.0-browser/Storage.ApiCompile.dll",
+      "resource": "UnoDraw.BrowserStorageSynchronization.source",
+      "bytes": 1816,
+      "sha256": "ad465d3cdfacbca98e2fbca791601554b4a50da4debbaaa9d1e3c0069ec3ff24"
+    },
+    "actual_project_resource_evaluation_sha256": "6c5e4555610860d1fdc249559dec15273504c6f68139731bca52f0108d3e3dc4"
+  },
+  "combined_retirement_storage_solution_validation": {
+    "head": "21ee03c83052bc5d341c19c58e73557361e74148",
+    "working_change": "Reviewed retirement plus ordered IDBFS flush; persistent default unchanged",
+    "working_diff_sha256": "d7351f906136c2ed2e67979173e31f3b9bbf25c68344b31f328875dc8c609b77",
+    "combined_production_proof_sha256": "d4d6a241977f456442fb8cbb01ec8250b400a1703ef403b3c19c699986257794",
+    "started_utc": "2026-11-12T21:26:57.196454+00:00",
+    "fontconfig": "/workspace/scratch/e6bdc61e475d/font-resolution-probe/native-fontconfig.conf",
+    "checks": [
+      {
+        "name": "format",
+        "command": [
+          "dotnet",
+          "format",
+          "--no-restore"
+        ],
+        "exit_code": 1,
+        "timed_out": false,
+        "elapsed_seconds": 1.3178871150012128,
+        "log": "/workspace/scratch/e6bdc61e475d/unodraw-ci/storage-combined-solution/format.log",
+        "log_sha256": "8fcf351ebea0db764fd9dbd035b1225e4600c84a04ede89450d495a557b9a92a",
+        "test_summaries": []
+      },
+      {
+        "name": "build",
+        "command": [
+          "dotnet",
+          "build",
+          "Svg.Skia.slnx",
+          "-c",
+          "Release",
+          "-m:1",
+          "-nr:false",
+          "-p:UseSharedCompilation=false"
+        ],
+        "exit_code": 1,
+        "timed_out": false,
+        "elapsed_seconds": 29.382150217003073,
+        "log": "/workspace/scratch/e6bdc61e475d/unodraw-ci/storage-combined-solution/build.log",
+        "log_sha256": "d22638baf912cdc3ef3b481acd818aa68f6f14aaa0df572a1cd94b99d562c03f",
+        "test_summaries": []
+      },
+      {
+        "name": "test",
+        "command": [
+          "dotnet",
+          "test",
+          "Svg.Skia.slnx",
+          "-c",
+          "Release",
+          "-m:1",
+          "-nr:false",
+          "-p:UseSharedCompilation=false"
+        ],
+        "exit_code": 0,
+        "timed_out": false,
+        "elapsed_seconds": 73.76169717800076,
+        "log": "/workspace/scratch/e6bdc61e475d/unodraw-ci/storage-combined-solution/test.log",
+        "log_sha256": "c69d58e5dcb759699c6adf859ed7816dccfce53f6db09f51b61ce09c6a07a19c",
+        "test_summaries": [
+          "Passed!  - Failed:     0, Passed:   141, Skipped:     0, Total:   141, Duration: 197 ms - ShimSkiaSharp.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:    19, Skipped:     0, Total:    19, Duration: 855 ms - Svg.Controls.Avalonia.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3, Duration: 234 ms - Svg.Controls.Skia.Avalonia.InvariantGlobalization.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:   136, Skipped:     0, Total:   136, Duration: 3 s - Svg.Controls.Skia.Avalonia.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:    28, Skipped:     0, Total:    28, Duration: 1 s - Svg.Controls.Skia.Uno.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:    18, Skipped:     0, Total:    18, Duration: 1 s - Svg.Editor.Skia.Avalonia.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:   942, Skipped:     0, Total:   942, Duration: 10 s - Svg.Editor.Skia.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:    20, Skipped:     0, Total:    20, Duration: 361 ms - Svg.Editor.Svg.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:    27, Skipped:     0, Total:    27, Duration: 820 ms - Svg.JavaScript.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:   226, Skipped:     0, Total:   226, Duration: 1 s - Svg.Model.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:  1308, Skipped:    44, Total:  1352, Duration: 19 s - Svg.Skia.UnitTests.dll (net10.0)"
+        ]
+      }
+    ],
+    "finished_utc": "2026-11-12T21:28:41.660112+00:00"
+  },
+  "solution_test_result": {
+    "test_projects": 11,
+    "passed": 2868,
+    "skipped": 44,
+    "failed": 0
+  },
+  "local_build_limits": [
+    "dotnet format failed when the workspace denied the named-pipe build host (SocketException13).",
+    "The solution build failed in UnoDraw desktop resource injection with MSB4216 (task-host connection); no C# compilation errors were reported.",
+    "The required full solution test command succeeded, including the Uno unit project. This does not turn the separate format/build failures into passes."
+  ]
+}
