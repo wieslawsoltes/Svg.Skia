@@ -149,6 +149,15 @@ public class SvgEditorHierarchyPresentationTests
         Assert.False(resources.IsCurrent(Parse()));
     }
 
+    [Fact]
+    public void ResourceCategoriesUseSvgTypesRatherThanSimpleNames()
+    {
+        Assert.True(SvgEditorResourcePresentation.IsResource(new global::Svg.FilterEffects.SvgFilter()));
+        Assert.True(SvgEditorResourcePresentation.IsResource(new DerivedFilter()));
+        Assert.False(SvgEditorResourcePresentation.IsResource(new SvgFilter()));
+        Assert.False(SvgEditorResourcePresentation.IsResource(new SvgGroup()));
+    }
+
     [Theory]
     [InlineData("rename")]
     [InlineData("hide")]
@@ -218,6 +227,15 @@ public class SvgEditorHierarchyPresentationTests
         var measured = MeasureValidation(document, outline, resources);
         Assert.True(measured.AllCurrent);
         Assert.Equal(0, measured.AllocatedBytes);
+
+        // Reflection type-name caches are weakly held and may be reclaimed even
+        // after warmup. Validation must remain allocation-free after collection.
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        var afterCollection = MeasureValidation(document, outline, resources);
+        Assert.True(afterCollection.AllCurrent);
+        Assert.Equal(0, afterCollection.AllocatedBytes);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -232,4 +250,12 @@ public class SvgEditorHierarchyPresentationTests
     }
 
     private static SvgDocument Parse() => SvgDocument.FromSvg<SvgDocument>(Source);
+
+    private sealed class DerivedFilter : global::Svg.FilterEffects.SvgFilter
+    {
+    }
+
+    private sealed class SvgFilter : SvgGroup
+    {
+    }
 }

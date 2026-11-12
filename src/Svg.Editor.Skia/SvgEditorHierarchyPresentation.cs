@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Svg.FilterEffects;
 
 namespace Svg.Editor.Skia;
 
@@ -139,8 +140,7 @@ public sealed class SvgEditorResourcePresentation
 
     /// <summary>Matches the resource categories shown by the editor's resource picker.</summary>
     public static bool IsResource(SvgElement element)
-        => element is SvgGradientServer or SvgPatternServer or SvgSymbol or SvgClipPath
-            || element.GetType().Name == "SvgFilter";
+        => element is SvgGradientServer or SvgPatternServer or SvgSymbol or SvgClipPath or SvgFilter;
 
     private static bool IsOwnLocked(SvgElement element)
         => (element.CustomAttributes.TryGetValue("data-unodraw-locked", out var current) && current == "true")
