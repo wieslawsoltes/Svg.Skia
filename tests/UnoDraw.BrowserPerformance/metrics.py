@@ -73,7 +73,10 @@ def summarize(sample: dict[str, Any], cpu_before: dict[str, float], cpu_after: d
     return result
 
 
-def validate_packages(packages: list[dict[str, Any]]) -> None:
+def validate_packages(packages: list[dict[str, Any]], *,
+                      expected_execution_mode: str = "InterpreterAndAOT") -> None:
+    if expected_execution_mode not in {"InterpreterAndAOT", "Interpreter"}:
+        raise ValueError(f"Unsupported expected execution mode: {expected_execution_mode}")
     if not {"baseline", "candidate"}.issubset({package["role"] for package in packages}):
         raise ValueError("Both baseline and candidate packages are required")
     if len({package["role"] for package in packages}) != len(packages):
@@ -87,8 +90,8 @@ def validate_packages(packages: list[dict[str, Any]]) -> None:
     if len({package["dotnet_workload_version"] for package in packages}) != 1:
         raise ValueError("All packages must use the same .NET workload version for a controlled comparison")
     for package in packages:
-        if package["configuration"] != "Release" or package["execution_mode"] != "InterpreterAndAOT":
-            raise ValueError("Comparisons require the published Release InterpreterAndAOT artifact")
+        if package["configuration"] != "Release" or package["execution_mode"] != expected_execution_mode:
+            raise ValueError(f"Comparisons require the published Release {expected_execution_mode} artifact")
 
 
 def verify_hover_isolation(snapshot: dict[str, Any]) -> None:

@@ -18,21 +18,26 @@ def complete_case(role: str, backend: str, dpr: float) -> dict:
             "states": [{"name": name, "viewport": DESKTOP, "dpr": dpr} for name in STATE_NAMES]}
 
 
+def write_packages(root: Path, modes: tuple[str, str] = ("InterpreterAndAOT", "InterpreterAndAOT")) -> dict:
+    manifests = {}
+    for role, sha, mode in zip(ROLES, ("a" * 40, "b" * 40), modes):
+        package = root / role
+        (package / "wwwroot").mkdir(parents=True, exist_ok=True)
+        index = b"<!doctype html><title>quality fixture</title>"
+        (package / "wwwroot/index.html").write_bytes(index)
+        manifests[role] = {"role": role, "source_sha": sha, "fixture_sha256": "f" * 64,
+                           "dotnet_sdk": "10.0.403", "dotnet_workload_version": "10.0.403",
+                           "configuration": "Release", "execution_mode": mode,
+                           "runtime_generation": "uno7", "index_sha256": hashlib.sha256(index).hexdigest()}
+        (package / "benchmark-package.json").write_text(json.dumps(manifests[role]), encoding="utf-8")
+    return manifests
+
+
 class PackageContractTests(unittest.TestCase):
     def test_wrong_fixture_toolchain_mode_role_and_index_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            manifests = {}
-            for role, sha in zip(ROLES, ("a" * 40, "b" * 40)):
-                package = root / role
-                (package / "wwwroot").mkdir(parents=True)
-                index = b"<!doctype html><title>quality fixture</title>"
-                (package / "wwwroot/index.html").write_bytes(index)
-                manifests[role] = {"role": role, "source_sha": sha, "fixture_sha256": "f" * 64,
-                                   "dotnet_sdk": "10.0.403", "dotnet_workload_version": "10.0.403",
-                                   "configuration": "Release", "execution_mode": "InterpreterAndAOT",
-                                   "runtime_generation": "uno7", "index_sha256": hashlib.sha256(index).hexdigest()}
-                (package / "benchmark-package.json").write_text(json.dumps(manifests[role]), encoding="utf-8")
+            manifests = write_packages(root)
             self.assertEqual(set(load_packages(root)), set(ROLES))
             for key, value in (("fixture_sha256", "0" * 64), ("dotnet_sdk", "10.0.404"),
                                ("dotnet_workload_version", "10.0.404"), ("execution_mode", "Interpreter"),
@@ -43,6 +48,36 @@ class PackageContractTests(unittest.TestCase):
                 (root / "candidate/benchmark-package.json").write_text(json.dumps(changed), encoding="utf-8")
                 with self.subTest(key=key, value=value), self.assertRaises(ValueError):
                     load_packages(root)
+
+    def test_matched_interpreter_packages_require_explicit_correctness_mode(self) -> None:
+        from metrics import validate_packages
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifests = write_packages(root, ("Interpreter", "Interpreter"))
+            with self.assertRaisesRegex(ValueError, "InterpreterAndAOT"):
+                load_packages(root)
+            loaded = load_packages(root, expected_execution_mode="Interpreter")
+            self.assertEqual(set(ROLES), set(loaded))
+            self.assertTrue(all(package["execution_mode"] == "Interpreter" for package in loaded.values()))
+            # Performance, diagnose and merger callers use the unchanged
+            # default and must still reject the same interpreter artifacts.
+            with self.assertRaisesRegex(ValueError, "InterpreterAndAOT"):
+                validate_packages(list(manifests.values()))
+
+    def test_mixed_or_unknown_modes_cannot_pass_an_explicit_quality_selection(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for modes in (("Interpreter", "InterpreterAndAOT"), ("InterpreterAndAOT", "Interpreter"),
+                          ("unknown", "unknown")):
+                write_packages(root, modes)
+                for expected in ("InterpreterAndAOT", "Interpreter"):
+                    with self.subTest(modes=modes, expected=expected), self.assertRaises(ValueError):
+                        load_packages(root, expected_execution_mode=expected)
+            write_packages(root)
+            for expected in ("Auto", "", "unknown"):
+                with self.subTest(expected=expected), self.assertRaisesRegex(ValueError, "Unsupported expected"):
+                    load_packages(root, expected_execution_mode=expected)
 
 
 class MatrixContractTests(unittest.TestCase):

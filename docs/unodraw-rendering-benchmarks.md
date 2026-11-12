@@ -92,6 +92,14 @@ native PNGs and unresampled ruler strips cover fitted, actual-size, fractionally
 panned, refitted and selected states. Missing cases cannot produce a passing
 matrix; the same image thresholds apply.
 
+This comparison found a real fractional-DPI defect in the initial retained ruler
+marker: at DPR 1.25, Uno's WebGPU path atlas quantized its one-unit Shape rectangle
+by 0.125 physical pixels. The marker now uses a zero-corner, zero-border `Border`
+background, which reaches Uno's analytic rectangle primitive with the same
+bounds, translation and coverage. The correction requires the original old/new
+browser gate; it does not relax its ruler threshold. Matching Interpreter builds
+provide earlier correctness feedback, with the AOT comparison still required.
+
 The artifact-consuming verification workflow also replays the complete timing
 matrix in twelve workload/backend jobs. Every matched comparison keeps all
 revisions and all three repeats on one runner; different comparisons may use
@@ -132,7 +140,7 @@ the original nonvirtual
 scheduling tests include 2,000 randomized invalidation batches checked against
 an independent retained-content model.
 
-Ruler pointer markers move as native composition shapes while retaining tick
+Ruler pointer markers move as native analytic rectangles while retaining tick
 labels. The Navigator retains its overview through selection/save-state changes,
 and still redraws for document changes, animation, palette changes and resize.
 Pointer-coordinate labels coalesce bursts of updates, and panning no longer

@@ -44,6 +44,7 @@ jobs:
       matrix: ${{ steps.plan.outputs.matrix }}
       repeats: ${{ steps.plan.outputs.repeats }}
       candidate_ref: ${{ steps.plan.outputs.candidate_ref }}
+      baseline_ref: ${{ steps.plan.outputs.baseline_ref }}
     steps:
       - id: plan
         env:
@@ -71,6 +72,7 @@ jobs:
               output.write('matrix=' + json.dumps({'include': builds}, separators=(',', ':')) + '\n')
               output.write(f'repeats={repeats}\n')
               output.write(f'candidate_ref={candidate}\n')
+              output.write(f'baseline_ref={baseline}\n')
           PY
 
   publish:
@@ -315,5 +317,131 @@ jobs:
         with:
           name: unodraw-bridge-quality
           path: artifacts/unodraw-bridge-quality
+          if-no-files-found: warn
+          retention-days: 14
+
+  cross-build-quality-interpreter:
+    name: Early old/new high-DPI quality (Interpreter)
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.candidate_ref }}
+          submodules: recursive
+          path: source
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.baseline_ref }}
+          submodules: recursive
+          path: baseline
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+      - name: Pin both correctness builds to the same toolchain
+        run: |
+          python harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source source --pin
+          python harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source baseline --pin
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: source/global.json
+      - name: Install and verify the pinned WebAssembly tools
+        working-directory: source
+        run: |
+          dotnet workload install wasm-tools
+          python ../harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source .
+          python ../harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source ../baseline
+      - name: Publish candidate interpreter package for correctness only
+        working-directory: source
+        env:
+          BINARYEN_CORES: '1'
+        run: >-
+          dotnet publish samples/UnoDraw/UnoDraw.csproj
+          -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm
+          -c Release -p:WasmShellMonoRuntimeExecutionMode=Interpreter
+          -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false
+          -o ../artifacts/early-quality-packages/candidate
+      - name: Publish matching baseline interpreter package
+        working-directory: baseline
+        env:
+          BINARYEN_CORES: '1'
+        run: >-
+          dotnet publish samples/UnoDraw/UnoDraw.csproj
+          -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm
+          -c Release -p:WasmShellMonoRuntimeExecutionMode=Interpreter
+          -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false
+          -o ../artifacts/early-quality-packages/baseline
+      - name: Record both actual interpreter execution modes
+        run: |
+          python harness/tests/UnoDraw.BrowserPerformance/package_manifest.py --source source --package artifacts/early-quality-packages/candidate --role candidate --execution-mode Interpreter
+          python harness/tests/UnoDraw.BrowserPerformance/package_manifest.py --source baseline --package artifacts/early-quality-packages/baseline --role baseline --execution-mode Interpreter
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install the same pinned native-pixel browser
+        run: |
+          python -m pip install -r harness/tests/UnoDraw.BrowserSmoke/requirements.txt
+          python -m playwright install --with-deps chromium
+          python -m unittest discover -s harness/tests/UnoDraw.BrowserPerformance -p 'test_*.py'
+          python -m unittest discover -s harness/tests/UnoDraw.BrowserRenderQuality -p 'test_*.py'
+      - name: Compare unchanged native pixels on matched interpreter packages
+        run: >-
+          python harness/tests/UnoDraw.BrowserRenderQuality/render_quality.py
+          --packages artifacts/early-quality-packages
+          --output artifacts/unodraw-cross-interpreter-quality --execution-mode Interpreter
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-cross-build-interpreter-quality
+          path: artifacts/unodraw-cross-interpreter-quality
+          if-no-files-found: warn
+          retention-days: 14
+
+  cross-build-quality:
+    name: Old/new AOT native-pixel quality (DPR 1.25, 2)
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: unodraw-performance-package-candidate
+          path: artifacts/cross-build/candidate
+      - uses: actions/download-artifact@v4
+        with:
+          name: unodraw-performance-package-baseline
+          path: artifacts/cross-build/baseline
+      - name: Verify the current AOT application source
+        run: >-
+          python tests/UnoDraw.BrowserRenderQuality/verify_source.py
+          --package artifacts/cross-build/candidate --output artifacts/unodraw-cross-build-quality
+          --package-run-id "$GITHUB_RUN_ID"
+      - name: Install the pinned browser and verify quality contracts
+        run: |
+          python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
+          python -m playwright install --with-deps chromium
+          python -m unittest discover -s tests/UnoDraw.BrowserRenderQuality -p 'test_*.py'
+      - name: Compare current and candidate pixels at native high DPI
+        run: >-
+          python tests/UnoDraw.BrowserRenderQuality/render_quality.py
+          --packages artifacts/cross-build --output artifacts/unodraw-cross-build-quality
+      - name: Publish the available comparison summary
+        if: always()
+        run: |
+          if test -f artifacts/unodraw-cross-build-quality/summary.md; then
+            cat artifacts/unodraw-cross-build-quality/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-cross-build-native-quality
+          path: artifacts/unodraw-cross-build-quality
           if-no-files-found: warn
           retention-days: 14

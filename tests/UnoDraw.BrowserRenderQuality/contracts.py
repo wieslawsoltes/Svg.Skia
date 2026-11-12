@@ -16,6 +16,7 @@ from quality import assert_native_size  # noqa: E402
 
 
 ROLES = ("baseline", "candidate")
+EXECUTION_MODES = ("InterpreterAndAOT", "Interpreter")
 BACKENDS = ("webgpu", "skia-preferred")
 DPRS = (1.25, 2)
 DESKTOP = {"width": 1440, "height": 960}
@@ -23,13 +24,14 @@ STATE_NAMES = ("01-desktop", "02-actual-size", "03-pan", "04-refitted", "05-sele
 RULER_REGIONS = {"horizontal": (92, 102, 1088, 125), "vertical": (68, 125, 91, 932)}
 
 
-def load_packages(directory: Path) -> dict[str, dict[str, Any]]:
+def load_packages(directory: Path, *,
+                   expected_execution_mode: str = "InterpreterAndAOT") -> dict[str, dict[str, Any]]:
     packages = []
     for path in sorted(directory.rglob("benchmark-package.json")):
         package = json.loads(path.read_text(encoding="utf-8"))
         package["path"] = str(path.parent.resolve())
         packages.append(package)
-    validate_packages(packages)
+    validate_packages(packages, expected_execution_mode=expected_execution_mode)
     if len(packages) != 2 or {package["role"] for package in packages} != set(ROLES):
         raise ValueError("Render quality requires exactly one baseline and one candidate package")
     for package in packages:

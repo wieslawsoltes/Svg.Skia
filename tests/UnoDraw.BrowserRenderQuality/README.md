@@ -12,6 +12,13 @@ existing performance package validator enforces those build conditions. The
 check additionally requires exactly one Uno 7 baseline and one Uno 7 candidate,
 and verifies each published index against its recorded hash.
 
+An explicit `--execution-mode Interpreter` enables earlier correctness feedback
+from two matching Release Interpreter packages. Both packages must use that
+mode; mixed modes and unrecognized modes are rejected. Every case and the report
+record the selected mode. The native-pixel matrix and tolerances are identical,
+and the final AOT gate remains required. Interpreter results never enter the
+performance comparisons, whose validator still requires InterpreterAndAOT.
+
 ## Required matrix
 
 Eight cases cover two builds, two graphics backends and two DPR values. Every
@@ -63,4 +70,7 @@ Install the same pinned Playwright Chromium and Pillow dependencies used by the
 browser performance workflow. The output directory must be outside both served
 packages. The quality workflow separately verifies that cached application
 artifacts remain applicable to the current source revision before invoking this
-script.
+script. On a pull request, a valid but stale cached package produces an explicit
+ineligible source audit and skips the cached suites; fresh builds and both
+correctness modes run in the main performance workflow. A manual invocation with
+stale artifacts fails. Invalid manifests or missing source history always fail.

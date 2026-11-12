@@ -220,6 +220,13 @@ cannot pass the performance harness's execution-mode validation.
 
 The [old/new high-DPI check](../UnoDraw.BrowserRenderQuality/README.md) verifies
 ruler UI changes that a same-candidate bridge A/B cannot establish.
+The main performance workflow builds matching baseline and candidate Interpreter
+packages for early correctness feedback, then runs the same comparison again on
+the final AOT packages. Both modes require identical execution modes within the
+pair, and retain the native-pixel matrix and tolerances. The Interpreter run
+uploads only correctness reports and images; its timings are not performance
+evidence.
+
 The `UnoDraw rendering verification` workflow consumes existing AOT artifacts
 from an explicitly selected performance run without rebuilding the application.
 Its parallel suites rerun the complete persistent/legacy bridge matrix,
@@ -232,8 +239,13 @@ paint-phase feedback sooner and is explicitly excluded from performance claims.
 Workload counts, warmup, metrics and image thresholds are unchanged.
 The candidate's recorded source
 commit is compared with the harness/PR head: only changes under `tests/`, `docs/`
-and `.github/` are allowed. Any production-source difference rejects the cached
-binary. Reports retain both SHAs and the changed paths. The workflow's PR path
+and `.github/` are allowed. Any production-source difference makes the cached
+binary ineligible. On a pull request, the qualification job explicitly records
+that a fresh pipeline is required and skips cached quality, timing and diagnostic
+jobs. This source audit does not claim a quality or performance pass. Manual
+dispatch with stale artifacts still fails; invalid manifests or missing history
+always fail. Eligible workers each repeat the strict source audit. Reports
+retain both SHAs and the changed paths. The workflow's PR path
 trigger is limited to its own file and `UnoDraw.BrowserRenderQuality`; manual
 dispatch selects a different immutable package run when needed. Its initial
 default identifies the pinned packages for this investigation; expired or stale

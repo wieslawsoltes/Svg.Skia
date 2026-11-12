@@ -18,13 +18,14 @@ from performance import next_frame, park_pointer, renderer_evidence  # noqa: E40
 from quality import raw_comparison, verify_bridge  # noqa: E402
 from backend import launch_arguments, renderer_query  # noqa: E402
 from smoke import READY, artwork_transition, serve  # noqa: E402
-from contracts import (BACKENDS, DESKTOP, DPRS, ROLES, STATE_NAMES, compare_states,  # noqa: E402
+from contracts import (BACKENDS, DESKTOP, DPRS, EXECUTION_MODES, ROLES, STATE_NAMES, compare_states,  # noqa: E402
                        load_packages, matrix_failures, save_ruler_strips)
 
 
 def run_case(browser: Any, url: str, package: dict[str, Any], backend: str,
              dpr: float, output: Path) -> dict[str, Any]:
     report: dict[str, Any] = {"role": package["role"], "source_sha": package["source_sha"],
+                              "execution_mode": package["execution_mode"],
                               "backend": backend, "dpr": dpr, "passed": False,
                               "console": [], "page_errors": [], "resource_errors": [], "states": []}
     context = browser.new_context(viewport=DESKTOP, device_scale_factor=dpr, locale="en-US",
@@ -116,6 +117,7 @@ def run_case(browser: Any, url: str, package: dict[str, Any], backend: str,
 def write_summary(report: dict[str, Any], output: Path) -> None:
     lines = ["# UnoDraw old/new high-DPI rendering quality", "",
              "Native pixels on SwiftShader WebGPU and Skia/WebGL; this is a correctness gate, not a performance measurement.", "",
+             f"Both packages must use Release `{report['execution_mode']}`.", "",
              "| Build | Backend | DPR | Complete case |", "| --- | --- | ---: | --- |"]
     for case in report["cases"]:
         lines.append(f"| {case['role']} | {case['backend']} | {case['dpr']} | {'passed' if case['passed'] else 'failed'} |")
@@ -132,17 +134,20 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--packages", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--execution-mode", choices=EXECUTION_MODES, default="InterpreterAndAOT",
+                        help="Required mode for both correctness-test packages; Interpreter never supplies performance results")
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     report: dict[str, Any] = {"schema": 1, "passed": False, "started_unix": time.time(),
+                              "execution_mode": args.execution_mode,
                               "graphics": "SwiftShader API correctness; not physical GPU performance",
                               "packages": [], "cases": [], "comparisons": [], "failures": [],
                               "device_pixel_ratios": DPRS, "backends": BACKENDS,
                               "expected_case_count": len(ROLES) * len(BACKENDS) * len(DPRS),
                               "expected_states": STATE_NAMES}
     try:
-        packages = load_packages(args.packages.resolve())
+        packages = load_packages(args.packages.resolve(), expected_execution_mode=args.execution_mode)
         report["packages"] = list(packages.values())
         if any(Path(package["path"]) == output or Path(package["path"]) in output.parents for package in packages.values()):
             raise ValueError("Quality artifacts must be outside the served application packages")
@@ -163,6 +168,7 @@ def main() -> int:
                             result["browser_version"] = browser.version
                         except Exception as error:
                             result = {"role": role, "source_sha": packages[role]["source_sha"],
+                                      "execution_mode": packages[role]["execution_mode"],
                                       "backend": backend, "dpr": dpr, "passed": False, "states": [],
                                       "failure": f"{type(error).__name__}: {error}"}
                         finally:
