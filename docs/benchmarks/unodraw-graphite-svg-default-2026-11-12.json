@@ -1,0 +1,2783 @@
+{
+  "schema": 1,
+  "report_kind": "audited_default_graphite_extended_svg_aot",
+  "audited_utc": "2026-11-12T19:00:00.853934+00:00",
+  "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+  "source_url": "https://github.com/wieslawsoltes/Svg.Skia/commit/d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+  "conclusion": "The complete native-default Graphite SVG gate fails 31 of 72 comparisons despite successful source-edit/lifecycle execution for all 48 cases. No case falls back. These are original failures, not timeout results. No raster-coverage result is included.",
+  "scope": {
+    "execution_mode": "InterpreterAndAOT",
+    "candidate": "Graphite direct document renderer with native default coverage (requested InternalMultisampleCount=0)",
+    "control": "persistent original CPU document raster and RGBA upload",
+    "coverage": "default",
+    "device_pixel_ratios": [
+      1,
+      1.25,
+      2
+    ],
+    "scenes": [
+      "gradients",
+      "filters",
+      "mask",
+      "clip",
+      "pattern",
+      "text",
+      "image",
+      "opacity-and-strokes"
+    ],
+    "states": [
+      "01-fit",
+      "02-fractional-pan",
+      "03-fractional-zoom"
+    ],
+    "shared_original_application_package": true,
+    "passed": false,
+    "complete_matrix": true,
+    "timeout": false,
+    "performance_evidence": false,
+    "raster_coverage_qualified": false,
+    "graphics": "SwiftShader browser graphics API correctness; not hardware performance"
+  },
+  "source_artifact": {
+    "workflow_run_id": 43265614141,
+    "job_id": 131366769624,
+    "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43265614141/job/131366769624",
+    "job_conclusion": "failure",
+    "artifact_id": 13972714171,
+    "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43265614141/artifacts/13972714171",
+    "artifact_zip_sha256": "e69c95d35b57aedbd4cc902f5b75071fb1f933fb96d577b42a95920d49f5b4f4",
+    "artifact_zip_bytes": 99561047,
+    "report_sha256": "4a2ff9fcf8c15d8ade9c49954e93b7ac95850e93eb9243ffe453b589ae1c26a8",
+    "application_download_proof": {
+      "job_id": 131366769624,
+      "application_artifact_id": 13967029731,
+      "application_archive_sha256": "1c3716d3eecfb3f0a245686c09d0f876d2b2624988108483a551d93f463f7524",
+      "application_archive_bytes": 175804274,
+      "download_digest_verified": true,
+      "log_evidence": [
+        "2026-11-12T17:34:40.6496255Z - unodraw-performance-package-candidate (ID: 13967029731, Size: 175804274, Expected Digest: sha256:1c3716d3eecfb3f0a245686c09d0f876d2b2624988108483a551d93f463f7524)",
+        "2026-11-12T17:34:46.5011656Z SHA256 digest of downloaded artifact is 1c3716d3eecfb3f0a245686c09d0f876d2b2624988108483a551d93f463f7524",
+        "2026-11-12T17:35:13.3253706Z ##[group]Run python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py --package artifacts/candidate --execution-mode InterpreterAndAOT --candidate-bridge graphite --output artifacts/unodraw-svg-document-quality"
+      ]
+    },
+    "source_proof": {
+      "package_run_id": "43265614141",
+      "package_source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "harness_head_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "allowed_difference_prefixes": [
+        "tests/",
+        "docs/",
+        ".github/"
+      ],
+      "changed_paths": [],
+      "production_changes": [],
+      "production_source_equivalent": true,
+      "execution_mode": "InterpreterAndAOT"
+    }
+  },
+  "environment": {
+    "browser_version": "143.0.7499.4",
+    "browser_launch_arguments": [
+      "--enable-unsafe-swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-unsafe-webgpu",
+      "--use-vulkan=swiftshader",
+      "--enable-features=Vulkan"
+    ],
+    "package_manifest": {
+      "schema": 2,
+      "role": "candidate",
+      "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403",
+      "source_global_json": {
+        "sdk": {
+          "version": "10.0.100",
+          "rollForward": "latestMinor",
+          "allowPrerelease": true
+        },
+        "msbuild-sdks": {
+          "Uno.Sdk": "7.0.5"
+        }
+      },
+      "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+      "effective_global_json": {
+        "sdk": {
+          "version": "10.0.403",
+          "rollForward": "disable",
+          "allowPrerelease": false,
+          "workloadVersion": "10.0.403"
+        },
+        "msbuild-sdks": {
+          "Uno.Sdk": "7.0.5"
+        }
+      },
+      "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+      "source_configuration_overridden": true,
+      "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+      "dotnet_workload_info": "Workload version: 10.0.403\n Configured to use workload sets when installing new manifests.\n\n [wasm-tools]\n   Installation Source: SDK 10.0.400\n   Manifest Version:    10.0.114/10.0.100\n   Manifest Path:       /usr/share/dotnet/sdk-manifests/10.0.100/microsoft.net.workload.mono.toolchain.current/10.0.114/WorkloadManifest.json\n   Install Type:        FileBased",
+      "uno_sdk": "7.0.5",
+      "runtime_generation": "uno7",
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "index_sha256": "a0622ea730064ee73459f0e044fde058100bc9f8478124521a2a7a6c0091d510",
+      "font_assets_sha256": {
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf": "2573f53b71ebee599dfc94c60e1ea848d6d20e7e777d2c65d063822850e738b6",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Bold.ttf": "bc73c45e5810a0971ebeaef4eb6c35dec84607dbe02da6757f9f43d958b6da5f",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-BoldItalic.ttf": "b6219df45cbee6f876e6b28f668348e1807b1fb9ad118ea7d687041f0d332384",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBold.ttf": "0c078107776634131162be46a38245399040c2becc495e93d69d9b6edd65a98d",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBoldItalic.ttf": "a034466210aeb09f7ffdbc9250accd1f5c3e2fb8acbfd3be8aa154993ec43d9b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Italic.ttf": "5eabd67fe3d8b5b5eee64504ea9e4a5ef7665b643577ef117f3c32fda67cd29f",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Light.ttf": "46ead38978e28f32ad7dc10d467efe8d8b5786ff98020c3718a296f88ef7f1cc",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-LightItalic.ttf": "4eac502c10daf6608e53e7db86d79769890373ebbd5472a57bbcb75789bc5110",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Medium.ttf": "2ab15629424ace86d429dbc0e5a7beb30d2af3db998a2b03a71601ee6965c334",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-MediumItalic.ttf": "bf436f4c34d2c921d0f2d4997e7854050a60feaa89bbacc604ae896ad254ca8b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Regular.ttf": "6530480277da62efde047eb26e78a7e532d1cfaeec91603e68d63876b9669f0d",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBold.ttf": "e603135cc3b1200c7260b34f37f9cb1f2178a42b363037e26a1e18276ab78bf0",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBoldItalic.ttf": "b1bf2c582820b5703dbcd339b5dc97235c145185d0fabbb09c224ef87215266b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf": "13744bbc079f0f492e4fb3b14a15d242b8d9600faacd423d58cdf937fea7ce6b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Bold.ttf": "08858694d203191fbddbc603f0d82e18d104c27941622afa4b8ff0ccaca12b60",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-BoldItalic.ttf": "75dffec080d8dc033a9794ff253614a380f51f7e139aae48daf12ebe9aa4aec4",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBold.ttf": "f7cb3b6dd0084d59f66fa9e5238b4bb8192ad6949f99a1673c910b832ae2a53e",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBoldItalic.ttf": "621ee76be446afeac7e13fee34bbfa70679f9907f200bb1bd50adfe1ce71a77d",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Italic.ttf": "2bc823a7660f1fd34b0c2a57dd9acd46fedf0ac7abe32a146d2e895e88f39102",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Light.ttf": "c1c6e126200cefe046a49f36ab020c0dcc844095671977132739459804787ad6",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-LightItalic.ttf": "e1e60f4093232a627f42e215b8fea141a838995631839c1524557c876f3377f7",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Medium.ttf": "69c1f94736232a3b7d78f3df863c2f7561dabbd17192054d082573c5405433a6",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-MediumItalic.ttf": "bcbfc3d6e7258e022bf6ccf8152a16920dfc40b55bc4c8254c15f4ff4d68dd5a",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Regular.ttf": "f59481d260f7aafc6c4696dd8608ccbe12714c98e64f8d61422ee75afb9497b5",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBold.ttf": "17995de0355f8f96e9bf7ecc7dcae2b0aadd5a8b32e82f3909589b826169321c",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBoldItalic.ttf": "6c3543f02911695383f7a24905446d9dac12b3cbeca4f28236c0475bd482064d",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Bold.ttf": "b1a405296720729a9ccb2215ef8e25fa031f28a74a23a782ee003b120d92a887",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-BoldItalic.ttf": "c131cd1ca5b9d6e4ace568ee0ccf3cd697b9d54db97b3cc8838a4a89092492c1",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBold.ttf": "356012920cf82d3ad23c3022a42638d6e9766795c331e52578313c0bb36de912",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBoldItalic.ttf": "3d94b1b6990162aefd796aa74e1e0a730b5aa0077f40503a0187ddb6f648f9b7",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Italic.ttf": "6c73ebe56797e33acff95695547aaec72b130659d1a20f257eb876cf6c9d7f58",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Light.ttf": "92cd488028cd9e0ee4b1934e48a6aa05e7f1bf04c65eb8104f2486cb49df2096",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-LightItalic.ttf": "f976b54657dc331335418a6330d6cd46ff9ae646bc9b9a3987edcfee0b0ca11b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Medium.ttf": "6be32b58eb0616a206aa941779a672c6bb97a94de1302d9e1e958d6b8c2af111",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-MediumItalic.ttf": "bc97ce0653959b1fcc5db92049dc477734927802e4776e770b84abafce10beaf",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Regular.ttf": "b248380c2975e732fd643e0c00bf5f3ade168e89ca60150e323e3a22d4807b94",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBold.ttf": "b82891f7b8e0eac507b462953cdb49120d73646e58f40ad0fab6aa0468da7868",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBoldItalic.ttf": "6b9fb4a0e22bb4996d4116bae2e14a09db5c8f33ef109ef57ff7186af1b68b71"
+      },
+      "supports_render_diagnostics": true,
+      "path": "/home/runner/work/Svg.Skia/Svg.Skia/artifacts/candidate"
+    },
+    "fixture_manifest": {
+      "native_fixture_source": "tests/Svg.Editor.Skia.UnitTests/RgbaCanvasEquivalenceTests.cs",
+      "native_fixture_source_sha256": "0bc15916615bbcc66b58ae021826bfe57a9489a10102b299ef24d877dd71ed68",
+      "embedded_png_generation": "SkiaSharp 4.151.1; identical CreateEmbeddedImage body from RgbaCanvasEquivalenceTests",
+      "embedded_png_sha256": "6da86c7b2214b75cfb857b50510e88911130ee6187b76e95c69bd73629353cd2",
+      "fixtures": [
+        {
+          "name": "gradients",
+          "file": "gradients.svg",
+          "sha256": "6f34e6078e8bb040ae0c062dbc67af445445523753d849f79ae3ecc3833fc508"
+        },
+        {
+          "name": "filters",
+          "file": "filters.svg",
+          "sha256": "5e14b52bf57abf70824e5304498427b86673e926a35e1dd16df6777f1b8fcc4d"
+        },
+        {
+          "name": "mask",
+          "file": "mask.svg",
+          "sha256": "c00778755655bd29ba819591a211f60f2fae216bf1e6da716418030eb7da20b7"
+        },
+        {
+          "name": "clip",
+          "file": "clip.svg",
+          "sha256": "18b03d26aa4e74cd41d1327b514641c0df16458d723bad79f8e1468332b6f41c"
+        },
+        {
+          "name": "pattern",
+          "file": "pattern.svg",
+          "sha256": "24b03f7c59ebb0067e6f29d3cfc3493851519a09938f6ab0a116e95e94e9912f"
+        },
+        {
+          "name": "text",
+          "file": "text.svg",
+          "sha256": "82a2260869b808bde7bbbac021d1d2a385bc4216abe0980eba569d0db387666f"
+        },
+        {
+          "name": "image",
+          "file": "image.svg",
+          "sha256": "534c278c65ae6cbe10f0d9757f0f54728d6eb58145a1366adbf9b0651b9b9c8a"
+        },
+        {
+          "name": "opacity-and-strokes",
+          "file": "opacity-and-strokes.svg",
+          "sha256": "86dd884bacd494767485ce78b90e8085d2bb7e563473679f7d2ae494bd78daae"
+        }
+      ]
+    },
+    "test_file_sha256": {
+      "tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py": "ef6c733d2fe1d6ba52f5987e68f4cd1d645db1a79a76187b94b80d51abde58ad",
+      "tests/UnoDraw.BrowserRenderQuality/svg_fixture_contracts.py": "96b9236dc1b90803f6891f9939ae21bb6688fa3806f593603d3aabcdd618c4c7",
+      "tests/UnoDraw.BrowserRenderQuality/test_svg_fixture_contracts.py": "98e8e161819d91b1c5de498cb4f724ace88ee13048e1848c83ee170d8f0d627a",
+      "tests/UnoDraw.BrowserRenderQuality/fixtures/svg-bridge/clip.svg": "18b03d26aa4e74cd41d1327b514641c0df16458d723bad79f8e1468332b6f41c",
+      "tests/UnoDraw.BrowserRenderQuality/fixtures/svg-bridge/filters.svg": "5e14b52bf57abf70824e5304498427b86673e926a35e1dd16df6777f1b8fcc4d",
+      "tests/UnoDraw.BrowserRenderQuality/fixtures/svg-bridge/gradients.svg": "6f34e6078e8bb040ae0c062dbc67af445445523753d849f79ae3ecc3833fc508",
+      "tests/UnoDraw.BrowserRenderQuality/fixtures/svg-bridge/image.svg": "534c278c65ae6cbe10f0d9757f0f54728d6eb58145a1366adbf9b0651b9b9c8a",
+      "tests/UnoDraw.BrowserRenderQuality/fixtures/svg-bridge/manifest.json": "b1e466b13e249b04dfd58f3eefccf2b7926558801ce7a19dfe77a1d6cb08e98e",
+      "tests/UnoDraw.BrowserRenderQuality/fixtures/svg-bridge/mask.svg": "c00778755655bd29ba819591a211f60f2fae216bf1e6da716418030eb7da20b7",
+      "tests/UnoDraw.BrowserRenderQuality/fixtures/svg-bridge/opacity-and-strokes.svg": "86dd884bacd494767485ce78b90e8085d2bb7e563473679f7d2ae494bd78daae",
+      "tests/UnoDraw.BrowserRenderQuality/fixtures/svg-bridge/pattern.svg": "24b03f7c59ebb0067e6f29d3cfc3493851519a09938f6ab0a116e95e94e9912f",
+      "tests/UnoDraw.BrowserRenderQuality/fixtures/svg-bridge/text.svg": "82a2260869b808bde7bbbac021d1d2a385bc4216abe0980eba569d0db387666f",
+      "tests/Svg.Editor.Skia.UnitTests/RgbaCanvasEquivalenceTests.cs": "0bc15916615bbcc66b58ae021826bfe57a9489a10102b299ef24d877dd71ed68",
+      "tests/UnoDraw.BrowserPerformance/instrumentation.js": "53efac3469f8c3e53b571e4c6c2f861230a823f9230858fa3692a044f1a3f8bb",
+      "tests/UnoDraw.BrowserPerformance/bridge_quality.py": "57e189848df062b95ca02340157328db5850dcfebee51003a6e8b80caab36515",
+      "tests/UnoDraw.BrowserPerformance/performance.py": "3cb92283e77a3db1dae42ddd583e12f5afec2fec9abdda238874631304207b70",
+      "tests/UnoDraw.BrowserPerformance/quality.py": "f0b43b0424778104353c550d0e1cb4232de478b34af85eb2131b2490534f6d19",
+      "tests/UnoDraw.BrowserPerformance/selection_readiness.py": "389d7d646c4dca35cde4438d41a61951bdf635dbe639ed1acb8a878db71200f7",
+      "tests/UnoDraw.BrowserPerformance/metrics.py": "0e2e15eaead36ff64c8cb2d4453455163af1cda5a66c1e029ad920bc3f1d3b15"
+    }
+  },
+  "quality_contract": {
+    "source_quality_sha256": "f0b43b0424778104353c550d0e1cb4232de478b34af85eb2131b2490534f6d19",
+    "source_fixture_contracts_sha256": "96b9236dc1b90803f6891f9939ae21bb6688fa3806f593603d3aabcdd618c4c7",
+    "luminance_threshold_exclusive": 12,
+    "maximum_changed_pixel_fraction_every_region": 0.001,
+    "calibration_rgb_tolerance": 2,
+    "resized_for_comparison": false,
+    "source_editor_round_trip_verified_for_every_case": true,
+    "native_png_readiness_recomputed_for_every_capture": true,
+    "all_original_comparison_outcomes_independently_reproduced": true,
+    "region_bounds": "Whole frame and document/rulers use the published native-DPR regions. Scene body is the union of matched calibration-inferred body bounds; source camera edges may differ by no more than one physical pixel."
+  },
+  "summary": {
+    "cases": 48,
+    "verified_cases": 48,
+    "native_captures": 144,
+    "native_pairs": 72,
+    "passed_pairs": 41,
+    "failed_pairs": 31,
+    "maximum_calibration_rgb_difference": 1,
+    "missing_cases": 0,
+    "fallback_cases": 0,
+    "runtime_error_cases": 0
+  },
+  "by_scene": {
+    "columns": [
+      "scene",
+      "passed_native_pairs",
+      "failed_native_pairs",
+      "maximum_scene_body_changed_fraction"
+    ],
+    "rows": [
+      [
+        "gradients",
+        9,
+        0,
+        0.0004759420797526624
+      ],
+      [
+        "filters",
+        3,
+        6,
+        0.0015452553636448089
+      ],
+      [
+        "mask",
+        3,
+        6,
+        0.002805023665971075
+      ],
+      [
+        "clip",
+        0,
+        9,
+        0.0038488614374506953
+      ],
+      [
+        "pattern",
+        0,
+        9,
+        0.0042415340119787755
+      ],
+      [
+        "text",
+        9,
+        0,
+        3.5375564682451244e-06
+      ],
+      [
+        "image",
+        8,
+        1,
+        0.0013891735556011023
+      ],
+      [
+        "opacity-and-strokes",
+        9,
+        0,
+        0.0005624714784509747
+      ]
+    ]
+  },
+  "cases": {
+    "columns": [
+      "scene",
+      "bridge",
+      "dpr",
+      "passed",
+      "native_captures",
+      "source_verified",
+      "maximum_calibration_rgb_difference",
+      "fallbacks",
+      "page_errors",
+      "resource_errors"
+    ],
+    "rows": [
+      [
+        "clip",
+        "graphite",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "filters",
+        "graphite",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "gradients",
+        "graphite",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "image",
+        "graphite",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "mask",
+        "graphite",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "opacity-and-strokes",
+        "graphite",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "pattern",
+        "graphite",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "text",
+        "graphite",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "clip",
+        "persistent",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "filters",
+        "persistent",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "gradients",
+        "persistent",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "image",
+        "persistent",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "mask",
+        "persistent",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "opacity-and-strokes",
+        "persistent",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "pattern",
+        "persistent",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "text",
+        "persistent",
+        1,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "clip",
+        "graphite",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "filters",
+        "graphite",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "gradients",
+        "graphite",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "image",
+        "graphite",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "mask",
+        "graphite",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "opacity-and-strokes",
+        "graphite",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "pattern",
+        "graphite",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "text",
+        "graphite",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "clip",
+        "persistent",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "filters",
+        "persistent",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "gradients",
+        "persistent",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "image",
+        "persistent",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "mask",
+        "persistent",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "opacity-and-strokes",
+        "persistent",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "pattern",
+        "persistent",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "text",
+        "persistent",
+        1.25,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "clip",
+        "graphite",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "filters",
+        "graphite",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "gradients",
+        "graphite",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "image",
+        "graphite",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "mask",
+        "graphite",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "opacity-and-strokes",
+        "graphite",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "pattern",
+        "graphite",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "text",
+        "graphite",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "clip",
+        "persistent",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "filters",
+        "persistent",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "gradients",
+        "persistent",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "image",
+        "persistent",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "mask",
+        "persistent",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "opacity-and-strokes",
+        "persistent",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "pattern",
+        "persistent",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "text",
+        "persistent",
+        2,
+        true,
+        3,
+        true,
+        1,
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  "native_quality_outcomes": {
+    "columns": [
+      "scene",
+      "dpr",
+      "state",
+      "passed",
+      "physical_size",
+      "body_physical_bounds",
+      "changed_pixel_fractions",
+      "body_pixels_above_luma12",
+      "body_maximum_luma_difference"
+    ],
+    "rows": [
+      [
+        "gradients",
+        1,
+        "01-fit",
+        true,
+        [
+          1440,
+          960
+        ],
+        [
+          189,
+          248,
+          829,
+          688
+        ],
+        {
+          "whole_frame": 7.2337962962962966e-06,
+          "document": 1.4619883040935673e-05,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 3.5511363636363635e-05
+        },
+        10,
+        15
+      ],
+      [
+        "gradients",
+        1,
+        "02-fractional-pan",
+        true,
+        [
+          1440,
+          960
+        ],
+        [
+          226,
+          229,
+          867,
+          670
+        ],
+        {
+          "whole_frame": 3.978587962962963e-05,
+          "document": 8.04093567251462e-05,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 9.905158111086349e-05
+        },
+        28,
+        18
+      ],
+      [
+        "gradients",
+        1,
+        "03-fractional-zoom",
+        true,
+        [
+          1440,
+          960
+        ],
+        [
+          183,
+          201,
+          897,
+          693
+        ],
+        {
+          "whole_frame": 5.859375e-05,
+          "document": 0.00011549707602339181,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 6.547334380906835e-05
+        },
+        23,
+        19
+      ],
+      [
+        "gradients",
+        1.25,
+        "01-fit",
+        true,
+        [
+          1800,
+          1200
+        ],
+        [
+          236,
+          311,
+          1036,
+          861
+        ],
+        {
+          "whole_frame": 1.25e-05,
+          "document": 2.527379949452401e-05,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 6.136363636363636e-05
+        },
+        27,
+        22
+      ],
+      [
+        "gradients",
+        1.25,
+        "02-fractional-pan",
+        true,
+        [
+          1800,
+          1200
+        ],
+        [
+          282,
+          287,
+          1083,
+          838
+        ],
+        {
+          "whole_frame": 0.0001625,
+          "document": 0.0003285593934288121,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.00047581176886423733
+        },
+        210,
+        20
+      ],
+      [
+        "gradients",
+        1.25,
+        "03-fractional-zoom",
+        true,
+        [
+          1800,
+          1200
+        ],
+        [
+          240,
+          260,
+          1114,
+          861
+        ],
+        {
+          "whole_frame": 0.00012037037037037037,
+          "document": 0.00024337732846578677,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0004759420797526624
+        },
+        250,
+        23
+      ],
+      [
+        "gradients",
+        2,
+        "01-fit",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          378,
+          496,
+          1658,
+          1376
+        ],
+        {
+          "whole_frame": 6.510416666666667e-06,
+          "document": 1.3157894736842106e-05,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 3.1960227272727275e-05
+        },
+        36,
+        22
+      ],
+      [
+        "gradients",
+        2,
+        "02-fractional-pan",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          452,
+          459,
+          1733,
+          1339
+        ],
+        {
+          "whole_frame": 4.521122685185185e-06,
+          "document": 9.137426900584795e-06,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 2.217727627563693e-05
+        },
+        25,
+        20
+      ],
+      [
+        "gradients",
+        2,
+        "03-fractional-zoom",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          411,
+          432,
+          1763,
+          1362
+        ],
+        {
+          "whole_frame": 1.8988715277777778e-05,
+          "document": 3.837719298245614e-05,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 6.83972768340014e-05
+        },
+        86,
+        24
+      ],
+      [
+        "filters",
+        1,
+        "01-fit",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          189,
+          248,
+          829,
+          688
+        ],
+        {
+          "whole_frame": 0.0003052662037037037,
+          "document": 0.0006169590643274853,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0014985795454545453
+        },
+        422,
+        53
+      ],
+      [
+        "filters",
+        1,
+        "02-fractional-pan",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          226,
+          229,
+          867,
+          670
+        ],
+        {
+          "whole_frame": 0.0002922453703703704,
+          "document": 0.0005906432748538011,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0013195085626554314
+        },
+        373,
+        57
+      ],
+      [
+        "filters",
+        1,
+        "03-fractional-zoom",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          183,
+          201,
+          897,
+          693
+        ],
+        {
+          "whole_frame": 0.0003993055555555556,
+          "document": 0.000804093567251462,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0014062535583339027
+        },
+        494,
+        44
+      ],
+      [
+        "filters",
+        1.25,
+        "01-fit",
+        false,
+        [
+          1800,
+          1200
+        ],
+        [
+          236,
+          311,
+          1036,
+          861
+        ],
+        {
+          "whole_frame": 0.00029305555555555557,
+          "document": 0.0005925301881493962,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0014386363636363637
+        },
+        633,
+        44
+      ],
+      [
+        "filters",
+        1.25,
+        "02-fractional-pan",
+        false,
+        [
+          1800,
+          1200
+        ],
+        [
+          282,
+          287,
+          1083,
+          838
+        ],
+        {
+          "whole_frame": 0.00038101851851851854,
+          "document": 0.0007703828512590097,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0015452553636448089
+        },
+        682,
+        47
+      ],
+      [
+        "filters",
+        1.25,
+        "03-fractional-zoom",
+        false,
+        [
+          1800,
+          1200
+        ],
+        [
+          240,
+          260,
+          1114,
+          861
+        ],
+        {
+          "whole_frame": 0.00029675925925925925,
+          "document": 0.0006000187213329589,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.00120127780929572
+        },
+        631,
+        56
+      ],
+      [
+        "filters",
+        2,
+        "01-fit",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          378,
+          496,
+          1658,
+          1376
+        ],
+        {
+          "whole_frame": 0.0001613136574074074,
+          "document": 0.0003260233918128655,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0007919034090909091
+        },
+        892,
+        65
+      ],
+      [
+        "filters",
+        2,
+        "02-fractional-pan",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          452,
+          459,
+          1733,
+          1339
+        ],
+        {
+          "whole_frame": 0.00015263310185185185,
+          "document": 0.00030847953216374266,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0007487048470655028
+        },
+        844,
+        52
+      ],
+      [
+        "filters",
+        2,
+        "03-fractional-zoom",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          411,
+          432,
+          1763,
+          1362
+        ],
+        {
+          "whole_frame": 0.00019006799768518518,
+          "document": 0.0003841374269005848,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0008207673220080168
+        },
+        1032,
+        50
+      ],
+      [
+        "mask",
+        1,
+        "01-fit",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          189,
+          248,
+          829,
+          688
+        ],
+        {
+          "whole_frame": 0.00035734953703703704,
+          "document": 0.0007222222222222222,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0017542613636363637
+        },
+        494,
+        60
+      ],
+      [
+        "mask",
+        1,
+        "02-fractional-pan",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          226,
+          229,
+          867,
+          670
+        ],
+        {
+          "whole_frame": 0.00039279513888888887,
+          "document": 0.000793859649122807,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0018112289117415037
+        },
+        512,
+        56
+      ],
+      [
+        "mask",
+        1,
+        "03-fractional-zoom",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          183,
+          201,
+          897,
+          693
+        ],
+        {
+          "whole_frame": 0.0005186631944444444,
+          "document": 0.0010453216374269006,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0018759536334859146
+        },
+        659,
+        60
+      ],
+      [
+        "mask",
+        1.25,
+        "01-fit",
+        false,
+        [
+          1800,
+          1200
+        ],
+        [
+          236,
+          311,
+          1036,
+          861
+        ],
+        {
+          "whole_frame": 0.00031759259259259257,
+          "document": 0.0006421417204904989,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.001559090909090909
+        },
+        686,
+        69
+      ],
+      [
+        "mask",
+        1.25,
+        "02-fractional-pan",
+        false,
+        [
+          1800,
+          1200
+        ],
+        [
+          282,
+          287,
+          1083,
+          838
+        ],
+        {
+          "whole_frame": 0.000638425925925926,
+          "document": 0.0012908359075166152,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.002805023665971075
+        },
+        1238,
+        83
+      ],
+      [
+        "mask",
+        1.25,
+        "03-fractional-zoom",
+        false,
+        [
+          1800,
+          1200
+        ],
+        [
+          240,
+          260,
+          1114,
+          861
+        ],
+        {
+          "whole_frame": 0.00038009259259259257,
+          "document": 0.000768510717963119,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0015439561067176369
+        },
+        811,
+        87
+      ],
+      [
+        "mask",
+        2,
+        "01-fit",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          378,
+          496,
+          1658,
+          1376
+        ],
+        {
+          "whole_frame": 0.00015733506944444445,
+          "document": 0.0003179824561403509,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0007723721590909091
+        },
+        870,
+        63
+      ],
+      [
+        "mask",
+        2,
+        "02-fractional-pan",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          452,
+          459,
+          1733,
+          1339
+        ],
+        {
+          "whole_frame": 0.00015462239583333333,
+          "document": 0.0003125,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0007584628486267831
+        },
+        855,
+        59
+      ],
+      [
+        "mask",
+        2,
+        "03-fractional-zoom",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          411,
+          432,
+          1763,
+          1362
+        ],
+        {
+          "whole_frame": 0.00022786458333333334,
+          "document": 0.0004605263157894737,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.00098698861105809
+        },
+        1241,
+        63
+      ],
+      [
+        "clip",
+        1,
+        "01-fit",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          189,
+          248,
+          829,
+          688
+        ],
+        {
+          "whole_frame": 0.0007544849537037037,
+          "document": 0.0015248538011695906,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0037038352272727275
+        },
+        1043,
+        59
+      ],
+      [
+        "clip",
+        1,
+        "02-fractional-pan",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          226,
+          229,
+          867,
+          670
+        ],
+        {
+          "whole_frame": 0.0008094618055555556,
+          "document": 0.0016359649122807017,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0038488614374506953
+        },
+        1088,
+        57
+      ],
+      [
+        "clip",
+        1,
+        "03-fractional-zoom",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          183,
+          201,
+          897,
+          693
+        ],
+        {
+          "whole_frame": 0.00087890625,
+          "document": 0.0017733918128654972,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0032907471931862176
+        },
+        1156,
+        57
+      ],
+      [
+        "clip",
+        1.25,
+        "01-fit",
+        false,
+        [
+          1800,
+          1200
+        ],
+        [
+          236,
+          311,
+          1036,
+          861
+        ],
+        {
+          "whole_frame": 0.0005449074074074074,
+          "document": 0.0011017504446316577,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.002675
+        },
+        1177,
+        55
+      ],
+      [
+        "clip",
+        1.25,
+        "02-fractional-pan",
+        false,
+        [
+          1800,
+          1200
+        ],
+        [
+          282,
+          287,
+          1083,
+          838
+        ],
+        {
+          "whole_frame": 0.0006611111111111111,
+          "document": 0.0013367031732659366,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.002884325627448448
+        },
+        1273,
+        58
+      ],
+      [
+        "clip",
+        1.25,
+        "03-fractional-zoom",
+        false,
+        [
+          1800,
+          1200
+        ],
+        [
+          240,
+          260,
+          1114,
+          861
+        ],
+        {
+          "whole_frame": 0.0006694444444444444,
+          "document": 0.0013526163062810071,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0027261962328232504
+        },
+        1432,
+        60
+      ],
+      [
+        "clip",
+        2,
+        "01-fit",
+        false,
+        [
+          2880,
+          1920
+        ],
+        [
+          378,
+          496,
+          1658,
+          1376
+        ],
+        {
+          "whole_frame": 0.00034252025462962963,
+          "document": 0.0006922514619883041,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0016814630681818183
+        },
+        1894,
+        55
+      ],
+      [
+        "clip",
+        2,
+        "02-fractional-pan",
+        false,
+        [
+          2880,
+          1920
+        ],
+        [
+          452,
+          459,
+          1733,
+          1339
+        ],
+        {
+          "whole_frame": 0.00034523292824074073,
+          "document": 0.000697733918128655,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0016863600879994322
+        },
+        1901,
+        56
+      ],
+      [
+        "clip",
+        2,
+        "03-fractional-zoom",
+        false,
+        [
+          2880,
+          1920
+        ],
+        [
+          411,
+          432,
+          1763,
+          1362
+        ],
+        {
+          "whole_frame": 0.00037199797453703706,
+          "document": 0.000751827485380117,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0016192657631863587
+        },
+        2036,
+        57
+      ],
+      [
+        "pattern",
+        1,
+        "01-fit",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          189,
+          248,
+          829,
+          688
+        ],
+        {
+          "whole_frame": 0.0006763599537037036,
+          "document": 0.0013669590643274855,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0033203125
+        },
+        935,
+        71
+      ],
+      [
+        "pattern",
+        1,
+        "02-fractional-pan",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          226,
+          229,
+          867,
+          670
+        ],
+        {
+          "whole_frame": 0.0007045717592592593,
+          "document": 0.0014239766081871345,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0033359157495551524
+        },
+        943,
+        60
+      ],
+      [
+        "pattern",
+        1,
+        "03-fractional-zoom",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          183,
+          201,
+          897,
+          693
+        ],
+        {
+          "whole_frame": 0.0011205150462962963,
+          "document": 0.0022616959064327485,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0042415340119787755
+        },
+        1490,
+        80
+      ],
+      [
+        "pattern",
+        1.25,
+        "01-fit",
+        false,
+        [
+          1800,
+          1200
+        ],
+        [
+          236,
+          311,
+          1036,
+          861
+        ],
+        {
+          "whole_frame": 0.0006365740740740741,
+          "document": 0.0012870916409248338,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.003125
+        },
+        1375,
+        69
+      ],
+      [
+        "pattern",
+        1.25,
+        "02-fractional-pan",
+        false,
+        [
+          1800,
+          1200
+        ],
+        [
+          282,
+          287,
+          1083,
+          838
+        ],
+        {
+          "whole_frame": 0.0008638888888888889,
+          "document": 0.0017467003650659927,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0038767330310795715
+        },
+        1711,
+        62
+      ],
+      [
+        "pattern",
+        1.25,
+        "03-fractional-zoom",
+        false,
+        [
+          1800,
+          1200
+        ],
+        [
+          240,
+          260,
+          1114,
+          861
+        ],
+        {
+          "whole_frame": 0.0007532407407407407,
+          "document": 0.0015220443695591127,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.003070778298564178
+        },
+        1613,
+        80
+      ],
+      [
+        "pattern",
+        2,
+        "01-fit",
+        false,
+        [
+          2880,
+          1920
+        ],
+        [
+          378,
+          496,
+          1658,
+          1376
+        ],
+        {
+          "whole_frame": 0.00042390046296296295,
+          "document": 0.0008567251461988304,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.002080965909090909
+        },
+        2344,
+        64
+      ],
+      [
+        "pattern",
+        2,
+        "02-fractional-pan",
+        false,
+        [
+          2880,
+          1920
+        ],
+        [
+          452,
+          459,
+          1733,
+          1339
+        ],
+        {
+          "whole_frame": 0.0004295066550925926,
+          "document": 0.0008680555555555555,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0020997445177773047
+        },
+        2367,
+        67
+      ],
+      [
+        "pattern",
+        2,
+        "03-fractional-zoom",
+        false,
+        [
+          2880,
+          1920
+        ],
+        [
+          411,
+          432,
+          1763,
+          1362
+        ],
+        {
+          "whole_frame": 0.0005208333333333333,
+          "document": 0.0010526315789473684,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0022738117961443025
+        },
+        2859,
+        80
+      ],
+      [
+        "text",
+        1,
+        "01-fit",
+        true,
+        [
+          1440,
+          960
+        ],
+        [
+          189,
+          248,
+          829,
+          688
+        ],
+        {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0
+        },
+        0,
+        12
+      ],
+      [
+        "text",
+        1,
+        "02-fractional-pan",
+        true,
+        [
+          1440,
+          960
+        ],
+        [
+          226,
+          229,
+          867,
+          670
+        ],
+        {
+          "whole_frame": 2.3148148148148147e-05,
+          "document": 4.6783625730994155e-05,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 3.5375564682451244e-06
+        },
+        1,
+        18
+      ],
+      [
+        "text",
+        1,
+        "03-fractional-zoom",
+        true,
+        [
+          1440,
+          960
+        ],
+        [
+          183,
+          201,
+          897,
+          693
+        ],
+        {
+          "whole_frame": 4.1956018518518515e-05,
+          "document": 8.187134502923976e-05,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0
+        },
+        0,
+        5
+      ],
+      [
+        "text",
+        1.25,
+        "01-fit",
+        true,
+        [
+          1800,
+          1200
+        ],
+        [
+          236,
+          311,
+          1036,
+          861
+        ],
+        {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0
+        },
+        0,
+        10
+      ],
+      [
+        "text",
+        1.25,
+        "02-fractional-pan",
+        true,
+        [
+          1800,
+          1200
+        ],
+        [
+          282,
+          287,
+          1083,
+          838
+        ],
+        {
+          "whole_frame": 6.527777777777778e-05,
+          "document": 0.00013198539736029204,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0
+        },
+        0,
+        6
+      ],
+      [
+        "text",
+        1.25,
+        "03-fractional-zoom",
+        true,
+        [
+          1800,
+          1200
+        ],
+        [
+          240,
+          260,
+          1114,
+          861
+        ],
+        {
+          "whole_frame": 4.6296296296296296e-06,
+          "document": 9.360666479453337e-06,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0
+        },
+        0,
+        6
+      ],
+      [
+        "text",
+        2,
+        "01-fit",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          378,
+          496,
+          1658,
+          1376
+        ],
+        {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0
+        },
+        0,
+        1
+      ],
+      [
+        "text",
+        2,
+        "02-fractional-pan",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          452,
+          459,
+          1733,
+          1339
+        ],
+        {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0
+        },
+        0,
+        1
+      ],
+      [
+        "text",
+        2,
+        "03-fractional-zoom",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          411,
+          432,
+          1763,
+          1362
+        ],
+        {
+          "whole_frame": 3.4360532407407407e-06,
+          "document": 6.944444444444445e-06,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0
+        },
+        0,
+        1
+      ],
+      [
+        "image",
+        1,
+        "01-fit",
+        true,
+        [
+          1440,
+          960
+        ],
+        [
+          189,
+          248,
+          829,
+          688
+        ],
+        {
+          "whole_frame": 0.00018590856481481483,
+          "document": 0.00037573099415204677,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0009126420454545455
+        },
+        257,
+        35
+      ],
+      [
+        "image",
+        1,
+        "02-fractional-pan",
+        true,
+        [
+          1440,
+          960
+        ],
+        [
+          226,
+          229,
+          867,
+          670
+        ],
+        {
+          "whole_frame": 0.0002025462962962963,
+          "document": 0.00040935672514619883,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.000880851560593036
+        },
+        249,
+        32
+      ],
+      [
+        "image",
+        1,
+        "03-fractional-zoom",
+        false,
+        [
+          1440,
+          960
+        ],
+        [
+          183,
+          201,
+          897,
+          693
+        ],
+        {
+          "whole_frame": 0.0003956886574074074,
+          "document": 0.0007967836257309942,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0013891735556011023
+        },
+        488,
+        40
+      ],
+      [
+        "image",
+        1.25,
+        "01-fit",
+        true,
+        [
+          1800,
+          1200
+        ],
+        [
+          236,
+          311,
+          1036,
+          861
+        ],
+        {
+          "whole_frame": 0.0001638888888888889,
+          "document": 0.0003313675933726481,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0008045454545454546
+        },
+        354,
+        34
+      ],
+      [
+        "image",
+        1.25,
+        "02-fractional-pan",
+        true,
+        [
+          1800,
+          1200
+        ],
+        [
+          282,
+          287,
+          1083,
+          838
+        ],
+        {
+          "whole_frame": 0.0002532407407407407,
+          "document": 0.0005120284564260975,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0008904477388745012
+        },
+        393,
+        33
+      ],
+      [
+        "image",
+        1.25,
+        "03-fractional-zoom",
+        true,
+        [
+          1800,
+          1200
+        ],
+        [
+          240,
+          260,
+          1114,
+          861
+        ],
+        {
+          "whole_frame": 0.00016805555555555557,
+          "document": 0.0003388561265562108,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0006663189116537274
+        },
+        350,
+        30
+      ],
+      [
+        "image",
+        2,
+        "01-fit",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          378,
+          496,
+          1658,
+          1376
+        ],
+        {
+          "whole_frame": 0.00010091145833333333,
+          "document": 0.00020394736842105262,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0004953835227272728
+        },
+        558,
+        34
+      ],
+      [
+        "image",
+        2,
+        "02-fractional-pan",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          452,
+          459,
+          1733,
+          1339
+        ],
+        {
+          "whole_frame": 9.458188657407408e-05,
+          "document": 0.0001911549707602339,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0004568518912781208
+        },
+        515,
+        34
+      ],
+      [
+        "image",
+        2,
+        "03-fractional-zoom",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          411,
+          432,
+          1763,
+          1362
+        ],
+        {
+          "whole_frame": 0.00018138744212962962,
+          "document": 0.00036659356725146197,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0007810014633835974
+        },
+        982,
+        42
+      ],
+      [
+        "opacity-and-strokes",
+        1,
+        "01-fit",
+        true,
+        [
+          1440,
+          960
+        ],
+        [
+          189,
+          248,
+          829,
+          688
+        ],
+        {
+          "whole_frame": 0.00010344328703703703,
+          "document": 0.0002090643274853801,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0005078125
+        },
+        143,
+        39
+      ],
+      [
+        "opacity-and-strokes",
+        1,
+        "02-fractional-pan",
+        true,
+        [
+          1440,
+          960
+        ],
+        [
+          226,
+          229,
+          867,
+          670
+        ],
+        {
+          "whole_frame": 0.00013744212962962964,
+          "document": 0.0002777777777777778,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0005624714784509747
+        },
+        159,
+        42
+      ],
+      [
+        "opacity-and-strokes",
+        1,
+        "03-fractional-zoom",
+        true,
+        [
+          1440,
+          960
+        ],
+        [
+          183,
+          201,
+          897,
+          693
+        ],
+        {
+          "whole_frame": 0.00018446180555555555,
+          "document": 0.0003698830409356725,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.000560793423060281
+        },
+        197,
+        35
+      ],
+      [
+        "opacity-and-strokes",
+        1.25,
+        "01-fit",
+        true,
+        [
+          1800,
+          1200
+        ],
+        [
+          236,
+          311,
+          1036,
+          861
+        ],
+        {
+          "whole_frame": 9.62962962962963e-05,
+          "document": 0.0001947018627726294,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0004727272727272727
+        },
+        208,
+        37
+      ],
+      [
+        "opacity-and-strokes",
+        1.25,
+        "02-fractional-pan",
+        true,
+        [
+          1800,
+          1200
+        ],
+        [
+          282,
+          287,
+          1083,
+          838
+        ],
+        {
+          "whole_frame": 0.0001634259259259259,
+          "document": 0.0003304315267247028,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0004803433095200872
+        },
+        212,
+        37
+      ],
+      [
+        "opacity-and-strokes",
+        1.25,
+        "03-fractional-zoom",
+        true,
+        [
+          1800,
+          1200
+        ],
+        [
+          240,
+          260,
+          1114,
+          861
+        ],
+        {
+          "whole_frame": 0.00011805555555555556,
+          "document": 0.00023869699522606008,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0004664232381576092
+        },
+        245,
+        45
+      ],
+      [
+        "opacity-and-strokes",
+        2,
+        "01-fit",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          378,
+          496,
+          1658,
+          1376
+        ],
+        {
+          "whole_frame": 4.937065972222222e-05,
+          "document": 9.978070175438596e-05,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.0002423650568181818
+        },
+        273,
+        45
+      ],
+      [
+        "opacity-and-strokes",
+        2,
+        "02-fractional-pan",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          452,
+          459,
+          1733,
+          1339
+        ],
+        {
+          "whole_frame": 5.1902488425925924e-05,
+          "document": 0.00010489766081871345,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.00025459513164431197
+        },
+        287,
+        36
+      ],
+      [
+        "opacity-and-strokes",
+        2,
+        "03-fractional-zoom",
+        true,
+        [
+          2880,
+          1920
+        ],
+        [
+          411,
+          432,
+          1763,
+          1362
+        ],
+        {
+          "whole_frame": 5.787037037037037e-05,
+          "document": 0.00011695906432748539,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0,
+          "scene_body": 0.00023939046891900489
+        },
+        301,
+        39
+      ]
+    ]
+  },
+  "original_failures": [
+    "filters DPR 1 01-fit: AssertionError: Native filters body pixels differ: 0.0014985795454545453 > 0.001",
+    "filters DPR 1 02-fractional-pan: AssertionError: Native filters body pixels differ: 0.0013195085626554314 > 0.001",
+    "filters DPR 1 03-fractional-zoom: AssertionError: Native filters body pixels differ: 0.0014062535583339027 > 0.001",
+    "filters DPR 1.25 01-fit: AssertionError: Native filters body pixels differ: 0.0014386363636363637 > 0.001",
+    "filters DPR 1.25 02-fractional-pan: AssertionError: Native filters body pixels differ: 0.0015452553636448089 > 0.001",
+    "filters DPR 1.25 03-fractional-zoom: AssertionError: Native filters body pixels differ: 0.00120127780929572 > 0.001",
+    "mask DPR 1 01-fit: AssertionError: Native mask body pixels differ: 0.0017542613636363637 > 0.001",
+    "mask DPR 1 02-fractional-pan: AssertionError: Native mask body pixels differ: 0.0018112289117415037 > 0.001",
+    "mask DPR 1 03-fractional-zoom: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0010453216374269006}",
+    "mask DPR 1.25 01-fit: AssertionError: Native mask body pixels differ: 0.001559090909090909 > 0.001",
+    "mask DPR 1.25 02-fractional-pan: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0012908359075166152}",
+    "mask DPR 1.25 03-fractional-zoom: AssertionError: Native mask body pixels differ: 0.0015439561067176369 > 0.001",
+    "clip DPR 1 01-fit: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0015248538011695906}",
+    "clip DPR 1 02-fractional-pan: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0016359649122807017}",
+    "clip DPR 1 03-fractional-zoom: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0017733918128654972}",
+    "clip DPR 1.25 01-fit: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0011017504446316577}",
+    "clip DPR 1.25 02-fractional-pan: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0013367031732659366}",
+    "clip DPR 1.25 03-fractional-zoom: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0013526163062810071}",
+    "clip DPR 2 01-fit: AssertionError: Native clip body pixels differ: 0.0016814630681818183 > 0.001",
+    "clip DPR 2 02-fractional-pan: AssertionError: Native clip body pixels differ: 0.0016863600879994322 > 0.001",
+    "clip DPR 2 03-fractional-zoom: AssertionError: Native clip body pixels differ: 0.0016192657631863587 > 0.001",
+    "pattern DPR 1 01-fit: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0013669590643274855}",
+    "pattern DPR 1 02-fractional-pan: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0014239766081871345}",
+    "pattern DPR 1 03-fractional-zoom: AssertionError: Native-resolution bridge pixels differ: {'whole_frame': 0.0011205150462962963, 'document': 0.0022616959064327485}",
+    "pattern DPR 1.25 01-fit: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0012870916409248338}",
+    "pattern DPR 1.25 02-fractional-pan: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0017467003650659927}",
+    "pattern DPR 1.25 03-fractional-zoom: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0015220443695591127}",
+    "pattern DPR 2 01-fit: AssertionError: Native pattern body pixels differ: 0.002080965909090909 > 0.001",
+    "pattern DPR 2 02-fractional-pan: AssertionError: Native pattern body pixels differ: 0.0020997445177773047 > 0.001",
+    "pattern DPR 2 03-fractional-zoom: AssertionError: Native-resolution bridge pixels differ: {'document': 0.0010526315789473684}",
+    "image DPR 1 03-fractional-zoom: AssertionError: Native image body pixels differ: 0.0013891735556011023 > 0.001"
+  ],
+  "image_fixture_failure_classification": {
+    "scope": "d0 native default Graphite image fixture DPR1 fractional zoom; camera inferred from committed calibration anchors",
+    "body_pixels_above_luma12": 488,
+    "expected_stroke_half_width_physical": 12.821572580645162,
+    "nearest_centerline_distance_range_physical": [
+      0.3141022918411716,
+      13.45428463933267
+    ],
+    "pixels_within_two_physical_pixels_of_expected_stroke_edge": 469,
+    "bitmap_top_interior_probe_bounds": [
+      229,
+      244,
+      781,
+      362
+    ],
+    "bitmap_top_interior_probe_max_rgb_difference": 1,
+    "bitmap_top_interior_probe_pixels_above_luma12": 0,
+    "conclusion": "All 488 above-threshold body differences lie within two physical pixels of the curved stroke side edge or butt caps. The sampled image interior away from the stroke differs by at most 1 RGB level. This failure is not evidence of broken bitmap sampling; raster-coverage repair remains to be tested.",
+    "pixels_within_two_physical_pixels_of_stroke_butt_caps": 24,
+    "pixels_at_either_side_edge_or_butt_cap": 488
+  }
+}

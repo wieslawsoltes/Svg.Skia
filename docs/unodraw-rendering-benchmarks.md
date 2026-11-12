@@ -551,9 +551,40 @@ with the requested coverage count, without fallback or runtime errors. Their
 CPU-control whole frames have zero pixels above the luminance threshold. At
 DPR 1, the document's above-threshold count falls from 1,307 to 251 and the long
 arch-edge discrepancies disappear. Smaller analytic-shape/clip differences
-remain, so this is accepted native-pixel quality, not byte equality. This result
-qualifies only Welcome in Interpreter mode; AOT, all eight SVG scenes and
-repeated total-throughput measurements remain independent requirements.
+remain, so this is accepted native-pixel quality, not byte equality.
+
+The separate [AOT coverage evidence](benchmarks/unodraw-graphite-coverage-aot-2026-11-12.json)
+reproduces all 60 Interpreter pass/fail outcomes and fractions: raster coverage
+passes 30/30 Welcome pairs, while native default coverage passes 20/30. Both AOT
+jobs download application artifact `13971214019` and verify its complete
+175,806,733-byte ZIP against SHA256
+`a6522fbf7abf8ac947096a02871b5d8ca7ac86e12b02d9a004ee23a2f9ab0ec3`.
+This establishes complete application archive identity between the two AOT jobs;
+it does not retroactively establish byte identity for the independently built
+Interpreter archives. All 108 desktop document crops across both coverage
+options and both bridge modes are byte-identical between execution modes. None
+of the 120 whole-frame comparisons has a pixel above luminance 12. The Welcome
+quality result therefore applies to both execution modes, with the same limits.
+
+The completed [native-default SVG evidence](benchmarks/unodraw-graphite-svg-default-2026-11-12.json)
+at `d0dafea` includes all 48 source/lifecycle cases, 144 native captures and 72
+image pairs. Only 41 pairs pass: filters fail six, masks six, clips nine, patterns
+nine, and the image scene one. Gradients, text, and opacity/strokes pass all nine
+pairs each. The image-scene failure is localized to its curved semitransparent
+stroke and butt caps; its sampled bitmap interior differs by at most one RGB
+level. All 72 outcomes were independently recomputed, and no fallback or runtime
+error explains the failures. These results reject native default coverage;
+they do not determine the still-pending full SVG result for raster coverage.
+
+Raster coverage's [first AOT pan comparison](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441/job/131397550441)
+passes all nine native image pairs with six primary trials and two separate
+diagnostic trials. Median elapsed time nevertheless rises from 88.681 seconds
+for persistent upload to 104.417 seconds for Graphite, a 17.74% regression on that
+SwiftShader runner. Renderer-thread CPU time falls 90.75%, but that reduction
+does not establish better total throughput. All inputs, actual native document
+submissions, and separately timed queue drains are accounted for. The full SVG
+matrix and zoom comparison remain separate requirements, and this pan result
+does not support making Graphite the default.
 
 One Graphite context is shared per Uno device. Each document canvas owns its
 recorder, image provider and target wrapper. Image caching is bounded, and failed
@@ -617,6 +648,15 @@ the lifetime of a discarded frame's GPU submissions. Regression tests invoke the
 actual `SKSvg.OnDraw` callback, including callback exceptions, repeated unload,
 lease replacement and reload, while retaining the unchanged pixel-cache tests.
 
+Those public callbacks can also retain a snapshot of the private raster surface.
+A permanently retained pixmap then becomes stale after Skia performs copy-on-write;
+a direct cache restore can otherwise mutate an existing snapshot. The buffer now
+refreshes its reusable pixmap before each read, copy or swizzle, and calls the
+public `SKCanvas.Discard` before a complete raw restore to notify Skia and detach
+snapshot storage. The native regression cases reproduce both stale reads and
+snapshot mutation before the fix. The shared layer painter restores its entry
+save count even when a callback throws after adding another save scope.
+
 The actual cache/upload helper passes 72 scene/DPR/camera rows with six changing
 or removed-feedback frames compared byte-for-byte in every row, plus native
 premultiplied-byte, row-stride/format and resize/release cases. Browser acceptance
@@ -629,6 +669,45 @@ The selection comparison uses the existing 121-toggle workload, including its
 final visible selection. It keeps the same timing boundaries, real input counts,
 before/after/restore pixel gates and zero-document/positive-interaction diagnostic
 requirements. Its results must be evaluated independently from hover.
+
+### Cached composition through the original texture uploader
+
+`?canvasBridge=legacy-composite` isolates the texture transport while retaining
+the same exact document cache and feedback painter. Its island owns the public
+layer lease and receives full host invalidations, including calls through the
+nonvirtual `SKCanvasElement.Invalidate` API. A software child deliberately does
+not implement `ISkiaCanvasRenderer`; its one-time island attempt reports
+`OnUnavailable` before attaching another child. Uno then uses its original
+`PaintSoftware` and texture creation path, including opacity analysis, immutable
+per-recording textures and mip generation. Auxiliary painters also retain the
+original uploader. The application compositor remains WebGPU.
+
+The shared painter renders into its owned BGRA surface and copies complete
+premultiplied rows into the original host's already-cleared raster. The host's
+actual size, uniform device matrix and clip determine cache geometry; no second
+rounding calculation chooses the destination dimensions. Borrowed host surfaces
+and canvases are neither retained strongly nor disposed. Callback cancellation
+rejects the copy, and incompatible surfaces or transforms use the existing host
+fallback. This path never reads back a GPU surface. Its unused RGBA upload buffer
+is allocated only if a transport later requests it.
+
+Initialization is logged after a completed host copy; cache reuse is logged only
+after a completed copy that restored cached document pixels. The new experiment
+compares `legacy` with `legacy-composite` in one AOT package, keeping six primary
+trials, two separate diagnostics and all nine original native image pairs per
+workload. Welcome and the complete eight-scene SVG matrix remain independent
+browser gates. This opt-in implementation supplies no speedup or baseline
+recovery claim until those actual measurements complete.
+
+A separate reusable workflow directly compares the same run's immutable
+`96e5fa9` baseline package with the explicit `legacy-composite` candidate. It
+starts after package publication and covers hover, selection, pan, zoom and
+editing, with three alternating primary pairs and one separate candidate
+diagnostic per workload. Archive-bound asset checks and candidate source
+equivalence accompany the original native document/ruler/font gates. Its report
+kind identifies the opt-in candidate and cannot qualify the current default.
+This direct comparison is required before claiming baseline recovery; timing
+ratios from different runners cannot substitute for it.
 
 ### Retained panel and inspector work
 
