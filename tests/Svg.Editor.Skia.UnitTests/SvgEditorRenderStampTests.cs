@@ -59,6 +59,35 @@ public class SvgEditorRenderStampTests
     }
 
     [Fact]
+    public void ViewerTransformsInvalidateContentWithoutReplacingThePictureOrModel()
+    {
+        using var editor = CreateEditor();
+        var renderer = editor.Renderer;
+        var picture = renderer.Picture;
+        var model = renderer.Model;
+        var documentRevision = editor.DocumentRevision;
+        var renderRevision = editor.RenderRevision;
+        var before = SvgEditorRenderStamp.Capture(editor);
+
+        Assert.True(renderer.SetViewerTransform(1.75, new ShimSkiaSharp.SKPoint(12.5f, -8.25f)));
+        var transformed = SvgEditorRenderStamp.Capture(editor);
+        Assert.NotEqual(before, transformed);
+        Assert.True(renderer.ZoomTo(2.5));
+        var zoomed = SvgEditorRenderStamp.Capture(editor);
+        Assert.NotEqual(transformed, zoomed);
+        Assert.True(renderer.PanTo(new ShimSkiaSharp.SKPoint(-4.5f, 19.25f)));
+        Assert.NotEqual(zoomed, SvgEditorRenderStamp.Capture(editor));
+
+        Assert.Same(picture, renderer.Picture);
+        Assert.Same(model, renderer.Model);
+        Assert.Equal(documentRevision, editor.DocumentRevision);
+        Assert.Equal(renderRevision, editor.RenderRevision);
+        Assert.True(renderer.ResetViewerTransform());
+        Assert.Equal(before, SvgEditorRenderStamp.Capture(editor));
+        Assert.Equal(before.GetHashCode(), SvgEditorRenderStamp.Capture(editor).GetHashCode());
+    }
+
+    [Fact]
     public void AnimationAndDifferentControllersNeverReuseStaleContent()
     {
         using var editor = CreateEditor();

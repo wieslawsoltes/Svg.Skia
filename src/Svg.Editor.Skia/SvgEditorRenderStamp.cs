@@ -21,6 +21,7 @@ public readonly struct SvgEditorRenderStamp : IEquatable<SvgEditorRenderStamp>
     private readonly long _renderRevision;
     private readonly bool _wireframe;
     private readonly Shim.SKMatrix _rootTransform;
+    private readonly Shim.SKMatrix _viewerTransform;
     private readonly SKRect _pictureBounds;
 
     private SvgEditorRenderStamp(SvgEditorController controller)
@@ -35,6 +36,7 @@ public readonly struct SvgEditorRenderStamp : IEquatable<SvgEditorRenderStamp>
         _wireframe = _renderer.Wireframe;
         var root = _document is null ? null : controller.GetSceneNode(_document) ?? _renderer.RetainedSceneGraph?.Root;
         _rootTransform = root?.TotalTransform ?? Shim.SKMatrix.Identity;
+        _viewerTransform = _renderer.ViewerTransform;
         _pictureBounds = _picture?.CullRect ?? SKRect.Empty;
     }
 
@@ -47,7 +49,8 @@ public readonly struct SvgEditorRenderStamp : IEquatable<SvgEditorRenderStamp>
         && ReferenceEquals(_renderer, other._renderer) && ReferenceEquals(_picture, other._picture)
         && ReferenceEquals(_model, other._model) && _documentRevision == other._documentRevision
         && _renderRevision == other._renderRevision && _wireframe == other._wireframe
-        && _rootTransform == other._rootTransform && _pictureBounds == other._pictureBounds;
+        && _rootTransform == other._rootTransform && _viewerTransform == other._viewerTransform
+        && _pictureBounds == other._pictureBounds;
 
     public override bool Equals(object? obj) => obj is SvgEditorRenderStamp other && Equals(other);
 
@@ -64,6 +67,7 @@ public readonly struct SvgEditorRenderStamp : IEquatable<SvgEditorRenderStamp>
             hash = hash * 31 + _renderRevision.GetHashCode();
             hash = hash * 31 + _wireframe.GetHashCode();
             hash = hash * 31 + _rootTransform.GetHashCode();
+            hash = hash * 31 + _viewerTransform.GetHashCode();
             return hash * 31 + _pictureBounds.GetHashCode();
         }
     }
