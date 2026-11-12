@@ -283,6 +283,25 @@ capture editor-workspace-light
 command 'Use dark interface'
 capture editor-workspace-dark
 
+# A numeric character reference keeps the model's text line break as LF even
+# though the native multiline editor normalizes its displayed value to CR.
+# Merely visiting Typography must not create a second undo transaction.
+command 'Edit SVG source'
+xdotool mousemove --window "$window" 720 420 click 1
+xdotool key --clearmodifiers ctrl+a
+xdotool type --clearmodifiers --delay 25 '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100"><text id="multiline" x="20" y="40">First&#10;Second</text></svg>'
+capture editor-multiline-source
+checkpoint="$(input_checkpoint)"
+xdotool mousemove --window "$window" 580 742 click 1
+wait_input "$checkpoint" 'modal-closed result=Primary$'
+wait_input "$checkpoint" 'command-completed id=source$'
+command 'Select all'
+command 'Typography panel'
+command 'Deselect'
+command 'Undo'
+save
+verify restored-editor-multiline-focus
+
 # Native multiline TextBox input normalizes line endings. Author the complete
 # default stop list through the source dialog, then restore the saved artwork.
 command 'Select all'
