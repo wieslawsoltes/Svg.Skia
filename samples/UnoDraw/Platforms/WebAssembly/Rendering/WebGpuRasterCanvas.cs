@@ -17,6 +17,8 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
 {
     private readonly Action<string?> _fallback;
     private readonly bool _preferWebGl;
+    private readonly bool _preferGraphite;
+    private readonly Action<SKCanvas> _drawGraphiteFrame;
     private readonly ScaleTransform _displayScale = new();
     private CanvasPixelSize _pixels;
     private SkiaCanvasUploadBuffer? _buffer;
@@ -26,13 +28,19 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
     private bool _reportedCompositeReuse;
     private WebGlSkiaCanvas? _webGlCanvas;
     private bool _webGlUnavailable;
+    private WebGpuGraphiteCanvas? _graphiteCanvas;
+    private SkiaGpuDocumentPainter? _graphiteDocument;
+    private string? _reportedGraphiteDocumentFailure;
+    private bool _graphiteUnavailable;
     private uint _maximumTextureSize;
     private IDisposable? _deviceLifetime;
 
-    internal WebGpuRasterCanvas(Action<string?> fallback, bool preferWebGl)
+    internal WebGpuRasterCanvas(Action<string?> fallback, bool preferWebGl, bool preferGraphite)
     {
         _fallback = fallback;
         _preferWebGl = preferWebGl;
+        _preferGraphite = preferGraphite;
+        _drawGraphiteFrame = DrawGraphiteFrame;
         IsHitTestVisible = false;
         HorizontalAlignment = HorizontalAlignment.Left;
         VerticalAlignment = VerticalAlignment.Top;
@@ -140,6 +148,38 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
 
         // The measured bottleneck is the document raster. Small auxiliary and
         // retained interaction surfaces keep their existing CPU/pixel path.
+        if (_preferGraphite && !_graphiteUnavailable && renderer is SvgEditorCanvas editor)
+        {
+            try
+            {
+                _graphiteDocument ??= new SkiaGpuDocumentPainter();
+                if (_graphiteDocument.Prepare(editor.Controller?.Renderer,
+                    _pixels.Width, _pixels.Height, _pixels.Scale, _pixels.LogicalSize.Width,
+                    _pixels.LogicalSize.Height, editor.Viewport.Matrix, out var reason))
+                {
+                    _graphiteCanvas ??= new WebGpuGraphiteCanvas(OnGraphiteUnavailable);
+                    if (_graphiteCanvas.Render(context, _pixels, _drawGraphiteFrame))
+                    {
+                        _reportedGraphiteDocumentFailure = null;
+                        return;
+                    }
+                }
+                else
+                {
+                    ReportGraphiteDocumentFallback(reason!);
+                }
+            }
+            catch (SkiaDocumentRasterizationException error)
+            {
+                ReportGraphiteDocumentFallback(error.Message);
+            }
+            catch (Exception error)
+            {
+                OnGraphiteUnavailable(error.Message);
+            }
+            if (Renderer is null)
+                return; // A synchronous document callback unloaded this canvas.
+        }
         if (_preferWebGl && !_webGlUnavailable && renderer is SvgEditorCanvas)
         {
             try
@@ -153,6 +193,8 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
                 OnWebGlUnavailable(error.Message);
                 // Repaint this same target through the reliable CPU path now.
             }
+            if (Renderer is null)
+                return; // A synchronous document callback unloaded this canvas.
         }
 
         if (_buffer is null || _buffer.Width != context.PixelWidth || _buffer.Height != context.PixelHeight)
@@ -205,6 +247,20 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
         WebGpuSkiaCanvasBridge.ReportInitialization();
         if (_compositeLayers is not null)
             WebGpuSkiaCanvasBridge.ReportCompositeInitialization();
+    }
+
+    private void DrawGraphiteFrame(SKCanvas canvas)
+    {
+        if (Renderer is SvgEditorCanvas editor && _graphiteDocument is { } painter)
+            editor.RenderWithDocument(canvas, _pixels.LogicalSize, painter.DrawDocument);
+    }
+
+    private void ReportGraphiteDocumentFallback(string reason)
+    {
+        if (_reportedGraphiteDocumentFailure == reason)
+            return;
+        _reportedGraphiteDocumentFailure = reason;
+        Console.WriteLine($"UnoDraw Graphite canvas fallback: {reason}.");
     }
 
     private void RenderComposite(SkiaCanvasUploadBuffer buffer, ISkiaCanvasLayers layers)
@@ -284,13 +340,48 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
         }
     }
 
+    private void OnGraphiteUnavailable(string reason)
+    {
+        if (_graphiteUnavailable)
+            return;
+        _graphiteUnavailable = true;
+        Console.WriteLine($"UnoDraw Graphite canvas fallback: {reason}.");
+        var canvas = _graphiteCanvas;
+        _graphiteCanvas = null;
+        _graphiteDocument?.Dispose();
+        _graphiteDocument = null;
+        try
+        {
+            canvas?.Dispose();
+        }
+        catch (Exception error)
+        {
+            Console.WriteLine($"UnoDraw Graphite canvas fallback cleanup: {error.Message}.");
+        }
+        finally
+        {
+            Invalidate();
+        }
+    }
+
     internal void ReleaseSurfaces()
     {
+        var graphite = _graphiteCanvas;
+        _graphiteCanvas = null;
+        _graphiteDocument?.Dispose();
+        _graphiteDocument = null;
         var webGl = _webGlCanvas;
         _webGlCanvas = null;
         try
         {
-            webGl?.Dispose();
+            try
+            {
+                graphite?.Dispose();
+            }
+            finally
+            {
+                webGl?.Dispose();
+            }
         }
         finally
         {

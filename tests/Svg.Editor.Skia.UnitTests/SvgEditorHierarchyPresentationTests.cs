@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Svg;
 using Svg.Editor.Skia;
 using Xunit;
@@ -53,13 +54,27 @@ public class SvgEditorHierarchyPresentationTests
         var outline = SvgEditorHierarchyPresentation.Capture(document, null);
         switch (change)
         {
-            case "id": shape.ID = "renamed"; break;
-            case "display": shape.Display = "none"; break;
-            case "visibility": shape.Visibility = "hidden"; break;
-            case "lock": document.GetElementById("layer").CustomAttributes["data-unodraw-locked"] = "true"; break;
-            case "legacy-lock": shape.CustomAttributes["data-lock"] = "true"; break;
-            case "root-lock": document.CustomAttributes["data-unodraw-locked"] = "true"; break;
-            case "descendant-lock": document.GetElementById("stop").CustomAttributes["data-unodraw-locked"] = "true"; break;
+            case "id":
+                shape.ID = "renamed";
+                break;
+            case "display":
+                shape.Display = "none";
+                break;
+            case "visibility":
+                shape.Visibility = "hidden";
+                break;
+            case "lock":
+                document.GetElementById("layer").CustomAttributes["data-unodraw-locked"] = "true";
+                break;
+            case "legacy-lock":
+                shape.CustomAttributes["data-lock"] = "true";
+                break;
+            case "root-lock":
+                document.CustomAttributes["data-unodraw-locked"] = "true";
+                break;
+            case "descendant-lock":
+                document.GetElementById("stop").CustomAttributes["data-unodraw-locked"] = "true";
+                break;
         }
         Assert.False(outline.IsCurrent(document, string.Empty));
     }
@@ -152,14 +167,31 @@ public class SvgEditorHierarchyPresentationTests
         var resources = SvgEditorResourcePresentation.Capture(document);
         switch (change)
         {
-            case "rename": gradient.ID = "renamed"; break;
-            case "hide": gradient.Visibility = "hidden"; break;
-            case "inherited-lock": definitions.CustomAttributes["data-unodraw-locked"] = "true"; break;
-            case "root-lock": document.CustomAttributes["data-unodraw-locked"] = "true"; break;
-            case "legacy-lock": gradient.CustomAttributes["data-lock"] = "true"; break;
-            case "reorder": definitions.Children.Remove(gradient); definitions.Children.Add(gradient); break;
-            case "remove": definitions.Children.Remove(gradient); break;
-            case "add": definitions.Children.Add(new SvgSymbol { ID = "new-symbol" }); break;
+            case "rename":
+                gradient.ID = "renamed";
+                break;
+            case "hide":
+                gradient.Visibility = "hidden";
+                break;
+            case "inherited-lock":
+                definitions.CustomAttributes["data-unodraw-locked"] = "true";
+                break;
+            case "root-lock":
+                document.CustomAttributes["data-unodraw-locked"] = "true";
+                break;
+            case "legacy-lock":
+                gradient.CustomAttributes["data-lock"] = "true";
+                break;
+            case "reorder":
+                definitions.Children.Remove(gradient);
+                definitions.Children.Add(gradient);
+                break;
+            case "remove":
+                definitions.Children.Remove(gradient);
+                break;
+            case "add":
+                definitions.Children.Add(new SvgSymbol { ID = "new-symbol" });
+                break;
             case "replace":
                 definitions.Children.Remove(gradient);
                 definitions.Children.Insert(0, new SvgLinearGradientServer { ID = "paint" });
@@ -174,18 +206,29 @@ public class SvgEditorHierarchyPresentationTests
         var document = Parse();
         var outline = SvgEditorHierarchyPresentation.Capture(document, "shape");
         var resources = SvgEditorResourcePresentation.Capture(document);
-        for (var index = 0; index < 1000; index++)
+        // Warm the exact measurement method, including its counter and return
+        // paths. A separate warmup loop does not warm those measurement call
+        // sites and can include JIT/runtime initialization in the byte count.
+        for (var sample = 0; sample < 16; sample++)
         {
-            outline.IsCurrent(document, "\tshape\n");
-            resources.IsCurrent(document);
+            var warmup = MeasureValidation(document, outline, resources);
+            Assert.True(warmup.AllCurrent);
         }
+
+        var measured = MeasureValidation(document, outline, resources);
+        Assert.True(measured.AllCurrent);
+        Assert.Equal(0, measured.AllocatedBytes);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static (bool AllCurrent, long AllocatedBytes) MeasureValidation(SvgDocument document,
+        SvgEditorHierarchyPresentation outline, SvgEditorResourcePresentation resources)
+    {
         var before = GC.GetAllocatedBytesForCurrentThread();
         var allCurrent = true;
         for (var index = 0; index < 1000; index++)
             allCurrent &= outline.IsCurrent(document, "\tshape\n") && resources.IsCurrent(document);
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-        Assert.True(allCurrent);
-        Assert.Equal(0, allocated);
+        return (allCurrent, GC.GetAllocatedBytesForCurrentThread() - before);
     }
 
     private static SvgDocument Parse() => SvgDocument.FromSvg<SvgDocument>(Source);

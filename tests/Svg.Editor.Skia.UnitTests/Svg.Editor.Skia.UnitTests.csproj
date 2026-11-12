@@ -23,6 +23,8 @@
              Link="Rendering/SkiaTextRasterDrawable.cs" />
     <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaDocumentDrawable.cs"
              Link="Rendering/SkiaDocumentDrawable.cs" />
+    <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaGpuDocumentPainter.cs"
+             Link="Rendering/SkiaGpuDocumentPainter.cs" />
     <Compile Include="../../src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvasRenderSchedule.cs"
              Link="Rendering/SvgEditorCanvasRenderSchedule.cs" />
     <Compile Include="../../src/Svg.Editor.Skia.Uno/Controls/StudioPanelRefreshState.cs"

@@ -19,6 +19,7 @@ internal static class WebGpuSkiaCanvasBridge
     private static int s_reportedInitialization;
     private static int s_reportedWebGlInitialization;
     private static int s_reportedCompositeInitialization;
+    private static int s_reportedGraphiteInitialization;
 
     internal static void Register()
     {
@@ -35,14 +36,17 @@ internal static class WebGpuSkiaCanvasBridge
         // The original renderer is used only to request Uno's supported fallback;
         // its GL-specific Init/Render/Destroy methods are never called.
         var preferWebGl = preference == "webgl";
+        var preferGraphite = preference == "graphite";
         var preferComposite = preference == "composite";
         ApiExtensibility.Register<IGLIslandRenderer>(typeof(IGLIsland),
-            renderer => new RasterCanvasIsland(renderer, preferWebGl, preferComposite));
+            renderer => new RasterCanvasIsland(renderer, preferWebGl, preferComposite, preferGraphite));
         Console.WriteLine(preferWebGl
             ? "UnoDraw canvas bridge preference: WebGL document rasterization."
-            : preferComposite
-                ? "UnoDraw canvas bridge preference: cached document composition."
-                : "UnoDraw canvas bridge preference: persistent RGBA upload.");
+            : preferGraphite
+                ? "UnoDraw canvas bridge preference: Graphite document rasterization."
+                : preferComposite
+                    ? "UnoDraw canvas bridge preference: cached document composition."
+                    : "UnoDraw canvas bridge preference: persistent RGBA upload.");
     }
 
     internal static void ReportInitialization()
@@ -63,6 +67,12 @@ internal static class WebGpuSkiaCanvasBridge
             Console.WriteLine("UnoDraw canvas bridge initialized: cached document composition.");
     }
 
+    internal static void ReportGraphiteInitialization()
+    {
+        if (Interlocked.Exchange(ref s_reportedGraphiteInitialization, 1) == 0)
+            Console.WriteLine("UnoDraw canvas bridge initialized: Graphite document rasterization.");
+    }
+
     private sealed class RasterCanvasIsland : Grid, IGLIsland
     {
         private readonly IGLIslandRenderer _fallback;
@@ -75,11 +85,11 @@ internal static class WebGpuSkiaCanvasBridge
         private ISkiaCanvasLayers? _layers;
         private bool _failed;
 
-        public RasterCanvasIsland(IGLIslandRenderer fallback, bool preferWebGl, bool preferComposite)
+        public RasterCanvasIsland(IGLIslandRenderer fallback, bool preferWebGl, bool preferComposite, bool preferGraphite)
         {
             _fallback = fallback;
             _preferComposite = preferComposite;
-            _canvas = new WebGpuRasterCanvas(RequestFallback, preferWebGl);
+            _canvas = new WebGpuRasterCanvas(RequestFallback, preferWebGl, preferGraphite);
             IsHitTestVisible = false;
             Clip = _clip;
 

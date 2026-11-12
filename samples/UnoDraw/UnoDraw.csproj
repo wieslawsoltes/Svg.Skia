@@ -79,6 +79,8 @@
          is unavailable to browser AOT. Keep it interpreted; editor/rendering stay AOT. -->
     <MonoRuntimeMixedModeExcludedAssembly Include="System.Private.Windows.Core.dll" />
   </ItemGroup>
+  <Import Project="Platforms/WebAssembly/Rendering/UnoDraw.Graphite.targets"
+          Condition="'$(TargetFramework)' == 'net10.0-browserwasm'" />
   <!-- TrimMode=copy alone applies only to assemblies marked IsTrimmable. Use the
        SDK's PrepareForILLink metadata extension point to also preserve unmarked
        SVG, editor and dependency assemblies; no types or converters are removed. -->
