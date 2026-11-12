@@ -242,9 +242,20 @@ for appearance in light dark; do
 done
 command 'Navigator panel'
 click_editor_control 1280 225 '' StudioNavigator
-xdotool key --clearmodifiers Right Down Home
+capture editor-navigator-ready
+navigator_checkpoint="$(input_checkpoint)"
+xdotool key --clearmodifiers KP_Add Right Down Home
 sleep 0.3
 capture editor-navigator-keyboard
+python3 "$source_dir/assert_navigator.py" "$output/application.log" "$navigator_checkpoint" --minimum-updates 4 > "$output/navigator-performance.json"
+python3 - "$output" <<'PY'
+import json, pathlib, sys
+output = pathlib.Path(sys.argv[1])
+path = output / 'checks.json'
+checks = json.loads(path.read_text())
+checks.append(json.loads((output / 'navigator-performance.json').read_text()))
+path.write_text(json.dumps(checks, indent=2))
+PY
 save
 verify restored-editor-navigator
 
@@ -271,4 +282,93 @@ command 'Use light interface'
 capture editor-workspace-light
 command 'Use dark interface'
 capture editor-workspace-dark
-printf '%s\n' 'Native menu keys, drawing tools, filled brush, measurement, gesture cancellation, ruler and bounds guides, named artboards, graphic styles, history, navigation and additional panels passed.' > "$output/editor-result.txt"
+
+# Exercise close ownership after the existing fixture checks and documentation
+# captures. Clipboard SVG observes the real controller through production Copy
+# and source-editor commands; each capture clears old clipboard content first.
+copy_document() {
+  printf '%s' 'waiting-for-current-svg' | xclip -selection clipboard
+  command 'Select all'
+  command 'Copy'
+  python3 "$source_dir/assert_document_lifecycle.py" "$output" "$@"
+}
+check_blank_document() {
+  printf '%s' 'waiting-for-current-svg' | xclip -selection clipboard
+  command 'Edit SVG source'
+  # The source editor is the central native TextBox in the modal content.
+  xdotool mousemove --window "$window" 720 420 click 1
+  xdotool key --clearmodifiers ctrl+a ctrl+c
+  python3 "$source_dir/assert_document_lifecycle.py" "$output" "$1" blank
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
+  xdotool key --clearmodifiers Escape
+  wait_input "$checkpoint" 'command-completed id=source$'
+}
+
+# A failed save during close must preserve the live dirty document. A directory
+# at the isolated fixture's output path deterministically rejects atomic replace
+# without changing filesystem permissions or depending on a native file picker.
+command 'tool-rectangle'
+draw
+copy_document editor-close-before-failed-save snapshot
+mv "$document" "$work/close-save-backup.svg"
+mkdir "$document"
+command 'Close document'
+checkpoint="$(input_checkpoint)"
+xdotool key --clearmodifiers Return
+wait_input "$checkpoint" 'modal-closed result=Primary$'
+wait_input "$checkpoint" 'modal-opened'
+capture editor-close-save-error
+checkpoint="$(input_checkpoint)"
+xdotool key --clearmodifiers Escape
+wait_input "$checkpoint" 'command-completed id=close$'
+rmdir "$document"
+mv "$work/close-save-backup.svg" "$document"
+copy_document editor-close-failed-save-retains-document retained --expected "$output/editor-close-before-failed-save.svg"
+command 'Undo'
+save
+verify restored-editor-failed-close-save
+
+command 'New document'
+accept_dialog new
+command 'Fit artboard'
+command 'tool-rectangle'
+draw
+copy_document editor-close-new-document-live rectangle
+
+# Uno's native TabView supports middle-click close without activating the tab.
+# Remove the saved fixture's inactive first tab while the new drawing is active.
+checkpoint="$(input_checkpoint)"
+xdotool mousemove --window "$window" 110 86 click 2
+wait_input "$checkpoint" 'workspace-pointer-up-focus '
+capture editor-close-inactive-tab
+xdotool key --clearmodifiers ctrl+Tab
+copy_document editor-close-inactive-retains-active retained --expected "$output/editor-close-new-document-live.svg"
+
+command 'Close document'
+checkpoint="$(input_checkpoint)"
+xdotool key --clearmodifiers Escape
+wait_input "$checkpoint" 'command-completed id=close$'
+copy_document editor-close-cancel-retains-document retained --expected "$output/editor-close-new-document-live.svg"
+
+# The default Save button initially owns focus. Tab reaches Discard changes;
+# require the real Secondary result before inspecting the replacement document.
+command 'Close document'
+checkpoint="$(input_checkpoint)"
+xdotool key --clearmodifiers Tab Return
+wait_input "$checkpoint" 'modal-closed result=Secondary$'
+wait_input "$checkpoint" 'command-completed id=close$'
+check_blank_document editor-close-last-dirty-creates-document
+command 'Fit artboard'
+command 'tool-rectangle'
+draw
+copy_document editor-close-replacement-live rectangle
+command 'Undo'
+command 'Close document'
+check_blank_document editor-close-last-clean-creates-document
+capture editor-close-final-workspace
+
+if grep -Eiq 'Unhandled exception|DllNotFoundException|EntryPointNotFoundException|XamlParseException|StackOverflowException' "$output/application.log"; then
+  cat "$output/application.log"; exit 1
+fi
+printf '%s\n' 'Native menus, editing tools, shared controls, retained panels, Navigator, and active/inactive/final document close ownership passed, including canceled close and failed save.' > "$output/editor-result.txt"

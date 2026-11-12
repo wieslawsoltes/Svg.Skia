@@ -273,30 +273,72 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
 
     private async Task CloseEditorDocumentAsync(TabViewItem tab)
     {
-        if (_closing || _dialogVisible || tab.Tag is not EditorDocument document)
+        if (_disposed || _closing || _dialogVisible || tab.Tag is not EditorDocument document
+            || !Documents.Contains(document))
             return;
-        _closing = true;
         try
         {
-            CommitInspectorEdits();
-            WorkspaceRoot.IsHitTestVisible = false;
-            Canvas.CancelGesture();
-            if (!await ConfirmSaveAsync(document))
-                return;
-            document.Controller.Changed -= Controller_Changed;
-            Documents.Remove(document);
-            DocumentTabs.TabItems.Remove(tab);
-            DeleteRecovery(document);
-            if (ReferenceEquals(_current, document))
-                _current = null;
-            document.Dispose();
-            if (Documents.Count == 0)
+            _closing = true;
+            try
+            {
+                CommitInspectorEdits();
+                WorkspaceRoot.IsHitTestVisible = false;
+                Canvas.CancelGesture();
+                if (!await ConfirmSaveAsync(document) || _disposed || !Documents.Contains(document))
+                    return;
+                // Failure to remove a recovery copy must leave the live tab intact.
+                DeleteRecovery(document);
+                var retained = ReferenceEquals(_current, document) ? null : _current;
+                document.Controller.Changed -= Controller_Changed;
+                try
+                {
+                    Documents.Remove(document);
+                    if (_disposed)
+                        return;
+                    DocumentTabs.TabItems.Remove(tab);
+                    if (_disposed)
+                        return;
+                    // TabView can change selection while removing a tab. Closing an
+                    // inactive tab keeps the existing document; an active close uses
+                    // the native selection, or the first surviving tab as a fallback.
+                    var next = retained ?? ((DocumentTabs.SelectedItem as TabViewItem)?.Tag as EditorDocument);
+                    if (next is null || !Documents.Contains(next))
+                        next = Documents.FirstOrDefault();
+                    if (next is not null)
+                    {
+                        DocumentTabs.SelectedItem = DocumentTabs.TabItems.OfType<TabViewItem>()
+                            .First(item => ReferenceEquals(item.Tag, next));
+                        if (!_disposed)
+                            ActivateDocument(next);
+                    }
+                }
+                finally
+                {
+                    // Observable collection/selection callbacks may dispose the
+                    // host synchronously. The removed document is still ours to
+                    // release, but disposed controls must not be accessed again.
+                    if (ReferenceEquals(_current, document))
+                    {
+                        _current = null;
+                        _inspectedElement = null;
+                    }
+                    if (!_disposed && ReferenceEquals(Canvas.Controller, document.Controller))
+                        Canvas.Controller = null;
+                    document.Dispose();
+                }
+            }
+            finally
+            {
+                _closing = false;
+                if (!_disposed)
+                    WorkspaceRoot.IsHitTestVisible = true;
+            }
+            // NewDocument/AddDocument reject work while the close guard is held.
+            // Release it before replacing the last tab, after detaching its canvas.
+            if (!_disposed && Documents.Count == 0)
                 NewDocument();
-            else if (DocumentTabs.SelectedItem is TabViewItem { Tag: EditorDocument selected })
-                ActivateDocument(selected);
         }
         catch (Exception exception) { await ShowErrorAsync(exception.Message); }
-        finally { WorkspaceRoot.IsHitTestVisible = true; _closing = false; }
     }
     public new void Dispose()
     {
