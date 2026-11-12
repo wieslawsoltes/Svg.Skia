@@ -28,10 +28,10 @@ on:
       candidate_bridge:
         description: Explicit document renderer compared with its original control
         type: choice
-        options: [legacy-composite, graphite]
+        options: [legacy-composite, composite, graphite]
         default: legacy-composite
       graphite_coverage:
-        description: Explicit Graphite coverage; leave empty for legacy composition
+        description: Explicit Graphite coverage; leave empty for other canvas modes
         type: string
         default: ''
 

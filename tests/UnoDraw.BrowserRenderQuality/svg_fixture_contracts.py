@@ -24,8 +24,8 @@ SCENES = ("gradients", "filters", "mask", "clip", "pattern", "text", "image", "o
 # These historical defaults preserve validation of the archived rejected WebGL
 # experiments. New browser sessions select only LIVE_CANDIDATE_BRIDGES.
 BRIDGES = ("persistent", "webgl")
-CANDIDATE_BRIDGES = ("webgl", "graphite", "legacy-composite")
-LIVE_CANDIDATE_BRIDGES = ("graphite", "legacy-composite")
+CANDIDATE_BRIDGES = ("webgl", "composite", "graphite", "legacy-composite")
+LIVE_CANDIDATE_BRIDGES = ("composite", "graphite", "legacy-composite")
 DPRS = (1, 1.25, 2)
 STATES = ("01-fit", "02-fractional-pan", "03-fractional-zoom")
 DESKTOP = {"width": 1440, "height": 960}

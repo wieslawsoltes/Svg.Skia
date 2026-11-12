@@ -60,8 +60,9 @@ def verify_scene_bridge(console: list[dict[str, Any]], bridge: str, *,
     # Source replacement and camera changes repaint the document. They do not
     # guarantee an overlay-only frame that could reuse its cached pixels. The
     # original-host composite must still prove a completed copy into Uno's canvas;
-    # overlay cache reuse is required separately by Welcome and timing workloads.
-    verify_bridge(console, bridge, require_reuse=bridge != "legacy-composite",
+    # persistent-texture composition must prove its combined RGBA upload. Overlay
+    # cache reuse is required separately by Welcome and timing workloads.
+    verify_bridge(console, bridge, require_reuse=bridge not in {"composite", "legacy-composite"},
                   graphite_coverage=graphite_coverage)
 
 
@@ -356,6 +357,9 @@ def write_summary(report: dict[str, Any], output: Path) -> None:
                   "without an explicit coverage claim. Requested coverage requires matching actual-context evidence in every case.", ""]
     if candidate == "legacy-composite":
         lines += ["Each composite case requires a successful copy into the original Uno canvas host. "
+                  "These source/camera checks do not claim overlay cache reuse; that is validated separately by Welcome and timing workloads.", ""]
+    if candidate == "composite":
+        lines += ["Each composite case requires a successful combined document/interaction upload through the persistent RGBA texture path. "
                   "These source/camera checks do not claim overlay cache reuse; that is validated separately by Welcome and timing workloads.", ""]
     lines += ["| Scene | Bridge | DPR | Complete case |", "| --- | --- | ---: | --- |"]
     for case in report["cases"]:
