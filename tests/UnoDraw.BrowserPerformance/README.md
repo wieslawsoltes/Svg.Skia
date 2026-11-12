@@ -187,6 +187,11 @@ Screenshots must have the native pixel dimensions expected for their DPR. CSS
 screenshots serve semantic/readiness checks only; they are never used to establish
 the quantitative high-DPI A/B result. Unit checks explicitly reject both smaller
 screenshots and same-size images that lost detail through downsampling.
+Navigator readiness still requires at least 25 pixels from each fixture color
+family. Green detection matches the welcome hills/ground and their expected
+blue viewport tint, within two channel levels. This prevents the actual tinted
+green interiors (for example RGB 115,161,156) from being rejected by a generic
+hue inequality. The raw native-pixel comparisons retain their original tolerance.
 All six bridge/DPR cases run independently, including after an earlier failure.
 Every completed matching state is compared; missing states and pixel differences
 are recorded explicitly while later comparisons continue. The overall gate still
@@ -201,6 +206,21 @@ report explicitly record `execution_mode: Interpreter`; only its correctness
 reports and screenshots are uploaded. This early feedback is separate from both
 the final AOT quality gate and AOT performance measurements. Interpreter packages
 cannot pass the performance harness's execution-mode validation.
+
+The [old/new high-DPI check](../UnoDraw.BrowserRenderQuality/README.md) verifies
+ruler UI changes that a same-candidate bridge A/B cannot establish.
+Its `UnoDraw native render quality` workflow consumes the baseline/candidate AOT
+artifacts from an explicitly selected performance run without rebuilding the application.
+Its two parallel suites rerun the complete persistent/legacy bridge matrix with
+the current harness and compare the old/new application at DPR 1.25 and 2 on
+both backends, including isolated ruler strips. The candidate's recorded source
+commit is compared with the harness/PR head: only changes under `tests/`, `docs/`
+and `.github/` are allowed. Any production-source difference rejects the cached
+binary. Reports retain both SHAs and the changed paths. The workflow's PR path
+trigger is limited to its own file and `UnoDraw.BrowserRenderQuality`; manual
+dispatch selects a different immutable package run when needed. Its initial
+default identifies the pinned packages for this investigation; expired or stale
+artifacts require a new explicitly selected AOT run.
 
 CI uses the same pinned Playwright Chromium and SwiftShader switches as the
 correctness matrix. These exercise WebGPU and WebGL APIs through software GPU

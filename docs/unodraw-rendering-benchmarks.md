@@ -83,6 +83,15 @@ the persistent and legacy paths at native screenshot resolution for DPR
 zoom, refit and compact/near-zero/desktop resizing. Browser composition results
 remain a required gate.
 
+A [separate old/new high-DPI gate](../tests/UnoDraw.BrowserRenderQuality/README.md)
+compares both WebGPU and Skia/WebGL at DPR 1.25 and 2. This checks the changed
+ruler UI against the regression baseline, whereas both sides of the bridge A/B
+use the candidate's ruler implementation. It reuses existing AOT artifacts and
+rejects them if the current checkout differs in production source. Complete
+native PNGs and unresampled ruler strips cover fitted, actual-size, fractionally
+panned, refitted and selected states. Missing cases cannot produce a passing
+matrix; the same image thresholds apply.
+
 ### Browser comparison
 
 End-to-end measurements are in progress. No frame-rate improvement is claimed
@@ -105,8 +114,11 @@ both surfaces before allowing combined paints.
 
 Selection-only controller notifications compare a render-content stamp instead
 of invalidating the SVG. The stamp includes document/renderer/picture/model
-identity, content revisions, root transform and bounds; the canvas also checks
-its camera, grid and appearance. Calls made through the original nonvirtual
+identity, content revisions, root and viewer transforms, and bounds; the canvas
+also checks its camera, grid and appearance. Including the viewer transform
+preserves changes made through the renderer's public pan/zoom APIs even when
+the picture, model and document revisions remain unchanged. Calls made through
+the original nonvirtual
 `SKCanvasElement.Invalidate()` still refresh all visible content. Seven focused
 scheduling tests include 2,000 randomized invalidation batches checked against
 an independent retained-content model.
@@ -116,6 +128,13 @@ labels. The Navigator retains its overview through selection/save-state changes,
 and still redraws for document changes, animation, palette changes and resize.
 Pointer-coordinate labels coalesce bursts of updates, and panning no longer
 reassigns an unchanged zoom label.
+
+Browser lifecycle checks also exposed a pre-existing camera displacement through
+zero-sized layouts. After its first positive two-axis size, the viewport now
+preserves the current world center across every accepted resize, including zero
+width, zero height and restoration. Pan and zoom while collapsed remain part of
+that current camera. Initial layout behavior and invalid-input rejection are
+preserved; focused tests include 100 mixed-axis collapse/restore cycles.
 
 ### Persistent WebGPU uploads
 
