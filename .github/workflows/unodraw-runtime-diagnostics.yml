@@ -2,14 +2,6 @@ name: UnoDraw pinned runtime diagnostics
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - '.github/workflows/unodraw-runtime-diagnostics.yml'
-      - 'tests/UnoDraw.BrowserPerformance/pinned_package.py'
-      - 'tests/UnoDraw.BrowserPerformance/test_pinned_package.py'
-      - 'tests/UnoDraw.BrowserPerformance/runtime_diagnostic_contracts.py'
-      - 'tests/UnoDraw.BrowserPerformance/runtime_diagnostics.py'
-      - 'tests/UnoDraw.BrowserPerformance/test_runtime_diagnostics.py'
 
 permissions:
   contents: read
@@ -27,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'

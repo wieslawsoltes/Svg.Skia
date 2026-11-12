@@ -1,7 +1,7 @@
 <Project>
-  <!-- Graphite is an opt-in browser renderer. The browser head needs its released
-       managed/native API together; shared libraries and other heads keep the
-       repository's existing Skia and HarfBuzz package versions. -->
+  <!-- Keep the browser's managed/native package set aligned after retiring the
+       direct document renderer. Uno's WebGPU compositor still owns the Dawn
+       JavaScript port; shared libraries and other heads retain central versions. -->
   <ItemGroup>
     <PackageReference Include="SkiaSharp" VersionOverride="4.156.0" />
     <PackageReference Include="SkiaSharp.HarfBuzz" VersionOverride="4.156.0" />
@@ -17,8 +17,6 @@
     <PackageReference Include="HarfBuzzSharp.NativeAssets.macOS" VersionOverride="14.4.0.100" />
     <PackageReference Include="HarfBuzzSharp.NativeAssets.Win32" VersionOverride="14.4.0.100" />
     <PackageReference Update="HarfBuzzSharp.NativeAssets.WebAssembly" VersionOverride="14.4.0.100" />
-    <EmbeddedResource Include="Platforms/WebAssembly/Rendering/WebGpuGraphiteCanvas.js"
-                      LogicalName="UnoDraw.WebGpuGraphiteCanvas.source" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -41,7 +39,7 @@
       <UnoDrawSkiaNativeLibrary>$(SkiaSharpStaticLibraryPath)/3.1.56/$(UnoDrawSkiaNativeVariant)/libSkiaSharp.a</UnoDrawSkiaNativeLibrary>
     </PropertyGroup>
     <Error Condition="'$(SkiaSharpStaticLibraryPath)' == '' or !Exists('$(UnoDrawSkiaNativeLibrary)')"
-           Text="The browser Graphite renderer requires SkiaSharp4.156.0's matching .NET10 native archive: $(UnoDrawSkiaNativeLibrary)" />
+           Text="The browser canvas bridge requires SkiaSharp 4.156.0's matching .NET 10 native archive: $(UnoDrawSkiaNativeLibrary)" />
     <ItemGroup>
       <NativeFileReference Include="$(UnoDrawSkiaNativeLibrary)" />
     </ItemGroup>

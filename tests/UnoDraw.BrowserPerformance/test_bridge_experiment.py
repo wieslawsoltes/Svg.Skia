@@ -3,9 +3,11 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from bridge_experiment_contracts import (bridge_pair, compare_metrics, load_candidate,
                                          trial_plan, verify_experiment_workload, verify_runs)
@@ -54,6 +56,19 @@ def runs(*, diagnostics: bool = False, candidate_bridge: str = "webgl",
 
 
 class BridgeExperimentTests(unittest.TestCase):
+    def test_default_live_timing_mode_reaches_the_composite_package_loader(self) -> None:
+        import bridge_experiment
+
+        # Composite is the only live mode that accepts selection without a
+        # legacy-composite harness argument. Stop before any package/browser IO.
+        arguments = ["bridge_experiment.py", "--workload", "selection",
+                     "--package", "/unused/package", "--output", "/unused/output"]
+        with patch.object(sys, "argv", arguments), patch.object(
+                bridge_experiment, "load_candidate", side_effect=RuntimeError("package loading reached")) as load:
+            with self.assertRaisesRegex(RuntimeError, "package loading reached"):
+                bridge_experiment.main()
+        load.assert_called_once_with(Path("/unused/package"))
+
     def test_explicit_graphite_coverage_cannot_mix_variants_or_change_the_control(self) -> None:
         for diagnostics in (False, True):
             for coverage in GRAPHITE_COVERAGE_INITIALIZED:

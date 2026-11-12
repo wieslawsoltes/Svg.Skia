@@ -13,12 +13,12 @@ from typing import Any
 
 from playwright.sync_api import sync_playwright
 
-from bridge_experiment_contracts import (LIVE_CANDIDATE_BRIDGES, STATES, WORKLOADS, bridge_pair,
+from bridge_experiment_contracts import (LIVE_CANDIDATE_BRIDGES, LIVE_WORKLOADS, STATES, bridge_pair,
                                          compare_metrics, load_candidate, report_kind, trial_plan,
                                          verify_experiment_workload, verify_report_identity, verify_runs)
 from performance import VIEWPORT, launch_arguments, run_trial, serve
 from metrics import metric_label
-from quality import GRAPHITE_COVERAGES, raw_comparison, validate_graphite_coverage, verify_bridge
+from quality import raw_comparison, verify_bridge
 from transport_experiment_contracts import verify_native_pairs
 
 
@@ -127,17 +127,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--package", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--workload", choices=WORKLOADS, required=True)
-    parser.add_argument("--candidate-bridge", choices=LIVE_CANDIDATE_BRIDGES, default="graphite",
-                        help="Graphite for pan/zoom; persistent or original-uploader composition for hover/selection")
+    parser.add_argument("--workload", choices=LIVE_WORKLOADS, required=True)
+    parser.add_argument("--candidate-bridge", choices=LIVE_CANDIDATE_BRIDGES, default="composite",
+                        help="Compare persistent or original-uploader composition during hover/selection")
     parser.add_argument("--harness-sha", help="Exact checked-out harness revision; required for legacy composition")
-    parser.add_argument("--graphite-coverage", choices=GRAPHITE_COVERAGES,
-                        help="Require the Graphite candidate's actual native default or raster coverage option")
     parser.add_argument("--repeats", type=int, default=3)
     args = parser.parse_args()
     try:
         verify_experiment_workload(args.workload, args.candidate_bridge)
-        validate_graphite_coverage(args.candidate_bridge, args.graphite_coverage)
         plan = trial_plan(args.repeats, args.candidate_bridge)
         if (args.harness_sha is not None or args.candidate_bridge == "legacy-composite") and not re.fullmatch(
                 r"[0-9a-f]{40}", args.harness_sha or ""):
@@ -157,7 +154,7 @@ def main() -> int:
         "candidate_source_sha": package["source_sha"], "workload": args.workload,
         "harness_source_sha": args.harness_sha,
         "candidate_bridge": args.candidate_bridge, "bridges": list(bridges),
-        "graphite_coverage": args.graphite_coverage,
+        "graphite_coverage": None,
         "repeats": args.repeats, "steps": args.steps, "viewport": VIEWPORT, "device_scale_factor": 1,
         "runner": {"platform": platform.platform(), "machine": platform.machine()},
         "graphics_description": "SwiftShader software GPU implementations; not physical GPU throughput",
@@ -170,7 +167,7 @@ def main() -> int:
             arguments = launch_arguments("webgpu")
 
             def execute(trial: int, bridge: str, diagnostics: bool) -> dict[str, Any]:
-                coverage = args.graphite_coverage if bridge == "graphite" else None
+                coverage = None
                 relative = Path("diagnostic" if diagnostics else "primary") / f"trial-{trial}" / bridge
                 directory = output / relative
                 directory.mkdir(parents=True, exist_ok=True)
@@ -207,9 +204,9 @@ def main() -> int:
                 save_report(report, output)
 
         verify_runs(report["bridge_runs"], args.repeats, package["source_sha"], args.workload,
-                    candidate_bridge=args.candidate_bridge, graphite_coverage=args.graphite_coverage)
+                    candidate_bridge=args.candidate_bridge)
         verify_runs(report["bridge_diagnostics"], args.repeats, package["source_sha"], args.workload,
-                    diagnostics=True, candidate_bridge=args.candidate_bridge, graphite_coverage=args.graphite_coverage)
+                    diagnostics=True, candidate_bridge=args.candidate_bridge)
         all_runs = report["bridge_runs"] + report["bridge_diagnostics"]
         if (len({run["browser_version"] for run in all_runs}) != 1
                 or len({tuple(run["browser_launch_arguments"]) for run in all_runs}) != 1):

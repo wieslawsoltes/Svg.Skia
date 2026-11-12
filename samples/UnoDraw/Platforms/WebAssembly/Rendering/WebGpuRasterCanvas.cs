@@ -16,26 +16,18 @@ namespace UnoDraw.Rendering;
 internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement, ISkiaCanvasIslandTarget
 {
     private readonly Action<string?> _fallback;
-    private readonly bool _preferGraphite;
-    private readonly Action<SKCanvas> _drawGraphiteFrame;
     private readonly ScaleTransform _displayScale = new();
     private CanvasPixelSize _pixels;
     private readonly SkiaCanvasRasterState _raster = new();
     private ISkiaCanvasLayers? _compositeLayers;
     private bool _documentDirty = true;
     private bool _reportedCompositeReuse;
-    private WebGpuGraphiteCanvas? _graphiteCanvas;
-    private SkiaGpuDocumentPainter? _graphiteDocument;
-    private string? _reportedGraphiteDocumentFailure;
-    private bool _graphiteUnavailable;
     private uint _maximumTextureSize;
     private IDisposable? _deviceLifetime;
 
-    internal WebGpuRasterCanvas(Action<string?> fallback, bool preferGraphite)
+    internal WebGpuRasterCanvas(Action<string?> fallback)
     {
         _fallback = fallback;
-        _preferGraphite = preferGraphite;
-        _drawGraphiteFrame = DrawGraphiteFrame;
         IsHitTestVisible = false;
         HorizontalAlignment = HorizontalAlignment.Left;
         VerticalAlignment = VerticalAlignment.Top;
@@ -143,40 +135,6 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement, ISkiaCanv
         if (context.PixelWidth != _pixels.Width || context.PixelHeight != _pixels.Height)
             throw new InvalidOperationException("The WebGPU target does not match the canvas's device-pixel size.");
 
-        // The measured bottleneck is the document raster. Small auxiliary and
-        // retained interaction surfaces keep their existing CPU/pixel path.
-        if (_preferGraphite && !_graphiteUnavailable && renderer is SvgEditorCanvas editor)
-        {
-            try
-            {
-                _graphiteDocument ??= new SkiaGpuDocumentPainter(directReplay: true);
-                if (_graphiteDocument.Prepare(editor.Controller?.Renderer,
-                    _pixels.Width, _pixels.Height, _pixels.Scale, _pixels.LogicalSize.Width,
-                    _pixels.LogicalSize.Height, editor.Viewport.Matrix, out var reason))
-                {
-                    _graphiteCanvas ??= new WebGpuGraphiteCanvas(OnGraphiteUnavailable);
-                    if (_graphiteCanvas.Render(context, _pixels, _drawGraphiteFrame))
-                    {
-                        _reportedGraphiteDocumentFailure = null;
-                        return;
-                    }
-                }
-                else
-                {
-                    ReportGraphiteDocumentFallback(reason!);
-                }
-            }
-            catch (SkiaDocumentRasterizationException error)
-            {
-                ReportGraphiteDocumentFallback(error.Message);
-            }
-            catch (Exception error)
-            {
-                OnGraphiteUnavailable(error.Message);
-            }
-            if (Renderer is null)
-                return; // A synchronous document callback unloaded this canvas.
-        }
         // Public SVG callbacks can synchronously unload this element. The CPU
         // owner cancels the frame then, but defers native pixel destruction until
         // all of the painter's canvas restore scopes have completed.
@@ -218,20 +176,6 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement, ISkiaCanv
         WebGpuSkiaCanvasBridge.ReportInitialization();
         if (_compositeLayers is not null)
             WebGpuSkiaCanvasBridge.ReportCompositeInitialization();
-    }
-
-    private void DrawGraphiteFrame(SKCanvas canvas)
-    {
-        if (Renderer is SvgEditorCanvas editor && _graphiteDocument is { } painter)
-            editor.RenderWithDocument(canvas, _pixels.LogicalSize, painter.DrawDocument);
-    }
-
-    private void ReportGraphiteDocumentFallback(string reason)
-    {
-        if (_reportedGraphiteDocumentFailure == reason)
-            return;
-        _reportedGraphiteDocumentFailure = reason;
-        Console.WriteLine($"UnoDraw Graphite canvas fallback: {reason}.");
     }
 
     private bool RenderComposite(SkiaCanvasRasterState.Paint paint, ISkiaCanvasLayers layers,
@@ -277,44 +221,9 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement, ISkiaCanv
         _documentDirty = true;
     }
 
-    private void OnGraphiteUnavailable(string reason)
-    {
-        if (_graphiteUnavailable)
-            return;
-        _graphiteUnavailable = true;
-        Console.WriteLine($"UnoDraw Graphite canvas fallback: {reason}.");
-        var canvas = _graphiteCanvas;
-        _graphiteCanvas = null;
-        _graphiteDocument?.Dispose();
-        _graphiteDocument = null;
-        try
-        {
-            canvas?.Dispose();
-        }
-        catch (Exception error)
-        {
-            Console.WriteLine($"UnoDraw Graphite canvas fallback cleanup: {error.Message}.");
-        }
-        finally
-        {
-            Invalidate();
-        }
-    }
-
     public void ReleaseSurfaces()
     {
-        var graphite = _graphiteCanvas;
-        _graphiteCanvas = null;
-        _graphiteDocument?.Dispose();
-        _graphiteDocument = null;
-        try
-        {
-            graphite?.Dispose();
-        }
-        finally
-        {
-            _documentDirty = true;
-            _raster.ReleaseSurfaces();
-        }
+        _documentDirty = true;
+        _raster.ReleaseSurfaces();
     }
 }

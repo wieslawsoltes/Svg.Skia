@@ -6,11 +6,13 @@ import hashlib
 import io
 import json
 import re
+import sys
 import tempfile
 import textwrap
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from PIL import Image, ImageDraw
 
@@ -351,7 +353,7 @@ class SvgFixtureContracts(unittest.TestCase):
         self.assertTrue(all(row["passed"] is False for row in rows))
 
     def test_legacy_composite_requires_its_original_control_and_the_complete_matrix(self):
-        self.assertIn("legacy-composite", LIVE_CANDIDATE_BRIDGES)
+        self.assertEqual(LIVE_CANDIDATE_BRIDGES, ("composite", "legacy-composite"))
         self.assertEqual(scene_bridges("legacy-composite"), ("legacy", "legacy-composite"))
         cases, rows = self.complete_matrix("legacy-composite")
         self.assertEqual((len(cases), len(rows)), (48, 72))
@@ -445,6 +447,34 @@ class SvgFixtureContracts(unittest.TestCase):
         self.assertIn("do not claim overlay cache reuse", summary)
         self.assertNotIn("original Uno canvas host", summary)
         self.assertNotIn("Explicit Graphite coverage", summary)
+
+    def test_full_svg_cli_defaults_to_original_uploader_composition(self):
+        import svg_bridge_quality
+
+        output = self.directory / "default-report"
+        arguments = ["svg_bridge_quality.py", "--package", str(self.directory / "unused-package"),
+                     "--output", str(output)]
+        with patch.object(sys, "argv", arguments), patch.object(
+                svg_bridge_quality, "load_package", side_effect=ValueError("stop before browser")), patch.object(
+                svg_bridge_quality, "sync_playwright") as browser:
+            self.assertEqual(svg_bridge_quality.main(), 1)
+        browser.assert_not_called()
+        report = json.loads((output / "report.json").read_text())
+        self.assertEqual(report["candidate_bridge"], "legacy-composite")
+        self.assertEqual(report["bridges"], ["legacy", "legacy-composite"])
+        self.assertEqual(report["device_pixel_ratios"], list(DPRS))
+        self.assertEqual((report["expected_case_count"], report["expected_comparison_count"]), (48, 72))
+        self.assertIsNone(report["graphite_coverage"])
+        self.assertFalse(report["passed"] or report["full_matrix_passed"])
+
+    def test_retired_svg_session_fails_before_opening_a_context(self):
+        from svg_bridge_quality import run_session
+
+        for retired in ("webgl", "graphite"):
+            browser = MagicMock()
+            with self.subTest(bridge=retired), self.assertRaisesRegex(ValueError, "retired"):
+                run_session(browser, "http://unused", {}, retired, 1, self.fixtures, self.directory)
+            browser.new_context.assert_not_called()
 
     def test_svg_source_camera_frames_require_completed_copy_without_claiming_overlay_reuse(self):
         logs = [{"text": text} for text in (LEGACY_COMPOSITE_PREFERENCE, LEGACY_COMPOSITE_INITIALIZED)]

@@ -20,7 +20,7 @@ from playwright.sync_api import Page, sync_playwright
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "UnoDraw.BrowserPerformance"))
 from bridge_quality import capture, command  # noqa: E402
 from performance import next_frame, park_pointer, renderer_evidence  # noqa: E402
-from quality import GRAPHITE_COVERAGES, bridge_query, validate_graphite_coverage, verify_bridge  # noqa: E402
+from quality import bridge_query, validate_graphite_coverage, verify_bridge  # noqa: E402
 from backend import launch_arguments  # noqa: E402
 from smoke import READY, serve  # noqa: E402
 from candidate_package import verify_package  # noqa: E402
@@ -217,6 +217,7 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                 fixtures: list[Fixture], output: Path, *,
                 graphite_coverage: str | None = None) -> list[dict[str, Any]]:
     validate_graphite_coverage(bridge, graphite_coverage)
+    query = bridge_query(bridge, graphite_coverage=graphite_coverage)
     logs: dict[str, Any] = {"console": [], "page_errors": [], "resource_errors": []}
     context = page = None
     cases = []
@@ -245,7 +246,7 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                     context, page = create_page(browser, dpr, logs)
                     navigation_console = len(logs["console"])
                     navigation_starts = {key: len(value) for key, value in logs.items()}
-                    page.goto(url + "?" + bridge_query(bridge, graphite_coverage=graphite_coverage),
+                    page.goto(url + "?" + query,
                               wait_until="domcontentloaded", timeout=120_000)
                     page.wait_for_function(READY, timeout=120_000)
                     environment = page.evaluate("""() => ({viewport: {width: innerWidth, height: innerHeight},
@@ -378,17 +379,11 @@ def main() -> int:
     parser.add_argument("--package", type=Path, required=True, help="Single candidate package used by both bridge modes")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--execution-mode", choices=EXECUTION_MODES, default="InterpreterAndAOT")
-    parser.add_argument("--candidate-bridge", choices=LIVE_CANDIDATE_BRIDGES, default="graphite",
+    parser.add_argument("--candidate-bridge", choices=LIVE_CANDIDATE_BRIDGES, default="legacy-composite",
                         help="Compare this document canvas mode with its paired original CPU control")
-    parser.add_argument("--graphite-coverage", choices=GRAPHITE_COVERAGES,
-                        help="Require the Graphite candidate's actual native default or raster coverage option")
     parser.add_argument("--dpr", type=float, choices=DPRS,
                         help="Run both modes and all eight scenes at one DPR; only the three-shard aggregate qualifies the full matrix")
     args = parser.parse_args()
-    try:
-        validate_graphite_coverage(args.candidate_bridge, args.graphite_coverage)
-    except ValueError as error:
-        parser.error(str(error))
     bridges = scene_bridges(args.candidate_bridge)
     dprs = matrix_dprs(DPRS if args.dpr is None else (args.dpr,))
     package_directory, output = args.package.resolve(), args.output.resolve()
@@ -400,7 +395,7 @@ def main() -> int:
                               "full_matrix": args.dpr is None, "full_matrix_passed": False,
                               "execution_mode": args.execution_mode, "cases": [], "comparisons": [], "failures": [],
                               "candidate_bridge": args.candidate_bridge, "bridges": list(bridges),
-                              "graphite_coverage": args.graphite_coverage,
+                              "graphite_coverage": None,
                               "graphics": "SwiftShader browser graphics API correctness; not hardware performance",
                               "expected_session_count": 2 * len(dprs), "expected_case_count": 16 * len(dprs),
                               "expected_comparison_count": 24 * len(dprs),
@@ -424,7 +419,7 @@ def main() -> int:
         with serve(package_directory / "wwwroot") as url, sync_playwright() as playwright:
             for dpr in dprs:
                 for bridge in bridges:
-                    coverage = args.graphite_coverage if bridge == "graphite" else None
+                    coverage = None
                     relative = Path(f"dpr-{dpr}") / bridge
                     directory = output / relative
                     directory.mkdir(parents=True, exist_ok=True)

@@ -52,7 +52,10 @@ class LegacyCompositionTests(unittest.TestCase):
         matrix = job.split("      matrix:\n", 1)[1].split("    steps:\n", 1)[0]
         entries = [dict(tuple(part.strip() for part in item.split(":", 1)) for item in row.split(","))
                    for row in re.findall(r"^\s+- \{([^{}\n]+)\}\s*$", matrix, re.MULTILINE)]
-        self.assertEqual(len(entries), 8)
+        expected_pairs = {(bridge, workload) for bridge in ("composite", "legacy-composite")
+                          for workload in ("brush-hover", "selection")}
+        self.assertEqual(len(entries), len(expected_pairs))
+        self.assertEqual({(entry["bridge"], entry["workload"]) for entry in entries}, expected_pairs)
         self.assertEqual(len({entry["artifact"] for entry in entries}), len(entries))
         self.assertIn("name: ${{ matrix.artifact }}", job)
         for entry in entries:

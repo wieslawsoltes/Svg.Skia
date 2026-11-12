@@ -167,6 +167,16 @@ class SvgShardContracts(unittest.TestCase):
             with self.subTest(mutation=mutate), self.assertRaises(ValueError):
                 validate_header(changed, self.manifest, self.hashes, self.harness)
 
+    def test_composite_shards_keep_their_persistent_control_after_renderer_retirement(self):
+        for dpr in DPRS:
+            report = self.report(dpr=dpr, candidate="composite")
+            self.assertEqual(validate_header(report, self.manifest, self.hashes, self.harness), dpr)
+            for mutation in ({"bridges": ["legacy", "composite"]}, {"graphite_coverage": "raster"}):
+                changed = copy.deepcopy(report)
+                changed.update(mutation)
+                with self.subTest(dpr=dpr, mutation=mutation), self.assertRaises(ValueError):
+                    validate_header(changed, self.manifest, self.hashes, self.harness)
+
     def test_mode_fixture_browser_and_harness_identity_are_not_interchangeable(self):
         report = self.report()
         mutations = [lambda r: r.update(bridges=["persistent", "legacy-composite"]),

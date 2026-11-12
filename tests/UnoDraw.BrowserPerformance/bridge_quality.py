@@ -20,7 +20,7 @@ from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork, as
                    assert_workspace_affordances, changed_pixels, record_backend, serve,
                    workspace_affordance_pixels)
 from performance import next_frame, screenshot_changed
-from quality import (GRAPHITE_COVERAGES, LIVE_BRIDGES, STATE_NAMES, assert_native_size, bridge_query, compare_bridge_states,
+from quality import (LIVE_BRIDGES, STATE_NAMES, assert_native_size, bridge_query, compare_bridge_states,
                      is_welcome_green, matrix_failures, raw_comparison, validate_graphite_coverage, verify_bridge)
 
 
@@ -122,6 +122,7 @@ def command(page: Page, text: str, directory: Path) -> None:
 def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path, *,
              graphite_coverage: str | None = None) -> dict[str, Any]:
     validate_graphite_coverage(bridge, graphite_coverage)
+    query = bridge_query(bridge, graphite_coverage=graphite_coverage)
     output.mkdir(parents=True, exist_ok=True)
     report: dict[str, Any] = {"bridge": bridge, "graphite_coverage": graphite_coverage, "dpr": dpr, "passed": False,
                               "backend_mode": "webgpu", "backend_selection": {},
@@ -139,7 +140,7 @@ def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path, *,
     page.on("requestfailed", lambda request: report["resource_errors"].append(
         {"url": request.url, "failure": request.failure}) if request.failure != "net::ERR_ABORTED" else None)
     try:
-        page.goto(url + "?" + bridge_query(bridge, graphite_coverage=graphite_coverage),
+        page.goto(url + "?" + query,
                   wait_until="domcontentloaded", timeout=120_000)
         page.wait_for_function(READY, timeout=120_000)
         report["actual_device_pixel_ratio"] = page.evaluate("devicePixelRatio")
@@ -221,13 +222,7 @@ def main() -> int:
     parser.add_argument("--candidate-bridge", choices=tuple(bridge for bridge in LIVE_BRIDGES if bridge != "legacy"),
                         default="persistent",
                         help="Compare the selected implementation with the same package's legacy raster bridge")
-    parser.add_argument("--graphite-coverage", choices=GRAPHITE_COVERAGES,
-                        help="Require the Graphite candidate's actual native default or raster coverage option")
     args = parser.parse_args()
-    try:
-        validate_graphite_coverage(args.candidate_bridge, args.graphite_coverage)
-    except ValueError as error:
-        parser.error(str(error))
     package, output = args.package.resolve(), args.output.resolve()
     if not (package / "wwwroot/index.html").is_file():
         parser.error("--package must contain a published wwwroot/index.html")
@@ -238,7 +233,7 @@ def main() -> int:
                               "started_unix": time.time(), "cases": [], "comparisons": [],
                               "expected_case_count": len(DPRS) * 2, "expected_states": list(STATE_NAMES),
                               "failures": [], "candidate_bridge": args.candidate_bridge,
-                              "graphite_coverage": args.graphite_coverage,
+                              "graphite_coverage": None,
                               "package": json.loads((package / "benchmark-package.json").read_text(encoding="utf-8"))}
     try:
         with serve(package / "wwwroot") as url, sync_playwright() as playwright:
@@ -247,7 +242,7 @@ def main() -> int:
             for dpr in DPRS:
                 cases = {}
                 for bridge in ("legacy", args.candidate_bridge):
-                    coverage = args.graphite_coverage if bridge == "graphite" else None
+                    coverage = None
                     directory = output / f"dpr-{dpr}" / bridge
                     directory.mkdir(parents=True, exist_ok=True)
                     browser = None

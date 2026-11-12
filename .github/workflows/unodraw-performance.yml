@@ -155,8 +155,6 @@ jobs:
           - { bridge: persistent, variant: persistent }
           - { bridge: composite, variant: composite }
           - { bridge: legacy-composite, variant: legacy-composite }
-          - { bridge: graphite, variant: graphite, coverage: default }
-          - { bridge: graphite, variant: graphite-raster, coverage: raster }
     steps:
       - uses: actions/checkout@v4
         with:
@@ -200,14 +198,11 @@ jobs:
           python -m pip install -r harness/tests/UnoDraw.BrowserSmoke/requirements.txt
           python -m playwright install --with-deps chromium
           python -m unittest discover -s harness/tests/UnoDraw.BrowserPerformance -p 'test_*.py'
-      - name: Check the document GPU bridge lifetime contracts
-        run: node --test harness/tests/UnoDraw.BrowserRenderQuality/test_*.mjs
       - name: Run unchanged native-pixel bridge checks without timing claims
         run: >-
           python harness/tests/UnoDraw.BrowserPerformance/bridge_quality.py
           --package artifacts/interpreter-package --output artifacts/unodraw-bridge-interpreter-quality
           --candidate-bridge ${{ matrix.bridge }}
-          ${{ matrix.bridge == 'graphite' && format('--graphite-coverage {0}', matrix.coverage) || '' }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -307,7 +302,7 @@ jobs:
     name: WebGPU ${{ matrix.variant }} bridge quality (DPR 1, 1.25, 2)
     needs: publish
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -315,8 +310,6 @@ jobs:
           - { bridge: persistent, variant: persistent }
           - { bridge: composite, variant: composite }
           - { bridge: legacy-composite, variant: legacy-composite }
-          - { bridge: graphite, variant: graphite, coverage: default }
-          - { bridge: graphite, variant: graphite-raster, coverage: raster }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v6
@@ -331,13 +324,11 @@ jobs:
           python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
           python -m playwright install --with-deps chromium
           python -m unittest discover -s tests/UnoDraw.BrowserPerformance -p 'test_*.py'
-          node --test tests/UnoDraw.BrowserRenderQuality/test_*.mjs
       - name: Compare the selected canvas path with legacy at native resolution
         run: >-
           python tests/UnoDraw.BrowserPerformance/bridge_quality.py
           --package artifacts/candidate --output artifacts/unodraw-bridge-quality
           --candidate-bridge ${{ matrix.bridge }}
-          ${{ matrix.bridge == 'graphite' && format('--graphite-coverage {0}', matrix.coverage) || '' }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -347,55 +338,16 @@ jobs:
           retention-days: 14
 
   svg-document-quality:
-    name: SVG document ${{ matrix.variant }} quality (eight scenes, DPR 1, 1.25, 2)
+    name: Complete SVG document quality across all native device scales
     needs: publish
-    runs-on: ubuntu-24.04
-    # The native DPR2 CPU source-editor cases take about 2.5 minutes each on
-    # SwiftShader. Keep all 48 cases and 72 comparisons within the job budget.
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { bridge: legacy-composite, variant: legacy-composite }
-          - { bridge: graphite, variant: graphite, coverage: default }
-          - { bridge: graphite, variant: graphite-raster, coverage: raster }
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-      - uses: actions/download-artifact@v4
-        with:
-          name: unodraw-performance-package-candidate
-          path: artifacts/candidate
-      - name: Verify the exact application source
-        run: >-
-          python tests/UnoDraw.BrowserRenderQuality/verify_source.py
-          --package artifacts/candidate --output artifacts/unodraw-svg-document-quality
-          --package-run-id "$GITHUB_RUN_ID"
-      - name: Install the pinned browser and validate scene contracts
-        run: |
-          python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
-          python -m playwright install --with-deps chromium
-          python -m unittest discover -s tests/UnoDraw.BrowserRenderQuality -p 'test_*.py'
-          node --test tests/UnoDraw.BrowserRenderQuality/test_*.mjs
-      - name: Compare real source-editor scenes at native device pixels
-        run: >-
-          python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py
-          --package artifacts/candidate --execution-mode InterpreterAndAOT
-          --candidate-bridge ${{ matrix.bridge }}
-          ${{ matrix.bridge == 'graphite' && format('--graphite-coverage {0}', matrix.coverage) || '' }}
-          --output artifacts/unodraw-svg-document-quality
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: unodraw-${{ matrix.variant }}-svg-document-quality
-          path: artifacts/unodraw-svg-document-quality
-          if-no-files-found: warn
-          retention-days: 14
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/unodraw-svg-quality-shards.yml
+    with:
+      package_run_id: ${{ format('{0}', github.run_id) }}
+      harness_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+      candidate_bridge: legacy-composite
 
   document-raster-experiment:
     name: Same AOT ${{ matrix.variant }} canvas (${{ matrix.workload }})
@@ -406,10 +358,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { workload: pan, bridge: graphite, variant: graphite, coverage: default, artifact: unodraw-graphite-document-raster-experiment-pan }
-          - { workload: zoom, bridge: graphite, variant: graphite, coverage: default, artifact: unodraw-graphite-document-raster-experiment-zoom }
-          - { workload: pan, bridge: graphite, variant: graphite-raster, coverage: raster, artifact: unodraw-graphite-raster-document-raster-experiment-pan }
-          - { workload: zoom, bridge: graphite, variant: graphite-raster, coverage: raster, artifact: unodraw-graphite-raster-document-raster-experiment-zoom }
           - { workload: brush-hover, bridge: composite, variant: composite, artifact: unodraw-document-raster-experiment-brush-hover }
           - { workload: selection, bridge: composite, variant: composite, artifact: unodraw-document-raster-experiment-selection }
           - { workload: brush-hover, bridge: legacy-composite, variant: legacy-composite, artifact: unodraw-legacy-composite-document-raster-experiment-brush-hover }
@@ -436,14 +384,12 @@ jobs:
           python -m playwright install --with-deps chromium
           python -m unittest discover -s tests/UnoDraw.BrowserPerformance -p 'test_*.py'
           node --test tests/UnoDraw.BrowserPerformance/test_instrumentation.mjs
-          node --test tests/UnoDraw.BrowserRenderQuality/test_*.mjs
       - name: Measure both declared bridge modes in this identical AOT package
         run: >-
           python tests/UnoDraw.BrowserPerformance/bridge_experiment.py
           --package artifacts/candidate --output artifacts/document-raster-experiment
           --workload ${{ matrix.workload }} --candidate-bridge ${{ matrix.bridge }} --repeats 3
           --harness-sha ${{ github.event.pull_request.head.sha || github.sha }}
-          ${{ matrix.bridge == 'graphite' && format('--graphite-coverage {0}', matrix.coverage) || '' }}
       - name: Publish the available matched comparison
         if: always()
         run: |

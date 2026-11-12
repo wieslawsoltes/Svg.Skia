@@ -17,7 +17,7 @@ from PIL import Image
 
 from svg_bridge_quality import (EXECUTION_MODES, compare_cases, digest, source_hashes,
                                 verify_scene_bridge, write_summary)
-from svg_fixture_contracts import (DESKTOP, DPRS, LIVE_CANDIDATE_BRIDGES, SCENES, STATES, Fixture,
+from svg_fixture_contracts import (DESKTOP, DPRS, SCENES, STATES, Fixture,
                                    inspect_scene, load_fixtures, matrix_dprs, matrix_failures,
                                    normalize_newlines, require_camera_change,
                                    require_source_readback, scene_bridges)
@@ -31,6 +31,9 @@ SHARD_KIND = "svg_document_quality_dpr_shard"
 AGGREGATE_KIND = "svg_document_quality_dpr_aggregate"
 SOURCE_PROOF = "source-equivalence.json"
 PACKAGE_RECEIPT = "package-artifact.json"
+# Passive revalidation retains the original shard schema's renderer pairs.
+# Browser entry points separately reject the retired direct Graphite path.
+REPORT_CANDIDATE_BRIDGES = ("composite", "graphite", "legacy-composite")
 JOB_RESULTS = ("success", "failure", "cancelled", "skipped", "unknown")
 
 
@@ -80,7 +83,7 @@ def validate_header(report: dict[str, Any], manifest: dict[str, Any], hashes: di
     require(report.get("package_verified_before_browser") is True and report.get("package_verified_after_browser") is True,
             "The complete immutable package must be verified before and after each browser shard")
     candidate = report.get("candidate_bridge")
-    require(candidate in LIVE_CANDIDATE_BRIDGES, "A live SVG candidate mode is required")
+    require(candidate in REPORT_CANDIDATE_BRIDGES, "A supported SVG shard report mode is required")
     validate_graphite_coverage(candidate, report.get("graphite_coverage"))
     require(report.get("bridges") == list(scene_bridges(candidate)), "The declared SVG control/candidate pair changed")
     expected = {"expected_session_count": 2, "expected_case_count": 16, "expected_comparison_count": 24,

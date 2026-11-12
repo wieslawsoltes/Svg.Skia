@@ -2,13 +2,6 @@ name: UnoDraw texture transport experiment
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - '.github/workflows/unodraw-transport-experiment.yml'
-      - 'tests/UnoDraw.BrowserPerformance/transport_experiment.py'
-      - 'tests/UnoDraw.BrowserPerformance/transport_experiment_contracts.py'
-      - 'tests/UnoDraw.BrowserPerformance/test_transport_experiment.py'
-      - 'tests/UnoDraw.BrowserPerformance/pinned_package.py'
 
 permissions:
   contents: read
@@ -26,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'

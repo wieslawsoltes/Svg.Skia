@@ -12,9 +12,6 @@ on:
       candidate_bridge:
         type: string
         required: true
-      graphite_coverage:
-        type: string
-        default: ''
   workflow_dispatch:
     inputs:
       package_run_id:
@@ -28,12 +25,8 @@ on:
       candidate_bridge:
         description: Explicit document renderer compared with its original control
         type: choice
-        options: [legacy-composite, composite, graphite]
+        options: [legacy-composite, composite]
         default: legacy-composite
-      graphite_coverage:
-        description: Explicit Graphite coverage; leave empty for other canvas modes
-        type: string
-        default: ''
 
 permissions:
   contents: read
@@ -78,16 +71,11 @@ jobs:
       - name: Compare both modes and all source transitions at one device scale
         env:
           CANDIDATE_BRIDGE: ${{ inputs.candidate_bridge }}
-          GRAPHITE_COVERAGE: ${{ inputs.graphite_coverage }}
           DEVICE_SCALE: ${{ matrix.dpr }}
         run: |
-          options=()
-          if [ -n "$GRAPHITE_COVERAGE" ]; then
-            options+=(--graphite-coverage "$GRAPHITE_COVERAGE")
-          fi
           python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
             --package artifacts/package --output artifacts/svg-quality \
-            --candidate-bridge "$CANDIDATE_BRIDGE" --dpr "$DEVICE_SCALE" "${options[@]}"
+            --candidate-bridge "$CANDIDATE_BRIDGE" --dpr "$DEVICE_SCALE"
       - name: Publish this explicitly incomplete matrix portion
         if: always()
         run: |
@@ -97,7 +85,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: unodraw-svg-quality-${{ inputs.candidate_bridge }}-${{ inputs.graphite_coverage || 'none' }}-dpr-${{ matrix.dpr }}
+          name: unodraw-svg-quality-${{ inputs.candidate_bridge }}-dpr-${{ matrix.dpr }}
           path: artifacts/svg-quality
           if-no-files-found: warn
           retention-days: 14
@@ -119,7 +107,7 @@ jobs:
         run: python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
       - uses: actions/download-artifact@v4
         with:
-          pattern: unodraw-svg-quality-${{ inputs.candidate_bridge }}-${{ inputs.graphite_coverage || 'none' }}-dpr-*
+          pattern: unodraw-svg-quality-${{ inputs.candidate_bridge }}-dpr-*
           path: artifacts/svg-shards
       - name: Recompute native images and require the complete 48-case, 72-pair matrix
         env:
@@ -137,7 +125,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: unodraw-svg-quality-${{ inputs.candidate_bridge }}-${{ inputs.graphite_coverage || 'none' }}-aggregate
+          name: unodraw-svg-quality-${{ inputs.candidate_bridge }}-aggregate
           path: artifacts/svg-aggregate
           if-no-files-found: warn
           retention-days: 14

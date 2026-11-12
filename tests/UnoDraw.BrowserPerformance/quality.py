@@ -31,7 +31,7 @@ COMPOSITE_INITIALIZED = "UnoDraw canvas bridge initialized: cached document comp
 COMPOSITE_REUSED = "UnoDraw canvas bridge reused cached document pixels."
 COMPOSITE_FALLBACK_PREFIX = "UnoDraw canvas bridge composite fallback:"
 FALLBACK_PREFIX = "UnoDraw canvas bridge fallback:"
-LIVE_BRIDGES = ("legacy", "persistent", "composite", "legacy-composite", "graphite")
+LIVE_BRIDGES = ("legacy", "persistent", "composite", "legacy-composite")
 MAXIMUM_CHANGED_FRACTION = 0.001
 LUMINANCE_THRESHOLD = 12
 STATE_NAMES = ("01-desktop", "02-actual-size", "03-refitted", "03b-brush-overlay",
@@ -194,8 +194,8 @@ def verify_bridge(console: list[dict[str, Any]], bridge: str, *, require_reuse: 
 
 
 def bridge_query(bridge: str, *, graphite_coverage: str | None = None) -> str:
-    # Historical WebGL logs and reports remain verifiable above. The retired
-    # document transport is no longer an executable browser-harness option.
+    # Historical WebGL and Graphite logs remain verifiable above. Their retired
+    # document transports are not executable browser-harness options.
     if bridge not in LIVE_BRIDGES:
         raise ValueError(f"Unknown or retired canvas bridge: {bridge}")
     validate_graphite_coverage(bridge, graphite_coverage)

@@ -275,9 +275,9 @@ provider must be observed; merely exposing `navigator.gpu` cannot pass.
 ### Same-artifact document rasterizer experiment
 
 `bridge_experiment.py` compares each supported candidate with its declared
-control in **one identical AOT package**: `persistent` versus `graphite` for
-pan/zoom, `persistent` versus `composite` for brush hover/selection, or `legacy`
-versus `legacy-composite` for brush hover/selection. Each job keeps all three repetitions of
+control in **one identical AOT package**: `persistent` versus `composite` for
+brush hover/selection, or `legacy` versus `legacy-composite` for brush
+hover/selection. Each job keeps all three repetitions of
 both modes on one runner, alternates their order, starts a fresh browser each
 time, and reuses the full 120-input warmup and existing workload. Two separate
 instrumented passes identify paint costs. Every primary pair compares
@@ -288,7 +288,7 @@ selected bridge and individual trials. They use a separate
 `same_candidate_bridge_experiment` report kind, except for the distinct
 `same_candidate_legacy_composition_experiment` described below. Neither report
 kind can satisfy the twelve-shard application comparison. The executable default
-candidate is `graphite`.
+candidate is `composite`.
 
 The former `canvasBridge=webgl` document transport is retired from production and
 the live CLI/workflow matrix. Its same-artifact pan medians did not improve,
@@ -306,7 +306,8 @@ Neither copy calls nor offscreen GL draws count as visible-canvas presentation,
 and no exact transfer byte count is inferred. Chromium 143 on Linux explicitly
 [uses readback for canvas-to-WebGPU copies](https://github.com/chromium/chromium/blob/143.0.7499.4/third_party/blink/renderer/modules/webgpu/gpu_queue.cc#L875-L916),
 so the historical transport is not described as zero-copy or all-GPU transfer.
-The surviving direct Graphite experiment requires zero external-image copies.
+Historical direct Graphite reports required zero external-image copies; those
+validators remain available without enabling the retired renderer.
 
 ### Same-artifact cached document composition
 
@@ -403,94 +404,49 @@ package skips both comparisons; an eligibility pass is neither a performance
 result nor image qualification. Each workload remains a separate matched
 experiment, and the SVG aggregate still requires all three successful DPR jobs.
 
-### Direct Graphite document experiment
+### Retired direct Graphite document experiment
 
-`?canvasBridge=graphite` is a separate opt-in path that records Skia document
-commands into the Uno render texture on the shared WebGPU queue. Its
-[browser targets](../../samples/UnoDraw/Platforms/WebAssembly/Rendering/UnoDraw.Graphite.targets)
-align the managed/native Skia packages and retain one Dawn JavaScript owner.
-The default remains the persistent CPU bridge. The same-package comparison
-selects `persistent` versus `graphite`; each pan or zoom job still runs three
-alternating pairs, two separate diagnostic passes, all 120 inputs, and the
-unchanged before/after/restored pixel checks.
+The former `canvasBridge=graphite` implementation painted directly into Uno's
+WebGPU target through the shared Dawn queue. Its original coverage mode failed
+31 of 72 complete extended SVG comparisons. The alternative raster-coverage job
+completed only 63 of 72 comparisons before cancellation and also failed the mask
+scene after fractional panning at DPR 1.25. That mode took 17.74% longer in its
+matched pan comparison and 27.03% longer in its matched zoom comparison, despite
+lower renderer-thread CPU time. These are software-GPU runner observations;
+they do not establish physical-GPU performance.
 
-Every Graphite trial requires its preference and validated initialization logs,
-no fallback, and a positive `graphite_document_submissions` delta during the
-measurement window. The application increments this counter only after a real
-document recording is accepted and its Graphite context submits successfully.
-The observer reads it only at the existing start/stop boundaries. Missing data
-remains `null`; a missing, reset or zero counter cannot prove this path ran.
-External-image copy calls must be zero. Aggregate `writeTexture` calls can still
-come from auxiliary CPU surfaces or resource uploads and are not labeled as
-full-document transfers. Document submissions, visible-canvas submissions and
-physical presentation remain distinct concepts.
+The [paired native SVG evidence](../../docs/benchmarks/unodraw-graphite-svg-coverage-2026-11-12.json)
+and [paired timing evidence](../../docs/benchmarks/unodraw-paired-lifetime-followup-2026-11-12.json)
+retain every available result, missing pair, exact source and original threshold.
+The implementation and dedicated tests have been removed. An old query emits an
+explicit retirement diagnostic and uses persistent CPU upload. The CLI rejects
+the retired candidate, and CI no longer treats it as an executable qualification
+variant. Uno's WebGPU compositor, original Skia painter and ordinary Skia/WebGL
+fallback remain supported. The browser's aligned SkiaSharp/HarfBuzz package set
+and sole Uno Dawn JavaScript owner remain unchanged.
 
-```sh
-python tests/UnoDraw.BrowserPerformance/bridge_quality.py \
-  --package /absolute/path/packages/candidate \
-  --output /absolute/path/graphite-quality --candidate-bridge graphite
-python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
-  --package /absolute/path/packages/candidate \
-  --output /absolute/path/graphite-pan-experiment \
-  --candidate-bridge graphite --workload pan --repeats 3
-```
-
-Run `--workload zoom` as its own matched job. The selected GPU painter also runs
-the independent [eight-scene native SVG gate](../UnoDraw.BrowserRenderQuality/SVG_SCENES.md).
-
-The optional `--graphite-coverage default` or `--graphite-coverage raster` selects
-the Graphite candidate's native coverage strategy in each of these drivers.
-The corresponding query is `graphiteCoverage=default` or
-`graphiteCoverage=raster`, and the native context's `InternalMultisampleCount`
-is respectively 0 or 1. This option does not disable paint antialiasing or
-change any screenshot, fixture or comparison threshold. It applies only to the
-Graphite side; the same-package legacy or persistent control receives no
-coverage selector. For example:
-
-```sh
-python tests/UnoDraw.BrowserPerformance/bridge_quality.py \
-  --package /absolute/path/packages/candidate \
-  --output /absolute/path/graphite-raster-quality \
-  --candidate-bridge graphite --graphite-coverage raster
-python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
-  --package /absolute/path/packages/candidate \
-  --output /absolute/path/graphite-raster-pan-experiment \
-  --candidate-bridge graphite --graphite-coverage raster --workload pan --repeats 3
-```
-
-An explicit option requires the matching `UnoDraw Graphite coverage initialized`
-message emitted after native context creation; a missing, different or mixed
-context option fails. Each report and candidate case/trial records the requested
-`graphite_coverage`. Controls record `null`. Omitting the option preserves
-compatibility with artifacts predating this selector and makes no explicit
-coverage claim. Each coverage variant has its own complete 6-case/30-pair
-Welcome gate, 48-case/72-pair SVG gate and separate 6-primary/2-diagnostic timing
-experiment. Coverage variants are never combined into one trial set or used to
-satisfy each other's quality requirements.
-The `composite` experiment retains its separate brush-hover and selection scopes;
-both require real cached-document reuse and zero steady-state document paints.
-These experiments never replace the complete baseline/candidate matrix.
+Historical report validators retain coverage metadata, native-context evidence,
+actual document submissions, zero external-image-copy requirements and separate
+post-window queue-drain records. Reproducing a historical experiment requires
+its identified application and harness revisions; current executables do not
+expose its retired renderer or coverage switches. Coverage variants cannot be
+pooled, and archived failures cannot satisfy a current-source quality gate.
 
 ### Post-window backlog diagnostics
 
-The primary clock still stops after the same two natural rAF opportunities.
-That is not a GPU completion barrier. After primary CDP and managed snapshots,
-an explicit Graphite trial must expose `__unoDrawGraphiteDrain()`. The harness
-awaits its asynchronous shared-queue `onSubmittedWorkDone` operation, with a
-30-second diagnostic timeout and no forced rendering or synchronous flush.
-`graphite_queue_drain.result` retains completion, queue count, errors and the
-in-browser `duration_ms`; `request_elapsed_ms_including_automation` also includes
-the request overhead. Missing or unsuccessful drain evidence fails an explicit
-Graphite trial. Other bridge modes record this diagnostic as unavailable.
+The primary clock stops after the same two natural rAF opportunities; this is
+not a GPU completion barrier. Each trial separately records
+`quality.final_capture_validation_elapsed_ms` and
+`quality.restore_validation_elapsed_ms`, including their real screenshot,
+restore, automation and image-analysis work. These diagnostics are not active
+renderer-thread CPU, per-input causality or physical presentation measurements.
 
-Each trial separately records `quality.final_capture_validation_elapsed_ms` and
-`quality.restore_validation_elapsed_ms`. The first includes final screenshot
-readiness and native-image validation; the second includes real restore commands
-and their screenshot validation. Both include automation and image analysis.
-Graphite drains first, so its later screenshot starts from a different queue
-state. Reports list these diagnostics individually and calculate no cross-mode
-ratios from them. They help expose a large post-window backlog and do not measure
-active renderer-thread CPU, per-input causality, or physical presentation.
+Archived explicit Graphite trials additionally required an asynchronous shared
+queue drain after primary snapshots and before final screenshots. Their
+`graphite_queue_drain.result` records completion, queue count, errors and browser
+duration; automation overhead is recorded separately. Current CPU bridge modes
+record this diagnostic as unavailable. These separate scopes are preserved for
+historical analysis and never folded into primary timing or cross-mode ratios.
 
 ## Local reproduction
 

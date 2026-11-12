@@ -1,13 +1,11 @@
 # SVG document bridge quality
 
-This gate compares two declared canvas paths in the same published UnoDraw
-candidate package. Graphite uses `persistent` as its CPU control, with auxiliary
-surfaces retaining that CPU bridge; it submits directly into the Uno texture on
-the shared WebGPU queue. Cached original-uploader composition pairs `legacy`
-with `legacy-composite`. Both pairs use the real WebGPU application compositor.
-Matching preference and successful initialization
-evidence are required, and any fallback or another experimental mode fails the
-case. These are native-pixel correctness checks, without timing claims.
+The default gate compares cached composition with the original texture uploader in one
+published UnoDraw candidate package: `legacy` versus `legacy-composite`. Both
+use the real WebGPU application compositor and the original Skia document painter.
+Matching preference and successful initialization evidence are required; an
+unexpected fallback or another experimental mode fails the case. These are
+native-pixel correctness checks, without timing claims.
 
 ## Run
 
@@ -18,58 +16,34 @@ Chromium, then run:
 python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
   --package /path/to/candidate-package \
   --execution-mode InterpreterAndAOT \
-  --candidate-bridge graphite --graphite-coverage default \
+  --candidate-bridge legacy-composite \
   --output /path/to/svg-quality-artifact
 ```
 
-The executable candidate defaults to `graphite`. The former WebGL document
-transport is retired from the live CLI and workflow after failed performance and
-broader-scene quality experiments. Historical matrix, source and pixel validators
-continue to accept its archived evidence, so those failures remain independently
-reviewable. The normal Skia/WebGL application compositor remains in the separate
-primary benchmark and cross-build quality matrix.
+The executable candidate defaults to `legacy-composite`. Both modes use Uno's
+original texture uploader. All six sessions, eight source replacements per
+session, 48 cases and 72 native comparisons remain required. Each composite case
+must prove a completed copy into the original host. Source replacement and
+camera changes repaint the document, so this matrix does not claim
+interaction-only cache reuse. The separate Welcome, hover and selection gates
+require actual reuse.
 
-For a Graphite coverage experiment, additionally pass
-`--graphite-coverage default` or `--graphite-coverage raster` and use a distinct
-output directory. The candidate receives `graphiteCoverage=default` or
-`graphiteCoverage=raster`; its native context uses `InternalMultisampleCount` 0
-or 1 respectively. The persistent control receives neither option. Every
-candidate case must prove the exact selected option through the successful
-native-context log, in addition to the existing renderer initialization and
-no-fallback requirements. Missing or mixed coverage evidence fails. Paint
-antialiasing, fixtures, native image dimensions and all comparison thresholds
-remain unchanged.
+`--candidate-bridge composite` instead compares `persistent` with `composite`.
+Both use the persistent RGBA texture uploader; the candidate must prove a
+successful combined document/interaction upload. It retains the same complete
+scene, device-scale and camera matrix, source-editor round trips and native
+pixel gates. Its source/camera cases also leave overlay cache reuse to the
+separate Welcome and feedback workloads. Reports and aggregates retain the
+declared control/candidate pair and cannot substitute the original uploader.
 
-Each variant runs the full 6 sessions, 48 scene cases and 72 native comparisons.
-Report and case metadata retain `graphite_coverage`; `null` means the selector
-was omitted, preserving compatibility with older artifacts without making an
-explicit coverage claim. One coverage variant cannot satisfy another variant's
-matrix. For example:
-
-```sh
-python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
-  --package /path/to/candidate-package \
-  --candidate-bridge graphite --graphite-coverage raster \
-  --output /path/to/svg-graphite-raster-quality-artifact
-```
-
-For cached composition through the original Uno uploader, run:
-
-```sh
-python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
-  --package /path/to/candidate-package \
-  --execution-mode InterpreterAndAOT \
-  --candidate-bridge legacy-composite \
-  --output /path/to/svg-legacy-composite-quality-artifact
-```
-
-Its control is `legacy`; both modes use Uno's original texture uploader. All
-six sessions, eight source replacements per session, 48 cases and 72 native
-comparisons remain required. Each composite case must prove a completed copy
-into the original host. Source replacement and camera changes repaint the
-document, so this matrix does not claim interaction-only cache reuse. The
-separate Welcome, hover and selection gates require actual reuse. Graphite
-coverage selectors are invalid for this pair.
+The former WebGL document transport and direct Graphite document renderer are
+retired from the application and live CLI/workflow after failed performance or
+broader-scene quality experiments. Historical matrix, coverage, source and pixel
+validators retain their archived protocols so all failures remain independently
+reviewable using their identified immutable harness revisions. No retired query
+can satisfy a requested native renderer initialization. The normal Skia/WebGL
+application compositor and Uno's WebGPU compositor remain supported and measured
+in the primary benchmark and cross-build quality matrix.
 
 `--package` is a single directory containing `benchmark-package.json` and
 `wwwroot/index.html`. The manifest must identify the candidate source commit,
@@ -120,12 +94,11 @@ python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
   --output /path/to/svg-shards/artifact-dpr-1.25
 ```
 
-Use `1` and `2` for the other two portions. For Graphite, use the same
-`--candidate-bridge graphite --graphite-coverage default|raster` choice in every
-job. Coverage variants and control/candidate pairs cannot be pooled. The strict
-aggregate currently consumes the verified Release AOT artifact receipts from the
-performance workflow; the original full runner continues to support the separate
-Interpreter correctness mode.
+Use `1` and `2` for the other two portions. Control/candidate pairs cannot be
+pooled. The strict aggregate consumes the verified Release AOT artifact receipts
+from the performance workflow; the original full runner continues to support
+the separate Interpreter correctness mode. Historical renderer/coverage metadata
+remains part of passive validation, without enabling retired production paths.
 
 Download the three complete artifacts into separate immediate subdirectories
 under one parent, then run:

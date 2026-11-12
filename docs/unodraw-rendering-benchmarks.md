@@ -547,28 +547,42 @@ establish a substantial repeatable gain or resolve the broader quality failure.
 The conclusion applies to the measured transport/browser configurations, not
 every GPU, browser or future Skia release.
 
-### Shared native text coverage
+### Native text coverage in the retired GPU experiments
+
+The document GPU transports described here are historical implementations. Their
+exclusive text/model replay helpers, native interop and dedicated tests have
+been removed after the browser quality and timing results rejected them. The
+unused model-painter and editor-canvas callback seams have also been removed;
+the supported CPU paths continue to call the original `SKSvg.Draw` directly.
+The following observations preserve the implementation rationale and failed
+experiments rather than enabling a current renderer choice.
 
 The first GPU experiment exposed a large-text quality failure caused by a
-different GPU glyph representation at large device sizes. The shared helper
-records the existing model commands into a live `SKDrawable`; each text leaf is
-painted through its unchanged BGRA text picture at the live device matrix, then
-composed at one image pixel per device pixel. Text shaping, font selection,
-hinting, paint effects and gamma remain with the original renderer. Tight native
-R-tree paint bounds size each tile, and equal phase/scale/size reuse its immutable
-image. Shapes continue through the existing GPU model painter.
+different GPU glyph representation at large device sizes. Its helper recorded
+the existing model commands into a live `SKDrawable`; each text leaf was painted
+through its unchanged BGRA text picture at the live device matrix, then composed
+at one image pixel per device pixel. Text shaping, font selection, hinting, paint
+effects and gamma remained with the original renderer. Tight native R-tree paint
+bounds sized each tile, and equal phase/scale/size reused its immutable image.
+Shapes continued through the existing GPU model painter.
 
-The optional model callback runs inside `SKSvg.Draw`'s protected draw lifetime
+The optional model callback ran inside `SKSvg.Draw`'s protected draw lifetime
 and viewer transform, after its original wireframe/animation handling. Callback
-state is restored on success, decline or failure; the default path adds no
-delegate or disposable allocation. The canvas callback replaces only the SVG
-draw within the existing artboard and feedback order. Native callbacks capture
-errors for the managed caller to handle before transferring the GPU image.
-Unsupported document semantics and exhausted tile budgets use the original CPU
-frame. These safeguards and native prototype comparisons do not replace the
-browser quality or total-throughput gates.
+state was restored on success, decline or failure. The canvas callback replaced
+only the SVG draw within the existing artboard and feedback order. Native
+callbacks captured errors before transferring the GPU image. Unsupported
+document semantics and exhausted tile budgets used the original CPU frame.
+These safeguards and native prototype comparisons did not replace the browser
+quality or total-throughput gates.
 
-### Direct Graphite WebGPU experiment
+### Direct Graphite WebGPU experiment (retired)
+
+An old `canvasBridge=graphite` query now emits an explicit retirement diagnostic
+and uses the persistent CPU bridge. The live CLI and CI matrix reject the
+retired candidate. The records below describe the archived implementation and
+retain its favorable samples, failures and incomplete coverage. Uno's WebGPU
+compositor, the normal Skia/WebGL fallback and the browser's aligned native
+package/link configuration remain supported independently.
 
 `?canvasBridge=graphite` uses the released SkiaSharp 4.156.0 Graphite/Dawn APIs to
 paint directly into Uno's WebGPU target. It borrows the original Uno instance,
@@ -747,8 +761,9 @@ writes separately; those writes are not evidence of a full-document upload.
 After timing stops, an explicit shared-queue drain and final screenshot validation
 are measured separately to expose unfinished GPU work. Neither a queue submission
 nor a requestAnimationFrame callback proves physical display presentation.
-Default bridge selection remains unchanged until the native-pixel matrix,
-eight-scene SVG matrix and repeated same-artifact throughput comparisons pass.
+Those safeguards did not resolve the observed quality and elapsed-time failures.
+The direct document path is retired; its diagnostic protocols remain readable
+for independent validation of the archived results.
 
 ### Single-surface cached document experiment
 
@@ -838,8 +853,19 @@ reuse, without fallback or page/resource errors. Brush and selection feedback,
 compact layout, and restoration from an 80-pixel window are included. The source,
 full harness Git tree, package manifest and diagnostic archive are verified.
 This early job does not retain its complete Interpreter application archive;
-it is not an independently downloaded binary snapshot, AOT qualification or a
-performance measurement. The separate AOT, full SVG and timing gates remain.
+it is not an independently downloaded binary snapshot or a performance
+measurement.
+
+The independent AOT Welcome audit at the same `0ffaabff` source also accepts all
+six cases, 60 native captures, 30 cross-mode pairs and 12 Navigator/resize
+restoration pairs. Every scored region again has zero pixels above luminance
+12, and every DPR proves completed original-host copying and actual cache
+reuse without fallback or runtime/resource errors. Unlike the early Interpreter
+job, this audit verifies the complete original AOT application ZIP, its manifest
+and all 907 served assets. It binds the result to artifact `13979671213`, SHA256
+`7c97a858e081f36c03682d26c98d8dacfc6d4f225f455b0069f784b1b2c52ff9`.
+This completes the Welcome gate for both execution modes. The full SVG matrix
+and direct baseline timing gates remain independent requirements.
 
 A separate reusable workflow directly compares the same run's immutable
 `96e5fa9` baseline package with the explicit `legacy-composite` candidate. It

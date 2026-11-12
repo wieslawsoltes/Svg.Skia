@@ -1284,89 +1284,66 @@ public partial class SKSvg : IDisposable
         return false;
     }
 
-    public void Draw(SkiaSharp.SKCanvas canvas) => Draw(canvas, null);
-
-    /// <summary>
-    /// Draws the document with an optional synchronous model painter. The painter
-    /// runs inside the document's draw lifetime and viewer transform, after the
-    /// normal wireframe and animation paths. Return false without painting to use
-    /// the original renderer. Canvas state is restored after the callback, including
-    /// when it declines or throws. The model and painter are borrowed for this call;
-    /// they must not be disposed or retained as independently owned resources.
-    /// </summary>
-    public void Draw(SkiaSharp.SKCanvas canvas,
-        Func<SkiaSharp.SKCanvas, SkiaModel, SKPicture, bool>? tryDrawModel)
+    public void Draw(SkiaSharp.SKCanvas canvas)
     {
         BeginDraw();
         try
         {
-            var saveCount = canvas.SaveCount;
             canvas.Save();
-            try
+            ApplyViewerTransform(canvas);
+            if (Wireframe && Model is { })
             {
-                ApplyViewerTransform(canvas);
-                if (Wireframe && Model is { })
+                var wireframePicture = WireframePicture;
+                if (wireframePicture is null && Model is { } model)
                 {
-                    var wireframePicture = WireframePicture;
-                    if (wireframePicture is null && Model is { } model)
-                    {
-                        var newWireframe = SkiaModel.ToWireframePicture(model);
-                        lock (Sync)
-                        {
-                            if (WireframePicture is null)
-                            {
-                                WireframePicture = newWireframe;
-                            }
-                            else
-                            {
-                                newWireframe?.Dispose();
-                            }
-                            wireframePicture = WireframePicture;
-                        }
-                    }
-
-                    if (wireframePicture is { })
-                    {
-                        canvas.DrawPicture(wireframePicture);
-                    }
-                }
-                else if (!TryDrawAnimationLayers(canvas))
-                {
-                    SKPicture? model;
+                    var newWireframe = SkiaModel.ToWireframePicture(model);
                     lock (Sync)
                     {
-                        model = Model;
-                    }
-
-                    if (model is not null && tryDrawModel is not null
-                        && TryDrawModelOverride(canvas, SkiaModel, model, tryDrawModel))
-                    {
-                        // The custom painter has drawn the protected model at the
-                        // same position in the original document paint order.
-                    }
-                    else if (ContainsNonScalingStroke(model))
-                    {
-                        if (model is not null)
+                        if (WireframePicture is null)
                         {
-                            SkiaModel.Draw(model, canvas);
+                            WireframePicture = newWireframe;
                         }
-                    }
-                    else
-                    {
-                        var picture = Picture;
-                        if (picture is null)
+                        else
                         {
-                            return;
+                            newWireframe?.Dispose();
                         }
-
-                        canvas.DrawPicture(picture);
+                        wireframePicture = WireframePicture;
                     }
                 }
+
+                if (wireframePicture is { })
+                {
+                    canvas.DrawPicture(wireframePicture);
+                }
             }
-            finally
+            else if (!TryDrawAnimationLayers(canvas))
             {
-                canvas.RestoreToCount(saveCount);
+                SKPicture? model;
+                lock (Sync)
+                {
+                    model = Model;
+                }
+
+                if (ContainsNonScalingStroke(model))
+                {
+                    if (model is not null)
+                    {
+                        SkiaModel.Draw(model, canvas);
+                    }
+                }
+                else
+                {
+                    var picture = Picture;
+                    if (picture is null)
+                    {
+                        canvas.Restore();
+                        return;
+                    }
+
+                    canvas.DrawPicture(picture);
+                }
             }
+            canvas.Restore();
         }
         finally
         {
@@ -1374,21 +1351,6 @@ public partial class SKSvg : IDisposable
         }
 
         RaiseOnDraw(new SKSvgDrawEventArgs(canvas));
-    }
-
-    private static bool TryDrawModelOverride(SkiaSharp.SKCanvas canvas, SkiaModel painter, SKPicture model,
-        Func<SkiaSharp.SKCanvas, SkiaModel, SKPicture, bool> tryDrawModel)
-    {
-        var saveCount = canvas.SaveCount;
-        canvas.Save();
-        try
-        {
-            return tryDrawModel(canvas, painter, model);
-        }
-        finally
-        {
-            canvas.RestoreToCount(saveCount);
-        }
     }
 
     private void Reset()
