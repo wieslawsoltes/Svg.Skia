@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="160" height="110" viewBox="0 0 160 110">
+<defs><clipPath id="clip"><path d="M9.25 53 C24 -6 133 -2 151 56 C126 118 36 112 9.25 53 Z"/></clipPath></defs>
+<g clip-path="url(#clip)" opacity="0.87">
+  <rect width="160" height="110" fill="#197ec8"/>
+  <path d="M-10 15 L163 89 M-10 85 L163 22" stroke="#f3b52c" stroke-width="19.75"/>
+  <circle cx="79.5" cy="54.25" r="32.75" fill="#a63ad6" fill-opacity="0.43"/>
+</g>
+</svg>

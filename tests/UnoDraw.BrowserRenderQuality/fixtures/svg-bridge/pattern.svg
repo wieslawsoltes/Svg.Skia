@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="160" height="110" viewBox="0 0 160 110">
+<defs><pattern id="tiles" patternUnits="userSpaceOnUse" width="17.5" height="13.25" patternTransform="rotate(13)">
+  <rect width="17.5" height="13.25" fill="#225b9c" fill-opacity="0.46"/>
+  <circle cx="4.75" cy="4.25" r="3.5" fill="#e9a83c"/>
+  <path d="M9 13 L17 2" stroke="#d62681" stroke-width="2.25" stroke-opacity="0.72"/>
+</pattern></defs>
+<path d="M10 91 L21 11 L135 5 L151 96 Z" fill="url(#tiles)" stroke="#236b2f" stroke-width="3.5"/>
+</svg>

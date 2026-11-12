@@ -217,6 +217,43 @@ inside `copyExternalImageToTexture`. Separate same-package CPU/GPU pan and zoom
 trials measure the resulting tradeoff. Their report kind is distinct from the
 three-revision application benchmark and cannot be merged into its coverage.
 
+### Retained panel and inspector work
+
+The same `7211000` AOT artifact's separate Skia diagnostic passes identify a
+second bottleneck outside document painting. The 121-input selection sample
+allocated 420,834,576 managed bytes and spent 19,498.9 ms in main-thread tasks;
+its Document callback count was zero. The 120-input edit sample allocated
+974,387,328 bytes and spent 22,465.6 ms in tasks, while its 82 Document callbacks
+totaled 12.0 ms. These allocation deltas include diagnostic observers. Combined
+Document/Interaction scopes account for less than 0.5 MB in each sample, so the
+large allocation total cannot be attributed to those paint callbacks. The
+[sharded run](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43234253807)
+retains reset counters and Uno's internal layout phase records; browser DOM
+layout counters do not measure Uno's canvas-based XAML layout.
+
+Properties now retains its native NumberBoxes and sections across selection,
+geometry and document changes. Synchronization changes model values and section
+visibility without reconstructing templates. Focused input keeps its original
+target until the native commit boundary. Hidden attribute forms, resource lists,
+brushes, swatches, history and document summaries refresh when visible. Independent
+panel stamps only record work actually performed, so tab activation, expansion,
+responsive restoration and document replacement cannot consume unseen updates.
+
+Outline and resource snapshots compare exact element identities, hierarchy,
+labels, visibility and lock inputs. Geometry-only edits retain their existing
+rows; structure, rename, lock, visibility and document replacement invalidate
+them. Their unchanged checks allocate zero bytes in focused warmed native tests.
+Canceled native tree drags explicitly discard the outline snapshot because the
+control may have reordered rows before the model accepted the operation.
+
+Hidden color/gradient editors also defer automatic reconstruction. In particular,
+building a clean gradient draft serializes and parses the document, so two hidden
+editors must not repeat that work on every selection notification. Pending drafts
+retain their existing ownership checks; explicit commands materialize a clean
+current draft when needed. This implementation requires fresh application
+benchmarks: the diagnostic figures above locate the old cost and are not a
+measured speedup claim for the retained-panel changes.
+
 ## Diagnostic scope
 
 Primary timing trials collect browser observations without enabling managed
@@ -226,3 +263,10 @@ ruler and Navigator callback counts/times/allocations and Uno frame-phase logs.
 Those callback scopes include synchronous native Skia work. Subsequent texture
 transfer, compositor submission and physical GPU/display completion are separate
 costs; a completed CPU render callback is not a presented-frame measurement.
+
+The separate [SVG document quality gate](../tests/UnoDraw.BrowserRenderQuality/SVG_SCENES.md)
+edits eight canonical SVG scenes through the production source dialog. It checks
+gradients, filters, masks, clipping, patterns, text, images and opacity/strokes
+for both rasterizers at DPR 1, 1.25 and 2. Scene-specific anchors, semantic source
+readback and alpha-over-matte color checks reject blank, stale or incorrectly
+premultiplied output before the unchanged native-pixel comparison is scored.
