@@ -32,6 +32,7 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
     public SvgEditorWorkspace()
     {
         InitializeComponent();
+        PositionText.LayoutUpdated += OnPointerPositionLayoutUpdated;
         InitializeStudioWorkspace();
         BuildCommands();
         BuildEditorCommands();
@@ -64,6 +65,8 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
             Canvas.IsDarkTheme = ActualTheme == ElementTheme.Dark;
             _recoveryTimer.Start();
             UpdateResponsiveLayout();
+            if (_positionUpdatePending)
+                PositionText.InvalidateArrange();
             Focus(FocusState.Programmatic);
         };
         Unloaded += (_, _) =>
@@ -99,19 +102,23 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         if (_disposed || _positionUpdatePending)
             return;
         _positionUpdatePending = true;
-        if (!DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
-        {
-            _positionUpdatePending = false;
-            if (_disposed)
-                return;
-            // A burst of pointer events needs one formatted label with the most
-            // recent coordinates, without queuing redundant text/layout work.
-            var position = Canvas.PointerPosition;
-            var text = $"X {position.X:0.0}  Y {position.Y:0.0}";
-            if (PositionText.Text != text)
-                PositionText.Text = text;
-        }))
-            _positionUpdatePending = false;
+        // Join the layout pass before its frame is recorded. A separate deferred
+        // callback could dirty this label after the camera was already recorded.
+        PositionText.InvalidateArrange();
+    }
+
+    private void OnPointerPositionLayoutUpdated(object? sender, object args)
+    {
+        if (_disposed || !_positionUpdatePending || !IsLoaded || PositionText.Visibility != Visibility.Visible)
+            return;
+
+        // Consume first: changing text can repeat layout within this same pass.
+        // A collapsed/unloaded label keeps the latest pointer pending until shown.
+        _positionUpdatePending = false;
+        var position = Canvas.PointerPosition;
+        var text = $"X {position.X:0.0}  Y {position.Y:0.0}";
+        if (PositionText.Text != text)
+            PositionText.Text = text;
     }
 
     public void NewDocument(float width = 1200, float height = 800)
@@ -380,6 +387,8 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         DisposeEditorKeyboard();
         SaveStudioLayout();
         _disposed = true;
+        PositionText.LayoutUpdated -= OnPointerPositionLayoutUpdated;
+        _positionUpdatePending = false;
         _recoveryTimer.Stop();
         _animationTimer.Stop();
         Canvas.CancelGesture();
