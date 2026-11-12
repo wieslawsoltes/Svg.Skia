@@ -239,6 +239,17 @@ belongs to its own matched runner. All input-tail and idle-zero-graphics checks
 pass. A complete passing correctness matrix does not establish an improvement
 in every workload.
 
+The fourth complete matrix, `cbfeb0c`, also retains all 90 primary trials,
+12 diagnostics and 108 accepted native image pairs. Its
+[source-specific audit](benchmarks/unodraw-primary-lifetime-followup-2026-11-12.json)
+matches every aggregate section against an independent strict remerge of the
+twelve shard archives. Skia editing takes 35.259 → 21.642 seconds and selection
+16.126 → 14.172 seconds. The default WebGPU path still regresses: selection takes
+123.533 → 184.080 seconds and hover 106.907 → 123.354 seconds. WebGPU pan and
+zoom are within 0.4% of their matched baselines. These are further independent
+same-runner comparisons, not pooled estimates or evidence for the newer
+original-uploader composition path.
+
 The later, same-AOT `523c1ed5` [cached-composition experiment](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/job/131331896015)
 measures a WebGPU hover improvement with all nine paired native images accepted.
 Its [audited evidence](benchmarks/unodraw-composite-2026-11-12.json) keeps all six
@@ -286,6 +297,14 @@ two bridge modes of the candidate, not the older regression baseline. They
 therefore establish a selection improvement but cannot close the previously
 measured baseline regression by combining ratios from separate runners.
 
+The later `cbfeb0c` [paired experiment audit](benchmarks/unodraw-paired-lifetime-followup-2026-11-12.json)
+repeats the existing composite improvement: hover takes 166.179 → 131.434
+seconds, and selection 247.823 → 208.572 seconds. Each experiment retains six
+primary trials, two separate diagnostics and nine accepted native image pairs.
+Selection thread CPU is essentially unchanged, 8.990 → 8.980 seconds. As before,
+these compare the candidate's two persistent-upload modes on their own runners;
+they do not establish recovery against the older application baseline.
+
 See the [browser benchmark instructions](../tests/UnoDraw.BrowserPerformance/README.md)
 for exact workloads, metric definitions, controls and reproduction commands.
 
@@ -299,6 +318,20 @@ diagnostic trials preserve the original 121-input workload and nine native image
 pairs. Their distinct report kind cannot replace the baseline/current-source
 matrix or combine ratios measured on different runners.
 
+The [audited primary transport run](benchmarks/unodraw-pinned-transport-2026-11-12.json)
+completes that comparison with the unchanged `d0dafea` application and the
+`f8c8fff` harness. Median selection elapsed falls from 105.023 seconds with
+`legacy` to 69.513 seconds with the existing `composite` path: 33.81% less time,
+or 51.08% greater offered-input throughput. The three composite samples are
+69.513, 44.650 and 91.416 seconds; all remain below the three legacy samples,
+104.941, 109.206 and 105.023 seconds, but their substantial spread is retained.
+Renderer-thread CPU falls from 6.293 to 4.430 seconds. Median visible-canvas
+submissions increase from 124 to 127, so this result is not explained by fewer
+observed submissions. All nine native image pairs pass, and both separate
+diagnostics record zero Document paints with positive Interaction paints.
+This comparison tests the existing persistent composite texture, not the newer
+`legacy-composite` implementation, and has no direct regression-baseline arm.
+
 The [runtime command probe](../tests/UnoDraw.BrowserPerformance/RUNTIME_DIAGNOSTICS.md)
 separately compares the original baseline with the candidate's legacy, persistent
 and composite modes. It explicitly appends logging flags to the served generated
@@ -307,8 +340,32 @@ all application binaries, runtime files, fonts and other assets. Its modified
 served configuration disqualifies it from primary timing claims. Per-frame logs
 and post-window selected/cleared captures distinguish transport differences from
 different sampled UI states. Every package asset is checked against its verified
-original archive before and after execution. These probes establish no new result
-until their complete browser observations have been audited.
+original archive before and after execution.
+
+The completed [runtime diagnostic audit](benchmarks/unodraw-runtime-diagnostics-2026-11-12.json)
+verifies all four cases and independently recomputes all 23 native image pairs.
+Every compared region has zero pixels above the existing luminance threshold;
+each mode's selection feedback changes the same 14,380 document pixels. The
+canonical post-window captures distinguish the selected and cleared recordings:
+
+| Mode | Selected / cleared draw operations | Measured offscreen replay logs | Visible-canvas submissions |
+| --- | ---: | ---: | ---: |
+| Baseline original | 423 / 363 | 73 | 139 |
+| Candidate legacy | 426 / 366 | 62 | 125 |
+| Candidate persistent | 426 / 366 | 119 | 123 |
+| Candidate composite | 425 / 365 | 119 | 123 |
+
+The 60-operation difference therefore corresponds to the selected and cleared
+UI states. It does not establish a transport penalty. The pinned runtime can
+present its retained offscreen image without replaying the scene when damage
+has been consumed; recording and presentation are scheduled separately. These
+logs count offscreen replays, not every visible-canvas submission, and do not
+prove that every intermediate input state reached the canvas. The higher replay
+counts cannot be classified as redundant work from these observations alone.
+Each `frame-phases` line aggregates 60 recordings and may straddle measurement
+boundaries. The logging-enabled diagnostic also reverses the primary run's
+legacy/composite elapsed-time ordering. Its timings remain diagnostic only;
+neither ratios nor causal performance conclusions are imported from it.
 
 ## Implementation under measurement
 
@@ -573,8 +630,20 @@ nine, and the image scene one. Gradients, text, and opacity/strokes pass all nin
 pairs each. The image-scene failure is localized to its curved semitransparent
 stroke and butt caps; its sampled bitmap interior differs by at most one RGB
 level. All 72 outcomes were independently recomputed, and no fallback or runtime
-error explains the failures. These results reject native default coverage;
-they do not determine the still-pending full SVG result for raster coverage.
+error explains the failures. These results reject native default coverage.
+
+The later [paired SVG coverage audit](benchmarks/unodraw-graphite-svg-coverage-2026-11-12.json)
+uses the same complete `cbfeb0c` AOT archive for both coverage modes. Native
+default coverage again completes all 48 cases and reproduces all 31 failures.
+The raster-coverage job reaches its 90-minute limit after 45 cases and 135
+captures, leaving nine comparisons unavailable. Of its 63 available native
+pairs, 62 pass and the mask scene at DPR 1.25 after fractional panning fails.
+That failure affects 485 of 441,351 body pixels, a fraction of 0.001098899,
+above the unchanged 0.001 limit. All but one failed pixel lie on two horizontal
+edges of the masked gradient rectangle; the remaining pixel lies on an ellipse
+boundary. This localization suggests fractional-edge coverage or sampling,
+without establishing a native implementation cause. Neither incomplete
+coverage nor a narrow edge difference qualifies the failed renderer.
 
 Raster coverage's [first AOT pan comparison](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441/job/131397550441)
 passes all nine native image pairs with six primary trials and two separate
@@ -582,9 +651,14 @@ diagnostic trials. Median elapsed time nevertheless rises from 88.681 seconds
 for persistent upload to 104.417 seconds for Graphite, a 17.74% regression on that
 SwiftShader runner. Renderer-thread CPU time falls 90.75%, but that reduction
 does not establish better total throughput. All inputs, actual native document
-submissions, and separately timed queue drains are accounted for. The full SVG
-matrix and zoom comparison remain separate requirements, and this pan result
-does not support making Graphite the default.
+submissions, and separately timed queue drains are accounted for. The matching
+source's separate zoom comparison also passes all nine native pairs, but takes
+145.122 → 184.356 seconds, 27.03% longer, despite 89.26% less renderer-thread CPU.
+The [paired audit](benchmarks/unodraw-paired-lifetime-followup-2026-11-12.json)
+retains both experiments' complete samples and native checks. Together with the
+paired SVG failures, these results reject promotion of direct Graphite and
+support retiring that experimental document path. Uno's WebGPU compositor and
+the normal Skia/WebGL fallback are independent of this opt-in renderer.
 
 One Graphite context is shared per Uno device. Each document canvas owns its
 recorder, image provider and target wrapper. Image caching is bounded, and failed
@@ -698,6 +772,18 @@ trials, two separate diagnostics and all nine original native image pairs per
 workload. Welcome and the complete eight-scene SVG matrix remain independent
 browser gates. This opt-in implementation supplies no speedup or baseline
 recovery claim until those actual measurements complete.
+
+The `0ffaabff` [Interpreter quality audit](benchmarks/unodraw-legacy-composition-quality-2026-11-12.json)
+accepts all six cases and 60 native captures at DPR 1, 1.25 and 2. Independent
+recomputation accepts all 30 cross-mode pairs and 12 Navigator/resize restoration
+pairs, with zero pixels above luminance 12 in every compared region. All three
+candidate cases prove completed original-host copying and actual document-cache
+reuse, without fallback or page/resource errors. Brush and selection feedback,
+compact layout, and restoration from an 80-pixel window are included. The source,
+full harness Git tree, package manifest and diagnostic archive are verified.
+This early job does not retain its complete Interpreter application archive;
+it is not an independently downloaded binary snapshot, AOT qualification or a
+performance measurement. The separate AOT, full SVG and timing gates remain.
 
 A separate reusable workflow directly compares the same run's immutable
 `96e5fa9` baseline package with the explicit `legacy-composite` candidate. It

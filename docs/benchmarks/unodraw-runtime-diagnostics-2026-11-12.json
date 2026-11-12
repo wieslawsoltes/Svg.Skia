@@ -1,0 +1,1597 @@
+{
+  "schema": 1,
+  "report_kind": "runtime_configuration_diagnostic_audit",
+  "audit_date": "2026-11-12",
+  "audit_completed_utc": "2026-11-12T19:27:17.924341+00:00",
+  "passed": true,
+  "primary_performance_qualification": false,
+  "current_source_qualification": false,
+  "scope": "Historical 96e5 baseline and d0 AOT candidate with a diagnostic-only HTTP configuration override. This does not test the newer legacy-composite path.",
+  "artifact": {
+    "repository": "wieslawsoltes/Svg.Skia",
+    "run_id": 43282972203,
+    "job_id": 131408840709,
+    "artifact_id": 13975137043,
+    "run_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43282972203",
+    "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43282972203/job/131408840709",
+    "archive_bytes": 4399593,
+    "archive_sha256": "2c33f40a81608843361c8ee2cacf8d58d33fee1c4106374a9aa65b3cf44eeb39",
+    "report_bytes": 1815547,
+    "report_sha256": "e49659f090442712e442892cb8b719422a5bcfa694e06fd4db126043cfaaf107",
+    "harness_source_sha": "f8c8ffffdcf0a81d50cca80499236f82624edeb9",
+    "extracted_file_count_verified": 46,
+    "extracted_file_inventory_sha256": "2bb2ca8f076dac9185201bbdaf6d67af3dc3815c019e60b7201cea4719856640",
+    "all_extracted_inputs_match_archive": true
+  },
+  "package_snapshots": {
+    "baseline": {
+      "package_run_id": 43265614141,
+      "package_run_head_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "artifact_id": 13964939029,
+      "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+      "archive_bytes": 174069916,
+      "archive_sha256": "225d9d2ee21f52c868532410990c60ea6edf9bc7dbe699bf91f4e9a009d5bee6",
+      "index_sha256": "fd126347cfcb1544ab572570aa6e411b3fd9fe604c737b44fb294f1e08bb6290",
+      "canonical_manifest_sha256": "ff549fafca5fabb0abfdf1a52deb91540e1c40ae7071a5f521f63a59b621c266",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "font_inventory_sha256": "e08b4731409680c2d8ccf6bc0e995f3ceca0d246fd090f31f1b96b73baa4b936",
+      "served_file_count": 904,
+      "served_inventory_sha256": "dfd7aee61fa4712a4e90ef75a296756d7a6f3a5d078703e3efd51a37a2126d43",
+      "receipt_sha256": "4ea4090a46526de6fbb3a5cad8079cbedbd0621647d49db548ce0f6ad087c014",
+      "receipt_metadata_manifest_and_inventory_verified_against_pinned_zip": true,
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "uno_sdk": "7.0.5",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403"
+    },
+    "candidate": {
+      "package_run_id": 43265614141,
+      "package_run_head_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "artifact_id": 13967029731,
+      "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "archive_bytes": 175804274,
+      "archive_sha256": "1c3716d3eecfb3f0a245686c09d0f876d2b2624988108483a551d93f463f7524",
+      "index_sha256": "a0622ea730064ee73459f0e044fde058100bc9f8478124521a2a7a6c0091d510",
+      "canonical_manifest_sha256": "1e594957d4c93c47918e8aa1e8974de9655075cbb688291490b7ce8cc4ef46a1",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "font_inventory_sha256": "e08b4731409680c2d8ccf6bc0e995f3ceca0d246fd090f31f1b96b73baa4b936",
+      "served_file_count": 907,
+      "served_inventory_sha256": "1be90926ecb1494c4ca7cb2b3e93e801a659fb4aa0033c26f3656f0a1947fe82",
+      "receipt_sha256": "b6f0dc645862b3b5b202be8075b74485503558f9d1d45b74825cf3dc5f662aa4",
+      "receipt_metadata_manifest_and_inventory_verified_against_pinned_zip": true,
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "uno_sdk": "7.0.5",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403"
+    }
+  },
+  "configuration_scope": {
+    "only_modified_http_response": "uno-config.js",
+    "environment_variables": {
+      "UNO_LOG_FRAME_PHASES": "1",
+      "UNO_WEBGPU_STATS": "1",
+      "UNO_WEBGPU_STATS_EVERY": "1"
+    },
+    "appendix_bytes": 425,
+    "appendix_sha256": "b046f02fb5a6753e13c07280a8838f30eaec28fdefd04276cd2c3786ba17aa23",
+    "original_configuration_is_an_exact_prefix": true,
+    "modified_served_configuration": true,
+    "binary_runtime_font_assets_modified": false,
+    "on_disk_package_inventory_rechecked_by_each_completed_case": true,
+    "description": "The served configuration differs from the published package. Binaries, runtime files and fonts remain pinned; this is not an unchanged served package or a primary timing experiment."
+  },
+  "environment": {
+    "runner": {
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "machine": "x86_64"
+    },
+    "browser_version": "143.0.7499.4",
+    "browser_launch_arguments": [
+      "--enable-unsafe-swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-unsafe-webgpu",
+      "--use-vulkan=swiftshader",
+      "--enable-features=Vulkan"
+    ],
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "device_scale_factor": 1,
+    "cross_origin_isolated": false,
+    "actual_provider": "WebGpuGraphicsProvider",
+    "actual_context": "WebGpu",
+    "graphics_implementation": "SwiftShader",
+    "workload": "selection",
+    "independent_cases": 4,
+    "trials_per_mode": 1,
+    "order": [
+      "baseline-original",
+      "candidate-legacy",
+      "candidate-persistent",
+      "candidate-composite"
+    ],
+    "trusted_inputs_per_case": 121,
+    "minimum_common_pan_warmup_inputs": 120,
+    "minimum_common_pan_warmup_callbacks": 60,
+    "primary_speedup_ratios": null
+  },
+  "cases": [
+    {
+      "mode": "baseline-original",
+      "package_role": "baseline",
+      "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+      "canvas_bridge": null,
+      "passed": true,
+      "report_sha256": "75557238758f5d58e4bfd2bc2f4515e35783cd5f264abbf7995280bc3f3265d3",
+      "selection_feedback": {
+        "changed_document_pixels": 14380,
+        "minimum_changed_pixels": 50,
+        "recomputed_from_before_and_after_captures": true
+      },
+      "configuration_override": {
+        "relative_url": "uno-config.js",
+        "original_sha256": "98b25735a6b740cc95dad833a81c9b35611355aa95b61a712bbd4b7d0f9fc1f5",
+        "served_sha256": "cbf0c5d53014b74f39e047d74f4d421ad12d612dd14171674b6dea5ecdf7e276",
+        "original_bytes": 7909,
+        "served_bytes": 8334,
+        "appendix_sha256": "b046f02fb5a6753e13c07280a8838f30eaec28fdefd04276cd2c3786ba17aa23",
+        "environment_variables": {
+          "UNO_LOG_FRAME_PHASES": "1",
+          "UNO_WEBGPU_STATS": "1",
+          "UNO_WEBGPU_STATS_EVERY": "1"
+        },
+        "bootstrap_source": "0452dfce12ed05ed4e5a4fb920b52f59973225fd",
+        "original_prefix_preserved": true,
+        "served_package_modified": true,
+        "binary_runtime_font_assets_modified": false,
+        "primary_performance_qualification": false,
+        "request_count": 3,
+        "on_disk_inventory_unchanged": true
+      },
+      "warmup": {
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 236,
+        "graphics_active_animation_intervals": 236,
+        "elapsed_ms": 139855.30000000002,
+        "included_in_primary_metrics": false
+      },
+      "measurement": {
+        "console_index_range_start_inclusive_end_exclusive": [
+          288,
+          438
+        ],
+        "console_row_count": 452,
+        "range_rows": 150,
+        "range_sha256": "f11385946ee6714c8b55f256e9f3fa4a9f4c6e7c18857f26374a533c5d403d09",
+        "runtime_log_rows": 148,
+        "runtime_logs_sha256": "2e2cd39c3ed812a619ab54c02c3864e95e84634b071864fe52c49425783c35dc",
+        "runtime_logs_reconstructed_from_console_range": true,
+        "metrics_recomputed_from_raw_observations": true,
+        "operations": 121,
+        "input_events": 121,
+        "inputs_without_later_graphics": 0,
+        "inputs_without_completed_render_callback": 0,
+        "completed_render_callbacks": 139,
+        "webgpu_canvas_submissions": 139,
+        "instrumented_elapsed_ms_not_a_primary_sample": 103921.70000000001,
+        "instrumented_renderer_thread_cpu_ms": 36718.409999999996
+      },
+      "native_logs": {
+        "scene_replay_log_rows": 73,
+        "stats_log_rows": 73,
+        "frame_phase_log_rows": 2,
+        "stats_summary_recomputed": true,
+        "per_replay_summary": {
+          "ops": {
+            "count": 73,
+            "min": 363.0,
+            "median": 423.0,
+            "max": 423.0
+          },
+          "emitted": {
+            "count": 73,
+            "min": 355.0,
+            "median": 415.0,
+            "max": 416.0
+          },
+          "scissorChanges": {
+            "count": 73,
+            "min": 48.0,
+            "median": 335.0,
+            "max": 395.0
+          },
+          "cmds": {
+            "count": 73,
+            "min": 1043.0,
+            "median": 1238.0,
+            "max": 1238.0
+          },
+          "replays": {
+            "count": 73,
+            "min": 1.0,
+            "median": 1.0,
+            "max": 1.0
+          },
+          "opsBuild": {
+            "count": 73,
+            "min": 1.2,
+            "median": 4.7,
+            "max": 71.6
+          },
+          "walk": {
+            "count": 73,
+            "min": 1.1,
+            "median": 4.6,
+            "max": 71.5
+          },
+          "encode": {
+            "count": 73,
+            "min": 0.6,
+            "median": 1.4,
+            "max": 5.7
+          },
+          "renderInto": {
+            "count": 73,
+            "min": 2.0,
+            "median": 6.4,
+            "max": 72.7
+          },
+          "finishSubmit": {
+            "count": 73,
+            "min": 0.0,
+            "median": 0.2,
+            "max": 2.4
+          },
+          "prepass": {
+            "count": 73,
+            "min": 3.0,
+            "median": 67.0,
+            "max": 82.0
+          },
+          "clipCulled": {
+            "count": 73,
+            "min": 0.0,
+            "median": 0.0,
+            "max": 0.0
+          }
+        },
+        "ops_histogram": {
+          "363": 26,
+          "423": 47
+        },
+        "emitted_ops_histogram": {
+          "355": 22,
+          "356": 4,
+          "415": 21,
+          "416": 26
+        },
+        "recorded_command_count_histogram": {
+          "1043": 26,
+          "1238": 47
+        },
+        "damage_size_histogram": {
+          "1002x812": 4,
+          "1434x919": 41,
+          "1425x919": 2,
+          "1331x812": 26
+        },
+        "rows_matching_canonical_ops_not_per_input_pixel_proof": {
+          "selected": 47,
+          "cleared": 26
+        },
+        "frame_phase_60_recording_windows_may_straddle_sample": [
+          "[frame-phases] record=259.0ms finish=0.0ms draw=8.3ms tick=0.0ms layout=146.6ms(68) gap=568.9ms | measures=10214 arranges=10405 | >20ms=60 >33ms=60 max=2397.7ms | gc0=+38 gc1=+12 gc2=+12 pause=0.0ms heap=67MB (avg/frame, 60 renders, 64 draws)",
+          "[frame-phases] record=274.8ms finish=0.0ms draw=4.3ms tick=0.0ms layout=136.3ms(69) gap=513.7ms | measures=8090 arranges=8240 | >20ms=60 >33ms=60 max=1649.8ms | gc0=+32 gc1=+12 gc2=+12 pause=0.0ms heap=64MB (avg/frame, 60 renders, 64 draws)"
+        ]
+      },
+      "canonical_states": [
+        {
+          "state": "selected",
+          "included_in_measured_window": false,
+          "console_first_index": 444,
+          "console_last_index": 447,
+          "native_log_rows": 4,
+          "native_logs_sha256": "cc80930909d37738f8980503d7ba736aa9fef3ef7a20cf743ec6c6b0f7bbd02e",
+          "last_ops": 423,
+          "last_emitted": 415,
+          "last_recorded_commands": 1238,
+          "last_damage_size": "1434x919",
+          "native_pair": "baseline-original/after.png -> baseline-original/canonical-selected.png"
+        },
+        {
+          "state": "cleared",
+          "included_in_measured_window": false,
+          "console_first_index": 448,
+          "console_last_index": 451,
+          "native_log_rows": 4,
+          "native_logs_sha256": "e1b4e3df2e4ed82951420cbb36a122f53da7b3d5dc55aab950887ec70c09f00a",
+          "last_ops": 363,
+          "last_emitted": 355,
+          "last_recorded_commands": 1043,
+          "last_damage_size": "1434x919",
+          "native_pair": "baseline-original/before.png -> baseline-original/canonical-cleared.png"
+        }
+      ]
+    },
+    {
+      "mode": "candidate-legacy",
+      "package_role": "candidate",
+      "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "canvas_bridge": "legacy",
+      "passed": true,
+      "report_sha256": "0a4836803432d5ee553175c286d40790a3e4bb9f6e53a64304eba865dca10518",
+      "selection_feedback": {
+        "changed_document_pixels": 14380,
+        "minimum_changed_pixels": 50,
+        "recomputed_from_before_and_after_captures": true
+      },
+      "configuration_override": {
+        "relative_url": "uno-config.js",
+        "original_sha256": "e330284a3821da35b3a579e43d1d3d0cbaffcb3b0ed0c72c68329be9629bd51c",
+        "served_sha256": "5060814289c0ad33971a0e5cf7194449794ceb2e5165628d041b5f7eaee98213",
+        "original_bytes": 7909,
+        "served_bytes": 8334,
+        "appendix_sha256": "b046f02fb5a6753e13c07280a8838f30eaec28fdefd04276cd2c3786ba17aa23",
+        "environment_variables": {
+          "UNO_LOG_FRAME_PHASES": "1",
+          "UNO_WEBGPU_STATS": "1",
+          "UNO_WEBGPU_STATS_EVERY": "1"
+        },
+        "bootstrap_source": "0452dfce12ed05ed4e5a4fb920b52f59973225fd",
+        "original_prefix_preserved": true,
+        "served_package_modified": true,
+        "binary_runtime_font_assets_modified": false,
+        "primary_performance_qualification": false,
+        "request_count": 3,
+        "on_disk_inventory_unchanged": true
+      },
+      "warmup": {
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 230,
+        "graphics_active_animation_intervals": 230,
+        "elapsed_ms": 136052.5,
+        "included_in_primary_metrics": false
+      },
+      "measurement": {
+        "console_index_range_start_inclusive_end_exclusive": [
+          288,
+          416
+        ],
+        "console_row_count": 434,
+        "range_rows": 128,
+        "range_sha256": "4033465d33ad1f029b6a557de52c17337d44cd784adbfd4fd2e1813f17077cd7",
+        "runtime_log_rows": 126,
+        "runtime_logs_sha256": "e2dec5558af0e3bbc33b827cc8a8bf8882a4463ae262279702ab1eeae0bd5751",
+        "runtime_logs_reconstructed_from_console_range": true,
+        "metrics_recomputed_from_raw_observations": true,
+        "operations": 121,
+        "input_events": 121,
+        "inputs_without_later_graphics": 0,
+        "inputs_without_completed_render_callback": 0,
+        "completed_render_callbacks": 125,
+        "webgpu_canvas_submissions": 125,
+        "instrumented_elapsed_ms_not_a_primary_sample": 95875.5,
+        "instrumented_renderer_thread_cpu_ms": 6280.831
+      },
+      "native_logs": {
+        "scene_replay_log_rows": 62,
+        "stats_log_rows": 62,
+        "frame_phase_log_rows": 2,
+        "stats_summary_recomputed": true,
+        "per_replay_summary": {
+          "ops": {
+            "count": 62,
+            "min": 366.0,
+            "median": 426.0,
+            "max": 426.0
+          },
+          "emitted": {
+            "count": 62,
+            "min": 358.0,
+            "median": 419.0,
+            "max": 419.0
+          },
+          "scissorChanges": {
+            "count": 62,
+            "min": 51.0,
+            "median": 264.0,
+            "max": 398.0
+          },
+          "cmds": {
+            "count": 62,
+            "min": 1048.0,
+            "median": 1243.0,
+            "max": 1243.0
+          },
+          "replays": {
+            "count": 62,
+            "min": 1.0,
+            "median": 1.0,
+            "max": 1.0
+          },
+          "opsBuild": {
+            "count": 62,
+            "min": 0.8,
+            "median": 2.8,
+            "max": 12.4
+          },
+          "walk": {
+            "count": 62,
+            "min": 0.7,
+            "median": 1.95,
+            "max": 12.2
+          },
+          "encode": {
+            "count": 62,
+            "min": 0.5,
+            "median": 2.5,
+            "max": 10.2
+          },
+          "renderInto": {
+            "count": 62,
+            "min": 1.5,
+            "median": 6.35,
+            "max": 17.8
+          },
+          "finishSubmit": {
+            "count": 62,
+            "min": 0.0,
+            "median": 0.1,
+            "max": 3.3
+          },
+          "prepass": {
+            "count": 62,
+            "min": 3.0,
+            "median": 52.0,
+            "max": 82.0
+          },
+          "clipCulled": {
+            "count": 62,
+            "min": 0.0,
+            "median": 0.0,
+            "max": 0.0
+          }
+        },
+        "ops_histogram": {
+          "366": 11,
+          "426": 51
+        },
+        "emitted_ops_histogram": {
+          "358": 9,
+          "359": 2,
+          "418": 6,
+          "419": 45
+        },
+        "recorded_command_count_histogram": {
+          "1048": 11,
+          "1243": 51
+        },
+        "damage_size_histogram": {
+          "1002x812": 2,
+          "1434x919": 13,
+          "1331x812": 45,
+          "1425x919": 2
+        },
+        "rows_matching_canonical_ops_not_per_input_pixel_proof": {
+          "selected": 51,
+          "cleared": 11
+        },
+        "frame_phase_60_recording_windows_may_straddle_sample": [
+          "[frame-phases] record=40.9ms finish=0.0ms draw=3.8ms tick=0.0ms layout=24.2ms(66) gap=812.4ms | measures=4312 arranges=4575 | >20ms=60 >33ms=60 max=2484.1ms | gc0=+15 gc1=+14 gc2=+14 pause=0.0ms heap=54MB (avg/frame, 60 renders, 65 draws)",
+          "[frame-phases] record=40.8ms finish=0.0ms draw=3.7ms tick=0.0ms layout=31.9ms(65) gap=748.4ms | measures=2097 arranges=2214 | >20ms=60 >33ms=60 max=1651.6ms | gc0=+14 gc1=+14 gc2=+14 pause=0.0ms heap=54MB (avg/frame, 60 renders, 62 draws)"
+        ]
+      },
+      "canonical_states": [
+        {
+          "state": "selected",
+          "included_in_measured_window": false,
+          "console_first_index": 424,
+          "console_last_index": 429,
+          "native_log_rows": 6,
+          "native_logs_sha256": "4560f301ed6d85fdbef7d55c7ad94d87fdb153994b1e2c7b9ab59ced5faf4e1c",
+          "last_ops": 426,
+          "last_emitted": 418,
+          "last_recorded_commands": 1243,
+          "last_damage_size": "1192x918",
+          "native_pair": "candidate-legacy/after.png -> candidate-legacy/canonical-selected.png"
+        },
+        {
+          "state": "cleared",
+          "included_in_measured_window": false,
+          "console_first_index": 430,
+          "console_last_index": 433,
+          "native_log_rows": 4,
+          "native_logs_sha256": "f5f8e57a89fbbe8426fa6088ded3c4fef6d793365ed7e0fa9bc41a1198aa12e7",
+          "last_ops": 366,
+          "last_emitted": 358,
+          "last_recorded_commands": 1048,
+          "last_damage_size": "1434x919",
+          "native_pair": "candidate-legacy/before.png -> candidate-legacy/canonical-cleared.png"
+        }
+      ]
+    },
+    {
+      "mode": "candidate-persistent",
+      "package_role": "candidate",
+      "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "canvas_bridge": "persistent",
+      "passed": true,
+      "report_sha256": "399f3d8f8821af95cf7bf2144ae2bc002311042145c21b4c059bbee4808443c9",
+      "selection_feedback": {
+        "changed_document_pixels": 14380,
+        "minimum_changed_pixels": 50,
+        "recomputed_from_before_and_after_captures": true
+      },
+      "configuration_override": {
+        "relative_url": "uno-config.js",
+        "original_sha256": "e330284a3821da35b3a579e43d1d3d0cbaffcb3b0ed0c72c68329be9629bd51c",
+        "served_sha256": "5060814289c0ad33971a0e5cf7194449794ceb2e5165628d041b5f7eaee98213",
+        "original_bytes": 7909,
+        "served_bytes": 8334,
+        "appendix_sha256": "b046f02fb5a6753e13c07280a8838f30eaec28fdefd04276cd2c3786ba17aa23",
+        "environment_variables": {
+          "UNO_LOG_FRAME_PHASES": "1",
+          "UNO_WEBGPU_STATS": "1",
+          "UNO_WEBGPU_STATS_EVERY": "1"
+        },
+        "bootstrap_source": "0452dfce12ed05ed4e5a4fb920b52f59973225fd",
+        "original_prefix_preserved": true,
+        "served_package_modified": true,
+        "binary_runtime_font_assets_modified": false,
+        "primary_performance_qualification": false,
+        "request_count": 3,
+        "on_disk_inventory_unchanged": true
+      },
+      "warmup": {
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 227,
+        "graphics_active_animation_intervals": 227,
+        "elapsed_ms": 137494.5,
+        "included_in_primary_metrics": false
+      },
+      "measurement": {
+        "console_index_range_start_inclusive_end_exclusive": [
+          283,
+          525
+        ],
+        "console_row_count": 541,
+        "range_rows": 242,
+        "range_sha256": "97562062690722a31bbb952a6d3e16e1cd05002defb2d1a5353910a5574bb504",
+        "runtime_log_rows": 240,
+        "runtime_logs_sha256": "a11499c071dfc604693c12cd6cebf1dc4deb5ee41d40b25e7c21202227701076",
+        "runtime_logs_reconstructed_from_console_range": true,
+        "metrics_recomputed_from_raw_observations": true,
+        "operations": 121,
+        "input_events": 121,
+        "inputs_without_later_graphics": 0,
+        "inputs_without_completed_render_callback": 0,
+        "completed_render_callbacks": 123,
+        "webgpu_canvas_submissions": 123,
+        "instrumented_elapsed_ms_not_a_primary_sample": 198813.90000000002,
+        "instrumented_renderer_thread_cpu_ms": 7588.778
+      },
+      "native_logs": {
+        "scene_replay_log_rows": 119,
+        "stats_log_rows": 119,
+        "frame_phase_log_rows": 2,
+        "stats_summary_recomputed": true,
+        "per_replay_summary": {
+          "ops": {
+            "count": 119,
+            "min": 366.0,
+            "median": 366.0,
+            "max": 426.0
+          },
+          "emitted": {
+            "count": 119,
+            "min": 358.0,
+            "median": 359.0,
+            "max": 418.0
+          },
+          "scissorChanges": {
+            "count": 119,
+            "min": 51.0,
+            "median": 338.0,
+            "max": 398.0
+          },
+          "cmds": {
+            "count": 119,
+            "min": 1060.0,
+            "median": 1060.0,
+            "max": 1255.0
+          },
+          "replays": {
+            "count": 119,
+            "min": 1.0,
+            "median": 1.0,
+            "max": 1.0
+          },
+          "opsBuild": {
+            "count": 119,
+            "min": 0.8,
+            "median": 5.8,
+            "max": 98.0
+          },
+          "walk": {
+            "count": 119,
+            "min": 0.7,
+            "median": 5.6,
+            "max": 97.8
+          },
+          "encode": {
+            "count": 119,
+            "min": 0.5,
+            "median": 2.3,
+            "max": 6.7
+          },
+          "renderInto": {
+            "count": 119,
+            "min": 1.5,
+            "median": 8.7,
+            "max": 100.8
+          },
+          "finishSubmit": {
+            "count": 119,
+            "min": 0.1,
+            "median": 0.2,
+            "max": 3.2
+          },
+          "prepass": {
+            "count": 119,
+            "min": 2.0,
+            "median": 64.0,
+            "max": 79.0
+          },
+          "clipCulled": {
+            "count": 119,
+            "min": 0.0,
+            "median": 0.0,
+            "max": 0.0
+          }
+        },
+        "ops_histogram": {
+          "366": 61,
+          "426": 58
+        },
+        "emitted_ops_histogram": {
+          "358": 57,
+          "359": 4,
+          "418": 58
+        },
+        "recorded_command_count_histogram": {
+          "1060": 61,
+          "1255": 58
+        },
+        "damage_size_histogram": {
+          "1002x812": 4,
+          "1434x919": 115
+        },
+        "rows_matching_canonical_ops_not_per_input_pixel_proof": {
+          "selected": 58,
+          "cleared": 61
+        },
+        "frame_phase_60_recording_windows_may_straddle_sample": [
+          "[frame-phases] record=21.0ms finish=0.0ms draw=11.7ms tick=0.0ms layout=12.6ms(104) gap=1505.9ms | measures=16262 arranges=17305 | >20ms=60 >33ms=59 max=1819.0ms | gc0=+24 gc1=+4 gc2=+4 pause=0.0ms heap=54MB (avg/frame, 60 renders, 60 draws)",
+          "[frame-phases] record=23.9ms finish=0.0ms draw=10.1ms tick=0.0ms layout=13.3ms(120) gap=1676.8ms | measures=18270 arranges=19440 | >20ms=60 >33ms=60 max=1752.5ms | gc0=+26 gc1=+3 gc2=+3 pause=0.0ms heap=68MB (avg/frame, 60 renders, 60 draws)"
+        ]
+      },
+      "canonical_states": [
+        {
+          "state": "selected",
+          "included_in_measured_window": false,
+          "console_first_index": 530,
+          "console_last_index": 535,
+          "native_log_rows": 6,
+          "native_logs_sha256": "af9e97357febd5ab8c01ede21ba2098f29a475f4b0a337f608bfe816c6ba2db5",
+          "last_ops": 426,
+          "last_emitted": 418,
+          "last_recorded_commands": 1255,
+          "last_damage_size": "1192x918",
+          "native_pair": "candidate-persistent/after.png -> candidate-persistent/canonical-selected.png"
+        },
+        {
+          "state": "cleared",
+          "included_in_measured_window": false,
+          "console_first_index": 537,
+          "console_last_index": 540,
+          "native_log_rows": 4,
+          "native_logs_sha256": "6dbf5713957d47bf0711bb10edfe93331a0c578f22f254acb67c4d729bed7e0c",
+          "last_ops": 366,
+          "last_emitted": 358,
+          "last_recorded_commands": 1060,
+          "last_damage_size": "1434x919",
+          "native_pair": "candidate-persistent/before.png -> candidate-persistent/canonical-cleared.png"
+        }
+      ]
+    },
+    {
+      "mode": "candidate-composite",
+      "package_role": "candidate",
+      "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "canvas_bridge": "composite",
+      "passed": true,
+      "report_sha256": "b375193c11a7d98bc3725b7a3cfe92b43e5bf1e435cd4d58853d4274f724fd88",
+      "selection_feedback": {
+        "changed_document_pixels": 14380,
+        "minimum_changed_pixels": 50,
+        "recomputed_from_before_and_after_captures": true
+      },
+      "configuration_override": {
+        "relative_url": "uno-config.js",
+        "original_sha256": "e330284a3821da35b3a579e43d1d3d0cbaffcb3b0ed0c72c68329be9629bd51c",
+        "served_sha256": "5060814289c0ad33971a0e5cf7194449794ceb2e5165628d041b5f7eaee98213",
+        "original_bytes": 7909,
+        "served_bytes": 8334,
+        "appendix_sha256": "b046f02fb5a6753e13c07280a8838f30eaec28fdefd04276cd2c3786ba17aa23",
+        "environment_variables": {
+          "UNO_LOG_FRAME_PHASES": "1",
+          "UNO_WEBGPU_STATS": "1",
+          "UNO_WEBGPU_STATS_EVERY": "1"
+        },
+        "bootstrap_source": "0452dfce12ed05ed4e5a4fb920b52f59973225fd",
+        "original_prefix_preserved": true,
+        "served_package_modified": true,
+        "binary_runtime_font_assets_modified": false,
+        "primary_performance_qualification": false,
+        "request_count": 3,
+        "on_disk_inventory_unchanged": true
+      },
+      "warmup": {
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 227,
+        "graphics_active_animation_intervals": 227,
+        "elapsed_ms": 136474.7000000002,
+        "included_in_primary_metrics": false
+      },
+      "measurement": {
+        "console_index_range_start_inclusive_end_exclusive": [
+          285,
+          527
+        ],
+        "console_row_count": 546,
+        "range_rows": 242,
+        "range_sha256": "713e021765ebaacf4b6b99c88c56072ae51c5d3512fab672582c56610963c8f7",
+        "runtime_log_rows": 240,
+        "runtime_logs_sha256": "880fa359eb38b65fd4fded68d6436b0d5e3687a19408e66b4b8746b0609b2456",
+        "runtime_logs_reconstructed_from_console_range": true,
+        "metrics_recomputed_from_raw_observations": true,
+        "operations": 121,
+        "input_events": 121,
+        "inputs_without_later_graphics": 0,
+        "inputs_without_completed_render_callback": 0,
+        "completed_render_callbacks": 123,
+        "webgpu_canvas_submissions": 123,
+        "instrumented_elapsed_ms_not_a_primary_sample": 165304.30000000005,
+        "instrumented_renderer_thread_cpu_ms": 7573.247
+      },
+      "native_logs": {
+        "scene_replay_log_rows": 119,
+        "stats_log_rows": 119,
+        "frame_phase_log_rows": 2,
+        "stats_summary_recomputed": true,
+        "per_replay_summary": {
+          "ops": {
+            "count": 119,
+            "min": 365.0,
+            "median": 365.0,
+            "max": 425.0
+          },
+          "emitted": {
+            "count": 119,
+            "min": 357.0,
+            "median": 358.0,
+            "max": 417.0
+          },
+          "scissorChanges": {
+            "count": 119,
+            "min": 50.0,
+            "median": 337.0,
+            "max": 397.0
+          },
+          "cmds": {
+            "count": 119,
+            "min": 1056.0,
+            "median": 1056.0,
+            "max": 1251.0
+          },
+          "replays": {
+            "count": 119,
+            "min": 1.0,
+            "median": 1.0,
+            "max": 1.0
+          },
+          "opsBuild": {
+            "count": 119,
+            "min": 0.8,
+            "median": 5.3,
+            "max": 56.0
+          },
+          "walk": {
+            "count": 119,
+            "min": 0.7,
+            "median": 5.1,
+            "max": 55.8
+          },
+          "encode": {
+            "count": 119,
+            "min": 0.5,
+            "median": 2.4,
+            "max": 5.8
+          },
+          "renderInto": {
+            "count": 119,
+            "min": 1.5,
+            "median": 8.1,
+            "max": 63.6
+          },
+          "finishSubmit": {
+            "count": 119,
+            "min": 0.0,
+            "median": 0.2,
+            "max": 2.3
+          },
+          "prepass": {
+            "count": 119,
+            "min": 2.0,
+            "median": 64.0,
+            "max": 79.0
+          },
+          "clipCulled": {
+            "count": 119,
+            "min": 0.0,
+            "median": 0.0,
+            "max": 0.0
+          }
+        },
+        "ops_histogram": {
+          "365": 61,
+          "425": 58
+        },
+        "emitted_ops_histogram": {
+          "357": 57,
+          "358": 4,
+          "417": 58
+        },
+        "recorded_command_count_histogram": {
+          "1056": 61,
+          "1251": 58
+        },
+        "damage_size_histogram": {
+          "1002x812": 4,
+          "1434x919": 115
+        },
+        "rows_matching_canonical_ops_not_per_input_pixel_proof": {
+          "selected": 58,
+          "cleared": 61
+        },
+        "frame_phase_60_recording_windows_may_straddle_sample": [
+          "[frame-phases] record=118.7ms finish=0.0ms draw=3.4ms tick=0.0ms layout=9.7ms(61) gap=495.2ms | measures=1261 arranges=1367 | >20ms=59 >33ms=59 max=2059.2ms | gc0=+4 gc1=+0 gc2=+0 pause=0.0ms heap=68MB (avg/frame, 60 renders, 62 draws)",
+          "[frame-phases] record=21.4ms finish=0.0ms draw=11.4ms tick=0.0ms layout=12.5ms(110) gap=1300.1ms | measures=17052 arranges=18144 | >20ms=60 >33ms=59 max=1464.0ms | gc0=+25 gc1=+4 gc2=+4 pause=0.0ms heap=58MB (avg/frame, 60 renders, 59 draws)"
+        ]
+      },
+      "canonical_states": [
+        {
+          "state": "selected",
+          "included_in_measured_window": false,
+          "console_first_index": 533,
+          "console_last_index": 538,
+          "native_log_rows": 6,
+          "native_logs_sha256": "43639e087ea12dcf9b17663c461e260e1463ccb7ec7083b3778d7fa7e0166482",
+          "last_ops": 425,
+          "last_emitted": 417,
+          "last_recorded_commands": 1251,
+          "last_damage_size": "1192x918",
+          "native_pair": "candidate-composite/after.png -> candidate-composite/canonical-selected.png"
+        },
+        {
+          "state": "cleared",
+          "included_in_measured_window": false,
+          "console_first_index": 540,
+          "console_last_index": 545,
+          "native_log_rows": 6,
+          "native_logs_sha256": "d94e025059f6fd55929e07d317263717396b5bdaadc2ad31b8c58cdf2083efc5",
+          "last_ops": 365,
+          "last_emitted": 357,
+          "last_recorded_commands": 1056,
+          "last_damage_size": "1192x918",
+          "native_pair": "candidate-composite/before.png -> candidate-composite/canonical-cleared.png"
+        }
+      ]
+    }
+  ],
+  "native_quality": {
+    "pairs_recomputed": 23,
+    "baseline_state_pairs": 9,
+    "candidate_transport_pairs": 6,
+    "canonical_state_pairs": 8,
+    "all_passed": true,
+    "maximum_observed_changed_pixel_fraction": 0,
+    "physical_size": [
+      1440,
+      960
+    ],
+    "device_pixel_ratio": 1,
+    "images_resized": false,
+    "luminance_threshold": 12,
+    "document_and_ruler_maximum_changed_fraction": 0.001,
+    "baseline_chrome_font_maximum_changed_fraction": 0.02,
+    "candidate_and_canonical_whole_frame_maximum_changed_fraction": 0.001,
+    "interpretation": "Zero changed fractions means zero pixels above the existing luminance threshold in each checked region; it does not assert byte-identical PNGs or every intermediate input state.",
+    "pairs": [
+      {
+        "kind": "baseline_document_ruler_font",
+        "before": "baseline-original/after.png",
+        "after": "candidate-composite/after.png",
+        "before_png_sha256": "2dd29620a8c6a3d264d9b62b9bffaf9fddaf958f3d437af0d15a6da1c3907b66",
+        "after_png_sha256": "286680c01228df6b61cd4fb6f966f7e6ce92b3d4cee484a74d68cfc15b2fe950",
+        "passed": true,
+        "state": "after",
+        "comparison": {
+          "color_family_pixels": {
+            "indigo": 52652,
+            "green": 81977,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          },
+          "chrome_font_changed_pixel_fraction": {
+            "menu_labels": 0.0,
+            "toolbar_icons": 0.0,
+            "panel_icons": 0.0
+          }
+        }
+      },
+      {
+        "kind": "baseline_document_ruler_font",
+        "before": "baseline-original/after.png",
+        "after": "candidate-legacy/after.png",
+        "before_png_sha256": "2dd29620a8c6a3d264d9b62b9bffaf9fddaf958f3d437af0d15a6da1c3907b66",
+        "after_png_sha256": "02fd4cc98ee74b9ee4b505c4adc2f1897d7595546cb962f16e956cc61fddbfdb",
+        "passed": true,
+        "state": "after",
+        "comparison": {
+          "color_family_pixels": {
+            "indigo": 52652,
+            "green": 81977,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          },
+          "chrome_font_changed_pixel_fraction": {
+            "menu_labels": 0.0,
+            "toolbar_icons": 0.0,
+            "panel_icons": 0.0
+          }
+        }
+      },
+      {
+        "kind": "baseline_document_ruler_font",
+        "before": "baseline-original/after.png",
+        "after": "candidate-persistent/after.png",
+        "before_png_sha256": "2dd29620a8c6a3d264d9b62b9bffaf9fddaf958f3d437af0d15a6da1c3907b66",
+        "after_png_sha256": "dbc63e0ec11d4c5e54cf6efdf5ab904f76accdc9d6c48d8725aed9ea1cb41bae",
+        "passed": true,
+        "state": "after",
+        "comparison": {
+          "color_family_pixels": {
+            "indigo": 52652,
+            "green": 81977,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          },
+          "chrome_font_changed_pixel_fraction": {
+            "menu_labels": 0.0,
+            "toolbar_icons": 0.0,
+            "panel_icons": 0.0
+          }
+        }
+      },
+      {
+        "kind": "baseline_document_ruler_font",
+        "before": "baseline-original/before.png",
+        "after": "candidate-composite/before.png",
+        "before_png_sha256": "9db87ccefeb53d5ca37c0b55838eb89c936c05f03515399f3e602cfa79e74fe9",
+        "after_png_sha256": "ea4b6a33aecb60edd825913641218e10a13f3a3ac1fe9ac82c5451c642ebcbf0",
+        "passed": true,
+        "state": "before",
+        "comparison": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          },
+          "chrome_font_changed_pixel_fraction": {
+            "menu_labels": 0.0,
+            "toolbar_icons": 0.0,
+            "panel_icons": 0.0
+          }
+        }
+      },
+      {
+        "kind": "baseline_document_ruler_font",
+        "before": "baseline-original/before.png",
+        "after": "candidate-legacy/before.png",
+        "before_png_sha256": "9db87ccefeb53d5ca37c0b55838eb89c936c05f03515399f3e602cfa79e74fe9",
+        "after_png_sha256": "8ab99b92234ccfebce0abd9ddd2f8e6508fd01a23ae021764192870888bff9ef",
+        "passed": true,
+        "state": "before",
+        "comparison": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          },
+          "chrome_font_changed_pixel_fraction": {
+            "menu_labels": 0.0,
+            "toolbar_icons": 0.0,
+            "panel_icons": 0.0
+          }
+        }
+      },
+      {
+        "kind": "baseline_document_ruler_font",
+        "before": "baseline-original/before.png",
+        "after": "candidate-persistent/before.png",
+        "before_png_sha256": "9db87ccefeb53d5ca37c0b55838eb89c936c05f03515399f3e602cfa79e74fe9",
+        "after_png_sha256": "e1c28cd7d6e752c6bb768f1bed73909d8babc8c1ea912a9626c83b7db295be6b",
+        "passed": true,
+        "state": "before",
+        "comparison": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          },
+          "chrome_font_changed_pixel_fraction": {
+            "menu_labels": 0.0,
+            "toolbar_icons": 0.0,
+            "panel_icons": 0.0
+          }
+        }
+      },
+      {
+        "kind": "baseline_document_ruler_font",
+        "before": "baseline-original/restored.png",
+        "after": "candidate-composite/restored.png",
+        "before_png_sha256": "876fd84cba05827133f7d3ae4428f18aab4991cb5c51e93f719cc3acf9f54e16",
+        "after_png_sha256": "ea4b6a33aecb60edd825913641218e10a13f3a3ac1fe9ac82c5451c642ebcbf0",
+        "passed": true,
+        "state": "restored",
+        "comparison": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          },
+          "chrome_font_changed_pixel_fraction": {
+            "menu_labels": 0.0,
+            "toolbar_icons": 0.0,
+            "panel_icons": 0.0
+          }
+        }
+      },
+      {
+        "kind": "baseline_document_ruler_font",
+        "before": "baseline-original/restored.png",
+        "after": "candidate-legacy/restored.png",
+        "before_png_sha256": "876fd84cba05827133f7d3ae4428f18aab4991cb5c51e93f719cc3acf9f54e16",
+        "after_png_sha256": "5bbb09382415cc63c809fdc2440399431ab575811a218ca3aec47ff2f09c02d1",
+        "passed": true,
+        "state": "restored",
+        "comparison": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          },
+          "chrome_font_changed_pixel_fraction": {
+            "menu_labels": 0.0,
+            "toolbar_icons": 0.0,
+            "panel_icons": 0.0
+          }
+        }
+      },
+      {
+        "kind": "baseline_document_ruler_font",
+        "before": "baseline-original/restored.png",
+        "after": "candidate-persistent/restored.png",
+        "before_png_sha256": "876fd84cba05827133f7d3ae4428f18aab4991cb5c51e93f719cc3acf9f54e16",
+        "after_png_sha256": "e1c28cd7d6e752c6bb768f1bed73909d8babc8c1ea912a9626c83b7db295be6b",
+        "passed": true,
+        "state": "restored",
+        "comparison": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          },
+          "chrome_font_changed_pixel_fraction": {
+            "menu_labels": 0.0,
+            "toolbar_icons": 0.0,
+            "panel_icons": 0.0
+          }
+        }
+      },
+      {
+        "kind": "candidate_transport_native",
+        "before": "candidate-legacy/after.png",
+        "after": "candidate-composite/after.png",
+        "before_png_sha256": "02fd4cc98ee74b9ee4b505c4adc2f1897d7595546cb962f16e956cc61fddbfdb",
+        "after_png_sha256": "286680c01228df6b61cd4fb6f966f7e6ce92b3d4cee484a74d68cfc15b2fe950",
+        "passed": true,
+        "state": "after",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "candidate_transport_native",
+        "before": "candidate-legacy/after.png",
+        "after": "candidate-persistent/after.png",
+        "before_png_sha256": "02fd4cc98ee74b9ee4b505c4adc2f1897d7595546cb962f16e956cc61fddbfdb",
+        "after_png_sha256": "dbc63e0ec11d4c5e54cf6efdf5ab904f76accdc9d6c48d8725aed9ea1cb41bae",
+        "passed": true,
+        "state": "after",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "candidate_transport_native",
+        "before": "candidate-legacy/before.png",
+        "after": "candidate-composite/before.png",
+        "before_png_sha256": "8ab99b92234ccfebce0abd9ddd2f8e6508fd01a23ae021764192870888bff9ef",
+        "after_png_sha256": "ea4b6a33aecb60edd825913641218e10a13f3a3ac1fe9ac82c5451c642ebcbf0",
+        "passed": true,
+        "state": "before",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "candidate_transport_native",
+        "before": "candidate-legacy/before.png",
+        "after": "candidate-persistent/before.png",
+        "before_png_sha256": "8ab99b92234ccfebce0abd9ddd2f8e6508fd01a23ae021764192870888bff9ef",
+        "after_png_sha256": "e1c28cd7d6e752c6bb768f1bed73909d8babc8c1ea912a9626c83b7db295be6b",
+        "passed": true,
+        "state": "before",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "candidate_transport_native",
+        "before": "candidate-legacy/restored.png",
+        "after": "candidate-composite/restored.png",
+        "before_png_sha256": "5bbb09382415cc63c809fdc2440399431ab575811a218ca3aec47ff2f09c02d1",
+        "after_png_sha256": "ea4b6a33aecb60edd825913641218e10a13f3a3ac1fe9ac82c5451c642ebcbf0",
+        "passed": true,
+        "state": "restored",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "candidate_transport_native",
+        "before": "candidate-legacy/restored.png",
+        "after": "candidate-persistent/restored.png",
+        "before_png_sha256": "5bbb09382415cc63c809fdc2440399431ab575811a218ca3aec47ff2f09c02d1",
+        "after_png_sha256": "e1c28cd7d6e752c6bb768f1bed73909d8babc8c1ea912a9626c83b7db295be6b",
+        "passed": true,
+        "state": "restored",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "canonical_state",
+        "before": "baseline-original/after.png",
+        "after": "baseline-original/canonical-selected.png",
+        "before_png_sha256": "2dd29620a8c6a3d264d9b62b9bffaf9fddaf958f3d437af0d15a6da1c3907b66",
+        "after_png_sha256": "27734333f942ab1fc1cad01eb7bb8ae8094673c93e3e5d4da956ffda6b24149f",
+        "passed": true,
+        "mode": "baseline-original",
+        "state": "selected",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "canonical_state",
+        "before": "baseline-original/before.png",
+        "after": "baseline-original/canonical-cleared.png",
+        "before_png_sha256": "9db87ccefeb53d5ca37c0b55838eb89c936c05f03515399f3e602cfa79e74fe9",
+        "after_png_sha256": "876fd84cba05827133f7d3ae4428f18aab4991cb5c51e93f719cc3acf9f54e16",
+        "passed": true,
+        "mode": "baseline-original",
+        "state": "cleared",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "canonical_state",
+        "before": "candidate-composite/after.png",
+        "after": "candidate-composite/canonical-selected.png",
+        "before_png_sha256": "286680c01228df6b61cd4fb6f966f7e6ce92b3d4cee484a74d68cfc15b2fe950",
+        "after_png_sha256": "739db109e4b6af5764cd9ea0241e8824b9a6815e922ca125efce85ef8aab23bb",
+        "passed": true,
+        "mode": "candidate-composite",
+        "state": "selected",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "canonical_state",
+        "before": "candidate-composite/before.png",
+        "after": "candidate-composite/canonical-cleared.png",
+        "before_png_sha256": "ea4b6a33aecb60edd825913641218e10a13f3a3ac1fe9ac82c5451c642ebcbf0",
+        "after_png_sha256": "ca3f11b1c4740eac853c43812a9f9353dd0224b1dac4f3219a627806ea4f530d",
+        "passed": true,
+        "mode": "candidate-composite",
+        "state": "cleared",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "canonical_state",
+        "before": "candidate-legacy/after.png",
+        "after": "candidate-legacy/canonical-selected.png",
+        "before_png_sha256": "02fd4cc98ee74b9ee4b505c4adc2f1897d7595546cb962f16e956cc61fddbfdb",
+        "after_png_sha256": "91a50444dddbf35487c1025a1a7becf8498f73bbf9d7d26e802fbcd65fefb773",
+        "passed": true,
+        "mode": "candidate-legacy",
+        "state": "selected",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "canonical_state",
+        "before": "candidate-legacy/before.png",
+        "after": "candidate-legacy/canonical-cleared.png",
+        "before_png_sha256": "8ab99b92234ccfebce0abd9ddd2f8e6508fd01a23ae021764192870888bff9ef",
+        "after_png_sha256": "d42c6fd0b165f59642282b8db8f7548a21cf107ed99549ef8704946d2d448427",
+        "passed": true,
+        "mode": "candidate-legacy",
+        "state": "cleared",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "canonical_state",
+        "before": "candidate-persistent/after.png",
+        "after": "candidate-persistent/canonical-selected.png",
+        "before_png_sha256": "dbc63e0ec11d4c5e54cf6efdf5ab904f76accdc9d6c48d8725aed9ea1cb41bae",
+        "after_png_sha256": "f363fdcb020bf0d705c0707a5a0eba73c2409b0e83fdbb52435e71363abbb102",
+        "passed": true,
+        "mode": "candidate-persistent",
+        "state": "selected",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      },
+      {
+        "kind": "canonical_state",
+        "before": "candidate-persistent/before.png",
+        "after": "candidate-persistent/canonical-cleared.png",
+        "before_png_sha256": "e1c28cd7d6e752c6bb768f1bed73909d8babc8c1ea912a9626c83b7db295be6b",
+        "after_png_sha256": "09948c353b5de21989d38c7037e2fe5f4980626653fb345d2a45910061993d74",
+        "passed": true,
+        "mode": "candidate-persistent",
+        "state": "cleared",
+        "comparison": {
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      }
+    ]
+  },
+  "source_and_peer_audit": {
+    "uno_source_commit": "78c746d28293975e64ba0f162af6f44f3c3daaab",
+    "peer_audit_filename": "recording-damage-peer-audit.json",
+    "peer_audit_is_a_local_analysis_sidecar_not_part_of_the_downloaded_zip": true,
+    "peer_audit_sha256": "d2d91f6ff0c3d877397af94b8071b5574fff6259c5a2e96826e48b06e2b431de",
+    "peer_histograms_and_canonical_ops_independently_recomputed": true,
+    "pinned_uno_source_file_sha256_verified": {
+      "src/Uno.UI/UI/Xaml/Media/CompositionTarget.Rendering.cs": "e78535138da7c1b91b02bcdc7511a8d5f8cb1729ec62a2e72ed7a9e6184c67c1",
+      "src/Uno.UI/UI/Xaml/Media/CompositionTarget.RenderScheduling.cs": "5eade70fbcf34f5c6c201bca69c744b6cbbd2103fccbbd7c9989e37e0435228c",
+      "src/Uno.UI.Composition/Composition/Compositor.skia.cs": "6105b194b6760563b15886461c927b72595e98cfc154e615182d324381a4ada1",
+      "src/Uno.UI.Composition/Composition/Visual.skia.cs": "8234640b10a3832b977e503035d363bfdfc12708c3ddd163bc15aef30612dcbf",
+      "src/Uno.UI.Composition/Composition/Visual.Damage.skia.cs": "8801d72e156727c760f0f4544b24f0341bad094c415594ee79ffffda981c44ff",
+      "src/Uno.UI.Composition.WebGpu/WebGpuPresentSession.cs": "13cd2f9505565a001de32135c292f07b4af44cdea255f8f92346518382c749a6",
+      "src/Uno.UI.Composition.WebGpu/WebGpuFrame.cs": "e54b1ae3b2ae33510b6f15a14d3a4f4fb0e73469ef542b5b7e737f06d6e682cf",
+      "src/Uno.UI.Composition.WebGpu.Init/WebGpuBrowserGraphicsContext.cs": "388cb503ddfa91151bdee3d792c6f608a2e73b7c52b68e25fcc84a420728f0fa",
+      "src/AddIns/Uno.WinUI.Graphics3DWebGpu/WebGpuCanvasElement.cs": "d0e544658c7fb624f99f45521bdae33987107e02b530062c14bc6c4b9b545b5d",
+      "src/AddIns/Uno.WinUI.Graphics2DSK/SKCanvasElement.cs": "240ed5323465a40e7d11e28b989e3f9c88f4b4d5f6b82624a6c4ca3b8b971d4b",
+      "src/Uno.UI.Composition.WebGpu/WebGpuDrawingFactory.cs": "fac77395644150f78828245bb3e7a336a68dc726f7adaeadbe786a44dec475f4",
+      "src/Uno.UI.Composition.WebGpu/WebGpuFrame.Walk.cs": "b8c33b521728923ba2a07b77458d3b54e8ea96169352be1ca160529dc38cd06e",
+      "src/Uno.UI.Composition.WebGpu/WebGpuCommandRecorder.cs": "cfa9ec729319737dc3eb858e8778ab6197071296f4c996d668432bcca5bccb63"
+    },
+    "original_f8_quality_and_diagnostic_function_sha256_verified": {
+      "tests/UnoDraw.BrowserPerformance/quality.py#raw_comparison": "9d6e45581775ef7e1d2aab9a9dd7e7e007aaa7408499a9ac9cd5feaa8beee34a",
+      "tests/UnoDraw.BrowserPerformance/performance.py#cross_build_quality": "4ad4307184fc4f7fdfdb1b60dc98fb748de71ed60f1baafc3e5299b44de4dacd",
+      "tests/UnoDraw.BrowserSmoke/smoke.py#artwork_transition": "12d01a22c5fafbe336f86b9e4f1b5bc25e66fb1700dbadeaba4b966d8e4953e3",
+      "tests/UnoDraw.BrowserSmoke/smoke.py#ruler_frame_changes": "2fed53398e6018728b1cc1fb3d6da3ae2f2e9d217e3817f2e4fade6296ecdf5f",
+      "tests/UnoDraw.BrowserSmoke/smoke.py#chrome_font_changes": "ccca3b16b2e2a870cdf1fc3041386b6f4ab0f4bd1b42e1c85a0bb313ce266bbe",
+      "tests/UnoDraw.BrowserPerformance/runtime_diagnostic_contracts.py#config_response": "18cdb712b058ee0efbcb40dbaf02eac7084dc749a5855fa0445dc4eefc3647e4",
+      "tests/UnoDraw.BrowserPerformance/runtime_diagnostic_contracts.py#verify_observation": "e5812cee765d9f0a573fd561e159cbb92ca591f1e517610fc1273dc6a97c632d",
+      "tests/UnoDraw.BrowserPerformance/runtime_diagnostic_contracts.py#summarize_logs": "31e99f1118db3f05b512fbcfe1ffe8da38f005c570a1478a6c184f7df5127905"
+    },
+    "source_guarantees": [
+      "Native frame requests enqueue a later record callback while immediately drawing and presenting the last recorded frame.",
+      "A present with no damage, unchanged dimensions, preserved target contents and no forcing overlay skips scene clear/replay.",
+      "The present still blits the preserved offscreen target into a newly acquired browser canvas texture and submits that blit.",
+      "WebGpuPresentSession with no replay or immediate draws returns before WebGpuFrame.Run, so no native scene-replay diagnostic line is emitted for that unchanged present.",
+      "Both SKCanvasElement and WebGpuCanvasElement invalidate through Compositor.InvalidateRender, which marks their own paint dirty and invalidates ancestor cached recordings. There is no host-specific unconditional scene replay here.",
+      "Opaque classification and mip-chain creation differ: the original uploaded texture scans alpha and creates mips; the persistent external render target defaults to unknown opacity and one mip. This is a source-proven difference, not a measured causal attribution."
+    ]
+  },
+  "separate_primary_context": {
+    "evidence_file": "unodraw-pinned-transport-2026-11-12.json",
+    "report_kind": "same_snapshot_texture_transport_experiment",
+    "artifact": {
+      "run_id": 43282970869,
+      "job_id": 131408835350,
+      "url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43282970869",
+      "id": 13976085931,
+      "name": "unodraw-pinned-legacy-composite-selection",
+      "archive_sha256": "87ad701ffd59950603b458342bffb4491120f1de9c5c34654846213c3bfd14d7",
+      "archive_bytes": 5986739,
+      "report_sha256": "e8af0bc703c1ab39cbadcb201502dadc977862f50dbd2d1cb0c1fcf570c100b6"
+    },
+    "application_source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+    "harness_source_sha": "f8c8ffffdcf0a81d50cca80499236f82624edeb9",
+    "primary_trial_count": 6,
+    "separate_primary_elapsed_order": "Composite median is lower than legacy median.",
+    "logging_diagnostic_elapsed_order": "Legacy elapsed duration is lower than composite elapsed duration.",
+    "ratios_imported_into_this_diagnostic_audit": false,
+    "measurements_combined": false,
+    "causal_attribution": null
+  },
+  "interpretation_and_limits": [
+    "All four cases use the same explicit logging override, but logging can change scheduling and coalescing. This fixed-order, one-trial-per-mode diagnostic is not a primary speedup benchmark.",
+    "The historical same-package transport primary benchmark and these logging-enabled runs have opposite legacy/composite elapsed-time ordering. Do not infer a transport cause or multiply ratios across these experiments; primary timing evidence remains separate.",
+    "The native log counts are offscreen scene replay observations. Preserved offscreen contents can still be blitted and submitted to a newly acquired browser canvas texture without a WebGpuFrame.Run diagnostic line.",
+    "Browser callback and submission counts are not physical presentation counts, rendered FPS, or proof that every individual selection state reached the canvas.",
+    "Every frame-phases line averages 60 recordings. Its accumulated window may start before the sampled console range; all such lines may straddle the measurement boundaries. Gap is not GPU execution time.",
+    "The 60-op split within each mode matches that mode's selected and cleared canonical states. It does not establish an extra 60-op transport cost.",
+    "The original upload modes recorded fewer rows matching cleared-state canonical ops. The higher persistent/composite replay counts cannot be classified as redundant work from these data. Coalescing is a plausible interpretation, not a directly timestamp-proven cause.",
+    "Canonical pixel checks occur after the measured window and prove the two settled states only. Ops-based stage classification does not identify a per-input recording sequence or prove intermediate selected pixels.",
+    "Native elapsed stage fields are CPU-side observations from this logging run; they neither measure GPU execution directly nor isolate why primary timings changed.",
+    "The new legacy-composite implementation and current default are outside this historical artifact's source scope. No renderer promotion or current-source recovery is claimed."
+  ]
+}
