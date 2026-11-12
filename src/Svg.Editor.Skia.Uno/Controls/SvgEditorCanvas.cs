@@ -153,6 +153,12 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
         if (_disposed)
             return;
 
+        if (_layerLease is { } layers)
+        {
+            layers.InvalidateInteraction();
+            return;
+        }
+
         var invalidation = _renderSchedule.InvalidateInteraction();
         if ((invalidation & SvgEditorCanvasInvalidation.Document) != 0)
             base.Invalidate();
@@ -479,6 +485,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
 
     private void ReleaseResources()
     {
+        _layerLease?.Dispose();
         _renderSchedule.Reset();
         _hasDocumentRenderState = false;
         _documentRenderState = default;

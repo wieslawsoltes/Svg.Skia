@@ -17,10 +17,21 @@
     <!-- Exercise the production browser buffer without loading a GUI runtime. -->
     <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaCanvasUploadBuffer.cs"
              Link="Rendering/SkiaCanvasUploadBuffer.cs" />
+    <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaCanvasDocumentCache.cs"
+             Link="Rendering/SkiaCanvasDocumentCache.cs" />
+    <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaTextRasterDrawable.cs"
+             Link="Rendering/SkiaTextRasterDrawable.cs" />
+    <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaDocumentDrawable.cs"
+             Link="Rendering/SkiaDocumentDrawable.cs" />
     <Compile Include="../../src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvasRenderSchedule.cs"
              Link="Rendering/SvgEditorCanvasRenderSchedule.cs" />
     <Compile Include="../../src/Svg.Editor.Skia.Uno/Controls/StudioPanelRefreshState.cs"
              Link="Controls/StudioPanelRefreshState.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="../UnoDraw.BrowserRenderQuality/fixtures/svg-bridge/*.svg"
+             Link="CompositeFixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

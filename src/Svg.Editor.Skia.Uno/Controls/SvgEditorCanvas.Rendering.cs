@@ -23,10 +23,33 @@ public sealed partial class SvgEditorCanvas
 
     void ISkiaCanvasRenderer.Render(SKCanvas canvas, Size area) => RenderOverride(canvas, area);
 
-    protected override void RenderOverride(SKCanvas canvas, Size area)
+    protected override void RenderOverride(SKCanvas canvas, Size area) => RenderFrame(canvas, area, null);
+
+    /// <summary>
+    /// Paints the original canvas layers with a synchronous document painter.
+    /// The callback replaces only the SVG draw, inside the existing viewport
+    /// transform and artboard/feedback order. It must preserve the renderer's
+    /// draw lifetime and settings, for example through its Draw overload.
+    /// </summary>
+    public void RenderWithDocument(SKCanvas canvas, Size area, Action<global::Svg.Skia.SKSvg, SKCanvas> drawDocument)
+    {
+        ArgumentNullException.ThrowIfNull(drawDocument);
+        RenderFrame(canvas, area, drawDocument);
+    }
+
+    private void RenderFrame(SKCanvas canvas, Size area, Action<global::Svg.Skia.SKSvg, SKCanvas>? drawDocument)
     {
         if (_disposed)
         {
+            return;
+        }
+
+        if (_layerLease is not null)
+        {
+            // A direct painter invocation still means a complete frame while
+            // a bridge owns the layers; only its explicit lease may reuse pixels.
+            RenderDocument(canvas, area, drawDocument);
+            RenderInteraction(canvas, area);
             return;
         }
 
@@ -37,12 +60,13 @@ public sealed partial class SvgEditorCanvas
         if (plan.InvalidateInteraction)
             _interactionSurface.Invalidate();
 
-        RenderDocument(canvas, area);
+        RenderDocument(canvas, area, drawDocument);
         if (plan.CombineInteraction)
             RenderInteraction(canvas, area);
     }
 
-    private void RenderDocument(SKCanvas canvas, Size area)
+    private void RenderDocument(SKCanvas canvas, Size area,
+        Action<global::Svg.Skia.SKSvg, SKCanvas>? drawDocument = null)
     {
         using var measurement = EditorRenderDiagnostics.Measure(EditorRenderPhase.Document);
         var started = Stopwatch.GetTimestamp();
@@ -70,7 +94,10 @@ public sealed partial class SvgEditorCanvas
 
                 // Replays the existing Svg.Skia display list into the host surface. No bitmap
                 // readback, reparsing, or document mutation is performed by a camera redraw.
-                Controller.Renderer.Draw(canvas);
+                if (drawDocument is null)
+                    Controller.Renderer.Draw(canvas);
+                else
+                    drawDocument(Controller.Renderer, canvas);
             }
         }
 
@@ -81,7 +108,7 @@ public sealed partial class SvgEditorCanvas
 
     private void RenderInteractionSurface(SKCanvas canvas, Size area)
     {
-        if (_disposed || !_renderSchedule.BeginInteractionPaint())
+        if (_disposed || _layerLease is not null || !_renderSchedule.BeginInteractionPaint())
             return;
 
         RenderInteraction(canvas, area);

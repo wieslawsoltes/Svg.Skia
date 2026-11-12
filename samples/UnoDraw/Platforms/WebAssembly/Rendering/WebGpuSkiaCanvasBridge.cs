@@ -18,6 +18,7 @@ internal static class WebGpuSkiaCanvasBridge
 {
     private static int s_reportedInitialization;
     private static int s_reportedWebGlInitialization;
+    private static int s_reportedCompositeInitialization;
 
     internal static void Register()
     {
@@ -34,11 +35,14 @@ internal static class WebGpuSkiaCanvasBridge
         // The original renderer is used only to request Uno's supported fallback;
         // its GL-specific Init/Render/Destroy methods are never called.
         var preferWebGl = preference == "webgl";
+        var preferComposite = preference == "composite";
         ApiExtensibility.Register<IGLIslandRenderer>(typeof(IGLIsland),
-            renderer => new RasterCanvasIsland(renderer, preferWebGl));
+            renderer => new RasterCanvasIsland(renderer, preferWebGl, preferComposite));
         Console.WriteLine(preferWebGl
             ? "UnoDraw canvas bridge preference: WebGL document rasterization."
-            : "UnoDraw canvas bridge preference: persistent RGBA upload.");
+            : preferComposite
+                ? "UnoDraw canvas bridge preference: cached document composition."
+                : "UnoDraw canvas bridge preference: persistent RGBA upload.");
     }
 
     internal static void ReportInitialization()
@@ -53,19 +57,28 @@ internal static class WebGpuSkiaCanvasBridge
             Console.WriteLine("UnoDraw canvas bridge initialized: WebGL document rasterization.");
     }
 
+    internal static void ReportCompositeInitialization()
+    {
+        if (Interlocked.Exchange(ref s_reportedCompositeInitialization, 1) == 0)
+            Console.WriteLine("UnoDraw canvas bridge initialized: cached document composition.");
+    }
+
     private sealed class RasterCanvasIsland : Grid, IGLIsland
     {
         private readonly IGLIslandRenderer _fallback;
         private readonly Canvas _viewport = new() { IsHitTestVisible = false };
         private readonly WebGpuRasterCanvas _canvas;
+        private readonly bool _preferComposite;
         private readonly RectangleGeometry _clip = new();
         private readonly List<(UIElement Element, DependencyProperty Property, long Token)> _transformSubscriptions = [];
         private XamlRoot? _observedRoot;
+        private ISkiaCanvasLayers? _layers;
         private bool _failed;
 
-        public RasterCanvasIsland(IGLIslandRenderer fallback, bool preferWebGl)
+        public RasterCanvasIsland(IGLIslandRenderer fallback, bool preferWebGl, bool preferComposite)
         {
             _fallback = fallback;
+            _preferComposite = preferComposite;
             _canvas = new WebGpuRasterCanvas(RequestFallback, preferWebGl);
             IsHitTestVisible = false;
             Clip = _clip;
@@ -81,7 +94,7 @@ internal static class WebGpuSkiaCanvasBridge
 
         public FrameworkElement Element => this;
 
-        public void Invalidate() => _canvas.Invalidate();
+        public void Invalidate() => _canvas.InvalidateDocument();
 
         private void OnLoaded(object sender, RoutedEventArgs args)
         {
@@ -98,6 +111,16 @@ internal static class WebGpuSkiaCanvasBridge
             _canvas.Renderer = renderer;
             ObserveRoot(XamlRoot);
             ObserveTransforms(source);
+            if (_failed)
+                return;
+            if (_preferComposite && renderer is ISkiaCanvasLayerSource layerSource)
+            {
+                _layers = layerSource.TryAcquireLayers(_canvas.Invalidate);
+                if (_layers is null)
+                    Console.WriteLine("UnoDraw canvas bridge composite fallback: the canvas layers are already owned or unavailable.");
+                else
+                    _canvas.SetCompositeLayers(_layers);
+            }
             UpdateSize(RenderSize);
         }
 
@@ -105,6 +128,7 @@ internal static class WebGpuSkiaCanvasBridge
         {
             ObserveRoot(null);
             StopObservingTransforms();
+            ReleaseLayers();
             _canvas.ReleaseSurfaces();
             _canvas.Renderer = null;
         }
@@ -214,11 +238,22 @@ internal static class WebGpuSkiaCanvasBridge
             _failed = true;
             ObserveRoot(null);
             StopObservingTransforms();
+            if (_layers is not null)
+                Console.WriteLine($"UnoDraw canvas bridge composite fallback: {reason ?? "the active canvas bridge became unavailable"}.");
+            ReleaseLayers();
             if (reason is not null)
                 Console.WriteLine($"UnoDraw canvas bridge fallback: {reason}.");
             // Uno queues removal after the current paint/Loaded callback and
             // invalidates the original painter through its normal software path.
             _fallback.OnUnavailable();
+        }
+
+        private void ReleaseLayers()
+        {
+            var layers = _layers;
+            _layers = null;
+            _canvas.SetCompositeLayers(null);
+            layers?.Dispose();
         }
     }
 }

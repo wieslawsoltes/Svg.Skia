@@ -48,6 +48,45 @@ internal sealed class SkiaCanvasUploadBuffer : IDisposable
     internal ReadOnlySpan<byte> UploadSpan => UploadBitmap.GetPixelSpan();
     private SKBitmap UploadBitmap => _upload ?? throw new ObjectDisposedException(nameof(SkiaCanvasUploadBuffer));
 
+    internal void CopyRasterTo(SKBitmap destination)
+    {
+        Canvas.Flush();
+        var raster = _rasterPixels!;
+        ValidateRasterCopy(destination, raster.Info);
+        CopyRows(raster.GetPixelSpan(), raster.RowBytes, destination.GetPixelSpan(), destination.RowBytes);
+    }
+
+    internal void RestoreRaster(SKBitmap source)
+    {
+        Canvas.Flush();
+        var raster = _rasterPixels!;
+        ValidateRasterCopy(source, raster.Info);
+        // This private raster surface has no snapshots or GPU backing. Copy into
+        // the same owned pixels the painter and native swizzle already access;
+        // no image draw, alpha conversion, matrix or clip participates.
+        CopyRows(source.GetPixelSpan(), source.RowBytes, raster.GetPixelSpan(), raster.RowBytes);
+    }
+
+    private static void ValidateRasterCopy(SKBitmap bitmap, SKImageInfo info)
+    {
+        ArgumentNullException.ThrowIfNull(bitmap);
+        if (bitmap.Info != info || bitmap.GetPixels() == IntPtr.Zero)
+            throw new ArgumentException("A raster copy requires matching allocated BGRA premultiplied pixels.", nameof(bitmap));
+    }
+
+    private void CopyRows(ReadOnlySpan<byte> source, int sourceRowBytes, Span<byte> destination, int destinationRowBytes)
+    {
+        var rowBytes = checked(Width * 4);
+        if (sourceRowBytes == rowBytes && destinationRowBytes == rowBytes)
+        {
+            source[..checked(rowBytes * Height)].CopyTo(destination);
+            return;
+        }
+        for (var row = 0; row < Height; row++)
+            source.Slice(checked(row * sourceRowBytes), rowBytes)
+                .CopyTo(destination.Slice(checked(row * destinationRowBytes), rowBytes));
+    }
+
     internal void UpdateUpload()
     {
         Canvas.Flush();

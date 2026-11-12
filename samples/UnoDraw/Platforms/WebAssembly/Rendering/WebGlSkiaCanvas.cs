@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices.JavaScript;
 using SkiaSharp;
 using Svg.Editor.Skia.Uno;
+using Svg.Skia;
 using Uno.UI.Composition.WebGpu;
 using Uno.WinUI.Graphics3DWebGpu;
 
@@ -27,9 +28,24 @@ internal sealed unsafe class WebGlSkiaCanvas : IDisposable
     private int _samples;
     private int _maximumWidth;
     private int _maximumHeight;
+    private readonly Action<SKSvg, SKCanvas> _drawDocument;
+    private readonly Func<SKCanvas, SkiaModel, ShimSkiaSharp.SKPicture, bool> _tryDrawModel;
+    private SkiaDocumentDrawable? _document;
+    private SkiaModel? _documentConverter;
+    private ShimSkiaSharp.SKPicture? _documentModel;
+    private SKPicture? _documentPicture;
+    private SKPicture? _activePicture;
+    private string? _documentFailure;
+    private string? _reportedDocumentFailure;
+    private bool _documentFailureCanRetry;
+    private CanvasPixelSize _failedPixels;
+    private SKMatrix _failedViewport;
+    private ShimSkiaSharp.SKMatrix _failedViewerTransform;
 
     internal WebGlSkiaCanvas(Action<string> unavailable)
     {
+        _drawDocument = DrawDocument;
+        _tryDrawModel = TryDrawModel;
         var previous = WebGlSkiaCanvasInterop.GetCurrentContext();
         try
         {
@@ -65,8 +81,34 @@ internal sealed unsafe class WebGlSkiaCanvas : IDisposable
         }
     }
 
-    internal void Render(WebGpuCanvasContext target, CanvasPixelSize pixels, ISkiaCanvasRenderer renderer)
+    internal bool Render(WebGpuCanvasContext target, CanvasPixelSize pixels, ISkiaCanvasRenderer renderer)
     {
+        if (renderer is SvgEditorCanvas editorSource)
+        {
+            if (editorSource.Controller is { } controller)
+            {
+                var source = controller.Renderer;
+                // Release a previous document even when its replacement requires
+                // the CPU painter and therefore never reaches TryDrawModel.
+                if (_documentConverter is not null &&
+                    (!ReferenceEquals(_documentConverter, source.SkiaModel) ||
+                     !ReferenceEquals(_documentModel, source.Model) || !ReferenceEquals(_documentPicture, source.Picture)))
+                    ReleaseDocument();
+                if (RequiresOriginalPainter(source))
+                    return UseCpuDocument("the document requires its original dynamic or wireframe painter");
+                if (_documentFailureCanRetry &&
+                    (_failedPixels != pixels || _failedViewport != editorSource.Viewport.Matrix ||
+                     !_failedViewerTransform.Equals(source.ViewerTransform)))
+                    ReleaseDocument();
+                if (_documentFailure is { } failure)
+                    return UseCpuDocument(failure);
+            }
+            else if (_documentConverter is not null)
+            {
+                ReleaseDocument();
+            }
+        }
+
         var previous = WebGlSkiaCanvasInterop.GetCurrentContext();
         try
         {
@@ -79,7 +121,10 @@ internal sealed unsafe class WebGlSkiaCanvas : IDisposable
             {
                 canvas.Scale((float)pixels.Scale);
                 canvas.ClipRect(new SKRect(0, 0, (float)pixels.LogicalSize.Width, (float)pixels.LogicalSize.Height));
-                renderer.Render(canvas, pixels.LogicalSize);
+                if (renderer is SvgEditorCanvas editor)
+                    editor.RenderWithDocument(canvas, pixels.LogicalSize, _drawDocument);
+                else
+                    renderer.Render(canvas, pixels.LogicalSize);
             }
             finally
             {
@@ -98,11 +143,104 @@ internal sealed unsafe class WebGlSkiaCanvas : IDisposable
             var queue = WebGpuJsInterop.GetJsObject(unchecked((int)(nint)target.Queue));
             var texture = WebGpuJsInterop.GetJsObject(unchecked((int)(nint)target.Target));
             WebGlSkiaCanvasInterop.CopyCanvas(_canvasState!, device, queue, texture, _width, _height);
+            return true;
+        }
+        catch (SkiaDocumentRasterizationException error)
+        {
+            // Unsupported document semantics use the original complete CPU frame;
+            // the healthy GL context remains available for later documents.
+            if (_documentFailureCanRetry && renderer is SvgEditorCanvas { Controller: { } failedController } failedEditor)
+            {
+                _failedPixels = pixels;
+                _failedViewport = failedEditor.Viewport.Matrix;
+                _failedViewerTransform = failedController.Renderer.ViewerTransform;
+            }
+            return UseCpuDocument(error.Message);
         }
         finally
         {
             RestoreCurrent(previous);
         }
+    }
+
+    private bool UseCpuDocument(string reason)
+    {
+        if (_reportedDocumentFailure != reason)
+        {
+            _reportedDocumentFailure = reason;
+            Console.WriteLine($"UnoDraw WebGL canvas fallback: {reason}.");
+        }
+        return false;
+    }
+
+    private static bool RequiresOriginalPainter(SKSvg source) =>
+        source.Wireframe || source.HasAnimations || source.UsesAnimationLayerCaching || source.HasTextSelection;
+
+    private void DrawDocument(SKSvg source, SKCanvas canvas)
+    {
+        if (RequiresOriginalPainter(source))
+            throw new SkiaDocumentRasterizationException("the document requires its original dynamic or wireframe painter");
+
+        var previous = _activePicture;
+        _activePicture = source.Picture;
+        try
+        {
+            source.Draw(canvas, _tryDrawModel);
+        }
+        finally
+        {
+            _activePicture = previous;
+        }
+    }
+
+    private bool TryDrawModel(SKCanvas canvas, SkiaModel converter, ShimSkiaSharp.SKPicture model)
+    {
+        // The native picture is the existing renderer's content-generation key.
+        // Camera changes leave it stable; document rebuilds replace it even when
+        // callers retain and edit the public model object.
+        if (!ReferenceEquals(_documentConverter, converter) || !ReferenceEquals(_documentModel, model) ||
+            !ReferenceEquals(_documentPicture, _activePicture))
+        {
+            ReleaseDocument();
+            _documentConverter = converter;
+            _documentModel = model;
+            _documentPicture = _activePicture;
+            try
+            {
+                _document = new SkiaDocumentDrawable(converter, model);
+            }
+            catch (SkiaDocumentRasterizationException error)
+            {
+                _documentFailure = error.Message;
+            }
+        }
+        if (_documentFailure is { } failure)
+            throw new SkiaDocumentRasterizationException(failure);
+        try
+        {
+            _document!.Draw(canvas);
+        }
+        catch (SkiaDocumentRasterizationException error)
+        {
+            _documentFailure = error.Message;
+            _documentFailureCanRetry = true;
+            _document?.Dispose();
+            _document = null;
+            throw;
+        }
+        return true;
+    }
+
+    private void ReleaseDocument()
+    {
+        _document?.Dispose();
+        _document = null;
+        _documentConverter = null;
+        _documentModel = null;
+        _documentPicture = null;
+        _documentFailure = null;
+        _documentFailureCanRetry = false;
+        _reportedDocumentFailure = null;
     }
 
     private void EnsureSurface(int width, int height)
@@ -158,6 +296,8 @@ internal sealed unsafe class WebGlSkiaCanvas : IDisposable
                 WebGlSkiaCanvasInterop.MakeCurrent(context) == 0;
             if (!usable)
                 _grContext?.AbandonContext(releaseResources: false);
+            ReleaseDocument();
+            _activePicture = null;
             _surface?.Dispose();
             _surface = null;
             _renderTarget?.Dispose();
