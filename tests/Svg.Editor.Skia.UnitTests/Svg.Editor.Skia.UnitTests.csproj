@@ -17,6 +17,8 @@
     <!-- Exercise the production browser buffer without loading a GUI runtime. -->
     <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaCanvasUploadBuffer.cs"
              Link="Rendering/SkiaCanvasUploadBuffer.cs" />
+    <Compile Include="../../src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvasRenderSchedule.cs"
+             Link="Rendering/SvgEditorCanvasRenderSchedule.cs" />
   </ItemGroup>
 
 </Project>

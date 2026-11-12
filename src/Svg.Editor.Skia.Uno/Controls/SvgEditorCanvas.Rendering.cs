@@ -17,8 +17,8 @@ public sealed partial class SvgEditorCanvas
 {
     private sealed class InteractionSurface(SvgEditorCanvas owner) : SKCanvasElement, ISkiaCanvasRenderer
     {
-        protected override void RenderOverride(SKCanvas canvas, Size area) => owner.RenderInteraction(canvas, area);
-        void ISkiaCanvasRenderer.Render(SKCanvas canvas, Size area) => owner.RenderInteraction(canvas, area);
+        protected override void RenderOverride(SKCanvas canvas, Size area) => owner.RenderInteractionSurface(canvas, area);
+        void ISkiaCanvasRenderer.Render(SKCanvas canvas, Size area) => owner.RenderInteractionSurface(canvas, area);
     }
 
     void ISkiaCanvasRenderer.Render(SKCanvas canvas, Size area) => RenderOverride(canvas, area);
@@ -30,13 +30,22 @@ public sealed partial class SvgEditorCanvas
             return;
         }
 
+        var plan = _renderSchedule.BeginDocumentPaint();
+        var opacity = plan.CombineInteraction ? 0d : 1d;
+        if (_interactionSurface.Opacity != opacity)
+            _interactionSurface.Opacity = opacity;
+        if (plan.InvalidateInteraction)
+            _interactionSurface.Invalidate();
+
+        RenderDocument(canvas, area);
+        if (plan.CombineInteraction)
+            RenderInteraction(canvas, area);
+    }
+
+    private void RenderDocument(SKCanvas canvas, Size area)
+    {
         using var measurement = EditorRenderDiagnostics.Measure(EditorRenderPhase.Document);
         var started = Stopwatch.GetTimestamp();
-        // Invalidate is nonvirtual in SKCanvasElement. A caller holding that base
-        // type can dirty only the parent; refresh its overlay before children are
-        // visited, without re-invalidating an already pending interaction paint.
-        if (!_interactionRenderPending)
-            InvalidateInteraction();
         var renderState = CaptureDocumentRenderState();
         var resources = _resources ??= new CanvasResources();
         ApplyCanvasPalette(resources);
@@ -70,14 +79,20 @@ public sealed partial class SvgEditorCanvas
         _lastDocumentRenderMilliseconds = (Stopwatch.GetTimestamp() - started) * 1000d / Stopwatch.Frequency;
     }
 
+    private void RenderInteractionSurface(SKCanvas canvas, Size area)
+    {
+        if (_disposed || !_renderSchedule.BeginInteractionPaint())
+            return;
+
+        RenderInteraction(canvas, area);
+        _renderSchedule.CompleteInteractionPaint();
+    }
+
     private void RenderInteraction(SKCanvas canvas, Size area)
     {
         if (_disposed)
             return;
 
-        // Clear before drawing: an invalidation raised during the callback still
-        // owns a subsequent paint and must not be cleared when this one ends.
-        _interactionRenderPending = false;
         using var measurement = EditorRenderDiagnostics.Measure(EditorRenderPhase.Interaction);
         var started = Stopwatch.GetTimestamp();
         var resources = _resources ??= new CanvasResources();

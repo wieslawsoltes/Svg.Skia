@@ -64,10 +64,10 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
     private bool _disposed;
     private CanvasResources? _resources;
     private readonly InteractionSurface _interactionSurface;
+    private readonly SvgEditorCanvasRenderSchedule _renderSchedule = new();
     private double _lastDocumentRenderMilliseconds;
     private double _lastInteractionRenderMilliseconds;
     private int _fullInvalidatePending;
-    private bool _interactionRenderPending = true;
     private bool _hasDocumentRenderState;
     private DocumentRenderState _documentRenderState;
 
@@ -80,8 +80,8 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
 
     public SvgEditorCanvas()
     {
-        // Own content remains the document layer. A single child paints transient
-        // editing feedback after it, while leaving the document recording intact.
+        // Full paints combine document and interaction content. A retained child
+        // handles subsequent feedback changes without repainting the document.
         _interactionSurface = new InteractionSurface(this) { IsHitTestVisible = false };
         // A compositor bridge can append its document island after construction.
         // Keep interaction feedback above that host-owned content as well.
@@ -144,17 +144,20 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
                 Volatile.Write(ref _fullInvalidatePending, 0);
             return;
         }
+        _renderSchedule.InvalidateDocument();
         base.Invalidate();
-        InvalidateInteraction();
     }
 
     private void InvalidateInteraction()
     {
-        if (!_disposed)
-        {
-            _interactionRenderPending = true;
+        if (_disposed)
+            return;
+
+        var invalidation = _renderSchedule.InvalidateInteraction();
+        if ((invalidation & SvgEditorCanvasInvalidation.Document) != 0)
+            base.Invalidate();
+        if ((invalidation & SvgEditorCanvasInvalidation.Interaction) != 0)
             _interactionSurface.Invalidate();
-        }
     }
 
     public SvgEditorController? Controller
@@ -365,6 +368,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
 
         RefreshNodePreview();
         UpdateCursor();
+        Invalidate();
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -475,6 +479,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
 
     private void ReleaseResources()
     {
+        _renderSchedule.Reset();
         _hasDocumentRenderState = false;
         _documentRenderState = default;
         _artboardCache.Clear();
