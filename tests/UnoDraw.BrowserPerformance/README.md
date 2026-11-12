@@ -311,6 +311,65 @@ python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
   --output /absolute/path/webgl-pan-experiment --workload pan --repeats 3
 ```
 
+### Direct Graphite document experiment
+
+`?canvasBridge=graphite` is a separate opt-in path that records Skia document
+commands into the Uno render texture on the shared WebGPU queue. Its
+[browser targets](../../samples/UnoDraw/Platforms/WebAssembly/Rendering/UnoDraw.Graphite.targets)
+align the managed/native Skia packages and retain one Dawn JavaScript owner.
+The default remains the persistent CPU bridge. The same-package comparison
+selects `persistent` versus `graphite`; each pan or zoom job still runs three
+alternating pairs, two separate diagnostic passes, all 120 inputs, and the
+unchanged before/after/restored pixel checks.
+
+Every Graphite trial requires its preference and validated initialization logs,
+no fallback, and a positive `graphite_document_submissions` delta during the
+measurement window. The application increments this counter only after a real
+document recording is accepted and its Graphite context submits successfully.
+The observer reads it only at the existing start/stop boundaries. Missing data
+remains `null`; a missing, reset or zero counter cannot prove this path ran.
+External-image copy calls must be zero. Aggregate `writeTexture` calls can still
+come from auxiliary CPU surfaces or resource uploads and are not labeled as
+full-document transfers. Document submissions, visible-canvas submissions and
+physical presentation remain distinct concepts.
+
+```sh
+python tests/UnoDraw.BrowserPerformance/bridge_quality.py \
+  --package /absolute/path/packages/candidate \
+  --output /absolute/path/graphite-quality --candidate-bridge graphite
+python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
+  --package /absolute/path/packages/candidate \
+  --output /absolute/path/graphite-pan-experiment \
+  --candidate-bridge graphite --workload pan --repeats 3
+```
+
+Run `--workload zoom` as its own matched job. The selected GPU painter also runs
+the independent [eight-scene native SVG gate](../UnoDraw.BrowserRenderQuality/SVG_SCENES.md).
+The `composite` experiment retains its separate `--workload brush-hover` scope;
+it requires real cached-document reuse and zero steady-state document paints.
+These experiments never replace the complete baseline/candidate matrix.
+
+### Post-window backlog diagnostics
+
+The primary clock still stops after the same two natural rAF opportunities.
+That is not a GPU completion barrier. After primary CDP and managed snapshots,
+an explicit Graphite trial must expose `__unoDrawGraphiteDrain()`. The harness
+awaits its asynchronous shared-queue `onSubmittedWorkDone` operation, with a
+30-second diagnostic timeout and no forced rendering or synchronous flush.
+`graphite_queue_drain.result` retains completion, queue count, errors and the
+in-browser `duration_ms`; `request_elapsed_ms_including_automation` also includes
+the request overhead. Missing or unsuccessful drain evidence fails an explicit
+Graphite trial. Other bridge modes record this diagnostic as unavailable.
+
+Each trial separately records `quality.final_capture_validation_elapsed_ms` and
+`quality.restore_validation_elapsed_ms`. The first includes final screenshot
+readiness and native-image validation; the second includes real restore commands
+and their screenshot validation. Both include automation and image analysis.
+Graphite drains first, so its later screenshot starts from a different queue
+state. Reports list these diagnostics individually and calculate no cross-mode
+ratios from them. They help expose a large post-window backlog and do not measure
+active renderer-thread CPU, per-input causality, or physical presentation.
+
 ## Local reproduction
 
 Install SDK 10.0.403, then publish each revision in its own checkout using the

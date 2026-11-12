@@ -11,10 +11,10 @@ from pathlib import Path
 from typing import Any
 
 from quality import verify_bridge
-from metrics import verify_hover_isolation
+from metrics import require_graphite_queue_drain, verify_hover_isolation
 
 
-CANDIDATE_BRIDGES = ("webgl", "composite")
+CANDIDATE_BRIDGES = ("webgl", "composite", "graphite")
 WORKLOADS = ("pan", "zoom", "brush-hover")
 STATES = ("before", "after", "restored")
 
@@ -27,7 +27,7 @@ def bridge_pair(candidate_bridge: str = "webgl") -> tuple[str, str]:
 
 def verify_experiment_workload(workload: str, candidate_bridge: str) -> None:
     bridge_pair(candidate_bridge)
-    supported = ("pan", "zoom") if candidate_bridge == "webgl" else ("brush-hover",)
+    supported = ("pan", "zoom") if candidate_bridge in {"webgl", "graphite"} else ("brush-hover",)
     if workload not in supported:
         raise ValueError(f"The {candidate_bridge} experiment requires one of: {', '.join(supported)}")
 
@@ -82,6 +82,13 @@ def verify_runs(runs: list[dict[str, Any]], repeats: int, source_sha: str,
         if run["canvas_bridge"] == "webgl" and metrics.get("graphics_api_calls", {}).get(
                 "webgpu.copyExternalImageToTexture", 0) <= 0:
             raise ValueError("The WebGL trial did not copy a document image during measurement")
+        if run["canvas_bridge"] == "graphite":
+            submissions = metrics.get("graphite_document_submissions")
+            if isinstance(submissions, bool) or not isinstance(submissions, int) or submissions <= 0:
+                raise ValueError("The Graphite trial did not submit document commands during measurement")
+            if metrics.get("graphics_api_calls", {}).get("webgpu.copyExternalImageToTexture", 0) != 0:
+                raise ValueError("The direct Graphite trial unexpectedly copied an external document image")
+            require_graphite_queue_drain(run.get("graphite_queue_drain", {}), required=True)
         if diagnostics and workload == "brush-hover":
             verify_hover_isolation(run.get("managed_render_diagnostics", {}).get("after", {"phases": []}))
         verify_bridge(run["console"], run["canvas_bridge"])

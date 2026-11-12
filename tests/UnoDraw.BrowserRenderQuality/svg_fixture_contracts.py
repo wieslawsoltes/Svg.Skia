@@ -22,6 +22,7 @@ from quality import (LUMINANCE_THRESHOLD, MAXIMUM_CHANGED_FRACTION, assert_nativ
 
 SCENES = ("gradients", "filters", "mask", "clip", "pattern", "text", "image", "opacity-and-strokes")
 BRIDGES = ("persistent", "webgl")
+CANDIDATE_BRIDGES = ("webgl", "graphite")
 DPRS = (1, 1.25, 2)
 STATES = ("01-fit", "02-fractional-pan", "03-fractional-zoom")
 DESKTOP = {"width": 1440, "height": 960}
@@ -313,9 +314,17 @@ def require_camera_change(previous: dict[str, Any], current: dict[str, Any], dpr
         raise ValueError(state)
 
 
-def matrix_failures(cases: list[dict[str, Any]], comparisons: list[dict[str, Any]]) -> list[str]:
+def scene_bridges(candidate_bridge: str = "webgl") -> tuple[str, str]:
+    if candidate_bridge not in CANDIDATE_BRIDGES:
+        raise ValueError("SVG scenes require persistent CPU and one supported document GPU bridge")
+    return "persistent", candidate_bridge
+
+
+def matrix_failures(cases: list[dict[str, Any]], comparisons: list[dict[str, Any]], *,
+                    candidate_bridge: str = "webgl") -> list[str]:
     failures = []
-    expected_cases = {(scene, bridge, dpr) for scene in SCENES for bridge in BRIDGES for dpr in DPRS}
+    expected_cases = {(scene, bridge, dpr) for scene in SCENES
+                      for bridge in scene_bridges(candidate_bridge) for dpr in DPRS}
     actual_cases = {(case.get("scene"), case.get("bridge"), case.get("dpr")) for case in cases}
     if len(cases) != len(expected_cases) or actual_cases != expected_cases:
         failures.append("The required 48 scene/bridge/DPR cases are missing or duplicated")

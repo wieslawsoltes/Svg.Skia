@@ -1,10 +1,13 @@
 # SVG document bridge quality
 
 This gate compares the same published UnoDraw candidate package with
-`canvasBridge=persistent` and `canvasBridge=webgl`. Both cases use the real WebGPU
-application compositor. The second case uses the opt-in WebGL document painter;
-its auxiliary surfaces keep the persistent CPU bridge. Successful initialization
-and the absence of either fallback message are required throughout each case.
+`canvasBridge=persistent` and one selected GPU document painter: `webgl` or
+`graphite`. Both cases use the real WebGPU application compositor, and auxiliary
+surfaces keep the persistent CPU bridge. WebGL rasterizes through Ganesh and
+transfers the document image; Graphite submits directly into the Uno texture on
+the shared WebGPU queue. Matching preference and successful initialization
+evidence are required, and any fallback or another experimental mode fails the
+case. These are native-pixel correctness checks, without timing claims.
 
 ## Run
 
@@ -15,8 +18,14 @@ Chromium, then run:
 python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
   --package /path/to/candidate-package \
   --execution-mode InterpreterAndAOT \
+  --candidate-bridge webgl \
   --output /path/to/svg-quality-artifact
 ```
+
+Use `--candidate-bridge graphite` for the independent Graphite comparison. The
+default remains `webgl` for existing callers. Each report compares persistent
+CPU with only its selected GPU path; one path cannot substitute for another or
+satisfy its coverage. CI runs the two selected-painter jobs independently.
 
 `--package` is a single directory containing `benchmark-package.json` and
 `wwwroot/index.html`. The manifest must identify the candidate source commit,
@@ -70,7 +79,7 @@ The original body must remain inside the editor canvas and contain substantial
 chromatic artwork. Every pixel in each calibration center patch must be within
 two levels of its independent expected RGB result.
 
-Each CPU/WebGL pair uses the existing whole-frame, document and ruler comparisons
+Each CPU/selected-GPU pair uses the existing whole-frame, document and ruler comparisons
 at the unchanged maximum **0.1% of pixels above luminance difference 12**. The
 original 160×110 scene body is also compared at that same threshold in a separate
 physical crop. The calibration strip and surrounding UI cannot dilute a missing
@@ -87,5 +96,6 @@ The scene tests verify exact fixture extraction and PNG provenance, legitimate
 source serialization, rejection of mutated feature data and added transforms,
 blank/stale scene rejection, native dimensions, channel and premultiplication
 errors, the tighter body crop, actual camera changes, and complete failure
-continuation. These tests validate the gate. Only a completed browser report
+continuation, including rejection of a substituted GPU path or incomplete selected
+pair. These tests validate the gate. Only a completed browser report
 validates the two rendering paths.

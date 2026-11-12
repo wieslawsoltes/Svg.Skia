@@ -9,6 +9,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 from quality import (COMPOSITE_INITIALIZED, COMPOSITE_PREFERENCE, COMPOSITE_REUSED,
+                     GRAPHITE_INITIALIZED, GRAPHITE_PREFERENCE,
                      LEGACY_PREFERENCE, PERSISTENT_INITIALIZED, WEBGL_INITIALIZED, WEBGL_PREFERENCE,
                      assert_native_size, bridge_query, compare_bridge_states,
                      is_welcome_green, matrix_failures, raw_comparison, verify_bridge)
@@ -53,7 +54,7 @@ class WelcomeReadinessTests(unittest.TestCase):
 class QualityMatrixTests(unittest.TestCase):
     def test_opt_in_bridge_requires_its_own_complete_matrix(self) -> None:
         dprs, states = (1, 1.25, 2), ("desktop", "restored")
-        for candidate_bridge in ("webgl", "composite"):
+        for candidate_bridge in ("webgl", "composite", "graphite"):
             cases = [{"bridge": bridge, "dpr": dpr, "passed": True,
                       "states": [{"name": name} for name in states]}
                      for bridge in ("legacy", candidate_bridge) for dpr in dprs]
@@ -118,6 +119,31 @@ class QualityMatrixTests(unittest.TestCase):
 
 
 class BridgeEvidenceTests(unittest.TestCase):
+    def test_graphite_requires_validated_initialization_and_rejects_fallback_or_mode_contamination(self) -> None:
+        messages = [GRAPHITE_PREFERENCE, GRAPHITE_INITIALIZED, PERSISTENT_INITIALIZED]
+        evidence = [{"text": message} for message in messages]
+        verify_bridge(evidence, "graphite")
+        for missing in (GRAPHITE_PREFERENCE, GRAPHITE_INITIALIZED):
+            with self.subTest(missing=missing), self.assertRaises(AssertionError):
+                verify_bridge([entry for entry in evidence if entry["text"] != missing], "graphite")
+        for extra in (LEGACY_PREFERENCE, WEBGL_PREFERENCE, WEBGL_INITIALIZED,
+                      COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED, COMPOSITE_REUSED,
+                      "UnoDraw Graphite canvas fallback: queue rejected recording.",
+                      "UnoDraw WebGL canvas fallback: context unavailable.",
+                      "UnoDraw canvas bridge composite fallback: no cache.",
+                      "UnoDraw canvas bridge fallback: device lost."):
+            with self.subTest(extra=extra), self.assertRaises(AssertionError):
+                verify_bridge(evidence + [{"text": extra}], "graphite")
+        other_modes = {"persistent": [PERSISTENT_INITIALIZED], "legacy": [LEGACY_PREFERENCE],
+                       "webgl": [WEBGL_PREFERENCE, WEBGL_INITIALIZED],
+                       "composite": [COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED,
+                                     COMPOSITE_REUSED, PERSISTENT_INITIALIZED]}
+        for bridge, original in other_modes.items():
+            for extra in (GRAPHITE_PREFERENCE, GRAPHITE_INITIALIZED,
+                          "UnoDraw Graphite canvas fallback: late validation error."):
+                with self.subTest(bridge=bridge, extra=extra), self.assertRaises(AssertionError):
+                    verify_bridge([{"text": text} for text in original + [extra]], bridge)
+
     def test_webgl_requires_actual_success_and_rejects_every_late_fallback(self) -> None:
         evidence = [{"text": WEBGL_PREFERENCE}, {"text": WEBGL_INITIALIZED},
                     {"text": PERSISTENT_INITIALIZED}]
@@ -132,7 +158,7 @@ class BridgeEvidenceTests(unittest.TestCase):
                 verify_bridge(evidence + [{"text": LEGACY_PREFERENCE}], bridge)
 
     def test_bridge_queries_select_each_path_explicitly(self) -> None:
-        for bridge in ("legacy", "persistent", "webgl", "composite"):
+        for bridge in ("legacy", "persistent", "webgl", "composite", "graphite"):
             self.assertEqual(bridge_query(bridge), "canvasBridge=" + bridge)
         with self.assertRaises(ValueError):
             bridge_query("unknown")

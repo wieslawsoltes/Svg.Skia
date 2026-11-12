@@ -221,3 +221,45 @@ test("external image copies count as transfer calls without proving presentation
     assert.equal(sample.inputs_without_later_graphics, 1);
     assert.equal(sample.supplied_upload_buffer_bytes, 0);
 });
+
+test("Graphite document counters are read only at interval boundaries and never imply presentation", () => {
+    const app = browser();
+    new app.Canvas().getContext("webgpu");
+    app.api.selectCanvas();
+    let value = 50;
+    let reads = 0;
+    Object.defineProperty(app.context, "__unoDrawGraphiteDocumentSubmissions", {
+        get() { reads++; return value; }
+    });
+    app.api.start("pan", ["pointermove"]);
+    assert.equal(reads, 1);
+    for (let index = 0; index < 4; index++) { value++; app.frame(); }
+    assert.equal(reads, 1);
+    const sample = app.api.stop();
+    assert.equal(reads, 2);
+    assert.equal(sample.graphite_document_submissions_before, 50);
+    assert.equal(sample.graphite_document_submissions_after, 54);
+    assert.equal(sample.webgpu_canvas_submit_ms.length, 0);
+    assert.equal(sample.completed_render_callback_ms.length, 0);
+});
+
+test("unavailable or invalid Graphite counters are not silently converted to zero", () => {
+    for (const value of [undefined, null, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, true]) {
+        const app = browser();
+        new app.Canvas().getContext("webgpu");
+        app.api.selectCanvas();
+        app.context.__unoDrawGraphiteDocumentSubmissions = value;
+        app.api.start("pan", []);
+        const sample = app.api.stop();
+        assert.equal(sample.graphite_document_submissions_before, null);
+        assert.equal(sample.graphite_document_submissions_after, null);
+    }
+    const app = browser();
+    new app.Canvas().getContext("webgpu");
+    app.api.selectCanvas();
+    app.context.__unoDrawGraphiteDocumentSubmissions = 0;
+    app.api.start("pan", []);
+    const sample = app.api.stop();
+    assert.equal(sample.graphite_document_submissions_before, 0);
+    assert.equal(sample.graphite_document_submissions_after, 0);
+});

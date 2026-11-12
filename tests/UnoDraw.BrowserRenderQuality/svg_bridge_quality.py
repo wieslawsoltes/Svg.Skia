@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare CPU and WebGL SVG document rendering through the production source editor."""
+"""Compare CPU and one GPU SVG document renderer through the production source editor."""
 from __future__ import annotations
 
 import argparse
@@ -22,9 +22,9 @@ from performance import next_frame, park_pointer, renderer_evidence  # noqa: E40
 from quality import bridge_query, verify_bridge  # noqa: E402
 from backend import launch_arguments  # noqa: E402
 from smoke import READY, serve  # noqa: E402
-from svg_fixture_contracts import (BRIDGES, DESKTOP, DPRS, SCENES, STATES, Fixture,  # noqa: E402
+from svg_fixture_contracts import (CANDIDATE_BRIDGES, DESKTOP, DPRS, SCENES, STATES, Fixture,  # noqa: E402
                                    compare_scene, inspect_scene, load_fixtures, matrix_failures,
-                                   normalize_newlines, require_camera_change, require_source_readback)
+                                   normalize_newlines, require_camera_change, require_source_readback, scene_bridges)
 
 
 EXECUTION_MODES = ("InterpreterAndAOT", "Interpreter")
@@ -61,7 +61,7 @@ def source_hashes() -> dict[str, str]:
     files += [root / "tests/Svg.Editor.Skia.UnitTests/RgbaCanvasEquivalenceTests.cs"]
     files += [root / "tests/UnoDraw.BrowserPerformance" / name
               for name in ("instrumentation.js", "bridge_quality.py", "performance.py", "quality.py",
-                           "selection_readiness.py")]
+                           "selection_readiness.py", "metrics.py")]
     return {str(path.relative_to(root)): digest(path) for path in files}
 
 
@@ -289,7 +289,9 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
     return cases
 
 
-def compare_cases(cases: list[dict[str, Any]], fixtures: list[Fixture], output: Path) -> list[dict[str, Any]]:
+def compare_cases(cases: list[dict[str, Any]], fixtures: list[Fixture], output: Path, *,
+                  candidate_bridge: str = "webgl") -> list[dict[str, Any]]:
+    bridges = scene_bridges(candidate_bridge)
     indexed = {(case["scene"], case["bridge"], case["dpr"]): case for case in cases}
     rows = []
     for fixture in fixtures:
@@ -298,7 +300,7 @@ def compare_cases(cases: list[dict[str, Any]], fixtures: list[Fixture], output: 
                 row: dict[str, Any] = {"scene": fixture.name, "dpr": dpr, "state": name, "passed": False}
                 try:
                     matched = []
-                    for bridge in BRIDGES:
+                    for bridge in bridges:
                         case = indexed.get((fixture.name, bridge, dpr), {})
                         if case.get("passed") is not True or case.get("canonical_sha256") != fixture.sha256 or case.get("input_sha256") != fixture.browser_sha256:
                             raise AssertionError(f"The {bridge} scene case did not complete with the identical SVG")
@@ -316,7 +318,8 @@ def compare_cases(cases: list[dict[str, Any]], fixtures: list[Fixture], output: 
 
 def write_summary(report: dict[str, Any], output: Path) -> None:
     lines = ["# SVG document bridge quality", "",
-             "One candidate package, persistent CPU versus opt-in WebGL document rendering, at native DPR 1, 1.25 and 2.", "",
+             f"One candidate package, persistent CPU versus opt-in {report.get('candidate_bridge', 'webgl')} document rendering, "
+             "at native DPR 1, 1.25 and 2.", "",
              "Eight unchanged SVG bodies are edited through the production source dialog and verified after Apply. "
              "Each case checks fit, fractional pan and fractional zoom. The original scene body is compared separately "
              "at the unchanged 0.1% above luminance 12 threshold; calibration colors over white and dark mattes must be within 2 RGB levels.", "",
@@ -338,14 +341,18 @@ def main() -> int:
     parser.add_argument("--package", type=Path, required=True, help="Single candidate package used by both bridge modes")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--execution-mode", choices=EXECUTION_MODES, default="InterpreterAndAOT")
+    parser.add_argument("--candidate-bridge", choices=CANDIDATE_BRIDGES, default="webgl",
+                        help="Compare persistent CPU with this one GPU document renderer")
     args = parser.parse_args()
+    bridges = scene_bridges(args.candidate_bridge)
     package_directory, output = args.package.resolve(), args.output.resolve()
     if output == package_directory or package_directory in output.parents:
         parser.error("--output must be outside the published application")
     output.mkdir(parents=True, exist_ok=True)
     report: dict[str, Any] = {"schema": 1, "passed": False, "started_unix": time.time(),
                               "execution_mode": args.execution_mode, "cases": [], "comparisons": [], "failures": [],
-                              "graphics": "SwiftShader WebGPU and WebGL API correctness; not hardware performance",
+                              "candidate_bridge": args.candidate_bridge, "bridges": list(bridges),
+                              "graphics": "SwiftShader browser graphics API correctness; not hardware performance",
                               "expected_session_count": 6, "expected_case_count": 48, "expected_comparison_count": 72,
                               "expected_scenes": SCENES, "expected_states": STATES, "device_pixel_ratios": DPRS}
     try:
@@ -356,7 +363,7 @@ def main() -> int:
         report["browser_launch_arguments"] = arguments
         with serve(package_directory / "wwwroot") as url, sync_playwright() as playwright:
             for dpr in DPRS:
-                for bridge in BRIDGES:
+                for bridge in bridges:
                     relative = Path(f"dpr-{dpr}") / bridge
                     directory = output / relative
                     directory.mkdir(parents=True, exist_ok=True)
@@ -374,8 +381,10 @@ def main() -> int:
                     for case in cases:
                         case["artifact_directory"] = str(relative / case["scene"])
                         report["cases"].append(case)
-        report["comparisons"] = compare_cases(report["cases"], fixtures, output)
-        report["failures"] = matrix_failures(report["cases"], report["comparisons"])
+        report["comparisons"] = compare_cases(report["cases"], fixtures, output,
+                                              candidate_bridge=args.candidate_bridge)
+        report["failures"] = matrix_failures(report["cases"], report["comparisons"],
+                                             candidate_bridge=args.candidate_bridge)
         report["passed"] = not report["failures"]
     except Exception as error:
         report["failures"].append(f"{type(error).__name__}: {error}")

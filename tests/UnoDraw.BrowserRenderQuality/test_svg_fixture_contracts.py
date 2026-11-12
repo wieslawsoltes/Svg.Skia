@@ -17,7 +17,7 @@ from PIL import Image, ImageDraw
 from svg_fixture_contracts import (BRIDGES, DESKTOP, DPRS, SCENES, STATES, SVG, XLINK,
                                    anchor_colors, compare_scene, inspect_scene, load_fixtures,
                                    matrix_failures, normalize_newlines, probes,
-                                   require_camera_change, require_source_readback)
+                                   require_camera_change, require_source_readback, scene_bridges)
 from svg_bridge_quality import compare_cases, load_package
 from quality import raw_comparison
 
@@ -65,12 +65,12 @@ class SvgFixtureContracts(unittest.TestCase):
         mutate(root)
         return ET.tostring(root, encoding="unicode")
 
-    def complete_matrix(self):
+    def complete_matrix(self, candidate_bridge="webgl"):
         cases = [{"scene": scene, "bridge": bridge, "dpr": dpr, "passed": True,
                   "source_edit": {"semantic_body_verified": True, "exact_inserted_readback": True,
                                   "reopened_after_apply": True},
                   "states": [{"name": name} for name in STATES]}
-                 for scene in SCENES for bridge in BRIDGES for dpr in DPRS]
+                 for scene in SCENES for bridge in scene_bridges(candidate_bridge) for dpr in DPRS]
         rows = [{"scene": scene, "dpr": dpr, "state": state, "passed": True}
                 for scene in SCENES for dpr in DPRS for state in STATES]
         return cases, rows
@@ -315,6 +315,37 @@ class SvgFixtureContracts(unittest.TestCase):
         self.assertTrue(all(row["passed"] is False for row in rows))
         self.assertEqual({(row["scene"], row["dpr"], row["state"]) for row in rows},
                          {(scene, dpr, state) for scene in SCENES for dpr in DPRS for state in STATES})
+
+    def test_graphite_uses_one_complete_48_case_72_comparison_pair_without_substitution(self):
+        self.assertEqual(scene_bridges(), BRIDGES)
+        self.assertEqual(scene_bridges("graphite"), ("persistent", "graphite"))
+        cases, rows = self.complete_matrix("graphite")
+        self.assertEqual(len(cases), 48)
+        self.assertEqual(len(rows), 72)
+        self.assertEqual(matrix_failures(cases, rows, candidate_bridge="graphite"), [])
+        self.assertTrue(matrix_failures(cases, rows))
+        for invalid in ("persistent", "composite", "legacy", "unknown"):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                scene_bridges(invalid)
+        for defect in ("substituted", "missing", "failed", "duplicate", "missing_comparison"):
+            changed_cases, changed_rows = copy.deepcopy(cases), copy.deepcopy(rows)
+            if defect == "substituted":
+                next(case for case in changed_cases if case["bridge"] == "graphite")["bridge"] = "webgl"
+            elif defect == "missing":
+                changed_cases.pop()
+            elif defect == "failed":
+                changed_cases[0]["passed"] = False
+            elif defect == "duplicate":
+                changed_cases[-1] = copy.deepcopy(changed_cases[0])
+            else:
+                changed_rows.pop()
+            with self.subTest(defect=defect):
+                self.assertTrue(matrix_failures(changed_cases, changed_rows, candidate_bridge="graphite"))
+
+    def test_missing_graphite_cases_still_emit_all_72_explicit_failures(self):
+        rows = compare_cases([], self.fixtures, self.directory, candidate_bridge="graphite")
+        self.assertEqual(len(rows), 72)
+        self.assertTrue(all(row["passed"] is False for row in rows))
 
     def test_single_package_requires_explicit_mode_exact_index_and_candidate_provenance(self):
         root = self.directory / "package"

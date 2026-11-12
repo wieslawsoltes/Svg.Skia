@@ -41,6 +41,35 @@ def intervals(timestamps: list[float]) -> list[float]:
     return result
 
 
+def graphite_submission_delta(before: Any, after: Any) -> int | None:
+    """Keep absent native bridge evidence distinct from a measured zero."""
+    if before is None or after is None:
+        return None
+    if (isinstance(before, bool) or isinstance(after, bool)
+            or not isinstance(before, int) or not isinstance(after, int)
+            or before < 0 or after < before or after > (1 << 53) - 1):
+        raise ValueError("Graphite submission counters must be nonnegative safe integers and nondecreasing")
+    return after - before
+
+
+def require_graphite_queue_drain(observation: dict[str, Any], *, required: bool = False) -> None:
+    """Validate an exposed diagnostic without inventing data when unavailable."""
+    if observation.get("available") is False:
+        if required:
+            raise AssertionError("The explicit Graphite trial did not expose an available queue-drain diagnostic")
+        return
+    result = observation.get("result", {})
+    if not isinstance(result, dict):
+        raise AssertionError(f"The exposed Graphite queue drain returned an invalid result: {observation}")
+    queues, duration = result.get("queueCount"), result.get("duration_ms")
+    if (observation.get("available") is not True or observation.get("error")
+            or result.get("completed") is not True or result.get("errors") != []
+            or isinstance(queues, bool) or not isinstance(queues, int) or queues <= 0
+            or isinstance(duration, bool) or not isinstance(duration, (int, float))
+            or not math.isfinite(duration) or duration < 0):
+        raise AssertionError(f"The exposed Graphite queue drain did not complete successfully: {observation}")
+
+
 def summarize(sample: dict[str, Any], cpu_before: dict[str, float], cpu_after: dict[str, float],
               operations: int) -> dict[str, Any]:
     elapsed = sample["ended_ms"] - sample["started_ms"]
@@ -61,6 +90,8 @@ def summarize(sample: dict[str, Any], cpu_before: dict[str, float], cpu_after: d
         "input_to_next_graphics_ms": distribution(sample["input_to_next_graphics_ms"]),
         "webgpu_canvas_submissions": len(sample["webgpu_canvas_submit_ms"]),
         "webgl_flush_calls": len(sample["webgl_flush_ms"]),
+        "graphite_document_submissions": graphite_submission_delta(
+            sample.get("graphite_document_submissions_before"), sample.get("graphite_document_submissions_after")),
         "input_events": sample["input_events"],
         "inputs_without_later_graphics": sample["inputs_without_later_graphics"],
         "inputs_without_completed_render_callback": sample["inputs_without_completed_render_callback"],

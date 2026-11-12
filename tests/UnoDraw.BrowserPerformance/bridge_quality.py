@@ -216,7 +216,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--package", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--candidate-bridge", choices=("persistent", "webgl", "composite"), default="persistent",
+    parser.add_argument("--candidate-bridge", choices=("persistent", "webgl", "composite", "graphite"), default="persistent",
                         help="Compare the selected implementation with the same package's legacy raster bridge")
     args = parser.parse_args()
     package, output = args.package.resolve(), args.output.resolve()

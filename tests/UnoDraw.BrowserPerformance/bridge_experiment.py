@@ -38,11 +38,28 @@ def save_report(report: dict[str, Any], output: Path) -> None:
         lines += ["The WebGL mode rasterizes the document with Ganesh and copies the browser canvas into WebGPU. "
                   "Chromium 143 on Linux performs browser-side readback for that copy. "
                   "The copy count does not measure actual bytes transferred or display presentation.", ""]
-    else:
+    elif candidate_bridge == "composite":
         lines += ["The composite mode restores exact full-resolution cached BGRA document pixels before "
                   "painting interaction feedback and uploading one combined canvas texture. It tests the cost "
                   "of the additional retained interaction texture. Both modes must retain the document during "
                   "steady hover; cache-reuse console evidence and separate managed counters are required.", ""]
+    elif candidate_bridge == "graphite":
+        lines += ["Graphite records and submits the document directly into the Uno texture on the shared WebGPU queue. "
+                  "Each measured trial requires a positive delta of successful document submissions and no external-image copies. "
+                  "The document counter is separate from visible-canvas submissions and does not prove physical presentation. "
+                  "Aggregate writeTexture calls can still belong to auxiliary CPU surfaces.", ""]
+        lines += ["| Trial | Diagnostic pass | Graphite document submits | Visible-canvas submits | External-image copies |",
+                  "| ---: | --- | ---: | ---: | ---: |"]
+        for run in report.get("bridge_runs", []) + report.get("bridge_diagnostics", []):
+            if run.get("canvas_bridge") != "graphite":
+                continue
+            observed = run.get("metrics", {})
+            values = [observed.get("graphite_document_submissions"), observed.get("webgpu_canvas_submissions"),
+                      observed["graphics_api_calls"].get("webgpu.copyExternalImageToTexture", 0)
+                      if "graphics_api_calls" in observed else None]
+            formatted = [str(value) if value is not None else "n/a" for value in values]
+            lines.append(f"| {run['trial']} | {run.get('diagnostic_pass', False)} | {' | '.join(formatted)} |")
+        lines.append("")
     lines += [f"| Metric | Persistent median | {candidate_bridge} median | Candidate / persistent |",
              "| --- | ---: | ---: | ---: |"]
     for row in report.get("metric_comparisons", []):
@@ -60,6 +77,21 @@ def save_report(report: dict[str, Any], output: Path) -> None:
         for phase in run.get("managed_render_diagnostics", {}).get("after", {}).get("phases", []):
             lines.append(f"| {run['canvas_bridge']} | {phase['phase']} | {phase['count']} | "
                          f"{phase['totalMilliseconds']:.3f} | {phase['allocatedBytes']} |")
+    lines += ["", "## Post-window diagnostics", "",
+              "Final capture includes screenshot/readiness and native-image validation. Restore includes real restore "
+              "commands and their screenshot validation. Both include automation and image analysis; neither is a CPU "
+              "or physical-presentation measurement. The optional Graphite queue drain occurs first and is reported "
+              "separately; other modes have no matched drain, so no drain or post-window ratio is calculated.", "",
+              "| Bridge | Trial | Diagnostic pass | Final capture/validation ms | Restore/validation ms | Graphite queue drain ms |",
+              "| --- | ---: | --- | ---: | ---: | ---: |"]
+    for run in report.get("bridge_runs", []) + report.get("bridge_diagnostics", []):
+        quality = run.get("quality", {})
+        drain = run.get("graphite_queue_drain", {})
+        values = [quality.get("final_capture_validation_elapsed_ms"), quality.get("restore_validation_elapsed_ms"),
+                  drain.get("result", {}).get("duration_ms") if drain.get("available") else None]
+        formatted = [f"{value:.3f}" if value is not None else "n/a" for value in values]
+        lines.append(f"| {run['canvas_bridge']} | {run['trial']} | {run.get('diagnostic_pass', False)} "
+                     f"| {' | '.join(formatted)} |")
     lines += ["", "Result: " + ("passed all trial and native-pixel requirements" if report["passed"]
                                   else report.get("failure", "incomplete; no speedup conclusion")), ""]
     (output / "summary.md").write_text("\n".join(lines), encoding="utf-8")
@@ -71,7 +103,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--workload", choices=WORKLOADS, required=True)
     parser.add_argument("--candidate-bridge", choices=CANDIDATE_BRIDGES, default="webgl",
-                        help="WebGL document rasterization for pan/zoom, or cached composition for brush-hover")
+                        help="WebGL/Graphite document rasterization for pan/zoom, or cached composition for brush-hover")
     parser.add_argument("--repeats", type=int, default=3)
     args = parser.parse_args()
     try:

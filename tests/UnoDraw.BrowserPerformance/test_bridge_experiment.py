@@ -10,6 +10,7 @@ from pathlib import Path
 from bridge_experiment_contracts import (bridge_pair, compare_metrics, load_candidate,
                                          trial_plan, verify_experiment_workload, verify_runs)
 from quality import (COMPOSITE_INITIALIZED, COMPOSITE_PREFERENCE, COMPOSITE_REUSED,
+                     GRAPHITE_INITIALIZED, GRAPHITE_PREFERENCE,
                      PERSISTENT_INITIALIZED, WEBGL_INITIALIZED, WEBGL_PREFERENCE)
 
 
@@ -23,14 +24,19 @@ def runs(*, diagnostics: bool = False, candidate_bridge: str = "webgl") -> list[
              "trial": trial, "canvas_bridge": bridge, "diagnostic_pass": diagnostics,
              "console": [{"text": PERSISTENT_INITIALIZED}] + (
                  [{"text": WEBGL_PREFERENCE}, {"text": WEBGL_INITIALIZED}] if bridge == "webgl" else
+                 [{"text": GRAPHITE_PREFERENCE}, {"text": GRAPHITE_INITIALIZED}] if bridge == "graphite" else
                  [{"text": COMPOSITE_PREFERENCE}, {"text": COMPOSITE_INITIALIZED}, {"text": COMPOSITE_REUSED}]
                  if bridge == "composite" else []),
              "managed_render_diagnostics": {"after": {"phases": [
                  {"phase": "Document", "count": 0}, {"phase": "Interaction", "count": 120}]}},
+             "graphite_queue_drain": {"available": True, "result": {
+                 "completed": True, "queueCount": 1, "duration_ms": 0, "errors": []}}
+                 if bridge == "graphite" else {"available": False},
              "metrics": {"operations": 120, "input_events": 120, "inputs_without_later_graphics": 0,
                          "inputs_without_completed_render_callback": 0,
                          "completed_render_callbacks": 240, "webgpu_canvas_submissions": 240,
-                         "graphics_api_calls": {"webgpu.copyExternalImageToTexture": 120 if bridge == "webgl" else 0},
+                         "graphics_api_calls": {"webgpu.copyExternalImageToTexture": 120} if bridge == "webgl" else {},
+                         "graphite_document_submissions": 120 if bridge == "graphite" else None,
                          "cpu_task_ms_per_operation": trial * (20 if bridge == "persistent" else 5),
                          "elapsed_ms": trial * (3000 if bridge == "persistent" else 2000),
                          "operations_per_second": 120000 / (trial * (3000 if bridge == "persistent" else 2000))}}
@@ -38,6 +44,35 @@ def runs(*, diagnostics: bool = False, candidate_bridge: str = "webgl") -> list[
 
 
 class BridgeExperimentTests(unittest.TestCase):
+    def test_graphite_requires_timed_document_submissions_and_cannot_use_external_image_copies(self) -> None:
+        for diagnostics in (False, True):
+            original = runs(diagnostics=diagnostics, candidate_bridge="graphite")
+            verify_runs(original, 3, SHA, "pan", diagnostics=diagnostics, candidate_bridge="graphite")
+            for defect in ("missing", "zero", "negative", "fractional", "boolean", "copy", "fallback", "wrong_mode",
+                           "missing_drain", "unavailable_drain", "failed_drain"):
+                values = copy.deepcopy(original)
+                target = next(value for value in values if value["canvas_bridge"] == "graphite")
+                if defect in {"missing", "zero", "negative", "fractional", "boolean"}:
+                    target["metrics"]["graphite_document_submissions"] = {
+                        "missing": None, "zero": 0, "negative": -1, "fractional": 1.5, "boolean": True}[defect]
+                elif defect == "copy":
+                    target["metrics"]["graphics_api_calls"]["webgpu.copyExternalImageToTexture"] = 1
+                elif defect == "fallback":
+                    target["console"].append({"text": "UnoDraw Graphite canvas fallback: submit failed."})
+                elif defect == "missing_drain":
+                    del target["graphite_queue_drain"]
+                elif defect == "unavailable_drain":
+                    target["graphite_queue_drain"] = {"available": False}
+                elif defect == "failed_drain":
+                    target["graphite_queue_drain"]["result"]["completed"] = False
+                else:
+                    target["console"].append({"text": WEBGL_INITIALIZED})
+                with self.subTest(diagnostics=diagnostics, defect=defect), self.assertRaises((ValueError, AssertionError)):
+                    verify_runs(values, 3, SHA, "pan", diagnostics=diagnostics, candidate_bridge="graphite")
+        row = compare_metrics(runs(candidate_bridge="graphite"), "graphite")[0]
+        self.assertEqual(row["candidate_bridge"], "graphite")
+        self.assertNotIn("webgl_over_persistent", row)
+
     def test_order_rotates_without_splitting_a_pair_or_losing_trials(self) -> None:
         self.assertEqual(trial_plan(3), [(1, "persistent"), (1, "webgl"),
                                         (2, "webgl"), (2, "persistent"),
@@ -163,25 +198,32 @@ class BridgeExperimentTests(unittest.TestCase):
                 verify_runs(values, 3, SHA, "brush-hover", diagnostics=True, candidate_bridge="composite")
 
     def test_workloads_must_exercise_the_selected_optimization(self) -> None:
-        for bridge, workload in (("webgl", "pan"), ("webgl", "zoom"), ("composite", "brush-hover")):
+        for bridge, workload in (("webgl", "pan"), ("webgl", "zoom"), ("composite", "brush-hover"),
+                                 ("graphite", "pan"), ("graphite", "zoom")):
             verify_experiment_workload(workload, bridge)
         for bridge, workload in (("webgl", "brush-hover"), ("composite", "pan"), ("composite", "zoom"),
-                                 ("persistent", "brush-hover"), ("unknown", "pan")):
+                                 ("graphite", "brush-hover"), ("persistent", "brush-hover"), ("unknown", "pan")):
             with self.subTest(bridge=bridge, workload=workload), self.assertRaises(ValueError):
                 verify_experiment_workload(workload, bridge)
 
     def test_saved_summary_names_the_actual_pair_and_survives_partial_failure(self) -> None:
         from bridge_experiment import save_report
 
-        for candidate_bridge in ("webgl", "composite"):
+        for candidate_bridge in ("webgl", "composite", "graphite"):
             with self.subTest(candidate_bridge=candidate_bridge), tempfile.TemporaryDirectory() as temporary:
                 diagnostic = runs(diagnostics=True, candidate_bridge=candidate_bridge)
                 for run in diagnostic:
                     for phase in run["managed_render_diagnostics"]["after"]["phases"]:
                         phase.update({"totalMilliseconds": 2.5, "allocatedBytes": 512})
+                    run["quality"] = {"final_capture_validation_elapsed_ms": 150.25,
+                                      "restore_validation_elapsed_ms": 250.5}
+                    run["graphite_queue_drain"] = ({"available": True, "result": {
+                        "completed": True, "queueCount": 1, "duration_ms": 10.125, "errors": []}}
+                        if run["canvas_bridge"] == "graphite" else {"available": False})
                 report = {"started_unix": 0, "candidate_bridge": candidate_bridge, "candidate_source_sha": SHA,
                           "workload": "brush-hover" if candidate_bridge == "composite" else "pan",
                           "repeats": 3, "passed": True, "bridge_diagnostics": diagnostic,
+                          "bridge_runs": runs(candidate_bridge=candidate_bridge),
                           "metric_comparisons": compare_metrics(runs(candidate_bridge=candidate_bridge), candidate_bridge)}
                 output = Path(temporary)
                 save_report(report, output)
@@ -190,6 +232,10 @@ class BridgeExperimentTests(unittest.TestCase):
                 self.assertIn("Task wall time / operation (ms; historical key)", text)
                 self.assertIn("ThreadTime separately measures", text)
                 self.assertIn(f"| {candidate_bridge} | Interaction | 120 | 2.500 | 512 |", text)
+                if candidate_bridge == "graphite":
+                    self.assertIn("| 1 | False | 120 | 240 | 0 |", text)
+                    self.assertIn("| graphite | 1 | True | 150.250 | 250.500 | 10.125 |", text)
+                self.assertIn("| persistent | 1 | True | 150.250 | 250.500 | n/a |", text)
                 report.update({"passed": False, "failure": "Observed pixel gate failure",
                                "bridge_diagnostics": [], "metric_comparisons": []})
                 save_report(report, output)

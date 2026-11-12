@@ -21,7 +21,8 @@ from backend import launch_arguments, renderer_query  # noqa: E402
 from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork,  # noqa: E402
                    chrome_font_changes, record_backend, ruler_frame_changes, serve,
                    wait_for_artwork_transition)
-from metrics import comparisons, metric_label, summarize, validate_packages, verify_hover_isolation  # noqa: E402
+from metrics import (comparisons, metric_label, require_graphite_queue_drain, summarize,  # noqa: E402
+                     validate_packages, verify_hover_isolation)
 from quality import bridge_query  # noqa: E402
 from selection_readiness import require_cleared_selection  # noqa: E402
 from workload_plan import (BACKENDS, WORKLOADS, diagnostic_plan, primary_plan,  # noqa: E402
@@ -295,6 +296,7 @@ def measure_workload(page: Page, workload: str, steps: int, idle_ms: int) -> int
 
 def verify_workload(page: Page, workload: str, operations: int, before: Path,
                     output: Path) -> dict[str, Any]:
+    final_validation_started = time.monotonic()
     after = output / "after.png"
     if workload == "edit":
         # Remove selection outlines before requiring changed SVG interiors.
@@ -312,6 +314,8 @@ def verify_workload(page: Page, workload: str, operations: int, before: Path,
     else:
         page.screenshot(path=str(after))
         result = artwork_transition(before, after, restore=True)
+    result["final_capture_validation_elapsed_ms"] = (time.monotonic() - final_validation_started) * 1000
+    restore_validation_started = time.monotonic()
     if workload == "edit":
         for _ in range(operations):
             page.keyboard.press("Control+Z")
@@ -322,7 +326,41 @@ def verify_workload(page: Page, workload: str, operations: int, before: Path,
     park_pointer(page)
     result["restored"] = wait_for_artwork_transition(page, before, output / "restored.png",
                                                     restore=True, require_settled_rulers=True)
+    result["restore_validation_elapsed_ms"] = (time.monotonic() - restore_validation_started) * 1000
+    result["post_sample_timing_scope"] = (
+        "Outside the primary window: final screenshot/readiness/native-pixel validation, then restore commands "
+        "and screenshot validation. Includes automation and Python image analysis; not renderer CPU or physical presentation.")
     return result
+
+
+def graphite_queue_drain(page: Page, canvas_bridge: str | None) -> dict[str, Any]:
+    if canvas_bridge != "graphite":
+        return {"available": False, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+    started = time.monotonic()
+    observation = page.evaluate("""async () => {
+        if (typeof globalThis.__unoDrawGraphiteDrain !== 'function')
+            return {available: false, reason: 'The application did not expose its Graphite queue drain'};
+        let timeout;
+        try {
+            const result = await Promise.race([
+                globalThis.__unoDrawGraphiteDrain(),
+                new Promise((_, reject) => {
+                    timeout = setTimeout(() => reject(new Error('Graphite queue drain exceeded 30000 ms')), 30000);
+                })
+            ]);
+            return {available: true, result};
+        } catch (error) {
+            return {available: true, error: String(error)};
+        } finally {
+            clearTimeout(timeout);
+        }
+    }""")
+    observation["request_elapsed_ms_including_automation"] = (time.monotonic() - started) * 1000
+    observation["scope"] = (
+        "After primary and managed snapshots; waits asynchronously for shared-queue work submitted before the request. "
+        "Does not submit or flush work, establish input causality, or prove physical presentation. "
+        "Other bridge modes do not expose matched drain measurements.")
+    return observation
 
 
 def run_trial(browser: Any, url: str, package: dict[str, Any], backend: str, workload: str,
@@ -431,6 +469,8 @@ def run_trial(browser: Any, url: str, package: dict[str, Any], backend: str, wor
         result["cdp_cpu_after"] = after_cpu
         if workload != "idle" and (raw["input_events"] == 0 or not raw["graphics_active_intervals_ms"]):
             raise AssertionError("Active workload did not produce both trusted input and graphics work")
+        result["graphite_queue_drain"] = graphite_queue_drain(page, canvas_bridge)
+        require_graphite_queue_drain(result["graphite_queue_drain"], required=canvas_bridge == "graphite")
         result["quality"] = verify_workload(page, workload, operations, before, output)
         allowed = set(result["renderer"].get("expected_console_error_indices", []))
         errors = [entry for index, entry in enumerate(result["console"])
@@ -486,7 +526,8 @@ def write_summary(report: dict[str, Any], output: Path) -> None:
              "ThreadTime separately measures active CPU time on the renderer thread and excludes GPU/worker CPU. "
              "rAF intervals are scheduling observations, not rendered FPS. "
              "Graphics-active intervals and input-to-next-graphics are CPU submission observations, "
-             "not display presentation or input-to-photon latency.", "",
+             "not display presentation or input-to-photon latency. Post-window screenshot/restore validation "
+             "durations are separate backlog diagnostics in each trial, not renderer CPU measurements.", "",
              "| Reference | Backend | Workload | Metric | Reference median | Candidate median | Ratio |",
              "| --- | --- | --- | --- | ---: | ---: | ---: |"]
     for row in report.get("comparisons", []):
@@ -566,6 +607,7 @@ def main() -> int:
             "completed_render_callback": "Successful application rAF callback drawing/submitting to the main canvas; excludes earlier NativeDispatcher recording; may replay an older record, not input-to-new-pixels or physical presentation",
             "cpu": "Historical cpu_ms/task keys contain elapsed CDP task/script/layout/style time in the timeTicks domain, including blocked waits and observer/automation overheads",
             "thread_cpu": "CDP ThreadTime delta measures active CPU time on the renderer thread; excludes GPU/worker processes and is null when unavailable",
+            "graphite_document_submissions": "Optional application counter delta: real document recording accepted and Graphite context submitted; separate from visible-canvas submissions and physical presentation",
             "heap": "JavaScript used-heap difference; not an allocation count and not the managed WASM heap",
             "physical_presented_frames": "Unavailable; never inferred from rAF",
             "managed_allocated_bytes": "Unavailable without application instrumentation",

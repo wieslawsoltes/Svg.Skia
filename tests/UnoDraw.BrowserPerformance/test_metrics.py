@@ -4,7 +4,8 @@ import copy
 import math
 import unittest
 
-from metrics import comparisons, distribution, intervals, summarize, validate_packages, verify_hover_isolation
+from metrics import (comparisons, distribution, graphite_submission_delta, intervals, summarize,
+                     require_graphite_queue_drain, validate_packages, verify_hover_isolation)
 
 
 def observation() -> dict:
@@ -26,6 +27,47 @@ def package(role: str) -> dict:
 
 
 class MeasurementTests(unittest.TestCase):
+    def test_optional_queue_drain_keeps_unavailable_distinct_from_zero_and_rejects_failed_work(self) -> None:
+        require_graphite_queue_drain({"available": False, "reason": "Other bridge mode"})
+        with self.assertRaisesRegex(AssertionError, "explicit Graphite trial"):
+            require_graphite_queue_drain({"available": False, "reason": "Missing export"}, required=True)
+        completed = {"available": True, "result": {"completed": True, "queueCount": 1,
+                                                   "duration_ms": 0, "errors": []}}
+        require_graphite_queue_drain(completed)
+        require_graphite_queue_drain(completed, required=True)
+        for key, value in (("completed", False), ("queueCount", 0), ("queueCount", True),
+                           ("duration_ms", -1), ("duration_ms", math.inf), ("duration_ms", math.nan),
+                           ("errors", ["device lost"]), ("errors", None)):
+            changed = copy.deepcopy(completed)
+            changed["result"][key] = value
+            with self.subTest(key=key, value=value), self.assertRaises(AssertionError):
+                require_graphite_queue_drain(changed)
+        for invalid in ({"available": True, "error": "queue drain exceeded 30000 ms"},
+                        {"available": True, "result": None}, {}):
+            with self.subTest(invalid=invalid), self.assertRaises(AssertionError):
+                require_graphite_queue_drain(invalid)
+
+    def test_graphite_submissions_are_an_independent_native_counter_not_presented_frames(self) -> None:
+        sample = observation()
+        sample.update({"graphite_document_submissions_before": 240,
+                       "graphite_document_submissions_after": 360})
+        result = summarize(sample, {}, {}, 120)
+        self.assertEqual(result["graphite_document_submissions"], 120)
+        self.assertEqual(result["webgpu_canvas_submissions"], 0)
+        self.assertEqual(result["completed_render_callbacks"], 0)
+        self.assertIsNone(result["physical_presented_frames"])
+        self.assertIsNone(summarize(observation(), {}, {}, 120)["graphite_document_submissions"])
+
+    def test_graphite_counter_preserves_missing_zero_and_rejects_invalid_or_reset_values(self) -> None:
+        self.assertIsNone(graphite_submission_delta(None, None))
+        self.assertIsNone(graphite_submission_delta(None, 120))
+        self.assertIsNone(graphite_submission_delta(120, None))
+        self.assertEqual(graphite_submission_delta(120, 120), 0)
+        for before, after in ((120, 119), (-1, 120), (False, 120), (120, True),
+                              (1, 1.5), (1, math.nan), (1, math.inf), (1, 1 << 53)):
+            with self.subTest(before=before, after=after), self.assertRaises(ValueError):
+                graphite_submission_delta(before, after)
+
     def test_idle_raf_callbacks_are_not_rendered_frames(self) -> None:
         value = summarize(observation(), {}, {}, 0)
         self.assertEqual(value["raf_interval_ms"]["count"], 6)

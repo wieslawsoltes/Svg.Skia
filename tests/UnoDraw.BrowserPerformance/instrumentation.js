@@ -236,6 +236,14 @@
         return result;
     }
 
+    function graphiteDocumentSubmissions() {
+        // The opt-in application bridge increments this only after inserting
+        // real document commands and successfully submitting its Graphite context.
+        // Read it at interval boundaries, never once per frame or drawing call.
+        const value = globalThis.__unoDrawGraphiteDocumentSubmissions;
+        return Number.isSafeInteger(value) && value >= 0 ? value : null;
+    }
+
     Object.defineProperty(globalThis, "__unoDrawBenchmark", { value: Object.freeze({
         selectCanvas() {
             const visible = contexts.filter(record => {
@@ -260,8 +268,10 @@
             lastGraphicsFrame = -1;
             pendingInputs = [];
             pendingCompletionInputs = [];
+            const graphiteBefore = graphiteDocumentSubmissions();
             sample = {
                 workload, input_types: inputTypes, started_ms: performance.now(),
+                graphite_document_submissions_before: graphiteBefore,
                 raf_ms: [], graphics_active_intervals_ms: [],
                 application_raf_callback_ms: [], input_to_next_graphics_ms: [],
                 completed_render_callback_ms: [], completed_render_callback_end_ms: [],
@@ -276,6 +286,7 @@
             nativeCancelRaf(observer);
             const result = sample;
             result.ended_ms = performance.now();
+            result.graphite_document_submissions_after = graphiteDocumentSubmissions();
             result.inputs_without_later_graphics = pendingInputs.length;
             result.inputs_without_completed_render_callback = pendingCompletionInputs.length;
             result.observed_methods = [...wrapped].sort();
