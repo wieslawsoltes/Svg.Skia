@@ -26,6 +26,8 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
     private bool _dialogVisible;
     private bool _spacePanning;
     private bool _zenMode;
+    private bool _positionUpdatePending;
+    private double _reportedZoom = double.NaN;
 
     public SvgEditorWorkspace()
     {
@@ -38,8 +40,8 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         BuildTools();
         InitializeHierarchy();
         Canvas.InteractionStarting += (_, _) => { if (!_dialogVisible) { CommitInspectorEdits(); Focus(FocusState.Pointer); } };
-        Canvas.ViewportChanged += (_, _) => ZoomLabel.Content = $"{Canvas.ZoomPercent:0.#}%";
-        Canvas.PointerPositionChanged += (_, _) => PositionText.Text = $"X {Canvas.PointerPosition.X:0.0}  Y {Canvas.PointerPosition.Y:0.0}";
+        Canvas.ViewportChanged += (_, _) => UpdateZoomLabel();
+        Canvas.PointerPositionChanged += (_, _) => QueuePointerPositionLabel();
         Canvas.InteractionFailed += async (_, args) => await ShowErrorAsync(args.Exception.Message);
         ActualThemeChanged += (_, _) => { Canvas.IsDarkTheme = ActualTheme == ElementTheme.Dark; SaveEditorPreferences(); };
         SizeChanged += (_, _) => UpdateResponsiveLayout();
@@ -80,6 +82,37 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
     public SvgEditorCanvas Surface => Canvas;
     public Window? HostWindow { get; set; }
     public event EventHandler<string>? WorkspaceTitleChanged;
+
+    private void UpdateZoomLabel()
+    {
+        var zoom = Canvas.Zoom;
+        if (_disposed || zoom == _reportedZoom)
+            return;
+        _reportedZoom = zoom;
+        var text = $"{zoom * 100:0.#}%";
+        if (!Equals(ZoomLabel.Content, text))
+            ZoomLabel.Content = text;
+    }
+
+    private void QueuePointerPositionLabel()
+    {
+        if (_disposed || _positionUpdatePending)
+            return;
+        _positionUpdatePending = true;
+        if (!DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+        {
+            _positionUpdatePending = false;
+            if (_disposed)
+                return;
+            // A burst of pointer events needs one formatted label with the most
+            // recent coordinates, without queuing redundant text/layout work.
+            var position = Canvas.PointerPosition;
+            var text = $"X {position.X:0.0}  Y {position.Y:0.0}";
+            if (PositionText.Text != text)
+                PositionText.Text = text;
+        }))
+            _positionUpdatePending = false;
+    }
 
     public void NewDocument(float width = 1200, float height = 800)
     {

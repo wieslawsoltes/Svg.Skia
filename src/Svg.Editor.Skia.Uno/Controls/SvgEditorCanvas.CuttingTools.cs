@@ -20,7 +20,7 @@ public sealed partial class SvgEditorCanvas
             if (!float.IsFinite(value) || value <= 0 || value > 10000)
                 throw new ArgumentOutOfRangeException(nameof(value));
             _eraserDiameter = value;
-            Invalidate();
+            InvalidateInteraction();
         }
     }
 

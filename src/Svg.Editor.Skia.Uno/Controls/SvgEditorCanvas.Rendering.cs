@@ -15,6 +15,14 @@ namespace Svg.Editor.Skia.Uno;
 
 public sealed partial class SvgEditorCanvas
 {
+    private sealed class InteractionSurface(SvgEditorCanvas owner) : SKCanvasElement, ISkiaCanvasRenderer
+    {
+        protected override void RenderOverride(SKCanvas canvas, Size area) => owner.RenderInteraction(canvas, area);
+        void ISkiaCanvasRenderer.Render(SKCanvas canvas, Size area) => owner.RenderInteraction(canvas, area);
+    }
+
+    void ISkiaCanvasRenderer.Render(SKCanvas canvas, Size area) => RenderOverride(canvas, area);
+
     protected override void RenderOverride(SKCanvas canvas, Size area)
     {
         if (_disposed)
@@ -22,7 +30,14 @@ public sealed partial class SvgEditorCanvas
             return;
         }
 
+        using var measurement = EditorRenderDiagnostics.Measure(EditorRenderPhase.Document);
         var started = Stopwatch.GetTimestamp();
+        // Invalidate is nonvirtual in SKCanvasElement. A caller holding that base
+        // type can dirty only the parent; refresh its overlay before children are
+        // visited, without re-invalidating an already pending interaction paint.
+        if (!_interactionRenderPending)
+            InvalidateInteraction();
+        var renderState = CaptureDocumentRenderState();
         var resources = _resources ??= new CanvasResources();
         ApplyCanvasPalette(resources);
         using var restore = new SKAutoCanvasRestore(canvas);
@@ -47,9 +62,39 @@ public sealed partial class SvgEditorCanvas
                 // Replays the existing Svg.Skia display list into the host surface. No bitmap
                 // readback, reparsing, or document mutation is performed by a camera redraw.
                 Controller.Renderer.Draw(canvas);
+            }
+        }
+
+        _documentRenderState = renderState;
+        _hasDocumentRenderState = true;
+        _lastDocumentRenderMilliseconds = (Stopwatch.GetTimestamp() - started) * 1000d / Stopwatch.Frequency;
+    }
+
+    private void RenderInteraction(SKCanvas canvas, Size area)
+    {
+        if (_disposed)
+            return;
+
+        // Clear before drawing: an invalidation raised during the callback still
+        // owns a subsequent paint and must not be cleared when this one ends.
+        _interactionRenderPending = false;
+        using var measurement = EditorRenderDiagnostics.Measure(EditorRenderPhase.Interaction);
+        var started = Stopwatch.GetTimestamp();
+        var resources = _resources ??= new CanvasResources();
+        ApplyCanvasPalette(resources);
+        using var restore = new SKAutoCanvasRestore(canvas);
+        canvas.ClipRect(SKRect.Create((float)area.Width, (float)area.Height));
+        if (Controller?.Renderer.Picture is not null)
+        {
+            using (var documentRestore = new SKAutoCanvasRestore(canvas))
+            {
+                canvas.Concat(Viewport.Matrix);
                 DrawSelectionGhost(canvas, resources);
             }
 
+            // Labels follow the selection ghost, matching the combined painter's
+            // original order; all later handles, gestures and guides stay above it.
+            var artboards = _artboardCache.GetArtboards(Controller);
             for (var index = 0; index < artboards.Count; index++)
             {
                 var artboard = artboards[index];
@@ -64,7 +109,7 @@ public sealed partial class SvgEditorCanvas
             DrawEditorGuides(canvas, resources);
         }
 
-        LastRenderMilliseconds = (Stopwatch.GetTimestamp() - started) * 1000d / Stopwatch.Frequency;
+        _lastInteractionRenderMilliseconds = (Stopwatch.GetTimestamp() - started) * 1000d / Stopwatch.Frequency;
     }
 
     private SKPoint ViewCenter => new((float)(Viewport.Width / 2), (float)(Viewport.Height / 2));

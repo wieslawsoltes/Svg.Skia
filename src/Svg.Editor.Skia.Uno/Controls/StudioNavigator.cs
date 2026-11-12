@@ -27,9 +27,10 @@ public sealed class StudioNavigator : UserControl, IDisposable
     public static readonly DependencyProperty AccentBrushProperty = RegisterNavigatorBrush(nameof(AccentBrush));
     private static readonly InputSystemCursor s_hand = InputSystemCursor.Create(InputSystemCursorShape.Hand);
     private static int s_nextTraceId;
-    private sealed class NavigatorSurface(StudioNavigator owner) : SKCanvasElement
+    private sealed class NavigatorSurface(StudioNavigator owner) : SKCanvasElement, ISkiaCanvasRenderer
     {
         protected override void RenderOverride(SKCanvas canvas, Size area) => owner.Render(canvas, area);
+        void ISkiaCanvasRenderer.Render(SKCanvas canvas, Size area) => owner.Render(canvas, area);
     }
 
     private readonly record struct Overview(SKRect Bounds, float Scale, float X, float Y)
@@ -62,6 +63,9 @@ public sealed class StudioNavigator : UserControl, IDisposable
     private bool _disposed;
     private readonly int _traceId = Interlocked.Increment(ref s_nextTraceId);
     private int _overviewRenderCount;
+    private SvgEditorRenderStamp _overviewStamp;
+    private string? _overviewActiveArtboardId;
+    private bool _hasRenderedOverview;
 
     public StudioNavigator()
     {
@@ -75,8 +79,12 @@ public sealed class StudioNavigator : UserControl, IDisposable
         _surface = new NavigatorSurface(this) { IsHitTestVisible = false };
         _viewportIndicator = new Rectangle
         {
-            IsHitTestVisible = false, StrokeThickness = 1.5, Stroke = _viewportStroke,
-            Fill = _viewportFill, UseLayoutRounding = false, Visibility = Visibility.Collapsed
+            IsHitTestVisible = false,
+            StrokeThickness = 1.5,
+            Stroke = _viewportStroke,
+            Fill = _viewportFill,
+            UseLayoutRounding = false,
+            Visibility = Visibility.Collapsed
         };
         _viewportOverlay = new Canvas { IsHitTestVisible = false, UseLayoutRounding = false, Clip = _viewportClip };
         _viewportOverlay.Children.Add(_viewportIndicator);
@@ -157,6 +165,8 @@ public sealed class StudioNavigator : UserControl, IDisposable
         _controller = controller;
         _viewport = viewport;
         _artboardCache.Clear();
+        _overviewStamp = default;
+        _hasRenderedOverview = false;
         if (_controller is not null)
         {
             _controller.Changed += OnSourceChanged;
@@ -238,6 +248,8 @@ public sealed class StudioNavigator : UserControl, IDisposable
     {
         if (_disposed)
             return;
+        using var measurement = EditorRenderDiagnostics.Measure(EditorRenderPhase.Navigator);
+        var stamp = SvgEditorRenderStamp.Capture(_controller);
         _overviewRenderCount++;
         if (EditorInputTrace.Enabled)
             EditorInputTrace.Write($"navigator-overview-render id={_traceId} count={_overviewRenderCount}");
@@ -269,6 +281,9 @@ public sealed class StudioNavigator : UserControl, IDisposable
             _paint.Color = artboard.Id == active ? _accent : _border;
             canvas.DrawRect(overview.ToView(artboard.Bounds), _paint);
         }
+        _overviewStamp = stamp;
+        _overviewActiveArtboardId = active;
+        _hasRenderedOverview = true;
     }
 
     private void UpdateViewportIndicator()
@@ -438,7 +453,13 @@ public sealed class StudioNavigator : UserControl, IDisposable
         SubscribeRenderer();
         IsEnabled = _controller?.Document is not null && _viewport is not null;
         UpdateViewportIndicator();
-        _surface.Invalidate();
+        // Selection and save-state notifications do not change the overview.
+        // Renderer animation events explicitly invalidate even when the retained
+        // picture object survives an animation-frame update.
+        if (sender is SKSvg || !_hasRenderedOverview
+            || _overviewStamp != SvgEditorRenderStamp.Capture(_controller)
+            || _overviewActiveArtboardId != _controller?.ActiveArtboardId)
+            _surface.Invalidate();
     }
     private void OnViewportChanged(object? sender, EventArgs args)
     {
@@ -472,6 +493,8 @@ public sealed class StudioNavigator : UserControl, IDisposable
         _brushSubscriptions?.Dispose();
         _brushSubscriptions = null;
         _artboardCache.Clear();
+        _overviewStamp = default;
+        _hasRenderedOverview = false;
     }
     private void OnSurfaceSizeChanged(object sender, SizeChangedEventArgs args)
     {
@@ -492,6 +515,8 @@ public sealed class StudioNavigator : UserControl, IDisposable
         _controller = null;
         _viewport = null;
         _artboardCache.Clear();
+        _overviewStamp = default;
+        _hasRenderedOverview = false;
         ActualThemeChanged -= OnThemeChanged;
         Loaded -= OnLoaded;
         Unloaded -= OnUnloaded;

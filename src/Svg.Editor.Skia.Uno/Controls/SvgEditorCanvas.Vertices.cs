@@ -56,7 +56,7 @@ public sealed partial class SvgEditorCanvas
             {
                 _vertexIndex = i;
                 _gesture = Gesture.Vertex;
-                Invalidate();
+                InvalidateInteraction();
                 return true;
             }
         }

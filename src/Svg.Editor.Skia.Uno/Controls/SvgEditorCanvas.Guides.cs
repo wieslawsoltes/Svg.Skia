@@ -15,15 +15,15 @@ public sealed partial class SvgEditorCanvas
     private string? _movingGuideId, _snapGuideId, _snapSecondGuideId;
     private SKPoint _guideOriginalOrigin;
 
-    public bool GuidesVisible { get => _guidesVisible; set { _guidesVisible = value; Invalidate(); } }
-    public bool GuidesLocked { get => _guidesLocked; set { _guidesLocked = value; CancelGuidePreview(); Invalidate(); } }
+    public bool GuidesVisible { get => _guidesVisible; set { _guidesVisible = value; InvalidateInteraction(); } }
+    public bool GuidesLocked { get => _guidesLocked; set { _guidesLocked = value; CancelGuidePreview(); InvalidateInteraction(); } }
     public bool SnapToGuides { get => _snapToGuides; set => _snapToGuides = value; }
-    public bool SmartGuides { get => _smartGuides; set { _smartGuides = value; _snapGuideId = _snapSecondGuideId = null; Invalidate(); } }
+    public bool SmartGuides { get => _smartGuides; set { _smartGuides = value; _snapGuideId = _snapSecondGuideId = null; InvalidateInteraction(); } }
 
     public void PreviewRulerGuide(SKPoint? picturePoint, bool vertical)
     {
         _guidePreview = picturePoint is { } point ? new SvgEditorGuide(string.Empty, point, vertical ? new SKPoint(0, 1) : new SKPoint(1, 0)) : null;
-        Invalidate();
+        InvalidateInteraction();
     }
 
     private void RefreshGuideCache() => _guides = _guideCache.GetGuides(Controller);
@@ -51,7 +51,7 @@ public sealed partial class SvgEditorCanvas
             return false;
         var origin = Add(_guideOriginalOrigin, Subtract(_currentWorld, _startWorld));
         _guidePreview = new SvgEditorGuide(guide.Id, origin, guide.Direction);
-        Invalidate();
+        InvalidateInteraction();
         return true;
     }
 
@@ -132,7 +132,8 @@ public sealed partial class SvgEditorCanvas
             resources.Stroke.Color = resources.GuidePreview;
             DrawLine(preview);
         }
-        if (_activePointer is not null && _moved && _snapGuideIndex is { } snapIndex)
+        if (_activePointer is not null && _moved && (_snapGuideId is not null || _snapSecondGuideId is not null)
+            && _snapGuideIndex is { } snapIndex)
         {
             resources.Stroke.Color = resources.SmartGuide;
             for (var index = 0; index < snapIndex.Guides.Count; index++)

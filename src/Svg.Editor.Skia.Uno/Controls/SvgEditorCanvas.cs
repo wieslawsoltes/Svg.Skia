@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
@@ -19,7 +20,7 @@ namespace Svg.Editor.Skia.Uno;
 /// a compatibility bridge for another compositor; document pictures are reused
 /// through camera changes and pointer previews.
 /// </summary>
-public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
+public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRenderer, IDisposable
 {
     private enum Gesture { None, Pan, Pinch, Marquee, Move, Resize, Rotate, Create, Node, Vertex, Transform, Zoom, Gradient, Artboard, EditorShape, AreaType, Scissors, CutSweep, Lasso, Anchor, ShapeBuilder, Deformation, SymbolSpray, SymbolBrush, PathRefinement, BlobStroke, Measure }
 
@@ -62,9 +63,31 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
     private bool _needsFit = true;
     private bool _disposed;
     private CanvasResources? _resources;
+    private readonly InteractionSurface _interactionSurface;
+    private double _lastDocumentRenderMilliseconds;
+    private double _lastInteractionRenderMilliseconds;
+    private int _fullInvalidatePending;
+    private bool _interactionRenderPending = true;
+    private bool _hasDocumentRenderState;
+    private DocumentRenderState _documentRenderState;
+
+    private readonly record struct DocumentRenderState(SvgEditorRenderStamp Content,
+        SKMatrix Camera, double Width, double Height, bool Grid, double GridSize, bool Transparency, bool DarkTheme);
+
+    private DocumentRenderState CaptureDocumentRenderState() => new(SvgEditorRenderStamp.Capture(Controller),
+        Viewport.Matrix, Viewport.Width, Viewport.Height, ShowGrid, Controller?.Selection.GridSize ?? 10,
+        ShowTransparency, IsDarkTheme);
 
     public SvgEditorCanvas()
     {
+        // Own content remains the document layer. A single child paints transient
+        // editing feedback after it, while leaving the document recording intact.
+        _interactionSurface = new InteractionSurface(this) { IsHitTestVisible = false };
+        // A compositor bridge can append its document island after construction.
+        // Keep interaction feedback above that host-owned content as well.
+        Microsoft.UI.Xaml.Controls.Canvas.SetZIndex(_interactionSurface, 1);
+        Children.Add(_interactionSurface);
+
         // Uno 7 uses a border visual; a brush supplies its hit-test geometry.
         Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
 
@@ -73,7 +96,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
         Viewport.Changed += OnViewportChanged;
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
-        PointerExited += (_, _) => { _brushPointerInside = false; Invalidate(); };
+        PointerExited += (_, _) => { _brushPointerInside = false; InvalidateInteraction(); };
         PointerReleased += OnPointerReleased;
         PointerCanceled += OnPointerCanceled;
         PointerCaptureLost += OnPointerCaptureLost;
@@ -98,7 +121,41 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
     public double Zoom => Viewport.Zoom;
     public double ZoomPercent => Viewport.Zoom * 100;
     public SKPoint PointerPosition { get; private set; }
-    public double LastRenderMilliseconds { get; private set; }
+    /// <summary>
+    /// Sum of the most recent document and interaction preparation times.
+    /// Raster uploads and compositor presentation are measured by the host.
+    /// </summary>
+    public double LastRenderMilliseconds => _lastDocumentRenderMilliseconds + _lastInteractionRenderMilliseconds;
+
+    /// <summary>Invalidates the document and its interaction feedback together.</summary>
+    public new void Invalidate()
+    {
+        if (_disposed)
+            return;
+        // Match the base API's cross-thread guarantee while marking both layers
+        // together on the UI thread, rather than posting independent updates.
+        if (DispatcherQueue is { } dispatcher && !dispatcher.HasThreadAccess)
+        {
+            if (Interlocked.Exchange(ref _fullInvalidatePending, 1) == 0 && !dispatcher.TryEnqueue(() =>
+            {
+                Volatile.Write(ref _fullInvalidatePending, 0);
+                Invalidate();
+            }))
+                Volatile.Write(ref _fullInvalidatePending, 0);
+            return;
+        }
+        base.Invalidate();
+        InvalidateInteraction();
+    }
+
+    private void InvalidateInteraction()
+    {
+        if (!_disposed)
+        {
+            _interactionRenderPending = true;
+            _interactionSurface.Invalidate();
+        }
+    }
 
     public SvgEditorController? Controller
     {
@@ -146,7 +203,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
             _tool = value;
             RefreshNodePreview();
             UpdateCursor();
-            Invalidate();
+            InvalidateInteraction();
         }
     }
 
@@ -220,7 +277,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
         ReleasePointerCaptures();
         RefreshNodePreview();
         UpdateCursor();
-        Invalidate();
+        InvalidateInteraction();
     }
 
     private void CancelDrawingPreview()
@@ -266,7 +323,10 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
             FitDocument();
         }
 
-        Invalidate();
+        if (_hasDocumentRenderState && _documentRenderState == CaptureDocumentRenderState())
+            InvalidateInteraction();
+        else
+            Invalidate();
     }
 
     private void OnViewportChanged(object? sender, EventArgs e)
@@ -349,7 +409,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
         _nodeOutline = null;
         ReleasePointerCaptures();
         UpdateCursor();
-        Invalidate();
+        InvalidateInteraction();
         InteractionFailed?.Invoke(this, new SvgEditorInteractionFailedEventArgs(exception));
     }
 
@@ -408,11 +468,15 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
         _canvasBrushSubscriptions = null;
         _controller = null;
         ReleaseResources();
+        Children.Remove(_interactionSurface);
+        _interactionSurface.Dispose();
         base.Dispose();
     }
 
     private void ReleaseResources()
     {
+        _hasDocumentRenderState = false;
+        _documentRenderState = default;
         _artboardCache.Clear();
         ReleaseSelectionGhost();
         _nodePreview.Stop();

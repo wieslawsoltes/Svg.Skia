@@ -58,7 +58,7 @@ public sealed partial class SvgEditorCanvas
             {
                 CapturePointer(e.Pointer);
                 e.Handled = true;
-                Invalidate();
+                InvalidateInteraction();
                 return;
             }
             _suppressTouchDoubleTap = false;
@@ -104,7 +104,7 @@ public sealed partial class SvgEditorCanvas
 
         if (TryBeginGuideDrag(view) || TryBeginEditorGesture(e, view))
         {
-            Invalidate();
+            InvalidateInteraction();
             return;
         }
 
@@ -166,7 +166,7 @@ public sealed partial class SvgEditorCanvas
             _freehandPreview.MoveTo(_startWorld);
         }
 
-        Invalidate();
+        InvalidateInteraction();
     }
 
     private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
@@ -200,10 +200,10 @@ public sealed partial class SvgEditorCanvas
             if (_penNodes.Count > 0)
             {
                 _currentWorld = Snap(PointerPosition);
-                Invalidate();
+                InvalidateInteraction();
             }
             else if (TryGetHoverBrushRadius(out _))
-                Invalidate();
+                InvalidateInteraction();
 
             return;
         }
@@ -222,7 +222,7 @@ public sealed partial class SvgEditorCanvas
         var delta = Subtract(_currentWorld, _startWorld);
         if (TryUpdateGuideDrag() || UpdateEditorGesture())
         {
-            Invalidate();
+            InvalidateInteraction();
             return;
         }
         switch (_gesture)
@@ -266,7 +266,7 @@ public sealed partial class SvgEditorCanvas
                 break;
         }
 
-        Invalidate();
+        InvalidateInteraction();
     }
 
     private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
@@ -344,7 +344,7 @@ public sealed partial class SvgEditorCanvas
         ReleaseSelectionGhost();
         RefreshNodePreview();
         UpdateCursor();
-        Invalidate();
+        InvalidateInteraction();
     }
 
     private int HitSelectionHandle(SKPoint view)
