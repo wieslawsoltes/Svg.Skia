@@ -1749,13 +1749,1773 @@
     "finding": "Expected complete artwork and selection feedback, crisp chrome, and no obvious unexpected clipping or missing-content regression in the inspected native captures."
   },
   "aot": {
-    "status": "pending",
-    "welcome": null,
+    "status": "welcome_passed_svg_pending",
+    "welcome": {
+      "schema": 1,
+      "evidence_kind": "legacy_composite_welcome_browser_audit",
+      "passed": true,
+      "application_source_sha": "0ffaabff993d1e040ba2ada1b5130daeccfc2f41",
+      "execution_mode": "InterpreterAndAOT",
+      "artifact": {
+        "run_id": 43289446677,
+        "job_id": 131455295359,
+        "metadata": {
+          "id": 13979868258,
+          "name": "unodraw-legacy-composite-bridge-quality",
+          "size_in_bytes": 24141862,
+          "url": "https://api.github.com/repos/wieslawsoltes/Svg.Skia/actions/artifacts/13979868258",
+          "archive_download_url": "https://api.github.com/repos/wieslawsoltes/Svg.Skia/actions/artifacts/13979868258/zip",
+          "expired": false,
+          "created_at": "2026-11-12T20:16:24Z",
+          "expires_at": "2026-11-26T20:16:23Z",
+          "updated_at": "2026-11-12T20:16:24Z",
+          "digest": "sha256:5af525935b79c703339216a9060011a02ce0956de9d7b6e9d4ae36d022625284",
+          "workflow_run": {
+            "id": 43289446677,
+            "repository_id": 216883277,
+            "head_repository_id": 216883277,
+            "head_branch": "codex/unodraw-rendering-performance",
+            "head_sha": "0ffaabff993d1e040ba2ada1b5130daeccfc2f41"
+          }
+        },
+        "archive_sha256": "5af525935b79c703339216a9060011a02ce0956de9d7b6e9d4ae36d022625284",
+        "report_sha256": "7cbfa5703089503094eba850274fcc3785f5127065c351ba722d9dd66f868b09",
+        "verified_archived_files": 145
+      },
+      "package": {
+        "schema": 2,
+        "role": "candidate",
+        "source_sha": "0ffaabff993d1e040ba2ada1b5130daeccfc2f41",
+        "dotnet_sdk": "10.0.403",
+        "dotnet_workload_version": "10.0.403",
+        "source_global_json": {
+          "sdk": {
+            "version": "10.0.100",
+            "rollForward": "latestMinor",
+            "allowPrerelease": true
+          },
+          "msbuild-sdks": {
+            "Uno.Sdk": "7.0.5"
+          }
+        },
+        "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+        "effective_global_json": {
+          "sdk": {
+            "version": "10.0.403",
+            "rollForward": "disable",
+            "allowPrerelease": false,
+            "workloadVersion": "10.0.403"
+          },
+          "msbuild-sdks": {
+            "Uno.Sdk": "7.0.5"
+          }
+        },
+        "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+        "source_configuration_overridden": true,
+        "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+        "dotnet_workload_info": "Workload version: 10.0.403\n Configured to use workload sets when installing new manifests.\n\n [wasm-tools]\n   Installation Source: SDK 10.0.400\n   Manifest Version:    10.0.114/10.0.100\n   Manifest Path:       /usr/share/dotnet/sdk-manifests/10.0.100/microsoft.net.workload.mono.toolchain.current/10.0.114/WorkloadManifest.json\n   Install Type:        FileBased",
+        "uno_sdk": "7.0.5",
+        "runtime_generation": "uno7",
+        "configuration": "Release",
+        "execution_mode": "InterpreterAndAOT",
+        "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+        "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+        "index_sha256": "53fddaf31a5a87959f4535d15d104e3f5784841aeffda609880e29d4d00bfca3",
+        "font_assets_sha256": {
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf": "2573f53b71ebee599dfc94c60e1ea848d6d20e7e777d2c65d063822850e738b6",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Bold.ttf": "bc73c45e5810a0971ebeaef4eb6c35dec84607dbe02da6757f9f43d958b6da5f",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-BoldItalic.ttf": "b6219df45cbee6f876e6b28f668348e1807b1fb9ad118ea7d687041f0d332384",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBold.ttf": "0c078107776634131162be46a38245399040c2becc495e93d69d9b6edd65a98d",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBoldItalic.ttf": "a034466210aeb09f7ffdbc9250accd1f5c3e2fb8acbfd3be8aa154993ec43d9b",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Italic.ttf": "5eabd67fe3d8b5b5eee64504ea9e4a5ef7665b643577ef117f3c32fda67cd29f",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Light.ttf": "46ead38978e28f32ad7dc10d467efe8d8b5786ff98020c3718a296f88ef7f1cc",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-LightItalic.ttf": "4eac502c10daf6608e53e7db86d79769890373ebbd5472a57bbcb75789bc5110",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Medium.ttf": "2ab15629424ace86d429dbc0e5a7beb30d2af3db998a2b03a71601ee6965c334",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-MediumItalic.ttf": "bf436f4c34d2c921d0f2d4997e7854050a60feaa89bbacc604ae896ad254ca8b",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Regular.ttf": "6530480277da62efde047eb26e78a7e532d1cfaeec91603e68d63876b9669f0d",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBold.ttf": "e603135cc3b1200c7260b34f37f9cb1f2178a42b363037e26a1e18276ab78bf0",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBoldItalic.ttf": "b1bf2c582820b5703dbcd339b5dc97235c145185d0fabbb09c224ef87215266b",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf": "13744bbc079f0f492e4fb3b14a15d242b8d9600faacd423d58cdf937fea7ce6b",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Bold.ttf": "08858694d203191fbddbc603f0d82e18d104c27941622afa4b8ff0ccaca12b60",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-BoldItalic.ttf": "75dffec080d8dc033a9794ff253614a380f51f7e139aae48daf12ebe9aa4aec4",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBold.ttf": "f7cb3b6dd0084d59f66fa9e5238b4bb8192ad6949f99a1673c910b832ae2a53e",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBoldItalic.ttf": "621ee76be446afeac7e13fee34bbfa70679f9907f200bb1bd50adfe1ce71a77d",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Italic.ttf": "2bc823a7660f1fd34b0c2a57dd9acd46fedf0ac7abe32a146d2e895e88f39102",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Light.ttf": "c1c6e126200cefe046a49f36ab020c0dcc844095671977132739459804787ad6",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-LightItalic.ttf": "e1e60f4093232a627f42e215b8fea141a838995631839c1524557c876f3377f7",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Medium.ttf": "69c1f94736232a3b7d78f3df863c2f7561dabbd17192054d082573c5405433a6",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-MediumItalic.ttf": "bcbfc3d6e7258e022bf6ccf8152a16920dfc40b55bc4c8254c15f4ff4d68dd5a",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Regular.ttf": "f59481d260f7aafc6c4696dd8608ccbe12714c98e64f8d61422ee75afb9497b5",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBold.ttf": "17995de0355f8f96e9bf7ecc7dcae2b0aadd5a8b32e82f3909589b826169321c",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBoldItalic.ttf": "6c3543f02911695383f7a24905446d9dac12b3cbeca4f28236c0475bd482064d",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Bold.ttf": "b1a405296720729a9ccb2215ef8e25fa031f28a74a23a782ee003b120d92a887",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-BoldItalic.ttf": "c131cd1ca5b9d6e4ace568ee0ccf3cd697b9d54db97b3cc8838a4a89092492c1",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBold.ttf": "356012920cf82d3ad23c3022a42638d6e9766795c331e52578313c0bb36de912",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBoldItalic.ttf": "3d94b1b6990162aefd796aa74e1e0a730b5aa0077f40503a0187ddb6f648f9b7",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Italic.ttf": "6c73ebe56797e33acff95695547aaec72b130659d1a20f257eb876cf6c9d7f58",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Light.ttf": "92cd488028cd9e0ee4b1934e48a6aa05e7f1bf04c65eb8104f2486cb49df2096",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-LightItalic.ttf": "f976b54657dc331335418a6330d6cd46ff9ae646bc9b9a3987edcfee0b0ca11b",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Medium.ttf": "6be32b58eb0616a206aa941779a672c6bb97a94de1302d9e1e958d6b8c2af111",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-MediumItalic.ttf": "bc97ce0653959b1fcc5db92049dc477734927802e4776e770b84abafce10beaf",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Regular.ttf": "b248380c2975e732fd643e0c00bf5f3ade168e89ca60150e323e3a22d4807b94",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBold.ttf": "b82891f7b8e0eac507b462953cdb49120d73646e58f40ad0fab6aa0468da7868",
+          "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBoldItalic.ttf": "6b9fb4a0e22bb4996d4116bae2e14a09db5c8f33ef109ef57ff7186af1b68b71"
+        },
+        "supports_render_diagnostics": true
+      },
+      "package_binding": "Workflow artifact head and embedded source/build/font manifest. Independently downloaded published AOT index and every font match this manifest. The original AOT archive and all 907 served assets were independently rebound to the verified ZIP and portable receipt.",
+      "audit_gate_source_sha": "0ffaabff993d1e040ba2ada1b5130daeccfc2f41",
+      "audit_source_files": {
+        "tests/UnoDraw.BrowserPerformance/bridge_quality.py": "b36b0b336de769622b3bcef34b7d3cd9932063d6c46d34aaa9c65fba6dbb2034",
+        "tests/UnoDraw.BrowserPerformance/quality.py": "67b44f3f9f4417870bffd33d0e2b34f962b8b063363c84328a0ba7c91f3b20af",
+        "tests/UnoDraw.BrowserPerformance/performance.py": "af4e4cfc9e199ad4e35a270e986c274667789ad66eb64247659752cad5de4ef5",
+        "tests/UnoDraw.BrowserSmoke/smoke.py": "dc172792b4d40408f68234463f187b87ddbecfdcf07ad8c4a7368bfdb0c6a061",
+        "tests/UnoDraw.BrowserSmoke/backend.py": "b6b85990047f38c44094c0f8240c12d59a4c03c6d2cab23dd9de40c7a81d3ef9"
+      },
+      "browser_version": "143.0.7499.4",
+      "browser_launch_arguments": [
+        "--enable-unsafe-swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-unsafe-webgpu",
+        "--use-vulkan=swiftshader",
+        "--enable-features=Vulkan"
+      ],
+      "case_count": 6,
+      "state_count": 60,
+      "cross_mode_native_pairs": 30,
+      "within_case_restore_native_pairs": 12,
+      "cases": [
+        {
+          "bridge": "legacy",
+          "dpr": 1,
+          "passed": true,
+          "report_sha256": "62be957141dbcebabedd2615113bc79413485767b0a36e5afc9607357ef819ac",
+          "actual_backend": [
+            {
+              "provider": "WebGpuGraphicsProvider",
+              "context": "WebGpu"
+            }
+          ],
+          "bridge_evidence": [
+            "UnoDraw canvas bridge preference: legacy raster texture upload."
+          ],
+          "small_window_capture_sha256": "ad881f65e49792ac7a99a93c3cf1dd958e5349ffcf00b49c624cae633e053ac3",
+          "states": [
+            {
+              "state": "01-desktop",
+              "raw": "dpr-1/legacy/01-desktop.png",
+              "raw_sha256": "8da790e60127bf29f1d8dad6ae4dde17a662b9ec4ebdf8154a626441bbe0f5fd",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "8da790e60127bf29f1d8dad6ae4dde17a662b9ec4ebdf8154a626441bbe0f5fd",
+              "navigator": false
+            },
+            {
+              "state": "02-actual-size",
+              "raw": "dpr-1/legacy/02-actual-size.png",
+              "raw_sha256": "a705d6c45fed10f3d88ada3c82fe709254109bdc771731b48d4811673354f89e",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "a705d6c45fed10f3d88ada3c82fe709254109bdc771731b48d4811673354f89e",
+              "navigator": false
+            },
+            {
+              "state": "03-refitted",
+              "raw": "dpr-1/legacy/03-refitted.png",
+              "raw_sha256": "0086d66dd938ee1bd2f9d3da013b038218abd8b64d84f1728f55755ea0388312",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "0086d66dd938ee1bd2f9d3da013b038218abd8b64d84f1728f55755ea0388312",
+              "navigator": false
+            },
+            {
+              "state": "03b-brush-overlay",
+              "raw": "dpr-1/legacy/03b-brush-overlay.png",
+              "raw_sha256": "d102be29737967cf54d53326676e5aed9bc76c5a8f174fd1fe47ab0c37a3f36b",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "d102be29737967cf54d53326676e5aed9bc76c5a8f174fd1fe47ab0c37a3f36b",
+              "navigator": false
+            },
+            {
+              "state": "03c-selection-overlay",
+              "raw": "dpr-1/legacy/03c-selection-overlay.png",
+              "raw_sha256": "20a026f741d2a3152f871cc149b58115236dcb168a60f2d0233ae1720384b737",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "20a026f741d2a3152f871cc149b58115236dcb168a60f2d0233ae1720384b737",
+              "navigator": false
+            },
+            {
+              "state": "04-navigator-visible",
+              "raw": "dpr-1/legacy/04-navigator-visible.png",
+              "raw_sha256": "2978c0d70a7e5c2c4041487c73b66b4612baed48ec87d2205009db84c45b728a",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "2978c0d70a7e5c2c4041487c73b66b4612baed48ec87d2205009db84c45b728a",
+              "navigator": true
+            },
+            {
+              "state": "05-navigator-hidden",
+              "raw": "dpr-1/legacy/05-navigator-hidden.png",
+              "raw_sha256": "1f3678a96e79d1296d0016e738c959425407df9282121b3ab5d21a93ae38a669",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "1f3678a96e79d1296d0016e738c959425407df9282121b3ab5d21a93ae38a669",
+              "navigator": false
+            },
+            {
+              "state": "06-navigator-shown-again",
+              "raw": "dpr-1/legacy/06-navigator-shown-again.png",
+              "raw_sha256": "7868f64253e3214fa38dfcbdd649dee60e5ddfa75127bebb6069df5bfa95e6cc",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "7868f64253e3214fa38dfcbdd649dee60e5ddfa75127bebb6069df5bfa95e6cc",
+              "navigator": true
+            },
+            {
+              "state": "07-compact",
+              "raw": "dpr-1/legacy/07-compact.png",
+              "raw_sha256": "bd363fc29c11143b7b207040584fe691af337b3b90463cb7a4ef243eabc9d489",
+              "physical_size": [
+                390,
+                844
+              ],
+              "css_readiness_sha256": "bd363fc29c11143b7b207040584fe691af337b3b90463cb7a4ef243eabc9d489",
+              "navigator": false
+            },
+            {
+              "state": "09-desktop-restored",
+              "raw": "dpr-1/legacy/09-desktop-restored.png",
+              "raw_sha256": "22c44161b7c76efe4006faae696173e99748f589484ad7ce043d135c517d10c4",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "22c44161b7c76efe4006faae696173e99748f589484ad7ce043d135c517d10c4",
+              "navigator": true
+            }
+          ]
+        },
+        {
+          "bridge": "legacy-composite",
+          "dpr": 1,
+          "passed": true,
+          "report_sha256": "d2762fa85b8e7e401eb4f93752b06719496188d55e58dd7b1a64257eb3b1f050",
+          "actual_backend": [
+            {
+              "provider": "WebGpuGraphicsProvider",
+              "context": "WebGpu"
+            }
+          ],
+          "bridge_evidence": [
+            "UnoDraw canvas bridge preference: legacy-composite raster texture upload.",
+            "UnoDraw canvas bridge initialized: legacy-composite raster texture upload.",
+            "UnoDraw legacy-composite canvas bridge reused cached document pixels."
+          ],
+          "small_window_capture_sha256": "1e5d411ec01c8bcd290fae2ce2ca169222ae44e19c212b44df8eb0b27359ab30",
+          "states": [
+            {
+              "state": "01-desktop",
+              "raw": "dpr-1/legacy-composite/01-desktop.png",
+              "raw_sha256": "5609e40fb7595f8e93adcc45372b5afd72503f3ab392180bad7545494457a961",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "5609e40fb7595f8e93adcc45372b5afd72503f3ab392180bad7545494457a961",
+              "navigator": false
+            },
+            {
+              "state": "02-actual-size",
+              "raw": "dpr-1/legacy-composite/02-actual-size.png",
+              "raw_sha256": "c530baa715838010c88866f848d71c191aec74c9b8160fe7108fda655bfde39a",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "c530baa715838010c88866f848d71c191aec74c9b8160fe7108fda655bfde39a",
+              "navigator": false
+            },
+            {
+              "state": "03-refitted",
+              "raw": "dpr-1/legacy-composite/03-refitted.png",
+              "raw_sha256": "7c04b332a171ecb6acc6dadc02ac009394085f8f9ec524a67e410820b9b4bebd",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "7c04b332a171ecb6acc6dadc02ac009394085f8f9ec524a67e410820b9b4bebd",
+              "navigator": false
+            },
+            {
+              "state": "03b-brush-overlay",
+              "raw": "dpr-1/legacy-composite/03b-brush-overlay.png",
+              "raw_sha256": "07e4aecf42f2bcd3f019fa4e5f07ada15ca9cdd5f93e81d284cc52642e31e9bd",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "07e4aecf42f2bcd3f019fa4e5f07ada15ca9cdd5f93e81d284cc52642e31e9bd",
+              "navigator": false
+            },
+            {
+              "state": "03c-selection-overlay",
+              "raw": "dpr-1/legacy-composite/03c-selection-overlay.png",
+              "raw_sha256": "7e00b20c0fd96f784623497d7d65df940d83e0ff439fa1a4b9e916203316a67e",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "7e00b20c0fd96f784623497d7d65df940d83e0ff439fa1a4b9e916203316a67e",
+              "navigator": false
+            },
+            {
+              "state": "04-navigator-visible",
+              "raw": "dpr-1/legacy-composite/04-navigator-visible.png",
+              "raw_sha256": "fae4a614f0ee4debbc6988bd827109707a4f7ecbdf5206618c1bc973260edc9a",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "fae4a614f0ee4debbc6988bd827109707a4f7ecbdf5206618c1bc973260edc9a",
+              "navigator": true
+            },
+            {
+              "state": "05-navigator-hidden",
+              "raw": "dpr-1/legacy-composite/05-navigator-hidden.png",
+              "raw_sha256": "a841462b79927e8228056159df702d689bdf8f199d6aa2255a762e4485465060",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "a841462b79927e8228056159df702d689bdf8f199d6aa2255a762e4485465060",
+              "navigator": false
+            },
+            {
+              "state": "06-navigator-shown-again",
+              "raw": "dpr-1/legacy-composite/06-navigator-shown-again.png",
+              "raw_sha256": "558ecb6666b54620a360154962874713a123cb0250ebf414f26e1aa964bb848f",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "558ecb6666b54620a360154962874713a123cb0250ebf414f26e1aa964bb848f",
+              "navigator": true
+            },
+            {
+              "state": "07-compact",
+              "raw": "dpr-1/legacy-composite/07-compact.png",
+              "raw_sha256": "1f376169a54416d2bf44f1e4d41be32bd53438738f886f19ca7e1633f104af7b",
+              "physical_size": [
+                390,
+                844
+              ],
+              "css_readiness_sha256": "1f376169a54416d2bf44f1e4d41be32bd53438738f886f19ca7e1633f104af7b",
+              "navigator": false
+            },
+            {
+              "state": "09-desktop-restored",
+              "raw": "dpr-1/legacy-composite/09-desktop-restored.png",
+              "raw_sha256": "5253669ea91542e436fd3139db793fa50f7b888b03ad34519e0025c8293f825a",
+              "physical_size": [
+                1440,
+                960
+              ],
+              "css_readiness_sha256": "5253669ea91542e436fd3139db793fa50f7b888b03ad34519e0025c8293f825a",
+              "navigator": true
+            }
+          ]
+        },
+        {
+          "bridge": "legacy",
+          "dpr": 1.25,
+          "passed": true,
+          "report_sha256": "0177a26c951a8531baac0298ec9c11b91bacd452721d9c394b6ad2bb9185965a",
+          "actual_backend": [
+            {
+              "provider": "WebGpuGraphicsProvider",
+              "context": "WebGpu"
+            }
+          ],
+          "bridge_evidence": [
+            "UnoDraw canvas bridge preference: legacy raster texture upload."
+          ],
+          "small_window_capture_sha256": "0c83af712705fa7e2b5d5d25e1d9fe7b8a371b78b3d4f6700360a9b2eef85beb",
+          "states": [
+            {
+              "state": "01-desktop",
+              "raw": "dpr-1.25/legacy/01-desktop.png",
+              "raw_sha256": "d5c4062fe7164b905da55f77618a2ca26c39a318e16939a2a268fdf978ef7986",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "1f7991e60acf602884ff7bef96e11e25cfdbc35ae879a3f329e52b82b35a4789",
+              "navigator": false
+            },
+            {
+              "state": "02-actual-size",
+              "raw": "dpr-1.25/legacy/02-actual-size.png",
+              "raw_sha256": "d5e9ae317f5f2d6a47d233ba62e0c2f663d3ba10ced2284e3df560b35770df9e",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "fc2947fa8bfffd5f7642d5f8475f4b2c51c1b67c33ab2fbdf23990c02b43586e",
+              "navigator": false
+            },
+            {
+              "state": "03-refitted",
+              "raw": "dpr-1.25/legacy/03-refitted.png",
+              "raw_sha256": "6a5a53f6c9014f88166ab9d1edd5a379d4ee2a07d6f38aa0296f89522c1ea14b",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "77110f272c4e507fdf922f0fbef265a954cb18e8d9dc982f298bae4d8fc2b5bd",
+              "navigator": false
+            },
+            {
+              "state": "03b-brush-overlay",
+              "raw": "dpr-1.25/legacy/03b-brush-overlay.png",
+              "raw_sha256": "ed45cedc00a30db2904813779d5c24e3318dd5a453c0186cf3362a93fe57a1b7",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "0c526ee26e15dd611309571ac152250abfbdee601d7c1fa03efff7288fc71adb",
+              "navigator": false
+            },
+            {
+              "state": "03c-selection-overlay",
+              "raw": "dpr-1.25/legacy/03c-selection-overlay.png",
+              "raw_sha256": "ba56fd6203cf25101d1e44d972dac3b16203fdfb644cf3e920dd80c0968a857e",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "89c4700c7a55e4cd12c005f03a2ac21c79ddad6bf0d103b15590d160c4d49127",
+              "navigator": false
+            },
+            {
+              "state": "04-navigator-visible",
+              "raw": "dpr-1.25/legacy/04-navigator-visible.png",
+              "raw_sha256": "718f7bd7dc0970b25843582a104f2d2e91404aa9d92f1c1c23d56f33ba0d5c1c",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "0414081e99c64ed8c2bc2657c40c1b34f9ca32a5bf682a10d76d9d19092a5e3e",
+              "navigator": true
+            },
+            {
+              "state": "05-navigator-hidden",
+              "raw": "dpr-1.25/legacy/05-navigator-hidden.png",
+              "raw_sha256": "eb31eb5bfbdbd614319ecded1183ea7af130143345c45c3ae14fc24a533f39b3",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "9be5aade5e0ec434de92b2dff2e5030570a2a9270dbfcb44b57a6b7ca8f71b32",
+              "navigator": false
+            },
+            {
+              "state": "06-navigator-shown-again",
+              "raw": "dpr-1.25/legacy/06-navigator-shown-again.png",
+              "raw_sha256": "a3e66f0db790ed2706911c36690e4f3bda88580b6a681e81ed7c539f33672411",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "45d1039e26c635beb8a43e2a2c41265f97a617a832f3e2c4b0f20a1ceac556a8",
+              "navigator": true
+            },
+            {
+              "state": "07-compact",
+              "raw": "dpr-1.25/legacy/07-compact.png",
+              "raw_sha256": "28fffd4cf580bf64c4070860fb838894bb812b66afe6b5641d133c92959f634a",
+              "physical_size": [
+                488,
+                1055
+              ],
+              "css_readiness_sha256": "0337ea22d5c6e880363141751794da6700c9c1a808011f1a1d8ebc63eba4767b",
+              "navigator": false
+            },
+            {
+              "state": "09-desktop-restored",
+              "raw": "dpr-1.25/legacy/09-desktop-restored.png",
+              "raw_sha256": "5c186ee1764754a8b93966cc88889ea899c7fecadd93f7f67cf46c93cfdaa2d9",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "cdce32a70282df88f54a33c7a5abf1777a345ea8dd5ede8c0c085bf11f65bffa",
+              "navigator": true
+            }
+          ]
+        },
+        {
+          "bridge": "legacy-composite",
+          "dpr": 1.25,
+          "passed": true,
+          "report_sha256": "374bccbe1d25500bd2676510d5d2c8013d41afba3172d1a4cf8557a3602a9107",
+          "actual_backend": [
+            {
+              "provider": "WebGpuGraphicsProvider",
+              "context": "WebGpu"
+            }
+          ],
+          "bridge_evidence": [
+            "UnoDraw canvas bridge preference: legacy-composite raster texture upload.",
+            "UnoDraw canvas bridge initialized: legacy-composite raster texture upload.",
+            "UnoDraw legacy-composite canvas bridge reused cached document pixels."
+          ],
+          "small_window_capture_sha256": "0c83af712705fa7e2b5d5d25e1d9fe7b8a371b78b3d4f6700360a9b2eef85beb",
+          "states": [
+            {
+              "state": "01-desktop",
+              "raw": "dpr-1.25/legacy-composite/01-desktop.png",
+              "raw_sha256": "6e84435f1c27fcc8c5d62507716e0f89c2261f8e2a9a22232ccf72fedcd63036",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "a2b942d2dbafb58a83978964dae611774afb09c8d6649ebc322dcc2bec5f5eed",
+              "navigator": false
+            },
+            {
+              "state": "02-actual-size",
+              "raw": "dpr-1.25/legacy-composite/02-actual-size.png",
+              "raw_sha256": "e33ba640659b752da85be598d8536fb7952dd7717d24de43bfc7e2959e75237c",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "5f3abc4559a24dd0daba65c98c0eb42496d8f6ae67a056cf2d61959b238426a3",
+              "navigator": false
+            },
+            {
+              "state": "03-refitted",
+              "raw": "dpr-1.25/legacy-composite/03-refitted.png",
+              "raw_sha256": "96486172400bd71088a5ce4412b845b5facf253dfeb1b61b4b2f20293d9ef6b6",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "ce418b5815a670322647f0a239a90404c03c2d7d6fdc764b0678bd06c374158c",
+              "navigator": false
+            },
+            {
+              "state": "03b-brush-overlay",
+              "raw": "dpr-1.25/legacy-composite/03b-brush-overlay.png",
+              "raw_sha256": "027c0f5d6cbcc2ce9820a4cbaad83a162aebbfa87a9c05c194ad26df3db32fce",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "974e67736a56fc1e46ab3e65815c7238328f127262cf00d8acb130568e44c495",
+              "navigator": false
+            },
+            {
+              "state": "03c-selection-overlay",
+              "raw": "dpr-1.25/legacy-composite/03c-selection-overlay.png",
+              "raw_sha256": "bd93b04d295895725f86e8c7b4999751f4d52b88610af00c02194860f3b7a055",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "f0caf700f5854b692610da673fd0f60fb154d3ba6868d01e8e8db7c5a803420e",
+              "navigator": false
+            },
+            {
+              "state": "04-navigator-visible",
+              "raw": "dpr-1.25/legacy-composite/04-navigator-visible.png",
+              "raw_sha256": "866aa229ed1b930a7f9b2d67a8c3e7f1982efe7c6fbf2389f05deee6f1e18b4d",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "36e7d6884adf4cb08908e1f3701537e796921cdcfcd71116cbde788e63a37655",
+              "navigator": true
+            },
+            {
+              "state": "05-navigator-hidden",
+              "raw": "dpr-1.25/legacy-composite/05-navigator-hidden.png",
+              "raw_sha256": "c5128cea3ad3bb39a4d1fe72ff2ef279262acd7304b279c366a00af5efb77d9c",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "ea3030f5691e116eb05ea6b3b68aa968d833f9fc0537d8f26aa4165cbd038ba2",
+              "navigator": false
+            },
+            {
+              "state": "06-navigator-shown-again",
+              "raw": "dpr-1.25/legacy-composite/06-navigator-shown-again.png",
+              "raw_sha256": "04de2bcf349b1ef0d7b2bd279f7e6786bd602dc326ed966c0e05d37bdea313fd",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "406b17d488d04387a0a4a89fe1f3167f61db76e4f8cce6718f653b6baeed6c3a",
+              "navigator": true
+            },
+            {
+              "state": "07-compact",
+              "raw": "dpr-1.25/legacy-composite/07-compact.png",
+              "raw_sha256": "63d8ce04310fae362a67761d11af01aa7e0df333d9c1755aec1b78f971c230f7",
+              "physical_size": [
+                488,
+                1055
+              ],
+              "css_readiness_sha256": "6f44c2f7b69ebfa24ecde7e12a3fe2844233b07a539ad2d84f355b2a45894913",
+              "navigator": false
+            },
+            {
+              "state": "09-desktop-restored",
+              "raw": "dpr-1.25/legacy-composite/09-desktop-restored.png",
+              "raw_sha256": "cf3e8aa757820c300a6ee50d515df64fc9325b1cbfea74894f90e1fca155a0d9",
+              "physical_size": [
+                1800,
+                1200
+              ],
+              "css_readiness_sha256": "50240b9b4f9444fac9454a291c621524880363a76442d73dc4e8e0848fbe6a6c",
+              "navigator": true
+            }
+          ]
+        },
+        {
+          "bridge": "legacy",
+          "dpr": 2,
+          "passed": true,
+          "report_sha256": "1b4c8e6c94b2041604de4144c0dfd6593fd5ad223f710c4124ecff7be95f08a8",
+          "actual_backend": [
+            {
+              "provider": "WebGpuGraphicsProvider",
+              "context": "WebGpu"
+            }
+          ],
+          "bridge_evidence": [
+            "UnoDraw canvas bridge preference: legacy raster texture upload."
+          ],
+          "small_window_capture_sha256": "b7735f56b17a0b078c809bba6cb101d48caccf5c655d46b56d18cbd7534414cb",
+          "states": [
+            {
+              "state": "01-desktop",
+              "raw": "dpr-2/legacy/01-desktop.png",
+              "raw_sha256": "aa87da4a8dda457390dd0c863e4f024f785877266cf2108d7e0bc47ae00ad6aa",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "367de2b79cac2eec4706a340b9a079d8d30619e45f0260e687a33dca4b5aa2d6",
+              "navigator": false
+            },
+            {
+              "state": "02-actual-size",
+              "raw": "dpr-2/legacy/02-actual-size.png",
+              "raw_sha256": "17f3ddcc396f72f20069d91b012acbb98ce12f2d6852765bbca2f486038090ff",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "25dcef398f05e196e556593c2a01347b294573e18fa6eee1004dbacaf0857136",
+              "navigator": false
+            },
+            {
+              "state": "03-refitted",
+              "raw": "dpr-2/legacy/03-refitted.png",
+              "raw_sha256": "df3fb22da6f09131e2e9b1544b7b85632b2a3551aac19f3898fc59573d07e264",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "367de2b79cac2eec4706a340b9a079d8d30619e45f0260e687a33dca4b5aa2d6",
+              "navigator": false
+            },
+            {
+              "state": "03b-brush-overlay",
+              "raw": "dpr-2/legacy/03b-brush-overlay.png",
+              "raw_sha256": "cdecafbf8fd06940b91a04f7d3c4488a642d544d68f73001290904843cc62f73",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "c13d49885b34bf1caa679c1385af565cbf2e1d61314a1301cb1789223b12a6de",
+              "navigator": false
+            },
+            {
+              "state": "03c-selection-overlay",
+              "raw": "dpr-2/legacy/03c-selection-overlay.png",
+              "raw_sha256": "1df8e5ee675f7077b4ab9eb852c4fe927a70a3ae861a567b2884fe21b8961cca",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "07cbd9163ead5fdcb9dae715a027a361df077f472339aa78347ea191ae74fe25",
+              "navigator": false
+            },
+            {
+              "state": "04-navigator-visible",
+              "raw": "dpr-2/legacy/04-navigator-visible.png",
+              "raw_sha256": "ff7a8a5b0ba2839b861081335e3ccfacd2428fd2a44723ee1f7e269c72200585",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "06ecc684131f5ade3919f9033eac9eeb1bdd4b4d6b8cb19fa3f71b41ea0621f8",
+              "navigator": true
+            },
+            {
+              "state": "05-navigator-hidden",
+              "raw": "dpr-2/legacy/05-navigator-hidden.png",
+              "raw_sha256": "64eee665f2527c4eb20280a7a605bfd8e0c59b5702482cc7b14e15f11516b156",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "7521cbf19a2f8e200fc03e52179711ef6ff4fcb317017c37086cfd9c57a0f7eb",
+              "navigator": false
+            },
+            {
+              "state": "06-navigator-shown-again",
+              "raw": "dpr-2/legacy/06-navigator-shown-again.png",
+              "raw_sha256": "d4500b448575e5d53b2ead4675bb7a273f8f3d4fd83edb0bf939b30efb1ef4f6",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "1dfa272f159215cccc40a2c53bc6c2e98f87d69316350d684199a4caa4eddbbb",
+              "navigator": true
+            },
+            {
+              "state": "07-compact",
+              "raw": "dpr-2/legacy/07-compact.png",
+              "raw_sha256": "bc251d9ef53538c1f7a307cd81d9cf6fe861448cc735b827b6cc985ad9efc724",
+              "physical_size": [
+                780,
+                1688
+              ],
+              "css_readiness_sha256": "61f92b9c010fa3a67ae352ff39cde6840e0727cb463cd36b47a48e467104f5ba",
+              "navigator": false
+            },
+            {
+              "state": "09-desktop-restored",
+              "raw": "dpr-2/legacy/09-desktop-restored.png",
+              "raw_sha256": "4c80ab64a00c1e5d67a91840a40e53c3e9028bdb75cf5c50d14b52c8592baa57",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "d6da2a01ab98e9a1f73951c0267bb0edc212727c54dc00f453d272dfa84e333f",
+              "navigator": true
+            }
+          ]
+        },
+        {
+          "bridge": "legacy-composite",
+          "dpr": 2,
+          "passed": true,
+          "report_sha256": "aebf0b75e31075f35f535b315d16ec7dafd1e160d5a12c18fa5baffb1a6b52f5",
+          "actual_backend": [
+            {
+              "provider": "WebGpuGraphicsProvider",
+              "context": "WebGpu"
+            }
+          ],
+          "bridge_evidence": [
+            "UnoDraw canvas bridge preference: legacy-composite raster texture upload.",
+            "UnoDraw canvas bridge initialized: legacy-composite raster texture upload.",
+            "UnoDraw legacy-composite canvas bridge reused cached document pixels."
+          ],
+          "small_window_capture_sha256": "b7735f56b17a0b078c809bba6cb101d48caccf5c655d46b56d18cbd7534414cb",
+          "states": [
+            {
+              "state": "01-desktop",
+              "raw": "dpr-2/legacy-composite/01-desktop.png",
+              "raw_sha256": "8f1d6b08542e4a245fb9f7924d4712fa7d0de2c4a0945fad50695d907673f048",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "c559a34c839d908fcd051464456b8a01a2e2ecb0ced693267d825d412a18ea4a",
+              "navigator": false
+            },
+            {
+              "state": "02-actual-size",
+              "raw": "dpr-2/legacy-composite/02-actual-size.png",
+              "raw_sha256": "335aeb741198cac9d7f333b6ce5f361bf97cd2d87b25aac5b352066935ae7256",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "40cc6d5357de1b8292b9bd11601daf954324378440dbc881a7b4689800b85ec2",
+              "navigator": false
+            },
+            {
+              "state": "03-refitted",
+              "raw": "dpr-2/legacy-composite/03-refitted.png",
+              "raw_sha256": "3c3dae97d2423284c853807a5d35217faaa21da72b43ac9a5fccd17d5b9e2aaf",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "c559a34c839d908fcd051464456b8a01a2e2ecb0ced693267d825d412a18ea4a",
+              "navigator": false
+            },
+            {
+              "state": "03b-brush-overlay",
+              "raw": "dpr-2/legacy-composite/03b-brush-overlay.png",
+              "raw_sha256": "78268e0b094dd454a0ff36dd43e6628041fc0028cc0ab1818a72b6e23bda4c1f",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "b3289419399bf83f1f283849fa47f8b3f9f80cf659c7646a43a2314b97ecf487",
+              "navigator": false
+            },
+            {
+              "state": "03c-selection-overlay",
+              "raw": "dpr-2/legacy-composite/03c-selection-overlay.png",
+              "raw_sha256": "5513a073eef647d994bae59117bbdf6d683f06426a0245cd2be52f747bae03c7",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "492d9e63b9f5c9b1d5977bb9f23f5ae65f0db3eb0122d6a8a446b548152da072",
+              "navigator": false
+            },
+            {
+              "state": "04-navigator-visible",
+              "raw": "dpr-2/legacy-composite/04-navigator-visible.png",
+              "raw_sha256": "79de7def28f1352fc15ac93473c86415e5a92a3468f84c94822029bd287a7e10",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "06997a3285ad11a660380296bfa276c0f66b4ea389c6b88702778774c907a3fb",
+              "navigator": true
+            },
+            {
+              "state": "05-navigator-hidden",
+              "raw": "dpr-2/legacy-composite/05-navigator-hidden.png",
+              "raw_sha256": "e9e36b877e42a8a6fa551f8ad4003d75c9011b3f9c3e37895805312bf5b70a0c",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "db6c6299ac5a8d91f503bdc4e889fe3f5a10df2cfe0684970acde0988c3a54d2",
+              "navigator": false
+            },
+            {
+              "state": "06-navigator-shown-again",
+              "raw": "dpr-2/legacy-composite/06-navigator-shown-again.png",
+              "raw_sha256": "6650395a199fb00288a9d83538e7779ada8d8da6686f7a3f9359cb02a23bd6c0",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "5926a9fc2c1eed6d8ff28f643f578ff1bca9dce55f84947d5845d638aa868f71",
+              "navigator": true
+            },
+            {
+              "state": "07-compact",
+              "raw": "dpr-2/legacy-composite/07-compact.png",
+              "raw_sha256": "82e61c8dfe6d567043c87f728a71c98e0b1fe54187f9c4ad974697f1e1b98d91",
+              "physical_size": [
+                780,
+                1688
+              ],
+              "css_readiness_sha256": "4b7271082142bdf4f86b824c333d06d50a836a58d298794e57931df400a03f9d",
+              "navigator": false
+            },
+            {
+              "state": "09-desktop-restored",
+              "raw": "dpr-2/legacy-composite/09-desktop-restored.png",
+              "raw_sha256": "804d402180d8bcc5bca79a7c2bc4698a34d4576cc75deecca5b65a9206af1222",
+              "physical_size": [
+                2880,
+                1920
+              ],
+              "css_readiness_sha256": "72538dcc4cf6f3e3940bd1f1899239563699797b416f107a96d2c74f050a0a32",
+              "navigator": true
+            }
+          ]
+        }
+      ],
+      "comparisons": [
+        {
+          "state": "01-desktop",
+          "device_pixel_ratio": 1,
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "02-actual-size",
+          "device_pixel_ratio": 1,
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "03-refitted",
+          "device_pixel_ratio": 1,
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "03b-brush-overlay",
+          "device_pixel_ratio": 1,
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "03c-selection-overlay",
+          "device_pixel_ratio": 1,
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "04-navigator-visible",
+          "device_pixel_ratio": 1,
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "05-navigator-hidden",
+          "device_pixel_ratio": 1,
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "06-navigator-shown-again",
+          "device_pixel_ratio": 1,
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "07-compact",
+          "device_pixel_ratio": 1,
+          "passed": true,
+          "physical_size": [
+            390,
+            844
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "09-desktop-restored",
+          "device_pixel_ratio": 1,
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "01-desktop",
+          "device_pixel_ratio": 1.25,
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "02-actual-size",
+          "device_pixel_ratio": 1.25,
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "03-refitted",
+          "device_pixel_ratio": 1.25,
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "03b-brush-overlay",
+          "device_pixel_ratio": 1.25,
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "03c-selection-overlay",
+          "device_pixel_ratio": 1.25,
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "04-navigator-visible",
+          "device_pixel_ratio": 1.25,
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "05-navigator-hidden",
+          "device_pixel_ratio": 1.25,
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "06-navigator-shown-again",
+          "device_pixel_ratio": 1.25,
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "07-compact",
+          "device_pixel_ratio": 1.25,
+          "passed": true,
+          "physical_size": [
+            488,
+            1055
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "09-desktop-restored",
+          "device_pixel_ratio": 1.25,
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "01-desktop",
+          "device_pixel_ratio": 2,
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "02-actual-size",
+          "device_pixel_ratio": 2,
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "03-refitted",
+          "device_pixel_ratio": 2,
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "03b-brush-overlay",
+          "device_pixel_ratio": 2,
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "03c-selection-overlay",
+          "device_pixel_ratio": 2,
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "04-navigator-visible",
+          "device_pixel_ratio": 2,
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "05-navigator-hidden",
+          "device_pixel_ratio": 2,
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "06-navigator-shown-again",
+          "device_pixel_ratio": 2,
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "07-compact",
+          "device_pixel_ratio": 2,
+          "passed": true,
+          "physical_size": [
+            780,
+            1688
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "state": "09-desktop-restored",
+          "device_pixel_ratio": 2,
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      ],
+      "restore_comparisons": [
+        {
+          "bridge": "legacy",
+          "dpr": 1,
+          "kind": "navigator_restore",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "bridge": "legacy",
+          "dpr": 1,
+          "kind": "resize_restore",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "bridge": "legacy-composite",
+          "dpr": 1,
+          "kind": "navigator_restore",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "bridge": "legacy-composite",
+          "dpr": 1,
+          "kind": "resize_restore",
+          "passed": true,
+          "physical_size": [
+            1440,
+            960
+          ],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "bridge": "legacy",
+          "dpr": 1.25,
+          "kind": "navigator_restore",
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "bridge": "legacy",
+          "dpr": 1.25,
+          "kind": "resize_restore",
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "bridge": "legacy-composite",
+          "dpr": 1.25,
+          "kind": "navigator_restore",
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "bridge": "legacy-composite",
+          "dpr": 1.25,
+          "kind": "resize_restore",
+          "passed": true,
+          "physical_size": [
+            1800,
+            1200
+          ],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "bridge": "legacy",
+          "dpr": 2,
+          "kind": "navigator_restore",
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "bridge": "legacy",
+          "dpr": 2,
+          "kind": "resize_restore",
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "bridge": "legacy-composite",
+          "dpr": 2,
+          "kind": "navigator_restore",
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "bridge": "legacy-composite",
+          "dpr": 2,
+          "kind": "resize_restore",
+          "passed": true,
+          "physical_size": [
+            2880,
+            1920
+          ],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      ],
+      "limitations": [
+        "SwiftShader browser correctness only; no hardware performance or primary timing qualification.",
+        "CSS captures are semantic readiness checks. Every A/B and restore comparison uses unresized device-pixel PNGs.",
+        "The zero or near-zero host lifetime is exercised through a real 80x80 viewport followed by restoration.",
+        "Public retained SKImage snapshot isolation is covered by the separate native unit tests; these browser screenshots do not establish retained native snapshot ownership by themselves."
+      ],
+      "job_provenance": {
+        "application_package_source": "0ffaabff993d1e040ba2ada1b5130daeccfc2f41",
+        "harness_checkout": "6a85dd4a24b51a5777d35d6977172d6acebd2bad",
+        "checkout_trees": {
+          "0ffaabff993d1e040ba2ada1b5130daeccfc2f41": "b8abf411cdb7521969f67331b138ba32fba7efd8",
+          "6a85dd4a24b51a5777d35d6977172d6acebd2bad": "b8abf411cdb7521969f67331b138ba32fba7efd8"
+        },
+        "harness_tree_equivalent_to_source": true,
+        "quality_job_conclusion": "success",
+        "package_artifact_id": 13979671213,
+        "package_run_id": 43289446677,
+        "package_archive_sha256": "7c97a858e081f36c03682d26c98d8dacfc6d4f225f455b0069f784b1b2c52ff9",
+        "package_archive_bytes": 175788986,
+        "logged_package_download_digest_matches_verified_archive": true,
+        "logged_upload_digest_matches_download": true,
+        "welcome_fixture_matches_immutable_source": true,
+        "complete_package_manifest_matches_quality_artifact": true,
+        "independently_verified_original_served_files": 907,
+        "package_manifest_sha256": "281a40695857edae910c3009b868233aa3ff0a989bf344c2117adfebb2fe43b4",
+        "package_wwwroot_inventory_sha256": "7ce7ab2f3a88aa49a6d23e2246101c59a3ef3f13b3faa01bcd4cb8b6d3a150f7",
+        "package_receipt_sha256": "8acd17e8456b972cfad15213578a72e2003e26de56d263ae2e96b5ff38c98221",
+        "job_log_sha256": "4c0cdb71fd72a9e30d822077f0d9e8f1dae1c02d0c1e388dcbeacc5cc58614f3",
+        "package_verifier_harness_sha": "21ee03c83052bc5d341c19c58e73557361e74148",
+        "package_verifier_files_sha256": {
+          "tests/UnoDraw.BrowserPerformance/candidate_package.py": "8d85f1519f385cdbd97a98d84eeb2b84368ecf6a8c780d90583c43f8d002e51c",
+          "tests/UnoDraw.BrowserPerformance/pinned_package.py": "d83cae61a188c1b7550b914593d076bde8f524cca873929bf1a0a39611069f1a"
+        }
+      }
+    },
+    "welcome_audit_sha256": "59df6e92100ca52159abc93967abb279661cc266dcf4c229f382ebbde5c6ef8e",
+    "welcome_qualified": true,
     "svg_scenes": null,
-    "qualification_claimed": false
+    "qualification_claimed": false,
+    "qualification_scope": "The explicit AOT Welcome/lifecycle matrix passed. Full SVG-scene qualification remains pending; no hardware performance or current-default promotion is inferred.",
+    "independent_visual_review": {
+      "reviewer": "root agent",
+      "scope": "Representative native AOT screenshots; supplements the complete automated pixel audit.",
+      "observations": [
+        {
+          "path": "dpr-1/legacy-composite/03c-selection-overlay.png",
+          "png_sha256": "7e00b20c0fd96f784623497d7d65df940d83e0ff439fa1a4b9e916203316a67e"
+        },
+        {
+          "path": "dpr-2/legacy-composite/02-actual-size.png",
+          "png_sha256": "335aeb741198cac9d7f333b6ce5f361bf97cd2d87b25aac5b352066935ae7256"
+        }
+      ],
+      "finding": "Artwork, gradients and text are present. The selection box, handles and five selected objects are consistent. Native chrome and rulers are crisp. Cropping in the 100% view matches the actual-size camera rather than missing content."
+    }
   },
   "provenance_limitations": [
     "The Interpreter job built its own separate package and retained its complete source/build/font manifest, but did not upload the Interpreter package ZIP. The job log proves the exact source and equivalent harness trees, explicit Interpreter publish setting and uploaded quality-artifact digest; this audit does not claim independent verification of a retained Interpreter binary archive.",
-    "The Interpreter observations do not establish AOT correctness, full SVG-scene coverage, hardware GPU performance, default-mode startup/reload behavior, or performance recovery. Those qualifications require their own actual artifacts."
+    "The Interpreter observations do not establish AOT correctness, full SVG-scene coverage, hardware GPU performance, default-mode startup/reload behavior, or performance recovery. Those qualifications require their own actual artifacts.",
+    "The AOT Welcome evidence uses the explicit legacy and legacy-composite selectors. It does not establish the full SVG-scene matrix, no-query default startup/reload, hardware GPU behavior or performance recovery; those require their own actual artifacts."
   ]
 }

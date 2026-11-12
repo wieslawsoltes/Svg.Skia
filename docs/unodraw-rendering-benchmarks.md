@@ -43,6 +43,61 @@ compact-layout, reload and renderer-negotiation checks remain unchanged.
 
 ## Results
 
+### Direct original-uploader follow-up (`0ffaabff`)
+
+The complete [direct baseline record](benchmarks/unodraw-legacy-composite-baseline-2026-11-12.json)
+compares the exact `96e5fa9` baseline with explicit `canvasBridge=legacy-composite`
+in the unchanged `0ffaabff` AOT application. All five matched jobs completed:
+30 primary samples, five separate diagnostics, 35 independently recomputed raw
+observer/CDP metric sets and 45 accepted native document/ruler/font pairs. Every
+scored regional fraction is zero above the existing luminance-12 threshold;
+this does not claim byte equality.
+
+| Workload | Baseline median | Opt-in median | Elapsed change | Renderer-thread CPU change |
+| --- | ---: | ---: | ---: | ---: |
+| Pan | 85.583 s | 85.545 s | −0.04% | +0.12% |
+| Zoom | 104.618 s | 103.036 s | −1.51% | +7.65% |
+| Selection | 66.635 s | 105.063 s | **+57.67%** | −73.00% |
+| Brush hover | 135.530 s | 133.787 s | −1.29% | −87.99% |
+| Editing | 145.241 s | 147.949 s | +1.86% | −49.21% |
+
+The selection regression rejects default promotion. The remaining wall-time
+changes do not establish broad recovery. Each ratio compares medians from one
+runner; all samples, distributions and paired ordering remain in the record,
+including baseline selection's 114.646 / 57.841 / 66.635 s spread. No trial was
+discarded and no ratios are pooled across runners. Primary timings exclude the
+managed diagnostics, preserve the full warmup and require all 120 inputs (121
+for selection) with zero unobserved input tails.
+
+The separate [same-candidate record](benchmarks/unodraw-legacy-composite-paired-2026-11-12.json)
+compares explicit original upload with original-upload composition in that same
+`0ffaabff` package. Hover takes 204.786 → 164.714 s (−19.57%); selection takes
+125.129 → 102.517 s (−18.07%). Renderer-thread CPU rises 3.12% and 3.51%,
+respectively. All 12 primary samples, four excluded diagnostics and 18 native
+pairs qualify within this distinct scope. Both modes retain zero Document
+paints and positive Interaction paints during feedback. The original-upload
+candidate already includes the newer separate interaction surface; it is not
+the baseline visual tree. These results favor combining those candidate surfaces,
+but cannot be multiplied by the independently matched baseline ratios.
+
+The [Welcome quality record](benchmarks/unodraw-legacy-composition-quality-2026-11-12.json)
+now includes complete Interpreter and AOT results. Each execution mode retains
+six cases, 60 native captures, 30 cross-mode comparisons and 12 Navigator/resize
+restoration comparisons at DPR 1, 1.25 and 2. Every scored region has zero pixels
+above luminance 12. Actual original-host copying and cached-pixel reuse occur
+without fallback or runtime/resource errors. The AOT evidence binds the original
+907-file package ZIP (artifact `13979671213`, SHA256
+`7c97a858e081f36c03682d26c98d8dacfc6d4f225f455b0069f784b1b2c52ff9`).
+Interpreter has source/tree/manifest provenance, but no separately retained
+complete application ZIP. The complete extended SVG gate is still separate.
+
+All browser timings here use SwiftShader software graphics. Callback completion
+and canvas submission do not prove input-to-new-pixels latency or physical GPU
+throughput. The next direct comparison selects the existing `composite` mode
+against the same baseline and immutable AOT packages, with its own five-workload
+results and complete SVG quality matrix. No performance or qualification result
+for that comparison is claimed before its artifacts are complete.
+
 ### Guide-query profile
 
 The [raw native Release measurements](benchmarks/unodraw-guides-2026-11-12.json)
@@ -268,8 +323,9 @@ Elapsed time falls by 21.85%, equivalent to 27.97% greater offered-input
 throughput. All composite trials, 129.402–132.230 s, finish before all controls,
 164.417–166.385 s. CPU time and submission counts are essentially unchanged;
 both diagnostics record zero document paints and 120 interaction paints. This
-supports a reduction in composition cost per frame, without attributing it to
-fewer frames or a faster SVG painter. The source has no post-window queue-drain,
+measures lower elapsed time for the offered-input workload with similar observed
+callback/submission counts; it does not isolate compositor cost per new recording,
+GPU execution or presentation. The source has no post-window queue-drain,
 screenshot or restore-duration metric, so it does not measure unfinished GPU
 work or physical presentation. It also does not compare directly with the
 regression baseline on this runner or establish the selection result.

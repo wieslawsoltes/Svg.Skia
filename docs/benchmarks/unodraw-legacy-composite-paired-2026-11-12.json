@@ -1,0 +1,1246 @@
+{
+  "schema": 1,
+  "measured_date_utc": "2026-11-12",
+  "application_source_sha": "0ffaabff993d1e040ba2ada1b5130daeccfc2f41",
+  "run_id": 43289446677,
+  "workflow_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43289446677",
+  "report_kind": "audited_same_candidate_legacy_composition_experiments",
+  "primary_comparison": false,
+  "default_promotion_qualified": false,
+  "original_baseline_recovery_measured": false,
+  "verification": {"experiments": 2, "primary_samples": 12, "separate_diagnostics": 4, "native_pairs_independently_recomputed": 18, "native_pairs_passed": 18, "raw_observer_and_cdp_metric_sets_independently_recomputed": 16, "all_archive_and_report_sha256_verified": true, "all_modes_use_exact_same_candidate_package": true, "all_source_mode_input_tail_and_warmup_contracts_passed": true, "all_page_and_resource_errors_empty": true},
+  "browser": {
+    "launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"],
+    "version": "143.0.7499.4"
+  },
+  "measurement": {
+    "execution_mode": "InterpreterAndAOT",
+    "configuration": "Release",
+    "repeats": 3,
+    "viewport_css": {"width": 1440, "height": 960},
+    "device_pixel_ratio": 1,
+    "configured_steps": 120,
+    "selection_operations": 121,
+    "other_operations": 120,
+    "graphics_description": "Chromium SwiftShader software graphics; no physical GPU throughput claim"
+  },
+  "harness_source_sha": "0ffaabff993d1e040ba2ada1b5130daeccfc2f41",
+  "package": {
+    "manifest": {
+      "schema": 2,
+      "role": "candidate",
+      "source_sha": "0ffaabff993d1e040ba2ada1b5130daeccfc2f41",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403",
+      "source_global_json": {
+        "sdk": {"version": "10.0.100", "rollForward": "latestMinor", "allowPrerelease": true},
+        "msbuild-sdks": {"Uno.Sdk": "7.0.5"}
+      },
+      "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+      "effective_global_json": {
+        "sdk": {"version": "10.0.403", "rollForward": "disable", "allowPrerelease": false, "workloadVersion": "10.0.403"},
+        "msbuild-sdks": {"Uno.Sdk": "7.0.5"}
+      },
+      "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+      "source_configuration_overridden": true,
+      "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+      "dotnet_workload_info": "Workload version: 10.0.403\n Configured to use workload sets when installing new manifests.\n\n [wasm-tools]\n   Installation Source: SDK 10.0.400\n   Manifest Version:    10.0.114/10.0.100\n   Manifest Path:       /usr/share/dotnet/sdk-manifests/10.0.100/microsoft.net.workload.mono.toolchain.current/10.0.114/WorkloadManifest.json\n   Install Type:        FileBased",
+      "uno_sdk": "7.0.5",
+      "runtime_generation": "uno7",
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "index_sha256": "53fddaf31a5a87959f4535d15d104e3f5784841aeffda609880e29d4d00bfca3",
+      "font_assets_sha256": {
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf": "2573f53b71ebee599dfc94c60e1ea848d6d20e7e777d2c65d063822850e738b6",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Bold.ttf": "bc73c45e5810a0971ebeaef4eb6c35dec84607dbe02da6757f9f43d958b6da5f",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-BoldItalic.ttf": "b6219df45cbee6f876e6b28f668348e1807b1fb9ad118ea7d687041f0d332384",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBold.ttf": "0c078107776634131162be46a38245399040c2becc495e93d69d9b6edd65a98d",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBoldItalic.ttf": "a034466210aeb09f7ffdbc9250accd1f5c3e2fb8acbfd3be8aa154993ec43d9b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Italic.ttf": "5eabd67fe3d8b5b5eee64504ea9e4a5ef7665b643577ef117f3c32fda67cd29f",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Light.ttf": "46ead38978e28f32ad7dc10d467efe8d8b5786ff98020c3718a296f88ef7f1cc",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-LightItalic.ttf": "4eac502c10daf6608e53e7db86d79769890373ebbd5472a57bbcb75789bc5110",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Medium.ttf": "2ab15629424ace86d429dbc0e5a7beb30d2af3db998a2b03a71601ee6965c334",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-MediumItalic.ttf": "bf436f4c34d2c921d0f2d4997e7854050a60feaa89bbacc604ae896ad254ca8b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Regular.ttf": "6530480277da62efde047eb26e78a7e532d1cfaeec91603e68d63876b9669f0d",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBold.ttf": "e603135cc3b1200c7260b34f37f9cb1f2178a42b363037e26a1e18276ab78bf0",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBoldItalic.ttf": "b1bf2c582820b5703dbcd339b5dc97235c145185d0fabbb09c224ef87215266b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf": "13744bbc079f0f492e4fb3b14a15d242b8d9600faacd423d58cdf937fea7ce6b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Bold.ttf": "08858694d203191fbddbc603f0d82e18d104c27941622afa4b8ff0ccaca12b60",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-BoldItalic.ttf": "75dffec080d8dc033a9794ff253614a380f51f7e139aae48daf12ebe9aa4aec4",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBold.ttf": "f7cb3b6dd0084d59f66fa9e5238b4bb8192ad6949f99a1673c910b832ae2a53e",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBoldItalic.ttf": "621ee76be446afeac7e13fee34bbfa70679f9907f200bb1bd50adfe1ce71a77d",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Italic.ttf": "2bc823a7660f1fd34b0c2a57dd9acd46fedf0ac7abe32a146d2e895e88f39102",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Light.ttf": "c1c6e126200cefe046a49f36ab020c0dcc844095671977132739459804787ad6",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-LightItalic.ttf": "e1e60f4093232a627f42e215b8fea141a838995631839c1524557c876f3377f7",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Medium.ttf": "69c1f94736232a3b7d78f3df863c2f7561dabbd17192054d082573c5405433a6",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-MediumItalic.ttf": "bcbfc3d6e7258e022bf6ccf8152a16920dfc40b55bc4c8254c15f4ff4d68dd5a",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Regular.ttf": "f59481d260f7aafc6c4696dd8608ccbe12714c98e64f8d61422ee75afb9497b5",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBold.ttf": "17995de0355f8f96e9bf7ecc7dcae2b0aadd5a8b32e82f3909589b826169321c",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBoldItalic.ttf": "6c3543f02911695383f7a24905446d9dac12b3cbeca4f28236c0475bd482064d",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Bold.ttf": "b1a405296720729a9ccb2215ef8e25fa031f28a74a23a782ee003b120d92a887",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-BoldItalic.ttf": "c131cd1ca5b9d6e4ace568ee0ccf3cd697b9d54db97b3cc8838a4a89092492c1",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBold.ttf": "356012920cf82d3ad23c3022a42638d6e9766795c331e52578313c0bb36de912",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBoldItalic.ttf": "3d94b1b6990162aefd796aa74e1e0a730b5aa0077f40503a0187ddb6f648f9b7",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Italic.ttf": "6c73ebe56797e33acff95695547aaec72b130659d1a20f257eb876cf6c9d7f58",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Light.ttf": "92cd488028cd9e0ee4b1934e48a6aa05e7f1bf04c65eb8104f2486cb49df2096",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-LightItalic.ttf": "f976b54657dc331335418a6330d6cd46ff9ae646bc9b9a3987edcfee0b0ca11b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Medium.ttf": "6be32b58eb0616a206aa941779a672c6bb97a94de1302d9e1e958d6b8c2af111",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-MediumItalic.ttf": "bc97ce0653959b1fcc5db92049dc477734927802e4776e770b84abafce10beaf",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Regular.ttf": "b248380c2975e732fd643e0c00bf5f3ade168e89ca60150e323e3a22d4807b94",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBold.ttf": "b82891f7b8e0eac507b462953cdb49120d73646e58f40ad0fab6aa0468da7868",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBoldItalic.ttf": "6b9fb4a0e22bb4996d4116bae2e14a09db5c8f33ef109ef57ff7186af1b68b71"
+      },
+      "supports_render_diagnostics": true
+    },
+    "artifact": {"id": 13979671213, "name": "unodraw-performance-package-candidate", "archive_sha256": "7c97a858e081f36c03682d26c98d8dacfc6d4f225f455b0069f784b1b2c52ff9", "archive_bytes": 175788986},
+    "manifest_sha256": "281a40695857edae910c3009b868233aa3ff0a989bf344c2117adfebb2fe43b4",
+    "served_file_count": 907,
+    "wwwroot_inventory_sha256": "7ce7ab2f3a88aa49a6d23e2246101c59a3ef3f13b3faa01bcd4cb8b6d3a150f7",
+    "portable_receipt_sha256": "baf68d2c875122cf67b8837197973fd9ce8ac82dd5955456f1febd833e80f5b7"
+  },
+  "primary_sample_columns": ["bridge", "trial", "elapsed_ms", "renderer_thread_cpu_ms", "task_elapsed_ms", "task_ms_per_operation", "offered_operations_per_second", "operations", "trusted_inputs", "completed_callbacks", "graphics_active_animation_intervals", "visible_canvas_submissions", "graphite_document_submissions", "write_texture_calls_all_canvases", "supplied_upload_buffer_bytes", "inputs_without_later_graphics", "inputs_without_completed_callback"],
+  "diagnostic_sample_columns": ["bridge", "trial", "elapsed_ms", "renderer_thread_cpu_ms", "task_elapsed_ms", "task_ms_per_operation", "offered_operations_per_second", "operations", "trusted_inputs", "completed_callbacks", "graphics_active_animation_intervals", "visible_canvas_submissions", "graphite_document_submissions", "write_texture_calls_all_canvases", "supplied_upload_buffer_bytes", "inputs_without_later_graphics", "inputs_without_completed_callback"],
+  "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+  "paired_elapsed_columns": ["trial", "legacy_elapsed_ms", "candidate_elapsed_ms", "candidate_over_legacy"],
+  "native_pair_columns": ["trial", "state", "passed", "whole_frame_fraction", "document_fraction", "horizontal_ruler_fraction", "vertical_ruler_fraction"],
+  "native_pixel_gate": {"luminance_threshold": 12, "maximum_changed_fraction_per_region": 0.001, "resized": false},
+  "experiments": [
+    {
+      "name": "legacy-composite-brush-hover",
+      "workload": "brush-hover",
+      "candidate_bridge": "legacy-composite",
+      "graphite_coverage": null,
+      "graphite_effective_sample_count": null,
+      "job_host": {
+        "runner_id": 1000352620,
+        "runner_name": "GitHub Actions 1000352620",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions",
+        "labels": ["ubuntu-24.04"]
+      },
+      "job_started_at": "2026-11-12T20:02:28Z",
+      "job_completed_at": "2026-11-12T20:55:27Z",
+      "job_id": 131455295611,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43289446677/job/131455295611",
+      "artifact": {"id": 13982792845, "name": "unodraw-legacy-composite-document-raster-experiment-brush-hover", "sha256": "fe639675ec2f5013a08e8b9fc7d75cb4dd9b52a424ec65f05afb401454691156", "bytes": 7097784},
+      "report_sha256": "9545d805971ddb6b1fad47ee0aa2a4132906cff3f61c14a1efd7cae148a4414a",
+      "audit_summary_sha256": "e872f3c3babdb361d04a41cc671a04ec01a7e6747dfafedaac843cfbf87e2816",
+      "runner": {"platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39", "machine": "x86_64"},
+      "started_unix": 1794513780.6202357,
+      "total_experiment_duration_seconds": 3143.1255056858063,
+      "same_artifact_mode_pair": ["legacy", "legacy-composite"],
+      "correctness_contracts_passed": true,
+      "primary_sample_count": 6,
+      "separate_diagnostic_count": 2,
+      "native_pairs_independently_recomputed": 9,
+      "native_pairs_passed": 9,
+      "primary_samples_in_actual_order": [
+        ["legacy", 1, 217409.60000000003, 4490.6179999999995, 6104.684000000001, 50.87236666666668, 0.5519535475894348, 120, 120, 229, 229, 229, null, 1200, 515956320, 0, 0],
+        ["legacy-composite", 1, 162577.40000000002, 4481.515, 5912.35, 49.26958333333334, 0.7381099710045799, 120, 120, 227, 227, 227, null, 1200, 515956320, 0, 0],
+        ["legacy-composite", 2, 169216.8999999999, 4524.766, 6279.63, 52.33025, 0.7091490270770832, 120, 120, 221, 221, 221, null, 1200, 515956320, 0, 0],
+        ["legacy", 2, 204786.1000000001, 4348.772, 5754.975, 47.958125, 0.5859772709182896, 120, 120, 225, 225, 225, null, 1200, 515956320, 0, 0],
+        ["legacy", 3, 200176.1000000001, 4335.584, 5655.354, 47.127950000000006, 0.5994721647589295, 120, 120, 225, 225, 225, null, 1200, 515956320, 0, 0],
+        ["legacy-composite", 3, 164713.80000000028, 4484.387, 6145.611000000001, 51.21342500000001, 0.7285364067855868, 120, 120, 224, 224, 224, null, 1200, 515956320, 0, 0]
+      ],
+      "medians": {
+        "legacy": {"elapsed_ms": 204786.1000000001, "renderer_thread_cpu_ms": 4348.772, "task_elapsed_ms": 5754.975, "task_ms_per_operation": 47.958125, "offered_operations_per_second": 0.5859772709182896, "operations": 120, "trusted_inputs": 120, "completed_callbacks": 225, "graphics_active_animation_intervals": 225, "visible_canvas_submissions": 225, "graphite_document_submissions": null, "write_texture_calls_all_canvases": 1200, "supplied_upload_buffer_bytes": 515956320},
+        "legacy-composite": {"elapsed_ms": 164713.80000000028, "renderer_thread_cpu_ms": 4484.387, "task_elapsed_ms": 6145.611000000001, "task_ms_per_operation": 51.21342500000001, "offered_operations_per_second": 0.7285364067855868, "operations": 120, "trusted_inputs": 120, "completed_callbacks": 224, "graphics_active_animation_intervals": 224, "visible_canvas_submissions": 224, "graphite_document_submissions": null, "write_texture_calls_all_canvases": 1200, "supplied_upload_buffer_bytes": 515956320}
+      },
+      "candidate_over_legacy": {
+        "elapsed_ms": 0.8043211917215094,
+        "renderer_thread_cpu_ms": 1.0311846654641816,
+        "task_elapsed_ms": 1.0678779664551106,
+        "task_ms_per_operation": 1.0678779664551108,
+        "offered_operations_per_second": 1.2432844121136162,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 0.9955555555555555,
+        "graphics_active_animation_intervals": 0.9955555555555555,
+        "visible_canvas_submissions": 0.9955555555555555,
+        "graphite_document_submissions": null,
+        "write_texture_calls_all_canvases": 1.0,
+        "supplied_upload_buffer_bytes": 1.0
+      },
+      "paired_elapsed_results": [
+        [1, 217409.60000000003, 162577.40000000002, 0.7477931057322216],
+        [2, 204786.1000000001, 169216.8999999999, 0.8263104771271089],
+        [3, 200176.1000000001, 164713.80000000028, 0.8228444854305794]
+      ],
+      "actual_renderer_proofs": [
+        {
+          "bridge": "legacy",
+          "trial": 1,
+          "renderer": {
+            "application_contexts": [
+              {"kind": "webgpu", "connected": true, "width": 1440, "height": 960, "css_width": 1440, "css_height": 960, "draw_calls": 0, "presentations": 5, "target": true}
+            ],
+            "console_start_index": 0,
+            "console_end_index": 14,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {"vendor": "google", "architecture": "swiftshader", "device": "", "description": "", "is_fallback_adapter": true},
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "ce31961791c03d6c55d67ebab72e0e7f0cd45d9e110b53bea8a46956533e9803",
+          "common_warmup": {"offered_pointer_moves": 120, "trusted_pointer_moves": 120, "completed_graphics_callbacks": 228, "graphics_active_animation_intervals": 228, "elapsed_ms": 169795.60000000003, "included_in_primary_metrics": false},
+          "all_measured_metrics": {
+            "elapsed_ms": 217409.60000000003,
+            "operations": 120,
+            "operations_per_second": 0.5519535475894348,
+            "raf_interval_ms": {"count": 291, "p50": 33.399999999965075, "p95": 1800.0, "p99": 1833.2000000000116, "max": 1883.1999999999534},
+            "graphics_active_animation_intervals": 229,
+            "graphics_active_interval_ms": {"count": 228, "p50": 1705.5499999999884, "p95": 1814.3800000000047, "p99": 1828.1199999999958, "max": 1889.2999999999884},
+            "application_raf_callback_ms": {"count": 256, "p50": 0.8500000000058208, "p95": 6.9249999999738066, "p99": 9.234999999997669, "max": 10.5},
+            "completed_render_callbacks": 229,
+            "completed_render_callback_ms": {"count": 229, "p50": 2.900000000023283, "p95": 7.0, "p99": 9.316000000010245, "max": 10.5},
+            "completed_render_callback_interval_ms": {"count": 228, "p50": 1705.5, "p95": 1814.445000000007, "p99": 1828.020000000019, "max": 1889.399999999965},
+            "input_to_completed_render_callback_ms": {"count": 120, "p50": 1.599999999976717, "p95": 34.314999999987776, "p99": 38.833999999983355, "max": 81.5},
+            "input_to_next_graphics_ms": {"count": 120, "p50": 1.5, "p95": 34.314999999987776, "p99": 38.814999999987776, "max": 81.39999999996508},
+            "webgpu_canvas_submissions": 229,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 229, "webgpu.writeTexture": 1200},
+            "supplied_upload_buffer_bytes": 515956320,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 6104.684000000001, "ScriptDuration": 5406.401, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 50.87236666666668,
+            "thread_cpu_ms": 4490.6179999999995,
+            "thread_cpu_ms_per_operation": 37.421816666666665,
+            "js_heap_used_delta_bytes": -338048
+          },
+          "raw_observer_canonical_sha256": "018f3b3a997ad90098650c392a416c8dc3b3438aa67147a7d61fd1960f347a14",
+          "cdp_before_canonical_sha256": "444a391adfa3f92b9e670d89f561be9c80220836ecd1451afc8ba37b6bc9c3bd",
+          "cdp_after_canonical_sha256": "6e01ce6cf48836ece31e09384753b74de1e9d5b27aed8af71722e835196b8dcd"
+        },
+        {
+          "bridge": "legacy-composite",
+          "trial": 1,
+          "renderer": {
+            "application_contexts": [
+              {"kind": "webgpu", "connected": true, "width": 1440, "height": 960, "css_width": 1440, "css_height": 960, "draw_calls": 0, "presentations": 6, "target": true}
+            ],
+            "console_start_index": 0,
+            "console_end_index": 15,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {"vendor": "google", "architecture": "swiftshader", "device": "", "description": "", "is_fallback_adapter": true},
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "c2adf541417dfd58aeef724d58bb9ed880c6f55ffc03ae32aa58f2d166b594dc",
+          "common_warmup": {"offered_pointer_moves": 120, "trusted_pointer_moves": 120, "completed_graphics_callbacks": 230, "graphics_active_animation_intervals": 230, "elapsed_ms": 174033.3, "included_in_primary_metrics": false},
+          "all_measured_metrics": {
+            "elapsed_ms": 162577.40000000002,
+            "operations": 120,
+            "operations_per_second": 0.7381099710045799,
+            "raf_interval_ms": {"count": 276, "p50": 33.39999999999418, "p95": 1366.600000000035, "p99": 1383.2999999999884, "max": 1383.4000000000233},
+            "graphics_active_animation_intervals": 227,
+            "graphics_active_interval_ms": {"count": 226, "p50": 1274.0499999999884, "p95": 1373.600000000064, "p99": 1384.3249999999825, "max": 1395.6999999999534},
+            "application_raf_callback_ms": {"count": 248, "p50": 2.6499999999650754, "p95": 6.5, "p99": 8.453000000010944, "max": 13.70000000006985},
+            "completed_render_callbacks": 227,
+            "completed_render_callback_ms": {"count": 227, "p50": 3.0, "p95": 6.639999999967402, "p99": 8.474000000006054, "max": 13.70000000006985},
+            "completed_render_callback_interval_ms": {"count": 226, "p50": 1274.0499999999884, "p95": 1373.6750000000466, "p99": 1384.399999999965, "max": 1395.5999999999767},
+            "input_to_completed_render_callback_ms": {"count": 120, "p50": 1.5, "p95": 35.420000000018625, "p99": 71.43200000000894, "max": 1322.8000000000466},
+            "input_to_next_graphics_ms": {"count": 120, "p50": 1.400000000023283, "p95": 35.41000000002096, "p99": 71.33199999991581, "max": 1322.8000000000466},
+            "webgpu_canvas_submissions": 227,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 227, "webgpu.writeTexture": 1200},
+            "supplied_upload_buffer_bytes": 515956320,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 5912.35, "ScriptDuration": 5268.088, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 49.26958333333334,
+            "thread_cpu_ms": 4481.515,
+            "thread_cpu_ms_per_operation": 37.345958333333336,
+            "js_heap_used_delta_bytes": -219160
+          },
+          "raw_observer_canonical_sha256": "4cd8eccd4533a634f48e50011535d111085ea924508768079aa7472d5913e3e7",
+          "cdp_before_canonical_sha256": "25d58b85e46d76db82d923fdf549b23bceb754752e272ee588b6b5b5632c2676",
+          "cdp_after_canonical_sha256": "c97b026a202e576ebe764f3df957e69f391adc99b8fede69971da59bc4457e6e"
+        },
+        {
+          "bridge": "legacy-composite",
+          "trial": 2,
+          "renderer": {
+            "application_contexts": [
+              {"kind": "webgpu", "connected": true, "width": 1440, "height": 960, "css_width": 1440, "css_height": 960, "draw_calls": 0, "presentations": 6, "target": true}
+            ],
+            "console_start_index": 0,
+            "console_end_index": 15,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {"vendor": "google", "architecture": "swiftshader", "device": "", "description": "", "is_fallback_adapter": true},
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "41eeb0a7af172835770eacf7ecddf5ec2fae382dbb8b8eae00ad0e3466a85892",
+          "common_warmup": {"offered_pointer_moves": 120, "trusted_pointer_moves": 120, "completed_graphics_callbacks": 227, "graphics_active_animation_intervals": 227, "elapsed_ms": 168754.09999999986, "included_in_primary_metrics": false},
+          "all_measured_metrics": {
+            "elapsed_ms": 169216.8999999999,
+            "operations": 120,
+            "operations_per_second": 0.7091490270770832,
+            "raf_interval_ms": {"count": 277, "p50": 33.399999999965075, "p95": 1433.2999999999884, "p99": 1450.0240000000015, "max": 1483.2999999999884},
+            "graphics_active_animation_intervals": 221,
+            "graphics_active_interval_ms": {"count": 220, "p50": 1338.5000000001164, "p95": 1439.0050000000047, "p99": 1466.3579999999447, "max": 1481.3000000000466},
+            "application_raf_callback_ms": {"count": 250, "p50": 1.849999999976717, "p95": 7.309999999927819, "p99": 9.300000000046566, "max": 13.199999999953434},
+            "completed_render_callbacks": 221,
+            "completed_render_callback_ms": {"count": 221, "p50": 3.0, "p95": 7.399999999906868, "p99": 9.300000000046566, "max": 13.199999999953434},
+            "completed_render_callback_interval_ms": {"count": 220, "p50": 1338.5000000001164, "p95": 1439.004999999993, "p99": 1466.4200000000465, "max": 1481.1999999999534},
+            "input_to_completed_render_callback_ms": {"count": 120, "p50": 1.5499999999301508, "p95": 34.74999999996507, "p99": 86.75599999993575, "max": 1367.8000000000466},
+            "input_to_next_graphics_ms": {"count": 120, "p50": 1.5, "p95": 34.65000000009313, "p99": 86.65600000007545, "max": 1367.8000000000466},
+            "webgpu_canvas_submissions": 221,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 221, "webgpu.writeTexture": 1200},
+            "supplied_upload_buffer_bytes": 515956320,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 6279.63, "ScriptDuration": 5598.6320000000005, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 52.33025,
+            "thread_cpu_ms": 4524.766,
+            "thread_cpu_ms_per_operation": 37.70638333333333,
+            "js_heap_used_delta_bytes": -829504
+          },
+          "raw_observer_canonical_sha256": "eb0da3692f75f33990c964064afda71b24baf10b49201753529cf437f88f22bb",
+          "cdp_before_canonical_sha256": "cb2344868639479fe7dcae7a00457f782743f51cdb04b024a7b2f83c77504b6e",
+          "cdp_after_canonical_sha256": "93951765cfc904bcf3974f793f6bfeed5690cdcb540d79e23367e5b872a709fb"
+        },
+        {
+          "bridge": "legacy",
+          "trial": 2,
+          "renderer": {
+            "application_contexts": [
+              {"kind": "webgpu", "connected": true, "width": 1440, "height": 960, "css_width": 1440, "css_height": 960, "draw_calls": 0, "presentations": 6, "target": true}
+            ],
+            "console_start_index": 0,
+            "console_end_index": 14,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {"vendor": "google", "architecture": "swiftshader", "device": "", "description": "", "is_fallback_adapter": true},
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "cb7d4b4330e59061de8d38cc562322d90b7b2c18c3c4de30b730eb5e487343c5",
+          "common_warmup": {"offered_pointer_moves": 120, "trusted_pointer_moves": 120, "completed_graphics_callbacks": 227, "graphics_active_animation_intervals": 227, "elapsed_ms": 171261.5, "included_in_primary_metrics": false},
+          "all_measured_metrics": {
+            "elapsed_ms": 204786.1000000001,
+            "operations": 120,
+            "operations_per_second": 0.5859772709182896,
+            "raf_interval_ms": {"count": 275, "p50": 33.399999999965075, "p95": 1733.2000000000116, "p99": 1766.600000000035, "max": 1783.2999999999884},
+            "graphics_active_animation_intervals": 225,
+            "graphics_active_interval_ms": {"count": 224, "p50": 1638.5999999999767, "p95": 1737.809999999986, "p99": 1773.9859999999965, "max": 1795.5},
+            "application_raf_callback_ms": {"count": 246, "p50": 2.5, "p95": 6.975000000034925, "p99": 7.954999999958091, "max": 10.800000000046566},
+            "completed_render_callbacks": 225,
+            "completed_render_callback_ms": {"count": 225, "p50": 3.0, "p95": 7.0, "p99": 7.975999999977647, "max": 10.800000000046566},
+            "completed_render_callback_interval_ms": {"count": 224, "p50": 1638.6000000000931, "p95": 1737.795000000007, "p99": 1772.754000000104, "max": 1795.5},
+            "input_to_completed_render_callback_ms": {"count": 120, "p50": 1.5, "p95": 37.10499999986493, "p99": 79.99400000011318, "max": 1658.5},
+            "input_to_next_graphics_ms": {"count": 120, "p50": 1.5, "p95": 37.10499999986493, "p99": 79.89400000006428, "max": 1658.5},
+            "webgpu_canvas_submissions": 225,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 225, "webgpu.writeTexture": 1200},
+            "supplied_upload_buffer_bytes": 515956320,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 5754.975, "ScriptDuration": 5090.229, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 47.958125,
+            "thread_cpu_ms": 4348.772,
+            "thread_cpu_ms_per_operation": 36.23976666666667,
+            "js_heap_used_delta_bytes": -374548
+          },
+          "raw_observer_canonical_sha256": "a9919f0c4cc9234a5b3b61f5d46bfdff3669bd26cc3dae32aabaac62e125b88c",
+          "cdp_before_canonical_sha256": "8ac74ae758e4dfec32a8c3aa6bba9ac6dce4f8669f54f5e7a92f1ebb49b8dcbb",
+          "cdp_after_canonical_sha256": "b65e244f2ab46093bcbb577acd8129bfb59c79ef7424107db9e738d6b94ac323"
+        },
+        {
+          "bridge": "legacy",
+          "trial": 3,
+          "renderer": {
+            "application_contexts": [
+              {"kind": "webgpu", "connected": true, "width": 1440, "height": 960, "css_width": 1440, "css_height": 960, "draw_calls": 0, "presentations": 5, "target": true}
+            ],
+            "console_start_index": 0,
+            "console_end_index": 14,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {"vendor": "google", "architecture": "swiftshader", "device": "", "description": "", "is_fallback_adapter": true},
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "b693c5c92627f21de8a940107c81a8ec43381b4a52f3293f597ccab0d9649432",
+          "common_warmup": {"offered_pointer_moves": 120, "trusted_pointer_moves": 120, "completed_graphics_callbacks": 229, "graphics_active_animation_intervals": 229, "elapsed_ms": 171236.7000000002, "included_in_primary_metrics": false},
+          "all_measured_metrics": {
+            "elapsed_ms": 200176.1000000001,
+            "operations": 120,
+            "operations_per_second": 0.5994721647589295,
+            "raf_interval_ms": {"count": 274, "p50": 33.399999999965075, "p95": 1683.2000000000116, "p99": 1700.0, "max": 1700.0},
+            "graphics_active_animation_intervals": 225,
+            "graphics_active_interval_ms": {"count": 224, "p50": 1589.0500000000466, "p95": 1686.8699999999487, "p99": 1698.7859999999962, "max": 1710.5},
+            "application_raf_callback_ms": {"count": 247, "p50": 2.7000000001862645, "p95": 6.5, "p99": 7.607999999974853, "max": 10.599999999860302},
+            "completed_render_callbacks": 225,
+            "completed_render_callback_ms": {"count": 225, "p50": 3.0, "p95": 6.5, "p99": 7.651999999964608, "max": 10.599999999860302},
+            "completed_render_callback_interval_ms": {"count": 224, "p50": 1589.0499999999302, "p95": 1686.884999999928, "p99": 1698.6860000000825, "max": 1710.5},
+            "input_to_completed_render_callback_ms": {"count": 120, "p50": 1.5, "p95": 34.614999999862626, "p99": 67.1389999999712, "max": 1675.2999999998137},
+            "input_to_next_graphics_ms": {"count": 120, "p50": 1.4000000001396984, "p95": 34.51999999999534, "p99": 67.05800000008435, "max": 1675.1999999999534},
+            "webgpu_canvas_submissions": 225,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 225, "webgpu.writeTexture": 1200},
+            "supplied_upload_buffer_bytes": 515956320,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 5655.354, "ScriptDuration": 4972.278, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 47.127950000000006,
+            "thread_cpu_ms": 4335.584,
+            "thread_cpu_ms_per_operation": 36.129866666666665,
+            "js_heap_used_delta_bytes": -485212
+          },
+          "raw_observer_canonical_sha256": "9b0aec8fbcec7204c06df20b130ce6fdb60e9c9d7dfee3303e93bbd7eba03896",
+          "cdp_before_canonical_sha256": "46606f3b03addd924a3818c2f0e1dddb061943e24f5874f86d2c820d0932d491",
+          "cdp_after_canonical_sha256": "0f74f86ff28d7aa59b668c9391b28e6d0de5116f171ac63d417f6925e3a5130b"
+        },
+        {
+          "bridge": "legacy-composite",
+          "trial": 3,
+          "renderer": {
+            "application_contexts": [
+              {"kind": "webgpu", "connected": true, "width": 1440, "height": 960, "css_width": 1440, "css_height": 960, "draw_calls": 0, "presentations": 6, "target": true}
+            ],
+            "console_start_index": 0,
+            "console_end_index": 15,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {"vendor": "google", "architecture": "swiftshader", "device": "", "description": "", "is_fallback_adapter": true},
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "a511d8a1616dbd336172be08c16d6dee31192fbe38a386570802eefa0fa714b6",
+          "common_warmup": {"offered_pointer_moves": 120, "trusted_pointer_moves": 120, "completed_graphics_callbacks": 222, "graphics_active_animation_intervals": 222, "elapsed_ms": 166400.5, "included_in_primary_metrics": false},
+          "all_measured_metrics": {
+            "elapsed_ms": 164713.80000000028,
+            "operations": 120,
+            "operations_per_second": 0.7285364067855868,
+            "raf_interval_ms": {"count": 283, "p50": 33.399999999965075, "p95": 1383.2899999999906, "p99": 1383.3180000000318, "max": 1416.7000000000116},
+            "graphics_active_animation_intervals": 224,
+            "graphics_active_interval_ms": {"count": 223, "p50": 1322.1999999997206, "p95": 1386.5000000000932, "p99": 1399.3719999999273, "max": 1412.6999999997206},
+            "application_raf_callback_ms": {"count": 249, "p50": 2.599999999627471, "p95": 7.319999999832361, "p99": 8.851999999862166, "max": 15.200000000186265},
+            "completed_render_callbacks": 224,
+            "completed_render_callback_ms": {"count": 224, "p50": 3.1499999999068677, "p95": 7.484999999986029, "p99": 8.876999999885449, "max": 15.200000000186265},
+            "completed_render_callback_interval_ms": {"count": 223, "p50": 1322.3000000002794, "p95": 1386.4100000000094, "p99": 1399.3719999999273, "max": 1412.6999999997206},
+            "input_to_completed_render_callback_ms": {"count": 120, "p50": 1.5499999998137355, "p95": 34.33000000026077, "p99": 69.29800000012861, "max": 80.60000000009313},
+            "input_to_next_graphics_ms": {"count": 120, "p50": 1.5, "p95": 34.324999999813734, "p99": 69.19800000003548, "max": 80.5},
+            "webgpu_canvas_submissions": 224,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 224, "webgpu.writeTexture": 1200},
+            "supplied_upload_buffer_bytes": 515956320,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 6145.611000000001, "ScriptDuration": 5487.254, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 51.21342500000001,
+            "thread_cpu_ms": 4484.387,
+            "thread_cpu_ms_per_operation": 37.36989166666667,
+            "js_heap_used_delta_bytes": -848448
+          },
+          "raw_observer_canonical_sha256": "ce01d75e9851522f491afdb9d6fffd62221a25be59573b8a8a988b23b0e764a3",
+          "cdp_before_canonical_sha256": "a3b7e75d0127caaac4c319a5d4da083016e2013effe6566e6ccc1ab1b9613e46",
+          "cdp_after_canonical_sha256": "599e9a74210fa2502c6bc092b2a4ee882393702bc9c368ab7c581d60431713db"
+        }
+      ],
+      "separate_diagnostics": [
+        {
+          "sample": ["legacy", 1, 202509.90000000037, 4377.541, 5834.866, 48.62388333333333, 0.592563622815476, 120, 120, 216, 216, 216, null, 1200, 515956320, 0, 0],
+          "excluded_from_primary_medians": true,
+          "paint_phases": [
+            ["Document", 0, 0, 0, 0],
+            ["Interaction", 120, 68.6, 6.2, 17280],
+            ["Ruler", 0, 0, 0, 0],
+            ["Navigator", 0, 0, 0, 0]
+          ],
+          "runtime_phase_log_count": 7,
+          "console_canonical_sha256": "2cf0e9e1487697bac492c998f1ab355766b9ffbc1f4aca2bc6c874397dc4ca85",
+          "hover_layer_isolation": "Document count is zero; Interaction count increased",
+          "all_measured_metrics": {
+            "elapsed_ms": 202509.90000000037,
+            "operations": 120,
+            "operations_per_second": 0.592563622815476,
+            "raf_interval_ms": {"count": 268, "p50": 33.39999999999418, "p95": 1700.0, "p99": 1733.3000000000075, "max": 1783.1999999999825},
+            "graphics_active_animation_intervals": 216,
+            "graphics_active_interval_ms": {"count": 215, "p50": 1618.0, "p95": 1713.9599999996833, "p99": 1736.5359999998939, "max": 1788.8999999999069},
+            "application_raf_callback_ms": {"count": 245, "p50": 2.1000000000931323, "p95": 6.779999999795107, "p99": 9.255999999977648, "max": 11.700000000186265},
+            "completed_render_callbacks": 216,
+            "completed_render_callback_ms": {"count": 216, "p50": 3.199999999953434, "p95": 6.7999999998137355, "p99": 9.284999999869614, "max": 11.700000000186265},
+            "completed_render_callback_interval_ms": {"count": 215, "p50": 1618.0, "p95": 1714.0299999997485, "p99": 1736.608000000026, "max": 1788.7999999998137},
+            "input_to_completed_render_callback_ms": {"count": 120, "p50": 1.5, "p95": 35.91499999973456, "p99": 80.1609999997914, "max": 83.1999999997206},
+            "input_to_next_graphics_ms": {"count": 120, "p50": 1.5, "p95": 35.909999999729905, "p99": 80.1419999997737, "max": 83.1999999997206},
+            "webgpu_canvas_submissions": 216,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 216, "webgpu.writeTexture": 1200},
+            "supplied_upload_buffer_bytes": 515956320,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 5834.866, "ScriptDuration": 5159.232, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 48.62388333333333,
+            "thread_cpu_ms": 4377.541,
+            "thread_cpu_ms_per_operation": 36.479508333333335,
+            "js_heap_used_delta_bytes": 77136
+          }
+        },
+        {
+          "sample": ["legacy-composite", 1, 157681.5, 4483.891, 6036.908, 50.307566666666666, 0.761027768000685, 120, 120, 229, 229, 229, null, 1200, 515956320, 0, 0],
+          "excluded_from_primary_medians": true,
+          "paint_phases": [
+            ["Document", 0, 0, 0, 0],
+            ["Interaction", 120, 33.099996, 3.4, 17280],
+            ["Ruler", 0, 0, 0, 0],
+            ["Navigator", 0, 0, 0, 0]
+          ],
+          "runtime_phase_log_count": 7,
+          "console_canonical_sha256": "80490cbd995fb5a15f2f2ba9bf4798caeadbf9d91fd4a3c4a9c14e611d01b7a4",
+          "hover_layer_isolation": "Document count is zero; Interaction count increased",
+          "all_measured_metrics": {
+            "elapsed_ms": 157681.5,
+            "operations": 120,
+            "operations_per_second": 0.761027768000685,
+            "raf_interval_ms": {"count": 286, "p50": 33.399999999965075, "p95": 1300.0, "p99": 1316.5999999999767, "max": 1333.1999999999825},
+            "graphics_active_animation_intervals": 229,
+            "graphics_active_interval_ms": {"count": 228, "p50": 1245.2500000002328, "p95": 1303.7900000001305, "p99": 1316.23, "max": 1327.4000000003725},
+            "application_raf_callback_ms": {"count": 250, "p50": 2.6000000000931323, "p95": 7.2999999998137355, "p99": 9.300000000051222, "max": 11.599999999627471},
+            "completed_render_callbacks": 229,
+            "completed_render_callback_ms": {"count": 229, "p50": 3.1000000000931323, "p95": 7.300000000093132, "p99": 9.300000000149012, "max": 11.599999999627471},
+            "completed_render_callback_interval_ms": {"count": 228, "p50": 1245.3000000002794, "p95": 1303.7850000001258, "p99": 1316.23, "max": 1327.3999999999069},
+            "input_to_completed_render_callback_ms": {"count": 120, "p50": 1.5, "p95": 8.209999999660004, "p99": 1016.9889999998295, "max": 1281},
+            "input_to_next_graphics_ms": {"count": 120, "p50": 1.4000000001396984, "p95": 8.204999999655348, "p99": 1016.9889999998295, "max": 1280.8999999999069},
+            "webgpu_canvas_submissions": 229,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 120,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 229, "webgpu.writeTexture": 1200},
+            "supplied_upload_buffer_bytes": 515956320,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 6036.908, "ScriptDuration": 5379.975, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 50.307566666666666,
+            "thread_cpu_ms": 4483.891,
+            "thread_cpu_ms_per_operation": 37.36575833333333,
+            "js_heap_used_delta_bytes": -488500
+          }
+        }
+      ],
+      "post_window_observations": [
+        {
+          "bridge": "legacy",
+          "trial": 1,
+          "final_capture_validation_elapsed_ms": 133.81242599996312,
+          "restore_validation_elapsed_ms": 6197.626337000031,
+          "graphite_queue_drain": {"available": false, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+        },
+        {
+          "bridge": "legacy-composite",
+          "trial": 1,
+          "final_capture_validation_elapsed_ms": 1420.1319559999774,
+          "restore_validation_elapsed_ms": 4739.274819000002,
+          "graphite_queue_drain": {"available": false, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+        },
+        {
+          "bridge": "legacy-composite",
+          "trial": 2,
+          "final_capture_validation_elapsed_ms": 1509.9555659999169,
+          "restore_validation_elapsed_ms": 5295.65728700004,
+          "graphite_queue_drain": {"available": false, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+        },
+        {
+          "bridge": "legacy",
+          "trial": 2,
+          "final_capture_validation_elapsed_ms": 1809.9067030000242,
+          "restore_validation_elapsed_ms": 5973.991066000053,
+          "graphite_queue_drain": {"available": false, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+        },
+        {
+          "bridge": "legacy",
+          "trial": 3,
+          "final_capture_validation_elapsed_ms": 1713.6618300000919,
+          "restore_validation_elapsed_ms": 5730.809211000178,
+          "graphite_queue_drain": {"available": false, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+        },
+        {
+          "bridge": "legacy-composite",
+          "trial": 3,
+          "final_capture_validation_elapsed_ms": 1452.6921380002022,
+          "restore_validation_elapsed_ms": 5215.631007999946,
+          "graphite_queue_drain": {"available": false, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+        }
+      ],
+      "native_pixel_pairs": [
+        [1, "before", true, 0.0, 0.0, 0.0, 0.0],
+        [1, "after", true, 0.0, 0.0, 0.0, 0.0],
+        [1, "restored", true, 0.0, 0.0, 0.0, 0.0],
+        [2, "before", true, 0.0, 0.0, 0.0, 0.0],
+        [2, "after", true, 0.0, 0.0, 0.0, 0.0],
+        [2, "restored", true, 0.0, 0.0, 0.0, 0.0],
+        [3, "before", true, 0.0, 0.0, 0.0, 0.0],
+        [3, "after", true, 0.0, 0.0, 0.0, 0.0],
+        [3, "restored", true, 0.0, 0.0, 0.0, 0.0]
+      ],
+      "maximum_native_region_fractions": {"whole_frame": 0.0, "document": 0.0, "horizontal_ruler": 0.0, "vertical_ruler": 0.0}
+    },
+    {
+      "name": "legacy-composite-selection",
+      "workload": "selection",
+      "candidate_bridge": "legacy-composite",
+      "graphite_coverage": null,
+      "graphite_effective_sample_count": null,
+      "job_host": {
+        "runner_id": 1000352652,
+        "runner_name": "GitHub Actions 1000352652",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions",
+        "labels": ["ubuntu-24.04"]
+      },
+      "job_started_at": "2026-11-12T20:20:57Z",
+      "job_completed_at": "2026-11-12T20:51:33Z",
+      "job_id": 131455295936,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43289446677/job/131455295936",
+      "artifact": {"id": 13983965484, "name": "unodraw-legacy-composite-document-raster-experiment-selection", "sha256": "deaeedb003c35052f7016f4f941c199c471e7509884e8518687b6308efda81c7", "bytes": 5948912},
+      "report_sha256": "b2156a16932dcfbc3642ff1b3f0a0f642183405fa250dd9e9023f021cfa6ebaf",
+      "audit_summary_sha256": "e9169ceb70deecd453e7f602187de06de9b5b3e75f06aadf4726a0353a983378",
+      "runner": {"platform": "Linux-7.0.0-1014-aws-x86_64-with-glibc2.39", "machine": "x86_64"},
+      "started_unix": 1794514917.6099608,
+      "total_experiment_duration_seconds": 1772.6750588417053,
+      "same_artifact_mode_pair": ["legacy", "legacy-composite"],
+      "correctness_contracts_passed": true,
+      "primary_sample_count": 6,
+      "separate_diagnostic_count": 2,
+      "native_pairs_independently_recomputed": 9,
+      "native_pairs_passed": 9,
+      "primary_samples_in_actual_order": [
+        ["legacy", 1, 127874.19999999998, 7415.745, 13487.197999999999, 111.46444628099172, 0.9462424789363297, 121, 121, 126, 126, 126, null, 1210, 520255956, 0, 0],
+        ["legacy-composite", 1, 102517.10000000003, 7550.204999999999, 13536.704, 111.8735867768595, 1.1802908978111941, 121, 121, 127, 127, 127, null, 1180, 507357048, 0, 0],
+        ["legacy-composite", 2, 106722.20000000007, 7696.526, 13933.842999999999, 115.15572727272726, 1.1337847233284164, 121, 121, 125, 125, 125, null, 1190, 511656684, 0, 0],
+        ["legacy", 2, 116581.3999999999, 6906.575, 12696.021, 104.92579338842975, 1.0379014148054502, 121, 121, 126, 126, 126, null, 1170, 503057412, 0, 0],
+        ["legacy", 3, 125128.5, 7294.447999999999, 13198.902, 109.0818347107438, 0.9670059179163819, 121, 121, 125, 125, 125, null, 1200, 515956320, 0, 0],
+        ["legacy-composite", 3, 98371.59999999986, 7370.400999999999, 13110.164, 108.34846280991736, 1.2300298053503265, 121, 121, 126, 126, 126, null, 1200, 515956320, 0, 0]
+      ],
+      "medians": {
+        "legacy": {"elapsed_ms": 125128.5, "renderer_thread_cpu_ms": 7294.447999999999, "task_elapsed_ms": 13198.902, "task_ms_per_operation": 109.0818347107438, "offered_operations_per_second": 0.9670059179163819, "operations": 121, "trusted_inputs": 121, "completed_callbacks": 126, "graphics_active_animation_intervals": 126, "visible_canvas_submissions": 126, "graphite_document_submissions": null, "write_texture_calls_all_canvases": 1200, "supplied_upload_buffer_bytes": 515956320},
+        "legacy-composite": {"elapsed_ms": 102517.10000000003, "renderer_thread_cpu_ms": 7550.204999999999, "task_elapsed_ms": 13536.704, "task_ms_per_operation": 111.8735867768595, "offered_operations_per_second": 1.1802908978111941, "operations": 121, "trusted_inputs": 121, "completed_callbacks": 126, "graphics_active_animation_intervals": 126, "visible_canvas_submissions": 126, "graphite_document_submissions": null, "write_texture_calls_all_canvases": 1190, "supplied_upload_buffer_bytes": 511656684}
+      },
+      "candidate_over_legacy": {
+        "elapsed_ms": 0.8192945651869881,
+        "renderer_thread_cpu_ms": 1.035061871713939,
+        "task_elapsed_ms": 1.0255931894940957,
+        "task_ms_per_operation": 1.0255931894940957,
+        "offered_operations_per_second": 1.2205622281551076,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 1.0,
+        "graphics_active_animation_intervals": 1.0,
+        "visible_canvas_submissions": 1.0,
+        "graphite_document_submissions": null,
+        "write_texture_calls_all_canvases": 0.9916666666666667,
+        "supplied_upload_buffer_bytes": 0.9916666666666667
+      },
+      "paired_elapsed_results": [
+        [1, 127874.19999999998, 102517.10000000003, 0.8017027672509391],
+        [2, 116581.3999999999, 106722.20000000007, 0.9154307633979362],
+        [3, 125128.5, 98371.59999999986, 0.7861646227677936]
+      ],
+      "actual_renderer_proofs": [
+        {
+          "bridge": "legacy",
+          "trial": 1,
+          "renderer": {
+            "application_contexts": [
+              {"kind": "webgpu", "connected": true, "width": 1440, "height": 960, "css_width": 1440, "css_height": 960, "draw_calls": 0, "presentations": 5, "target": true}
+            ],
+            "console_start_index": 0,
+            "console_end_index": 14,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {"vendor": "google", "architecture": "swiftshader", "device": "", "description": "", "is_fallback_adapter": true},
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "a2e18ae066b1aa372fb7b889f2de46a6a853950ff53d0767ec3b88e8ed3349b9",
+          "common_warmup": {"offered_pointer_moves": 120, "trusted_pointer_moves": 120, "completed_graphics_callbacks": 230, "graphics_active_animation_intervals": 230, "elapsed_ms": 90388.0, "included_in_primary_metrics": false},
+          "all_measured_metrics": {
+            "elapsed_ms": 127874.19999999998,
+            "operations": 121,
+            "operations_per_second": 0.9462424789363297,
+            "raf_interval_ms": {"count": 186, "p50": 1066.5, "p95": 1116.6000000000058, "p99": 1133.2999999999884, "max": 1133.3000000000175},
+            "graphics_active_animation_intervals": 126,
+            "graphics_active_interval_ms": {"count": 125, "p50": 1089.5, "p95": 1127.9400000000023, "p99": 1131.8319999999878, "max": 1150.7000000000116},
+            "application_raf_callback_ms": {"count": 172, "p50": 5.2999999999883585, "p95": 11.144999999979335, "p99": 13.144999999999996, "max": 15.10000000000582},
+            "completed_render_callbacks": 126,
+            "completed_render_callback_ms": {"count": 126, "p50": 6.600000000005821, "p95": 11.60000000000582, "p99": 13.375, "max": 15.10000000000582},
+            "completed_render_callback_interval_ms": {"count": 125, "p50": 1089.5, "p95": 1127.9599999999978, "p99": 1131.8560000000266, "max": 1150.7999999999884},
+            "input_to_completed_render_callback_ms": {"count": 121, "p50": 1083.7000000000116, "p95": 1121.5999999999767, "p99": 1127.2400000000023, "max": 1146.5999999999767},
+            "input_to_next_graphics_ms": {"count": 121, "p50": 1083.5999999999767, "p95": 1121.5, "p99": 1127.139999999979, "max": 1146.5},
+            "webgpu_canvas_submissions": 126,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 121,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 126, "webgpu.writeTexture": 1210},
+            "supplied_upload_buffer_bytes": 520255956,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 13487.197999999999, "ScriptDuration": 12667.442, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 111.46444628099172,
+            "thread_cpu_ms": 7415.745,
+            "thread_cpu_ms_per_operation": 61.28714876033058,
+            "js_heap_used_delta_bytes": 77384
+          },
+          "raw_observer_canonical_sha256": "2f1c178b9b7a16d5d171fbcceaf7120f56b88fde0093a7649286be86add6f97c",
+          "cdp_before_canonical_sha256": "55ed1089588f5f4ce1b2e1a0ecd0aa745abdaf9871b5e1b5ef47a083dbd7595e",
+          "cdp_after_canonical_sha256": "7d6c71808f833e61fa60a6f1137fa3f78ec0ff8a1a4310061bd9a3f9a360e584"
+        },
+        {
+          "bridge": "legacy-composite",
+          "trial": 1,
+          "renderer": {
+            "application_contexts": [
+              {"kind": "webgpu", "connected": true, "width": 1440, "height": 960, "css_width": 1440, "css_height": 960, "draw_calls": 0, "presentations": 6, "target": true}
+            ],
+            "console_start_index": 0,
+            "console_end_index": 15,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {"vendor": "google", "architecture": "swiftshader", "device": "", "description": "", "is_fallback_adapter": true},
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "64fdc2d4cc9d71e9e287aa6c6c4f192014319c468f35d122bfabeb6ab1b04b6c",
+          "common_warmup": {"offered_pointer_moves": 120, "trusted_pointer_moves": 120, "completed_graphics_callbacks": 229, "graphics_active_animation_intervals": 229, "elapsed_ms": 89724.5, "included_in_primary_metrics": false},
+          "all_measured_metrics": {
+            "elapsed_ms": 102517.10000000003,
+            "operations": 121,
+            "operations_per_second": 1.1802908978111941,
+            "raf_interval_ms": {"count": 184, "p50": 866.7000000000116, "p95": 916.6999999999971, "p99": 919.5050000000065, "max": 933.2999999999884},
+            "graphics_active_animation_intervals": 127,
+            "graphics_active_interval_ms": {"count": 126, "p50": 900.75, "p95": 929.8499999999622, "p99": 934.5000000000146, "max": 935.1999999999534},
+            "application_raf_callback_ms": {"count": 176, "p50": 5.199999999982538, "p95": 11.200000000011642, "p99": 13.725000000020373, "max": 15.599999999976717},
+            "completed_render_callbacks": 127,
+            "completed_render_callback_ms": {"count": 127, "p50": 6.5, "p95": 11.580000000022114, "p99": 13.969999999991849, "max": 15.599999999976717},
+            "completed_render_callback_interval_ms": {"count": 126, "p50": 900.6999999999534, "p95": 929.7499999999854, "p99": 934.425000000032, "max": 935.1999999999534},
+            "input_to_completed_render_callback_ms": {"count": 121, "p50": 894.1000000000931, "p95": 923.1000000000349, "p99": 928.8800000000047, "max": 930},
+            "input_to_next_graphics_ms": {"count": 121, "p50": 894.1000000000931, "p95": 923.0999999999767, "p99": 928.8800000000047, "max": 930},
+            "webgpu_canvas_submissions": 127,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 121,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 127, "webgpu.writeTexture": 1180},
+            "supplied_upload_buffer_bytes": 507357048,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 13536.704, "ScriptDuration": 12841.675000000001, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 111.8735867768595,
+            "thread_cpu_ms": 7550.204999999999,
+            "thread_cpu_ms_per_operation": 62.39838842975206,
+            "js_heap_used_delta_bytes": -597744
+          },
+          "raw_observer_canonical_sha256": "4a46d501d4e6e3a0f65ef8df26e4291f02062a78ea0051e8abe84b9ace60a6d8",
+          "cdp_before_canonical_sha256": "cc6035571d77d1fed7eca88d0039857fd9660de407919673b4d61e0ee648153b",
+          "cdp_after_canonical_sha256": "0f8268e152f643f66107b9e40da90eefe9ce9eaf05044365314a00fd499e4971"
+        },
+        {
+          "bridge": "legacy-composite",
+          "trial": 2,
+          "renderer": {
+            "application_contexts": [
+              {"kind": "webgpu", "connected": true, "width": 1440, "height": 960, "css_width": 1440, "css_height": 960, "draw_calls": 0, "presentations": 6, "target": true}
+            ],
+            "console_start_index": 0,
+            "console_end_index": 15,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {"vendor": "google", "architecture": "swiftshader", "device": "", "description": "", "is_fallback_adapter": true},
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "b279607ecd29ab26722f1191d22da181926264b0c303239150a258a9c1610b4b",
+          "common_warmup": {"offered_pointer_moves": 120, "trusted_pointer_moves": 120, "completed_graphics_callbacks": 230, "graphics_active_animation_intervals": 230, "elapsed_ms": 89963.19999999995, "included_in_primary_metrics": false},
+          "all_measured_metrics": {
+            "elapsed_ms": 106722.20000000007,
+            "operations": 121,
+            "operations_per_second": 1.1337847233284164,
+            "raf_interval_ms": {"count": 193, "p50": 866.6000000000058, "p95": 933.2999999999884, "p99": 933.3999999999965, "max": 949.8999999999942},
+            "graphics_active_animation_intervals": 125,
+            "graphics_active_interval_ms": {"count": 124, "p50": 899.0999999999767, "p95": 946.5199999999604, "p99": 952.9030000000412, "max": 954.5},
+            "application_raf_callback_ms": {"count": 181, "p50": 5.700000000069849, "p95": 16.400000000023283, "p99": 21.860000000009293, "max": 51.90000000002328},
+            "completed_render_callbacks": 125,
+            "completed_render_callback_ms": {"count": 125, "p50": 7.900000000023283, "p95": 18.679999999934804, "p99": 22.8680000000354, "max": 51.90000000002328},
+            "completed_render_callback_interval_ms": {"count": 124, "p50": 899.0499999999884, "p95": 946.6049999999407, "p99": 952.9800000000232, "max": 954.5999999999767},
+            "input_to_completed_render_callback_ms": {"count": 121, "p50": 894.5999999999767, "p95": 940.5, "p99": 946.2000000000465, "max": 947.4000000000233},
+            "input_to_next_graphics_ms": {"count": 121, "p50": 894.5999999999767, "p95": 940.4000000000233, "p99": 946.1200000000651, "max": 947.3000000000466},
+            "webgpu_canvas_submissions": 125,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 121,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 125, "webgpu.writeTexture": 1190},
+            "supplied_upload_buffer_bytes": 511656684,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 13933.842999999999, "ScriptDuration": 13241.454, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 115.15572727272726,
+            "thread_cpu_ms": 7696.526,
+            "thread_cpu_ms_per_operation": 63.60765289256198,
+            "js_heap_used_delta_bytes": 21216
+          },
+          "raw_observer_canonical_sha256": "f44b211fa4235a9de09c3a73c8e6bc45c25a9a51a14499f9af1e1421adc73a90",
+          "cdp_before_canonical_sha256": "d0f8e45e9223511366707405d7cf661e600fb635a7176cc8fd37075ccdbaca4b",
+          "cdp_after_canonical_sha256": "6a0f02a5fd1b19e584e725a6aa516227fd814df143ca496ff2f20e733fbb044b"
+        },
+        {
+          "bridge": "legacy",
+          "trial": 2,
+          "renderer": {
+            "application_contexts": [
+              {"kind": "webgpu", "connected": true, "width": 1440, "height": 960, "css_width": 1440, "css_height": 960, "draw_calls": 0, "presentations": 6, "target": true}
+            ],
+            "console_start_index": 0,
+            "console_end_index": 14,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {"vendor": "google", "architecture": "swiftshader", "device": "", "description": "", "is_fallback_adapter": true},
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "9aa5529b86270ede6f28de14bee35a73007a573ffb4849ca29859f23fe5cdd4b",
+          "common_warmup": {"offered_pointer_moves": 120, "trusted_pointer_moves": 120, "completed_graphics_callbacks": 229, "graphics_active_animation_intervals": 229, "elapsed_ms": 90069.80000000005, "included_in_primary_metrics": false},
+          "all_measured_metrics": {
+            "elapsed_ms": 116581.3999999999,
+            "operations": 121,
+            "operations_per_second": 1.0379014148054502,
+            "raf_interval_ms": {"count": 188, "p50": 1033.3000000000175, "p95": 1116.6000000000058, "p99": 1133.2130000000104, "max": 1166.6999999999825},
+            "graphics_active_animation_intervals": 126,
+            "graphics_active_interval_ms": {"count": 125, "p50": 1077.4000000000233, "p95": 1132.3999999999767, "p99": 1139.1880000000167, "max": 1166.4000000000233},
+            "application_raf_callback_ms": {"count": 176, "p50": 4.900000000023283, "p95": 18.025000000023283, "p99": 23.724999999976717, "max": 26.20000000006985},
+            "completed_render_callbacks": 126,
+            "completed_render_callback_ms": {"count": 126, "p50": 6.649999999965075, "p95": 20.149999999965075, "p99": 24.974999999976717, "max": 26.20000000006985},
+            "completed_render_callback_interval_ms": {"count": 125, "p50": 1077.5, "p95": 1132.3799999999815, "p99": 1139.3119999999878, "max": 1166.5},
+            "input_to_completed_render_callback_ms": {"count": 121, "p50": 1071.1999999999534, "p95": 1127.5, "p99": 1134.359999999986, "max": 1163.0999999999767},
+            "input_to_next_graphics_ms": {"count": 121, "p50": 1071.0999999999767, "p95": 1127.4000000000233, "p99": 1134.2000000000232, "max": 1163},
+            "webgpu_canvas_submissions": 126,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 121,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 126, "webgpu.writeTexture": 1170},
+            "supplied_upload_buffer_bytes": 503057412,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 12696.021, "ScriptDuration": 11965.823, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 104.92579338842975,
+            "thread_cpu_ms": 6906.575,
+            "thread_cpu_ms_per_operation": 57.079132231404955,
+            "js_heap_used_delta_bytes": -543124
+          },
+          "raw_observer_canonical_sha256": "1231fd0314d96b43bbe603d74679bb3946b299a079ca223ebfafe09d76a309cd",
+          "cdp_before_canonical_sha256": "da6164ba39e4c0a97a80b3e3f371abaef540aef58c4d23768c6bff9626db045a",
+          "cdp_after_canonical_sha256": "db39b55e06a130c2a0efa0f56ad360a703055fcbd6e3a8a78ceff436c58c6e96"
+        },
+        {
+          "bridge": "legacy",
+          "trial": 3,
+          "renderer": {
+            "application_contexts": [
+              {"kind": "webgpu", "connected": true, "width": 1440, "height": 960, "css_width": 1440, "css_height": 960, "draw_calls": 0, "presentations": 5, "target": true}
+            ],
+            "console_start_index": 0,
+            "console_end_index": 14,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {"vendor": "google", "architecture": "swiftshader", "device": "", "description": "", "is_fallback_adapter": true},
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "9d362c83dd4fdc278b1684e0bdff4a8a0f5b1c8fdcd80b3cab8bd04dba126cdd",
+          "common_warmup": {"offered_pointer_moves": 120, "trusted_pointer_moves": 120, "completed_graphics_callbacks": 227, "graphics_active_animation_intervals": 227, "elapsed_ms": 90373.79999999993, "included_in_primary_metrics": false},
+          "all_measured_metrics": {
+            "elapsed_ms": 125128.5,
+            "operations": 121,
+            "operations_per_second": 0.9670059179163819,
+            "raf_interval_ms": {"count": 194, "p50": 1033.300000000003, "p95": 1100.0, "p99": 1117.8620000000099, "max": 1133.2999999999884},
+            "graphics_active_animation_intervals": 125,
+            "graphics_active_interval_ms": {"count": 124, "p50": 1079.9500000000698, "p95": 1127.6650000000604, "p99": 1133.438999999871, "max": 1134.1999999999534},
+            "application_raf_callback_ms": {"count": 179, "p50": 4.800000000046566, "p95": 17.249999999976716, "p99": 24.58600000005681, "max": 25.600000000093132},
+            "completed_render_callbacks": 125,
+            "completed_render_callback_ms": {"count": 125, "p50": 6.699999999953434, "p95": 21.679999999934804, "p99": 25.28800000008196, "max": 25.600000000093132},
+            "completed_render_callback_interval_ms": {"count": 124, "p50": 1079.9499999999534, "p95": 1127.5949999999605, "p99": 1133.438999999871, "max": 1134.1999999999534},
+            "input_to_completed_render_callback_ms": {"count": 121, "p50": 1073.1999999999534, "p95": 1123.0999999998603, "p99": 1129.280000000028, "max": 1130.6000000000931},
+            "input_to_next_graphics_ms": {"count": 121, "p50": 1073.1999999999534, "p95": 1123.0, "p99": 1129.280000000028, "max": 1130.5},
+            "webgpu_canvas_submissions": 125,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 121,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 125, "webgpu.writeTexture": 1200},
+            "supplied_upload_buffer_bytes": 515956320,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 13198.902, "ScriptDuration": 12393.979, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 109.0818347107438,
+            "thread_cpu_ms": 7294.447999999999,
+            "thread_cpu_ms_per_operation": 60.284694214876026,
+            "js_heap_used_delta_bytes": 292940
+          },
+          "raw_observer_canonical_sha256": "05dd54dce41ba99815c78d13a9f42bff206be451cf5f2b4bbc5a76d5412f86ac",
+          "cdp_before_canonical_sha256": "2d221600d21c53c37433ac4de49c2f640af9e69fe8010b858e5358d246b9a446",
+          "cdp_after_canonical_sha256": "8472fd813c84d12aaa9053a38f06e036268719e4d005972a554844ee5897531c"
+        },
+        {
+          "bridge": "legacy-composite",
+          "trial": 3,
+          "renderer": {
+            "application_contexts": [
+              {"kind": "webgpu", "connected": true, "width": 1440, "height": 960, "css_width": 1440, "css_height": 960, "draw_calls": 0, "presentations": 6, "target": true}
+            ],
+            "console_start_index": 0,
+            "console_end_index": 15,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {"vendor": "google", "architecture": "swiftshader", "device": "", "description": "", "is_fallback_adapter": true},
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "6fa0c6497c8980ccd0a5c065744e8935567bd3784e95259e121fdeeec0e9fddc",
+          "common_warmup": {"offered_pointer_moves": 120, "trusted_pointer_moves": 120, "completed_graphics_callbacks": 234, "graphics_active_animation_intervals": 234, "elapsed_ms": 90074.09999999986, "included_in_primary_metrics": false},
+          "all_measured_metrics": {
+            "elapsed_ms": 98371.59999999986,
+            "operations": 121,
+            "operations_per_second": 1.2300298053503265,
+            "raf_interval_ms": {"count": 190, "p50": 866.6000000000058, "p95": 916.654999999993, "p99": 933.1999999999987, "max": 933.3000000000175},
+            "graphics_active_animation_intervals": 126,
+            "graphics_active_interval_ms": {"count": 125, "p50": 895.6000000000931, "p95": 931.0199999999255, "p99": 943.6200000001863, "max": 944.7999999998137},
+            "application_raf_callback_ms": {"count": 185, "p50": 4.400000000139698, "p95": 10.379999999934805, "p99": 12.763999999938532, "max": 14.899999999906868},
+            "completed_render_callbacks": 126,
+            "completed_render_callback_ms": {"count": 126, "p50": 6.299999999930151, "p95": 11.074999999953434, "p99": 12.999999999883585, "max": 14.899999999906868},
+            "completed_render_callback_interval_ms": {"count": 125, "p50": 895.7000000001863, "p95": 931.0400000000839, "p99": 943.6199999999535, "max": 944.8000000000466},
+            "input_to_completed_render_callback_ms": {"count": 121, "p50": 888.1000000000931, "p95": 926.6999999999534, "p99": 937.8399999999441, "max": 939.3999999999069},
+            "input_to_next_graphics_ms": {"count": 121, "p50": 888.1000000000931, "p95": 926.5999999998603, "p99": 937.8199999999721, "max": 939.3000000000466},
+            "webgpu_canvas_submissions": 126,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 121,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 126, "webgpu.writeTexture": 1200},
+            "supplied_upload_buffer_bytes": 515956320,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 13110.164, "ScriptDuration": 12425.296, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 108.34846280991736,
+            "thread_cpu_ms": 7370.400999999999,
+            "thread_cpu_ms_per_operation": 60.912404958677676,
+            "js_heap_used_delta_bytes": -963848
+          },
+          "raw_observer_canonical_sha256": "1f8dc9cf30b3e23e0c38feeb83bd70fb0beb195df8e1caffe5e064d43e66d2b5",
+          "cdp_before_canonical_sha256": "04114cff800d44dbf23fe06f6ee4d73df9dbf6d48f6aa9cbc8f166eb8910d94c",
+          "cdp_after_canonical_sha256": "29c2c3c97f0a6f9412c72f4aefcf5ff889f8151e31a311468042c8ae4795760c"
+        }
+      ],
+      "separate_diagnostics": [
+        {
+          "sample": ["legacy", 1, 108804.5, 6604.731, 11704.836, 96.73418181818181, 1.1120863567223782, 121, 121, 127, 127, 127, null, 1180, 507357048, 0, 0],
+          "excluded_from_primary_medians": true,
+          "paint_phases": [
+            ["Document", 0, 0, 0, 0],
+            ["Interaction", 118, 236.300005, 7.900001, 333392],
+            ["Ruler", 0, 0, 0, 0],
+            ["Navigator", 0, 0, 0, 0]
+          ],
+          "runtime_phase_log_count": 4,
+          "console_canonical_sha256": "0ffede0eab5398418e5c89a0de8e0572d12f9926ff2c6a4317e138461dcd0cbf",
+          "hover_layer_isolation": null,
+          "all_measured_metrics": {
+            "elapsed_ms": 108804.5,
+            "operations": 121,
+            "operations_per_second": 1.1120863567223782,
+            "raf_interval_ms": {"count": 185, "p50": 916.5999999999913, "p95": 1116.6000000000029, "p99": 1116.7000000000116, "max": 1133.2000000000116},
+            "graphics_active_animation_intervals": 127,
+            "graphics_active_interval_ms": {"count": 126, "p50": 1061.4000000000233, "p95": 1126.0500000001048, "p99": 1131.9749999998603, "max": 1143.3000000000466},
+            "application_raf_callback_ms": {"count": 168, "p50": 4.2000000001862645, "p95": 16.32000000007684, "p99": 21.5329999999539, "max": 26.300000000046566},
+            "completed_render_callbacks": 127,
+            "completed_render_callback_ms": {"count": 127, "p50": 6.0, "p95": 16.869999999948774, "p99": 21.57399999989662, "max": 26.300000000046566},
+            "completed_render_callback_interval_ms": {"count": 126, "p50": 1061.4000000000233, "p95": 1125.975000000035, "p99": 1132.5249999999069, "max": 1143.3000000000466},
+            "input_to_completed_render_callback_ms": {"count": 121, "p50": 1056.4000000001397, "p95": 1121.5999999998603, "p99": 1127.7799999999347, "max": 1139.3999999999069},
+            "input_to_next_graphics_ms": {"count": 121, "p50": 1056.4000000001397, "p95": 1121.5, "p99": 1127.6199999999255, "max": 1139.3000000000466},
+            "webgpu_canvas_submissions": 127,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 121,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 127, "webgpu.writeTexture": 1180},
+            "supplied_upload_buffer_bytes": 507357048,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 11704.836, "ScriptDuration": 10946.033, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 96.73418181818181,
+            "thread_cpu_ms": 6604.731,
+            "thread_cpu_ms_per_operation": 54.58455371900826,
+            "js_heap_used_delta_bytes": -976600
+          }
+        },
+        {
+          "sample": ["legacy-composite", 1, 91965.59999999986, 6839.407999999999, 12058.323999999999, 99.65557024793388, 1.315709352192561, 121, 121, 127, 127, 127, null, 1160, 498757776, 0, 0],
+          "excluded_from_primary_medians": true,
+          "paint_phases": [
+            ["Document", 0, 0, 0, 0],
+            ["Interaction", 116, 243.3, 6.9, 332704],
+            ["Ruler", 0, 0, 0, 0],
+            ["Navigator", 0, 0, 0, 0]
+          ],
+          "runtime_phase_log_count": 4,
+          "console_canonical_sha256": "6dcbd1a4d89f18a97f449f0e57433bf72d53f8259fc43ca07303341087bc544c",
+          "hover_layer_isolation": null,
+          "all_measured_metrics": {
+            "elapsed_ms": 91965.59999999986,
+            "operations": 121,
+            "operations_per_second": 1.315709352192561,
+            "raf_interval_ms": {"count": 170, "p50": 866.5999999999913, "p95": 933.2549999999989, "p99": 938.5149999999942, "max": 950.0},
+            "graphics_active_animation_intervals": 127,
+            "graphics_active_interval_ms": {"count": 126, "p50": 892.9499999999534, "p95": 937.6750000001048, "p99": 944.5249999999651, "max": 953.1000000000931},
+            "application_raf_callback_ms": {"count": 164, "p50": 4.400000000023283, "p95": 10.585000000079162, "p99": 12.336999999994879, "max": 13.599999999860302},
+            "completed_render_callbacks": 127,
+            "completed_render_callback_ms": {"count": 127, "p50": 5.5, "p95": 11.15000000004656, "p99": 12.373999999943189, "max": 13.599999999860302},
+            "completed_render_callback_interval_ms": {"count": 126, "p50": 892.7999999999302, "p95": 937.6749999999302, "p99": 944.4749999999185, "max": 953.0999999998603},
+            "input_to_completed_render_callback_ms": {"count": 121, "p50": 888.8999999999069, "p95": 931.6000000000931, "p99": 941.4799999999348, "max": 949.5999999998603},
+            "input_to_next_graphics_ms": {"count": 121, "p50": 888.7999999998137, "p95": 931.5, "p99": 941.4799999999348, "max": 949.5},
+            "webgpu_canvas_submissions": 127,
+            "webgl_flush_calls": 0,
+            "graphite_document_submissions": null,
+            "input_events": 121,
+            "inputs_without_later_graphics": 0,
+            "inputs_without_completed_render_callback": 0,
+            "graphics_api_calls": {"webgpu.canvasSubmit": 127, "webgpu.writeTexture": 1160},
+            "supplied_upload_buffer_bytes": 498757776,
+            "upload_calls_without_buffer_size": 0,
+            "physical_presented_frames": null,
+            "managed_allocated_bytes": null,
+            "cpu_ms": {"TaskDuration": 12058.323999999999, "ScriptDuration": 11430.89, "LayoutDuration": 0, "RecalcStyleDuration": 0},
+            "cpu_task_ms_per_operation": 99.65557024793388,
+            "thread_cpu_ms": 6839.407999999999,
+            "thread_cpu_ms_per_operation": 56.524033057851234,
+            "js_heap_used_delta_bytes": -985816
+          }
+        }
+      ],
+      "post_window_observations": [
+        {
+          "bridge": "legacy",
+          "trial": 1,
+          "final_capture_validation_elapsed_ms": 1185.5500049999819,
+          "restore_validation_elapsed_ms": 3219.9498190000213,
+          "graphite_queue_drain": {"available": false, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+        },
+        {
+          "bridge": "legacy-composite",
+          "trial": 1,
+          "final_capture_validation_elapsed_ms": 129.33065100003205,
+          "restore_validation_elapsed_ms": 2309.660957999995,
+          "graphite_queue_drain": {"available": false, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+        },
+        {
+          "bridge": "legacy-composite",
+          "trial": 2,
+          "final_capture_validation_elapsed_ms": 128.40852800002267,
+          "restore_validation_elapsed_ms": 2284.4163429999753,
+          "graphite_queue_drain": {"available": false, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+        },
+        {
+          "bridge": "legacy",
+          "trial": 2,
+          "final_capture_validation_elapsed_ms": 128.92952000004243,
+          "restore_validation_elapsed_ms": 3411.870702999977,
+          "graphite_queue_drain": {"available": false, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+        },
+        {
+          "bridge": "legacy",
+          "trial": 3,
+          "final_capture_validation_elapsed_ms": 121.27539399989473,
+          "restore_validation_elapsed_ms": 3861.671410999861,
+          "graphite_queue_drain": {"available": false, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+        },
+        {
+          "bridge": "legacy-composite",
+          "trial": 3,
+          "final_capture_validation_elapsed_ms": 991.9195690001743,
+          "restore_validation_elapsed_ms": 2301.5657089999877,
+          "graphite_queue_drain": {"available": false, "reason": "This diagnostic is exposed only for the selected Graphite bridge"}
+        }
+      ],
+      "native_pixel_pairs": [
+        [1, "before", true, 0.0, 0.0, 0.0, 0.0],
+        [1, "after", true, 0.0, 0.0, 0.0, 0.0],
+        [1, "restored", true, 0.0, 0.0, 0.0, 0.0],
+        [2, "before", true, 0.0, 0.0, 0.0, 0.0],
+        [2, "after", true, 0.0, 0.0, 0.0, 0.0],
+        [2, "restored", true, 0.0, 0.0, 0.0, 0.0],
+        [3, "before", true, 0.0, 0.0, 0.0, 0.0],
+        [3, "after", true, 0.0, 0.0, 0.0, 0.0],
+        [3, "restored", true, 0.0, 0.0, 0.0, 0.0]
+      ],
+      "maximum_native_region_fractions": {"whole_frame": 0.0, "document": 0.0, "horizontal_ruler": 0.0, "vertical_ruler": 0.0}
+    }
+  ],
+  "scope": [
+    "Every ratio compares the medians of three samples per mode from one matched runner and one immutable 0ffa AOT package. No timings, distributions or ratios are pooled across jobs or source snapshots.",
+    "The original legacy control does not register the custom canvas island; the explicit legacy-composite mode combines cached original document and feedback pixels using Uno's original uploader. Both modes use the same current application bytes.",
+    "These two experiments do not compare against the original 96e baseline and cannot establish baseline recovery or default promotion. The candidate default remains outside this opt-in comparison.",
+    "Six primary samples determine each comparison. Two managed-diagnostic runs are separate and excluded from all primary medians and ratios. Actual initialization, cache reuse and layer isolation remain mode-specific contracts.",
+    "These 18 native before/after/restored pairs cover the Welcome timing fixture at DPR 1. Broader Welcome lifecycle, fractional-DPR and extended-SVG quality are separate gates.",
+    "ThreadTime measures active renderer main-thread CPU and excludes GPU and worker CPU. TaskDuration is elapsed task time and may include waits; neither is native GPU execution time.",
+    "Offered operations per second, completed callbacks and visible-canvas submissions are not physical frames or proven input-to-new-pixels latency. Every trusted input passes the original later-callback and graphics observations, which do not prove a newer scene recording.",
+    "All primary windows exclude startup, common warmup, screenshots and restore validation. Total experiment duration includes those phases and the separate diagnostics.",
+    "Upload counts and supplied JavaScript buffer bytes are API observations, not measured physical transfer bytes. Full raw browser observations, console logs and native PNGs remain bound to the source report and immutable artifact digests."
+  ]
+}
