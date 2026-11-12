@@ -80,6 +80,8 @@ test("idle rAF activity is not claimed as graphics or physical presentation", ()
     app.api.selectCanvas();
     app.api.start("idle", []);
     for (let index = 0; index < 5; index++) app.frame();
+    assert.equal(app.api.progress().completed_render_callbacks, 0);
+    assert.equal(app.api.progress().input_events, 0);
     const sample = app.api.stop();
     assert.equal(sample.raf_ms.length, 5);
     assert.equal(sample.graphics_active_intervals_ms.length, 0);
@@ -169,6 +171,7 @@ test("completed CPU render callbacks require drawing and a successful return", (
     app.input("pointermove");
     vm.runInContext("requestAnimationFrame(() => { gl.drawArrays(4, 0, 3); advance(4); })", app.context);
     app.frame();
+    assert.equal(app.api.progress().completed_render_callbacks, 1);
     vm.runInContext("requestAnimationFrame(() => { gl.flush(); advance(1); })", app.context);
     app.frame();
     vm.runInContext("requestAnimationFrame(() => { gl.drawArrays(4, 0, 3); throw new Error('failed frame'); })", app.context);

@@ -19,7 +19,7 @@ is a useful historical reference, but its interface differs. Selecting it as the
 manual workflow's `reference_ref` measures the combined interface/runtime change.
 The default `dbe9dd1` comparison isolates the Uno migration more closely. A
 historical package must still contain the same welcome SVG and use the same .NET
-SDK and AOT build settings; an incompatible fixture is rejected explicitly.
+SDK, workload set and AOT build settings; an incompatible fixture is rejected explicitly.
 
 Uno 6 is measured on its actual Skia/WebGL renderer. Uno 7 is measured with both
 WebGPU and `?renderer=skia`. An unavailable legacy WebGPU implementation is never
@@ -28,8 +28,28 @@ represented by a fabricated zero or by a different renderer.
 ## Workloads and controls
 
 Every independent trial gets a fresh browser process, context and application
-startup. The workload's input path is warmed once outside measurement, then the
-camera, artwork and selection are restored. The benchmark uses the unchanged
+startup. A common untimed warmup sends at least 120 real middle-button pan moves
+and observes at least 60 successfully completed graphics-producing callbacks.
+If input coalesces, further batches of 60 real moves are allowed up to a total of
+600; failure to produce enough actual callbacks is an error. This moves the
+shared runtime's retention transition outside the measured window: both
+[Uno 6](https://github.com/unoplatform/uno/blob/5f783231086f7cfd2200d10388664e05f4792181/src/Uno.UI.Composition/Composition/Visual.skia.cs)
+and [Uno 7](https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/Uno.UI.Composition/Composition/Visual.skia.cs)
+default eligible stable subtree retention to 50 paint frames and 100 visuals.
+The report records offered moves, trusted events, completed callbacks and warmup
+duration separately; those samples never enter the primary metrics.
+
+The workload's own input path is then warmed, and camera, artwork and selection
+are restored. Rulers retain the last pointer position after pointer exit, so both
+baseline capture and restoration use the same real pointer movement through
+(450, 430) before parking at (760, 16), in CSS pixels. This matches the pointer
+state as well as the camera without excluding ruler pixels. Brush hover also
+warms its post-fit combined-to-overlay transition: the actual preview must appear
+and then clear in a local document crop before `before.png` is saved. The steady
+diagnostic assertion remains zero Document callbacks and positive Interaction
+callbacks; a transition repaint is never silently accepted inside that interval.
+
+The benchmark uses the unchanged
 embedded `Welcome.svg`, a 1440 × 960 viewport, DPR 1, dark mode, `en-US`, UTC,
 and the normal motion setting. No application invalidation is injected.
 
@@ -56,7 +76,10 @@ limit above a luminance difference of 12/255. Pan, zoom and edit reuse the exist
 requirement for 500 changed interior pixels in every artwork color family after
 7 × 7 erosion. Current-versus-candidate before/after/restored images must also
 match at the original restoration threshold. Legacy glyph output is not used as
-a substitute Uno 7 pixel baseline.
+a substitute Uno 7 pixel baseline. The matched current/candidate states also
+compare each ruler strip at the same 0.1% limit and the existing static chrome
+font regions at their original 2% limit, including the ruler pointer at its
+matched position.
 
 The standard welcome file covers the normal editor workload, gradients, clipped
 groups, text and the interface. It does not represent a thousands-of-elements
@@ -73,8 +96,8 @@ would cause continuous application frames and corrupt idle observations.
 | Measurement | Interpretation |
 | --- | --- |
 | rAF interval p50/p95/p99/max | Browser animation scheduling cadence. It is **not rendered FPS**. |
-| Completed render callback count and duration | Successful application rAF callbacks that actually issued drawing or a submission to the visible main canvas. Both pinned runtimes synchronously call managed `RenderFrame` inside that callback. This includes synchronous CPU rendering/submission, not later GPU execution or physical presentation. |
-| Input to completed render callback | Trusted input dispatch to the next completed callback containing graphics work. Multiple events may coalesce; this is not proof of per-event causality or input-to-photon latency. |
+| Completed render callback count and duration | Successful application rAF callbacks that actually issued drawing or a submission to the visible main canvas. Both pinned runtimes synchronously call managed `RenderFrame` inside that callback. This covers its synchronous replay/submission, but **excludes earlier NativeDispatcher recording**, later GPU execution and physical presentation. |
+| Input to completed render callback | Trusted input dispatch to the next completed callback containing graphics work. Multiple events may coalesce, and that callback can replay an older recording. This is **not proven input-to-new-pixels latency**, per-event causality or input-to-photon latency. |
 | Graphics-active animation intervals | Observer intervals containing main-canvas drawing/submission calls. Detached capability probes cannot satisfy the count. |
 | WebGPU canvas submissions / WebGL flushes | Observed API calls. A WebGPU submission must follow acquisition of the application's canvas texture. Neither count is labeled as display presentation. |
 | Drawing and texture-upload calls | Browser API counters. `supplied_upload_buffer_bytes` sums the sizes of supplied buffer views; it is **not** the actual consumed transfer extent because offsets, row pitch and subregions can consume less. Calls without a buffer size are counted separately. |
@@ -83,7 +106,8 @@ would cause continuous application frames and corrupt idle observations.
 
 The report retains raw timestamp arrays, actual renderer evidence, browser
 version/launch arguments, adapter/context details, every trial, .NET and Uno SDK
-versions, source SHA, fixture hash and packaged font hashes. Native font asset
+versions, exact workload set, original and effective `global.json` with their
+byte hashes, source SHA, fixture hash and packaged font hashes. Native font asset
 hashes are recorded, not blindly required to be identical across Uno 6 and Uno 7.
 Effective browser font families/status are also recorded after startup.
 
@@ -98,7 +122,9 @@ With `--diagnostics`, a **separate candidate-only pass** enables
 It snapshots the application's opt-in Document/Interaction/Ruler/Navigator paint
 callback counts, total/max CPU time and current-thread allocated bytes. It also
 retains Uno's `[frame-phases]` and `[webgpu-frame]` diagnostics when enough frames
-have occurred for the runtime to print its periodic sample. These counters do not
+have occurred for the runtime to print its periodic sample. Their periodic windows
+can straddle warmup/workload boundaries; they are supporting diagnostics, not
+exactly reset per-workload timing samples. These counters do not
 subscribe to frame events or invalidate visuals. Main-thread managed allocation
 differences include diagnostic serialization overhead; per-paint-callback
 allocation counts have their narrower scope recorded separately. Logs and timed
@@ -117,9 +143,28 @@ application contract and a single fast sample is not evidence of a speedup.
 `UnoDraw performance` runs for relevant pull-request changes and supports manual
 dispatch with custom baseline/candidate/reference refs. Leave `reference_ref`
 empty in a manual run to omit the historical build. The three AOT builds run in
-parallel. Published packages are cached by exact source SHA, .NET SDK, workload
+parallel. Every checkout uses **SDK 10.0.403 and workload set 10.0.403**.
+`toolchain.py --pin` applies an explicit build-only `global.json` override:
+`sdk.version`, `sdk.workloadVersion`, `sdk.rollForward: disable` and
+`sdk.allowPrerelease: false`. It preserves each revision's `Uno.Sdk` and every
+other configuration property. `actions/setup-dotnet` reads this effective file;
+the workload install uses its exact set, and actual SDK/workload versions are
+verified before cache lookup. The package manifest distinguishes the committed
+source configuration from this override. This matters because `latestMinor`
+allowed the first control run's runners to choose SDK 10.0.403 and 10.0.404;
+the consistency check rejected that run before any browser measurement.
+
+Microsoft documents the pin in its
+[workload-set guide](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-workload-sets);
+the [10.0.403 set](https://www.nuget.org/packages/Microsoft.NET.Workloads.10.0.400/10.403.0)
+is an exact published version. `--skip-manifest-update` alone is insufficient
+because it can retain different preinstalled manifests on different runners.
+
+Published packages are cached by exact source SHA, .NET SDK, workload
 version, platform and build flags. A new candidate can reuse the expensive
 unchanged baseline packages. A newer push does not cancel a useful run in flight.
+Old packages whose manifests lack a recorded workload identity are not relabeled
+as pinned builds; the exact workload-set cache key causes a one-time rebuild.
 Build jobs for the same ref queue behind one another with `queue: max`, then
 reuse the completed package cache. This also preserves pending builds instead of
 replacing them; GitHub documents the queue behavior in its
@@ -151,10 +196,17 @@ provider must be observed; merely exposing `navigator.gpu` cannot pass.
 
 ## Local reproduction
 
-Publish each revision in its own checkout with the same SDK and these settings:
+Install SDK 10.0.403, then publish each revision in its own checkout using the
+harness revision's pin script. Run the install and publish commands inside that
+checkout; the script changes only its SDK/workload selection and refuses
+unrelated local `global.json` edits:
 
 ```sh
-dotnet workload install wasm-tools --skip-manifest-update
+python /absolute/path/harness/tests/UnoDraw.BrowserPerformance/toolchain.py \
+  --source /absolute/path/baseline-checkout --pin
+cd /absolute/path/baseline-checkout
+dotnet workload install wasm-tools
+python /absolute/path/harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source .
 BINARYEN_CORES=1 dotnet publish samples/UnoDraw/UnoDraw.csproj \
   -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm \
   -c Release -p:WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT \

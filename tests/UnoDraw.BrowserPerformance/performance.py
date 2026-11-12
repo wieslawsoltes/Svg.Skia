@@ -27,12 +27,23 @@ from metrics import comparisons, summarize, validate_packages, verify_hover_isol
 WORKLOADS = ("idle", "brush-hover", "pan", "zoom", "selection", "edit")
 VIEWPORT = {"width": 1440, "height": 960}
 DOCUMENT_REGION = (100, 160, 1050, 880)
+WARMUP_INPUTS = 120
+WARMUP_MIN_CALLBACKS = 60
+WARMUP_MAX_INPUTS = 600
+WARMUP_BATCH = 60
 
 
 def next_frame(page: Page) -> None:
     # This observer schedules no Uno invalidation. One real input per display
     # opportunity models an interactive drag; delayed frames slow the workload.
     page.evaluate("() => globalThis.__unoDrawBenchmark.nextFrame()")
+
+
+def park_pointer(page: Page) -> None:
+    # Rulers intentionally retain the canvas's last world pointer after exit.
+    # Match that state as well as the camera when comparing restored ruler pixels.
+    page.mouse.move(450, 430)
+    page.mouse.move(760, 16)
 
 
 def screenshot_changed(before: Path, after: Path) -> int:
@@ -112,6 +123,72 @@ def renderer_evidence(page: Page, console: list[dict[str, Any]], package: dict[s
     return result
 
 
+def common_pan_warmup(page: Page) -> dict[str, Any]:
+    """Exercise real input beyond the shared runtime's 50-frame retention threshold."""
+    page.mouse.move(450, 430)
+    page.mouse.down(button="middle")
+    page.evaluate("() => globalThis.__unoDrawBenchmark.start('common-warmup-pan', ['pointermove'])")
+    offered = 0
+    completed = 0
+    while offered < WARMUP_MAX_INPUTS and (offered < WARMUP_INPUTS or completed < WARMUP_MIN_CALLBACKS):
+        for _ in range(WARMUP_BATCH):
+            offered += 1
+            angle = offered * 2 * math.pi / WARMUP_BATCH
+            page.mouse.move(450 + 48 * math.sin(angle), 430 + 24 * (1 - math.cos(angle)))
+            next_frame(page)
+        completed = page.evaluate("() => globalThis.__unoDrawBenchmark.progress().completed_render_callbacks")
+    page.mouse.up(button="middle")
+    for _ in range(2):
+        next_frame(page)
+    raw = page.evaluate("() => globalThis.__unoDrawBenchmark.stop()")
+    completed = len(raw["completed_render_callback_ms"])
+    if raw["input_events"] < WARMUP_INPUTS or completed < WARMUP_MIN_CALLBACKS:
+        raise AssertionError(f"Real pan warmup did not produce enough input and graphics callbacks: "
+                             f"{raw['input_events']} trusted moves, {completed} completed callbacks")
+    return {"offered_pointer_moves": offered, "trusted_pointer_moves": raw["input_events"],
+            "completed_graphics_callbacks": completed,
+            "graphics_active_animation_intervals": len(raw["graphics_active_intervals_ms"]),
+            "elapsed_ms": raw["ended_ms"] - raw["started_ms"],
+            "included_in_primary_metrics": False}
+
+
+def brush_transition_warmup(page: Page, fitted: Path, before: Path) -> dict[str, Any]:
+    """Complete the post-fit layer transition and clear its real preview before measurement."""
+    preview = before.with_name("brush-transition-preview.png")
+    bounds = (425, 405, 475, 455)
+
+    def changed(path: Path) -> int:
+        with Image.open(fitted) as first, Image.open(path) as second:
+            difference = ImageChops.difference(first.convert("RGB").crop(bounds),
+                                              second.convert("RGB").crop(bounds)).convert("L")
+            return sum(count for level, count in enumerate(difference.histogram()) if level > 12)
+
+    page.mouse.move(450, 430)
+    deadline = time.monotonic() + 15
+    preview_pixels = 0
+    while time.monotonic() < deadline:
+        page.screenshot(path=str(preview))
+        preview_pixels = changed(preview)
+        if preview_pixels >= 20:
+            break
+        next_frame(page)
+    else:
+        raise AssertionError("The post-fit brush preview did not appear during its untimed transition")
+    page.mouse.move(760, 16)
+    deadline = time.monotonic() + 15
+    area = (bounds[2] - bounds[0]) * (bounds[3] - bounds[1])
+    while time.monotonic() < deadline:
+        page.screenshot(path=str(before))
+        fraction = changed(before) / area
+        if fraction <= 0.001:
+            artwork_transition(fitted, before, restore=True)
+            if not any(value > 0.001 for value in ruler_frame_changes(fitted, before).values()):
+                return {"preview_changed_pixels": preview_pixels, "cleared_changed_pixel_fraction": fraction,
+                        "region": list(bounds), "included_in_primary_metrics": False}
+        next_frame(page)
+    raise AssertionError("The warmed brush preview did not clear before the measured interval")
+
+
 def warm_workload(page: Page, workload: str) -> None:
     page.mouse.click(470, 430)
     page.keyboard.press("Control+Shift+A")
@@ -144,7 +221,7 @@ def warm_workload(page: Page, workload: str) -> None:
         page.keyboard.press("Control+Shift+A")
     page.keyboard.press("Control+0")
     page.keyboard.press("Control+Shift+A")
-    page.mouse.move(760, 16)
+    park_pointer(page)
 
 
 def measure_workload(page: Page, workload: str, steps: int, idle_ms: int) -> int:
@@ -206,7 +283,7 @@ def verify_workload(page: Page, workload: str, operations: int, before: Path,
         page.keyboard.press("V")
     page.keyboard.press("Control+Shift+A")
     page.keyboard.press("Control+0")
-    page.mouse.move(760, 16)
+    park_pointer(page)
     result["restored"] = wait_for_artwork_transition(page, before, output / "restored.png",
                                                     restore=True, require_settled_rulers=True)
     return result
@@ -237,7 +314,6 @@ def run_trial(browser: Any, url: str, package: dict[str, Any], backend: str, wor
             query += ("&" if query else "?") + "renderDiagnostics=1&perfDiagnostics=1"
         page.goto(url + query, wait_until="domcontentloaded", timeout=120_000)
         page.wait_for_function(READY, timeout=120_000)
-        result["renderer"] = renderer_evidence(page, result["console"], package, backend)
         result["environment"] = page.evaluate("""() => ({
             viewport: {width: innerWidth, height: innerHeight}, device_pixel_ratio: devicePixelRatio,
             cross_origin_isolated: crossOriginIsolated, user_agent: navigator.userAgent,
@@ -249,11 +325,21 @@ def run_trial(browser: Any, url: str, package: dict[str, Any], backend: str, wor
             raise AssertionError("The fixed viewport/DPR contract changed")
         if result["environment"]["cross_origin_isolated"]:
             raise AssertionError("Benchmark hosting must match GitHub Pages without COOP/COEP")
+        # READY ends font/startup deferral but can precede the first scheduled
+        # render callback. Require actual settled artwork before inspecting the
+        # context's completed graphics work; no startup delay is invented.
+        settled_screenshot(page, output / "startup.png")
+        result["renderer"] = renderer_evidence(page, result["console"], package, backend)
+        park_pointer(page)
         settled_screenshot(page, output / "initial.png")
+        result["common_warmup"] = common_pan_warmup(page)
         warm_workload(page, workload)
         before = output / "before.png"
-        wait_for_artwork_transition(page, output / "initial.png", before,
-                                   restore=True, require_settled_rulers=True)
+        if workload == "brush-hover":
+            result["hover_transition_warmup"] = brush_transition_warmup(page, output / "initial.png", before)
+        else:
+            wait_for_artwork_transition(page, output / "initial.png", before,
+                                       restore=True, require_settled_rulers=True)
         if workload == "brush-hover":
             page.mouse.move(450, 430)
         elif workload == "pan":
@@ -335,6 +421,14 @@ def cross_build_quality(runs: list[dict[str, Any]], output: Path) -> list[dict[s
             first = output / baseline["artifact_directory"] / f"{state}.png"
             second = output / candidate["artifact_directory"] / f"{state}.png"
             row[state] = artwork_transition(first, second, restore=True)
+            rulers = ruler_frame_changes(first, second)
+            fonts = chrome_font_changes(first, second)
+            if any(value > 0.001 for value in rulers.values()):
+                raise AssertionError(f"{key[1]} {key[2]} trial {key[3]} {state} changed ruler pixels: {rulers}")
+            if any(value > 0.02 for value in fonts.values()):
+                raise AssertionError(f"{key[1]} {key[2]} trial {key[3]} {state} changed chrome font pixels: {fonts}")
+            row[state]["ruler_changed_pixel_fraction"] = rulers
+            row[state]["chrome_font_changed_pixel_fraction"] = fonts
         result.append(row)
     return result
 
@@ -397,6 +491,12 @@ def main() -> int:
         "schema": 1, "passed": False, "started_unix": time.time(), "packages": packages,
         "viewport": VIEWPORT, "device_scale_factor": 1, "repeats": args.repeats, "steps": args.steps,
         "idle_ms": args.idle_ms, "python": platform.python_version(), "platform": platform.platform(),
+        "warmup_policy": {"minimum_real_pan_inputs": WARMUP_INPUTS,
+                          "minimum_completed_graphics_callbacks": WARMUP_MIN_CALLBACKS,
+                          "maximum_real_pan_inputs": WARMUP_MAX_INPUTS, "additional_batch_size": WARMUP_BATCH,
+                          "canonical_pointer_reset_css": [[450, 430], [760, 16]],
+                          "reason": "Both pinned Uno versions retain eligible stable visual subtrees after 50 paint frames",
+                          "included_in_primary_metrics": False},
         "graphics_description": ("SwiftShader software GPU API implementations; not physical GPU throughput"
                                  if args.graphics == "swiftshader" else
                                  "Requested hardware; inspect the recorded actual adapters before interpreting GPU performance"),
@@ -404,7 +504,7 @@ def main() -> int:
             "raf": "Animation callback cadence; not rendered or presented frames",
             "graphics_active_intervals": "Animation intervals containing application-canvas drawing/submission API calls",
             "input_to_next_graphics": "Trusted input dispatch to next observed graphics work; coalesced and not causal presentation latency",
-            "completed_render_callback": "Successful application rAF callback that drew/submitted to the main canvas; synchronous CPU render work, not physical presentation",
+            "completed_render_callback": "Successful application rAF callback drawing/submitting to the main canvas; excludes earlier NativeDispatcher recording; may replay an older record, not input-to-new-pixels or physical presentation",
             "cpu": "CDP main-thread task/script/layout time including small observer and automation overheads",
             "heap": "JavaScript used-heap difference; not an allocation count and not the managed WASM heap",
             "physical_presented_frames": "Unavailable; never inferred from rAF",

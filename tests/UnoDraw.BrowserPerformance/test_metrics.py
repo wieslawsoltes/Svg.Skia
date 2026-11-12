@@ -21,7 +21,8 @@ def observation() -> dict:
 
 def package(role: str) -> dict:
     return {"role": role, "fixture_sha256": "same-fixture", "configuration": "Release",
-            "execution_mode": "InterpreterAndAOT", "dotnet_sdk": "10.0.100"}
+            "execution_mode": "InterpreterAndAOT", "dotnet_sdk": "10.0.403",
+            "dotnet_workload_version": "10.0.403"}
 
 
 class MeasurementTests(unittest.TestCase):
@@ -88,15 +89,23 @@ class MeasurementTests(unittest.TestCase):
             with self.subTest(document=document, interaction=interaction), self.assertRaises(AssertionError):
                 verify_hover_isolation(snapshot(document, interaction))
 
-    def test_comparison_rejects_changed_fixture_sdk_and_interpreter_build(self) -> None:
+    def test_comparison_rejects_changed_fixture_toolchain_and_interpreter_build(self) -> None:
         packages = [package("baseline"), package("candidate"), package("reference")]
         validate_packages(packages)
         for key, value in (("fixture_sha256", "different"), ("dotnet_sdk", "10.0.200"),
+                           ("dotnet_workload_version", "10.0.404"), ("dotnet_workload_version", None),
                            ("execution_mode", "Interpreter"), ("configuration", "Debug")):
             changed = copy.deepcopy(packages)
             changed[1][key] = value
             with self.subTest(key=key), self.assertRaises(ValueError):
                 validate_packages(changed)
+
+    def test_legacy_packages_without_workload_provenance_are_rejected(self) -> None:
+        packages = [package("baseline"), package("candidate")]
+        for value in packages:
+            del value["dotnet_workload_version"]
+        with self.assertRaisesRegex(ValueError, "record their exact"):
+            validate_packages(packages)
 
 
 if __name__ == "__main__":

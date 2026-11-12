@@ -8,6 +8,8 @@ import json
 import subprocess
 from pathlib import Path
 
+from toolchain import metadata
+
 
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -22,15 +24,16 @@ def main() -> None:
     source, package = args.source.resolve(), args.package.resolve()
     if not (package / "wwwroot/index.html").is_file():
         parser.error("--package must contain the published wwwroot/index.html")
-    sdk = json.loads((source / "global.json").read_text(encoding="utf-8"))
-    uno_sdk = sdk["msbuild-sdks"]["Uno.Sdk"]
+    toolchain = metadata(source)
+    uno_sdk = toolchain["source_global_json"]["msbuild-sdks"]["Uno.Sdk"]
     fonts = {str(path.relative_to(package / "wwwroot")): digest(path)
              for path in sorted((package / "wwwroot").rglob("*"))
              if path.is_file() and path.suffix.lower() in {".ttf", ".otf", ".woff", ".woff2"}}
     manifest = {
-        "schema": 1, "role": args.role,
+        "schema": 2, "role": args.role,
         "source_sha": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip(),
-        "dotnet_sdk": subprocess.check_output(["dotnet", "--version"], cwd=source, text=True).strip(),
+        **toolchain,
+        "dotnet_workload_info": subprocess.check_output(["dotnet", "workload", "--info"], cwd=source, text=True).strip(),
         "uno_sdk": uno_sdk,
         "runtime_generation": "uno6" if uno_sdk.startswith("6.") else "uno7",
         "configuration": "Release", "execution_mode": "InterpreterAndAOT",

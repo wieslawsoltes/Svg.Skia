@@ -141,8 +141,8 @@ def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path) -> d
         report["actual_device_pixel_ratio"] = page.evaluate("devicePixelRatio")
         if report["actual_device_pixel_ratio"] != dpr:
             raise AssertionError("The requested device pixel ratio was not applied")
-        record_backend(page, report, "startup", 0)
         report["states"].append(capture(page, output, "01-desktop", DESKTOP, dpr))
+        record_backend(page, report, "startup", 0)
         verify_bridge(report["console"], bridge)
         fitted = output / "01-desktop-css.png"
         page.keyboard.press("Control+1")

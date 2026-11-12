@@ -177,7 +177,9 @@
                 // Both pinned Uno runtimes synchronously invoke managed RenderFrame
                 // inside their own rAF callback. Count only successful callbacks
                 // that actually drew/submitted to the visible application canvas.
-                // This is completed CPU render work, not physical presentation.
+                // Earlier NativeDispatcher recording can occur outside this
+                // callback. Its replay may precede a newer input's recording;
+                // this is not input-to-new-pixels or physical presentation.
                 if (completed && graphicsGeneration !== generation) {
                     current.completed_render_callback_ms.push(end - begin);
                     current.completed_render_callback_end_ms.push(end);
@@ -240,6 +242,11 @@
         },
         contexts: () => contexts.map(describe),
         nextFrame: () => new Promise(resolve => nativeRaf(resolve)),
+        progress: () => sample ? {
+            input_events: sample.input_events,
+            completed_render_callbacks: sample.completed_render_callback_ms.length,
+            graphics_active_intervals: sample.graphics_active_intervals_ms.length
+        } : null,
         start(workload, inputTypes) {
             if (sample) throw new Error("A benchmark interval is already active");
             frame = 0;

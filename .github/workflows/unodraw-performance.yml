@@ -79,7 +79,7 @@ jobs:
     concurrency:
       # Wait for an identical expensive package already being built, then reuse
       # its exact cache entry. Distinct candidate SHAs still build in parallel.
-      group: unodraw-aot-${{ github.repository }}-${{ matrix.ref }}-ubuntu24-release-copy-nothreads-v1
+      group: unodraw-aot-${{ github.repository }}-${{ matrix.ref }}-sdk10.0.403-workload10.0.403-ubuntu24-release-copy-nothreads-v1
       cancel-in-progress: false
       queue: max
     strategy:
@@ -95,26 +95,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: harness
+      - name: Pin SDK and workload selection without changing the source Uno.Sdk
+        run: python harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source source --pin
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: source/global.json
       - name: Install the matching WebAssembly tools
         working-directory: source
-        run: dotnet workload install wasm-tools --skip-manifest-update
+        # sdk.workloadVersion pins the entire set; --skip-manifest-update alone
+        # would retain whichever newer manifests happen to be on the runner.
+        run: dotnet workload install wasm-tools
       - id: identity
         name: Resolve exact source and toolchain
-        working-directory: source
-        run: |
-          python - <<'PY'
-          import os
-          import subprocess
-          values = {'sha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
-                    'sdk': subprocess.check_output(['dotnet', '--version'], text=True).strip(),
-                    'workload': subprocess.check_output(['dotnet', 'workload', '--version'], text=True).strip()}
-          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
-              for name, value in values.items():
-                  output.write(f'{name}={value}\n')
-          PY
+        run: >-
+          python harness/tests/UnoDraw.BrowserPerformance/toolchain.py
+          --source source --github-output "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
         id: published
         with:
