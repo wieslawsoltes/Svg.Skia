@@ -27,6 +27,7 @@ internal sealed class WebGpuGraphiteContext
         _queue = (nint)source.Queue;
         if (_instance == 0 || _device == 0 || _queue == 0)
             throw new NotSupportedException("The shared WebGPU instance, device and queue are required.");
+        var internalMultisampleCount = WebGpuGraphiteInterop.GetInternalMultisampleCount();
         using var backend = new SKGraphiteDawnBackendContext
         {
             WgpuInstance = _instance,
@@ -36,11 +37,17 @@ internal sealed class WebGpuGraphiteContext
         Context = SKGraphiteContext.CreateDawn(backend, new SKGraphiteContextOptions
         {
             GpuBudgetInBytes = 256L * 1024 * 1024,
+            // Zero retains Skia's default. In pinned non-Vello WASM Skia,
+            // requesting one selects antialiased raster path/clip atlases through
+            // RendererProvider; specialized analytic renderers remain unchanged.
+            InternalMultisampleCount = internalMultisampleCount,
             // A rejected document can discard its recorder snapshot without
             // creating a required sequence gap in later supported frames.
             RequireOrderedRecordings = false
         })
             ?? throw new NotSupportedException("Skia could not create a Graphite context on the shared WebGPU device.");
+        var coverage = internalMultisampleCount == 1 ? "raster" : "default";
+        Console.WriteLine($"UnoDraw Graphite coverage initialized: {coverage} (InternalMultisampleCount={internalMultisampleCount}).");
     }
 
     private SKGraphiteContext Context { get; }

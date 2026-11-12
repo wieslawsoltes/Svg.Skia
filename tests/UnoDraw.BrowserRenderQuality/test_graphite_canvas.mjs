@@ -14,11 +14,11 @@ function deferred() {
 
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
-function fixture() {
+function fixture(search = "") {
     const calls = [], validations = [], completions = [], failures = [];
     let initialized = 0;
     let clock = 0;
-    const environment = { performance: { now: () => clock++ } };
+    const environment = { performance: { now: () => clock++ }, URLSearchParams, location: { search } };
     vm.createContext(environment);
     vm.runInContext(source, environment);
     const api = environment.UnoDrawGraphite;
@@ -43,6 +43,46 @@ function fixture() {
         submissions: () => environment.__unoDrawGraphiteDocumentSubmissions,
         frame(submitted = true) { api.beginFrame(state); api.endFrame(state, submitted); } };
 }
+
+test("coverage defaults preserve the native setting and the explicit raster diagnostic requests one", () => {
+    for (const [search, count] of [
+        ["", 0], ["?canvasBridge=graphite", 0],
+        ["?canvasBridge=graphite&graphiteCoverage=default", 0],
+        ["?canvasBridge=graphite&graphiteCoverage=raster", 1]
+    ]) {
+        const f = fixture(search);
+        assert.equal(f.api.getInternalMultisampleCount(), count);
+        assert.equal(f.submissions(), 0);
+        assert.equal(f.initialized(), 0);
+        assert.deepEqual(f.calls, [], "reading coverage does not submit or wait for GPU work");
+    }
+});
+
+test("coverage is parsed only once and remains fixed across later states and URL changes", () => {
+    for (const [initial, changed, count] of [
+        ["?graphiteCoverage=raster", "?graphiteCoverage=default", 1],
+        ["", "?graphiteCoverage=raster", 0]
+    ]) {
+        const f = fixture(initial);
+        f.environment.location.search = changed;
+        f.api.createState(f.device, f.queue, () => {}, () => {});
+        assert.equal(f.api.getInternalMultisampleCount(), count);
+        Object.defineProperty(f.environment.location, "search", {
+            get() { throw new Error("query must not be read again"); }
+        });
+        assert.equal(f.api.getInternalMultisampleCount(), count);
+        assert.deepEqual(f.calls, []);
+    }
+});
+
+test("unknown or duplicate coverage selectors cannot silently claim a different experiment", () => {
+    for (const search of [
+        "?graphiteCoverage=", "?graphiteCoverage=unknown", "?graphiteCoverage=Raster",
+        "?graphiteCoverage=default&graphiteCoverage=raster",
+        "?graphiteCoverage=raster&graphiteCoverage=raster"
+    ])
+        assert.throws(() => fixture(search), /graphiteCoverage must be specified once as default or raster/);
+});
 
 test("creating the lifetime observer performs no drawing, queue wait or initialization", () => {
     const f = fixture();

@@ -11,6 +11,18 @@ internal static partial class WebGpuGraphiteInterop
     internal static JSObject CreateState(JSObject device, JSObject queue,
         Action<string> unavailable, Action initialized)
     {
+        EnsureInitialized();
+        return CreateStateCore(device, queue, unavailable, initialized);
+    }
+
+    internal static int GetInternalMultisampleCount()
+    {
+        EnsureInitialized();
+        return GetInternalMultisampleCountCore();
+    }
+
+    private static void EnsureInitialized()
+    {
         if (!s_initialized)
         {
             using var source = typeof(WebGpuGraphiteInterop).Assembly.GetManifestResourceStream(
@@ -20,8 +32,10 @@ internal static partial class WebGpuGraphiteInterop
             WebAssemblyRuntime.InvokeJS(reader.ReadToEnd());
             s_initialized = true;
         }
-        return CreateStateCore(device, queue, unavailable, initialized);
     }
+
+    [JSImport("globalThis.UnoDrawGraphite.getInternalMultisampleCount")]
+    private static partial int GetInternalMultisampleCountCore();
 
     [JSImport("globalThis.UnoDrawGraphite.createState")]
     private static partial JSObject CreateStateCore(JSObject device, JSObject queue,

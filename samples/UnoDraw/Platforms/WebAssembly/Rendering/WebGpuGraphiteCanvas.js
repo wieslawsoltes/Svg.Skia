@@ -1,4 +1,12 @@
 (() => {
+    // Freeze this diagnostic before the first native context. Later URL changes
+    // cannot change coverage strategy on an already shared WebGPU device.
+    const coverage = new URLSearchParams(globalThis.location?.search || "")
+        .getAll("graphiteCoverage");
+    if (coverage.length > 1 || (coverage.length === 1 &&
+        coverage[0] !== "default" && coverage[0] !== "raster"))
+        throw new Error("graphiteCoverage must be specified once as default or raster.");
+    const internalMultisampleCount = coverage[0] === "raster" ? 1 : 0;
     const states = new Set();
     const errorText = error => String(error?.message || error || "unknown WebGPU error");
     const fail = (state, error) => {
@@ -21,6 +29,10 @@
             queueCount: queues.length, duration_ms: performance.now() - started, errors };
     };
     globalThis.UnoDrawGraphite = {
+        getInternalMultisampleCount() {
+            return internalMultisampleCount;
+        },
+
         createState(device, queue, unavailable, initialized) {
             if (!device || !queue) throw new Error("The shared WebGPU device and queue are unavailable.");
             const state = { device, queue, unavailable, initialized, open: false,
