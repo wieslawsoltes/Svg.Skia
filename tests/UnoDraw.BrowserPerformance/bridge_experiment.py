@@ -12,7 +12,7 @@ from typing import Any
 
 from playwright.sync_api import sync_playwright
 
-from bridge_experiment_contracts import (CANDIDATE_BRIDGES, STATES, WORKLOADS, bridge_pair,
+from bridge_experiment_contracts import (LIVE_CANDIDATE_BRIDGES, STATES, WORKLOADS, bridge_pair,
                                          compare_metrics, load_candidate, trial_plan,
                                          verify_experiment_workload, verify_runs)
 from performance import VIEWPORT, launch_arguments, run_trial, serve
@@ -36,6 +36,7 @@ def save_report(report: dict[str, Any], output: Path) -> None:
              "active CPU on the renderer thread; it excludes GPU/worker CPU. Missing thread counters are "
              "null and do not produce a ratio from an incomplete pair of trial sets.", ""]
     if candidate_bridge == "webgl":
+        # Retain summaries of archived experiments; the live CLI rejects this mode.
         lines += ["The WebGL mode rasterizes the document with Ganesh and copies the browser canvas into WebGPU. "
                   "Chromium 143 on Linux performs browser-side readback for that copy. "
                   "The copy count does not measure actual bytes transferred or display presentation.", ""]
@@ -111,8 +112,8 @@ def main() -> int:
     parser.add_argument("--package", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--workload", choices=WORKLOADS, required=True)
-    parser.add_argument("--candidate-bridge", choices=CANDIDATE_BRIDGES, default="webgl",
-                        help="WebGL/Graphite for pan/zoom, or cached composition for brush-hover/selection")
+    parser.add_argument("--candidate-bridge", choices=LIVE_CANDIDATE_BRIDGES, default="graphite",
+                        help="Graphite for pan/zoom, or cached composition for brush-hover/selection")
     parser.add_argument("--graphite-coverage", choices=GRAPHITE_COVERAGES,
                         help="Require the Graphite candidate's actual native default or raster coverage option")
     parser.add_argument("--repeats", type=int, default=3)

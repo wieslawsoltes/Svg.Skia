@@ -11,13 +11,12 @@ namespace UnoDraw.Rendering;
 
 /// <summary>
 /// Connects the editor's Skia painters to a retained WebGPU texture through Uno's
-/// public island extension. An opt-in document renderer can use an app-owned
-/// WebGL2 context; persistent CPU upload remains the default and its fallback.
+/// public island extension. Graphite is an opt-in document renderer; persistent
+/// CPU upload remains the default and its fallback.
 /// </summary>
 internal static class WebGpuSkiaCanvasBridge
 {
     private static int s_reportedInitialization;
-    private static int s_reportedWebGlInitialization;
     private static int s_reportedCompositeInitialization;
     private static int s_reportedGraphiteInitialization;
 
@@ -30,35 +29,31 @@ internal static class WebGpuSkiaCanvasBridge
             Console.WriteLine("UnoDraw canvas bridge preference: legacy raster texture upload.");
             return;
         }
+        if (preference == "webgl")
+        {
+            Console.WriteLine("UnoDraw canvas bridge fallback: the WebGL document renderer was retired; using persistent RGBA upload.");
+            preference = "persistent";
+        }
 
         // SKCanvasElement already routes non-Skia backends through this extension.
         // It suppresses the parent's software upload while an island is present.
         // The original renderer is used only to request Uno's supported fallback;
         // its GL-specific Init/Render/Destroy methods are never called.
-        var preferWebGl = preference == "webgl";
         var preferGraphite = preference == "graphite";
         var preferComposite = preference == "composite";
         ApiExtensibility.Register<IGLIslandRenderer>(typeof(IGLIsland),
-            renderer => new RasterCanvasIsland(renderer, preferWebGl, preferComposite, preferGraphite));
-        Console.WriteLine(preferWebGl
-            ? "UnoDraw canvas bridge preference: WebGL document rasterization."
-            : preferGraphite
-                ? "UnoDraw canvas bridge preference: Graphite document rasterization."
-                : preferComposite
-                    ? "UnoDraw canvas bridge preference: cached document composition."
-                    : "UnoDraw canvas bridge preference: persistent RGBA upload.");
+            renderer => new RasterCanvasIsland(renderer, preferComposite, preferGraphite));
+        Console.WriteLine(preferGraphite
+            ? "UnoDraw canvas bridge preference: Graphite document rasterization."
+            : preferComposite
+                ? "UnoDraw canvas bridge preference: cached document composition."
+                : "UnoDraw canvas bridge preference: persistent RGBA upload.");
     }
 
     internal static void ReportInitialization()
     {
         if (Interlocked.Exchange(ref s_reportedInitialization, 1) == 0)
             Console.WriteLine("UnoDraw canvas bridge initialized: persistent RGBA upload.");
-    }
-
-    internal static void ReportWebGlInitialization()
-    {
-        if (Interlocked.Exchange(ref s_reportedWebGlInitialization, 1) == 0)
-            Console.WriteLine("UnoDraw canvas bridge initialized: WebGL document rasterization.");
     }
 
     internal static void ReportCompositeInitialization()
@@ -85,11 +80,11 @@ internal static class WebGpuSkiaCanvasBridge
         private ISkiaCanvasLayers? _layers;
         private bool _failed;
 
-        public RasterCanvasIsland(IGLIslandRenderer fallback, bool preferWebGl, bool preferComposite, bool preferGraphite)
+        public RasterCanvasIsland(IGLIslandRenderer fallback, bool preferComposite, bool preferGraphite)
         {
             _fallback = fallback;
             _preferComposite = preferComposite;
-            _canvas = new WebGpuRasterCanvas(RequestFallback, preferWebGl, preferGraphite);
+            _canvas = new WebGpuRasterCanvas(RequestFallback, preferGraphite);
             IsHitTestVisible = false;
             Clip = _clip;
 

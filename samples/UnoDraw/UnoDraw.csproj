@@ -70,11 +70,6 @@
     <PackageReference Include="SkiaSharp.NativeAssets.WebAssembly" />
     <PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" />
     <PackageReference Include="System.Security.Cryptography.Xml" />
-    <!-- The opt-in document GPU bridge uses public Emscripten context functions.
-         Native sources must be evaluation-time items for Bootstrap's native link. -->
-    <WasmShellNativeCompile Include="Platforms/WebAssembly/Rendering/uno_draw_gl.c" />
-    <EmbeddedResource Include="Platforms/WebAssembly/Rendering/WebGlSkiaCanvas.js"
-                      LogicalName="UnoDraw.WebGlSkiaCanvas.source" />
     <!-- System.Drawing brings Windows-only compatibility code whose Nrbf dependency
          is unavailable to browser AOT. Keep it interpreted; editor/rendering stay AOT. -->
     <MonoRuntimeMixedModeExcludedAssembly Include="System.Private.Windows.Core.dll" />

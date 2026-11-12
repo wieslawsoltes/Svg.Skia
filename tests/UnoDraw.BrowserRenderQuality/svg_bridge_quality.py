@@ -22,7 +22,7 @@ from performance import next_frame, park_pointer, renderer_evidence  # noqa: E40
 from quality import GRAPHITE_COVERAGES, bridge_query, validate_graphite_coverage, verify_bridge  # noqa: E402
 from backend import launch_arguments  # noqa: E402
 from smoke import READY, serve  # noqa: E402
-from svg_fixture_contracts import (CANDIDATE_BRIDGES, DESKTOP, DPRS, SCENES, STATES, Fixture,  # noqa: E402
+from svg_fixture_contracts import (LIVE_CANDIDATE_BRIDGES, DESKTOP, DPRS, SCENES, STATES, Fixture,  # noqa: E402
                                    compare_scene, inspect_scene, load_fixtures, matrix_failures,
                                    normalize_newlines, require_camera_change, require_source_readback, scene_bridges)
 
@@ -347,7 +347,7 @@ def main() -> int:
     parser.add_argument("--package", type=Path, required=True, help="Single candidate package used by both bridge modes")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--execution-mode", choices=EXECUTION_MODES, default="InterpreterAndAOT")
-    parser.add_argument("--candidate-bridge", choices=CANDIDATE_BRIDGES, default="webgl",
+    parser.add_argument("--candidate-bridge", choices=LIVE_CANDIDATE_BRIDGES, default="graphite",
                         help="Compare persistent CPU with this one GPU document renderer")
     parser.add_argument("--graphite-coverage", choices=GRAPHITE_COVERAGES,
                         help="Require the Graphite candidate's actual native default or raster coverage option")

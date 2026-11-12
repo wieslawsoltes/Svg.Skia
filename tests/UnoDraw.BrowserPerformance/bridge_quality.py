@@ -20,7 +20,7 @@ from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork, as
                    assert_workspace_affordances, changed_pixels, record_backend, serve,
                    workspace_affordance_pixels)
 from performance import next_frame, screenshot_changed
-from quality import (GRAPHITE_COVERAGES, STATE_NAMES, assert_native_size, bridge_query, compare_bridge_states,
+from quality import (GRAPHITE_COVERAGES, LIVE_BRIDGES, STATE_NAMES, assert_native_size, bridge_query, compare_bridge_states,
                      is_welcome_green, matrix_failures, raw_comparison, validate_graphite_coverage, verify_bridge)
 
 
@@ -218,7 +218,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--package", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--candidate-bridge", choices=("persistent", "webgl", "composite", "graphite"), default="persistent",
+    parser.add_argument("--candidate-bridge", choices=tuple(bridge for bridge in LIVE_BRIDGES if bridge != "legacy"),
+                        default="persistent",
                         help="Compare the selected implementation with the same package's legacy raster bridge")
     parser.add_argument("--graphite-coverage", choices=GRAPHITE_COVERAGES,
                         help="Require the Graphite candidate's actual native default or raster coverage option")

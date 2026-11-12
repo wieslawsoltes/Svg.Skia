@@ -16,7 +16,6 @@ namespace UnoDraw.Rendering;
 internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
 {
     private readonly Action<string?> _fallback;
-    private readonly bool _preferWebGl;
     private readonly bool _preferGraphite;
     private readonly Action<SKCanvas> _drawGraphiteFrame;
     private readonly ScaleTransform _displayScale = new();
@@ -25,8 +24,6 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
     private ISkiaCanvasLayers? _compositeLayers;
     private bool _documentDirty = true;
     private bool _reportedCompositeReuse;
-    private WebGlSkiaCanvas? _webGlCanvas;
-    private bool _webGlUnavailable;
     private WebGpuGraphiteCanvas? _graphiteCanvas;
     private SkiaGpuDocumentPainter? _graphiteDocument;
     private string? _reportedGraphiteDocumentFailure;
@@ -34,10 +31,9 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
     private uint _maximumTextureSize;
     private IDisposable? _deviceLifetime;
 
-    internal WebGpuRasterCanvas(Action<string?> fallback, bool preferWebGl, bool preferGraphite)
+    internal WebGpuRasterCanvas(Action<string?> fallback, bool preferGraphite)
     {
         _fallback = fallback;
-        _preferWebGl = preferWebGl;
         _preferGraphite = preferGraphite;
         _drawGraphiteFrame = DrawGraphiteFrame;
         IsHitTestVisible = false;
@@ -179,23 +175,6 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
             if (Renderer is null)
                 return; // A synchronous document callback unloaded this canvas.
         }
-        if (_preferWebGl && !_webGlUnavailable && renderer is SvgEditorCanvas)
-        {
-            try
-            {
-                _webGlCanvas ??= new WebGlSkiaCanvas(OnWebGlUnavailable);
-                if (_webGlCanvas.Render(context, _pixels, renderer))
-                    return;
-            }
-            catch (Exception error)
-            {
-                OnWebGlUnavailable(error.Message);
-                // Repaint this same target through the reliable CPU path now.
-            }
-            if (Renderer is null)
-                return; // A synchronous document callback unloaded this canvas.
-        }
-
         // Public SVG callbacks can synchronously unload this element. The CPU
         // owner cancels the frame then, but defers native pixel destruction until
         // all of the painter's canvas restore scopes have completed.
@@ -329,30 +308,6 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
         _documentDirty = true;
     }
 
-    private void OnWebGlUnavailable(string reason)
-    {
-        if (_webGlUnavailable)
-            return;
-        _webGlUnavailable = true;
-        Console.WriteLine($"UnoDraw WebGL canvas fallback: {reason}.");
-        var canvas = _webGlCanvas;
-        _webGlCanvas = null;
-        try
-        {
-            canvas?.Dispose();
-        }
-        catch (Exception error)
-        {
-            // A lost browser context may also reject its teardown. It must not
-            // prevent the same-frame CPU repaint or an asynchronous fallback.
-            Console.WriteLine($"UnoDraw WebGL canvas fallback cleanup: {error.Message}.");
-        }
-        finally
-        {
-            Invalidate();
-        }
-    }
-
     private void OnGraphiteUnavailable(string reason)
     {
         if (_graphiteUnavailable)
@@ -383,18 +338,9 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
         _graphiteCanvas = null;
         _graphiteDocument?.Dispose();
         _graphiteDocument = null;
-        var webGl = _webGlCanvas;
-        _webGlCanvas = null;
         try
         {
-            try
-            {
-                graphite?.Dispose();
-            }
-            finally
-            {
-                webGl?.Dispose();
-            }
+            graphite?.Dispose();
         }
         finally
         {

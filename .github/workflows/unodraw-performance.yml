@@ -153,7 +153,6 @@ jobs:
       matrix:
         include:
           - { bridge: persistent, variant: persistent }
-          - { bridge: webgl, variant: webgl }
           - { bridge: composite, variant: composite }
           - { bridge: graphite, variant: graphite, coverage: default }
           - { bridge: graphite, variant: graphite-raster, coverage: raster }
@@ -313,7 +312,6 @@ jobs:
       matrix:
         include:
           - { bridge: persistent, variant: persistent }
-          - { bridge: webgl, variant: webgl }
           - { bridge: composite, variant: composite }
           - { bridge: graphite, variant: graphite, coverage: default }
           - { bridge: graphite, variant: graphite-raster, coverage: raster }
@@ -357,7 +355,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { bridge: webgl, variant: webgl }
           - { bridge: graphite, variant: graphite, coverage: default }
           - { bridge: graphite, variant: graphite-raster, coverage: raster }
     steps:
@@ -392,7 +389,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ matrix.bridge == 'webgl' && 'unodraw-svg-document-quality' || format('unodraw-{0}-svg-document-quality', matrix.variant) }}
+          name: unodraw-${{ matrix.variant }}-svg-document-quality
           path: artifacts/unodraw-svg-document-quality
           if-no-files-found: warn
           retention-days: 14
@@ -406,8 +403,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { workload: pan, bridge: webgl, variant: webgl }
-          - { workload: zoom, bridge: webgl, variant: webgl }
           - { workload: pan, bridge: graphite, variant: graphite, coverage: default }
           - { workload: zoom, bridge: graphite, variant: graphite, coverage: default }
           - { workload: pan, bridge: graphite, variant: graphite-raster, coverage: raster }

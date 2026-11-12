@@ -367,6 +367,8 @@ def run_trial(browser: Any, url: str, package: dict[str, Any], backend: str, wor
               trial: int, args: Any, output: Path, *, diagnostics: bool = False,
               canvas_bridge: str | None = None, graphite_coverage: str | None = None) -> dict[str, Any]:
     validate_graphite_coverage(canvas_bridge, graphite_coverage)
+    selected_bridge_query = (bridge_query(canvas_bridge, graphite_coverage=graphite_coverage)
+                             if canvas_bridge is not None else None)
     if canvas_bridge is not None and (backend != "webgpu" or package["runtime_generation"] != "uno7"):
         raise ValueError("Explicit canvas bridges require the Uno 7 WebGPU compositor")
     output.mkdir(parents=True, exist_ok=True)
@@ -392,7 +394,7 @@ def run_trial(browser: Any, url: str, package: dict[str, Any], backend: str, wor
     try:
         query = renderer_query(backend) if package["runtime_generation"] == "uno7" else ""
         if canvas_bridge is not None:
-            query += ("&" if query else "?") + bridge_query(canvas_bridge, graphite_coverage=graphite_coverage)
+            query += ("&" if query else "?") + selected_bridge_query
         if diagnostics:
             query += ("&" if query else "?") + "renderDiagnostics=1&perfDiagnostics=1"
         page.goto(url + query, wait_until="domcontentloaded", timeout=120_000)

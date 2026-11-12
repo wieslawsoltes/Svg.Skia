@@ -14,7 +14,10 @@ from quality import validate_graphite_coverage, verify_bridge
 from metrics import require_graphite_queue_drain, verify_interaction_isolation
 
 
+# Keep archived WebGL report validation reproducible; only LIVE_CANDIDATE_BRIDGES
+# are executable options in the current driver.
 CANDIDATE_BRIDGES = ("webgl", "composite", "graphite")
+LIVE_CANDIDATE_BRIDGES = ("composite", "graphite")
 WORKLOADS = ("pan", "zoom", "brush-hover", "selection")
 STATES = ("before", "after", "restored")
 

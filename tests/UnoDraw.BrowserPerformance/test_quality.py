@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import subprocess
+import sys
 import tempfile
 import unittest
 from itertools import product
@@ -198,10 +200,31 @@ class BridgeEvidenceTests(unittest.TestCase):
                 verify_bridge(evidence + [{"text": LEGACY_PREFERENCE}], bridge)
 
     def test_bridge_queries_select_each_path_explicitly(self) -> None:
-        for bridge in ("legacy", "persistent", "webgl", "composite", "graphite"):
+        for bridge in ("legacy", "persistent", "composite", "graphite"):
             self.assertEqual(bridge_query(bridge), "canvasBridge=" + bridge)
-        with self.assertRaises(ValueError):
-            bridge_query("unknown")
+        for bridge in ("unknown", "webgl"):
+            with self.subTest(bridge=bridge), self.assertRaises(ValueError):
+                bridge_query(bridge)
+
+    def test_live_clis_reject_the_retired_document_bridge_before_opening_a_package(self) -> None:
+        directory = Path(__file__).resolve().parent
+        drivers = [(directory / "bridge_quality.py", []),
+                   (directory / "bridge_experiment.py", ["--workload", "pan"]),
+                   (directory.parent / "UnoDraw.BrowserRenderQuality/svg_bridge_quality.py", [])]
+        for driver, extra in drivers:
+            completed = subprocess.run([sys.executable, str(driver), "--candidate-bridge", "webgl",
+                                        "--package", "/nonexistent/retired-package", "--output", "/nonexistent/retired-output",
+                                        *extra], capture_output=True, text=True, check=False, timeout=10)
+            with self.subTest(driver=driver.name):
+                self.assertEqual(completed.returncode, 2, completed.stderr)
+                self.assertIn("invalid choice: 'webgl'", completed.stderr)
+        # Passive evidence checks still accept historical successful runs and
+        # still reject a retired URL that fell back to persistent rendering.
+        verify_bridge([{"text": WEBGL_PREFERENCE}, {"text": WEBGL_INITIALIZED}], "webgl")
+        with self.assertRaises(AssertionError):
+            verify_bridge([{"text": WEBGL_PREFERENCE}, {"text": WEBGL_INITIALIZED}, {"text": PERSISTENT_INITIALIZED},
+                           {"text": "UnoDraw canvas bridge fallback: the WebGL document renderer was retired; using persistent RGBA upload."}],
+                          "webgl")
 
     def test_composite_requires_upload_and_real_reuse_not_a_preference_or_ordinary_upload(self) -> None:
         initial = [{"text": text} for text in (COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED, PERSISTENT_INITIALIZED)]

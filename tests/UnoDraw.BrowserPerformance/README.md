@@ -274,42 +274,36 @@ provider must be observed; merely exposing `navigator.gpu` cannot pass.
 
 ### Same-artifact document rasterizer experiment
 
-`?canvasBridge=webgl` is an opt-in experiment that keeps WebGPU composition but
-rasterizes the document with an independent Skia/Ganesh WebGL2 surface. Auxiliary
-rulers, Navigator and interaction surfaces retain the persistent CPU upload.
-The default remains the persistent CPU path while this experiment is evaluated.
-Its quality jobs run the complete legacy-versus-selected bridge matrix at DPR
-1, 1.25 and 2 in both Interpreter and AOT packages, with the same thirty native
-state comparisons and unchanged tolerances. Selection alone cannot prove the
-path ran: a successful document copy must be logged, and any later bridge or
-WebGL fallback fails the experimental result.
-
 `bridge_experiment.py` compares explicit `canvasBridge=persistent` and
-`canvasBridge=webgl` in **one identical AOT package**. Each pan/zoom job keeps all
-three repetitions of both modes on one runner, alternates their order, starts a
-fresh browser each time, and reuses the full 120-input warmup and workload. Two
-separate instrumented passes identify paint costs. Every primary pair compares
-before/after/restored native images; all 120 trusted inputs and zero unobserved
-input tails are required. Reports identify the source, browser, selected bridge
-and individual trials. They use a separate `same_candidate_bridge_experiment`
-report kind and cannot satisfy the twelve-shard application comparison.
+one supported candidate in **one identical AOT package**: `graphite` for pan/zoom,
+or `composite` for brush hover/selection. Each job keeps all three repetitions of
+both modes on one runner, alternates their order, starts a fresh browser each
+time, and reuses the full 120-input warmup and existing workload. Two separate
+instrumented passes identify paint costs. Every primary pair compares
+before/after/restored native images; all trusted inputs and zero unobserved input
+tails are required. Selection retains its existing 121-command driver; the other
+active experiments require 120 operations. Reports identify the source, browser,
+selected bridge and individual trials. They use a separate
+`same_candidate_bridge_experiment` report kind and cannot satisfy the twelve-shard
+application comparison. The executable default candidate is `graphite`.
+
+The former `canvasBridge=webgl` document transport is retired from production and
+the live CLI/workflow matrix. Its same-artifact pan medians did not improve,
+zoom gains were small and varied between source snapshots, and seven broader SVG
+comparisons remained outside the original quality gate. The measured active
+main-thread CPU savings did not satisfy the requested interaction and quality
+goals. The [investigation and historical evidence](../../docs/unodraw-rendering-benchmarks.md)
+retain those results, source identities and original artifacts. Passive validators
+and contamination checks still understand archived WebGL reports; executable
+queries reject the retired option. Normal `renderer=skia` compositor/fallback
+measurements and their WebGL API observers remain part of the full primary matrix.
 
 The observer counts `copyExternalImageToTexture` separately from `writeTexture`.
 Neither copy calls nor offscreen GL draws count as visible-canvas presentation,
 and no exact transfer byte count is inferred. Chromium 143 on Linux explicitly
 [uses readback for canvas-to-WebGPU copies](https://github.com/chromium/chromium/blob/143.0.7499.4/third_party/blink/renderer/modules/webgpu/gpu_queue.cc#L875-L916),
-so this experiment is not described as a zero-copy or all-GPU transfer path.
-Its purpose is to measure whether GPU document rasterization outweighs that
-transfer cost while preserving the original pixels.
-
-```sh
-python tests/UnoDraw.BrowserPerformance/bridge_quality.py \
-  --package /absolute/path/packages/candidate \
-  --output /absolute/path/webgl-quality --candidate-bridge webgl
-python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
-  --package /absolute/path/packages/candidate \
-  --output /absolute/path/webgl-pan-experiment --workload pan --repeats 3
-```
+so the historical transport is not described as zero-copy or all-GPU transfer.
+The surviving direct Graphite experiment requires zero external-image copies.
 
 ### Same-artifact cached document composition
 

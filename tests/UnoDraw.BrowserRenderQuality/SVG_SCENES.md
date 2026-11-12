@@ -1,10 +1,9 @@
 # SVG document bridge quality
 
 This gate compares the same published UnoDraw candidate package with
-`canvasBridge=persistent` and one selected GPU document painter: `webgl` or
-`graphite`. Both cases use the real WebGPU application compositor, and auxiliary
-surfaces keep the persistent CPU bridge. WebGL rasterizes through Ganesh and
-transfers the document image; Graphite submits directly into the Uno texture on
+`canvasBridge=persistent` and `canvasBridge=graphite`. Both cases use the real
+WebGPU application compositor, and auxiliary surfaces keep the persistent CPU
+bridge. Graphite submits directly into the Uno texture on
 the shared WebGPU queue. Matching preference and successful initialization
 evidence are required, and any fallback or another experimental mode fails the
 case. These are native-pixel correctness checks, without timing claims.
@@ -18,14 +17,16 @@ Chromium, then run:
 python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
   --package /path/to/candidate-package \
   --execution-mode InterpreterAndAOT \
-  --candidate-bridge webgl \
+  --candidate-bridge graphite --graphite-coverage default \
   --output /path/to/svg-quality-artifact
 ```
 
-Use `--candidate-bridge graphite` for the independent Graphite comparison. The
-default remains `webgl` for existing callers. Each report compares persistent
-CPU with only its selected GPU path; one path cannot substitute for another or
-satisfy its coverage. CI runs the two selected-painter jobs independently.
+The executable candidate defaults to `graphite`. The former WebGL document
+transport is retired from the live CLI and workflow after failed performance and
+broader-scene quality experiments. Historical matrix, source and pixel validators
+continue to accept its archived evidence, so those failures remain independently
+reviewable. The normal Skia/WebGL application compositor remains in the separate
+primary benchmark and cross-build quality matrix.
 
 For a Graphite coverage experiment, additionally pass
 `--graphite-coverage default` or `--graphite-coverage raster` and use a distinct
