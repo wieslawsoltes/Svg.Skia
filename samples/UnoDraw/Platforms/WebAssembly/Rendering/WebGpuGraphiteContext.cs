@@ -116,7 +116,18 @@ internal sealed class WebGpuGraphiteContext
         {
             // Unsupported document semantics may leave commands in the recorder.
             // They must not be inserted after the CPU fallback overwrites Target.
-            using var discarded = _recorder?.Snap();
+            try
+            {
+                using var discarded = _recorder?.Snap();
+            }
+            finally
+            {
+                // Skia d1717dc Recorder::snap moves root image uploads into the
+                // recording. Disposing it drops those uploads. Its unordered
+                // recording path already resets device storage caches/atlases;
+                // our independent image-provider cache must be reset as well.
+                _images?.InvalidateAfterDiscard();
+            }
         }
 
         internal void ThrowIfImageUploadFailed()

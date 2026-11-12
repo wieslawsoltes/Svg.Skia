@@ -49,12 +49,7 @@ internal sealed class GraphiteImageProvider : IDisposable
             if (bytes > MaximumSourceBytes)
                 return image.ToTextureImage(recorder, mipmapped);
             if (_sourceBytes + bytes > MaximumSourceBytes || _images.Count == MaximumEntries)
-            {
-                _cache.Dispose();
-                _cache = new SKGraphiteImageCache();
-                _images.Clear();
-                _sourceBytes = 0;
-            }
+                ResetCache();
             var result = _cache.FindOrCreate(recorder, image, mipmapped);
             if (result is not null)
             {
@@ -64,6 +59,26 @@ internal sealed class GraphiteImageProvider : IDisposable
             return result;
         }
         return _cache.FindOrCreate(recorder, image, mipmapped);
+    }
+
+    internal void InvalidateAfterDiscard()
+    {
+        // Skia d1717dc TextureUtils.cpp::MakeBitmapProxyView queues Dawn uploads
+        // in the recorder and returns the image before those uploads execute.
+        // Discarding Snap drops that work, so even an unchanged source UniqueId
+        // must create a new texture/upload on the next accepted frame. Previously
+        // submitted commands retain their own native image references. Keep this
+        // provider instance and Failure: the recorder delegate still owns both.
+        if (!_disposed)
+            ResetCache();
+    }
+
+    private void ResetCache()
+    {
+        _cache.Dispose();
+        _cache = new SKGraphiteImageCache();
+        _images.Clear();
+        _sourceBytes = 0;
     }
 
     public void Dispose()

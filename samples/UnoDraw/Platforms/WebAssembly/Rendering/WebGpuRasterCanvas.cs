@@ -152,7 +152,7 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
         {
             try
             {
-                _graphiteDocument ??= new SkiaGpuDocumentPainter();
+                _graphiteDocument ??= new SkiaGpuDocumentPainter(directReplay: true);
                 if (_graphiteDocument.Prepare(editor.Controller?.Renderer,
                     _pixels.Width, _pixels.Height, _pixels.Scale, _pixels.LogicalSize.Width,
                     _pixels.LogicalSize.Height, editor.Viewport.Matrix, out var reason))

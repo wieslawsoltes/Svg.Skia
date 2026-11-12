@@ -12,6 +12,7 @@ namespace UnoDraw.Rendering;
 internal sealed class SkiaGpuDocumentPainter : IDisposable
 {
     private readonly Func<SKCanvas, SkiaModel, ShimSkiaSharp.SKPicture, bool> _tryDrawModel;
+    private readonly bool _directReplay;
     private SkiaDocumentDrawable? _document;
     private SkiaModel? _converter;
     private ShimSkiaSharp.SKPicture? _model;
@@ -24,8 +25,9 @@ internal sealed class SkiaGpuDocumentPainter : IDisposable
     private int _drawDepth;
     private bool _disposed;
 
-    internal SkiaGpuDocumentPainter()
+    internal SkiaGpuDocumentPainter(bool directReplay = false)
     {
+        _directReplay = directReplay;
         _tryDrawModel = TryDrawModel;
         DrawDocument = Draw;
     }
@@ -89,7 +91,7 @@ internal sealed class SkiaGpuDocumentPainter : IDisposable
             _picture = _activePicture;
             try
             {
-                _document = new SkiaDocumentDrawable(converter, model);
+                _document = new SkiaDocumentDrawable(converter, model, _directReplay);
             }
             catch (SkiaDocumentRasterizationException error)
             {

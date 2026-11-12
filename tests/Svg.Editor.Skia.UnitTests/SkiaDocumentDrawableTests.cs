@@ -49,6 +49,108 @@ public class SkiaDocumentDrawableTests
     }
 
     [Theory]
+    [MemberData(nameof(FixtureCases))]
+    public void DirectCommandReplayExactlyPreservesRecordedShapesEffectsAndLiveText(string scene, float dpr)
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "CompositeFixtures", scene + ".svg")));
+        using var recorded = new SkiaDocumentDrawable(svg.SkiaModel, svg.Model!);
+        using var direct = new SkiaDocumentDrawable(svg.SkiaModel, svg.Model!, directReplay: true);
+        using var expected = Raster(dpr);
+        using var actual = Raster(dpr);
+        foreach (var phase in new[] { 0f, .25f, 1f })
+        {
+            Paint(expected.Canvas, recorded);
+            Paint(actual.Canvas, direct);
+            using var before = expected.PeekPixels();
+            using var after = actual.PeekPixels();
+            Assert.True(before.GetPixelSpan().SequenceEqual(after.GetPixelSpan()), $"{scene}, DPR {dpr}, phase {phase}");
+
+            void Paint(SKCanvas canvas, SkiaDocumentDrawable painter)
+            {
+                canvas.RestoreToCount(1);
+                canvas.ResetMatrix();
+                Draw(canvas, dpr, target =>
+                {
+                    target.Translate(phase, -.5f * phase);
+                    painter.Draw(target);
+                });
+            }
+        }
+        if (scene == "text")
+            Assert.True(direct.TextRasterizationCount > 0);
+    }
+
+    [Theory]
+    [InlineData(1f)]
+    [InlineData(1.25f)]
+    [InlineData(2f)]
+    public void DirectTextReplayExactlyPreservesNestedTransformsHostClipAndActiveLayers(float dpr)
+    {
+        using var svg = new SKSvg();
+        svg.FromSvg(TextScene);
+        SetLayerBlends(svg.Model!);
+        svg.RebuildFromModel();
+        using var recorded = new SkiaDocumentDrawable(svg.SkiaModel, svg.Model!);
+        using var direct = new SkiaDocumentDrawable(svg.SkiaModel, svg.Model!, directReplay: true);
+        using var expected = Raster(dpr);
+        using var actual = Raster(dpr);
+        using var clipBuilder = new SKPathBuilder();
+        clipBuilder.AddOval(new SKRect(4.25f, 9.75f, 575.25f, 365.75f));
+        using var clip = clipBuilder.Detach();
+        using var layer = new SKPaint { Color = new SKColor(255, 255, 255, 211), BlendMode = SKBlendMode.Screen };
+        foreach (var phase in new[] { 0f, .25f, 1f })
+        {
+            Paint(expected.Canvas, recorded);
+            Paint(actual.Canvas, direct);
+            using var before = expected.PeekPixels();
+            using var after = actual.PeekPixels();
+            Assert.True(before.GetPixelSpan().SequenceEqual(after.GetPixelSpan()), $"DPR {dpr}, phase {phase}");
+
+            void Paint(SKCanvas canvas, SkiaDocumentDrawable painter)
+            {
+                canvas.RestoreToCount(1);
+                canvas.ResetMatrix();
+                Draw(canvas, dpr, target =>
+                {
+                    target.ClipPath(clip, SKClipOperation.Intersect, true);
+                    var saved = target.Save();
+                    try
+                    {
+                        target.SaveLayer(layer);
+                        target.Translate(phase, phase * .5f);
+                        var matrix = target.TotalMatrix;
+                        var count = target.SaveCount;
+                        var bounds = target.DeviceClipBounds;
+                        painter.Draw(target);
+                        Assert.Equal(matrix, target.TotalMatrix);
+                        Assert.Equal(count, target.SaveCount);
+                        Assert.Equal(bounds, target.DeviceClipBounds);
+                    }
+                    finally
+                    {
+                        target.RestoreToCount(saved);
+                    }
+                });
+            }
+        }
+        Assert.True(direct.TextRasterizationCount > 0);
+
+        static void SetLayerBlends(Shim.SKPicture picture)
+        {
+            if (picture.Commands is null)
+                return;
+            foreach (var command in picture.Commands)
+            {
+                if (command is Shim.SaveLayerCanvasCommand { Paint: { } paint })
+                    paint.BlendMode = Shim.SKBlendMode.Multiply;
+                if (command is Shim.DrawPictureCanvasCommand { Picture: { } child })
+                    SetLayerBlends(child);
+            }
+        }
+    }
+
+    [Theory]
     [InlineData(1f)]
     [InlineData(1.25f)]
     [InlineData(2f)]
@@ -112,12 +214,14 @@ public class SkiaDocumentDrawableTests
         Assert.Throws<ObjectDisposedException>(() => drawable.Draw(surface.Canvas));
     }
 
-    [Fact]
-    public void UnsupportedDeviceMatrixReportsAfterNativeCallbackAndRestoresCanvas()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void UnsupportedDeviceMatrixReportsAfterNativeCallbackAndRestoresCanvas(bool directReplay)
     {
         using var svg = new SKSvg();
         svg.FromSvg(TextScene);
-        using var drawable = new SkiaDocumentDrawable(svg.SkiaModel, svg.Model!);
+        using var drawable = new SkiaDocumentDrawable(svg.SkiaModel, svg.Model!, directReplay);
         using var surface = Raster(1);
         var matrix = SKMatrix.Identity;
         matrix.Persp0 = .0001f;

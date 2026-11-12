@@ -15,10 +15,15 @@ internal sealed class SkiaDocumentDrawable : IDisposable
 {
     private readonly List<SkiaTextRasterDrawable> _text = [];
     private readonly SkiaTextRasterFrame _frame = new();
+    private readonly SkiaModel _converter;
+    private readonly List<ReplayStep>? _directReplay;
     private SKDrawable? _drawable;
 
-    internal SkiaDocumentDrawable(SkiaModel converter, Shim.SKPicture model)
+    internal SkiaDocumentDrawable(SkiaModel converter, Shim.SKPicture model, bool directReplay = false)
     {
+        _converter = converter;
+        if (directReplay)
+            _directReplay = [];
         var validator = new ModelValidator(converter);
         validator.Validate(model);
         var bounds = converter.ToSKRect(model.CullRect);
@@ -63,6 +68,7 @@ internal sealed class SkiaDocumentDrawable : IDisposable
                             throw;
                         }
                         _text.Add(text);
+                        _directReplay?.Add(new ReplayStep(null, text));
                         var count = canvas.Save();
                         try
                         {
@@ -76,6 +82,7 @@ internal sealed class SkiaDocumentDrawable : IDisposable
                     }
                     else
                     {
+                        _directReplay?.Add(new ReplayStep(command, null));
                         converter.Draw(command, canvas);
                     }
                 }
@@ -105,10 +112,57 @@ internal sealed class SkiaDocumentDrawable : IDisposable
     {
         var drawable = _drawable ?? throw new ObjectDisposedException(nameof(SkiaDocumentDrawable));
         _frame.Failure = null;
-        canvas.DrawDrawable(drawable, 0, 0);
+        if (_directReplay is { } commands)
+            DrawCommands(canvas, commands);
+        else
+            canvas.DrawDrawable(drawable, 0, 0);
         if (_frame.Failure is { } error)
             throw new SkiaDocumentRasterizationException(error.Message, error);
     }
+
+    private void DrawCommands(SKCanvas canvas, List<ReplayStep> commands)
+    {
+        // Skia d1717dc Graphite Device.h explicitly implements drawDrawable as
+        // a no-op. Replay the already validated model commands with their existing
+        // converter, and invoke live text leaves directly through SKDrawable.Draw.
+        // The recorded Ganesh path remains unchanged.
+        var entryMatrix = canvas.TotalMatrix;
+        var saved = canvas.SaveCount;
+        canvas.Save();
+        try
+        {
+            foreach (var step in commands)
+            {
+                if (step.Text is { } text)
+                {
+                    var count = canvas.SaveCount;
+                    canvas.Save();
+                    try
+                    {
+                        // Each text picture already includes its model-space CTM.
+                        // Keep the current clip and layer while restoring only the
+                        // outer device/viewport/viewer matrix for the live tile.
+                        canvas.SetMatrix(in entryMatrix);
+                        text.Draw(canvas, 0, 0);
+                    }
+                    finally
+                    {
+                        canvas.RestoreToCount(count);
+                    }
+                }
+                else
+                {
+                    _converter.Draw(step.Command!, canvas);
+                }
+            }
+        }
+        finally
+        {
+            canvas.RestoreToCount(saved);
+        }
+    }
+
+    private readonly record struct ReplayStep(Shim.CanvasCommand? Command, SkiaTextRasterDrawable? Text);
 
     public void Dispose()
     {
@@ -117,6 +171,7 @@ internal sealed class SkiaDocumentDrawable : IDisposable
         foreach (var text in _text)
             text.Dispose();
         _text.Clear();
+        _directReplay?.Clear();
     }
 
     private static bool IsText(Shim.CanvasCommand command) => command is

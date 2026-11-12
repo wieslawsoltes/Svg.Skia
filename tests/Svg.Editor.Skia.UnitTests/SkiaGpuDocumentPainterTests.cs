@@ -20,14 +20,17 @@ public class SkiaGpuDocumentPainterTests
         """;
 
     [Theory]
-    [InlineData(1f)]
-    [InlineData(1.25f)]
-    [InlineData(2f)]
-    public void SharedPainterPreservesTheExistingLiveDrawableAcrossCameraAndContentChanges(float dpr)
+    [InlineData(1f, false)]
+    [InlineData(1.25f, false)]
+    [InlineData(2f, false)]
+    [InlineData(1f, true)]
+    [InlineData(1.25f, true)]
+    [InlineData(2f, true)]
+    public void SharedPainterPreservesTheExistingLiveDrawableAcrossCameraAndContentChanges(float dpr, bool directReplay)
     {
         using var svg = new SKSvg();
         svg.FromSvg(Scene);
-        using var painter = new SkiaGpuDocumentPainter();
+        using var painter = new SkiaGpuDocumentPainter(directReplay);
         using var expected = Raster(dpr);
         using var actual = Raster(dpr);
         using var actualPixels = actual.PeekPixels();
@@ -160,12 +163,14 @@ public class SkiaGpuDocumentPainterTests
         }
     }
 
-    [Fact]
-    public void UnloadingFromThePublicDrawCallbackReleasesAfterDrawingAndRejectsFurtherUse()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void UnloadingFromThePublicDrawCallbackReleasesAfterDrawingAndRejectsFurtherUse(bool directReplay)
     {
         using var svg = new SKSvg();
         svg.FromSvg(Scene);
-        using var painter = new SkiaGpuDocumentPainter();
+        using var painter = new SkiaGpuDocumentPainter(directReplay);
         using var surface = Raster(1);
         Assert.True(Prepare(painter, svg));
         svg.OnDraw += (_, _) => painter.Dispose();
