@@ -10,6 +10,8 @@ from PIL import Image, ImageChops
 
 PERSISTENT_INITIALIZED = "UnoDraw canvas bridge initialized: persistent RGBA upload."
 LEGACY_PREFERENCE = "UnoDraw canvas bridge preference: legacy raster texture upload."
+SINGLE_CANVAS_PREFERENCE = "UnoDraw canvas bridge preference: single-canvas original raster upload."
+SINGLE_CANVAS_INITIALIZED = "UnoDraw canvas bridge initialized: single-canvas original topology."
 LEGACY_COMPOSITE_PREFERENCE = "UnoDraw canvas bridge preference: legacy-composite raster texture upload."
 LEGACY_COMPOSITE_INITIALIZED = "UnoDraw canvas bridge initialized: legacy-composite raster texture upload."
 LEGACY_COMPOSITE_REUSED = "UnoDraw legacy-composite canvas bridge reused cached document pixels."
@@ -31,7 +33,7 @@ COMPOSITE_INITIALIZED = "UnoDraw canvas bridge initialized: cached document comp
 COMPOSITE_REUSED = "UnoDraw canvas bridge reused cached document pixels."
 COMPOSITE_FALLBACK_PREFIX = "UnoDraw canvas bridge composite fallback:"
 FALLBACK_PREFIX = "UnoDraw canvas bridge fallback:"
-LIVE_BRIDGES = ("legacy", "persistent", "composite", "legacy-composite")
+LIVE_BRIDGES = ("legacy", "persistent", "composite", "legacy-composite", "single-canvas")
 MAXIMUM_CHANGED_FRACTION = 0.001
 LUMINANCE_THRESHOLD = 12
 STATE_NAMES = ("01-desktop", "02-actual-size", "03-refitted", "03b-brush-overlay",
@@ -59,7 +61,7 @@ def compare_bridge_states(cases: dict[str, dict[str, Any]], dpr: float,
                           state_names: tuple[str, ...] = STATE_NAMES, *,
                           candidate_bridge: str = "persistent") -> list[dict[str, Any]]:
     """Compare every completed pair; missing states remain explicit failures."""
-    if candidate_bridge not in {"persistent", "webgl", "composite", "legacy-composite", "graphite"}:
+    if candidate_bridge not in {"persistent", "webgl", "composite", "legacy-composite", "graphite", "single-canvas"}:
         raise ValueError("The candidate must use a distinct supported canvas bridge")
     states = {bridge: {state["name"]: state for state in case.get("states", [])}
               for bridge, case in cases.items()}
@@ -83,7 +85,7 @@ def matrix_failures(cases: list[dict[str, Any]], comparisons: list[dict[str, Any
                     dprs: tuple[float, ...], state_names: tuple[str, ...] = STATE_NAMES, *,
                     candidate_bridge: str = "persistent") -> list[str]:
     """Continuation must never turn a failed or incomplete matrix into a pass."""
-    if candidate_bridge not in {"persistent", "webgl", "composite", "legacy-composite", "graphite"}:
+    if candidate_bridge not in {"persistent", "webgl", "composite", "legacy-composite", "graphite", "single-canvas"}:
         raise ValueError("The candidate must use a distinct supported canvas bridge")
     failures = []
     expected_cases = {(bridge, dpr) for bridge in ("legacy", candidate_bridge) for dpr in dprs}
@@ -132,11 +134,14 @@ def verify_bridge(console: list[dict[str, Any]], bridge: str, *, require_reuse: 
     composite_messages = {COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED, COMPOSITE_REUSED}
     legacy_composite_messages = {LEGACY_COMPOSITE_PREFERENCE, LEGACY_COMPOSITE_INITIALIZED,
                                  LEGACY_COMPOSITE_REUSED}
+    single_canvas_messages = {SINGLE_CANVAS_PREFERENCE, SINGLE_CANVAS_INITIALIZED}
     graphite_messages = {GRAPHITE_PREFERENCE, GRAPHITE_INITIALIZED}
     fallback_prefixes = (FALLBACK_PREFIX, WEBGL_FALLBACK_PREFIX, COMPOSITE_FALLBACK_PREFIX,
                          LEGACY_COMPOSITE_FALLBACK_PREFIX, GRAPHITE_FALLBACK_PREFIX)
     if bridge != "legacy-composite" and legacy_composite_messages.intersection(messages):
         raise AssertionError("Another bridge unexpectedly selected legacy cached composition")
+    if bridge != "single-canvas" and single_canvas_messages.intersection(messages):
+        raise AssertionError("Another bridge unexpectedly selected the original single-canvas topology")
     if bridge == "persistent":
         if PERSISTENT_INITIALIZED not in messages:
             raise AssertionError("The persistent bridge did not report a successful RGBA upload")
@@ -151,6 +156,17 @@ def verify_bridge(console: list[dict[str, Any]], bridge: str, *, require_reuse: 
                 or composite_messages.intersection(messages) or graphite_messages.intersection(messages)
                 or any(message.startswith(fallback_prefixes) for message in messages)):
             raise AssertionError("The legacy case did not prove exclusive legacy bridge selection")
+    elif bridge == "single-canvas":
+        if not single_canvas_messages.issubset(messages):
+            raise AssertionError("The single-canvas case did not prove selection and a completed original-topology paint")
+        if (LEGACY_PREFERENCE in messages or PERSISTENT_INITIALIZED in messages
+                or WEBGL_PREFERENCE in messages or WEBGL_INITIALIZED in messages
+                or composite_messages.intersection(messages) or graphite_messages.intersection(messages)
+                or any(message.startswith(fallback_prefixes) for message in messages)):
+            raise AssertionError("The single-canvas case selected another canvas transport")
+        # This mode deliberately repaints both layers through Uno's original
+        # painter. Its initialization proves painter completion, not GPU upload,
+        # cache reuse or presentation. Native captures/provider proof are separate.
     elif bridge == "webgl":
         if WEBGL_PREFERENCE not in messages or WEBGL_INITIALIZED not in messages:
             raise AssertionError("The WebGL document bridge did not prove selection and a successful copy")

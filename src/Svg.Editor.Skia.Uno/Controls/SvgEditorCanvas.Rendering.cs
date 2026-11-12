@@ -30,6 +30,19 @@ public sealed partial class SvgEditorCanvas
             return;
         }
 
+        _renderTopology.Start();
+        if (_renderTopology.IsSingleCanvas)
+        {
+            var generation = _renderTopology.Generation;
+            RenderDocument(canvas, area);
+            if (!_disposed && _renderTopology.IsCurrent(generation))
+            {
+                RenderInteraction(canvas, area);
+                _renderTopology.CompletePaint(generation);
+            }
+            return;
+        }
+
         if (_layerLease is not null)
         {
             // A direct painter invocation still means a complete frame while
@@ -90,7 +103,7 @@ public sealed partial class SvgEditorCanvas
 
     private void RenderInteractionSurface(SKCanvas canvas, Size area)
     {
-        if (_disposed || _layerLease is not null || !_renderSchedule.BeginInteractionPaint())
+        if (_disposed || _renderTopology.IsSingleCanvas || _layerLease is not null || !_renderSchedule.BeginInteractionPaint())
             return;
 
         RenderInteraction(canvas, area);

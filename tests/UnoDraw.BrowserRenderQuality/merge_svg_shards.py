@@ -33,7 +33,7 @@ SOURCE_PROOF = "source-equivalence.json"
 PACKAGE_RECEIPT = "package-artifact.json"
 # Passive revalidation retains the original shard schema's renderer pairs.
 # Browser entry points separately reject the retired direct Graphite path.
-REPORT_CANDIDATE_BRIDGES = ("composite", "graphite", "legacy-composite")
+REPORT_CANDIDATE_BRIDGES = ("composite", "graphite", "legacy-composite", "single-canvas")
 JOB_RESULTS = ("success", "failure", "cancelled", "skipped", "unknown")
 
 

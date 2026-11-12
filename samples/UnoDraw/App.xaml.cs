@@ -12,6 +12,7 @@ public sealed partial class App : Application
     internal static string? StartupFile { get; set; }
     internal Task SaveRecoveryCheckpointAsync() => _workspace?.SaveRecoveryCheckpointAsync() ?? Task.CompletedTask;
     partial void OnPlatformWindowReady();
+    partial void ConfigurePlatformWorkspace(SvgEditorWorkspace workspace);
 
     public App()
     {
@@ -30,6 +31,7 @@ public sealed partial class App : Application
     {
         _window = new Window { Title = "UnoDraw" };
         var workspace = _workspace = new SvgEditorWorkspace();
+        ConfigurePlatformWorkspace(workspace);
         _window.Content = workspace;
         workspace.HostWindow = _window;
         var desktop = !OperatingSystem.IsBrowser() && !OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS();

@@ -371,38 +371,53 @@ workload. The unchanged Welcome gate runs independently in Interpreter and AOT;
 the [SVG source/camera matrix](../UnoDraw.BrowserRenderQuality/SVG_SCENES.md)
 retains all 48 cases and 72 native comparisons.
 
-The performance workflow also starts a separate direct baseline comparison after
-its AOT packages are available. It compares the exact `96e5fa9` baseline with
-the explicit `legacy-composite` candidate for hover, selection, pan, zoom and
-editing. Each workload keeps three alternating primary pairs on one runner and
-one separate candidate diagnostic pass; the older baseline has no managed paint
+The performance workflow starts a separate direct baseline comparison after its
+AOT packages are available. It now compares the exact `96e5fa9` baseline with the
+explicit `single-canvas` candidate for hover, selection, pan, zoom and editing.
+Each workload keeps three alternating primary pairs on one runner and one
+separate candidate diagnostic pass; the older baseline has no managed paint
 counters. The original warmup, input, document, ruler and chrome-font gates are
-unchanged. Camera and editing diagnostics require document painting; they do not
-claim interaction-only cache reuse.
+unchanged.
+
+`?canvasBridge=single-canvas` restores the original one-canvas rendering layout.
+The application configures its workspace instance before attaching it to the
+window, removes the separate interaction child and uses Uno's original uploader
+without a custom canvas island. Feedback invalidates the original canvas, which
+repaints document and interaction together. The newer guide-query and workspace
+optimizations remain active. This is an opt-in experiment; the default renderer
+policy remains unchanged.
+
+This mode's first initialization message attests to completion of both original
+painters. Actual WebGPU selection and every native output image are independently
+required. Its separate diagnostic must record positive Document and Interaction
+counts for every workload. It has no document-pixel cache or cache-reuse claim.
+Only this explicit mode uses that diagnostic contract; existing retained modes
+still require zero Document and positive Interaction paints for hover/selection.
+The primary timing window, input delivery and metric aggregation are unchanged.
 
 `legacy_baseline_packages.py` verifies fresh GitHub artifact descriptors, complete
 archive digests and every served file before and after measurement. The driver
 also verifies candidate production-source equivalence to the exact harness
 commit. These distinct opt-in reports cannot enter the default-application
-aggregate. They establish any recovery directly against the older source,
-without multiplying ratios from different runners or rebuilding the packages.
+aggregate. They measure recovery directly against the older source, without
+multiplying ratios from different runners or rebuilding the compared packages.
 
-The direct driver also accepts `--candidate-bridge legacy` and
-`--candidate-bridge composite`. Each mode has a distinct report kind and must
-prove its exclusive observed selection; combined composition additionally
-requires its successful upload and actual pixel-cache reuse for feedback
-workloads. Original upload retains the editor's separate feedback surface, so
-its hover/selection diagnostics also require Document=0 and Interaction>0, but
-it cannot claim reuse of a combined pixel cache. The default argument and main
-performance caller remain `legacy-composite`.
+The direct driver retains `--candidate-bridge legacy-composite` as its default
+argument and also accepts `legacy`, `composite` and `single-canvas`. Each has its
+own report kind and must prove exclusive observed selection. Combined composition
+requires its successful upload and actual pixel-cache reuse for feedback.
+`legacy` retains the separate interaction surface: its feedback diagnostics also
+require Document=0 and Interaction>0, without claiming a combined pixel cache.
+The automatic performance caller explicitly selects `single-canvas`.
 
-`unodraw-cached-baseline-comparison.yml` compares the existing `composite` mode
-directly with the original baseline across all five workloads, and runs its
-separate complete SVG matrix. It reuses identified AOT archives only after a
-fresh archive, asset and production-source equivalence check. An ineligible
-package skips both comparisons; an eligibility pass is neither a performance
-result nor image qualification. Each workload remains a separate matched
-experiment, and the SVG aggregate still requires all three successful DPR jobs.
+The manual-only `unodraw-cached-baseline-comparison.yml` remains available for
+comparing the existing `composite` mode directly with the original baseline
+across all five workloads and its separate complete SVG matrix. It requires an
+explicit AOT package run and verifies its archive, assets and production-source
+equivalence. An ineligible package fails eligibility and does not run comparisons.
+An eligibility pass is neither a timing result nor an image qualification. Each
+workload remains a separate matched experiment, and the SVG aggregate requires
+all three successful DPR jobs.
 
 ### Retired direct Graphite document experiment
 

@@ -28,7 +28,7 @@ on:
       candidate_bridge:
         description: Explicit candidate canvas mode; never the current-default aggregate
         type: choice
-        options: [legacy-composite, legacy, composite]
+        options: [legacy-composite, legacy, composite, single-canvas]
         default: legacy-composite
       feedback_only:
         description: Limit this distinct experiment to hover and selection

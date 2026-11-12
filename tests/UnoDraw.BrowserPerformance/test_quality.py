@@ -15,6 +15,7 @@ from quality import (COMPOSITE_INITIALIZED, COMPOSITE_PREFERENCE, COMPOSITE_REUS
                      GRAPHITE_COVERAGE_INITIALIZED,
                      GRAPHITE_INITIALIZED, GRAPHITE_PREFERENCE,
                      LEGACY_PREFERENCE, PERSISTENT_INITIALIZED, WEBGL_INITIALIZED, WEBGL_PREFERENCE,
+                     SINGLE_CANVAS_INITIALIZED, SINGLE_CANVAS_PREFERENCE,
                      assert_native_size, bridge_query, compare_bridge_states,
                      is_welcome_green, matrix_failures, raw_comparison, verify_bridge)
 
@@ -56,9 +57,28 @@ class WelcomeReadinessTests(unittest.TestCase):
 
 
 class QualityMatrixTests(unittest.TestCase):
+    def test_single_canvas_requires_its_completed_painter_and_exclusive_original_transport(self) -> None:
+        messages = (SINGLE_CANVAS_PREFERENCE, SINGLE_CANVAS_INITIALIZED)
+        logs = [{"text": text} for text in messages]
+        verify_bridge(logs, "single-canvas")
+        for omitted in messages:
+            with self.subTest(omitted=omitted), self.assertRaises(AssertionError):
+                verify_bridge([entry for entry in logs if entry["text"] != omitted], "single-canvas")
+        for wrong in (LEGACY_PREFERENCE, PERSISTENT_INITIALIZED, COMPOSITE_PREFERENCE,
+                      COMPOSITE_INITIALIZED, COMPOSITE_REUSED, WEBGL_INITIALIZED,
+                      GRAPHITE_INITIALIZED, "UnoDraw canvas bridge fallback: unavailable"):
+            with self.subTest(wrong=wrong), self.assertRaises(AssertionError):
+                verify_bridge([*logs, {"text": wrong}], "single-canvas")
+        for other, normal in (("legacy", [LEGACY_PREFERENCE]), ("persistent", [PERSISTENT_INITIALIZED]),
+                              ("composite", [COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED,
+                                             COMPOSITE_REUSED, PERSISTENT_INITIALIZED])):
+            for message in messages:
+                with self.subTest(other=other, message=message), self.assertRaises(AssertionError):
+                    verify_bridge([{"text": text} for text in [*normal, message]], other)
+
     def test_opt_in_bridge_requires_its_own_complete_matrix(self) -> None:
         dprs, states = (1, 1.25, 2), ("desktop", "restored")
-        for candidate_bridge in ("webgl", "composite", "legacy-composite", "graphite"):
+        for candidate_bridge in ("webgl", "composite", "legacy-composite", "graphite", "single-canvas"):
             cases = [{"bridge": bridge, "dpr": dpr, "passed": True,
                       "states": [{"name": name} for name in states]}
                      for bridge in ("legacy", candidate_bridge) for dpr in dprs]
@@ -201,7 +221,7 @@ class BridgeEvidenceTests(unittest.TestCase):
                 verify_bridge(evidence + [{"text": LEGACY_PREFERENCE}], bridge)
 
     def test_bridge_queries_select_each_path_explicitly(self) -> None:
-        for bridge in ("legacy", "persistent", "composite", "legacy-composite"):
+        for bridge in ("legacy", "persistent", "composite", "legacy-composite", "single-canvas"):
             self.assertEqual(bridge_query(bridge), "canvasBridge=" + bridge)
         for bridge in ("unknown", "webgl", "graphite"):
             with self.subTest(bridge=bridge), self.assertRaises(ValueError):

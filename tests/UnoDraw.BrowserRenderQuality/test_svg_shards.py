@@ -16,7 +16,8 @@ from svg_fixture_contracts import (DESKTOP, DPRS, SCENES, STATES, anchor_colors,
                                    load_fixtures, matrix_dprs, matrix_failures, probes,
                                    require_source_readback, scene_bridges)
 from backend import launch_arguments, verify_backend
-from quality import LEGACY_COMPOSITE_INITIALIZED, LEGACY_COMPOSITE_PREFERENCE, LEGACY_PREFERENCE
+from quality import (LEGACY_COMPOSITE_INITIALIZED, LEGACY_COMPOSITE_PREFERENCE, LEGACY_PREFERENCE,
+                     SINGLE_CANVAS_INITIALIZED, SINGLE_CANVAS_PREFERENCE)
 from verify_source import ALLOWED_PREFIXES
 from candidate_package import ARTIFACT_NAME, RECEIPT_KIND, WORKFLOW_PATH
 from pinned_package import FIXTURE_SHA256, REPOSITORY
@@ -92,7 +93,9 @@ class SvgShardContracts(unittest.TestCase):
             (directory / name).write_text(source, encoding="utf-8")
         source_edit = {**require_source_readback(fixture.browser_source, fixture), "exact_inserted_readback": True,
                        "reopened_after_apply": True, "input_sha256": fixture.browser_sha256, "input_tag": "TEXTAREA"}
-        messages = ([LEGACY_PREFERENCE] if bridge == "legacy" else [LEGACY_COMPOSITE_PREFERENCE, LEGACY_COMPOSITE_INITIALIZED])
+        messages = ([LEGACY_PREFERENCE] if bridge == "legacy" else
+                    [SINGLE_CANVAS_PREFERENCE, SINGLE_CANVAS_INITIALIZED] if bridge == "single-canvas" else
+                    [LEGACY_COMPOSITE_PREFERENCE, LEGACY_COMPOSITE_INITIALIZED])
         console = [{"type": "info", "text": "Graphics backend 'WebGpuGraphicsProvider' won negotiation on context kind 'WebGpu'.", "location": {}}]
         console += [{"type": "info", "text": text, "location": {}} for text in messages]
         capabilities = {"secure_context": True, "api_available": True, "adapter_available": True}
@@ -176,6 +179,23 @@ class SvgShardContracts(unittest.TestCase):
                 changed.update(mutation)
                 with self.subTest(dpr=dpr, mutation=mutation), self.assertRaises(ValueError):
                     validate_header(changed, self.manifest, self.hashes, self.harness)
+
+    def test_single_canvas_shards_keep_original_control_and_completed_native_painter(self):
+        for dpr in DPRS:
+            report = self.report(dpr=dpr, candidate="single-canvas")
+            self.assertEqual(validate_header(report, self.manifest, self.hashes, self.harness), dpr)
+            changed = copy.deepcopy(report)
+            changed["bridges"] = ["persistent", "single-canvas"]
+            with self.assertRaises(ValueError):
+                validate_header(changed, self.manifest, self.hashes, self.harness)
+        report = self.report(candidate="single-canvas")
+        case = self.native_case(self.directory, report, self.fixtures[0], "single-canvas")
+        validate_case(case, report, self.directory, self.fixtures[0], None)
+        case["console"] = [entry for entry in case["console"] if entry["text"] != SINGLE_CANVAS_INITIALIZED]
+        self.write_json(self.directory / case["artifact_directory"] / "report.json",
+                        {key: value for key, value in case.items() if key != "artifact_directory"})
+        with self.assertRaises(AssertionError):
+            validate_case(case, report, self.directory, self.fixtures[0], None)
 
     def test_mode_fixture_browser_and_harness_identity_are_not_interchangeable(self):
         report = self.report()

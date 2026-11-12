@@ -17,6 +17,7 @@ REPORT_KINDS = {
     BRIDGE: REPORT_KIND,
     "legacy": "direct_baseline_original_upload_experiment",
     "composite": "direct_baseline_persistent_composite_experiment",
+    "single-canvas": "direct_baseline_original_topology_experiment",
 }
 WORKLOADS = ("brush-hover", "selection", "pan", "zoom", "edit")
 VIEWPORT = {"width": 1440, "height": 960}
@@ -87,9 +88,8 @@ def verify_runs(runs: list[dict[str, Any]], source_sha: str, workload: str, *, d
                 or metrics.get("graphite_document_submissions") not in (None, 0)):
             raise ValueError("Another GPU document transport contaminated the direct comparison")
         if candidate:
-            # Original upload retains the editor's separate feedback surface;
-            # it has no combined document-pixel cache or cache-reuse message.
-            # verify_bridge enforces exclusive observed selection for every mode.
+            # Each explicit mode must prove its exclusive observed selection.
+            # Original-topology painting has no feedback cache/reuse claim.
             verify_bridge(run.get("console", []), candidate_bridge,
                           require_reuse=workload in {"brush-hover", "selection"})
         elif any(entry.get("text", "").startswith(("UnoDraw canvas bridge", "UnoDraw legacy-composite", "UnoDraw Graphite"))
@@ -107,7 +107,14 @@ def verify_runs(runs: list[dict[str, Any]], source_sha: str, workload: str, *, d
                 raise ValueError("Selection changed the original visible-overlay or restore gate")
         if diagnostics:
             snapshot = run.get("managed_render_diagnostics", {}).get("after", {"phases": []})
-            if workload in {"brush-hover", "selection"}:
+            if candidate_bridge == "single-canvas":
+                # Repainting the complete original canvas is this control's
+                # defining behavior. It must not borrow the retained-layer proof.
+                for phase in ("Document", "Interaction"):
+                    counts = [row.get("count") for row in snapshot.get("phases", []) if row.get("phase") == phase]
+                    if len(counts) != 1 or type(counts[0]) is not int or counts[0] <= 0:
+                        raise ValueError("Original-topology diagnostics must actually paint both original layers")
+            elif workload in {"brush-hover", "selection"}:
                 verify_interaction_isolation(snapshot, workload)
             else:
                 documents = [row.get("count") for row in snapshot.get("phases", []) if row.get("phase") == "Document"]

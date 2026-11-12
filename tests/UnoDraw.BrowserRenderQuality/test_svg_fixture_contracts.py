@@ -24,6 +24,7 @@ from svg_bridge_quality import compare_cases, load_package, verify_scene_bridge,
 from quality import (COMPOSITE_FALLBACK_PREFIX, COMPOSITE_INITIALIZED, COMPOSITE_PREFERENCE, COMPOSITE_REUSED,
                      GRAPHITE_INITIALIZED, LEGACY_COMPOSITE_INITIALIZED, LEGACY_COMPOSITE_PREFERENCE,
                      LEGACY_COMPOSITE_REUSED, LEGACY_PREFERENCE, PERSISTENT_INITIALIZED,
+                     SINGLE_CANVAS_INITIALIZED, SINGLE_CANVAS_PREFERENCE,
                      raw_comparison, verify_bridge)
 
 
@@ -353,7 +354,7 @@ class SvgFixtureContracts(unittest.TestCase):
         self.assertTrue(all(row["passed"] is False for row in rows))
 
     def test_legacy_composite_requires_its_original_control_and_the_complete_matrix(self):
-        self.assertEqual(LIVE_CANDIDATE_BRIDGES, ("composite", "legacy-composite"))
+        self.assertEqual(LIVE_CANDIDATE_BRIDGES, ("composite", "legacy-composite", "single-canvas"))
         self.assertEqual(scene_bridges("legacy-composite"), ("legacy", "legacy-composite"))
         cases, rows = self.complete_matrix("legacy-composite")
         self.assertEqual((len(cases), len(rows)), (48, 72))
@@ -398,6 +399,30 @@ class SvgFixtureContracts(unittest.TestCase):
             mutate(changed_cases, changed_rows)
             with self.subTest(mutation=mutate):
                 self.assertTrue(matrix_failures(changed_cases, changed_rows, candidate_bridge="composite"))
+
+    def test_single_canvas_requires_the_original_control_and_complete_matrix(self):
+        self.assertEqual(scene_bridges("single-canvas"), ("legacy", "single-canvas"))
+        cases, rows = self.complete_matrix("single-canvas")
+        self.assertEqual((len(cases), len(rows)), (48, 72))
+        self.assertEqual(matrix_failures(cases, rows, candidate_bridge="single-canvas"), [])
+        for dpr in DPRS:
+            part_cases = [case for case in cases if case["dpr"] == dpr]
+            part_rows = [row for row in rows if row["dpr"] == dpr]
+            self.assertEqual(matrix_failures(part_cases, part_rows, candidate_bridge="single-canvas", dprs=(dpr,)), [])
+            self.assertTrue(matrix_failures(part_cases, part_rows, candidate_bridge="single-canvas"))
+        for substitute in ("persistent", "composite", "legacy-composite"):
+            changed = copy.deepcopy(cases)
+            changed[0]["bridge"] = substitute
+            with self.subTest(substitute=substitute):
+                self.assertTrue(matrix_failures(changed, rows, candidate_bridge="single-canvas"))
+        logs = [{"text": text} for text in (SINGLE_CANVAS_PREFERENCE, SINGLE_CANVAS_INITIALIZED)]
+        verify_scene_bridge(logs, "single-canvas")
+        for omitted in logs:
+            with self.assertRaises(AssertionError):
+                verify_scene_bridge([entry for entry in logs if entry is not omitted], "single-canvas")
+        with self.assertRaises(AssertionError):
+            verify_scene_bridge([*logs, {"text": COMPOSITE_REUSED}], "single-canvas")
+
 
     def test_composite_source_camera_scope_requires_combined_upload_without_borrowing_reuse(self):
         messages = (COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED, PERSISTENT_INITIALIZED)

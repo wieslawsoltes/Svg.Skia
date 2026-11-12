@@ -1,11 +1,14 @@
 # SVG document bridge quality
 
-The default gate compares cached composition with the original texture uploader in one
-published UnoDraw candidate package: `legacy` versus `legacy-composite`. Both
-use the real WebGPU application compositor and the original Skia document painter.
-Matching preference and successful initialization evidence are required; an
-unexpected fallback or another experimental mode fails the case. These are
-native-pixel correctness checks, without timing claims.
+The performance workflow compares the original canvas layout with the current
+separate interaction surface in one published candidate package: `legacy`
+versus `single-canvas`. Both use the real WebGPU application compositor, original
+Uno texture uploader and original Skia painters. The single-canvas option removes
+the interaction child before load and repaints both layers on the original canvas.
+Matching preference and completed-painter evidence are required, alongside actual
+provider selection and every native output state. Unexpected fallback or another
+experimental mode fails the case. These are native-pixel correctness checks,
+without timing or pixel-cache claims.
 
 ## Run
 
@@ -16,12 +19,13 @@ Chromium, then run:
 python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
   --package /path/to/candidate-package \
   --execution-mode InterpreterAndAOT \
-  --candidate-bridge legacy-composite \
+  --candidate-bridge single-canvas \
   --output /path/to/svg-quality-artifact
 ```
 
-The executable candidate defaults to `legacy-composite`. Both modes use Uno's
-original texture uploader. All six sessions, eight source replacements per
+The CLI retains `legacy-composite` as its default argument for the earlier
+explicit cached-composition comparison against `legacy`. Both of those modes use
+Uno's original texture uploader. All six sessions, eight source replacements per
 session, 48 cases and 72 native comparisons remain required. Each composite case
 must prove a completed copy into the original host. Source replacement and
 camera changes repaint the document, so this matrix does not claim
@@ -90,7 +94,7 @@ command on three separate runners/checkouts of the identical harness commit:
 ```sh
 python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
   --package /path/to/verified-candidate-package \
-  --candidate-bridge legacy-composite --dpr 1.25 \
+  --candidate-bridge single-canvas --dpr 1.25 \
   --output /path/to/svg-shards/artifact-dpr-1.25
 ```
 

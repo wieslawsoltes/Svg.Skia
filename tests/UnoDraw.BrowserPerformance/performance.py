@@ -464,7 +464,7 @@ def run_trial(browser: Any, url: str, package: dict[str, Any], backend: str, wor
             result["runtime_phase_logs"] = [entry["text"] for entry in result["console"][diagnostic_console_start:]
                                             if any(marker in entry["text"] for marker in
                                                    ("[frame-phases]", "[webgpu-frame]", "[webgpu-stats]"))]
-            if workload == "brush-hover":
+            if workload == "brush-hover" and canvas_bridge != "single-canvas":
                 verify_hover_isolation(after_managed)
                 result["hover_layer_isolation"] = "Document count is zero; Interaction count increased"
         result["metrics"] = summarize(raw, before_cpu, after_cpu, operations)

@@ -34,9 +34,17 @@ def save_report(report: dict[str, Any], output: Path) -> None:
     if bridge not in REPORT_KINDS:
         raise ValueError("The summary requires a supported, explicitly identified canvas mode")
     diagnostic_description = (
+        "One separate candidate diagnostic pass requires positive Document and Interaction paints for every workload. "
+        "The original single-canvas topology repaints both layers; it has no retained document-pixel cache claim. "
+        "Its initialization message proves completion of the original painter, not host upload or presentation."
+        if bridge == "single-canvas" else
+        "One separate candidate diagnostic pass validates zero Document paints and positive Interaction paints "
+        "for hover/selection. " + (
         "Original upload keeps the editor's separate interaction surface; it has no combined pixel-cache reuse claim."
         if bridge == "legacy" else
-        "The combined canvas must also report actual document-pixel cache reuse for hover/selection.")
+        "The combined canvas must also report actual document-pixel cache reuse for hover/selection.") + " "
+        "Pan, zoom and edit instead require actual document painting; "
+        "their camera/source changes do not guarantee an overlay-only cache hit.")
     lines = [f"# Direct baseline versus opt-in {bridge}", "",
              f"Baseline: `{report['baseline_source_sha']}`. Candidate: `{report['candidate_source_sha']}`. "
              f"Harness: `{report['harness_source_sha']}`. Workload: `{report['workload']}`.", "",
@@ -49,11 +57,8 @@ def save_report(report: dict[str, Any], output: Path) -> None:
              "Three paired trials alternate order. Selection requires 121 real trusted inputs; other workloads require 120. "
              "All input tails must be observed, and all nine before/after/restored native pairs retain the original "
              "document/ruler 0.001 and chrome-font 0.02 thresholds above luminance 12 at 1440×960 DPR 1.", "",
-             "One separate candidate diagnostic pass validates zero Document paints and positive Interaction paints "
-             "for hover/selection. " + diagnostic_description + " "
-             "Pan, zoom and edit instead require actual document painting; "
-             "their camera/source changes do not guarantee an overlay-only cache hit. Every mode must prove exclusive "
-             "selection and its existing successful-upload requirements. The baseline predates managed diagnostics. "
+             diagnostic_description + " Every mode must prove exclusive selection and its own completed-painter or "
+             "successful-upload requirements. The baseline predates managed diagnostics. "
              "Diagnostic timings are excluded from the primary ratios.", "",
              "SwiftShader implements the graphics APIs in software. Elapsed duration includes waits. Renderer ThreadTime "
              "excludes GPU/worker CPU. Callback completion and queue submission do not prove physical display presentation "

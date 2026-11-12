@@ -65,6 +65,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
     private CanvasResources? _resources;
     private readonly InteractionSurface _interactionSurface;
     private readonly SvgEditorCanvasRenderSchedule _renderSchedule = new();
+    private readonly SvgEditorCanvasRenderTopology _renderTopology = new();
     private double _lastDocumentRenderMilliseconds;
     private double _lastInteractionRenderMilliseconds;
     private int _fullInvalidatePending;
@@ -127,6 +128,28 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
     /// </summary>
     public double LastRenderMilliseconds => _lastDocumentRenderMilliseconds + _lastInteractionRenderMilliseconds;
 
+    /// <summary>
+    /// Uses the original canvas for both document and interaction painting. This
+    /// per-instance option must be selected before the canvas first loads or paints.
+    /// </summary>
+    /// <param name="onFirstPaintCompleted">
+    /// An optional notification after both painters first return successfully.
+    /// This does not indicate that the host uploaded or presented the frame.
+    /// </param>
+    public void UseSingleCanvasRendering(Action? onFirstPaintCompleted = null)
+    {
+        if (DispatcherQueue is { HasThreadAccess: false })
+            throw new InvalidOperationException("Canvas rendering must be configured on the UI thread.");
+        if (_layerLease is not null)
+            throw new InvalidOperationException("Canvas rendering cannot change while its layers are owned.");
+
+        _renderTopology.UseSingleCanvas(onFirstPaintCompleted);
+        // Configure before the workspace is attached to its window: the child
+        // never loads, requests an island, or contributes a compositor visual.
+        Children.Remove(_interactionSurface);
+        _interactionSurface.Dispose();
+    }
+
     /// <summary>Invalidates the document and its interaction feedback together.</summary>
     public new void Invalidate()
     {
@@ -144,7 +167,8 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
                 Volatile.Write(ref _fullInvalidatePending, 0);
             return;
         }
-        _renderSchedule.InvalidateDocument();
+        if (!_renderTopology.IsSingleCanvas)
+            _renderSchedule.InvalidateDocument();
         base.Invalidate();
     }
 
@@ -152,6 +176,12 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
     {
         if (_disposed)
             return;
+
+        if (_renderTopology.IsSingleCanvas)
+        {
+            base.Invalidate();
+            return;
+        }
 
         if (_layerLease is { } layers)
         {
@@ -361,6 +391,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
         }
 
         _isLoaded = true;
+        _renderTopology.Start();
         if (Controller is not null)
         {
             Controller.Changed += OnControllerChanged;
@@ -467,6 +498,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
 
         CancelGesture();
         _disposed = true;
+        _renderTopology.Dispose();
         if (Controller is not null)
         {
             Controller.Changed -= OnControllerChanged;
@@ -478,13 +510,17 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, ISkiaCanvasRender
         _canvasBrushSubscriptions = null;
         _controller = null;
         ReleaseResources();
-        Children.Remove(_interactionSurface);
-        _interactionSurface.Dispose();
+        if (!_renderTopology.IsSingleCanvas)
+        {
+            Children.Remove(_interactionSurface);
+            _interactionSurface.Dispose();
+        }
         base.Dispose();
     }
 
     private void ReleaseResources()
     {
+        _renderTopology.CancelPaint();
         _layerLease?.Dispose();
         _renderSchedule.Reset();
         _hasDocumentRenderState = false;

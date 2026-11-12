@@ -19,11 +19,20 @@ internal static class WebGpuSkiaCanvasBridge
     private static int s_reportedInitialization;
     private static int s_reportedCompositeInitialization;
     private static int s_reportedLegacyCompositeInitialization;
+    private static int s_reportedSingleCanvasInitialization;
+
+    internal static bool UseSingleCanvas { get; private set; }
 
     internal static void Register()
     {
         var preference = WebAssemblyRuntime.InvokeJS(
             "new URLSearchParams(globalThis.location.search).get('canvasBridge') || ''");
+        if (preference == "single-canvas")
+        {
+            UseSingleCanvas = true;
+            Console.WriteLine("UnoDraw canvas bridge preference: single-canvas original raster upload.");
+            return;
+        }
         if (preference == "legacy")
         {
             Console.WriteLine("UnoDraw canvas bridge preference: legacy raster texture upload.");
@@ -72,6 +81,14 @@ internal static class WebGpuSkiaCanvasBridge
     {
         if (Interlocked.Exchange(ref s_reportedLegacyCompositeInitialization, 1) == 0)
             Console.WriteLine("UnoDraw canvas bridge initialized: legacy-composite raster texture upload.");
+    }
+
+    internal static void ReportSingleCanvasInitialization()
+    {
+        // The original host owns the upload after RenderOverride returns. This
+        // reports only successful completion of both original canvas painters.
+        if (Interlocked.Exchange(ref s_reportedSingleCanvasInitialization, 1) == 0)
+            Console.WriteLine("UnoDraw canvas bridge initialized: single-canvas original topology.");
     }
 
     private sealed class RasterCanvasIsland : Grid, IGLIsland

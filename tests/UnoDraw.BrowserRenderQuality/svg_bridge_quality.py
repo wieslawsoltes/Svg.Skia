@@ -362,6 +362,10 @@ def write_summary(report: dict[str, Any], output: Path) -> None:
     if candidate == "composite":
         lines += ["Each composite case requires a successful combined document/interaction upload through the persistent RGBA texture path. "
                   "These source/camera checks do not claim overlay cache reuse; that is validated separately by Welcome and timing workloads.", ""]
+    if candidate == "single-canvas":
+        lines += ["Each single-canvas case requires exclusive original-topology selection and completion of its combined original painter. "
+                  "Uno retains its original raster uploader. The mode has no document-pixel cache or cache-reuse claim; "
+                  "actual provider selection and every native output state remain independent requirements.", ""]
     lines += ["| Scene | Bridge | DPR | Complete case |", "| --- | --- | ---: | --- |"]
     for case in report["cases"]:
         lines.append(f"| {case['scene']} | {case['bridge']} | {case['dpr']} | {'passed' if case['passed'] else 'failed'} |")

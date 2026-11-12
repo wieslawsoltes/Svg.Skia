@@ -1,3 +1,4 @@
+using Svg.Editor.Skia.Uno;
 using Uno.Foundation;
 using Uno.UI;
 using Uno.UI.Xaml.Media;
@@ -8,6 +9,12 @@ namespace UnoDraw;
 
 public sealed partial class App
 {
+    partial void ConfigurePlatformWorkspace(SvgEditorWorkspace workspace)
+    {
+        if (Rendering.WebGpuSkiaCanvasBridge.UseSingleCanvas)
+            workspace.Surface.UseSingleCanvasRendering(Rendering.WebGpuSkiaCanvasBridge.ReportSingleCanvasInitialization);
+    }
+
     async partial void OnPlatformWindowReady()
     {
         try

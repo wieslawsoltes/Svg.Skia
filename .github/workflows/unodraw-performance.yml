@@ -179,6 +179,7 @@ jobs:
           - { bridge: persistent, variant: persistent }
           - { bridge: composite, variant: composite }
           - { bridge: legacy-composite, variant: legacy-composite }
+          - { bridge: single-canvas, variant: single-canvas }
     steps:
       - uses: actions/checkout@v4
         with:
@@ -334,6 +335,7 @@ jobs:
           - { bridge: persistent, variant: persistent }
           - { bridge: composite, variant: composite }
           - { bridge: legacy-composite, variant: legacy-composite }
+          - { bridge: single-canvas, variant: single-canvas }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v6
@@ -371,7 +373,7 @@ jobs:
     with:
       package_run_id: ${{ format('{0}', github.run_id) }}
       harness_sha: ${{ github.event.pull_request.head.sha || github.sha }}
-      candidate_bridge: legacy-composite
+      candidate_bridge: single-canvas
 
   document-raster-experiment:
     name: Same AOT ${{ matrix.variant }} canvas (${{ matrix.workload }})
@@ -554,8 +556,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  direct-legacy-baseline-comparison:
-    name: Direct baseline versus opt-in legacy composition
+  direct-single-canvas-baseline-comparison:
+    name: Direct baseline versus opt-in original canvas topology
     needs: [plan, publish]
     permissions:
       contents: read
@@ -564,3 +566,4 @@ jobs:
     with:
       package_run_id: ${{ format('{0}', github.run_id) }}
       harness_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+      candidate_bridge: single-canvas

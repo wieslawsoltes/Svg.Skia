@@ -12,7 +12,7 @@ public sealed partial class SvgEditorCanvas : ISkiaCanvasLayerSource
         ArgumentNullException.ThrowIfNull(invalidateInteraction);
         if (DispatcherQueue is { HasThreadAccess: false })
             throw new InvalidOperationException("Canvas layer ownership must change on the UI thread.");
-        if (_disposed || _layerLease is not null)
+        if (_disposed || _renderTopology.IsSingleCanvas || _layerLease is not null)
             return null;
 
         var lease = new CanvasLayerLease(this, invalidateInteraction);

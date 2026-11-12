@@ -17,7 +17,8 @@ from legacy_baseline_packages import (BASELINE_SHA, FIXTURE_SHA256, PINS, RECEIP
                                       validate_descriptors, verify_package)
 from merge_shards import validate_quality
 from quality import (COMPOSITE_INITIALIZED, COMPOSITE_PREFERENCE, COMPOSITE_REUSED,
-                     LEGACY_COMPOSITE_REUSED, LEGACY_PREFERENCE, PERSISTENT_INITIALIZED)
+                     LEGACY_COMPOSITE_REUSED, LEGACY_PREFERENCE, PERSISTENT_INITIALIZED,
+                     SINGLE_CANVAS_INITIALIZED, SINGLE_CANVAS_PREFERENCE)
 from test_legacy_composition import runs as same_candidate_runs
 
 
@@ -48,6 +49,13 @@ def direct_runs(workload="selection", diagnostics=False, candidate_bridge=BRIDGE
                 run["console"] = [{"text": message} for message in
                                   (COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED,
                                    COMPOSITE_REUSED, PERSISTENT_INITIALIZED)]
+            elif candidate_bridge == "single-canvas":
+                run["console"] = [{"text": message} for message in
+                                  (SINGLE_CANVAS_PREFERENCE, SINGLE_CANVAS_INITIALIZED)]
+                if diagnostics:
+                    for phase in run["managed_render_diagnostics"]["after"]["phases"]:
+                        if phase["phase"] in {"Document", "Interaction"}:
+                            phase["count"] = 120
     return values
 
 
@@ -61,7 +69,7 @@ def identity(workload="selection"):
 
 class DirectComparisonTests(unittest.TestCase):
     def test_each_explicit_mode_keeps_its_identity_phases_and_original_workload_contract(self):
-        self.assertEqual(len(set(REPORT_KINDS.values())), 3)
+        self.assertEqual(len(set(REPORT_KINDS.values())), 4)
         for bridge, kind in REPORT_KINDS.items():
             for workload in WORKLOADS:
                 report = {**identity(workload), "candidate_bridge": bridge, "report_kind": kind}
@@ -96,7 +104,7 @@ class DirectComparisonTests(unittest.TestCase):
             verify_runs(values, SOURCE, "selection", candidate_bridge="legacy")
 
     def test_each_retained_feedback_mode_still_requires_zero_document_and_positive_interaction(self):
-        for bridge in REPORT_KINDS:
+        for bridge in set(REPORT_KINDS) - {"single-canvas"}:
             for workload in ("brush-hover", "selection"):
                 for phase, count in (("Document", 1), ("Interaction", 0)):
                     values = direct_runs(workload, True, bridge)
@@ -104,6 +112,25 @@ class DirectComparisonTests(unittest.TestCase):
                          if row["phase"] == phase)["count"] = count
                     with self.subTest(bridge=bridge, workload=workload, phase=phase), self.assertRaises(AssertionError):
                         verify_runs(values, SOURCE, workload, diagnostics=True, candidate_bridge=bridge)
+
+    def test_original_topology_must_paint_both_layers_without_borrowing_retained_diagnostics(self):
+        for workload in WORKLOADS:
+            original = direct_runs(workload, True, "single-canvas")
+            verify_runs(original, SOURCE, workload, diagnostics=True, candidate_bridge="single-canvas")
+            for phase in ("Document", "Interaction"):
+                for invalid in (0, -1, True, None, float("nan")):
+                    changed = copy.deepcopy(original)
+                    next(row for row in changed[0]["managed_render_diagnostics"]["after"]["phases"]
+                         if row["phase"] == phase)["count"] = invalid
+                    with self.subTest(workload=workload, phase=phase, invalid=invalid), self.assertRaises(ValueError):
+                        verify_runs(changed, SOURCE, workload, diagnostics=True, candidate_bridge="single-canvas")
+            for defect in ("missing", "duplicate"):
+                changed = copy.deepcopy(original)
+                phases = changed[0]["managed_render_diagnostics"]["after"]["phases"]
+                document = next(row for row in phases if row["phase"] == "Document")
+                phases.remove(document) if defect == "missing" else phases.append(copy.deepcopy(document))
+                with self.subTest(workload=workload, defect=defect), self.assertRaises(ValueError):
+                    verify_runs(changed, SOURCE, workload, diagnostics=True, candidate_bridge="single-canvas")
 
     def test_summary_names_the_exact_mode_and_excludes_unobserved_legacy_cache_reuse(self):
         for bridge, kind in REPORT_KINDS.items():
@@ -117,6 +144,11 @@ class DirectComparisonTests(unittest.TestCase):
                 self.assertIn("Incomplete", summary)
                 if bridge == "legacy":
                     self.assertIn("no combined pixel-cache reuse claim", summary)
+                    self.assertNotIn("must also report actual document-pixel cache reuse", summary)
+                elif bridge == "single-canvas":
+                    self.assertIn("positive Document and Interaction paints for every workload", summary)
+                    self.assertIn("no retained document-pixel cache claim", summary)
+                    self.assertNotIn("zero Document paints", summary)
                     self.assertNotIn("must also report actual document-pixel cache reuse", summary)
 
     def test_all_five_workloads_keep_three_pairs_and_separate_candidate_diagnostics(self):
@@ -246,7 +278,7 @@ class DirectComparisonTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[2]
         workflow = (root / ".github/workflows/unodraw-legacy-baseline-comparison.yml").read_text()
         caller = (root / ".github/workflows/unodraw-performance.yml").read_text().split(
-            "\n  direct-legacy-baseline-comparison:\n", 1)[1]
+            "\n  direct-single-canvas-baseline-comparison:\n", 1)[1]
         self.assertIn("workflow_call:", workflow)
         self.assertIn("fromJSON('[\"brush-hover\",\"selection\",\"pan\",\"zoom\",\"edit\"]')", workflow)
         self.assertIn("fromJSON('[\"brush-hover\",\"selection\"]')", workflow)
@@ -256,6 +288,7 @@ class DirectComparisonTests(unittest.TestCase):
         self.assertIn("needs: [plan, publish]", caller)
         self.assertIn("uses: ./.github/workflows/unodraw-legacy-baseline-comparison.yml", caller)
         self.assertIn("package_run_id: ${{ format('{0}', github.run_id) }}", caller)
+        self.assertIn("candidate_bridge: single-canvas", caller)
         self.assertNotIn("dotnet publish", workflow)
 
 

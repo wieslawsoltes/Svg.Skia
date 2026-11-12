@@ -23,6 +23,8 @@
              Link="Rendering/SkiaCanvasRasterState.cs" />
     <Compile Include="../../src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvasRenderSchedule.cs"
              Link="Rendering/SvgEditorCanvasRenderSchedule.cs" />
+    <Compile Include="../../src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvasRenderTopology.cs"
+             Link="Rendering/SvgEditorCanvasRenderTopology.cs" />
     <Compile Include="../../src/Svg.Editor.Skia.Uno/Controls/StudioPanelRefreshState.cs"
              Link="Controls/StudioPanelRefreshState.cs" />
   </ItemGroup>

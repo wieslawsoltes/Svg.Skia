@@ -25,7 +25,7 @@ on:
       candidate_bridge:
         description: Explicit document renderer compared with its original control
         type: choice
-        options: [legacy-composite, composite]
+        options: [legacy-composite, composite, single-canvas]
         default: legacy-composite
 
 permissions:
