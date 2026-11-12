@@ -44,23 +44,14 @@ The browser target in [UnoDraw.csproj](../samples/UnoDraw/UnoDraw.csproj)
 combines these features:
 
 ```xml
-<UnoFeatures>Skia;WebGpu;GLCanvas</UnoFeatures>
+<UnoFeatures>Skia;WebGpu</UnoFeatures>
 ```
 
 `WebGpu` adds the WebGPU backend. Explicit `Skia` retains the existing drawing
 API and the fallback backend, because selecting `WebGpu` suppresses implied
-Skia. `GLCanvas` declares the OpenGL compatibility island. Uno.Sdk 7.0.5 maps that
-feature to a package on desktop but omits the browser reference, so UnoDraw
-also references the bridge explicitly for `net10.0-browserwasm`:
-
-```xml
-<PackageReference Include="Uno.WinUI.Graphics3DGL" VersionOverride="$(UnoVersion)" />
-```
-
-`UnoVersion` is the SDK-selected runtime version (`7.0.32`). The XAML generator
-registers the bridge from this referenced assembly; no manual assembly loading
-or reflection root is needed. The additional features and reference are
-conditional on the browser target.
+Skia. The additional WebGPU feature is conditional on the browser target.
+The optional `GLCanvas` feature and `Uno.WinUI.Graphics3DGL` package are omitted;
+the existing `SKCanvasElement` raster bridge supplies SVG content to WebGPU.
 
 [Program.cs](../samples/UnoDraw/Platforms/WebAssembly/Program.cs) registers
 providers in preference order:
@@ -107,16 +98,29 @@ The selected UI backend determines how Uno composites that content:
 
 | Selected UI backend | SVG drawing and composition |
 | --- | --- |
-| WebGPU, with a usable GL island | Skia draws into an offscreen WebGL framebuffer; Uno reads back its pixels and composites the image through WebGPU. |
-| WebGPU, with Uno's raster fallback | Skia draws into a device-resolution raster `SKSurface`; Uno uploads the pixels as a backend texture. |
+| WebGPU | Skia draws into a device-resolution raster `SKSurface`; Uno uploads the pixels as a backend texture and composites the UI with WebGPU. |
 | Skia | The element draws into the host's `SKCanvas` directly. |
 
-The implementation is in the pinned [`SKCanvasElement`][skcanvas],
-[`SkiaGLIslandRenderer`][skia-island] and [`GLCanvasElement`][glcanvas] sources.
-The GL path includes a readback/copy boundary. WebGPU therefore changes UI
-composition while retaining the SVG engine; performance depends on the document,
-device and compatibility path. Measure it on the target hardware before drawing
-performance conclusions.
+The implementation is in the pinned [`SKCanvasElement`][skcanvas] source.
+WebGPU changes UI composition while retaining the SVG engine. SVG rasterization
+and the texture upload remain part of this path; performance depends on the
+document and device. Measure it on target hardware before drawing performance
+conclusions.
+
+The optional GL island is excluded because Uno 7.0.32's
+[`GLCanvasElement.UpdateFramebuffer`][glcanvas] disposes a zero-sized framebuffer
+before making its GL context current. A responsive layout can temporarily arrange
+a surface to zero width. With WebGPU composition, that teardown has no current
+WebGL context and throws from `deleteFramebuffer`, interrupting the layout.
+The normal-size branch makes the context current correctly. This behavior was
+confirmed in the published browser's resize trace and the pinned
+[framebuffer-disposal implementation][framebuffer-details].
+
+Omitting that optional bridge selects Uno's existing raster-surface path and
+retains WebGPU composition, the complete SVG renderer and automatic Skia startup
+fallback. No runtime internals are patched and no artificial minimum size is
+imposed on editor controls. A future runtime upgrade can reevaluate the GL path
+against the same camera, compact-layout and reload tests.
 
 Uno 7's [`SKCanvasVisual`][skcanvas-visual] uses a
 [`BorderVisual`][border-visual] whose pointer hit testing depends on background
@@ -162,9 +166,10 @@ Graphics backend 'WebGpuGraphicsProvider' won negotiation on context kind 'WebGp
 ```
 
 Skia fallback instead reports `SkiaGraphicsProvider` with context `WebGL` or
-`Software`. The GL compatibility island does not emit another registry winner.
-A `navigator.gpu` property or a successful adapter probe alone cannot establish
-which provider rendered the application.
+`Software`. This reports the application's UI compositor; the SVG compatibility
+surface does not negotiate another UI backend. A `navigator.gpu` property or a
+successful adapter probe alone cannot establish which provider rendered the
+application.
 
 The [Docs workflow](../.github/workflows/docs.yml) and
 [published-browser harness](../tests/UnoDraw.BrowserSmoke/smoke.py) must validate
@@ -186,11 +191,11 @@ the SVG's three color families and restore the fitted document pixels, checking
 the compatibility bridge beyond its first frame.
 
 Before the camera sequence, the harness waits for the returned dark canvas and
-both rulers to match their initial fitted pixels. A [GL island][glcanvas] queues
-its Skia render and publishes the copied bitmap in a subsequent composition
-frame, so dark window controls alone do not establish that those surfaces have
-settled. The readiness comparison retains the same pixel tolerances as camera
-restoration and requires no additional input or fixed delay.
+both rulers to match their initial fitted pixels. Window controls can update
+before a surface publishes its replacement pixels, so dark chrome alone does
+not establish that the whole frame has settled. The readiness comparison retains
+the same pixel tolerances as camera restoration and requires no additional input
+or fixed delay. The panel-rail comparison uses this same settled desktop frame.
 
 Command search synchronizes its results with the current native text before
 Enter, list navigation or Run can consume a selection. Uno queues `TextChanged`,
@@ -212,8 +217,8 @@ for a particular commit; this guide does not constitute a completed test result.
 [skcanvas]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/AddIns/Uno.WinUI.Graphics2DSK/SKCanvasElement.cs
 [skcanvas-visual]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/AddIns/Uno.WinUI.Graphics2DSK/SKCanvasVisual.cs
 [border-visual]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/Uno.UI.Composition/Composition/BorderVisual.skia.cs
-[skia-island]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/AddIns/Uno.WinUI.Graphics2DSK/SkiaGLIslandRenderer.cs
 [glcanvas]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/AddIns/Uno.WinUI.Graphics3DGL/GLCanvasElement.cs
+[framebuffer-details]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/AddIns/Uno.WinUI.Graphics3DGL/GLCanvasElement.FrameBufferDetails.cs
 [startup]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/doc/articles/migrating-to-uno-7/app-startup.md
 [project-setup]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/doc/articles/migrating-to-uno-7/project-setup.md#minimum-os-versions-raised
 [settings-migration]: https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/Uno.WinRT/Storage/ApplicationDataMigrator.UIKit.cs

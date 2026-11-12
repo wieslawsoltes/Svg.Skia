@@ -19,9 +19,9 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
-    <!-- WebGPU composes the workspace when available. Keep Skia for SVG drawing
-         and fallback, with GL islands accelerating SKCanvasElement content. -->
-    <UnoFeatures>$(UnoFeatures)WebGpu;GLCanvas;</UnoFeatures>
+    <!-- WebGPU composes the workspace while SKCanvasElement uses its raster texture
+         bridge. Uno 7.0.32's optional GL island fails during zero-sized resize. -->
+    <UnoFeatures>$(UnoFeatures)WebGpu;</UnoFeatures>
     <!-- Keep the published package relocatable under the docs' /unodraw/ folder. -->
     <WasmShellWebAppBasePath>./</WasmShellWebAppBasePath>
     <!-- GitHub Pages does not provide cross-origin isolation headers. -->
@@ -65,8 +65,6 @@
     <UnoSplashScreen Include="Branding/splash.svg" BackgroundColor="#19191F" BaseSize="64,64" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
-    <!-- Uno.Sdk 7.0.5 does not add the GLCanvas package for browser heads. -->
-    <PackageReference Include="Uno.WinUI.Graphics3DGL" VersionOverride="$(UnoVersion)" />
     <PackageReference Include="SkiaSharp.NativeAssets.WebAssembly" />
     <PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" />
     <PackageReference Include="System.Security.Cryptography.Xml" />
