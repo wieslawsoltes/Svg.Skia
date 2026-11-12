@@ -11,6 +11,8 @@ public sealed class SvgEditorViewport
     public const double MinimumZoom = 0.01;
     public const double MaximumZoom = 128;
 
+    private bool _hasInitializedSize;
+
     public event EventHandler? Changed;
 
     public double Zoom { get; private set; } = 1;
@@ -49,7 +51,9 @@ public sealed class SvgEditorViewport
 
         var x = OffsetX;
         var y = OffsetY;
-        if (Width > 0 && Height > 0)
+        // Once laid out, preserve the world center through zero-sized layouts
+        // too. A collapsed axis must not discard the compensation on restore.
+        if (_hasInitializedSize)
         {
             x += (width - Width) / 2;
             y += (height - Height) / 2;
@@ -64,6 +68,7 @@ public sealed class SvgEditorViewport
         OffsetY = y;
         Width = width;
         Height = height;
+        _hasInitializedSize |= width > 0 && height > 0;
         Changed?.Invoke(this, EventArgs.Empty);
     }
 

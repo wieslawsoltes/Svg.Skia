@@ -69,6 +69,106 @@ public class SvgEditorViewportTests
         Assert.Equal(center, viewport.ViewToWorld(new SKPoint(700, 450)));
     }
 
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(0, 450)]
+    [InlineData(900, 0)]
+    public void ZeroSizedLayoutAndRestorePreserveTheCamera(double width, double height)
+    {
+        var viewport = new SvgEditorViewport();
+        viewport.Resize(1000, 800);
+        viewport.Pan(125.375, -98.25);
+        viewport.ZoomAt(0.7516666666666667, new SKPoint(413.5f, 207.25f));
+        var offsetX = viewport.OffsetX;
+        var offsetY = viewport.OffsetY;
+        var zoom = viewport.Zoom;
+        var center = WorldCenter(viewport);
+
+        viewport.Resize(width, height);
+
+        Assert.Equal(width, viewport.Width);
+        Assert.Equal(height, viewport.Height);
+        AssertWorldCenter(center, viewport);
+        viewport.Resize(1000, 800);
+
+        AssertWorldCenter(center, viewport);
+        Assert.Equal(offsetX, viewport.OffsetX, 10);
+        Assert.Equal(offsetY, viewport.OffsetY, 10);
+        Assert.Equal(zoom, viewport.Zoom);
+    }
+
+    [Fact]
+    public void RepeatedZeroAxisLayoutsPreserveTheCurrentPannedAndZoomedCenter()
+    {
+        var viewport = new SvgEditorViewport();
+        viewport.Resize(1000, 800);
+        viewport.Fit(new SKRect(0, 0, 1200, 800));
+        var center = WorldCenter(viewport);
+        var sizes = new (double Width, double Height)[]
+        {
+            (0, 300), (200, 0), (0, 0), (0, 450), (390, 0), (390, 692), (1000, 800)
+        };
+        for (var cycle = 0; cycle < 100; cycle++)
+        {
+            viewport.Resize(0, 0);
+            viewport.Pan(17.25, -23.5);
+            center = (center.X - 17.25 / viewport.Zoom, center.Y + 23.5 / viewport.Zoom);
+            // The zero-sized viewport's center is the zoom anchor. Restoration
+            // must keep this edited camera, not a snapshot from before collapse.
+            viewport.ZoomAt(cycle % 2 == 0 ? 1.25 : 0.8, default);
+            foreach (var size in sizes)
+            {
+                viewport.Resize(size.Width, size.Height);
+                AssertWorldCenter(center, viewport);
+            }
+        }
+    }
+
+    [Fact]
+    public void FirstPositiveSizeDoesNotRecenterAnUninitializedViewport()
+    {
+        var viewport = new SvgEditorViewport();
+        viewport.Pan(42.5, -16.25);
+        viewport.ZoomAt(2, new SKPoint(75, 30));
+        var offsetX = viewport.OffsetX;
+        var offsetY = viewport.OffsetY;
+
+        viewport.Resize(0, 50);
+        viewport.Resize(80, 0);
+        viewport.Resize(0, 0);
+        viewport.Resize(800, 600);
+
+        Assert.Equal(offsetX, viewport.OffsetX);
+        Assert.Equal(offsetY, viewport.OffsetY);
+        var center = WorldCenter(viewport);
+        viewport.Resize(1000, 900);
+        AssertWorldCenter(center, viewport);
+    }
+
+    [Fact]
+    public void RejectedFirstSizeDoesNotInitializeCenterPreservation()
+    {
+        var viewport = new SvgEditorViewport();
+        viewport.SetZoomAt(SvgEditorViewport.MinimumZoom, default);
+        var changes = 0;
+        viewport.Changed += (_, _) => changes++;
+
+        viewport.Resize(double.NaN, 600);
+        viewport.Resize(800, double.PositiveInfinity);
+        viewport.Resize(-1, 600);
+        // Each dimension is finite, but its world extent exceeds float range.
+        viewport.Resize(float.MaxValue, 600);
+
+        Assert.Equal(0, changes);
+        Assert.Equal(0, viewport.Width);
+        Assert.Equal(0, viewport.Height);
+        viewport.Resize(800, 600);
+        Assert.Equal(1, changes);
+        Assert.Equal(0, viewport.OffsetX);
+        Assert.Equal(0, viewport.OffsetY);
+        Assert.Equal(SvgEditorViewport.MinimumZoom, viewport.Zoom);
+    }
+
     [Fact]
     public void InvalidCameraInputCannotPoisonTransform()
     {
@@ -106,5 +206,16 @@ public class SvgEditorViewportTests
         viewport.ZoomAt(1e-12, cursor);
         Assert.Equal(SvgEditorViewport.MinimumZoom, viewport.Zoom);
         Assert.Equal(world, viewport.ViewToWorld(cursor));
+    }
+
+    private static (double X, double Y) WorldCenter(SvgEditorViewport viewport)
+        => ((viewport.Width / 2 - viewport.OffsetX) / viewport.Zoom,
+            (viewport.Height / 2 - viewport.OffsetY) / viewport.Zoom);
+
+    private static void AssertWorldCenter((double X, double Y) expected, SvgEditorViewport viewport)
+    {
+        var actual = WorldCenter(viewport);
+        Assert.Equal(expected.X, actual.X, 9);
+        Assert.Equal(expected.Y, actual.Y, 9);
     }
 }
