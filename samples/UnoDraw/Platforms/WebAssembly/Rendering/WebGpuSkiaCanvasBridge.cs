@@ -11,17 +11,19 @@ namespace UnoDraw.Rendering;
 
 /// <summary>
 /// Connects the editor's Skia painters to a retained WebGPU texture through Uno's
-/// public island extension. The adapter does not create an OpenGL context.
+/// public island extension. An opt-in document renderer can use an app-owned
+/// WebGL2 context; persistent CPU upload remains the default and its fallback.
 /// </summary>
 internal static class WebGpuSkiaCanvasBridge
 {
     private static int s_reportedInitialization;
+    private static int s_reportedWebGlInitialization;
 
     internal static void Register()
     {
-        var legacy = WebAssemblyRuntime.InvokeJS(
-            "new URLSearchParams(globalThis.location.search).get('canvasBridge') === 'legacy'") == "true";
-        if (legacy)
+        var preference = WebAssemblyRuntime.InvokeJS(
+            "new URLSearchParams(globalThis.location.search).get('canvasBridge') || ''");
+        if (preference == "legacy")
         {
             Console.WriteLine("UnoDraw canvas bridge preference: legacy raster texture upload.");
             return;
@@ -31,15 +33,24 @@ internal static class WebGpuSkiaCanvasBridge
         // It suppresses the parent's software upload while an island is present.
         // The original renderer is used only to request Uno's supported fallback;
         // its GL-specific Init/Render/Destroy methods are never called.
+        var preferWebGl = preference == "webgl";
         ApiExtensibility.Register<IGLIslandRenderer>(typeof(IGLIsland),
-            renderer => new RasterCanvasIsland(renderer));
-        Console.WriteLine("UnoDraw canvas bridge preference: persistent RGBA upload.");
+            renderer => new RasterCanvasIsland(renderer, preferWebGl));
+        Console.WriteLine(preferWebGl
+            ? "UnoDraw canvas bridge preference: WebGL document rasterization."
+            : "UnoDraw canvas bridge preference: persistent RGBA upload.");
     }
 
     internal static void ReportInitialization()
     {
         if (Interlocked.Exchange(ref s_reportedInitialization, 1) == 0)
             Console.WriteLine("UnoDraw canvas bridge initialized: persistent RGBA upload.");
+    }
+
+    internal static void ReportWebGlInitialization()
+    {
+        if (Interlocked.Exchange(ref s_reportedWebGlInitialization, 1) == 0)
+            Console.WriteLine("UnoDraw canvas bridge initialized: WebGL document rasterization.");
     }
 
     private sealed class RasterCanvasIsland : Grid, IGLIsland
@@ -52,10 +63,10 @@ internal static class WebGpuSkiaCanvasBridge
         private XamlRoot? _observedRoot;
         private bool _failed;
 
-        public RasterCanvasIsland(IGLIslandRenderer fallback)
+        public RasterCanvasIsland(IGLIslandRenderer fallback, bool preferWebGl)
         {
             _fallback = fallback;
-            _canvas = new WebGpuRasterCanvas(RequestFallback);
+            _canvas = new WebGpuRasterCanvas(RequestFallback, preferWebGl);
             IsHitTestVisible = false;
             Clip = _clip;
 
@@ -94,7 +105,7 @@ internal static class WebGpuSkiaCanvasBridge
         {
             ObserveRoot(null);
             StopObservingTransforms();
-            _canvas.ReleaseCpuSurface();
+            _canvas.ReleaseSurfaces();
             _canvas.Renderer = null;
         }
 
@@ -139,7 +150,7 @@ internal static class WebGpuSkiaCanvasBridge
                 // with the compositor's retained-frame lifetime rules. No zero-
                 // sized texture or GL framebuffer is created or destroyed here.
                 _viewport.Children.Remove(_canvas);
-                _canvas.ReleaseCpuSurface();
+                _canvas.ReleaseSurfaces();
                 return;
             }
 

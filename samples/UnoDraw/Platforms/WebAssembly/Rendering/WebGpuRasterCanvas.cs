@@ -16,15 +16,19 @@ namespace UnoDraw.Rendering;
 internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
 {
     private readonly Action<string?> _fallback;
+    private readonly bool _preferWebGl;
     private readonly ScaleTransform _displayScale = new();
     private CanvasPixelSize _pixels;
     private SkiaCanvasUploadBuffer? _buffer;
+    private WebGlSkiaCanvas? _webGlCanvas;
+    private bool _webGlUnavailable;
     private uint _maximumTextureSize;
     private IDisposable? _deviceLifetime;
 
-    internal WebGpuRasterCanvas(Action<string?> fallback)
+    internal WebGpuRasterCanvas(Action<string?> fallback, bool preferWebGl)
     {
         _fallback = fallback;
+        _preferWebGl = preferWebGl;
         IsHitTestVisible = false;
         HorizontalAlignment = HorizontalAlignment.Left;
         VerticalAlignment = VerticalAlignment.Top;
@@ -95,7 +99,7 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
     {
         _deviceLifetime?.Dispose();
         _deviceLifetime = null;
-        ReleaseCpuSurface();
+        ReleaseSurfaces();
         _maximumTextureSize = 0;
     }
 
@@ -112,9 +116,26 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
         if (context.PixelWidth != _pixels.Width || context.PixelHeight != _pixels.Height)
             throw new InvalidOperationException("The WebGPU target does not match the canvas's device-pixel size.");
 
+        // The measured bottleneck is the document raster. Small auxiliary and
+        // retained interaction surfaces keep their existing CPU/pixel path.
+        if (_preferWebGl && !_webGlUnavailable && renderer is SvgEditorCanvas)
+        {
+            try
+            {
+                _webGlCanvas ??= new WebGlSkiaCanvas(OnWebGlUnavailable);
+                _webGlCanvas.Render(context, _pixels, renderer);
+                return;
+            }
+            catch (Exception error)
+            {
+                OnWebGlUnavailable(error.Message);
+                // Repaint this same target through the reliable CPU path now.
+            }
+        }
+
         if (_buffer is null || _buffer.Width != context.PixelWidth || _buffer.Height != context.PixelHeight)
         {
-            ReleaseCpuSurface();
+            _buffer?.Dispose();
             _buffer = new SkiaCanvasUploadBuffer(context.PixelWidth, context.PixelHeight);
         }
 
@@ -156,8 +177,34 @@ internal sealed unsafe class WebGpuRasterCanvas : WebGpuCanvasElement
         WebGpuSkiaCanvasBridge.ReportInitialization();
     }
 
-    internal void ReleaseCpuSurface()
+    private void OnWebGlUnavailable(string reason)
     {
+        if (_webGlUnavailable)
+            return;
+        _webGlUnavailable = true;
+        Console.WriteLine($"UnoDraw WebGL canvas fallback: {reason}.");
+        var canvas = _webGlCanvas;
+        _webGlCanvas = null;
+        try
+        {
+            canvas?.Dispose();
+        }
+        catch (Exception error)
+        {
+            // A lost browser context may also reject its teardown. It must not
+            // prevent the same-frame CPU repaint or an asynchronous fallback.
+            Console.WriteLine($"UnoDraw WebGL canvas fallback cleanup: {error.Message}.");
+        }
+        finally
+        {
+            Invalidate();
+        }
+    }
+
+    internal void ReleaseSurfaces()
+    {
+        _webGlCanvas?.Dispose();
+        _webGlCanvas = null;
         _buffer?.Dispose();
         _buffer = null;
     }
