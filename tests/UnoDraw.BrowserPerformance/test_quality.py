@@ -3,12 +3,49 @@ from __future__ import annotations
 import copy
 import tempfile
 import unittest
+from itertools import product
 from pathlib import Path
 
 from PIL import Image, ImageDraw
 
 from quality import (LEGACY_PREFERENCE, PERSISTENT_INITIALIZED, assert_native_size, compare_bridge_states,
-                     matrix_failures, raw_comparison, verify_bridge)
+                     is_welcome_green, matrix_failures, raw_comparison, verify_bridge)
+
+
+class WelcomeReadinessTests(unittest.TestCase):
+    # Welcome artwork colors, followed by their documented viewport-tinted colors.
+    PALETTE = ((111, 157, 145), (66, 125, 115), (167, 195, 187),
+               (115, 161, 156), (75, 132, 129), (165, 195, 193))
+
+    def test_artwork_and_viewport_tinted_palette_are_recognized(self) -> None:
+        for pixel in self.PALETTE:
+            with self.subTest(pixel=pixel):
+                self.assertTrue(is_welcome_green(pixel))
+
+    def test_rounding_tolerance_includes_two_levels_in_each_channel(self) -> None:
+        for color in self.PALETTE:
+            for offsets in product(range(-2, 3), repeat=3):
+                pixel = tuple(channel + offset for channel, offset in zip(color, offsets))
+                with self.subTest(color=color, offsets=offsets):
+                    self.assertTrue(is_welcome_green(pixel))
+
+    def test_three_level_error_in_any_channel_is_rejected(self) -> None:
+        for color in self.PALETTE:
+            for channel in range(3):
+                for offset in (-3, 3):
+                    pixel = tuple(value + (offset if index == channel else 0)
+                                  for index, value in enumerate(color))
+                    with self.subTest(color=color, channel=channel, offset=offset):
+                        self.assertFalse(is_welcome_green(pixel))
+
+    def test_blank_chrome_and_unrelated_greens_cannot_prove_readiness(self) -> None:
+        rejected = ((0, 0, 0), (255, 255, 255), (41, 41, 41), (128, 128, 128),
+                    (190, 190, 190), (148, 191, 242), (131, 176, 255), (54, 106, 204),
+                    (0, 255, 0), (0, 128, 0), (64, 200, 80), (70, 160, 90),
+                    (170, 210, 100), (140, 180, 175), (111, 195, 193))
+        for pixel in rejected:
+            with self.subTest(pixel=pixel):
+                self.assertFalse(is_welcome_green(pixel))
 
 
 class QualityMatrixTests(unittest.TestCase):

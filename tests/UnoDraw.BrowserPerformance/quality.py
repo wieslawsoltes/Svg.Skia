@@ -17,6 +17,21 @@ STATE_NAMES = ("01-desktop", "02-actual-size", "03-refitted", "03b-brush-overlay
                "03c-selection-overlay", "04-navigator-visible", "05-navigator-hidden",
                "06-navigator-shown-again", "07-compact", "09-desktop-restored")
 
+# Welcome.svg's near hill, ground and distant hill, then the same fills under
+# the Navigator viewport's (148,191,242,28/255) overlay. The tinted near hill has
+# G-B == 5: a generic G>B+5 test rejects its actual interior and counts only a
+# few incidental edge pixels. Match this known fixture, allowing only tiny
+# channel-rounding differences; this does not change any native-image gate.
+_WELCOME_GREENS = ((111, 157, 145), (66, 125, 115), (167, 195, 187),
+                   (115, 161, 156), (75, 132, 129), (165, 195, 193))
+_WELCOME_GREEN_PIXELS = frozenset((red + dr, green + dg, blue + db)
+                                for red, green, blue in _WELCOME_GREENS
+                                for dr in range(-2, 3) for dg in range(-2, 3) for db in range(-2, 3))
+
+
+def is_welcome_green(pixel: tuple[int, int, int]) -> bool:
+    return pixel in _WELCOME_GREEN_PIXELS
+
 
 def compare_bridge_states(cases: dict[str, dict[str, Any]], dpr: float,
                           compare: Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]],

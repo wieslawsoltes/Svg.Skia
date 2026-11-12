@@ -20,7 +20,8 @@ from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork, as
                    assert_workspace_affordances, changed_pixels, record_backend, serve,
                    workspace_affordance_pixels)
 from performance import next_frame, screenshot_changed
-from quality import STATE_NAMES, assert_native_size, compare_bridge_states, matrix_failures, raw_comparison, verify_bridge
+from quality import (STATE_NAMES, assert_native_size, compare_bridge_states, is_welcome_green,
+                     matrix_failures, raw_comparison, verify_bridge)
 
 
 DESKTOP = {"width": 1440, "height": 960}
@@ -38,9 +39,10 @@ def navigator_artwork(path: Path) -> dict[str, int]:
     with Image.open(path) as image:
         region = image.convert("RGB").crop((1100, 120, 1410, 420))
         counts = {"indigo": 0, "green": 0, "peach": 0}
-        for red, green, blue in region.get_flattened_data():
+        for pixel in region.get_flattened_data():
+            red, green, blue = pixel
             counts["indigo"] += 40 <= red <= 170 and blue > red + 45 and blue > green + 45
-            counts["green"] += green > red + 20 and green > blue + 5
+            counts["green"] += is_welcome_green(pixel)
             counts["peach"] += red > 235 and 150 <= green <= 235 and 100 <= blue <= 190 and red > green + 15 and green > blue + 12
         return counts
 
