@@ -5,7 +5,6 @@ using SkiaSharp;
 using Svg.Editor.Skia;
 using Uno.WinUI.Graphics2DSK;
 using Windows.Foundation;
-using Rectangle = Microsoft.UI.Xaml.Shapes.Rectangle;
 
 namespace Svg.Editor.Skia.Uno;
 
@@ -22,7 +21,7 @@ public sealed class StudioRuler : SKCanvasElement, ISkiaCanvasRenderer, IDisposa
     private readonly SolidColorBrush _pointerFill = new();
     private readonly TranslateTransform _pointerTranslation = new();
     private readonly RectangleGeometry _pointerClip = new();
-    private readonly Rectangle _pointerMarker;
+    private readonly Border _pointerMarker;
     private Orientation _orientation;
     private double _origin;
     private double _scale = 1;
@@ -33,11 +32,15 @@ public sealed class StudioRuler : SKCanvasElement, ISkiaCanvasRenderer, IDisposa
     {
         // Uno 7 uses a border visual; a brush supplies its hit-test geometry.
         Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
-        // Retain the ticks and labels while moving only a native composition
-        // shape. Pointer motion must not rasterize/upload the whole ruler.
-        _pointerMarker = new Rectangle
+        // Border's solid background uses the compositor's analytic rectangle.
+        // A Shape rectangle takes Uno's WebGPU path atlas, which snaps small
+        // fills to quarter-pixel phases and shifts this thin marker at 125% DPI.
+        // Retain the ticks and labels while moving this exact, unscaled strip.
+        _pointerMarker = new Border
         {
-            Fill = _pointerFill,
+            Background = _pointerFill,
+            BorderThickness = new Thickness(0),
+            CornerRadius = new CornerRadius(0),
             RenderTransform = _pointerTranslation,
             IsHitTestVisible = false,
             UseLayoutRounding = false,
@@ -174,8 +177,8 @@ public sealed class StudioRuler : SKCanvasElement, ISkiaCanvasRenderer, IDisposa
             _pointerMarker.Width = markerWidth;
         if (_pointerMarker.Height != markerHeight)
             _pointerMarker.Height = markerHeight;
-        // A one-unit filled rectangle has the same footprint as the previous
-        // centered one-unit Skia stroke, including fractional pointer positions.
+        // Keep the original centered one-unit stroke's bounds; its fractional
+        // position must reach analytic coverage without a path-atlas phase snap.
         _pointerTranslation.X = horizontal ? pointer - 0.5 : 0;
         _pointerTranslation.Y = horizontal ? 0 : pointer - 0.5;
         _pointerMarker.Visibility = Visibility.Visible;
