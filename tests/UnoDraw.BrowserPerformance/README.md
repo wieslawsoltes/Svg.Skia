@@ -188,6 +188,15 @@ screenshots serve semantic/readiness checks only; they are never used to establi
 the quantitative high-DPI A/B result. Unit checks explicitly reject both smaller
 screenshots and same-size images that lost detail through downsampling.
 
+An additional `bridge-quality-interpreter` job starts as soon as the candidate
+ref is selected, without waiting for AOT compilation. It publishes a separate
+Release **Interpreter** package using the same pinned SDK/workload set, then
+runs the identical bridge-quality script and pixel tolerances. Its manifest and
+report explicitly record `execution_mode: Interpreter`; only its correctness
+reports and screenshots are uploaded. This early feedback is separate from both
+the final AOT quality gate and AOT performance measurements. Interpreter packages
+cannot pass the performance harness's execution-mode validation.
+
 CI uses the same pinned Playwright Chromium and SwiftShader switches as the
 correctness matrix. These exercise WebGPU and WebGL APIs through software GPU
 implementations. They measure software graphics and application CPU behavior,

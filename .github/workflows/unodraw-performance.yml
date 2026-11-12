@@ -43,6 +43,7 @@ jobs:
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       repeats: ${{ steps.plan.outputs.repeats }}
+      candidate_ref: ${{ steps.plan.outputs.candidate_ref }}
     steps:
       - id: plan
         env:
@@ -69,6 +70,7 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
               output.write('matrix=' + json.dumps({'include': builds}, separators=(',', ':')) + '\n')
               output.write(f'repeats={repeats}\n')
+              output.write(f'candidate_ref={candidate}\n')
           PY
 
   publish:
@@ -138,6 +140,65 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
+
+  bridge-quality-interpreter:
+    name: Early WebGPU bridge quality (Interpreter)
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.candidate_ref }}
+          submodules: recursive
+          path: source
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+      - name: Pin the same candidate SDK and workload set
+        run: python harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source source --pin
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: source/global.json
+      - name: Install the pinned WebAssembly tools
+        working-directory: source
+        run: dotnet workload install wasm-tools
+      - name: Verify exact toolchain selection
+        run: python harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source source
+      - name: Publish a separate interpreter package for early correctness only
+        working-directory: source
+        env:
+          BINARYEN_CORES: '1'
+        run: >-
+          dotnet publish samples/UnoDraw/UnoDraw.csproj
+          -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm
+          -c Release -p:WasmShellMonoRuntimeExecutionMode=Interpreter
+          -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false
+          -o ../artifacts/interpreter-package
+      - name: Record the actual interpreter execution mode
+        run: >-
+          python harness/tests/UnoDraw.BrowserPerformance/package_manifest.py
+          --source source --package artifacts/interpreter-package --role candidate
+          --execution-mode Interpreter
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install the same pinned correctness-test browser
+        run: |
+          python -m pip install -r harness/tests/UnoDraw.BrowserSmoke/requirements.txt
+          python -m playwright install --with-deps chromium
+          python -m unittest discover -s harness/tests/UnoDraw.BrowserPerformance -p 'test_*.py'
+      - name: Run unchanged native-pixel bridge checks without timing claims
+        run: >-
+          python harness/tests/UnoDraw.BrowserPerformance/bridge_quality.py
+          --package artifacts/interpreter-package --output artifacts/unodraw-bridge-interpreter-quality
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-bridge-interpreter-quality
+          path: artifacts/unodraw-bridge-interpreter-quality
+          if-no-files-found: warn
+          retention-days: 14
 
   compare:
     name: Compare real input workloads on one runner

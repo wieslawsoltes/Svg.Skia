@@ -20,6 +20,8 @@ def main() -> None:
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--package", type=Path, required=True)
     parser.add_argument("--role", choices=("reference", "baseline", "candidate"), required=True)
+    parser.add_argument("--execution-mode", choices=("InterpreterAndAOT", "Interpreter"),
+                        default="InterpreterAndAOT", help="The execution mode used by this package's publish command")
     args = parser.parse_args()
     source, package = args.source.resolve(), args.package.resolve()
     if not (package / "wwwroot/index.html").is_file():
@@ -36,7 +38,7 @@ def main() -> None:
         "dotnet_workload_info": subprocess.check_output(["dotnet", "workload", "--info"], cwd=source, text=True).strip(),
         "uno_sdk": uno_sdk,
         "runtime_generation": "uno6" if uno_sdk.startswith("6.") else "uno7",
-        "configuration": "Release", "execution_mode": "InterpreterAndAOT",
+        "configuration": "Release", "execution_mode": args.execution_mode,
         "fixture": "samples/UnoDraw/Assets/Welcome.svg",
         "fixture_sha256": digest(source / "samples/UnoDraw/Assets/Welcome.svg"),
         "index_sha256": digest(package / "wwwroot/index.html"),
