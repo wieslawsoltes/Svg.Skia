@@ -1,0 +1,181 @@
+name: UnoDraw performance
+
+on:
+  workflow_dispatch:
+    inputs:
+      baseline_ref:
+        description: Current regression baseline
+        default: 96e5fa9d84b694e34a626b8867f2466fc231b6a7
+      candidate_ref:
+        description: Candidate ref (empty uses this workflow's commit)
+        default: ''
+      reference_ref:
+        description: Pre-Uno-7 reference (empty skips the historical build)
+        default: dbe9dd165f7eb63c1c6c9e6dac11091728062824
+      repeats:
+        description: Independent trials per workload and renderer
+        default: '3'
+  pull_request:
+    paths:
+      - '.github/workflows/unodraw-performance.yml'
+      - 'global.json'
+      - 'Directory.*.props'
+      - 'samples/UnoDraw/**'
+      - 'src/Svg.Editor.Core/**'
+      - 'src/Svg.Editor.Skia/**'
+      - 'src/Svg.Editor.Skia.Uno/**'
+      - 'src/Svg.Editor.Svg/**'
+      - 'src/Svg.Skia/**'
+      - 'tests/UnoDraw.BrowserPerformance/**'
+      - 'tests/UnoDraw.BrowserSmoke/**'
+
+permissions:
+  contents: read
+
+# A newer candidate must not discard an expensive baseline already in flight.
+concurrency:
+  group: unodraw-performance-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      repeats: ${{ steps.plan.outputs.repeats }}
+    steps:
+      - id: plan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASELINE_REF: ${{ inputs.baseline_ref }}
+          CANDIDATE_REF: ${{ inputs.candidate_ref }}
+          REFERENCE_REF: ${{ inputs.reference_ref }}
+          CURRENT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REPEATS: ${{ inputs.repeats }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          baseline = os.environ['BASELINE_REF'] or '96e5fa9d84b694e34a626b8867f2466fc231b6a7'
+          candidate = os.environ['CANDIDATE_REF'] or os.environ['CURRENT_SHA']
+          reference = (os.environ['REFERENCE_REF'] if os.environ['EVENT_NAME'] == 'workflow_dispatch'
+                       else 'dbe9dd165f7eb63c1c6c9e6dac11091728062824')
+          repeats = int(os.environ['REPEATS'] or '3')
+          if not 2 <= repeats <= 20:
+              raise ValueError('Use 2–20 independent trials')
+          builds = [{'role': 'baseline', 'ref': baseline}, {'role': 'candidate', 'ref': candidate}]
+          if reference:
+              builds.append({'role': 'reference', 'ref': reference})
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              output.write('matrix=' + json.dumps({'include': builds}, separators=(',', ':')) + '\n')
+              output.write(f'repeats={repeats}\n')
+          PY
+
+  publish:
+    name: AOT package (${{ matrix.role }})
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.ref }}
+          submodules: recursive
+          path: source
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: source/global.json
+      - name: Install the matching WebAssembly tools
+        working-directory: source
+        run: dotnet workload install wasm-tools --skip-manifest-update
+      - id: identity
+        name: Resolve exact source and toolchain
+        working-directory: source
+        run: |
+          python - <<'PY'
+          import os
+          import subprocess
+          values = {'sha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+                    'sdk': subprocess.check_output(['dotnet', '--version'], text=True).strip(),
+                    'workload': subprocess.check_output(['dotnet', 'workload', '--version'], text=True).strip()}
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              for name, value in values.items():
+                  output.write(f'{name}={value}\n')
+          PY
+      - uses: actions/cache@v4
+        id: published
+        with:
+          path: artifacts/package
+          # Exact source, SDK, workload and build flags; never reuse an interpreter build.
+          key: unodraw-aot-ubuntu24-${{ runner.arch }}-${{ steps.identity.outputs.sha }}-${{ steps.identity.outputs.sdk }}-${{ steps.identity.outputs.workload }}-release-copy-nothreads-v1
+      - name: Publish unchanged Release InterpreterAndAOT settings
+        if: steps.published.outputs.cache-hit != 'true'
+        working-directory: source
+        env:
+          BINARYEN_CORES: '1'
+        run: >-
+          dotnet publish samples/UnoDraw/UnoDraw.csproj
+          -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm
+          -c Release -p:WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT
+          -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false
+          -o ../artifacts/package
+      - name: Record source, fixture and packaged fonts
+        run: >-
+          python harness/tests/UnoDraw.BrowserPerformance/package_manifest.py
+          --source source --package artifacts/package --role ${{ matrix.role }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unodraw-performance-package-${{ matrix.role }}
+          path: artifacts/package
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  compare:
+    name: Compare real input workloads on one runner
+    needs: [plan, publish]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: unodraw-performance-package-*
+          path: artifacts/performance-packages
+      - name: Install pinned correctness-test browser dependencies
+        run: |
+          python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Check observer and aggregation contracts
+        run: |
+          python -m unittest discover -s tests/UnoDraw.BrowserPerformance -p 'test_*.py'
+          node --test tests/UnoDraw.BrowserPerformance/test_instrumentation.mjs
+      - name: Benchmark unmodified artifacts with rotating trial order
+        run: >-
+          python tests/UnoDraw.BrowserPerformance/performance.py
+          --packages artifacts/performance-packages
+          --output artifacts/unodraw-performance
+          --repeats ${{ needs.plan.outputs.repeats }} --steps 120 --graphics swiftshader
+      - name: Publish measurement summary
+        if: always()
+        run: |
+          if test -f artifacts/unodraw-performance/summary.md; then
+            cat artifacts/unodraw-performance/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-performance-results
+          path: artifacts/unodraw-performance
+          if-no-files-found: warn
+          retention-days: 14
