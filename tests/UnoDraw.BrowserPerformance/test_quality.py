@@ -8,7 +8,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from quality import (LEGACY_PREFERENCE, PERSISTENT_INITIALIZED, assert_native_size, compare_bridge_states,
+from quality import (LEGACY_PREFERENCE, PERSISTENT_INITIALIZED, WEBGL_INITIALIZED, WEBGL_PREFERENCE,
+                     assert_native_size, bridge_query, compare_bridge_states,
                      is_welcome_green, matrix_failures, raw_comparison, verify_bridge)
 
 
@@ -49,6 +50,26 @@ class WelcomeReadinessTests(unittest.TestCase):
 
 
 class QualityMatrixTests(unittest.TestCase):
+    def test_webgl_requires_its_own_complete_matrix(self) -> None:
+        dprs, states = (1, 1.25, 2), ("desktop", "restored")
+        cases = [{"bridge": bridge, "dpr": dpr, "passed": True,
+                  "states": [{"name": name} for name in states]}
+                 for bridge in ("legacy", "webgl") for dpr in dprs]
+        rows = [{"device_pixel_ratio": dpr, "state": name, "passed": True}
+                for dpr in dprs for name in states]
+        self.assertEqual(matrix_failures(cases, rows, dprs, states, candidate_bridge="webgl"), [])
+        self.assertTrue(matrix_failures(cases, rows, dprs, states))
+        paired = {case["bridge"]: case for case in cases if case["dpr"] == 1.25}
+        comparisons = compare_bridge_states(paired, 1.25, lambda first, second: {}, states,
+                                             candidate_bridge="webgl")
+        self.assertTrue(all(row["passed"] for row in comparisons))
+        paired["webgl"]["states"].pop()
+        comparisons = compare_bridge_states(paired, 1.25, lambda first, second: {}, states,
+                                             candidate_bridge="webgl")
+        self.assertEqual(comparisons[-1]["missing_bridges"], ["webgl"])
+        with self.assertRaises(ValueError):
+            matrix_failures(cases, rows, dprs, states, candidate_bridge="legacy")
+
     def test_failed_state_does_not_hide_later_comparisons_or_missing_states(self) -> None:
         names = ("first", "different", "later", "missing")
         cases = {bridge: {"states": [{"name": name} for name in names[:-1]]}
@@ -95,6 +116,25 @@ class QualityMatrixTests(unittest.TestCase):
 
 
 class BridgeEvidenceTests(unittest.TestCase):
+    def test_webgl_requires_actual_success_and_rejects_every_late_fallback(self) -> None:
+        evidence = [{"text": WEBGL_PREFERENCE}, {"text": WEBGL_INITIALIZED},
+                    {"text": PERSISTENT_INITIALIZED}]
+        verify_bridge(evidence, "webgl")
+        for change in (evidence[:1], evidence[1:], evidence + [{"text": LEGACY_PREFERENCE}],
+                       evidence + [{"text": "UnoDraw WebGL canvas fallback: context lost."}],
+                       evidence + [{"text": "UnoDraw canvas bridge fallback: device lost."}]):
+            with self.subTest(evidence=change), self.assertRaises(AssertionError):
+                verify_bridge(change, "webgl")
+        for bridge in ("persistent", "legacy"):
+            with self.subTest(bridge=bridge), self.assertRaises(AssertionError):
+                verify_bridge(evidence + [{"text": LEGACY_PREFERENCE}], bridge)
+
+    def test_bridge_queries_select_each_path_explicitly(self) -> None:
+        for bridge in ("legacy", "persistent", "webgl"):
+            self.assertEqual(bridge_query(bridge), "canvasBridge=" + bridge)
+        with self.assertRaises(ValueError):
+            bridge_query("unknown")
+
     def test_available_provider_does_not_prove_bridge_initialization(self) -> None:
         with self.assertRaisesRegex(AssertionError, "successful RGBA"):
             verify_bridge([{"text": "WebGpuGraphicsProvider"}], "persistent")

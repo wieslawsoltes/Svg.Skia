@@ -22,6 +22,7 @@ from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork,  #
                    chrome_font_changes, record_backend, ruler_frame_changes, serve,
                    wait_for_artwork_transition)
 from metrics import comparisons, summarize, validate_packages, verify_hover_isolation  # noqa: E402
+from quality import bridge_query  # noqa: E402
 from workload_plan import (BACKENDS, WORKLOADS, diagnostic_plan, primary_plan,  # noqa: E402
                            require_run_coverage)
 
@@ -291,12 +292,17 @@ def verify_workload(page: Page, workload: str, operations: int, before: Path,
 
 
 def run_trial(browser: Any, url: str, package: dict[str, Any], backend: str, workload: str,
-              trial: int, args: Any, output: Path, *, diagnostics: bool = False) -> dict[str, Any]:
+              trial: int, args: Any, output: Path, *, diagnostics: bool = False,
+              canvas_bridge: str | None = None) -> dict[str, Any]:
+    if canvas_bridge is not None and (backend != "webgpu" or package["runtime_generation"] != "uno7"):
+        raise ValueError("Explicit canvas bridges require the Uno 7 WebGPU compositor")
     output.mkdir(parents=True, exist_ok=True)
     result: dict[str, Any] = {"role": package["role"], "source_sha": package["source_sha"],
                               "backend": backend, "workload": workload, "trial": trial,
                               "diagnostic_pass": diagnostics,
                               "passed": False, "console": [], "page_errors": [], "resource_errors": []}
+    if canvas_bridge is not None:
+        result["canvas_bridge"] = canvas_bridge
     context = browser.new_context(viewport=VIEWPORT, device_scale_factor=1, locale="en-US",
                                   timezone_id="UTC", color_scheme="dark", reduced_motion="no-preference")
     context.add_init_script(path=str(Path(__file__).with_name("instrumentation.js")))
@@ -311,6 +317,8 @@ def run_trial(browser: Any, url: str, package: dict[str, Any], backend: str, wor
         {"url": request.url, "failure": request.failure}) if request.failure != "net::ERR_ABORTED" else None)
     try:
         query = renderer_query(backend) if package["runtime_generation"] == "uno7" else ""
+        if canvas_bridge is not None:
+            query += ("&" if query else "?") + bridge_query(canvas_bridge)
         if diagnostics:
             query += ("&" if query else "?") + "renderDiagnostics=1&perfDiagnostics=1"
         page.goto(url + query, wait_until="domcontentloaded", timeout=120_000)

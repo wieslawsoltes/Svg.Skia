@@ -20,7 +20,7 @@ from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork, as
                    assert_workspace_affordances, changed_pixels, record_backend, serve,
                    workspace_affordance_pixels)
 from performance import next_frame, screenshot_changed
-from quality import (STATE_NAMES, assert_native_size, compare_bridge_states, is_welcome_green,
+from quality import (STATE_NAMES, assert_native_size, bridge_query, compare_bridge_states, is_welcome_green,
                      matrix_failures, raw_comparison, verify_bridge)
 
 
@@ -137,7 +137,7 @@ def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path) -> d
     page.on("requestfailed", lambda request: report["resource_errors"].append(
         {"url": request.url, "failure": request.failure}) if request.failure != "net::ERR_ABORTED" else None)
     try:
-        page.goto(url + ("?canvasBridge=legacy" if bridge == "legacy" else ""),
+        page.goto(url + "?" + bridge_query(bridge),
                   wait_until="domcontentloaded", timeout=120_000)
         page.wait_for_function(READY, timeout=120_000)
         report["actual_device_pixel_ratio"] = page.evaluate("devicePixelRatio")
@@ -213,6 +213,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--package", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--candidate-bridge", choices=("persistent", "webgl"), default="persistent",
+                        help="Compare the selected implementation with the same package's legacy raster bridge")
     args = parser.parse_args()
     package, output = args.package.resolve(), args.output.resolve()
     if not (package / "wwwroot/index.html").is_file():
@@ -223,7 +225,7 @@ def main() -> int:
     report: dict[str, Any] = {"passed": False, "graphics": "SwiftShader WebGPU API correctness; not hardware performance",
                               "started_unix": time.time(), "cases": [], "comparisons": [],
                               "expected_case_count": len(DPRS) * 2, "expected_states": list(STATE_NAMES),
-                              "failures": [],
+                              "failures": [], "candidate_bridge": args.candidate_bridge,
                               "package": json.loads((package / "benchmark-package.json").read_text(encoding="utf-8"))}
     try:
         with serve(package / "wwwroot") as url, sync_playwright() as playwright:
@@ -231,7 +233,7 @@ def main() -> int:
             report["browser_launch_arguments"] = arguments
             for dpr in DPRS:
                 cases = {}
-                for bridge in ("legacy", "persistent"):
+                for bridge in ("legacy", args.candidate_bridge):
                     directory = output / f"dpr-{dpr}" / bridge
                     directory.mkdir(parents=True, exist_ok=True)
                     browser = None
@@ -258,15 +260,16 @@ def main() -> int:
                     if any(expected[key] != state[key] for key in ("viewport", "dpr", "navigator")):
                         raise AssertionError("The two bridge states have different viewport/DPR/Navigator conditions")
                     return raw_comparison(output / f"dpr-{dpr}" / "legacy" / expected["raw"],
-                                          output / f"dpr-{dpr}" / "persistent" / state["raw"],
+                                          output / f"dpr-{dpr}" / args.candidate_bridge / state["raw"],
                                           state["viewport"], dpr, navigator=state["navigator"])
 
-                rows = compare_bridge_states(cases, dpr, compare)
+                rows = compare_bridge_states(cases, dpr, compare, candidate_bridge=args.candidate_bridge)
                 report["comparisons"].extend(rows)
                 for row in rows:
                     if not row["passed"]:
                         print(f"Bridge comparison DPR {dpr} {row['state']}: {row['failure']}", flush=True)
-        report["failures"] = matrix_failures(report["cases"], report["comparisons"], DPRS)
+        report["failures"] = matrix_failures(report["cases"], report["comparisons"], DPRS,
+                                               candidate_bridge=args.candidate_bridge)
         report["passed"] = not report["failures"]
         if report["failures"]:
             report["failure"] = f"{len(report['failures'])} case/state failures; first: {report['failures'][0]}"

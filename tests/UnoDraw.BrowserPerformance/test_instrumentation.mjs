@@ -27,7 +27,7 @@ function browser() {
         getParameter() { return "test renderer"; }
     }
     class GPUCanvasContext { getCurrentTexture() { return {}; } }
-    class GPUQueue { submit() {} writeTexture() {} }
+    class GPUQueue { submit() {} writeTexture() {} copyExternalImageToTexture() {} }
     class HTMLCanvasElement {
         constructor(connected = true, width = 1440, height = 960) {
             this.isConnected = connected;
@@ -205,4 +205,19 @@ test("upload byte counter reports supplied buffer size without inventing a trans
     assert.equal(sample.supplied_upload_buffer_bytes, 100);
     assert.equal(sample.upload_calls_without_buffer_size, 0);
     assert.equal(sample.known_upload_bytes, undefined);
+});
+
+test("external image copies count as transfer calls without proving presentation or bandwidth", () => {
+    const app = browser();
+    new app.Canvas().getContext("webgpu");
+    app.api.selectCanvas();
+    app.api.start("pan", ["pointermove"]);
+    app.input("pointermove");
+    new app.Queue().copyExternalImageToTexture({}, {}, { width: 100, height: 100 });
+    const sample = app.api.stop();
+    assert.equal(sample.calls["webgpu.copyExternalImageToTexture"], 1);
+    assert.equal(sample.webgpu_canvas_submit_ms.length, 0);
+    assert.equal(sample.completed_render_callback_ms.length, 0);
+    assert.equal(sample.inputs_without_later_graphics, 1);
+    assert.equal(sample.supplied_upload_buffer_bytes, 0);
 });

@@ -10,6 +10,9 @@ from PIL import Image, ImageChops
 
 PERSISTENT_INITIALIZED = "UnoDraw canvas bridge initialized: persistent RGBA upload."
 LEGACY_PREFERENCE = "UnoDraw canvas bridge preference: legacy raster texture upload."
+WEBGL_PREFERENCE = "UnoDraw canvas bridge preference: WebGL document rasterization."
+WEBGL_INITIALIZED = "UnoDraw canvas bridge initialized: WebGL document rasterization."
+WEBGL_FALLBACK_PREFIX = "UnoDraw WebGL canvas fallback:"
 FALLBACK_PREFIX = "UnoDraw canvas bridge fallback:"
 MAXIMUM_CHANGED_FRACTION = 0.001
 LUMINANCE_THRESHOLD = 12
@@ -35,19 +38,22 @@ def is_welcome_green(pixel: tuple[int, int, int]) -> bool:
 
 def compare_bridge_states(cases: dict[str, dict[str, Any]], dpr: float,
                           compare: Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]],
-                          state_names: tuple[str, ...] = STATE_NAMES) -> list[dict[str, Any]]:
+                          state_names: tuple[str, ...] = STATE_NAMES, *,
+                          candidate_bridge: str = "persistent") -> list[dict[str, Any]]:
     """Compare every completed pair; missing states remain explicit failures."""
+    if candidate_bridge not in {"persistent", "webgl"}:
+        raise ValueError("The candidate must use a distinct supported canvas bridge")
     states = {bridge: {state["name"]: state for state in case.get("states", [])}
               for bridge, case in cases.items()}
     rows = []
     for name in state_names:
         row: dict[str, Any] = {"state": name, "device_pixel_ratio": dpr, "passed": False}
-        missing = [bridge for bridge in ("legacy", "persistent") if name not in states.get(bridge, {})]
+        missing = [bridge for bridge in ("legacy", candidate_bridge) if name not in states.get(bridge, {})]
         if missing:
             row.update({"missing_bridges": missing, "failure": "State missing from " + ", ".join(missing)})
         else:
             try:
-                row.update(compare(states["legacy"][name], states["persistent"][name]))
+                row.update(compare(states["legacy"][name], states[candidate_bridge][name]))
                 row["passed"] = True
             except Exception as error:
                 row["failure"] = f"{type(error).__name__}: {error}"
@@ -56,10 +62,13 @@ def compare_bridge_states(cases: dict[str, dict[str, Any]], dpr: float,
 
 
 def matrix_failures(cases: list[dict[str, Any]], comparisons: list[dict[str, Any]],
-                    dprs: tuple[float, ...], state_names: tuple[str, ...] = STATE_NAMES) -> list[str]:
+                    dprs: tuple[float, ...], state_names: tuple[str, ...] = STATE_NAMES, *,
+                    candidate_bridge: str = "persistent") -> list[str]:
     """Continuation must never turn a failed or incomplete matrix into a pass."""
+    if candidate_bridge not in {"persistent", "webgl"}:
+        raise ValueError("The candidate must use a distinct supported canvas bridge")
     failures = []
-    expected_cases = {(bridge, dpr) for bridge in ("legacy", "persistent") for dpr in dprs}
+    expected_cases = {(bridge, dpr) for bridge in ("legacy", candidate_bridge) for dpr in dprs}
     actual_cases = {(case.get("bridge"), case.get("dpr")) for case in cases}
     if len(cases) != len(expected_cases) or actual_cases != expected_cases:
         failures.append("The required bridge/DPR matrix is incomplete or contains duplicate cases")
@@ -88,13 +97,28 @@ def verify_bridge(console: list[dict[str, Any]], bridge: str) -> None:
             raise AssertionError("The persistent bridge did not report a successful RGBA upload")
         if any(message.startswith(FALLBACK_PREFIX) for message in messages):
             raise AssertionError("The persistent bridge fell back during its quality comparison")
-        if LEGACY_PREFERENCE in messages:
-            raise AssertionError("The persistent case unexpectedly selected the legacy bridge")
+        if LEGACY_PREFERENCE in messages or WEBGL_PREFERENCE in messages or WEBGL_INITIALIZED in messages:
+            raise AssertionError("The persistent case unexpectedly selected another bridge")
     elif bridge == "legacy":
-        if LEGACY_PREFERENCE not in messages or PERSISTENT_INITIALIZED in messages:
+        if (LEGACY_PREFERENCE not in messages or PERSISTENT_INITIALIZED in messages
+                or WEBGL_PREFERENCE in messages or WEBGL_INITIALIZED in messages):
             raise AssertionError("The legacy case did not prove exclusive legacy bridge selection")
+    elif bridge == "webgl":
+        if WEBGL_PREFERENCE not in messages or WEBGL_INITIALIZED not in messages:
+            raise AssertionError("The WebGL document bridge did not prove selection and a successful copy")
+        if LEGACY_PREFERENCE in messages or any(message.startswith((FALLBACK_PREFIX, WEBGL_FALLBACK_PREFIX))
+                                                for message in messages):
+            raise AssertionError("The WebGL document bridge fell back during its comparison")
+        # Auxiliary ruler, Navigator and interaction surfaces intentionally keep
+        # the persistent CPU upload. Their initialization is not a document fallback.
     else:
         raise ValueError(f"Unknown canvas bridge: {bridge}")
+
+
+def bridge_query(bridge: str) -> str:
+    if bridge not in {"legacy", "persistent", "webgl"}:
+        raise ValueError(f"Unknown canvas bridge: {bridge}")
+    return "canvasBridge=" + bridge
 
 
 def assert_native_size(size: tuple[int, int], viewport: dict[str, int], dpr: float) -> None:

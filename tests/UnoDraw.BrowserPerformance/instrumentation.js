@@ -152,6 +152,13 @@
         if (typeof data?.byteLength === "number") sample.supplied_upload_buffer_bytes += data.byteLength;
         else sample.upload_calls_without_buffer_size++;
     });
+    wrapContext(globalThis.GPUQueue?.prototype, "copyExternalImageToTexture", () => {
+        if (!sample || target?.kind !== "webgpu") return;
+        const name = "webgpu.copyExternalImageToTexture";
+        sample.calls[name] = (sample.calls[name] || 0) + 1;
+        // An offscreen image copy is neither a visible-canvas submission nor a
+        // known byte transfer. Browsers can implement it with GPU copy or readback.
+    }, 3);
 
     for (const name of ["drawImage", "putImageData"]) {
         wrap(globalThis.CanvasRenderingContext2D?.prototype, name, context => {
