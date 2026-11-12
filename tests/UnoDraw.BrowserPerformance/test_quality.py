@@ -1,12 +1,60 @@
 from __future__ import annotations
 
+import copy
 import tempfile
 import unittest
 from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from quality import LEGACY_PREFERENCE, PERSISTENT_INITIALIZED, assert_native_size, raw_comparison, verify_bridge
+from quality import (LEGACY_PREFERENCE, PERSISTENT_INITIALIZED, assert_native_size, compare_bridge_states,
+                     matrix_failures, raw_comparison, verify_bridge)
+
+
+class QualityMatrixTests(unittest.TestCase):
+    def test_failed_state_does_not_hide_later_comparisons_or_missing_states(self) -> None:
+        names = ("first", "different", "later", "missing")
+        cases = {bridge: {"states": [{"name": name} for name in names[:-1]]}
+                 for bridge in ("legacy", "persistent")}
+        visited = []
+
+        def compare(before, after):
+            visited.append(before["name"])
+            if before["name"] == "different":
+                raise AssertionError("Original pixel threshold exceeded")
+            return {"pixels": "equal"}
+
+        rows = compare_bridge_states(cases, 1.25, compare, names)
+        self.assertEqual(visited, list(names[:-1]))
+        self.assertEqual([row["passed"] for row in rows], [True, False, True, False])
+        self.assertIn("threshold exceeded", rows[1]["failure"])
+        self.assertEqual(rows[-1]["missing_bridges"], ["legacy", "persistent"])
+
+    def test_only_a_complete_successful_six_case_matrix_can_pass(self) -> None:
+        dprs, states = (1, 1.25, 2), ("desktop", "restored")
+        cases = [{"bridge": bridge, "dpr": dpr, "passed": True,
+                  "states": [{"name": name} for name in states]}
+                 for bridge in ("legacy", "persistent") for dpr in dprs]
+        rows = [{"device_pixel_ratio": dpr, "state": name, "passed": True}
+                for dpr in dprs for name in states]
+        self.assertEqual(matrix_failures(cases, rows, dprs, states), [])
+        for defect in ("failed_case", "missing_case", "duplicate_case", "missing_state",
+                       "failed_comparison", "missing_comparison"):
+            changed_cases, changed_rows = copy.deepcopy(cases), copy.deepcopy(rows)
+            if defect == "failed_case":
+                changed_cases[0]["passed"] = False
+            elif defect == "missing_case":
+                changed_cases.pop()
+            elif defect == "duplicate_case":
+                changed_cases[-1] = copy.deepcopy(changed_cases[0])
+            elif defect == "missing_state":
+                changed_cases[0]["states"].pop()
+            elif defect == "failed_comparison":
+                changed_rows[0]["passed"] = False
+            else:
+                changed_rows.pop()
+            with self.subTest(defect=defect):
+                self.assertTrue(matrix_failures(changed_cases, changed_rows, dprs, states))
 
 
 class BridgeEvidenceTests(unittest.TestCase):

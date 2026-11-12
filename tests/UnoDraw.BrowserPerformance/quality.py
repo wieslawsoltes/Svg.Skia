@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from PIL import Image, ImageChops
 
@@ -13,6 +13,57 @@ LEGACY_PREFERENCE = "UnoDraw canvas bridge preference: legacy raster texture upl
 FALLBACK_PREFIX = "UnoDraw canvas bridge fallback:"
 MAXIMUM_CHANGED_FRACTION = 0.001
 LUMINANCE_THRESHOLD = 12
+STATE_NAMES = ("01-desktop", "02-actual-size", "03-refitted", "03b-brush-overlay",
+               "03c-selection-overlay", "04-navigator-visible", "05-navigator-hidden",
+               "06-navigator-shown-again", "07-compact", "09-desktop-restored")
+
+
+def compare_bridge_states(cases: dict[str, dict[str, Any]], dpr: float,
+                          compare: Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]],
+                          state_names: tuple[str, ...] = STATE_NAMES) -> list[dict[str, Any]]:
+    """Compare every completed pair; missing states remain explicit failures."""
+    states = {bridge: {state["name"]: state for state in case.get("states", [])}
+              for bridge, case in cases.items()}
+    rows = []
+    for name in state_names:
+        row: dict[str, Any] = {"state": name, "device_pixel_ratio": dpr, "passed": False}
+        missing = [bridge for bridge in ("legacy", "persistent") if name not in states.get(bridge, {})]
+        if missing:
+            row.update({"missing_bridges": missing, "failure": "State missing from " + ", ".join(missing)})
+        else:
+            try:
+                row.update(compare(states["legacy"][name], states["persistent"][name]))
+                row["passed"] = True
+            except Exception as error:
+                row["failure"] = f"{type(error).__name__}: {error}"
+        rows.append(row)
+    return rows
+
+
+def matrix_failures(cases: list[dict[str, Any]], comparisons: list[dict[str, Any]],
+                    dprs: tuple[float, ...], state_names: tuple[str, ...] = STATE_NAMES) -> list[str]:
+    """Continuation must never turn a failed or incomplete matrix into a pass."""
+    failures = []
+    expected_cases = {(bridge, dpr) for bridge in ("legacy", "persistent") for dpr in dprs}
+    actual_cases = {(case.get("bridge"), case.get("dpr")) for case in cases}
+    if len(cases) != len(expected_cases) or actual_cases != expected_cases:
+        failures.append("The required bridge/DPR matrix is incomplete or contains duplicate cases")
+    for case in cases:
+        label = f"{case.get('bridge')} DPR {case.get('dpr')}"
+        if not case.get("passed"):
+            failures.append(f"{label}: {case.get('failure', 'case did not pass')}")
+        names = [state["name"] for state in case.get("states", [])]
+        if len(names) != len(state_names) or set(names) != set(state_names):
+            failures.append(f"{label}: required states are missing or duplicated")
+    expected_rows = {(dpr, name) for dpr in dprs for name in state_names}
+    actual_rows = {(row.get("device_pixel_ratio"), row.get("state")) for row in comparisons}
+    if len(comparisons) != len(expected_rows) or actual_rows != expected_rows:
+        failures.append("The required per-state comparison matrix is incomplete or contains duplicates")
+    for row in comparisons:
+        if not row.get("passed"):
+            failures.append(f"DPR {row.get('device_pixel_ratio')} {row.get('state')}: "
+                            + row.get("failure", "comparison did not pass"))
+    return failures
 
 
 def verify_bridge(console: list[dict[str, Any]], bridge: str) -> None:

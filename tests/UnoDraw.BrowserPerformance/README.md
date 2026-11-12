@@ -187,6 +187,11 @@ Screenshots must have the native pixel dimensions expected for their DPR. CSS
 screenshots serve semantic/readiness checks only; they are never used to establish
 the quantitative high-DPI A/B result. Unit checks explicitly reject both smaller
 screenshots and same-size images that lost detail through downsampling.
+All six bridge/DPR cases run independently, including after an earlier failure.
+Every completed matching state is compared; missing states and pixel differences
+are recorded explicitly while later comparisons continue. The overall gate still
+requires every case, every required state and every comparison to pass. Partial
+artifacts provide diagnostic evidence and cannot produce a successful result.
 
 An additional `bridge-quality-interpreter` job starts as soon as the candidate
 ref is selected, without waiting for AOT compilation. It publishes a separate

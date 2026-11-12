@@ -20,7 +20,7 @@ from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork, as
                    assert_workspace_affordances, changed_pixels, record_backend, serve,
                    workspace_affordance_pixels)
 from performance import next_frame, screenshot_changed
-from quality import assert_native_size, raw_comparison, verify_bridge
+from quality import STATE_NAMES, assert_native_size, compare_bridge_states, matrix_failures, raw_comparison, verify_bridge
 
 
 DESKTOP = {"width": 1440, "height": 960}
@@ -220,37 +220,57 @@ def main() -> int:
     output.mkdir(parents=True, exist_ok=True)
     report: dict[str, Any] = {"passed": False, "graphics": "SwiftShader WebGPU API correctness; not hardware performance",
                               "started_unix": time.time(), "cases": [], "comparisons": [],
+                              "expected_case_count": len(DPRS) * 2, "expected_states": list(STATE_NAMES),
+                              "failures": [],
                               "package": json.loads((package / "benchmark-package.json").read_text(encoding="utf-8"))}
     try:
         with serve(package / "wwwroot") as url, sync_playwright() as playwright:
             arguments = launch_arguments("webgpu")
-            browser = playwright.chromium.launch(headless=True, args=arguments)
-            try:
-                report["browser_version"] = browser.version
-                report["browser_launch_arguments"] = arguments
-                for dpr in DPRS:
-                    cases = {}
-                    for bridge in ("legacy", "persistent"):
-                        directory = output / f"dpr-{dpr}" / bridge
+            report["browser_launch_arguments"] = arguments
+            for dpr in DPRS:
+                cases = {}
+                for bridge in ("legacy", "persistent"):
+                    directory = output / f"dpr-{dpr}" / bridge
+                    directory.mkdir(parents=True, exist_ok=True)
+                    browser = None
+                    try:
+                        # A browser/context failure in one case must not hide the
+                        # other independent bridge/DPR cases.
+                        browser = playwright.chromium.launch(headless=True, args=arguments)
+                        report["browser_version"] = browser.version
                         result = run_case(browser, url, bridge, dpr, directory)
-                        report["cases"].append(result)
-                        cases[bridge] = result
-                        print(f"Bridge {bridge} DPR {dpr}: " + ("passed" if result["passed"] else result["failure"]), flush=True)
-                        if not result["passed"]:
-                            raise AssertionError(result["failure"])
-                    legacy = {state["name"]: state for state in cases["legacy"]["states"]}
-                    for state in cases["persistent"]["states"]:
-                        expected = legacy[state["name"]]
-                        row = raw_comparison(output / f"dpr-{dpr}" / "legacy" / expected["raw"],
-                                             output / f"dpr-{dpr}" / "persistent" / state["raw"],
-                                             state["viewport"], dpr, navigator=state["navigator"])
-                        row["state"] = state["name"]
-                        report["comparisons"].append(row)
-            finally:
-                browser.close()
-        report["passed"] = True
+                        result["browser_version"] = browser.version
+                    except Exception as error:
+                        result = {"bridge": bridge, "dpr": dpr, "passed": False, "states": [],
+                                  "failure": f"{type(error).__name__}: {error}"}
+                    finally:
+                        if browser:
+                            with contextlib.suppress(Exception):
+                                browser.close()
+                    (directory / "report.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+                    report["cases"].append(result)
+                    cases[bridge] = result
+                    print(f"Bridge {bridge} DPR {dpr}: " + ("passed" if result["passed"] else result["failure"]), flush=True)
+
+                def compare(expected: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
+                    if any(expected[key] != state[key] for key in ("viewport", "dpr", "navigator")):
+                        raise AssertionError("The two bridge states have different viewport/DPR/Navigator conditions")
+                    return raw_comparison(output / f"dpr-{dpr}" / "legacy" / expected["raw"],
+                                          output / f"dpr-{dpr}" / "persistent" / state["raw"],
+                                          state["viewport"], dpr, navigator=state["navigator"])
+
+                rows = compare_bridge_states(cases, dpr, compare)
+                report["comparisons"].extend(rows)
+                for row in rows:
+                    if not row["passed"]:
+                        print(f"Bridge comparison DPR {dpr} {row['state']}: {row['failure']}", flush=True)
+        report["failures"] = matrix_failures(report["cases"], report["comparisons"], DPRS)
+        report["passed"] = not report["failures"]
+        if report["failures"]:
+            report["failure"] = f"{len(report['failures'])} case/state failures; first: {report['failures'][0]}"
     except Exception as error:
         report["failure"] = f"{type(error).__name__}: {error}"
+        report["failures"].append(report["failure"])
     finally:
         report["duration_seconds"] = time.time() - report["started_unix"]
         (output / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
