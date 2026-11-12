@@ -60,7 +60,8 @@ def source_hashes() -> dict[str, str]:
     files += sorted((directory / "fixtures/svg-bridge").iterdir())
     files += [root / "tests/Svg.Editor.Skia.UnitTests/RgbaCanvasEquivalenceTests.cs"]
     files += [root / "tests/UnoDraw.BrowserPerformance" / name
-              for name in ("instrumentation.js", "bridge_quality.py", "performance.py", "quality.py")]
+              for name in ("instrumentation.js", "bridge_quality.py", "performance.py", "quality.py",
+                           "selection_readiness.py")]
     return {str(path.relative_to(root)): digest(path) for path in files}
 
 

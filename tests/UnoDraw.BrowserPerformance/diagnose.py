@@ -22,11 +22,12 @@ def write_summary(report: dict[str, Any], output: Path) -> None:
              f"candidate source: `{report['candidate_source_sha']}`.", "",
              "This separate instrumented pass uses the same real-input warmup, 120 operations and quality checks. "
              "It is not a before/after performance comparison. SwiftShader implements the graphics APIs in software; "
-             "paint callback costs exclude deferred compositor/GPU work.", ""]
+             "paint callback costs measure synchronous elapsed duration, including blocking calls, "
+             "and exclude deferred compositor/GPU work. They are not active-thread CPU measurements.", ""]
     run = report.get("diagnostic_run", {})
     snapshot = run.get("managed_render_diagnostics", {}).get("after", {})
     if snapshot:
-        lines += ["| Paint callback | Calls | Total CPU ms | Max CPU ms | Allocated bytes |",
+        lines += ["| Paint callback | Calls | Total elapsed ms | Max elapsed ms | Allocated bytes |",
                   "| --- | ---: | ---: | ---: | ---: |"]
         for phase in snapshot["phases"]:
             lines.append(f"| {phase['phase']} | {phase['count']} | {phase['totalMilliseconds']:.3f} "

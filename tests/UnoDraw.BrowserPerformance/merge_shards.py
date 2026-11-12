@@ -11,7 +11,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from metrics import comparisons, validate_packages
+from metrics import comparisons, metric_label, validate_packages
 from quality import verify_bridge
 from workload_plan import BACKENDS, WORKLOADS, diagnostic_plan, primary_plan, require_run_coverage
 
@@ -221,13 +221,14 @@ def write_summary(report: dict[str, Any], output: Path) -> None:
                   "", report["graphics_description"], "",
                   f"Each row retains medians of {report['repeats']} trials from one runner. Different workloads/backends "
                   "are separate shards; their frame distributions and timestamps are never pooled. "
-                  "CPU and callback observations are not physical presentation or input-to-photon latency. "
-                  "Ratios below 1 favor the candidate for CPU/latency, while throughput favors ratios above 1.", "",
+                  "Task wall duration includes waits; ThreadTime separately measures active renderer-thread CPU. "
+                  "Neither callback completion nor these counters proves physical presentation or input-to-photon latency. "
+                  "Ratios below 1 favor the candidate for time costs, while throughput favors ratios above 1.", "",
                   "| Reference | Backend | Workload | Metric | Reference median | Candidate median | Ratio |",
                   "| --- | --- | --- | --- | ---: | ---: | ---: |"]
         for row in report["comparisons"]:
             ratio = f"{row['candidate_over_baseline']:.3f}" if row["candidate_over_baseline"] is not None else "n/a"
-            lines.append(f"| {row['baseline_role']} | {row['backend']} | {row['workload']} | {row['metric']} "
+            lines.append(f"| {row['baseline_role']} | {row['backend']} | {row['workload']} | {metric_label(row['metric'])} "
                          f"| {row['baseline_median']:.3f} | {row['candidate_median']:.3f} | {ratio} |")
         lines += ["", "## Original shard artifacts", "", report["artifact_policy"], "",
                   "| Backend | Workload | Original report path |", "| --- | --- | --- |"]

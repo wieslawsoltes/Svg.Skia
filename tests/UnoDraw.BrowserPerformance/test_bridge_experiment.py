@@ -7,21 +7,29 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from bridge_experiment_contracts import compare_metrics, load_candidate, trial_plan, verify_runs
-from quality import PERSISTENT_INITIALIZED, WEBGL_INITIALIZED, WEBGL_PREFERENCE
+from bridge_experiment_contracts import (bridge_pair, compare_metrics, load_candidate,
+                                         trial_plan, verify_experiment_workload, verify_runs)
+from quality import (COMPOSITE_INITIALIZED, COMPOSITE_PREFERENCE, COMPOSITE_REUSED,
+                     PERSISTENT_INITIALIZED, WEBGL_INITIALIZED, WEBGL_PREFERENCE)
 
 
 SHA = "a" * 40
 
 
-def runs(*, diagnostics: bool = False) -> list[dict]:
-    plan = [(1, "persistent"), (1, "webgl")] if diagnostics else trial_plan(3)
-    return [{"passed": True, "source_sha": SHA, "backend": "webgpu", "workload": "pan",
+def runs(*, diagnostics: bool = False, candidate_bridge: str = "webgl") -> list[dict]:
+    plan = [(1, bridge) for bridge in bridge_pair(candidate_bridge)] if diagnostics else trial_plan(3, candidate_bridge)
+    return [{"passed": True, "source_sha": SHA, "backend": "webgpu",
+             "workload": "brush-hover" if candidate_bridge == "composite" else "pan",
              "trial": trial, "canvas_bridge": bridge, "diagnostic_pass": diagnostics,
              "console": [{"text": PERSISTENT_INITIALIZED}] + (
-                 [{"text": WEBGL_PREFERENCE}, {"text": WEBGL_INITIALIZED}] if bridge == "webgl" else []),
+                 [{"text": WEBGL_PREFERENCE}, {"text": WEBGL_INITIALIZED}] if bridge == "webgl" else
+                 [{"text": COMPOSITE_PREFERENCE}, {"text": COMPOSITE_INITIALIZED}, {"text": COMPOSITE_REUSED}]
+                 if bridge == "composite" else []),
+             "managed_render_diagnostics": {"after": {"phases": [
+                 {"phase": "Document", "count": 0}, {"phase": "Interaction", "count": 120}]}},
              "metrics": {"operations": 120, "input_events": 120, "inputs_without_later_graphics": 0,
                          "inputs_without_completed_render_callback": 0,
+                         "completed_render_callbacks": 240, "webgpu_canvas_submissions": 240,
                          "graphics_api_calls": {"webgpu.copyExternalImageToTexture": 120 if bridge == "webgl" else 0},
                          "cpu_task_ms_per_operation": trial * (20 if bridge == "persistent" else 5),
                          "elapsed_ms": trial * (3000 if bridge == "persistent" else 2000),
@@ -42,7 +50,7 @@ class BridgeExperimentTests(unittest.TestCase):
         original = runs()
         verify_runs(original, 3, SHA, "pan")
         for defect in ("missing", "duplicate", "failed", "source", "mode", "backend", "workload",
-                       "operations", "input_tail", "no_copy", "fallback"):
+                       "operations", "input_tail", "no_copy", "no_callbacks", "no_submits", "fallback"):
             values = copy.deepcopy(original)
             if defect == "missing":
                 values.pop()
@@ -59,6 +67,9 @@ class BridgeExperimentTests(unittest.TestCase):
                 values[0]["metrics"]["inputs_without_completed_render_callback"] = 1
             elif defect == "no_copy":
                 values[1]["metrics"]["graphics_api_calls"].clear()
+            elif defect in {"no_callbacks", "no_submits"}:
+                values[0]["metrics"]["completed_render_callbacks" if defect == "no_callbacks"
+                                      else "webgpu_canvas_submissions"] = 0
             else:
                 values[1]["console"].append({"text": "UnoDraw WebGL canvas fallback: context lost."})
             with self.subTest(defect=defect), self.assertRaises((ValueError, AssertionError)):
@@ -83,6 +94,107 @@ class BridgeExperimentTests(unittest.TestCase):
             invalid[0]["metrics"]["cpu_task_ms_per_operation"] = value
             with self.subTest(value=value), self.assertRaises(ValueError):
                 compare_metrics(invalid)
+
+    def test_composite_hover_has_its_own_rotating_pairs_and_named_ratios(self) -> None:
+        values = runs(candidate_bridge="composite")
+        self.assertEqual(trial_plan(3, "composite"), [(1, "persistent"), (1, "composite"),
+                                                     (2, "composite"), (2, "persistent"),
+                                                     (3, "persistent"), (3, "composite")])
+        verify_runs(values, 3, SHA, "brush-hover", candidate_bridge="composite")
+        row = compare_metrics(values, "composite")[0]
+        self.assertEqual(row["medians"], {"persistent": 40, "composite": 10})
+        self.assertEqual(row["candidate_over_persistent"], 0.25)
+        self.assertEqual(row["candidate_bridge"], "composite")
+        self.assertNotIn("webgl_over_persistent", row)
+        with self.assertRaises(ValueError):
+            compare_metrics(values)
+        with self.assertRaises(ValueError):
+            verify_runs(values, 3, SHA, "pan")
+
+    def test_thread_cpu_comparisons_are_independent_of_task_wall_time(self) -> None:
+        values = runs()
+        for run in values:
+            run["metrics"]["thread_cpu_ms"] = run["trial"] * (2000 if run["canvas_bridge"] == "persistent" else 100)
+            run["metrics"]["thread_cpu_ms_per_operation"] = run["metrics"]["thread_cpu_ms"] / 120
+        rows = {row["metric"]: row for row in compare_metrics(values)}
+        self.assertEqual(rows["thread_cpu_ms"]["trial_values"],
+                         {"persistent": [2000, 4000, 6000], "webgl": [100, 200, 300]})
+        self.assertEqual(rows["thread_cpu_ms"]["candidate_over_persistent"], 0.05)
+        self.assertAlmostEqual(rows["thread_cpu_ms_per_operation"]["candidate_over_persistent"], 0.05)
+        self.assertEqual(rows["cpu_task_ms_per_operation"]["candidate_over_persistent"], 0.25)
+        for invalid in (float("nan"), float("inf"), -1):
+            changed = copy.deepcopy(values)
+            changed[0]["metrics"]["thread_cpu_ms"] = invalid
+            with self.subTest(invalid=invalid), self.assertRaisesRegex(ValueError, "finite measured"):
+                compare_metrics(changed)
+
+    def test_optional_thread_counters_require_every_paired_trial_and_preserve_old_reports(self) -> None:
+        legacy = compare_metrics(runs())
+        self.assertEqual({row["metric"] for row in legacy},
+                         {"cpu_task_ms_per_operation", "elapsed_ms", "operations_per_second"})
+        for missing_index in (0, 1):
+            values = runs()
+            for run in values:
+                run["metrics"].update({"thread_cpu_ms": 120, "thread_cpu_ms_per_operation": 1})
+            values[missing_index]["metrics"].update({"thread_cpu_ms": None, "thread_cpu_ms_per_operation": None})
+            with self.subTest(missing_index=missing_index):
+                self.assertEqual(compare_metrics(values), legacy)
+
+    def test_composite_requires_actual_reuse_and_both_modes_retain_document_during_hover(self) -> None:
+        original = runs(diagnostics=True, candidate_bridge="composite")
+        verify_runs(original, 3, SHA, "brush-hover", diagnostics=True, candidate_bridge="composite")
+        for defect in ("reuse", "persistent_document", "composite_document", "interaction", "fallback",
+                       "inputs", "graphics_tail", "callback_tail"):
+            values = copy.deepcopy(original)
+            if defect == "reuse":
+                values[1]["console"] = [entry for entry in values[1]["console"] if entry["text"] != COMPOSITE_REUSED]
+            elif defect in {"persistent_document", "composite_document", "interaction"}:
+                run_index = 0 if defect == "persistent_document" else 1
+                phase_index = 1 if defect == "interaction" else 0
+                values[run_index]["managed_render_diagnostics"]["after"]["phases"][phase_index]["count"] = (
+                    0 if defect == "interaction" else 1)
+            elif defect == "fallback":
+                values[1]["console"].append({"text": "UnoDraw canvas bridge composite fallback: bitmap unavailable."})
+            else:
+                key = {"inputs": "input_events", "graphics_tail": "inputs_without_later_graphics",
+                       "callback_tail": "inputs_without_completed_render_callback"}[defect]
+                values[1]["metrics"][key] = 119 if defect == "inputs" else 1
+            with self.subTest(defect=defect), self.assertRaises((ValueError, AssertionError)):
+                verify_runs(values, 3, SHA, "brush-hover", diagnostics=True, candidate_bridge="composite")
+
+    def test_workloads_must_exercise_the_selected_optimization(self) -> None:
+        for bridge, workload in (("webgl", "pan"), ("webgl", "zoom"), ("composite", "brush-hover")):
+            verify_experiment_workload(workload, bridge)
+        for bridge, workload in (("webgl", "brush-hover"), ("composite", "pan"), ("composite", "zoom"),
+                                 ("persistent", "brush-hover"), ("unknown", "pan")):
+            with self.subTest(bridge=bridge, workload=workload), self.assertRaises(ValueError):
+                verify_experiment_workload(workload, bridge)
+
+    def test_saved_summary_names_the_actual_pair_and_survives_partial_failure(self) -> None:
+        from bridge_experiment import save_report
+
+        for candidate_bridge in ("webgl", "composite"):
+            with self.subTest(candidate_bridge=candidate_bridge), tempfile.TemporaryDirectory() as temporary:
+                diagnostic = runs(diagnostics=True, candidate_bridge=candidate_bridge)
+                for run in diagnostic:
+                    for phase in run["managed_render_diagnostics"]["after"]["phases"]:
+                        phase.update({"totalMilliseconds": 2.5, "allocatedBytes": 512})
+                report = {"started_unix": 0, "candidate_bridge": candidate_bridge, "candidate_source_sha": SHA,
+                          "workload": "brush-hover" if candidate_bridge == "composite" else "pan",
+                          "repeats": 3, "passed": True, "bridge_diagnostics": diagnostic,
+                          "metric_comparisons": compare_metrics(runs(candidate_bridge=candidate_bridge), candidate_bridge)}
+                output = Path(temporary)
+                save_report(report, output)
+                text = (output / "summary.md").read_text()
+                self.assertIn(f"canvasBridge=persistent/{candidate_bridge}", text)
+                self.assertIn("Task wall time / operation (ms; historical key)", text)
+                self.assertIn("ThreadTime separately measures", text)
+                self.assertIn(f"| {candidate_bridge} | Interaction | 120 | 2.500 | 512 |", text)
+                report.update({"passed": False, "failure": "Observed pixel gate failure",
+                               "bridge_diagnostics": [], "metric_comparisons": []})
+                save_report(report, output)
+                self.assertIn("Observed pixel gate failure", (output / "summary.md").read_text())
+                self.assertFalse(json.loads((output / "report.json").read_text())["passed"])
 
     def test_interpreter_mismatched_source_or_changed_index_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

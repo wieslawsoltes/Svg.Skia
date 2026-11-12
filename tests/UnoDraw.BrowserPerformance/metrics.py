@@ -6,6 +6,16 @@ import statistics
 from typing import Any
 
 
+def metric_label(name: str) -> str:
+    return {
+        "cpu_task_ms_per_operation": "Task wall time / operation (ms; historical key)",
+        "thread_cpu_ms": "Active CPU time on renderer thread (ms)",
+        "thread_cpu_ms_per_operation": "Active CPU time on renderer thread / operation (ms)",
+        "elapsed_ms": "Workload elapsed time (ms)",
+        "operations_per_second": "Input operations / second",
+    }.get(name, name)
+
+
 def distribution(values: list[float]) -> dict[str, float | int | None]:
     if any(not math.isfinite(value) or value < 0 for value in values):
         raise ValueError("Timing samples must be finite and nonnegative")
@@ -67,6 +77,17 @@ def summarize(sample: dict[str, Any], cpu_before: dict[str, float], cpu_after: d
     result["cpu_task_ms_per_operation"] = (
         result["cpu_ms"].get("TaskDuration", 0) / operations
         if operations and "TaskDuration" in result["cpu_ms"] else None)
+    # Performance.enable uses timeTicks: the historical cpu_ms/task key holds
+    # elapsed task time and can include blocked GPU/readback calls. Chromium's
+    # independent ThreadTime counter uses active OS thread ticks instead.
+    thread_cpu_ms = None
+    if "ThreadTime" in cpu_before and "ThreadTime" in cpu_after:
+        thread_cpu_ms = (cpu_after["ThreadTime"] - cpu_before["ThreadTime"]) * 1000
+        if not math.isfinite(thread_cpu_ms) or thread_cpu_ms < 0:
+            raise ValueError("ThreadTime requires finite nondecreasing counters")
+    result["thread_cpu_ms"] = thread_cpu_ms
+    result["thread_cpu_ms_per_operation"] = (
+        thread_cpu_ms / operations if operations and thread_cpu_ms is not None else None)
     result["js_heap_used_delta_bytes"] = (
         cpu_after["JSHeapUsedSize"] - cpu_before["JSHeapUsedSize"]
         if "JSHeapUsedSize" in cpu_before and "JSHeapUsedSize" in cpu_after else None)
@@ -108,6 +129,8 @@ def comparisons(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     rows = []
     fields = {
         "cpu_task_ms_per_operation": lambda value: value["cpu_task_ms_per_operation"],
+        "thread_cpu_ms": lambda value: value.get("thread_cpu_ms"),
+        "thread_cpu_ms_per_operation": lambda value: value.get("thread_cpu_ms_per_operation"),
         "raf_p95_ms": lambda value: value["raf_interval_ms"]["p95"],
         "graphics_active_interval_p95_ms": lambda value: value["graphics_active_interval_ms"]["p95"],
         "input_to_next_graphics_p95_ms": lambda value: value["input_to_next_graphics_ms"]["p95"],
@@ -124,8 +147,15 @@ def comparisons(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:
             if not baseline:
                 continue
             for metric, read in fields.items():
-                before = [read(value) for value in baseline if read(value) is not None]
-                after = [read(value) for value in candidates if read(value) is not None]
+                before_values = [read(value) for value in baseline]
+                after_values = [read(value) for value in candidates]
+                if metric in {"thread_cpu_ms", "thread_cpu_ms_per_operation"} and any(
+                        value is None for value in before_values + after_values):
+                    # A partial set of optional counters must not create an
+                    # unmatched CPU ratio. Historical reports remain readable.
+                    continue
+                before = [value for value in before_values if value is not None]
+                after = [value for value in after_values if value is not None]
                 if not before or not after:
                     continue
                 before_median, after_median = statistics.median(before), statistics.median(after)

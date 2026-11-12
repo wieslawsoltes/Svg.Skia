@@ -8,7 +8,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from quality import (LEGACY_PREFERENCE, PERSISTENT_INITIALIZED, WEBGL_INITIALIZED, WEBGL_PREFERENCE,
+from quality import (COMPOSITE_INITIALIZED, COMPOSITE_PREFERENCE, COMPOSITE_REUSED,
+                     LEGACY_PREFERENCE, PERSISTENT_INITIALIZED, WEBGL_INITIALIZED, WEBGL_PREFERENCE,
                      assert_native_size, bridge_query, compare_bridge_states,
                      is_welcome_green, matrix_failures, raw_comparison, verify_bridge)
 
@@ -50,23 +51,24 @@ class WelcomeReadinessTests(unittest.TestCase):
 
 
 class QualityMatrixTests(unittest.TestCase):
-    def test_webgl_requires_its_own_complete_matrix(self) -> None:
+    def test_opt_in_bridge_requires_its_own_complete_matrix(self) -> None:
         dprs, states = (1, 1.25, 2), ("desktop", "restored")
-        cases = [{"bridge": bridge, "dpr": dpr, "passed": True,
-                  "states": [{"name": name} for name in states]}
-                 for bridge in ("legacy", "webgl") for dpr in dprs]
-        rows = [{"device_pixel_ratio": dpr, "state": name, "passed": True}
-                for dpr in dprs for name in states]
-        self.assertEqual(matrix_failures(cases, rows, dprs, states, candidate_bridge="webgl"), [])
-        self.assertTrue(matrix_failures(cases, rows, dprs, states))
-        paired = {case["bridge"]: case for case in cases if case["dpr"] == 1.25}
-        comparisons = compare_bridge_states(paired, 1.25, lambda first, second: {}, states,
-                                             candidate_bridge="webgl")
-        self.assertTrue(all(row["passed"] for row in comparisons))
-        paired["webgl"]["states"].pop()
-        comparisons = compare_bridge_states(paired, 1.25, lambda first, second: {}, states,
-                                             candidate_bridge="webgl")
-        self.assertEqual(comparisons[-1]["missing_bridges"], ["webgl"])
+        for candidate_bridge in ("webgl", "composite"):
+            cases = [{"bridge": bridge, "dpr": dpr, "passed": True,
+                      "states": [{"name": name} for name in states]}
+                     for bridge in ("legacy", candidate_bridge) for dpr in dprs]
+            rows = [{"device_pixel_ratio": dpr, "state": name, "passed": True}
+                    for dpr in dprs for name in states]
+            self.assertEqual(matrix_failures(cases, rows, dprs, states, candidate_bridge=candidate_bridge), [])
+            self.assertTrue(matrix_failures(cases, rows, dprs, states))
+            paired = {case["bridge"]: case for case in cases if case["dpr"] == 1.25}
+            comparisons = compare_bridge_states(paired, 1.25, lambda first, second: {}, states,
+                                                 candidate_bridge=candidate_bridge)
+            self.assertTrue(all(row["passed"] for row in comparisons))
+            paired[candidate_bridge]["states"].pop()
+            comparisons = compare_bridge_states(paired, 1.25, lambda first, second: {}, states,
+                                                 candidate_bridge=candidate_bridge)
+            self.assertEqual(comparisons[-1]["missing_bridges"], [candidate_bridge])
         with self.assertRaises(ValueError):
             matrix_failures(cases, rows, dprs, states, candidate_bridge="legacy")
 
@@ -130,10 +132,36 @@ class BridgeEvidenceTests(unittest.TestCase):
                 verify_bridge(evidence + [{"text": LEGACY_PREFERENCE}], bridge)
 
     def test_bridge_queries_select_each_path_explicitly(self) -> None:
-        for bridge in ("legacy", "persistent", "webgl"):
+        for bridge in ("legacy", "persistent", "webgl", "composite"):
             self.assertEqual(bridge_query(bridge), "canvasBridge=" + bridge)
         with self.assertRaises(ValueError):
             bridge_query("unknown")
+
+    def test_composite_requires_upload_and_real_reuse_not_a_preference_or_ordinary_upload(self) -> None:
+        initial = [{"text": text} for text in (COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED, PERSISTENT_INITIALIZED)]
+        verify_bridge(initial, "composite", require_reuse=False)
+        with self.assertRaisesRegex(AssertionError, "cached document"):
+            verify_bridge(initial, "composite")
+        evidence = initial + [{"text": COMPOSITE_REUSED}]
+        verify_bridge(evidence, "composite")
+        for missing in (COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED, PERSISTENT_INITIALIZED):
+            with self.subTest(missing=missing), self.assertRaises(AssertionError):
+                verify_bridge([entry for entry in evidence if entry["text"] != missing], "composite",
+                              require_reuse=False)
+
+    def test_composite_rejects_late_fallback_and_cannot_satisfy_another_mode(self) -> None:
+        evidence = [{"text": text} for text in (COMPOSITE_PREFERENCE, COMPOSITE_INITIALIZED,
+                                                  PERSISTENT_INITIALIZED, COMPOSITE_REUSED)]
+        for extra in (LEGACY_PREFERENCE, WEBGL_PREFERENCE, WEBGL_INITIALIZED,
+                      "UnoDraw canvas bridge fallback: texture unavailable.",
+                      "UnoDraw canvas bridge composite fallback: bitmap unavailable.",
+                      "UnoDraw WebGL canvas fallback: context lost."):
+            with self.subTest(extra=extra), self.assertRaises(AssertionError):
+                verify_bridge(evidence + [{"text": extra}], "composite", require_reuse=False)
+        for bridge, extra in (("persistent", []), ("legacy", [LEGACY_PREFERENCE]),
+                              ("webgl", [WEBGL_PREFERENCE, WEBGL_INITIALIZED])):
+            with self.subTest(bridge=bridge), self.assertRaises(AssertionError):
+                verify_bridge(evidence + [{"text": message} for message in extra], bridge)
 
     def test_available_provider_does_not_prove_bridge_initialization(self) -> None:
         with self.assertRaisesRegex(AssertionError, "successful RGBA"):

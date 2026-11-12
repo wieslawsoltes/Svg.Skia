@@ -101,8 +101,20 @@ would cause continuous application frames and corrupt idle observations.
 | Graphics-active animation intervals | Observer intervals containing main-canvas drawing/submission calls. Detached capability probes cannot satisfy the count. |
 | WebGPU canvas submissions / WebGL flushes | Observed API calls. A WebGPU submission must follow acquisition of the application's canvas texture. Neither count is labeled as display presentation. |
 | Drawing and texture-upload calls | Browser API counters. `supplied_upload_buffer_bytes` sums the sizes of supplied buffer views; it is **not** the actual consumed transfer extent because offsets, row pitch and subregions can consume less. Calls without a buffer size are counted separately. |
-| CDP task/script/layout/style time | Main-thread CPU time, including a small amount of observer and automation overhead. Task time is not the sum of the other fields. |
+| CDP task/script/layout/style duration | Elapsed duration on the renderer thread with the explicitly selected `timeTicks` domain, including time blocked inside browser calls and a small amount of observer/automation overhead. Task time is not the sum of the other fields and is **not active CPU time**. |
+| CDP `ThreadTime` delta | Active CPU time on the renderer thread, using operating-system thread ticks. It excludes time while the thread is descheduled, including blocking waits, and excludes CPU work on GPU/worker threads or other processes. |
 | JavaScript used-heap delta | Signed difference in used JS heap; GC can make it negative. This is neither an allocation count nor the managed WASM heap. |
+
+The historical JSON keys `cpu_ms` and `cpu_task_ms_per_operation` retain their
+original elapsed-duration values for compatibility. New `thread_cpu_ms` and
+`thread_cpu_ms_per_operation` fields report the separate `ThreadTime` delta in
+milliseconds. They are `null` if either counter snapshot is unavailable; the
+per-operation value is also `null` for an idle workload. A measured zero remains
+zero. Thread CPU comparison rows require every matched trial to provide that
+counter, so incomplete data cannot silently become zero or an unmatched subset.
+These distinctions follow the pinned Chromium 143
+[performance agent](https://github.com/chromium/chromium/blob/143.0.7499.4/third_party/blink/renderer/core/inspector/inspector_performance_agent.cc)
+and [thread clock definitions](https://github.com/chromium/chromium/blob/143.0.7499.4/base/time/time.h).
 
 The report retains raw timestamp arrays, actual renderer evidence, browser
 version/launch arguments, adapter/context details, every trial, .NET and Uno SDK
@@ -112,7 +124,7 @@ hashes are recorded, not blindly required to be identical across Uno 6 and Uno 7
 Effective browser font families/status are also recorded after startup.
 
 Physical presented-frame counts and managed allocated bytes are `null` when not
-measured. Missing data is not reported as zero. CPU render callback completion
+measured. Missing data is not reported as zero. Synchronous render callback completion
 does not prove scanout completion. Observer API wrappers add some overhead;
 compare the same harness/browser/workload, retain the raw distributions, and
 corroborate hardware conclusions with a physical-GPU run.
@@ -120,7 +132,9 @@ corroborate hardware conclusions with a physical-GPU run.
 With `--diagnostics`, a **separate candidate-only pass** enables
 `?renderDiagnostics=1&perfDiagnostics=1` after the primary comparison is complete.
 It snapshots the application's opt-in Document/Interaction/Ruler/Navigator paint
-callback counts, total/max CPU time and current-thread allocated bytes. It also
+callback counts, total/max elapsed duration and current-thread allocated bytes.
+The callback stopwatch can include blocking calls; it does not measure active
+thread CPU time. It also
 retains Uno's `[frame-phases]` and `[webgpu-frame]` diagnostics when enough frames
 have occurred for the runtime to print its periodic sample. Their periodic windows
 can straddle warmup/workload boundaries; they are supporting diagnostics, not
@@ -132,7 +146,8 @@ diagnostic scopes perturb execution, so their samples are never merged into the
 uninstrumented baseline/candidate ratios. A historical candidate without the
 export is explicitly reported as unavailable.
 
-Comparisons use the median of each trial's p95/CPU/throughput metric, preserving
+Comparisons use the median of each trial's p95, task wall duration, active thread
+CPU or throughput metric, preserving
 the individual trial values. Frames from different trials, renderers or workloads
 are not pooled. Runtime and quality failures fail CI. Timing ratios are reported
 without a universal pass/fail threshold because shared-runner noise is not an

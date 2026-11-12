@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare persistent WebGPU canvas upload against the same build's legacy bridge."""
+"""Compare a selected WebGPU canvas bridge with the same build's legacy bridge."""
 from __future__ import annotations
 
 import argparse
@@ -145,7 +145,10 @@ def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path) -> d
             raise AssertionError("The requested device pixel ratio was not applied")
         report["states"].append(capture(page, output, "01-desktop", DESKTOP, dpr))
         record_backend(page, report, "startup", 0)
-        verify_bridge(report["console"], bridge)
+        # Cached composition first reuses its backdrop during the later overlay
+        # states. Startup must already prove the requested upload path; completion
+        # additionally requires actual cache reuse, never just a preference.
+        verify_bridge(report["console"], bridge, require_reuse=False)
         fitted = output / "01-desktop-css.png"
         page.keyboard.press("Control+1")
         report["states"].append(capture(page, output, "02-actual-size", DESKTOP, dpr,
@@ -213,7 +216,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--package", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--candidate-bridge", choices=("persistent", "webgl"), default="persistent",
+    parser.add_argument("--candidate-bridge", choices=("persistent", "webgl", "composite"), default="persistent",
                         help="Compare the selected implementation with the same package's legacy raster bridge")
     args = parser.parse_args()
     package, output = args.package.resolve(), args.output.resolve()

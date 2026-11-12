@@ -151,7 +151,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        bridge: [persistent, webgl]
+        bridge: [persistent, webgl, composite]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -305,7 +305,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        bridge: [persistent, webgl]
+        bridge: [persistent, webgl, composite]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v6
@@ -329,7 +329,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ matrix.bridge == 'persistent' && 'unodraw-bridge-quality' || 'unodraw-webgl-bridge-quality' }}
+          name: ${{ matrix.bridge == 'persistent' && 'unodraw-bridge-quality' || format('unodraw-{0}-bridge-quality', matrix.bridge) }}
           path: artifacts/unodraw-bridge-quality
           if-no-files-found: warn
           retention-days: 14
@@ -375,14 +375,17 @@ jobs:
           retention-days: 14
 
   document-raster-experiment:
-    name: Same AOT document rasterizers (${{ matrix.workload }})
+    name: Same AOT ${{ matrix.bridge }} canvas (${{ matrix.workload }})
     needs: publish
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        workload: [pan, zoom]
+        include:
+          - { workload: pan, bridge: webgl }
+          - { workload: zoom, bridge: webgl }
+          - { workload: brush-hover, bridge: composite }
     steps:
       - uses: actions/checkout@v4
         with:
@@ -410,7 +413,7 @@ jobs:
         run: >-
           python tests/UnoDraw.BrowserPerformance/bridge_experiment.py
           --package artifacts/candidate --output artifacts/document-raster-experiment
-          --workload ${{ matrix.workload }} --repeats 3
+          --workload ${{ matrix.workload }} --candidate-bridge ${{ matrix.bridge }} --repeats 3
       - name: Publish the available matched comparison
         if: always()
         run: |

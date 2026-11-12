@@ -21,7 +21,7 @@ from backend import launch_arguments, renderer_query  # noqa: E402
 from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork,  # noqa: E402
                    chrome_font_changes, record_backend, ruler_frame_changes, serve,
                    wait_for_artwork_transition)
-from metrics import comparisons, summarize, validate_packages, verify_hover_isolation  # noqa: E402
+from metrics import comparisons, metric_label, summarize, validate_packages, verify_hover_isolation  # noqa: E402
 from quality import bridge_query  # noqa: E402
 from selection_readiness import require_cleared_selection  # noqa: E402
 from workload_plan import (BACKENDS, WORKLOADS, diagnostic_plan, primary_plan,  # noqa: E402
@@ -395,7 +395,8 @@ def run_trial(browser: Any, url: str, package: dict[str, Any], backend: str, wor
         for _ in range(2):
             next_frame(page)
         session = context.new_cdp_session(page)
-        session.send("Performance.enable")
+        session.send("Performance.enable", {"timeDomain": "timeTicks"})
+        result["cdp_time_domain"] = "timeTicks"
         before_managed = managed_snapshot(page, reset=True) if diagnostics else None
         diagnostic_console_start = len(result["console"])
         before_cpu = cpu_metrics(session)
@@ -480,7 +481,9 @@ def write_summary(report: dict[str, Any], output: Path) -> None:
     lines = ["# UnoDraw browser performance comparison", "",
              "Graphics: " + report["graphics_description"], "",
              "The table compares medians of repeated trials on the same runner. "
-             "Ratios below 1 favor the candidate for latency/CPU; throughput favors ratios above 1. "
+             "Ratios below 1 favor the candidate for time costs; throughput favors ratios above 1. "
+             "The historical cpu_task_ms_per_operation key measures elapsed task time, including waits. "
+             "ThreadTime separately measures active CPU time on the renderer thread and excludes GPU/worker CPU. "
              "rAF intervals are scheduling observations, not rendered FPS. "
              "Graphics-active intervals and input-to-next-graphics are CPU submission observations, "
              "not display presentation or input-to-photon latency.", "",
@@ -488,14 +491,15 @@ def write_summary(report: dict[str, Any], output: Path) -> None:
              "| --- | --- | --- | --- | ---: | ---: | ---: |"]
     for row in report.get("comparisons", []):
         ratio = f"{row['candidate_over_baseline']:.3f}" if row["candidate_over_baseline"] is not None else "n/a"
-        lines.append(f"| {row['baseline_role']} | {row['backend']} | {row['workload']} | {row['metric']} "
+        lines.append(f"| {row['baseline_role']} | {row['backend']} | {row['workload']} | {metric_label(row['metric'])} "
                      f"| {row['baseline_median']:.3f} | {row['candidate_median']:.3f} | {ratio} |")
     diagnostics = [run for run in report.get("diagnostic_runs", []) if "managed_render_diagnostics" in run]
     if diagnostics:
         lines += ["", "## Candidate diagnostics — separate instrumented pass", "",
                   "These callback costs and allocations are outside the primary comparison. "
-                  "They exclude deferred compositor/GPU work; runtime phase logs are in the JSON report.", "",
-                  "| Backend | Workload | Paint callback | Calls | Total CPU ms | Max CPU ms | Allocated bytes |",
+                  "They measure synchronous elapsed callback duration, not active thread CPU, and exclude "
+                  "deferred compositor/GPU work; runtime phase logs are in the JSON report.", "",
+                  "| Backend | Workload | Paint callback | Calls | Total elapsed ms | Max elapsed ms | Allocated bytes |",
                   "| --- | --- | --- | ---: | ---: | ---: | ---: |"]
         for run in diagnostics:
             for phase in run["managed_render_diagnostics"]["after"]["phases"]:
@@ -560,7 +564,8 @@ def main() -> int:
             "graphics_active_intervals": "Animation intervals containing application-canvas drawing/submission API calls",
             "input_to_next_graphics": "Trusted input dispatch to next observed graphics work; coalesced and not causal presentation latency",
             "completed_render_callback": "Successful application rAF callback drawing/submitting to the main canvas; excludes earlier NativeDispatcher recording; may replay an older record, not input-to-new-pixels or physical presentation",
-            "cpu": "CDP main-thread task/script/layout time including small observer and automation overheads",
+            "cpu": "Historical cpu_ms/task keys contain elapsed CDP task/script/layout/style time in the timeTicks domain, including blocked waits and observer/automation overheads",
+            "thread_cpu": "CDP ThreadTime delta measures active CPU time on the renderer thread; excludes GPU/worker processes and is null when unavailable",
             "heap": "JavaScript used-heap difference; not an allocation count and not the managed WASM heap",
             "physical_presented_frames": "Unavailable; never inferred from rAF",
             "managed_allocated_bytes": "Unavailable without application instrumentation",
