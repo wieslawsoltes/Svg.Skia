@@ -86,6 +86,89 @@ fractional pan and fractional zoom. A failed scene remains failed; a fresh
 context lets subsequent scenes continue without inheriting its modal or recovery
 state. Missing, duplicated or failed cases/states make the whole gate fail.
 
+## Complete quality through three DPR jobs
+
+The optional `--dpr 1`, `--dpr 1.25` or `--dpr 2` selector divides this same
+matrix at the browser-session boundary. Each job retains both declared modes,
+all eight consecutive source replacements in each session, and all three camera
+states. It produces **16 cases and 24 native comparisons**. The source editor,
+input sequence, fixtures, viewport, image dimensions and quality thresholds are
+unchanged. Omitting `--dpr` continues to run the original six-session matrix.
+
+A single-DPR report has `report_kind: svg_document_quality_dpr_shard`,
+`full_matrix: false` and `full_matrix_passed: false`, even when that portion
+passes. It cannot qualify the complete renderer. This permits independent jobs
+to finish within their time budget without dropping any scene or reducing the
+existing eight-scene replacement/lifetime sequence.
+
+The reusable `unodraw-svg-quality-shards.yml` workflow pins one immutable harness
+commit and one existing candidate AOT package run. Each job verifies the exact
+GitHub artifact archive, complete manifest and served-file inventory; retains
+that portable proof as `package-artifact.json`; and runs the existing strict
+production-source equivalence audit before opening a browser. Source eligibility
+alone does not establish a pixel-quality pass. The same source/manifest/font and
+archive identities must be present in all three results.
+
+For example, run the existing source-equivalence audit into each output
+directory, retain its verified package receipt there, then execute the same
+command on three separate runners/checkouts of the identical harness commit:
+
+```sh
+python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
+  --package /path/to/verified-candidate-package \
+  --candidate-bridge legacy-composite --dpr 1.25 \
+  --output /path/to/svg-shards/artifact-dpr-1.25
+```
+
+Use `1` and `2` for the other two portions. For Graphite, use the same
+`--candidate-bridge graphite --graphite-coverage default|raster` choice in every
+job. Coverage variants and control/candidate pairs cannot be pooled. The strict
+aggregate currently consumes the verified Release AOT artifact receipts from the
+performance workflow; the original full runner continues to support the separate
+Interpreter correctness mode.
+
+Download the three complete artifacts into separate immediate subdirectories
+under one parent, then run:
+
+```sh
+python tests/UnoDraw.BrowserRenderQuality/merge_svg_shards.py \
+  --shards /path/to/svg-shards \
+  --output /path/to/svg-aggregate \
+  --shard-jobs-result success
+```
+
+The merger requires exactly DPR 1, 1.25 and 2, with matching complete package and
+artifact identities, source-equivalence proofs, actual validation-file hashes,
+harness commit, browser version/launch options, font observations and renderer
+pair/coverage. It rejects duplicate or missing cases, states and comparisons;
+failed or cancelled portions; changed source proofs; and artifact paths that
+escape their directory. Local package paths may differ between runners; the
+complete package manifest otherwise must match.
+
+`--shard-jobs-result` must reflect the actual completed jobs. The workflow passes
+GitHub's `needs.compare.result`; a failure, cancellation, skip or omitted/unknown
+result prevents qualification even if a job wrote a passing report before it
+stopped. Available native evidence is still retained and recalculated. The
+merger checks and binds the saved source-equivalence proof; the preceding
+`verify_source.py` workflow step performs the actual Git production-source audit.
+
+It then reopens every canonical/input/committed SVG, checks the source-editor
+readback proof, and inspects all **144 native PNG states** again. It recomputes
+the calibration/color/body-readiness checks and both camera transitions, verifies
+that each saved body crop is an exact crop of its original PNG, and invokes the
+original `compare_scene` path for all **72 matched native comparisons**. Recorded
+`passed` fields and readiness/comparison summaries cannot replace those checks.
+Actual successful renderer negotiation, native canvas activity and mode-specific
+initialization/fallback evidence remain required in every case.
+
+Only a complete successful recalculation emits
+`report_kind: svg_document_quality_dpr_aggregate`, `full_matrix: true` and
+`full_matrix_passed: true`. A failed aggregate retains a failure decision and no
+full-matrix qualification. Its output is self-contained: the original three
+artifact trees, per-shard report/proof hashes, all native captures and source
+readbacks accompany the recomputed aggregate. This is correctness evidence and
+does not produce or combine timing results.
+
 ## Source and pixel evidence
 
 The eight SVG files in `fixtures/svg-bridge` preserve the bodies from
@@ -143,3 +226,10 @@ errors, the tighter body crop, actual camera changes, and complete failure
 continuation, including rejection of a substituted GPU path or incomplete selected
 pair. These tests validate the gate. Only a completed browser report
 validates the two rendering paths.
+
+The shard tests additionally exercise exact matrix coverage, immutable
+source/package/browser identities, rejection of altered native images despite
+passing report fields, source/camera/crop checks, safe artifact paths, and a full
+synthetic 48-case/144-state/72-pair merge through the original native-image
+comparison functions. Synthetic contracts qualify the merger, not a browser
+renderer.

@@ -8,6 +8,7 @@ import hashlib
 import json
 import re
 import shutil
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -22,8 +23,9 @@ from performance import next_frame, park_pointer, renderer_evidence  # noqa: E40
 from quality import GRAPHITE_COVERAGES, bridge_query, validate_graphite_coverage, verify_bridge  # noqa: E402
 from backend import launch_arguments  # noqa: E402
 from smoke import READY, serve  # noqa: E402
+from candidate_package import verify_package  # noqa: E402
 from svg_fixture_contracts import (LIVE_CANDIDATE_BRIDGES, DESKTOP, DPRS, SCENES, STATES, Fixture,  # noqa: E402
-                                   compare_scene, inspect_scene, load_fixtures, matrix_failures,
+                                   compare_scene, inspect_scene, load_fixtures, matrix_dprs, matrix_failures,
                                    normalize_newlines, require_camera_change, require_source_readback, scene_bridges)
 
 
@@ -66,12 +68,14 @@ def verify_scene_bridge(console: list[dict[str, Any]], bridge: str, *,
 def source_hashes() -> dict[str, str]:
     directory = Path(__file__).resolve().parent
     root = directory.parents[1]
-    files = [directory / name for name in ("svg_bridge_quality.py", "svg_fixture_contracts.py", "test_svg_fixture_contracts.py")]
+    files = [directory / name for name in ("svg_bridge_quality.py", "svg_fixture_contracts.py", "test_svg_fixture_contracts.py",
+                                           "merge_svg_shards.py", "test_svg_shards.py", "verify_source.py")]
     files += sorted((directory / "fixtures/svg-bridge").iterdir())
     files += [root / "tests/Svg.Editor.Skia.UnitTests/RgbaCanvasEquivalenceTests.cs"]
     files += [root / "tests/UnoDraw.BrowserPerformance" / name
               for name in ("instrumentation.js", "bridge_quality.py", "performance.py", "quality.py",
-                           "selection_readiness.py", "metrics.py")]
+                           "selection_readiness.py", "metrics.py", "candidate_package.py", "pinned_package.py")]
+    files += [root / "tests/UnoDraw.BrowserSmoke" / name for name in ("backend.py", "smoke.py", "requirements.txt")]
     return {str(path.relative_to(root)): digest(path) for path in files}
 
 
@@ -304,12 +308,13 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
 
 
 def compare_cases(cases: list[dict[str, Any]], fixtures: list[Fixture], output: Path, *,
-                  candidate_bridge: str = "webgl") -> list[dict[str, Any]]:
+                  candidate_bridge: str = "webgl", dprs: tuple[float, ...] = DPRS) -> list[dict[str, Any]]:
+    dprs = matrix_dprs(dprs)
     bridges = scene_bridges(candidate_bridge)
     indexed = {(case["scene"], case["bridge"], case["dpr"]): case for case in cases}
     rows = []
     for fixture in fixtures:
-        for dpr in DPRS:
+        for dpr in dprs:
             for name in STATES:
                 row: dict[str, Any] = {"scene": fixture.name, "dpr": dpr, "state": name, "passed": False}
                 try:
@@ -332,13 +337,20 @@ def compare_cases(cases: list[dict[str, Any]], fixtures: list[Fixture], output: 
 
 def write_summary(report: dict[str, Any], output: Path) -> None:
     control, candidate = scene_bridges(report.get("candidate_bridge", "webgl"))
+    dprs = ", ".join(str(value) for value in report.get("device_pixel_ratios", DPRS))
     lines = ["# SVG document bridge quality", "",
              f"One candidate package, `{control}` versus `{candidate}` document rendering, "
-             "at native DPR 1, 1.25 and 2.", "",
+             f"at native DPR {dprs}.", "",
              "Eight unchanged SVG bodies are edited through the production source dialog and verified after Apply. "
              "Each case checks fit, fractional pan and fractional zoom. The original scene body is compared separately "
              "at the unchanged 0.1% above luminance 12 threshold; calibration colors over white and dark mattes must be within 2 RGB levels.", "",
              f"Execution mode: `{report['execution_mode']}`. SwiftShader correctness evidence; no hardware performance claim.", ""]
+    if report.get("report_kind") == "svg_document_quality_dpr_aggregate":
+        lines += ["This aggregate reopens the original source readbacks and native PNGs from all three DPR portions. "
+                  "The full matrix requires 48 complete cases and 72 recomputed native comparisons with matching provenance.", ""]
+    elif report.get("full_matrix") is False:
+        lines += ["This is one complete device-scale portion: two sessions, 16 cases and 24 native comparisons. "
+                  "It does not qualify the full matrix. All three DPR portions must pass the strict native-image merger.", ""]
     if candidate == "graphite":
         lines += [f"Explicit Graphite coverage: `{report.get('graphite_coverage') or 'unspecified'}`; unspecified means the artifact's default "
                   "without an explicit coverage claim. Requested coverage requires matching actual-context evidence in every case.", ""]
@@ -366,31 +378,47 @@ def main() -> int:
                         help="Compare this document canvas mode with its paired original CPU control")
     parser.add_argument("--graphite-coverage", choices=GRAPHITE_COVERAGES,
                         help="Require the Graphite candidate's actual native default or raster coverage option")
+    parser.add_argument("--dpr", type=float, choices=DPRS,
+                        help="Run both modes and all eight scenes at one DPR; only the three-shard aggregate qualifies the full matrix")
     args = parser.parse_args()
     try:
         validate_graphite_coverage(args.candidate_bridge, args.graphite_coverage)
     except ValueError as error:
         parser.error(str(error))
     bridges = scene_bridges(args.candidate_bridge)
+    dprs = matrix_dprs(DPRS if args.dpr is None else (args.dpr,))
     package_directory, output = args.package.resolve(), args.output.resolve()
-    if output == package_directory or package_directory in output.parents:
+    if output == package_directory or package_directory in output.parents or output in package_directory.parents:
         parser.error("--output must be outside the published application")
     output.mkdir(parents=True, exist_ok=True)
     report: dict[str, Any] = {"schema": 1, "passed": False, "started_unix": time.time(),
+                              "report_kind": "svg_document_quality" if args.dpr is None else "svg_document_quality_dpr_shard",
+                              "full_matrix": args.dpr is None, "full_matrix_passed": False,
                               "execution_mode": args.execution_mode, "cases": [], "comparisons": [], "failures": [],
                               "candidate_bridge": args.candidate_bridge, "bridges": list(bridges),
                               "graphite_coverage": args.graphite_coverage,
                               "graphics": "SwiftShader browser graphics API correctness; not hardware performance",
-                              "expected_session_count": 6, "expected_case_count": 48, "expected_comparison_count": 72,
-                              "expected_scenes": SCENES, "expected_states": STATES, "device_pixel_ratios": DPRS}
+                              "expected_session_count": 2 * len(dprs), "expected_case_count": 16 * len(dprs),
+                              "expected_comparison_count": 24 * len(dprs),
+                              "expected_scenes": SCENES, "expected_states": STATES, "device_pixel_ratios": dprs}
     try:
         package = load_package(package_directory, args.execution_mode)
+        receipt_path = output / "package-artifact.json"
+        receipt = None
+        if args.dpr is not None:
+            report.update({"package_verified_before_browser": False, "package_verified_after_browser": False})
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            if verify_package(package_directory, receipt) != package:
+                raise AssertionError("The DPR shard package differs from its immutable archive receipt")
+            report.update({"package_verified_before_browser": True, "package_artifact_sha256": digest(receipt_path)})
         manifest, fixtures = load_fixtures()
         report.update({"package": package, "fixture_manifest": manifest, "test_file_sha256": source_hashes()})
+        report["harness_source_sha"] = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=Path(__file__).resolve().parent, text=True).strip()
         arguments = launch_arguments("webgpu")
         report["browser_launch_arguments"] = arguments
         with serve(package_directory / "wwwroot") as url, sync_playwright() as playwright:
-            for dpr in DPRS:
+            for dpr in dprs:
                 for bridge in bridges:
                     coverage = args.graphite_coverage if bridge == "graphite" else None
                     relative = Path(f"dpr-{dpr}") / bridge
@@ -399,6 +427,8 @@ def main() -> int:
                     browser = None
                     try:
                         browser = playwright.chromium.launch(headless=True, args=arguments)
+                        if report.setdefault("browser_version", browser.version) != browser.version:
+                            raise AssertionError("The SVG browser version changed between sessions")
                         cases = run_session(browser, url, package, bridge, dpr, fixtures, directory,
                                             graphite_coverage=coverage)
                     except Exception as error:
@@ -413,10 +443,15 @@ def main() -> int:
                         case["artifact_directory"] = str(relative / case["scene"])
                         report["cases"].append(case)
         report["comparisons"] = compare_cases(report["cases"], fixtures, output,
-                                              candidate_bridge=args.candidate_bridge)
+                                              candidate_bridge=args.candidate_bridge, dprs=dprs)
         report["failures"] = matrix_failures(report["cases"], report["comparisons"],
-                                             candidate_bridge=args.candidate_bridge)
+                                             candidate_bridge=args.candidate_bridge, dprs=dprs)
+        if receipt is not None:
+            if verify_package(package_directory, receipt) != package or digest(receipt_path) != report["package_artifact_sha256"]:
+                raise AssertionError("The DPR shard package or receipt changed during browser verification")
+            report["package_verified_after_browser"] = True
         report["passed"] = not report["failures"]
+        report["full_matrix_passed"] = report["full_matrix"] and report["passed"]
     except Exception as error:
         report["failures"].append(f"{type(error).__name__}: {error}")
     finally:

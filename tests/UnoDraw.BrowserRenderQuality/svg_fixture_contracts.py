@@ -324,14 +324,27 @@ def scene_bridges(candidate_bridge: str = "webgl") -> tuple[str, str]:
     return control, candidate_bridge
 
 
+def matrix_dprs(values: tuple[float, ...] = DPRS) -> tuple[float, ...]:
+    """Permit the complete matrix or one complete device-scale portion only."""
+    if (not isinstance(values, (tuple, list)) or not values
+            or any(isinstance(value, bool) or not isinstance(value, (int, float))
+                   or not math.isfinite(value) or value not in DPRS for value in values)):
+        raise ValueError("SVG device scales must be 1, 1.25 or 2")
+    canonical = tuple(next(expected for expected in DPRS if value == expected) for value in values)
+    if len(canonical) != 1 and canonical != DPRS:
+        raise ValueError("SVG quality requires all three ordered device scales or exactly one complete DPR shard")
+    return canonical
+
+
 def matrix_failures(cases: list[dict[str, Any]], comparisons: list[dict[str, Any]], *,
-                    candidate_bridge: str = "webgl") -> list[str]:
+                    candidate_bridge: str = "webgl", dprs: tuple[float, ...] = DPRS) -> list[str]:
+    dprs = matrix_dprs(dprs)
     failures = []
     expected_cases = {(scene, bridge, dpr) for scene in SCENES
-                      for bridge in scene_bridges(candidate_bridge) for dpr in DPRS}
+                      for bridge in scene_bridges(candidate_bridge) for dpr in dprs}
     actual_cases = {(case.get("scene"), case.get("bridge"), case.get("dpr")) for case in cases}
     if len(cases) != len(expected_cases) or actual_cases != expected_cases:
-        failures.append("The required 48 scene/bridge/DPR cases are missing or duplicated")
+        failures.append(f"The required {len(expected_cases)} scene/bridge/DPR cases are missing or duplicated")
     for case in cases:
         label = f"{case.get('scene')} {case.get('bridge')} DPR {case.get('dpr')}"
         if case.get("passed") is not True:
@@ -343,10 +356,10 @@ def matrix_failures(cases: list[dict[str, Any]], comparisons: list[dict[str, Any
         names = [state.get("name") for state in case.get("states", [])]
         if len(names) != len(STATES) or set(names) != set(STATES):
             failures.append(label + ": required states are missing or duplicated")
-    expected_rows = {(scene, dpr, state) for scene in SCENES for dpr in DPRS for state in STATES}
+    expected_rows = {(scene, dpr, state) for scene in SCENES for dpr in dprs for state in STATES}
     actual_rows = {(row.get("scene"), row.get("dpr"), row.get("state")) for row in comparisons}
     if len(comparisons) != len(expected_rows) or actual_rows != expected_rows:
-        failures.append("The required 72 native scene comparisons are missing or duplicated")
+        failures.append(f"The required {len(expected_rows)} native scene comparisons are missing or duplicated")
     for row in comparisons:
         if row.get("passed") is not True:
             failures.append(f"{row.get('scene')} DPR {row.get('dpr')} {row.get('state')}: " + row.get("failure", "comparison failed"))

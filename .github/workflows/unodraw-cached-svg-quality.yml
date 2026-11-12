@@ -1,0 +1,92 @@
+name: UnoDraw cached AOT SVG qualification
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/unodraw-cached-svg-quality.yml'
+      - '.github/workflows/unodraw-svg-quality-shards.yml'
+      - 'tests/UnoDraw.BrowserRenderQuality/**'
+      - 'tests/UnoDraw.BrowserPerformance/candidate_package.py'
+      - 'tests/UnoDraw.BrowserPerformance/test_candidate_package.py'
+  workflow_dispatch:
+    inputs:
+      package_run_id:
+        description: Existing performance run containing the candidate AOT package
+        type: string
+        default: '43289446677'
+      variant:
+        description: Explicit canvas mode to qualify
+        type: choice
+        options: [legacy-composite, graphite-raster]
+        default: legacy-composite
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: unodraw-cached-svg-${{ github.ref }}-${{ github.sha }}-${{ inputs.variant || 'legacy-composite' }}
+  cancel-in-progress: false
+
+jobs:
+  eligibility:
+    name: Verify the existing AOT package matches this production source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      eligible: ${{ steps.source.outputs.eligible }}
+      harness_sha: ${{ steps.identity.outputs.harness_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - id: identity
+        run: echo "harness_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Verify stale-source rejection contracts
+        run: python -m unittest discover -s tests/UnoDraw.BrowserRenderQuality -p 'test_source_equivalence.py'
+      - name: Verify the immutable AOT archive and retain its full asset receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_RUN_ID: ${{ inputs.package_run_id || '43289446677' }}
+        run: >-
+          python tests/UnoDraw.BrowserPerformance/candidate_package.py
+          --run-id "$PACKAGE_RUN_ID" --output artifacts/package
+          --receipt artifacts/svg-eligibility/package-artifact.json
+      - name: Qualify source equivalence without treating eligibility as a pixel pass
+        id: source
+        env:
+          PACKAGE_RUN_ID: ${{ inputs.package_run_id || '43289446677' }}
+        run: |
+          options=()
+          if [ "$GITHUB_EVENT_NAME" = 'pull_request' ]; then
+            options+=(--report-only)
+          fi
+          python tests/UnoDraw.BrowserRenderQuality/verify_source.py \
+            --package artifacts/package --output artifacts/svg-eligibility \
+            --package-run-id "$PACKAGE_RUN_ID" --github-output "$GITHUB_OUTPUT" "${options[@]}"
+      - name: Publish the separate eligibility decision
+        if: always()
+        run: |
+          if test -f artifacts/svg-eligibility/summary.md; then
+            cat artifacts/svg-eligibility/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-cached-svg-eligibility
+          path: artifacts/svg-eligibility
+          if-no-files-found: warn
+          retention-days: 14
+
+  quality:
+    needs: eligibility
+    if: needs.eligibility.outputs.eligible == 'true'
+    uses: ./.github/workflows/unodraw-svg-quality-shards.yml
+    with:
+      package_run_id: ${{ inputs.package_run_id || '43289446677' }}
+      harness_sha: ${{ needs.eligibility.outputs.harness_sha }}
+      candidate_bridge: ${{ inputs.variant == 'graphite-raster' && 'graphite' || 'legacy-composite' }}
+      graphite_coverage: ${{ inputs.variant == 'graphite-raster' && 'raster' || '' }}
