@@ -24,8 +24,8 @@ SCENES = ("gradients", "filters", "mask", "clip", "pattern", "text", "image", "o
 # These historical defaults preserve validation of the archived rejected WebGL
 # experiments. New browser sessions select only LIVE_CANDIDATE_BRIDGES.
 BRIDGES = ("persistent", "webgl")
-CANDIDATE_BRIDGES = ("webgl", "graphite")
-LIVE_CANDIDATE_BRIDGES = ("graphite",)
+CANDIDATE_BRIDGES = ("webgl", "graphite", "legacy-composite")
+LIVE_CANDIDATE_BRIDGES = ("graphite", "legacy-composite")
 DPRS = (1, 1.25, 2)
 STATES = ("01-fit", "02-fractional-pan", "03-fractional-zoom")
 DESKTOP = {"width": 1440, "height": 960}
@@ -319,8 +319,9 @@ def require_camera_change(previous: dict[str, Any], current: dict[str, Any], dpr
 
 def scene_bridges(candidate_bridge: str = "webgl") -> tuple[str, str]:
     if candidate_bridge not in CANDIDATE_BRIDGES:
-        raise ValueError("SVG scenes require persistent CPU and one supported document GPU bridge")
-    return "persistent", candidate_bridge
+        raise ValueError("SVG scenes require a supported candidate and its paired CPU control")
+    control = "legacy" if candidate_bridge == "legacy-composite" else "persistent"
+    return control, candidate_bridge
 
 
 def matrix_failures(cases: list[dict[str, Any]], comparisons: list[dict[str, Any]], *,

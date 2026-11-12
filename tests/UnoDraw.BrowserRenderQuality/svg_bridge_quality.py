@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare CPU and one GPU SVG document renderer through the production source editor."""
+"""Compare SVG document canvas paths through the production source editor."""
 from __future__ import annotations
 
 import argparse
@@ -51,6 +51,16 @@ def load_package(directory: Path, execution_mode: str) -> dict[str, Any]:
         raise ValueError("The served application index does not match its package manifest")
     package["path"] = str(directory)
     return package
+
+
+def verify_scene_bridge(console: list[dict[str, Any]], bridge: str, *,
+                        graphite_coverage: str | None = None) -> None:
+    # Source replacement and camera changes repaint the document. They do not
+    # guarantee an overlay-only frame that could reuse its cached pixels. The
+    # original-host composite must still prove a completed copy into Uno's canvas;
+    # overlay cache reuse is required separately by Welcome and timing workloads.
+    verify_bridge(console, bridge, require_reuse=bridge != "legacy-composite",
+                  graphite_coverage=graphite_coverage)
 
 
 def source_hashes() -> dict[str, str]:
@@ -241,7 +251,7 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                         raise AssertionError("The fixed native-DPR/GitHub Pages hosting contract changed")
                     capture(page, directory, "startup", DESKTOP, dpr)
                     renderer_evidence(page, logs["console"][navigation_console:], package, "webgpu")
-                    verify_bridge(logs["console"][navigation_console:], bridge, graphite_coverage=graphite_coverage)
+                    verify_scene_bridge(logs["console"][navigation_console:], bridge, graphite_coverage=graphite_coverage)
                     reload_required = False
                 case["environment"] = environment
                 case["source_edit"] = edit_source(page, fixture, directory)
@@ -268,7 +278,7 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                 case["states"].append(capture_scene(page, directory, STATES[2], fixture, dpr,
                     lambda readiness: require_camera_change(panned["readiness"], readiness, dpr, STATES[2])))
                 case["renderer"] = renderer_evidence(page, logs["console"][navigation_console:], package, "webgpu")
-                verify_bridge(logs["console"][navigation_console:], bridge, graphite_coverage=graphite_coverage)
+                verify_scene_bridge(logs["console"][navigation_console:], bridge, graphite_coverage=graphite_coverage)
                 if errors_since(logs, navigation_starts):
                     raise AssertionError("The SVG scene produced runtime/resource errors")
                 case["passed"] = True
@@ -321,16 +331,21 @@ def compare_cases(cases: list[dict[str, Any]], fixtures: list[Fixture], output: 
 
 
 def write_summary(report: dict[str, Any], output: Path) -> None:
+    control, candidate = scene_bridges(report.get("candidate_bridge", "webgl"))
     lines = ["# SVG document bridge quality", "",
-             f"One candidate package, persistent CPU versus opt-in {report.get('candidate_bridge', 'webgl')} document rendering, "
+             f"One candidate package, `{control}` versus `{candidate}` document rendering, "
              "at native DPR 1, 1.25 and 2.", "",
              "Eight unchanged SVG bodies are edited through the production source dialog and verified after Apply. "
              "Each case checks fit, fractional pan and fractional zoom. The original scene body is compared separately "
              "at the unchanged 0.1% above luminance 12 threshold; calibration colors over white and dark mattes must be within 2 RGB levels.", "",
-             f"Execution mode: `{report['execution_mode']}`. SwiftShader correctness evidence; no hardware performance claim.", "",
-             f"Explicit Graphite coverage: `{report.get('graphite_coverage') or 'unspecified'}`; unspecified means the artifact's default "
-             "without an explicit coverage claim. Requested coverage requires matching actual-context evidence in every case.", "",
-             "| Scene | Bridge | DPR | Complete case |", "| --- | --- | ---: | --- |"]
+             f"Execution mode: `{report['execution_mode']}`. SwiftShader correctness evidence; no hardware performance claim.", ""]
+    if candidate == "graphite":
+        lines += [f"Explicit Graphite coverage: `{report.get('graphite_coverage') or 'unspecified'}`; unspecified means the artifact's default "
+                  "without an explicit coverage claim. Requested coverage requires matching actual-context evidence in every case.", ""]
+    if candidate == "legacy-composite":
+        lines += ["Each composite case requires a successful copy into the original Uno canvas host. "
+                  "These source/camera checks do not claim overlay cache reuse; that is validated separately by Welcome and timing workloads.", ""]
+    lines += ["| Scene | Bridge | DPR | Complete case |", "| --- | --- | ---: | --- |"]
     for case in report["cases"]:
         lines.append(f"| {case['scene']} | {case['bridge']} | {case['dpr']} | {'passed' if case['passed'] else 'failed'} |")
     lines += ["", "| Scene | DPR | State | Native comparison |", "| --- | ---: | --- | --- |"]
@@ -348,7 +363,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--execution-mode", choices=EXECUTION_MODES, default="InterpreterAndAOT")
     parser.add_argument("--candidate-bridge", choices=LIVE_CANDIDATE_BRIDGES, default="graphite",
-                        help="Compare persistent CPU with this one GPU document renderer")
+                        help="Compare this document canvas mode with its paired original CPU control")
     parser.add_argument("--graphite-coverage", choices=GRAPHITE_COVERAGES,
                         help="Require the Graphite candidate's actual native default or raster coverage option")
     args = parser.parse_args()

@@ -1,0 +1,78 @@
+name: UnoDraw direct baseline opt-in comparison
+
+on:
+  workflow_call:
+    inputs:
+      package_run_id:
+        type: string
+        required: true
+      harness_sha:
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      package_run_id:
+        description: Existing UnoDraw performance run containing both AOT packages
+        type: string
+        required: true
+      harness_sha:
+        description: Exact harness commit with production source equivalent to the candidate
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  compare:
+    name: Direct baseline versus opt-in legacy composition (${{ matrix.workload }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        workload: [brush-hover, selection, pan, zoom, edit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.harness_sha }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Verify exact existing package archives and served bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_RUN_ID: ${{ inputs.package_run_id }}
+        run: >-
+          python tests/UnoDraw.BrowserPerformance/legacy_baseline_packages.py
+          --run-id "$PACKAGE_RUN_ID" --output artifacts/direct-packages
+      - name: Install the pinned browser and verify direct-comparison contracts
+        run: |
+          python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
+          python -m playwright install --with-deps chromium
+          python -m unittest discover -s tests/UnoDraw.BrowserPerformance -p 'test_legacy_baseline*.py'
+          node --test tests/UnoDraw.BrowserPerformance/test_instrumentation.mjs
+      - name: Measure the explicit candidate against the original baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_RUN_ID: ${{ inputs.package_run_id }}
+          HARNESS_SHA: ${{ inputs.harness_sha }}
+        run: >-
+          python tests/UnoDraw.BrowserPerformance/legacy_baseline_comparison.py
+          --packages artifacts/direct-packages --package-run-id "$PACKAGE_RUN_ID"
+          --harness-sha "$HARNESS_SHA" --workload ${{ matrix.workload }}
+          --output artifacts/direct-comparison
+      - name: Publish the available opt-in comparison
+        if: always()
+        run: |
+          if test -f artifacts/direct-comparison/summary.md; then
+            cat artifacts/direct-comparison/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-baseline-legacy-composite-${{ matrix.workload }}
+          path: artifacts/direct-comparison
+          if-no-files-found: warn
+          retention-days: 14

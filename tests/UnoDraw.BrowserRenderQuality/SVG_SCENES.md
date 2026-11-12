@@ -1,10 +1,11 @@
 # SVG document bridge quality
 
-This gate compares the same published UnoDraw candidate package with
-`canvasBridge=persistent` and `canvasBridge=graphite`. Both cases use the real
-WebGPU application compositor, and auxiliary surfaces keep the persistent CPU
-bridge. Graphite submits directly into the Uno texture on
-the shared WebGPU queue. Matching preference and successful initialization
+This gate compares two declared canvas paths in the same published UnoDraw
+candidate package. Graphite uses `persistent` as its CPU control, with auxiliary
+surfaces retaining that CPU bridge; it submits directly into the Uno texture on
+the shared WebGPU queue. Cached original-uploader composition pairs `legacy`
+with `legacy-composite`. Both pairs use the real WebGPU application compositor.
+Matching preference and successful initialization
 evidence are required, and any fallback or another experimental mode fails the
 case. These are native-pixel correctness checks, without timing claims.
 
@@ -51,6 +52,24 @@ python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
   --candidate-bridge graphite --graphite-coverage raster \
   --output /path/to/svg-graphite-raster-quality-artifact
 ```
+
+For cached composition through the original Uno uploader, run:
+
+```sh
+python tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py \
+  --package /path/to/candidate-package \
+  --execution-mode InterpreterAndAOT \
+  --candidate-bridge legacy-composite \
+  --output /path/to/svg-legacy-composite-quality-artifact
+```
+
+Its control is `legacy`; both modes use Uno's original texture uploader. All
+six sessions, eight source replacements per session, 48 cases and 72 native
+comparisons remain required. Each composite case must prove a completed copy
+into the original host. Source replacement and camera changes repaint the
+document, so this matrix does not claim interaction-only cache reuse. The
+separate Welcome, hover and selection gates require actual reuse. Graphite
+coverage selectors are invalid for this pair.
 
 `--package` is a single directory containing `benchmark-package.json` and
 `wwwroot/index.html`. The manifest must identify the candidate source commit,
@@ -104,7 +123,7 @@ The original body must remain inside the editor canvas and contain substantial
 chromatic artwork. Every pixel in each calibration center patch must be within
 two levels of its independent expected RGB result.
 
-Each CPU/selected-GPU pair uses the existing whole-frame, document and ruler comparisons
+Each declared bridge pair uses the existing whole-frame, document and ruler comparisons
 at the unchanged maximum **0.1% of pixels above luminance difference 12**. The
 original 160×110 scene body is also compared at that same threshold in a separate
 physical crop. The calibration strip and surrounding UI cannot dilute a missing

@@ -14,12 +14,14 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from svg_fixture_contracts import (BRIDGES, DESKTOP, DPRS, SCENES, STATES, SVG, XLINK,
+from svg_fixture_contracts import (BRIDGES, DESKTOP, DPRS, LIVE_CANDIDATE_BRIDGES, SCENES, STATES, SVG, XLINK,
                                    anchor_colors, compare_scene, inspect_scene, load_fixtures,
                                    matrix_failures, normalize_newlines, probes,
                                    require_camera_change, require_source_readback, scene_bridges)
-from svg_bridge_quality import compare_cases, load_package
-from quality import raw_comparison
+from svg_bridge_quality import compare_cases, load_package, verify_scene_bridge, write_summary
+from quality import (LEGACY_COMPOSITE_INITIALIZED, LEGACY_COMPOSITE_PREFERENCE,
+                     LEGACY_COMPOSITE_REUSED, LEGACY_PREFERENCE, PERSISTENT_INITIALIZED,
+                     raw_comparison, verify_bridge)
 
 
 def xml_shape(element: ET.Element) -> tuple:
@@ -346,6 +348,73 @@ class SvgFixtureContracts(unittest.TestCase):
         rows = compare_cases([], self.fixtures, self.directory, candidate_bridge="graphite")
         self.assertEqual(len(rows), 72)
         self.assertTrue(all(row["passed"] is False for row in rows))
+
+    def test_legacy_composite_requires_its_original_control_and_the_complete_matrix(self):
+        self.assertIn("legacy-composite", LIVE_CANDIDATE_BRIDGES)
+        self.assertEqual(scene_bridges("legacy-composite"), ("legacy", "legacy-composite"))
+        cases, rows = self.complete_matrix("legacy-composite")
+        self.assertEqual((len(cases), len(rows)), (48, 72))
+        self.assertEqual(matrix_failures(cases, rows, candidate_bridge="legacy-composite"), [])
+        for substitute in ("persistent", "composite", "graphite", "webgl"):
+            changed = copy.deepcopy(cases)
+            next(case for case in changed if case["bridge"] == "legacy")["bridge"] = substitute
+            with self.subTest(substitute=substitute):
+                self.assertTrue(matrix_failures(changed, rows, candidate_bridge="legacy-composite"))
+        for mutate in (lambda c, r: c.pop(), lambda c, r: r.pop(),
+                       lambda c, r: c.append(copy.deepcopy(c[0])),
+                       lambda c, r: r.append(copy.deepcopy(r[0])),
+                       lambda c, r: c[0]["source_edit"].update(reopened_after_apply=False),
+                       lambda c, r: c[0]["states"].pop(),
+                       lambda c, r: r[0].update(passed=False)):
+            changed_cases, changed_rows = copy.deepcopy(cases), copy.deepcopy(rows)
+            mutate(changed_cases, changed_rows)
+            with self.subTest(mutation=mutate):
+                self.assertTrue(matrix_failures(changed_cases, changed_rows, candidate_bridge="legacy-composite"))
+
+    def test_svg_source_camera_frames_require_completed_copy_without_claiming_overlay_reuse(self):
+        logs = [{"text": text} for text in (LEGACY_COMPOSITE_PREFERENCE, LEGACY_COMPOSITE_INITIALIZED)]
+        verify_scene_bridge(logs, "legacy-composite")
+        verify_scene_bridge([{"text": LEGACY_PREFERENCE}], "legacy")
+        with self.assertRaises(AssertionError):
+            verify_bridge(logs, "legacy-composite")
+        verify_bridge([*logs, {"text": LEGACY_COMPOSITE_REUSED}], "legacy-composite")
+        for invalid in (logs[:1], logs[1:], [*logs, {"text": PERSISTENT_INITIALIZED}]):
+            with self.subTest(logs=invalid), self.assertRaises(AssertionError):
+                verify_scene_bridge(invalid, "legacy-composite")
+        with self.assertRaises(ValueError):
+            verify_scene_bridge(logs, "legacy-composite", graphite_coverage="raster")
+
+    def test_legacy_composite_pixel_comparison_cannot_borrow_persistent_control(self):
+        cases = []
+        for dpr in DPRS:
+            path, readiness = self.synthetic(dpr=dpr)
+            for bridge in scene_bridges("legacy-composite"):
+                cases.append({"scene": self.fixture.name, "bridge": bridge, "dpr": dpr,
+                              "passed": True, "canonical_sha256": self.fixture.sha256,
+                              "input_sha256": self.fixture.browser_sha256, "artifact_directory": ".",
+                              "states": [{"name": name, "viewport": DESKTOP, "dpr": dpr,
+                                          "scene": self.fixture.name, "raw": path.name, "readiness": readiness}
+                                         for name in STATES]})
+        rows = compare_cases(cases, [self.fixture], self.directory, candidate_bridge="legacy-composite")
+        self.assertEqual(len(rows), 9)
+        self.assertTrue(all(row["passed"] for row in rows))
+        for case in cases:
+            if case["bridge"] == "legacy":
+                case["bridge"] = "persistent"
+        rows = compare_cases(cases, [self.fixture], self.directory, candidate_bridge="legacy-composite")
+        self.assertTrue(all(row["passed"] is False for row in rows))
+        self.assertTrue(all("legacy scene case did not complete" in row["failure"] for row in rows))
+        missing = compare_cases([], self.fixtures, self.directory, candidate_bridge="legacy-composite")
+        self.assertEqual(len(missing), 72)
+        self.assertTrue(all(row["passed"] is False for row in missing))
+
+    def test_legacy_composite_summary_identifies_the_actual_pair_and_copy_scope(self):
+        write_summary({"candidate_bridge": "legacy-composite", "execution_mode": "InterpreterAndAOT",
+                       "cases": [], "comparisons": [], "failures": []}, self.directory)
+        summary = (self.directory / "summary.md").read_text()
+        self.assertIn("`legacy` versus `legacy-composite`", summary)
+        self.assertIn("successful copy into the original Uno canvas host", summary)
+        self.assertNotIn("Explicit Graphite coverage", summary)
 
     def test_single_package_requires_explicit_mode_exact_index_and_candidate_provenance(self):
         root = self.directory / "package"

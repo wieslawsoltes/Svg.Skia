@@ -57,7 +57,7 @@ class WelcomeReadinessTests(unittest.TestCase):
 class QualityMatrixTests(unittest.TestCase):
     def test_opt_in_bridge_requires_its_own_complete_matrix(self) -> None:
         dprs, states = (1, 1.25, 2), ("desktop", "restored")
-        for candidate_bridge in ("webgl", "composite", "graphite"):
+        for candidate_bridge in ("webgl", "composite", "legacy-composite", "graphite"):
             cases = [{"bridge": bridge, "dpr": dpr, "passed": True,
                       "states": [{"name": name} for name in states]}
                      for bridge in ("legacy", candidate_bridge) for dpr in dprs]
@@ -200,7 +200,7 @@ class BridgeEvidenceTests(unittest.TestCase):
                 verify_bridge(evidence + [{"text": LEGACY_PREFERENCE}], bridge)
 
     def test_bridge_queries_select_each_path_explicitly(self) -> None:
-        for bridge in ("legacy", "persistent", "composite", "graphite"):
+        for bridge in ("legacy", "persistent", "composite", "legacy-composite", "graphite"):
             self.assertEqual(bridge_query(bridge), "canvasBridge=" + bridge)
         for bridge in ("unknown", "webgl"):
             with self.subTest(bridge=bridge), self.assertRaises(ValueError):

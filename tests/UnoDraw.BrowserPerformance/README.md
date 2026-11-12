@@ -274,9 +274,10 @@ provider must be observed; merely exposing `navigator.gpu` cannot pass.
 
 ### Same-artifact document rasterizer experiment
 
-`bridge_experiment.py` compares explicit `canvasBridge=persistent` and
-one supported candidate in **one identical AOT package**: `graphite` for pan/zoom,
-or `composite` for brush hover/selection. Each job keeps all three repetitions of
+`bridge_experiment.py` compares each supported candidate with its declared
+control in **one identical AOT package**: `persistent` versus `graphite` for
+pan/zoom, `persistent` versus `composite` for brush hover/selection, or `legacy`
+versus `legacy-composite` for brush hover/selection. Each job keeps all three repetitions of
 both modes on one runner, alternates their order, starts a fresh browser each
 time, and reuses the full 120-input warmup and existing workload. Two separate
 instrumented passes identify paint costs. Every primary pair compares
@@ -284,8 +285,10 @@ before/after/restored native images; all trusted inputs and zero unobserved inpu
 tails are required. Selection retains its existing 121-command driver; the other
 active experiments require 120 operations. Reports identify the source, browser,
 selected bridge and individual trials. They use a separate
-`same_candidate_bridge_experiment` report kind and cannot satisfy the twelve-shard
-application comparison. The executable default candidate is `graphite`.
+`same_candidate_bridge_experiment` report kind, except for the distinct
+`same_candidate_legacy_composition_experiment` described below. Neither report
+kind can satisfy the twelve-shard application comparison. The executable default
+candidate is `graphite`.
 
 The former `canvasBridge=webgl` document transport is retired from production and
 the live CLI/workflow matrix. Its same-artifact pan medians did not improve,
@@ -335,6 +338,53 @@ python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
   --output /absolute/path/composite-selection-experiment \
   --candidate-bridge composite --workload selection --repeats 3
 ```
+
+### Cached composition through the original uploader
+
+`?canvasBridge=legacy-composite` combines the same cached BGRA document and
+feedback through Uno's original `SKCanvasElement` software uploader. The control
+is `legacy`, so both modes retain the original texture creation, opacity scan
+and mip handling. The new path must prove a completed copy into the original
+host and a completed copy that actually reused cached document pixels. A
+preference message alone cannot qualify it; another initialized transport or
+fallback fails the trial.
+
+This distinct experiment keeps all six alternating primary trials, two separate
+diagnostics, full common warmup, 120 hover inputs or 121 selection inputs, zero
+input tails, and all nine original native image comparisons. Diagnostics still
+require Document=0 and Interaction>0 in both modes. It records the exact harness
+commit separately from the application source and reports `candidate_over_legacy`
+ratios. Results compare these two modes within the candidate; recovery against
+the older regression baseline requires its own direct comparison.
+
+```sh
+python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
+  --package /absolute/path/packages/candidate \
+  --output /absolute/path/legacy-composite-selection-experiment \
+  --candidate-bridge legacy-composite --workload selection --repeats 3 \
+  --harness-sha "$(git rev-parse HEAD)"
+```
+
+Use `--workload brush-hover` and a separate output directory for the second
+workload. The unchanged Welcome gate runs independently in Interpreter and AOT;
+the [SVG source/camera matrix](../UnoDraw.BrowserRenderQuality/SVG_SCENES.md)
+retains all 48 cases and 72 native comparisons.
+
+The performance workflow also starts a separate direct baseline comparison after
+its AOT packages are available. It compares the exact `96e5fa9` baseline with
+the explicit `legacy-composite` candidate for hover, selection, pan, zoom and
+editing. Each workload keeps three alternating primary pairs on one runner and
+one separate candidate diagnostic pass; the older baseline has no managed paint
+counters. The original warmup, input, document, ruler and chrome-font gates are
+unchanged. Camera and editing diagnostics require document painting; they do not
+claim interaction-only cache reuse.
+
+`legacy_baseline_packages.py` verifies fresh GitHub artifact descriptors, complete
+archive digests and every served file before and after measurement. The driver
+also verifies candidate production-source equivalence to the exact harness
+commit. These distinct opt-in reports cannot enter the default-application
+aggregate. They establish any recovery directly against the older source,
+without multiplying ratios from different runners or rebuilding the packages.
 
 ### Direct Graphite document experiment
 

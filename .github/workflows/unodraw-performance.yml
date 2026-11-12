@@ -154,6 +154,7 @@ jobs:
         include:
           - { bridge: persistent, variant: persistent }
           - { bridge: composite, variant: composite }
+          - { bridge: legacy-composite, variant: legacy-composite }
           - { bridge: graphite, variant: graphite, coverage: default }
           - { bridge: graphite, variant: graphite-raster, coverage: raster }
     steps:
@@ -313,6 +314,7 @@ jobs:
         include:
           - { bridge: persistent, variant: persistent }
           - { bridge: composite, variant: composite }
+          - { bridge: legacy-composite, variant: legacy-composite }
           - { bridge: graphite, variant: graphite, coverage: default }
           - { bridge: graphite, variant: graphite-raster, coverage: raster }
     steps:
@@ -330,7 +332,7 @@ jobs:
           python -m playwright install --with-deps chromium
           python -m unittest discover -s tests/UnoDraw.BrowserPerformance -p 'test_*.py'
           node --test tests/UnoDraw.BrowserRenderQuality/test_*.mjs
-      - name: Compare real persistent and legacy canvas paths at native resolution
+      - name: Compare the selected canvas path with legacy at native resolution
         run: >-
           python tests/UnoDraw.BrowserPerformance/bridge_quality.py
           --package artifacts/candidate --output artifacts/unodraw-bridge-quality
@@ -355,6 +357,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - { bridge: legacy-composite, variant: legacy-composite }
           - { bridge: graphite, variant: graphite, coverage: default }
           - { bridge: graphite, variant: graphite-raster, coverage: raster }
     steps:
@@ -398,17 +401,19 @@ jobs:
     name: Same AOT ${{ matrix.variant }} canvas (${{ matrix.workload }})
     needs: publish
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: ${{ matrix.bridge == 'legacy-composite' && 90 || 60 }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { workload: pan, bridge: graphite, variant: graphite, coverage: default }
-          - { workload: zoom, bridge: graphite, variant: graphite, coverage: default }
-          - { workload: pan, bridge: graphite, variant: graphite-raster, coverage: raster }
-          - { workload: zoom, bridge: graphite, variant: graphite-raster, coverage: raster }
-          - { workload: brush-hover, bridge: composite, variant: composite }
-          - { workload: selection, bridge: composite, variant: composite }
+          - { workload: pan, bridge: graphite, variant: graphite, coverage: default, artifact: unodraw-graphite-document-raster-experiment-pan }
+          - { workload: zoom, bridge: graphite, variant: graphite, coverage: default, artifact: unodraw-graphite-document-raster-experiment-zoom }
+          - { workload: pan, bridge: graphite, variant: graphite-raster, coverage: raster, artifact: unodraw-graphite-raster-document-raster-experiment-pan }
+          - { workload: zoom, bridge: graphite, variant: graphite-raster, coverage: raster, artifact: unodraw-graphite-raster-document-raster-experiment-zoom }
+          - { workload: brush-hover, bridge: composite, variant: composite, artifact: unodraw-document-raster-experiment-brush-hover }
+          - { workload: selection, bridge: composite, variant: composite, artifact: unodraw-document-raster-experiment-selection }
+          - { workload: brush-hover, bridge: legacy-composite, variant: legacy-composite, artifact: unodraw-legacy-composite-document-raster-experiment-brush-hover }
+          - { workload: selection, bridge: legacy-composite, variant: legacy-composite, artifact: unodraw-legacy-composite-document-raster-experiment-selection }
     steps:
       - uses: actions/checkout@v4
         with:
@@ -432,11 +437,12 @@ jobs:
           python -m unittest discover -s tests/UnoDraw.BrowserPerformance -p 'test_*.py'
           node --test tests/UnoDraw.BrowserPerformance/test_instrumentation.mjs
           node --test tests/UnoDraw.BrowserRenderQuality/test_*.mjs
-      - name: Measure both rasterizers in this identical AOT package
+      - name: Measure both declared bridge modes in this identical AOT package
         run: >-
           python tests/UnoDraw.BrowserPerformance/bridge_experiment.py
           --package artifacts/candidate --output artifacts/document-raster-experiment
           --workload ${{ matrix.workload }} --candidate-bridge ${{ matrix.bridge }} --repeats 3
+          --harness-sha ${{ github.event.pull_request.head.sha || github.sha }}
           ${{ matrix.bridge == 'graphite' && format('--graphite-coverage {0}', matrix.coverage) || '' }}
       - name: Publish the available matched comparison
         if: always()
@@ -447,7 +453,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ matrix.bridge == 'graphite' && format('unodraw-{0}-document-raster-experiment-{1}', matrix.variant, matrix.workload) || format('unodraw-document-raster-experiment-{0}', matrix.workload) }}
+          name: ${{ matrix.artifact }}
           path: artifacts/document-raster-experiment
           if-no-files-found: warn
           retention-days: 14
@@ -577,3 +583,14 @@ jobs:
           path: artifacts/unodraw-cross-build-quality
           if-no-files-found: warn
           retention-days: 14
+
+  direct-legacy-baseline-comparison:
+    name: Direct baseline versus opt-in legacy composition
+    needs: [plan, publish]
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/unodraw-legacy-baseline-comparison.yml
+    with:
+      package_run_id: ${{ format('{0}', github.run_id) }}
+      harness_sha: ${{ github.event.pull_request.head.sha || github.sha }}

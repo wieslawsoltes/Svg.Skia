@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Compare persistent with one opt-in bridge in the same published AOT application."""
+"""Compare an opt-in bridge with its declared control in the same published AOT application."""
 from __future__ import annotations
 
 import argparse
 import contextlib
 import json
 import platform
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -13,22 +14,24 @@ from typing import Any
 from playwright.sync_api import sync_playwright
 
 from bridge_experiment_contracts import (LIVE_CANDIDATE_BRIDGES, STATES, WORKLOADS, bridge_pair,
-                                         compare_metrics, load_candidate, trial_plan,
-                                         verify_experiment_workload, verify_runs)
+                                         compare_metrics, load_candidate, report_kind, trial_plan,
+                                         verify_experiment_workload, verify_report_identity, verify_runs)
 from performance import VIEWPORT, launch_arguments, run_trial, serve
 from metrics import metric_label
 from quality import GRAPHITE_COVERAGES, raw_comparison, validate_graphite_coverage, verify_bridge
+from transport_experiment_contracts import verify_native_pairs
 
 
 def save_report(report: dict[str, Any], output: Path) -> None:
     report["duration_seconds"] = time.time() - report["started_unix"]
     (output / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     candidate_bridge = report["candidate_bridge"]
+    control = bridge_pair(candidate_bridge)[0]
     lines = ["# Same-artifact canvas bridge experiment", "",
              f"Source: `{report['candidate_source_sha']}`; workload: {report['workload']}; "
              f"candidate bridge: `{candidate_bridge}`; independent repeats per bridge: {report['repeats']}.", "",
              "Both modes use this exact AOT package, full device resolution and the same SVG painter. "
-             f"The selected canvasBridge=persistent/{candidate_bridge} and any explicitly requested Graphite coverage "
+             f"The selected canvasBridge={control}/{candidate_bridge} and any explicitly requested Graphite coverage "
              "are the only rendering options that differ. All matched trials run on this runner, "
              "with alternating order and a fresh browser for every trial. "
              "SwiftShader implements the graphics APIs in software; these are not physical-GPU FPS results.", "",
@@ -40,11 +43,24 @@ def save_report(report: dict[str, Any], output: Path) -> None:
         lines += ["The WebGL mode rasterizes the document with Ganesh and copies the browser canvas into WebGPU. "
                   "Chromium 143 on Linux performs browser-side readback for that copy. "
                   "The copy count does not measure actual bytes transferred or display presentation.", ""]
-    elif candidate_bridge == "composite":
-        lines += ["The composite mode restores exact full-resolution cached BGRA document pixels before "
-                  "painting interaction feedback and uploading one combined canvas texture. It tests the cost "
-                  "of the additional retained interaction texture. Both modes must retain the document during "
-                  "this workload; cache-reuse console evidence and separate managed counters are required.", ""]
+    elif candidate_bridge in {"composite", "legacy-composite"}:
+        if candidate_bridge == "legacy-composite":
+            lines += [f"Harness revision: `{report.get('harness_source_sha', 'unrecorded')}`. "
+                      "This distinct same-candidate legacy composition report compares Uno's original uploader "
+                      "in both modes. The candidate combines cached document pixels and interaction feedback "
+                      "through the original host's raster surface; initialization requires a completed host copy, "
+                      "and cache reuse requires an actual completed copy of reused pixels. "
+                      "No persistent or alternate GPU document transport may initialize.", "",
+                      "The report isolates the opt-in composition change within this exact application package. "
+                      "It does not establish recovery against the older baseline or current-default eligibility. "
+                      "That requires a direct, independently complete baseline-versus-candidate comparison.", ""]
+        else:
+            lines += ["The composite mode restores exact full-resolution cached BGRA document pixels before "
+                      "painting interaction feedback and uploading one combined canvas texture. It tests the cost "
+                      "of the additional retained interaction texture.", ""]
+        lines += ["Both modes must retain the document during this workload; actual cache-reuse console evidence "
+                  "and separate managed counters are required. Every primary and diagnostic trial keeps the full "
+                  "common pan warmup outside its measurement window.", ""]
         if report["workload"] == "selection":
             lines += ["The existing selection driver turns 120 configured steps into 121 real alternating selection "
                       "commands, ending with a visible selection. Each trial requires all 121 operations and trusted "
@@ -70,13 +86,13 @@ def save_report(report: dict[str, Any], output: Path) -> None:
             formatted = [str(value) if value is not None else "n/a" for value in values]
             lines.append(f"| {run['trial']} | {run.get('diagnostic_pass', False)} | {' | '.join(formatted)} |")
         lines.append("")
-    lines += [f"| Metric | Persistent median | {candidate_bridge} median | Candidate / persistent |",
+    lines += [f"| Metric | {control} median | {candidate_bridge} median | Candidate / {control} |",
              "| --- | ---: | ---: | ---: |"]
     for row in report.get("metric_comparisons", []):
-        ratio = row["candidate_over_persistent"]
-        lines.append(f"| {metric_label(row['metric'])} | {row['medians']['persistent']:.3f} | "
+        ratio = row["candidate_over_" + control]
+        lines.append(f"| {metric_label(row['metric'])} | {row['medians'][control]:.3f} | "
                      f"{row['medians'][candidate_bridge]:.3f} | {ratio:.3f} |" if ratio is not None else
-                     f"| {metric_label(row['metric'])} | {row['medians']['persistent']:.3f} | "
+                     f"| {metric_label(row['metric'])} | {row['medians'][control]:.3f} | "
                      f"{row['medians'][candidate_bridge]:.3f} | n/a |")
     lines += ["", "## Separate diagnostic passes", "",
               "Instrumented callback elapsed times are excluded from the primary timing ratios and "
@@ -113,7 +129,8 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--workload", choices=WORKLOADS, required=True)
     parser.add_argument("--candidate-bridge", choices=LIVE_CANDIDATE_BRIDGES, default="graphite",
-                        help="Graphite for pan/zoom, or cached composition for brush-hover/selection")
+                        help="Graphite for pan/zoom; persistent or original-uploader composition for hover/selection")
+    parser.add_argument("--harness-sha", help="Exact checked-out harness revision; required for legacy composition")
     parser.add_argument("--graphite-coverage", choices=GRAPHITE_COVERAGES,
                         help="Require the Graphite candidate's actual native default or raster coverage option")
     parser.add_argument("--repeats", type=int, default=3)
@@ -122,19 +139,23 @@ def main() -> int:
         verify_experiment_workload(args.workload, args.candidate_bridge)
         validate_graphite_coverage(args.candidate_bridge, args.graphite_coverage)
         plan = trial_plan(args.repeats, args.candidate_bridge)
+        if (args.harness_sha is not None or args.candidate_bridge == "legacy-composite") and not re.fullmatch(
+                r"[0-9a-f]{40}", args.harness_sha or ""):
+            raise ValueError("Record the exact checked-out harness commit with --harness-sha")
     except ValueError as error:
         parser.error(str(error))
     bridges = bridge_pair(args.candidate_bridge)
     package = load_candidate(args.package.resolve())
     output = args.output.resolve()
-    if output == args.package.resolve() or args.package.resolve() in output.parents:
-        parser.error("The experiment output must be outside the served package")
+    if output == args.package.resolve() or args.package.resolve() in output.parents or output in args.package.resolve().parents:
+        parser.error("The experiment output and served package must be separate directory trees")
     output.mkdir(parents=True, exist_ok=True)
     args.steps, args.idle_ms = 120, 2000
     report: dict[str, Any] = {
-        "schema": 1, "report_kind": "same_candidate_bridge_experiment", "primary_comparison": False,
+        "schema": 1, "report_kind": report_kind(args.candidate_bridge), "primary_comparison": False,
         "passed": False, "started_unix": time.time(), "package": package,
         "candidate_source_sha": package["source_sha"], "workload": args.workload,
+        "harness_source_sha": args.harness_sha,
         "candidate_bridge": args.candidate_bridge, "bridges": list(bridges),
         "graphite_coverage": args.graphite_coverage,
         "repeats": args.repeats, "steps": args.steps, "viewport": VIEWPORT, "device_scale_factor": 1,
@@ -142,6 +163,7 @@ def main() -> int:
         "graphics_description": "SwiftShader software GPU implementations; not physical GPU throughput",
         "bridge_runs": [], "bridge_diagnostics": [], "quality_comparisons": [], "metric_comparisons": [],
     }
+    verify_report_identity(report)
     save_report(report, output)
     try:
         with serve(Path(package["path"]) / "wwwroot") as url, sync_playwright() as playwright:
@@ -188,12 +210,14 @@ def main() -> int:
                     candidate_bridge=args.candidate_bridge, graphite_coverage=args.graphite_coverage)
         verify_runs(report["bridge_diagnostics"], args.repeats, package["source_sha"], args.workload,
                     diagnostics=True, candidate_bridge=args.candidate_bridge, graphite_coverage=args.graphite_coverage)
-        if len({run["browser_version"] for run in report["bridge_runs"] + report["bridge_diagnostics"]}) != 1:
-            raise ValueError("The two modes did not use the same browser version")
+        all_runs = report["bridge_runs"] + report["bridge_diagnostics"]
+        if (len({run["browser_version"] for run in all_runs}) != 1
+                or len({tuple(run["browser_launch_arguments"]) for run in all_runs}) != 1):
+            raise ValueError("The two modes did not use the same browser configuration")
         for trial in range(1, args.repeats + 1):
             pair = {run["canvas_bridge"]: run for run in report["bridge_runs"] if run["trial"] == trial}
             for state in STATES:
-                before = output / pair["persistent"]["artifact_directory"] / f"{state}.png"
+                before = output / pair[bridges[0]]["artifact_directory"] / f"{state}.png"
                 after = output / pair[args.candidate_bridge]["artifact_directory"] / f"{state}.png"
                 comparison = {"trial": trial, "state": state, "passed": False}
                 try:
@@ -204,6 +228,11 @@ def main() -> int:
                 report["quality_comparisons"].append(comparison)
         if any(row["passed"] is not True for row in report["quality_comparisons"]):
             raise ValueError("The same-artifact bridge comparison changed native pixels above the original tolerance")
+        if args.candidate_bridge == "legacy-composite":
+            verify_native_pairs(report["quality_comparisons"])
+            if package != load_candidate(args.package.resolve()):
+                raise ValueError("The same-artifact package identity changed during measurement")
+        verify_report_identity(report)
         report["metric_comparisons"] = compare_metrics(report["bridge_runs"], args.candidate_bridge)
         report["passed"] = True
     except Exception as error:
