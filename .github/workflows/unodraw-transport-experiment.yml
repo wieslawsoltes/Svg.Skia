@@ -1,0 +1,63 @@
+name: UnoDraw texture transport experiment
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/unodraw-transport-experiment.yml'
+      - 'tests/UnoDraw.BrowserPerformance/transport_experiment.py'
+      - 'tests/UnoDraw.BrowserPerformance/transport_experiment_contracts.py'
+      - 'tests/UnoDraw.BrowserPerformance/test_transport_experiment.py'
+      - 'tests/UnoDraw.BrowserPerformance/pinned_package.py'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: unodraw-texture-transport-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  compare:
+    name: Pinned AOT legacy versus composite selection
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Verify and extract the immutable application snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python tests/UnoDraw.BrowserPerformance/pinned_package.py
+          --role candidate --output artifacts/transport-package
+      - name: Install the pinned browser and verify attribution contracts
+        run: |
+          python -m pip install -r tests/UnoDraw.BrowserSmoke/requirements.txt
+          python -m playwright install --with-deps chromium
+          python -m unittest discover -s tests/UnoDraw.BrowserPerformance -p 'test_transport_experiment.py'
+          node --test tests/UnoDraw.BrowserPerformance/test_instrumentation.mjs
+      - name: Compare unchanged legacy and combined texture paths
+        run: |
+          python tests/UnoDraw.BrowserPerformance/transport_experiment.py \
+            --package artifacts/transport-package \
+            --output artifacts/transport-experiment \
+            --harness-sha "$(git rev-parse HEAD)"
+      - name: Publish the available comparison
+        if: always()
+        run: |
+          if test -f artifacts/transport-experiment/summary.md; then
+            cat artifacts/transport-experiment/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unodraw-pinned-legacy-composite-selection
+          path: artifacts/transport-experiment
+          if-no-files-found: warn
+          retention-days: 14
