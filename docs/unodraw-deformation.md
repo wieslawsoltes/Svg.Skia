@@ -1,0 +1,19 @@
+# UnoDraw deformation brushes
+
+Warp (`Shift+R`), Twirl, Pucker, Bloat, Scallop, Crystallize and Wrinkle operate on editable SVG paths and primitive shapes. A selected group expands to its visible, unlocked descendants. With no selection, pressing on artwork selects the object under the brush. Double-click a tool to adjust its diameter, strength, detail and curve precision. Hold Alt at the start of a stroke to reverse its effect.
+
+Warp follows pointer displacement. Holding a stationary Warp brush does not move artwork. The other brushes continue working while the pointer is held, including when the pointer remains stationary. Their **Application rate** controls repeated application per second after initial contact; zero applies only at initial contact. Lower curve-precision values retain more detail. Brush diameter is expressed in picture coordinates, independent of canvas zoom and individual object transforms.
+
+The canvas draws a temporary outline while the pointer is captured. Pointer release applies one document edit. Escape, a tool or document change, loss of pointer capture, window deactivation and unloading discard the provisional stroke and stop its timers. The existing document history reverses the entire applied stroke in one step.
+
+## Shared geometry and controller APIs
+
+`SvgPathDeformationService.Deform` supports both spatial `IReadOnlyList<SKPoint>` strokes and elapsed `IReadOnlyList<SvgDeformationSample>` strokes. A sample contains `Position` and `ElapsedSeconds`; the first sample starts at zero and later times must be nondecreasing. The elapsed overload integrates non-Warp brushes on fixed 50-millisecond intervals, interpolating the pointer position at each interval midpoint and accounting for a fractional final interval. Duplicate pointer packets do not increase strength. Preview timer frequency and pointer packet frequency therefore do not determine the effect. Warp uses spatial resampling for either overload.
+
+`SvgEditorController.PrepareDeformation` captures source, selection and geometry without changing the document or history. Its disposable `SvgDeformationPreview` exposes picture-space outlines for drawing and stores separate local SVG path data for application. `ApplyDeformation` checks that the owner, document, source and ordered selection still match, then replaces the affected objects atomically. `DeformAlong` combines preparation and application for callers that do not need an interactive preview.
+
+The geometry service uses a finite-radius smooth falloff and adaptive arclength subdivision. Subdivision also resolves long straight segments crossing the brush. Open and closed contours and fill rules are retained. Transforms are applied in picture coordinates and inverted for local path storage; IDs, parent placement and presentation remain attached to the replacement paths. Unaffected primitives remain native SVG primitives. Generated brush centerline/profile metadata is removed from a deformed outline so later brush regeneration cannot silently overwrite the new geometry.
+
+Preparation validates finite coordinates, editable targets, invertible transforms, cancellation and processing budgets before applying anything. Timed input accepts up to 4,096 samples and 60 elapsed seconds; spatial input accepts up to 4,096 points. Geometry work is bounded by contour, subdivision, point, stamp and evaluation limits, with an additional aggregate path-data limit at the controller boundary. Unsupported text, instances and animated geometry require explicit conversion or baking before deformation. A rejected preparation leaves document content, selection and history intact.
+
+`SvgPathDeformationTests` checks all seven fields, brush-boundary behavior, reversal, open and closed geometry, spatial and temporal sampling independence, stationary application, transformed primitives, preview isolation, stale-target rejection, cancellation, input limits and atomic undo/redo.

@@ -6,7 +6,7 @@ The application migration does not remove the reusable Avalonia editor packages.
 
 ## Workspace preview
 
-These native Linux captures show the welcome document at the earlier desktop migration milestone. The current workspace also exposes the authoring and print commands documented below.
+These native Linux captures show the EditorTheme workspace with the editable SVG used by the interaction harness. They were captured from the running application after its saved-document checks passed. The theme's integration, resource overrides and full control surface are documented in the [EditorTheme guide](unodraw-editor-theme.md).
 
 | Light theme | Dark theme |
 | --- | --- |
@@ -14,13 +14,13 @@ These native Linux captures show the welcome document at the earlier desktop mig
 
 ## Build and run
 
-Use the .NET 10 SDK selected by the repository's `global.json`. The default target is `net10.0-desktop`, with Windows, macOS and Linux hosts. Browser, Android and iOS targets are opt-in through `UnoDrawTargetFrameworks`; a default desktop solution build does not require their workloads. The target configuration is in [`UnoDraw.csproj`](../samples/UnoDraw/UnoDraw.csproj).
+Use the .NET 10 SDK selected by the repository's `global.json`. All Uno projects use Uno SDK 7.0.5 and its Uno runtime 7.0.32 dependency set. Rebuild consuming Uno libraries when upgrading from Uno 6; the [Uno 7 migration guide](unodraw-uno7.md) describes the host, package and rendering changes. The default target is `net10.0-desktop`, with Windows, macOS and Linux hosts. Browser, Android and iOS targets are opt-in through `UnoDrawTargetFrameworks`; a default desktop solution build does not require their workloads. The target configuration is in [`UnoDraw.csproj`](../samples/UnoDraw/UnoDraw.csproj).
 
 ### Desktop
 
 ```sh
 git submodule update --init --recursive
-dotnet restore samples/UnoDraw/UnoDraw.csproj
+dotnet restore samples/UnoDraw/UnoDraw.csproj -p:Configuration=Release
 dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-desktop -c Release
 dotnet run --project samples/UnoDraw/UnoDraw.csproj -f net10.0-desktop
 ```
@@ -42,8 +42,8 @@ Each command below selects one target explicitly. Install the corresponding work
 | Target | Framework | Host requirements and output |
 | --- | --- | --- |
 | Desktop | `net10.0-desktop` | Windows, macOS or Linux host; direct Uno Skia canvas. |
-| Browser | `net10.0-browserwasm` | `wasm-tools`; published WebAssembly application. The project defaults to interpreter execution and disables trimming because SVG element/attribute discovery uses reflection. |
-| Android | `net10.0-android` | Android workload, Android SDK and JDK; APK output, minimum Android API 23. |
+| Browser | `net10.0-browserwasm` | `wasm-tools`; published WebAssembly application. WebGPU composition is preferred, with Skia fallback. The project defaults to interpreter execution and disables trimming because SVG element/attribute discovery uses reflection. |
+| Android | `net10.0-android` | Android workload, Android SDK and JDK; APK output, minimum Android API 24. |
 | iOS | `net10.0-ios` | macOS, compatible Xcode and iOS workload; minimum iOS 15. Simulator builds do not require distribution signing. |
 
 Publish browser assets:
@@ -54,6 +54,8 @@ dotnet publish samples/UnoDraw/UnoDraw.csproj -f net10.0-browserwasm -p:UnoDrawT
 ```
 
 Serve the published WebAssembly web assets over HTTP or HTTPS. The browser CI job additionally requests `-p:WasmShellMonoRuntimeExecutionMode=InterpreterAndAOT`; the default project setting remains `Interpreter` so local development does not require an AOT publish. AOT enables the required linker pipeline while assigning the `copy` action to every managed assembly, preserving SVG reflection metadata and JSON recovery serialization. Browser builds enable IndexedDB-backed filesystem persistence for recovery storage. File pickers and saves use Uno storage providers, including completion of provider-managed downloads, rather than assuming every selected file exposes a writable native path.
+
+WebGPU requires a secure browser context, such as HTTPS or localhost, and an available adapter. The browser host explicitly tries Uno's experimental WebGPU provider before Skia with WebGL2/WebGL1 and then software rendering. Open the app with `?renderer=skia` to select direct Skia rendering at startup while retaining its WebGL-to-software fallback. This setting provides a comparison path for SVG-heavy documents and does not modify document or workspace settings. `SKCanvasElement` retains the existing SVG renderer through Uno's compatibility bridge; see [Canvas and performance](#canvas-and-performance) for its copy boundary. CI exercises WebGPU, WebGL fallback, software fallback and explicit Skia preference against the same optimized package under the GitHub Pages subpath, without requiring cross-origin isolation.
 
 Release browser packages omit native DWARF debug information before AOT/native optimization to reduce build memory pressure. This does not trim managed assemblies or SVG reflection metadata. Use `-p:WasmNativeDebugSymbols=true` when native WebAssembly debugging is needed and the build host has sufficient memory. CI also limits Binaryen to one worker and publishes with serial MSBuild execution and no shared C# compiler process; AOT and the optimization level remain enabled.
 
@@ -74,7 +76,7 @@ dotnet workload install ios --skip-manifest-update
 dotnet build samples/UnoDraw/UnoDraw.csproj -f net10.0-ios -p:UnoDrawTargetFrameworks=net10.0-ios -c Release -p:RuntimeIdentifier=iossimulator-arm64 -p:EnableCodeSigning=false -p:UseInterpreter=true -p:MtouchUseLlvm=false
 ```
 
-The iOS CI job pins .NET SDK/workload 10.0.401 with Xcode 26.6 on macOS 26; keep the workload and Xcode versions compatible when building locally. This simulator command uses the interpreter to avoid AOT-compiling the entire preserved SVG dependency graph; device Release builds retain the normal AOT configuration. The iOS head supplies native folder, format, file-name and overwrite prompts because Uno 6.5 does not provide a default save picker. Its application delegate obtains background time to finish a recovery checkpoint when the app leaves the foreground.
+The iOS CI job pins .NET SDK/workload 10.0.401 with Xcode 26.6 on macOS 26; keep the workload and Xcode versions compatible when building locally. This simulator command uses the interpreter to avoid AOT-compiling the entire preserved SVG dependency graph; device Release builds retain the normal AOT configuration. The iOS head supplies native folder, format, file-name and overwrite prompts. It migrates settings from the pre-Uno-7 storage before constructing the application, retaining shortcut and workspace preferences. Its application delegate obtains background time to finish a recovery checkpoint when the app leaves the foreground.
 
 Use `iossimulator-x64` for an Intel simulator host. Physical-device and distribution builds need the corresponding runtime identifier and signing configuration. These targets share the same workspace and SVG engine; file access, fonts, GPU backends and pointer behavior still depend on the host. Desktop startup paths are a desktop feature; the embedded welcome SVG supplies the initial document on all targets.
 
@@ -118,9 +120,11 @@ After successfully writing a captured SVG snapshot, hosts call `SvgEditorControl
 
 ### Canvas and performance
 
-`SvgEditorCanvas` derives from Uno's `SKCanvasElement`. It draws into the Skia surface already used by Uno through `SKSvg.Draw`, replaying the retained picture and current animation layers. It does not rasterize an intermediate image on every frame.
+`SvgEditorCanvas` derives from Uno's `SKCanvasElement` and calls `SKSvg.Draw` to replay the retained picture and current animation layers. On a Skia host it draws into the host's Skia canvas. On the browser's WebGPU host, Uno bridges that same element through a device-resolution raster surface and uploads its pixels for WebGPU composition. The optional GL island is excluded because Uno 7.0.32's framebuffer teardown fails during a zero-sized responsive layout; the [migration guide](unodraw-uno7.md) documents the source and runtime evidence. The document engine and its retained picture are shared across these paths.
 
-The host selects the graphics backend and may fall back to software. Using `SKCanvasElement` enables direct accelerated drawing when the host provides it; it does not prove that a particular machine is using a GPU. The workspace deliberately identifies the rendering path as a direct canvas rather than displaying an unconditional hardware status claim.
+WebGPU therefore changes UI composition while preserving the SVG rendering implementation. Each invalidated Skia visual recording incurs raster drawing, RGBA conversion, mip preparation and texture upload; unchanged retained visuals reuse their resources. This does not establish a performance improvement for every drawing, so `?renderer=skia` exposes direct Skia/WebGL for comparison on target hardware. A browser software GPU adapter and Uno's Canvas2D software renderer are separate paths. The workspace labels the surface as an SVG canvas. The [backend guide](unodraw-uno7.md) describes negotiation, startup-only fallback, device-loss behavior and runtime verification.
+
+Artboard geometry is cached by document/render revision and picture identity, while unchanged ruler geometry reuses its ticks and major labels. The Navigator separates its camera indicator into a native composition shape, allowing pan and zoom without repainting the SVG overview. The [performance guide](unodraw-performance.md) explains cache invalidation, runtime retention checks and the reproducible allocation/timing profile, including the limits of those measurements.
 
 `SvgEditorViewport` keeps camera state separate from document state. Pan, zoom, fitting, selection and overlays do not serialize the SVG or recreate its retained picture. Zoom is anchored to the cursor and bounded between 1% and 12,800%; calculations use double precision before conversion to the Skia transform. The picture cache is invalidated by document edits.
 
@@ -138,63 +142,90 @@ Boolean operations transform the input paths into a common destination coordinat
 
 ## Workspace and controls
 
-The workspace uses document tabs, a tool rail, a searchable document outline, a contextual design inspector and command search. A compact menu replaces the full menu bar below 1,100 pixels. The outline docks at widths of at least 1,100 pixels and the inspector at widths of at least 760 pixels. **View → Layers and objects** and **View → Object inspector** reopen these controls in flyouts when they are not docked. Focus-canvas mode hides both panels. Feature dialogs use stacked controls or scrollable content at narrow widths; the timeline ruler can scroll horizontally. Light and dark themes share the same workspace.
+UnoDraw uses the reusable [EditorTheme](unodraw-editor-theme.md), with File, Edit, Object, Type, Select, Effect, View, Window and Help menus, grouped tools, a contextual control bar, document tabs, rulers, a retained canvas, docked or floating panels, and an editable zoom readout. Compact layouts retain the same command catalog through a menu button and panel switchers. **Window** opens individual panels or restores Essentials, Drawing and Typography workspaces. Named workspaces preserve panel placement, width, grouping and visibility. The theme provides dark, light and system high-contrast resources throughout native input controls, menus, popups, dialogs and editor controls.
 
-Open `.svg` or compressed `.svgz` files from the file picker, drag files onto the workspace, or supply a path at startup. Raster images placed into a document are embedded as data URIs. Choose the format explicitly in the export dialog. Export supports editable SVG, PNG, JPEG, WebP, PDF and XPS through the existing Svg.Skia export APIs. Selected-object export includes SVG resources needed by the copied content. The export scale is limited to 0.01–16× and oversized raster exports are rejected before allocation.
+Tool groups open with a press and hold, right-click or Alt+Down; the All Tools button exposes every entry. Double-click a tool for its options. Double-click Hand to fit the active artboard or Zoom for actual size. The toolbox supports one or two columns and larger touch targets. **Edit → Keyboard Shortcuts** edits, validates, imports and exports profiles; menus, tooltips, command search and shortcut help immediately reflect the active profile. **Edit → Preferences** sets keyboard increments and workspace behavior.
 
-| Action | Keyboard or pointer control |
+Open `.svg` or compressed `.svgz` files from the file picker, drag files onto the workspace, or supply a path at startup. Raster images placed into a document are embedded as data URIs. Choose the format explicitly in the export dialog. Export supports editable SVG, PNG, JPEG, WebP, PDF and XPS through the existing Svg.Skia export APIs. Selected-object export includes SVG resources needed by the copied content. The export Area selector can crop editable SVG or rendered output to any named artboard; **File → Export → Export Active Artboard** selects the current region. Export snapshots preserve the source document, selection and history, including locked artwork. The export scale is limited to 0.01–16× and oversized raster exports are rejected before allocation.
+
+The default profile uses Control on Windows/Linux and Command on Apple platforms; Alt is displayed as Option on Apple platforms. Unmodified tool keys are active on the canvas. Native text fields, numeric editors, lists, trees and dialogs retain their editing/navigation keys.
+
+| Action | Default keyboard or pointer control |
 | --- | --- |
-| New / open / save | `Ctrl+N`, `Ctrl+O`, `Ctrl+S`; `Ctrl+Shift+S` saves to a new destination. |
-| Search every command | `Ctrl+K`. |
-| Print and page setup | `Ctrl+P`. |
-| Save a compressed SVG | **File → Save compressed SVG…** (also available with browser downloads). |
-| Select / edit nodes | `V` / `A`. |
-| Rectangle / ellipse / circle / line | `R` / `E` / `C` / `L`. |
-| Bézier pen / quadratic pen / pencil | `P` / `Q` / `B`. |
-| Polygon / polyline / text | `G` / `O` / `T`. |
+| New / open / save / Save As | `Ctrl+N` / `Ctrl+O` / `Ctrl+S` / `Ctrl+Shift+S`. |
+| Search every command | `Ctrl+Shift+F12`; searches names, categories and shortcuts. |
+| Preferences / keyboard shortcuts | `Ctrl+K` / `Ctrl+Alt+Shift+K`. |
+| Print / export | `Ctrl+P` / `Ctrl+Alt+E`. |
+| Selection / Direct Selection / Lasso / Magic Wand | `V` / `A` / `Q` / `Y`. |
+| Rectangle / Ellipse / Line Segment | `M` / `L` / `\`. |
+| Pen / Pencil / Paintbrush / Type | `P` / `N` / `B` / `T`. |
+| Blob Brush / Join | `Shift+B` / `Shift+J`. |
+| Add / delete / convert anchor | `+` / `−` / `Shift+C`. |
+| Rotate / Reflect / Scale / Free Transform | `R` / `O` / `S` / `E`. |
+| Scissors / Eraser | `C` / `Shift+E`. |
+| Gradient / Eyedropper / Mesh / Width | `G` / `I` / `U` / `Shift+W`. |
+| Blend / Shape Builder / Symbol Sprayer | `W` / `Shift+M` / `Shift+S`. |
+| Artboard / Hand / Zoom | `Shift+O` / `H` / `Z`. |
 | Add to selection | Shift-click or Control-click. |
-| Pan | Hold Space and drag, middle-button drag, or select the hand tool with `H`. |
-| Zoom / horizontal pan | Mouse wheel / Shift-wheel; two-finger pinch also changes the viewport. |
-| Fit artboard / fit selection | `Shift+1` / `Shift+2`. |
-| Actual size | `Ctrl+0`. |
-| Nudge / larger nudge | Arrow keys / Shift+arrow keys. |
-| Duplicate / group / ungroup | `Ctrl+D` / `Ctrl+G` / `Ctrl+Shift+G`. |
-| Undo / redo | `Ctrl+Z` / `Ctrl+Shift+Z` or `Ctrl+Y`. |
+| Pan | Hold Space and drag or use the middle mouse button. |
+| Temporary zoom in / out | Hold `Ctrl+Space` / `Ctrl+Alt+Space`; release to restore the previous tool. |
+| Zoom / horizontal pan | Mouse wheel / Shift-wheel; two-finger pinch changes the viewport. |
+| Fit active / all artboards / actual size | `Ctrl+0` / `Ctrl+Alt+0` / `Ctrl+1`. |
+| Zoom in / out | `Ctrl++` / `Ctrl+−`; numeric keypad variants are supported. |
+| Nudge / larger nudge | Arrow keys / Shift+arrow keys, using the configured keyboard increment. |
+| Paste in front / back / place | `Ctrl+F` / `Ctrl+B` / `Ctrl+Shift+V`. |
+| Next / previous document | `Ctrl+Tab` / `Ctrl+Shift+Tab`, including physical Control on macOS. |
+| Transform Again / group / ungroup | `Ctrl+D` / `Ctrl+G` / `Ctrl+Shift+G`. |
+| Lock / unlock all / hide / show all | `Ctrl+2` / `Ctrl+Alt+2` / `Ctrl+3` / `Ctrl+Alt+3`. |
+| Undo / redo | `Ctrl+Z` / `Ctrl+Shift+Z`. |
+| Outline / rulers / grid / snap to grid | `Ctrl+Y` / `Ctrl+R` / `Ctrl+'` / `Ctrl+Shift+'`. |
+| Show / lock guides / smart guides | `Ctrl+;` / `Ctrl+Alt+;` / `Ctrl+U`. |
+| Guides from selection bounds | `Ctrl+5`. |
+| Active fill/stroke / swap / defaults / none | `X` / `Shift+X` / `D` / `/`. |
 | Finish a pen path | Enter, right-click or double-click; click the first node to close it. |
 | Cancel a provisional gesture | Escape. |
-| Focus the canvas / shortcut help | Tab / `F1`. |
+| Hide all / side panels / cycle screen mode | Tab / Shift+Tab / `F`, while the canvas has focus. |
+| Menu / canvas context menu / help | F10 or Alt+menu letter on Windows/Linux; Shift+F10 / F1. |
+
+Duplicate remains available through **Edit → Duplicate** and command search. Fit Selection is available through **View** and Navigator. All commands can be assigned through the shortcut editor where their focus scope permits the gesture.
 
 Pen clicks add anchors; dragging an anchor while drawing a cubic path establishes its tangent. Shift constrains movement, shape aspect ratio, line direction and rotation as appropriate. Node editing operates on a provisional clone so selecting a path does not normalize or modify the saved SVG. The node tool also edits native polygon and polyline vertices without converting them to paths: double-click an edge to insert a vertex, or delete a selected vertex while retaining at least three polygon vertices or two polyline vertices. Move, resize and rotate gestures show a translucent full-color preview with selection handles and commit the actual document transform on release.
 
+Smooth brushes reshape nearby anchors and handles while preserving open endpoints. Path Eraser removes intervals from an editable path centerline, retaining its curves and stroke appearance. Join connects swept open endpoints and preserves their contours. Blob Brush draws filled vector outlines with round ends and can merge touching compatible fills of the same color. Each completed gesture forms one undo operation; Escape discards its preview. Double-click these tools to set their diameter and applicable smoothing or merging options. Pencil options expose fidelity and smooth-curve fitting; rounded rectangles and stars expose their corner and inner-radius settings.
+
+Shear applies an affine transform through the existing provisional transform pipeline. Measure displays distance, horizontal and vertical deltas, and angle in SVG user units without changing the document or undo history. Shift constrains its direction to 45-degree increments. Both tools are available from their toolbox groups and command search.
+
+Deformation and symbol brushes show their diameter before a stroke. Time-based deformation continues while the pointer is held still, using elapsed-time integration instead of pointer-event counts; Warp follows pointer movement. Releasing commits one operation, and cancellation or window deactivation discards the pending brush preview.
+
 ### Variable width strokes, meshes and brushes
 
-**Path → Variable width stroke** converts an open or closed path into an ordinary filled SVG outline. The dialog provides a native live preview, taper/brush presets, editable width points, and flat, round or square ends. Widths interpolate along arc length in the path's local SVG coordinates. Closed contours preserve their interior holes and require equal first and last widths at the seam; caps apply to open contours. Multiple contours are supported.
+**Object → Path → Width Profile** converts an open or closed path into an ordinary filled SVG outline. The dialog provides a native live preview, taper/brush presets, editable width points, and flat, round or square ends. Widths interpolate along arc length in the path's local SVG coordinates. Closed contours preserve their interior holes and require equal first and last widths at the seam; caps apply to open contours. Multiple contours are supported.
 
 The original centerline and width profile remain in `data-unodraw-*` attributes so the dialog can adjust the profile later. Editing generated outline nodes invalidates this association; the service rejects reapplication rather than replacing those edits. Applying an independent width profile detaches a brush-library link. The operation retains the path ID, transforms and effects and creates one undo entry. See [`SvgVariableStrokeService`](../src/Svg.Editor.Skia/SvgVariableStrokeService.cs).
 
-**Object → Gradient mesh** creates a mesh or reopens the selected mesh group. Drag nodes and their horizontal/vertical tangent handles in the preview, or enter coordinates, tangent derivatives, color and opacity numerically. Rows and columns define a rectangular network of cubic Coons patches. Each patch interpolates its corner colors in premultiplied RGBA. Shared boundaries use the same node derivatives; this model is a rectangular Coons network, with bilinear color interpolation within each patch.
+**Object → Paint Resources → Gradient Mesh** creates a mesh or reopens the selected mesh group. Drag nodes and their horizontal/vertical tangent handles in the preview, or enter coordinates, tangent derivatives, color and opacity numerically. Rows and columns define a rectangular network of cubic Coons patches. Each patch interpolates its corner colors in premultiplied RGBA. Shared boundaries use the same node derivatives; this model is a rectangular Coons network, with bilinear color interpolation within each patch.
 
 [`SvgGradientMeshService`](../src/Svg.Editor.Skia/SvgGradientMeshService.cs) tessellates the actual curved patches into ordinary SVG polygons and stores the editable control network separately. This is a portable vector approximation with selectable quality, not a dependency on native SVG mesh-paint support. More subdivisions improve color and boundary smoothness while increasing document size. The service permits 2–16 nodes in each direction and at most 32,768 triangles. Generated-artwork fingerprints protect independent polygon edits. The native preview uses reduced tessellation while dragging and restores full quality on release.
 
-**Path → Brush library** authors reusable width-profile, repeating-pattern and scatter brushes. Choose a document preset or create one, set its width and color, and edit its width multipliers or SVG stamp path. Pattern/scatter controls include spacing, rotation, tangent following, scatter amount and deterministic seed. A selected path can supply the stamp geometry. Each stamp is a single-color vector path; multi-color resource-backed artwork is not a brush-stamp format in this implementation.
+**Object → Paint Resources → Brush Library** authors reusable width-profile, repeating-pattern and scatter brushes. Choose a document preset or create one, set its width and color, and edit its width multipliers or SVG stamp path. Pattern/scatter controls include spacing, rotation, tangent following, scatter amount and deterministic seed. A selected path can supply the stamp geometry. Each stamp is a single-color vector path; multi-color resource-backed artwork is not a brush-stamp format in this implementation.
 
 Save a brush definition in the SVG, apply it to selected paths, or update all artwork linked to that definition. The dialog supports duplication, removal, and import/export of `.unodraw-brushes` XML libraries. Removing a definition leaves its rendered artwork and retained settings available. Linked updates are staged before mutation, reject locked or independently edited outlines, and form an atomic undo operation. Generated results are ordinary filled SVG paths; resource links use `url(#id)` so copy/paste can remap brush identities together with artwork. Each stroke is limited to 4,096 stamps and 256 contours. See [`SvgBrushLibraryService`](../src/Svg.Editor.Skia/SvgBrushLibraryService.cs).
 
 ### Shared swatches and named inks
 
-**Object → Document swatches** creates or edits reusable solid-color SVG gradient resources. A swatch can remain in the document palette or be linked to selection fill or stroke. Editing a shared swatch recolors all linked artwork. The dialog preserves existing resource and stop IDs and excludes opacity gradients from solid-color editing.
+**Object → Paint Resources → Document Swatches** creates or edits reusable solid-color SVG gradient resources. A swatch can remain in the document palette or be linked to selection fill or stroke. Editing a shared swatch recolors all linked artwork. The dialog preserves existing resource and stop IDs and excludes opacity gradients from solid-color editing.
 
 An optional **Spot ink name** assigns `data-unodraw-spot-name` to the swatch. The SVG still displays its alternate RGB color in ordinary viewers. Named-ink export uses the explicit separation workflow below; adding an ink name does not cause ordinary PDF export to create a spot color space.
 
 ### Layers and hierarchy
 
-The outline supports multiple selection and drag/reorder/reparent operations. Clear outline search before dragging so the destination order is unambiguous. **Object → Move to layer** provides a destination group or layer, front/back placement and a **Keep position on the canvas** option. **Move out of group** moves a selection from one shared parent into the containing parent.
+The outline supports multiple selection and drag/reorder/reparent operations. Clear outline search before dragging so the destination order is unambiguous. **Object → Arrange → Move to Layer** provides a destination group or layer, front/back placement and a **Keep position on the canvas** option. **Move out of group** moves a selection from one shared parent into the containing parent.
 
 [`SvgEditorController.Hierarchy`](../src/Svg.Editor.Skia/SvgEditorController.Hierarchy.cs) retains object identity, local resource references and relative painter order. It compensates for parent transforms when preserving world position, materializes inherited presentation before detachment, and reduces ancestor/descendant selections to their outermost branches. Cycles, invalid SVG parent/child combinations, locked branches and singular destination transforms are rejected before mutation. New destination-group compositing intentionally applies to the moved children; moving artwork between groups with different opacity, masks, clips or filters can therefore change its appearance. One completed move creates one undo operation.
 
 ### Paragraphs and linked text frames
 
-**Edit → Paragraphs and linked text frames** creates a text story or reopens the story containing the selected generated text. Select a range in the story editor to assign font family, size, weight, italic, paint, letter spacing and OpenType features. Set default typography separately from explicit rich-text ranges. Paragraph settings include start/center/end/justified alignment, line height, spacing, first-line and side indents, and right-to-left direction; settings can target the current paragraph or all paragraphs.
+**Type → Area Type and Linked Frames** creates a text story or reopens the story containing the selected generated text. Select a range in the story editor to assign font family, size, weight, italic, paint, letter spacing and OpenType features. Set default typography separately from explicit rich-text ranges. Paragraph settings include start/center/end/justified alignment, line height, spacing, first-line and side indents, and right-to-left direction; settings can target the current paragraph or all paragraphs.
 
 Frames flow in list order and then column order. Add or remove linked frames, reorder them, edit their position, dimensions, padding, columns and gaps, or split the chain before a selected frame to create independent stories. Live preview reports unplaced text and horizontal overflow. The full source story survives when not all content fits; Print Studio preflight reports overflow as an error.
 
@@ -204,7 +235,7 @@ The reusable [`SvgTextLayoutService`](../src/Svg.Editor.Skia/SvgTextLayoutServic
 
 ### Animation timeline
 
-**View → Animation timeline** reads and authors standard SVG `animate`, `animateTransform`, `animateMotion` and `set` tracks through [`SvgTimelineService`](../src/Svg.Editor.Skia/SvgTimelineService.cs). Add, duplicate or delete tracks; select a target; edit clock or SVG begin expressions, duration, repeats, final-value holding, additive behavior and accumulation. Values can use keyframes, from/to, from/by, to-only or by-only forms. Motion tracks support inline SVG path data or a local path reference, normalized distances and rotation.
+**Window → Animation Timeline** reads and authors standard SVG `animate`, `animateTransform`, `animateMotion` and `set` tracks through [`SvgTimelineService`](../src/Svg.Editor.Skia/SvgTimelineService.cs). Add, duplicate or delete tracks; select a target; edit clock or SVG begin expressions, duration, repeats, final-value holding, additive behavior and accumulation. Values can use keyframes, from/to, from/by, to-only or by-only forms. Motion tracks support inline SVG path data or a local path reference, normalized distances and rotation.
 
 The timeline provides a native preview, play/pause, looping, a numeric playhead and a ruler. Click to scrub and drag keyframe diamonds to adjust timing. Keys expose values and cubic Bézier easing, with linear/ease presets; interpolation supports the SVG discrete, linear, paced and spline modes. Key positions are unique normalized times, with a 4,096-key limit per track. Evaluation and event-timing support remain those of the shared `Svg.Animation` engine; the dialog is not a JavaScript debugger or a browser DOM authoring environment.
 
@@ -212,13 +243,13 @@ Playback schedules one frame at a time and yields to input before rearming the t
 
 Edits occur in a draft controller with its own undo/redo history. **Update preview** evaluates the draft. **Save timeline** applies the draft to the source as one undoable document change and retains the playhead. Cancelling leaves the source unchanged. A document revision check rejects stale saves. Standard animation elements are stored directly in SVG, so reopening does not require a private timeline file. Saving the document or using Save As also preserves the active playhead without baking its animated values into the source geometry.
 
-**Object → Bake current animation frame** evaluates the current playhead, writes its static values into an editable SVG snapshot, and removes SVG animation elements in one undoable operation. Ordinary image/PDF/XPS exports and Print Studio capture the selected timeline position, including cached animation layers. Bake the frame before named-ink separation, which requires static artwork. The bake operation uses the SVG animation evaluator; it does not convert arbitrary scripts into static artwork.
+**Object → SVG → Bake Animation Frame** evaluates the current playhead, writes its static values into an editable SVG snapshot, and removes SVG animation elements in one undoable operation. Ordinary image/PDF/XPS exports and Print Studio capture the selected timeline position, including cached animation layers. Bake the frame before named-ink separation, which requires static artwork. The bake operation uses the SVG animation evaluator; it does not convert arbitrary scripts into static artwork.
 
 Editing shortcuts are suppressed while a text-entry control has focus. The workspace also accepts the platform Windows/Command modifier where Uno reports it for the corresponding Control shortcuts.
 
 ## Print production
 
-**File → Print and page setup** opens Print Studio; **File → Preflight document** opens the issue list independently. Print Studio generates files for printing. It does not submit jobs to an operating-system printer queue.
+**File → Print** opens Print Studio; **File → Document Preflight** opens the issue list independently. Print Studio generates files for printing. It does not submit jobs to an operating-system printer queue.
 
 ### Pages and output choices
 
@@ -272,22 +303,22 @@ Rendering a construct, retaining it in the document, editing attributes and prov
 
 | Area | Implemented authoring surface | Current boundary |
 | --- | --- | --- |
-| Documents and history | Tabs, SVG/SVGZ open/save, recovery, source/attribute editing, atomic undo/redo and save checkpoints. | Serialization normalizes XML; history uses document snapshots. |
-| Drawing and geometry | Shape/path tools, freehand drawing, pen tangents, native polygon/polyline vertex editing, node operations, boolean paths, offsets, blends, simplification and transforms. | Operations use the exposed geometry services; no general multi-region path division command is claimed. |
+| Documents and history | Tabs, SVG/SVGZ open/save, recovery, source/attribute editing, named artboard regions, atomic undo/redo, labeled history and save checkpoints. | Serialization normalizes XML; history uses document snapshots. Artboard regions use SVG view metadata and share one SVG artwork tree. |
+| Drawing and geometry | Grouped shape/path tools, grids/spirals/stars, pencil/paintbrush/Blob Brush, smoothing/path erasing/joining, pen tangents, native vertex/anchor editing, scissors/knife/eraser, lasso/magic wand, boolean paths, Shape Builder, deformation, symbol brushes, guides, transforms and measurement. | Native SVG primitives are retained where possible; geometry operations validate transforms, locks and input limits before mutation. Measurement and viewport tools do not change document history. |
 | Hierarchy | Multiple outline selection, drag/reorder/reparent, move to layer/out of group, locking and visibility. | SVG content categories, locks and transforms are validated; destination compositing applies. |
 | Paint resources | Gradient and pattern creation, shared swatches, symbols, document CSS and attribute editing. | These commands do not constitute a complete visual editor for every SVG paint/resource attribute. |
 | Advanced paint | Editable Coons meshes, width-profile/repeating/scatter brush libraries, open/closed variable-width outlines and square caps. | Mesh output is tessellated vector geometry; brush stamps are single-color SVG paths. |
 | Typography | Rich-text ranges, paragraph formatting, rectangular linked frames/columns, chain splitting and overflow reporting. | Greedy line composition; no arbitrary-shaped frames or dictionary hyphenation. Fonts remain dependencies. |
 | Animation | Track/keyframe authoring, easing, draft preview/history, native SVG save and static-frame bake. | Evaluation follows the shared animation engine; arbitrary scripts and browser DOM interaction are not timeline authoring features. |
-| Effects | Existing renderer effects, clipping, drop-shadow command, source and attribute editing. | No complete visual filter graph or generalized effect builder. |
+| Effects | Retained Filter Studio with node/parameter editing and transactional previews, clipping and opacity masks, drop shadows, source and attribute editing. | Filter semantics follow the existing SVG filter model and renderer. |
 | Print | Physical pages/tiling/marks, PDF page boxes, preflight, RGB vector PDF, profiled flattened CMYK and process/named-ink packages. | Explicit ICC/compositing subsets; no vector CMYK, spot PDF color spaces, PDF/X certification or overprint/trapping engine. |
-| Platforms and layout | Desktop default; browser/Android/iOS target configuration, compact menus, panel flyouts and narrow dialogs. | Package/build checks and physical-device/GPU validation are separate records. |
+| Platforms and layout | Desktop default; browser/Android/iOS targets, EditorTheme templates, compact menus, one/two-column tools, retained dock groups, floating panels, named workspaces and responsive dialogs. | Package/build checks and physical-device/GPU validation are separate records. |
 
 The reusable Avalonia packages remain available. The earlier workspace is useful as a reference for additional interaction design, but its legacy mesh surface and operation names are not evidence of equivalent implemented rendering or geometry. In particular, the legacy service operation called “Divide” delegates to reverse difference.
 
 ## Validation
 
-The [UnoDraw workflow](../.github/workflows/unodraw.yml) defines desktop build and framework-independent editor test jobs on Linux, Windows and macOS, plus separate WebAssembly publish, Android APK and iOS simulator package jobs. Each optional platform job installs its own workload; the desktop jobs do not require them. The Linux desktop startup check launches the built app with the welcome SVG under Xvfb, catches early exits and native loading failures, and uploads its log. It uses software graphics and does not exercise physical GPU hardware. A configured CI job is not a passing validation result; record the run and commit below after completion.
+The [UnoDraw workflow](../.github/workflows/unodraw.yml) defines desktop build and framework-independent editor test jobs on Linux, Windows and macOS, plus Android APK and iOS simulator package jobs. The [Docs workflow](../.github/workflows/docs.yml) publishes the optimized WebAssembly application and tests that published artifact in a browser. Each optional platform job installs its own workload; the desktop jobs do not require them. The Linux desktop startup check launches the built app with the welcome SVG under Xvfb, catches early exits and native loading failures, and uploads its log. The [native editor workflow](../.github/workflows/unodraw-studio.yml) exercises real controls, saved SVG and screenshots. These virtual-display checks use software graphics; physical-device and GPU testing are separate validation records.
 
 ```sh
 dotnet test tests/Svg.Editor.Skia.UnitTests/Svg.Editor.Skia.UnitTests.csproj -c Release
@@ -304,7 +335,21 @@ dotnet build Svg.Skia.slnx -c Release
 dotnet test Svg.Skia.slnx -c Release
 ```
 
-### Completion validation record
+### EditorTheme validation record
+
+The EditorTheme application changes at `f752ab7f09518dbff9a9da1b23b9120364b79f7a` passed the complete Release solution build with zero errors and all 11 test assemblies on .NET SDK 10.0.403: **2,627 passed, zero failures and 44 existing skips**. This includes **701 editor tests** and **20 SVG document-service tests**. Subsequent harness corrections at `276281810120b69c5050c088b5d0a45a08c49097` leave the application code unchanged.
+
+The [native EditorTheme run](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/42422858294) passed **57 saved-document and persistence assertions**, produced **129 native screenshots**, and finished with a saved SVG byte-for-byte identical to its baseline. It exercised the light/dark control galleries, 390/480-pixel layouts, gradient drafting, reference-point keyboard input, literal shortcut search and real Save, first-Enter rejection of an empty numeric field, drawing and filled-brush tools, measurement, gesture cancellation, guides, artboard creation/duplication/undo, graphic styles/history, Navigator and all 24 retained panels. This rerun also verified bounded paint settling for the captures. The Python harness and theme contracts passed **62 tests**.
+
+The [platform run for the validated checkpoint](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/42419925991) passed desktop builds and editor tests on Linux, Windows and macOS, Android APK publication and iOS simulator packaging. The [repository-wide CI matrix](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/42419926027) also passed its three operating-system builds/tests and library/MAUI package jobs. Packaging does not establish physical-device runtime behavior.
+
+The [optimized WebAssembly package and browser runtime run](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/42419926007) passed against the exact published AOT package. The browser checks cover startup beneath the documentation subfolder without cross-origin isolation, command search, dark/light theme changes, the 390-pixel compact layout, reload and application-scoped PWA resources. The browser uses software WebGL; this is a runtime check rather than a hardware-performance measurement.
+
+A subsequent browser-startup refinement awaits Uno's public native font-preload API before releasing the first frame. Its smoke check compares initial menu labels and font icons with the settled workspace and records their changed-pixel fractions; this detects fallback typography that a nonblank-canvas check alone would miss.
+
+The local test host required a task-specific fontconfig file to select a supported system font and an in-process Uno task host because sandbox named pipes are unavailable. Neither workaround changes repository files. Solution-wide `dotnet format` could not connect to its MSBuild host in that environment; whitespace formatting and `git diff --check` passed. No test was weakened, and no renderer baseline or skip was changed for that run.
+
+### Earlier authoring completion validation record
 
 The completion test gate ran on Linux with .NET SDK 10.0.402 on 2026-10-22, using commit `056b4d48e3ee11261936e564df59479baef9c7dd` plus repository formatter changes. The Release solution build covered all 100 configured project/framework combinations across 53 projects and completed with zero errors. All 11 test assemblies passed with **1,907 passing tests, zero failures and 44 existing skips**. The exact skipped test identities match the earlier migration baseline.
 

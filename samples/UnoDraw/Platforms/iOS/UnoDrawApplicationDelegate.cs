@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using Foundation;
 using UIKit;
-using Uno.UI.Runtime.Skia.AppleUIKit;
+using Uno.UI.Runtime.AppleUIKit;
 
 namespace UnoDraw.iOS;
 
@@ -18,8 +18,8 @@ public sealed class UnoDrawApplicationDelegate : UnoUIApplicationDelegate
         if (_savingRecovery || Microsoft.UI.Xaml.Application.Current is not App app)
             return;
 
-        // Uno 6.5 observes UIScene notifications on iOS 13+, while this head uses
-        // the legacy UIWindow lifecycle. Save directly for its application event.
+        // Save on the native background notification, including scene lifecycle
+        // notifications forwarded by Uno's application delegate.
         // A background task lets the atomic recovery write finish after this
         // callback returns; the shared recovery gate coalesces repeated saves.
         _savingRecovery = true;

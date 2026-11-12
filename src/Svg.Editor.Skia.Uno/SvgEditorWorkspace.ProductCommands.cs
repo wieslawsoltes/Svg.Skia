@@ -32,10 +32,13 @@ public sealed partial class SvgEditorWorkspace
         {
             BeforeApply = () =>
             {
-                if (_disposed) throw new ObjectDisposedException(nameof(SvgEditorWorkspace));
-                CommitInspectorEdits(); Canvas.CancelGesture();
+                if (_disposed)
+                    throw new ObjectDisposedException(nameof(SvgEditorWorkspace));
+                CommitInspectorEdits();
+                Canvas.CancelGesture();
             }
         };
+        RegisterEditorPaintTarget(_studioColorEditor, "Appearance's Color mixer");
         var section = new StudioSection { Header = "Color mixer", IsExpanded = false, Content = _studioColorEditor };
         panel.Children.Insert(Math.Min(3, panel.Children.Count), section);
         WorkspaceTitleChanged += (_, _) => _studioColorEditor.BindController(Controller);

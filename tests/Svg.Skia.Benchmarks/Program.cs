@@ -18,7 +18,7 @@ public static class Program
         Console.WriteLine($"Svg.Skia benchmark artifacts: {artifactsPath}");
         Console.WriteLine();
 
-        if (SvgLoadPipelineProfiler.TryRun(args, artifactsPath))
+        if (SvgEditorFrameProfiler.TryRun(args, artifactsPath) || SvgLoadPipelineProfiler.TryRun(args, artifactsPath))
         {
             return;
         }

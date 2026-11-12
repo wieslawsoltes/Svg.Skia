@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
 using Svg.Editor.Core;
 using Svg.Editor.Svg;
@@ -14,12 +15,13 @@ using Shim = ShimSkiaSharp;
 namespace Svg.Editor.Skia.Uno;
 
 /// <summary>
-/// SVG editing directly on Uno's compositor canvas. The host chooses the rendering backend;
-/// document pictures are reused through camera changes and pointer previews.
+/// SVG editing through Uno's Skia canvas element. The host supplies a Skia canvas or
+/// a compatibility bridge for another compositor; document pictures are reused
+/// through camera changes and pointer previews.
 /// </summary>
 public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 {
-    private enum Gesture { None, Pan, Pinch, Marquee, Move, Resize, Rotate, Create, Node, Vertex }
+    private enum Gesture { None, Pan, Pinch, Marquee, Move, Resize, Rotate, Create, Node, Vertex, Transform, Zoom, Gradient, Artboard, EditorShape, AreaType, Scissors, CutSweep, Lasso, Anchor, ShapeBuilder, Deformation, SymbolSpray, SymbolBrush, PathRefinement, BlobStroke, Measure }
 
     private readonly record struct PenNode(SKPoint Position, SKPoint Tangent);
 
@@ -30,6 +32,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
     private readonly List<SKPoint> _freehandPoints = new();
     private readonly List<PenNode> _penNodes = new();
     private readonly SvgEditorTouchNavigation _touchNavigation = new();
+    private readonly SvgEditorArtboardCache _artboardCache = new();
     private readonly PathService _nodePreview = new();
     private SvgEditorController? _controller;
     private SvgEditorToolKind _tool;
@@ -62,11 +65,15 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     public SvgEditorCanvas()
     {
+        // Uno 7 uses a border visual; a brush supplies its hit-test geometry.
+        Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+
         // The canvas handles touch directly; parent scrollers must not take over.
         ManipulationMode = ManipulationModes.None;
         Viewport.Changed += OnViewportChanged;
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
+        PointerExited += (_, _) => { _brushPointerInside = false; Invalidate(); };
         PointerReleased += OnPointerReleased;
         PointerCanceled += OnPointerCanceled;
         PointerCaptureLost += OnPointerCaptureLost;
@@ -74,9 +81,11 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
         DoubleTapped += OnDoubleTapped;
         KeyDown += OnKeyDown;
         KeyUp += OnKeyUp;
+        LostFocus += (_, _) => RestoreStandaloneNavigation();
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         SizeChanged += OnSizeChanged;
+        ActualThemeChanged += OnCanvasThemeChanged;
     }
 
     public event EventHandler? ViewportChanged;
@@ -109,6 +118,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
             }
 
             _controller = value;
+            _artboardCache.Clear();
             if (_controller is not null && _isLoaded)
             {
                 _controller.Changed += OnControllerChanged;
@@ -172,8 +182,19 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
             return;
         }
 
-        Viewport.Fit(picture.CullRect);
+        Viewport.Fit(Controller.GetArtboardsBounds());
         _needsFit = false;
+    }
+
+    public void FitActiveArtboard()
+    {
+        if (Controller?.ActiveArtboard is { } artboard && Viewport.Width > 0 && Viewport.Height > 0)
+        {
+            Viewport.Fit(artboard.Bounds);
+            _needsFit = false;
+        }
+        else
+            FitDocument();
     }
 
     public void FitSelection()
@@ -204,6 +225,10 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void CancelDrawingPreview()
     {
+        ClearPathUtilityPreview();
+        ClearAdvancedBrushPreview();
+        ClearAnchorPreview();
+        CancelGuidePreview();
         // Tools mutate only their preview until release. Clearing it cancels the
         // entire provisional stroke/path without adding a document undo entry.
         ReleaseSelectionGhost();
@@ -222,7 +247,10 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void OnControllerChanged(object? sender, EventArgs e)
     {
-        if (_gesture is Gesture.Move or Gesture.Resize or Gesture.Rotate or Gesture.Node or Gesture.Vertex)
+        if (_movingGuideId is not null || _gesture is Gesture.Move or Gesture.Resize or Gesture.Rotate or Gesture.Node or Gesture.Vertex
+            or Gesture.Transform or Gesture.Gradient or Gesture.Artboard or Gesture.Scissors or Gesture.CutSweep or Gesture.Lasso or Gesture.Anchor
+            or Gesture.ShapeBuilder or Gesture.Deformation or Gesture.SymbolSpray or Gesture.SymbolBrush
+            or Gesture.PathRefinement or Gesture.BlobStroke or Gesture.Measure)
         {
             // A command or selection change invalidates the gesture's retained snapshot.
             CancelGesture();
@@ -281,6 +309,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        RestoreStandaloneNavigation();
         _isLoaded = false;
         if (Controller is not null)
         {
@@ -292,10 +321,15 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
     }
 
     private void UpdateCursor() => ProtectedCursor = PanMode || _gesture is Gesture.Pan or Gesture.Pinch
-        ? s_hand : IsSelectionTool(Tool) ? s_arrow : s_cross;
+        ? s_hand : InteractionMode != SvgEditorInteractionMode.None || ZoomMode ? s_cross
+        : IsSelectionTool(Tool) ? s_arrow : s_cross;
 
     private void HandleInteractionFailure(Exception exception)
     {
+        ClearPathUtilityPreview();
+        ClearAdvancedBrushPreview();
+        ClearAnchorPreview();
+        CancelGuidePreview();
         // Controller commands roll back their own transactions. Clear only transient canvas
         // state here; rebuilding a broken node preview while handling failure could throw again.
         ReleaseSelectionGhost();
@@ -369,6 +403,9 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
         }
 
         Viewport.Changed -= OnViewportChanged;
+        ActualThemeChanged -= OnCanvasThemeChanged;
+        _canvasBrushSubscriptions?.Dispose();
+        _canvasBrushSubscriptions = null;
         _controller = null;
         ReleaseResources();
         base.Dispose();
@@ -376,6 +413,7 @@ public sealed partial class SvgEditorCanvas : SKCanvasElement, IDisposable
 
     private void ReleaseResources()
     {
+        _artboardCache.Clear();
         ReleaseSelectionGhost();
         _nodePreview.Stop();
         ClearVertexPreview();

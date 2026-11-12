@@ -74,7 +74,7 @@ public sealed partial class SvgEditorCanvas
         if (point.Properties.IsRightButtonPressed)
         {
             FinishPath();
-            e.Handled = true;
+            // Let the host's context menu open after committing an unfinished path.
             return;
         }
 
@@ -99,6 +99,12 @@ public sealed partial class SvgEditorCanvas
         {
             _gesture = Gesture.Pan;
             UpdateCursor();
+            return;
+        }
+
+        if (TryBeginGuideDrag(view) || TryBeginEditorGesture(e, view))
+        {
+            Invalidate();
             return;
         }
 
@@ -181,6 +187,7 @@ public sealed partial class SvgEditorCanvas
         var point = e.GetCurrentPoint(this);
         var view = new SKPoint((float)point.Position.X, (float)point.Position.Y);
         PointerPosition = Viewport.ViewToWorld(view);
+        _brushPointerInside = view.X >= 0 && view.Y >= 0 && view.X <= ActualWidth && view.Y <= ActualHeight;
         PointerPositionChanged?.Invoke(this, EventArgs.Empty);
         if (_touchNavigation.MoveContact(e.Pointer.PointerId, view, Viewport))
         {
@@ -195,6 +202,8 @@ public sealed partial class SvgEditorCanvas
                 _currentWorld = Snap(PointerPosition);
                 Invalidate();
             }
+            else if (TryGetHoverBrushRadius(out _))
+                Invalidate();
 
             return;
         }
@@ -211,6 +220,11 @@ public sealed partial class SvgEditorCanvas
         _moved |= SKPoint.Distance(_startView, view) >= 2;
         _currentWorld = Constrain(Snap(Viewport.ViewToWorld(view)));
         var delta = Subtract(_currentWorld, _startWorld);
+        if (TryUpdateGuideDrag() || UpdateEditorGesture())
+        {
+            Invalidate();
+            return;
+        }
         switch (_gesture)
         {
             case Gesture.Pan:
@@ -291,6 +305,7 @@ public sealed partial class SvgEditorCanvas
         }
 
         var point = e.GetCurrentPoint(this);
+        _shift = e.KeyModifiers.HasFlag(VirtualKeyModifiers.Shift);
         UpdateGesture(new SKPoint((float)point.Position.X, (float)point.Position.Y));
         var completedGesture = _gesture;
         _gesture = Gesture.None;
@@ -301,26 +316,27 @@ public sealed partial class SvgEditorCanvas
 
         if (Controller is not null)
         {
-            switch (completedGesture)
-            {
-                case Gesture.Move when _moved:
-                case Gesture.Resize when _moved:
-                case Gesture.Rotate when _moved:
-                    Controller.TransformSelection(_previewTransform);
-                    break;
-                case Gesture.Marquee when _moved:
-                    Controller.SelectInRect(RectBetween(_startWorld, Viewport.ViewToWorld(_lastView)), _additive);
-                    break;
-                case Gesture.Create:
-                    CompleteCreation();
-                    break;
-                case Gesture.Node when _moved:
-                    CommitNodeMove();
-                    break;
-                case Gesture.Vertex when _moved:
-                    CommitVertexMove();
-                    break;
-            }
+            if (!CompleteGuideDrag() && !CompleteEditorGesture(completedGesture))
+                switch (completedGesture)
+                {
+                    case Gesture.Move when _moved:
+                    case Gesture.Resize when _moved:
+                    case Gesture.Rotate when _moved:
+                        Controller.TransformSelection(_previewTransform);
+                        break;
+                    case Gesture.Marquee when _moved:
+                        Controller.SelectInRect(RectBetween(_startWorld, Viewport.ViewToWorld(_lastView)), _additive);
+                        break;
+                    case Gesture.Create:
+                        CompleteCreation();
+                        break;
+                    case Gesture.Node when _moved:
+                        CommitNodeMove();
+                        break;
+                    case Gesture.Vertex when _moved:
+                        CommitVertexMove();
+                        break;
+                }
         }
 
         _previewTransform = SKMatrix.Identity;
@@ -377,7 +393,7 @@ public sealed partial class SvgEditorCanvas
 
     private SKPoint Constrain(SKPoint point)
     {
-        if (!_shift || _gesture is Gesture.Rotate or Gesture.Node or Gesture.Vertex)
+        if (!_shift || _gesture is Gesture.Rotate or Gesture.Node or Gesture.Vertex or Gesture.Transform or Gesture.Zoom)
         {
             return point;
         }
@@ -389,14 +405,14 @@ public sealed partial class SvgEditorCanvas
                 ? new SKPoint(point.X, _startWorld.Y) : new SKPoint(_startWorld.X, point.Y);
         }
 
-        if (_gesture == Gesture.Create && Tool is SvgEditorToolKind.Rect or SvgEditorToolKind.Ellipse
+        if (_gesture == Gesture.EditorShape || _gesture == Gesture.Create && Tool is SvgEditorToolKind.Rect or SvgEditorToolKind.Ellipse
             or SvgEditorToolKind.Circle or SvgEditorToolKind.Image)
         {
             var size = Math.Max(Math.Abs(delta.X), Math.Abs(delta.Y));
             return new SKPoint(_startWorld.X + MathF.CopySign(size, delta.X), _startWorld.Y + MathF.CopySign(size, delta.Y));
         }
 
-        if (_gesture == Gesture.Create && Tool == SvgEditorToolKind.Line)
+        if (_gesture == Gesture.Gradient || _gesture == Gesture.Create && Tool == SvgEditorToolKind.Line)
         {
             var angle = Math.Atan2(delta.Y, delta.X);
             angle = Math.Round(angle / (Math.PI / 4)) * Math.PI / 4;
@@ -408,8 +424,12 @@ public sealed partial class SvgEditorCanvas
         return point;
     }
 
-    private SKPoint Snap(SKPoint point) => Controller?.Selection.SnapToGrid == true
-        ? new SKPoint(Controller.Selection.Snap(point.X), Controller.Selection.Snap(point.Y)) : point;
+    private SKPoint Snap(SKPoint point)
+    {
+        if (Controller?.Selection.SnapToGrid == true)
+            point = new SKPoint(Controller.Selection.Snap(point.X), Controller.Selection.Snap(point.Y));
+        return SnapEditorPoint(point);
+    }
 
     private void OnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
     {
@@ -491,14 +511,34 @@ public sealed partial class SvgEditorCanvas
 
             e.Handled = true;
         }
+        else if (!PanMode && InteractionMode == SvgEditorInteractionMode.None && IsSelectionTool(Tool)
+            && Controller is { SelectedElements.Count: 1 } controller)
+        {
+            var selected = controller.SelectedElements[0];
+            if (SvgTextStoryService.FindStory(selected) is { } story)
+            {
+                controller.Select(story);
+                RequestTextEdit(story, true);
+                e.Handled = true;
+            }
+            else if (selected is SvgTextBase)
+            { RequestTextEdit(selected, false); e.Handled = true; }
+        }
     }
 
     private void OnKeyDown(object sender, KeyRoutedEventArgs e)
     {
+        if (KeyboardShortcutsManagedExternally)
+            return;
         switch (e.Key)
         {
             case VirtualKey.Space:
-                PanMode = true;
+                if (!_standalonePanning)
+                {
+                    _standalonePanning = true;
+                    _standalonePreviousPan = PanMode;
+                    PanMode = true;
+                }
                 e.Handled = true;
                 break;
             case VirtualKey.Escape:
@@ -522,9 +562,11 @@ public sealed partial class SvgEditorCanvas
 
     private void OnKeyUp(object sender, KeyRoutedEventArgs e)
     {
-        if (e.Key == VirtualKey.Space)
+        if (KeyboardShortcutsManagedExternally)
+            return;
+        if (e.Key == VirtualKey.Space && _standalonePanning)
         {
-            PanMode = false;
+            RestoreStandaloneNavigation();
             e.Handled = true;
         }
     }

@@ -1,21 +1,55 @@
 using Uno.Foundation;
+using Uno.UI;
+using Uno.UI.Xaml.Media;
+using Windows.UI.Text;
+using FontWeights = Microsoft.UI.Text.FontWeights;
 
 namespace UnoDraw;
 
 public sealed partial class App
 {
-    partial void OnPlatformWindowReady() => BrowserStartup.ReleaseInitialFrame();
+    async partial void OnPlatformWindowReady()
+    {
+        try
+        {
+            // Uno's text fonts load independently of document.fonts. Await the
+            // workspace's actual families before either backend exposes its first frame.
+            var textFamily = FeatureConfiguration.Font.DefaultTextFontFamily;
+            var fonts = new[]
+            {
+                (Name: "regular text", Family: textFamily, Weight: FontWeights.Normal),
+                (Name: "semibold text", Family: textFamily, Weight: FontWeights.SemiBold),
+                (Name: "bold text", Family: textFamily, Weight: FontWeights.Bold),
+                (Name: "symbols", Family: FeatureConfiguration.Font.SymbolsFont, Weight: FontWeights.Normal)
+            };
+            var loaded = await Task.WhenAll(fonts.Select(font => FontFamilyHelper.PreloadAsync(
+                font.Family, font.Weight, FontStretch.Normal, FontStyle.Normal)));
+            for (var index = 0; index < loaded.Length; index++)
+            {
+                if (!loaded[index])
+                    Console.Error.WriteLine($"UnoDraw could not preload {fonts[index].Name} font '{fonts[index].Family}'.");
+            }
+        }
+        catch (Exception error)
+        {
+            Console.Error.WriteLine($"UnoDraw could not preload its workspace fonts: {error}");
+        }
+        finally
+        {
+            BrowserStartup.ReleaseInitialFrame();
+        }
+    }
 }
 
 internal static class BrowserStartup
 {
-    // Uno 6.5 schedules a resize frame while its browser host is still starting,
-    // before Window.CurrentSafe exists. Defer only that startup interval. Restore
-    // the original scheduler as soon as our window is activated; rendering errors
-    // remain visible and every later frame follows Uno's normal WebGL path.
+    // Uno's browser host requests a resize frame while it is starting. Defer
+    // presentation until the window is activated and its text fonts have loaded.
+    // Uno 7 shares this scheduler between WebGPU and Skia. Restore it unchanged
+    // after startup so rendering errors and subsequent frame scheduling remain visible.
     internal static void DeferInitialFrame() => WebAssemblyRuntime.InvokeJS("""
         (() => {
-            const renderer = globalThis.Uno?.UI?.Runtime?.Skia?.BrowserRenderer;
+            const renderer = globalThis.Uno?.UI?.Runtime?.BrowserRenderer;
             if (!renderer || typeof renderer.invalidate !== 'function') return '';
             const original = renderer.invalidate;
             const pending = new Set();

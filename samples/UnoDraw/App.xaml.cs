@@ -17,7 +17,7 @@ public sealed partial class App : Application
     {
         InitializeComponent();
         SKSvgJavaScriptRuntime.Register();
-        Suspending += async (_, args) =>
+        Windows.ApplicationModel.Core.CoreApplication.Suspending += async (_, args) =>
         {
             var deferral = args.SuspendingOperation.GetDeferral();
             try

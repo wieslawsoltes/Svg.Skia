@@ -17,12 +17,14 @@ public sealed class StudioControlGallery : UserControl
     public StudioControlGallery()
     {
         IsTabStop = false;
-        Resources.MergedDictionaries.Add(new StudioThemeResources());
+        Resources.MergedDictionaries.Add(new EditorTheme());
         _feedback = Hint("Ready. Use Tab to inspect focus without touching the document.");
         var body = new StackPanel { Spacing = 16 };
         body.Children.Add(new TextBlock
         {
-            Text = "One system. Every workspace.", FontSize = 20, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            Text = "EditorTheme",
+            FontSize = 20,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             TextWrapping = TextWrapping.Wrap
         });
         body.Children.Add(Hint("These are the actual controls used by UnoDraw. Resize the window, use Tab, edit fields, and open menus. Nothing here edits your artwork."));
@@ -31,6 +33,8 @@ public sealed class StudioControlGallery : UserControl
         fields.Children.Add(new ComboBox { Header = "Coordinate system", ItemsSource = new[] { "Object bounding box", "Document coordinates", "Preserve imported geometry" }, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch });
         fields.Children.Add(new NumberBox { Header = "Width · expressions supported", Value = 240.5, NumberFormatter = new EditorNumberFormatter(), SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Compact });
         fields.Children.Add(new TextBox { Header = "Locked property", Text = "Inherited from parent", IsEnabled = false });
+        fields.Children.Add(new ComboBox { Header = "Editable choice", ItemsSource = new[] { "Pixels", "Points", "Millimeters" }, IsEditable = true, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch });
+        fields.Children.Add(new NumberBox { Header = "Inline increment controls", Value = 12, Minimum = 0, Maximum = 100, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline });
         body.Children.Add(Section("Inputs", fields));
 
         var actions = new StudioFieldGrid { MaximumColumns = 3, MinimumColumnWidth = 120 };
@@ -47,17 +51,30 @@ public sealed class StudioControlGallery : UserControl
             item.Click += (_, _) => _feedback.Text = label;
             flyout.Items.Add(item);
         }
+        flyout.Items.Add(new MenuFlyoutSeparator());
+        var checkedItem = new ToggleMenuFlyoutItem { Text = "Show guides", IsChecked = true, KeyboardAcceleratorTextOverride = "Ctrl+;" };
+        checkedItem.Click += (_, _) => _feedback.Text = checkedItem.IsChecked ? "Gallery guides enabled." : "Gallery guides disabled.";
+        flyout.Items.Add(checkedItem);
+        var submenu = new MenuFlyoutSubItem { Text = "Arrange" };
+        submenu.Items.Add(new MenuFlyoutItem { Text = "Bring to front", KeyboardAcceleratorTextOverride = "Ctrl+Shift+]" });
+        submenu.Items.Add(new MenuFlyoutItem { Text = "Send to back", KeyboardAcceleratorTextOverride = "Ctrl+Shift+[" });
+        submenu.Items.Add(new MenuFlyoutItem { Text = "Unavailable action", IsEnabled = false });
+        flyout.Items.Add(submenu);
         menu.Flyout = flyout;
         StudioTheme.ApplyRole(primary, StudioActionRole.Primary, this);
         StudioTheme.ApplyRole(quiet, StudioActionRole.Quiet, this);
         StudioTheme.ApplyRole(destructive, StudioActionRole.Destructive, this);
-        foreach (var button in new[] { primary, normal, quiet, destructive, disabled, menu }) actions.Children.Add(button);
+        foreach (var button in new[] { primary, normal, quiet, destructive, disabled, menu })
+            actions.Children.Add(button);
         body.Children.Add(Section("Action hierarchy", actions));
 
         var choices = new StudioFieldGrid { MinimumColumnWidth = 160, MaximumColumns = 3 };
         choices.Children.Add(new CheckBox { Content = "Snap to grid", IsChecked = true });
         choices.Children.Add(new CheckBox { Content = "Mixed values", IsThreeState = true, IsChecked = null });
         choices.Children.Add(new CheckBox { Content = "Unavailable", IsEnabled = false });
+        choices.Children.Add(new RadioButton { Content = "Selection", GroupName = "EditorGalleryBounds", IsChecked = true });
+        choices.Children.Add(new RadioButton { Content = "Artboard", GroupName = "EditorGalleryBounds" });
+        choices.Children.Add(new ToggleSwitch { Header = "Preview", OnContent = "Enabled", OffContent = "Disabled", IsOn = true });
         body.Children.Add(Section("Selection states", choices));
 
         var custom = new StudioFieldGrid { MinimumColumnWidth = 160, MaximumColumns = 3 };
@@ -73,15 +90,18 @@ public sealed class StudioControlGallery : UserControl
         var strip = new StudioChoiceStrip
         {
             Header = "Direct choices · arrows and Home/End",
-            ItemsSource = new[] { "Selection bounds", "Artboard", "Fixed key object" }, SelectedIndex = 1
+            ItemsSource = new[] { "Selection bounds", "Artboard", "Fixed key object" },
+            SelectedIndex = 1
         };
         strip.SelectionChanged += (_, _) => _feedback.Text = "Selected choice " + (strip.SelectedIndex + 1) + "; the artwork is unchanged.";
         AutomationProperties.SetAutomationId(strip, "StudioGalleryChoice");
         selections.Children.Add(strip);
         selections.Children.Add(new StudioChoiceStrip
         {
-            Header = "Disabled choice retains its selection", ItemsSource = new[] { "Fill", "Stroke" },
-            SelectedIndex = 0, IsEnabled = false
+            Header = "Disabled choice retains its selection",
+            ItemsSource = new[] { "Fill", "Stroke" },
+            SelectedIndex = 0,
+            IsEnabled = false
         });
         var toggles = new StudioFieldGrid { MaximumColumns = 3, MinimumColumnWidth = 120 };
         toggles.Children.Add(new ToggleButton { Content = "Selected", IsChecked = true, HorizontalAlignment = HorizontalAlignment.Stretch });
@@ -95,6 +115,74 @@ public sealed class StudioControlGallery : UserControl
             tools.Children.Add(new StudioToolButton { Label = kind.ToString(), IsChecked = kind == SvgEditorToolKind.Select, Content = new StudioToolIcon { Kind = kind } });
         tools.Children.Add(new StudioToolButton { Label = "Disabled tool", IsEnabled = false, Content = new StudioToolIcon { Kind = SvgEditorToolKind.Freehand } });
         body.Children.Add(Section("Vector tool controls", tools));
+
+        var ranges = new StudioFieldGrid { MinimumColumnWidth = 220, MaximumColumns = 2, Spacing = 12 };
+        var opacity = new Slider { Header = "Opacity", Minimum = 0, Maximum = 100, Value = 65, StepFrequency = 1, TickFrequency = 25, TickPlacement = TickPlacement.Outside };
+        var progress = new ProgressBar { Minimum = 0, Maximum = 100, Value = 65, VerticalAlignment = VerticalAlignment.Center };
+        opacity.ValueChanged += (_, args) => progress.Value = args.NewValue;
+        ranges.Children.Add(opacity);
+        ranges.Children.Add(progress);
+        ranges.Children.Add(new Slider { Header = "Disabled range", Minimum = 0, Maximum = 100, Value = 40, IsEnabled = false });
+        var activity = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, VerticalAlignment = VerticalAlignment.Center };
+        activity.Children.Add(new ProgressRing { IsActive = true, Width = 24, Height = 24 });
+        activity.Children.Add(new ProgressBar { IsIndeterminate = true, Width = 160, VerticalAlignment = VerticalAlignment.Center });
+        ranges.Children.Add(activity);
+        body.Children.Add(Section("Ranges and progress", ranges));
+
+        var navigation = new StudioFieldGrid { MinimumColumnWidth = 220, MaximumColumns = 2, Spacing = 12 };
+        var layers = new TreeView { SelectionMode = TreeViewSelectionMode.Multiple, Height = 168 };
+        var artwork = new TreeViewNode { Content = "Artwork", IsExpanded = true };
+        foreach (var label in new[] { "Background", "Illustration", "Typography", "Guides", "Mask", "Highlights" })
+            artwork.Children.Add(new TreeViewNode { Content = label });
+        layers.RootNodes.Add(artwork);
+        AutomationProperties.SetAutomationId(layers, "EditorGalleryTree");
+        navigation.Children.Add(layers);
+        var items = new ListView
+        {
+            ItemsSource = new[] { "Default", "Fine outline", "Heavy outline", "Dashed", "Tapered", "Calligraphic", "Pattern" },
+            Height = 168,
+            SelectionMode = ListViewSelectionMode.Multiple,
+            IsMultiSelectCheckBoxEnabled = true
+        };
+        AutomationProperties.SetAutomationId(items, "EditorGalleryList");
+        navigation.Children.Add(items);
+        body.Children.Add(Section("Layers and scrolling lists", navigation));
+
+        var tabs = new TabView { IsAddTabButtonVisible = true, TabWidthMode = TabViewWidthMode.SizeToContent, CanReorderTabs = true };
+        var tabNumber = 0;
+        void AddTab()
+        {
+            var number = ++tabNumber;
+            var tab = new TabViewItem
+            {
+                Header = "Document " + number,
+                Content = new TextBlock { Text = "Tab " + number + " content. Use Ctrl+Tab, close a tab, or add another.", Margin = new Thickness(8), TextWrapping = TextWrapping.Wrap }
+            };
+            tabs.TabItems.Add(tab);
+            tabs.SelectedItem = tab;
+        }
+        AddTab();
+        AddTab();
+        AddTab();
+        tabs.AddTabButtonClick += (_, _) => AddTab();
+        tabs.TabCloseRequested += (_, args) => tabs.TabItems.Remove(args.Tab);
+        AutomationProperties.SetAutomationId(tabs, "EditorGalleryTabs");
+        body.Children.Add(Section("Document tabs", tabs));
+
+        var color = new ColorPicker
+        {
+            Color = Windows.UI.Color.FromArgb(210, 72, 132, 198),
+            PreviousColor = Windows.UI.Color.FromArgb(255, 44, 94, 148),
+            IsAlphaEnabled = true,
+            IsAlphaSliderVisible = true,
+            IsAlphaTextInputVisible = true,
+            IsMoreButtonVisible = false,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+        color.ColorChanged += (_, args) => _feedback.Text = $"Gallery color #{args.NewColor.A:X2}{args.NewColor.R:X2}{args.NewColor.G:X2}{args.NewColor.B:X2}.";
+        AutomationProperties.SetAutomationId(color, "EditorGalleryColor");
+        var appearance = new Expander { Header = "Color and transparency", Content = color, IsExpanded = true, HorizontalAlignment = HorizontalAlignment.Stretch };
+        body.Children.Add(Section("Expandable color controls", appearance));
         AutomationProperties.SetAutomationId(_feedback, "StudioGalleryFeedback");
         body.Children.Add(_feedback);
         Content = body;

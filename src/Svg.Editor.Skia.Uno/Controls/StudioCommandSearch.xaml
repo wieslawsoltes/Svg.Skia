@@ -19,7 +19,7 @@
           </Border>
         </Grid>
       </DataTemplate>
-      <Style x:Key="CommandResultContainer" TargetType="ListViewItem">
+      <Style x:Key="CommandResultContainer" TargetType="ListViewItem" BasedOn="{StaticResource EditorListViewItemStyle}">
         <Setter Property="MinHeight" Value="50" /><Setter Property="Padding" Value="10,2" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="UseSystemFocusVisuals" Value="True" />
@@ -48,7 +48,7 @@
     <StackPanel Grid.Row="2" Spacing="6">
       <Border Height="1" Background="{ThemeResource StudioDivider}" />
       <TextBlock x:Name="ResultCount" Style="{StaticResource StudioHintStyle}" />
-      <TextBlock Text="↑ ↓  Navigate    Enter  Run    Esc  Close" Style="{StaticResource StudioHintStyle}" />
+      <TextBlock Text="Up/Down  Navigate    Enter  Run    Esc  Close" Style="{StaticResource StudioHintStyle}" />
     </StackPanel>
   </Grid>
 </UserControl>

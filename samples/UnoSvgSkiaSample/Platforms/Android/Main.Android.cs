@@ -1,5 +1,6 @@
 using Android.App;
 using Android.Runtime;
+using Uno.UI.Hosting;
 
 namespace UnoSvgSkiaSample.Droid;
 
@@ -7,10 +8,16 @@ namespace UnoSvgSkiaSample.Droid;
     Label = "UnoSvgSkiaSample",
     LargeHeap = true,
     HardwareAccelerated = true)]
-public sealed class Application : Microsoft.UI.Xaml.NativeApplication
+public sealed class Application : Uno.UI.Runtime.Android.NativeApplication
 {
     public Application(IntPtr javaReference, JniHandleOwnership transfer)
-        : base(() => new App(), javaReference, transfer)
+        : base(javaReference, transfer)
     {
     }
+
+    protected override UnoPlatformHost CreateHost() =>
+        UnoPlatformHostBuilder.Create()
+            .App(() => new App())
+            .UseAndroid()
+            .Build();
 }

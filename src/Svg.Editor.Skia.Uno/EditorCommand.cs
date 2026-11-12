@@ -14,7 +14,9 @@ internal sealed class EditorCommand
     public string Id { get; }
     public string Label { get; }
     public string Group { get; }
-    public string Shortcut { get; }
+    public string Shortcut { get; set; }
+    public Func<bool>? CanExecute { get; set; }
+    public Func<bool>? IsChecked { get; set; }
     public Func<Task> Execute { get; }
     public override string ToString() => string.IsNullOrEmpty(Shortcut) ? $"{Group} · {Label}" : $"{Group} · {Label}     {Shortcut}";
 }

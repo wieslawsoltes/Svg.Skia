@@ -18,7 +18,7 @@ public sealed partial class SvgEditorWorkspace
     {
         if (Controller is not { } controller || controller.SelectedElements.Count != 1
             || controller.SelectedElements[0] is not SvgPath path)
-            throw new InvalidOperationException("Select one path. Lines and shapes can first be converted with Path → Convert to paths.");
+            throw new InvalidOperationException("Select one path. Lines and shapes can first be converted with Object > Path > Convert to Paths.");
         controller.EnsureSelectionEditable();
         using var centerline = SvgVariableStrokeService.GetCenterline(path);
 
@@ -221,6 +221,8 @@ public sealed partial class SvgEditorWorkspace
         };
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             {
                 var selectedPaint = CurrentPaint();
@@ -250,7 +252,7 @@ public sealed partial class SvgEditorWorkspace
         var swatches = brushes.Swatches.Where(entry => entry.Swatch.Stops.Count > 0
             && entry.Swatch.Stops.All(stop => Math.Abs(stop.StopOpacity - entry.Swatch.Stops[0].StopOpacity) < 0.00001f)).ToArray();
         var palette = new ComboBox { Header = "Document palette", HorizontalAlignment = HorizontalAlignment.Stretch };
-        palette.Items.Add(new ComboBoxItem { Content = "＋ New swatch" });
+        palette.Items.Add(new ComboBoxItem { Content = "+ New swatch" });
         foreach (var entry in swatches)
         {
             var color = entry.Swatch.Stops[0].GetColor(entry.Swatch);
@@ -347,6 +349,8 @@ public sealed partial class SvgEditorWorkspace
         opacity.ValueChanged += (_, _) => RefreshColor();
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             {
                 var color = CurrentColor();
@@ -426,7 +430,7 @@ public sealed partial class SvgEditorWorkspace
             {
                 Width = controls[index] is Button ? GridLength.Auto : new GridLength(1, GridUnitType.Star)
             });
-            Grid.SetColumn(controls[index], index);
+            controls[index].SetValue(Grid.ColumnProperty, index);
             grid.Children.Add(controls[index]);
         }
         return grid;

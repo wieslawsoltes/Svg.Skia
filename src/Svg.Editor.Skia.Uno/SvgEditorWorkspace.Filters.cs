@@ -18,7 +18,8 @@ public sealed partial class SvgEditorWorkspace
 {
     private async Task FilterStudioAsync()
     {
-        if (Controller is not { } controller) return;
+        if (Controller is not { } controller)
+            return;
         var edit = controller.BeginFilterEdit();
         var selected = 0;
         var width = DialogContentWidth(760);
@@ -61,18 +62,24 @@ public sealed partial class SvgEditorWorkspace
             historyBytes += before.Length * 2;
             if (undo.Count > 32 || historyBytes > 16 * 1024 * 1024)
             {
-                var latest = undo.Peek(); undo.Clear(); undo.Push(latest); historyBytes = latest.Length * 2;
+                var latest = undo.Peek();
+                undo.Clear();
+                undo.Push(latest);
+                historyBytes = latest.Length * 2;
             }
             redo.Clear();
         }
         void CommitFields()
         {
             var changes = fields.Where(field => field.Read() != field.Original).ToArray();
-            if (changes.Length == 0) return;
+            if (changes.Length == 0)
+                return;
             var before = edit.Graph.GetXml();
             var draft = SvgFilterGraph.Parse(before);
-            foreach (var field in changes) draft.SetAttribute(field.Node, field.Name, field.Read(), field.Child);
-            if (draft.GetXml() != before) Remember(before);
+            foreach (var field in changes)
+                draft.SetAttribute(field.Node, field.Name, field.Read(), field.Child);
+            if (draft.GetXml() != before)
+                Remember(before);
             edit.Graph = draft;
             for (var i = 0; i < fields.Count; i++)
             {
@@ -82,19 +89,23 @@ public sealed partial class SvgEditorWorkspace
         }
         void Schedule()
         {
-            if (loading || closed) return;
+            if (loading || closed)
+                return;
             dialog.IsPrimaryButtonEnabled = false;
-            timer.Stop(); timer.Start();
+            timer.Stop();
+            timer.Start();
         }
         void RefreshPreview()
         {
             timer.Stop();
-            if (closed) return;
+            if (closed)
+                return;
             try
             {
                 CommitFields();
                 edit.Graph.ThrowIfInvalid();
-                if (live.IsChecked == true) preview.Update(controller.CreateFilterPreviewRenderer(edit, shared.IsChecked == true));
+                if (live.IsChecked == true)
+                    preview.Update(controller.CreateFilterPreviewRenderer(edit, shared.IsChecked == true));
                 status.Text = live.IsChecked == true ? string.Empty : "Live preview paused. Apply still validates the complete graph.";
                 dialog.IsPrimaryButtonEnabled = true;
                 RebuildGraph();
@@ -112,9 +123,12 @@ public sealed partial class SvgEditorWorkspace
                 CommitFields();
                 var before = edit.Graph.GetXml();
                 action();
-                if (edit.Graph.GetXml() != before) Remember(before);
+                if (edit.Graph.GetXml() != before)
+                    Remember(before);
                 selected = Math.Clamp(selected, -1, edit.Graph.Nodes.Count - 1);
-                RebuildInspector(); RebuildGraph(); Schedule();
+                RebuildInspector();
+                RebuildGraph();
+                Schedule();
             }
             catch (Exception exception) { status.Text = exception.Message; }
         }
@@ -138,7 +152,8 @@ public sealed partial class SvgEditorWorkspace
                 var lane = 8 + edge.Source % 5 * 12;
                 var figure = new PathFigure { StartPoint = new Point(84, from), IsClosed = false };
                 figure.Segments.Add(new BezierSegment { Point1 = new Point(lane, from), Point2 = new Point(lane, to), Point3 = new Point(84, to) });
-                var geometry = new PathGeometry(); geometry.Figures.Add(figure);
+                var geometry = new PathGeometry();
+                geometry.Figures.Add(figure);
                 graphView.Children.Add(new Microsoft.UI.Xaml.Shapes.Path { Data = geometry, Stroke = wire, StrokeThickness = 1.5, IsHitTestVisible = false });
             }
             for (var index = 0; index < nodes.Count; index++)
@@ -146,17 +161,19 @@ public sealed partial class SvgEditorWorkspace
                 var captured = index;
                 var node = nodes[index];
                 var content = new StackPanel { Spacing = 3 };
-                content.Children.Add(new TextBlock { Text = $"{index + 1}. {node.Name.LocalName}  →  {(string?)node.Attribute("result") ?? "(next)"}", FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis });
+                content.Children.Add(new TextBlock { Text = $"{index + 1}. {node.Name.LocalName}  ->  {(string?)node.Attribute("result") ?? "(next)"}", FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis });
                 content.Children.Add(new TextBlock { Text = string.Join(" · ", edges.Where(edge => edge.Target == captured).Select(edge => $"{edge.Port}: {edge.Value}")), FontSize = 11, Opacity = 0.7, TextTrimming = TextTrimming.CharacterEllipsis });
                 var button = new Button { Content = content, Width = Math.Max(150, graphView.Width - 96), Height = 64, HorizontalContentAlignment = HorizontalAlignment.Stretch };
-                if (index == selected) button.BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 124, 108, 255));
+                if (index == selected)
+                    button.BorderBrush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 124, 108, 255));
                 button.BorderThickness = new Thickness(index == selected ? 2 : 1);
                 Microsoft.UI.Xaml.Controls.Canvas.SetLeft(button, 84);
                 Microsoft.UI.Xaml.Controls.Canvas.SetTop(button, 12 + index * 78);
                 button.Click += (_, _) => Change(() => selected = captured);
                 graphView.Children.Add(button);
             }
-            if (nodes.Count == 0) graphView.Children.Add(new TextBlock { Text = "No primitives. Add an effect to begin.", Margin = new Thickness(12) });
+            if (nodes.Count == 0)
+                graphView.Children.Add(new TextBlock { Text = "No primitives. Add an effect to begin.", Margin = new Thickness(12) });
         }
         void AddFields(XElement element, int nodeIndex, int childIndex = -1)
         {
@@ -176,8 +193,11 @@ public sealed partial class SvgEditorWorkspace
                 }
                 else
                 {
-                    var text = new TextBox { Header = name, Text = original, PlaceholderText = "SVG default", MaxLength = 65536 };
-                    if (name is "kernelMatrix" or "values" or "tableValues") { text.AcceptsReturn = true; text.TextWrapping = TextWrapping.Wrap; text.MaxHeight = 140; }
+                    var text = new TextBox { Header = name, PlaceholderText = "SVG default" };
+                    if (name is "kernelMatrix" or "values" or "tableValues")
+                    { text.AcceptsReturn = true; text.TextWrapping = TextWrapping.Wrap; text.MaxHeight = 140; }
+                    text.Text = original;
+                    text.MaxLength = 65536;
                     fields.Add((nodeIndex, childIndex, name, original, () => text.Text));
                     text.TextChanged += (_, _) => Schedule();
                     inspector.Children.Add(text);
@@ -189,12 +209,14 @@ public sealed partial class SvgEditorWorkspace
             loading = true;
             try
             {
-                fields.Clear(); inspector.Children.Clear();
+                fields.Clear();
+                inspector.Children.Clear();
                 var root = edit.Graph.ToElement();
                 inspector.Children.Add(new TextBlock { Text = "Filter region and color space", FontWeight = FontWeights.SemiBold });
                 AddFields(root, -1);
                 var nodes = edit.Graph.Nodes;
-                if (selected < 0 || selected >= nodes.Count) return;
+                if (selected < 0 || selected >= nodes.Count)
+                    return;
                 var node = nodes[selected];
                 inspector.Children.Add(new TextBlock { Text = $"{selected + 1}. {node.Name.LocalName}", FontSize = 18, Margin = new Thickness(0, 12, 0, 0) });
                 AddFields(node, selected);
@@ -229,11 +251,14 @@ public sealed partial class SvgEditorWorkspace
                 CommitFields();
                 var from = forward ? redo : undo;
                 var to = forward ? undo : redo;
-                if (from.Count == 0) return;
+                if (from.Count == 0)
+                    return;
                 to.Push(edit.Graph.GetXml());
                 edit.Graph = SvgFilterGraph.Parse(from.Pop());
                 selected = Math.Min(selected, edit.Graph.Nodes.Count - 1);
-                RebuildInspector(); RebuildGraph(); Schedule();
+                RebuildInspector();
+                RebuildGraph();
+                Schedule();
             }
             catch (Exception exception) { status.Text = exception.Message; }
         }
@@ -249,11 +274,18 @@ public sealed partial class SvgEditorWorkspace
         {
             try
             {
-                var picker = new FileOpenPicker(); picker.FileTypeFilter.Add(".svgfilter"); picker.FileTypeFilter.Add(".xml"); InitializePicker(picker);
-                var file = await picker.PickSingleFileAsync(); if (file is null || closed) return;
-                if ((await file.GetBasicPropertiesAsync()).Size > SvgFilterGraph.MaximumCharacters * 4UL) throw new InvalidOperationException("The filter file is too large.");
+                var picker = new FileOpenPicker();
+                picker.FileTypeFilter.Add(".svgfilter");
+                picker.FileTypeFilter.Add(".xml");
+                InitializePicker(picker);
+                var file = await picker.PickSingleFileAsync();
+                if (file is null || closed)
+                    return;
+                if ((await file.GetBasicPropertiesAsync()).Size > SvgFilterGraph.MaximumCharacters * 4UL)
+                    throw new InvalidOperationException("The filter file is too large.");
                 var text = await FileIO.ReadTextAsync(file);
-                if (!closed) Change(() => { edit.Graph = SvgFilterGraph.Parse(text); selected = 0; source.Text = text; });
+                if (!closed)
+                    Change(() => { edit.Graph = SvgFilterGraph.Parse(text); selected = 0; source.Text = text; });
             }
             catch (Exception exception) { status.Text = exception.Message; }
         };
@@ -261,26 +293,37 @@ public sealed partial class SvgEditorWorkspace
         {
             try
             {
-                CommitFields(); edit.Graph.ThrowIfInvalid();
+                CommitFields();
+                edit.Graph.ThrowIfInvalid();
                 var xml = edit.Graph.GetXml();
                 var picker = new FileSavePicker { SuggestedFileName = "effect", DefaultFileExtension = ".svgfilter" };
-                picker.FileTypeChoices.Add("SVG filter graph", new List<string> { ".svgfilter" }); InitializePicker(picker);
-                var file = await picker.PickSaveFileAsync(); if (file is not null) await WriteFileAsync(file, Encoding.UTF8.GetBytes(xml));
+                picker.FileTypeChoices.Add("SVG filter graph", new List<string> { ".svgfilter" });
+                InitializePicker(picker);
+                var file = await picker.PickSaveFileAsync();
+                if (file is not null)
+                    await WriteFileAsync(file, Encoding.UTF8.GetBytes(xml));
             }
             catch (Exception exception) { status.Text = exception.Message; }
         };
         sourceButtons.Children.Add(PaintColumns(import, export));
-        live.Checked += (_, _) => Schedule(); live.Unchecked += (_, _) => Schedule();
-        shared.Checked += (_, _) => Schedule(); shared.Unchecked += (_, _) => Schedule();
+        live.Checked += (_, _) => Schedule();
+        live.Unchecked += (_, _) => Schedule();
+        shared.Checked += (_, _) => Schedule();
+        shared.Unchecked += (_, _) => Schedule();
         timer.Tick += (_, _) => RefreshPreview();
         dialog.PrimaryButtonClick += (_, args) =>
         {
-            try { CommitFields(); controller.ApplyFilterEdit(edit, shared.IsChecked == true); }
+            if (args.Cancel)
+                return;
+            try
+            { CommitFields(); controller.ApplyFilterEdit(edit, shared.IsChecked == true); }
             catch (Exception exception) { args.Cancel = true; status.Text = exception.Message; }
         };
-        RebuildInspector(); RebuildGraph();
+        RebuildInspector();
+        RebuildGraph();
         dialog.Opened += (_, _) => RefreshPreview();
-        try { await ShowDialogAsync(dialog); }
+        try
+        { await ShowDialogAsync(dialog); }
         finally { closed = true; timer.Stop(); }
     }
 
@@ -289,7 +332,10 @@ public sealed partial class SvgEditorWorkspace
         private SKSvg? _renderer;
         public void Update(SKSvg renderer)
         {
-            var previous = _renderer; _renderer = renderer; previous?.Dispose(); Invalidate();
+            var previous = _renderer;
+            _renderer = renderer;
+            previous?.Dispose();
+            Invalidate();
         }
         protected override void RenderOverride(SKCanvas canvas, Size area)
         {
@@ -298,8 +344,10 @@ public sealed partial class SvgEditorWorkspace
             using var checker = new SKPaint { Color = new SKColor(145, 150, 160, 35) };
             for (var y = 0; y < area.Height; y += 16)
                 for (var x = 0; x < area.Width; x += 16)
-                    if (((x / 16 + y / 16) & 1) == 0) canvas.DrawRect(x, y, 16, 16, checker);
-            if (_renderer?.Picture is not { } picture || area.Width <= 24 || area.Height <= 24) return;
+                    if (((x / 16 + y / 16) & 1) == 0)
+                        canvas.DrawRect(x, y, 16, 16, checker);
+            if (_renderer?.Picture is not { } picture || area.Width <= 24 || area.Height <= 24)
+                return;
             var bounds = picture.CullRect;
             var scale = Math.Min((area.Width - 24) / Math.Max(1, bounds.Width), (area.Height - 24) / Math.Max(1, bounds.Height));
             canvas.Translate((float)area.Width / 2, (float)area.Height / 2);

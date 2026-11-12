@@ -11,21 +11,21 @@ command 'Gradient editor'
 capture controls-01-gradient-segments
 # Deterministic 1440x960 native fixture: the two paint segments are in the top
 # Appearance section, whose reveal command pins its header to the viewport top.
-xdotool mousemove --window "$window" 1210 228 click 1
+click_editor_control 1210 218 StudioGradientTarget RadioButton
 xdotool key --clearmodifiers End Home
 sleep 0.3
 save
 verify restored-segment-keyboard-navigation
 
 command 'Reverse gradient draft'
-xdotool mousemove --window "$window" 1355 228 click 1
+click_editor_control 1355 218 StudioGradientTarget
 sleep 0.4
 capture controls-02-dirty-target-change-blocked
 save
 verify restored-segment-unapplied-draft
 # Applying after the rejected target change must still edit Fill and retain the
 # reversed colors. The checker also rejects unrelated source/geometry changes.
-xdotool mousemove --window "$window" 1210 346 click 1
+click_editor_control 1210 332 StudioGradientApply
 sleep 0.5
 save
 python3 "$source_dir/assert_gradient_target.py" "$document" "$output" fill
@@ -35,7 +35,7 @@ save
 verify restored-segment-fill-undo
 
 command 'Gradient editor'
-xdotool mousemove --window "$window" 1210 228 click 1
+click_editor_control 1210 218 StudioGradientTarget RadioButton
 xdotool key --clearmodifiers End
 sleep 0.3
 save
@@ -44,7 +44,7 @@ capture controls-04-keyboard-stroke-target
 command 'Reverse gradient draft'
 # Refocus the already-selected Stroke segment, then use the containing editor's
 # apply shortcut. A segmented-control handler must not swallow Ctrl+Enter.
-xdotool mousemove --window "$window" 1355 228 click 1
+click_editor_control 1355 218 StudioGradientTarget RadioButton
 xdotool key --clearmodifiers ctrl+Return
 sleep 0.5
 save
@@ -56,26 +56,23 @@ verify restored-segment-stroke-undo
 
 command 'Reset workspace'
 command 'Properties panel'
-xdotool mousemove --window "$window" 1425 125 click 1
+click_editor_control 1425 125 studio-panel-picker-RightTop
 sleep 0.4
 capture controls-06-dock-panel-switcher
 xdotool key --clearmodifiers End Return
 sleep 0.5
 capture controls-07-hidden-panel-activated
 # Scroll the strip without switching its active live panel.
-xdotool mousemove --window "$window" 1140 125 click --repeat 3 --delay 150 1
+for step in 1 2 3; do click_editor_control 1140 125; done
 sleep 0.4
 capture controls-08-tab-overflow-navigation
 # Explicitly retain the intermediate views for diagnosing lost keyboard focus.
 # This is the same production command-search sequence as command(), not a bypass.
-xdotool key --clearmodifiers ctrl+k
-sleep 0.25
+open_commands
 capture controls-08a-command-search-after-scrolling
 xdotool key --clearmodifiers ctrl+a
-xdotool type --clearmodifiers --delay 1 'Save workspace as'
-sleep 0.2
-xdotool key --clearmodifiers Return
-sleep 0.65
+type_command_query 'Save workspace as'
+invoke_command_query
 capture controls-08b-workspace-name-dialog
 xdotool type --clearmodifiers --delay 30 'Control navigation review'
 xdotool key --clearmodifiers Return

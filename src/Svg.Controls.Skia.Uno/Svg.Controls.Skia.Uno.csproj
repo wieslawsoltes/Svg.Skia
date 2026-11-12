@@ -15,7 +15,7 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageTags>svg;skia;skiasharp;uno;winui;xaml;control;rendering</PackageTags>
     <UnoFeatures>
-      SkiaRenderer;
+      Skia;
     </UnoFeatures>
   </PropertyGroup>
 

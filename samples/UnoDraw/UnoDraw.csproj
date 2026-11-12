@@ -13,12 +13,15 @@
     <Description>A native SVG design workspace built with Uno Platform and Svg.Skia.</Description>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UnoFeatures>SkiaRenderer;</UnoFeatures>
+    <UnoFeatures>Skia;</UnoFeatures>
     <!-- These SVG files are editable documents, not rasterized UI image assets. -->
     <DisableDefaultUnoResizetizerItems>true</DisableDefaultUnoResizetizerItems>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <!-- WebGPU composes the workspace while SKCanvasElement uses its raster texture
+         bridge. Uno 7.0.32's optional GL island fails during zero-sized resize. -->
+    <UnoFeatures>$(UnoFeatures)WebGpu;</UnoFeatures>
     <!-- Keep the published package relocatable under the docs' /unodraw/ folder. -->
     <WasmShellWebAppBasePath>./</WasmShellWebAppBasePath>
     <!-- GitHub Pages does not provide cross-origin isolation headers. -->
@@ -37,7 +40,7 @@
     <WasmNativeDebugSymbols Condition="'$(Configuration)' == 'Release'">false</WasmNativeDebugSymbols>
   </PropertyGroup>
   <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-    <SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
     <AndroidPackageFormats>apk</AndroidPackageFormats>
     <!-- SVG.NET discovers element/converter types through reflection. Keep these
          assemblies intact while retaining Android's normal AOT pipeline. -->
@@ -59,7 +62,7 @@
     <Content Include="Assets/*.svg" CopyToOutputDirectory="PreserveNewest" Condition="'$(TargetFramework)' == 'net10.0-desktop'" />
     <EmbeddedResource Include="Assets/Welcome.svg" LogicalName="UnoDraw.Welcome.svg" />
     <UnoIcon Include="Branding/icon.svg" Color="#7061DC" />
-    <UnoSplashScreen Include="Branding/splash.svg" Color="#19191F" BaseSize="64,64" />
+    <UnoSplashScreen Include="Branding/splash.svg" BackgroundColor="#19191F" BaseSize="64,64" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
     <PackageReference Include="SkiaSharp.NativeAssets.WebAssembly" />

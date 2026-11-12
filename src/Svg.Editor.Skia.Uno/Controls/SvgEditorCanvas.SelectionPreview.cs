@@ -16,6 +16,8 @@ public sealed partial class SvgEditorCanvas
         }
 
         _gesture = gesture;
+        if (Controller?.SelectionBounds is { } bounds)
+            _startBounds = bounds;
         if (Controller is not null)
         {
             // Record the selected retained scene once. Ancestor compositing state and original
@@ -26,7 +28,7 @@ public sealed partial class SvgEditorCanvas
 
     private void DrawSelectionGhost(SKCanvas canvas, CanvasResources resources)
     {
-        if (!_moved || _selectionGhost is null || _gesture is not (Gesture.Move or Gesture.Resize or Gesture.Rotate))
+        if (!_moved || _selectionGhost is null || _gesture is not (Gesture.Move or Gesture.Resize or Gesture.Rotate or Gesture.Transform))
         {
             return;
         }

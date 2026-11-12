@@ -7,7 +7,12 @@ namespace Svg.Editor.Skia.Uno;
 public sealed class EditorDocument : IDisposable
 {
     public Guid RecoveryId { get; internal set; } = Guid.NewGuid();
-    public SvgEditorController Controller { get; } = new();
+    public SvgEditorController Controller { get; } = new()
+    {
+        CurrentFill = "#FFFFFF",
+        CurrentStroke = "#000000",
+        CurrentStrokeWidth = 1
+    };
     public StorageFile? File { get; internal set; }
     // An open picker may grant only read access (for example a browser upload).
     // Save reuses a platform file only after a save picker has granted write access.

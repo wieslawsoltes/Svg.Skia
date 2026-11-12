@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:Svg.Editor.Skia.Uno">
-  <ResourceDictionary.MergedDictionaries><local:StudioThemeResources /></ResourceDictionary.MergedDictionaries>
+  <ResourceDictionary.MergedDictionaries><local:EditorTheme /></ResourceDictionary.MergedDictionaries>
   <Style TargetType="local:StudioIconButton">
     <Setter Property="MinWidth" Value="28" /><Setter Property="MinHeight" Value="28" />
     <Setter Property="Padding" Value="6,3" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" />
@@ -36,7 +36,7 @@
         </VisualStateGroup></VisualStateManager.VisualStateGroups>
         <ContentPresenter x:Name="Presenter" Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
         <Border x:Name="SelectionMark" Width="2" HorizontalAlignment="Left" Margin="0,7" Background="{ThemeResource StudioAccent}" Opacity="0" />
-        <TextBlock Text="{TemplateBinding AlternateMark}" FontSize="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,2,1" IsHitTestVisible="False" />
+        <local:StudioGlyph Symbol="{TemplateBinding AlternateMark}" Foreground="{Binding Foreground, ElementName=Presenter}" Width="6" Height="6" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,2,1" />
       </Grid>
     </ControlTemplate></Setter.Value></Setter>
   </Style>
@@ -107,9 +107,11 @@
   </Style>
   <Style TargetType="local:StudioPaintChip">
     <Setter Property="MinHeight" Value="32" /><Setter Property="MinWidth" Value="68" />
+    <Setter Property="Padding" Value="6,4" /><Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Background" Value="{ThemeResource StudioInputBackground}" /><Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" />
     <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="UseSystemFocusVisuals" Value="True" />
     <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="local:StudioPaintChip">
-      <Border x:Name="Root" Background="{ThemeResource StudioInputBackground}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="1" CornerRadius="{StaticResource StudioControlRadius}" Padding="6,4">
+      <Border x:Name="Root" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource StudioControlRadius}" Padding="{TemplateBinding Padding}">
         <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
           <VisualState x:Name="Normal" />
           <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.BorderBrush" Value="{ThemeResource StudioAccent}" /></VisualState.Setters></VisualState>
@@ -122,11 +124,11 @@
               <Grid.RowDefinitions><RowDefinition /><RowDefinition /></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition /></Grid.ColumnDefinitions>
               <Rectangle Fill="{ThemeResource StudioBorder}" /><Rectangle Grid.Row="1" Grid.Column="1" Fill="{ThemeResource StudioBorder}" />
               <Border Grid.RowSpan="2" Grid.ColumnSpan="2" Background="{TemplateBinding Swatch}" />
-              <TextBlock Grid.RowSpan="2" Grid.ColumnSpan="2" Text="{TemplateBinding Mark}" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              <local:StudioGlyph Grid.RowSpan="2" Grid.ColumnSpan="2" Symbol="{TemplateBinding Mark}" Width="13" Height="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Grid>
           </Border>
           <TextBlock x:Name="Label" Text="{TemplateBinding Label}" Foreground="{TemplateBinding Foreground}" Visibility="{TemplateBinding LabelVisibility}" FontSize="11" VerticalAlignment="Center" />
-          <TextBlock Text="⌄" Visibility="{TemplateBinding LabelVisibility}" FontSize="11" VerticalAlignment="Center" />
+          <local:StudioGlyph Symbol="ChevronDown" Foreground="{Binding Foreground, ElementName=Label}" Visibility="{TemplateBinding LabelVisibility}" Width="7" Height="11" VerticalAlignment="Center" />
         </StackPanel>
       </Border>
     </ControlTemplate></Setter.Value></Setter>
@@ -153,8 +155,8 @@
             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="28" /><ColumnDefinition Width="28" /></Grid.ColumnDefinitions>
             <Thumb x:Name="PART_Grip" IsTabStop="False"><Thumb.Template><ControlTemplate TargetType="Thumb"><Grid Background="Transparent" /></ControlTemplate></Thumb.Template></Thumb>
             <TextBlock Text="{TemplateBinding Caption}" Margin="12,0" VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" IsHitTestVisible="False" />
-            <Button x:Name="PART_Collapse" Grid.Column="1" Content="−" Style="{StaticResource StudioQuietButtonStyle}" MinWidth="0" MinHeight="26" Padding="0" FontSize="12" />
-            <Button x:Name="PART_Menu" Grid.Column="2" Content="⋯" Style="{StaticResource StudioQuietButtonStyle}" MinWidth="0" MinHeight="26" Padding="0" FontSize="14" AutomationProperties.Name="Panel docking and tab menu" />
+            <Button x:Name="PART_Collapse" Grid.Column="1" Style="{StaticResource StudioQuietButtonStyle}" MinWidth="0" MinHeight="26" Padding="0" FontSize="12"><local:StudioGlyph Symbol="Minus" /></Button>
+            <Button x:Name="PART_Menu" Grid.Column="2" Style="{StaticResource StudioQuietButtonStyle}" MinWidth="0" MinHeight="26" Padding="0" FontSize="14" AutomationProperties.Name="Panel docking and tab menu"><local:StudioGlyph Symbol="More" Width="14" /></Button>
           </Grid>
           <Grid Grid.Row="1" Background="{ThemeResource StudioHeader}">
             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -163,7 +165,7 @@
               <StackPanel x:Name="PART_Tabs" Orientation="Horizontal" />
             </ScrollViewer>
             <Button x:Name="PART_NextTabs" Grid.Column="2" Content="›" Width="24" MinWidth="0" MinHeight="30" Padding="0" FontSize="18" Style="{StaticResource StudioQuietButtonStyle}" Visibility="Collapsed" AutomationProperties.Name="Scroll panel tabs forward" ToolTipService.ToolTip="Show later panel tabs" />
-            <Button x:Name="PART_PanelPicker" Grid.Column="3" Content="⌄" Width="28" MinWidth="0" MinHeight="30" Padding="0" Style="{StaticResource StudioQuietButtonStyle}" AutomationProperties.Name="Choose panel" ToolTipService.ToolTip="Choose any panel in this group" />
+            <Button x:Name="PART_PanelPicker" Grid.Column="3" Width="28" MinWidth="0" MinHeight="30" Padding="0" Style="{StaticResource StudioQuietButtonStyle}" AutomationProperties.Name="Choose panel" ToolTipService.ToolTip="Choose any panel in this group"><local:StudioGlyph Symbol="ChevronDown" Width="8" Height="8" /></Button>
           </Grid>
           <Grid x:Name="PART_Content" Grid.Row="2" />
         </Grid>

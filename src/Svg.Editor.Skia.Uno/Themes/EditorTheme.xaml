@@ -1,0 +1,332 @@
+<ResourceDictionary x:Class="Svg.Editor.Skia.Uno.EditorTheme"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="using:Svg.Editor.Skia.Uno"
+                    xmlns:primitives="using:Microsoft.UI.Xaml.Controls.Primitives">
+  <ResourceDictionary.MergedDictionaries>
+    <local:StudioPaletteResources />
+    <local:StudioNativeStateResources />
+    <local:StudioSelectionResources />
+    <local:EditorInputTemplates />
+    <local:EditorMenuTemplates />
+    <local:EditorNavigationTemplates />
+    <local:EditorDialogTemplates />
+    <local:EditorRangeTemplates />
+    <local:EditorColorTemplates />
+  </ResourceDictionary.MergedDictionaries>
+  <!-- EditorTheme supplies shared metrics, semantic colors and control templates.
+       Native control classes retain editing, IME, selection and automation. -->
+  <StaticResource x:Key="TextControlBackground" ResourceKey="StudioInputBackground" />
+  <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="StudioInputBackground" />
+  <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="StudioInputBackground" />
+  <StaticResource x:Key="TextControlBackgroundDisabled" ResourceKey="StudioHeader" />
+  <StaticResource x:Key="TextControlForeground" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="TextControlForegroundPointerOver" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="TextControlForegroundFocused" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="TextControlForegroundDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="TextControlPlaceholderForeground" ResourceKey="StudioMuted" />
+  <StaticResource x:Key="TextControlPlaceholderForegroundFocused" ResourceKey="StudioMuted" />
+  <StaticResource x:Key="TextControlHeaderForeground" ResourceKey="StudioMuted" />
+  <StaticResource x:Key="TextControlBorderBrush" ResourceKey="StudioBorder" />
+  <StaticResource x:Key="TextControlBorderBrushPointerOver" ResourceKey="StudioMuted" />
+  <StaticResource x:Key="TextControlBorderBrushFocused" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="TextControlBorderBrushDisabled" ResourceKey="StudioDivider" />
+  <Thickness x:Key="TextControlBorderThemeThickness">1</Thickness>
+  <Thickness x:Key="TextControlBorderThemeThicknessFocused">1</Thickness>
+  <Thickness x:Key="TextBoxTopHeaderMargin">0,0,0,6</Thickness>
+  <Thickness x:Key="ComboBoxTopHeaderMargin">0,0,0,6</Thickness>
+  <Thickness x:Key="NumberBoxTopHeaderMargin">0,0,0,6</Thickness>
+  <x:Double x:Key="TextControlThemeMinWidth">0</x:Double>
+  <x:Double x:Key="TextControlThemeMinHeight">28</x:Double>
+  <x:Double x:Key="NumberBoxMinWidth">0</x:Double>
+  <x:Double x:Key="ComboBoxThemeMinWidth">0</x:Double>
+  <x:Double x:Key="ComboBoxThemeMinHeight">28</x:Double>
+  <CornerRadius x:Key="ControlCornerRadius">2</CornerRadius>
+  <CornerRadius x:Key="OverlayCornerRadius">2</CornerRadius>
+  <StaticResource x:Key="ComboBoxBackground" ResourceKey="StudioInputBackground" />
+  <StaticResource x:Key="ComboBoxBackgroundPointerOver" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ComboBoxBackgroundPressed" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ComboBoxBackgroundDisabled" ResourceKey="StudioHeader" />
+  <StaticResource x:Key="ComboBoxForeground" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="ComboBoxForegroundPointerOver" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ComboBoxForegroundPressed" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="ComboBoxForegroundDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="ComboBoxBorderBrush" ResourceKey="StudioBorder" />
+  <StaticResource x:Key="ComboBoxBorderBrushPointerOver" ResourceKey="StudioMuted" />
+  <StaticResource x:Key="ComboBoxBorderBrushPressed" ResourceKey="StudioAccent" />
+  <StaticResource x:Key="ComboBoxDropDownBackground" ResourceKey="StudioRaised" />
+  <StaticResource x:Key="ComboBoxDropDownForeground" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="ComboBoxDropDownBorderBrush" ResourceKey="StudioBorder" />
+  <StaticResource x:Key="ComboBoxHeaderForeground" ResourceKey="StudioMuted" />
+  <StaticResource x:Key="NumberBoxPopupBackground" ResourceKey="StudioRaised" />
+  <StaticResource x:Key="NumberBoxPopupBorderBrush" ResourceKey="StudioBorder" />
+  <StaticResource x:Key="NumberBoxPopupIndicatorForeground" ResourceKey="StudioMuted" />
+  <StaticResource x:Key="ContentDialogBackground" ResourceKey="StudioSurface" />
+  <StaticResource x:Key="ContentDialogForeground" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="ContentDialogBorderBrush" ResourceKey="StudioBorder" />
+  <StaticResource x:Key="ContentDialogTopOverlay" ResourceKey="StudioSurface" />
+  <StaticResource x:Key="ContentDialogSeparatorBorderBrush" ResourceKey="StudioDivider" />
+  <StaticResource x:Key="MenuFlyoutPresenterBackground" ResourceKey="StudioRaised" />
+  <StaticResource x:Key="MenuFlyoutPresenterBorderBrush" ResourceKey="StudioBorder" />
+  <StaticResource x:Key="MenuFlyoutItemForeground" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="MenuFlyoutItemBackgroundPointerOver" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="MenuFlyoutItemForegroundPointerOver" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="MenuFlyoutItemForegroundDisabled" ResourceKey="StudioDisabled" />
+  <StaticResource x:Key="ListViewItemBackgroundSelected" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ListViewItemBackgroundSelectedPointerOver" ResourceKey="StudioSelection" />
+  <StaticResource x:Key="ListViewItemForeground" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="ListViewItemForegroundSelected" ResourceKey="StudioSelectionForeground" />
+  <StaticResource x:Key="TabViewItemHeaderBackground" ResourceKey="StudioHeader" />
+  <StaticResource x:Key="TabViewItemHeaderBackgroundSelected" ResourceKey="StudioSurface" />
+  <StaticResource x:Key="TabViewItemHeaderForeground" ResourceKey="StudioMuted" />
+  <StaticResource x:Key="TabViewItemHeaderForegroundSelected" ResourceKey="StudioForeground" />
+  <StaticResource x:Key="ColorPickerBorderBrush" ResourceKey="StudioBorder" />
+  <x:Double x:Key="ColorPickerVerticalOrientationMinWidth">220</x:Double>
+  <x:Double x:Key="ColorPickerVerticalOrientationMinHeight">220</x:Double>
+  <x:Double x:Key="ListViewItemMinHeight">30</x:Double>
+  <Thickness x:Key="ContentDialogPadding">24</Thickness>
+  <GridLength x:Key="ContentDialogButtonSpacing">8</GridLength>
+  <DataTemplate x:Key="StudioFieldHeaderTemplate"><TextBlock Text="{Binding}" FontSize="{StaticResource StudioLabelSize}" FontWeight="SemiBold" Foreground="{ThemeResource StudioMuted}" TextWrapping="Wrap" Margin="0,0,0,2" /></DataTemplate>
+
+  <Style x:Key="StudioTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
+    <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="{StaticResource StudioControlHeight}" />
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Padding" Value="{StaticResource StudioControlPadding}" />
+    <Setter Property="Background" Value="{ThemeResource StudioInputBackground}" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
+    <Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="{StaticResource StudioControlRadius}" />
+    <Setter Property="local:StudioFieldHeader.Template" Value="{StaticResource StudioFieldHeaderTemplate}" /><Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Template" Value="{StaticResource EditorTextBoxTemplate}" />
+  </Style>
+  <Style TargetType="TextBox" BasedOn="{StaticResource StudioTextBoxStyle}" />
+  <Style x:Key="StudioNumberBoxStyle" TargetType="NumberBox">
+    <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="{StaticResource StudioControlHeight}" />
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Padding" Value="8,4" />
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="{ThemeResource StudioInputBackground}" />
+    <Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="{StaticResource StudioControlRadius}" />
+    <Setter Property="local:StudioFieldHeader.Template" Value="{StaticResource StudioFieldHeaderTemplate}" /><Setter Property="AcceptsExpression" Value="True" /><Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Template" Value="{StaticResource EditorNumberBoxTemplate}" />
+  </Style>
+  <Style TargetType="NumberBox" BasedOn="{StaticResource StudioNumberBoxStyle}" />
+  <Style x:Key="StudioComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource DefaultComboBoxStyle}">
+    <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="{StaticResource StudioControlHeight}" />
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Padding" Value="10,5" />
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="{ThemeResource StudioInputBackground}" />
+    <Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="{StaticResource StudioControlRadius}" />
+    <Setter Property="local:StudioFieldHeader.Template" Value="{StaticResource StudioFieldHeaderTemplate}" /><Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Template" Value="{StaticResource EditorComboBoxTemplate}" />
+  </Style>
+  <Style TargetType="ComboBox" BasedOn="{StaticResource StudioComboBoxStyle}" />
+  <Style x:Key="StudioToggleButtonStyle" TargetType="ToggleButton" BasedOn="{StaticResource DefaultToggleButtonStyle}">
+    <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="{StaticResource StudioControlHeight}" />
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Padding" Value="{StaticResource StudioControlPadding}" />
+    <Setter Property="CornerRadius" Value="{StaticResource StudioControlRadius}" /><Setter Property="UseSystemFocusVisuals" Value="True" />
+    <Setter Property="Background" Value="{ThemeResource StudioRaised}" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
+    <Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" /><Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Template" Value="{StaticResource EditorToggleButtonTemplate}" />
+  </Style>
+  <Style TargetType="ToggleButton" BasedOn="{StaticResource StudioToggleButtonStyle}" />
+
+  <Style x:Key="StudioButtonStyle" TargetType="Button">
+    <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="{StaticResource StudioControlHeight}" />
+    <Setter Property="Padding" Value="{StaticResource StudioControlPadding}" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" />
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="{ThemeResource StudioRaised}" />
+    <Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="{StaticResource StudioControlRadius}" />
+    <Setter Property="UseSystemFocusVisuals" Value="True" /><Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+      <Grid x:Name="Root">
+        <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioAccent}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" /><Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioAccent}" /><Setter Target="PressTranslation.Y" Value="1" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Presenter.Foreground" Value="{ThemeResource StudioDisabled}" /><Setter Target="Chrome.Background" Value="{ThemeResource StudioHeader}" /><Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioDivider}" /></VisualState.Setters></VisualState>
+        </VisualStateGroup></VisualStateManager.VisualStateGroups>
+        <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}">
+          <ContentPresenter x:Name="Presenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" ContentTransitions="{TemplateBinding ContentTransitions}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}">
+            <ContentPresenter.RenderTransform><TranslateTransform x:Name="PressTranslation" /></ContentPresenter.RenderTransform>
+          </ContentPresenter>
+        </Border>
+      </Grid>
+    </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style TargetType="Button" BasedOn="{StaticResource StudioButtonStyle}" />
+  <Style x:Key="CompactButton" TargetType="Button" BasedOn="{StaticResource StudioButtonStyle}"><Setter Property="MinHeight" Value="{StaticResource StudioCompactHeight}" /><Setter Property="Padding" Value="{StaticResource StudioCompactPadding}" /></Style>
+  <Style x:Key="StudioPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource StudioButtonStyle}"><Setter Property="Background" Value="{ThemeResource StudioAccent}" /><Setter Property="Foreground" Value="{ThemeResource StudioOnAccent}" /><Setter Property="BorderBrush" Value="{ThemeResource StudioAccent}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+  <Style x:Key="StudioQuietButtonStyle" TargetType="Button" BasedOn="{StaticResource StudioButtonStyle}"><Setter Property="Background" Value="Transparent" /><Setter Property="BorderBrush" Value="Transparent" /></Style>
+  <Style x:Key="StudioDangerButtonStyle" TargetType="Button" BasedOn="{StaticResource StudioButtonStyle}"><Setter Property="Foreground" Value="{ThemeResource StudioDanger}" /></Style>
+  <Style TargetType="CheckBox" BasedOn="{StaticResource DefaultCheckBoxStyle}"><Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="28" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Template" Value="{StaticResource EditorCheckBoxTemplate}" /><Setter Property="UseSystemFocusVisuals" Value="True" /><Setter Property="Padding" Value="4,0,0,0" /><Setter Property="VerticalContentAlignment" Value="Center" /></Style>
+  <Style TargetType="RadioButton" BasedOn="{StaticResource DefaultRadioButtonStyle}"><Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="28" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Template" Value="{StaticResource EditorRadioButtonTemplate}" /><Setter Property="UseSystemFocusVisuals" Value="True" /><Setter Property="Padding" Value="4,0,0,0" /><Setter Property="VerticalContentAlignment" Value="Center" /></Style>
+  <Style TargetType="ToggleSwitch"><Setter Property="MinWidth" Value="0" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Template" Value="{StaticResource EditorToggleSwitchTemplate}" /><Setter Property="UseSystemFocusVisuals" Value="True" /></Style>
+
+
+
+  <Style TargetType="ContentDialog">
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="{ThemeResource StudioSurface}" />
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="CornerRadius" Value="{StaticResource StudioSurfaceRadius}" />
+    <Setter Property="PrimaryButtonStyle" Value="{StaticResource StudioPrimaryButtonStyle}" />
+    <Setter Property="SecondaryButtonStyle" Value="{StaticResource StudioButtonStyle}" />
+    <Setter Property="CloseButtonStyle" Value="{StaticResource StudioButtonStyle}" />
+    <Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" /><Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Template" Value="{StaticResource EditorContentDialogTemplate}" />
+  </Style>
+  <Style x:Key="SectionLabel" TargetType="TextBlock"><Setter Property="FontSize" Value="{StaticResource StudioLabelSize}" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{ThemeResource StudioMuted}" /><Setter Property="Margin" Value="0,8,0,4" /></Style>
+  <Style x:Key="StudioHintStyle" TargetType="TextBlock"><Setter Property="FontSize" Value="{StaticResource StudioLabelSize}" /><Setter Property="Foreground" Value="{ThemeResource StudioMuted}" /><Setter Property="TextWrapping" Value="Wrap" /></Style>
+
+  <Style TargetType="MenuBar">
+    <Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="MinHeight" Value="26" /><Setter Property="IsTabStop" Value="False" />
+    <Setter Property="Template" Value="{StaticResource EditorMenuBarTemplate}" />
+  </Style>
+  <Style TargetType="MenuBarItem">
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="Transparent" />
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Padding" Value="9,3" />
+    <Setter Property="Template" Value="{StaticResource EditorMenuBarItemTemplate}" />
+  </Style>
+  <Style TargetType="MenuFlyoutPresenter">
+    <Setter Property="Background" Value="{ThemeResource StudioRaised}" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
+    <Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" /><Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource StudioSurfaceRadius}" /><Setter Property="Padding" Value="1,3" />
+    <Setter Property="MinWidth" Value="190" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" />
+    <Setter Property="Template" Value="{StaticResource EditorMenuFlyoutPresenterTemplate}" />
+  </Style>
+  <Style TargetType="MenuFlyoutItem">
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="MinHeight" Value="24" />
+    <Setter Property="Padding" Value="3,4,8,4" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
+    <Setter Property="Background" Value="Transparent" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Template" Value="{StaticResource EditorMenuFlyoutItemTemplate}" />
+  </Style>
+  <Style TargetType="MenuFlyoutSubItem">
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="MinHeight" Value="24" />
+    <Setter Property="Padding" Value="3,4,8,4" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
+    <Setter Property="Background" Value="Transparent" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Template" Value="{StaticResource EditorMenuFlyoutSubItemTemplate}" />
+  </Style>
+  <Style TargetType="ToggleMenuFlyoutItem">
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="MinHeight" Value="24" />
+    <Setter Property="Padding" Value="3,4,8,4" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
+    <Setter Property="Background" Value="Transparent" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Template" Value="{StaticResource EditorToggleMenuFlyoutItemTemplate}" />
+  </Style>
+  <Style TargetType="MenuFlyoutSeparator"><Setter Property="Template" Value="{StaticResource EditorMenuSeparatorTemplate}" /></Style>
+  <Style TargetType="FlyoutPresenter">
+    <Setter Property="Background" Value="{ThemeResource StudioRaised}" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
+    <Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="{StaticResource StudioSurfaceRadius}" />
+    <Setter Property="Padding" Value="10" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Template" Value="{StaticResource EditorFlyoutPresenterTemplate}" />
+  </Style>
+  <Style TargetType="ToolTip">
+    <Setter Property="Background" Value="{ThemeResource StudioRaised}" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
+    <Setter Property="BorderBrush" Value="{ThemeResource StudioBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="{StaticResource StudioControlRadius}" />
+    <Setter Property="Padding" Value="8,5" /><Setter Property="FontSize" Value="{StaticResource StudioLabelSize}" /><Setter Property="Template" Value="{StaticResource EditorToolTipTemplate}" />
+  </Style>
+
+  <x:Double x:Key="TabViewItemMinWidth">56</x:Double>
+  <x:Double x:Key="TabViewItemMaxWidth">260</x:Double>
+  <Style x:Key="EditorTreeViewItemStyle" TargetType="TreeViewItem">
+    <Setter Property="MinHeight" Value="28" /><Setter Property="MinWidth" Value="0" /><Setter Property="Padding" Value="0,2,5,2" />
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="GlyphBrush" Value="{ThemeResource StudioMuted}" /><Setter Property="Background" Value="Transparent" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="VerticalContentAlignment" Value="Center" /><Setter Property="UseSystemFocusVisuals" Value="True" />
+    <Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="Template" Value="{StaticResource EditorTreeViewItemTemplate}" />
+  </Style>
+  <Style TargetType="TreeViewItem" BasedOn="{StaticResource EditorTreeViewItemStyle}" />
+  <Style TargetType="ContentControl">
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" />
+    <Setter Property="Template" Value="{StaticResource EditorContentControlTemplate}" />
+  </Style>
+  <Style TargetType="local:StudioSvgPreview">
+    <Setter Property="CheckerBackgroundColor" Value="{ThemeResource StudioSurfaceColor}" />
+    <Setter Property="CheckerForegroundColor" Value="{ThemeResource StudioBorderColor}" />
+  </Style>
+  <Style TargetType="local:StudioNavigator">
+    <Setter Property="BackgroundBrush" Value="{ThemeResource StudioCanvas}" />
+    <Setter Property="OutlineBrush" Value="{ThemeResource StudioBorder}" />
+    <Setter Property="AccentBrush" Value="{ThemeResource StudioAccent}" />
+  </Style>
+  <Style TargetType="local:SvgEditorCanvas">
+    <Setter Property="PasteboardBrush" Value="{ThemeResource StudioCanvas}" />
+    <Setter Property="ArtboardLabelBrush" Value="{ThemeResource StudioCanvasLabel}" />
+    <Setter Property="ArtboardOutlineBrush" Value="{ThemeResource StudioCanvasOutline}" />
+    <Setter Property="ArtboardShadowBrush" Value="{ThemeResource StudioCanvasShadow}" />
+    <Setter Property="CanvasAccentBrush" Value="{ThemeResource StudioCanvasAccent}" />
+    <Setter Property="HandleFillBrush" Value="{ThemeResource StudioCanvasHandle}" />
+    <Setter Property="GridLineBrush" Value="{ThemeResource StudioCanvasGrid}" />
+    <Setter Property="GuideLineBrush" Value="{ThemeResource StudioGuide}" />
+    <Setter Property="GuidePreviewBrush" Value="{ThemeResource StudioGuidePreview}" />
+    <Setter Property="SmartGuideBrush" Value="{ThemeResource StudioSmartGuide}" />
+    <Setter Property="CheckerBackgroundBrush" Value="{ThemeResource StudioCanvasCheckerBackground}" />
+    <Setter Property="CheckerForegroundBrush" Value="{ThemeResource StudioCanvasCheckerForeground}" />
+  </Style>
+  <Style TargetType="local:StudioRuler">
+    <Setter Property="BackgroundBrush" Value="{ThemeResource StudioHeader}" />
+    <Setter Property="ForegroundBrush" Value="{ThemeResource StudioRulerForeground}" />
+    <Setter Property="PointerBrush" Value="{ThemeResource StudioRulerPointer}" />
+  </Style>
+  <Style TargetType="TreeView">
+    <Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="IsTabStop" Value="False" />
+    <Setter Property="ItemContainerStyle" Value="{StaticResource EditorTreeViewItemStyle}" /><Setter Property="Template" Value="{StaticResource EditorTreeViewTemplate}" />
+  </Style>
+  <Style TargetType="ListView">
+    <Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="0" />
+    <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" /><Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <Setter Property="ScrollViewer.VerticalScrollMode" Value="Enabled" /><Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" /><Setter Property="ScrollViewer.BringIntoViewOnFocusChange" Value="True" />
+    <Setter Property="Template" Value="{StaticResource EditorListViewTemplate}" />
+  </Style>
+  <Style x:Key="EditorListViewItemStyle" TargetType="ListViewItem">
+    <Setter Property="MinHeight" Value="26" /><Setter Property="MinWidth" Value="0" /><Setter Property="Padding" Value="8,4" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" />
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="Transparent" /><Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" /><Setter Property="UseSystemFocusVisuals" Value="True" /><Setter Property="Template" Value="{StaticResource EditorListViewItemTemplate}" />
+  </Style>
+  <Style TargetType="ListViewItem" BasedOn="{StaticResource EditorListViewItemStyle}" />
+  <Style TargetType="ComboBoxItem">
+    <Setter Property="MinHeight" Value="26" /><Setter Property="MinWidth" Value="0" /><Setter Property="Padding" Value="8,4" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" />
+    <Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="Background" Value="Transparent" /><Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" /><Setter Property="UseSystemFocusVisuals" Value="True" /><Setter Property="Template" Value="{StaticResource EditorComboBoxItemTemplate}" />
+  </Style>
+  <Style TargetType="TabView">
+    <Setter Property="Background" Value="{ThemeResource StudioHeader}" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="0" /><Setter Property="IsTabStop" Value="False" />
+    <Setter Property="Template" Value="{StaticResource EditorTabViewTemplate}" />
+  </Style>
+  <Style TargetType="TabViewItem">
+    <Setter Property="Background" Value="{ThemeResource StudioHeader}" /><Setter Property="Foreground" Value="{ThemeResource StudioMuted}" /><Setter Property="MinHeight" Value="30" />
+    <Setter Property="Padding" Value="0" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="UseSystemFocusVisuals" Value="True" />
+    <Setter Property="Template" Value="{StaticResource EditorTabViewItemTemplate}" />
+  </Style>
+  <Style TargetType="Expander">
+    <Setter Property="Background" Value="{ThemeResource StudioSurface}" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" /><Setter Property="MinHeight" Value="28" />
+    <Setter Property="Padding" Value="8" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="IsTabStop" Value="False" />
+    <Setter Property="Template" Value="{StaticResource EditorExpanderTemplate}" />
+  </Style>
+
+  <Style TargetType="ColorPicker" BasedOn="{StaticResource DefaultColorPickerStyle}">
+    <Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{ThemeResource StudioForeground}" />
+    <Setter Property="FontSize" Value="12" /><Setter Property="IsTabStop" Value="False" />
+    <Setter Property="Template" Value="{StaticResource EditorColorPickerTemplate}" />
+  </Style>
+  <Style TargetType="primitives:ColorSpectrum">
+    <Setter Property="ManipulationMode" Value="None" /><Setter Property="UseSystemFocusVisuals" Value="False" />
+    <Setter Property="Template" Value="{StaticResource EditorColorSpectrumTemplate}" />
+  </Style>
+  <Style TargetType="primitives:ColorPickerSlider">
+    <Setter Property="IsThumbToolTipEnabled" Value="False" /><Setter Property="UseSystemFocusVisuals" Value="True" />
+    <Setter Property="Template" Value="{StaticResource EditorColorPickerSliderTemplate}" />
+  </Style>
+  <Style TargetType="ScrollViewer" BasedOn="{StaticResource DefaultScrollViewerStyle}">
+    <Setter Property="Template" Value="{StaticResource EditorScrollViewerTemplate}" />
+  </Style>
+  <Style TargetType="ScrollBar">
+    <Setter Property="Background" Value="{ThemeResource StudioHeader}" /><Setter Property="IsTabStop" Value="False" />
+    <Setter Property="Template" Value="{StaticResource EditorScrollBarTemplate}" />
+  </Style>
+  <Style TargetType="Slider">
+    <Setter Property="Background" Value="{ThemeResource StudioBorder}" /><Setter Property="Foreground" Value="{ThemeResource StudioAccent}" />
+    <Setter Property="MinWidth" Value="0" /><Setter Property="FontSize" Value="{StaticResource StudioBodySize}" /><Setter Property="UseSystemFocusVisuals" Value="True" />
+    <Setter Property="Template" Value="{StaticResource EditorSliderTemplate}" />
+  </Style>
+  <Style TargetType="ProgressRing">
+    <Setter Property="Background" Value="{ThemeResource StudioBorder}" /><Setter Property="Foreground" Value="{ThemeResource StudioAccent}" /><Setter Property="IsTabStop" Value="False" />
+    <Setter Property="Template" Value="{StaticResource EditorProgressRingTemplate}" />
+  </Style>
+  <Style TargetType="ProgressBar">
+    <Setter Property="Background" Value="{ThemeResource StudioBorder}" /><Setter Property="Foreground" Value="{ThemeResource StudioAccent}" /><Setter Property="MinHeight" Value="4" /><Setter Property="IsTabStop" Value="False" />
+    <Setter Property="Template" Value="{StaticResource EditorProgressBarTemplate}" />
+  </Style>
+</ResourceDictionary>

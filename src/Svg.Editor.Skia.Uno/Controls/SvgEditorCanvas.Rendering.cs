@@ -24,20 +24,24 @@ public sealed partial class SvgEditorCanvas
 
         var started = Stopwatch.GetTimestamp();
         var resources = _resources ??= new CanvasResources();
+        ApplyCanvasPalette(resources);
         using var restore = new SKAutoCanvasRestore(canvas);
         canvas.ClipRect(SKRect.Create((float)area.Width, (float)area.Height));
-        resources.Fill.Color = IsDarkTheme ? new SKColor(31, 34, 42) : new SKColor(233, 236, 242);
+        resources.Fill.Color = resources.Background;
         canvas.DrawRect(SKRect.Create((float)area.Width, (float)area.Height), resources.Fill);
 
         if (Controller?.Renderer.Picture is { } picture)
         {
-            DrawArtboard(canvas, picture.CullRect, resources);
+            var artboards = _artboardCache.GetArtboards(Controller);
+            for (var index = 0; index < artboards.Count; index++)
+                DrawArtboard(canvas, artboards[index].Bounds, resources);
             using (var documentRestore = new SKAutoCanvasRestore(canvas))
             {
                 canvas.Concat(Viewport.Matrix);
                 if (ShowGrid)
                 {
-                    DrawGrid(canvas, picture.CullRect, resources);
+                    for (var index = 0; index < artboards.Count; index++)
+                        DrawGrid(canvas, artboards[index].Bounds, resources);
                 }
 
                 // Replays the existing Svg.Skia display list into the host surface. No bitmap
@@ -46,9 +50,18 @@ public sealed partial class SvgEditorCanvas
                 DrawSelectionGhost(canvas, resources);
             }
 
+            for (var index = 0; index < artboards.Count; index++)
+            {
+                var artboard = artboards[index];
+                var label = Viewport.WorldToView(new SKPoint(artboard.Bounds.Left, artboard.Bounds.Top));
+                resources.Fill.Color = resources.Label;
+                canvas.DrawText(artboard.Name, label.X, label.Y - 10, SKTextAlign.Left, resources.LabelFont, resources.Fill);
+            }
             DrawSelection(canvas, resources);
             DrawGesture(canvas, resources);
+            DrawEditorGesture(canvas, resources);
             DrawPathNodes(canvas, resources);
+            DrawEditorGuides(canvas, resources);
         }
 
         LastRenderMilliseconds = (Stopwatch.GetTimestamp() - started) * 1000d / Stopwatch.Frequency;
@@ -63,7 +76,7 @@ public sealed partial class SvgEditorCanvas
         var rect = new SKRect(topLeft.X, topLeft.Y, bottomRight.X, bottomRight.Y);
         for (var spread = 12; spread >= 2; spread -= 2)
         {
-            resources.Fill.Color = new SKColor(10, 17, 35, (byte)(IsDarkTheme ? 8 : 4));
+            resources.Fill.Color = resources.Shadow;
             canvas.DrawRoundRect(new SKRect(rect.Left - spread, rect.Top - spread + 3,
                 rect.Right + spread, rect.Bottom + spread + 3), spread, spread, resources.Fill);
         }
@@ -76,11 +89,9 @@ public sealed partial class SvgEditorCanvas
             canvas.DrawRect(rect, resources.CheckerPaint);
         }
 
-        resources.Stroke.Color = new SKColor(150, 159, 177, 90);
+        resources.Stroke.Color = resources.Border;
         resources.Stroke.StrokeWidth = 1;
         canvas.DrawRect(rect, resources.Stroke);
-        resources.Fill.Color = IsDarkTheme ? new SKColor(168, 179, 200) : new SKColor(98, 111, 135);
-        canvas.DrawText("Artboard", rect.Left, rect.Top - 10, SKTextAlign.Left, resources.LabelFont, resources.Fill);
     }
 
     private void DrawGrid(SKCanvas canvas, SKRect artboard, CanvasResources resources)
@@ -104,7 +115,7 @@ public sealed partial class SvgEditorCanvas
             step *= 2;
         }
 
-        resources.Stroke.Color = new SKColor(158, 170, 192, 54);
+        resources.Stroke.Color = resources.Grid;
         resources.Stroke.StrokeWidth = (float)(1 / Zoom);
         var firstX = Math.Floor(visible.Left / step) * step;
         var firstY = Math.Floor(visible.Top / step) * step;
@@ -141,12 +152,17 @@ public sealed partial class SvgEditorCanvas
             }
         }
 
-        var transform = _gesture is Gesture.Move or Gesture.Resize or Gesture.Rotate
+        var transform = _gesture is Gesture.Move or Gesture.Resize or Gesture.Rotate or Gesture.Transform
             ? _previewTransform : SKMatrix.Identity;
         DrawQuad(canvas, new(bounds.Left, bounds.Top), new(bounds.Right, bounds.Top),
             new(bounds.Right, bounds.Bottom), new(bounds.Left, bounds.Bottom), transform, resources.Stroke);
 
-        if (IsNodeTool(Tool) || !CanEditSelection)
+        if (IsNodeTool(Tool) || !CanEditSelection || InteractionMode is SvgEditorInteractionMode.Artboard
+            or SvgEditorInteractionMode.Gradient or SvgEditorInteractionMode.Eyedropper
+            or SvgEditorInteractionMode.Scissors or SvgEditorInteractionMode.Eraser or SvgEditorInteractionMode.Knife
+            or SvgEditorInteractionMode.Lasso or SvgEditorInteractionMode.MagicWand or SvgEditorInteractionMode.ShapeBuilder
+            or SvgEditorInteractionMode.SymbolSprayer or SvgEditorInteractionMode.BlobBrush or SvgEditorInteractionMode.Measure
+            || TryGetRefinementKind(InteractionMode, out _) || TryGetDeformationKind(InteractionMode, out _) || TryGetSymbolBrushKind(InteractionMode, out _))
         {
             return;
         }
@@ -154,7 +170,7 @@ public sealed partial class SvgEditorCanvas
         for (var i = 0; i < 8; i++)
         {
             var center = Viewport.WorldToView(transform.MapPoint(GetHandle(bounds, i)));
-            resources.Fill.Color = SKColors.White;
+            resources.Fill.Color = resources.Handle;
             var handle = SKRect.Create(center.X - 3.5f, center.Y - 3.5f, 7, 7);
             canvas.DrawRect(handle, resources.Fill);
             canvas.DrawRect(handle, resources.Stroke);
@@ -235,7 +251,7 @@ public sealed partial class SvgEditorCanvas
             canvas.DrawPath(preview, resources.Stroke);
             foreach (var node in _penNodes)
             {
-                resources.Fill.Color = SKColors.White;
+                resources.Fill.Color = resources.Handle;
                 canvas.DrawCircle(node.Position, (float)(3.5 / Zoom), resources.Fill);
                 canvas.DrawCircle(node.Position, (float)(3.5 / Zoom), resources.Stroke);
             }
@@ -292,13 +308,13 @@ public sealed partial class SvgEditorCanvas
                     canvas.DrawLine(center, NodeViewPoint(points[anchorIndex].Point), resources.Stroke);
                 }
 
-                resources.Fill.Color = i == _nodePreview.ActivePoint ? resources.Accent : SKColors.White;
+                resources.Fill.Color = i == _nodePreview.ActivePoint ? resources.Accent : resources.Handle;
                 canvas.DrawCircle(center, 3, resources.Fill);
                 canvas.DrawCircle(center, 3, resources.Stroke);
             }
             else
             {
-                resources.Fill.Color = i == _nodePreview.ActivePoint ? resources.Accent : SKColors.White;
+                resources.Fill.Color = i == _nodePreview.ActivePoint ? resources.Accent : resources.Handle;
                 var rect = SKRect.Create(center.X - 3.5f, center.Y - 3.5f, 7, 7);
                 canvas.DrawRect(rect, resources.Fill);
                 canvas.DrawRect(rect, resources.Stroke);
@@ -314,29 +330,37 @@ public sealed partial class SvgEditorCanvas
 
     private sealed class CanvasResources : IDisposable
     {
-        private readonly SKShader _checkerShader;
+        private SKShader? _checkerShader;
+        private SKColor _checkerBackground, _checkerForeground;
 
-        public CanvasResources()
+        public void SetCheckerColors(SKColor background, SKColor foreground)
         {
+            if (_checkerShader is not null && background == _checkerBackground && foreground == _checkerForeground)
+                return;
             using var bitmap = new SKBitmap(16, 16);
             using (var canvas = new SKCanvas(bitmap))
-            using (var paint = new SKPaint { Color = new SKColor(239, 241, 245) })
+            using (var paint = new SKPaint { Color = foreground })
             {
-                canvas.Clear(SKColors.White);
+                canvas.Clear(background);
                 canvas.DrawRect(0, 0, 8, 8, paint);
                 canvas.DrawRect(8, 8, 8, 8, paint);
             }
 
+            var previous = _checkerShader;
             _checkerShader = bitmap.ToShader(SKShaderTileMode.Repeat, SKShaderTileMode.Repeat);
-            CheckerPaint = new SKPaint { Shader = _checkerShader };
+            CheckerPaint.Shader = _checkerShader;
+            _checkerBackground = background;
+            _checkerForeground = foreground;
+            previous?.Dispose();
         }
 
-        public SKColor Accent { get; } = new(63, 111, 242);
+        public SKColor Background, Label, Border, Shadow, Accent, Handle, Grid, Guide, GuidePreview, SmartGuide;
         public SKPaint Fill { get; } = new() { IsAntialias = true, Style = SKPaintStyle.Fill };
         public SKPaint Stroke { get; } = new() { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeWidth = 1 };
         public SKFont LabelFont { get; } = new(SKTypeface.Default, 11);
-        public SKPaint CheckerPaint { get; }
+        public SKPaint CheckerPaint { get; } = new();
         public SKPaint GhostPaint { get; } = new() { Color = SKColors.White.WithAlpha(165) };
+        public SKPaint ToolStroke { get; } = new() { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeCap = SKStrokeCap.Round, StrokeJoin = SKStrokeJoin.Round };
 
         public void Dispose()
         {
@@ -345,7 +369,8 @@ public sealed partial class SvgEditorCanvas
             LabelFont.Dispose();
             CheckerPaint.Dispose();
             GhostPaint.Dispose();
-            _checkerShader.Dispose();
+            ToolStroke.Dispose();
+            _checkerShader?.Dispose();
         }
     }
 }

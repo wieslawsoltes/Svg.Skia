@@ -44,7 +44,7 @@ public sealed partial class SvgEditorWorkspace
         {
             var type = SvgElementInfo.GetElementName(Element.GetType());
             var name = string.IsNullOrEmpty(Element.ID) ? type : Element.ID;
-            return $"{(Element.Display == "none" || Element.Visibility == "hidden" ? "◌ " : "")}{(SvgEditorController.IsLocked(Element) ? "▣ " : "")}{name}";
+            return $"{(Element.Display == "none" || Element.Visibility == "hidden" ? "[hidden] " : "")}{(SvgEditorController.IsLocked(Element) ? "[locked] " : "")}{name}";
         }
     }
     private void RefreshOutline()
@@ -242,12 +242,13 @@ public sealed partial class SvgEditorWorkspace
     { if (!_refreshing && (_inspectedElement ?? Controller?.Document) is { } element) RefreshAttributeFields(element); }
     private TextBox TextField(string label, string value, Action<string> apply, bool multiline = false)
     {
-        var field = new TextBox { Header = label, Text = value, AcceptsReturn = multiline, TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap };
+        var field = new TextBox { Header = label, AcceptsReturn = multiline, TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap, Text = value };
+        var baseline = field.Text;
         AutomationProperties.SetName(field, label);
         void Commit()
         {
-            if (_refreshing || !field.IsEnabled || field.Text == value) return;
-            var updated = field.Text; apply(updated); value = updated;
+            if (_refreshing || !field.IsEnabled || field.Text == baseline) return;
+            var updated = field.Text; apply(updated); baseline = updated;
         }
         _inspectorCommits.Add(field, Commit);
         field.LostFocus += (_, _) => { if (!_committingInspector) ApplySafely(Commit); };

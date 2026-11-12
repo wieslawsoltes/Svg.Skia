@@ -36,8 +36,8 @@ public sealed partial class SvgEditorWorkspace
         cap.SelectedIndex = 1;
         var color = new TextBox { Header = "Color · #RRGGBB", Text = "#7061DC", MaxLength = 7 };
         var opacity = NumberInput("Opacity %", 100, 0, 100);
-        var profile = new TextBox { Header = "Width profile · position,multiplier", Text = "0,0.1;0.2,1;0.7,0.65;1,0.1", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, MaxLength = 16000 };
-        var stamp = new TextBox { Header = "Vector stamp · SVG path data", Text = new SvgBrushDefinition().StampPath, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, MaxLength = 65536, MaxHeight = 120 };
+        var profile = new TextBox { Header = "Width profile · position,multiplier", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, MaxLength = 16000, Text = "0,0.1;0.2,1;0.7,0.65;1,0.1" };
+        var stamp = new TextBox { Header = "Vector stamp · SVG path data", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, MaxLength = 65536, MaxHeight = 120, Text = new SvgBrushDefinition().StampPath };
         var stampFromSelection = new Button { Content = "Use selected path as stamp", IsEnabled = controller.SelectedElements.Count == 1 && controller.SelectedElements[0] is SvgPath };
         var copy = new Button { Content = "Duplicate" };
         var remove = new Button { Content = "Remove" };
@@ -139,7 +139,7 @@ public sealed partial class SvgEditorWorkspace
             loading = true;
             brushes = SvgBrushLibraryService.Load(document);
             library.Items.Clear();
-            library.Items.Add("＋ New brush");
+            library.Items.Add("+ New brush");
             foreach (var brush in brushes)
                 library.Items.Add(brush);
             var selected = brushes.Select((brush, index) => (brush, index)).FirstOrDefault(pair => pair.brush.Id == select);
@@ -238,6 +238,8 @@ public sealed partial class SvgEditorWorkspace
         follow.Unchecked += (_, _) => Refresh();
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             {
                 var definition = Current();
@@ -245,7 +247,7 @@ public sealed partial class SvgEditorWorkspace
                 if (apply.IsChecked == true)
                 {
                     if (paths.Length == 0 || paths.Length != controller.SelectedElements.Count)
-                        throw new InvalidOperationException("Select paths to apply this brush. Convert shapes with Path → Convert to paths first.");
+                        throw new InvalidOperationException("Select paths to apply this brush. Convert shapes with Object > Path > Convert to Paths first.");
                     controller.EnsureSelectionEditable();
                 }
                 controller.Execute("Save vector brush", () =>

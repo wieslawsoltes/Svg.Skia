@@ -101,12 +101,17 @@ processing limits and how to handle `SvgProcessingLimitException`.
 
 ## UnoDraw SVG editor
 
-[UnoDraw](samples/UnoDraw/README.md) is the SVG editor built with Uno Platform
+[UnoDraw](samples/UnoDraw/README.md) is the SVG editor built with Uno Platform 7
 and the existing Svg.Skia rendering pipeline. Desktop is the default target;
 browser, Android and iOS builds are opt-in. The editable SVG document stays the
-source of truth. Its direct `SKCanvasElement` surface replays cached Skia pictures
+source of truth. Its `SKCanvasElement` surface replays cached Skia pictures
 while panning, zooming, and previewing gestures, with acceleration provided by the
 desktop host when available.
+
+The browser host prefers WebGPU composition and falls back to Skia when WebGPU
+is unavailable. Uno's canvas bridge preserves the existing SVG renderer; the
+[migration guide](docs/unodraw-uno7.md) explains the compatibility copy and
+backend validation.
 
 ![UnoDraw SVG workspace in its dark theme](docs/images/unodraw-workspace-dark.png)
 

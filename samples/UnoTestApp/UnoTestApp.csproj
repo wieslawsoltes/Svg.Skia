@@ -13,7 +13,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UnoFeatures>
-      SkiaRenderer;
+      Skia;
     </UnoFeatures>
     <IsPackable>False</IsPackable>
   </PropertyGroup>

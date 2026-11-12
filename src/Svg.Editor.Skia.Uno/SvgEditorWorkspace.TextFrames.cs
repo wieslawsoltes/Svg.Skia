@@ -28,11 +28,11 @@ public sealed partial class SvgEditorWorkspace
         var text = new TextBox
         {
             Header = "Story · select text to format a range",
-            Text = story.Text,
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap,
             MinHeight = 140,
             MaxHeight = 240,
+            Text = story.Text,
             MaxLength = SvgTextLayoutService.MaximumCharacters
         };
         var family = new TextBox { Header = "Font family", Text = story.DefaultStyle.FontFamily };
@@ -71,8 +71,10 @@ public sealed partial class SvgEditorWorkspace
         var gap = NumberInput("Column gap", 20, 0, 100000);
         var add = new Button { Content = "+ Link frame" };
         var remove = new Button { Content = "Remove frame" };
-        var up = new Button { Content = "↑" };
-        var down = new Button { Content = "↓" };
+        var up = new Button { Content = new StudioGlyph { Symbol = "Up" } };
+        var down = new Button { Content = new StudioGlyph { Symbol = "Down" } };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(up, "Move frame earlier in the text flow");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(down, "Move frame later in the text flow");
         ToolTipService.SetToolTip(up, "Move frame earlier in the text flow");
         ToolTipService.SetToolTip(down, "Move frame later in the text flow");
         var unlink = new Button { Content = "Split chain before selected frame" };
@@ -314,7 +316,7 @@ public sealed partial class SvgEditorWorkspace
         };
         formatDefault.Click += (_, _) => { story.DefaultStyle = CurrentStyle(); UpdatePreview(); };
         resetParagraphs.Click += (_, _) => { story.Paragraph = CurrentParagraph(); story.ParagraphOverrides.Clear(); UpdatePreview(); };
-        dialog.PrimaryButtonClick += (_, args) => { if (!UpdatePreview()) args.Cancel = true; };
+        dialog.PrimaryButtonClick += (_, args) => { if (!args.Cancel && !UpdatePreview()) args.Cancel = true; };
         ShowFrame(0);
         UpdatePreview();
         try

@@ -108,14 +108,20 @@ public sealed partial class SvgEditorCanvas
             if (_freehandPoints.Count > 1)
             {
                 var path = new SvgPath { PathData = new SvgPathSegmentList() };
-                var points = Simplify(_freehandPoints, (float)(0.65 / Zoom));
-                path.PathData.Add(new SvgMoveToSegment(false, PointF(points[0])));
-                for (var i = 1; i < points.Count; i++)
+                var points = Simplify(_freehandPoints, (float)(Math.Clamp(PencilFidelity, 0, 20) / Zoom));
+                if (InteractionMode != SvgEditorInteractionMode.Paintbrush && PencilSmooth)
+                    path.PathData = PathService.MakeSmooth(points.Select(point => new Shim.SKPoint(point.X, point.Y)).ToArray());
+                else
                 {
-                    path.PathData.Add(new SvgLineSegment(false, PointF(points[i])));
+                    path.PathData.Add(new SvgMoveToSegment(false, PointF(points[0])));
+                    for (var i = 1; i < points.Count; i++)
+                        path.PathData.Add(new SvgLineSegment(false, PointF(points[i])));
                 }
 
-                Controller.AddElement(path, "Draw freehand path");
+                if (InteractionMode == SvgEditorInteractionMode.Paintbrush)
+                    Controller.AddBrushStroke(path, ActiveBrush);
+                else
+                    Controller.AddElementInPictureCoordinates(path, "Draw freehand path");
             }
 
             _freehandPoints.Clear();
@@ -128,7 +134,9 @@ public sealed partial class SvgEditorCanvas
             return;
         }
 
-        Controller.CreateElement((ToolService.Tool)(int)Tool, _startWorld, _currentWorld);
+        var created = Controller.CreateElement((ToolService.Tool)(int)Tool, _startWorld, _currentWorld, true);
+        if (created is SvgTextBase)
+            RequestTextEdit(created, false);
     }
 
     private void CommitPenPath(bool closed)
@@ -173,7 +181,7 @@ public sealed partial class SvgEditorCanvas
         }
 
         _penNodes.Clear();
-        Controller.AddElement(element, closed ? "Draw closed path" : "Draw path");
+        Controller.AddElementInPictureCoordinates(element, closed ? "Draw closed path" : "Draw path");
         Invalidate();
     }
 

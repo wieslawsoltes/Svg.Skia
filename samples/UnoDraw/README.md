@@ -1,14 +1,15 @@
 # UnoDraw
 
-A native SVG design workspace built with Uno Platform, using the Svg.Skia document and rendering pipeline throughout.
+A native SVG design workspace built with Uno Platform 7, using the Svg.Skia document and rendering pipeline throughout.
 
 [Open UnoDraw in your browser](https://wieslawsoltes.github.io/Svg.Skia/unodraw/).
 
-The `Docs` workflow builds the Release WebAssembly package, smoke-tests it under
-`/Svg.Skia/unodraw/` without cross-origin isolation headers, and publishes it alongside
-the documentation in one GitHub Pages deployment. Pushes to the default branch
-and manual `Docs` runs on that branch deploy only after both builds and the browser
-smoke test pass. Pull requests validate the site without publishing it.
+The `Docs` workflow builds the Release WebAssembly package, smoke-tests its WebGPU
+and Skia fallback paths under `/Svg.Skia/unodraw/` without cross-origin isolation
+headers, and publishes it alongside the documentation in one GitHub Pages deployment.
+Pushes to the default branch and manual `Docs` runs on that branch deploy only after
+both builds and both browser backend checks pass. Pull requests validate the site
+without publishing it.
 
 ```sh
 git submodule update --init --recursive
@@ -23,6 +24,13 @@ The same workspace also has opt-in WebAssembly, Android and iOS targets. For exa
 dotnet workload install wasm-tools
 dotnet publish samples/UnoDraw/UnoDraw.csproj -c Release -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm
 ```
+
+The browser host prefers Uno's experimental WebGPU compositor when a secure context
+and adapter are available, then falls back to Skia. The SVG canvas keeps using
+Svg.Skia through Uno's Skia-on-GL compatibility bridge, which copies the canvas into
+WebGPU composition; this is not a direct WebGPU implementation of the SVG engine.
+See the [Uno 7 and browser backend guide](../../docs/unodraw-uno7.md) for the package
+versions, host migration and provider verification.
 
 The editor guide includes mobile build commands and required SDKs. Browser file uploads save through a new destination or download; Android and iOS use native file-provider capabilities. The responsive menu exposes layers, the inspector and every editor command at narrow widths.
 

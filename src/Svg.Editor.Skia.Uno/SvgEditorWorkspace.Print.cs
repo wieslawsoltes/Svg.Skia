@@ -228,8 +228,8 @@ public sealed partial class SvgEditorWorkspace
             }
             catch (Exception exception) { args.Cancel = true; error.Text = exception.Message; }
         }
-        dialog.PrimaryButtonClick += (_, args) => Validate(args, false);
-        dialog.SecondaryButtonClick += (_, args) => Validate(args, true);
+        dialog.PrimaryButtonClick += (_, args) => { if (!args.Cancel) Validate(args, false); };
+        dialog.SecondaryButtonClick += (_, args) => { if (!args.Cancel) Validate(args, true); };
         Update();
         var result = await ShowDialogAsync(dialog);
         preview.Clear();

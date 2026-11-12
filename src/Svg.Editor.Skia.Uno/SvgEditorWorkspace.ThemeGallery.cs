@@ -19,8 +19,8 @@ public sealed partial class SvgEditorWorkspace
         _commands.Add(new EditorCommand("control-gallery", "Control gallery", "Window", string.Empty, async () =>
         {
             var gallery = new StudioControlGallery { Width = DialogContentWidth(640) };
-            var dialog = MakeDialog("Studio controls", gallery, string.Empty, "Close");
-            dialog.Resources.MergedDictionaries.Add(new StudioThemeResources());
+            var dialog = MakeDialog("EditorTheme controls", gallery, string.Empty, "Close");
+            dialog.Resources.MergedDictionaries.Add(new EditorTheme());
             await ShowDialogAsync(dialog);
         }));
         void Theme(string id, string label, ElementTheme theme)

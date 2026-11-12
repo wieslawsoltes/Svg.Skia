@@ -41,12 +41,24 @@ class SharedControlRefinements(unittest.TestCase):
                 self.assertNotEqual(fill, glyph)
                 self.assertIn('CheckBoxCheckBackgroundStroke' + selection + interaction, aliases)
 
-    def test_native_inputs_and_toggles_inherit_platform_templates(self):
-        root = read('StudioThemeResources.xaml')
-        for target in ('TextBox', 'ComboBox', 'ToggleButton', 'CheckBox', 'RadioButton'):
+    def test_editor_inputs_use_native_classes_with_editor_templates(self):
+        root = read('EditorTheme.xaml')
+        for target in ('TextBox', 'NumberBox', 'ComboBox', 'ToggleButton', 'CheckBox', 'RadioButton', 'ToggleSwitch'):
             styles = [s for s in root.findall(NS + 'Style') if s.get('TargetType') == target]
-            self.assertTrue(any(s.get('BasedOn') == '{StaticResource Default' + target + 'Style}' for s in styles), target)
-            self.assertFalse(any(n.get('Property') == 'Template' for s in styles for n in s.findall(NS + 'Setter')), target)
+            self.assertTrue(any(n.get('Property') == 'Template' and
+                                n.get('Value') == '{StaticResource Editor' + target + 'Template}'
+                                for s in styles for n in s.findall(NS + 'Setter')), target)
+
+    def test_editor_check_and_toggle_templates_cover_every_native_state(self):
+        root = read('EditorInputTemplates.xaml')
+        templates = {node.get('TargetType'): node for node in root.findall(NS + 'ControlTemplate')}
+        checkbox = {node.get(X + 'Name') for node in templates['CheckBox'].iter(NS + 'VisualState')}
+        self.assertTrue({selected + interaction for selected in ('Unchecked', 'Checked', 'Indeterminate')
+                         for interaction in ('Normal', 'PointerOver', 'Pressed', 'Disabled')} <= checkbox)
+        toggle = {node.get(X + 'Name') for node in templates['ToggleButton'].iter(NS + 'VisualState')}
+        self.assertTrue({'Normal', 'PointerOver', 'Pressed', 'Disabled', 'Checked', 'CheckedPointerOver',
+                         'CheckedPressed', 'CheckedDisabled', 'Indeterminate', 'IndeterminatePointerOver',
+                         'IndeterminatePressed', 'IndeterminateDisabled'} <= toggle)
 
     def test_segmented_choices_keep_native_selection_and_focus_contracts(self):
         root = read('StudioSelectionResources.xaml')
@@ -85,7 +97,9 @@ class SharedControlRefinements(unittest.TestCase):
             source = (ROOT / 'Controls' / name).read_text()
             self.assertIn('StudioChoiceStrip _target', source)
             self.assertIn('_target.SelectionChanging +=', source)
-            self.assertIn('args.Cancel = true;', source)
+            self.assertIn('args.Cancel = !TrySetPaintTarget(args.SelectedIndex == 1);', source)
+            self.assertIn('PaintTargetChangeRequested', source)
+            self.assertIn('!HasPendingDraft', source)
             self.assertIn('StudioActionRole.Primary, this', source)
 
     def test_segment_navigation_leaves_modified_shortcuts_to_the_editor(self):

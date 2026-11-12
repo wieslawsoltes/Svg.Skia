@@ -36,10 +36,14 @@ public sealed partial class SvgEditorWorkspace
     {
         if (_disposed)
             throw new ObjectDisposedException(nameof(SvgEditorWorkspace));
+        if (_closing)
+            return;
         var document = new EditorDocument { Name = name };
         try
         {
             await Task.Run(() => document.Controller.LoadSvg(xml));
+            if (_disposed || _closing)
+            { document.Dispose(); return; }
             AddDocument(document);
         }
         catch { document.Dispose(); throw; }
@@ -54,7 +58,8 @@ public sealed partial class SvgEditorWorkspace
         }
         catch (Exception exception)
         {
-            await ShowErrorAsync($"Could not open {Path.GetFileName(path)}.\n{exception.Message}");
+            if (!_disposed && !_closing)
+                await ShowErrorAsync($"Could not open {Path.GetFileName(path)}.\n{exception.Message}");
         }
     }
 
@@ -70,6 +75,8 @@ public sealed partial class SvgEditorWorkspace
 
     private async Task OpenFileAsync(StorageFile file, bool isExample = false)
     {
+        if (_disposed || _closing)
+            return;
         var existing = Documents.FirstOrDefault(document => document.File?.Path == file.Path && !string.IsNullOrEmpty(file.Path));
         if (existing is not null)
         {
@@ -82,6 +89,8 @@ public sealed partial class SvgEditorWorkspace
             ? new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true) : null;
         using var reader = new StreamReader(expanded ?? stream);
         var xml = await reader.ReadToEndAsync();
+        if (_disposed || _closing)
+            return;
         var document = new EditorDocument
         {
             Name = isExample ? "Welcome.svg" : file.Name,
@@ -91,6 +100,8 @@ public sealed partial class SvgEditorWorkspace
         try
         {
             await Task.Run(() => document.Controller.LoadSvg(xml, NativeFilePath(file)));
+            if (_disposed || _closing)
+            { document.Dispose(); return; }
             if (isExample)
                 document.Controller.Session.CurrentFile = null;
             AddDocument(document);
@@ -257,7 +268,12 @@ public sealed partial class SvgEditorWorkspace
 
     private async Task ExportAsync() => await ExportAsync(false);
 
-    private async Task ExportAsync(bool selectionOnly)
+    private sealed record EditorExportRegion(string Label, string? ArtboardId = null)
+    {
+        public override string ToString() => Label;
+    }
+
+    private async Task ExportAsync(bool selectionOnly, bool activeArtboard = false)
     {
         if (_current is not { } document)
             return;
@@ -278,13 +294,34 @@ public sealed partial class SvgEditorWorkspace
             ItemsSource = formats.Select(item => item.Name).ToArray(),
             SelectedIndex = 0
         };
+        var regions = new List<EditorExportRegion> { new("Entire document") };
+        regions.AddRange(document.Controller.GetArtboards().Select((board, index) =>
+            new EditorExportRegion($"{index + 1:00}  {board.Name}", board.Id)));
+        var region = new ComboBox
+        {
+            Header = "Area",
+            ItemsSource = regions,
+            SelectedIndex = activeArtboard ? Math.Max(1, regions.FindIndex(item => item.ArtboardId == document.Controller.ActiveArtboardId)) : 0,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
         var content = new StackPanel { Spacing = 16, Width = DialogContentWidth(300) };
         content.Children.Add(new TextBlock { Text = "SVG keeps editable vectors. PDF and XPS preserve vector output. Image formats use the scale below.", TextWrapping = TextWrapping.Wrap });
         content.Children.Add(format);
+        if (!selectionOnly)
+            content.Children.Add(region);
         content.Children.Add(scale);
         content.Children.Add(transparent);
         if (await ShowDialogAsync(MakeDialog("Export artwork", content, "Choose destination")) != ContentDialogResult.Primary)
             return;
+        if (_disposed || !Documents.Contains(document))
+            return;
+        // Freeze the selected output before opening an asynchronous destination
+        // picker. Later document switches or edits cannot change this export.
+        var xml = selectionOnly ? document.Controller.CopySelection()
+            : region.SelectedItem is EditorExportRegion { ArtboardId: { } artboardId }
+                ? document.Controller.GetArtboardSvg(artboardId) : document.Controller.GetSvg();
+        var originalUri = document.Controller.Document?.BaseUri;
+        var frameTime = document.Controller.Renderer.AnimationTime;
         var selectedFormat = formats[Math.Max(0, format.SelectedIndex)];
         var picker = new FileSavePicker
         {
@@ -299,8 +336,6 @@ public sealed partial class SvgEditorWorkspace
         var file = await picker.PickSaveFileAsync();
         if (file is null)
             return;
-        var xml = selectionOnly ? document.Controller.CopySelection() : document.Controller.GetSvg();
-        var originalUri = document.Controller.Document?.BaseUri;
         if (file.FileType.Equals(".svg", StringComparison.OrdinalIgnoreCase))
         {
             if (originalUri is not null && NativeFilePath(file) is { } exportPath)
@@ -310,7 +345,6 @@ public sealed partial class SvgEditorWorkspace
         }
         var factor = (float)scale.Value;
         var background = transparent.IsChecked == true ? SKColors.Transparent : SKColors.White;
-        var frameTime = document.Controller.Renderer.AnimationTime;
         var bytes = await Task.Run(() =>
         {
             using var renderer = new SKSvg();
@@ -363,9 +397,12 @@ public sealed partial class SvgEditorWorkspace
     {
         if (Controller is not { } controller)
             return;
+        var revision = controller.DocumentRevision;
         using var input = await file.OpenStreamForReadAsync();
         using var memory = new MemoryStream();
         await input.CopyToAsync(memory);
+        if (_disposed || _closing || !ReferenceEquals(Controller, controller) || controller.DocumentRevision != revision)
+            return;
         var bytes = memory.ToArray();
         var mime = file.FileType.ToLowerInvariant() switch
         {

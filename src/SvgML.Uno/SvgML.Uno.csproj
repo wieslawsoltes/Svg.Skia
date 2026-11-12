@@ -16,7 +16,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>svg;xaml;uno;uno-platform;winui;control;inline-svg</PackageTags>
     <UnoFeatures>
-      SkiaRenderer;
+      Skia;
     </UnoFeatures>
   </PropertyGroup>
 

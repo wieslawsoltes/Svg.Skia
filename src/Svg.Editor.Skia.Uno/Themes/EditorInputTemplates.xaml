@@ -1,0 +1,482 @@
+<ResourceDictionary x:Class="Svg.Editor.Skia.Uno.EditorInputTemplates"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="using:Svg.Editor.Skia.Uno">
+  <ResourceDictionary.MergedDictionaries><local:StudioPaletteResources /></ResourceDictionary.MergedDictionaries>
+  <!-- The named parts below are the native control contracts. Only their visual
+       trees change; text editing, composition, selection and automation stay native. -->
+  <ControlTemplate x:Key="EditorInputButtonTemplate" TargetType="Button">
+    <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}">
+      <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters>
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+          </VisualState.Setters></VisualState>
+      </VisualStateGroup></VisualStateManager.VisualStateGroups>
+      <ContentPresenter x:Name="Presenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+    </Border>
+  </ControlTemplate>
+  <ControlTemplate x:Key="EditorSpinButtonTemplate" TargetType="RepeatButton">
+    <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}">
+      <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters>
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+          </VisualState.Setters></VisualState>
+      </VisualStateGroup></VisualStateManager.VisualStateGroups>
+      <ContentPresenter x:Name="Presenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+    </Border>
+  </ControlTemplate>
+  <ControlTemplate x:Key="EditorTextBoxTemplate" TargetType="TextBox">
+    <Grid>
+      <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition x:Name="SpinButtonsColumn" Width="0" /></Grid.ColumnDefinitions>
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters>
+            <Setter Target="BorderElement.BorderBrush" Value="{ThemeResource StudioMuted}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Focused"><VisualState.Setters>
+            <Setter Target="BorderElement.BorderBrush" Value="{ThemeResource StudioAccent}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters>
+            <Setter Target="BorderElement.Background" Value="{ThemeResource StudioHeader}" />
+            <Setter Target="BorderElement.BorderBrush" Value="{ThemeResource StudioDivider}" />
+            <Setter Target="ContentElement.Foreground" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="HeaderContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="PlaceholderTextContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+          </VisualState.Setters></VisualState>
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="ButtonStates">
+          <VisualState x:Name="ButtonVisible"><VisualState.Setters><Setter Target="DeleteButton.Visibility" Value="Visible" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="ButtonCollapsed" />
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="SpinButtonStates">
+          <VisualState x:Name="SpinButtonsCollapsed" />
+          <VisualState x:Name="SpinButtonsVisible"><VisualState.Setters><Setter Target="SpinButtonsColumn.Width" Value="40" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="SpinButtonsPopup"><VisualState.Setters><Setter Target="SpinButtonsColumn.Width" Value="20" /><Setter Target="PopupIndicator.Visibility" Value="Visible" /></VisualState.Setters></VisualState>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+      <ContentPresenter x:Name="HeaderContentPresenter" Grid.ColumnSpan="3" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}" Foreground="{ThemeResource StudioMuted}" Margin="0,0,0,5" TextWrapping="Wrap" Visibility="Collapsed" />
+      <Border x:Name="BorderElement" Grid.Row="1" Grid.ColumnSpan="3" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}" MinHeight="{TemplateBinding MinHeight}" Control.IsTemplateFocusTarget="True" />
+      <ScrollViewer x:Name="ContentElement" Grid.Row="1"
+                    HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}" HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                    VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}" VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+                    IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}" IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}"
+                    IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}" Margin="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}"
+                    Foreground="{TemplateBinding Foreground}" IsTabStop="False" AutomationProperties.AccessibilityView="Raw" ZoomMode="Disabled" />
+      <TextBlock x:Name="PlaceholderTextContentPresenter" Grid.Row="1" Grid.ColumnSpan="2" Text="{TemplateBinding PlaceholderText}" TextAlignment="{TemplateBinding TextAlignment}" TextWrapping="{TemplateBinding TextWrapping}" Margin="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" Foreground="{Binding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={ThemeResource StudioMuted}}" IsHitTestVisible="False" />
+      <Button x:Name="DeleteButton" Grid.Row="1" Grid.Column="1" Template="{StaticResource EditorInputButtonTemplate}" Content="×" FontSize="14" Width="22" MinWidth="0" MinHeight="0" Padding="0" Background="Transparent" Foreground="{ThemeResource StudioMuted}" BorderThickness="0" IsTabStop="False" Visibility="Collapsed" AutomationProperties.AccessibilityView="Raw" />
+      <local:StudioGlyph x:Name="PopupIndicator" Grid.Row="1" Grid.Column="2" Symbol="Spin" Width="8" Height="12" Foreground="{ThemeResource StudioMuted}" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed" AutomationProperties.AccessibilityView="Raw" />
+      <ContentPresenter x:Name="DescriptionPresenter" Grid.Row="2" Grid.ColumnSpan="3" Content="{TemplateBinding Description}" Foreground="{ThemeResource StudioMuted}" AutomationProperties.AccessibilityView="Raw" />
+    </Grid>
+  </ControlTemplate>
+  <ControlTemplate x:Key="EditorNumberBoxTemplate" TargetType="NumberBox">
+    <Grid>
+      <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="HeaderContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" /></VisualState.Setters></VisualState>
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="SpinButtonStates">
+          <VisualState x:Name="SpinButtonsCollapsed" />
+          <VisualState x:Name="SpinButtonsVisible"><VisualState.Setters><Setter Target="UpSpinButton.Visibility" Value="Visible" /><Setter Target="DownSpinButton.Visibility" Value="Visible" /><Setter Target="InputEater.Visibility" Value="Visible" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="SpinButtonsPopup" />
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="UpSpinButtonEnabledStates">
+          <VisualState x:Name="UpSpinButtonEnabled" />
+          <VisualState x:Name="UpSpinButtonDisabled"><VisualState.Setters><Setter Target="UpSpinButton.IsEnabled" Value="False" /><Setter Target="PopupUpSpinButton.IsEnabled" Value="False" /></VisualState.Setters></VisualState>
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="DownSpinButtonEnabledStates">
+          <VisualState x:Name="DownSpinButtonEnabled" />
+          <VisualState x:Name="DownSpinButtonDisabled"><VisualState.Setters><Setter Target="DownSpinButton.IsEnabled" Value="False" /><Setter Target="PopupDownSpinButton.IsEnabled" Value="False" /></VisualState.Setters></VisualState>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+      <ContentPresenter x:Name="HeaderContentPresenter" Grid.ColumnSpan="3" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}" Foreground="{ThemeResource StudioMuted}" Margin="0,0,0,5" TextWrapping="Wrap" Visibility="Collapsed" />
+      <TextBox x:Name="InputBox" Grid.Row="1" Grid.ColumnSpan="3" Template="{StaticResource EditorTextBoxTemplate}" MinHeight="{TemplateBinding MinHeight}" MinWidth="0"
+               InputScope="{TemplateBinding InputScope}" PlaceholderText="{TemplateBinding PlaceholderText}" SelectionFlyout="{TemplateBinding SelectionFlyout}" SelectionHighlightColor="{TemplateBinding SelectionHighlightColor}"
+               TextReadingOrder="{TemplateBinding TextReadingOrder}" PreventKeyboardDisplayOnProgrammaticFocus="{TemplateBinding PreventKeyboardDisplayOnProgrammaticFocus}"
+               FontSize="{TemplateBinding FontSize}" FontWeight="{TemplateBinding FontWeight}" FontFamily="{TemplateBinding FontFamily}" TextAlignment="{TemplateBinding TextAlignment}"
+               Background="{TemplateBinding Background}" Foreground="{TemplateBinding Foreground}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" CornerRadius="{TemplateBinding CornerRadius}" />
+      <Button x:Name="InputEater" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" MinWidth="0" MinHeight="0" Visibility="Collapsed" IsTabStop="False" AutomationProperties.AccessibilityView="Raw">
+        <Button.Template><ControlTemplate TargetType="Button"><Grid Background="Transparent" /></ControlTemplate></Button.Template>
+      </Button>
+      <RepeatButton x:Name="UpSpinButton" Grid.Row="1" Grid.Column="1" Template="{StaticResource EditorSpinButtonTemplate}" Content="+" FontSize="13" Width="20" MinWidth="0" MinHeight="0" Padding="0" Background="Transparent" Foreground="{TemplateBinding Foreground}" BorderThickness="0" IsTabStop="False" Visibility="Collapsed" AutomationProperties.Name="Increase value" />
+      <RepeatButton x:Name="DownSpinButton" Grid.Row="1" Grid.Column="2" Template="{StaticResource EditorSpinButtonTemplate}" Content="−" FontSize="13" Width="20" MinWidth="0" MinHeight="0" Padding="0" Background="Transparent" Foreground="{TemplateBinding Foreground}" BorderThickness="0" IsTabStop="False" Visibility="Collapsed" AutomationProperties.Name="Decrease value" />
+      <Popup x:Name="UpDownPopup" Grid.Row="1" Grid.Column="1" HorizontalOffset="-36" VerticalOffset="-20" ShouldConstrainToRootBounds="True">
+        <Grid x:Name="PopupContentRoot" Background="{ThemeResource StudioRaised}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="1" Padding="2" CornerRadius="{StaticResource StudioControlRadius}">
+          <Grid.RowDefinitions><RowDefinition /><RowDefinition /></Grid.RowDefinitions>
+          <RepeatButton x:Name="PopupUpSpinButton" Template="{StaticResource EditorSpinButtonTemplate}" Content="+" Width="32" Height="28" MinWidth="0" MinHeight="0" Padding="0" Background="Transparent" Foreground="{ThemeResource StudioForeground}" IsTabStop="False" AutomationProperties.Name="Increase value" />
+          <RepeatButton x:Name="PopupDownSpinButton" Grid.Row="1" Template="{StaticResource EditorSpinButtonTemplate}" Content="−" Width="32" Height="28" MinWidth="0" MinHeight="0" Padding="0" Background="Transparent" Foreground="{ThemeResource StudioForeground}" IsTabStop="False" AutomationProperties.Name="Decrease value" />
+        </Grid>
+      </Popup>
+      <ContentPresenter x:Name="DescriptionPresenter" Grid.Row="2" Grid.ColumnSpan="3" Content="{TemplateBinding Description}" Foreground="{ThemeResource StudioMuted}" AutomationProperties.AccessibilityView="Raw" />
+    </Grid>
+  </ControlTemplate>
+  <ControlTemplate x:Key="EditorComboBoxTemplate" TargetType="ComboBox">
+    <Grid x:Name="LayoutRoot">
+      <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="24" /></Grid.ColumnDefinitions>
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters>
+            <Setter Target="Background.BorderBrush" Value="{ThemeResource StudioMuted}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters>
+            <Setter Target="Background.Background" Value="{ThemeResource StudioHover}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
+            <Setter Target="PlaceholderTextBlock.Foreground" Value="{ThemeResource StudioHoverForeground}" />
+            <Setter Target="DropDownGlyph.Stroke" Value="{ThemeResource StudioHoverForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters>
+            <Setter Target="Background.Background" Value="{ThemeResource StudioHeader}" />
+            <Setter Target="Background.BorderBrush" Value="{ThemeResource StudioDivider}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="DropDownGlyph.Stroke" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="HeaderContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+          </VisualState.Setters></VisualState>
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="FocusStates">
+          <VisualState x:Name="Unfocused" />
+          <VisualState x:Name="PointerFocused"><VisualState.Setters>
+            <Setter Target="FocusOutline.Opacity" Value="1" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Focused"><VisualState.Setters>
+            <Setter Target="FocusOutline.Opacity" Value="1" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="FocusedPressed"><VisualState.Setters>
+            <Setter Target="FocusOutline.Opacity" Value="1" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="FocusedDropDown"><VisualState.Setters>
+            <Setter Target="FocusOutline.Opacity" Value="1" />
+          </VisualState.Setters></VisualState>
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="DropDownStates">
+          <VisualState x:Name="Closed" />
+          <VisualState x:Name="Opened"><VisualState.Setters><Setter Target="ChevronTransform.ScaleY" Value="-1" /></VisualState.Setters></VisualState>
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="EditableModeStates">
+          <VisualState x:Name="TextBoxUnfocused"><VisualState.Setters>
+            <Setter Target="EditableText.Visibility" Value="Visible" />
+            <Setter Target="ContentPresenter.Visibility" Value="Collapsed" />
+            <Setter Target="DropDownOverlay.Visibility" Value="Visible" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="TextBoxFocused"><VisualState.Setters>
+            <Setter Target="EditableText.Visibility" Value="Visible" />
+            <Setter Target="ContentPresenter.Visibility" Value="Collapsed" />
+            <Setter Target="DropDownOverlay.Visibility" Value="Visible" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="TextBoxOverlayPointerOver"><VisualState.Setters>
+            <Setter Target="EditableText.Visibility" Value="Visible" />
+            <Setter Target="ContentPresenter.Visibility" Value="Collapsed" />
+            <Setter Target="DropDownOverlay.Visibility" Value="Visible" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="TextBoxOverlayPressed"><VisualState.Setters>
+            <Setter Target="EditableText.Visibility" Value="Visible" />
+            <Setter Target="ContentPresenter.Visibility" Value="Collapsed" />
+            <Setter Target="DropDownOverlay.Visibility" Value="Visible" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="TextBoxFocusedOverlayPointerOver"><VisualState.Setters>
+            <Setter Target="EditableText.Visibility" Value="Visible" />
+            <Setter Target="ContentPresenter.Visibility" Value="Collapsed" />
+            <Setter Target="DropDownOverlay.Visibility" Value="Visible" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="TextBoxFocusedOverlayPressed"><VisualState.Setters>
+            <Setter Target="EditableText.Visibility" Value="Visible" />
+            <Setter Target="ContentPresenter.Visibility" Value="Collapsed" />
+            <Setter Target="DropDownOverlay.Visibility" Value="Visible" />
+          </VisualState.Setters></VisualState>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+      <ContentPresenter x:Name="HeaderContentPresenter" Grid.ColumnSpan="2" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}" Foreground="{ThemeResource StudioMuted}" Margin="0,0,0,5" TextWrapping="Wrap" Visibility="Collapsed" />
+      <Border x:Name="Background" Grid.Row="1" Grid.ColumnSpan="2" MinHeight="{TemplateBinding MinHeight}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}" Control.IsTemplateFocusTarget="True" />
+      <ContentPresenter x:Name="ContentPresenter" Grid.Row="1" Margin="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+        <TextBlock x:Name="PlaceholderTextBlock" Text="{TemplateBinding PlaceholderText}" Foreground="{Binding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={ThemeResource StudioMuted}}" />
+      </ContentPresenter>
+      <TextBox x:Name="EditableText" Grid.Row="1" Grid.ColumnSpan="2" Template="{StaticResource EditorTextBoxTemplate}" MinWidth="0" MinHeight="{TemplateBinding MinHeight}" Padding="8,4,28,4" Background="Transparent" BorderThickness="0" Foreground="{TemplateBinding Foreground}" FontSize="{TemplateBinding FontSize}" PlaceholderText="{TemplateBinding PlaceholderText}" Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" Visibility="Collapsed" />
+      <Border x:Name="DropDownOverlay" Grid.Row="1" Grid.Column="1" Background="Transparent" Visibility="Collapsed" />
+      <Path x:Name="DropDownGlyph" Grid.Row="1" Grid.Column="1" Data="M 0,0 L 4,4 L 8,0" Stroke="{ThemeResource StudioMuted}" StrokeThickness="1.2" Width="8" Height="4" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"><Path.RenderTransform><ScaleTransform x:Name="ChevronTransform" /></Path.RenderTransform></Path>
+      <Border x:Name="FocusOutline" Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="{ThemeResource StudioAccent}" BorderThickness="1" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False" />
+      <ContentPresenter x:Name="DescriptionPresenter" Grid.Row="2" Grid.ColumnSpan="2" Content="{TemplateBinding Description}" Foreground="{ThemeResource StudioMuted}" />
+      <Popup x:Name="Popup">
+        <Border x:Name="PopupBorder" Background="{ThemeResource StudioRaised}" BorderBrush="{ThemeResource StudioBorder}" BorderThickness="1" Padding="1" CornerRadius="{StaticResource StudioSurfaceRadius}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+          <ScrollViewer x:Name="ScrollViewer" MinWidth="{Binding TemplateSettings.DropDownContentMinWidth, RelativeSource={RelativeSource TemplatedParent}}" Foreground="{ThemeResource StudioForeground}" VerticalScrollMode="Enabled" VerticalScrollBarVisibility="Auto" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" BringIntoViewOnFocusChange="True" IsTabStop="False" ZoomMode="Disabled">
+            <ItemsPresenter />
+          </ScrollViewer>
+        </Border>
+      </Popup>
+    </Grid>
+  </ControlTemplate>
+  <ControlTemplate x:Key="EditorCheckBoxTemplate" TargetType="CheckBox">
+    <Grid x:Name="RootGrid" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="18" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+      <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CombinedStates">
+          <VisualState x:Name="UncheckedNormal"><VisualState.Setters>
+            <Setter Target="Box.Background" Value="{ThemeResource StudioInputBackground}" />
+            <Setter Target="Box.BorderBrush" Value="{ThemeResource StudioMuted}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="MixedGlyph.Fill" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="CheckGlyph.Opacity" Value="0" />
+            <Setter Target="MixedGlyph.Opacity" Value="0" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="UncheckedPointerOver"><VisualState.Setters>
+            <Setter Target="Box.Background" Value="{ThemeResource StudioInputBackground}" />
+            <Setter Target="Box.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="MixedGlyph.Fill" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="CheckGlyph.Opacity" Value="0" />
+            <Setter Target="MixedGlyph.Opacity" Value="0" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="UncheckedPressed"><VisualState.Setters>
+            <Setter Target="Box.Background" Value="{ThemeResource StudioInputBackground}" />
+            <Setter Target="Box.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="MixedGlyph.Fill" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="CheckGlyph.Opacity" Value="0" />
+            <Setter Target="MixedGlyph.Opacity" Value="0" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="UncheckedDisabled"><VisualState.Setters>
+            <Setter Target="Box.Background" Value="{ThemeResource StudioHeader}" />
+            <Setter Target="Box.BorderBrush" Value="{ThemeResource StudioDivider}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="MixedGlyph.Fill" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="CheckGlyph.Opacity" Value="0" />
+            <Setter Target="MixedGlyph.Opacity" Value="0" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedNormal"><VisualState.Setters>
+            <Setter Target="Box.Background" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="Box.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="MixedGlyph.Fill" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="CheckGlyph.Opacity" Value="1" />
+            <Setter Target="MixedGlyph.Opacity" Value="0" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPointerOver"><VisualState.Setters>
+            <Setter Target="Box.Background" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="Box.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="MixedGlyph.Fill" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="CheckGlyph.Opacity" Value="1" />
+            <Setter Target="MixedGlyph.Opacity" Value="0" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPressed"><VisualState.Setters>
+            <Setter Target="Box.Background" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="Box.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="MixedGlyph.Fill" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="CheckGlyph.Opacity" Value="1" />
+            <Setter Target="MixedGlyph.Opacity" Value="0" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedDisabled"><VisualState.Setters>
+            <Setter Target="Box.Background" Value="{ThemeResource StudioHeader}" />
+            <Setter Target="Box.BorderBrush" Value="{ThemeResource StudioDivider}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="MixedGlyph.Fill" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="CheckGlyph.Opacity" Value="1" />
+            <Setter Target="MixedGlyph.Opacity" Value="0" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="IndeterminateNormal"><VisualState.Setters>
+            <Setter Target="Box.Background" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="Box.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="MixedGlyph.Fill" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="CheckGlyph.Opacity" Value="0" />
+            <Setter Target="MixedGlyph.Opacity" Value="1" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="IndeterminatePointerOver"><VisualState.Setters>
+            <Setter Target="Box.Background" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="Box.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="MixedGlyph.Fill" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="CheckGlyph.Opacity" Value="0" />
+            <Setter Target="MixedGlyph.Opacity" Value="1" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="IndeterminatePressed"><VisualState.Setters>
+            <Setter Target="Box.Background" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="Box.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioForeground}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="MixedGlyph.Fill" Value="{ThemeResource StudioOnAccent}" />
+            <Setter Target="CheckGlyph.Opacity" Value="0" />
+            <Setter Target="MixedGlyph.Opacity" Value="1" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="IndeterminateDisabled"><VisualState.Setters>
+            <Setter Target="Box.Background" Value="{ThemeResource StudioHeader}" />
+            <Setter Target="Box.BorderBrush" Value="{ThemeResource StudioDivider}" />
+            <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="CheckGlyph.Stroke" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="MixedGlyph.Fill" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="CheckGlyph.Opacity" Value="0" />
+            <Setter Target="MixedGlyph.Opacity" Value="1" />
+          </VisualState.Setters></VisualState>
+      </VisualStateGroup></VisualStateManager.VisualStateGroups>
+      <Border x:Name="Box" Width="14" Height="14" Background="{ThemeResource StudioInputBackground}" BorderBrush="{ThemeResource StudioMuted}" BorderThickness="1" CornerRadius="1" HorizontalAlignment="Left" VerticalAlignment="Center">
+        <Grid>
+          <Path x:Name="CheckGlyph" Data="M 2,6 L 5,9 L 11,3" Stroke="{ThemeResource StudioOnAccent}" StrokeThickness="1.6" Opacity="0" />
+          <Rectangle x:Name="MixedGlyph" Width="7" Height="2" Fill="{ThemeResource StudioOnAccent}" Opacity="0" />
+        </Grid>
+      </Border>
+      <ContentPresenter x:Name="ContentPresenter" Grid.Column="1" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" ContentTransitions="{TemplateBinding ContentTransitions}" Foreground="{TemplateBinding Foreground}" Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" TextWrapping="Wrap" AutomationProperties.AccessibilityView="Raw" />
+    </Grid>
+  </ControlTemplate>
+  <ControlTemplate x:Key="EditorRadioButtonTemplate" TargetType="RadioButton">
+    <Grid x:Name="RootGrid" Background="{TemplateBinding Background}">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="18" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="HoverEllipse.Opacity" Value="1" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="HoverEllipse.Opacity" Value="1" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Glyph.Opacity" Value="0.5" /><Setter Target="ContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" /></VisualState.Setters></VisualState>
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="CheckStates">
+          <VisualState x:Name="Unchecked" />
+          <VisualState x:Name="Checked"><VisualState.Setters><Setter Target="SelectedEllipse.Opacity" Value="1" /><Setter Target="CheckGlyph.Opacity" Value="1" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Indeterminate" />
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+      <Grid x:Name="Glyph" Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Center">
+        <Ellipse Fill="{ThemeResource StudioInputBackground}" Stroke="{ThemeResource StudioMuted}" StrokeThickness="1" />
+        <Ellipse x:Name="SelectedEllipse" Fill="{ThemeResource StudioAccent}" Stroke="{ThemeResource StudioAccent}" StrokeThickness="1" Opacity="0" />
+        <Ellipse x:Name="CheckGlyph" Width="6" Height="6" Fill="{ThemeResource StudioOnAccent}" Opacity="0" />
+        <Ellipse x:Name="HoverEllipse" Stroke="{ThemeResource StudioAccent}" StrokeThickness="1" Opacity="0" />
+      </Grid>
+      <ContentPresenter x:Name="ContentPresenter" Grid.Column="1" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" ContentTransitions="{TemplateBinding ContentTransitions}" Foreground="{TemplateBinding Foreground}" Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" TextWrapping="Wrap" AutomationProperties.AccessibilityView="Raw" />
+    </Grid>
+  </ControlTemplate>
+  <ControlTemplate x:Key="EditorToggleButtonTemplate" TargetType="ToggleButton">
+    <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}">
+      <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" />
+            <Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioMuted}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioHoverForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
+            <Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioMuted}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioHeader}" />
+            <Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioDivider}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Checked"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
+            <Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPointerOver"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
+            <Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPressed"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
+            <Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedDisabled"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioHeader}" />
+            <Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioDivider}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Indeterminate"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
+            <Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+            <Setter Target="MixedIndicator.Opacity" Value="1" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="IndeterminatePointerOver"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
+            <Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+            <Setter Target="MixedIndicator.Opacity" Value="1" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="IndeterminatePressed"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
+            <Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioAccent}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+            <Setter Target="MixedIndicator.Opacity" Value="1" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="IndeterminateDisabled"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioHeader}" />
+            <Setter Target="Chrome.BorderBrush" Value="{ThemeResource StudioDivider}" />
+            <Setter Target="Presenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="MixedIndicator.Opacity" Value="1" />
+          </VisualState.Setters></VisualState>
+      </VisualStateGroup></VisualStateManager.VisualStateGroups>
+      <Grid>
+        <ContentPresenter x:Name="Presenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" ContentTransitions="{TemplateBinding ContentTransitions}" Foreground="{TemplateBinding Foreground}" Padding="{TemplateBinding Padding}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+        <Border x:Name="MixedIndicator" Height="2" Width="8" Background="{ThemeResource StudioAccent}" VerticalAlignment="Bottom" Margin="0,0,0,2" Opacity="0" IsHitTestVisible="False" />
+      </Grid>
+    </Border>
+  </ControlTemplate>
+  <ControlTemplate x:Key="EditorToggleSwitchTemplate" TargetType="ToggleSwitch">
+    <Grid>
+      <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="OuterBorder.Stroke" Value="{ThemeResource StudioAccent}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="OuterBorder.Stroke" Value="{ThemeResource StudioAccent}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="SwitchAreaGrid.Opacity" Value="0.5" /><Setter Target="HeaderContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" /></VisualState.Setters></VisualState>
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="ToggleStates">
+          <VisualState x:Name="Off" />
+          <VisualState x:Name="On"><VisualState.Setters><Setter Target="KnobTranslateTransform.X" Value="16" /><Setter Target="SwitchKnobBounds.Opacity" Value="1" /><Setter Target="Knob.Fill" Value="{ThemeResource StudioOnAccent}" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="Dragging" />
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="ContentStates">
+          <VisualState x:Name="OffContent"><VisualState.Setters><Setter Target="OffContentPresenter.Opacity" Value="1" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="OnContent"><VisualState.Setters><Setter Target="OnContentPresenter.Opacity" Value="1" /></VisualState.Setters></VisualState>
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+      <ContentPresenter x:Name="HeaderContentPresenter" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}" Foreground="{ThemeResource StudioMuted}" Margin="0,0,0,5" TextWrapping="Wrap" Visibility="Collapsed" IsHitTestVisible="False" />
+      <Grid x:Name="SwitchAreaGrid" Grid.Row="1" MinHeight="28" Background="Transparent" Control.IsTemplateFocusTarget="True">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="32" /><ColumnDefinition Width="8" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+        <Rectangle x:Name="OuterBorder" Width="32" Height="16" RadiusX="8" RadiusY="8" Fill="{ThemeResource StudioInputBackground}" Stroke="{ThemeResource StudioMuted}" StrokeThickness="1" />
+        <Rectangle x:Name="SwitchKnobBounds" Width="32" Height="16" RadiusX="8" RadiusY="8" Fill="{ThemeResource StudioAccent}" Opacity="0" />
+        <Grid x:Name="SwitchKnob" Width="16" Height="16" HorizontalAlignment="Left">
+          <Ellipse x:Name="Knob" Width="10" Height="10" Fill="{ThemeResource StudioMuted}" />
+          <Grid.RenderTransform><TranslateTransform x:Name="KnobTranslateTransform" /></Grid.RenderTransform>
+        </Grid>
+        <ContentPresenter x:Name="OffContentPresenter" Grid.Column="2" Content="{TemplateBinding OffContent}" ContentTemplate="{TemplateBinding OffContentTemplate}" Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" Opacity="0" IsHitTestVisible="False" AutomationProperties.AccessibilityView="Raw" />
+        <ContentPresenter x:Name="OnContentPresenter" Grid.Column="2" Content="{TemplateBinding OnContent}" ContentTemplate="{TemplateBinding OnContentTemplate}" Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" Opacity="0" IsHitTestVisible="False" AutomationProperties.AccessibilityView="Raw" />
+        <Thumb x:Name="SwitchThumb" Grid.ColumnSpan="3" IsTabStop="False" AutomationProperties.AccessibilityView="Raw"><Thumb.Template><ControlTemplate TargetType="Thumb"><Grid Background="Transparent" /></ControlTemplate></Thumb.Template></Thumb>
+      </Grid>
+    </Grid>
+  </ControlTemplate>
+</ResourceDictionary>

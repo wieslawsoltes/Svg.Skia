@@ -177,7 +177,7 @@ public sealed class IosFileSavePickerExtension : IFileSavePickerExtension
         var window = UIApplication.SharedApplication.ConnectedScenes.OfType<UIWindowScene>()
             .Where(scene => scene.ActivationState == UISceneActivationState.ForegroundActive)
             .SelectMany(scene => scene.Windows).FirstOrDefault(value => value.IsKeyWindow);
-        // Uno6.5 can also host a single UIKit window without an active scene.
+        // The host can also use an application-level window without an active scene.
 #pragma warning disable CA1422
         window ??= UIApplication.SharedApplication.KeyWindow;
 #pragma warning restore CA1422

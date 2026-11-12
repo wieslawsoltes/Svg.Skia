@@ -1,6 +1,6 @@
 # UnoDraw command center
 
-The command center uses the shared studio resources and a native search field and virtualized result list. Open it with **Ctrl+K**, the top-bar Search action, or **View > Search commands**. Every result separates the action name from its category and shortcut badge rather than packing all three into one text string.
+The command center uses EditorTheme resources, a native search field and a virtualized result list. Open it with **Ctrl+Shift+F12** (Command+Shift+F12 on macOS), the top-bar Search action, or **Help > Search commands**. Every result displays its action name, category and active shortcut. **Ctrl+K** opens Preferences.
 
 ## Finding and running actions
 
@@ -14,9 +14,9 @@ Choosing an action dismisses the palette before invoking the existing workspace 
 
 ## App shortcuts and native focus
 
-The workspace registers native `KeyboardAccelerator` entries for Ctrl+K, Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+Shift+S, Ctrl+E and Ctrl+P. Application actions must not depend exclusively on a focused child's bubbling KeyDown handler after a panel switcher closes or a scroll arrow reaches its limit. Accelerator tooltips are suppressed on the workspace itself; shortcuts remain displayed on their actual commands and controls.
+The active `SvgEditorShortcutProfile` supplies native `KeyboardAccelerator` entries, bubbling key dispatch, menu hints, tooltips and search metadata. Defaults include Ctrl+Shift+F12 for search, Ctrl+K for Preferences, Ctrl+N/O/S for file commands, and Ctrl+Tab / Ctrl+Shift+Tab for document switching. Document tab navigation retains physical Control on macOS; Command+Tab remains owned by the system. Accelerator tooltips are suppressed on the workspace itself; shortcuts remain displayed on their actual commands and controls.
 
-The accelerator handler respects modal dialogs, closed/disabled/unloaded workspaces and focus in another embedded workspace. It marks an invocation handled before awaiting execution. Text-editing shortcuts such as Ctrl+C, Ctrl+V and Ctrl+Z, and canvas-only keys such as arrows, Space, Enter and Tab, are not added to this global set. Their existing context-sensitive routing remains in place.
+The accelerator handler respects modal dialogs, closed/disabled/unloaded workspaces and focus in another embedded workspace. It marks an invocation handled before awaiting execution. Text editors retain native clipboard, selection and undo keys. Canvas-only arrows, Space, Enter and unmodified Tab are excluded from the accelerator set and resolve only in their intended focus scope. **Edit > Keyboard Shortcuts** provides validated draft profiles, conflict feedback, import/export and reset to defaults; applying a profile updates every displayed shortcut.
 
 ## Reusable layers
 
@@ -32,4 +32,4 @@ The catalog is bounded to 4,096 entries, the query to 256 characters, and the vi
 
 The native `command-center.sh` suite runs the existing editing, theme, segmented-paint and dock-navigation suites before checking the command center. It verifies a no-result Enter followed by a valid category query, the saved workspace's actual selected panel, real Save dispatch through shortcut search, cancellation without document edits, keyboard navigation, and 390-unit light/dark layouts. Screenshots complement saved-source/state assertions; screenshots alone are not proof of successful execution.
 
-CI results belong to their exact commit. The Xvfb runs use software rendering. This suite does not establish physical-GPU performance, native screen-reader behavior or all mobile/browser keyboard combinations. Command search does not yet expose per-command availability explanations, user-rebindable shortcuts, persisted recent history or fuzzy typo matching.
+CI results belong to their exact commit. The Xvfb runs use software rendering. This suite does not establish physical-GPU performance, native screen-reader behavior or all mobile/browser keyboard combinations. Command search does not yet expose per-command availability explanations, persisted recent history or fuzzy typo matching.

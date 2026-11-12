@@ -6,12 +6,14 @@ namespace Svg.Editor.Skia;
 
 public readonly struct SvgRulerTick
 {
+    private readonly string? _majorLabel;
     internal SvgRulerTick(double pixel, double value, bool major)
-    { Pixel = pixel; Value = value; IsMajor = major; }
+    { Pixel = pixel; Value = value; IsMajor = major; _majorLabel = major ? FormatLabel(value) : null; }
     public double Pixel { get; }
     public double Value { get; }
     public bool IsMajor { get; }
-    public string Label => Math.Abs(Value) < 1e-9 ? "0" : Value.ToString("0.####", CultureInfo.InvariantCulture);
+    public string Label => _majorLabel ?? FormatLabel(Value);
+    private static string FormatLabel(double value) => Math.Abs(value) < 1e-9 ? "0" : value.ToString("0.####", CultureInfo.InvariantCulture);
 }
 
 public static class SvgRulerMetrics

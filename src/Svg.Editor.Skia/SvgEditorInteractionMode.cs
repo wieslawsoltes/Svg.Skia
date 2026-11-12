@@ -1,0 +1,56 @@
+namespace Svg.Editor.Skia;
+
+/// <summary>
+/// Canvas interaction modes that operate on the existing SVG document and tools.
+/// Kept separate from SvgEditorToolKind so persisted tool values retain their meaning.
+/// </summary>
+public enum SvgEditorInteractionMode
+{
+    None,
+    Rotate,
+    Scale,
+    Reflect,
+    FreeTransform,
+    Gradient,
+    Eyedropper,
+    Zoom,
+    Artboard,
+    Paintbrush,
+    RoundedRectangle,
+    RegularPolygon,
+    Star,
+    RectangularGrid,
+    PolarGrid,
+    Spiral,
+    AreaType,
+    Scissors,
+    Eraser,
+    Knife,
+    Lasso,
+    MagicWand,
+    AddAnchor,
+    DeleteAnchor,
+    AnchorPoint,
+    ShapeBuilder,
+    Warp,
+    Twirl,
+    Pucker,
+    Bloat,
+    Scallop,
+    Crystallize,
+    Wrinkle,
+    SymbolSprayer,
+    SymbolShifter,
+    SymbolScruncher,
+    SymbolSizer,
+    SymbolSpinner,
+    SymbolStainer,
+    SymbolScreener,
+    SymbolStyler,
+    Smooth,
+    PathEraser,
+    Join,
+    BlobBrush,
+    Shear,
+    Measure
+}

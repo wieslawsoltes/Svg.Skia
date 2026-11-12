@@ -14,7 +14,7 @@ document="$work/StudioFixture.svg"
 cp "$source_dir/StudioFixture.svg" "$document"
 startup_stamp="$(python3 -c 'import os,sys; print(os.stat(sys.argv[1]).st_mtime_ns)' "$document")"
 window=""
-dotnet "$app" "$document" >"$output/application.log" 2>&1 &
+UNODRAW_EDITOR_INPUT_TRACE=1 dotnet "$app" "$document" >"$output/application.log" 2>&1 &
 app_pid=$!
 
 window_diagnostics() {
@@ -33,6 +33,10 @@ cleanup() {
   local status=$?
   trap - EXIT
   if [[ "$status" -ne 0 ]]; then
+    if [[ -f "$output/application.log" ]]; then
+      printf '%s\n' 'Recent native application diagnostics:' >&2
+      tail -n 160 "$output/application.log" >&2 || true
+    fi
     window_diagnostics
     timeout 8s import -window root "$output/failure-root.png" 2>/dev/null || true
     if [[ -n "$window" ]]; then timeout 8s import -window "$window" "$output/failure-client.png" 2>/dev/null || true; fi
@@ -82,22 +86,111 @@ done
 [[ "$ready" == true ]] || { echo 'The application did not save the intended fixture; inspect failure captures and windows.log.' >&2; cat "$output/application.log"; exit 1; }
 xdotool windowsize "$window" 1440 960
 xdotool windowfocus --sync "$window"
+# xdotool 3 misreads the function-key CTRL+ALT type in xkeyboard-config 2.46
+# and injects an extra Alt (https://github.com/jordansissel/xdotool/issues/491).
+# Give this isolated fixture ordinary function keys; application modifier checks
+# remain exact. Keep the app connected while changing XKB so Xvfb cannot reset
+# the mapping when its last client disconnects.
+keyboard_diagnostics() {
+  {
+    dpkg-query -W -f='${Package} ${Version}\n' xdotool xvfb xkb-data x11-xkb-utils 2>/dev/null || true
+    setxkbmap -query
+  } >"$output/keyboard-$1.log" 2>&1
+  # This complete map includes key types and modifier_map declarations.
+  xkbcomp -xkb "$DISPLAY" "$output/keyboard-$1.xkb" 2>>"$output/keyboard-$1.log"
+}
+keyboard_diagnostics before
+setxkbmap -model pc105 -layout us -option '' -option srvrkeys:none
+keyboard_diagnostics fixture
 sleep 1
 window_diagnostics
 
 capture() {
+  local attempt signature previous="" stable=0
   kill -0 "$app_pid" 2>/dev/null || { cat "$output/application.log"; exit 1; }
-  import -window "$window" "$output/$1.png"
+  # Input/model readiness can precede the native host's next paint. Keep the
+  # final unmodified X11 frame after three matching pixel samples, or the bounded
+  # last sample for controls with continuous animation (such as a blinking caret).
+  sleep 0.2
+  for attempt in {1..8}; do
+    import -window "$window" "$output/$1.png"
+    signature="$(identify -format '%#' "$output/$1.png")"
+    if [[ "$signature" == "$previous" ]]; then stable=$((stable + 1)); else stable=0; fi
+    [[ "$stable" -ge 2 ]] && break
+    previous="$signature"
+    if [[ "$attempt" -lt 8 ]]; then sleep 0.1; fi
+  done
   identify "$output/$1.png" >>"$output/captures.txt"
 }
-command() {
-  xdotool windowfocus --sync "$window"
-  xdotool key --clearmodifiers ctrl+k
-  sleep 0.5
-  xdotool type --clearmodifiers --delay 25 "$1"
-  sleep 0.35
+input_checkpoint() {
+  python3 -c 'import os,sys; print(os.stat(sys.argv[1]).st_size)' "$output/application.log"
+}
+wait_input() {
+  python3 "$source_dir/wait_input.py" "$output/application.log" "$1" "$2"
+}
+click_editor_control() {
+  local checkpoint expression
+  checkpoint="$(input_checkpoint)"
+  expression='workspace-pointer-up-focus '
+  if [[ -n "${4:-}" ]]; then expression+="focus=$4 "; fi
+  if [[ -n "${3:-}" ]]; then expression+=".*sourceTarget=$3$"; fi
+  xdotool mousemove --window "$window" "$1" "$2" click 1
+  wait_input "$checkpoint" "$expression"
+}
+begin_editor_drag() {
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
+  xdotool mousemove --window "$window" "$1" "$2" mousedown 1
+  wait_input "$checkpoint" 'workspace-pointer-down-focus '
+}
+end_editor_drag() {
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
+  xdotool mouseup 1
+  wait_input "$checkpoint" 'workspace-pointer-up-focus '
+}
+key_command() {
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
+  xdotool key --clearmodifiers "$1"
+  wait_input "$checkpoint" "command-completed id=$2$"
+}
+accept_dialog() {
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
   xdotool key --clearmodifiers Return
-  sleep 0.7
+  # Modal rejection must fail at its own boundary. Only an accepted dialog and
+  # completed command may precede the next saved-SVG assertion.
+  wait_input "$checkpoint" 'modal-closed result=Primary$'
+  wait_input "$checkpoint" "command-completed id=$1$"
+}
+open_commands() {
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
+  xdotool windowfocus --sync "$window"
+  xdotool key --clearmodifiers ctrl+shift+F12
+  wait_input "$checkpoint" 'query-focus loaded=True enabled=True success=True'
+}
+type_command_query() {
+  local checkpoint length
+  checkpoint="$(input_checkpoint)"
+  length="$(python3 -c 'import sys; print(len(sys.argv[1].encode("utf-16-le")) // 2)' "$1")"
+  xdotool type --clearmodifiers --delay 25 "$1"
+  wait_input "$checkpoint" "query-results length=$length "
+}
+invoke_command_query() {
+  local checkpoint
+  checkpoint="$(input_checkpoint)"
+  xdotool key --clearmodifiers Return
+  # Dialog commands return when their new modal opens; other commands must finish.
+  # The palette's own Opened event occurred before this checkpoint.
+  wait_input "$checkpoint" 'command-completed id=(?!commands\b)|modal-opened'
+  sleep 0.2
+}
+command() {
+  open_commands
+  type_command_query "$1"
+  invoke_command_query
 }
 save() {
   local before
@@ -124,7 +217,7 @@ capture 01-essentials-light
 command 'Select all'
 command 'Appearance panel'
 capture 02-mixed-appearance
-xdotool mousemove --window "$window" 480 55 click 1
+click_editor_control 480 55 '' TextBox
 xdotool key --clearmodifiers ctrl+a
 xdotool type --clearmodifiers '62.5'
 xdotool key --clearmodifiers Tab
@@ -189,14 +282,14 @@ command 'Switch theme'
 command 'Appearance panel'
 capture 09-appearance-dark
 
-xdotool mousemove --window "$window" 1426 91 click 1
+click_editor_control 1426 91
 sleep 0.4
 xdotool key --clearmodifiers Home Down Down Down Down Return
 sleep 0.7
 capture 10-floating-panel
-xdotool mousemove --window "$window" 230 190 mousedown 1
+begin_editor_drag 230 190
 xdotool mousemove --window "$window" 390 240
-xdotool mouseup 1
+end_editor_drag
 sleep 0.5
 capture 11-moved-panel
 command 'Reset workspace'

@@ -231,7 +231,9 @@ public sealed partial class StudioDockGroup : Control
         if (_contentHost is not null) _contentHost.Visibility = _collapsed ? Visibility.Collapsed : Visibility.Visible;
         if (_collapse is not null)
         {
-            _collapse.Content = _collapsed ? "＋" : "−";
+            if (_collapse.Content is not StudioGlyph glyph)
+                _collapse.Content = glyph = new StudioGlyph();
+            glyph.Symbol = _collapsed ? "Plus" : "Minus";
             AutomationProperties.SetName(_collapse, _collapsed ? "Expand panel" : "Collapse panel");
         }
     }

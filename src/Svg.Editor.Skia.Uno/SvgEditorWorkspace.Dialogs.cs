@@ -4,6 +4,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using SkiaSharp;
 using Svg.Editor.Core;
@@ -30,17 +31,33 @@ public sealed partial class SvgEditorWorkspace
         scroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
         scroll.HorizontalScrollMode = ScrollMode.Disabled;
         scroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+        var validation = new TextBlock
+        {
+            TextWrapping = TextWrapping.Wrap,
+            Visibility = Visibility.Collapsed,
+            Margin = new Thickness(0, 8, 0, 0),
+            Foreground = (Brush)Resources["StudioDanger"]
+        };
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetLiveSetting(validation,
+            Microsoft.UI.Xaml.Automation.Peers.AutomationLiveSetting.Assertive);
+        var host = new Grid();
+        host.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        host.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        host.Children.Add(scroll);
+        Grid.SetRow(validation, 1);
+        host.Children.Add(validation);
         var dialog = new ContentDialog
         {
             XamlRoot = XamlRoot,
             Title = title,
-            Content = scroll,
+            Content = host,
             PrimaryButtonText = primary,
             CloseButtonText = close,
             DefaultButton = ContentDialogButton.Primary,
             RequestedTheme = ActualTheme
         };
-        // The default Fluent dialog cap is narrower than the mesh/brush editors.
+        dialog.Resources.MergedDictionaries.Add(new EditorTheme());
+        // The default dialog cap is narrower than the mesh/brush editors.
         // Allow their requested width while retaining a margin on small screens.
         var maximumWidth = Math.Max(260, Math.Min(1120, (XamlRoot?.Size.Width ?? ActualWidth) - 32));
         dialog.Resources["ContentDialogMaxWidth"] = maximumWidth;
@@ -48,6 +65,29 @@ public sealed partial class SvgEditorWorkspace
         // Keep the content viewport inside the dialog instead of letting the
         // default height cap clip controls that the ScrollViewer thinks fit.
         dialog.Resources["ContentDialogMaxHeight"] = Math.Max(240, (XamlRoot?.Size.Height ?? ActualHeight) - 32);
+        // Register before caller-specific handlers. They honor Cancel before
+        // committing a draft, so an empty NumberBox cannot become NaN geometry
+        // or persist as an invalid tool setting through keyboard acceptance.
+        void ValidateNumbers(ContentDialogButtonClickEventArgs args)
+        {
+            if (args.Cancel)
+                return;
+            var invalid = StudioNumberInput.FindInvalid(scroll);
+            if (invalid is null)
+            {
+                validation.Visibility = Visibility.Collapsed;
+                return;
+            }
+            args.Cancel = true;
+            var label = invalid.Header as string ?? "This value";
+            validation.Text = $"{label}: enter a number from {invalid.Minimum:G} to {invalid.Maximum:G}.";
+            validation.Visibility = Visibility.Visible;
+            invalid.Focus(FocusState.Programmatic);
+            invalid.StartBringIntoView();
+            EditorInputTrace.Write("modal-numeric-invalid");
+        }
+        dialog.PrimaryButtonClick += (_, args) => ValidateNumbers(args);
+        dialog.SecondaryButtonClick += (_, args) => ValidateNumbers(args);
         return dialog;
     }
 
@@ -56,13 +96,25 @@ public sealed partial class SvgEditorWorkspace
         if (_dialogVisible)
             return ContentDialogResult.None;
         _dialogVisible = true;
+        EditorInputTrace.Write("modal-show-request");
+        if (EditorInputTrace.Enabled)
+        {
+            dialog.Opened += (_, _) => EditorInputTrace.Write("modal-opened");
+            dialog.Closed += (_, args) => EditorInputTrace.Write("modal-closed result=" + args.Result);
+            dialog.AddHandler(KeyDownEvent, new KeyEventHandler((_, args) =>
+                EditorInputTrace.Key("modal-down", args.Key, args.Handled, _dialogVisible, dialog.XamlRoot, _editorUsesCommandKey)), true);
+            dialog.AddHandler(KeyUpEvent, new KeyEventHandler((_, args) =>
+                EditorInputTrace.Key("modal-up", args.Key, args.Handled, _dialogVisible, dialog.XamlRoot, _editorUsesCommandKey)), true);
+        }
         try
         { return await dialog.ShowAsync(); }
         finally
         {
             _dialogVisible = false;
+            EditorInputTrace.Write("modal-completed");
             DispatcherQueue.TryEnqueue(() =>
             {
+                EditorInputTrace.Write($"modal-focus-restore disposed={_disposed} modal={_dialogVisible}");
                 if (!_disposed && !_dialogVisible)
                     Focus(FocusState.Programmatic);
             });
@@ -71,6 +123,8 @@ public sealed partial class SvgEditorWorkspace
 
     private async Task ShowErrorAsync(string message)
     {
+        if (_disposed)
+            return;
         StatusText.Text = message;
         if (_dialogVisible || XamlRoot is null)
             return;
@@ -122,12 +176,20 @@ public sealed partial class SvgEditorWorkspace
 
     private async Task ShowHelpAsync()
     {
-        var text = "TOOLS\nV  Select    A  Nodes    R  Rectangle    E  Ellipse\nP  Bézier pen    B  Pencil    T  Text    L  Line\nG  Polygon    O  Polyline    C  Circle    Q  Quadratic\n\nCANVAS\nHold Space or use the middle button to pan.\nThe mouse wheel zooms around the pointer.\nShift+1 fits the artboard; Shift+2 fits the selection.\nEsc cancels a gesture; Enter finishes a path.\nShift extends selection and constrains shape proportions.\nArrow keys nudge 1 unit; Shift+arrows nudge 10.\n\nDOCUMENT\nCtrl+N new    Ctrl+O open    Ctrl+S save\nCtrl+Shift+S save as    Ctrl+E export\nCtrl+Z undo    Ctrl+Shift+Z redo\nCtrl+C / X / V copy / cut / paste    Ctrl+D duplicate\nCtrl+G group    Ctrl+Shift+G ungroup\nCtrl+K command search    Tab focus canvas";
-        await ShowDialogAsync(MakeDialog("Your workspace shortcuts", new ScrollViewer
-        {
-            MaxHeight = 500,
-            Content = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, FontSize = 13, LineHeight = 21 }
-        }, string.Empty, "Done"));
+        var search = new TextBox { PlaceholderText = "Find a tool, command or shortcut", HorizontalAlignment = HorizontalAlignment.Stretch };
+        var list = new ListView { MaxHeight = 380, SelectionMode = ListViewSelectionMode.None };
+        var content = new StackPanel { Spacing = 12, Width = DialogContentWidth(620) };
+        content.Children.Add(StudioHint("Hold Space to pan. Hold the primary modifier with Space to zoom; add Alt to zoom out. Escape cancels a gesture; Enter finishes a path. Shift constrains geometry and extends selections. Arrow keys nudge; Shift uses ten increments. Text editors keep their normal editing shortcuts."));
+        content.Children.Add(search);
+        content.Children.Add(list);
+        void Update() => list.ItemsSource = _commands.Where(command => !string.IsNullOrEmpty(command.Shortcut)
+                && (string.IsNullOrWhiteSpace(search.Text) || command.ToString().Contains(search.Text, StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(command => command.Group).ThenBy(command => command.Label).Select(command => command.ToString()).ToArray();
+        search.TextChanged += (_, _) => Update();
+        Update();
+        var dialog = MakeDialog("Tools and keyboard shortcuts", content, string.Empty, "Close");
+        dialog.Opened += (_, _) => search.Focus(FocusState.Programmatic);
+        await ShowDialogAsync(dialog);
     }
 
     private async Task NewDocumentDialogAsync()
@@ -148,7 +210,9 @@ public sealed partial class SvgEditorWorkspace
         content.Children.Add(presets);
         content.Children.Add(width);
         content.Children.Add(height);
-        if (await ShowDialogAsync(MakeDialog("A new idea starts here", content, "Create document")) == ContentDialogResult.Primary)
+        var dialog = MakeDialog("New Document", content, "Create document");
+        dialog.Opened += (_, _) => width.Focus(FocusState.Programmatic);
+        if (await ShowDialogAsync(dialog) == ContentDialogResult.Primary)
             NewDocument((float)width.Value, (float)height.Value);
     }
 
@@ -165,7 +229,7 @@ public sealed partial class SvgEditorWorkspace
         panel.Children.Add(width);
         panel.Children.Add(height);
         panel.Children.Add(grid);
-        if (await ShowDialogAsync(MakeDialog("Artboard and grid", panel)) != ContentDialogResult.Primary)
+        if (await ShowDialogAsync(MakeDialog("Document Setup", panel)) != ContentDialogResult.Primary)
             return;
         if (width.Value != originalWidth || height.Value != originalHeight)
             ChangeArtboard(width.Value, height.Value);
@@ -186,6 +250,8 @@ public sealed partial class SvgEditorWorkspace
         var dialog = MakeDialog("SVG source", content, "Apply SVG");
         dialog.PrimaryButtonClick += (_, args) =>
         {
+            if (args.Cancel)
+                return;
             try
             { controller.ReplaceSvg(editor.Text); }
             catch (Exception exception) { args.Cancel = true; error.Text = exception.Message; }
@@ -195,14 +261,15 @@ public sealed partial class SvgEditorWorkspace
 
     private TextBox SourceEditor(string source) => new()
     {
-        Text = source,
+        // Configure multiline input before Text to avoid single-line coercion.
         AcceptsReturn = true,
         TextWrapping = TextWrapping.NoWrap,
         FontFamily = new FontFamily("monospace"),
         FontSize = 12,
         Width = DialogContentWidth(560),
         Height = Math.Min(420, Math.Max(160, (XamlRoot?.Size.Height ?? ActualHeight) - 260)),
-        IsSpellCheckEnabled = false
+        IsSpellCheckEnabled = false,
+        Text = source
     };
 
     private async Task EditTextAsync()
@@ -214,7 +281,7 @@ public sealed partial class SvgEditorWorkspace
         var originalFont = text.FontFamily ?? "sans-serif";
         var originalSize = text.FontSize.Value > 0 ? text.FontSize.Value : 24;
         var originalTracking = text.LetterSpacing.Value;
-        var value = new TextBox { Header = "Text", Text = originalText, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 140 };
+        var value = new TextBox { Header = "Text", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 140, Text = originalText };
         var font = new TextBox { Header = "Font family", Text = originalFont };
         var size = NumberInput("Font size", originalSize, 1, 10000);
         var tracking = NumberInput("Letter spacing", originalTracking, -1000, 1000);
@@ -323,7 +390,7 @@ public sealed partial class SvgEditorWorkspace
         type.Items.Add("Radial");
         type.SelectedIndex = 0;
         var angle = NumberInput("Angle °", 0, -360, 360);
-        var stops = new TextBox { Header = "Stops: position, color, opacity (one per line)", Text = "0, #7061dc, 1\n0.5, #b2a5ef, 1\n1, #f2b99e, 1", AcceptsReturn = true, Height = 160, FontFamily = new FontFamily("monospace") };
+        var stops = new TextBox { Header = "Stops: position, color, opacity (one per line)", AcceptsReturn = true, Height = 160, FontFamily = new FontFamily("monospace"), Text = "0, #7061dc, 1\n0.5, #b2a5ef, 1\n1, #f2b99e, 1" };
         var panel = new StackPanel { Spacing = 14, Width = DialogContentWidth(420) };
         panel.Children.Add(type);
         panel.Children.Add(angle);
@@ -335,7 +402,7 @@ public sealed partial class SvgEditorWorkspace
         if (type.SelectedIndex == 0)
             gradient.Add(new XAttribute("x1", "0%"), new XAttribute("x2", "100%"), new XAttribute("y1", "50%"), new XAttribute("y2", "50%"), new XAttribute("gradientTransform", $"rotate({angle.Value.ToString(CultureInfo.InvariantCulture)} .5 .5)"));
         var parsedStops = new List<(double Offset, string Color, double Opacity)>();
-        foreach (var line in stops.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        foreach (var line in stops.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
         {
             var pieces = line.Split(',', StringSplitOptions.TrimEntries);
             if (pieces.Length is < 2 or > 3 || !double.TryParse(pieces[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var offset))

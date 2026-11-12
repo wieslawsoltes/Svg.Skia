@@ -30,9 +30,31 @@ def local_properties(element: ET.Element) -> dict[str, str]:
     return values
 
 
-def assert_target(actual: ET.Element, baseline: ET.Element, target: str) -> None:
+def assert_source_stops(stops: list[ET.Element]) -> None:
+    if len(stops) != 3:
+        raise AssertionError('The multiline source workflow must preserve all three default stops.')
+    expected_colors = (('#7061dc', 'rgb(112,97,220)'),
+                       ('#b2a5ef', 'rgb(178,165,239)'),
+                       ('#f2b99e', 'rgb(242,185,158)'))
+    for stop, expected, colors in zip(stops, (0.0, 0.5, 1.0), expected_colors):
+        offset = stop.get('offset', '')
+        number = float(offset[:-1]) / 100 if offset.endswith('%') else float(offset)
+        if not math.isfinite(number) or number != expected:
+            raise AssertionError('The multiline source changed a default stop position.')
+        properties = local_properties(stop)
+        color = re.sub(r'\s+', '', properties.get('stop-color', '')).lower()
+        if color not in colors:
+            raise AssertionError('The multiline source changed a default stop color: ' + color)
+        opacity = float(properties.get('stop-opacity', '1'))
+        if not math.isfinite(opacity) or opacity != 1:
+            raise AssertionError('The multiline source changed a default stop opacity.')
+
+
+def assert_target(actual: ET.Element, baseline: ET.Element, target: str, mode: str = 'reversed-draft') -> None:
     if target not in ('fill', 'stroke'):
         raise AssertionError('Expected a fill or stroke target.')
+    if mode not in ('reversed-draft', 'source-defaults'):
+        raise AssertionError('Unknown gradient workflow.')
     objects, originals = fixture_objects(actual), fixture_objects(baseline)
     references = []
     for identifier in PAINT_TARGETS:
@@ -52,6 +74,9 @@ def assert_target(actual: ET.Element, baseline: ET.Element, target: str) -> None
     if gradient is None or gradient.tag != SVG + 'linearGradient':
         raise AssertionError('The selected target did not resolve to an authored linear gradient.')
     stops = list(gradient.findall(SVG + 'stop'))
+    if mode == 'source-defaults':
+        assert_source_stops(stops)
+        return
     if len(stops) != 2:
         raise AssertionError('The native reverse workflow must preserve its two-stop draft.')
     for stop, expected in zip(stops, (0.0, 1.0)):
@@ -70,9 +95,13 @@ if __name__ == '__main__':
     parser.add_argument('document', type=pathlib.Path)
     parser.add_argument('output', type=pathlib.Path)
     parser.add_argument('target', choices=('fill', 'stroke'))
+    parser.add_argument('--mode', choices=('reversed-draft', 'source-defaults'), default='reversed-draft')
+    parser.add_argument('--name', help='Unique check and artifact name for another native workflow.')
     args = parser.parse_args()
-    assert_target(ET.parse(args.document).getroot(), ET.parse(args.output / 'baseline.svg').getroot(), args.target)
-    name = 'segmented-' + args.target + '-target-and-draft'
+    if args.name and not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', args.name):
+        parser.error('--name must contain lowercase words or numbers separated by hyphens')
+    assert_target(ET.parse(args.document).getroot(), ET.parse(args.output / 'baseline.svg').getroot(), args.target, args.mode)
+    name = args.name or 'segmented-' + args.target + '-target-and-draft'
     (args.output / (name + '.svg')).write_bytes(args.document.read_bytes())
     report = args.output / 'checks.json'
     checks = json.loads(report.read_text())
