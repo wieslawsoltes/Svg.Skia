@@ -392,6 +392,9 @@ public sealed class StudioNavigator : UserControl, IDisposable
             return;
         if (!BeginNavigation() || _viewport is null)
             return;
+        // The host may move focus while committing inspector edits.
+        // Keep subsequent navigation keys owned by this control.
+        Focus(FocusState.Keyboard);
         var step = Down(VirtualKey.Shift) ? 100 : 20;
         var center = new SKPoint((float)_viewport.Width / 2, (float)_viewport.Height / 2);
         switch (args.Key)
