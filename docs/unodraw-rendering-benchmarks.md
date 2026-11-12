@@ -111,9 +111,46 @@ are preserved.
 
 ### Browser comparison
 
-End-to-end measurements are in progress. No frame-rate improvement is claimed
-until the corresponding candidate measurements and browser quality results are
-recorded. See the [browser benchmark instructions](../tests/UnoDraw.BrowserPerformance/README.md)
+The complete candidate matrix remains a required gate. The first full matrix
+at `721100083ecba804303ed738afee29bf2d7d265c` retained all 90 primary trials;
+11 workload/backend shards passed, while the WebGPU edit shard failed its image
+gate because capture preceded completion of the deselection UI. It is recorded
+as a failed aggregate. The capture now waits for the native selection label and
+stable edited artwork outside the timed interval, with the original thresholds.
+
+The separate [same-artifact experiment](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43238627133)
+at `c2b7c2dc8eb6e44a68b9851d4d5f44978b2e67ba` completed three alternating
+trials per bridge for each workload, with 120 trusted inputs and no input tail
+in every trial. Both sides use the same Release AOT package and SwiftShader
+runner. [Audited measurements](benchmarks/unodraw-bridge-experiment-2026-11-12.json)
+preserve input/callback counts, exact source, per-mode medians and separate
+instrumented diagnostics.
+
+| Workload | Metric | Persistent CPU bridge | WebGL document bridge |
+| --- | --- | ---: | ---: |
+| Pan | Median elapsed time, 120 inputs | 73.604 s | 76.695 s |
+| Pan | Median task duration per input | 213.924 ms | 539.410 ms |
+| Pan | Median active main-thread CPU, entire trial | 21.062 s | 1.472 s |
+| Zoom | Median elapsed time, 120 inputs | 70.809 s | 68.954 s |
+| Zoom | Median task duration per input | 193.371 ms | 124.686 ms |
+| Zoom | Median active main-thread CPU, entire trial | 19.062 s | 2.179 s |
+
+Task duration can include blocking inside a browser task and is not equivalent
+to executed thread CPU. The instrumented pan document-paint total fell from
+24,427 ms to 236.5 ms, while primary trial task duration increased and overall
+cadence did not improve. Browser readback or synchronization outside the painter
+is a plausible explanation; these metrics do not isolate the duration of each
+external image copy. External copies also have no measured supplied-buffer byte
+count, so smaller counted upload buffers do not establish lower total bandwidth.
+
+The experiment passed all nine paired DPR 1 images per workload, but its separate
+native-size AOT quality matrix passed only 29/30 pairs: DPR 2 actual-size text
+exceeded the unchanged luminance-12/fraction-0.001 limit. This version is neither
+a quality-qualified speedup nor a reason to select the GPU bridge by default.
+Later glyph-preserving changes and the single-surface experiment require new
+browser evidence. Software GPU measurements do not establish hardware throughput.
+
+See the [browser benchmark instructions](../tests/UnoDraw.BrowserPerformance/README.md)
 for exact workloads, metric definitions, controls and reproduction commands.
 
 ## Implementation under measurement
@@ -217,6 +254,51 @@ inside `copyExternalImageToTexture`. Separate same-package CPU/GPU pan and zoom
 trials measure the resulting tradeoff. Their report kind is distinct from the
 three-revision application benchmark and cannot be merged into its coverage.
 
+The large-text quality failure is caused by the GPU painter selecting a different
+glyph representation at large device sizes. The glyph-preserving experiment
+records the existing model commands into a live `SKDrawable`; each text leaf is
+painted through its unchanged BGRA text picture at the live device matrix, then
+composed at one image pixel per device pixel. Text shaping, font selection,
+hinting, paint effects and gamma remain with the original renderer. Tight native
+R-tree paint bounds size each tile, and equal phase/scale/size reuse its immutable
+image. Shapes continue through the existing GPU model painter.
+
+The optional model callback runs inside `SKSvg.Draw`'s protected draw lifetime
+and viewer transform, after its original wireframe/animation handling. Callback
+state is restored on success, decline or failure; the default path adds no
+delegate or disposable allocation. The canvas callback replaces only the SVG
+draw within the existing artboard and feedback order. Native callbacks capture
+errors for the managed caller to handle before transferring the GPU image.
+Unsupported document semantics and exhausted tile budgets use the original CPU
+frame. These safeguards and native prototype comparisons do not replace the
+browser quality or total-throughput gates.
+
+### Single-surface cached document experiment
+
+`?canvasBridge=composite` keeps the CPU painter and persistent upload, but stores
+the exact last BGRA document pixels. Interaction-only frames restore those pixels
+with a native memory copy and draw the original feedback painter over them. One
+full-resolution image reaches the compositor, avoiding the second full-viewport
+transparent image used by the separated interaction surface. There is no image
+resampling, raster-scale reduction, gamma change or substituted SVG painter.
+
+An exclusive public canvas-layer lease carries the original document/interaction
+paint order and current content/camera stamp. Ordinary full host invalidation
+still discards the cached document, including calls through the base canvas type.
+Logical size, DPR and physical size changes, zero size, unload, context loss and
+bridge fallback discard the retained pixels. Unload and bridge fallback also
+release the painter lease. The experiment uses one extra BGRA document bitmap;
+it trades a native pixel copy for the second composition layer and must be
+evaluated by measured total throughput.
+
+The actual cache/upload helper passes 72 scene/DPR/camera rows with six changing
+or removed-feedback frames compared byte-for-byte in every row, plus native
+premultiplied-byte, row-stride/format and resize/release cases. Browser acceptance
+still requires the unchanged native-pixel matrix. A distinct same-AOT hover
+experiment alternates persistent/composite trials and requires actual cache
+reuse, no fallback, 120 trusted inputs, no trailing inputs, and zero Document
+paints with positive Interaction paints in the separate diagnostic pass.
+
 ### Retained panel and inspector work
 
 The same `7211000` AOT artifact's separate Skia diagnostic passes identify a
@@ -264,7 +346,7 @@ Those callback scopes include synchronous native Skia work. Subsequent texture
 transfer, compositor submission and physical GPU/display completion are separate
 costs; a completed CPU render callback is not a presented-frame measurement.
 
-The separate [SVG document quality gate](../tests/UnoDraw.BrowserRenderQuality/SVG_SCENES.md)
+The separate [SVG document quality gate](https://github.com/wieslawsoltes/Svg.Skia/blob/master/tests/UnoDraw.BrowserRenderQuality/SVG_SCENES.md)
 edits eight canonical SVG scenes through the production source dialog. It checks
 gradients, filters, masks, clipping, patterns, text, images and opacity/strokes
 for both rasterizers at DPR 1, 1.25 and 2. Scene-specific anchors, semantic source

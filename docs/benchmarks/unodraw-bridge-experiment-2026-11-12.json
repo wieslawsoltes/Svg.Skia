@@ -1,0 +1,342 @@
+{
+  "workflow_run_id": 43238627133,
+  "candidate_application_source_sha": "c2b7c2dc8eb6e44a68b9851d4d5f44978b2e67ba",
+  "quality_qualified_speedup": false,
+  "quality_blocker": {
+    "job_id": 131271180100,
+    "artifact_id": 13955284987,
+    "case": "DPR2 02-actual-size",
+    "native_comparisons_passed": 29,
+    "native_comparisons_expected": 30,
+    "whole_frame_changed_fraction": 0.0011304615162037036,
+    "document_changed_fraction": 0.0021125730994152048,
+    "unchanged_maximum_fraction": 0.001,
+    "unchanged_luminance_threshold": 12
+  },
+  "interpretation": [
+    "ThreadTime records executed main-thread CPU; TaskDuration can include time blocked inside a task.",
+    "The WebGL document painter is much cheaper on the main thread, but pan TaskDuration increases and neither measured workload shows a substantial wall-cadence gain.",
+    "Increased pan task time with falling ThreadTime and paint time is consistent with browser/GPU readback or synchronization outside the painter; this is an inference, not a per-copy duration measurement.",
+    "External copy counts do not provide byte counts; supplied upload bytes omit those transfers.",
+    "Both modes use identical source/SDK/workload/AOT/package/browser settings on each paired runner. SwiftShader software graphics do not establish hardware throughput.",
+    "Callbacks and target graphics submissions are not proof of physical presentation or fresh input pixels."
+  ],
+  "experiments": [
+    {
+      "workload": "pan",
+      "timing_report_passed": true,
+      "source_sha": "c2b7c2dc8eb6e44a68b9851d4d5f44978b2e67ba",
+      "primary_runs": 6,
+      "separate_diagnostic_runs": 2,
+      "paired_native_DPR1_comparisons": 9,
+      "roles": {
+        "persistent": {
+          "task_ms_per_input": 213.92388333333335,
+          "elapsed_seconds": 73.60379999999994,
+          "operations_per_second": 1.630350606898015,
+          "thread_seconds": 21.061989,
+          "input_counts": [
+            120,
+            120,
+            120
+          ],
+          "callback_counts": [
+            232,
+            233,
+            235
+          ],
+          "graphic_submission_counts": [
+            232,
+            233,
+            235
+          ],
+          "tails": [
+            {
+              "graphics": 0,
+              "completed_callback": 0
+            },
+            {
+              "graphics": 0,
+              "completed_callback": 0
+            },
+            {
+              "graphics": 0,
+              "completed_callback": 0
+            }
+          ],
+          "external_copy_counts": [
+            0,
+            0,
+            0
+          ],
+          "diagnostic_phases": [
+            {
+              "phase": "Document",
+              "count": 121,
+              "totalMilliseconds": 24427.399994,
+              "maxMilliseconds": 367.299999,
+              "allocatedBytes": 13552
+            },
+            {
+              "phase": "Interaction",
+              "count": 121,
+              "totalMilliseconds": 28.800009,
+              "maxMilliseconds": 3.7,
+              "allocatedBytes": 17424
+            },
+            {
+              "phase": "Ruler",
+              "count": 240,
+              "totalMilliseconds": 192.400009,
+              "maxMilliseconds": 5.6,
+              "allocatedBytes": 1845240
+            },
+            {
+              "phase": "Navigator",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            }
+          ],
+          "diagnostic_allocated_bytes": 34954704
+        },
+        "webgl": {
+          "task_ms_per_input": 539.4096916666666,
+          "elapsed_seconds": 76.69530000000005,
+          "operations_per_second": 1.564633034879581,
+          "thread_seconds": 1.472188,
+          "input_counts": [
+            120,
+            120,
+            120
+          ],
+          "callback_counts": [
+            244,
+            244,
+            242
+          ],
+          "graphic_submission_counts": [
+            244,
+            244,
+            242
+          ],
+          "tails": [
+            {
+              "graphics": 0,
+              "completed_callback": 0
+            },
+            {
+              "graphics": 0,
+              "completed_callback": 0
+            },
+            {
+              "graphics": 0,
+              "completed_callback": 0
+            }
+          ],
+          "external_copy_counts": [
+            121,
+            121,
+            121
+          ],
+          "diagnostic_phases": [
+            {
+              "phase": "Document",
+              "count": 121,
+              "totalMilliseconds": 236.5,
+              "maxMilliseconds": 6.4,
+              "allocatedBytes": 13552
+            },
+            {
+              "phase": "Interaction",
+              "count": 121,
+              "totalMilliseconds": 10.3,
+              "maxMilliseconds": 0.3,
+              "allocatedBytes": 17424
+            },
+            {
+              "phase": "Ruler",
+              "count": 240,
+              "totalMilliseconds": 160.1,
+              "maxMilliseconds": 4.5,
+              "allocatedBytes": 1845240
+            },
+            {
+              "phase": "Navigator",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            }
+          ],
+          "diagnostic_allocated_bytes": 29407424
+        }
+      },
+      "webgl_over_persistent": {
+        "task_ms_per_input": 2.5215028974869798,
+        "elapsed_seconds": 1.0420019075102116,
+        "operations_per_second": 0.9596911414389133,
+        "thread_seconds": 0.06989786197305488
+      }
+    },
+    {
+      "workload": "zoom",
+      "timing_report_passed": true,
+      "source_sha": "c2b7c2dc8eb6e44a68b9851d4d5f44978b2e67ba",
+      "primary_runs": 6,
+      "separate_diagnostic_runs": 2,
+      "paired_native_DPR1_comparisons": 9,
+      "roles": {
+        "persistent": {
+          "task_ms_per_input": 193.37091666666666,
+          "elapsed_seconds": 70.8085,
+          "operations_per_second": 1.69471179307569,
+          "thread_seconds": 19.062224,
+          "input_counts": [
+            120,
+            120,
+            120
+          ],
+          "callback_counts": [
+            258,
+            262,
+            277
+          ],
+          "graphic_submission_counts": [
+            258,
+            262,
+            277
+          ],
+          "tails": [
+            {
+              "graphics": 0,
+              "completed_callback": 0
+            },
+            {
+              "graphics": 0,
+              "completed_callback": 0
+            },
+            {
+              "graphics": 0,
+              "completed_callback": 0
+            }
+          ],
+          "external_copy_counts": [
+            0,
+            0,
+            0
+          ],
+          "diagnostic_phases": [
+            {
+              "phase": "Document",
+              "count": 112,
+              "totalMilliseconds": 24443.8,
+              "maxMilliseconds": 432.9,
+              "allocatedBytes": 12544
+            },
+            {
+              "phase": "Interaction",
+              "count": 112,
+              "totalMilliseconds": 23.3,
+              "maxMilliseconds": 1,
+              "allocatedBytes": 16128
+            },
+            {
+              "phase": "Ruler",
+              "count": 224,
+              "totalMilliseconds": 163.6,
+              "maxMilliseconds": 8.8,
+              "allocatedBytes": 1405128
+            },
+            {
+              "phase": "Navigator",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            }
+          ],
+          "diagnostic_allocated_bytes": 32961680
+        },
+        "webgl": {
+          "task_ms_per_input": 124.68622500000001,
+          "elapsed_seconds": 68.95379999999993,
+          "operations_per_second": 1.740295676235394,
+          "thread_seconds": 2.17909,
+          "input_counts": [
+            120,
+            120,
+            120
+          ],
+          "callback_counts": [
+            282,
+            281,
+            279
+          ],
+          "graphic_submission_counts": [
+            282,
+            281,
+            279
+          ],
+          "tails": [
+            {
+              "graphics": 0,
+              "completed_callback": 0
+            },
+            {
+              "graphics": 0,
+              "completed_callback": 0
+            },
+            {
+              "graphics": 0,
+              "completed_callback": 0
+            }
+          ],
+          "external_copy_counts": [
+            112,
+            112,
+            112
+          ],
+          "diagnostic_phases": [
+            {
+              "phase": "Document",
+              "count": 112,
+              "totalMilliseconds": 389.300006,
+              "maxMilliseconds": 9,
+              "allocatedBytes": 12544
+            },
+            {
+              "phase": "Interaction",
+              "count": 112,
+              "totalMilliseconds": 14.399995,
+              "maxMilliseconds": 0.300001,
+              "allocatedBytes": 16128
+            },
+            {
+              "phase": "Ruler",
+              "count": 224,
+              "totalMilliseconds": 128.700002,
+              "maxMilliseconds": 4.700001,
+              "allocatedBytes": 1405128
+            },
+            {
+              "phase": "Navigator",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            }
+          ],
+          "diagnostic_allocated_bytes": 29036624
+        }
+      },
+      "webgl_over_persistent": {
+        "task_ms_per_input": 0.6448034024420254,
+        "elapsed_seconds": 0.9738068169781867,
+        "operations_per_second": 1.026897719922616,
+        "thread_seconds": 0.11431457315788546
+      }
+    }
+  ]
+}
