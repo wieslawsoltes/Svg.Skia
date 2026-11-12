@@ -338,7 +338,9 @@ jobs:
     name: SVG document ${{ matrix.bridge }} quality (eight scenes, DPR 1, 1.25, 2)
     needs: publish
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # The native DPR2 CPU source-editor cases take about 2.5 minutes each on
+    # SwiftShader. Keep all 48 cases and 72 comparisons within the job budget.
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -393,6 +395,7 @@ jobs:
           - { workload: pan, bridge: graphite }
           - { workload: zoom, bridge: graphite }
           - { workload: brush-hover, bridge: composite }
+          - { workload: selection, bridge: composite }
     steps:
       - uses: actions/checkout@v4
         with:

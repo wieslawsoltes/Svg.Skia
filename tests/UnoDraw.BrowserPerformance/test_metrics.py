@@ -5,7 +5,8 @@ import math
 import unittest
 
 from metrics import (comparisons, distribution, graphite_submission_delta, intervals, summarize,
-                     require_graphite_queue_drain, validate_packages, verify_hover_isolation)
+                     require_graphite_queue_drain, validate_packages, verify_hover_isolation,
+                     verify_interaction_isolation)
 
 
 def observation() -> dict:
@@ -200,6 +201,20 @@ class MeasurementTests(unittest.TestCase):
         for document, interaction in ((1, 120), (0, 0), (1, 0)):
             with self.subTest(document=document, interaction=interaction), self.assertRaises(AssertionError):
                 verify_hover_isolation(snapshot(document, interaction))
+
+    def test_selection_isolation_requires_retained_document_and_real_interaction_counts(self) -> None:
+        valid = {"phases": [{"phase": "Document", "count": 0}, {"phase": "Interaction", "count": 121}]}
+        verify_interaction_isolation(valid, "selection")
+        for phase, count in (("Document", 1), ("Document", False), ("Interaction", 0),
+                             ("Interaction", None), ("Interaction", True), ("Interaction", float("nan"))):
+            changed = copy.deepcopy(valid)
+            next(value for value in changed["phases"] if value["phase"] == phase)["count"] = count
+            with self.subTest(phase=phase, count=count), self.assertRaises(AssertionError):
+                verify_interaction_isolation(changed, "selection")
+        with self.assertRaises(AssertionError):
+            verify_interaction_isolation({"phases": []}, "selection")
+        with self.assertRaises(ValueError):
+            verify_interaction_isolation(valid, "pan")
 
     def test_comparison_rejects_changed_fixture_toolchain_and_interpreter_build(self) -> None:
         packages = [package("baseline"), package("candidate"), package("reference")]

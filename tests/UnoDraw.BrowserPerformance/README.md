@@ -311,6 +311,37 @@ python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
   --output /absolute/path/webgl-pan-experiment --workload pan --repeats 3
 ```
 
+### Same-artifact cached document composition
+
+`?canvasBridge=composite` restores full-resolution cached BGRA document pixels,
+paints the unchanged interaction feedback, and uploads one combined canvas
+texture. Its two independent workloads compare `persistent` versus `composite`
+for brush hover and selection. Each workload retains three alternating pairs,
+two separate diagnostic passes and the existing native before/after/restored
+image comparisons in one AOT package.
+
+Brush hover requires all 120 offered moves and trusted inputs. Selection uses
+the existing driver unchanged: 120 configured steps become **121 real alternating
+Ctrl+A / Ctrl+Shift+A commands**, ending with a visible selection. Both its
+reported operations and trusted input count must be 121. The original proof
+requires at least 50 changed document pixels, followed by restoration of the
+document and rulers within the original 0.001 changed-pixel fraction. Missing or
+stale readiness/restore evidence fails the experiment; no timing boundary or
+pixel tolerance is changed. Both workloads require zero unobserved input tails,
+actual cached-document reuse and no fallback. Each mode's diagnostic pass must
+record **Document=0 and Interaction>0** after the existing setup and warmup.
+
+```sh
+python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
+  --package /absolute/path/packages/candidate \
+  --output /absolute/path/composite-hover-experiment \
+  --candidate-bridge composite --workload brush-hover --repeats 3
+python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
+  --package /absolute/path/packages/candidate \
+  --output /absolute/path/composite-selection-experiment \
+  --candidate-bridge composite --workload selection --repeats 3
+```
+
 ### Direct Graphite document experiment
 
 `?canvasBridge=graphite` is a separate opt-in path that records Skia document
@@ -345,8 +376,8 @@ python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
 
 Run `--workload zoom` as its own matched job. The selected GPU painter also runs
 the independent [eight-scene native SVG gate](../UnoDraw.BrowserRenderQuality/SVG_SCENES.md).
-The `composite` experiment retains its separate `--workload brush-hover` scope;
-it requires real cached-document reuse and zero steady-state document paints.
+The `composite` experiment retains its separate brush-hover and selection scopes;
+both require real cached-document reuse and zero steady-state document paints.
 These experiments never replace the complete baseline/candidate matrix.
 
 ### Post-window backlog diagnostics

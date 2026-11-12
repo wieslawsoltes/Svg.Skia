@@ -17,10 +17,13 @@ from quality import (COMPOSITE_INITIALIZED, COMPOSITE_PREFERENCE, COMPOSITE_REUS
 SHA = "a" * 40
 
 
-def runs(*, diagnostics: bool = False, candidate_bridge: str = "webgl") -> list[dict]:
+def runs(*, diagnostics: bool = False, candidate_bridge: str = "webgl",
+         workload: str | None = None) -> list[dict]:
+    workload = workload or ("brush-hover" if candidate_bridge == "composite" else "pan")
+    operations = 121 if workload == "selection" else 120
     plan = [(1, bridge) for bridge in bridge_pair(candidate_bridge)] if diagnostics else trial_plan(3, candidate_bridge)
     return [{"passed": True, "source_sha": SHA, "backend": "webgpu",
-             "workload": "brush-hover" if candidate_bridge == "composite" else "pan",
+             "workload": workload,
              "trial": trial, "canvas_bridge": bridge, "diagnostic_pass": diagnostics,
              "console": [{"text": PERSISTENT_INITIALIZED}] + (
                  [{"text": WEBGL_PREFERENCE}, {"text": WEBGL_INITIALIZED}] if bridge == "webgl" else
@@ -28,11 +31,14 @@ def runs(*, diagnostics: bool = False, candidate_bridge: str = "webgl") -> list[
                  [{"text": COMPOSITE_PREFERENCE}, {"text": COMPOSITE_INITIALIZED}, {"text": COMPOSITE_REUSED}]
                  if bridge == "composite" else []),
              "managed_render_diagnostics": {"after": {"phases": [
-                 {"phase": "Document", "count": 0}, {"phase": "Interaction", "count": 120}]}},
+                 {"phase": "Document", "count": 0}, {"phase": "Interaction", "count": operations}]}},
+             "quality": {"changed_document_pixels": 50, "minimum_changed_pixels": 50,
+                         "restored": {"changed_pixel_fraction": 0,
+                                      "ruler_changed_pixel_fraction": {"horizontal": 0, "vertical": 0}}},
              "graphite_queue_drain": {"available": True, "result": {
                  "completed": True, "queueCount": 1, "duration_ms": 0, "errors": []}}
                  if bridge == "graphite" else {"available": False},
-             "metrics": {"operations": 120, "input_events": 120, "inputs_without_later_graphics": 0,
+             "metrics": {"operations": operations, "input_events": operations, "inputs_without_later_graphics": 0,
                          "inputs_without_completed_render_callback": 0,
                          "completed_render_callbacks": 240, "webgpu_canvas_submissions": 240,
                          "graphics_api_calls": {"webgpu.copyExternalImageToTexture": 120} if bridge == "webgl" else {},
@@ -197,21 +203,68 @@ class BridgeExperimentTests(unittest.TestCase):
             with self.subTest(defect=defect), self.assertRaises((ValueError, AssertionError)):
                 verify_runs(values, 3, SHA, "brush-hover", diagnostics=True, candidate_bridge="composite")
 
+    def test_composite_selection_preserves_odd_input_count_visual_readiness_and_source(self) -> None:
+        for diagnostics in (False, True):
+            original = runs(diagnostics=diagnostics, candidate_bridge="composite", workload="selection")
+            verify_runs(original, 3, SHA, "selection", diagnostics=diagnostics, candidate_bridge="composite")
+            for bridge in bridge_pair("composite"):
+                for defect in ("source", "failed", "workload", "operations", "inputs", "graphics_tail", "callback_tail",
+                               "no_visual_proof", "no_selected_pixels", "wrong_minimum", "no_restore", "stale_restore",
+                               "unsettled_ruler"):
+                    values = copy.deepcopy(original)
+                    target = next(value for value in values if value["canvas_bridge"] == bridge)
+                    if defect in {"source", "failed", "workload"}:
+                        key, value = {"source": ("source_sha", "b" * 40), "failed": ("passed", False),
+                                      "workload": ("workload", "brush-hover")}[defect]
+                        target[key] = value
+                    elif defect in {"operations", "inputs", "graphics_tail", "callback_tail"}:
+                        key = {"operations": "operations", "inputs": "input_events",
+                               "graphics_tail": "inputs_without_later_graphics",
+                               "callback_tail": "inputs_without_completed_render_callback"}[defect]
+                        target["metrics"][key] = 120 if defect in {"operations", "inputs"} else 1
+                    elif defect == "no_visual_proof":
+                        target.pop("quality")
+                    elif defect == "no_selected_pixels":
+                        target["quality"]["changed_document_pixels"] = 49
+                    elif defect == "wrong_minimum":
+                        target["quality"]["minimum_changed_pixels"] = 0
+                    elif defect == "no_restore":
+                        target["quality"].pop("restored")
+                    elif defect == "stale_restore":
+                        target["quality"]["restored"]["changed_pixel_fraction"] = 0.0011
+                    else:
+                        target["quality"]["restored"]["ruler_changed_pixel_fraction"]["horizontal"] = 0.0011
+                    with self.subTest(diagnostics=diagnostics, bridge=bridge, defect=defect), self.assertRaises(ValueError):
+                        verify_runs(values, 3, SHA, "selection", diagnostics=diagnostics, candidate_bridge="composite")
+
+    def test_composite_selection_requires_retained_document_in_both_diagnostic_modes(self) -> None:
+        original = runs(diagnostics=True, candidate_bridge="composite", workload="selection")
+        for bridge in bridge_pair("composite"):
+            for phase, count in (("Document", 1), ("Interaction", 0)):
+                values = copy.deepcopy(original)
+                target = next(value for value in values if value["canvas_bridge"] == bridge)
+                next(value for value in target["managed_render_diagnostics"]["after"]["phases"]
+                     if value["phase"] == phase)["count"] = count
+                with self.subTest(bridge=bridge, phase=phase), self.assertRaises(AssertionError):
+                    verify_runs(values, 3, SHA, "selection", diagnostics=True, candidate_bridge="composite")
+
     def test_workloads_must_exercise_the_selected_optimization(self) -> None:
-        for bridge, workload in (("webgl", "pan"), ("webgl", "zoom"), ("composite", "brush-hover"),
+        for bridge, workload in (("webgl", "pan"), ("webgl", "zoom"), ("composite", "brush-hover"), ("composite", "selection"),
                                  ("graphite", "pan"), ("graphite", "zoom")):
             verify_experiment_workload(workload, bridge)
         for bridge, workload in (("webgl", "brush-hover"), ("composite", "pan"), ("composite", "zoom"),
-                                 ("graphite", "brush-hover"), ("persistent", "brush-hover"), ("unknown", "pan")):
+                                 ("webgl", "selection"), ("graphite", "selection"), ("graphite", "brush-hover"),
+                                 ("persistent", "brush-hover"), ("unknown", "pan")):
             with self.subTest(bridge=bridge, workload=workload), self.assertRaises(ValueError):
                 verify_experiment_workload(workload, bridge)
 
     def test_saved_summary_names_the_actual_pair_and_survives_partial_failure(self) -> None:
         from bridge_experiment import save_report
 
-        for candidate_bridge in ("webgl", "composite", "graphite"):
-            with self.subTest(candidate_bridge=candidate_bridge), tempfile.TemporaryDirectory() as temporary:
-                diagnostic = runs(diagnostics=True, candidate_bridge=candidate_bridge)
+        for candidate_bridge, workload in (("webgl", "pan"), ("composite", "brush-hover"),
+                                           ("composite", "selection"), ("graphite", "pan")):
+            with self.subTest(candidate_bridge=candidate_bridge, workload=workload), tempfile.TemporaryDirectory() as temporary:
+                diagnostic = runs(diagnostics=True, candidate_bridge=candidate_bridge, workload=workload)
                 for run in diagnostic:
                     for phase in run["managed_render_diagnostics"]["after"]["phases"]:
                         phase.update({"totalMilliseconds": 2.5, "allocatedBytes": 512})
@@ -221,17 +274,21 @@ class BridgeExperimentTests(unittest.TestCase):
                         "completed": True, "queueCount": 1, "duration_ms": 10.125, "errors": []}}
                         if run["canvas_bridge"] == "graphite" else {"available": False})
                 report = {"started_unix": 0, "candidate_bridge": candidate_bridge, "candidate_source_sha": SHA,
-                          "workload": "brush-hover" if candidate_bridge == "composite" else "pan",
+                          "workload": workload,
                           "repeats": 3, "passed": True, "bridge_diagnostics": diagnostic,
-                          "bridge_runs": runs(candidate_bridge=candidate_bridge),
-                          "metric_comparisons": compare_metrics(runs(candidate_bridge=candidate_bridge), candidate_bridge)}
+                          "bridge_runs": runs(candidate_bridge=candidate_bridge, workload=workload),
+                          "metric_comparisons": compare_metrics(
+                              runs(candidate_bridge=candidate_bridge, workload=workload), candidate_bridge)}
                 output = Path(temporary)
                 save_report(report, output)
                 text = (output / "summary.md").read_text()
                 self.assertIn(f"canvasBridge=persistent/{candidate_bridge}", text)
                 self.assertIn("Task wall time / operation (ms; historical key)", text)
                 self.assertIn("ThreadTime separately measures", text)
-                self.assertIn(f"| {candidate_bridge} | Interaction | 120 | 2.500 | 512 |", text)
+                count = 121 if workload == "selection" else 120
+                self.assertIn(f"| {candidate_bridge} | Interaction | {count} | 2.500 | 512 |", text)
+                if workload == "selection":
+                    self.assertIn("121 real alternating selection commands", text)
                 if candidate_bridge == "graphite":
                     self.assertIn("| 1 | False | 120 | 240 | 0 |", text)
                     self.assertIn("| graphite | 1 | True | 150.250 | 250.500 | 10.125 |", text)

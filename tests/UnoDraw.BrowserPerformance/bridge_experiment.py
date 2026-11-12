@@ -42,7 +42,12 @@ def save_report(report: dict[str, Any], output: Path) -> None:
         lines += ["The composite mode restores exact full-resolution cached BGRA document pixels before "
                   "painting interaction feedback and uploading one combined canvas texture. It tests the cost "
                   "of the additional retained interaction texture. Both modes must retain the document during "
-                  "steady hover; cache-reuse console evidence and separate managed counters are required.", ""]
+                  "this workload; cache-reuse console evidence and separate managed counters are required.", ""]
+        if report["workload"] == "selection":
+            lines += ["The existing selection driver turns 120 configured steps into 121 real alternating selection "
+                      "commands, ending with a visible selection. Each trial requires all 121 operations and trusted "
+                      "inputs, zero unobserved tails, the existing visible-overlay proof and exact original restore gates. "
+                      "Both separate diagnostic passes require zero document paints and positive interaction paints.", ""]
     elif candidate_bridge == "graphite":
         lines += ["Graphite records and submits the document directly into the Uno texture on the shared WebGPU queue. "
                   "Each measured trial requires a positive delta of successful document submissions and no external-image copies. "
@@ -103,7 +108,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--workload", choices=WORKLOADS, required=True)
     parser.add_argument("--candidate-bridge", choices=CANDIDATE_BRIDGES, default="webgl",
-                        help="WebGL/Graphite document rasterization for pan/zoom, or cached composition for brush-hover")
+                        help="WebGL/Graphite for pan/zoom, or cached composition for brush-hover/selection")
     parser.add_argument("--repeats", type=int, default=3)
     args = parser.parse_args()
     try:

@@ -147,9 +147,18 @@ def validate_packages(packages: list[dict[str, Any]], *,
 
 
 def verify_hover_isolation(snapshot: dict[str, Any]) -> None:
+    verify_interaction_isolation(snapshot, "brush-hover")
+
+
+def verify_interaction_isolation(snapshot: dict[str, Any], workload: str) -> None:
+    if workload not in {"brush-hover", "selection"}:
+        raise ValueError("Document retention is required for brush-hover or selection feedback")
     phases = {phase["phase"]: phase for phase in snapshot["phases"]}
-    if phases.get("Document", {}).get("count") != 0 or phases.get("Interaction", {}).get("count", 0) <= 0:
-        raise AssertionError("Brush hover must repaint the interaction layer without repainting the SVG document")
+    document = phases.get("Document", {}).get("count")
+    interaction = phases.get("Interaction", {}).get("count")
+    if (type(document) is not int or document != 0
+            or type(interaction) is not int or interaction <= 0):
+        raise AssertionError(f"{workload} must repaint the interaction layer without repainting the SVG document")
 
 
 def comparisons(runs: list[dict[str, Any]]) -> list[dict[str, Any]]:

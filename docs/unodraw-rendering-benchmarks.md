@@ -153,9 +153,17 @@ all 30 native-size comparisons pass at DPR 1/1.25/2. The previously failing DPR 
 actual-size document region now has a changed-pixel fraction of 0.0000651 under
 the original luminance-12 gate, versus the unchanged 0.001 limit. Its independent
 composite matrix also passes 30/30 comparisons with zero pixels above that
-luminance threshold in every compared region. AOT, the eight-scene matrix and
-total-throughput evidence remain separate gates. Software GPU measurements do
-not establish hardware throughput.
+luminance threshold in every compared region. Its AOT composite job
+[`131331896439`](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/job/131331896439)
+independently passes all six cases and 30 comparisons, with actual cache reuse
+and no fallback or page/resource errors. Recomputing the native PNG comparisons
+finds zero pixels above luminance 12 in every region; the maximum individual RGB
+channel difference is 6/255, so browser output is not claimed byte-identical.
+The AOT WebGL job completes five of six cases and 20 of 30 comparisons before a
+DPR 2 startup screenshot times out. Its diagnostic screenshot contains the full
+artwork, but cannot replace the missing accepted lifecycle states. The remaining
+AOT cases, eight-scene matrix and total-throughput evidence remain separate
+gates. Software GPU measurements do not establish hardware throughput.
 
 The retained-panel candidate `a44ec76199b7dd2ab3fb13032a730353907b7d82`
 provides a measured improvement for editing and selection on Skia/WebGL. Its
@@ -338,6 +346,18 @@ transforms, with identical renderer assemblies and fonts. These are dependency
 and native pixel checks; the real Uno browser build and GPU output remain
 separate required gates.
 
+The first actual Graphite browser job at `5d392b3` links and initializes the
+shared target successfully, but its startup artwork gate fails: Skia's Graphite
+device implements canvas
+[`drawDrawable` as an empty operation](https://github.com/mono/skia/blob/d1717dc22ef2203b7fc9bf0e01078b37b1a4af6b/src/gpu/graphite/Device.h#L254).
+The artboard
+paints while the SVG drawable disappears. The corrected Graphite path replays
+the same validated model commands through the existing converter and invokes
+each retained text leaf's `SKDrawable.Draw` directly. It preserves active clips,
+layers and the outer device/viewport/viewer matrix; the recorded Ganesh path is
+unchanged. Native replay equivalence is checked separately from the mandatory
+new Graphite browser captures.
+
 One Graphite context is shared per Uno device. Each document canvas owns its
 recorder, image provider and target wrapper. Image caching is bounded, and failed
 image conversion rejects the whole Graphite frame instead of silently dropping
@@ -345,6 +365,14 @@ content. Unsupported document semantics discard an unsubmitted recording and
 use the existing CPU painter. An insertion or submission failure disables reuse
 of the shared context because partially encoded commands must never be submitted
 after a CPU fallback has overwritten the target.
+
+Discarding a recording also clears its image-provider cache. Dawn image
+conversion [queues uploads inside that recording](https://github.com/mono/skia/blob/d1717dc22ef2203b7fc9bf0e01078b37b1a4af6b/src/gpu/graphite/TextureUtils.cpp#L318-L342)
+and can return a texture image
+before the upload executes. Retaining such an image after discarding its upload
+would reuse uninitialized pixels on the next frame. Cache invalidation keeps the
+same recorder-owned provider and its sticky failure state; it does not replace
+the native callback target.
 
 Native cleanup waits asynchronously for the shared queue and then polls Skia's
 completion callbacks before releasing the recorder and context. Synchronous
@@ -389,6 +417,11 @@ still requires the unchanged native-pixel matrix. A distinct same-AOT hover
 experiment alternates persistent/composite trials and requires actual cache
 reuse, no fallback, 120 trusted inputs, no trailing inputs, and zero Document
 paints with positive Interaction paints in the separate diagnostic pass.
+
+The selection comparison uses the existing 121-toggle workload, including its
+final visible selection. It keeps the same timing boundaries, real input counts,
+before/after/restore pixel gates and zero-document/positive-interaction diagnostic
+requirements. Its results must be evaluated independently from hover.
 
 ### Retained panel and inspector work
 
@@ -443,3 +476,14 @@ gradients, filters, masks, clipping, patterns, text, images and opacity/strokes
 for both rasterizers at DPR 1, 1.25 and 2. Scene-specific anchors, semantic source
 readback and alpha-over-matte color checks reject blank, stale or incorrectly
 premultiplied output before the unchanged native-pixel comparison is scored.
+
+The earlier `a44ec76` WebGL scene job reached its 45-minute job limit after 38 of
+48 cases. All 48 available paired comparisons at DPR 1/1.25 were recomputed:
+41 pass and seven filter, mask or pattern comparisons exceed the unchanged
+threshold. These failures concern non-text shape/stroke edges, not blank
+documents or fallback. Reconstructed native camera probes reproduce several
+differences with both Skia 4.151.1 and 4.156.0, while the shared document helper
+matches the original painter byte-for-byte on the same native backend. Those
+probes do not establish the exact browser clip phase or predict Graphite output.
+The full scene job now has a 90-minute budget to preserve all 48 cases and 72
+comparisons; missing cases and above-threshold pixels remain failures.

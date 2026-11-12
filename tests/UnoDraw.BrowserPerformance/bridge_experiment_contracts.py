@@ -11,11 +11,11 @@ from pathlib import Path
 from typing import Any
 
 from quality import verify_bridge
-from metrics import require_graphite_queue_drain, verify_hover_isolation
+from metrics import require_graphite_queue_drain, verify_interaction_isolation
 
 
 CANDIDATE_BRIDGES = ("webgl", "composite", "graphite")
-WORKLOADS = ("pan", "zoom", "brush-hover")
+WORKLOADS = ("pan", "zoom", "brush-hover", "selection")
 STATES = ("before", "after", "restored")
 
 
@@ -27,7 +27,7 @@ def bridge_pair(candidate_bridge: str = "webgl") -> tuple[str, str]:
 
 def verify_experiment_workload(workload: str, candidate_bridge: str) -> None:
     bridge_pair(candidate_bridge)
-    supported = ("pan", "zoom") if candidate_bridge in {"webgl", "graphite"} else ("brush-hover",)
+    supported = ("pan", "zoom") if candidate_bridge in {"webgl", "graphite"} else ("brush-hover", "selection")
     if workload not in supported:
         raise ValueError(f"The {candidate_bridge} experiment requires one of: {', '.join(supported)}")
 
@@ -72,10 +72,14 @@ def verify_runs(runs: list[dict[str, Any]], repeats: int, source_sha: str,
                 or run.get("diagnostic_pass") is not diagnostics):
             raise ValueError("A bridge trial failed or changed source, workload, backend or diagnostic mode")
         metrics = run.get("metrics", {})
+        # The unchanged selection driver makes the configured even step count
+        # odd, ending with visible selection feedback that a no-op cannot pass.
+        operations = 121 if workload == "selection" else 120
         if any(metrics.get(key) != value for key, value in {
-                "operations": 120, "input_events": 120, "inputs_without_later_graphics": 0,
+                "operations": operations, "input_events": operations, "inputs_without_later_graphics": 0,
                 "inputs_without_completed_render_callback": 0}.items()):
-            raise ValueError("Each bridge trial requires all 120 trusted inputs and no unobserved input tail")
+            raise ValueError(f"Each {workload} bridge trial requires {operations} operations and trusted inputs "
+                             "with no unobserved input tail")
         if (metrics.get("completed_render_callbacks", 0) <= 0
                 or metrics.get("webgpu_canvas_submissions", 0) <= 0):
             raise ValueError("Each bridge trial must complete observed application graphics work")
@@ -89,8 +93,21 @@ def verify_runs(runs: list[dict[str, Any]], repeats: int, source_sha: str,
             if metrics.get("graphics_api_calls", {}).get("webgpu.copyExternalImageToTexture", 0) != 0:
                 raise ValueError("The direct Graphite trial unexpectedly copied an external document image")
             require_graphite_queue_drain(run.get("graphite_queue_drain", {}), required=True)
-        if diagnostics and workload == "brush-hover":
-            verify_hover_isolation(run.get("managed_render_diagnostics", {}).get("after", {"phases": []}))
+        if workload == "selection":
+            visual = run.get("quality", {})
+            changed = visual.get("changed_document_pixels")
+            if visual.get("minimum_changed_pixels") != 50 or type(changed) is not int or changed < 50:
+                raise ValueError("Selection must retain the existing visible-overlay readiness proof")
+            restored = visual.get("restored", {})
+            rulers = restored.get("ruler_changed_pixel_fraction", {})
+            fractions = [restored.get("changed_pixel_fraction"), *rulers.values()]
+            if (set(rulers) != {"horizontal", "vertical"}
+                    or any(type(value) not in (int, float) or not math.isfinite(value)
+                           or not 0 <= value <= 0.001 for value in fractions)):
+                raise ValueError("Selection must restore the original document and ruler pixel checks")
+        if diagnostics and workload in {"brush-hover", "selection"}:
+            verify_interaction_isolation(
+                run.get("managed_render_diagnostics", {}).get("after", {"phases": []}), workload)
         verify_bridge(run["console"], run["canvas_bridge"])
 
 
