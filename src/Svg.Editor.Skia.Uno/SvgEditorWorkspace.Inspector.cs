@@ -243,11 +243,12 @@ public sealed partial class SvgEditorWorkspace
     private TextBox TextField(string label, string value, Action<string> apply, bool multiline = false)
     {
         var field = new TextBox { Header = label, AcceptsReturn = multiline, TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap, Text = value };
+        var baseline = field.Text;
         AutomationProperties.SetName(field, label);
         void Commit()
         {
-            if (_refreshing || !field.IsEnabled || field.Text == value) return;
-            var updated = field.Text; apply(updated); value = updated;
+            if (_refreshing || !field.IsEnabled || field.Text == baseline) return;
+            var updated = field.Text; apply(updated); baseline = updated;
         }
         _inspectorCommits.Add(field, Commit);
         field.LostFocus += (_, _) => { if (!_committingInspector) ApplySafely(Commit); };

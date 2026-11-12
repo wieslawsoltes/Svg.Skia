@@ -402,7 +402,7 @@ public sealed partial class SvgEditorWorkspace
         if (type.SelectedIndex == 0)
             gradient.Add(new XAttribute("x1", "0%"), new XAttribute("x2", "100%"), new XAttribute("y1", "50%"), new XAttribute("y2", "50%"), new XAttribute("gradientTransform", $"rotate({angle.Value.ToString(CultureInfo.InvariantCulture)} .5 .5)"));
         var parsedStops = new List<(double Offset, string Color, double Opacity)>();
-        foreach (var line in stops.Text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        foreach (var line in stops.Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
         {
             var pieces = line.Split(',', StringSplitOptions.TrimEntries);
             if (pieces.Length is < 2 or > 3 || !double.TryParse(pieces[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var offset))

@@ -283,6 +283,19 @@ capture editor-workspace-light
 command 'Use dark interface'
 capture editor-workspace-dark
 
+# Native multiline TextBox input normalizes line endings. Author the complete
+# default stop list through the source dialog, then restore the saved artwork.
+command 'Select all'
+command 'gradient-source-create'
+capture editor-gradient-source-stops
+accept_dialog gradient-source-create
+save
+python3 "$source_dir/assert_gradient_target.py" "$document" "$output" fill --mode source-defaults --name editor-gradient-source-default-stops
+command 'Undo'
+command 'Deselect'
+save
+verify restored-editor-gradient-source
+
 # Exercise close ownership after the existing fixture checks and documentation
 # captures. Clipboard SVG observes the real controller through production Copy
 # and source-editor commands; each capture clears old clipboard content first.

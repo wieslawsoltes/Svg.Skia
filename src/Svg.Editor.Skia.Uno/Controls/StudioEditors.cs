@@ -34,7 +34,7 @@ public sealed class StudioTextField : UserControl
         {
             if (args.Key == VirtualKey.Escape)
             {
-                _input.Text = _baseline; args.Handled = true; EditCanceled?.Invoke(this, EventArgs.Empty);
+                SetSynchronizedText(_baseline); args.Handled = true; EditCanceled?.Invoke(this, EventArgs.Empty);
             }
             else if (args.Key == VirtualKey.Enter && !multiline) { TryCommit(); args.Handled = true; }
         };
@@ -43,10 +43,29 @@ public sealed class StudioTextField : UserControl
     public void Synchronize(string? value, bool mixed = false)
     {
         if (HasPendingEdit || _committing) return;
-        _baseline = mixed ? string.Empty : value ?? string.Empty;
         _input.PlaceholderText = mixed ? "Mixed values" : string.Empty;
-        _input.Text = _baseline;
+        SetSynchronizedText(mixed ? string.Empty : value ?? string.Empty);
+        // Native text controls normalize line endings. Only a change to the
+        // displayed value is a draft; adopting a model value must not create one.
+        _baseline = _input.Text;
         _targetIsCurrent = CaptureTargetValidation?.Invoke();
+    }
+    private void SetSynchronizedText(string value)
+    {
+        var maximum = _input.MaxLength;
+        try
+        {
+            // Existing imported values remain visible and can be restored by
+            // Escape. The input limit still applies to subsequent user edits.
+            if (maximum > 0 && value.Length > maximum)
+                _input.MaxLength = 0;
+            _input.Text = value;
+        }
+        finally
+        {
+            if (_input.MaxLength != maximum)
+                _input.MaxLength = maximum;
+        }
     }
     public void Commit()
     {
