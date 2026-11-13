@@ -1,0 +1,14 @@
+name: Request UnoDraw supplemental depth-prepass diagnostic
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  requested-probe:
+    if: github.event.label.name == 'unodraw-depth-prepass'
+    uses: ./.github/workflows/unodraw-depth-prepass.yml
